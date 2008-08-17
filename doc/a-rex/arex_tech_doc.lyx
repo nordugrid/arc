@@ -1,5 +1,5 @@
-#LyX 1.5.5 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.4.5.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
 \begin_document
 \begin_header
 \textclass article
@@ -46,21 +46,13 @@
 \end_preamble
 \language english
 \inputencoding auto
-\font_roman times
-\font_sans helvet
-\font_typewriter courier
-\font_default_family default
-\font_sc false
-\font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
+\fontscheme pslatex
 \graphics default
 \paperfontsize default
 \spacing onehalf
 \papersize a4paper
 \use_geometry true
 \use_amsmath 2
-\use_esint 0
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
@@ -76,9 +68,8 @@
 \papercolumns 1
 \papersides 2
 \paperpagestyle default
-\tracking_changes true
+\tracking_changes false
 \output_changes true
-\author "Steffen Moeller" 
 \end_header
 
 \begin_body
@@ -315,7 +306,7 @@ end{titlepage}
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand tableofcontents
+\begin_inset LatexCommand \tableofcontents{}
 
 \end_inset
 
@@ -340,8 +331,7 @@ newpage
 
 \begin_layout Section
 Introduction
-\begin_inset LatexCommand label
-name "sec:intro"
+\begin_inset LatexCommand \label{sec:intro}
 
 \end_inset
 
@@ -349,92 +339,25 @@ name "sec:intro"
 \end_layout
 
 \begin_layout Standard
-A-REX is one of ARC middleware compone
-\change_inserted 0 1219009499
-n
-\change_unchanged
-ts 
-\change_inserted 0 1219009538
-that 
-\change_unchanged
-implement
-\change_deleted 0 1219009541
-ing
-\change_unchanged
- functions of so called 
+A-REX is one of ARC middleware componets implementing functions of so called
+ 
 \emph on
 Computing Element
 \emph default
  (CE).
  
-\change_deleted 0 1219009550
-
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 0 1219009566
-The aim of the A-REX is to 
-\change_inserted 0 1219009567
-It 
-\change_unchanged
-take
-\change_inserted 0 1219009570
-s
-\change_unchanged
- care of job pre- and post-processing.
- 
-\change_inserted 0 1219009593
-This comprises
-\change_deleted 0 1219009590
-It
-\change_unchanged
- 
-\change_deleted 0 1219009595
-provides 
-\change_inserted 0 1219009596
-the 
-\change_deleted 0 1219009607
-functionality to 
-\change_unchanged
-stage-in 
-\change_inserted 0 1219009613
-of 
-\change_unchanged
-files containing input data 
-\change_deleted 0 1219009622
-and 
-\change_inserted 0 1219009623
-or 
-\change_unchanged
-program modules from wide range of sources and 
-\change_inserted 0 1219009638
-the 
-\change_unchanged
-transfer or stor
-\change_deleted 0 1219009651
-e
-\change_inserted 0 1219009655
-ing of
-\change_unchanged
- output results.
+The aim of the A-REX is to take care of job pre- and post-processing.
+ It provides functionality to stage-in files containing input data and program
+ modules from wide range of sources and transfer or store output results.
 \end_layout
 
 \begin_layout Standard
-The A-REX implements 
-\change_inserted 0 1219009663
-a 
-\change_unchanged
-Web Service (WS) interface which provides a way to submit and control computatio
-nal tasks (jobs) to be executed by the A-REX and 
-\change_inserted 0 1219009675
-the 
-\change_unchanged
-unde
-\change_inserted 0 1219009676
-r
-\change_unchanged
-lying Local Resource Management System.
+The A-REX implements Web Service (WS) interface which provides a way to
+ submit and control computational tasks (jobs) to be executed by the A-REX
+ and undelying Local Resource Management System.
 \end_layout
 
 \begin_layout Standard
@@ -442,18 +365,9 @@ lying Local Resource Management System.
 \series bold
 You should use this document for advanced configuration purposes and understandi
 ng of internals of the aforementioned tools.
- For general instal
-\change_deleted 0 1219009690
-a
-\change_unchanged
-l
-\change_inserted 0 1219009692
-a
-\change_unchanged
-tion and configuration of whole system refer to other documents avaialble
- at 
-\begin_inset LatexCommand url
-target "http://www.nordugrid.org/papers.html"
+ For general instalaltion and configuration of whole system refer to other
+ documents avaialble at 
+\begin_inset LatexCommand \url{http://www.nordugrid.org/papers.html}
 
 \end_inset
 
@@ -463,8 +377,7 @@ target "http://www.nordugrid.org/papers.html"
 
 \begin_layout Section
 Main concepts
-\begin_inset LatexCommand label
-name "sec:main concepts"
+\begin_inset LatexCommand \label{sec:main concepts}
 
 \end_inset
 
@@ -472,19 +385,7 @@ name "sec:main concepts"
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 0 1219009739
-On the compute element, 
-\change_deleted 0 1219009740
-A
-\change_inserted 0 1219009740
-a
-\change_unchanged
- job is 
-\change_inserted 0 1219009781
-described as 
-\change_unchanged
-a set of input files (which may include executables), a main executable
+A job is a set of input files (which may include executables), a main executable
  and a set of output files.
  The process of gathering input files, executing a job, and transferring/storing
  output files is called a 
@@ -506,28 +407,10 @@ session directory
  by the job other than SD (unless such a place is part of a requested Runtime
  Environement).
  The SD is also the only place which is controlled by the A-REX.
- It is accessible by the user from outside through 
-\change_inserted 0 1219009880
-the 
-\change_unchanged
-HTTP(S) protocol.
+ It is accessible by the user from outside through HTTP(S) protocol.
  Any file created outside the SD is not controlled by the A-REX.
  Any exchange of data between client and A-REX (including also program modules)
- is 
-\change_deleted 0 1219009856
-done 
-\change_inserted 0 1219009857
-performed 
-\change_deleted 0 1219009873
-through 
-\change_inserted 0 1219009876
-via 
-\change_unchanged
-HTTP(S)
-\change_deleted 0 1219009871
- protocol
-\change_unchanged
-.
+ is done through HTTP(S) protocol.
  A URL for accessing input/output files is  obtained through the WS Local
  Information Description Interface (LIDI) of A-REX.
 \end_layout
@@ -539,26 +422,18 @@ jobid
 \shape default
 ).
  This is a handle - WS-Addressing 
-\begin_inset LatexCommand cite
-key "jsdl"
+\begin_inset LatexCommand \cite{jsdl}
 
 \end_inset
 
  XML document - which identifies the job in the A-REX and the Information
  Interface.
-\change_deleted 0 1219009933
-
 \end_layout
 
 \begin_layout Standard
-Jobs are initiated and controlled through 
-\change_inserted 0 1219009923
-the 
-\change_unchanged
-WS interface.
+Jobs are initiated and controlled through WS interface.
  Complete job descriptions (JD)are passed to the A-REX through WS in JSDL
-\begin_inset LatexCommand cite
-key "jsdl"
+\begin_inset LatexCommand \cite{jsdl}
 
 \end_inset
 
@@ -569,8 +444,7 @@ key "jsdl"
 
 \begin_layout Section
 Input/output data
-\begin_inset LatexCommand label
-name "sec:input/output data"
+\begin_inset LatexCommand \label{sec:input/output data}
 
 \end_inset
 
@@ -587,22 +461,16 @@ One of the most important tasks of the A-REX is to take care of processing
 \begin_layout Itemize
 Download is initiated by the A-REX -- This is the case for files defined
  in the JD (with name and source).
- The A-REX alone is responsible to 
-\change_deleted 0 1219009989
-make 
-\change_inserted 0 1219009990
-en
-\change_unchanged
-sure that all required files will be available in the SD.
+ The A-REX alone is responsible to make sure that all required files will
+ be available in the SD.
 \newline
-The supported protocols
- for sources at the moment are (in case of full installation): GridFTP,
- FTP, HTTP, HTTPS (HTTP over SSLv3).
+The supported protocols for sources at the moment
+ are (in case of full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over
+ SSLv3).
  Also some less standard sources are supported.
  Those are described below.
  The A-REX fully relies on HED framework 
-\begin_inset LatexCommand cite
-key "hed"
+\begin_inset LatexCommand \cite{hed}
 
 \end_inset
 
@@ -677,8 +545,7 @@ All files not specified in the JD are deleted after job execution finished.
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
-name "Section: Job Flow"
+\begin_inset LatexCommand \label{Section: Job Flow}
 
 \end_inset
 
@@ -688,8 +555,7 @@ Job flow
 \begin_layout Standard
 From the point of view of the A-REX a job passes through various states.
  Picture 
-\begin_inset LatexCommand ref
-reference "job states diagram"
+\begin_inset LatexCommand \ref{job states diagram}
 
 \end_inset
 
@@ -717,21 +583,12 @@ includegraphics{pic1}
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-\begin_inset LatexCommand label
-name "job states diagram"
+\begin_layout Caption
+\begin_inset LatexCommand \label{job states diagram}
 
 \end_inset
 
 Job states
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -955,8 +812,7 @@ The Hosting Environment of the Advanced Resource Connector middleware
 \end_inset
 
  document 
-\begin_inset LatexCommand cite
-key "hed"
+\begin_inset LatexCommand \cite{hed}
 
 \end_inset
 
@@ -964,8 +820,7 @@ key "hed"
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
-name "section: internals"
+\begin_inset LatexCommand \label{section: internals}
 
 \end_inset
 
@@ -1068,8 +923,7 @@ Deleted
 \end_deeper
 \begin_layout Standard
 See section 
-\begin_inset LatexCommand ref
-reference "Section: Job Flow"
+\begin_inset LatexCommand \ref{Section: Job Flow}
 
 \end_inset
 
@@ -1083,8 +937,7 @@ PENDING:
 \end_inset
 
  (like PENDING:ACCEPTED, see section 
-\begin_inset LatexCommand ref
-reference "Section: Job Flow"
+\begin_inset LatexCommand \ref{Section: Job Flow}
 
 \end_inset
 
@@ -1322,9 +1175,9 @@ jobreport
 logger service
 \emph default
 .
- The GM will also send job records to this service in addition to the default
- logger service configured in the configuration (This feature does not work
- in current implementation).
+ The A-REX will also send job records to this service in addition to the
+ default logger service configured in the configuration (This feature does
+ not work in current implementation).
 \end_layout
 
 \end_deeper
@@ -1681,13 +1534,9 @@ A-REX Web Service Interface provides means to submit a description of a
  computational job to a computing resource, to stage-in additional data,
  to monitor and control processing of jobs, and obtain data produced during
  the execution of a job.
- The WS Interface is built and deployed inside 
-\change_inserted 0 1219010081
-the 
-\change_unchanged
-Hosting Envirnoment Daemon (HED) infrastructure
-\begin_inset LatexCommand cite
-key "hed"
+ The WS Interface is built and deployed inside Hosting Envirnoment Daemon
+ (HED) infrastructure
+\begin_inset LatexCommand \cite{hed}
 
 \end_inset
 
@@ -1699,29 +1548,14 @@ Basic Execution Service Interface
 \end_layout
 
 \begin_layout Standard
-The job submission and control interface is based on 
-\change_inserted 0 1219010088
-a 
-\change_unchanged
-document produced by the OGF OGSA Basic Execution Services (BES) Working
- Group
-\begin_inset LatexCommand cite
-key "bes"
+The job submission and control interface is based on document produced by
+ the OGF OGSA Basic Execution Services (BES) Working Group
+\begin_inset LatexCommand \cite{bes}
 
 \end_inset
 
 .
- The exchange of SOAP messages is performed 
-\change_deleted 0 1219010118
-over the
-\change_inserted 0 1219010126
-via
-\change_unchanged
- HTTP(S)
-\change_deleted 0 1219010132
- protocol
-\change_unchanged
-.
+ The exchange of SOAP messages is performed over the HTTP(S) protocol.
  The BES interface is represented by two port-types - BES-Management and
  BES-Factory.
  The former is made to control the A-REX service itself and thus defines
@@ -1737,8 +1571,7 @@ via
 \begin_layout Standard
 For job descriptions A-REX accepts the Job Submission Description Language
  (JSDL)
-\begin_inset LatexCommand cite
-key "jsdl"
+\begin_inset LatexCommand \cite{jsdl}
 
 \end_inset
 
@@ -1757,7 +1590,7 @@ A-REX introduces a new operation in addition to those provided by BES.
 \emph on
 ChangeActivityStatus
 \emph default
- (see Appendix D).
+ (see Appendix C).
  This operation provides a way to request simple transfers between states
  of jobs and corresponding actions.
 \end_layout
@@ -1852,15 +1685,13 @@ Since BES allows implementators to extend their initial activity states
  with additional sub-states, A-REX defines a set of sub-states of activity
  processing in addition to those defined by the BES, as listed in Table
  
-\begin_inset LatexCommand ref
-reference "tab:Job-states-definitions"
+\begin_inset LatexCommand \ref{tab:Job-states-definitions}
 
 \end_inset
 
 .
  Their meaning is described in section 
-\begin_inset LatexCommand ref
-reference "Section: Job Flow"
+\begin_inset LatexCommand \ref{Section: Job Flow}
 
 \end_inset
 
@@ -1873,21 +1704,12 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-\begin_inset LatexCommand label
-name "tab:Job-states-definitions"
+\begin_layout Caption
+\begin_inset LatexCommand \label{tab:Job-states-definitions}
 
 \end_inset
 
 Job states definitions and mappings
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -2403,13 +2225,7 @@ Delegation Interface
 \end_layout
 
 \begin_layout Standard
-The A-REX also support
-\change_inserted 0 1219010181
-s
-\change_deleted 0 1219010181
-d
-\change_unchanged
- the Delegation Interface (see Appendix E).
+The A-REX also supportd the Delegation Interface (see Appendix D).
  This is a common purpose interface to be used by ARC services which accepts
  delegated credentials from clients.
  The Delegation Interface implements two operations: initiatialization of
@@ -2580,8 +2396,7 @@ DelegateCredentialsInit
  operation.
  For more information about delegations and delegation interface refer to
  
-\begin_inset LatexCommand cite
-key "wsrf-rp"
+\begin_inset LatexCommand \cite{wsrf-rp}
 
 \end_inset
 
@@ -2596,8 +2411,7 @@ Local Information Description Interface
 The A-REX implements the Local Information Description Interface (LIDI)
  interface common for all ARC services.
  This interface is based on OASIS Web Services Resource Properties specification
-\begin_inset LatexCommand cite
-key "wsrf-rp"
+\begin_inset LatexCommand \cite{wsrf-rp}
 
 \end_inset
 
@@ -2646,8 +2460,7 @@ Supported JSDL elements
 
 \begin_layout Standard
 A-REX supports the following elements from the JSDL version 1.0 specification
-\begin_inset LatexCommand cite
-key "jsdl"
+\begin_inset LatexCommand \cite{jsdl}
 
 \end_inset
 
@@ -2846,7 +2659,7 @@ ARC-specific JSDL Extensions
 
 \begin_layout Standard
 A-REX accepts JSDL documents having the following additional elements (see
- Appendix F):
+ Appendix E):
 \end_layout
 
 \begin_layout List
@@ -2964,8 +2777,7 @@ CandidateTarget -
 
 \begin_layout Section
 Cache
-\begin_inset LatexCommand label
-name "sec:cache"
+\begin_inset LatexCommand \label{sec:cache}
 
 \end_inset
 
@@ -2991,16 +2803,14 @@ Protocols, Uniform Resource Locators (URL) and extensions supported in ARC
 \end_inset
 
  
-\begin_inset LatexCommand cite
-key "urls"
+\begin_inset LatexCommand \cite{urls}
 
 \end_inset
 
 ).
  The disc space occupied by cache is controlled by removing unused files.
  For more information look in section 
-\begin_inset LatexCommand ref
-reference "SubSection: ConfigFile"
+\begin_inset LatexCommand \ref{SubSection: ConfigFile}
 
 \end_inset
 
@@ -3270,8 +3080,7 @@ shared
 
 \begin_layout Section
 Files and directories
-\begin_inset LatexCommand label
-name "sec:files and directories"
+\begin_inset LatexCommand \label{sec:files and directories}
 
 \end_inset
 
@@ -3340,21 +3149,19 @@ old
 new
 \emph default
  (as described in section 
-\begin_inset LatexCommand ref
-reference "sec:cache"
+\begin_inset LatexCommand \ref{sec:cache}
 
 \end_inset
 
 ).
- Configuration is read directly from the GM's configuration file (see section
- 
-\begin_inset LatexCommand ref
-reference "SubSection: ConfigFile"
+ Configuration is read directly from the A-REX's configuration file (see
+ section 
+\begin_inset LatexCommand \ref{SubSection: ConfigFile}
 
 \end_inset
 
 ).
- It is run by the GM every 5 minutes.
+ It is run by the A-REX every 5 minutes.
 \end_layout
 
 \begin_layout Itemize
@@ -3645,8 +3452,7 @@ In order for jobs to access
  Otherwise, LRMS-specific methods must be used to transfer files to execution
  nodes.
  For more information see section 
-\begin_inset LatexCommand ref
-reference "sub:LRMS"
+\begin_inset LatexCommand \ref{sub:LRMS}
 
 \end_inset
 
@@ -3682,8 +3488,7 @@ Configuration
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
-name "SubSection: ConfigFile"
+\begin_inset LatexCommand \label{SubSection: ConfigFile}
 
 \end_inset
 
@@ -4487,8 +4292,7 @@ control
 path
 \shape default
  refers to the control directory (see section 
-\begin_inset LatexCommand ref
-reference "section: internals"
+\begin_inset LatexCommand \ref{section: internals}
 
 \end_inset
 
@@ -4503,8 +4307,7 @@ username
  If the name is * it is substituted by all names found in file /etc/grid-securit
 y/grid-mapfile (for the format of this file one should study the Globus
  project 
-\begin_inset LatexCommand cite
-key "globus"
+\begin_inset LatexCommand \cite{globus}
 
 \end_inset
 
@@ -4642,8 +4445,7 @@ shared_filesystem
  filesystem like NFS.
  Corresponds to an environement variable RUNTIME_NODE_SEES_FRONTEND (see
  section 
-\begin_inset LatexCommand ref
-reference "sub:LRMS"
+\begin_inset LatexCommand \ref{sub:LRMS}
 
 \end_inset
 
@@ -4791,25 +4593,23 @@ renew - old job, new credentials
 
 \begin_layout List
 \labelwidthstring 00.00.0000
-write - write/delete file, create/delete directory (through gridftp)
+write - write/delete file, create/delete directory
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 read - read file, directory, etc.
- (through gridftp)
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
-extern - call external program (grid-manager)
+extern - call external program 
 \end_layout
 
 \end_deeper
 \begin_layout Subsection
 Authorization
-\begin_inset LatexCommand label
-name "sub:Authorization"
+\begin_inset LatexCommand \label{sub:Authorization}
 
 \end_inset
 
@@ -4818,12 +4618,13 @@ name "sub:Authorization"
 
 \begin_layout Standard
 Authorization is performed by generic means provided by HED framework.
- Currently A-REX does not implement any internal authorization tecniques.
+ Currently A-REX does not implement any internal authorization tecniques
+ except those imposed by Access Policy assigned to jobs through AccessControl
+ element of assigned JSDL.
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
-name "sub:LRMS"
+\begin_inset LatexCommand \label{sub:LRMS}
 
 \end_inset
 
@@ -4831,7 +4632,7 @@ LRMS support
 \end_layout
 
 \begin_layout Standard
-The GM comes with support for several LRMS.
+The A-REX comes with support for several LRMS.
  And this number is slowly growing.
  Features explained below are for 
 \series bold
@@ -4864,7 +4665,7 @@ submit-pbs-job
 \begin_inset Quotes eld
 \end_inset
 
-localtransfer no
+localtransfer=no
 \begin_inset Quotes erd
 \end_inset
 
@@ -4875,8 +4676,8 @@ localtransfer no
 
 \begin_layout Standard
 Behavior of submission script is mostly controlled using environment variables.
- Most of them can be specified on frontend in GM's environment and overwritten
- on cluster's node through PBS configuration.
+ Most of them can be specified on frontend in A-REX's environment and overwritte
+n on cluster's node through PBS configuration.
  Some of them may be set in configuration file too.
 \end_layout
 
@@ -4893,7 +4694,11 @@ PBS_BIN_PATH
 /usr/local/bin
 \emph default
  for example.
+
+\emph on
  
+\emph default
+Corresponds to 
 \emph on
 pbs_bin_path
 \emph default
@@ -4908,7 +4713,7 @@ PBS_LOG_PATH
 \series default
 \shape default
  - path to PBS server logs.
- 
+ Corresponds to 
 \emph on
 pbs_log_path
 \emph default
@@ -4928,7 +4733,7 @@ TMP_DIR
 /tmp
 \emph default
 .
- 
+ Corresponds to 
 \emph on
 tmpdir
 \emph default
@@ -4943,7 +4748,7 @@ RUNTIME_CONFIG_DIR
 \series default
 \shape default
  - path where runtime setup scripts can be found.
- 
+ Corresponds to 
 \emph on
 runtimedir
 \emph default
@@ -4958,13 +4763,13 @@ GNU_TIME
 \series default
 \shape default
  - path to GNU time utility.
- It is important to path to utility compatible with GNU time.
+ It is important to provide path to utility compatible with GNU time.
  If such utility is not available, modify 
 \shape italic
 submit-pbs-job
 \shape default
  to either reset this variable or change usage of available utility.
- 
+ Corresponds to 
 \emph on
 gnu_time
 \emph default
@@ -4984,7 +4789,7 @@ NODENAME
 /bin/hostname -f
 \emph default
 .
- 
+ Corresponds to 
 \emph on
 nodename
 \emph default
@@ -5023,7 +4828,7 @@ RUNTIME_LOCAL_SCRATCH_DIR
 frontend
 \series default
  machine.
- 
+ Corresponds to 
 \emph on
 shared_scratch
 \emph default
@@ -5053,7 +4858,7 @@ no
  In that case content of the SD is moved to computing node by using means
  provided by the LRMS.
  Results are moved back after job's execution in a same way.
- 
+ Corresponds to 
 \emph on
 shared_filesystem
 \emph default
@@ -5062,31 +4867,28 @@ shared_filesystem
 
 \begin_layout Standard
 Figures 
-\begin_inset LatexCommand ref
-reference "fig:no node scratch"
+\begin_inset LatexCommand \ref{fig:no node scratch}
 
 \end_inset
 
 ,
-\begin_inset LatexCommand ref
-reference "fig:node scratch, not vis on front"
+\begin_inset LatexCommand \ref{fig:node scratch, not vis on front}
 
 \end_inset
 
 ,
-\begin_inset LatexCommand ref
-reference "fig:node scratch, vis on front"
+\begin_inset LatexCommand \ref{fig:node scratch, vis on front}
 
 \end_inset
 
  present some possible combinations for RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FR
 ONTEND_SEES_NODE and explain how data movement is performed.
- Pictures a) corresponds to the situation right after all input files have
+ Pictures a) correspond to the situation right after all input files have
  been gathered in the session directory and show the actions taken right
  after the job's script starts.
- Pictures b) shows the situation while the job is running and the actions
+ Pictures b) show the situation while the job is running and the actions
  which are taken right after it has finished.
- Pictures c) illustrates the final situation, when the job's output files
+ Pictures c) illustrate the final situation, when the job's output files
  are ready to be uploaded to an external storage element or be downloaded
  by the user.
 \end_layout
@@ -5115,24 +4917,15 @@ includegraphics{pic2}
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-\begin_inset LatexCommand label
-name "fig:no node scratch"
+\begin_layout Caption
+\begin_inset LatexCommand \label{fig:no node scratch}
 
 \end_inset
 
 Both RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FRONTEND_SEES_NODE are undefined.
  It is assumed that session directories are visible from computing nodes.
- The job is executed directly in the session directory prepared by GM on
- the frontend.
-\end_layout
-
-\end_inset
-
-
+ The job is executed directly in the session directory prepared by the A-REX
+ on the frontend.
 \end_layout
 
 \end_inset
@@ -5161,22 +4954,13 @@ includegraphics{pic3}
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-\begin_inset LatexCommand label
-name "fig:node scratch, not vis on front"
+\begin_layout Caption
+\begin_inset LatexCommand \label{fig:node scratch, not vis on front}
 
 \end_inset
 
 RUNTIME_LOCAL_SCRATCH_DIR is set to the location of the scratch directory
  on the computing node, RUNTIME_FRONTEND_SEES_NODE is undefined.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout List
@@ -5233,23 +5017,14 @@ includegraphics{pic4}
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-\begin_inset LatexCommand label
-name "fig:node scratch, vis on front"
+\begin_layout Caption
+\begin_inset LatexCommand \label{fig:node scratch, vis on front}
 
 \end_inset
 
 Both RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FRONTEND_SEES_NODE are set to
  the location of the scratch directory on the computing node and the location
  where this scratch directory is accessible from the frontend, respectively.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout List
@@ -5439,9 +5214,7 @@ With argument '2' scripts are executed after main executable finished.
 
 \begin_layout Standard
 For publicly available runtime environments please see 
-\begin_inset LatexCommand url
-name "RTE"
-target "http://gridrer.csc.fi/"
+\begin_inset LatexCommand \url[RTE]{http://gridrer.csc.fi/}
 
 \end_inset
 
@@ -5450,8 +5223,7 @@ target "http://gridrer.csc.fi/"
 
 \begin_layout Section
 Installation
-\begin_inset LatexCommand label
-name "sec:installation"
+\begin_inset LatexCommand \label{sec:installation}
 
 \end_inset
 
@@ -5461,9 +5233,7 @@ name "sec:installation"
 \begin_layout Standard
 The A-REX is installed as part of ARC 1 middleware and is available in NorduGrid
  download area at 
-\begin_inset LatexCommand url
-name "ARC1 Download"
-target "http://download.nordugrid.org/software/nordugrid-arc1/"
+\begin_inset LatexCommand \url[ARC1 Download]{http://download.nordugrid.org/software/nordugrid-arc1/}
 
 \end_inset
 
@@ -5482,51 +5252,96 @@ If installed from binary packages all dependencies are handled automatically.
 \end_layout
 
 \begin_layout Subsection
-Setup of the Grid Manager
+Setup of the A-REX
 \end_layout
 
 \begin_layout Standard
-For in-depth information about how to properly setup the GM and related
- software please read 
-\begin_inset Quotes eld
-\end_inset
+The A-REX service is a plugable module of the HED.
+ Si first You need to setup your HED - see HED documentation.
+ 
+\end_layout
 
-NorduGrid ARC server installation instructions
+\begin_layout Standard
+Then You need to add A-REX to the HED configuration.
+ Add new <Name> element inside <Plugins> containing string 
+\emph on
+arex
+\emph default
+.
+ That will make HED load libarex plugin library.
+ Then add new <Service> element with attribute name=
 \begin_inset Quotes erd
 \end_inset
 
- at 
-\begin_inset LatexCommand htmlurl
-target "http://www.nordugrid.org/documents/ng-server-install.html"
+a-rex
+\begin_inset Quotes erd
+\end_inset
+
+.
+ That will instantiate A-REX service.
+ Now to make service accessible extend <Plexer> element with new <next>
+ refering to service's id.
+ Write <Service> element carefully - here is an example:
+\end_layout
+
+\begin_layout LyX-Code
+    <!-- A-Rex service -->
+\end_layout
+
+\begin_layout LyX-Code
+    <Service name="a-rex" id="a-rex">
+\end_layout
+
+\begin_layout LyX-Code
+      <!-- Optional endpoint element is advised in case of multiple IP adresses
+ -->
+\end_layout
+
+\begin_layout LyX-Code
+      <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
+\end_layout
+
+\begin_layout LyX-Code
+      <!-- Use information generated by identity.map plugin or default provided
+ below -->
+\end_layout
+
+\begin_layout LyX-Code
+      <arex:usermap><arex:defaultLocalName>nobody</arex:defaultLocalName></arex:
+usermap>
+\end_layout
+
+\begin_layout LyX-Code
+      <!-- grid-manager part of a-rex requires legacy configuration file.
+\end_layout
+
+\begin_layout LyX-Code
+           Use arc_arex.conf example or write own.
+ -->
+\end_layout
+
+\begin_layout LyX-Code
+      <arex:gmconfig>/etc/arc_arex.conf</arex:gmconfig>
+\end_layout
+
+\begin_layout LyX-Code
+    </Service>
+\end_layout
+
+\begin_layout Standard
+For in-depth information about available elements see Appendix B.
+ 
+\end_layout
+
+\begin_layout Standard
+Use a template arc_arex.conf or write own A-REX configuration file.
+ For information about format and available configuration commands see Section
+ 
+\begin_inset LatexCommand \ref{SubSection: ConfigFile}
 
 \end_inset
 
 .
- Follow that manual to install GM, configure and run it.
- Additional 
-\change_deleted 0 1219010360
-tips
-\change_inserted 0 1219010361
-hints
-\change_unchanged
- are described here.
-\end_layout
-
-\begin_layout Standard
-The GM is designed to be able to run both as root and as ordinary user.
- You can chose the name of the user by using corresponding command in configurat
-ion file.
- It is better run GM as root if You want to serve few users.
-\end_layout
-
-\begin_layout Standard
-The GM writes debug information into a file /var/log/grid-manager.log by
- default.
- .
- Also file /var/log/gm-jobs.log (default path in configuration template,
- turned off by default) contains information about all started and finished
- jobs, 2 lines per job (1 when job is started and 1 after it finished).
- 
 \end_layout
 
 \begin_layout Subsection
@@ -5534,23 +5349,11 @@ Usage
 \end_layout
 
 \begin_layout Standard
-Refer to the description of the 
+Please read 
 \emph on
-User Interface
+User Manual []
 \emph default
- part 
-\begin_inset LatexCommand cite
-key "ui"
-
-\end_inset
-
- and extensions to RSL 
-\begin_inset LatexCommand cite
-key "xrsl"
-
-\end_inset
-
- for using the GM.
+ for usage instructions.
 \end_layout
 
 \begin_layout Subsection
@@ -5558,7 +5361,7 @@ Running as non-root
 \end_layout
 
 \begin_layout Standard
-Bot GM and GFS are primarily designed to be run by the 
+The A-REX is primarily designed to be run by the 
 \emph on
 root
 \emph default
@@ -5568,89 +5371,25 @@ root
 \emph on
 non-root
 \emph default
- accounts to run these services at the cost of some functionality loss as
+ accounts to run that service at the cost of some functionality loss as
  described below.
 \end_layout
 
 \begin_layout Standard
-There are no drawbacks of running GFS with 
-\emph on
-gaclplugin
-\emph default
- or 
-\emph on
-fileplugin
-\emph default
- under a 
+There are no drawbacks of running A-REX under a 
 \emph on
 non-root
 \emph default
- account as long as the only Grid identity used is that of the user who
+ account as long as the only UNIX identity used is that of the user who
  runs the services and all served files and directories are owned by the
  server's account.
- 
-\end_layout
-
-\begin_layout Standard
-In order for GM and GFS with 
-\emph on
-jobplugin
-\emph default
- to be able to cooperate, both services must be run either by the same non-root
- account or one of the services must be run under the 
-\emph on
-root
-\emph default
- account.
- This is needed because the two services communicate over a local filesystem,
- hence they must have 
-\emph on
-full
-\emph default
- access to the same set of files.
-\end_layout
-
-\begin_layout Standard
-As long as GFS with 
-\emph on
-jobplugin
-\emph default
- is run under a non-root account, no mapping from Grid identity to local
- UNIX account takes place.
- All alowed Grid users are assigned the server's account and are then processes
- by GM using same account.
- The only way to overcome this limitation is to run one GFS per local account
- with proper access control configured.
-\end_layout
-
-\begin_layout Standard
-Because GM has to impersonate a user's local account while communicating
+ Because A-REX has to impersonate a user's local account while communicating
  with the LRMS, it can serve only the account it is run under (unless it
  is run under the 
 \emph on
 root
 \emph default
  account, of course).
- As in the case of GFS, multiple instances of GM may be run, one per local
- account.
- This solution has some drawbacks.
- The GM looses possibility to share cached files among serviced users.
- In addition, it is not possible to control the load on a frontend by limiting
- the number of simultatenuosly running 
-\emph on
-downloader
-\emph default
- and 
-\emph on
-uploader
-\emph default
- modules.
-\end_layout
-
-\begin_layout Standard
-One also has to take into account that the private part of the GSI infrastructur
-e (private key of a host at least) has to be duplicated for every account
- used to run GFS.
 \end_layout
 
 \begin_layout Section*
@@ -5658,209 +5397,34 @@ Appendix A.
  Session directory access through HTTP(S) interface
 \end_layout
 
-\begin_layout Subsection*
-Virtual tree
+\begin_layout Standard
+In addition to the BES interface A-REX provides access to the SD through
+ pure HTTP(S) interface.
+ This functionality is used for uploading user-stageable files during job
+ submission and for staging out result files produced by job.
+ It can also be used to monitor job execution by checking content of application
+ dependant files in SD.
 \end_layout
 
 \begin_layout Standard
-Under the mount point of the jobplugin, a user connecting with a gridftp
- client will see virtual directories representing the jobs belonging to
- him/her.
- Directory names are job identifiers, each representing one job.
- These directories are directly connected to session directories of jobs
- and contain the files and subdirectories that are visible on the frontend.
+The BES defines job identifier as WS Addressing [] Endpoint Reference (EPR)
+ - XML document.
+ The EPR is extendable and the A-REX adds it own element JobSessionDir belonging
+ to namespace http://www.nordugrid.org/schemas/a-rex as direct child of ReferenceP
+arameters element.
+ This new element contains the URL of SD.
 \end_layout
 
 \begin_layout Standard
-If a job's xRSL has 
-\emph on
-gmlog
-\emph default
- specified, then the job's directory also contains a virtual subdirectory
- of that name holding files with information about the job as created by
- GM.
- The 'errors' and 'status' files are especially usefull for troubleshooting.
- 'errors' contains the stderr output of the various modules run by GM during
- job processing stages (downloader, uploader, job's submission to LRMS).
- 'status' contains one word representing the job's state.
- 
-\end_layout
-
-\begin_layout Standard
-Also under the jobplugin's mount point there is an additional directory
- named "new" -- used to submit new jobs -- and another directory named 
-\begin_inset Quotes erd
-\end_inset
-
-info
-\begin_inset Quotes erd
-\end_inset
-
-.
- The latter has subdirectories named after job ids, each of which contains
- files with information about a job.
- These are the same files that can be accessed in the subdirectory specified
- through 
-\emph on
-gmlog
-\emph default
-.
-\end_layout
-
-\begin_layout Subsection*
-Submission
-\end_layout
-
-\begin_layout Standard
-Each xRSL put into the 
-\begin_inset Quotes eld
-\end_inset
-
-new
-\begin_inset Quotes erd
-\end_inset
-
- directory by a gridftp client is treated as a new job's description.
- GFS's jobplugin parses the xRSL and returns the client a positive response
- if there were no errors in the request.
-\end_layout
-
-\begin_layout Standard
-The new job gets an identifier and a directory with the corresponding name
- appears.
- If the job's description contains input files which should be transferred
- from the client's machine, the client must upload them to that directory
- under specified names.
-\end_layout
-
-\begin_layout Standard
-The job identifier reserved by GFS to a new job must be somehow communicated
- back to the client.
- Within the bounds of the FTP protocol, this is achieved in the following
- way.
- Prior to uploading the xRSL, the client issues a CWD command to change
- the current directory to 
-\begin_inset Quotes eld
-\end_inset
-
-new
-\begin_inset Quotes erd
-\end_inset
-
-.
- In turn, the server responds with a redirect to the new session directory
- named after the reserved identifier.
- The client has now found out the job's id, and proceeds with uploading
- the xRLS.
-\end_layout
-
-\begin_layout Subsection*
-Actions
-\end_layout
-
-\begin_layout Standard
-Various actions to affect processing of an existing job are requested by
- uploading special xRSL files into directory 
-\begin_inset Quotes eld
-\end_inset
-
-new
-\begin_inset Quotes erd
-\end_inset
-
-.
- Such an xRSL may consist of only 2 parameters - 
-\emph on
-action
-\emph default
- for action to be performed, and 
-\emph on
-jobid
-\emph default
- to identify the job to be affected.
- All other parameters are ignored.
-\end_layout
-
-\begin_layout Standard
-The currently supported actions are:
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\emph on
-cancel
-\emph default
- to cancel a job
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\emph on
-clean
-\emph default
- to remove a job from computing resource
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\emph on
-renew
-\emph default
- to renew credentials delegated to a job
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\emph on
-restart
-\emph default
- to restart a job after failure at some phases
-\end_layout
-
-\begin_layout Standard
-Alternatively, it is also possible to perform some of these actions by using
- the shortcut FTP operations described below.
-\end_layout
-
-\begin_layout Subsubsection*
-Cancel
-\end_layout
-
-\begin_layout Standard
-A job is canceled by performing a DELE (delete file) command on the directory
- representing the job.
- It can take some time (a few minutes) before the job is actually canceled.
- Nevertheless, the client gets a response immediately.
-\end_layout
-
-\begin_layout Subsubsection*
-Clean
-\end_layout
-
-\begin_layout Standard
-A job's content is cleaned by performing a RMD (remove directory) command
- on the directory representing the job.
- If the job is in "FINISHED" state it will be cleaned immediately.
- Otherwise it will be cleaned after it reaches state "FINISHED".
-\end_layout
-
-\begin_layout Subsubsection*
-Renew
-\end_layout
-
-\begin_layout Standard
-If a client requests CWD to a job's session directory, credentials passed
- during authentication are compared to the current credentials of the job.
- If the validity time of the new credentials is longer, the job's current
- credentials are replaced with the new ones.
+Obtained URL shoud be extended with file names relative to SD and HTTP methods
+ PUT and GET may be used to upload/download content of those files.
+ For directories - including SD itself - GET method is supported shich returns
+ HTML encoded non-recursive list of files and firectories.
+ The files and subdirectories have their URLs inside HTML element <A>.
 \end_layout
 
 \begin_layout Section*
-Appendix C.
+Appendix B.
  Configuration schema of A-REX
 \end_layout
 
@@ -6117,1797 +5681,6 @@ elementFormDefault="qualified">
 
 \begin_layout Section*
 Appendix C.
- Error messages of A-REX
-\end_layout
-
-\begin_layout Standard
-If job has not finished successfully the A-REX puts one or more lines into
- 
-\shape italic
-job.ID.failed
-\shape default
-.
- Possible values include those generated by the A-REX itself:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Tabular
-<lyxtabular version="3" rows="25" columns="2">
-<features>
-<column alignment="block" valignment="top" leftline="true" width="2in">
-<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Error string
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Reason/description
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Internal error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Error in internal algorithm
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Internal error: can't read local file
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Error manipulating files in the control directory
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed reading local job information
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed reading status of the job
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed writing job status
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed during processing failure
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Serious troubles (problems during processing problems)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed initiating job submission to LRMS
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Could not run backend executable to pass job to LRMS
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Job submission to LRMS failed
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Backend executable supposed to pass job to LRMs returned non-zero exit code
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed extracting LRMS ID due to some internal error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output of Backend executable supposed to contain local ID of passed job
- could not be parsed
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed in files upload (post-processing)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed to upload some or all output files
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed in files upload due to expired credentials - try to renew
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed to upload some or all output files most probably due to expired credentia
-ls (proxy certificate)
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed to run uploader (post-processing)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Could not run 
-\emph on
-uploader
-\emph default
- executable
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-uploader failed (postprocessing)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error related to 
-\emph on
-uploader
-\emph default
- component
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed in files download (pre-processing)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed to upload some or all input files
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed in files download due to expired credentials - try to renew
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed to download some or all input files most probably due to expired
- credentials (proxy certificate)
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed to run downloader (pre-processing)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Could not run 
-\emph on
-downloader
-\emph default
- executable
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-downloader failed (preprocessing)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error related to 
-\emph on
-downloader
-\emph default
- component
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User requested to cancel the job
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-GM detected external request to cancel this job, most probably issued by
- user
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Could not process RSL
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Job description could not be processed to syntax errors or missing elements
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User requested dryrun.
- Job skiped.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Job description contains request not to process this job
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-LRMS error: (CODE) DESCRIPTION
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-LRMS returned error.
- CODE is replaced with numeric code of LRMS, and DESCRIPTION with textual
- description
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Plugin at state STATE failed: OUTPUT
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-External plugin specified in GM's configuration returned non-zero exit code.
- STATE is replcaced by name of state to which job was going to be passed,
- OUTPUT by textual output generated by plugin.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Failed running plugin at state STATE
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-External plugin specified in GM's configuration could not be executed.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace medskip
-\end_inset
-
-Provided by downloader component (URL is replcaced by source of input file,
- FILE by name of file):
-\end_layout
-
-\begin_layout Standard
-\begin_inset Tabular
-<lyxtabular version="3" rows="28" columns="2">
-<features>
-<column alignment="block" valignment="top" leftline="true" width="2in">
-<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Error string
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Reason/description
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Internal error in downloader
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - unknown error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - unexpected error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - bad source URL
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Source URL is either malformed or not supported
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - bad destination URL
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - failed to resolve source locations
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-File either not registred or other problems related to Data Indexing service.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - failed to resolve destination locations
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - failed to register new destination file
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - can't start reading from source
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Problems related to accessing instance of file at Data Storing service.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - can't read from source
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - can't start writing to destination
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Access problems in a session directory
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - can't write to destination
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - data transfer was too slow
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Timeouted while trying to download file
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - failed while closing connection to source
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - failed while closing connection to destination
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - failed to register new location
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - can't use local cache
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Problems with GM cache 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - system error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Operating System returned error code where unexpected
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Input file: URL - delegated credentials expired
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Access to source requires credententials and they are either outdated or
- missing (not delegated).
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Bad information about file: checksum can't be parsed.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-In job description there is a checksum provided for file uploadable by user
- interface and this record can't be interpreted.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Bad information about file: size can't be parsed.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-In job description there is a size provided for file uploadable by user
- interface and this record can't be interpreted.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Expected file.
- Directory found.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Instead of file uploadable by user interface GM found directory with same
- name in a session directory.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Expected ordinary file.
- Special object found.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Instead of file uploadable by user interface GM found special object with
- same name in a session directory.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Delivered file is bigger than specified.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-The size of file uploadable by user interface is bigger than specified in
- job description.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Delivered file is unreadable.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-GM can't check user uploadable file due to some internal error.
- Most probably due to improperly configured local permissions.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Could not read file to compute checksum.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-GM can't read user uploadable file due to some internal error.
- Most probably due to improperly configured local permissions.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User file: FILENAME - Timeout waiting
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-GM waited for user uploadable file too long.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace medskip
-\end_inset
-
-Provided by uploader component (URL is replcaced by destination of output
- file) :
-\end_layout
-
-\begin_layout Standard
-\begin_inset Tabular
-<lyxtabular version="3" rows="23" columns="2">
-<features>
-<column alignment="block" valignment="top" leftline="true" width="2in">
-<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Error string
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Reason/description
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Internal error in uploader
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - unknown error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - unexpected error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Generic error 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User requested to store output locally URL
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Destination is URL of type 
-\emph on
-file
-\emph default
-.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - bad source URL
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - bad destination URL
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Destination URL is either malformed or not supported
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - failed to resolve source locations
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - failed to resolve destination locations
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Problems related to Data Indexing service.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - failed to register new destination file
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
--//-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - can't start reading from source
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-User request to store output file, but there is no such file or there are
- problems accessing session directory
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - can't start writing to destination
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Problems with Data Storing services
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - can't read from source
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Problems accessing session directory
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - can't write to destination
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Problems with Data Storing services
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - data transfer was too slow
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Timeout during transfer
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - failed while closing connection to source
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - failed while closing connection to destination
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - failed to register new location
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Problems related to Data Indexing service.
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - can't use local cache
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Shouldn't happen
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - system error
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Operating System returned error code where unexpected
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Output file: URL - delegated credentials expired
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Access to destination requires credententials and they are either outdated
- or missing (not delegated).
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace medskip
-\end_inset
-
-Coming from LRMS (PBS) backend:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Tabular
-<lyxtabular version="3" rows="6" columns="2">
-<features>
-<column alignment="block" valignment="top" leftline="true" width="2in">
-<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Error string
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\emph on
-Reason/description
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Submission: Configuration error.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Submission: System error.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Submission: Job description error.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Submission: Local submission client behaved unexpectedly.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Submission: Local submission client failed.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout LyX-Code
- 
-\end_layout
-
-\begin_layout Section*
-Appendix D.
  A-REX WSDL
 \end_layout
 
@@ -8856,7 +6629,7 @@ ties">
 \end_layout
 
 \begin_layout Section*
-Appendix E.
+Appendix D.
  Delegation WSDL
 \end_layout
 
@@ -9495,7 +7268,7 @@ Response"/>
 \end_layout
 
 \begin_layout Section*
-Appendix F.
+Appendix E.
  ARC extensions for JSDL schema
 \end_layout
 
@@ -10150,6 +7923,1793 @@ ype"/>
 
 \begin_layout LyX-Code
 </xsd:schema>
+\end_layout
+
+\begin_layout Section*
+Appendix F.
+ Error messages of A-REX
+\end_layout
+
+\begin_layout Standard
+If job has not finished successfully the A-REX puts one or more lines into
+ 
+\shape italic
+job.ID.failed
+\shape default
+.
+ Possible values include those generated by the A-REX itself:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="25" columns="2">
+<features>
+<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Error string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Reason/description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Internal error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Error in internal algorithm
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Internal error: can't read local file
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Error manipulating files in the control directory
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed reading local job information
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed reading status of the job
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed writing job status
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed during processing failure
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Serious troubles (problems during processing problems)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed initiating job submission to LRMS
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Could not run backend executable to pass job to LRMS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Job submission to LRMS failed
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Backend executable supposed to pass job to LRMs returned non-zero exit code
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed extracting LRMS ID due to some internal error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output of Backend executable supposed to contain local ID of passed job
+ could not be parsed
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed in files upload (post-processing)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed to upload some or all output files
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed in files upload due to expired credentials - try to renew
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed to upload some or all output files most probably due to expired credentia
+ls (proxy certificate)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed to run uploader (post-processing)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Could not run 
+\emph on
+uploader
+\emph default
+ executable
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+uploader failed (postprocessing)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error related to 
+\emph on
+uploader
+\emph default
+ component
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed in files download (pre-processing)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed to upload some or all input files
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed in files download due to expired credentials - try to renew
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed to download some or all input files most probably due to expired
+ credentials (proxy certificate)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed to run downloader (pre-processing)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Could not run 
+\emph on
+downloader
+\emph default
+ executable
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+downloader failed (preprocessing)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error related to 
+\emph on
+downloader
+\emph default
+ component
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User requested to cancel the job
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+A-REX detected external request to cancel this job, most probably issued
+ by user
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Could not process RSL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Job description could not be processed to syntax errors or missing elements
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User requested dryrun.
+ Job skiped.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Job description contains request not to process this job
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+LRMS error: (CODE) DESCRIPTION
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+LRMS returned error.
+ CODE is replaced with numeric code of LRMS, and DESCRIPTION with textual
+ description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Plugin at state STATE failed: OUTPUT
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+External plugin specified in A-REX configuration returned non-zero exit
+ code.
+ STATE is replcaced by name of state to which job was going to be passed,
+ OUTPUT by textual output generated by plugin.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed running plugin at state STATE
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+External plugin specified in A-REX configuration could not be executed.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+Provided by downloader component (URL is replcaced by source of input file,
+ FILE by name of file):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="28" columns="2">
+<features>
+<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Error string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Reason/description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Internal error in downloader
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - unknown error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - unexpected error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - bad source URL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Source URL is either malformed or not supported
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - bad destination URL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - failed to resolve source locations
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+File either not registred or other problems related to Data Indexing service.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - failed to resolve destination locations
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - failed to register new destination file
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - can't start reading from source
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Problems related to accessing instance of file at Data Storing service.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - can't read from source
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - can't start writing to destination
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Access problems in a session directory
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - can't write to destination
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - data transfer was too slow
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Timeouted while trying to download file
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - failed while closing connection to source
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - failed while closing connection to destination
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - failed to register new location
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - can't use local cache
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Problems with A-REX cache 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - system error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Operating System returned error code where unexpected
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Input file: URL - delegated credentials expired
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Access to source requires credententials and they are either outdated or
+ missing (not delegated).
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Bad information about file: checksum can't be parsed.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+In job description there is a checksum provided for file uploadable by user
+ interface and this record can't be interpreted.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Bad information about file: size can't be parsed.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+In job description there is a size provided for file uploadable by user
+ interface and this record can't be interpreted.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Expected file.
+ Directory found.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Instead of file uploadable by user interface A-REX found directory with
+ same name in a session directory.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Expected ordinary file.
+ Special object found.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Instead of file uploadable by user interface A-REX found special object
+ with same name in a session directory.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Delivered file is bigger than specified.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+The size of file uploadable by user interface is bigger 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Delivered file is unreadable.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+A-REX can't check user uploadable file due to some internal error.
+ Most probably due to improperly configured local permissions.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Could not read file to compute checksum.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+A-REX can't read user uploadable file due to some internal error.
+ Most probably due to improperly configured local permissions.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User file: FILENAME - Timeout waiting
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+A-REX waited for user uploadable file too long.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+Provided by uploader component (URL is replcaced by destination of output
+ file) :
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="23" columns="2">
+<features>
+<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Error string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Reason/description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Internal error in uploader
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - unknown error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - unexpected error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Generic error 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User requested to store output locally URL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Destination is URL of type 
+\emph on
+file
+\emph default
+.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - bad source URL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - bad destination URL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Destination URL is either malformed or not supported
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - failed to resolve source locations
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - failed to resolve destination locations
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Problems related to Data Indexing service.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - failed to register new destination file
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-//-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - can't start reading from source
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+User request to store output file, but there is no such file or there are
+ problems accessing session directory
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - can't start writing to destination
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Problems with Data Storing services
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - can't read from source
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Problems accessing session directory
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - can't write to destination
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Problems with Data Storing services
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - data transfer was too slow
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Timeout during transfer
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - failed while closing connection to source
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - failed while closing connection to destination
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - failed to register new location
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Problems related to Data Indexing service.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - can't use local cache
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Shouldn't happen
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - system error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Operating System returned error code where unexpected
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Output file: URL - delegated credentials expired
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Access to destination requires credententials and they are either outdated
+ or missing (not delegated).
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+Coming from LRMS (PBS) backend:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="2">
+<features>
+<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Error string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\emph on
+Reason/description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Submission: Configuration error.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Submission: System error.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Submission: Job description error.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Submission: Local submission client behaved unexpectedly.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Submission: Local submission client failed.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code

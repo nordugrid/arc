@@ -414,8 +414,8 @@ ip address:port of the submitting client machine
 \item \textit{failedstate} - state in which job failed (available only if
 it is possible to restart the job)
 \item \textit{jobreport} - URL of a user requested \emph{logger service}.
-The GM will also send job records to this service in addition to the
-default logger service configured in the configuration (This feature
+The A-REX will also send job records to this service in addition to
+the default logger service configured in the configuration (This feature
 does not work in current implementation).
 \end{itemize}
 \end{itemize}
@@ -548,7 +548,7 @@ are described below.
 
 A-REX introduces a new operation in addition to those provided by
 BES. It does that by defining its own port-type with the single operation
-\emph{ChangeActivityStatus} (see Appendix D). This operation provides
+\emph{ChangeActivityStatus} (see Appendix C). This operation provides
 a way to request simple transfers between states of jobs and corresponding
 actions.
 
@@ -670,7 +670,7 @@ and i snot implemented yet.\tabularnewline
 
 \subsubsection{Delegation Interface}
 
-The A-REX also supportd the Delegation Interface (see Appendix E).
+The A-REX also supportd the Delegation Interface (see Appendix D).
 This is a common purpose interface to be used by ARC services which
 accepts delegated credentials from clients. The Delegation Interface
 implements two operations: initiatialization of credentials delegation
@@ -810,7 +810,7 @@ for execution.
 \subsubsection{ARC-specific JSDL Extensions}
 
 A-REX accepts JSDL documents having the following additional elements
-(see Appendix F):
+(see Appendix E):
 
 \begin{lyxlist}{00.00.0000}
 \item [{\emph{IsExecutable}}] \emph{-} marks file to become executable
@@ -960,8 +960,8 @@ file.
 \item \emph{cache-register} - Utility to register cached data into an Indexing
 Service. It reads and modifies cache informational files \emph{old}
 and \emph{new} (as described in section \ref{sec:cache}). Configuration
-is read directly from the GM's configuration file (see section \ref{SubSection: ConfigFile}).
-It is run by the GM every 5 minutes.
+is read directly from the A-REX's configuration file (see section
+\ref{SubSection: ConfigFile}). It is run by the A-REX every 5 minutes.
 \item \emph{frontend-info-collector} - Utility to gather information about
 the frontend. It puts collected information into the \emph{job.ID.diag}
 file.
@@ -1318,56 +1318,61 @@ Possible reasons are:
 \begin{lyxlist}{00.00.0000}
 \item [{new}] - new job, new credentials
 \item [{renew}] - old job, new credentials
-\item [{write}] - write/delete file, create/delete directory (through gridftp)
-\item [{read}] - read file, directory, etc. (through gridftp)
-\item [{extern}] - call external program (grid-manager)
+\item [{write}] - write/delete file, create/delete directory
+\item [{read}] - read file, directory, etc.
+\item [{extern}] - call external program 
 \end{lyxlist}
 \end{lyxlist}
 
 \subsection{Authorization\label{sub:Authorization}}
 
 Authorization is performed by generic means provided by HED framework.
-Currently A-REX does not implement any internal authorization tecniques.
+Currently A-REX does not implement any internal authorization tecniques
+except those imposed by Access Policy assigned to jobs through AccessControl
+element of assigned JSDL.
 
 
 \subsection{\label{sub:LRMS}LRMS support}
 
-The GM comes with support for several LRMS. And this number is slowly
-growing. Features explained below are for \textbf{PBS/Torque} backend.
-This support is provided through \textit{submit-pbs-job}, \textit{cancel-pbs-job},
-\textit{scan-pbs-job} scripts. \textit{submit-pbs-job} creates job's
-script and submits it to PBS. Created job's script is responsible
-for moving data between frontend machine and cluster node (if required)
-and execution of actual job. Alternatively it can download input files
-and upload output if \emph{{}``localtransfer no''} is specified
-in the configuration file.
+The A-REX comes with support for several LRMS. And this number is
+slowly growing. Features explained below are for \textbf{PBS/Torque}
+backend. This support is provided through \textit{submit-pbs-job},
+\textit{cancel-pbs-job}, \textit{scan-pbs-job} scripts. \textit{submit-pbs-job}
+creates job's script and submits it to PBS. Created job's script is
+responsible for moving data between frontend machine and cluster node
+(if required) and execution of actual job. Alternatively it can download
+input files and upload output if \emph{{}``localtransfer=no''} is
+specified in the configuration file.
 
 Behavior of submission script is mostly controlled using environment
-variables. Most of them can be specified on frontend in GM's environment
+variables. Most of them can be specified on frontend in A-REX's environment
 and overwritten on cluster's node through PBS configuration. Some
 of them may be set in configuration file too.
 
 \textbf{\textit{PBS\_BIN\_PATH}} - path to PBS executables. Like \emph{/usr/local/bin}
-for example. \emph{pbs\_bin\_path} configuration command.
+for example. \emph{}Corresponds to \emph{pbs\_bin\_path} configuration
+command.
 
-\textbf{\textit{PBS\_LOG\_PATH}} - path to PBS server logs. \emph{pbs\_log\_path}
-configuration command.
+\textbf{\textit{PBS\_LOG\_PATH}} - path to PBS server logs. Corresponds
+to \emph{pbs\_log\_path} configuration command.
 
 \textbf{\textit{TMP\_DIR}} - path to directory to store temporary
-files. Default value is \emph{/tmp}. \emph{tmpdir} configuration command.
+files. Default value is \emph{/tmp}. Corresponds to \emph{tmpdir}
+configuration command.
 
 \textbf{\textit{RUNTIME\_CONFIG\_DIR}} - path where runtime setup
-scripts can be found. \emph{runtimedir} configuration command.
+scripts can be found. Corresponds to \emph{runtimedir} configuration
+command.
 
 \textbf{\textit{GNU\_TIME}} - path to GNU time utility. It is important
-to path to utility compatible with GNU time. If such utility is not
-available, modify \textit{submit-pbs-job} to either reset this variable
-or change usage of available utility. \emph{gnu\_time} configuration
-command.
+to provide path to utility compatible with GNU time. If such utility
+is not available, modify \textit{submit-pbs-job} to either reset this
+variable or change usage of available utility. Corresponds to \emph{gnu\_time}
+configuration command.
 
 \textbf{\textit{NODENAME}} - command to obtain name of cluster's node.
-Default is \emph{/bin/hostname -f}. \emph{nodename} configuration
-command.
+Default is \emph{/bin/hostname -f}. Corresponds to \emph{nodename}
+configuration command.
 
 \textbf{\textit{RUNTIME\_LOCAL\_SCRATCH\_DIR}} - if defined should
 contain path to the directory on computing node, which can be used
@@ -1376,23 +1381,23 @@ command.
 
 \textbf{\textit{RUNTIME\_FRONTEND\_SEES\_NODE}} - if defined should
 contain path corresponding to \textit{RUNTIME\_LOCAL\_SCRATCH\_DIR}
-as seen on \textbf{frontend} machine. \emph{shared\_scratch} configuration
-command.
+as seen on \textbf{frontend} machine. Corresponds to \emph{shared\_scratch}
+configuration command.
 
 \textbf{\textit{RUNTIME\_NODE\_SEES\_FRONTEND}} - if set to {}``\emph{no}''
 means computing node does not share filesystem with frontend. In that
 case content of the SD is moved to computing node by using means provided
 by the LRMS. Results are moved back after job's execution in a same
-way. \emph{shared\_filesystem} configuration command.
+way. Corresponds to \emph{shared\_filesystem} configuration command.
 
 Figures \ref{fig:no node scratch},\ref{fig:node scratch, not vis on front},\ref{fig:node scratch, vis on front}
 present some possible combinations for RUNTIME\_LOCAL\_SCRATCH\_DIR
 and RUNTIME\_FRONTEND\_SEES\_NODE and explain how data movement is
-performed. Pictures a) corresponds to the situation right after all
+performed. Pictures a) correspond to the situation right after all
 input files have been gathered in the session directory and show the
-actions taken right after the job's script starts. Pictures b) shows
+actions taken right after the job's script starts. Pictures b) show
 the situation while the job is running and the actions which are taken
-right after it has finished. Pictures c) illustrates the final situation,
+right after it has finished. Pictures c) illustrate the final situation,
 when the job's output files are ready to be uploaded to an external
 storage element or be downloaded by the user.
 
@@ -1406,7 +1411,7 @@ storage element or be downloaded by the user.
 \caption{\label{fig:no node scratch}Both RUNTIME\_LOCAL\_SCRATCH\_DIR and
 RUNTIME\_FRONTEND\_SEES\_NODE are undefined. It is assumed that session
 directories are visible from computing nodes. The job is executed
-directly in the session directory prepared by GM on the frontend.}
+directly in the session directory prepared by the A-REX on the frontend.}
 \end{figure}
 %
 \begin{figure}[htbp]
@@ -1532,165 +1537,92 @@ If installed from binary packages all dependencies are handled automatically.
 For compilation from source code please read included README file.
 
 
-\subsection{Setup of the Grid Manager}
+\subsection{Setup of the A-REX}
 
-For in-depth information about how to properly setup the GM and related
-software please read {}``NorduGrid ARC server installation instructions''
-at \url{http://www.nordugrid.org/documents/ng-server-install.html}.
-Follow that manual to install GM, configure and run it. Additional
-tips are described here.
+The A-REX service is a plugable module of the HED. Si first You need
+to setup your HED - see HED documentation. 
 
-The GM is designed to be able to run both as root and as ordinary
-user. You can chose the name of the user by using corresponding command
-in configuration file. It is better run GM as root if You want to
-serve few users.
+Then You need to add A-REX to the HED configuration. Add new <Name>
+element inside <Plugins> containing string \emph{arex}. That will
+make HED load libarex plugin library. Then add new <Service> element
+with attribute name=''a-rex''. That will instantiate A-REX service.
+Now to make service accessible extend <Plexer> element with new <next>
+refering to service's id. Write <Service> element carefully - here
+is an example:
 
-The GM writes debug information into a file /var/log/grid-manager.log
-by default. . Also file /var/log/gm-jobs.log (default path in configuration
-template, turned off by default) contains information about all started
-and finished jobs, 2 lines per job (1 when job is started and 1 after
-it finished). 
+\begin{lyxcode}
+~~~~<!-{}-~A-Rex~service~-{}->
+
+~~~~<Service~name=\char`\"{}a-rex\char`\"{}~id=\char`\"{}a-rex\char`\"{}>
+
+~~~~~~<!-{}-~Optional~endpoint~element~is~advised~in~case~of~multiple~IP~adresses~-{}->
+
+~~~~~~<arex:endpoint>https://localhost:60000/arex</arex:endpoint>
+
+~~~~~~<!-{}-~Use~information~generated~by~identity.map~plugin~or~default~provided~below~-{}->
+
+~~~~~~<arex:usermap><arex:defaultLocalName>nobody</arex:defaultLocalName></arex:usermap>
+
+~~~~~~<!-{}-~grid-manager~part~of~a-rex~requires~legacy~configuration~file.
+
+~~~~~~~~~~~Use~arc\_arex.conf~example~or~write~own.~-{}->
+
+~~~~~~<arex:gmconfig>/etc/arc\_arex.conf</arex:gmconfig>
+
+~~~~</Service>
+\end{lyxcode}
+For in-depth information about available elements see Appendix B. 
+
+Use a template arc\_arex.conf or write own A-REX configuration file.
+For information about format and available configuration commands
+see Section \ref{SubSection: ConfigFile}.
 
 
 \subsection{Usage}
 
-Refer to the description of the \emph{User Interface} part \cite{ui}
-and extensions to RSL \cite{xrsl} for using the GM.
+Please read \emph{User Manual {[}]} for usage instructions.
 
 
 \subsection{Running as non-root}
 
-Bot GM and GFS are primarily designed to be run by the \emph{root}
-UNIX account and serve multiple global Grid identities mapped to several
+The A-REX is primarily designed to be run by the \emph{root} UNIX
+account and serve multiple global Grid identities mapped to several
 UNIX accounts. Nevertheless it is possible to use \emph{non-root}
-accounts to run these services at the cost of some functionality loss
+accounts to run that service at the cost of some functionality loss
 as described below.
 
-There are no drawbacks of running GFS with \emph{gaclplugin} or \emph{fileplugin}
-under a \emph{non-root} account as long as the only Grid identity
-used is that of the user who runs the services and all served files
-and directories are owned by the server's account. 
-
-In order for GM and GFS with \emph{jobplugin} to be able to cooperate,
-both services must be run either by the same non-root account or one
-of the services must be run under the \emph{root} account. This is
-needed because the two services communicate over a local filesystem,
-hence they must have \emph{full} access to the same set of files.
-
-As long as GFS with \emph{jobplugin} is run under a non-root account,
-no mapping from Grid identity to local UNIX account takes place. All
-alowed Grid users are assigned the server's account and are then processes
-by GM using same account. The only way to overcome this limitation
-is to run one GFS per local account with proper access control configured.
-
-Because GM has to impersonate a user's local account while communicating
-with the LRMS, it can serve only the account it is run under (unless
-it is run under the \emph{root} account, of course). As in the case
-of GFS, multiple instances of GM may be run, one per local account.
-This solution has some drawbacks. The GM looses possibility to share
-cached files among serviced users. In addition, it is not possible
-to control the load on a frontend by limiting the number of simultatenuosly
-running \emph{downloader} and \emph{uploader} modules.
-
-One also has to take into account that the private part of the GSI
-infrastructure (private key of a host at least) has to be duplicated
-for every account used to run GFS.
+There are no drawbacks of running A-REX under a \emph{non-root} account
+as long as the only UNIX identity used is that of the user who runs
+the services and all served files and directories are owned by the
+server's account. Because A-REX has to impersonate a user's local
+account while communicating with the LRMS, it can serve only the account
+it is run under (unless it is run under the \emph{root} account, of
+course).
 
 
 \section*{Appendix A. Session directory access through HTTP(S) interface}
 
+In addition to the BES interface A-REX provides access to the SD through
+pure HTTP(S) interface. This functionality is used for uploading user-stageable
+files during job submission and for staging out result files produced
+by job. It can also be used to monitor job execution by checking content
+of application dependant files in SD.
 
-\subsection*{Virtual tree}
+The BES defines job identifier as WS Addressing {[}] Endpoint Reference
+(EPR) - XML document. The EPR is extendable and the A-REX adds it
+own element JobSessionDir belonging to namespace http://www.nordugrid.org/schemas/a-rex
+as direct child of ReferenceParameters element. This new element contains
+the URL of SD.
 
-Under the mount point of the jobplugin, a user connecting with a gridftp
-client will see virtual directories representing the jobs belonging
-to him/her. Directory names are job identifiers, each representing
-one job. These directories are directly connected to session directories
-of jobs and contain the files and subdirectories that are visible
-on the frontend.
-
-If a job's xRSL has \emph{gmlog} specified, then the job's directory
-also contains a virtual subdirectory of that name holding files with
-information about the job as created by GM. The 'errors' and 'status'
-files are especially usefull for troubleshooting. 'errors' contains
-the stderr output of the various modules run by GM during job processing
-stages (downloader, uploader, job's submission to LRMS). 'status'
-contains one word representing the job's state. 
-
-Also under the jobplugin's mount point there is an additional directory
-named \char`\"{}new\char`\"{} -- used to submit new jobs -- and another
-directory named ''info''. The latter has subdirectories named after
-job ids, each of which contains files with information about a job.
-These are the same files that can be accessed in the subdirectory
-specified through \emph{gmlog}.
+Obtained URL shoud be extended with file names relative to SD and
+HTTP methods PUT and GET may be used to upload/download content of
+those files. For directories - including SD itself - GET method is
+supported shich returns HTML encoded non-recursive list of files and
+firectories. The files and subdirectories have their URLs inside HTML
+element <A>.
 
 
-\subsection*{Submission}
-
-Each xRSL put into the {}``new'' directory by a gridftp client is
-treated as a new job's description. GFS's jobplugin parses the xRSL
-and returns the client a positive response if there were no errors
-in the request.
-
-The new job gets an identifier and a directory with the corresponding
-name appears. If the job's description contains input files which
-should be transferred from the client's machine, the client must upload
-them to that directory under specified names.
-
-The job identifier reserved by GFS to a new job must be somehow communicated
-back to the client. Within the bounds of the FTP protocol, this is
-achieved in the following way. Prior to uploading the xRSL, the client
-issues a CWD command to change the current directory to {}``new''.
-In turn, the server responds with a redirect to the new session directory
-named after the reserved identifier. The client has now found out
-the job's id, and proceeds with uploading the xRLS.
-
-
-\subsection*{Actions}
-
-Various actions to affect processing of an existing job are requested
-by uploading special xRSL files into directory {}``new''. Such an
-xRSL may consist of only 2 parameters - \emph{action} for action to
-be performed, and \emph{jobid} to identify the job to be affected.
-All other parameters are ignored.
-
-The currently supported actions are:
-
-\begin{lyxlist}{00.00.0000}
-\item [{\emph{cancel}}] to cancel a job
-\item [{\emph{clean}}] to remove a job from computing resource
-\item [{\emph{renew}}] to renew credentials delegated to a job
-\item [{\emph{restart}}] to restart a job after failure at some phases
-\end{lyxlist}
-Alternatively, it is also possible to perform some of these actions
-by using the shortcut FTP operations described below.
-
-
-\subsubsection*{Cancel}
-
-A job is canceled by performing a DELE (delete file) command on the
-directory representing the job. It can take some time (a few minutes)
-before the job is actually canceled. Nevertheless, the client gets
-a response immediately.
-
-
-\subsubsection*{Clean}
-
-A job's content is cleaned by performing a RMD (remove directory)
-command on the directory representing the job. If the job is in \char`\"{}FINISHED\char`\"{}
-state it will be cleaned immediately. Otherwise it will be cleaned
-after it reaches state \char`\"{}FINISHED\char`\"{}.
-
-
-\subsubsection*{Renew}
-
-If a client requests CWD to a job's session directory, credentials
-passed during authentication are compared to the current credentials
-of the job. If the validity time of the new credentials is longer,
-the job's current credentials are replaced with the new ones.
-
-
-\section*{Appendix C. Configuration schema of A-REX}
+\section*{Appendix B. Configuration schema of A-REX}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -1818,311 +1750,7 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
 </xsd:schema>
 \end{lyxcode}
 
-\section*{Appendix C. Error messages of A-REX}
-
-If job has not finished successfully the A-REX puts one or more lines
-into \textit{job.ID.failed}. Possible values include those generated
-by the A-REX itself:
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
-\hline 
-\emph{Error string}&
-\emph{Reason/description}\tabularnewline
-\hline 
-Internal error&
-Error in internal algorithm\tabularnewline
-\hline 
-Internal error: can't read local file&
-Error manipulating files in the control directory\tabularnewline
-\hline 
-Failed reading local job information&
--//-\tabularnewline
-\hline 
-Failed reading status of the job&
--//-\tabularnewline
-\hline 
-Failed writing job status&
--//-\tabularnewline
-\hline 
-Failed during processing failure&
--//-\tabularnewline
-\hline 
-Serious troubles (problems during processing problems)&
--//-\tabularnewline
-\hline 
-Failed initiating job submission to LRMS&
-Could not run backend executable to pass job to LRMS\tabularnewline
-\hline 
-Job submission to LRMS failed&
-Backend executable supposed to pass job to LRMs returned non-zero
-exit code\tabularnewline
-\hline 
-Failed extracting LRMS ID due to some internal error&
-Output of Backend executable supposed to contain local ID of passed
-job could not be parsed\tabularnewline
-\hline 
-Failed in files upload (post-processing)&
-Failed to upload some or all output files\tabularnewline
-\hline 
-Failed in files upload due to expired credentials - try to renew&
-Failed to upload some or all output files most probably due to expired
-credentials (proxy certificate)\tabularnewline
-\hline 
-Failed to run uploader (post-processing)&
-Could not run \emph{uploader} executable\tabularnewline
-\hline 
-uploader failed (postprocessing)&
-Generic error related to \emph{uploader} component\tabularnewline
-\hline 
-Failed in files download (pre-processing)&
-Failed to upload some or all input files\tabularnewline
-\hline 
-Failed in files download due to expired credentials - try to renew&
-Failed to download some or all input files most probably due to expired
-credentials (proxy certificate)\tabularnewline
-\hline 
-Failed to run downloader (pre-processing)&
-Could not run \emph{downloader} executable\tabularnewline
-\hline
-downloader failed (preprocessing)&
-Generic error related to \emph{downloader} component\tabularnewline
-\hline
-User requested to cancel the job&
-GM detected external request to cancel this job, most probably issued
-by user\tabularnewline
-\hline
-Could not process RSL&
-Job description could not be processed to syntax errors or missing
-elements\tabularnewline
-\hline
-User requested dryrun. Job skiped.&
-Job description contains request not to process this job\tabularnewline
-\hline
-LRMS error: (CODE) DESCRIPTION&
-LRMS returned error. CODE is replaced with numeric code of LRMS, and
-DESCRIPTION with textual description\tabularnewline
-\hline
-Plugin at state STATE failed: OUTPUT&
-External plugin specified in GM's configuration returned non-zero
-exit code. STATE is replcaced by name of state to which job was going
-to be passed, OUTPUT by textual output generated by plugin.\tabularnewline
-\hline
-Failed running plugin at state STATE&
-External plugin specified in GM's configuration could not be executed.\tabularnewline
-\hline
-\end{tabular}
-
-\medskip{}
-Provided by downloader component (URL is replcaced by source of input
-file, FILE by name of file):
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
-\hline 
-\emph{Error string}&
-\emph{Reason/description}\tabularnewline
-\hline 
-Internal error in downloader&
-Generic error \tabularnewline
-\hline 
-Input file: URL - unknown error&
-Generic error \tabularnewline
-\hline 
-Input file: URL - unexpected error&
-Generic error \tabularnewline
-\hline 
-Input file: URL - bad source URL&
-Source URL is either malformed or not supported\tabularnewline
-\hline 
-Input file: URL - bad destination URL&
-Shouldn't happen\tabularnewline
-\hline 
-Input file: URL - failed to resolve source locations&
-File either not registred or other problems related to Data Indexing
-service.\tabularnewline
-\hline 
-Input file: URL - failed to resolve destination locations&
-Shouldn't happen\tabularnewline
-\hline 
-Input file: URL - failed to register new destination file&
-Shouldn't happen\tabularnewline
-\hline 
-Input file: URL - can't start reading from source&
-Problems related to accessing instance of file at Data Storing service.\tabularnewline
-\hline 
-Input file: URL - can't read from source&
--//-\tabularnewline
-\hline 
-Input file: URL - can't start writing to destination&
-Access problems in a session directory\tabularnewline
-\hline 
-Input file: URL - can't write to destination&
--//-\tabularnewline
-\hline 
-Input file: URL - data transfer was too slow&
-Timeouted while trying to download file\tabularnewline
-\hline 
-Input file: URL - failed while closing connection to source&
-Shouldn't happen\tabularnewline
-\hline 
-Input file: URL - failed while closing connection to destination&
-Shouldn't happen\tabularnewline
-\hline 
-Input file: URL - failed to register new location&
-Shouldn't happen\tabularnewline
-\hline 
-Input file: URL - can't use local cache&
-Problems with GM cache \tabularnewline
-\hline 
-Input file: URL - system error&
-Operating System returned error code where unexpected\tabularnewline
-\hline 
-Input file: URL - delegated credentials expired&
-Access to source requires credententials and they are either outdated
-or missing (not delegated).\tabularnewline
-\hline 
-User file: FILENAME - Bad information about file: checksum can't be
-parsed.&
-In job description there is a checksum provided for file uploadable
-by user interface and this record can't be interpreted.\tabularnewline
-\hline 
-User file: FILENAME - Bad information about file: size can't be parsed.&
-In job description there is a size provided for file uploadable by
-user interface and this record can't be interpreted.\tabularnewline
-\hline 
-User file: FILENAME - Expected file. Directory found.&
-Instead of file uploadable by user interface GM found directory with
-same name in a session directory.\tabularnewline
-\hline 
-User file: FILENAME - Expected ordinary file. Special object found.&
-Instead of file uploadable by user interface GM found special object
-with same name in a session directory.\tabularnewline
-\hline 
-User file: FILENAME - Delivered file is bigger than specified.&
-The size of file uploadable by user interface is bigger than specified
-in job description.\tabularnewline
-\hline
-User file: FILENAME - Delivered file is unreadable.&
-GM can't check user uploadable file due to some internal error. Most
-probably due to improperly configured local permissions.\tabularnewline
-\hline
-User file: FILENAME - Could not read file to compute checksum.&
-GM can't read user uploadable file due to some internal error. Most
-probably due to improperly configured local permissions.\tabularnewline
-\hline
-User file: FILENAME - Timeout waiting&
-GM waited for user uploadable file too long.\tabularnewline
-\hline
-\end{tabular}
-
-\medskip{}
-Provided by uploader component (URL is replcaced by destination of
-output file) :
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
-\hline 
-\emph{Error string}&
-\emph{Reason/description}\tabularnewline
-\hline 
-Internal error in uploader&
-Generic error \tabularnewline
-\hline 
-Output file: URL - unknown error&
-Generic error \tabularnewline
-\hline 
-Output file: URL - unexpected error&
-Generic error \tabularnewline
-\hline 
-User requested to store output locally URL&
-Destination is URL of type \emph{file}.\tabularnewline
-\hline 
-Output file: URL - bad source URL&
-Shouldn't happen\tabularnewline
-\hline 
-Output file: URL - bad destination URL&
-Destination URL is either malformed or not supported\tabularnewline
-\hline 
-Output file: URL - failed to resolve source locations&
-Shouldn't happen\tabularnewline
-\hline 
-Output file: URL - failed to resolve destination locations&
-Problems related to Data Indexing service.\tabularnewline
-\hline 
-Output file: URL - failed to register new destination file&
--//-\tabularnewline
-\hline 
-Output file: URL - can't start reading from source&
-User request to store output file, but there is no such file or there
-are problems accessing session directory\tabularnewline
-\hline 
-Output file: URL - can't start writing to destination&
-Problems with Data Storing services\tabularnewline
-\hline 
-Output file: URL - can't read from source&
-Problems accessing session directory\tabularnewline
-\hline 
-Output file: URL - can't write to destination&
-Problems with Data Storing services\tabularnewline
-\hline 
-Output file: URL - data transfer was too slow&
-Timeout during transfer\tabularnewline
-\hline 
-Output file: URL - failed while closing connection to source&
-Shouldn't happen\tabularnewline
-\hline 
-Output file: URL - failed while closing connection to destination&
-Shouldn't happen\tabularnewline
-\hline 
-Output file: URL - failed to register new location&
-Problems related to Data Indexing service.\tabularnewline
-\hline 
-Output file: URL - can't use local cache&
-Shouldn't happen\tabularnewline
-\hline 
-Output file: URL - system error&
-Operating System returned error code where unexpected\tabularnewline
-\hline 
-Output file: URL - delegated credentials expired&
-Access to destination requires credententials and they are either
-outdated or missing (not delegated).\tabularnewline
-\hline 
-&
-\tabularnewline
-\hline
-&
-\tabularnewline
-\hline
-\end{tabular}
-
-\medskip{}
-Coming from LRMS (PBS) backend:
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
-\hline 
-\emph{Error string}&
-\emph{Reason/description}\tabularnewline
-\hline 
-Submission: Configuration error.&
-\tabularnewline
-\hline 
-Submission: System error.&
-\tabularnewline
-\hline 
-Submission: Job description error.&
-\tabularnewline
-\hline 
-Submission: Local submission client behaved unexpectedly.&
-\tabularnewline
-\hline 
-Submission: Local submission client failed.&
-\tabularnewline
-\hline
-\end{tabular}
-
-\begin{lyxcode}
-~
-\end{lyxcode}
-
-\section*{Appendix D. A-REX WSDL}
+\section*{Appendix C. A-REX WSDL}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -2580,7 +2208,7 @@ Submission: Local submission client failed.&
 </wsdl:definitions>
 \end{lyxcode}
 
-\section*{Appendix E. Delegation WSDL}
+\section*{Appendix D. Delegation WSDL}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -2894,7 +2522,7 @@ Submission: Local submission client failed.&
 </wsdl:definitions>
 \end{lyxcode}
 
-\section*{Appendix F. ARC extensions for JSDL schema}
+\section*{Appendix E. ARC extensions for JSDL schema}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -3218,7 +2846,308 @@ Submission: Local submission client failed.&
 ~<xsd:element~name=\char`\"{}ProcessingStartTime\char`\"{}~type=\char`\"{}Time\_Type\char`\"{}/>
 
 </xsd:schema>
+\end{lyxcode}
 
+\section*{Appendix F. Error messages of A-REX}
+
+If job has not finished successfully the A-REX puts one or more lines
+into \textit{job.ID.failed}. Possible values include those generated
+by the A-REX itself:
+
+\begin{tabular}{|p{2.5in}|p{4in}|}
+\hline 
+\emph{Error string}&
+\emph{Reason/description}\tabularnewline
+\hline 
+Internal error&
+Error in internal algorithm\tabularnewline
+\hline 
+Internal error: can't read local file&
+Error manipulating files in the control directory\tabularnewline
+\hline 
+Failed reading local job information&
+-//-\tabularnewline
+\hline 
+Failed reading status of the job&
+-//-\tabularnewline
+\hline 
+Failed writing job status&
+-//-\tabularnewline
+\hline 
+Failed during processing failure&
+-//-\tabularnewline
+\hline 
+Serious troubles (problems during processing problems)&
+-//-\tabularnewline
+\hline 
+Failed initiating job submission to LRMS&
+Could not run backend executable to pass job to LRMS\tabularnewline
+\hline 
+Job submission to LRMS failed&
+Backend executable supposed to pass job to LRMs returned non-zero
+exit code\tabularnewline
+\hline 
+Failed extracting LRMS ID due to some internal error&
+Output of Backend executable supposed to contain local ID of passed
+job could not be parsed\tabularnewline
+\hline 
+Failed in files upload (post-processing)&
+Failed to upload some or all output files\tabularnewline
+\hline 
+Failed in files upload due to expired credentials - try to renew&
+Failed to upload some or all output files most probably due to expired
+credentials (proxy certificate)\tabularnewline
+\hline 
+Failed to run uploader (post-processing)&
+Could not run \emph{uploader} executable\tabularnewline
+\hline 
+uploader failed (postprocessing)&
+Generic error related to \emph{uploader} component\tabularnewline
+\hline 
+Failed in files download (pre-processing)&
+Failed to upload some or all input files\tabularnewline
+\hline 
+Failed in files download due to expired credentials - try to renew&
+Failed to download some or all input files most probably due to expired
+credentials (proxy certificate)\tabularnewline
+\hline 
+Failed to run downloader (pre-processing)&
+Could not run \emph{downloader} executable\tabularnewline
+\hline
+downloader failed (preprocessing)&
+Generic error related to \emph{downloader} component\tabularnewline
+\hline
+User requested to cancel the job&
+A-REX detected external request to cancel this job, most probably
+issued by user\tabularnewline
+\hline
+Could not process RSL&
+Job description could not be processed to syntax errors or missing
+elements\tabularnewline
+\hline
+User requested dryrun. Job skiped.&
+Job description contains request not to process this job\tabularnewline
+\hline
+LRMS error: (CODE) DESCRIPTION&
+LRMS returned error. CODE is replaced with numeric code of LRMS, and
+DESCRIPTION with textual description\tabularnewline
+\hline
+Plugin at state STATE failed: OUTPUT&
+External plugin specified in A-REX configuration returned non-zero
+exit code. STATE is replcaced by name of state to which job was going
+to be passed, OUTPUT by textual output generated by plugin.\tabularnewline
+\hline
+Failed running plugin at state STATE&
+External plugin specified in A-REX configuration could not be executed.\tabularnewline
+\hline
+\end{tabular}
+
+\medskip{}
+Provided by downloader component (URL is replcaced by source of input
+file, FILE by name of file):
+
+\begin{tabular}{|p{2.5in}|p{4in}|}
+\hline 
+\emph{Error string}&
+\emph{Reason/description}\tabularnewline
+\hline 
+Internal error in downloader&
+Generic error \tabularnewline
+\hline 
+Input file: URL - unknown error&
+Generic error \tabularnewline
+\hline 
+Input file: URL - unexpected error&
+Generic error \tabularnewline
+\hline 
+Input file: URL - bad source URL&
+Source URL is either malformed or not supported\tabularnewline
+\hline 
+Input file: URL - bad destination URL&
+Shouldn't happen\tabularnewline
+\hline 
+Input file: URL - failed to resolve source locations&
+File either not registred or other problems related to Data Indexing
+service.\tabularnewline
+\hline 
+Input file: URL - failed to resolve destination locations&
+Shouldn't happen\tabularnewline
+\hline 
+Input file: URL - failed to register new destination file&
+Shouldn't happen\tabularnewline
+\hline 
+Input file: URL - can't start reading from source&
+Problems related to accessing instance of file at Data Storing service.\tabularnewline
+\hline 
+Input file: URL - can't read from source&
+-//-\tabularnewline
+\hline 
+Input file: URL - can't start writing to destination&
+Access problems in a session directory\tabularnewline
+\hline 
+Input file: URL - can't write to destination&
+-//-\tabularnewline
+\hline 
+Input file: URL - data transfer was too slow&
+Timeouted while trying to download file\tabularnewline
+\hline 
+Input file: URL - failed while closing connection to source&
+Shouldn't happen\tabularnewline
+\hline 
+Input file: URL - failed while closing connection to destination&
+Shouldn't happen\tabularnewline
+\hline 
+Input file: URL - failed to register new location&
+Shouldn't happen\tabularnewline
+\hline 
+Input file: URL - can't use local cache&
+Problems with A-REX cache \tabularnewline
+\hline 
+Input file: URL - system error&
+Operating System returned error code where unexpected\tabularnewline
+\hline 
+Input file: URL - delegated credentials expired&
+Access to source requires credententials and they are either outdated
+or missing (not delegated).\tabularnewline
+\hline 
+User file: FILENAME - Bad information about file: checksum can't be
+parsed.&
+In job description there is a checksum provided for file uploadable
+by user interface and this record can't be interpreted.\tabularnewline
+\hline 
+User file: FILENAME - Bad information about file: size can't be parsed.&
+In job description there is a size provided for file uploadable by
+user interface and this record can't be interpreted.\tabularnewline
+\hline 
+User file: FILENAME - Expected file. Directory found.&
+Instead of file uploadable by user interface A-REX found directory
+with same name in a session directory.\tabularnewline
+\hline 
+User file: FILENAME - Expected ordinary file. Special object found.&
+Instead of file uploadable by user interface A-REX found special object
+with same name in a session directory.\tabularnewline
+\hline 
+User file: FILENAME - Delivered file is bigger than specified.&
+The size of file uploadable by user interface is bigger \tabularnewline
+\hline
+User file: FILENAME - Delivered file is unreadable.&
+A-REX can't check user uploadable file due to some internal error.
+Most probably due to improperly configured local permissions.\tabularnewline
+\hline
+User file: FILENAME - Could not read file to compute checksum.&
+A-REX can't read user uploadable file due to some internal error.
+Most probably due to improperly configured local permissions.\tabularnewline
+\hline
+User file: FILENAME - Timeout waiting&
+A-REX waited for user uploadable file too long.\tabularnewline
+\hline
+\end{tabular}
+
+\medskip{}
+Provided by uploader component (URL is replcaced by destination of
+output file) :
+
+\begin{tabular}{|p{2.5in}|p{4in}|}
+\hline 
+\emph{Error string}&
+\emph{Reason/description}\tabularnewline
+\hline 
+Internal error in uploader&
+Generic error \tabularnewline
+\hline 
+Output file: URL - unknown error&
+Generic error \tabularnewline
+\hline 
+Output file: URL - unexpected error&
+Generic error \tabularnewline
+\hline 
+User requested to store output locally URL&
+Destination is URL of type \emph{file}.\tabularnewline
+\hline 
+Output file: URL - bad source URL&
+Shouldn't happen\tabularnewline
+\hline 
+Output file: URL - bad destination URL&
+Destination URL is either malformed or not supported\tabularnewline
+\hline 
+Output file: URL - failed to resolve source locations&
+Shouldn't happen\tabularnewline
+\hline 
+Output file: URL - failed to resolve destination locations&
+Problems related to Data Indexing service.\tabularnewline
+\hline 
+Output file: URL - failed to register new destination file&
+-//-\tabularnewline
+\hline 
+Output file: URL - can't start reading from source&
+User request to store output file, but there is no such file or there
+are problems accessing session directory\tabularnewline
+\hline 
+Output file: URL - can't start writing to destination&
+Problems with Data Storing services\tabularnewline
+\hline 
+Output file: URL - can't read from source&
+Problems accessing session directory\tabularnewline
+\hline 
+Output file: URL - can't write to destination&
+Problems with Data Storing services\tabularnewline
+\hline 
+Output file: URL - data transfer was too slow&
+Timeout during transfer\tabularnewline
+\hline 
+Output file: URL - failed while closing connection to source&
+Shouldn't happen\tabularnewline
+\hline 
+Output file: URL - failed while closing connection to destination&
+Shouldn't happen\tabularnewline
+\hline 
+Output file: URL - failed to register new location&
+Problems related to Data Indexing service.\tabularnewline
+\hline 
+Output file: URL - can't use local cache&
+Shouldn't happen\tabularnewline
+\hline 
+Output file: URL - system error&
+Operating System returned error code where unexpected\tabularnewline
+\hline 
+Output file: URL - delegated credentials expired&
+Access to destination requires credententials and they are either
+outdated or missing (not delegated).\tabularnewline
+\hline 
+&
+\tabularnewline
+\hline
+&
+\tabularnewline
+\hline
+\end{tabular}
+
+\medskip{}
+Coming from LRMS (PBS) backend:
+
+\begin{tabular}{|p{2.5in}|p{4in}|}
+\hline 
+\emph{Error string}&
+\emph{Reason/description}\tabularnewline
+\hline 
+Submission: Configuration error.&
+\tabularnewline
+\hline 
+Submission: System error.&
+\tabularnewline
+\hline 
+Submission: Job description error.&
+\tabularnewline
+\hline 
+Submission: Local submission client behaved unexpectedly.&
+\tabularnewline
+\hline 
+Submission: Local submission client failed.&
+\tabularnewline
+\hline
+\end{tabular}
+
+\begin{lyxcode}
 
 \end{lyxcode}
 \bibliography{grid}
