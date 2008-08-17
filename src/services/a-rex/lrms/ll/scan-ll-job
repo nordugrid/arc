@@ -8,7 +8,7 @@ basedir=`dirname $0`
 basedir=`cd $basedir; pwd`
 
 # Assume that gm-kick is installed in the same directory
-GMKICK=${basename}/gm-kick
+GMKICK=${basedir}/gm-kick
 
 # Does the control directory exist?
 control_dir="$1"
