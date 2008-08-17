@@ -1,5 +1,5 @@
-#LyX 1.4.5.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 245
+#LyX 1.5.5 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass article
@@ -46,13 +46,21 @@
 \end_preamble
 \language english
 \inputencoding auto
-\fontscheme pslatex
+\font_roman times
+\font_sans helvet
+\font_typewriter courier
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \paperfontsize default
 \spacing onehalf
 \papersize a4paper
 \use_geometry true
 \use_amsmath 2
+\use_esint 0
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
@@ -68,8 +76,9 @@
 \papercolumns 1
 \papersides 2
 \paperpagestyle default
-\tracking_changes false
+\tracking_changes true
 \output_changes true
+\author "Steffen Moeller" 
 \end_header
 
 \begin_body
@@ -306,7 +315,7 @@ end{titlepage}
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand \tableofcontents{}
+\begin_inset LatexCommand tableofcontents
 
 \end_inset
 
@@ -331,7 +340,8 @@ newpage
 
 \begin_layout Section
 Introduction
-\begin_inset LatexCommand \label{sec:intro}
+\begin_inset LatexCommand label
+name "sec:intro"
 
 \end_inset
 
@@ -339,25 +349,92 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-A-REX is one of ARC middleware componets implementing functions of so called
- 
+A-REX is one of ARC middleware compone
+\change_inserted 0 1219009499
+n
+\change_unchanged
+ts 
+\change_inserted 0 1219009538
+that 
+\change_unchanged
+implement
+\change_deleted 0 1219009541
+ing
+\change_unchanged
+ functions of so called 
 \emph on
 Computing Element
 \emph default
  (CE).
  
+\change_deleted 0 1219009550
+
 \end_layout
 
 \begin_layout Standard
-The aim of the A-REX is to take care of job pre- and post-processing.
- It provides functionality to stage-in files containing input data and program
- modules from wide range of sources and transfer or store output results.
+
+\change_deleted 0 1219009566
+The aim of the A-REX is to 
+\change_inserted 0 1219009567
+It 
+\change_unchanged
+take
+\change_inserted 0 1219009570
+s
+\change_unchanged
+ care of job pre- and post-processing.
+ 
+\change_inserted 0 1219009593
+This comprises
+\change_deleted 0 1219009590
+It
+\change_unchanged
+ 
+\change_deleted 0 1219009595
+provides 
+\change_inserted 0 1219009596
+the 
+\change_deleted 0 1219009607
+functionality to 
+\change_unchanged
+stage-in 
+\change_inserted 0 1219009613
+of 
+\change_unchanged
+files containing input data 
+\change_deleted 0 1219009622
+and 
+\change_inserted 0 1219009623
+or 
+\change_unchanged
+program modules from wide range of sources and 
+\change_inserted 0 1219009638
+the 
+\change_unchanged
+transfer or stor
+\change_deleted 0 1219009651
+e
+\change_inserted 0 1219009655
+ing of
+\change_unchanged
+ output results.
 \end_layout
 
 \begin_layout Standard
-The A-REX implements Web Service (WS) interface which provides a way to
- submit and control computational tasks (jobs) to be executed by the A-REX
- and undelying Local Resource Management System.
+The A-REX implements 
+\change_inserted 0 1219009663
+a 
+\change_unchanged
+Web Service (WS) interface which provides a way to submit and control computatio
+nal tasks (jobs) to be executed by the A-REX and 
+\change_inserted 0 1219009675
+the 
+\change_unchanged
+unde
+\change_inserted 0 1219009676
+r
+\change_unchanged
+lying Local Resource Management System.
 \end_layout
 
 \begin_layout Standard
@@ -365,9 +442,18 @@ The A-REX implements Web Service (WS) interface which provides a way to
 \series bold
 You should use this document for advanced configuration purposes and understandi
 ng of internals of the aforementioned tools.
- For general instalaltion and configuration of whole system refer to other
- documents avaialble at 
-\begin_inset LatexCommand \url{http://www.nordugrid.org/papers.html}
+ For general instal
+\change_deleted 0 1219009690
+a
+\change_unchanged
+l
+\change_inserted 0 1219009692
+a
+\change_unchanged
+tion and configuration of whole system refer to other documents avaialble
+ at 
+\begin_inset LatexCommand url
+target "http://www.nordugrid.org/papers.html"
 
 \end_inset
 
@@ -377,7 +463,8 @@ ng of internals of the aforementioned tools.
 
 \begin_layout Section
 Main concepts
-\begin_inset LatexCommand \label{sec:main concepts}
+\begin_inset LatexCommand label
+name "sec:main concepts"
 
 \end_inset
 
@@ -385,7 +472,19 @@ Main concepts
 \end_layout
 
 \begin_layout Standard
-A job is a set of input files (which may include executables), a main executable
+
+\change_inserted 0 1219009739
+On the compute element, 
+\change_deleted 0 1219009740
+A
+\change_inserted 0 1219009740
+a
+\change_unchanged
+ job is 
+\change_inserted 0 1219009781
+described as 
+\change_unchanged
+a set of input files (which may include executables), a main executable
  and a set of output files.
  The process of gathering input files, executing a job, and transferring/storing
  output files is called a 
@@ -407,10 +506,28 @@ session directory
  by the job other than SD (unless such a place is part of a requested Runtime
  Environement).
  The SD is also the only place which is controlled by the A-REX.
- It is accessible by the user from outside through HTTP(S) protocol.
+ It is accessible by the user from outside through 
+\change_inserted 0 1219009880
+the 
+\change_unchanged
+HTTP(S) protocol.
  Any file created outside the SD is not controlled by the A-REX.
  Any exchange of data between client and A-REX (including also program modules)
- is done through HTTP(S) protocol.
+ is 
+\change_deleted 0 1219009856
+done 
+\change_inserted 0 1219009857
+performed 
+\change_deleted 0 1219009873
+through 
+\change_inserted 0 1219009876
+via 
+\change_unchanged
+HTTP(S)
+\change_deleted 0 1219009871
+ protocol
+\change_unchanged
+.
  A URL for accessing input/output files is  obtained through the WS Local
  Information Description Interface (LIDI) of A-REX.
 \end_layout
@@ -422,18 +539,26 @@ jobid
 \shape default
 ).
  This is a handle - WS-Addressing 
-\begin_inset LatexCommand \cite{jsdl}
+\begin_inset LatexCommand cite
+key "jsdl"
 
 \end_inset
 
  XML document - which identifies the job in the A-REX and the Information
  Interface.
+\change_deleted 0 1219009933
+
 \end_layout
 
 \begin_layout Standard
-Jobs are initiated and controlled through WS interface.
+Jobs are initiated and controlled through 
+\change_inserted 0 1219009923
+the 
+\change_unchanged
+WS interface.
  Complete job descriptions (JD)are passed to the A-REX through WS in JSDL
-\begin_inset LatexCommand \cite{jsdl}
+\begin_inset LatexCommand cite
+key "jsdl"
 
 \end_inset
 
@@ -444,7 +569,8 @@ Jobs are initiated and controlled through WS interface.
 
 \begin_layout Section
 Input/output data
-\begin_inset LatexCommand \label{sec:input/output data}
+\begin_inset LatexCommand label
+name "sec:input/output data"
 
 \end_inset
 
@@ -461,16 +587,22 @@ One of the most important tasks of the A-REX is to take care of processing
 \begin_layout Itemize
 Download is initiated by the A-REX -- This is the case for files defined
  in the JD (with name and source).
- The A-REX alone is responsible to make sure that all required files will
- be available in the SD.
+ The A-REX alone is responsible to 
+\change_deleted 0 1219009989
+make 
+\change_inserted 0 1219009990
+en
+\change_unchanged
+sure that all required files will be available in the SD.
 \newline
-The supported protocols for sources at the moment
- are (in case of full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over
- SSLv3).
+The supported protocols
+ for sources at the moment are (in case of full installation): GridFTP,
+ FTP, HTTP, HTTPS (HTTP over SSLv3).
  Also some less standard sources are supported.
  Those are described below.
  The A-REX fully relies on HED framework 
-\begin_inset LatexCommand \cite{hed}
+\begin_inset LatexCommand cite
+key "hed"
 
 \end_inset
 
@@ -545,7 +677,8 @@ All files not specified in the JD are deleted after job execution finished.
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand \label{Section: Job Flow}
+\begin_inset LatexCommand label
+name "Section: Job Flow"
 
 \end_inset
 
@@ -555,7 +688,8 @@ Job flow
 \begin_layout Standard
 From the point of view of the A-REX a job passes through various states.
  Picture 
-\begin_inset LatexCommand \ref{job states diagram}
+\begin_inset LatexCommand ref
+reference "job states diagram"
 
 \end_inset
 
@@ -583,12 +717,21 @@ includegraphics{pic1}
 
 \end_layout
 
-\begin_layout Caption
-\begin_inset LatexCommand \label{job states diagram}
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "job states diagram"
 
 \end_inset
 
 Job states
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -812,7 +955,8 @@ The Hosting Environment of the Advanced Resource Connector middleware
 \end_inset
 
  document 
-\begin_inset LatexCommand \cite{hed}
+\begin_inset LatexCommand cite
+key "hed"
 
 \end_inset
 
@@ -820,7 +964,8 @@ The Hosting Environment of the Advanced Resource Connector middleware
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand \label{section: internals}
+\begin_inset LatexCommand label
+name "section: internals"
 
 \end_inset
 
@@ -923,7 +1068,8 @@ Deleted
 \end_deeper
 \begin_layout Standard
 See section 
-\begin_inset LatexCommand \ref{Section: Job Flow}
+\begin_inset LatexCommand ref
+reference "Section: Job Flow"
 
 \end_inset
 
@@ -937,7 +1083,8 @@ PENDING:
 \end_inset
 
  (like PENDING:ACCEPTED, see section 
-\begin_inset LatexCommand \ref{Section: Job Flow}
+\begin_inset LatexCommand ref
+reference "Section: Job Flow"
 
 \end_inset
 
@@ -1534,9 +1681,13 @@ A-REX Web Service Interface provides means to submit a description of a
  computational job to a computing resource, to stage-in additional data,
  to monitor and control processing of jobs, and obtain data produced during
  the execution of a job.
- The WS Interface is built and deployed inside Hosting Envirnoment Daemon
- (HED) infrastructure
-\begin_inset LatexCommand \cite{hed}
+ The WS Interface is built and deployed inside 
+\change_inserted 0 1219010081
+the 
+\change_unchanged
+Hosting Envirnoment Daemon (HED) infrastructure
+\begin_inset LatexCommand cite
+key "hed"
 
 \end_inset
 
@@ -1548,14 +1699,29 @@ Basic Execution Service Interface
 \end_layout
 
 \begin_layout Standard
-The job submission and control interface is based on document produced by
- the OGF OGSA Basic Execution Services (BES) Working Group
-\begin_inset LatexCommand \cite{bes}
+The job submission and control interface is based on 
+\change_inserted 0 1219010088
+a 
+\change_unchanged
+document produced by the OGF OGSA Basic Execution Services (BES) Working
+ Group
+\begin_inset LatexCommand cite
+key "bes"
 
 \end_inset
 
 .
- The exchange of SOAP messages is performed over the HTTP(S) protocol.
+ The exchange of SOAP messages is performed 
+\change_deleted 0 1219010118
+over the
+\change_inserted 0 1219010126
+via
+\change_unchanged
+ HTTP(S)
+\change_deleted 0 1219010132
+ protocol
+\change_unchanged
+.
  The BES interface is represented by two port-types - BES-Management and
  BES-Factory.
  The former is made to control the A-REX service itself and thus defines
@@ -1571,7 +1737,8 @@ The job submission and control interface is based on document produced by
 \begin_layout Standard
 For job descriptions A-REX accepts the Job Submission Description Language
  (JSDL)
-\begin_inset LatexCommand \cite{jsdl}
+\begin_inset LatexCommand cite
+key "jsdl"
 
 \end_inset
 
@@ -1685,13 +1852,15 @@ Since BES allows implementators to extend their initial activity states
  with additional sub-states, A-REX defines a set of sub-states of activity
  processing in addition to those defined by the BES, as listed in Table
  
-\begin_inset LatexCommand \ref{tab:Job-states-definitions}
+\begin_inset LatexCommand ref
+reference "tab:Job-states-definitions"
 
 \end_inset
 
 .
  Their meaning is described in section 
-\begin_inset LatexCommand \ref{Section: Job Flow}
+\begin_inset LatexCommand ref
+reference "Section: Job Flow"
 
 \end_inset
 
@@ -1704,12 +1873,21 @@ wide false
 sideways false
 status open
 
-\begin_layout Caption
-\begin_inset LatexCommand \label{tab:Job-states-definitions}
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "tab:Job-states-definitions"
 
 \end_inset
 
 Job states definitions and mappings
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2225,7 +2403,13 @@ Delegation Interface
 \end_layout
 
 \begin_layout Standard
-The A-REX also supportd the Delegation Interface (see Appendix E).
+The A-REX also support
+\change_inserted 0 1219010181
+s
+\change_deleted 0 1219010181
+d
+\change_unchanged
+ the Delegation Interface (see Appendix E).
  This is a common purpose interface to be used by ARC services which accepts
  delegated credentials from clients.
  The Delegation Interface implements two operations: initiatialization of
@@ -2396,7 +2580,8 @@ DelegateCredentialsInit
  operation.
  For more information about delegations and delegation interface refer to
  
-\begin_inset LatexCommand \cite{wsrf-rp}
+\begin_inset LatexCommand cite
+key "wsrf-rp"
 
 \end_inset
 
@@ -2411,7 +2596,8 @@ Local Information Description Interface
 The A-REX implements the Local Information Description Interface (LIDI)
  interface common for all ARC services.
  This interface is based on OASIS Web Services Resource Properties specification
-\begin_inset LatexCommand \cite{wsrf-rp}
+\begin_inset LatexCommand cite
+key "wsrf-rp"
 
 \end_inset
 
@@ -2460,7 +2646,8 @@ Supported JSDL elements
 
 \begin_layout Standard
 A-REX supports the following elements from the JSDL version 1.0 specification
-\begin_inset LatexCommand \cite{jsdl}
+\begin_inset LatexCommand cite
+key "jsdl"
 
 \end_inset
 
@@ -2777,7 +2964,8 @@ CandidateTarget -
 
 \begin_layout Section
 Cache
-\begin_inset LatexCommand \label{sec:cache}
+\begin_inset LatexCommand label
+name "sec:cache"
 
 \end_inset
 
@@ -2803,14 +2991,16 @@ Protocols, Uniform Resource Locators (URL) and extensions supported in ARC
 \end_inset
 
  
-\begin_inset LatexCommand \cite{urls}
+\begin_inset LatexCommand cite
+key "urls"
 
 \end_inset
 
 ).
  The disc space occupied by cache is controlled by removing unused files.
  For more information look in section 
-\begin_inset LatexCommand \ref{SubSection: ConfigFile}
+\begin_inset LatexCommand ref
+reference "SubSection: ConfigFile"
 
 \end_inset
 
@@ -3080,7 +3270,8 @@ shared
 
 \begin_layout Section
 Files and directories
-\begin_inset LatexCommand \label{sec:files and directories}
+\begin_inset LatexCommand label
+name "sec:files and directories"
 
 \end_inset
 
@@ -3149,14 +3340,16 @@ old
 new
 \emph default
  (as described in section 
-\begin_inset LatexCommand \ref{sec:cache}
+\begin_inset LatexCommand ref
+reference "sec:cache"
 
 \end_inset
 
 ).
  Configuration is read directly from the GM's configuration file (see section
  
-\begin_inset LatexCommand \ref{SubSection: ConfigFile}
+\begin_inset LatexCommand ref
+reference "SubSection: ConfigFile"
 
 \end_inset
 
@@ -3452,7 +3645,8 @@ In order for jobs to access
  Otherwise, LRMS-specific methods must be used to transfer files to execution
  nodes.
  For more information see section 
-\begin_inset LatexCommand \ref{sub:LRMS}
+\begin_inset LatexCommand ref
+reference "sub:LRMS"
 
 \end_inset
 
@@ -3488,7 +3682,8 @@ Configuration
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand \label{SubSection: ConfigFile}
+\begin_inset LatexCommand label
+name "SubSection: ConfigFile"
 
 \end_inset
 
@@ -4292,7 +4487,8 @@ control
 path
 \shape default
  refers to the control directory (see section 
-\begin_inset LatexCommand \ref{section: internals}
+\begin_inset LatexCommand ref
+reference "section: internals"
 
 \end_inset
 
@@ -4307,7 +4503,8 @@ username
  If the name is * it is substituted by all names found in file /etc/grid-securit
 y/grid-mapfile (for the format of this file one should study the Globus
  project 
-\begin_inset LatexCommand \cite{globus}
+\begin_inset LatexCommand cite
+key "globus"
 
 \end_inset
 
@@ -4445,7 +4642,8 @@ shared_filesystem
  filesystem like NFS.
  Corresponds to an environement variable RUNTIME_NODE_SEES_FRONTEND (see
  section 
-\begin_inset LatexCommand \ref{sub:LRMS}
+\begin_inset LatexCommand ref
+reference "sub:LRMS"
 
 \end_inset
 
@@ -4610,7 +4808,8 @@ extern - call external program (grid-manager)
 \end_deeper
 \begin_layout Subsection
 Authorization
-\begin_inset LatexCommand \label{sub:Authorization}
+\begin_inset LatexCommand label
+name "sub:Authorization"
 
 \end_inset
 
@@ -4623,7 +4822,8 @@ Authorization is performed by generic means provided by HED framework.
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand \label{sub:LRMS}
+\begin_inset LatexCommand label
+name "sub:LRMS"
 
 \end_inset
 
@@ -4862,17 +5062,20 @@ shared_filesystem
 
 \begin_layout Standard
 Figures 
-\begin_inset LatexCommand \ref{fig:no node scratch}
+\begin_inset LatexCommand ref
+reference "fig:no node scratch"
 
 \end_inset
 
 ,
-\begin_inset LatexCommand \ref{fig:node scratch, not vis on front}
+\begin_inset LatexCommand ref
+reference "fig:node scratch, not vis on front"
 
 \end_inset
 
 ,
-\begin_inset LatexCommand \ref{fig:node scratch, vis on front}
+\begin_inset LatexCommand ref
+reference "fig:node scratch, vis on front"
 
 \end_inset
 
@@ -4912,8 +5115,12 @@ includegraphics{pic2}
 
 \end_layout
 
-\begin_layout Caption
-\begin_inset LatexCommand \label{fig:no node scratch}
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:no node scratch"
 
 \end_inset
 
@@ -4921,6 +5128,11 @@ Both RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FRONTEND_SEES_NODE are undefined.
  It is assumed that session directories are visible from computing nodes.
  The job is executed directly in the session directory prepared by GM on
  the frontend.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -4949,13 +5161,22 @@ includegraphics{pic3}
 
 \end_layout
 
-\begin_layout Caption
-\begin_inset LatexCommand \label{fig:node scratch, not vis on front}
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:node scratch, not vis on front"
 
 \end_inset
 
 RUNTIME_LOCAL_SCRATCH_DIR is set to the location of the scratch directory
  on the computing node, RUNTIME_FRONTEND_SEES_NODE is undefined.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout List
@@ -5012,14 +5233,23 @@ includegraphics{pic4}
 
 \end_layout
 
-\begin_layout Caption
-\begin_inset LatexCommand \label{fig:node scratch, vis on front}
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:node scratch, vis on front"
 
 \end_inset
 
 Both RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FRONTEND_SEES_NODE are set to
  the location of the scratch directory on the computing node and the location
  where this scratch directory is accessible from the frontend, respectively.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout List
@@ -5209,7 +5439,9 @@ With argument '2' scripts are executed after main executable finished.
 
 \begin_layout Standard
 For publicly available runtime environments please see 
-\begin_inset LatexCommand \url[RTE]{http://gridrer.csc.fi/}
+\begin_inset LatexCommand url
+name "RTE"
+target "http://gridrer.csc.fi/"
 
 \end_inset
 
@@ -5218,7 +5450,8 @@ For publicly available runtime environments please see
 
 \begin_layout Section
 Installation
-\begin_inset LatexCommand \label{sec:installation}
+\begin_inset LatexCommand label
+name "sec:installation"
 
 \end_inset
 
@@ -5228,7 +5461,9 @@ Installation
 \begin_layout Standard
 The A-REX is installed as part of ARC 1 middleware and is available in NorduGrid
  download area at 
-\begin_inset LatexCommand \url[ARC1 Download]{http://download.nordugrid.org/software/nordugrid-arc1/}
+\begin_inset LatexCommand url
+name "ARC1 Download"
+target "http://download.nordugrid.org/software/nordugrid-arc1/"
 
 \end_inset
 
@@ -5261,13 +5496,20 @@ NorduGrid ARC server installation instructions
 \end_inset
 
  at 
-\begin_inset LatexCommand \htmlurl{http://www.nordugrid.org/documents/ng-server-install.html}
+\begin_inset LatexCommand htmlurl
+target "http://www.nordugrid.org/documents/ng-server-install.html"
 
 \end_inset
 
 .
  Follow that manual to install GM, configure and run it.
- Additional tips are described here.
+ Additional 
+\change_deleted 0 1219010360
+tips
+\change_inserted 0 1219010361
+hints
+\change_unchanged
+ are described here.
 \end_layout
 
 \begin_layout Standard
@@ -5297,12 +5539,14 @@ Refer to the description of the
 User Interface
 \emph default
  part 
-\begin_inset LatexCommand \cite{ui}
+\begin_inset LatexCommand cite
+key "ui"
 
 \end_inset
 
  and extensions to RSL 
-\begin_inset LatexCommand \cite{xrsl}
+\begin_inset LatexCommand cite
+key "xrsl"
 
 \end_inset
 
@@ -5890,7 +6134,7 @@ job.ID.failed
 \begin_inset Tabular
 <lyxtabular version="3" rows="25" columns="2">
 <features>
-<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" width="2in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
@@ -6440,7 +6684,7 @@ Provided by downloader component (URL is replcaced by source of input file,
 \begin_inset Tabular
 <lyxtabular version="3" rows="28" columns="2">
 <features>
-<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" width="2in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
@@ -7035,7 +7279,7 @@ Provided by uploader component (URL is replcaced by destination of output
 \begin_inset Tabular
 <lyxtabular version="3" rows="23" columns="2">
 <features>
-<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" width="2in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
@@ -7525,7 +7769,7 @@ Coming from LRMS (PBS) backend:
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
 <features>
-<column alignment="block" valignment="top" leftline="true" width="2.5in">
+<column alignment="block" valignment="top" leftline="true" width="2in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
