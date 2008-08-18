@@ -2,9 +2,22 @@
 %  BIBLIOGRAPHY FILE
 % ------------------------------------------------------------------------
 
-@ELECTRONIC{nordugrid,
+@Article{arc,
+  author =      {M.~Ellert and others},
+  title =       "{Advanced Resource Connector middleware for
+                  lightweight computational Grids}",
+  journal =     {Future Gener. Comput. Syst.},
+  volume =      {23},
+  number =      {1},
+  year =        {2007},
+  issn =        {0167-739X},
+  pages =       {219-240}
+}
+
+@unpublished{nordugrid,
   title =        "{The NorduGrid Collaboration}",
-  URL =         "http://www.nordugrid.org"
+  URL =          "http://www.nordugrid.org",
+  note =         "{Web site}"
 }
 
 @Article{globus,
@@ -16,7 +29,7 @@
   volume =	 {11},
   number =	 {2},
   pages =	 {115-128},
-  OPTnote =	 "Available at: http://www.globus.org"
+  note =	 "Available at: http://www.globus.org"
 }
 
 @unpublished{mds,
@@ -30,7 +43,8 @@
   author =	 "B. K\'{o}nya",
   organization = "{The NorduGrid Collaboration}",
   title =	 "{The NorduGrid/ARC Information System}",
-  note =	 "{NORDUGRID-TECH-4}"
+  note =         "{NORDUGRID-TECH-4}",
+  url = "{http://www.nordugrid.org/documents/arc_infosys.pdf}"
 }
 
 @Book{ldap,
@@ -55,7 +69,8 @@
   organization = "{The NorduGrid Collaboration}",
   title =	 "{The NorduGrid Grid Manager And GridFTP Server:
                   Description And Administrator's Manual}",
-  note =	 "{NORDUGRID-TECH-2}"
+  note =         "{NORDUGRID-TECH-2}",
+  url = "{http://www.nordugrid.org/documents/GM.pdf}"
 }
 
 @ELECTRONIC{vo,
@@ -210,6 +225,13 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   note =         "{NORDUGRID-TECH-10}"
 }
 
+@Manual{hed,
+  title =        "{The Hosting Environment of the Advanced Resource Connector middleware}",
+  author =       "",
+  organization = "{The NorduGrid Collaboration}",
+  note =         "{NORDUGRID-TECH-??}"
+}
+
 @Manual{urls,
   author =	 "A. Konstantinov",
   organization = "{The NorduGrid Collaboration}",
@@ -255,14 +277,34 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   URL =         "http://www.ggf.org/"
 }
 
-@ELECTRONIC{srm,
-  title =        "{Storage Resource Management Working Group}",
-  URL =         "http://sdm.lbl.gov/srm-wg/"
+@unpublished{ogf,
+  title =        "{Openl Grid Forum}",
+  URL =         "http://www.ogf.org/",
+  note =        "{Web site}"
+}
+
+@unpublished{srm,
+  title =        "{The Storage Resource Manager Interface (SRM) Specification v2.2}",
+  author ="{A.~Sim, A.~Shoshani and others}",
+  URL =         "{http://www.ggf.org/documents/GFD.129.pdf}",
+  year =        "2008",
+  month =       "May",
+  note =        "{GFD-R-P.129}"
 }
 
 @ELECTRONIC{glite,
   title =        "{gLite, Lightweight Middleware for Grid Computing}",
   URL =         "http://glite.web.cern.ch/glite/"
+}
+
+@Article{edg,
+  author = {E.~Laure anf others},
+  title = "{The EU DataGrid Setting the Basis for Production Grids}",
+  journal = "{ J. of Grid Computing}",
+  year = {2004},
+  volume = {2},
+  number = {4},
+  pages = {299-400}
 }
 
 @InProceedings{para02,
@@ -292,19 +334,28 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
 @ELECTRONIC{jsdl,
   title =        "Job Submission Description Language (JSDL) Specification v1.0",
   author =	 {A.~Anjomshoaa and others},
-  note =	 "{GFD-R-P.056}",
-  year =	 "2005",
-  month =	 "December",
-  URL =          "http://www.ggf.org/ggf_docs_final.htm"
+  note =         "{GFD-R.056}",
+  year =         "2007",
+  month =        "November",
+  URL =          "http://www.gridforum.org/documents/GFD.56.pdf"
 }
 
-@ELECTRONIC{bes,
-  title =        "OGSA Basic Execution Service Version 1.0",
-  author =	 {I.Foster and others},
-  note =	 "{GFD.108}",
-  year =	 "2007",
-  month =	 "August",
-  URL =          "http://www.ogf.org/gf/docs/?final"
+@ELECTRONIC{jsdl-hpc,
+  title =        "JSDL HPC Profile Application Extension, Version 1.0",
+  author =	 {M.~Humphrey and others},
+  note =         "{GFD-R.111}",
+  year =         "2007",
+  month =        "August",
+  URL =          "http://www.gridforum.org/documents/GFD.111.pdf"
+}
+
+@unpublished{ogsa-bes,
+  title =        "{OGSA\texttrademark ~Basic Execution Service Version 1.0}",
+  author =       {I.~Foster and others},
+  note =         "{GFD-R-P.108}",
+  year =         "2007",
+  month =        "August",
+  URL =          "http://www.ogf.org/documents/GFD.108.pdf"
 }
 
 @ELECTRONIC{wsrf,
@@ -350,6 +401,52 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   year =	 "2006",
   month =	 "April",
   URL =          "http://docs.oasis-open.org/wsrf/wsrf-ws_base_faults-1.2-spec-os.pdf"
+}
+
+@ELECTRONIC{ws-addr-soap,
+  title =        "Web Services Addressing 1.0 - SOAP Binding",
+  author =	 {W3C},
+  note =	 "{}",
+  year =	 "2006",
+  month =	 "May",
+  URL =          "http://www.w3.org/TR/2006/REC-ws-addr-soap-20060509/"
+}
+
+@unpublished{lfc,
+title = "{LHC File Catalog}",
+url = {https://savannah.cern.ch/projects/jra1mdw/},
+  note =         "{Web site}"
+}
+
+@Manual{arex,
+  author =      "A. Konstantinov",
+  title =       "{The ARC Computational Job Management Module - A-REX}",
+  note =        "{NORDUGRID-TECH-14}",
+  URL =          "http://www.nordugrid.org/documents/a-rex.pdf"
+}
+
+@Unpublished{knowarc,
+  title = "{EU KnowARC project}",
+  note = "{Web site}",
+  url = "{http://www.knowarc.eu}"
+}
+
+@Unpublished{ndgf,
+  title = "{Nordic DataGrid Facility}",
+  note = "{Web site}",
+  url = "{http://www.ndgf.org}"
+}
+
+@Unpublished{swegrid,
+  title = "{Swegrid, Swedish National computational resource}",
+  note = "{Web site}",
+  url = "{http://www.swegrid.se}"
+}
+
+@Unpublished{swing,
+  title = "{SwiNG, Swiss National Grid Association}",
+  note = "{Web site}",
+  url = "{http://www.swing-grid.ch}"
 }
 
 % ------------------------------------------------------------------------

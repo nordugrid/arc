@@ -339,8 +339,8 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-A-REX is one of ARC middleware componets implementing functions of so called
- 
+A-REX is one of ARC middleware components that implements functions of so
+ called 
 \emph on
 Computing Element
 \emph default
@@ -349,15 +349,15 @@ Computing Element
 \end_layout
 
 \begin_layout Standard
-The aim of the A-REX is to take care of job pre- and post-processing.
- It provides functionality to stage-in files containing input data and program
- modules from wide range of sources and transfer or store output results.
+It takes care of job pre- and post-processing.
+ This comprises the stage-in of files containing input data or program modules
+ from wide range of sources and the transfer or storing of output results.
 \end_layout
 
 \begin_layout Standard
-The A-REX implements Web Service (WS) interface which provides a way to
+The A-REX implements a Web Service (WS) interface which provides a way to
  submit and control computational tasks (jobs) to be executed by the A-REX
- and undelying Local Resource Management System.
+ and he underlying Local Resource Management System.
 \end_layout
 
 \begin_layout Standard
@@ -365,8 +365,8 @@ The A-REX implements Web Service (WS) interface which provides a way to
 \series bold
 You should use this document for advanced configuration purposes and understandi
 ng of internals of the aforementioned tools.
- For general instalaltion and configuration of whole system refer to other
- documents avaialble at 
+ For general installation and configuration of whole system refer to other
+ documents available at 
 \begin_inset LatexCommand \url{http://www.nordugrid.org/papers.html}
 
 \end_inset
@@ -385,8 +385,8 @@ Main concepts
 \end_layout
 
 \begin_layout Standard
-A job is a set of input files (which may include executables), a main executable
- and a set of output files.
+On the computing element a job is described as a set of input files (which
+ may include executables), a main executable and a set of output files.
  The process of gathering input files, executing a job, and transferring/storing
  output files is called a 
 \emph on
@@ -405,12 +405,12 @@ session directory
  The job is supposed to produce new data files in the SD as well.
  The A-REX does not guarantee the availability of any other places accessible
  by the job other than SD (unless such a place is part of a requested Runtime
- Environement).
+ Environment).
  The SD is also the only place which is controlled by the A-REX.
- It is accessible by the user from outside through HTTP(S) protocol.
+ It is accessible by the user from outside through the HTTP(S) protocol.
  Any file created outside the SD is not controlled by the A-REX.
  Any exchange of data between client and A-REX (including also program modules)
- is done through HTTP(S) protocol.
+ is performed via HTTP(S).
  A URL for accessing input/output files is  obtained through the WS Local
  Information Description Interface (LIDI) of A-REX.
 \end_layout
@@ -422,7 +422,7 @@ jobid
 \shape default
 ).
  This is a handle - WS-Addressing 
-\begin_inset LatexCommand \cite{jsdl}
+\begin_inset LatexCommand \cite{ws-addr-soap}
 
 \end_inset
 
@@ -431,7 +431,7 @@ jobid
 \end_layout
 
 \begin_layout Standard
-Jobs are initiated and controlled through WS interface.
+Jobs are initiated and controlled through the WS interface.
  Complete job descriptions (JD)are passed to the A-REX through WS in JSDL
 \begin_inset LatexCommand \cite{jsdl}
 
@@ -461,12 +461,11 @@ One of the most important tasks of the A-REX is to take care of processing
 \begin_layout Itemize
 Download is initiated by the A-REX -- This is the case for files defined
  in the JD (with name and source).
- The A-REX alone is responsible to make sure that all required files will
- be available in the SD.
+ The A-REX alone is responsible to ensure that all required files will be
+ available in the SD.
 \newline
-The supported protocols for sources at the moment
- are (in case of full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over
- SSLv3).
+The supported protocols for sources at the moment are
+ (in case of full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over SSLv3).
  Also some less standard sources are supported.
  Those are described below.
  The A-REX fully relies on HED framework 
@@ -474,7 +473,7 @@ The supported protocols for sources at the moment
 
 \end_inset
 
- for data transfering capabilities.
+ for data transferring capabilities.
  Hence actual set of supported protocols depends on installed Data Management
  Components of the HED.
 \end_layout
@@ -520,8 +519,8 @@ Replica Location Service
 \emph default
  (RLS) -- The A-REX takes care of these files.
  They have to be specified in the JD.
- If the job fails during any stage of processing, no attept is made to transfer
- those files to their final destination, unless the option 
+ If the job fails during any stage of processing, no attempt is made to
+ transfer those files to their final destination, unless the option 
 \emph on
 preserve=yes
 \emph default
@@ -541,7 +540,7 @@ must
 \begin_layout Standard
 All files not specified in the JD are deleted after job execution finished.
  If job execution fails for any reason (if exit code of main executable
- is not 0) all files from furst group are transfered to second one.
+ is not 0) all files from first group are transferred to second one.
 \end_layout
 
 \begin_layout Section
@@ -600,14 +599,15 @@ n Description Interface of A-REX using the UI or any other suitable tool
 \end_layout
 
 \begin_layout Standard
-Configuration can put limits on the amout of simultaneous jobs in some states.
+Configuration can put limits on the amount of simultaneous jobs in some
+ states.
  If such a limit is reached, a job ready to enter into the state in question
  will stay in it's current state waiting for a free slot.
  This situation is presented by additional state mark 
 \series bold
 PENDING
 \series default
- to the current state name in the job's status desription.
+ to the current state name in the job's status description.
 \end_layout
 
 \begin_layout Standard
@@ -677,7 +677,7 @@ Submiting
 Local Resource Management System
 \emph default
  (LRMS).
- The correspoding backends for many LRMSs are provided with the default
+ The corresponding backends for many LRMSs are provided with the default
  installation.
  If the local job submission is successful the job moves to the 
 \series bold
@@ -689,7 +689,7 @@ Executing
 Finishing
 \series default
 .
- It is possible to limit the agregate number of jobs in 
+ It is possible to limit the aggregate number of jobs in 
 \series bold
 Submiting
 \series default
@@ -745,7 +745,7 @@ Finished
 Deleted
 \series default
 .
- The 'deletion' time can be obtained by querying the Informatrion Interface
+ The 'deletion' time can be obtained by querying the Information Interface
  of the A-REX.
  If a job was moved to 
 \series bold
@@ -868,7 +868,7 @@ job.ID.status
  - current state of the job.
  This is a plain text file containing a single word representing the internal
  name of current state of the job.
- Possible values and corrsponding external job states are :
+ Possible values and corresponding external job states are :
 \end_layout
 
 \begin_deeper
@@ -1136,7 +1136,7 @@ gmlog
 \shape italic
 clientname
 \shape default
- - name (as provided by the user interface) and ip address:port of the submittin
+ - name (as provided by the user interface) and IP address:port of the submittin
 g client machine
 \end_layout
 
@@ -1227,17 +1227,11 @@ input.dat gsiftp://grid.domain.org/dir/input_12378.dat
 
 \begin_layout Standard
 
-\shape italic
-url
-\shape default
- - ordinary URL for gsiftp, ftp, http, https protocols with the addition
- of '
-\series bold
-replica location service url
-\series default
-' (RLS URL).
-\newline
-Each URL can contain additional options.
+\emph on
+URL
+\emph default
+ represents location from which file can be downloaded.
+ Each URL can contain additional options.
 \end_layout
 
 \begin_layout Standard
@@ -1313,8 +1307,12 @@ downloader
 \series default
 \shape default
 ' utility.
- Files with 'url' will be downloaded to the SD and files with 'file description'
- will simply be checked to exist.
+ Files with 
+\emph on
+URL
+\emph default
+ will be downloaded to the SD and files with 'file description' will simply
+ be checked to exist.
  Each time a new 
 \series bold
 valid
@@ -1352,7 +1350,7 @@ uploader
 ' utility.
  Files with 
 \shape italic
-url
+URL
 \shape default
  will be uploaded to SE and remaining files will be left in the SD.
  Each time a file is uploaded it is removed from the list and 
@@ -1534,7 +1532,7 @@ A-REX Web Service Interface provides means to submit a description of a
  computational job to a computing resource, to stage-in additional data,
  to monitor and control processing of jobs, and obtain data produced during
  the execution of a job.
- The WS Interface is built and deployed inside Hosting Envirnoment Daemon
+ The WS Interface is built and deployed inside the Hosting Environment Daemon
  (HED) infrastructure
 \begin_inset LatexCommand \cite{hed}
 
@@ -1548,14 +1546,17 @@ Basic Execution Service Interface
 \end_layout
 
 \begin_layout Standard
-The job submission and control interface is based on document produced by
- the OGF OGSA Basic Execution Services (BES) Working Group
-\begin_inset LatexCommand \cite{bes}
+The job submission and control interface is based on a document produced
+ by the OGF OGSA Basic Execution Services (BES) Working Group
+\begin_inset LatexCommand \cite{ogsa-bes}
 
 \end_inset
 
 .
- The exchange of SOAP messages is performed over the HTTP(S) protocol.
+\end_layout
+
+\begin_layout Standard
+The exchange of SOAP messages is performed via HTTP(S).
  The BES interface is represented by two port-types - BES-Management and
  BES-Factory.
  The former is made to control the A-REX service itself and thus defines
@@ -1681,7 +1682,7 @@ On result of this command, the job should be put into the requested state.
 \end_layout
 
 \begin_layout Standard
-Since BES allows implementators to extend their initial activity states
+Since BES allows implementations to extend their initial activity states
  with additional sub-states, A-REX defines a set of sub-states of activity
  processing in addition to those defined by the BES, as listed in Table
  
@@ -2225,12 +2226,12 @@ Delegation Interface
 \end_layout
 
 \begin_layout Standard
-The A-REX also supportd the Delegation Interface (see Appendix D).
+The A-REX also supports the Delegation Interface (see Appendix D).
  This is a common purpose interface to be used by ARC services which accepts
  delegated credentials from clients.
- The Delegation Interface implements two operations: initiatialization of
- credentials delegation (DelegateCredentialsInit) and update/renewal of
- credentials (UpdateCredentials).
+ The Delegation Interface implements two operations: initialization of credentia
+ls delegation (DelegateCredentialsInit) and update/renewal of credentials
+ (UpdateCredentials).
 \end_layout
 
 \begin_layout Itemize
@@ -2436,8 +2437,12 @@ ResourceInformationDocumentType
 \emph on
 nordugrid
 \emph default
- - desription of computing resource that uses NorudGrid LDAP schema [] converted
- to XML document.
+ - description of computing resource that uses NorudGrid LDAP schema 
+\begin_inset LatexCommand \cite{is}
+
+\end_inset
+
+ converted to XML document.
 \end_layout
 
 \begin_layout List
@@ -2465,7 +2470,12 @@ A-REX supports the following elements from the JSDL version 1.0 specification
 \end_inset
 
  including POSIX Applications extension and JSDL HPC Profile Application
- Extension []:
+ Extension 
+\begin_inset LatexCommand \cite{jsdl-hpc}
+
+\end_inset
+
+:
 \end_layout
 
 \begin_layout List
@@ -2640,7 +2650,7 @@ TotalCPUCount -
 \emph on
 IndividualCPUCount
 \emph default
- - same as TotalCPUCount.
+ - same as 6.
 \end_layout
 
 \begin_layout List
@@ -2650,7 +2660,7 @@ IndividualCPUCount
 Environment
 \emph default
 \InsetSpace \space{}
-(POSIX) - environement variable.
+(POSIX) - environment variable.
 \end_layout
 
 \begin_layout Subsubsection
@@ -3008,7 +3018,7 @@ list, old , new
 \shape italic
 ########.info
 \shape default
- has to be stored on filesystem which has support for files' locking.
+ has to be stored on file system which has support for files' locking.
 \end_layout
 
 \begin_layout Subsection
@@ -3016,7 +3026,7 @@ How it works
 \end_layout
 
 \begin_layout Standard
-If a job requests an input file which is subject for cacheing, it is stored
+If a job requests an input file which is subject for caching, it is stored
  in the cache directory instead of the SD.
  The file is made available to the job by either soft-linking it in the
  SD or copying it to the SD.
@@ -3041,7 +3051,7 @@ the real hard limit of cache size is the space available in the file-system
 
 \begin_layout Standard
 Before giving access to an already cached file, the A-REX contacts the original
- file source to check if the user has suficient access rights to the file.
+ file source to check if the user has sufficient access rights to the file.
  Not all protocols make this check possible.
  Also, file creation or validity times are checked to make sure the cached
  file is fresh.
@@ -3126,7 +3136,7 @@ job.ID.input
 uploader
 \shape default
  - This module is responsible for delivering output files to the specified
- SEs and registration at an Indexding Service (like RLS) as needed.
+ SEs and registration at an Indexing Service (like RLS) as needed.
  It processes and updates the 
 \shape italic
 job.ID.output
@@ -3192,7 +3202,7 @@ gm-kick
 cluster+qju.pl
 \emph default
  - Collects and generates information about computing resource as XML document
- in NoruGrid and Glue 2 format.
+ in NorduGrid and Glue 2 format.
 \end_layout
 
 \begin_layout Standard
@@ -3226,7 +3236,7 @@ smtp-send.sh
 submit-*-job
 \shape default
  - Here * stands for the name of the LRMS.
- Curently supported LRMS are PBS/Torque, Condor and SGE.
+ Currently supported LRMS are PBS/Torque, Condor and SGE.
  Also 
 \emph on
 fork
@@ -3380,7 +3390,7 @@ The A-REX also uses following directories:
 \shape italic
 session root directory
 \shape default
- - Tthis is the directory in which a user's SDs are created.
+ - This is the directory in which a user's SDs are created.
  It's location is configurable per UNIX user.
  Several (or even all) users may share the same session root directory.
 \newline
@@ -3402,7 +3412,7 @@ root
 \shape italic
 session root directory
 \shape default
- resides on a filesystem which does not limit the capabilities of the 
+ resides on a file system which does not limit the capabilities of the 
 \emph on
 root
 \emph default
@@ -3436,7 +3446,7 @@ session root directory
 \newline
 The A-REX creates SDs with
  proper ownership and permissions for the local identity used to run a job.
- Some filesystems require users to have 
+ Some file systems require users to have 
 \emph on
 execute
 \emph default
@@ -3496,7 +3506,7 @@ Configuration of the A-REX
 \end_layout
 
 \begin_layout Standard
-Due to historical resons configuration of the A-REX is split into 2 parts.
+Due to historical reasons configuration of the A-REX is split into 2 parts.
  The small part is located inside HED configuration (see appendix B) for
  schema and description of supported elements.
  It refers to file containing main part of configuration.
@@ -3625,7 +3635,7 @@ localtransfer
  node.
  If set to yes the A-REX won't initiate download/upload files.
  Instead it composes script submitted to LRMS in way to make it do that.
- This requires installation of A-REX and all realted software to be accessible
+ This requires installation of A-REX and all related software to be accessible
  from computing nodes and environment variable ARC_LOCATION to be set accordingl
 y.
  Default is 
@@ -3696,7 +3706,7 @@ max_frontend_jobs
 \newline
 max_transfered_files
 \shape default
- - maximal number of files being transfered in parallel by every job.
+ - maximal number of files being transferred in parallel by every job.
  Used to decrease load on not so powerful frontends.
 \newline
 Missing value or -1 means
@@ -3744,10 +3754,10 @@ no
 \emph on
 meta-url
 \emph default
- are registred.
+ are registered.
  Registration is done to same service used for obtaining information about
  file.
- For this opeartion credentials of the A-REX (host key and certificate)
+ For this operation credentials of the A-REX (host key and certificate)
  are used.
  If required new files storage location is registered at Indexing Service
  with quasi-url 
@@ -3848,13 +3858,13 @@ pass
 \shape italic
 log
 \shape default
- - write information about result into logfile and continue execution,
+ - write information about result into log file and continue execution,
 \newline
 
 \shape italic
 fail
 \shape default
- - write information about result into logfile and cancel job.
+ - write information about result into log file and cancel job.
 \end_layout
 
 \begin_layout Itemize
@@ -3917,7 +3927,7 @@ norootpower
 yes
 \emph default
  all processes involved in job management will use local identity of a user
- to which Grid identity is mapped in order to access filesystem at path
+ to which Grid identity is mapped in order to access file system at path
  specified in 
 \series bold
 \shape italic
@@ -3936,7 +3946,7 @@ speedcontrol
 \series default
 =min_speed min_time min_average_speed max_inactivity
 \shape default
- - specifies how long/slow data fransfer is allowed to take place.
+ - specifies how long/slow data transfer is allowed to take place.
  Transfer is canceled if transfer rate (bytes per second) is lower than
  
 \emph on
@@ -3950,7 +3960,7 @@ min_time
 \emph on
 min_average_speed
 \emph default
-, or no data is receved for longer than 
+, or no data is received for longer than 
 \shape italic
 max_inactivity
 \shape default
@@ -4103,20 +4113,13 @@ ttr
 
 \series bold
 \shape italic
-defaultlrms
+lrms
 \series default
 =default_lrms_name default_queue_name
 \shape default
  - specifies names for the LRMS and queue.
  Queue name can also be specified in the JD (currently it is not allowed
- to override used LRMS by using JD).
- In new configuration file this command is called 
-\series bold
-\shape italic
-lrms
-\series default
-\shape default
-.
+ to override LRMS by usingon the JD).
 \end_layout
 
 \begin_layout Itemize
@@ -4232,7 +4235,7 @@ high_mark
 low_mark
 \shape default
  can be negative values.
- In that case corresponding positive value means space left on filesystem.
+ In that case corresponding positive value means space left on file system.
  If 
 \shape italic
 low_mark
@@ -4442,8 +4445,8 @@ shared_filesystem
 =yes|no
 \shape default
  - if computing nodes have an access to session directory through a shared
- filesystem like NFS.
- Corresponds to an environement variable RUNTIME_NODE_SEES_FRONTEND (see
+ file system like NFS.
+ Corresponds to an environment variable RUNTIME_NODE_SEES_FRONTEND (see
  section 
 \begin_inset LatexCommand \ref{sub:LRMS}
 
@@ -4542,7 +4545,7 @@ control
 
 \begin_layout List
 \labelwidthstring 00.00.0000
-%W - installation path - ${NORDUGRID_LOCATION}
+%W - installation path - ${ARC_LOCATION}
 \end_layout
 
 \begin_layout List
@@ -4618,7 +4621,7 @@ Authorization
 
 \begin_layout Standard
 Authorization is performed by generic means provided by HED framework.
- Currently A-REX does not implement any internal authorization tecniques
+ Currently A-REX does not implement any internal authorization techniques
  except those imposed by Access Policy assigned to jobs through AccessControl
  element of assigned JSDL.
 \end_layout
@@ -4854,7 +4857,7 @@ no
 \begin_inset Quotes erd
 \end_inset
 
- means computing node does not share filesystem with frontend.
+ means computing node does not share file system with frontend.
  In that case content of the SD is moved to computing node by using means
  provided by the LRMS.
  Results are moved back after job's execution in a same way.
@@ -5085,7 +5088,7 @@ joboption_directory - session directory.
 \end_layout
 
 \begin_layout Itemize
-joboption_args - command to be executed as specified in RSL.
+joboption_args - command to be executed as specified in the JD.
 \end_layout
 
 \begin_layout Itemize
@@ -5129,11 +5132,11 @@ joboption_stderr - same for stderr.
 \end_layout
 
 \begin_layout Itemize
-joboption_maxcputime - amout of CPU time requested (minutes).
+joboption_maxcputime - amount of CPU time requested (minutes).
 \end_layout
 
 \begin_layout Itemize
-joboption_maxmemory - amout of memory requested (megabytes).
+joboption_maxmemory - amount of memory requested (megabytes).
 \end_layout
 
 \begin_layout Itemize
@@ -5257,7 +5260,7 @@ Setup of the A-REX
 
 \begin_layout Standard
 The A-REX service is a plugable module of the HED.
- Si first You need to setup your HED - see HED documentation.
+ So first You need to setup your HED - see HED documentation.
  
 \end_layout
 
@@ -5269,7 +5272,11 @@ arex
 \emph default
 .
  That will make HED load libarex plugin library.
- Then add new <Service> element with attribute name=
+ 
+\end_layout
+
+\begin_layout Standard
+Then add new <Service> element with attribute name=
 \begin_inset Quotes erd
 \end_inset
 
@@ -5280,7 +5287,7 @@ a-rex
 .
  That will instantiate A-REX service.
  Now to make service accessible extend <Plexer> element with new <next>
- refering to service's id.
+ referring to an id of the service.
  Write <Service> element carefully - here is an example:
 \end_layout
 
@@ -5351,7 +5358,7 @@ Usage
 \begin_layout Standard
 Please read 
 \emph on
-User Manual []
+User Manual [??]
 \emph default
  for usage instructions.
 \end_layout
@@ -5403,12 +5410,16 @@ In addition to the BES interface A-REX provides access to the SD through
  This functionality is used for uploading user-stageable files during job
  submission and for staging out result files produced by job.
  It can also be used to monitor job execution by checking content of application
- dependant files in SD.
+ dependent files in SD.
 \end_layout
 
 \begin_layout Standard
-The BES defines job identifier as WS Addressing [] Endpoint Reference (EPR)
- - XML document.
+The BES defines job identifier as WS Addressing 
+\begin_inset LatexCommand \cite{ws-addr-soap}
+
+\end_inset
+
+ Endpoint Reference (EPR) - XML document.
  The EPR is extendable and the A-REX adds it own element JobSessionDir belonging
  to namespace http://www.nordugrid.org/schemas/a-rex as direct child of ReferenceP
 arameters element.
@@ -5416,10 +5427,10 @@ arameters element.
 \end_layout
 
 \begin_layout Standard
-Obtained URL shoud be extended with file names relative to SD and HTTP methods
- PUT and GET may be used to upload/download content of those files.
- For directories - including SD itself - GET method is supported shich returns
- HTML encoded non-recursive list of files and firectories.
+Obtained URL should be extended with file names relative to SD and HTTP
+ methods PUT and GET may be used to upload/download content of those files.
+ For directories - including SD itself - GET method is supported which returns
+ HTML encoded non-recursive list of files and directories.
  The files and subdirectories have their URLs inside HTML element <A>.
 \end_layout
 
