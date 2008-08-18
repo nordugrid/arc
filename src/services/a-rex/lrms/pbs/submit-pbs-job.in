@@ -401,7 +401,7 @@ else
     # if the line starts with a quote, otherwise extract the string from the
     # beginning of the line up to the first unescaped space character; Remove
     # unescaped backslashes before printing the extracted string
-    sed -e 's/^ *"\([^"]*\)".*/\1/g;t suc' -e 's/^ *//;s/\([^\\]\) .*/\1/;:suc' -e 's/\\\(.\)/\1/g' \
+    sed -e 's/^ *"\([^"]*\)".*/\1/g;t suc' -e 's/^ *//;s/\([^\\]\) .*/\1/;:suc' -e 's/\\\(.\)/\1/g' | \
     { while true ; do
       read name
       if [ $? -ne '0' ] ; then break ; fi
