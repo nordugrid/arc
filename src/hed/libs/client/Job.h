@@ -47,6 +47,7 @@ namespace Arc {
     int	UsedMainMemory;
     std::list<std::string> UsedApplicationEnvironment;
     int	UsedSlots;
+    Time LocalSubmissionTime;
     Time SubmissionTime;
     Time ComputingManagerSubmissionTime;
     Time StartTime;

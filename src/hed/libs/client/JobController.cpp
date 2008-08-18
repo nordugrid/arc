@@ -44,6 +44,7 @@ namespace Arc {
 	  ThisJob.JobID = (std::string) ThisXMLJob["id"];
 	  ThisJob.InfoEndpoint = (std::string) ThisXMLJob["source"];
 	  ThisJob.Cluster = (std::string) ThisXMLJob["cluster"];
+	  ThisJob.LocalSubmissionTime = (std::string) ThisXMLJob["submissiontime"];
 	  JobStore.push_back(ThisJob);	  
 	}
       }
@@ -66,6 +67,7 @@ namespace Arc {
 	  ThisJob.JobID = (std::string) (*iter)["id"];
 	  ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
 	  ThisJob.Cluster = (std::string) (*iter)["cluster"];
+	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["submissiontime"];
 	  JobStore.push_back(ThisJob);
 	}
       }
@@ -106,6 +108,7 @@ namespace Arc {
 	  ThisJob.JobID = (std::string) (*iter)["id"];
 	  ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
 	  ThisJob.Cluster = (std::string) (*iter)["cluster"];
+	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["submissiontime"];
 	  JobStore.push_back(ThisJob);
 	}
       }
@@ -127,26 +130,51 @@ namespace Arc {
     logger.msg(DEBUG, "Getting %s jobs", GridFlavour);	
     std::list<std::string> JobsToBeRemoved;
 
-    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    //First get information about the selected jobs
     GetJobInformation();
-    //std::list<Job*> GetTheseJobs = IdentifyJobs(jobs, clusterselect, clusterreject, status);
+
+    //Second, filter them according to their state (i.e. which states we can download)
+    std::list<Job*> Downloadable;
+    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+
+      if (jobiter->State.empty()){
+	std::cout<<Arc::IString("Job information not found: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      
+      if (!status.empty() && std::find(status.begin(), status.end(), jobiter->State) == status.end())
+	continue;
+      
+      if ( jobiter->State == "DELETED") {
+	std::cout<<Arc::IString("Job has already been deleted: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      
+      if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" && jobiter->State != "KILLED"){
+	std::cout<<Arc::IString("Job has not finished yet: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      
+      Downloadable.push_back(&(*jobiter));
+
+    }
 
     //loop over jobs
-    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+    for(std::list<Arc::Job*>::iterator jobiter = Downloadable.begin(); jobiter!= Downloadable.end(); jobiter++){    
       //first download job output
-      bool downloaded = GetThisJob(*jobiter, downloaddir);
+      bool downloaded = GetThisJob(**jobiter, downloaddir);
       if(!downloaded){
-	std::cout<<Arc::IString("Failed downloading job %s", jobiter->JobID.str())<<std::endl;
+	std::cout<<Arc::IString("Failed downloading job %s", (*jobiter)->JobID.str())<<std::endl;
 	continue;
       }
       //second clean job (unless keep)
       if(!keep){
-	bool cleaned = CleanThisJob(*jobiter, true);
+	bool cleaned = CleanThisJob(**jobiter, true);
 	if(!cleaned){
-	  std::cout<<Arc::IString("Failed cleaning job %s", jobiter->JobID.str())<<std::endl;
+	  std::cout<<Arc::IString("Failed cleaning job %s", (*jobiter)->JobID.str())<<std::endl;
 	  continue;
 	}
-	JobsToBeRemoved.push_back(jobiter->JobID.str());
+	JobsToBeRemoved.push_back((*jobiter)->JobID.str());
       }
     } //end loop over jobs
 
@@ -164,26 +192,52 @@ namespace Arc {
     
     logger.msg(DEBUG, "Killing %s jobs", GridFlavour);
     std::list<std::string> JobsToBeRemoved;
-
-    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    
+    //First get information about the selected jobs
     GetJobInformation();
 
-    //loop over jobs
+    //Second, filter them according to their state (i.e. which states we can kill)
+    std::list<Job*> Killable;
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+
+      if (jobiter->State.empty()){
+	std::cout<<Arc::IString("Job information not found: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      
+      if (!status.empty() && std::find(status.begin(), status.end(), jobiter->State) == status.end())
+	continue;
+      
+      if ( jobiter->State == "DELETED") {
+	std::cout<<Arc::IString("Job has already been deleted: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      
+      if (jobiter->State == "FINISHED" && jobiter->State == "FAILED" && jobiter->State == "KILLED"){
+	std::cout<<Arc::IString("Job has already finished: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      
+      Killable.push_back(&(*jobiter));
+
+    }
+
+    //loop over jobs
+    for(std::list<Arc::Job*>::iterator jobiter = Killable.begin(); jobiter!= Killable.end(); jobiter++){
       //first cancel job (i.e. stop execution)
-      bool cancelled = CancelThisJob(*jobiter);
+      bool cancelled = CancelThisJob(**jobiter);
       if(!cancelled){
-	std::cout<<Arc::IString("Failed cancelling (stop) job %s", jobiter->JobID.str())<<std::endl;
+	std::cout<<Arc::IString("Failed cancelling (stop) job %s", (*jobiter)->JobID.str())<<std::endl;
 	continue;
       }
       //second clean job (unless keep)
       if(!keep){
-	JobsToBeRemoved.push_back(jobiter->JobID.str());
-	bool cleaned = CleanThisJob(*jobiter, true);
+	bool cleaned = CleanThisJob(**jobiter, true);
 	if(!cleaned){
-	  std::cout<<Arc::IString("Failed cleaning job %s", jobiter->JobID.str())<<std::endl;
-	  //continue ?
+	  std::cout<<Arc::IString("Failed cleaning job %s", (*jobiter)->JobID.str())<<std::endl;
+	  continue;
 	}
+	JobsToBeRemoved.push_back((*jobiter)->JobID.str());
       }
     } //end loop over jobs
     
@@ -202,19 +256,48 @@ namespace Arc {
     logger.msg(DEBUG, "Cleaning %s jobs", GridFlavour);
     std::list<std::string> JobsToBeRemoved;
     
-    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    //First get information about the selected jobs
     GetJobInformation();
-
-    //loop over jobs
+    
+    //Second, filter them according to their state (i.e. which states we can clean)
+    std::list<Job*> Cleanable;
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
-      bool cleaned = CleanThisJob(*jobiter, force);
-      if(!cleaned){
-	if(force)
-	  JobsToBeRemoved.push_back(jobiter->JobID.str()); 
-	std::cout<<Arc::IString("Failed cleaning job %s", jobiter->JobID.str())<<std::endl;
+
+      if (force && jobiter->State.empty() && status.empty()){
+	std::cout<<Arc::IString("Job %s will only be deleted from local joblist", jobiter->JobID.str())<<std::endl;
+	JobsToBeRemoved.push_back(jobiter->JobID.str());
 	continue;
       }
-      JobsToBeRemoved.push_back(jobiter->JobID.str());       
+      
+      if (jobiter->State.empty()){
+	std::cout<<Arc::IString("Job information not found: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }      
+      
+      if (!status.empty() && std::find(status.begin(), status.end(), jobiter->State) == status.end())
+	continue;
+      
+      
+      if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" && 
+	  jobiter->State != "KILLED" && jobiter->State != "DELETED"){
+	std::cout<<Arc::IString("Job has not finished yet: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      
+      Cleanable.push_back(&(*jobiter));
+
+    }
+
+    //loop over jobs
+    for(std::list<Arc::Job*>::iterator jobiter = Cleanable.begin(); jobiter!= Cleanable.end(); jobiter++){
+      bool cleaned = CleanThisJob(**jobiter, force);
+      if(!cleaned){
+	if(force)
+	  JobsToBeRemoved.push_back((*jobiter)->JobID.str()); 
+	std::cout<<Arc::IString("Failed cleaning job %s", (*jobiter)->JobID.str())<<std::endl;
+	continue;
+      }
+      JobsToBeRemoved.push_back((*jobiter)->JobID.str());       
     } //end loop over jobs
 
     //Remove succesfully killed and cleaned jobs
@@ -231,19 +314,21 @@ namespace Arc {
 
     logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", GridFlavour);
 
-    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    //First get information about the selected jobs
     GetJobInformation();
     
-    //loop over jobs
+    //Second, filter them according to their state (i.e. which states we can clean)
+    std::list<Job*> Catable;
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      
       if(jobiter->State.empty()){
 	std::cout<<Arc::IString("Job state information not found: %s", jobiter->JobID.str())<<std::endl;
 	continue;
       }
       if(whichfile == "stdout" || whichfile == "stderr"){
 	if(jobiter->State == "DELETED"){
-	std::cout<<Arc::IString("Job has already been deleted: %s", jobiter->JobID.str())<<std::endl;	  
-	continue;
+	  std::cout<<Arc::IString("Job has already been deleted: %s", jobiter->JobID.str())<<std::endl;	  
+	  continue;
 	}
 	if(jobiter->State == "ACCEPTING" || jobiter->State == "ACCEPTED" ||
 	   jobiter->State == "PREPARING" || jobiter->State == "PREPARED" ||
@@ -260,15 +345,23 @@ namespace Arc {
 	std::cout<<Arc::IString("Can not determine the stderr location: %s", jobiter->JobID.str())<<std::endl;	  
 	continue;
       }
+
+      Catable.push_back(&(*jobiter));
+      
+    }
+
+
+    //loop over jobs
+    for(std::list<Arc::Job*>::iterator jobiter = Catable.begin(); jobiter!= Catable.end(); jobiter++){
       
       //get the file (stdout, stderr or gmlog)
-      URL src = GetFileUrlThisJob((*jobiter), whichfile);
+      URL src = GetFileUrlThisJob((**jobiter), whichfile);
       URL dst("/tmp/arccat.XXXXXX");
       bool copied = CopyFile(src, dst);
 
       //output to screen
       if(copied){
-	std::cout<<Arc::IString("%s from job %s", whichfile, jobiter->JobID.str())<<std::endl;
+	std::cout<<Arc::IString("%s from job %s", whichfile, (*jobiter)->JobID.str())<<std::endl;
 	char str[2000];
         
 	std::fstream file("/tmp/arccat.XXXXXX", std::fstream::in);
@@ -295,9 +388,18 @@ namespace Arc {
     GetJobInformation();
 
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      if(jobiter->State.empty()){
+	std::cout<<Arc::IString("Job state information not found: %s", jobiter->JobID.str())<<std::endl;
+	Time now;
+	if(now - jobiter->LocalSubmissionTime < 90){
+	  std::cout<<Arc::IString("This job was very recently "
+				  "submitted and might not yet" 
+				  "have reached the information-system")<<std::endl;
+	}
+	continue;
+      }
       jobiter->Print(longlist);
     }
-
   }
   
   static void progress(FILE *o, const char *, unsigned int,
@@ -335,12 +437,12 @@ namespace Arc {
 
     Arc::DataHandle source(src);
     if(!source){
-      std::cout<<Arc::IString("Failed to get DataHandle on source: %s", src)<<std::endl;
+      std::cout<<Arc::IString("Failed to get DataHandle on source: %s", src.str())<<std::endl;
       return false;
     }
     Arc::DataHandle destination(dst);
     if(!destination){
-      std::cout<<Arc::IString("Failed to get DataHandle on destination: %s", destination)<<std::endl;
+      std::cout<<Arc::IString("Failed to get DataHandle on destination: %s", dst.str())<<std::endl;
       return false;
     }
     
