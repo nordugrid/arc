@@ -10,6 +10,7 @@ namespace Arc {
 
   class ChainContext;
   class Config;
+  class DataHandle;
 
   class JobControllerCREAM : public JobController {
 
@@ -27,7 +28,8 @@ namespace Arc {
     bool CleanThisJob(Job ThisJob, bool force);
     bool CancelThisJob(Job ThisJob);
     URL GetFileUrlThisJob(Job ThisJob, std::string whichfile);
-
+    std::list<std::string> GetDownloadFiles(Arc::DataHandle& dir,
+					    std::string dirname = "");
   };
 
 } //namespace ARC

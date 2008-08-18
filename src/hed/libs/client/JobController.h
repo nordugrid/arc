@@ -76,8 +76,6 @@ namespace Arc{
     Arc::Config mcfg;
     virtual ~JobController();
     std::string joblist;
-
-  private:
     static Logger logger;
   };
 
