@@ -110,7 +110,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
   int jobnr = 1;
   std::list<std::string> jobids;
   
-  if (ClusterSelect.size() == 1 && TarGen.FoundTargets().size() == 0) {
+  if (ClusterSelect.size() == 1 && TarGen.FoundTargets().empty()) {
     std::cout << Arc::IString("Job submission failed because "
 			      "the specified cluster %s "
 			      "did not return any information",
@@ -133,14 +133,15 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     }
     
     //perform brokering (not yet implemented)
-    //broker needs to take JobDescription is input
-
-    //get submitter from chosen target
-    //for now use the first executiontarget found
+    //for now use first found executiontarget (if existing)
+    if(TarGen.FoundTargets().empty()){
+      std::cout << Arc::IString("No targets found")<< std::endl;
+      return;
+    }
 
     Arc::Submitter *submitter = TarGen.FoundTargets().begin()->GetSubmitter();
 
-    std::cout << "Submitting jobs ..." << std::endl;
+    std::cout << Arc::IString("Submitting jobs")<< std::endl;
     std::pair<Arc::URL, Arc::URL> jobid;
     jobid = submitter->Submit(*it);
 
@@ -152,10 +153,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     ThisJob.NewChild("source") = jobid.second.str();
     ThisJob.NewChild("cluster") = TarGen.FoundTargets().begin()->Cluster.str();;
 
-
-    std::cout << "Job submitted with jobid: " << jobid.first.str() << std::endl;
-    std::cout << "Information endpoint for this job: " << jobid.second.str()
-	      << std::endl;
+    std::cout << Arc::IString("Job submitted with jobid: ", jobid.first.str())<< std::endl;
 
   } //end loop over JobDescriptions
 
