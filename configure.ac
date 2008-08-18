@@ -375,12 +375,12 @@ LASSO_INSTALLED=no
 #[])
 
 #check xmlsec
-#XMLSEC_INSTALLED=no
-#PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.9  xmlsec1-openssl >= 1.2.9],
-#[AC_SUBST(XMLSEC_CFLAGS)
-# AC_SUBST(XMLSEC_LIBS)
-# XMLSEC_INSTALLED=yes],
-#[XMLSEC_INSTALLED=no])
+XMLSEC_INSTALLED=no
+PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.9  xmlsec1-openssl >= 1.2.9],
+[AC_SUBST(XMLSEC_CFLAGS)
+ AC_SUBST(XMLSEC_LIBS)
+ XMLSEC_INSTALLED=yes],
+[XMLSEC_INSTALLED=no])
 
 ###############################################
 #
