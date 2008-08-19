@@ -1,0 +1,57 @@
+Making the Shepherd use Apache for http transfers
+=================================================
+
+Install ARC1 storage system as described in
+arc1/doc/storage_system/prototype_installation_howto.txt
+
+If not already installed, install Apache http server (http://httpd.apache.org/) 
+and mod_python (http://www.modpython.org/) on the server where you run the 
+Shepherd service.
+
+Configuring Apache
+-------------------
+
+(/var/www/html/arc/shepherd/transfer may be replaced with anything you like as long as 
+it's directory under the apache DocumentRoot. Note that /var/www/html/arc and subdirs needs 
+to be owned by the apache User:Group!)
+
+Make sure the following lines are in the httpd.conf file (or some file read by httpd.conf):
+
+	LoadModule python_module modules/mod_python.so
+	# This will enable "slave mode", upload only to existing file,
+	# file is removed when transfer starts
+	<Directory /var/www/html/arc/shepherd/transfer>
+   		SetHandler mod_python 
+   		PythonHandler slave
+	</Directory>
+
+Make sure arc1/src/services/storage/shepherd/slave.py is in sys.path of mod_python. The 
+easiest way to accomplish this is to simply copy arc1/src/services/storage/shepherd/slave.py 
+to /var/www/html/arc/shepherd/transfer. The "slave mode" is described in 
+arc1/src/services/httpd/README and is required for use with the Shepherd.
+
+Configuring the Shepherd
+------------------------
+
+For a full sample configuration file for configuring the Shepherd with Apache, see 
+arc1/src/services/storage/storage.service.apache.xml.example. Note specifically the sections
+BackendClass and BackendCFG in the shepher service configuration:
+
+    <BackendClass>storage.shepherd.apachebackend.ApacheBackend</BackendClass>
+    <BackendCfg>
+        <DataDir>/var/spool/arc/shepherd_store</DataDir>
+        <TransferDir>/var/www/html/arc/shepherd/transfer</TransferDir>
+        <!-- Change this prefix to the external interface of your machine -->
+        <TURLPrefix>http://localhost:60080/arc/shepherd/transfer/</TURLPrefix>
+        <!-- Apache User - name of user that httpd is run under -->
+        <!-- This is usually 'apache', check httpd.conf if unsure -->
+		<ApacheUser>apache</ApacheUser>
+    </BackendCfg>
+    
+Here, the ApacheUser is the user that runs the Apache httpd deamon. We need this to set the right
+group access for the storage files. Note that the user running arched needs to be in the same group
+as the apache user. The Apache User and Group can be found in the httpd.conf file (and are both
+usually named apache).
+
+Now start up the Apache httpd ('service httpd start' in Fedora) and run arched as described in 
+arc1/doc/storage_system/prototype_installation_howto.txt.
