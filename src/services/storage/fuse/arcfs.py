@@ -311,14 +311,13 @@ class ARCFS(Fuse):
         debug_msg('mkdir left:', path)
 
 
-# rmdir requires bartender.unmakeCollection which does not exist yet
-#     def rmdir(self, path):
-#         debug_msg('rmdir called:', path)
-#         request = {'0': path}
-#         response = self.bartender.unmakeCollection(request)['0']
-#         if status == 'collection not empty':
-#             return -ENOTEMPTY
-#         debug_msg('rmdir left:', path)
+    def rmdir(self, path):
+        debug_msg('rmdir called:', path)
+        request = {'0': path}
+        status = self.bartender.unmakeCollection(request)['0']
+        if status == 'collection is not empty':
+            return -ENOTEMPTY
+        debug_msg('rmdir left:', path)
 
 
     def getinode(self,path):
