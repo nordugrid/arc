@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/User.h>
@@ -22,7 +23,20 @@ namespace Arc {
     User user;
     struct stat st;
 
-    if (stat(user.Home().c_str(), &st) != 0) {
+    //First, open default (system) config file
+    Config SystemCfg;
+
+    SystemCfg.ReadFromFile(ArcLocation::Get()+"/etc/arcclient.xml");
+    if(!SystemCfg){
+      SystemCfg.ReadFromFile("/etc/arcclient.xml");
+    }
+
+    if(!SystemCfg){
+      logger.msg(ERROR, "Could not find system configuration");
+    }
+
+    //Second, open user private config file (create of not existing)
+    if (stat(user.Home().c_str(), &st) != 0){
       logger.msg(ERROR, "Can not access user's home directory: %s (%s)",
 		 user.Home(), StrError());
       return;
@@ -59,7 +73,7 @@ namespace Arc {
       return;
     }
 
-    conffile = confdir + "/config.xml";
+    conffile = confdir + "/client.xml";
 
     if (stat(conffile.c_str(), &st) != 0) {
       if (errno == ENOENT) {
@@ -81,6 +95,15 @@ namespace Arc {
       return;
     }
 
+    Config UserCfg;
+    UserCfg.ReadFromFile(conffile);
+    
+    //Third, Overlay config files
+    //SystemCfg.AddOverlay(UserCfg);
+    
+    SystemCfg.New(FinalCfg);
+
+    //Fourth, locate user jobs file
     jobsfile = confdir + "/jobs.xml";
 
     if (stat(jobsfile.c_str(), &st) != 0) {
@@ -102,6 +125,8 @@ namespace Arc {
 		 jobsfile);
       return;
     }
+
+
 
     ok = true;    
   }
@@ -128,4 +153,35 @@ namespace Arc {
   bool UserConfig::operator!() {
     return !ok;
   }
+
+  std::list<std::string> UserConfig::ResolveAlias(std::string lookup, XMLNode cfg){
+    
+    std::list<std::string> ToBeReturned;
+    
+    //find alias in alias listing
+    XMLNodeList ResultList = cfg.XPathLookup("//Alias[@name='"+lookup+"']", Arc::NS());
+    if(ResultList.empty()){
+      ToBeReturned.push_back(lookup);
+    } else{
+
+      XMLNode Result = *ResultList.begin();
+      
+      //read out urls from found alias
+      XMLNodeList URLs = Result.XPathLookup("//URL", Arc::NS());
+      
+      for(XMLNodeList::iterator iter = URLs.begin(); iter != URLs.end(); iter++){
+	ToBeReturned.push_back((std::string) (*iter));
+      }
+      //finally check for other aliases with existing alias
+      
+      for(XMLNode node = Result["Alias"]; node; ++node){
+	std::list<std::string> MoreURLs = ResolveAlias(node, cfg);
+	ToBeReturned.insert(ToBeReturned.end(), MoreURLs.begin(), MoreURLs.end());
+      }
+    }
+
+    return ToBeReturned;
+
+  }
+
 } // namespace Arc

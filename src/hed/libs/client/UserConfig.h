@@ -1,6 +1,7 @@
 #ifndef __ARC_USERCONFIG_H__
 #define __ARC_USERCONFIG_H__
 
+#include <arc/XMLNode.h>
 #include <string>
 
 namespace Arc {
@@ -19,11 +20,14 @@ namespace Arc {
 
     operator bool();
     bool operator!();
+    static std::list<std::string> ResolveAlias(std::string lookup, XMLNode cfg);
+
 
   private:
     std::string confdir;
     std::string conffile;
     std::string jobsfile;
+    Config FinalCfg;
     bool ok;
 
     static Logger logger;
