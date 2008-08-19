@@ -1,6 +1,6 @@
-+----------
-+ Solaris |
-+----------
+---------
+Solaris |
+---------
 
 This README contains instructions and workarounds to compile the code on
 Sparc Solaris platform. The compilation capability have been tested on 
@@ -43,7 +43,7 @@ Source code:
 
 Performing configuration and installation:
   cd build_unix/
-  ./dist/configure --enable-cxx  --enable-debug --prefix=/home/<user>/db47
+  ../dist/configure --enable-cxx  --enable-debug --prefix=/home/<user>/db47
   make
   make install
 
