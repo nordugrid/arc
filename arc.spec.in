@@ -221,8 +221,8 @@ exit 0
 %{_bindir}/apget
 %{_bindir}/apecho
 %doc %{_mandir}/man1/apecho.1*
-%{_bindir}/apinfo
-%doc %{_mandir}/man1/apinfo.1*
+%{_bindir}/arcinfo
+%doc %{_mandir}/man1/arcinfo.1*
 %{_bindir}/approxy
 %doc %{_mandir}/man1/approxy.1*
 %{_bindir}/arccat

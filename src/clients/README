@@ -9,5 +9,5 @@ data        - CLI for basic data management
 echo        - Client for echo service
 isis        - Client for ISIS
 pdp         - arcdecision -- client for accessing PDP service and get decision result
-wsrf        - apinfo -- a prototype client for service status queries
+wsrf        - arcinfo -- a prototype client for service status queries
 

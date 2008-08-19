@@ -21,7 +21,7 @@
   service through LIDI. In the name, "ap" means "Arc Prototype".
   
   Usage:
-  apinfo <service-URL>
+  arcinfo <service-URL>
 
   Arguments:
   <service-URL> The URL of ARC1 service.
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]){
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
   if (version) {
-    std::cout << Arc::IString("%s version %s", "apinfo", VERSION) << std::endl;
+    std::cout << Arc::IString("%s version %s", "arcinfo", VERSION) << std::endl;
     return 0;
   }
 

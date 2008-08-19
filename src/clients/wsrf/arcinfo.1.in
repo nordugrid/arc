@@ -1,14 +1,14 @@
 .\" -*- nroff -*-
-.TH APINFO 1 "23 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCINFO 1 "23 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
-apinfo \- ARC WSRF query client
+arcinfo \- ARC WSRF query client
 .SH SYNOPSIS
-.B apinfo
+.B arcinfo
 [\fIOPTION\fR] service_url
 .SH DESCRIPTION
 .\" Add any additional description here
 .PP
-apinfo requests full service description XML document from services which support WSRF.
+arcinfo requests full service description XML document from services which support WSRF.
 .SH OPTIONS
 .TP
 \fB\-d\fR

@@ -569,21 +569,21 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/globus/lib
 \subsection{Testing and Using A-REX (clients)}
 \label{sec:testing}
 
-Now you may use the command line utility ``\texttt{apinfo}'' to obtain a service
+Now you may use the command line utility ``\texttt{arcinfo}'' to obtain a service
 description. Make sure user key and certificate and CA certificate(s) are
 readable from account you use, and run something like:
 
 \begin{lstlisting}
-./apinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem
+./arcinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem
  -A /etc/grid-security/certificates https://localhost:60000/arex 2>error.log
 \end{lstlisting}
 
 This should produce XML output describing resource A-REX represents.
-Listing~\ref{lst:apinfo} shows an example of proper output. In case of error see
+Listing~\ref{lst:arcinfo} shows an example of proper output. In case of error see
 \texttt{error.log} file and report problems to ARC development team. Include
 content of \texttt{error.log} and server log.
 
-\begin{lstlisting}[caption={Example of a good apinfo output},label=lst:apinfo]
+\begin{lstlisting}[caption={Example of a good arcinfo output},label=lst:arcinfo]
 <n:nordugrid xmlns:n="urn:nordugrid" xmlns:M0="urn:Mds"
 xmlns:nc0="urn:nordugrid-cluster">
   <nc0:name>mobile2.home.net</nc0:name>
@@ -667,7 +667,7 @@ globalid>
 </n:nordugrid>
 \end{lstlisting}
 
-Please note that you can run similar \texttt{apinfo} request against any ARC1
+Please note that you can run similar \texttt{arcinfo} request against any ARC1
 service except Echo service. Output should always be XML description of the service.
 
 A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided in

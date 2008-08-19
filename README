@@ -335,11 +335,11 @@ LD_LIBRARY_PATH:
 Testing and Using A-REX (clients)
 ================================
 
-Now You may use the command line utility 'apinfo' to obtain a service description.
+Now You may use the command line utility 'arcinfo' to obtain a service description.
 Make sure user key and certificate and CA certificate(s) are readable from account
 You use and run something like
 
- ./apinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem -A /etc/grid-security/certificates https://loc
+ ./arcinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem -A /etc/grid-security/certificates https://loc
 alhost:60000/arex 2>error.log
 
 That should produce XML output describing resource A-REX represents. Below You can 
@@ -422,7 +422,7 @@ problems to ARC1 development team. Include content of error.log and server's log
   </nq0:name>
 </n:nordugrid>
 
-Please note that You can run similar apinfo request against any ARC1 service
+Please note that You can run similar arcinfo request against any ARC1 service
 except echo service. Output should always be XML description of service.
 
 To avoid providing credentials information on command line it is possible to
