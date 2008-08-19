@@ -115,7 +115,7 @@ for ctr_dir in $control_dirs ; do
       if [ -f  "$acctfile" ]; then
         briefacct=`mktemp "$TMP_DIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
         tail -n 1000 "$acctfile" > "$briefacct"
-        if [ $? == 0 ]; then extraargs="-f '$briefacct'"; fi
+        if [ $? == 0 ]; then extraargs="-f $briefacct"; fi
       fi
 
       # get accounting info. write diag file
