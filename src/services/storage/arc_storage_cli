@@ -1196,7 +1196,7 @@ def call_it(method_name, *args):
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod']:
     print 'Usage:'
-    print '  arc_storage_cli.py <method> [<arguments>]'
+    print '  arc_storage_cli <method> [<arguments>]'
     print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]'
     print 'Without arguments, each method prints its own help.'
 else:

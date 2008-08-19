@@ -17,7 +17,7 @@ usr/bin/arcsub
 usr/bin/arcget
 usr/bin/arckill
 usr/bin/arcclean
-@STORAGE_SERVICE_ENABLED_TRUE@usr/bin/arc_storage_cli.py
+@STORAGE_SERVICE_ENABLED_TRUE@usr/bin/arc_storage_cli
 usr/bin/arcdecision
 usr/bin/glitesub
 usr/bin/glitestat
@@ -50,4 +50,4 @@ usr/share/man/man1/glitekill.1
 usr/share/man/man1/gliteclean.1
 usr/share/man/man1/glitedelegate.1
 usr/share/man/man1/gliteundelegate.1
-@STORAGE_SERVICE_ENABLED_TRUE@usr/share/man/man1/arc_storage_cli.py.1
+@STORAGE_SERVICE_ENABLED_TRUE@usr/share/man/man1/arc_storage_cli.1

@@ -259,8 +259,8 @@ exit 0
 %doc %{_mandir}/man1/glitedelegate.1*
 %{_bindir}/gliteundelegate
 %doc %{_mandir}/man1/gliteundelegate.1*
-%{_bindir}/arc_storage_cli.py*
-%doc %{_mandir}/man1/arc_storage_cli.py.1*
+%{_bindir}/arc_storage_cli
+%doc %{_mandir}/man1/arc_storage_cli.1*
 
 %files server
 %defattr(-,root,root,-)

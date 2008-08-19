@@ -711,19 +711,19 @@ The term `\emph{metadata}' here refers to a list of property-value pairs organiz
 \section{Client tools} % (fold)
 \label{sec:client_tools}
 
-In the first prototype release there is one client tool called \verb!arc_storage_cli.py!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and uploading and downloading TURLs via HTTP.
+In the first prototype release there is one client tool called \verb!arc_storage_cli!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and uploading and downloading TURLs via HTTP.
 
 The methods can be listed with:
 \begin{verbatim}
-$ arc_storage_cli.py
+$ arc_storage_cli
 Usage:
-  arc_storage_cli.py <method> [<arguments>]
+  arc_storage_cli <method> [<arguments>]
 Supported methods: stat, make[Collection], unmake[Collection], list, move,
     put[File], get[File], del[File]
 \end{verbatim}
 Without arguments, each method prints its own help:
 \begin{verbatim}
-$ arc_storage_cli.py move
+$ arc_storage_cli move
 Usage: move <sourceLN> <targetLN>
 \end{verbatim}
 
@@ -732,7 +732,7 @@ Uploading, downloading and stat files:
 \begin{verbatim}
 $ cat testfile 
 This is a testfile.
-$ arc_storage_cli.py put testfile /tmp/
+$ arc_storage_cli put testfile /tmp/
 - The size of the file is 20 bytes
 - The md5 checksum of the file is 9a9dffa22d227afe0f1959f936993a80
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
@@ -744,7 +744,7 @@ $ arc_storage_cli.py put testfile /tmp/
 Uploading 20 bytes... data sent, waiting... done.
 - done in 0.0042 seconds.
 'testfile' (20 bytes) uploaded as '/tmp/testfile'.
-$ arc_storage_cli.py stat /tmp/testfile
+$ arc_storage_cli stat /tmp/testfile
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's stat method...
 - done in 0.05 seconds.
@@ -762,7 +762,7 @@ $ arc_storage_cli.py stat /tmp/testfile
     http://localhost:60000/Shepherd fc0d3d99-6406-4c43-b2eb-c7ec6d6ab7fe: alive
   entry
     type: file
-$ arc_storage_cli.py get /tmp/testfile newfile
+$ arc_storage_cli get /tmp/testfile newfile
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's getFile method...
 - done in 0.05 seconds.

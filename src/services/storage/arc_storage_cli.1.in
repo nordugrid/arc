@@ -1,13 +1,13 @@
 .\" -*- nroff -*- 
-.TH ARC_STORAGE_CLI.PY 1 "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARC_STORAGE_CLI 1 "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
-arc_storage_cli.py - Client for the ARC1 storage system
+arc_storage_cli - Client for the ARC1 storage system
 .SH SYNOPSIS
-.B arc_storage_cli.py
+.B arc_storage_cli
 [-x] [method] [arguments]
 .SH DESCRIPTION
 .PP
-arc_storage_cli.py is a client tool for accessing the ARC1 storage system. With it you can create, remove and list collections, upload, download and remove files, and move and stat collections and files, using Logical Names.
+arc_storage_cli is a client tool for accessing the ARC1 storage system. With it you can create, remove and list collections, upload, download and remove files, and move and stat collections and files, using Logical Names.
 
 Running without arguments it prints usage information.
 If you just specify the method without any other argument, it prints usage information for that method.
@@ -51,14 +51,14 @@ will be used.
 .SH EXAMPLES
 Let's see some examples with results:
 
-.B $ arc_storage_cli.py list /
+.B $ arc_storage_cli list /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.03 seconds.
 '/': not found
 .fi
-.B $ arc_storage_cli.py -x list /
+.B $ arc_storage_cli -x list /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -100,7 +100,7 @@ Response:
 - done in 0.03 seconds.
 '/': not found
 .fi
-.B $ arc_storage_cli.py makeCollection /
+.B $ arc_storage_cli makeCollection /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's makeCollection method...
@@ -108,13 +108,13 @@ Response:
 Creating collection '/': done
 
 The methods can be listed with:
-$ arc_storage_cli.py
+$ arc_storage_cli
 Usage:
-  arc_storage_cli.py <method> [<arguments>]
+  arc_storage_cli <method> [<arguments>]
 Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]
 Without arguments, each method prints its own help.
 .fi
-.B $ arc_storage_cli.py move
+.B $ arc_storage_cli move
 .nf
 Usage: move <sourceLN> <targetLN>
 
@@ -122,7 +122,7 @@ LN means Logical Name everywhere in this system, this is the path in the global 
 The LNs are always absolute, must start with a '/'. (or with a '<GUID>/'...)
 
 .fi
-.B $ arc_storage_cli.py list /
+.B $ arc_storage_cli list /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -133,7 +133,7 @@ The LNs are always absolute, must start with a '/'. (or with a '<GUID>/'...)
 Actually you only need to type the first three character of the command:
 
 .fi
-.B $ arc_storage_cli.py lis /
+.B $ arc_storage_cli lis /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -144,7 +144,7 @@ Actually you only need to type the first three character of the command:
 And you can use 'ls', 'mv', 'rmdir', 'mkdir', 'rm' as well:
 
 .fi
-.B $ arc_storage_cli.py ls /
+.B $ arc_storage_cli ls /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -154,14 +154,14 @@ And you can use 'ls', 'mv', 'rmdir', 'mkdir', 'rm' as well:
 
 Let's create some sub-collections (sub-directories):
 .fi
-.B $ arc_storage_cli.py mkdir /tmp
+.B $ arc_storage_cli mkdir /tmp
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's makeCollection method...
 - done in 0.06 seconds.
 Creating collection '/tmp': done
 .fi
-.B $ arc_storage_cli.py mkdir /home
+.B $ arc_storage_cli mkdir /home
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's makeCollection method...
@@ -171,14 +171,14 @@ Creating collection '/home': done
 Let's move them:
 
 .fi
-.B $ arc_storage_cli.py mv /home /tmp
+.B $ arc_storage_cli mv /home /tmp
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's move method...
 - done in 0.05 seconds.
 Moving '/home' to '/tmp': targetexists
 .fi
-.B $ arc_storage_cli.py mv /home /tmp/
+.B $ arc_storage_cli mv /home /tmp/
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's move method...
@@ -189,14 +189,14 @@ Let's list them:
 
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 .fi
-.B $ arc_storage_cli.py ls /
+.B $ arc_storage_cli ls /
 .nf
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
 '/': collection
   tmp                 <collection>
 .fi
-.B $ arc_storage_cli.py ls /tmp
+.B $ arc_storage_cli ls /tmp
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -204,7 +204,7 @@ Let's list them:
 '/tmp': collection
   home                <collection>
 .fi
-.B $ arc_storage_cli.py ls /tmp/home
+.B $ arc_storage_cli ls /tmp/home
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -212,7 +212,7 @@ Let's list them:
 '/tmp/home': collection
     empty.
 .fi
-.B $ arc_storage_cli.py ls / /tmp /tmp/home
+.B $ arc_storage_cli ls / /tmp /tmp/home
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -229,7 +229,7 @@ Let's upload a file:
 $ cat testfile 
 This is a testfile.
 .fi
-.B $ arc_storage_cli.py put testfile /tmp
+.B $ arc_storage_cli put testfile /tmp
 .nf
 - The size of the file is 20 bytes
 - The md5 checksum of the file is 9a9dffa22d227afe0f1959f936993a80
@@ -238,7 +238,7 @@ This is a testfile.
 - done in 0.04 seconds.
 /tmp: LN exists
 .fi
-.B $ arc_storage_cli.py put testfile /tmp/
+.B $ arc_storage_cli put testfile /tmp/
 .nf
 - The size of the file is 20 bytes
 - The md5 checksum of the file is 9a9dffa22d227afe0f1959f936993a80
@@ -254,7 +254,7 @@ Uploading 20 bytes... data sent, waiting... done.
 Let's get some stats:
 
 .fi
-.B $ arc_storage_cli.py stat /
+.B $ arc_storage_cli stat /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's stat method...
@@ -269,7 +269,7 @@ Let's get some stats:
   entries
     tmp: 51e12fab-fd3d-43ec-9bc5-17041da3f0b2
 .fi
-.B $ arc_storage_cli.py stat /tmp
+.B $ arc_storage_cli stat /tmp
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's stat method...
@@ -287,7 +287,7 @@ Let's get some stats:
     testfile: e635a620-da69-48a3-80d6-b4f68f4aeaa5
     home: e6f5d1f0-71a8-4ea6-adc4-8b36807e5562
 .fi
-.B $ arc_storage_cli.py stat /tmp/testfile
+.B $ arc_storage_cli stat /tmp/testfile
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's stat method...
@@ -310,7 +310,7 @@ Let's get some stats:
 Let's download the file:
 
 .fi
-.B $ arc_storage_cli.py get /tmp/testfile newfile
+.B $ arc_storage_cli get /tmp/testfile newfile
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's getFile method...
@@ -326,35 +326,35 @@ This is a testfile.
 Let's remove everything:
 
 .fi
-.B $ arc_storage_cli.py unmakeCollection /tmp
+.B $ arc_storage_cli unmakeCollection /tmp
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.03 seconds.
 Removing collection '/tmp': collection is not empty
 .fi
-.B $ arc_storage_cli.py unmakeCollection /tmp/home
+.B $ arc_storage_cli unmakeCollection /tmp/home
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.06 seconds.
 Removing collection '/tmp/home': removed
 .fi
-.B $ arc_storage_cli.py del /tmp/testfile
+.B $ arc_storage_cli del /tmp/testfile
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's delFile method...
 - done in 0.05 seconds.
 /tmp/testfile: deleted
 .fi
-.B $ arc_storage_cli.py rmdir /tmp
+.B $ arc_storage_cli rmdir /tmp
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.05 seconds.
 Removing collection '/tmp': removed
 .fi
-.B $ arc_storage_cli.py ls /
+.B $ arc_storage_cli ls /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
@@ -362,14 +362,14 @@ Removing collection '/tmp': removed
 '/': collection
     empty.
 .fi
-.B $ arc_storage_cli.py unmakeCollection /
+.B $ arc_storage_cli unmakeCollection /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.04 seconds.
 Removing collection '/': removed
 .fi
-.B $ arc_storage_cli.py list /
+.B $ arc_storage_cli list /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
