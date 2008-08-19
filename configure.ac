@@ -938,7 +938,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/wsrf/Makefile
                  src/clients/wsrf/arcinfo.1
                  src/clients/credentials/Makefile
-                 src/clients/credentials/approxy.1
+                 src/clients/credentials/arcproxy.1
                  src/clients/arclib/Makefile
                  src/clients/arclib/arcstat.1
                  src/clients/arclib/arcsub.1

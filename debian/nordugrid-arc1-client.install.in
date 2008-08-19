@@ -1,5 +1,5 @@
 usr/bin/arcinfo
-usr/bin/approxy
+usr/bin/arcproxy
 usr/bin/apsub
 usr/bin/apstat
 usr/bin/apsstat
@@ -27,7 +27,7 @@ usr/bin/glitedelegate
 usr/bin/gliteundelegate
 usr/share/man/man1/apecho.1
 usr/share/man/man1/arcinfo.1
-usr/share/man/man1/approxy.1
+usr/share/man/man1/arcproxy.1
 usr/share/man/man1/apsub.1
 usr/share/man/man1/apstat.1
 usr/share/man/man1/apsstat.1
