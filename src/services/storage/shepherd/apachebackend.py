@@ -32,7 +32,8 @@ class ApacheBackend:
             os.mkdir(self.transferdir)
         else:
             for filename in os.listdir(self.transferdir):
-                os.remove(os.path.join(self.transferdir, filename))
+                if not ".py" in filename:
+                    os.remove(os.path.join(self.transferdir, filename))
         self.log('DEBUG', "ApacheBackend transferdir:", self.transferdir)
         self.idstore = {}
         threading.Thread(target = self.checkingThread, args = [5]).start()
