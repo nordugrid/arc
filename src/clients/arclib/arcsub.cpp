@@ -52,9 +52,11 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     
     std::ifstream descriptionfile(it->c_str());
     
-    if(!descriptionfile)
+    if(!descriptionfile){
       std::cout << Arc::IString("Can not open file: %s", *it) << std::endl;
-    
+      continue;
+    }
+
     descriptionfile.seekg(0, std::ios::end);
     std::streamsize length = descriptionfile.tellg();
     descriptionfile.seekg(0, std::ios::beg);
@@ -204,7 +206,7 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[jobid]"), "", istring(
+  Arc::OptionParser options(istring("[filename ...]"), "", istring(
 			      "Argument to -i has format:\n"
 			      "GRID:URL e.g.\n"
 			      "ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"

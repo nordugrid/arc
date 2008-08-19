@@ -102,7 +102,7 @@ namespace Arc {
     }
 
     if(TargetURL == 1){
-      std::cout<<"No Target URL specified (no alias match), no targets will be found"<<std::endl;
+      std::cout<<"No Target URL specified (or no alias match), no targets will be found"<<std::endl;
     }
 
     //finally, initialize loader

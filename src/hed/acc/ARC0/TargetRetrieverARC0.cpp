@@ -43,6 +43,11 @@ namespace Arc {
 	ThreadArg *arg = new ThreadArg;
 	arg->mom = &mom;
 	arg->url = url;
+	if(arg->url.Protocol() != "ldap"){
+	  logger.msg(ERROR, "Malformed URL");
+	  logger.msg(DEBUG, "URL = %s", arg->url.str());
+	}
+	
 	arg->targetType = targetType;
 	arg->detailLevel = detailLevel;
 	if (!CreateThreadFunction(&InterrogateTarget, arg)) {
@@ -58,6 +63,10 @@ namespace Arc {
 	ThreadArg *arg = new ThreadArg;
 	arg->mom = &mom;
 	arg->url = url;
+	if(arg->url.Protocol() != "ldap"){
+	  logger.msg(ERROR, "Malformed URL");
+	  logger.msg(DEBUG, "URL = %s", arg->url.str());
+	}
 	arg->targetType = targetType;
 	arg->detailLevel = detailLevel;
 	if (!CreateThreadFunction(&QueryIndex, arg)) {
