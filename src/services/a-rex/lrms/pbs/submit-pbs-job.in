@@ -294,19 +294,7 @@ fi
 ##############################################################
 # Add std... to job arguments
 ##############################################################
-if [ ! -z "$joboption_stdin" ] ; then
-  joboption_args="$joboption_args <\$RUNTIME_JOB_STDIN"
-fi
-if [ ! -z "$joboption_stdout" ] ; then
-  joboption_args="$joboption_args 1>\$RUNTIME_JOB_STDOUT"
-fi
-if [ ! -z "$joboption_stderr" ] ; then
-  if [ X"$joboption_stderr" = X"$joboption_stdout" ] ; then
-    joboption_args="$joboption_args 2>&1"
-  else
-    joboption_args="$joboption_args 2>\$RUNTIME_JOB_STDERR"
-  fi
-fi
+include_std_streams
 
 ##############################################################
 #  Move files to local working directory (job is done on node only)

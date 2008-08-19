@@ -262,17 +262,19 @@ EOSCR
 # Add std... to job arguments
 ##############################################################
 include_std_streams () {
+  input_redirect=
+  output_redirect=
   if [ ! -z "$joboption_stdin" ] ; then
-    joboption_args="$joboption_args <\$RUNTIME_JOB_STDIN"
+    input_redirect="<\$RUNTIME_JOB_STDIN"
   fi
   if [ ! -z "$joboption_stdout" ] ; then
-    joboption_args="$joboption_args 1>\$RUNTIME_JOB_STDOUT"
+    output_redirect="$output_redirect 1>\$RUNTIME_JOB_STDOUT"
   fi
   if [ ! -z "$joboption_stderr" ] ; then
     if [ X"$joboption_stderr" = X"$joboption_stdout" ] ; then
-      joboption_args="$joboption_args 2>&1"
+      output_redirect="$output_redirect 2>&1"
     else
-      joboption_args="$joboption_args 2>\$RUNTIME_JOB_STDERR"
+      output_redirect="$output_redirect 2>\$RUNTIME_JOB_STDERR"
     fi
   fi
 }
@@ -416,8 +418,25 @@ cd_and_run () {
     echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
   fi
 
+   # In case the job executable is written in a scripting language and the
+   # interpreter is not found, the error message printed by GNU_TIME is
+   # misleading.  This will print a more appropriate error message.
+   echo "executable='$joboption_arg_0'" >> $LRMS_JOB_SCRIPT
+   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+# See if executable is a script, and extract the name of the interpreter
+line1=`dd if="$executable" count=1 2>/dev/null | head -n 1`
+command=`echo $line1 | sed -n 's/^#! *//p'`
+interpreter=`echo $command | awk '{print $1}'`
+if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $command | awk '{print $2}'`; fi
+# If it's a script and the interpreter is not found ...
+[ "x$interpreter" = x ] || type "$interpreter" > /dev/null 2>&1 || {
+EOSCR
+    echo '  echo "Cannot run $executable: $interpreter: not found"' "$output_redirect 1>&2" >> $LRMS_JOB_SCRIPT
+    echo '  exit 1; }' >> $LRMS_JOB_SCRIPT
+
+
   if [ -z "$GNU_TIME" ] ; then
-    echo "$joboption_args" >> $LRMS_JOB_SCRIPT
+    echo "$joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
   else
     echo "$GNU_TIME -o \"\$RUNTIME_JOB_DIAG\" -a -f '\
 WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\n\
@@ -428,7 +447,7 @@ PageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\n\
 Swaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\n\
 Inputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\n\
 Signals=%k\n' \
-$joboption_args" >> $LRMS_JOB_SCRIPT
+$joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
   fi
   echo "RESULT=\$?" >> $LRMS_JOB_SCRIPT
 
