@@ -155,7 +155,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     ThisJob.NewChild("source") = jobid.second.str();
     ThisJob.NewChild("cluster") = TarGen.FoundTargets().begin()->Cluster.str();;
 
-    std::cout << Arc::IString("Job submitted with jobid: ", jobid.first.str())<< std::endl;
+    std::cout << Arc::IString("Job submitted with jobid: %s", jobid.first.str())<< std::endl;
 
   } //end loop over JobDescriptions
 
