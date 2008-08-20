@@ -376,11 +376,31 @@ LASSO_INSTALLED=no
 
 #check xmlsec
 XMLSEC_INSTALLED=no
-PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.9  xmlsec1-openssl >= 1.2.9],
-[AC_SUBST(XMLSEC_CFLAGS)
- AC_SUBST(XMLSEC_LIBS)
- XMLSEC_INSTALLED=yes],
-[XMLSEC_INSTALLED=no])
+#PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.9  xmlsec1-openssl >= 1.2.9],
+#[AC_SUBST(XMLSEC_CFLAGS)
+# AC_SUBST(XMLSEC_LIBS)
+# XMLSEC_INSTALLED=yes],
+#[XMLSEC_INSTALLED=no])
+
+# check libmysqlclient
+dnl Check if libmysqlclient is explicitly enabled, default is disable.
+AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [disable the MySQL client library]),[enable_mysql="yes"],[enable_mysql="no"])
+# Ask user for path to libmysqlclient
+if test "x$enable_mysql" = "xyes"; then
+  AC_ARG_WITH(mysql,
+      [  --with-mysql=(PATH) prefix of MySQL installation. e.g. /usr/local or /usr],
+      [MYSQL_PREFIX=$with_mysql],
+      AC_MSG_ERROR([You must call configure with the --with-mysql option to tell configure 
+      where to find the MySql C library and headers. e.g. --with-mysql=/usr/local or --with-mysql=/usr])
+  )
+  AC_SUBST(MYSQL_PREFIX)
+  MYSQL_LIBS="-L${MYSQL_PREFIX}/lib/mysql -lmysqlclient"
+  MYSQL_CFLAGS="-I${MYSQL_PREFIX}/include"
+  AC_SUBST(MYSQL_LIBS)
+  AC_SUBST(MYSQL_CFLAGS)
+fi
+AC_MSG_NOTICE([MySQL client library enabled: $enable_mysql])
+AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$enable_mysql" = "xyes"])
 
 ###############################################
 #
@@ -984,6 +1004,7 @@ GridFTP:            ${enable_gridftp}
 LFC:                ${enable_lfc}
 RSL:                ${enable_rsl}
 SAML:               ${enable_saml}
+MYSQL CLIENT LIB:   ${enable_mysql}
 
 Included components:
 A-Rex service:      ${enable_a_rex_service}
