@@ -70,8 +70,8 @@ namespace Arc {
     
     // Loop over files and upload
     for (file = fileList.begin(); file != fileList.end(); file++) {
-      std::string src = Glib::build_filename(Glib::get_current_dir(), (*file).first);
-      std::string dst = Glib::build_filename(jobid, (*file).second);
+      std::string src = file->second;
+      std::string dst = Glib::build_filename(jobid, file->first);
       std::cout << src << " -> " << dst << std::endl;
       Arc::DataHandle source(src);
       Arc::DataHandle destination(dst);
