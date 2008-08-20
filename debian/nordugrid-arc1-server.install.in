@@ -9,6 +9,5 @@ usr/lib/arc/libisis.so
 usr/lib/arc/libaccARC1.so
 usr/lib/arc/libaccCREAM.so
 usr/lib/arc/libpaul.so
-usr/lib/arc/libcount.so
 usr/share/man/man8/arched.8*
 usr/share/man/man8/manage_jobq.8*

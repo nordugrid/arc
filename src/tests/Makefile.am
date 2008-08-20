@@ -1,1 +1,1 @@
-SUBDIRS=echo count data xpath policy-delegation
+SUBDIRS = echo data xpath policy-delegation

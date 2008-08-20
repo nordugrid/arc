@@ -970,7 +970,6 @@ AC_CONFIG_FILES([Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
-                 src/tests/count/Makefile
                  src/tests/xpath/Makefile
                  src/tests/policy-delegation/Makefile
                  src/utils/wsdl2hed.1
