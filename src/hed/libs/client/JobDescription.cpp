@@ -225,6 +225,12 @@ namespace Arc {
         sourceString = "";
     }
 
+    JobDescription::JobDescription(const JobDescription& desc) {
+        desc.jobTree.New(jobTree);
+        sourceString = desc.sourceString;
+        sourceFormat = desc.sourceFormat;
+    }
+
     // Set the sourceString variable of the JobDescription instance and parse it with the right parser
     void JobDescription::setSource( const std::string source ) throw(JobDescriptionError) {
         sourceFormat = "";

@@ -115,6 +115,7 @@ namespace Arc {
             void resetJobTree();
         public:
             JobDescription();
+            JobDescription(const JobDescription& desc);
 
             // Returns true if the source has been setted up and wasn't any syntax error in it or false otherwise
             bool isValid() const {return (sourceFormat.length() != 0);};
