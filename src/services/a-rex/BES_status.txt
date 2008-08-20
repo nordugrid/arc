@@ -2,18 +2,18 @@ Conformance to BES specs (GFD.108)
 ----------------------------------
 
 
-BES-Management  - not supported
-  StopAcceptingNewActivities - not supported
-  StartAcceptingNewActivities - not supported
+BES-Management  - functionality not supported
+  StopAcceptingNewActivities - functionality not supported, error returned
+  StartAcceptingNewActivities - funstionality not supported, error returned
 
-BES-Factory
+BES-Factory - supported
   CreateActivity - supported
   GetActivityStatuses - supported
   TerminateActivities - supported
   GetActivityDocuments - supported
   GetFactoryAttributesDocument - supported
 
-BES-Activity - no operations
+BES-Activity - no operations defined in specs
 
 WS-Naming extension to WS-Addressing EPRs - not supported, ignored as BES specs require.
 
@@ -21,8 +21,10 @@ Activity states:
   Pending - supported
   Running - supported
   Finished - supported
-  Terminated - not supported. All canceled jobs are considered as failed by A-Rex.
+  Terminated - does not happen. All canceled jobs are considered as failed by A-Rex.
   Failed - supported
+
+  Activity states extended with A-REX specific states.
 
 
 BES-Factory attributes
@@ -31,11 +33,11 @@ BES-Factory attributes
   LongDescription - supported
   TotalNumberOfActivities - supported
   ActivityReference - supported
-  ContainedResource - not supported. It is not clear what contained resource is.
+  ContainedResource - empty. It is not clear what contained resource is.
   TotalNumberOfcontainedResources - supported. Always 0.
   NamingProfile - supported - http://schemas.ggf.org/bes/2006/08/bes/naming/BasicWSAddressing.
   BESExtension - supported - http://www.nordugrid.org/schemas/a-rex
-  LocalResourceManagerType - supported. Always "uri:unknown"
+  LocalResourceManagerType - supported
   ResourceName - not supported
   OperatingSystem - supported 
   CPUArchitecture - not supported
@@ -45,7 +47,7 @@ BES-Factory attributes
   VirtualMemory  - not supported
  
 
-BES-Activity attributes - not supported. It is not specified how those attributes are accesible.
+BES-Activity attributes - not supported. It is not specified in specs how those attributes are accesible.
   Status - not supported
   ActivityDocument - not supported
   FactoryReference - not supported
@@ -55,10 +57,10 @@ Faults
   NotAuthorizedFault - supported
   InvalidRequestMessageFault - supported  
   UnknownActivityIdentfierFault - supported
-  NotAcceptingNewActivitiesFault - no applicable
+  NotAcceptingNewActivitiesFault - not applicable
   UnsupportedFeatureFault - not applicable
   CantApplyOperationToCurentStateFault - supported
-  OperationWillBeApliedEventuallyFault - ignored in specs
+  OperationWillBeApliedEventuallyFault - not applicable
 
 BES Extensions
   Idempotent Execution - not supported
@@ -67,11 +69,10 @@ BES Extensions
   
 
 WSRF Rendering (non-normative)
-  WS-Resource Properties - supported
+  WS-Resource Properties - supported, provides Glue2 and NorduGrid resource descriptions
   WS-Resource Lifetime - not supported
   WS-BaseNotifications - not supported
   BES-Factory attributes through WSRF - not supported
-
 
 
 Conformance to HPC basic profile (GFD.108)
@@ -83,14 +84,14 @@ Vector operations
   1 element (MUST) - supported
   >1 elementd (MAY) - supported
 FactoryResourceAttributesCocument content
-  Activities and Contained Resources may be not peovided - always provided
+  Activities and Contained Resources may be not provided - always provided
 BasicFilter extension (MAY) - not supported
-TLS/SSL for BES message security
-  R0631 - 
+TLS/SSL for BES message security - not tested, most probably depends on how
+ OpenSSL is set up.
+  R0631
   R0632
   R0633
   R0634
   R0635
   R0636
   R0637
-
