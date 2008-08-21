@@ -1,32 +1,32 @@
 #ifndef __ARC_MYSQLWRAPPER_H__
 #define __ARC_MYSQLWRAPPER_H__
 
-#include "DBInterface.h"
+#include <string>
+#include <map>
+#include <vector>
 #include <mysql.h>
+#include "DBInterface.h"
 
 namespace Arc {
 
   class MySQLDatabase : public Database {
+  friend class MySQLQuery;
   public:
-    MySQLDatabase();
+    MySQLDatabase(std::string& server, int port);
     MySQLDatabase(const MySQLDatabase& other);
     virtual ~MySQLDatabase();
 
-    virtual bool connect(std::string& dbname, std::string& server, std::string& user,
-                        std::string& password, unsigned int port);
+    virtual bool connect(std::string& dbname, std::string& user,
+                        std::string& password);
 
-    bool isconnected() const { return is_connected_; }
+    virtual bool isconnected() const { return is_connected; }
 
     virtual void close();
  
     virtual bool  enable_ssl(const std::string keyfile = "", const std::string certfile = "",
-                        const std::string cafile = "", const std::string capath = "",
-                        const char* cipher = 0);
-    virtual bool execute(const std::string sqlstr);
+                        const std::string cafile = "", const std::string capath = "");
   
-    virtual std::string fetch_row(resType* res)const;
-
-    virtual unsigned long* fetch_length(resType* res)const;
+    virtual bool shutdown();
 
   private:
     bool is_connected;
@@ -40,22 +40,25 @@ namespace Arc {
     MYSQL *mysql;
   };
 
-  class MySQLQuery {
+  class MySQLQuery : public Query {
   public:
     MySQLQuery(Database* db);
-    MySQLQuery(Database* db, const std::string& sqlstr);
+    //MySQLQuery(Database* db, const std::string& sqlstr);
     ~MySQLQuery();
-   
-    bool execute(const std::string& sqlstr);
 
-    virtual bool execute(const std::string sqlstr);
-
-    virtual std::string fetch_row(resType* res)const;
-    
-    virtual unsigned long* fetch_length(resType* res)const;
+    virtual int get_num_colums();
+    virtual int get_num_rows();   
+    virtual bool execute(const std::string& sqlstr);
+    virtual std::vector<std::string> get_row(int row_number)const;
+    virtual std::vector<std::string> get_row() const;
+    virtual std::string get_row_field(int row_number, std::string& field_name);
 
   private:
-    Database* db_;
+    MySQLDatabase* db_;
+    MYSQL_RES *res;
+    int num_rows;
+    int num_colums;
+    std::map<std::string, int> field_names; 
   };
 
 } // namespace Arc
