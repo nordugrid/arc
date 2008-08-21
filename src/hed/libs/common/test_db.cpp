@@ -45,6 +45,23 @@ int main(void)
   str2 = myquery.get_row_field(0, fieldname);
   std::cout<<"Number of rows: "<<num_rows<<" Number of colums: "<<num_colums<<std::endl;
   std::cout<<str1<<"  "<<str2<<std::endl; 
+
+  //Get role, the sql sentence can be put in some independent place, and then we
+  //can adapt to different database schema without changing the code itself;
+  //querystr = "SELECT groups.dn, role FROM groups, m  LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = ? AND m.userid = ?";
+  //querystr = "SELECT groups.dn, role FROM groups, m  LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = 'VO-Admin' AND m.userid = 1";
+
+  std::string role = "'VO-Admin'";
+  std::string userid = "1";
+  querystr = "SELECT groups.dn, role FROM groups, m  LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role =" + role + "AND m.userid =" + userid;
+  myquery.execute(querystr);
+  std::vector<std::vector<std::string> > strarray;
+  num_rows = myquery.get_num_rows();
+  std::cout<<"Get "<<num_rows<<" rows"<<std::endl;
+  for(int i = 0; i<num_rows; i++) {
+    strlist = myquery.get_row();
+    strarray.push_back(strlist);
+  }
  
   return 0;
 }

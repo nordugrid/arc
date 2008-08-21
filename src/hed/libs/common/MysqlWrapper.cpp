@@ -105,6 +105,8 @@ std::vector<std::string> MySQLQuery::get_row(int row_number)const {
 std::vector<std::string> MySQLQuery::get_row()const {
   MYSQL_ROW row = mysql_fetch_row(res);
   std::vector<std::string> row_value;
+  if(row == NULL) return row_value;
+
   std::string field;
   for(int i=0; i<num_colums; i++) {
     field = row[i];
