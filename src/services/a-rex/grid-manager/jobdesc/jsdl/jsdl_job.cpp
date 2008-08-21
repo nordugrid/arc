@@ -210,7 +210,7 @@ bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
         s+="="; s+= (std::string) versionNode["Exact"];
       };
     };
-    rtes.push_back(s);
+    if(!s.empty()) rtes.push_back(s);
   };
   return true;
 }
