@@ -1,0 +1,162 @@
+#!/bin/sh
+#set -x
+
+# CERTDIR
+CERTDIR=${CERTDIR:-/etc/grid-security/certificates}
+
+# openssl
+SSLPROG="openssl"
+
+# MySQL install prefix
+MYSQL_HOME=${MYSQL_HOME:-/usr}
+
+# VOMS database
+voms_database=""
+
+# VOMS VO
+voms_vo=""
+
+# MySQL admin user
+db_username_admin="root"
+db_password_admin=""
+
+# VOMS query user
+voms_username_query=""
+voms_password_query=""
+
+# Default Suffix
+help=""
+
+TEMP=`getopt -o h --long db:,voms-vo:,db-admin:,db-pwd:,voms-name:,voms-pwd:,compat -n 'voms_install_db' -- "$@"`
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+eval set -- "$TEMP"
+
+while true ; do
+    case "$1" in
+  --db)                     voms_database=$2           ; shift 2 ;;
+  --voms-vo)                voms_vo=$2                 ; shift 2 ;;
+  --db-admin)               db_username_admin=$2       ; shift 2 ;;
+  --db-pwd)                 db_password_admin=$2       ; shift 2 ;;
+  --voms-name)              voms_username_query=$2     ; shift 2 ;;
+  --voms-pwd)               voms_password_query=$2     ; shift 2 ;;
+  -h)                       help="yes"                 ; shift 1 ;;
+	--)                       shift                      ; break   ;;
+	*)                        echo "Internal Error!" >&2 ; exit 1  ;;
+    esac
+done
+
+if test "x$help" = "xyes"; then
+    echo "USAGE: voms_install_db  [--option value] ... [--option value]"
+    echo
+    echo "Where --option may be:"
+    echo "    --voms-vo name          The name of the VO. No defaults."
+    echo "    --db-admin name         The name of the DB administrator account."
+    echo "                            Defaults to 'root'."
+    echo "    --db-pwd password       The password associated to the db-admin account."
+    echo "                            No defaults."
+    echo "    --voms-name name        The name of the DB account that will be created to"
+    echo "                            let VOMS access the DB.  Defaults to voms_<vo name>."
+    echo "    --voms-pwd              The password of the previous account.  The default"
+    echo "                            is randomly generated."
+    echo "    --help                  This output."
+    exit 0;
+fi
+
+if test "x$voms_vo" = "x"; then
+  echo "The VO name MUST be specified!"
+  exit 1;
+fi   
+ 
+if test "x$voms_username_query" = "x"; then
+  voms_username_query="voms_"$voms_vo
+fi
+
+if test "x$voms_database" = "x"; then
+  voms_database="voms_"$voms_vo
+fi
+
+if test "x$voms_password_query" = "x"; then
+    voms_password_query="`$SSLPROG rand -base64 6`";
+fi
+
+# choose client
+if test -z $db_password_admin ; then
+    MYSQLADMIN="$MYSQL_HOME/bin/mysqladmin -u $db_username_admin"
+    CLIENT="$MYSQL_HOME/bin/mysql -u $db_username_admin"
+else
+    MYSQLADMIN="$MYSQL_HOME/bin/mysqladmin -u $db_username_admin -p$db_password_admin"
+    CLIENT="$MYSQL_HOME/bin/mysql -u $db_username_admin -p$db_password_admin"	
+fi
+
+# Create Database
+$CLIENT -e "DROP DATABASE IF EXISTS $voms_database;
+            CREATE DATABASE $voms_database;"
+CLIENT="$CLIENT -D$voms_database" 
+
+# Create Tables
+#the voms-mysql.data file should be together with this script
+$CLIENT < "./voms-mysql.data"
+
+# Create users
+$CLIENT -e "
+  GRANT SELECT         ON $voms_database.*         TO   $voms_username_query              IDENTIFIED BY '$voms_password_query';
+  GRANT LOCK TABLES    ON $voms_database.*         TO   $voms_username_query              IDENTIFIED BY '$voms_password_query';
+
+  GRANT SELECT         ON $voms_database.*         TO   $voms_username_query@localhost    IDENTIFIED BY '$voms_password_query';
+  GRANT LOCK TABLES    ON $voms_database.*         TO   $voms_username_query@localhost    IDENTIFIED BY '$voms_password_query';
+
+  GRANT UPDATE ON $voms_database.seqnumber TO $voms_username_query IDENTIFIED BY '$voms_password_query';
+  GRANT UPDATE ON $voms_database.seqnumber TO $voms_username_query@localhost IDENTIFIED BY '$voms_password_query';
+
+  FLUSH PRIVILEGES;"
+
+# Populate database
+$CLIENT <<EOF
+-- The transaction counter.  The first real transaction will get CreatedSerial=1.
+INSERT INTO sequences VALUES ('transaction', 0);
+-- The dummy CA for local administrators bypassing the security infrastructure.
+INSERT INTO ca VALUES (1, '/O=VOMS/O=System/CN=Dummy Certificate Authority', 'A dummy CA for local database maintenance.');
+INSERT INTO ca VALUES (2, '/O=VOMS/O=System/CN=Authorization Manager Attributes', 'A virtual CA corresponding to authz manager attributes');
+INSERT INTO ca VALUES (3, '/O=VOMS/O=System/CN=VOMS Group', 'A virtual CA corresponding to a VO group');
+INSERT INTO ca VALUES (4, '/O=VOMS/O=System/CN=VOMS Role', 'A virtual CA corresponding to a VO role');
+INSERT INTO ca VALUES (5, '/O=VOMS/O=System/CN=VOMS Capability', 'A the virtual CA corresponding to a VO capability');
+-- The database administrator responsible for these bootstrap records. 
+INSERT INTO admins VALUES (1, '/O=VOMS/O=System/CN=Local Database Administrator', 1, 1, 0);
+-- The VO-Admin role to allow remote administration
+INSERT INTO admins VALUES (2, '/$voms_vo/Role=VO-Admin', 4, 1, 0);
+-- The ACL of the VO Group.  The DBA can do everything.  
+-- (Just a placeholder, since the DBA doesn't really need ACLs.)
+INSERT INTO acl VALUES (1, 1, 1, 1, 1, 0);
+INSERT INTO acl VALUES (1, 2, 1, 1, 1, 0);
+-- The Default ACL of the VO Group.
+INSERT INTO acl VALUES (2, 1, 1, 1, 1, 0);
+INSERT INTO acl VALUES (2, 2, 1, 1, 1, 0);
+-- The VO Group.
+INSERT INTO groups VALUES (1, '/$voms_vo', 0, 1, 2, 1, 0, NULL);
+-- The ACL of the VO-Admin role.
+INSERT INTO acl VALUES (3, 1, 1, 1, 1, 0);
+INSERT INTO acl VALUES (3, 2, 1, 1, 1, 0);
+-- The VO Administrators role
+INSERT INTO roles VALUES (1, 'VO-Admin', 3, 1, 0);
+-- The first timestamp record.
+-- INSERT INTO realtime VALUES (0, current_timestamp);
+INSERT INTO seqnumber VALUES ('00');
+INSERT INTO version (version) VALUES (2);
+EOF
+
+# Populate ca table
+insert_ca=""
+i=5
+
+#for cert in $CERTDIR/*.0
+#do
+#   let i+=1
+#   subject=`$SSLPROG x509 -noout -subject -in $cert|sed 's/^subject=[ ]*//'`
+#   cn=`echo $subject|sed -n '/.*\/CN=\([^\/]*\).*/s//\1/p'`
+#   $CLIENT <<EOF 
+#INSERT INTO ca VALUES ($i, '$subject', '$cn');
+#EOF
+#done
+

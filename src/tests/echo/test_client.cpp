@@ -41,8 +41,8 @@ int main(void) {
       <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
       <Component name='tls.client' id='tls'><next id='tcp'/>\
         <!--For proxy certificate, KeyPath and CertificatePath are supposed to be the same-->\
-        <KeyPath>./proxy.pem</KeyPath>\
-        <CertificatePath>./proxy.pem</CertificatePath>\
+        <KeyPath>./key.pem</KeyPath>\
+        <CertificatePath>./cert.pem</CertificatePath>\
         <CACertificatePath>./ca.pem</CACertificatePath>\
       </Component>\
       <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/Echo</Endpoint></Component>\

@@ -44,10 +44,10 @@
                 <Process>extract</Process>
                 <PasswordSource>password.txt</PasswordSource>
             </SecHandler-->
-            <SecHandler name="x509token.handler" id="x509token" event="incoming">
+            <!--SecHandler name="x509token.handler" id="x509token" event="incoming">
                 <Process>extract</Process>
                 <CACertificatePath>ca.pem</CACertificatePath>
-            </SecHandler>
+            </SecHandler-->
         </Component>
         <Service name="echo" id="echo">
             <SecHandler name="arc.authz" id="authz" event="incoming">
