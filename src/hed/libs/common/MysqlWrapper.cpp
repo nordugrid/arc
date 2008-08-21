@@ -55,16 +55,19 @@ bool MySQLDatabase::shutdown() {
 MySQLQuery::MySQLQuery(Database* db) : db_(NULL) {
   MySQLDatabase* database = NULL;
   database = dynamic_cast<MySQLDatabase*>(db);
-  if(database == NULL) std::cerr<<"The parameter of constructor should be MySQLDatabase type"<<std::endl; 
-  db_ = new MySQLDatabase(*database);
+//  if(database == NULL) std::cerr<<"The parameter of constructor should be MySQLDatabase type"<<std::endl; 
+//  db_ = new MySQLDatabase(*database);
+  db_ = database;
 }
 
 MySQLQuery::~MySQLQuery() {
-  if(db_!=NULL) delete db_;
+//  if(db_!=NULL) delete db_;
   db_ == NULL;
 }  
 
 bool MySQLQuery::execute(const std::string& sqlstr) {
+  std::cout<<"Query: "<<sqlstr<<std::endl;
+  if(db_->mysql == NULL) std::cerr<<"mysql object is NULL"<<std::endl;
   if(mysql_query(db_->mysql, sqlstr.c_str())) {
     std::cerr<<"Database query failed"<<std::endl;
     return false;
@@ -76,8 +79,8 @@ bool MySQLQuery::execute(const std::string& sqlstr) {
     while(true) {
       field = mysql_fetch_field(res);
       if(field) {
-        num_colums++;
         if(field->name) field_names[field->name] = num_colums;
+        num_colums++;  
       }
       else break;
     }
