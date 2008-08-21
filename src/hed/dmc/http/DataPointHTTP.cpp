@@ -503,10 +503,14 @@ namespace Arc {
 	transfer_failure = true;
 	break;
       }
-      bool whole = (inbuf && (transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0));
+      bool whole = (inbuf && 
+                       ( (transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0) ) || 
+                       ( inbuf->Size() == -1 )
+                   );
       // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset, chunk_length);
+      uint64_t transfer_pos = 0;
       for (unsigned int n = 0;; ++n) {
 	if (!inbuf)
 	  break;
@@ -515,6 +519,7 @@ namespace Arc {
 	  break;
 	uint64_t pos = inbuf->BufferPos(n);
 	unsigned int length = inbuf->BufferSize(n);
+        transfer_pos = inbuf->BufferPos(n) + inbuf->BufferSize(n);
 	// In general case returned chunk may be of different size than requested
 	for (; length;) {
 	  if (transfer_handle == -1) {
@@ -539,6 +544,9 @@ namespace Arc {
       }
       if (inbuf)
 	delete inbuf;
+      //  If server returned chunk which is not overlaping requested one - seems
+      // like server has nothing to say any more.
+      if(transfer_pos <= transfer_offset) whole = true;
       point.transfer_lock.unlock();
       if (whole)
 	break;
