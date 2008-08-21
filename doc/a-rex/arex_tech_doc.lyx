@@ -13,6 +13,7 @@
 \usepackage{geometry}                              %for defining page size
 \usepackage{longtable}                             %for breaking tables
 \usepackage{multirow}
+\usepackage{verbatim}
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
@@ -411,7 +412,7 @@ session directory
  Any file created outside the SD is not controlled by the A-REX.
  Any exchange of data between client and A-REX (including also program modules)
  is performed via HTTP(S).
- A URL for accessing input/output files is  obtained through the WS Local
+ An URL for accessing input/output files is  obtained through the WS Local
  Information Description Interface (LIDI) of A-REX.
 \end_layout
 
@@ -2708,17 +2709,25 @@ TotalCPUCount -
 \emph on
 IndividualCPUCount
 \emph default
- - same as 6.
+ - same as 
+\emph on
+TotalCPUCount
+\emph default
+.
 \end_layout
 
-\begin_layout List
-\labelwidthstring 00.00.0000
+\begin_layout Standard
+\begin_inset ERT
+status open
 
-\emph on
-Environment
-\emph default
-\InsetSpace \space{}
-(POSIX) - environment variable.
+\begin_layout Standard
+
+%Environment(POSIX) - environment variable.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsubsection
@@ -3202,47 +3211,38 @@ job.ID.output
  file.
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
 
-\emph on
-cache-register
-\emph default
- - Utility to register cached data into an Indexing Service.
- It reads and modifies cache informational files 
-\emph on
-old
-\emph default
- and 
-\emph on
-new
-\emph default
- (as described in section 
-\begin_inset LatexCommand \ref{sec:cache}
+\begin_layout Standard
 
-\end_inset
-
-).
+%cache-register - Utility to register cached data into an Indexing Service.
+ It reads and modifies cache informational files old and new (as described
+ in section ).
  Configuration is read directly from the A-REX's configuration file (see
- section 
-\begin_inset LatexCommand \ref{SubSection: ConfigFile}
-
-\end_inset
-
-).
+ section ).
  It is run by the A-REX every 5 minutes.
 \end_layout
 
-\begin_layout Itemize
+\end_inset
 
-\emph on
-frontend-info-collector
-\emph default
- - Utility to gather information about the frontend.
- It puts collected information into the 
-\emph on
-job.ID.diag
-\emph default
- file.
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%frontend-info-collector - Utility to gather information about the frontend.
+ It puts collected information into the job.ID.diag file.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Itemize
@@ -3330,6 +3330,18 @@ qstat
 \end_layout
 
 \begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+begin{comment}
+\end_layout
+
+\end_inset
+
 In addition, there is also an administration utility:
 \end_layout
 
@@ -3408,6 +3420,22 @@ hspace*{0.5cm}
 name
 \emph default
 .
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+end{comment}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -4256,7 +4284,7 @@ cachedata
 \shape default
  - allows to specify separate place to store cache files containing data
  itself.
- This can be useful in case of big data storage available only on NSF server
+ This can be useful in case of big data storage available only on NFS server
  which does not support file locking.
  If command or 
 \shape italic
@@ -4882,6 +4910,8 @@ RUNTIME_FRONTEND_SEES_NODE
 \shape default
  - if defined should contain path corresponding to 
 \shape italic
+
+\newline
 RUNTIME_LOCAL_SCRATCH_DIR
 \shape default
  as seen on 
@@ -4942,7 +4972,9 @@ Figures
 
 \end_inset
 
- present some possible combinations for RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FR
+ present some possible combinations for RUNTIME_LOCAL_SCRATCH_DIR and 
+\newline
+RUNTIME_FR
 ONTEND_SEES_NODE and explain how data movement is performed.
  Pictures a) correspond to the situation right after all input files have
  been gathered in the session directory and show the actions taken right
@@ -5146,7 +5178,12 @@ joboption_directory - session directory.
 \end_layout
 
 \begin_layout Itemize
-joboption_args - command to be executed as specified in the JD.
+joboption_arg_# - command with arguments to be executed as specified in
+ the JD (
+\series bold
+not
+\series default
+ bash array).
 \end_layout
 
 \begin_layout Itemize
@@ -5245,7 +5282,7 @@ name
 \begin_layout Standard
 For example 
 \emph on
-joboption_args
+joboption_arg_#
 \emph default
  could be changed to wrap main executable.
  Or 
@@ -5317,7 +5354,7 @@ Setup of the A-REX
 \end_layout
 
 \begin_layout Standard
-The A-REX service is a plugable module of the HED.
+The A-REX service is a pluggable module of the HED.
  So first You need to setup your HED - see HED documentation.
  
 \end_layout
@@ -5457,9 +5494,9 @@ root
  account, of course).
 \end_layout
 
-\begin_layout Section*
-Appendix A.
- Session directory access through HTTP(S) interface
+\begin_layout Section
+\start_of_appendix
+Session directory access through HTTP(S) interface
 \end_layout
 
 \begin_layout Standard
@@ -5492,9 +5529,8 @@ Obtained URL should be extended with file names relative to SD and HTTP
  The files and subdirectories have their URLs inside HTML element <A>.
 \end_layout
 
-\begin_layout Section*
-Appendix B.
- Configuration schema of A-REX
+\begin_layout Section
+Configuration schema of A-REX
 \end_layout
 
 \begin_layout LyX-Code
@@ -5748,9 +5784,8 @@ elementFormDefault="qualified">
 </xsd:schema>
 \end_layout
 
-\begin_layout Section*
-Appendix C.
- A-REX WSDL
+\begin_layout Section
+A-REX WSDL
 \end_layout
 
 \begin_layout LyX-Code
@@ -6697,9 +6732,8 @@ ties">
 </wsdl:definitions>
 \end_layout
 
-\begin_layout Section*
-Appendix D.
- Delegation WSDL
+\begin_layout Section
+Delegation WSDL
 \end_layout
 
 \begin_layout LyX-Code
@@ -7336,9 +7370,8 @@ Response"/>
 </wsdl:definitions>
 \end_layout
 
-\begin_layout Section*
-Appendix E.
- ARC extensions for JSDL schema
+\begin_layout Section
+ARC extensions for JSDL schema
 \end_layout
 
 \begin_layout LyX-Code
@@ -7994,9 +8027,8 @@ ype"/>
 </xsd:schema>
 \end_layout
 
-\begin_layout Section*
-Appendix F.
- Error messages of A-REX
+\begin_layout Section
+Error messages of A-REX
 \end_layout
 
 \begin_layout Standard
@@ -8007,12 +8039,11 @@ job.ID.failed
 \shape default
 .
  Possible values include those generated by the A-REX itself:
-\end_layout
+\newline
 
-\begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="25" columns="2">
-<features>
+<features islongtable="true">
 <column alignment="block" valignment="top" leftline="true" width="2.5in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">
@@ -8213,7 +8244,7 @@ Job submission to LRMS failed
 \begin_inset Text
 
 \begin_layout Standard
-Backend executable supposed to pass job to LRMs returned non-zero exit code
+Backend executable supposed to pass job to LRMS returned non-zero exit code
 \end_layout
 
 \end_inset
@@ -8558,12 +8589,11 @@ External plugin specified in A-REX configuration could not be executed.
 
 Provided by downloader component (URL is replcaced by source of input file,
  FILE by name of file):
-\end_layout
+\newline
 
-\begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="28" columns="2">
-<features>
+<features islongtable="true">
 <column alignment="block" valignment="top" leftline="true" width="2.5in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">
@@ -9150,14 +9180,13 @@ A-REX waited for user uploadable file too long.
 \begin_inset VSpace medskip
 \end_inset
 
-Provided by uploader component (URL is replcaced by destination of output
+Provided by uploader component (URL is replaced by destination of output
  file) :
-\end_layout
+\newline
 
-\begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="23" columns="2">
-<features>
+<features islongtable="true">
 <column alignment="block" valignment="top" leftline="true" width="2.5in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">
@@ -9642,12 +9671,11 @@ Access to destination requires credententials and they are either outdated
 \end_inset
 
 Coming from LRMS (PBS) backend:
-\end_layout
+\newline
 
-\begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features>
+<features islongtable="true">
 <column alignment="block" valignment="top" leftline="true" width="2.5in">
 <column alignment="block" valignment="top" leftline="true" rightline="true" width="4in">
 <row topline="true">

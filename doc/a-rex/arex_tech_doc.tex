@@ -7,6 +7,7 @@
 \usepackage{geometry}
 \geometry{verbose,a4paper,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
 \usepackage{array}
+\usepackage{longtable}
 \usepackage{amsmath}
 \usepackage{setspace}
 \onehalfspacing
@@ -59,6 +60,7 @@
 \usepackage{geometry}                              %for defining page size
 \usepackage{longtable}                             %for breaking tables
 \usepackage{multirow}
+\usepackage{verbatim}
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
@@ -171,7 +173,7 @@ The SD is also the only place which is controlled by the A-REX. It
 is accessible by the user from outside through the HTTP(S) protocol.
 Any file created outside the SD is not controlled by the A-REX. Any
 exchange of data between client and A-REX (including also program
-modules) is performed via HTTP(S). A URL for accessing input/output
+modules) is performed via HTTP(S). An URL for accessing input/output
 files is  obtained through the WS Local Information Description Interface
 (LIDI) of A-REX.
 
@@ -809,9 +811,10 @@ for execution.
 \item [{\emph{WallTimeLimit}\ (POSIX)}] - amount of clock time needed
 for execution.
 \item [{\emph{TotalCPUCount}}] \emph{-} number of CPUs needed for execution.
-\item [{\emph{IndividualCPUCount}}] - same as 6.
-\item [{\emph{Environment}\ (POSIX)}] - environment variable.
+\item [{\emph{IndividualCPUCount}}] - same as \emph{TotalCPUCount}.
 \end{lyxlist}
+%Environment(POSIX) - environment variable.
+
 
 \subsubsection{ARC-specific JSDL Extensions}
 
@@ -963,14 +966,12 @@ it.
 files to the specified SEs and registration at an Indexing Service
 (like RLS) as needed. It processes and updates the \textit{job.ID.output}
 file.
-\item \emph{cache-register} - Utility to register cached data into an Indexing
-Service. It reads and modifies cache informational files \emph{old}
-and \emph{new} (as described in section \ref{sec:cache}). Configuration
-is read directly from the A-REX's configuration file (see section
-\ref{SubSection: ConfigFile}). It is run by the A-REX every 5 minutes.
-\item \emph{frontend-info-collector} - Utility to gather information about
-the frontend. It puts collected information into the \emph{job.ID.diag}
-file.
+\end{itemize}
+%cache-register - Utility to register cached data into an Indexing Service. It reads and modifies cache informational files old and new (as described in section ). Configuration is read directly from the A-REX's configuration file (see section ). It is run by the A-REX every 5 minutes.
+
+%frontend-info-collector - Utility to gather information about the frontend. It puts collected information into the job.ID.diag file.
+
+\begin{itemize}
 \item \emph{gm-kick} - Sends a signal to the A-REX though a FIFO file to
 wake it up. It's used to increase responsiveness of A-REX.
 \item \emph{cluster+qju.pl} - Collects and generates information about computing
@@ -996,7 +997,7 @@ server logs to extract information about jobs. If logs are not available
 it uses the less reliable \emph{qstat} command for that. Other backends
 use different techniques.
 \end{itemize}
-In addition, there is also an administration utility:
+\begin{comment}In addition, there is also an administration utility:
 
 \begin{itemize}
 \item \textit{gm-jobs} - prints a list of jobs available on the cluster
@@ -1006,6 +1007,8 @@ and the number of jobs in each state.\\
 \hspace*{0.5cm}-u -- pretend utility is run by user with id \emph{uid},\\
 \hspace*{0.5cm}-U -- pretend utility is run by user with name \emph{name}.
 \end{itemize}
+\end{comment}
+
 
 \subsection{Directories}
 
@@ -1231,7 +1234,7 @@ as \textit{cache} command, but cache belongs (owned) to user. For
 shared caches use 'cache'.
 \item \textbf{\textit{cachedata}}\textit{=path} - allows to specify separate
 place to store cache files containing data itself. This can be useful
-in case of big data storage available only on NSF server which does
+in case of big data storage available only on NFS server which does
 not support file locking. If command or \textit{path} is missing -
 default is to store data at place specified in \textit{cache} or \textit{privatecache}
 command, together with control files. 
@@ -1386,9 +1389,9 @@ to store job's files during execution. \emph{scratchdir} configuration
 command.
 
 \textbf{\textit{RUNTIME\_FRONTEND\_SEES\_NODE}} - if defined should
-contain path corresponding to \textit{RUNTIME\_LOCAL\_SCRATCH\_DIR}
-as seen on \textbf{frontend} machine. Corresponds to \emph{shared\_scratch}
-configuration command.
+contain path corresponding to \textit{}\\
+\textit{RUNTIME\_LOCAL\_SCRATCH\_DIR} as seen on \textbf{frontend}
+machine. Corresponds to \emph{shared\_scratch} configuration command.
 
 \textbf{\textit{RUNTIME\_NODE\_SEES\_FRONTEND}} - if set to {}``\emph{no}''
 means computing node does not share file system with frontend. In
@@ -1399,14 +1402,15 @@ command.
 
 Figures \ref{fig:no node scratch},\ref{fig:node scratch, not vis on front},\ref{fig:node scratch, vis on front}
 present some possible combinations for RUNTIME\_LOCAL\_SCRATCH\_DIR
-and RUNTIME\_FRONTEND\_SEES\_NODE and explain how data movement is
-performed. Pictures a) correspond to the situation right after all
-input files have been gathered in the session directory and show the
-actions taken right after the job's script starts. Pictures b) show
-the situation while the job is running and the actions which are taken
-right after it has finished. Pictures c) illustrate the final situation,
-when the job's output files are ready to be uploaded to an external
-storage element or be downloaded by the user.
+and \\
+RUNTIME\_FRONTEND\_SEES\_NODE and explain how data movement is performed.
+Pictures a) correspond to the situation right after all input files
+have been gathered in the session directory and show the actions taken
+right after the job's script starts. Pictures b) show the situation
+while the job is running and the actions which are taken right after
+it has finished. Pictures c) illustrate the final situation, when
+the job's output files are ready to be uploaded to an external storage
+element or be downloaded by the user.
 
 %
 \begin{figure}[tbh]
@@ -1488,7 +1492,8 @@ can be changed to influence job's execution later:
 
 \begin{itemize}
 \item joboption\_directory - session directory.
-\item joboption\_args - command to be executed as specified in the JD.
+\item joboption\_arg\_\# - command with arguments to be executed as specified
+in the JD (\textbf{not} bash array).
 \item joboption\_env\_\# - array of 'NAME=VALUE' environment variables (\textbf{not}
 bash array).
 \item joboption\_runtime\_\# - array of requested \emph{runtimeenvironment}
@@ -1509,9 +1514,9 @@ names (\textbf{not} bash array).
 \item joboption\_rsl - whole RSL for very clever submission scripts.
 \item joboption\_rsl\_\emph{name} - RSL attributes and values (like joboption\_rsl\_executable=''/bin/echo'')
 \end{itemize}
-For example \emph{joboption\_args} could be changed to wrap main executable.
-Or \emph{joboption\_runtime} could be expanded if current one depends
-on others.
+For example \emph{joboption\_arg\_\#} could be changed to wrap main
+executable. Or \emph{joboption\_runtime} could be expanded if current
+one depends on others.
 
 With argument '1' scripts are run just before main executable is run.
 They are executed on computing node. Such script can prepare environment
@@ -1546,7 +1551,7 @@ For compilation from source code please read included README file.
 
 \subsection{Setup of the A-REX}
 
-The A-REX service is a plugable module of the HED. So first You need
+The A-REX service is a pluggable module of the HED. So first You need
 to setup your HED - see HED documentation. 
 
 Then You need to add A-REX to the HED configuration. Add new <Name>
@@ -1607,8 +1612,9 @@ account while communicating with the LRMS, it can serve only the account
 it is run under (unless it is run under the \emph{root} account, of
 course).
 
+\appendix
 
-\section*{Appendix A. Session directory access through HTTP(S) interface}
+\section{Session directory access through HTTP(S) interface}
 
 In addition to the BES interface A-REX provides access to the SD through
 pure HTTP(S) interface. This functionality is used for uploading user-stageable
@@ -1630,7 +1636,7 @@ directories. The files and subdirectories have their URLs inside HTML
 element <A>.
 
 
-\section*{Appendix B. Configuration schema of A-REX}
+\section{Configuration schema of A-REX}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -1758,7 +1764,7 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
 </xsd:schema>
 \end{lyxcode}
 
-\section*{Appendix C. A-REX WSDL}
+\section{A-REX WSDL}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -2216,7 +2222,7 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
 </wsdl:definitions>
 \end{lyxcode}
 
-\section*{Appendix D. Delegation WSDL}
+\section{Delegation WSDL}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -2530,7 +2536,7 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
 </wsdl:definitions>
 \end{lyxcode}
 
-\section*{Appendix E. ARC extensions for JSDL schema}
+\section{ARC extensions for JSDL schema}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
@@ -2856,13 +2862,12 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
 </xsd:schema>
 \end{lyxcode}
 
-\section*{Appendix F. Error messages of A-REX}
+\section{Error messages of A-REX}
 
 If job has not finished successfully the A-REX puts one or more lines
 into \textit{job.ID.failed}. Possible values include those generated
-by the A-REX itself:
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
+by the A-REX itself:\\
+\begin{longtable}{|p{2.5in}|p{4in}|}
 \hline 
 \emph{Error string}&
 \emph{Reason/description}\tabularnewline
@@ -2892,7 +2897,7 @@ Failed initiating job submission to LRMS&
 Could not run backend executable to pass job to LRMS\tabularnewline
 \hline 
 Job submission to LRMS failed&
-Backend executable supposed to pass job to LRMs returned non-zero
+Backend executable supposed to pass job to LRMS returned non-zero
 exit code\tabularnewline
 \hline 
 Failed extracting LRMS ID due to some internal error&
@@ -2948,13 +2953,12 @@ to be passed, OUTPUT by textual output generated by plugin.\tabularnewline
 Failed running plugin at state STATE&
 External plugin specified in A-REX configuration could not be executed.\tabularnewline
 \hline
-\end{tabular}
+\end{longtable}
 
 \medskip{}
 Provided by downloader component (URL is replcaced by source of input
-file, FILE by name of file):
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
+file, FILE by name of file):\\
+\begin{longtable}{|p{2.5in}|p{4in}|}
 \hline 
 \emph{Error string}&
 \emph{Reason/description}\tabularnewline
@@ -3049,13 +3053,12 @@ Most probably due to improperly configured local permissions.\tabularnewline
 User file: FILENAME - Timeout waiting&
 A-REX waited for user uploadable file too long.\tabularnewline
 \hline
-\end{tabular}
+\end{longtable}
 
 \medskip{}
-Provided by uploader component (URL is replcaced by destination of
-output file) :
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
+Provided by uploader component (URL is replaced by destination of
+output file) :\\
+\begin{longtable}{|p{2.5in}|p{4in}|}
 \hline 
 \emph{Error string}&
 \emph{Reason/description}\tabularnewline
@@ -3128,12 +3131,11 @@ outdated or missing (not delegated).\tabularnewline
 &
 \tabularnewline
 \hline
-\end{tabular}
+\end{longtable}
 
 \medskip{}
-Coming from LRMS (PBS) backend:
-
-\begin{tabular}{|p{2.5in}|p{4in}|}
+Coming from LRMS (PBS) backend:\\
+\begin{longtable}{|p{2.5in}|p{4in}|}
 \hline 
 \emph{Error string}&
 \emph{Reason/description}\tabularnewline
@@ -3153,7 +3155,7 @@ Submission: Local submission client behaved unexpectedly.&
 Submission: Local submission client failed.&
 \tabularnewline
 \hline
-\end{tabular}
+\end{longtable}
 
 \begin{lyxcode}
 
