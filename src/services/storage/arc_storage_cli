@@ -1295,8 +1295,10 @@ else:
             size = os.path.getsize(filename)
             print '- The size of the file is', size, 'bytes'
             f = file(filename,'rb')
+            print '- Calculating md5 checksum...'
+            start = time.time()
             checksum = create_checksum(f, 'md5')
-            print '- The md5 checksum of the file is', checksum
+            print '- done in %.4f seconds, md5 checksum is %s' % ((time.time()-start), checksum)
             LN = args[1]
             if LN.endswith('/'):
                 LN = LN + filename.split('/')[-1]
