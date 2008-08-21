@@ -547,7 +547,7 @@ class Bartender:
             # or the target's traversed list is empty (which means that it has no parent: it's just a single GUID)
             elif not targetWasComplete and (targetRestLN != new_child_name or len(targetTraversedList) == 0):
                 success = 'invalidtarget'
-            elif sourceGUID in [guid for (_, guid) in sourceTraversedList]:
+            elif sourceGUID in [guid for (_, guid) in targetTraversedList]:
                 # if the the target is within the source's subtree, we cannot move it
                 success = 'invalidtarget'
             else:
