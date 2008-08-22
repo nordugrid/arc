@@ -8,7 +8,8 @@
 #include "DBInterface.h"
 
 namespace Arc {
-
+  ///Implement the database accessing interface in DBInterface.h by using mysql client library
+  ///for accessing mysql database
   class MySQLDatabase : public Database {
   friend class MySQLQuery;
   public:
@@ -44,14 +45,15 @@ namespace Arc {
   public:
     MySQLQuery(Database* db);
     //MySQLQuery(Database* db, const std::string& sqlstr);
-    ~MySQLQuery();
+    virtual ~MySQLQuery();
 
     virtual int get_num_colums();
     virtual int get_num_rows();   
     virtual bool execute(const std::string& sqlstr);
-    virtual std::vector<std::string> get_row(int row_number)const;
-    virtual std::vector<std::string> get_row() const;
+    virtual QueryRowResult get_row(int row_number)const;
+    virtual QueryRowResult get_row() const;
     virtual std::string get_row_field(int row_number, std::string& field_name);
+    virtual bool get_array(std::string& sqlstr, QueryArrayResult& result, std::vector<std::string>& arguments);
 
   private:
     MySQLDatabase* db_;

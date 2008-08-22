@@ -31,7 +31,7 @@ int main(void)
   num_rows = myquery.get_num_rows();
   num_colums = myquery.get_num_colums();
 
-  std::vector<std::string> strlist;
+  Arc::QueryRowResult strlist;
   strlist = myquery.get_row();
 
   for(int i = 0; i<strlist.size(); i++) {
@@ -48,20 +48,27 @@ int main(void)
 
   //Get role, the sql sentence can be put in some independent place, and then we
   //can adapt to different database schema without changing the code itself;
-  //querystr = "SELECT groups.dn, role FROM groups, m  LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = ? AND m.userid = ?";
-  //querystr = "SELECT groups.dn, role FROM groups, m  LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = 'VO-Admin' AND m.userid = 1";
-
   std::string role = "'VO-Admin'";
   std::string userid = "1";
   querystr = "SELECT groups.dn, role FROM groups, m  LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role =" + role + "AND m.userid =" + userid;
   myquery.execute(querystr);
-  std::vector<std::vector<std::string> > strarray;
+  Arc::QueryArrayResult strarray;
   num_rows = myquery.get_num_rows();
   std::cout<<"Get "<<num_rows<<" rows"<<std::endl;
   for(int i = 0; i<num_rows; i++) {
     strlist = myquery.get_row();
     strarray.push_back(strlist);
   }
+
+
+  querystr = "SELECT groups.dn, role FROM groups, m  LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = ? AND m.userid = ?";
+  Arc::QueryArrayResult strarray1;
+  Arc::MySQLQuery myquery1(&mydb);
+  std::vector<std::string> args;
+  args.push_back(role);
+  args.push_back(userid);
+  myquery1.get_array(querystr, strarray1, args);
+  std::cout<<"Get an result array with "<<strarray1.size()<<" rows"<<std::endl;
  
   return 0;
 }
