@@ -1,22 +1,10 @@
-########################################################################
-#
-# Authors: Vincenzo Ciaschini - Vincenzo.Ciaschini@cnaf.infn.it 
-#	   Akos Frohner       - Akos.Frohner@cern.ch
-#          Karoly Lorentey    - Karoly.Lorentey@cern.ch
-#
-# Copyright (c) 2002, 2003 INFN-CNAF on behalf of the EU DataGrid.
-# For license conditions see LICENSE file or
-# http://www.edg.org/license.html
-#
-# Parts of this code may be based upon or even include verbatim pieces,
-# originally written by other people, in which case the original header
-# follows.
-#
-########################################################################
-
-# $Revision: 1.3 $
-# $State: Exp $
-# $Date: 2007/11/20 15:15:31 $
+#The voms database schema is used as an option for storing attribute
+#information; any other database schema can be used.
+#The reason why the voms database schema is used here is we can use 
+#the existing attribute repository inside some official voms server. But
+#the code is not coupled with voms database schema ((the code inside aa 
+#service will demostrate)), and hopefully the sql sentence will be 
+#configurable which means some other database schema can also be used.
 
 #
 # Access Control List for containers (group/role/capability)
