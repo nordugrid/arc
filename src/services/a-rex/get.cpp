@@ -46,7 +46,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
   if(id.empty()) {
     // Make list of jobs
     std::string html;
-    html="<HTML>\r\n<HEAD>ARex: Jobs list</HEAD>\r\n<BODY><UL>\r\n";
+    html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Jobs list</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
     std::list<std::string> jobs = ARexJob::Jobs(config);
     for(std::list<std::string>::iterator job = jobs.begin();job!=jobs.end();++job) {
       std::string line = "<LI><I>job</I> <A HREF=\"";
@@ -95,7 +95,7 @@ Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u, burl=%s, bp
         // Directory - html with file list
         std::string file;
         std::string html;
-        html="<HTML>\r\n<HEAD>ARex: Job</HEAD>\r\n<BODY><UL>\r\n";
+        html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Job</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
 	std::string furl = burl;
 	if(!hpath.empty()) furl+="/"+hpath;
         for(;;) {
