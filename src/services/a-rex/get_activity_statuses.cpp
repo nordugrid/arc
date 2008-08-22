@@ -57,8 +57,9 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     /*
     // TODO: Check permissions on that ID
     */
-    std::string gm_state = job.State();
-    addActivityStatus(resp,gm_state,job.Failed());
+    bool job_pending = false;
+    std::string gm_state = job.State(job_pending);
+    addActivityStatus(resp,gm_state,job.Failed(),job_pending);
   };
   {
     std::string s;

@@ -422,8 +422,12 @@ bool ARexJob::Resume(void) {
 }
 
 std::string ARexJob::State(void) {
-  if(id_.empty()) return "";
   bool job_pending;
+  return State();
+}
+
+std::string ARexJob::State(bool& job_pending) {
+  if(id_.empty()) return "";
   job_state_t state = job_state_read_file(id_,*config_.User(),job_pending);
   if(state > JOB_STATE_UNDEFINED) state=JOB_STATE_UNDEFINED;
   return states_all[state].name;

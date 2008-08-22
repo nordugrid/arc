@@ -75,6 +75,9 @@ class ARexJob {
   bool Resume(void);
   /** Returns current state of job */
   std::string State(void);
+  /** Returns current state of job and sets job_pending to 
+     true if job is pending due to external limits */
+  std::string State(bool& job_pending);
   /** Returns true if job has failed */
   bool Failed(void);
   /** Returns path to session directory */
