@@ -53,26 +53,56 @@ Conservation of resources was an important goal. The present design enables many
 
 %firewalls, modularity, portability, flexibility
 
+
 \subsection{Technical design}
 
 %How was this implemented, dynamic loading, mcc...
-In the technical design it turned out that the endeavours to provide dynamic loading, portability and a well tested high level memory management could all be greatly assisted by introducing glibmm - the C++ interface to the gnome projects library for memory management and related functionality. This enables the daemon process to dynamically load the components it is going to use in a portable way.
+In the technical design it turned out that the endeavours to provide dynamic loading, portability and a well tested high level memory management could all be greatly assisted by introducing glibmm - the C++ interface to the gnome projects library for memory management and related functionality. This enables the developers to write code in a way easily portable across various operating systems and architectures.
 
-Most of the configuration 
+%Most of the configuration 
 
-The HED itself means two things:
+The HED itself means three things:
 \begin{enumerate}
-\item the daemon (called \texttt{arched}) which hooks up the system and initialize components the way as it is described by the configuration files. This configuration describes the components and their relations to each other. In optimal cases these single services runs on any node where ARC1 is deployed and started. Without loadable components the daemon itself does nothing at all.
-\item sometimes using the HED terms to refer to collection of libraries which is used by service or other component developers. These libraries implements some common classes which may simplify the life of service and component developes however only few of these classes are mandatory to use to make the components and services loadable and hookable by the daemon.
+
+\item the daemon (called \texttt{arched}) which hooks up the system and initialize components the way as it is described by the configuration files. This configuration describes the components and their relations to each other. In optimal cases these single services run on any node where ARC1 is deployed and started. Without loadable components the daemon itself does nothing usefull.
+
+\item sometimes using the HED terms to refer to collection of libraries which is used by service or other component developers. These libraries define interfaces and implement some common classes which may simplify the life of service and component developes however only few of these classes are mandatory to use to make the components and services loadable and hookable by the daemon.
+
+\item the collection of components implementing minimal set of protocols needed for implementing so called Web Services.
+
+Unless otherwise stated the term HED will be used through this document to refer to second option - framework of C++ classes.
+
 \end{enumerate}
+
 
 \subsubsection{MCC}
 
-In the HED all data channels to the outside world are set up by chains of small processing units called Message Chain Components (MCCs). These work on units called messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general attributes and security attributes where information relevant to each protocol is accumulated as the message progresses. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configured.
+In the HED data channels to the outside world may be set up by chains of small processing units called Message Chain Components (MCCs). These work on units called Messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general Attributes and Security Attributes where information relevant to each protocol is accumulated as the message progresses. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configured.
 
 %As the data is passed through the individual MCCs, they each populate structures with both general attributes and special security attributes that are available at that particular protocol level.
 
-Each MCC can also be configured to have loadable modules called security handlers attached to it in order to enforce security policies such as authentication and authorization or to assist such activities by gathering specialized security information.
+
+\paragraph{Payload}
+
+Main content of the information is transfered using the Payload part of the Message. There are no limitations on functionality of Payload object except that it must be inherited from MessagePayload class. Despite being flexible such approach would be useless. This is why HED defines three Payload interfaces and their simplest implementations. All MCCs which are distributed with the HED use, implement and extend those interfaces. Those include:
+
+\begin{enumerate}
+
+\item PayloadRawInterface and it's implementation PayloadRaw. This interface represents set of catenated in-memory chunks. It's meant to be used for information available as whole. And also for prepending and appending information without actually moving and copying data chunks in memory.
+
+\item PayloadStreamInterface and it's implementation PayloadStream. It covers case of sequentially accessible information. The main purpose of that Payload is to serve protocols which define continous data stream like TCP.
+
+\item PayloadSOAP represents parsed SOAP message. It's introduced to cover need for writing SOAP based Web Services in unified way.
+
+\end{enumerate}
+
+
+\paragraph{Security Handler}
+
+Each MCC can also be configured to have loadable modules called Security Handlers attached to it in order to enforce security policies such as authentication and authorization or to assist such activities by gathering specialized security related information into Security Attributes. There is no strict distinction of capabilities between Security Handlers and MCCs. Both can and do populate Security Attributes. The distinction is more of logical nature. It also makes possible to have Security Handlers dealing with similar kind of information and capable of acting on different protocol levels.
+
+
+\paragraph{Configuration}
 
 The chain formulation using MCCs is up to the administrator. The chain is an ordered list of MCCs and their interconection can be described in the configuration file. Based on the configuration information the Loader components formulate the actual chain in the memory of the daemon. The MCC may implement some routing algorithm which means one MCC may have connections to multiple other MCCs. Typical scenario is that the HTTP MCC at the server side routes the HTTP messages with POST HTTP operation to a SOAP MCC but the messages with GET operation to for example a simple HTTPD service component.
 
