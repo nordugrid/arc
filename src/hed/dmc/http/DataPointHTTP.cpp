@@ -284,6 +284,59 @@ namespace Arc {
       delete chunks;
   }
 
+  static bool html2list(const char* html, std::list<FileInfo>& files) {
+    for(const char* pos = html;;) {
+      // Looking for tag
+      const char* tag_start = strchr(pos,'<');
+      if(!tag_start) break; // No more tags
+      // Looking for end of tag
+      const char* tag_end = strchr(tag_start+1,'>');
+      if(!tag_end) return false; // Broken html?
+      // 'A' tag?
+      if(strncasecmp(tag_start,"<A ",3) == 0) {
+	// Lookig for HREF
+	const char* href = strstr(tag_start+3, "href=");
+	if (!href)
+	  href = strstr(tag_start+3, "HREF=");
+	if (href) {
+	  const char* url_start = href+5;
+	  const char* url_end = NULL;
+	  if ((*url_start) == '"') {
+	    ++url_start;
+	    url_end = strchr(url_start,'"');
+	    if ((!url_end) || (url_end > tag_end))
+	      url_end = NULL;
+	  }
+	  else if ((*url_start) == '\'') {
+	    ++url_start;
+	    url_end = strchr(url_start,'\'');
+	    if ((!url_end) || (url_end > tag_end))
+	      url_end = NULL;
+	  }
+	  else {
+	    url_end=strchr(url_start,' ');
+	    if ((!url_end) || (url_end > tag_end))
+	      url_end = tag_end;
+	  }
+	  if (!url_end)
+	    return false; // Broken HTML
+	  std::string url(url_start, url_end - url_start);
+	  if (url[0] != '?' && url[0] != '/')
+	    if (url.find('/') == url.size() - 1) {
+	      std::list<FileInfo>::iterator f = files.insert(files.end(), url);
+	      f->SetType(FileInfo::file_type_dir);
+	    }
+	    else if (url.find('/') == std::string::npos) {
+	      std::list<FileInfo>::iterator f = files.insert(files.end(), url);
+	      f->SetType(FileInfo::file_type_file);
+	    }
+	}
+      }
+      pos = tag_end + 1;
+    }
+    return true;
+  }
+
   DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool) {
 
     MCCConfig cfg;
@@ -292,15 +345,77 @@ namespace Arc {
 		      url.Protocol() == "https", url.str());
 
     PayloadRaw request;
-    PayloadRawInterface *response;
-
+    PayloadRawInterface *response = NULL;
     HTTPClientInfo info;
-    client.process("GET", &request, &info, &response);
+    MCC_Status status = client.process("GET", &request, &info, &response);
+    if (!response)
+      return DataStatus::ListError;
+    delete response;
+    if (!status)
+      return DataStatus::ListError;
 
-    std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
-    f->SetType(FileInfo::file_type_file);
-    f->SetSize(info.size);
-    f->SetCreated(info.lastModified);
+    std::string type = info.type;
+    std::string::size_type pos = type.find(';');
+    if (pos != std::string::npos)
+      type = type.substr(0, pos);
+
+    if (strcasecmp(type.c_str(), "text/html") == 0) {
+
+      DataBufferPar buffer;
+
+      if (!StartReading(buffer))
+	return DataStatus::ListError;
+
+      int handle;
+      unsigned int length;
+      unsigned long long int offset;
+      std::string result;
+
+      while (buffer.for_write() || !buffer.eof_read())
+	if (buffer.for_write(handle, length, offset, true)) {
+	  result.append(buffer[handle], length);
+	  buffer.is_written(handle);
+	}
+
+      if (!StopReading())
+	return DataStatus::ListError;
+
+      std::string::size_type tagstart = 0;
+      std::string::size_type tagend = 0;
+      std::string::size_type titlestart = std::string::npos;
+      std::string::size_type titleend = std::string::npos;
+      do {
+	tagstart = result.find('<', tagend);
+	if (tagstart == std::string::npos)
+	  break;
+	tagend = result.find('>', tagstart);
+	if (tagend == std::string::npos)
+	  break;
+	std::string tag = result.substr(tagstart + 1, tagend - tagstart - 1);
+	if (strcasecmp(tag.c_str(), "title") == 0)
+	  titlestart = tagend + 1;
+	if (strcasecmp(tag.c_str(), "/title") == 0)
+	  titleend = tagstart - 1;
+      }
+      while (titlestart == std::string::npos || titleend == std::string::npos);
+
+      std::string title = result.substr(titlestart, titleend - titlestart + 1);
+
+      if (title.substr(0, 10) == "Index of /")
+	html2list (result.c_str(), files);
+      else {
+	std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
+	f->SetType(FileInfo::file_type_file);
+	f->SetSize(info.size);
+	f->SetCreated(info.lastModified);
+      }
+    }
+    else {
+      std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
+      f->SetType(FileInfo::file_type_file);
+      f->SetSize(info.size);
+      f->SetCreated(info.lastModified);
+    }
 
     return DataStatus::Success;
   }
