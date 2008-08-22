@@ -874,51 +874,35 @@ job.ID.status
 
 \begin_deeper
 \begin_layout Itemize
-ACCEPTED/
-\series bold
-Accepted
+ACCEPTED
 \end_layout
 
 \begin_layout Itemize
-PREPARING/
-\series bold
-Preparing
+PREPARING
 \end_layout
 
 \begin_layout Itemize
-SUBMITTING/
-\series bold
-Submiting
+SUBMIT
 \end_layout
 
 \begin_layout Itemize
-INLRMS/
-\series bold
-Executing
+INLRMS
 \end_layout
 
 \begin_layout Itemize
-FINISHING/
-\series bold
-Finishing
+FINISHING
 \end_layout
 
 \begin_layout Itemize
-FINISHED/
-\series bold
-Finished
+FINISHED
 \end_layout
 
 \begin_layout Itemize
-CANCELING/
-\series bold
-Killing
+CANCELING
 \end_layout
 
 \begin_layout Itemize
-DELETED/
-\series bold
-Deleted
+DELETED
 \end_layout
 
 \end_deeper
@@ -1716,8 +1700,9 @@ Job states definitions and mappings
 
 \begin_layout Standard
 \begin_inset Tabular
-<lyxtabular version="3" rows="16" columns="3">
+<lyxtabular version="3" rows="17" columns="4">
 <features headTopDL="true">
+<column alignment="center" valignment="top" leftline="true" width="0">
 <column alignment="center" valignment="top" leftline="true" width="0">
 <column alignment="center" valignment="top" leftline="true" width="0">
 <column alignment="left" valignment="top" leftline="true" rightline="true" width="10cm">
@@ -1736,6 +1721,15 @@ Applicable BES State
 
 \begin_layout Standard
 ARC Sub-state
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+A-REX internal state
 \end_layout
 
 \end_inset
@@ -1809,11 +1803,26 @@ Accepting
 
 \end_inset
 </cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+ACCEPTED
+\end_layout
+
+\end_inset
+</cell>
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none" width="10cm">
 \begin_inset Text
 
 \begin_layout Standard
-Job is in the process of being submitted
+Job is in the process of being submitted.
+ This state is not recognised by the A-REX yet.
+ 
+\emph on
+Accepted
+\emph default
+ is first reported state.
 \end_layout
 
 \end_inset
@@ -1834,6 +1843,15 @@ Job is in the process of being submitted
 
 \begin_layout Standard
 Accepted
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+ACCEPTED
 \end_layout
 
 \end_inset
@@ -1907,6 +1925,15 @@ Preparing
 
 \end_inset
 </cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+PREPARING
+\end_layout
+
+\end_inset
+</cell>
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
@@ -1932,6 +1959,15 @@ Stage-in process is going on
 
 \begin_layout Standard
 Prepared
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+PREPARING+PENDING
 \end_layout
 
 \end_inset
@@ -1965,11 +2001,64 @@ Submiting
 
 \end_inset
 </cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+SUBMIT
+\end_layout
+
+\end_inset
+</cell>
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
 Communication with local batch system is in process
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Queued
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+INLRMS
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none" width="10cm">
+\begin_inset Text
+
+\begin_layout Standard
+Job entered local batch system but is not runnning now.
+ This state is not recognised by the A-REX yet.
+ 
+\emph on
+Executing
+\emph default
+ is reported instead 
 \end_layout
 
 \end_inset
@@ -1990,6 +2079,15 @@ Communication with local batch system is in process
 
 \begin_layout Standard
 Executing
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+INLRMS
 \end_layout
 
 \end_inset
@@ -2018,7 +2116,60 @@ Job is being executed in local batch system
 \begin_inset Text
 
 \begin_layout Standard
+Executed
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+INLRMS,INLRMS+PENDING
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Job execution in local batch system has finished.
+ The A-REX dos not detect job states inside local batch system yet.
+ As result this state is reported only if job is 
+\emph on
+Pending
+\emph default
+.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell multicolumn="1" alignment="center" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
 Killing
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+CANCELING
 \end_layout
 
 \end_inset
@@ -2047,27 +2198,7 @@ Communication with local batch system to terminate execution is in process
 \begin_inset Text
 
 \begin_layout Standard
-Executed
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Job execution in local batch system has finished
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell multicolumn="1" alignment="center" valignment="top" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
+Finishing
 \end_layout
 
 \end_inset
@@ -2076,7 +2207,7 @@ Job execution in local batch system has finished
 \begin_inset Text
 
 \begin_layout Standard
-Finishing
+FINISHING
 \end_layout
 
 \end_inset
@@ -2105,12 +2236,65 @@ Cancelled
 \begin_inset Text
 
 \begin_layout Standard
-Finished
+Killed
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+FINISHED
 \end_layout
 
 \end_inset
 </cell>
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Job was stopped by explicit user request.
+ The A-REX currently does not remember this request.
+ 
+\emph on
+Failed
+\emph default
+ is reported instead.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Failed
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+FINISHED
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -2125,35 +2309,6 @@ There was a failure during execution
 \begin_inset Text
 
 \begin_layout Standard
-Failed
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="1" alignment="center" valignment="top" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="1" alignment="left" valignment="top" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
 Finished
 \end_layout
 
@@ -2169,6 +2324,15 @@ Finished
 \end_inset
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+FINISHED
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -2201,6 +2365,15 @@ Deleted
 \begin_inset Text
 
 \begin_layout Standard
+DELETED
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
 Job finished and was left in A-REX too long
 \end_layout
 
@@ -2222,6 +2395,15 @@ All
 
 \begin_layout Standard
 Pending
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+PENDING
 \end_layout
 
 \end_inset
@@ -2256,13 +2438,22 @@ Held
 
 \end_inset
 </cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
 <cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
 Job processing is suspended on client request; this sub-state appears in
  parallel with other sub-states.
- This state is reserved for future and i snot implemented yet.
+ This state is reserved for future and is not implemented yet.
 \end_layout
 
 \end_inset

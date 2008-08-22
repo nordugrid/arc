@@ -354,14 +354,14 @@ of current state of the job. Possible values and corresponding external
 job states are :
 
 \begin{itemize}
-\item ACCEPTED/\textbf{Accepted}
-\item PREPARING/\textbf{Preparing}
-\item SUBMITTING/\textbf{Submiting}
-\item INLRMS/\textbf{Executing}
-\item FINISHING/\textbf{Finishing}
-\item FINISHED/\textbf{Finished}
-\item CANCELING/\textbf{Killing}
-\item DELETED/\textbf{Deleted}
+\item ACCEPTED
+\item PREPARING
+\item SUBMIT
+\item INLRMS
+\item FINISHING
+\item FINISHED
+\item CANCELING
+\item DELETED
 \end{itemize}
 \end{itemize}
 See section \ref{Section: Job Flow} for a description of the various
@@ -600,76 +600,102 @@ described in section \ref{Section: Job Flow}.
 
 \caption{\label{tab:Job-states-definitions}Job states definitions and mappings}
 
-\begin{tabular}{|c|c|>{\raggedright}p{10cm}|}
+\begin{tabular}{|c|c|c|>{\raggedright}p{10cm}|}
 \hline 
 Applicable BES State&
 ARC Sub-state&
+A-REX internal state&
 \multicolumn{1}{c|}{Description}\tabularnewline
 \hline
 \hline 
 \renewcommand{\multirowsetup}{\centering}\multirow{2}{2cm}{Pending}&
 Accepting&
-Job is in the process of being submitted\tabularnewline
-\cline{2-2} \cline{3-3} 
+ACCEPTED&
+Job is in the process of being submitted. This state is not recognised
+by the A-REX yet. \emph{Accepted} is first reported state.\tabularnewline
+\cline{2-2} \cline{3-3} \cline{4-4} 
 \multicolumn{1}{|c|}{}&
 Accepted&
+ACCEPTED&
 Job was submitted\tabularnewline
 \hline 
 \renewcommand{\multirowsetup}{\centering}\multirow{7}{2cm}{Running}&
 Preparing&
+PREPARING&
 Stage-in process is going on\tabularnewline
-\cline{2-2} \cline{3-3} 
+\cline{2-2} \cline{3-3} \cline{4-4} 
 \multicolumn{1}{|c|}{}&
 Prepared&
+PREPARING+PENDING&
 Stage-in process has finished\tabularnewline
-\cline{2-2} \cline{3-3} 
+\cline{2-2} \cline{3-3} \cline{4-4} 
 \multicolumn{1}{|c|}{}&
 Submiting&
+SUBMIT&
 Communication with local batch system is in process\tabularnewline
-\cline{2-2} \cline{3-3} 
+\cline{2-2} \cline{3-3} \cline{4-4} 
+&
+\multicolumn{1}{c|}{Queued}&
+\multicolumn{1}{c|}{INLRMS}&
+\multicolumn{1}{p{10cm}|}{Job entered local batch system but is not runnning now. This state
+is not recognised by the A-REX yet. \emph{Executing} is reported instead }\tabularnewline
+\cline{2-2} \cline{3-3} \cline{4-4} 
 \multicolumn{1}{|c|}{}&
 Executing&
+INLRMS&
 Job is being executed in local batch system\tabularnewline
-\cline{2-2} \cline{3-3} 
-\multicolumn{1}{|c|}{}&
-Killing&
-Communication with local batch system to terminate execution is in
-process\tabularnewline
-\cline{2-2} \cline{3-3} 
+\cline{2-2} \cline{3-3} \cline{4-4} 
 \multicolumn{1}{|c|}{}&
 Executed&
-Job execution in local batch system has finished\tabularnewline
-\cline{2-2} \cline{3-3} 
+INLRMS,INLRMS+PENDING&
+Job execution in local batch system has finished. The A-REX dos not
+detect job states inside local batch system yet. As result this state
+is reported only if job is \emph{Pending}.\tabularnewline
+\cline{2-2} \cline{3-3} \cline{4-4} 
+\multicolumn{1}{|c|}{}&
+Killing&
+CANCELING&
+Communication with local batch system to terminate execution is in
+process\tabularnewline
+\cline{2-2} \cline{3-3} \cline{4-4} 
 \multicolumn{1}{|c|}{}&
 Finishing&
+FINISHING&
 Stage-out process is going on\tabularnewline
 \hline 
 Cancelled&
-Finished&
-There was a failure during execution\tabularnewline
-\cline{1-1} 
-Failed&
-\multicolumn{1}{c|}{}&
-\multicolumn{1}{l|}{}\tabularnewline
+Killed&
+FINISHED&
+Job was stopped by explicit user request. The A-REX currently does
+not remember this request. \emph{Failed} is reported instead.\tabularnewline
+\hline 
+\multicolumn{1}{|c|}{Failed}&
+\multicolumn{1}{c|}{Failed}&
+FINISHED&
+\multicolumn{1}{l|}{There was a failure during execution}\tabularnewline
 \hline 
 Finished&
 Finished&
+FINISHED&
 Job finished successfully\tabularnewline
 \hline 
 Finished&
 Deleted&
+DELETED&
 Job finished and was left in A-REX too long\tabularnewline
 \hline 
 All&
 Pending&
+PENDING&
 Job is prevented from going to the next state due to some internal
 limits; this sub-state appears in parallel with other sub-states\tabularnewline
 \hline 
 All&
 Held&
+&
 Job processing is suspended on client request; this sub-state appears
 in parallel with other sub-states. This state is reserved for future
-and i snot implemented yet.\tabularnewline
+and is not implemented yet.\tabularnewline
 \hline
 \end{tabular}
 \end{table}
