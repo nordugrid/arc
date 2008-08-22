@@ -399,9 +399,13 @@ namespace Arc {
       }
       while (titlestart == std::string::npos || titleend == std::string::npos);
 
-      std::string title = result.substr(titlestart, titleend - titlestart + 1);
+      std::string title;
+      if (titlestart != std::string::npos && titleend != std::string::npos)
+	title = result.substr(titlestart, titleend - titlestart + 1);
 
-      if (title.substr(0, 10) == "Index of /")
+      // should maybe find a better way to do this...
+      if (title.substr(0, 10) == "Index of /" ||
+	  title.substr(0, 5) == "ARex:")
 	html2list (result.c_str(), files);
       else {
 	std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
