@@ -33,7 +33,7 @@ The whole design of the HED is built around the idea of flexibility and modulari
 
 Because in it's current state it mostly provides modules for building SOAP based Web Services, it is easy to think that HED is just another Web Services development framework like Axis, gSOAP, XFire or any other of numerous implementations. But instead the idea of HED is to provide framework for gluing functionalities and not a re-implementation of various standards. Effectively that means if Apache 2 web server is considered by developers as necessary for serving as frontend to services there could be plugin written which puts Apache 2 into a chain of other plugins of the HED.
 
-In the current implementation there are no Apache or Axis plugins. That is because the developers of HED were very much concerned about making the solution lightweight and needed an implementation of the supported protocols that was both simple and lightweight. As a result essentials like SOAP and HTTP are implemented inside HED, while external software is used whenever that is found to be appropriate - as in the case of TLS, (Grid)FTP, LDAP and some other cases. ?That does not exclude possibility to have plugins using entirely external solutions either developed or accepted from third parties.?
+In the current implementation there are no Apache or Axis plugins. That is because the developers of HED were very much concerned about making the solution lightweight and needed an implementation of the supported protocols that was both simple and lightweight. As a result essentials like SOAP and HTTP are implemented inside HED, while external software is used whenever that is found to be appropriate - as in the case of TLS, (Grid)FTP, LDAP and some other cases. That does not exclude possibility to have plugins using entirely external solutions either developed or accepted from third parties.?
 
 The HED is a relatively young framework and there are quite a few rough edges and non-flexible solutions. The situation will hopefully improve with time. We would be grateful for any suggestions how to improve architecture and code of the HED. Statements like "you are doing crap, I'll better use Axis" are understood but not welcome and are usually reacted to adequately.
 
@@ -79,7 +79,9 @@ Unless otherwise stated the term HED will be used through this document to refer
 
 In the HED data channels to the outside world may be set up by chains of small processing units called Message Chain Components (MCCs). These work on units called Messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general Attributes and Security Attributes where information relevant to each protocol is accumulated as the message progresses. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configured.
 
-%As the data is passed through the individual MCCs, they each populate structures with both general attributes and special security attributes that are available at that particular protocol level.
+Each MCC has an entry method which is called with Message being processed. It then processes Message by modifying it or creating new Message. Then MCC calls entry method of next MCC in the chain. For information how mwssages are handled and about memory management policies please see API description of MCC class in [].
+
+As the data is passed through the individual MCCs, they each populate structures with both general attributes and special security attributes that are available at that particular protocol level.
 
 
 \paragraph{Payload}
@@ -96,10 +98,36 @@ Main content of the information is transfered using the Payload part of the Mess
 
 \end{enumerate}
 
+Each MCC developed inside and outside the HED must be accompanied with description of the Payloads it supports on input and those generated on output. Those types should be taken into account while creating chains of the MCCs. There are no Payload type checks done during the chain configuration phase. Hence Payload incompatibility problems will be detected only during runtime.
+
+\paragraph{Attributes}
+
+The Message object may contain general purpose key and value pairs called Attributes. Keys and values are simple stings. Each key may have multiple corresponding values. All pairs are handled by MessageAttributes class. Codewise there are no limitations put on content and purpose of Attributes.
+
+By convention keys are composed of two parts: name of MCC/Protocol at which Attribute was generated or must be consumed and name of Attribute itself separated by column. For example the Attribute with key HTTP:METHOD holds HTTP protocol method like GET, PUT, HEAD, etc. It is either generated MCC implementing HTTP protocol or is filled by other code and is used by HTTP MCC to generate proper HTTP header.
+
+Each MCC developed inside and outside the HED must be have generated and consumed Attributes described in accompanying documentation.
+
+
+\paragraph{Security Attributes}
+
+Here only basic information about security related objects is presented. For more detailed information please see "Security Framework of ARC1" [].
+
+Security Attributes are storing various aspects of Message useful for authorization decisions to be made. Those normally include operation being requested, target of operation and identity of subject making request. They can also contain authorization policies. Actually nothing stops from storing an other type of information but there is no convention developed for that.
+
+The Secuirity Attributes are stored as key and value pairs. Each key may have only single value attached. Keys are simple strings. By convention each MCC or Security Handler (see below) produce Security Attribute with name corresponding to protocol name. For example Security Attribute stored under name TLS holds information collected at Transport Level Security layer.
+
+The value if Secuirity Attribute is an object of class inherited from SecAttr. The HED implements class SecAttr which serves as definition of interface for all Security Attributes. It defines way collected information may be turned into useful format. For that each Security Attribute value implements method Export for converting internal information into one of supported formats. Currently only implemented is ARC Authorization Request/Policy (see below). Please see API description of SecAttr and MessageAuth classes in [] for more information.
+
+Each MCC developed inside and outside the HED must come with explanation of generated and consumed Security Attributes. Dedicated components for dealing with Security Attribute - Security Handlers are described below.
+
 
 \paragraph{Security Handler}
 
 Each MCC can also be configured to have loadable modules called Security Handlers attached to it in order to enforce security policies such as authentication and authorization or to assist such activities by gathering specialized security related information into Security Attributes. There is no strict distinction of capabilities between Security Handlers and MCCs. Both can and do populate Security Attributes. The distinction is more of logical nature. It also makes possible to have Security Handlers dealing with similar kind of information and capable of acting on different protocol levels.
+
+
+\paragraph{Client and Server MCCs}
 
 
 \paragraph{Configuration}
