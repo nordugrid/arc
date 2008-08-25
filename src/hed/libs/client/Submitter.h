@@ -25,10 +25,7 @@ namespace Arc {
     URL SubmissionEndpoint;
     URL InfoEndpoint;
     std::string MappingQueue;
-    
-  private:
     static Logger logger;
-
   };
 
 } // namespace Arc

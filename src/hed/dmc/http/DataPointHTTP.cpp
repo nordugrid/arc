@@ -284,7 +284,8 @@ namespace Arc {
       delete chunks;
   }
 
-  static bool html2list(const char* html, std::list<FileInfo>& files) {
+  static bool html2list(const char* html, const URL &base,
+			std::list<FileInfo> &files) {
     for(const char* pos = html;;) {
       // Looking for tag
       const char* tag_start = strchr(pos,'<');
@@ -321,6 +322,14 @@ namespace Arc {
 	  if (!url_end)
 	    return false; // Broken HTML
 	  std::string url(url_start, url_end - url_start);
+	  if (url.find("://") != std::string::npos) {
+	    URL u(url);
+	    std::string b = base.str();
+	    if (b[b.size() - 1] != '/')
+	      b += '/';
+	    if (u.str().substr(0, b.size()) == b)
+	      url = u.str().substr(b.size());
+	  }
 	  if (url[0] != '?' && url[0] != '/')
 	    if (url.find('/') == url.size() - 1) {
 	      std::list<FileInfo>::iterator f = files.insert(files.end(), url);
@@ -406,7 +415,7 @@ namespace Arc {
       // should maybe find a better way to do this...
       if (title.substr(0, 10) == "Index of /" ||
 	  title.substr(0, 5) == "ARex:")
-	html2list (result.c_str(), files);
+	html2list (result.c_str(), url, files);
       else {
 	std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
 	f->SetType(FileInfo::file_type_file);

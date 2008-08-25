@@ -150,10 +150,10 @@ namespace Arc {
 	continue;
       }
       
-      if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" && jobiter->State != "KILLED"){
-	std::cout<<Arc::IString("Job has not finished yet: %s", jobiter->JobID.str())<<std::endl;
-	continue;
-      }
+      // if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" && jobiter->State != "KILLED"){
+      //	std::cout<<Arc::IString("Job has not finished yet: %s", jobiter->JobID.str())<<std::endl;
+      //	continue;
+      // }
       
       Downloadable.push_back(&(*jobiter));
 
@@ -278,11 +278,11 @@ namespace Arc {
 	continue;
       
       
-      if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" && 
-	  jobiter->State != "KILLED" && jobiter->State != "DELETED"){
-	std::cout<<Arc::IString("Job has not finished yet: %s", jobiter->JobID.str())<<std::endl;
-	continue;
-      }
+      //      if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" && 
+      //	  jobiter->State != "KILLED" && jobiter->State != "DELETED"){
+      //	std::cout<<Arc::IString("Job has not finished yet: %s", jobiter->JobID.str())<<std::endl;
+      //	continue;
+      //      }
       
       Cleanable.push_back(&(*jobiter));
 
