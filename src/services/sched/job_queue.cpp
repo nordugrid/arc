@@ -135,6 +135,8 @@ void JobQueue::init(const std::string &dbroot, const std::string &store_name)
     env_ = new DbEnv(0); // Exception will occure
     // env_->open(dbroot.c_str(), DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL | DB_THREAD, 0644);
     env_->open(dbroot.c_str(), DB_CREATE | DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_RECOVER | DB_THREAD, 0644);
+    // setup internal deadlock detection mechanizm
+    env_->set_lk_detect(DB_LOCK_DEFAULT);
     db_ = new Db(env_, 0);
 #if (DB_VERSION_MAJOR < 4) || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR == 0)
     db_->open(store_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_THREAD, 0644);

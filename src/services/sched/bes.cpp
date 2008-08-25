@@ -167,7 +167,18 @@ GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in, Arc::XMLNode& out)
             Arc::SchedJobStatus s = j->getStatus();
             Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
             state.NewAttribute("bes-factory:state") = sched_status_to_string(s);
-            // XXX put times here
+            Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
+            state.NewChild("sched:ResourceID") = m->getResourceID();
+            Arc::Time &t1 = m->getCreatedTime();
+            Arc::Time &t2 = m->getStartTime();
+            Arc::Time &t3 = m->getEndTime();
+            state.NewChild("sched:CreatedTime") = (std::string)t1;
+            if (t1 != t2) {
+                state.NewChild("sched:StartTime") = (std::string)t2;
+            }
+            if (t3 > t2) {
+                state.NewChild("sched:EndTime") = (std::string)t3;
+            }
             delete j;
         } catch (Arc::JobNotFoundException &e) {
             logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s not found", jobid);
