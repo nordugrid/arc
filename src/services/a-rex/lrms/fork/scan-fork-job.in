@@ -4,6 +4,8 @@
 #  reported an exitcode
 #
 
+set -e
+
 id=`id -u`
 
 #debug='eval echo >> @tmp_dir@/parse-fork-log.$id'
@@ -14,9 +16,6 @@ $debug "options = $@"
 
 if [ -z "$1" ] ; then echo "Argument missing" >&2 ; exit 1 ; fi
 
-# Where to store temporary files on gatekeeper
-TMP_DIR=${TMP_DIR:-@tmp_dir@}
-
 for control_dir in "$@" ; do
 
     if [ ! -d "${control_dir}" ]; then 
@@ -24,17 +23,26 @@ for control_dir in "$@" ; do
         continue
     fi
 
+    # iterate over all jobs known in the control directory
     for job in `grep -l INLRMS ${control_dir}/job.*.status 2>/dev/null | sed -e 's/.*job.//' -e 's/.status.*$//'` ; do
         $debug "scanning job = $job"
         unset joboption_jobid
 	unset joboption_user
         unset joboption_directory
 
+        # this job was already completed, nothing remains to be done
         [ -f "${control_dir}/job.${job}.lrms_done" ] && continue
 
-        [ ! -f "${control_dir}/job.${job}.grami" ] && continue
-        .  "${control_dir}/job.${job}.grami"
+	# a grami file exists for all jobs that GM thinks are running.
+        # proceed to next job if this file is missing.
+        if [ ! -f "${control_dir}/job.${job}.grami" ]; then
+            continue
+        fi
 
+        # extract process IDs of the grami file
+        . "${control_dir}/job.${job}.grami"
+
+        # process IDs could not be learned, proceeding to next
         [ -z "$joboption_jobid" ] && continue
     
         $debug "local jobid = $joboption_jobid"
@@ -44,6 +52,14 @@ for control_dir in "$@" ; do
         rc=$?
 	$debug "ps returned $rc"
         [ $rc -eq 0 ] && continue
+
+        # checking if process is still running
+        if ps -ouser= -p$joboption_jobid > /dev/null; then
+            $debug "ps returned $? - process $joboption_jobid of job $job is still running. Continuing to next"
+            continue
+        else
+            $debug "ps returned $? - process $joboption_jobid of job $job has exited!"
+        fi
 
         $debug "checking ${joboption_directory}.diag"
         if [ `id -u` -eq '0' ] ; then
