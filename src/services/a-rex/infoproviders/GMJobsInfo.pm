@@ -36,6 +36,8 @@ our $gmjobs_info_schema = {
             diskspace          => '',
             failedstate        => '*',
             fullaccess         => '*',
+            lifetime           => '*',
+            jobreport          => '*',
             # from .description
             stdin              => '*',
             stdout             => '*',
