@@ -208,7 +208,10 @@ sub _collect($$) {
     $c->{'nc0:localse'} = [ split /\[separator\]/, $config->{localse} ] if $config->{localse};
     $c->{'nc0:sessiondir-free'} = [ $host_info->{session_free} ];
     $c->{'nc0:sessiondir-total'} = [ $host_info->{session_total} ];
-    $c->{'nc0:sessiondir-lifetime'} = [ int $config->{defaultttl}/60 ] if $config->{defaultttl};
+    if ($config->{defaultttl}) {
+        my ($sessionlifetime) = split ' ', $config->{defaultttl};
+        $c->{'nc0:sessiondir-lifetime'} = [ int $sessionlifetime/60 ];
+    }
     $c->{'nc0:cache-free'} = [ $host_info->{cache_free} ];
     $c->{'nc0:cache-total'} = [ $host_info->{cache_total} ];
     $c->{'nc0:runtimeenvironment'} = $host_info->{runtimeenvironments};

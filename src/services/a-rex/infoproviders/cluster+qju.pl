@@ -50,7 +50,7 @@ sub main {
                    x509_cert_dir  => "/etc/grid-security/certificates/",
                    ng_location    => $ENV{ARC_LOCATION} ||= "/usr/local",
                    gridmap        => "/etc/grid-security/grid-mapfile",
-                   processes      => [qw(gridftpd grid-manager arched)]
+                   processes      => [qw(arched)]
     
     );
 
