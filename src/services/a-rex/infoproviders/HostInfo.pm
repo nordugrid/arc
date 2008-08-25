@@ -33,8 +33,8 @@ our $host_info_schema = {
         session_total => '', # unit: MB
         cache_free    => '', # unit: MB
         cache_total   => '', # unit: MB
-        ngversion     => '',
-        globusversion => '',
+        ngversion     => '*',
+        globusversion => '*',
         runtimeenvironments => [ '' ],
         processes  => { '*' => '' },
         localusers => {
@@ -191,7 +191,7 @@ sub get_host_info {
     } elsif (-x "/usr/sbin/system_profiler") {
         # OS X
 
-        my @lines = `system_profiler SPHardwareDataType`;
+        my @lines = `/usr/sbin/system_profiler SPHardwareDataType`;
         $log->warning("Failed running system_profiler: $!") if $?;
         for my $line ( @lines ) {
             if ($line =~ /Processor Name:\s*(.*)/) {
@@ -204,6 +204,26 @@ sub get_host_info {
                 }
             }
         }
+
+    } elsif (-x "/usr/bin/kstat" ) {
+        # Solaris
+
+        my %chips;
+        eval {
+            require Sun::Solaris::Kstat;
+            my $ks = Sun::Solaris::Kstat->new();
+            my $cpuinfo = $ks->{cpu_info};
+            die "key not found: cpu_info" unless defined $cpuinfo;
+            my $info = $cpuinfo->{0}{"cpu_info0"};
+            die "key not found: cpu_info0" unless defined $info;
+            # $host_info->{cpumodel} = $info->{cpu_type}; # like sparcv9
+            $host_info->{cpumodel} = $info->{implementation}; # like UltraSPARC-III+
+            $host_info->{cpufreq} = int $info->{clock_MHz};
+        };
+        if ($@) {
+            $log->error("Failed running module Sun::Solaris::Kstat: $@") and die;
+        }
+
     } else {
         $log->warning("Cannot query CPU info: unsupported operating system");
     }

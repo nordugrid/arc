@@ -120,6 +120,28 @@ sub cpu_threads_cores_sockets {
         unless ($nsockets and $ncores) {
             $log->warning("Failed parsing output of system_profiler");
         }
+
+    } elsif (-x "/usr/bin/kstat" ) {
+        # Solaris
+
+        my %chips;
+        eval {
+            require Sun::Solaris::Kstat;
+            my $ks = Sun::Solaris::Kstat->new();
+            my $cpuinfo = $ks->{cpu_info};
+            die "key not found: cpu_info" unless defined $cpuinfo;
+            for my $id (keys %$cpuinfo) {
+               my $info = $cpuinfo->{$id}{"cpu_info$id"};
+               die "key not found: cpu_info$id" unless defined $info;
+               $chips{$info->{chip_id}}++;
+               $nthreads++;
+            }
+        };
+        if ($@) {
+            $log->error("Failed running module Sun::Solaris::Kstat: $@") and die;
+        }
+        $nsockets = $ncores = scalar keys %chips;
+
     } else {
         $log->warning("Cannot query CPU info: unsupported operating system");
     }
@@ -170,7 +192,7 @@ sub cluster_info () {
     $lrms_info->{cluster} = $lrms_cluster;
 
     $lrms_cluster->{lrms_type} = "fork";
-    $lrms_cluster->{lrms_version} = "";
+    $lrms_cluster->{lrms_version} = "0.9";
 
     my ($cputhreads) = cpu_threads_cores_sockets();
     $lrms_cluster->{totalcpus} = $cputhreads;
