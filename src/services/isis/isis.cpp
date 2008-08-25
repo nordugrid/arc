@@ -124,6 +124,21 @@ ISIService::Query(Arc::XMLNode &in, Arc::XMLNode &out)
             service_data.GetXML(s);
             logger_.msg(Arc::DEBUG, s);
         }
+        // check validity
+        Arc::XMLNode created = service_data.Attribute("Created");
+        Arc::XMLNode validity = service_data.Attribute("Validity");
+        if (!created || !validity) {
+            continue;
+        }
+        Arc::Time ct((std::string)created);
+        Arc::Period pt((std::string)validity);
+        Arc::Time now;
+        if (ct + pt < now) {
+            logger_.msg(Arc::DEBUG, "Outdated data: %s", service_id);
+            db_->del(service_id);
+            continue;
+        }
+        // add data to output
         out.NewChild(service_data);
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
@@ -182,7 +197,7 @@ ISIService::ISIService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootL
         logger_.msg(Arc::ERROR, "Invalid database path definition");
         return;
     }
-    // Init databse
+    // Init database
     db_ = new Arc::XmlDatabase(db_path, "isis");
 
     // Initialize Information Register
@@ -213,6 +228,8 @@ ISIService::RegistrationCollector(Arc::XMLNode &doc)
     std::string validity = Arc::tostring(600);
     
     Arc::XMLNode service = doc.NewChild("glue2:Service");
+    service.NewAttribute("Created") = created;
+    service.NewAttribute("Validity") = validity;
     service.NewAttribute("BaseType") = "Service";
     service.NewChild("ID") = getID();
 }
