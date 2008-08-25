@@ -130,7 +130,7 @@ sub cpu_threads_cores_sockets {
 # Produces stats for all processes on the system
 
 sub process_info() {
-    my @pslines = `ps -e -o ppid,pid,vsize,cputime,etime,user,comm`;
+    my @pslines = `ps -e -o ppid,pid,vsz,time,etime,user,comm`;
     if ($? != 0) {
         $log->error("Failed running ps -e -o ppid,pid...");
         return ();
