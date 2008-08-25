@@ -39,8 +39,11 @@
         </Component>
         <Service name="aa.service" id="aa_service">
             <aa:Database type="mysql" ip="127.0.0.1" port="3305" dbname="voms_myvo" user="root" password="aa1122">
+              <aa:SQLSet name="Role">
                 <aa:SQL name="GetRole">SELECT groups.dn, role FROM groups, m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = ? AND m.userid = ?</aa:SQL>
                 <aa:SQL name="GetRoleAttribute">SELECT attributes.a_name, role_attrs.a_value, groups.dn, roles.role FROM m INNER JOIN groups ON m.gid = groups.gid LEFT JOIN roles ON roles.rid = m.rid INNER JOIN role_attrs on groups.gid = role_attrs.g_id INNER JOIN attributes on attributes.a_id = role_attrs.a_id WHERE role_attrs.r_id = roles.rid AND roles.role = ? AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
+              <!--Other SQLSet-->
             </aa:Database>
         </Service>
     </Chain>

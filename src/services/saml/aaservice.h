@@ -19,6 +19,9 @@ class Service_AA: public Arc::Service {
   virtual ~Service_AA(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
  private:
+  bool get_roles(std::vector<std::string>& fqans, std::string& userid, std::string& role, Arc::XMLNode& config);
+  bool get_attributes(Arc::QueryArrayResult& attributes, std::string& idofsqlset, std::vector<std::string>& sqlargs, Arc::XMLNode& config);
+ private:
   LassoAssertionQuery *assertion_query_;
 };
 

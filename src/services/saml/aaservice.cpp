@@ -30,6 +30,8 @@
 #include <lasso/xml/saml-2.0/saml2_attribute_statement.h>
 #include <lasso/xml/xml.h>
 
+#include "../../hed/libs/common/MysqlWrapper.h"
+
 #include "aaservice.h"
 
 namespace ArcSec {
@@ -247,6 +249,66 @@ Service_AA::~Service_AA(void) {
   if(assertion_query_ != NULL)
     lasso_assertion_query_destroy(assertion_query_);
   assertion_query_ = NULL;
+}
+
+bool Service_AA::get_roles(std::vector<std::string>& fqans, std::string& userid, std::string& role, Arc::XMLNode& config) {
+  Arc::QueryArrayResult attributes;
+  std::vector<std::string> sqlargs;
+  sqlargs.push_back(role);
+  sqlargs.push_back(userid);
+  std::string idofsqlset("Role");
+  bool res;
+  res = get_attributes(attributes, idofsqlset, sqlargs, config);
+  if(!res) return res;
+  for(int i = 0; i< attributes.size(); i++) {
+    std::vector<std::string> item = attributes[i];
+    int num = item.size();
+    std::string fqan;
+    if(num == 2) {
+      fqan = item[0] + "/Role=" + item[1];
+    }
+    else if(num == 4) {
+      fqan = item[2] + "::" + item[0] + "=" + item[1];
+    }
+    fqans.push_back(fqan);
+  }
+  return true;
+}
+
+bool Service_AA::get_attributes(Arc::QueryArrayResult& attributes, std::string& idofsqlset, std::vector<std::string>& sqlargs, Arc::XMLNode& config) {
+  Arc::XMLNode nd;
+  nd = config["aa:Database"];
+  std::string server, dbname, user, password, portstr;
+  int port;
+  server = (std::string)(nd.Attribute("ip"));
+  dbname = (std::string)(nd.Attribute("dbname"));
+  user = (std::string)(nd.Attribute("user"));
+  password = (std::string)(nd.Attribute("password"));
+  portstr = (std::string)(nd.Attribute("port"));
+  port = atoi((portstr.c_str()));
+  
+  Arc::MySQLDatabase mydb(server, port);
+  bool res = false;
+  res = mydb.connect(dbname,user,password);
+  if(res == false) {std::cerr<<"Can't establish connection to mysql database"<<std::endl; return false;}
+
+  Arc::MySQLQuery myquery(&mydb);
+  std::cout<<"Is connected? "<<mydb.isconnected()<<std::endl;
+
+  std::string querystr;
+  for(int i = 0;; i++) {
+    Arc::XMLNode cn = nd["aa:SQLSet"][i];
+    if(!cn) break;
+    if(((std::string)(cn.Attribute("name"))) == idofsqlset) {
+      for(int k = 0;; k++) {
+        Arc::XMLNode scn = cn["aa:SQL"][k];
+        if(!scn) break;
+        myquery.get_array(querystr, attributes, sqlargs);
+      }
+    }
+  }
+  std::cout<<"Get an result array with "<<attributes.size()<<" rows"<<std::endl;
+  return true;
 }
 
 } // namespace ArcSec
