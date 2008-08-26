@@ -650,7 +650,7 @@ class PickleStore:
         names = []
         # list the contects of each subdirectory withtin the data directory
         for subdir in os.listdir(self.datadir):
-            if os.path.isdir(subdir):
+            if os.path.isdir(os.path.join(self.datadir,subdir)):
                 names.extend(os.listdir(os.path.join(self.datadir, subdir)))
         return names
 
