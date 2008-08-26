@@ -45,7 +45,7 @@ class TLSSecAttr: public Arc::SecAttr {
 };
 }
 
-bool Arc::MCC_TLS::ssl_initialized_ = false;
+unsigned int Arc::MCC_TLS::ssl_initialized_ = 0;
 Glib::Mutex Arc::MCC_TLS::lock_;
 Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
@@ -435,10 +435,9 @@ unsigned long MCC_TLS::ssl_id_cb(void) {
 //}
 
 bool MCC_TLS::do_ssl_init(void) {
-   if(ssl_initialized_) return true;
    lock_.lock();
    if(!ssl_initialized_) {
-     logger.msg(INFO, "MCC_TLS::do_ssl_init");     
+     logger.msg(VERBOSE, "MCC_TLS::do_ssl_init");     
      SSL_load_error_strings();
      if(!SSL_library_init()){
        logger.msg(ERROR, "SSL_library_init failed");
@@ -451,20 +450,37 @@ bool MCC_TLS::do_ssl_init(void) {
            CRYPTO_set_locking_callback(&ssl_locking_cb);
            CRYPTO_set_id_callback(&ssl_id_cb);
            //CRYPTO_set_idptr_callback(&ssl_idptr_cb);
-           ssl_initialized_=true;
+           ++ssl_initialized_;
+           ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
          } else {
            logger.msg(ERROR, "Failed to allocate SSL locks");
          };
        } else {
-         ssl_initialized_=true;
+         ++ssl_initialized_;
+         ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
        };
      };
    };
-   if(ssl_initialized_) {
-     ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
+   lock_.unlock();
+   return (ssl_initialized_ != 0);
+}
+
+// This is a temporary solution because there may be other 
+// components using OpenSSL.
+void MCC_TLS::do_ssl_deinit(void) {
+   lock_.lock();
+   if(!ssl_initialized_) {
+     logger.msg(ERROR, "SSL initialization counter lost sync");
+   } else {
+     logger.msg(VERBOSE, "MCC_TLS::do_ssl_deinit");     
+     --ssl_initialized_;
+     if(!ssl_initialized_) {
+       CRYPTO_set_locking_callback(NULL);
+       CRYPTO_set_id_callback(NULL);
+       //CRYPTO_set_idptr_callback(NULL);
+     };
    };
    lock_.unlock();
-   return ssl_initialized_;
 }
 
 class MCC_TLS_Context:public MessageContextElement {
@@ -510,9 +526,9 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
       SSL_CTX_set_client_CA_list(sslctx_,SSL_load_client_CA_file(ca_file.c_str())); //Scan all certificates in CAfile and list them as acceptable CAs
       if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
          logger.msg(ERROR, "Can not set client CA list from the specified file");
-   PayloadTLSStream::HandleError(logger);
+         PayloadTLSStream::HandleError(logger);
          SSL_CTX_free(sslctx_); sslctx_=NULL;
-   return;
+         return;
       }
       */
    }
@@ -558,6 +574,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
 
 MCC_TLS_Service::~MCC_TLS_Service(void) {
    if(sslctx_!=NULL)SSL_CTX_free(sslctx_);
+   do_ssl_deinit();
 }
 
 MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
@@ -719,6 +736,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
 MCC_TLS_Client::~MCC_TLS_Client(void) {
    if(sslctx_) SSL_CTX_free(sslctx_);
    if(stream_) delete stream_;
+   do_ssl_deinit();
 }
 
 MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {

@@ -27,7 +27,8 @@ namespace Arc {
 			      const std::string& password,
 			      const std::string& random_file);
     bool do_ssl_init(void);
-    static bool ssl_initialized_;
+    void do_ssl_deinit(void);
+    static unsigned int ssl_initialized_;
     static Glib::Mutex lock_;
     static Glib::Mutex* ssl_locks_;
     static Logger logger;
