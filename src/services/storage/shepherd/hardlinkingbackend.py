@@ -18,7 +18,22 @@ class HardlinkingBackend:
 
     def __init__(self, backendcfg, ns_uri, file_arrived, log):
         """docstring for __init__"""
-        pass
+        self.log = log
+        self.file_arrived = file_arrived
+        #self.ns = arc.NS({'she' : ns_uri})
+        self.datadir = str(backendcfg.Get('DataDir'))
+        self.transferdir = str(backendcfg.Get('TransferDir'))
+        self.turlprefix = str(backendcfg.Get('TURLPrefix'))
+        if not os.path.exists(self.datadir):
+            os.mkdir(self.datadir)
+        if not os.path.exists(self.transferdir):
+            os.mkdir(self.transferdir)
+        else:
+            for filename in os.listdir(self.transferdir):
+                if not ".py" in filename: # need this for apache backend
+                    os.remove(os.path.join(self.transferdir, filename))
+        self.idstore = {}
+        threading.Thread(target = self.checkingThread, args = [5]).start()        
     
     def checkingThread(self, period):
         """docstring for checkingThread"""
@@ -72,7 +87,17 @@ class HardlinkingBackend:
             return None
 
     def prepareToPut(self, referenceID, localID, protocol):
-        return None
+        if protocol not in self.supported_protocols:
+            raise Exception, 'Unsupported protocol: ' + protocol
+        turl_id = mkuid()
+        datapath = os.path.join(self.datadir, localID)
+        f = file(datapath, 'wb')
+        f.close()
+        os.link(datapath, os.path.join(self.transferdir, turl_id))
+        self.idstore[localID] = referenceID
+        self.log('DEBUG', self.turlprefix, '++', self.idstore)
+        turl = self.turlprefix + turl_id
+        return turl
 
     def remove(self, localID):
         try:
@@ -104,36 +129,10 @@ class HTTPDBackend( HardlinkingBackend ):
     """
 
     def __init__(self, backendcfg, ns_uri, file_arrived, log):
-        self.log = log
-        self.file_arrived = file_arrived
-        #self.ns = arc.NS({'she' : ns_uri})
-        self.datadir = str(backendcfg.Get('DataDir'))
-        self.transferdir = str(backendcfg.Get('TransferDir'))
-        self.turlprefix = str(backendcfg.Get('TURLPrefix'))
-        if not os.path.exists(self.datadir):
-            os.mkdir(self.datadir)
+        HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, log)
         self.log('DEBUG', "HTTPDBackend datadir:", self.datadir)
-        if not os.path.exists(self.transferdir):
-            os.mkdir(self.transferdir)
-        else:
-            for filename in os.listdir(self.transferdir):
-                os.remove(os.path.join(self.transferdir, filename))
-        self.log('DEBUG', "HTTPDBackend transferdir:", self.transferdir)
-        self.idstore = {}
-        threading.Thread(target = self.checkingThread, args = [5]).start()        
+        self.log('DEBUG', "HTTPDBackend transferdir:", self.transferdir)        
 
-    def prepareToPut(self, referenceID, localID, protocol):
-        if protocol not in self.supported_protocols:
-            raise Exception, 'Unsupported protocol: ' + protocol
-        turl_id = mkuid()
-        datapath = os.path.join(self.datadir, localID)
-        f = file(datapath, 'wb')
-        f.close()
-        os.link(datapath, os.path.join(self.transferdir, turl_id))
-        self.idstore[localID] = referenceID
-        self.log('DEBUG', self.turlprefix, '++', self.idstore)
-        turl = self.turlprefix + turl_id
-        return turl
 
 import pwd
 
@@ -143,42 +142,19 @@ class ApacheBackend( HardlinkingBackend ):
     """
 
     def __init__(self, backendcfg, ns_uri, file_arrived, log):
-        self.log = log
-        self.file_arrived = file_arrived
-        #self.ns = arc.NS({'she' : ns_uri})
-        self.datadir = str(backendcfg.Get('DataDir'))
-        self.transferdir = str(backendcfg.Get('TransferDir'))
-        self.turlprefix = str(backendcfg.Get('TURLPrefix'))
+        HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, log)
         self.apacheuser = str(backendcfg.Get('ApacheUser'))
         self.uid = os.getuid()
         _, _, _, self.apachegid, _, _, _ = pwd.getpwnam(self.apacheuser) 
-        if not os.path.exists(self.datadir):
-            os.mkdir(self.datadir)
         self.log('DEBUG', "ApacheBackend datadir:", self.datadir)
-        if not os.path.exists(self.transferdir):
-            os.mkdir(self.transferdir)
-        else:
-            for filename in os.listdir(self.transferdir):
-                if not ".py" in filename:
-                    os.remove(os.path.join(self.transferdir, filename))
         self.log('DEBUG', "ApacheBackend transferdir:", self.transferdir)
-        self.idstore = {}
-        threading.Thread(target = self.checkingThread, args = [5]).start()
         
 
     def prepareToPut(self, referenceID, localID, protocol):
-        if protocol not in self.supported_protocols:
-            raise Exception, 'Unsupported protocol: ' + protocol
-        turl_id = mkuid()
+        turl = HardlinkingBackend.prepareToPut(self, referenceID, localID, protocol)
         datapath = os.path.join(self.datadir, localID)
-        f = file(datapath, 'wb')
-        f.close()
-        os.link(datapath, os.path.join(self.transferdir, turl_id))
         # set group to apache to make it readable to Apache
         os.chown(datapath, self.uid, self.apachegid)
         # set file group writable
         os.chmod(datapath, 0664)
-        self.idstore[localID] = referenceID
-        self.log('DEBUG', self.turlprefix, '++', self.idstore)
-        turl = self.turlprefix + turl_id
         return turl
