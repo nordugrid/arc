@@ -28,8 +28,8 @@ namespace Arc {
 
   DataPoint *DMCHTTP::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "http" &&
-	url.Protocol() != "https" &&
-	url.Protocol() != "httpg")
+        url.Protocol() != "https" &&
+        url.Protocol() != "httpg")
       return NULL;
     return new DataPointHTTP(url);
   }

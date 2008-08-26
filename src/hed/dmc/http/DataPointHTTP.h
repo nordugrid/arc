@@ -31,7 +31,7 @@ namespace Arc {
     DataStatus ListFiles(std::list<FileInfo>& files, bool resolve = true);
     DataStatus StartReading(DataBufferPar& buffer);
     DataStatus StartWriting(DataBufferPar& buffer,
-			    DataCallback *space_cb = NULL);
+                            DataCallback *space_cb = NULL);
     DataStatus StopReading();
     DataStatus StopWriting();
   };

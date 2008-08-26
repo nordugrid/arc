@@ -60,32 +60,32 @@ namespace Arc {
     uint64_t size_;
   public:
     PayloadMemConst(void *buffer,
-		    uint64_t offset,
-		    unsigned int length,
-		    uint64_t size = 0)
+                    uint64_t offset,
+                    unsigned int length,
+                    uint64_t size = 0)
       : buffer_((char *)buffer),
-	begin_(offset),
-	end_(offset + length),
-	size_(size) {}
+        begin_(offset),
+        end_(offset + length),
+        size_(size) {}
     virtual ~PayloadMemConst() {}
     virtual char operator[](int pos) const {
       if (!buffer_)
-	return 0;
+        return 0;
       if (pos < begin_)
-	return 0;
+        return 0;
       if (pos >= end_)
-	return 0;
+        return 0;
       return buffer_[pos - begin_];
     }
     virtual char *Content(int pos = -1) {
       if (!buffer_)
-	return NULL;
+        return NULL;
       if (pos < begin_)
-	return NULL;
+        return NULL;
       if (pos >= end_)
-	return NULL;
+        return NULL;
       return
-	     buffer_ + (pos - begin_);
+             buffer_ + (pos - begin_);
     }
     virtual int Size() const {
       return size_;
@@ -98,22 +98,22 @@ namespace Arc {
     }
     virtual char *Buffer(unsigned int num) {
       if (num != 0)
-	return NULL;
+        return NULL;
       return buffer_;
     }
     virtual int BufferSize(unsigned int num) const {
       if (!buffer_)
-	return 0;
+        return 0;
       if (num != 0)
-	return 0;
+        return 0;
       return
-	     end_ - begin_;
+             end_ - begin_;
     }
     virtual int BufferPos(unsigned int num) const {
       if (!buffer_)
-	return 0;
+        return 0;
       if (num != 0)
-	return 0;
+        return 0;
       return begin_;
     }
     virtual bool Truncate(unsigned int /* size */) {
@@ -157,38 +157,38 @@ namespace Arc {
     uint64_t end = start + length;
     lock_.lock();
     for (std::list<chunk_t>::iterator c = chunks_.begin();
-	 c != chunks_.end();) {
+         c != chunks_.end();) {
       if (end <= c->start)
-	break;
+        break;
       if ((start <= c->start) && (end >= c->end)) {
-	start = c->end;
-	length = end - start;
-	c = chunks_.erase(c);
-	if (length > 0)
-	  continue;
-	break;
+        start = c->end;
+        length = end - start;
+        c = chunks_.erase(c);
+        if (length > 0)
+          continue;
+        break;
       }
       if ((start > c->start) && (end < c->end)) {
-	chunk_t chunk;
-	chunk.start = c->start;
-	chunk.end = start;
-	c->start = end;
-	chunks_.insert(c, chunk);
-	break;
+        chunk_t chunk;
+        chunk.start = c->start;
+        chunk.end = start;
+        c->start = end;
+        chunks_.insert(c, chunk);
+        break;
       }
       if ((start <= c->start) && (end < c->end) && (end > c->start)) {
-	c->start = end;
-	break;
+        c->start = end;
+        break;
       }
       if ((start > c->start) && (start < c->end) && (end >= c->end)) {
-	uint64_t start_ = c->end;
-	c->end = start;
-	start = start_;
-	length = end - start;
-	++c;
-	if (length > 0)
-	  continue;
-	break;
+        uint64_t start_ = c->end;
+        c->end = start;
+        start = start_;
+        length = end - start;
+        ++c;
+        if (length > 0)
+          continue;
+        break;
       }
       ++c;
     }
@@ -201,59 +201,59 @@ namespace Arc {
     uint64_t end = start + length;
     lock_.lock();
     for (std::list<chunk_t>::iterator c = chunks_.begin();
-	 c != chunks_.end(); ++c) {
+         c != chunks_.end(); ++c) {
       if ((end >= c->start) && (end <= c->end)) {
-	if (start < c->start)
-	  c->start = start;
-	lock_.unlock();
-	return;
+        if (start < c->start)
+          c->start = start;
+        lock_.unlock();
+        return;
       }
       if ((start <= c->end) && (start >= c->start)) {
-	if (end > c->end) {
-	  c->end = end;
-	  std::list<chunk_t>::iterator c_ = c;
-	  ++c_;
-	  while (c_ != chunks_.end())
-	    if (c->end >= c_->start) {
-	      if (c_->end >= c->end) {
-		c->end = c_->end;
-		break;
-	      }
-	      c_ = chunks_.erase(c_);
-	    }
-	    else
-	      break;
-	}
-	lock_.unlock();
-	return;
+        if (end > c->end) {
+          c->end = end;
+          std::list<chunk_t>::iterator c_ = c;
+          ++c_;
+          while (c_ != chunks_.end())
+            if (c->end >= c_->start) {
+              if (c_->end >= c->end) {
+                c->end = c_->end;
+                break;
+              }
+              c_ = chunks_.erase(c_);
+            }
+            else
+              break;
+        }
+        lock_.unlock();
+        return;
       }
       if ((start <= c->start) && (end >= c->end)) {
-	c->start = start;
-	if (end > c->end) {
-	  c->end = end;
-	  std::list<chunk_t>::iterator c_ = c;
-	  ++c_;
-	  while (c_ != chunks_.end())
-	    if (c->end >= c_->start) {
-	      if (c_->end >= c->end) {
-		c->end = c_->end;
-		break;
-	      }
-	      c_ = chunks_.erase(c_);
-	    }
-	    else
-	      break;
-	}
-	lock_.unlock();
-	return;
+        c->start = start;
+        if (end > c->end) {
+          c->end = end;
+          std::list<chunk_t>::iterator c_ = c;
+          ++c_;
+          while (c_ != chunks_.end())
+            if (c->end >= c_->start) {
+              if (c_->end >= c->end) {
+                c->end = c_->end;
+                break;
+              }
+              c_ = chunks_.erase(c_);
+            }
+            else
+              break;
+        }
+        lock_.unlock();
+        return;
       }
       if (end < c->start) {
-	chunk_t chunk = {
-	  start, end
-	};
-	chunks_.insert(c, chunk);
-	lock_.unlock();
-	return;
+        chunk_t chunk = {
+          start, end
+        };
+        chunks_.insert(c, chunk);
+        lock_.unlock();
+        return;
       }
     }
     lock_.unlock();
@@ -351,7 +351,7 @@ namespace Arc {
     MCCConfig cfg;
     get_environment_credentials(cfg);
     ClientHTTP client(cfg, url.Host(), url.Port(),
-		      url.Protocol() == "https", url.str());
+                      url.Protocol() == "https", url.str());
 
     PayloadRaw request;
     PayloadRawInterface *response = NULL;
@@ -448,11 +448,11 @@ namespace Arc {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
       info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
-				    url.Protocol() == "https", url.str());
+                                    url.Protocol() == "https", url.str());
       if (!CreateThreadFunction(&read_thread, info))
-	delete info;
+        delete info;
       else
-	++started;
+        ++started;
     }
     if (!started) {
       StopReading();
@@ -475,9 +475,9 @@ namespace Arc {
     if (transfers_finished < transfers_started) {
       buffer->error_read(true);
       while (transfers_finished < transfers_started) {
-	transfer_lock.unlock();
-	sleep(1);
-	transfer_lock.lock();
+        transfer_lock.unlock();
+        sleep(1);
+        transfer_lock.lock();
       }
     }
     transfer_lock.unlock();
@@ -495,7 +495,7 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::StartWriting(DataBufferPar& buffer,
-					 DataCallback *) {
+                                         DataCallback *) {
     if (transfers_started != 0)
       return DataStatus::WriteStartError;
     int transfer_streams = 1;
@@ -510,11 +510,11 @@ namespace Arc {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
       info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
-				    url.Protocol() == "https", url.str());
+                                    url.Protocol() == "https", url.str());
       if (!CreateThreadFunction(&write_thread, info))
-	delete info;
+        delete info;
       else
-	++started;
+        ++started;
     }
     if (!started) {
       StopWriting();
@@ -537,9 +537,9 @@ namespace Arc {
     if (transfers_finished < transfers_started) {
       buffer->error_write(true);
       while (transfers_finished < transfers_started) {
-	transfer_lock.unlock();
-	sleep(1);
-	transfer_lock.lock();
+        transfer_lock.unlock();
+        sleep(1);
+        transfer_lock.lock();
       }
     }
     transfer_lock.unlock();
@@ -577,13 +577,13 @@ namespace Arc {
       int transfer_handle = -1;
       // get first buffer
       if (!point.buffer->for_read(transfer_handle, transfer_size, true))
-	// No transfer buffer - must be failure or close initiated externally
-	break;
+        // No transfer buffer - must be failure or close initiated externally
+        break;
       uint64_t transfer_offset = 0;
       uint64_t chunk_length = transfer_size;
       if (!(point.chunks->Get(transfer_offset, chunk_length)))
-	// No more chunks to transfer - quit this thread.
-	break;
+        // No more chunks to transfer - quit this thread.
+        break;
       uint64_t transfer_end = transfer_offset + chunk_length - 1;
       // Read chunk
       HTTPClientInfo transfer_info;
@@ -593,43 +593,43 @@ namespace Arc {
       path = "/" + path;
       MCC_Status r = client->process("GET", path, transfer_offset, transfer_end, &request, &transfer_info, &inbuf);
       if (!r) {
-	// Failed to transfer chunk - retry.
-	// TODO: implement internal retry count?
-	// TODO: mark failure?
-	// TODO: report failure.
-	// Return buffer
-	point.buffer->is_read(transfer_handle, 0, 0);
-	point.chunks->Unclaim(transfer_offset, chunk_length);
-	if (inbuf)
-	  delete inbuf;
-	// Recreate connection
-	delete client;
-	client = NULL;
-	MCCConfig cfg;
-	get_environment_credentials(cfg);
-	client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
-	continue;
+        // Failed to transfer chunk - retry.
+        // TODO: implement internal retry count?
+        // TODO: mark failure?
+        // TODO: report failure.
+        // Return buffer
+        point.buffer->is_read(transfer_handle, 0, 0);
+        point.chunks->Unclaim(transfer_offset, chunk_length);
+        if (inbuf)
+          delete inbuf;
+        // Recreate connection
+        delete client;
+        client = NULL;
+        MCCConfig cfg;
+        get_environment_credentials(cfg);
+        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
+        continue;
       }
       if (transfer_info.code == 416) { // EOF
-	point.buffer->is_read(transfer_handle, 0, 0);
-	point.chunks->Unclaim(transfer_offset, chunk_length);
-	if (inbuf)
-	  delete inbuf;
-	// TODO: report file size to chunk control
-	break;
+        point.buffer->is_read(transfer_handle, 0, 0);
+        point.chunks->Unclaim(transfer_offset, chunk_length);
+        if (inbuf)
+          delete inbuf;
+        // TODO: report file size to chunk control
+        break;
       }
       if ((transfer_info.code != 200) &&
-	  (transfer_info.code != 206)) { // HTTP error - retry?
-	point.buffer->is_read(transfer_handle, 0, 0);
-	point.chunks->Unclaim(transfer_offset, chunk_length);
-	if (inbuf)
-	  delete inbuf;
-	if ((transfer_info.code == 500) ||
-	    (transfer_info.code == 503) ||
-	    (transfer_info.code == 504))
-	  continue;
-	transfer_failure = true;
-	break;
+          (transfer_info.code != 206)) { // HTTP error - retry?
+        point.buffer->is_read(transfer_handle, 0, 0);
+        point.chunks->Unclaim(transfer_offset, chunk_length);
+        if (inbuf)
+          delete inbuf;
+        if ((transfer_info.code == 500) ||
+            (transfer_info.code == 503) ||
+            (transfer_info.code == 504))
+          continue;
+        transfer_failure = true;
+        break;
       }
       bool whole = (inbuf && 
                        ( (transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0) ) || 
@@ -640,44 +640,46 @@ namespace Arc {
       point.chunks->Unclaim(transfer_offset, chunk_length);
       uint64_t transfer_pos = 0;
       for (unsigned int n = 0;; ++n) {
-	if (!inbuf)
-	  break;
-	char *buf = inbuf->Buffer(n);
-	if (!buf)
-	  break;
-	uint64_t pos = inbuf->BufferPos(n);
-	unsigned int length = inbuf->BufferSize(n);
+        if (!inbuf)
+          break;
+        char *buf = inbuf->Buffer(n);
+        if (!buf)
+          break;
+        uint64_t pos = inbuf->BufferPos(n);
+        unsigned int length = inbuf->BufferSize(n);
         transfer_pos = inbuf->BufferPos(n) + inbuf->BufferSize(n);
-	// In general case returned chunk may be of different size than requested
-	for (; length;) {
-	  if (transfer_handle == -1) {
-	    // Get transfer buffer if needed
-	    transfer_size = 0;
-	    if (!point.buffer->for_read(transfer_handle, transfer_size, true))
-	      // No transfer buffer - must be failure or close initiated externally
-	      break;
-	  }
-	  unsigned int l = length;
-	  if (l > transfer_size)
-	    l = transfer_size;
-	  char *buf_ = (*point.buffer)[transfer_handle];
-	  memcpy(buf_, buf, l);
-	  point.buffer->is_read(transfer_handle, l, pos);
-	  point.chunks->Claim(pos, l);
-	  length -= l;
-	  pos += l;
-	  buf += l;
-	  transfer_handle = -1;
-	}
+        // In general case returned chunk may be of different size than requested
+        for (; length;) {
+          if (transfer_handle == -1) {
+            // Get transfer buffer if needed
+            transfer_size = 0;
+            if (!point.buffer->for_read(transfer_handle, transfer_size, true))
+              // No transfer buffer - must be failure or close initiated externally
+              break;
+          }
+          unsigned int l = length;
+          if (l > transfer_size)
+            l = transfer_size;
+          char *buf_ = (*point.buffer)[transfer_handle];
+          memcpy(buf_, buf, l);
+          point.buffer->is_read(transfer_handle, l, pos);
+          point.chunks->Claim(pos, l);
+          length -= l;
+          pos += l;
+          buf += l;
+          transfer_handle = -1;
+        }
       }
+      if(transfer_handle != -1) 
+        point.buffer->is_read(transfer_handle, 0, 0);
       if (inbuf)
-	delete inbuf;
+        delete inbuf;
       //  If server returned chunk which is not overlaping requested one - seems
       // like server has nothing to say any more.
       if(transfer_pos <= transfer_offset) whole = true;
       point.transfer_lock.unlock();
       if (whole)
-	break;
+        break;
     }
     point.transfer_lock.lock();
     ++(point.transfers_finished);
@@ -706,45 +708,45 @@ namespace Arc {
       unsigned long long int transfer_offset = 0;
       // get first buffer
       if (!point.buffer->for_write(transfer_handle, transfer_size, transfer_offset, true))
-	// No transfer buffer - must be failure or close initiated externally
-	break;
+        // No transfer buffer - must be failure or close initiated externally
+        break;
       //uint64_t transfer_offset = 0;
       //uint64_t transfer_end = transfer_offset+transfer_size;
       // Write chunk
       HTTPClientInfo transfer_info;
       PayloadMemConst request((*point.buffer)[transfer_handle], transfer_offset, transfer_size,
-			      point.CheckSize() ? point.GetSize() : 0);
+                              point.CheckSize() ? point.GetSize() : 0);
       PayloadRawInterface *response;
       std::string path = point.CurrentLocation().Path();
       path = "/" + path;
       MCC_Status r = client->process("PUT", path, &request, &transfer_info, &response);
       if (response)
-	delete response;
+        delete response;
       if (!r) {
-	// Failed to transfer chunk - retry.
-	// TODO: implement internal retry count?
-	// TODO: mark failure?
-	// TODO: report failure.
-	// Return buffer
-	point.buffer->is_notwritten(transfer_handle);
-	// Recreate connection
-	delete client;
-	client = NULL;
-	MCCConfig cfg;
-	get_environment_credentials(cfg);
-	client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
-	continue;
+        // Failed to transfer chunk - retry.
+        // TODO: implement internal retry count?
+        // TODO: mark failure?
+        // TODO: report failure.
+        // Return buffer
+        point.buffer->is_notwritten(transfer_handle);
+        // Recreate connection
+        delete client;
+        client = NULL;
+        MCCConfig cfg;
+        get_environment_credentials(cfg);
+        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
+        continue;
       }
       if( (transfer_info.code != 201) &&
           (transfer_info.code != 200) &&
           (transfer_info.code != 204) ) { // HTTP error - retry?
-	point.buffer->is_notwritten(transfer_handle);
-	if ((transfer_info.code == 500) ||
-	    (transfer_info.code == 503) ||
-	    (transfer_info.code == 504))
-	  continue;
-	transfer_failure = true;
-	break;
+        point.buffer->is_notwritten(transfer_handle);
+        if ((transfer_info.code == 500) ||
+            (transfer_info.code == 503) ||
+            (transfer_info.code == 504))
+          continue;
+        transfer_failure = true;
+        break;
       }
       point.buffer->is_written(transfer_handle);
     }
