@@ -63,7 +63,7 @@
             <StoreCfg>
                 <DataDir>/var/spool/arc/shepherd_data</DataDir>
             </StoreCfg>
-            <BackendClass>storage.shepherd.httpdbackend.HTTPDBackend</BackendClass>
+            <BackendClass>storage.shepherd.hardlinkingbackend.HTTPDBackend</BackendClass>
             <BackendCfg>
                 <DataDir>/var/spool/arc/shepherd_store</DataDir>
                 <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
