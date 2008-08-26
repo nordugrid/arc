@@ -54,6 +54,15 @@ int passphrase_callback(char* buf, int size, int rwflag, void *) {
   return len;
 }
 
+class ThreadInitializer {
+public:
+  ThreadInitializer(void) {
+    Glib::init();
+    if(!Glib::thread_supported()) Glib::thread_init();
+  };
+};
+static ThreadInitializer thread_initializer;
+
 static Glib::Mutex init_lock_;
 static bool has_init = false;
 
