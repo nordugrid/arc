@@ -175,6 +175,8 @@ sub process_info() {
         if ($etime =~ /^(?:(?:(\d+)-)?(\d+):)?(\d+):(\d\d(?:\.\d+)?)$/) {
             my ($days,$hours,$minutes,$seconds) = (($1||0), ($2||0), $3, $4);
             $etime = $seconds + 60*($minutes + 60*($hours + 24*$days));
+        } elsif ($etime eq '-') {
+            $etime = 0; # a zombie ?
         } else {
             $log->warning("Invalid etime: $etime");
             $etime = 0;
