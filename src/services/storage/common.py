@@ -622,10 +622,23 @@ class PickleStore:
         _filename(ID)
 
         'ID' is the ID of the given object.
-        The filename will be the datadir and the base64 encoded form of the ID.
+        The filename will be 
+        datadir/<two first letters of base64 encoded form of the ID>/<base64 encoded form of the ID>.
         """
         name = base64.b64encode(ID)
         return os.path.join(self.datadir, name[:2], name)
+
+    def _tmpfilename(self, ID):
+        """ Creates a tmpfilename from an ID.
+
+        _tmpfilename(ID)
+
+        'ID' is the ID of the given object.
+        The filename will be datadir/<base64 encoded form of the ID>.
+        The corresponding file to _tmpfilename should always be moved to _filename(ID)
+        """
+        name = base64.b64encode(ID)
+        return os.path.join(self.datadir, name)
 
     def _list(self):
         """ List all the existing files.
@@ -637,7 +650,8 @@ class PickleStore:
         names = []
         # list the contects of each subdirectory withtin the data directory
         for subdir in os.listdir(self.datadir):
-            names.extend(os.listdir(os.path.join(self.datadir, subdir)))
+            if os.path.isdir(subdir):
+                names.extend(os.listdir(os.path.join(self.datadir, subdir)))
         return names
 
     def list(self):
@@ -678,6 +692,7 @@ class PickleStore:
         except:
             # print whatever exception happened
             self.log()
+            self.log('ERROR', "filename:", self._filename(ID))
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -713,6 +728,7 @@ class PickleStore:
         try:
             # generates a filename from the ID
             fn = self._filename(ID)
+            tmp_fn = self._tmpfilename(ID)
             # if 'object' is empty, remove the file
             if not object:
                 try:
@@ -720,14 +736,14 @@ class PickleStore:
                 except:
                     pass
             else:
-                # try to open the file
+                # serialize the given list into tmp_fn
+                pickle.dump(object, file(tmp_fn,'w'))
+                # try to rename the file
                 try:
-                    f = file(fn,'w')
+                    os.rename(tmp_fn,fn)
                 except:
-                    # try to create parent dir first, then open the file
+                    # try to create parent dir first, then rename the file
                     os.mkdir(os.path.dirname(fn))
-                    f = file(fn,'w')
-                # serialize the given list into it
-                pickle.dump(object, file(self._filename(ID),'w'))
+                    os.rename(tmp_fn,fn)
         except:
             self.log()
