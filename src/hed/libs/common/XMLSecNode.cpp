@@ -135,6 +135,81 @@ bool XMLSecNode::EncryptNode(std::string& cert_file, SymEncryptionType encrpt_ty
 }
 
 bool XMLSecNode::DecryptNode(std::string& privkey_file) {
+  Arc::NS ns;
+  ns["xenc"] = XENC_NAMESPACE;
+  ns["ds"] = DSIG_NAMESPACE;
+  XMLNode encrypted_data(ns,"xenc:EncryptedData");
+  encrypted_data.NewAttribute("Id") = (std::string)(body["xenc:EncryptedData"].Attribute("Id"));
+  encrypted_data.NewAttribute("Type") = (std::string)(body["xenc:EncryptedData"].Attribute("Type"));
+  XMLNode enc_method1 = get_node(encrypted_data, "xenc:EncryptionMethod");
+  enc_method1.NewAttribute("Algorithm") = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc";
+  XMLNode keyinfo1 = get_node(encrypted_data, "ds:KeyInfo");
+  XMLNode enc_key = get_node(keyinfo1, "xenc:EncryptedKey");
+  XMLNode enc_method2 = get_node(enc_key, "xenc:EncryptionMethod");
+  enc_method2.NewAttribute("Algorithm") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:EncryptionMethod"].Attribute("Algorithm"));
+  XMLNode keyinfo2 = get_node(enc_key, "ds:KeyInfo");
+  XMLNode key_cipherdata = get_node(enc_key, "xenc:CipherData");
+  XMLNode key_ciphervalue = get_node(key_cipherdata, "xenc:CipherValue") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:CipherData"]["xenc:CipherValue"]);
+
+  XMLNode cipherdata = get_node(encrypted_data, "xenc:CipherData");
+  XMLNode ciphervalue = get_node(cipherdata, "xenc:CipherValue");
+  ciphervalue = (std::string)(body["xenc:EncryptedData"]["xenc:CipherData"]["xenc:CipherValue"]);
+
+    std::string str;
+    encrypted_data.GetXML(str);
+    std::cout<<"Before Decryption++++: "<<str<<std::endl;
+
+  xmlNodePtr todecrypt_nd = ((X509Token*)(&encrypted_data))->node_;
+
+
+  //Create encryption context
+  xmlSecKeysMngr* keys_mngr = NULL;
+  //TODO: which key file will be used should be got according to the issuer name and
+  //serial number information in incoming soap head
+  std::string issuer_name = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509IssuerName"]);
+  std::string serial_number = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509SerialNumber"]);
+
+  keys_mngr = load_key_from_keyfile(&keys_mngr, "key.pem");
+
+  xmlSecEncCtxPtr encCtx = NULL;
+  encCtx = xmlSecEncCtxCreate(keys_mngr);
+  if(encCtx == NULL) {
+    std::cerr<<"Failed to create encryption context"<<std::endl;
+      return;
+    }
+
+    // Decrypt the soap body
+    xmlSecBufferPtr decrypted_buf;
+    decrypted_buf = xmlSecEncCtxDecryptToBuffer(encCtx, todecrypt_nd);
+    if(decrypted_buf == NULL) {
+      std::cerr<<"Decryption failed"<<std::endl;
+      if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+    }
+    else { std::cout<<"Decryption succeed"<<std::endl; }
+
+    //encrypted_data.GetXML(str);
+    //std::cout<<"After Decryption: "<<str<<std::endl;
+
+    std::cout<<"Decrypted data: "<<decrypted_buf->data<<std::endl;
+
+    //Insert the decrypted data into soap body
+    std::string decrypted_str((const char*)decrypted_buf->data);
+    XMLNode decrypted_data = XMLNode(decrypted_str);
+    body.Replace(decrypted_data);
+
+
+
+    //Destroy the wsse:Security in header
+    header["wsse:Security"].Destroy();
+
+    //Ajust namespaces, delete mutiple definition
+    ns = envelope.Namespaces();
+    envelope.Namespaces(ns);
+
+    //if(decrypted_buf != NULL)xmlSecBufferDestroy(decrypted_buf);
+    if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+    if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
+
 
 }
 

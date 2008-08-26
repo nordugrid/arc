@@ -1,6 +1,14 @@
 DIST_SUBDIRS = counter test
 SUBDIRS = counter $(TEST_DIR)
 
+if XMLSEC_ENABLED
+XMLSEC_UTILS_HEADER = Xmlsec_Utils.h
+XMLSEC_UTILS_CPP = Xmlsec_Utils.cpp
+else
+XMLSEC_UTILS_HEADER
+XMLSEC_UTILS_CPP
+endif
+
 if MYSQL_LIBRARY_ENABLED
 MYSQL_WRAPPER_HEADER = MysqlWrapper.h
 MYSQL_WRAPPER_CPP = MysqlWrapper.cpp   
@@ -11,7 +19,7 @@ endif
 
 lib_LTLIBRARIES = libarccommon.la
 libarccommon_ladir       = $(pkgincludedir)
-libarccommon_la_HEADERS  = Logger.h ArcConfig.h ArcLocation.h XMLNode.h Thread.h Base64.h DateTime.h URL.h StringConv.h ArcRegex.h GUID.h Run.h User.h IString.h win32.h ByteArray.h OptionParser.h FileLock.h Utils.h DBInterface.h $(MYSQL_WRAPPER_HEADER)
+libarccommon_la_HEADERS  = Logger.h ArcConfig.h ArcLocation.h XMLNode.h Thread.h Base64.h DateTime.h URL.h StringConv.h ArcRegex.h GUID.h Run.h User.h IString.h win32.h ByteArray.h OptionParser.h FileLock.h Utils.h DBInterface.h $(MYSQL_WRAPPER_HEADER) $(XMLSEC_UTILS_HEADER)
 
 if WIN32
 PLATFORM_SPECIFIC=Run_win32.cpp win32.cpp
@@ -19,9 +27,9 @@ else
 PLATFORM_SPECIFIC=Run_unix.cpp
 endif
 
-libarccommon_la_SOURCES  = Logger.cpp ArcConfig.cpp ArcLocation.cpp XMLNode.cpp Thread.cpp Base64.cpp DateTime.cpp URL.cpp StringConv.cpp ArcRegex.cpp GUID.cpp User.cpp IString.cpp DBranch.cpp DBranch.h ByteArray.cpp OptionParser.cpp FileLock.cpp Utils.cpp $(PLATFORM_SPECIFIC) $(MYSQL_WRAPPER_CPP)
-libarccommon_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
-libarccommon_la_LIBADD   = counter/libcounter.la $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) $(MYSQL_LIBS)
+libarccommon_la_SOURCES  = Logger.cpp ArcConfig.cpp ArcLocation.cpp XMLNode.cpp Thread.cpp Base64.cpp DateTime.cpp URL.cpp StringConv.cpp ArcRegex.cpp GUID.cpp User.cpp IString.cpp DBranch.cpp DBranch.h ByteArray.cpp OptionParser.cpp FileLock.cpp Utils.cpp $(PLATFORM_SPECIFIC) $(MYSQL_WRAPPER_CPP) $(XMLSEC_UTILS_CPP)
+libarccommon_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(MYSQL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
+libarccommon_la_LIBADD   = counter/libcounter.la $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) $(MYSQL_LIBS) $(XMLSEC_LIBS)
 
 if MYSQL_LIBRARY_ENABLED
 noinst_PROGRAMS = testxpath test_run test_regex test_db
