@@ -87,9 +87,19 @@ sub _collect($$) {
 
     my %gridrunning;
     my %gridqueued;
-    for my $job (values %{$gmjobs_info}) {
+    for my $jobid (keys %{$gmjobs_info}) {
+        my $job = $gmjobs_info->{$jobid};
         my $qname = $job->{queue};
-        $log->error("queue not defined") and next unless $qname;
+        unless ($qname) {
+            my $msg = "Queue not defined for job $jobid";
+            if ($config->{defaultqueue}) {
+                $log->warning($msg.". Assuming default: ".$config->{defaultqueue});
+                $job->{queue} = $config->{defaultqueue};
+            } else {
+                $log->error($msg.". No default queue defined");
+                die;
+            }
+        }
         if ($job->{status} eq 'INLRMS') {
             my $lrmsid = $job->{localid};
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
@@ -333,8 +343,8 @@ sub _collect($$) {
             $j->{'nuj0:gmlog'}  = [ $gmjob->{gmlog} ]  if $gmjob->{gmlog};
             $j->{'nuj0:runtimeenvironment'} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
             $j->{'nuj0:submissionui'} = [ $gmjob->{clientname} ];
-            $j->{'nuj0:clientsoftware'} = [ $gmjob->{clientsoftware} ];
-            $j->{'nuj0:proxyexpirationtime'} = [ $gmjob->{delegexpiretime} ];
+            $j->{'nuj0:clientsoftware'} = [ $gmjob->{clientsoftware} ] if $gmjob->{clientsoftware};
+            $j->{'nuj0:proxyexpirationtime'} = [ $gmjob->{delegexpiretime} ] if $gmjob->{delegexpiretime};
             $j->{'nuj0:rerunable'} = [ $gmjob->{failedstate} ? $gmjob->{failedstate} : 'none' ]
                 if $gmjob->{"status"} eq "FAILED";
             $j->{'nuj0:comment'} = [ $gmjob->{comment} ] if $gmjob->{comment};

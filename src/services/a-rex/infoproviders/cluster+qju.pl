@@ -103,7 +103,7 @@ sub main {
     }
     
     # throw away default queue string following lrms
-    ($config{lrms}) = split " ", $config{lrms};
+    ($config{lrms}, $config{defaultqueue}) = split " ", $config{lrms};
 
     ##################################################
     # Collect information & print XML
