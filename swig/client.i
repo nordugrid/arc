@@ -9,7 +9,16 @@ namespace Arc {
 }
 
 %typemap(argout) PayloadSOAP ** response {
-    $result = SWIG_NewPointerObj(*$1, SWIGTYPE_p_Arc__PayloadSOAP, SWIG_POINTER_OWN | 0 );
+    PyObject *o, *tuple;
+    o = SWIG_NewPointerObj(*$1, SWIGTYPE_p_Arc__PayloadSOAP, SWIG_POINTER_OWN | 0 );
+    if ((!$result) || ($result == Py_None)) {
+        $result = o;
+    } else {
+        tuple = PyTuple_New(2);
+        PyTuple_SetItem(tuple,0,o);
+        PyTuple_SetItem(tuple,1,$result);
+        $result = tuple;
+    }
 }
 
 }
