@@ -33,7 +33,7 @@
 #include <openssl/ebcdic.h>
 #endif 
 
-#include "Xmlsec_Utils.h"
+#include "XmlSecUtils.h"
 
 namespace Arc {
 

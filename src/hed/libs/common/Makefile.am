@@ -2,8 +2,8 @@ DIST_SUBDIRS = counter test
 SUBDIRS = counter $(TEST_DIR)
 
 if XMLSEC_ENABLED
-XMLSEC_UTILS_HEADER = Xmlsec_Utils.h
-XMLSEC_UTILS_CPP = Xmlsec_Utils.cpp
+XMLSEC_UTILS_HEADER = XmlSecUtils.h
+XMLSEC_UTILS_CPP = XmlSecUtils.cpp
 else
 XMLSEC_UTILS_HEADER =
 XMLSEC_UTILS_CPP =
