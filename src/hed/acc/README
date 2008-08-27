@@ -1,1 +1,20 @@
-acc = ARC Client Component
+Folder for ARC Client Components (ACC)
+
+ACCs are the plugins used by the client to interface to different 
+grid flavours. One folder exists for each supported grid flavour 
+and each grid flavour should implement specialized classes of the 
+following base classes (located in src/hed/libs/client)
+
+o TargetRetriever
+o JobController
+o Submitter
+
+The plugins are loaded by appropriate "umbrella" classes such 
+as the JobSupervisor and TargetGenerator which resolves issues
+about which plugins (i.e flavour) to load depending on the 
+command in question
+
+See also:
+
+src/clients/arclib (command line interface)
+src/doc/client (client documentation)
