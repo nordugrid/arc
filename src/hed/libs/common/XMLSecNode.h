@@ -15,8 +15,8 @@ class XMLSecNode: public XMLNode {
       RSA_SHA1,
       DSA_SHA1
     } SignatureMethod;
-    typedef_enum {
-      3DES,
+    typedef enum {
+      TRIPLEDES,
       AES_128,
       AES_256,
       DEFAULT

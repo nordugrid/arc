@@ -22,11 +22,19 @@
 #include <openssl/ebcdic.h>
 #endif 
 
+#include "XmlSecUtils.h"
 #include "XMLSecNode.h"
 
 namespace Arc {
 
-XMLSecNode::XMLSecNode(XMLNode node):XMLNode(node) {
+#define SAML_NAMESPACE "urn:oasis:names:tc:SAML:1.0:assertion"
+#define SAML2_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
+#define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
+
+#define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
+#define DSIG_NAMESPACE   "http://www.w3.org/2000/09/xmldsig#"
+
+XMLSecNode::XMLSecNode(XMLNode& node):XMLNode(node) {
   if(!node_) return;
   if(node_->type != XML_ELEMENT_NODE) { node_=NULL; return; };
 }
@@ -50,7 +58,7 @@ void XMLSecNode::AddSignatureTemplate(std::string& id_name, SignatureMethod sign
   xmlDocPtr docPtr = nd->doc;
   xmlChar* id = NULL;
   id =  xmlGetProp(nd, (xmlChar *)(id_name.c_str()));
-  if(!id) { std::cerr<<"There is not <<id_name<<" attribute in xml node"<<std::endl; return; }
+  if(!id) { std::cerr<<"There is not "<<id_name<<" attribute in xml node"<<std::endl; return; }
 
   std::string uri; uri.append("#"); uri.append((char*)id);
 
@@ -131,86 +139,167 @@ bool XMLSecNode::VerifyNode(std::string& id_name, std::string& ca_file, std::str
 }
 
 bool XMLSecNode::EncryptNode(std::string& cert_file, SymEncryptionType encrpt_type) {
+  xmlNodePtr data_nd = this->node_;
+  xmlDocPtr doc_nd = data_nd->doc;
 
-}
+  xmlNodePtr encDataNode = NULL;
+  xmlNodePtr keyInfoNode = NULL;
+  xmlNodePtr encKeyNode = NULL;
+  xmlNodePtr keyInfoNode2 = NULL;
+  xmlSecEncCtxPtr encCtx = NULL;
 
-bool XMLSecNode::DecryptNode(std::string& privkey_file) {
-  Arc::NS ns;
-  ns["xenc"] = XENC_NAMESPACE;
-  ns["ds"] = DSIG_NAMESPACE;
-  XMLNode encrypted_data(ns,"xenc:EncryptedData");
-  encrypted_data.NewAttribute("Id") = (std::string)(body["xenc:EncryptedData"].Attribute("Id"));
-  encrypted_data.NewAttribute("Type") = (std::string)(body["xenc:EncryptedData"].Attribute("Type"));
-  XMLNode enc_method1 = get_node(encrypted_data, "xenc:EncryptionMethod");
-  enc_method1.NewAttribute("Algorithm") = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc";
-  XMLNode keyinfo1 = get_node(encrypted_data, "ds:KeyInfo");
-  XMLNode enc_key = get_node(keyinfo1, "xenc:EncryptedKey");
-  XMLNode enc_method2 = get_node(enc_key, "xenc:EncryptionMethod");
-  enc_method2.NewAttribute("Algorithm") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:EncryptionMethod"].Attribute("Algorithm"));
-  XMLNode keyinfo2 = get_node(enc_key, "ds:KeyInfo");
-  XMLNode key_cipherdata = get_node(enc_key, "xenc:CipherData");
-  XMLNode key_ciphervalue = get_node(key_cipherdata, "xenc:CipherValue") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:CipherData"]["xenc:CipherValue"]);
+  xmlSecTransformId encryption_sym_key_type;
+  switch (encrpt_type) {
+    case AES_256:
+      encryption_sym_key_type = xmlSecTransformAes256CbcId;
+      break;
+    case TRIPLEDES:
+      encryption_sym_key_type = xmlSecTransformDes3CbcId;
+      break;
+    case AES_128:
+    default:
+      encryption_sym_key_type = xmlSecTransformAes128CbcId;
+      break;
+  }
+  //Create encryption template for a specific symetric key type
+  encDataNode = xmlSecTmplEncDataCreate(doc_nd , encryption_sym_key_type,
+                      NULL, xmlSecTypeEncElement, NULL, NULL);
+  if(encDataNode == NULL) { std::cerr<<"Failed to create encryption template"<<std::endl; return false; }
 
-  XMLNode cipherdata = get_node(encrypted_data, "xenc:CipherData");
-  XMLNode ciphervalue = get_node(cipherdata, "xenc:CipherValue");
-  ciphervalue = (std::string)(body["xenc:EncryptedData"]["xenc:CipherData"]["xenc:CipherValue"]);
+  // Put encrypted data in the <enc:CipherValue/> node
+  if(xmlSecTmplEncDataEnsureCipherValue(encDataNode) == NULL){
+    std::cerr<<"Failed to add CipherValue node"<<std::endl;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+  }
+  // Add <dsig:KeyInfo/>
+  keyInfoNode = xmlSecTmplEncDataEnsureKeyInfo(encDataNode, NULL);
+  if(keyInfoNode == NULL) {
+    std::cerr<<"Failed to add key info"<<std::endl;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+  }
 
-    std::string str;
-    encrypted_data.GetXML(str);
-    std::cout<<"Before Decryption++++: "<<str<<std::endl;
+  // Add <enc:EncryptedKey/> to store the encrypted session key
+  encKeyNode = xmlSecTmplKeyInfoAddEncryptedKey(keyInfoNode, xmlSecTransformRsaPkcs1Id, NULL, NULL, NULL);
+  if(encKeyNode == NULL) {
+    std::cerr<<"Failed to add key info"<<std::endl;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+  }
 
-  xmlNodePtr todecrypt_nd = ((X509Token*)(&encrypted_data))->node_;
+  // Put encrypted key in the <enc:CipherValue/> node
+  if(xmlSecTmplEncDataEnsureCipherValue(encKeyNode) == NULL) {
+    std::cerr<<"Error: failed to add CipherValue node"<<std::endl;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+  }
 
+  // Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/>
+  keyInfoNode2 = xmlSecTmplEncDataEnsureKeyInfo(encKeyNode, NULL);
+  if(keyInfoNode2 == NULL){
+    std::cerr<<"Failed to add key info"<<std::endl;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+  }
 
   //Create encryption context
   xmlSecKeysMngr* keys_mngr = NULL;
-  //TODO: which key file will be used should be got according to the issuer name and
-  //serial number information in incoming soap head
-  std::string issuer_name = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509IssuerName"]);
-  std::string serial_number = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509SerialNumber"]);
-
-  keys_mngr = load_key_from_keyfile(&keys_mngr, "key.pem");
-
-  xmlSecEncCtxPtr encCtx = NULL;
+  keys_mngr = load_key_from_certfile(&keys_mngr, cert_file.c_str());
   encCtx = xmlSecEncCtxCreate(keys_mngr);
   if(encCtx == NULL) {
     std::cerr<<"Failed to create encryption context"<<std::endl;
-      return;
-    }
-
-    // Decrypt the soap body
-    xmlSecBufferPtr decrypted_buf;
-    decrypted_buf = xmlSecEncCtxDecryptToBuffer(encCtx, todecrypt_nd);
-    if(decrypted_buf == NULL) {
-      std::cerr<<"Decryption failed"<<std::endl;
-      if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
-    }
-    else { std::cout<<"Decryption succeed"<<std::endl; }
-
-    //encrypted_data.GetXML(str);
-    //std::cout<<"After Decryption: "<<str<<std::endl;
-
-    std::cout<<"Decrypted data: "<<decrypted_buf->data<<std::endl;
-
-    //Insert the decrypted data into soap body
-    std::string decrypted_str((const char*)decrypted_buf->data);
-    XMLNode decrypted_data = XMLNode(decrypted_str);
-    body.Replace(decrypted_data);
-
-
-
-    //Destroy the wsse:Security in header
-    header["wsse:Security"].Destroy();
-
-    //Ajust namespaces, delete mutiple definition
-    ns = envelope.Namespaces();
-    envelope.Namespaces(ns);
-
-    //if(decrypted_buf != NULL)xmlSecBufferDestroy(decrypted_buf);
+    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+  }
+  
+  //Generate a symmetric key
+  switch (encrpt_type) {
+    case AES_256:
+       encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataAesId, 256, xmlSecKeyDataTypeSession);
+      break;
+    case TRIPLEDES:
+       encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataDesId, 192, xmlSecKeyDataTypeSession);
+      break;
+    case AES_128:
+    default:
+       encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataAesId, 128, xmlSecKeyDataTypeSession);
+      break;
+  }
+  if(encCtx->encKey == NULL) {
+    std::cerr<<"Failed to generate session des key"<<std::endl;
     if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
-    if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
+  }
+  //Encrypt the node  
+  if(xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, data_nd) < 0) {
+    std::cerr<<"Encryption failed"<<std::endl;
+    if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
+  }
 
+    //The template has been inserted in the doc
+  this->node_ = (data_nd=encDataNode);
+  encDataNode = NULL;
 
+  if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+  if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
+  return true;
+}
+
+bool XMLSecNode::DecryptNode(std::string& privkey_file) {
+  XMLNode encrypted_data = (*this)["xenc:EncryptedData"];
+  XMLNode enc_method1 = encrypted_data["xenc:EncryptionMethod"];
+  std::string algorithm = (std::string)(enc_method1.Attribute("Algorithm"));
+  if(algorithm.empty()) { std::cerr<<"No EncryptionMethod"<<std::endl; return false; }
+  xmlSecKeyDataId key_type;
+  if(algorithm.find("#aes")!=std::string::npos) { key_type = xmlSecKeyDataAesId;}
+  else if(algorithm.find("#des")!=std::string::npos) { key_type = xmlSecKeyDataDesId;}
+  else { std::cerr<<"Unknown EncryptionMethod"<<std::endl; return false; }  
+
+  xmlNodePtr todecrypt_data_nd = ((XMLSecNode*)(&encrypted_data))->node_;
+
+  XMLNode encrypted_key = encrypted_data["KeyInfo"]["EncryptedKey"]; 
+  //Copy the encrypted key, because it will be replaced by decrypted node after
+  //decryption, and then it will affect the decryption if encrypted data
+  xmlNodePtr todecrypt_key_nd = xmlCopyNode(((XMLSecNode*)(&encrypted_key))->node_, 1);
+
+  xmlDocPtr doc_key_nd = NULL;
+  doc_key_nd = xmlNewDoc((xmlChar*)"1.0");
+  xmlDocSetRootElement(doc_key_nd, todecrypt_key_nd);
+
+  xmlSecKeyPtr private_key = get_key_from_keyfile(privkey_file.c_str());
+
+  xmlSecEncCtxPtr encCtx = NULL;
+  xmlSecKeyPtr symmetric_key = NULL;
+  xmlSecBufferPtr key_buffer; 
+  encCtx = xmlSecEncCtxCreate(NULL);
+  if (encCtx == NULL) { std::cerr<<"Failed to create encryption context"<<std::endl; xmlFreeDoc(doc_key_nd); return false; }
+  encCtx->encKey = private_key;
+  encCtx->mode = xmlEncCtxModeEncryptedKey;
+  key_buffer = xmlSecEncCtxDecryptToBuffer(encCtx, todecrypt_key_nd);
+  if (key_buffer == NULL) { 
+    std::cerr<<"Failed to decrypt EncryptedKey"<<std::endl;  
+    xmlSecEncCtxDestroy(encCtx);  xmlFreeDoc(doc_key_nd); return false;
+  }
+  symmetric_key = xmlSecKeyReadBuffer(key_type, key_buffer);
+  if (symmetric_key == NULL) { 
+    std::cerr<<"Failed to decrypt EncryptedKey"<<std::endl; 
+    xmlSecEncCtxDestroy(encCtx);  xmlFreeDoc(doc_key_nd); return false;
+  }
+  xmlSecEncCtxDestroy(encCtx);
+
+  xmlDocPtr doc_data_nd = NULL;
+  doc_data_nd = xmlNewDoc((xmlChar*)"1.0");
+  xmlDocSetRootElement(doc_key_nd, todecrypt_data_nd);
+  encCtx = xmlSecEncCtxCreate(NULL);
+  if (encCtx == NULL) { std::cerr<<"Failed to create encryption context"<<std::endl;  xmlFreeDoc(doc_key_nd); return false; }
+  encCtx->encKey = symmetric_key;
+  encCtx->mode = xmlEncCtxModeEncryptedData;
+  if ((xmlSecEncCtxDecrypt(encCtx, todecrypt_data_nd) < 0) || (encCtx->result == NULL)) {
+    std::cerr<<"Failed to decrypt EncryptedData"<<std::endl;
+    xmlSecEncCtxDestroy(encCtx);  xmlFreeDoc(doc_key_nd); return false;
+  }
+  xmlSecEncCtxDestroy(encCtx);
+  xmlFreeDoc(doc_key_nd);
+	
+  return true;
 }
 
 } // namespace Arc

@@ -151,6 +151,16 @@ std::string get_cert_str(const char* certfile) {
   return ("");
 }
 
+xmlSecKey* get_key_from_keyfile(const char* keyfile) {
+  std::string key_str;
+  std::ifstream is(keyfile);
+  std::getline(is,key_str, char(0));
+
+  xmlSecKeyPtr key = NULL;
+  key = get_key_from_keystr(key_str);
+  return key;
+}
+
 //Get key from a binary key 
 xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) { 
   xmlSecKey *key = NULL;

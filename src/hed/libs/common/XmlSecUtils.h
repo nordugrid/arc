@@ -14,6 +14,7 @@ namespace Arc {
   bool final_xmlsec(void);
   std::string get_cert_str(const char* certfile);
   xmlSecKey* get_key_from_keystr(const std::string& value);
+  xmlSecKey* get_key_from_keyfile(const char* keyfile);
   std::string get_key_from_certfile(const char* certfile);
   xmlSecKey* get_key_from_certstr(const std::string& value);
   xmlSecKeysMngrPtr load_key_from_keyfile(xmlSecKeysMngrPtr* keys_manager, const char* keyfile);
