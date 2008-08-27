@@ -1,0 +1,11 @@
+Arc Client Component (ACC) plugins for supporting ARC classic (ARC0)
+
+Implements the following specialized classes:
+
+o TargetRetrieverARC0
+o JobControllerARC0
+o SubmitterARC0
+
+Additional support classes:
+
+o FTPControl
