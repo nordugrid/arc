@@ -40,10 +40,18 @@ libarccommon_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(MYSQL_CFLAGS) $(
 libarccommon_la_LIBADD   = counter/libcounter.la $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) $(MYSQL_LIBS) $(XMLSEC_LIBS)
 
 if MYSQL_LIBRARY_ENABLED
-noinst_PROGRAMS = testxpath test_run test_regex test_db
+TEST_DB_PROGRAM = test_db
 else
-noinst_PROGRAMS = testxpath test_run test_regex
+TEST_DB_PROGRAM =
 endif
+
+if XMLSEC_ENABLED
+TEST_XMLSECNODE_PROGRAM = test_xmlsecnode
+else
+TEST_XMLSECNODE_PROGRAM =
+endif
+
+noinst_PROGRAMS = testxpath test_run test_regex $(TEST_DB_PROGRAM) $(TEST_XMLSECNODE_PROGRAM)
 
 testxpath_SOURCES=testxpath.cpp
 testxpath_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
@@ -62,7 +70,15 @@ test_regex_LDADD=./libarccommon.la
 
 if MYSQL_LIBRARY_ENABLED
 test_db_SOURCES=test_db.cpp
-test_db_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
-test_db_LDFLAGS=$(LIBXML2_LIBS) $(MYSQL_LIBS) $(EXTRA_LIBS)
+test_db_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
+test_db_LDFLAGS=$(LIBXML2_LIBS) $(EXTRA_LIBS)
 test_db_LDADD=./libarccommon.la
 endif
+
+if XMLSEC_ENABLED
+test_xmlsecnode_SOURCES=test_xmlsecnode.cpp
+test_xmlsecnode_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(XMLSEC_CFLAGS)  -I$(top_srcdir)/include
+test_xmlsecnode_LDFLAGS=$(LIBXML2_LIBS) $(XMLSEC_LIBS) $(EXTRA_LIBS)
+test_xmlsecnode_LDADD=./libarccommon.la
+endif
+
