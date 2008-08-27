@@ -2,6 +2,7 @@
 #include <arc/client/ClientInterface.h>
 %}
 
+#ifdef SWIGPYTHON
 namespace Arc {
 
 /* this typemap tells SWIG that we don't want to use the 'PayloadSOAP ** response' argument from the target language,
@@ -24,5 +25,5 @@ the first member will be the '*response' and the second member is the original r
 }
 
 }
-
+#endif
 %include "../src/hed/libs/client/ClientInterface.h"
