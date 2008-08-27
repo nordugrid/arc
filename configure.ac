@@ -394,8 +394,8 @@ if test "x$enable_mysql" = "xyes"; then
       where to find the MySql C library and headers. e.g. --with-mysql=/usr/local or --with-mysql=/usr])
   )
   AC_SUBST(MYSQL_PREFIX)
-  MYSQL_LIBS="-L${MYSQL_PREFIX}/lib/mysql -lmysqlclient"
-  MYSQL_CFLAGS="-I${MYSQL_PREFIX}/include"
+  MYSQL_LIBS="`mysql_config --libs`"
+  MYSQL_CFLAGS="`mysql_config --cflags`"
   AC_SUBST(MYSQL_LIBS)
   AC_SUBST(MYSQL_CFLAGS)
 fi
