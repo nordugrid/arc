@@ -1,0 +1,12 @@
+Arc Client Component (ACC) plugins for supporting the next generation ARC 
+middleware (ARC1)
+
+Implements the following specialized classes:
+
+o TargetRetrieverARC1
+o JobControllerARC1
+o SubmitterARC1
+
+Additional support classes:
+
+o arex_client
