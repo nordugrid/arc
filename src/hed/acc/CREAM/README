@@ -1,0 +1,13 @@
+Arc Client Component (ACC) plugins for supporting the gLite middleware through 
+the CREAM interface.
+
+Implements the following specialized classes:
+
+o TargetRetrieverCREAM
+o JobControllerCREAM
+o SubmitterCREAM
+
+Additional support classes:
+
+o CREAMClient
+o OpenSSLFunctions
