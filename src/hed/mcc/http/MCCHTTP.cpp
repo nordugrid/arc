@@ -300,19 +300,6 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   };
   nextpayload.Attribute("User-Agent","ARC");
   nextpayload.Body(*inpayload,false);
-/*
-  // Bad solution - copying buffers between payloads
-  int l = 0;
-  for(int n = 0;;++n) {
-    char* buf = inpayload->Buffer(n);
-    if(!buf) break;
-    int bufsize = inpayload->BufferSize(n);
-    if(bufsize <= 0) continue;
-    nextpayload.Insert(buf,l,bufsize);
-    l+=bufsize;
-  };
-  nextpayload.Truncate(inpayload->Size());
-*/
   nextpayload.Flush();
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;
