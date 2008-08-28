@@ -29,13 +29,16 @@ namespace Arc {
     //Need to fix below sorting on clusterselect and clusterreject
 
     //First, if jobids are specified, only load JobControllers needed by those jobs
-    if(!jobs.empty()){
-      logger.msg(DEBUG, "Identifying needed JobControllers according to specified job ids");
-      std::list<std::string>::const_iterator it;
-      
-      for(it = jobs.begin(); it != jobs.end(); it++){
-	Arc::XMLNode ThisXMLJob = (*(JobIdStorage.XPathLookup("//Job[id='"+ *it+"']", Arc::NS())).begin());
-	if(ThisXMLJob){
+    if (!jobs.empty()) {
+      logger.msg(DEBUG, "Identifying needed JobControllers according to "
+		 "specified job ids");
+
+      for (std::list<std::string>::const_iterator it = jobs.begin();
+	   it != jobs.end(); it++) {
+	std::list<Arc::XMLNode> XMLJobs =
+	  JobIdStorage.XPathLookup("//Job[id='"+ *it+"']", Arc::NS());
+	if(!XMLJobs.empty()) {
+	  Arc::XMLNode &ThisXMLJob = *XMLJobs.begin();
 	  if (std::find(NeededControllers.begin(), NeededControllers.end(),
 			(std::string) ThisXMLJob["flavour"]) == NeededControllers.end()){
 	    std::string flavour = (std::string) ThisXMLJob["flavour"];
@@ -43,7 +46,7 @@ namespace Arc {
 	    NeededControllers.push_back(flavour);
 	  }  
 	} else{
-	  std::cout<<Arc::IString(" Job Id = %s not found", (*it))<<std::endl;
+	  std::cout<<Arc::IString("Job Id = %s not found", (*it))<<std::endl;
 	}
       }
     } else{ //load controllers for all grid flavours present in joblist
