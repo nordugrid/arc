@@ -1,5 +1,3 @@
-noinst_PROGRAMS = submittest
-
 lib_LTLIBRARIES = libarcclient.la
 
 libarcclient_ladir = $(pkgincludedir)/client
@@ -20,9 +18,3 @@ libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
-
-submittest_SOURCES  = submittest.cpp
-submittest_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
-	-I$(top_srcdir)/include
-submittest_LDADD    = libarcclient.la \
-	../common/libarccommon.la ../loader/libarcloader.la
