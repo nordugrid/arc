@@ -25,8 +25,8 @@ class PayloadTCPSocket: public PayloadStream {
     PayloadStream(s),acquired_(false),logger(logger) { };
   /** Copy constructor - inherits socket of copied object.
     Socket is NOT closed in destructor. */
-  PayloadTCPSocket(PayloadTCPSocket& s,Logger& logger):
-    PayloadStream(s),acquired_(false),logger(logger) { };
+  PayloadTCPSocket(PayloadTCPSocket& s):
+    PayloadStream(s),acquired_(false),logger(s.logger) { };
   /** Copy constructor - inherits handle of copied object.
     Handle is NOT closed in destructor. */
   PayloadTCPSocket(PayloadStream& s,Logger& logger):

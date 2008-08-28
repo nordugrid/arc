@@ -129,9 +129,7 @@ bool PayloadTCPSocket::Put(const char* buf,int size) {
     if(!(fd.revents & POLLOUT)) return false;
 #endif
     l=::send(handle_, buf, size, 0);
-    if(l == -1) {
-	    return false;
-    }
+    if(l == -1) return false;
     buf+=l; size-=l;
 #ifdef WIN32
     int to = timeout_-(unsigned int)(time(NULL)-start);

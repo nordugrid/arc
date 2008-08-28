@@ -428,6 +428,8 @@ void MCC_TCP_Service::executer(void* arg) {
 }
 
 MCC_Status MCC_TCP_Service::process(Message&,Message&) {
+  // Service is not really processing messages because there 
+  // are no lower lelel MCCs in chain.
   return MCC_Status();
 }
 
