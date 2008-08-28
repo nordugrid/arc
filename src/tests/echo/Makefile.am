@@ -6,7 +6,7 @@ doc_DATA = echo.xml echo.wsdl
 
 libecho_la_SOURCES  = echo.cpp echo.h
 libecho_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libecho_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(LIBXML2_LIBS)
+libecho_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(LIBXML2_LIBS)
 libecho_la_LDFLAGS  = -no-undefined -avoid-version -module
 
 test_SOURCES =  test.cpp

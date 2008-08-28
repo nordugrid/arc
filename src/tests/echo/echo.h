@@ -5,6 +5,7 @@
 #include <arc/message/Service.h>
 #include <arc/Logger.h>
 #include <arc/security/PDP.h>
+#include <arc/infosys/InformationInterface.h>
 
 namespace Echo {
 
@@ -32,6 +33,7 @@ class Service_Echo: public Arc::Service
         Arc::NS ns_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
         Arc::Logger logger;
+        Arc::InformationContainer infodoc;
     public:
         /** Constructor accepts configuration describing content of prefix and suffix */
         Service_Echo(Arc::Config *cfg);

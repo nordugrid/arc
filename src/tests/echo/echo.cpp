@@ -20,10 +20,7 @@ service_descriptors ARC_SERVICE_LOADER = {
     { NULL, 0, NULL }
 };
 
-using namespace Echo;
-
-//Arc::Logger Service_Echo::logger(Service::logger, "Echo");
-//Arc::Logger Service_Echo::logger(Arc::Logger::getRootLogger(), "Echo");
+namespace Echo {
 
 Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "Echo") {
   ns_["echo"]="urn:echo";
@@ -46,6 +43,12 @@ Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::ro
     }
   }
 #endif
+
+  // Assigning service description - Glue2 document should go here.
+  infodoc.Assign(Arc::XMLNode(
+    "<?xml version=\"1.0\"?>"
+    "<Domains><AdminDomain><Services><Service>ECHO</Service></Services></AdminDomain></Domains>"
+  ),true);
 }
 
 Service_Echo::~Service_Echo(void) {
@@ -85,16 +88,33 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
       inpayload->GetDoc(str, true);
       logger.msg(Arc::DEBUG, "process: request=%s",str);
   }; 
+
+  Arc::PayloadSOAP* outpayload = NULL;
+
   // Analyzing request 
-  Arc::XMLNode echo_op = (*inpayload)["echo"];
-  if(!echo_op) {
-    logger.msg(Arc::ERROR, "Request is not supported - %s", echo_op.Name());
-    return make_fault(outmsg);
+
+  // Checking if it's info request
+  if(MatchXMLNamespace(inpayload->Child(0),"http://docs.oasis-open.org/wsrf/rp-2")) {
+    Arc::SOAPEnvelope* outxml = infodoc.Process(*inpayload);
+    if(!outxml) {
+      logger.msg(Arc::ERROR, "WSRF request failed");
+      return make_fault(outmsg);
+    };
+    outpayload = new Arc::PayloadSOAP(*outxml);
+    delete outxml;
+  } else {
+    // Then it must be 'echo' operation requested
+    Arc::XMLNode echo_op = (*inpayload)["echo"];
+    if(!echo_op) {
+      logger.msg(Arc::ERROR, "Request is not supported - %s", echo_op.Name());
+      return make_fault(outmsg);
+    };
+    std::string say = echo_op["say"];
+    std::string hear = prefix_+say+suffix_;
+    outpayload = new Arc::PayloadSOAP(ns_);
+    outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
   };
-  std::string say = echo_op["say"];
-  std::string hear = prefix_+say+suffix_;
-  Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
-  outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
+
   outmsg.Payload(outpayload);
   {
       std::string str;
@@ -103,4 +123,6 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   }; 
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
+
+} // namespace Echo
 
