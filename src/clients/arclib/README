@@ -1,1 +1,17 @@
-Next generation command line interface (ARC1 arclib). In order to give same look and feel as the ARC0 cli the arccli.cpp and arc* is reused to the extent possible.
+Command line interface (client) to ARC0, ARC1 and gLite (through CREAM) resources.
+
+Commands are built upon the "arclib" library located in
+
+src/hed/libs/client,
+
+which in addition makes use of Arc Client Components (ACC) located in
+
+src/hed/acc/.
+
+The following commands are presently implemented:
+
+o arcsub
+o arcget
+o arckill
+o arcclean
+o arccat
