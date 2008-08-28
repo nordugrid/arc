@@ -2,9 +2,7 @@
 
 namespace ARex {
 
-void addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,bool failed,bool pending) {
-    std::string bes_state("");
-    std::string arex_state("");
+void convertActivityStatus(const std::string& gm_state,std::string& bes_state,std::string& arex_state,bool failed,bool pending) {
     if(gm_state == "ACCEPTED") {
       bes_state="Pending"; arex_state="Accepted";
     } else if(gm_state == "PREPARING") {
@@ -27,6 +25,12 @@ void addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,bool faile
     } else if(gm_state == "CANCELING") {
       bes_state="Running"; arex_state="Killing";
     };
+}
+
+void addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,bool failed,bool pending) {
+    std::string bes_state("");
+    std::string arex_state("");
+    convertActivityStatus(gm_state,bes_state,arex_state,failed,pending);
     Arc::XMLNode state = pnode.NewChild("bes-factory:ActivityStatus");
     state.NewAttribute("state")=bes_state;
     state.NewChild("a-rex:state")=arex_state;

@@ -423,7 +423,7 @@ bool ARexJob::Resume(void) {
 
 std::string ARexJob::State(void) {
   bool job_pending;
-  return State();
+  return State(job_pending);
 }
 
 std::string ARexJob::State(bool& job_pending) {

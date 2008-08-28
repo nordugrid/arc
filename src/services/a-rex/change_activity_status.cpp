@@ -5,6 +5,7 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
+#include "tools.h"
 
 #include "arex.h"
 
@@ -80,30 +81,12 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   std::string new_bes_state = new_state.Attribute("state");
   std::string new_arex_state = new_state["a-rex:state"];
 
-  std::string gm_state = job.State();
+  bool pending = false;
+  std::string gm_state = job.State(pending);
   bool failed = job.Failed();
   std::string bes_state("");
   std::string arex_state("");
-  if(gm_state == "ACCEPTED") {
-    bes_state="Pending"; arex_state="Accepted";
-  } else if(gm_state == "PREPARING") {
-    bes_state="Running"; arex_state="Preparing";
-  } else if(gm_state == "SUBMIT") {
-    bes_state="Running"; arex_state="Submiting";
-  } else if(gm_state == "INLRMS") {
-    bes_state="Running"; arex_state="Executing";
-  } else if(gm_state == "FINISHING") {
-    bes_state="Running"; arex_state="Finishing";
-  } else if(gm_state == "FINISHED") {
-    bes_state="Finished"; arex_state="Finished";
-    if(failed) bes_state="Failed";
-  } else if(gm_state == "DELETED") {
-    bes_state="Finished"; arex_state="Deleted";
-    if(failed) bes_state="Failed";
-  } else if(gm_state == "CANCELING") {
-    bes_state="Running"; arex_state="Killing";
-  };
-
+  convertActivityStatus(gm_state,bes_state,arex_state,failed,pending);
   // Old state in request must be checked against current one
   if((!old_bes_state.empty()) && (old_bes_state != bes_state)) {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: old BES state does not match");
