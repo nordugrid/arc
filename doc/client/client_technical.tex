@@ -1,0 +1,158 @@
+\documentclass{book}
+%\documentclass{article}                            %for shorter notes
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+%\usepackage{graphics}                              %for EPS images (latex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{longtable}                             %for breaking tables
+%
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+\hypersetup{
+  pdfauthor = {Author Name},
+  pdftitle = {Paper title},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {Paper,keyword,comma-separated},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+%
+%----- DON'T CHANGE HEADER MATTER
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+
+\begin{tabular}{rl}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+\end{tabular}
+
+\hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+
+{\raggedleft NORDUGRID-XXXXXXX-NN\par}
+
+{\raggedleft \today\par}
+
+\vspace*{2cm}
+
+%%%%---- The title ----
+{\centering \textsc{\Large Paper title}\Large \par}
+\vspace*{0.5cm}
+    
+%%%%---- A subtitle, if necessary ----
+{\centering \textit{\large Paper subtitle}\large \par}
+    
+\vspace*{1.5cm}
+%%%%---- A list of authors ----
+    {\centering \large Paper author\footnote{authors@address} \large \par}
+    
+%%%%---- An abstract - if style is article ----
+%\begin{abstract}
+%The abstract
+%\end{abstract}
+\end{titlepage}
+
+\tableofcontents                          %Comment if use article style
+\newpage
+\chapter{Preface}
+\label{sec:intro}
+
+This document describes from a technical viewpoint a plugin based client library for the new 
+Web Service (WS) based Advanced Resource Connector (ARC) middleware. The library is capable of 
+handling resource discovery, job submission and job control and interoperates with several 
+different grid flavours. The support for different grid flavours is enabled through the modular 
+design using plugins specialized for each supported middleware, and presently supported are ARC0 
+(ARC classic), ARC1 and the gLite middlewares. Future extensions to support additional middlewares 
+involve plugin compilation only i.e. no recompilation of main libraries or client.
+
+Using the library a set of command line tools have been built which puts the library's functionality 
+at the fingertips of users. While this documentation will illustrate how such command line tool can be 
+built, the main documention of the command line tools is given in the client user manual [ref].
+
+Finally the library has been designed with care for later usage within a graphical user interface. This 
+particularly applies to the job management part.
+
+\chapter{Resource Discovery and Information Retrieval}
+\label{sec:TargetDiscovery}
+Almost every day a new grid cluster is purchased and made available around the world (either to the 
+general public or restricted to authorized users). More available clusters create a need for better and 
+faster resource discovery and information retrieval, making this task an utmost important component of the 
+new client library.
+
+The new client library's resource discovery and information retrieval component consists of three classes, one 
+of which a base class for further grid middleware specific specialization (plugin):
+
+\begin{itemize}
+
+\item{{\bf TargetGenerator} is responsible for loading TargetRetriever plugins in accordance with the input URLs. 
+e.g. if an URL pointing to an ARC1 resource is given the TargetRetrieverARC1 is loaded. If no URLs are given, the 
+TargetGenerator makes use of the user/system defaults. When queried for resources (``targets'') the TargetGenerator 
+passes the request to the loaded TargetRetrievers running them as individual threads for improved performance. The 
+TargetGenerator keeps records of by TargetRetriever found services (index of computing) in order to avoid multiple 
+queries to the same resource. Accepted targets are registered in the FoundTargets array of the TargetGenerator.}
+
+\item{{\bf TargetRetriever} is base class for TargetRetriever grid middleware specializations. Contains the pure 
+virtual method GetTargets which is to be implemented by the specialized class. While it is not mandatory it is recommended 
+that the specialized class divides this function into two components: QueryIndex and InterrogateTarget. The former is 
+responsible for querying index servers, and if the result yields an addresss to a different index server then the 
+specialized TargetRetriever should call itself recursively with the found url if the TargetGenerator allows. Discovered 
+computing resources are sent to the InterrogateTarget function (or if the TargetRetriever was initialized with a computing 
+service url then it should jump directly to this point) which collects the detailed information about the resource.}
+
+\item{{\bf ExecutionTarget} is the class representation of a computing resource (queue) capable of running a grid job. It
+serves as input to the broker which is foreseen to be able to select between different ExecutionTargets from different 
+grid flavours without apriori knowing their difference. The ExecutionTarget class mimics the glue2 information model with 
+a flattened structure, and 
+
+Consequently a mapping a is needed
+ 
+Mapping should be 1 queue equals 1 ExectutionTarget ()}
+
+\end{itemize}
+
+%\begin{figure}[ht]
+%\centering{{\scalebox{0.9}{\includegraphics{ng-logo.png}}}
+%\caption{\label{fig:myfigure1}The figure shows a logo.} }
+%\end{figure}
+
+\chapter{Job Management}
+\label{sec:JobManagement}
+
+\chapter{Data Management}
+\label{sec:DataManagement}
+
+\chapter{Specialized Classes (Grid Flavour Plugins)}
+\label{sec:plugins}
+\section{ARC0 Plugins}
+\section{ARC1 Plugins}
+\section{gLite Plugins}
+
+\chapter{Building Command Line Interfaces}
+\label{sec:cli}
+
+\bibliography{grid}
+\end{document}
