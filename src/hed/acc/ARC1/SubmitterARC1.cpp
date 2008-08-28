@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string>
 
+#include <arc/client/UserConfig.h>
+
 #include "SubmitterARC1.h"
 #include "arex_client.h"
 
@@ -20,8 +22,11 @@ namespace Arc {
   }
 
   std::pair<URL, URL> SubmitterARC1::Submit(JobDescription& jobdesc) {
-	   
+
     MCCConfig cfg;
+    UserConfig uc;
+    const XMLNode cfgtree = uc.ConfTree();
+    cfg.AddProxy(cfgtree["ProxyPath"]);
     AREXClient ac(SubmissionEndpoint, cfg);
 
     std::string jobdescstring;

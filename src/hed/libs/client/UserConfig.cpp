@@ -7,11 +7,18 @@
 #include <unistd.h>
 
 #include <arc/ArcLocation.h>
-#include <arc/ArcConfig.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
 #include <arc/client/UserConfig.h>
+
+#ifdef HAVE_GLIBMM_GETENV
+#include <glibmm/miscutils.h>
+#define GetEnv(NAME) Glib::getenv(NAME)
+#else
+#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
+#endif
 
 namespace Arc {
 
@@ -23,19 +30,6 @@ namespace Arc {
     User user;
     struct stat st;
 
-    //First, open default (system) config file
-    Config SystemCfg;
-
-    SystemCfg.ReadFromFile(ArcLocation::Get()+"/etc/arcclient.xml");
-    if(!SystemCfg){
-      SystemCfg.ReadFromFile("/etc/arcclient.xml");
-    }
-
-    if(!SystemCfg){
-      logger.msg(ERROR, "Could not find system configuration");
-    }
-
-    //Second, open user private config file (create of not existing)
     if (stat(user.Home().c_str(), &st) != 0){
       logger.msg(ERROR, "Can not access user's home directory: %s (%s)",
 		 user.Home(), StrError());
@@ -95,15 +89,6 @@ namespace Arc {
       return;
     }
 
-    Config UserCfg;
-    UserCfg.ReadFromFile(conffile);
-    
-    //Third, Overlay config files
-    //SystemCfg.AddOverlay(UserCfg);
-    
-    SystemCfg.New(FinalCfg);
-
-    //Fourth, locate user jobs file
     jobsfile = confdir + "/jobs.xml";
 
     if (stat(jobsfile.c_str(), &st) != 0) {
@@ -126,29 +111,97 @@ namespace Arc {
       return;
     }
 
-
-
-    ok = true;    
+    ok = true;
   }
 
-
   UserConfig::~UserConfig() {}
-
 
   const std::string& UserConfig::ConfFile() {
     return conffile;
   }
 
-
   const std::string& UserConfig::JobsFile() {
     return jobsfile;
   }
 
+  const XMLNode UserConfig::ConfTree() {
+
+    if (!ok)
+      return cfg;
+
+    if (!cfg) {
+      cfg.ReadFromFile(conffile);
+      syscfg.ReadFromFile(ArcLocation::Get() + "/etc/arcclient.xml");
+      if(!syscfg)
+	syscfg.ReadFromFile("/etc/arcclient.xml");
+      if(!syscfg)
+	logger.msg(ERROR, "Could not find system client configuration");
+
+      // Merge system and user configuration
+      XMLNode child;
+      for (int i = 0; (child = syscfg.Child(i)); i++)
+	if (!cfg[child.Name()])
+	  for (XMLNode n = child; n; ++n)
+	    cfg.NewChild(n);
+
+      User user;
+      std::string path;
+
+      // Proxy location
+      path = GetEnv("X509_USER_PROXY");
+      if (!path.empty())
+	if (!cfg["ProxyPath"])
+	  cfg.NewChild("ProxyPath") = path;
+	else
+	  cfg["ProxyPath"] = path;
+      else if (!cfg["ProxyPath"])
+	cfg.NewChild("ProxyPath") = "/tmp/x509up_u" + tostring(user.get_uid());
+
+      // Certificate location
+      path = GetEnv("X509_USER_CERT");
+      if (!path.empty())
+	if (!cfg["CertificatePath"])
+	  cfg.NewChild("CertificatePath") = path;
+	else
+	  cfg["CertificatePath"] = path;
+      else if (!cfg["CertificatePath"])
+	if (user.get_uid() == 0)
+	  cfg.NewChild("CertificatePath") = "/etc/grid-security/hostcert.pem";
+	else
+	  cfg.NewChild("CertificatePath") =
+	    user.Home() + "/.globus/usercert.pem";
+
+      // Private key location
+      path = GetEnv("X509_USER_KEY");
+      if (!path.empty())
+	if (!cfg["KeyPath"])
+	  cfg.NewChild("KeyPath") = path;
+	else
+	  cfg["KeyPath"] = path;
+      else if (!cfg["KeyPath"])
+	if (user.get_uid() == 0)
+	  cfg.NewChild("KeyPath") = "/etc/grid-security/hostkey.pem";
+	else
+	  cfg.NewChild("KeyPath") =
+	    user.Home() + "/.globus/userkey.pem";
+
+      // CA certificate directory location
+      path = GetEnv("X509_CERT_DIR");
+      if (!path.empty())
+	if (!cfg["CACertificatesDir"])
+	  cfg.NewChild("CACertificatesDir") = path;
+	else
+	  cfg["CACertificatesDir"] = path;
+      else if (!cfg["CACertificatesDir"])
+	cfg.NewChild("CACertificatesDir") = "/etc/grid-security/certificates";
+    }
+
+    return cfg;
+  }
 
   UserConfig::operator bool() {
     return ok;
   }
-
 
   bool UserConfig::operator!() {
     return !ok;

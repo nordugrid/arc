@@ -397,34 +397,6 @@ std::string checkPath(std::string p){
    return p.assign("");
 } 
 
-std::string getProxy(){
-   std::string path;
-   char * res=NULL;
-
-   res = getenv ("X509_USER_PROXY");
-   if ( res!=NULL ){
-      path = checkPath(res);
-   }else{
-      std::stringstream uid;
-      uid << "/tmp/x509up_u" << getuid() ;
-      path = checkPath(uid.str()); 
-   }
-   return path;
-}
-
-std::string getTrustedCerts(){
-   std::string path;
-   char * res=NULL;
-
-   res = getenv ("X509_CERT_DIR");
-   if ( !res ){
-      path = checkPath("/etc/grid-security/certificates/");
-   }else{
-      path.assign(res); 
-   }
-   return path;
-}
-
 } // namespace Cream
 
 } // namespace Arc

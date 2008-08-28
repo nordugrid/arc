@@ -6,6 +6,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/client/UserConfig.h>
 
 #include "arex_client.h"
 #include "TargetRetrieverARC1.h"
@@ -89,6 +90,9 @@ namespace Arc {
     // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
     Arc::MCCConfig cfg;
+    UserConfig uc;
+    const XMLNode cfgtree = uc.ConfTree();
+    cfg.AddProxy(cfgtree["ProxyPath"]);
     Arc::AREXClient ac(url, cfg);
     XMLNode ServerStatus(ac.sstat());
 

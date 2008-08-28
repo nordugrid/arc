@@ -3,6 +3,7 @@
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataHandle.h>
 #include <arc/StringConv.h>
+#include <arc/client/UserConfig.h>
 
 #include "JobControllerARC1.h"
 #include "arex_client.h"
@@ -28,6 +29,9 @@ namespace Arc {
     for (std::list<Job>::iterator iter = JobStore.begin();
 	 iter != JobStore.end(); iter++) {
       MCCConfig cfg;
+      UserConfig uc;
+      const XMLNode cfgtree = uc.ConfTree();
+      cfg.AddProxy(cfgtree["ProxyPath"]);
       PathIterator pi(iter->JobID.Path(), true);
       URL url(iter->JobID);
       url.ChangePath(*pi);
@@ -86,6 +90,9 @@ namespace Arc {
 
   bool JobControllerARC1::CleanThisJob(Job ThisJob, bool force) {
     MCCConfig cfg;
+    UserConfig uc;
+    const XMLNode cfgtree = uc.ConfTree();
+    cfg.AddProxy(cfgtree["ProxyPath"]);
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);
@@ -109,6 +116,9 @@ namespace Arc {
 
   bool JobControllerARC1::CancelThisJob(Job ThisJob) {
     MCCConfig cfg;
+    UserConfig uc;
+    const XMLNode cfgtree = uc.ConfTree();
+    cfg.AddProxy(cfgtree["ProxyPath"]);
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);
