@@ -2,7 +2,6 @@
 #define __ARC_SERVICE_AA_H__
 
 #include <arc/message/Service.h>
-#include <lasso/saml-2.0/assertion_query.h>
 
 namespace ArcSec {
 
@@ -21,8 +20,6 @@ class Service_AA: public Arc::Service {
  private:
   bool get_roles(std::vector<std::string>& fqans, std::string& userid, std::string& role, Arc::XMLNode& config);
   bool get_attributes(Arc::QueryArrayResult& attributes, std::string& idofsqlset, std::vector<std::string>& sqlargs, Arc::XMLNode& config);
- private:
-  LassoAssertionQuery *assertion_query_;
 };
 
 } // namespace ArcSec
