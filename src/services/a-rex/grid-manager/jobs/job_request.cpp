@@ -74,7 +74,7 @@ static job_req_type_t detect_job_req_type(const char* fname) {
   unsigned int l = 0;
   char buf[6]; 
   while(!f.eof() && !f.fail()) {
-    f.get(buf+l,sizeof(buf)-l);
+    f.getline(buf+l,sizeof(buf)-l);
     for(unsigned int n = l;buf[n];n++) {
       if(isspace(buf[n])) continue;
       buf[l]=buf[n]; l++;
