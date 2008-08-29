@@ -1,2 +1,2 @@
-SUBDIRS = a-rex data echo wsrf isis credentials arclib cream2 pdp
-DIST_SUBDIRS = a-rex data echo wsrf isis credentials arclib cream2 pdp
+SUBDIRS = data echo wsrf isis credentials arclib pdp
+DIST_SUBDIRS = data echo wsrf isis credentials arclib pdp

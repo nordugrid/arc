@@ -1,8 +1,0 @@
-apstat
-apsub
-apkill
-Makefile
-Makefile.in
-.libs
-.deps
-test

@@ -1,5 +1,3 @@
 src/services/a-rex/arex.xml
 src/services/a-rex/arex_secure.xml
-src/clients/a-rex/jsdl_simple.xml
-src/clients/a-rex/jsdl_stage.xml
 src/services/a-rex/arc_arex.conf

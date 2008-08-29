@@ -933,19 +933,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/wrappers/java/Makefile
                  src/services/wrappers/python/Makefile
                  src/clients/Makefile
-                 src/clients/a-rex/Makefile
-                 src/clients/a-rex/apkill.1
-                 src/clients/a-rex/apclean.1
-                 src/clients/a-rex/apsub.1
-                 src/clients/a-rex/apstat.1
-                 src/clients/a-rex/apsstat.1
-                 src/clients/cream2/Makefile
-                 src/clients/cream2/glitedelegate.1
-                 src/clients/cream2/glitesub.1
-                 src/clients/cream2/glitestat.1
-                 src/clients/cream2/glitekill.1
-                 src/clients/cream2/gliteclean.1
-                 src/clients/cream2/gliteundelegate.1
                  src/clients/data/Makefile
                  src/clients/data/arccp.1
                  src/clients/data/arcls.1

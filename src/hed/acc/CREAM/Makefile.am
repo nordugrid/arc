@@ -14,10 +14,3 @@ libaccCREAM_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la
 libaccCREAM_la_LDFLAGS  = -no-undefined -avoid-version -module
-
-noinst_LTLIBRARIES = libCREAMClient.la
-
-libCREAMClient_la_SOURCES = CREAMClient.cpp CREAMClient.h \
-	OpenSSLFunctions.cpp OpenSSLFunctions.h
-libCREAMClient_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
-	$(OPENSSL_CFLAGS) -I$(top_srcdir)/include
