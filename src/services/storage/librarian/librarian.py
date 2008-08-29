@@ -162,7 +162,7 @@ class Librarian:
 
     def _traverse(self, guid, metadata, path, traversed, GUIDs):
             try:
-                if path:
+                while path:
                     if path[0] in ['', '.']:
                         child_guid = guid
                         child_metadata = metadata
@@ -171,9 +171,9 @@ class Librarian:
                         child_metadata = self.ahash.get([child_guid])[child_guid]
                     traversed.append(path.pop(0))
                     GUIDs.append(child_guid)
-                    return self._traverse(child_guid, child_metadata, path, traversed, GUIDs)
-                else:
-                    return metadata
+                    guid = child_guid
+                    metadata = child_metadata
+                return metadata
             except KeyError:
                 return metadata
             except:
