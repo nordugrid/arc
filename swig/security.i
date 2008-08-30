@@ -64,9 +64,9 @@ namespace ArcSec {
       SourceURL(const std::string& url);
     };
     
+    %nodefaultctor Evaluator;
     class Evaluator {
-        Evaluator (Arc::XMLNode*);
-        Evaluator (const char *);
+    public:
         void addPolicy(const Source& policy,const std::string& id = "");
         void addPolicy(Policy* policy,const std::string& id = "");
         Response* evaluate(Request* request);
