@@ -99,6 +99,13 @@ In the current implementation there are no Apache or Axis plugins. That is becau
 
 The HED is a relatively young framework and there are quite a few rough edges and non-flexible solutions. The situation will hopefully improve with time. We would be grateful for any suggestions how to improve architecture and code of the HED. Statements like "you are doing crap, I'll better use Axis" are understood but not welcome and are usually reacted to adequately.
 
+\chapter{How to read}
+
+This document does not (yet?) include in depth description of C++ classes which constitute the HED. Instead most section contain notes entitled "Relevant classes". Technical description of those classes can be found in automatically generated "Hosting Environment (Daemon) Reference Manual" document [].
+
+For examples please see source code in repository []. Many components and libraries are accompanied with test and example applications.
+
+
 \chapter{Architecture}
 
 \section{Requirements}
@@ -213,6 +220,8 @@ The clients are not represented by any specific component. The client code sees 
 
 \subsection{Plexer}
 
+\texttt{Relevant classes: Arc::Plexer }
+
 In general case multiple Services living in the HED so the incomming Message should route to the proper Service. The Plexer MCC does this job. It takes the the ENDPOINT attributes of the message collected by other MCCs compares this attribute to regular expression defined in the configuration file and forward the message to the all matching service. It acts as a dispacher. The Plexer is also special in a sence that it is not a plugin but part of the \texttt{arcloader} library. 
 
 This Plexer provides only basic functionality and is capable of doing only simple routing. But because each MCC has multiple routing capabilities it is possible to provide pluggable MCC implementing more sophisticated and/or more specific routing algorithms.
@@ -238,7 +247,9 @@ Each Loader object may create multiple non-intersecting chains and there may be 
 
 \subsection{Sessions and Contexts}
 
-The HED defines few lifetimes for operations happening inside the Chain and components which can be associated with them:
+\texttt{Relevant classes: Arc::MessageContext, Arc::MessageContextElement, Arc::MessageAuthContext, Arc::ChianContext }
+
+The HED defines three lifetimes for operations happening inside the Chain and components which can be associated with them:
 
 %The HED provides few context containers associated with the Chain and the Message. Those are:
 
@@ -246,37 +257,55 @@ The HED defines few lifetimes for operations happening inside the Chain and comp
 
 \item The Message lifetime - lasts as long as incoming and outgoing Messages are passing through the Chain forth and back. The Message it self in this case is used as container for associated components.
 
-\item The Session lifetime - is defined by existence of some logical connection between Messages being processed. Corresponding container MessageContext is normally created by first MCC in a chain. Actual lifetime of that container is MCC specific. For TCP MCC it corresponds to TCP connection. The MessageContext holds objects inherited from MessageContextElement class. When Session ends all associated objects are destroyed.
+\item The Session lifetime - is defined by existence of some logical connection between Messages being processed. Corresponding container MessageContext is normally created by first MCC in a chain and attached to the Message. Actual lifetime of that container is MCC specific. For TCP MCC it corresponds to TCP connection. The MessageContext holds objects inherited from MessageContextElement class. The Security Attributes can also be stored in dedicated container - MessageAuthContext - with Session lifetime. At end of  the Session all associated objects are destroyed.
 
-%\item The Session Context. It holds objects inherited from MessageContextElement class and is persistent withion
+\item The Chain lifetime - is time period while componnets making the Chain exist. This lifetime is represented by ChainContext class. Differently from other context objects this one doe not allow free manipulation of contained objects. Instead it provides an interface to some internal structures of Loader object. Those include factories and lists of object of all types created by particular instance of the Loader.
 
 \end{enumerate}
 
 
+\subsection{DMC}
+
+\texttt{Relevant classes: Arc::DataPoint, Arc::DataMover and related classes.}
+
+The HED defines an interface for pluggable components implementing higher-level information transfer and query. Those are Data Management Components (DMC). Each DMC is inherited from Datapoint class and provides subset of methods for performing following operations on data endpoint:
+
+\begin{enumerate}
+
+\item Read data from specified endpoint into DataBuffer class object
+
+\item Write data into specified endpoint from DataBuffer class object
+
+\item List subcontent of endpoint (i.e. list files in directory)
+
+\item Register and unregister presence of data
+
+\end{enumerate}
+
+The DMC may be implemented using third party software like it is currently done for (Grid)FTP DMC. But implementation may use Message Chains too like in case of HTTP MCC.
+
+Along with ordinary endpoints defining location of data directly - like HTTP, FTP, LDAP - the DMC can be used with indirect/indexing endpoints. Those are endpoints which define only location of meta-data associated with actual data or an interface/service providing functionality of managing/requesting data.
+
+% TODO a lot
+
 \subsection{Alternative implementation languages}
 
-In order to facilitate the developement of services, API bindings for languages other than C++ are provided and some service developement has already been done 
-%Not much aboút the actual services, more about what they need to implement and what 
+In order to facilitate the developement of services, API bindings for languages other than C++ are provided and some service developement has already been done in Python language.
 
-
-
-
-
-The chain formulation using MCCs is up to the administrator.  Based on the configuration information the Loader components formulate the actual chain in the memory of the daemon. 
-
-
-
-
-
+% TODO it
 
 
 \chapter{Implemented elements}
 
+This chapter describes components which are implemented alongside with the HED infractructure itself. Although strictly not belonging to infrastructure this minimal set of components is necessary to make inrastructure useful.
+
+
 \section{Implemented MCCs}
+
 
 \subsection{TCP MCC}
 
-The server TCP MCC in the HED is special in that it produces messages by listening on a socket rather than passing on messages from other MCCs. As such it spawns new threads to handle the message and its response throughout the message chain. One could envision other parallel MCCs having these properties but producing messages from other sources such as e.g. unix sockets.
+The server TCP MCC in the HED is special in that it produces messages by listening on a network socket rather than passing on messages from other MCCs. As such it spawns new thread for every new connection to handle Messages and their responses throughout the Message Chain. One could envision other MCCs having these properties but producing messages from other sources such as e.g. unix sockets.
 
 \ifthenelse{\boolean{brieftechdesc}}{
 This MCC can be configured as to what port to listen to.
@@ -307,7 +336,25 @@ The
 \section{Implemented Security Handlers}
 
 
-\section{Implemented PDCs}
+\section{Implemented DMCs}
+
+
+\subsection{File DMC}
+
+
+\subsection{GridFTP/FTP DMC}
+
+
+\subsection{HTTP DMC}
+
+
+\subsection{LDAP DMC}
+
+
+\subsection{LFC DMC}
+
+
+\subsection{RLS DMC}
 
 
 \chapter{Conclusion}
