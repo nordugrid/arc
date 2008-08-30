@@ -11,6 +11,19 @@
 
 namespace ArcSec {
    
+    %nodefaultctor Policy;
+    class Policy  {};
+    
+    %nodefaultctor Request;
+    class Request {};    
+   
+    typedef enum {
+      DECISION_PERMIT = 0,
+      DECISION_DENY = 1,
+      DECISION_INDETERMINATE = 2,
+      DECISION_NOT_APPLICABLE = 3
+    } Result;
+   
     typedef struct {
       Result res;
     } ResponseItem;
@@ -72,18 +85,6 @@ namespace ArcSec {
         Policy* getPolicy(const std::string& classname, const Source& policysource);
     };
 
-    class Policy  {
-    public:
-      Policy();
-      Policy(Arc::XMLNode*);  
-    };
-    
-    class Request {
-    public:
-      Request ();
-      Request (const Source&);
-    };
-    
 
 } //namespace ArcSec
 
