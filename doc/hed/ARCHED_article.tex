@@ -56,9 +56,7 @@
 
 \hrulefill
 
-%-------- Change this to NORDUGRID-XXXXXXX-NN
-
-{\raggedleft NORDUGRID-XXXXXXX-NN\par}
+{\raggedleft NORDUGRID-TECH-19\par}
 
 {\raggedleft \today\par}
 
@@ -101,9 +99,9 @@ The HED is a relatively young framework and there are quite a few rough edges an
 
 \chapter{How to read}
 
-This document does not (yet?) include in depth description of C++ classes which constitute the HED. Instead most section contain notes entitled "Relevant classes". Technical description of those classes can be found in automatically generated "Hosting Environment (Daemon) Reference Manual" document [].
+This document does not (yet?) include in depth description of C++ classes which constitute the HED. Instead most section contain notes entitled "Relevant classes". Technical description of those classes can be found in automatically generated "Hosting Environment (Daemon) Reference Manual" document \cite{hed-api}.
 
-For examples please see source code in repository []. Many components and libraries are accompanied with test and example applications.
+For examples please see source code in repository \cite{svn-arc1}. Many components and libraries are accompanied with test and example applications.
 
 
 \chapter{Architecture}
@@ -148,7 +146,7 @@ Unless otherwise stated the term HED will be used through this document to refer
 
 In the HED data channels to the outside world may be set up by chains of small processing units called Message Chain Components (MCCs). The chain is an ordered list of MCCs and their interconection can be described in the configuration file. The MCCs work on units called Messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general Attributes and Security Attributes where information relevant to each protocol is accumulated as the message progresses. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configured.
 
-Each MCC has an entry method \texttt{process} which is called with Message being processed. It then processes Message by modifying it or creating new Message. Then MCC calls entry method of next MCC in the chain. For information how messages are handled and about memory management policies please see API description of MCC class in [].
+Each MCC has an entry method \texttt{process} which is called with Message being processed. It then processes Message by modifying it or creating new Message. Then MCC calls entry method of next MCC in the chain. For information how messages are handled and about memory management policies please see API description of MCC class in \cite{hed-api}.
 
 The developer who writes an MCC is free to choose any 3rd party library and component to implement the functionalty of the MCC but at least currently the MCCs should be written in the same language as the HED was written (C++) and should use the \texttt{MCC} interface class and \texttt{Message} class provided by \texttt{arcloader} and \texttt{arcmessage} libraries of ARC1.
 
@@ -193,18 +191,22 @@ Each MCC developed inside and outside the HED must have generated and consumed A
 
 \subsubsection{Security Attributes}
 
-Here only basic information about security related objects is presented. For more detailed information please see "Security Framework of ARC1" [].
+\texttt{Relevant classes: Arc::SecAttr}
+
+Here only basic information about security related objects is presented. For more detailed information please see "Security Framework of ARC1" \cite{sec-arc1}.
 
 Security Attributes are storing various aspects of Message useful for authorization decisions to be made. Those normally include operation being requested, target of operation and identity of subject making request. They can also contain authorization policies. Actually nothing stops from storing an other type of information but there is no convention developed for that.
 
 The Secuirity Attributes are stored as key and value pairs. Each key may have only single value attached. Keys are simple strings. By convention each MCC or Security Handler (see below) produce Security Attribute with name corresponding to protocol name. For example Security Attribute stored under name TLS holds information collected at Transport Level Security layer.
 
-The value if Secuirity Attribute is an object of class inherited from SecAttr. The HED implements class SecAttr which serves as definition of interface for all Security Attributes. It defines way collected information may be turned into useful format. For that each Security Attribute value implements method Export for converting internal information into one of supported formats. Currently only implemented is ARC Authorization Request/Policy (see below). Please see API description of SecAttr and MessageAuth classes in [] for more information.
+The value if Secuirity Attribute is an object of class inherited from SecAttr. The HED implements class SecAttr which serves as definition of interface for all Security Attributes. It defines way collected information may be turned into useful format. For that each Security Attribute value implements method Export for converting internal information into one of supported formats. Currently only implemented is ARC Authorization Request/Policy (see below). Please see API description of SecAttr and MessageAuth classes in \cite{hed-api} for more information.
 
 Each MCC developed inside and outside the HED must come with explanation of generated and consumed Security Attributes. Dedicated components for dealing with Security Attribute - Security Handlers are described below.
 
 
 \subsubsection{Security Handlers}
+
+\texttt{Relevant classes: ArcSec::SecHander}
 
 Each MCC can also be configured to have loadable modules called Security Handlers attached to it in order to enforce security policies such as authentication and authorization or to assist such activities by gathering specialized security related information into Security Attributes. There is no strict distinction of capabilities between Security Handlers and MCCs. Both can and do populate Security Attributes. The distinction is more of logical nature. It also makes possible to have Security Handlers dealing with similar kind of information and capable of acting on different protocol levels.
 
@@ -266,7 +268,7 @@ The HED defines three lifetimes for operations happening inside the Chain and co
 
 \subsection{DMC}
 
-\texttt{Relevant classes: Arc::DataPoint, Arc::DataMover and related classes.}
+\texttt{Relevant classes: Arc::DataPoint, Arc::DataMover, Arc::DataBuffer and related classes.}
 
 The HED defines an interface for pluggable components implementing higher-level information transfer and query. Those are Data Management Components (DMC). Each DMC is inherited from Datapoint class and provides subset of methods for performing following operations on data endpoint:
 
@@ -284,9 +286,10 @@ The HED defines an interface for pluggable components implementing higher-level 
 
 The DMC may be implemented using third party software like it is currently done for (Grid)FTP DMC. But implementation may use Message Chains too like in case of HTTP MCC.
 
-Along with ordinary endpoints defining location of data directly - like HTTP, FTP, LDAP - the DMC can be used with indirect/indexing endpoints. Those are endpoints which define only location of meta-data associated with actual data or an interface/service providing functionality of managing/requesting data.
+Along with ordinary endpoints defining location of data directly - like HTTP, FTP, LDAP - the DMC can be used with indirect/indexing endpoints. Those are endpoints which define only location of meta-data associated with actual data or an interface/service providing functionality of managing/requesting data. For more information about indexing endpoints see description of supported URLs in \cite{urls}.
 
-% TODO a lot
+More in depth techical information about the DMC can be found in \cite{dmc}.
+
 
 \subsection{Alternative implementation languages}
 
@@ -314,6 +317,8 @@ This MCC can be configured as to what port to listen to.
 \ifthenelse{\boolean{verbtechdesc}}{
 This MCC can be configuered with one or more \texttt{<tcp:Listen>} elements which in turn contain the elements \texttt{<tcp:Port>}, \texttt{<tcp:Interface>} and \texttt{<tcp:Version>}. The \texttt{<tcp:Port>} element is mandatory and should contain an integer corresponding to the TCP port to listen to. The \texttt{<tcp:Interface>} element is optional and is meant to identify the network interface to bind to. It is currently not used. The \texttt{<tcp:Version>} element is used to specify IP version. It is optional and should if present contain the single digit 4 or 6.
 }{}
+
+The server and client side MCCs are called \texttt{tcp.service} and \texttt{tcp.client} correspondingly. They are located in the shared library called \texttt{mcctcp}.
 
 \subsubsection{TLS MCC}
 The server TLS MCC enables ...
@@ -358,5 +363,7 @@ The
 
 
 \chapter{Conclusion}
+
+\bibliography{grid}
 
 \end{document}
