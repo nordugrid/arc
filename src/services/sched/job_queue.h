@@ -3,6 +3,7 @@
 
 #include <string>
 #include <db_cxx.h>
+#include <arc/Logger.h>
 #include "job.h"
 
 namespace Arc {
@@ -44,7 +45,7 @@ class JobQueueIterator
         Job *operator*() const { return job_; };
         const JobQueueIterator &operator++();
         const JobQueueIterator &operator++(int);
-        void refresh(void);
+        bool refresh(void);
         void remove(void);
         void finish(void);
 };
@@ -54,8 +55,9 @@ class JobQueue
     private:
         DbEnv *env_;
         Db *db_;
+        Arc::Logger logger_;
     public:
-        JobQueue() { env_ = NULL; db_ = NULL; };
+        JobQueue():logger_(Arc::Logger::rootLogger, "JobQ") { env_ = NULL; db_ = NULL; };
         ~JobQueue();
         void init(const std::string &dbroot, const std::string &store_name);
         void refresh(Job &j);
@@ -65,6 +67,7 @@ class JobQueue
         JobQueueIterator getAll(void);
         JobQueueIterator getAll(JobSelector *selector_);
         void sync(void);
+        void checkpoint(void);
 };
 
 } // namespace Arc

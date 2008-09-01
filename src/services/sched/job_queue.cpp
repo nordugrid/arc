@@ -27,8 +27,13 @@ void JobQueueIterator::next(void)
     key.set_flags(0);
     value.set_flags(0);
     for (;;) {
-        ret = cursor_->get(&key, &value, DB_NEXT); 
-        if (ret == DB_NOTFOUND) {
+        try {
+            ret = cursor_->get(&key, &value, DB_NEXT); 
+            if (ret == DB_NOTFOUND) {
+                has_more_ = false;
+                break;
+            }
+        } catch (DbDeadlockException &de) {
             has_more_ = false;
             break;
         }
@@ -106,7 +111,7 @@ void JobQueueIterator::finish(void)
     }
 }
 
-void JobQueueIterator::refresh()
+bool JobQueueIterator::refresh()
 {
     // generate key
     void *buf = (void *)job_->getID().c_str();
@@ -115,7 +120,14 @@ void JobQueueIterator::refresh()
     // generate data
     ByteArray &a = job_->serialize();
     Dbt data(a.data(), a.size());
-    cursor_->put(&key, &data, DB_KEYFIRST);
+    try {
+        cursor_->put(&key, &data, DB_KEYFIRST);
+        return true;
+    } catch (DbDeadlockException &de) {
+        return false;        
+    } catch (DbException &e) {
+        return false;
+    }
 }
 
 void JobQueueIterator::remove()
@@ -138,11 +150,20 @@ void JobQueue::init(const std::string &dbroot, const std::string &store_name)
     // setup internal deadlock detection mechanizm
     env_->set_lk_detect(DB_LOCK_DEFAULT);
     db_ = new Db(env_, 0);
+    try {
 #if (DB_VERSION_MAJOR < 4) || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR == 0)
-    db_->open(store_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_THREAD, 0644);
+        db_->open(store_name.c_str(), DB_BTREE, DB_CREATE | DB_THREAD, 0644);
 #else
-    db_->open(NULL, store_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_THREAD, 0644);
+        DbTxn *tid = NULL;
+        env_->txn_begin(NULL, &tid, 0);
+        db_->open(tid, store_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_THREAD, 0644);
+        tid->commit(0);
 #endif
+    } catch (DbException &e) {
+        logger_.msg(Arc::ERROR, "Cannot open database");
+        db_ = NULL;
+        return;
+    }
 }
 
 JobQueue::~JobQueue(void) 
@@ -159,53 +180,72 @@ JobQueue::~JobQueue(void)
 
 void JobQueue::refresh(Job &j)
 {
+    // generate key
+    void *buf = (void *)j.getID().c_str();
+    int size = j.getID().size() + 1;
+    Dbt key(buf, size);
+    // generate data
+    ByteArray &a = j.serialize();
+    Dbt data(a.data(), a.size());
+    
     DbTxn *tid = NULL;
-    try {
-        env_->txn_begin(NULL, &tid, 0);
-    } catch (std::exception &e) {
-        return;
-    }
-    try {
-        // generate key
-        void *buf = (void *)j.getID().c_str();
-        int size = j.getID().size() + 1;
-        Dbt key(buf, size);
-        // generate data
-        ByteArray &a = j.serialize();
-        Dbt data(a.data(), a.size());
-        db_->put(tid, &key, &data, 0);
-        tid->commit(0);
-    } catch (DbException &e) {
-        tid->abort();
+    while (true) {
+        try {
+            env_->txn_begin(NULL, &tid, 0);
+            db_->put(tid, &key, &data, 0);
+            tid->commit(0);
+            return;
+        } catch (DbDeadlockException &de) {
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "refresh: Cannot abort transaction: %s", e.what());
+                return;
+            }
+        } catch (DbException &e) {
+            logger_.msg(Arc::ERROR, "refresh: Error during transaction: %s", e.what());
+            tid->abort();
+            return;
+        }
     }
 }
 
 Job *JobQueue::operator[](const std::string &id)
 {
+    void *buf = (void *)id.c_str();
+    int size = id.size() + 1;
+    Dbt key(buf, size);
+    Dbt data;
+    data.set_flags(DB_DBT_MALLOC);
     DbTxn *tid = NULL;
-    try {
-        env_->txn_begin(NULL, &tid, 0);
-    } catch (std::exception &e) {
-        return NULL;
-    }
-    try {
-        void *buf = (void *)id.c_str();
-        int size = id.size() + 1;
-        Dbt key(buf, size);
-        Dbt data;
-        data.set_flags(DB_DBT_MALLOC);
-        if (db_->get(tid, &key, &data, 0) != DB_NOTFOUND) {
-            ByteArray a(data.get_data(), data.get_size());
-            free(data.get_data());
-            Job *j = new Job(a);
-            tid->commit(0);
-            return j;
-        } else {
-            tid->commit(0);
-            throw JobNotFoundException();
+    while (true) {
+        try {
+            env_->txn_begin(NULL, &tid, 0);
+            if (db_->get(tid, &key, &data, 0) != DB_NOTFOUND) {
+                ByteArray a(data.get_data(), data.get_size());
+                free(data.get_data());
+                Job *j = new Job(a);
+                tid->commit(0);
+                return j;
+            } else {
+                tid->commit(0);
+                throw JobNotFoundException();
+            }
+        } catch (DbDeadlockException &e) {
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "operator[]: Cannot abort transaction: %s", e.what()); 
+            }
+            return NULL;
+        } catch (DbException &e) {
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "operator[]: Cannot abort transaction: %s", e.what()); 
+            }
+            return NULL;
         }
-    } catch (DbException &e) {
-        tid->abort();
     }
 }
 
@@ -217,19 +257,29 @@ void JobQueue::remove(Job &j)
 void JobQueue::remove(const std::string &id)
 {
     DbTxn *tid = NULL;
-    try {
-        env_->txn_begin(NULL, &tid, 0);
-    } catch (std::exception &e) {
-        return;
-    }
-    try {
-        void *buf = (void *)id.c_str();
-        int size = id.size() + 1;
-        Dbt key(buf, size);
-        db_->del(tid, &key, 0);
-        tid->commit(0);
-    } catch (DbException &e) {
-        tid->abort();
+    void *buf = (void *)id.c_str();
+    int size = id.size() + 1;
+    Dbt key(buf, size);
+    while (true) { 
+        try {
+            env_->txn_begin(NULL, &tid, 0);
+            db_->del(tid, &key, 0);
+            tid->commit(0);
+        } catch (DbDeadlockException &e) {
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "remove: Cannot abort transaction: %s", e.what()); 
+            }
+            return;
+        } catch (DbException &e) {
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "remove: Cannot abort transaction: %s", e.what()); 
+            }
+            return;
+        }
     }
 }
 
@@ -274,4 +324,13 @@ void JobQueue::sync(void)
     // db_->sync(0);
 }
 
+void JobQueue::checkpoint(void)
+{
+    try {
+        env_->txn_checkpoint(0, 0, 0);
+    } catch(DbException &e) {
+        logger_.msg(Arc::ERROR, "checkpoint: %s", e.what());
+    }
 }
+
+} // namespace

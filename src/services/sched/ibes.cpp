@@ -35,7 +35,7 @@ MatchSelector::match_application_environment(Arc::Job *j)
         app_envs.GetXML(s);
         logger_.msg(Arc::DEBUG, s);
     }
-    int match_req = job_resources["RunTimeEnvironment"].Size() - 1;
+    int match_req = job_resources.Size();
     int matched = 0;
     Arc::XMLNode ae;
     for (int i = 0; (job_rt = job_resources["RunTimeEnvironment"][i]) != false; i++)
@@ -85,7 +85,7 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
     
-    // XXX concurent locking ?
+    // XXX error handling
     Arc::Job *job = NULL;
     Arc::XMLNode domain = in.Child(0);
     MatchSelector *selector = new MatchSelector(domain);
@@ -108,9 +108,12 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
         m->setLastUpdated(now);
         m->setLastChecked(now);
         // save job state
-        jobs.refresh();
-        // XXX only one job 
-        return Arc::MCC_Status(Arc::STATUS_OK);
+        if (jobs.refresh() == true) {
+            // XXX only one job 
+            return Arc::MCC_Status(Arc::STATUS_OK);
+        } else {
+            return Arc::MCC_Status();
+        }
     }
     logger_.msg(Arc::DEBUG, "NO job");
     return Arc::MCC_Status(Arc::STATUS_OK);

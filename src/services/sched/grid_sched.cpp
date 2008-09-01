@@ -170,6 +170,8 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
 void GridSchedulerService::doSched(void)
 {   
     logger_.msg(Arc::DEBUG, "doSched");
+    jobq.checkpoint();
+    logger_.msg(Arc::DEBUG, "jobq checkpoint done");
 #if 0
     // log status
     logger_.msg(Arc::DEBUG, "Count of jobs: %i"
