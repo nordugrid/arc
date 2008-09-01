@@ -218,43 +218,6 @@ sub cluster_info () {
 }
 
 
-sub jobs_info ($) {
-    my $jids = shift;
-
-    my $lrms_jobs = {};
-    $lrms_info->{jobs} = $lrms_jobs;
-
-    my @procinfo = process_info();
-
-    foreach my $id (@$jids){
-
-        $lrms_jobs->{$id}{nodes} = [ hostname ];
-
-        my ($proc) = grep { $id == $_->{pid} } @procinfo;
-        if ($proc) {
-
-            # number of running jobs. Will be used in queue_info
-            ++$running;
-
-            # sum cputime of all child processes
-            my $cputime = $proc->{cputime};
-            $_->{ppid} == $id and $cputime += $_->{cputime} for @procinfo;
-
-            $lrms_jobs->{$id}{mem} = $proc->{vsize};
-            $lrms_jobs->{$id}{walltime} = ceil $proc->{etime}/60;
-            $lrms_jobs->{$id}{cputime} = ceil $cputime/60;
-            $lrms_jobs->{$id}{status} = 'R';
-            $lrms_jobs->{$id}{rank} = 0;
-            #$lrms_jobs->{$id}{reqwalltime} = "";
-            #$lrms_jobs->{$id}{reqcputime} = "";
-            $lrms_jobs->{$id}{comment} = [ "LRMS: Running under fork" ];
-        } else {
-            $lrms_jobs->{$id}{status} = 'EXECUTED';
-        }
-    }
-}
-
-
 sub queue_info ($) {
     my $qname = shift;
     my $qopts = $options->{queues}{$qname};
@@ -294,6 +257,43 @@ sub queue_info ($) {
     #$lrms_queue->{defaultcput} = "";
     #$lrms_queue->{minwalltime} = "";
     #$lrms_queue->{defaultwallt} = "";
+}
+
+
+sub jobs_info ($) {
+    my $jids = shift;
+
+    my $lrms_jobs = {};
+    $lrms_info->{jobs} = $lrms_jobs;
+
+    my @procinfo = process_info();
+
+    foreach my $id (@$jids){
+
+        $lrms_jobs->{$id}{nodes} = [ hostname ];
+
+        my ($proc) = grep { $id == $_->{pid} } @procinfo;
+        if ($proc) {
+
+            # number of running jobs. Will be used in queue_info
+            ++$running;
+
+            # sum cputime of all child processes
+            my $cputime = $proc->{cputime};
+            $_->{ppid} == $id and $cputime += $_->{cputime} for @procinfo;
+
+            $lrms_jobs->{$id}{mem} = $proc->{vsize};
+            $lrms_jobs->{$id}{walltime} = ceil $proc->{etime}/60;
+            $lrms_jobs->{$id}{cputime} = ceil $cputime/60;
+            $lrms_jobs->{$id}{status} = 'R';
+            $lrms_jobs->{$id}{rank} = 0;
+            #$lrms_jobs->{$id}{reqwalltime} = "";
+            #$lrms_jobs->{$id}{reqcputime} = "";
+            $lrms_jobs->{$id}{comment} = [ "LRMS: Running under fork" ];
+        } else {
+            $lrms_jobs->{$id}{status} = 'EXECUTED';
+        }
+    }
 }
 
 
