@@ -16,7 +16,6 @@ std::string InRangeFunction::getFunctionName(std::string datatype){
 InRangeFunction::InRangeFunction(std::string functionName, std::string argumentType) : Function(functionName, argumentType) {
   fnName = functionName;
   argType = argumentType;
-
 }
 
 bool InRangeFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){

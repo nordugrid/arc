@@ -16,6 +16,7 @@ public:
   virtual ~Function(){};
 
 public:
+ /**Evaluate two AttributeValue objects */
   virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1) = 0;
 
 };

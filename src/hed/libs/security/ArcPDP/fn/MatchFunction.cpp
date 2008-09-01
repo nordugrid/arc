@@ -21,7 +21,6 @@ std::string MatchFunction::getFunctionName(std::string datatype){
 MatchFunction::MatchFunction(std::string functionName, std::string argumentType) : Function(functionName, argumentType) {
   fnName = functionName;
   argType = argumentType;
-
 }
 
 bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){

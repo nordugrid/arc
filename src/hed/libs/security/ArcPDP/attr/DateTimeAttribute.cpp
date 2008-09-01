@@ -71,7 +71,7 @@ std::string DateTimeAttribute::encode(){
 
 //TimeAttribute
 std::string TimeAttribute::identifier = "time";
-TimeAttribute::TimeAttribute(const std::string& v,const std::string& i) /*: type(identifier)*/{
+TimeAttribute::TimeAttribute(const std::string& v,const std::string& i) {
   id=i;
   std::string v1 = "1970-01-01T" + v;
   DateTimeAttribute attr(v1,i);
@@ -117,7 +117,7 @@ std::string TimeAttribute::encode(){
 
 //DateAttribute
 std::string DateAttribute::identifier = "date";
-DateAttribute::DateAttribute(const std::string& v,const std::string& i) /*: type(identifier)*/{
+DateAttribute::DateAttribute(const std::string& v,const std::string& i) {
   id=i;
   std::string v1 = v + "T00:00:00+00:00";
   DateTimeAttribute attr(v1,i);
@@ -186,7 +186,7 @@ std::string DurationAttribute::encode(){
 
 //PeriodAttribute
 std::string PeriodAttribute::identifier = "period";
-PeriodAttribute::PeriodAttribute(const std::string& v,const std::string& i) /*: type(identifier)*/{
+PeriodAttribute::PeriodAttribute(const std::string& v,const std::string& i) {
   id=i;
   (value.starttime).SetTime(-1);
   (value.endtime).SetTime(-1);

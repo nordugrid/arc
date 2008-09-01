@@ -8,19 +8,18 @@ class AnyURIAttribute : public AttributeValue {
 private:
   static std::string identifier;
   std::string value;
-  //std::string type;
   std::string id;
   
 public:
-  AnyURIAttribute() /*: type(identifier)*/ { };
-  AnyURIAttribute(const std::string& v,const std::string& i) : value(v), /*type(identifier),*/ id(i){ };
+  AnyURIAttribute() { };
+  AnyURIAttribute(const std::string& v,const std::string& i) : value(v), id(i){ };
   virtual ~AnyURIAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual std::string encode() {return value;};
   std::string getValue(){ return value; };
   std::string getId(){ return id; };
-  virtual std::string getType() {return identifier; /*type;*/};
+  virtual std::string getType() {return identifier; };
   static const std::string& getIdentifier(void) { return identifier; };
  
 };
