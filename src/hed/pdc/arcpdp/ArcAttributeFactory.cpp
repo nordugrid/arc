@@ -12,6 +12,7 @@
 #include <arc/security/ArcPDP/attr/AnyURIAttribute.h>
 #include <arc/security/ArcPDP/attr/GenericAttribute.h>
 
+#include "ArcAttributeProxy.h"
 
 static Arc::LoadableClass* get_attr_factory (void**) {
     return new ArcSec::ArcAttributeFactory();

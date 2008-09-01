@@ -12,7 +12,7 @@
 #include <arc/security/ArcPDP/Evaluator.h>
 
 namespace ArcSec {
-///pair Match include the AttributeValue object in <Rule> and the Function which is used to handle the AttributeValue,
+///Pair Match include the AttributeValue object in <Rule> and the Function which is used to handle the AttributeValue,
 ///default function is "Equal", if some other function is used, it should be explicitly specified, e.g.
 ///<Subject Type="string" Function="Match">/vo.knowarc/usergroupA</Subject>
 typedef std::pair<AttributeValue*, Function*> Match;
