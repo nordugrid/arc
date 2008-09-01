@@ -107,40 +107,98 @@ The new client library's resource discovery and information retrieval component 
 of which a base class for further grid middleware specific specialization (plugin):
 
 \begin{itemize}
-
 \item{{\bf TargetGenerator} is responsible for loading TargetRetriever plugins in accordance with the input URLs. 
-e.g. if an URL pointing to an ARC1 resource is given the TargetRetrieverARC1 is loaded. If no URLs are given, the 
-TargetGenerator makes use of the user/system defaults. When queried for resources (``targets'') the TargetGenerator 
-passes the request to the loaded TargetRetrievers running them as individual threads for improved performance. The 
-TargetGenerator keeps records of by TargetRetriever found services (index of computing) in order to avoid multiple 
-queries to the same resource. Accepted targets are registered in the FoundTargets array of the TargetGenerator.}
+e.g. if an URL pointing to an ARC1 resource is given the TargetRetrieverARC1 is loaded. When queried for resources 
+(``targets'') the TargetGenerator passes the request to the loaded TargetRetrievers running them as individual threads 
+for improved performance. The TargetGenerator keeps records of by TargetRetriever found servers and services 
+(index or computing) in order to avoid multiple queries. Accepted targets are stored in the FoundTargets array kept by 
+the TargetGenerator.}
 
 \item{{\bf TargetRetriever} is base class for TargetRetriever grid middleware specializations. Contains the pure 
 virtual method GetTargets which is to be implemented by the specialized class. While it is not mandatory it is recommended 
 that the specialized class divides this function into two components: QueryIndex and InterrogateTarget. The former is 
 responsible for querying index servers, and if the result yields an addresss to a different index server then the 
-specialized TargetRetriever should call itself recursively with the found url if the TargetGenerator allows. Discovered 
-computing resources are sent to the InterrogateTarget function (or if the TargetRetriever was initialized with a computing 
-service url then it should jump directly to this point) which collects the detailed information about the resource.}
+specialized TargetRetriever should call itself recursively with the found url. Discovered computing services are sent 
+to the InterrogateTarget function (or if the TargetRetriever was initialized with a computing service url then it should 
+jump directly to this point) which collects the detailed information about the service.}
 
 \item{{\bf ExecutionTarget} is the class representation of a computing resource (queue) capable of running a grid job. It
 serves as input to the broker which is foreseen to be able to select between different ExecutionTargets from different 
-grid flavours without apriori knowing their difference. The ExecutionTarget class mimics the glue2 information model with 
-a flattened structure, and 
+grid flavours without apriori knowing their difference. The ExecutionTarget class mimics the glue2 information model (with 
+a flattened structure), and thus a mapping between attributes from other information systems into the glue2 format is needed. 
+Appendix XX shows the current mapping for the production ARC, ARC1 and gLite middlewares. All information can be printed by 
+invoking the ExecutionTarget's ``Stat'' command which prints all variables (if they have been filled during the information 
+retrieval process).
 
-Consequently a mapping a is needed
- 
-Mapping should be 1 queue equals 1 ExectutionTarget ()}
-
+Following a broker decision jobs are to be submitted. Since all information about the selected computation resides within the 
+selected ExecutionTarget, the ExecutionTarget is capable of returning a submitter (see next section) suitable submitting a 
+job to the resource which is represents.}
 \end{itemize}
 
-%\begin{figure}[ht]
-%\centering{{\scalebox{0.9}{\includegraphics{ng-logo.png}}}
-%\caption{\label{fig:myfigure1}The figure shows a logo.} }
-%\end{figure}
+Figure \ref{fig:ResDisc} depicts how the classes work together in a command chain to discover all resources registered with 
+a certain information server. Below a description of each step is given:
 
-\chapter{Job Management}
+\begin{figure}[ht]
+\centering{{\scalebox{0.75}{\includegraphics{TargetDiscovery.png}}}
+\caption{\label{fig:ResDisc}Diagram depicting the process of resource discovery.} }
+\end{figure}
+
+\begin{enumerate}
+\item{The TargetGenerator takes three URL arrays as input. First array contains individually selected clusters, while the 
+second array contains individually selected index servers (1a). The last array contains a list of rejected clusters. This 
+list is parsed through alias resolve before being inserted as filter to the storage of found services (1b).}
+\item{The complete list of URLs pointing to services and index servers.}
+\item{For each URL a TargetRetriever plugin is loaded using the HED ? loader. The TargetRetriever is initialized 
+with the URL and the information about wether the URL points to a service or an index server.}
+\item{An external call is received calling for targets to be prepared. Call is propagated to all loaded TargetRetrievers.}
+\item{The call for targets is processed by each TargetRetriever in parallel. If the TargetRetriever is initialized with an 
+index server URL it first registers at the Index Servers store kept by the TargetGenerator. If allowed to register, data 
+is read out from the server and processed.}
+\item{The TargetRetriver finds a registered service and contacts the Found Services store kept by the TargetGenerator to check 
+if the service in question has been found be another TargetRetriever. (Services often registers at more than one index server, 
+thus different TargetRetrievers may discover the same service.)}
+\item{If registered in the Found Services store the TargetRetriever progresses to interrogate the service.}
+\item{Found and processed ExecutionTargets are stored in the Found Targets store kept by the TargetGenerator for later usage 
+(e.g. status printing or job submission).}
+\item{Index servers often registers with other index servers creating a nested hierarchical information structure. For this 
+reasons a TargetRetriever interpreting the read out result from an index server may encounter other index servers. In that 
+event the TargetRetriever calls itself recursively creating a new thread for the new URL. This ensures optimum speed and 
+performance for resource discovery.}
+\end{enumerate}
+
+The example above outlines how the TargetRetriever works when initialized with an URL pointing to and index server. However, 
+as indicated it also accepts service URLs in which case the TargetRetriever will try to register the service and if allowed 
+read all its details through the InterrogateTarget method.
+
+\chapter{Job Submission and Management}
 \label{sec:JobManagement}
+\section{Submission}
+Almost every day a new grid cluster is purchased and made available around the world (either to the 
+general public or restricted to authorized users). More available clusters create a need for better and 
+faster resource discovery and information retrieval, making this task an utmost important component of the 
+new client library.
+
+\begin{itemize}
+\item{{\bf Submitter} is base class}
+
+\item{{\bf JobDescription} is }
+
+\item{{\bf Broker} is }
+\end{itemize}
+
+\section{Management}
+Almost every day a new grid cluster is purchased and made available around the world (either to the 
+general public or restricted to authorized users). More available clusters create a need for better and 
+faster resource discovery and information retrieval, making this task an utmost important component of the 
+new client library.
+
+\begin{itemize}
+\item{{\bf JobSupervisor} is base class}
+
+\item{{\bf JobController} is }
+
+\item{{\bf Job} is }
+\end{itemize}
 
 \chapter{Data Management}
 \label{sec:DataManagement}
