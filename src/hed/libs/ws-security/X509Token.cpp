@@ -352,7 +352,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     /* the following code could be necessary if we need <dsig:X509Data/>
     if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
       xmlSecDSigCtxDestroy(dsigCtx);
-      std::cerr<<"Can not cert key"<<std::endl; return;	
+      std::cerr<<"Can not load certificate"<<std::endl; return;	
     }
     */
     if (xmlSecDSigCtxSign(dsigCtx, signature) < 0) {
@@ -519,11 +519,12 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     namebio = BIO_new(BIO_s_mem());
     X509_NAME_print_ex(namebio, X509_get_issuer_name(cert), 0, XN_FLAG_SEP_CPLUS_SPC);
     char name[256]; 
+    memset(name,0,256);
     int length = BIO_read(namebio, name, 256);
     //char* name = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
 
     std::string issuer_name(name);
-    OPENSSL_free(name);
+    //OPENSSL_free(name);
     int serial = (int) ASN1_INTEGER_get(X509_get_serialNumber(cert));
     std::stringstream ss; std::string serial_number;
     ss<<serial; ss>>serial_number;

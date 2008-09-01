@@ -37,6 +37,7 @@
 #include <arc/DateTime.h>
 #include <arc/Base64.h>
 #include <arc/StringConv.h>
+#include <arc/GUID.h>
 
 #include "../common/XmlSecUtils.h"
 #include "SAMLToken.h"
@@ -69,6 +70,8 @@ bool SAMLToken::Check(SOAPEnvelope& soap) {
     std::cerr<<"No SAMLToken element in SOAP Header"<<std::endl;
     return false;
   };
+  if((bool)(wsse["saml:Assertion"])) samlversion = SAML1;
+  else samlversion = SAML2;
   return true;
 }
 
@@ -76,52 +79,73 @@ SAMLToken::operator bool(void) {
   return (bool)header;
 }
 
-SAMLToken::SAMLToken(SOAPEnvelope& soap, SAMLTokenVersion samltokenversion) : SOAPEnvelope(soap){
-  //if(!Check(soap)){
-  //  return;    
-  //}
+SAMLToken::SAMLToken(SOAPEnvelope& soap) : SOAPEnvelope(soap){
+  if(!Check(soap)){
+    return;
+  }
+
   if(!init_xmlsec()) return;
   assertion_signature_nd = NULL;
   wsse_signature_nd = NULL; 
-  if(samltokenversion == SAML1) {
-    // Apply predefined namespace prefix
-    Arc::NS ns;
-    ns["wsse"]=WSSE_NAMESPACE;
-    ns["wsse11"]=WSSE11_NAMESPACE;
-    ns["wsu"]=WSU_NAMESPACE;
-    header.Namespaces(ns);
-    XMLNode st = header["wsse:Security"];   
 
-    XMLNode wsse_signature = st["Signature"];
-    XMLNode assertion = st["Assertion"];//["saml:Assertion"];
-    XMLNode assertion_signature = assertion["Signature"];
-    xmlNodePtr bodyPtr = ((SAMLToken*)(&body))->node_;
-    xmlDocPtr docPtr = bodyPtr->doc;
-    xmlNodePtr assertionPtr = ((SAMLToken*)(&assertion))->node_;
+  // Apply predefined namespace prefix
+  Arc::NS ns;
+  ns["wsse"]=WSSE_NAMESPACE;
+  ns["wsse11"]=WSSE11_NAMESPACE;
+  ns["wsu"]=WSU_NAMESPACE;
+  header.Namespaces(ns);
 
-    //Assertion reference
-    xmlChar* id = xmlGetProp(assertionPtr, (xmlChar *)"AssertionID");
-    xmlAttrPtr id_attr = NULL; id_attr = xmlHasProp(assertionPtr, (xmlChar *)"AssertionID");
-    if(id_attr == NULL) std::cerr<<"Can not find AssertionID attribute"<<std::endl;
+  XMLNode st = header["wsse:Security"];   
+  XMLNode wsse_signature = st["Signature"];
+  XMLNode assertion;
+  if(samlversion == SAML1) assertion = st["saml:Assertion"];
+  else assertion = st["saml2:Assertion"];
+  XMLNode assertion_signature = assertion["Signature"];
+  xmlNodePtr bodyPtr = ((SAMLToken*)(&body))->node_;
+  xmlDocPtr docPtr = bodyPtr->doc;
+  xmlNodePtr assertionPtr = ((SAMLToken*)(&assertion))->node_;
+
+  xmlChar* id;
+  xmlAttrPtr id_attr;
+  //Assertion reference
+  if(samlversion == SAML1) {
+    id = xmlGetProp(assertionPtr, (xmlChar *)"AssertionID");
+    id_attr = NULL; id_attr = xmlHasProp(assertionPtr, (xmlChar *)"AssertionID");
+    if(id_attr == NULL) std::cerr<<"Can not find AssertionID attribute from saml:Assertion"<<std::endl;
     xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
     xmlFree(id);
-    //Signature under saml:Assertion
-    assertion_signature_nd = ((SAMLToken*)(&assertion_signature))->node_;
-    if(!assertion_signature_nd) { std::cerr<<"No Signature node in saml:Assertion"<<std::endl; return; }
-
-    //Body reference
-    id = xmlGetProp(bodyPtr, (xmlChar *)"Id");
-    id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
-    xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
-    xmlFree(id);
-    //Signature under wsse:Security
-    wsse_signature_nd = ((SAMLToken*)(&wsse_signature))->node_; 
-    if(!wsse_signature_nd) { std::cerr<<"No Signature node in wsse:Security"<<std::endl; return; }
-
-    //Get the public key from the assertion, the key has been used to sign soap body msg by the attesting entity
-    pubkey_str = (std::string)(assertion["saml:AttributeStatement"]["saml:Subject"]["saml:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
-    x509data = assertion_signature["KeyInfo"]["X509Data"];
   }
+  else {
+    id = xmlGetProp(assertionPtr, (xmlChar *)"ID");
+    id_attr = NULL; id_attr = xmlHasProp(assertionPtr, (xmlChar *)"ID");
+    if(id_attr == NULL) std::cerr<<"Can not find ID attribute from saml2:Assertion"<<std::endl;
+    xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
+    xmlFree(id);
+  }
+
+  //Signature under saml:Assertion
+  assertion_signature_nd = ((SAMLToken*)(&assertion_signature))->node_;
+  if(!assertion_signature_nd) { std::cerr<<"No Signature node in saml:Assertion"<<std::endl; return; }
+
+  //Body reference
+  id = xmlGetProp(bodyPtr, (xmlChar *)"Id");
+  id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
+  xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
+  xmlFree(id);
+  //Signature under wsse:Security
+  wsse_signature_nd = ((SAMLToken*)(&wsse_signature))->node_; 
+  if(!wsse_signature_nd) { std::cerr<<"No Signature node in wsse:Security"<<std::endl; return; }
+
+  //Get the public key from the assertion, the key has been used to sign soap body msg by the attesting entity
+  //saml:Assetion
+  if(samlversion == SAML1) {
+    pubkey_str = (std::string)(assertion["saml:AttributeStatement"]["saml:Subject"]["saml:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
+  }
+  //saml2:Assertion
+  else {
+    pubkey_str = (std::string)(assertion["saml2:Statement"]["saml2:Subject"]["saml2:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
+  }
+  x509data = assertion_signature["KeyInfo"]["X509Data"];
 
 } 
 
@@ -186,9 +210,9 @@ bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capat
 }
 
 
-SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, SAMLTokenVersion samltokenversion) : SOAPEnvelope (soap) {
+SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, SAMLVersion saml_version) : SOAPEnvelope (soap), samlversion(saml_version) {
   if(!init_xmlsec()) return;
-  if(samltokenversion == SAML1) {
+  if(samlversion == SAML2) {
     // Apply predefined namespace prefix
     Arc::NS ns, header_ns, assertion_ns;
     ns = envelope.Namespaces();
@@ -198,42 +222,44 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     header_ns["wsse11"]=WSSE11_NAMESPACE;
     header_ns["ds"]=DSIG_NAMESPACE;
     header.Namespaces(header_ns);
-    assertion_ns["saml"] = SAML_NAMESPACE;
+    assertion_ns["saml2"] = SAML2_NAMESPACE;
     // Insert the wsse:Security element
     XMLNode wsse = get_node(header,"wsse:Security");
 
     /*****************************/
     // Generate the saml assertion
-    XMLNode assertion = get_node(wsse, "saml:Assertion");
+    // Currently only saml2 is created
+    XMLNode assertion = get_node(wsse, "saml2:Assertion");
     assertion.Namespaces(assertion_ns);
-    //assertion.Name("saml:Assertion");
-    assertion.NewAttribute("AssertionID") ="Assertion" ;//"_a75adf55-01d7-40cc-929f-dbd8372ebdfc";
+    assertion.Name("saml2:Assertion");
+    std::string assertion_id = Arc::UUID();
+    assertion.NewAttribute("ID") = assertion_id;
     assertion.NewAttribute("IssueInstant") = "2008-07-12T16:53:33.173Z";
     assertion.NewAttribute("Issuer") = "www.knowarc.org";
-    assertion.NewAttribute("MajorVersion") = "1";
-    assertion.NewAttribute("MinorVersion") = "1";
+    //assertion.NewAttribute("MajorVersion") = "1";
+    //assertion.NewAttribute("MinorVersion") = "1";
     
-    XMLNode condition = get_node(assertion, "saml:Conditions");
+    XMLNode condition = get_node(assertion, "saml2:Conditions");
     condition.NewAttribute("NotBefore") = "2008-07-12T16:53:33.173Z";
     condition.NewAttribute("NotOnOrAfter") = "2008-07-19T16:53:33.173Z";
 
-    XMLNode statement = get_node(assertion, "saml:AttributeStatement");
+    XMLNode statement = get_node(assertion, "saml2:Statement");
     
-    XMLNode subject = get_node(statement, "saml:Subject");
-    XMLNode nameid = get_node(subject, "saml:NameIdentifier");
+    XMLNode subject = get_node(statement, "saml2:Subject");
+    XMLNode nameid = get_node(subject, "saml2:NameID");
     nameid.NewAttribute("NameQualifier") = "test.uio.no";
     nameid.NewAttribute("Format") = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName";
     nameid = "CN=test, OU=uio, O=knowarc";
 
-    XMLNode subjectconfirmation = get_node(subject, "saml:SubjectConfirmation");
-    get_node(subjectconfirmation, "saml:ConfirmationMethod") = "urn:oasis:names:tc:SAML:1.0:cm:holder-of-key";
+    XMLNode subjectconfirmation = get_node(subject, "saml2:SubjectConfirmation");
+    get_node(subjectconfirmation, "saml2:ConfirmationMethod") = "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key";
     XMLNode keyinfo = get_node(subjectconfirmation, "ds:KeyInfo");
     XMLNode keyvalue = get_node(keyinfo, "ds:KeyValue");
     //Put the pubkey as the keyvalue
     keyvalue = get_key_from_certfile(certfile.c_str()); 
 
     //Add some attribute here
-    XMLNode attribute = get_node(statement, "saml:Attribute");
+    XMLNode attribute = get_node(statement, "saml2:Attribute");
     attribute.NewAttribute("AttributeName") = "email";
     attribute.NewAttribute("AttributeNamespace") = "http://www.knowarc.org/attributes";
     
@@ -251,8 +277,8 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     //Add reference for signature
     xmlDocPtr docPtr = assertion_nd->doc;
     xmlChar* id = NULL;
-    id =  xmlGetProp(assertion_nd, (xmlChar *)"AssertionID");
-    if(!id) { std::cerr<<"There is not AssertionID attribute in assertion"<<std::endl; return; }
+    id =  xmlGetProp(assertion_nd, (xmlChar *)"ID");
+    if(!id) { std::cerr<<"There is not Assertion ID attribute in assertion"<<std::endl; return; }
 
     std::string assertion_uri; assertion_uri.append("#"); assertion_uri.append((char*)id);
 
@@ -261,7 +287,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformEnvelopedId);
     xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformExclC14NId);
   
-    xmlAttrPtr id_attr = xmlHasProp(assertion_nd, (xmlChar *)"AssertionID");
+    xmlAttrPtr id_attr = xmlHasProp(assertion_nd, (xmlChar *)"ID");
     xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
     xmlFree(id);
 
@@ -325,11 +351,11 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     XMLNode keyinfo_nd = wsse["Signature"]["KeyInfo"];
     XMLNode st_ref_nd = keyinfo_nd.NewChild("wsse:SecurityTokenReference");
     st_ref_nd.NewAttribute("wsu:Id") = "STR1";
-    st_ref_nd.NewAttribute("wsse11:TokenType")="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1";
+    st_ref_nd.NewAttribute("wsse11:TokenType")="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0";
     XMLNode keyid_nd = st_ref_nd.NewChild("wsse:KeyIdentifier");
     keyid_nd.NewAttribute("wsu:Id") = "abcde"; //not specified in the specification
-    keyid_nd.NewAttribute("ValueType")="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLAssertionID"; 
-    keyid_nd = (std::string)(assertion.Attribute("AssertionID"));
+    keyid_nd.NewAttribute("ValueType")="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLID"; 
+    keyid_nd = (std::string)(assertion.Attribute("ID"));
 
     //Sign the assertion
     dsigCtx = xmlSecDSigCtxCreate(NULL);

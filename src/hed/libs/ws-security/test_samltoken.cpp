@@ -26,7 +26,7 @@ int main(void) {
 
   /*Generate the signature SAML Token*/
   Arc::SOAPEnvelope soap1(xml);
-  Arc::SAMLToken st1(soap1, cert, key, Arc::SAMLToken::SAML1);
+  Arc::SAMLToken st1(soap1, cert, key, Arc::SAMLToken::SAML2);
 
   std::string str;
   st1.GetXML(str);
@@ -34,7 +34,7 @@ int main(void) {
 
   /*Parse the SAML Token*/
   Arc::SOAPEnvelope soap2(str);
-  Arc::SAMLToken st2(soap2, Arc::SAMLToken::SAML1);
+  Arc::SAMLToken st2(soap2);
   if(!st2) {
     std::cout<<"Failed parsing previously generated SAMLToken"<<std::endl<<std::endl;
   } else if(!(st2.Authenticate("ca.pem", ""))) {
