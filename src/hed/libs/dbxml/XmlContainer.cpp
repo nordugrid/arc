@@ -32,11 +32,25 @@ XmlContainer::XmlContainer(const std::string &db_path, const std::string &db_nam
     // setup internal deadlock detection mechanizm
     env_->set_lk_detect(DB_LOCK_DEFAULT);
     db_ = new Db(env_, 0);
+    DbTxn *tid = NULL;
+    try {
 #if (DB_VERSION_MAJOR < 4) || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR == 0)
-    db_->open(db_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_THREAD, 0644);
+        db_->open(db_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_THREAD, 0644);
 #else
-    db_->open(NULL, db_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_THREAD, 0644);
+        env_->txn_begin(NULL, &tid, 0);
+        db_->open(tid, db_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_THREAD, 0644);
+        tid->commit(0);
 #endif
+    } catch (DbException &e) {
+        try {
+            tid->abort();
+            logger_.msg(Arc::ERROR, "Cannot open database");
+        } catch (DbException &e) {
+            logger_.msg(Arc::ERROR, "Cannot abort transaction %s", e.what()); 
+        }
+        db_ = NULL;
+        return;
+    }
 }
 
 XmlContainer::~XmlContainer(void)
@@ -53,7 +67,7 @@ XmlContainer::~XmlContainer(void)
     }
 }
 
-void
+bool
 XmlContainer::put(const std::string &name, const std::string &content)
 {
     void *k = (void *)name.c_str();
@@ -61,18 +75,29 @@ XmlContainer::put(const std::string &name, const std::string &content)
     Dbt key(k, name.size() + 1);
     Dbt value(v, content.size() + 1);
     DbTxn *tid = NULL;
-    try {
-        env_->txn_begin(NULL, &tid, 0);
-    } catch (std::exception &e) {
-        logger_.msg(Arc::ERROR, "Error init transaction: %s", e.what());
-        return;
-    }
-    try {
-        db_->put(tid, &key, &value, 0);
-        tid->commit(0);
-    } catch (DbException &e) {
-        logger_.msg(Arc::ERROR, "Error to put data to xml database: %s", e.what());
-        tid->abort();
+    while (true) {
+        try {
+            env_->txn_begin(NULL, &tid, 0);
+            db_->put(tid, &key, &value, 0);
+            tid->commit(0);
+            return true;
+        } catch (DbDeadlockException &e) {
+            try { 
+                tid->abort();
+                logger_.msg(Arc::INFO, "put: deadlock handling: try again");
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "put: cannot abort transaction: %s", e.what());
+                return false;
+            }
+        } catch (DbException &e) {
+            logger_.msg(Arc::ERROR, "put: %s", e.what());
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "put: cannot abort transaction: %s", e.what());
+            }
+            return false;
+        }
     }
 }
 
@@ -84,24 +109,34 @@ XmlContainer::get(const std::string &name)
     Dbt value;
     value.set_flags(DB_DBT_MALLOC);
     DbTxn *tid = NULL;
-    try {
-        env_->txn_begin(NULL, &tid, 0);
-    } catch (std::exception &e) {
-        logger_.msg(Arc::ERROR, "Error init transaction: %s", e.what());
-        return "";
-    }
-    try {
-        if (db_->get(tid, &key, &value, 0) != DB_NOTFOUND) {
-            std::string ret((char *)value.get_data());
-            free(value.get_data());
+    while (true) {
+        try {
+            env_->txn_begin(NULL, &tid, 0);
+            if (db_->get(tid, &key, &value, 0) != DB_NOTFOUND) {
+                std::string ret((char *)value.get_data());
+                free(value.get_data());
+                tid->commit(0);
+                return ret;
+            }
             tid->commit(0);
-            return ret;
+            return "";
+        } catch (DbDeadlockException &e) {
+            try {
+                tid->abort();
+                logger_.msg(Arc::INFO, "get: deadlock handling, try again");
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "get: cannot abort transaction: %s", e.what());
+                return "";
+            }
+        } catch (DbException &e) {
+            logger_.msg(Arc::ERROR, "get: %s", e.what());
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "get: cannot abort transaction: %s", e.what());
+            }
+            return "";
         }
-        tid->commit(0);
-        return "";
-    } catch (DbException &e) {
-        logger_.msg(Arc::ERROR, "Error to put data to xml database: %s", e.what());
-        tid->abort();
     }
 }
 
@@ -111,18 +146,28 @@ XmlContainer::del(const std::string &name)
     void *k = (void *)name.c_str();
     Dbt key(k, name.size() + 1);
     DbTxn *tid = NULL;
-    try {
-        env_->txn_begin(NULL, &tid, 0);
-    } catch (std::exception &e) {
-        logger_.msg(Arc::ERROR, "Error init transaction: %s", e.what());
-        return;
-    }
-    try {
-        db_->del(tid, &key, 0);
-        tid->commit(0);
-    } catch (DbException &e) {
-        logger_.msg(Arc::ERROR, "Error to put data to xml database: %s", e.what());
-        tid->abort();
+    while (true) {
+        try {
+            env_->txn_begin(NULL, &tid, 0);
+            db_->del(tid, &key, 0);
+            tid->commit(0);
+        } catch (DbDeadlockException &e) {
+            try {
+                tid->abort();
+                logger_.msg(Arc::INFO, "del: deadlock handling, try again");
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "del: cannot abort transaction: %s", e.what());
+                return;
+            }
+        } catch (DbException &e) {
+            logger_.msg(Arc::ERROR, "del: %s", e.what());
+            try {
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "del: cannot abort transaction: %s", e.what());
+            }
+            return;
+        }
     }
 
 }
@@ -140,39 +185,53 @@ XmlContainer::end_update(void)
 std::vector<std::string> 
 XmlContainer::get_doc_names(void)
 {
-    std::vector<std::string> result;
     Dbc *cursor = NULL;
+    Dbt key, value;
+    key.set_flags(0);
+    value.set_flags(0);
     DbTxn *tid;
-    try {
+    std::vector<std::string> empty_result;
+    while (true) {
+        std::vector<std::string> result;
         env_->txn_begin(NULL, &tid, 0);
-    } catch (std::exception &e) {
-        logger_.msg(Arc::ERROR, "Error init transaction: %s", e.what());
-        return result;
-    }
-    try {
-        db_->cursor(tid, &cursor, 0);
-        Dbt key, value;
-        key.set_flags(0);
-        value.set_flags(0);
-        int ret;
-        for (;;) {
-            ret = cursor->get(&key, &value, DB_NEXT);
-            if (ret == DB_NOTFOUND) {
-                break;
+        try {
+            db_->cursor(tid, &cursor, 0);
+            int ret;
+            for (;;) {
+                ret = cursor->get(&key, &value, DB_NEXT);
+                if (ret == DB_NOTFOUND) {
+                    break;
+                }
+                char *k = (char *)key.get_data();
+                result.push_back(std::string(k));
             }
-            char *k = (char *)key.get_data();
-            result.push_back(std::string(k));
-        }
-        cursor->close();
-        tid->commit(0);
-    } catch (DbException &e) {
-        logger_.msg(Arc::ERROR, "Error during the transaction: %s", e.what());
-        if (cursor != NULL) {
             cursor->close();
+            tid->commit(0);
+            return result;
+        } catch (DbDeadlockException &e) {
+            try {
+                if (cursor != NULL) {
+                    cursor->close();
+                }
+                tid->abort();
+                logger_.msg(Arc::INFO, "get_doc_name: deadlock handling, try again");
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "get_doc_names: cannot abort transaction: %s", e.what());
+                return empty_result;
+            }
+        } catch (DbException &e) {
+            logger_.msg(Arc::ERROR, "Error during the transaction: %s", e.what());
+            try {
+                if (cursor != NULL) {
+                    cursor->close();
+                }
+                tid->abort();
+            } catch (DbException &e) {
+                logger_.msg(Arc::ERROR, "get_doc_names: cannot abort transaction: %s", e.what());
+            }
+            return empty_result;
         }
-        tid->abort();
     }
-    return result;
 }
 
 } // namespace
