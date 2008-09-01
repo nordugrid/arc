@@ -22,7 +22,7 @@ public class EchoService {
     public MCC_Status process(SOAPMessage inmsg, SOAPMessage outmsg) {
         System.out.println("EchoService process with messages called");
         // XXX: error handling
-        PayloadSOAP in_payload = inmsg.Payload();
+        SOAPEnvelope in_payload = inmsg.Payload();
         if (in_payload == null) {
             return new MCC_Status(StatusKind.GENERIC_ERROR);
         }
