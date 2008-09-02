@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  if (params.empty() && all==false) {
+  if (params.empty() && joblist.empty() && !all) {
     logger.msg(Arc::ERROR,
 	       "No valid jobids given");
     return 1;
