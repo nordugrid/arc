@@ -17,17 +17,49 @@ namespace Arc {
  * use SAML Token functionality, we only need to configure the samltoken
  * handler into service and client.
  * Currently, only a minor part of the specification has been implemented.
+ * 
  * About how to identify and reference security token for signing message,
  * currently, only the "SAML Assertion Referenced from KeyInfo" (part 3.4.2 of 
  * WS-Security SAML Token Profile v1.1 specification) is supported, which means
  * the implementation can only process SAML assertion "referenced from KeyInfo",
  * and also can only generate SAML Token with SAML assertion "referenced from KeyInfo".
  * More complete support need to implement.
+ * 
  * About subject confirmation method, the implementation can process "hold-of-key"
  * (part 3.5.1 of WS-Security SAML Token Profile v1.1 specification) subject 
  * subject confirmation method.
- * About SAML vertion, the implementation can process SAML assertion with SAML version 1.1 and 2.0;
- * can only generate SAML assertion with SAML vertion 2.0.
+ * 
+ * About SAML vertion, the implementation can process SAML assertion with SAML 
+ * version 1.1 and 2.0; can only generate SAML assertion with SAML vertion 2.0.
+ *
+ * In the SAML Token profile, for the hold-of-key subject confirmation method, 
+ * there are three interaction parts: the attesting entity, the relying party
+ * and the issuing authority. In the hold-of-key subject confirmation method, 
+ * it is the attesting entity's subject identity which will be inserted into 
+ * the SAML assertion.
+ *
+ * Firstly the attesting entity authenticates to issuing authority by using some 
+ * authentication scheme such as WSS x509 Token profile (Alterbatively the 
+ * usename/password authentication scheme or other different authentication scheme 
+ * can also be used, unless the issuing authority can retrive the key from a 
+ * trusted certificate server after firmly establishing the subject's identity 
+ * under the username/password scheme). So then issuing authority is able to 
+ * make a definitive statement (sign a SAML assertion) about an act of 
+ * authentication that has already taken place. 
+ *
+ * The attesting entity gets the SAML assertion and then signs the soap message together
+ * with the assertion by using its private key (the relevant certificate has been authenticated
+ * by issuing authority, and its relevant public key has been put into SubjectConfirmation
+ * element under saml assertion by issuing authority. Only the actual owner of the 
+ * saml assertion can do this, as only the subject possesses the private key paired 
+ * with the public key in the assertion. This establishes an irrefutable connection 
+ * between the author of the SOAP message and the assertion describing an authentication event.)
+ *
+ * The relying party is supposed to trust the issuing authority. When it receives a message
+ * from the asserting entity, it will check the saml assertion based on its 
+ * predetermined trust relationship with the SAML issuing authority, and check
+ * the signature of the soap message based on the public key in the saml assertion
+ * without directly trust relationship with attesting entity (subject owner).
  */
 
 class SAMLToken : public SOAPEnvelope {
