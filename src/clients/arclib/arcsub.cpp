@@ -141,23 +141,35 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
       return;
     }
 
-    Arc::Submitter *submitter = TarGen.FoundTargets().begin()->GetSubmitter();
+    for (std::list<Arc::ExecutionTarget>::const_iterator target =
+	   TarGen.FoundTargets().begin();
+	 target != TarGen.FoundTargets().end(); target++) {
 
-    std::cout << Arc::IString("Submitting jobs")<< std::endl;
-    std::pair<Arc::URL, Arc::URL> jobid;
-    jobid = submitter->Submit(*it);
+      Arc::Submitter *submitter = target->GetSubmitter();
 
-    Arc::XMLNode ThisJob = JobIdStorage.NewChild("Job");
-    ThisJob.NewChild("id") = jobid.first.str();
-    ThisJob.NewChild("name") = "test";
-    ThisJob.NewChild("submissiontime") = now.str();
-    ThisJob.NewChild("flavour") = TarGen.FoundTargets().begin()->GridFlavour;
-    ThisJob.NewChild("source") = jobid.second.str();
-    ThisJob.NewChild("cluster") = TarGen.FoundTargets().begin()->Cluster.str();;
+      Arc::NS ns;
+      Arc::XMLNode info(ns, "Job");
+      if (!submitter->Submit(*it, info)) {
+	logger.msg(Arc::ERROR, "Submission to %s failed", target->url.str());
+	continue;
+      }
 
-    std::cout << Arc::IString("Job submitted with jobid: %s", jobid.first.str())<< std::endl;
+      if (it->getXML()["JobIdentification"]["JobName"])
+	info.NewChild("Name") =
+	  (std::string) it->getXML()["JobIdentification"]["JobName"];
+      info.NewChild("SubmissionTime") = now.str();
+      info.NewChild("Flavour") = TarGen.FoundTargets().begin()->GridFlavour;
+      info.NewChild("Cluster") = TarGen.FoundTargets().begin()->Cluster.str();
 
-  } //end loop over JobDescriptions
+      JobIdStorage.NewChild("Job").Replace(info);
+
+      std::cout << Arc::IString("Job submitted with jobid: %s",
+				(std::string) info["JobID"]) << std::endl;
+
+      break;
+    }
+
+  } // end loop over JobDescriptions
 
   if (JobListFile.empty()) {
     Arc::FileLock(uc.JobsFile());

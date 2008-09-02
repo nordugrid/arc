@@ -16,7 +16,7 @@ namespace Arc {
   
   TargetGenerator::TargetGenerator(const std::list<std::string>& clusterselect,
 				   const std::list<std::string>& /* clusterreject */,
-				   const std::list<std::string>& giisurls) 
+				   const std::list<std::string>& indexurls) 
     : threadCounter(0){
     
     Arc::ACCConfig acccfg;
@@ -61,7 +61,7 @@ namespace Arc {
     
     //if no cluster url are given next steps are index servers (giis'es in ARC0)
     if (!ClustersSpecified){ //means that -c option takes priority over -g
-      for (std::list<std::string>::const_iterator it = giisurls.begin(); it != giisurls.end(); it++){      
+      for (std::list<std::string>::const_iterator it = indexurls.begin(); it != indexurls.end(); it++){      
 	
 	size_t colon = (*it).find_first_of(":");
 	std::string GridFlavour = (*it).substr(0, colon);
@@ -123,7 +123,7 @@ namespace Arc {
     logger.msg(INFO, "Number of Targets found: %ld", foundTargets.size());
   }
 
-  const std::list<ExecutionTarget> TargetGenerator::FoundTargets() const {
+  const std::list<ExecutionTarget>& TargetGenerator::FoundTargets() const {
     return foundTargets;
   }
 

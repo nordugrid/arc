@@ -17,7 +17,7 @@ namespace Arc {
 
   public:
     static ACC *Instance(Config *cfg, ChainContext *cxt);
-    std::pair<URL, URL> Submit(Arc::JobDescription& jobdesc);
+    bool Submit(JobDescription& jobdesc, XMLNode &info);
   };
 
 } // namespace Arc

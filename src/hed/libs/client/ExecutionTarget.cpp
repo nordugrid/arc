@@ -68,10 +68,9 @@ namespace Arc {
     SubmitterComp.NewChild("Source") = Source.str();
     SubmitterComp.NewChild("MappingQueue") = MappingQueue;
 
-    const_cast<ExecutionTarget *>(this)->loader = new Loader(&cfg);
+    const_cast<ExecutionTarget*>(this)->loader = new Loader(&cfg);
 
-    return dynamic_cast<Submitter *>(loader->getACC("submitter"));
-
+    return dynamic_cast<Submitter*>(loader->getACC("submitter"));
   }
 
   void ExecutionTarget::Print(bool longlist) const{

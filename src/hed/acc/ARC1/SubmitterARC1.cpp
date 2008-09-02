@@ -1,8 +1,10 @@
-#include <iostream>
-#include <fstream>
-#include <stdlib.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string>
 
+#include <arc/client/JobDescription.h>
 #include <arc/client/UserConfig.h>
 
 #include "SubmitterARC1.h"
@@ -21,38 +23,34 @@ namespace Arc {
     return new SubmitterARC1(cfg);
   }
 
-  std::pair<URL, URL> SubmitterARC1::Submit(JobDescription& jobdesc) {
+  bool SubmitterARC1::Submit(JobDescription& jobdesc, XMLNode &info) {
 
     MCCConfig cfg;
     UserConfig uc;
     const XMLNode cfgtree = uc.ConfTree();
     cfg.AddProxy(cfgtree["ProxyPath"]);
-    AREXClient ac(SubmissionEndpoint, cfg);
+    AREXClient ac(submissionEndpoint, cfg);
 
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "JSDL");
     std::istringstream jsdlfile(jobdescstring);
 
     AREXFileList files;
-    std::string jobid = ac.submit(jsdlfile, files, false);
+    std::string jobid = ac.submit(jsdlfile, files,
+				  submissionEndpoint.Protocol() == "https");
 
     XMLNode jobidx(jobid);
     URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
 
-    std::cout << "jobid: " << jobid << std::endl;
-    std::cout << "session URL: " << session_url << std::endl;
-
-    //Upload local input files.
-    std::vector<std::pair<std::string, std::string> > SourceDestination =
-      jobdesc.getUploadableFiles();
-
-    if (!SourceDestination.empty()){
-      bool uploaded = putFiles(SourceDestination, session_url.str());
-      if (!uploaded)
-	logger.msg(ERROR, "Failed uploading local input files");	
+    if (!PutFiles(jobdesc, session_url)) {
+      logger.msg(ERROR, "Failed uploading local input files");
+      return false;
     }
 
-    return std::make_pair(session_url, SubmissionEndpoint);
+    info.NewChild("JobID") = session_url.str();
+    info.NewChild("InfoEndpoint") = session_url.str();
+
+    return true;
   }
 
 } // namespace Arc

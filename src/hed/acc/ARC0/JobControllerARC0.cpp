@@ -1,55 +1,62 @@
-#include "JobControllerARC0.h"
-#include "FTPControl.h"
-#include <arc/XMLNode.h>
-#include <arc/ArcConfig.h>
-#include <arc/data/DataBufferPar.h>
-#include <arc/StringConv.h>
-#include <arc/Thread.h>
-
 #include <map>
-#include <iostream>
-#include <algorithm>
+
+#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataHandle.h>
+#include <arc/StringConv.h>
+#include <arc/XMLNode.h>
+
+#include "FTPControl.h"
+#include "JobControllerARC0.h"
 
 namespace Arc {
 
-  Logger JobControllerARC0::logger(Logger::getRootLogger(), "JobControllerARC0");
+  Logger JobControllerARC0::logger(JobController::logger, "ARC0");
 
-  JobControllerARC0::JobControllerARC0(Arc::Config *cfg) : JobController(cfg, "ARC0") {}
-  
+  JobControllerARC0::JobControllerARC0(Config *cfg)
+    : JobController(cfg, "ARC0") {}
+
   JobControllerARC0::~JobControllerARC0() {}
 
-  ACC *JobControllerARC0::Instance(Config *cfg, ChainContext *) {
+  ACC *JobControllerARC0::Instance(Config *cfg, ChainContext*) {
     return new JobControllerARC0(cfg);
   }
-  
-  void JobControllerARC0::GetJobInformation(){
 
-    //1. Sort jobs according to host and base dn (path)
+  void JobControllerARC0::GetJobInformation() {
+
+    // 1. Sort jobs according to host and base dn (path)
+
     std::list<Job>::iterator iter;
-    std::map< std::string, std::list<Job*> > SortedByHost; 
+    std::map< std::string, std::list<Job*> > SortedByHost;
 
-    for(iter=JobStore.begin();iter != JobStore.end(); iter++){
-      SortedByHost[iter->InfoEndpoint.Host()+"/"+iter->InfoEndpoint.Path()].push_back(&*iter);  
-    }
-    
+    for(iter = JobStore.begin(); iter != JobStore.end(); iter++)
+      SortedByHost[iter->InfoEndpoint.Host() + "/" +
+		   iter->InfoEndpoint.Path()].push_back(&*iter);
+
     //Actions below this point could(should) be threaded in the future
 
     std::map< std::string, std::list<Job*> >::iterator HostIterator;
 
-    for(HostIterator = SortedByHost.begin(); HostIterator != SortedByHost.end(); HostIterator++){
-      //2. Copy info endpoint url from one of the jobs      
+    for(HostIterator = SortedByHost.begin();
+	HostIterator != SortedByHost.end(); HostIterator++) {
+
+      // 2. Copy info endpoint url from one of the jobs      
+
       URL FinalURL = (*HostIterator->second.begin())->InfoEndpoint;
-      //3a. Prepare new filter      
+
+      // 3a. Prepare new filter      
+
       std::string filter = "(|";
-      std::list<Job*>::iterator it;      
-      for(it = HostIterator->second.begin(); it != HostIterator->second.end(); it++){
+
+      for(std::list<Job*>::iterator it = HostIterator->second.begin();
+	  it != HostIterator->second.end(); it++)
 	filter += (*it)->InfoEndpoint.LDAPFilter();
-      }
       filter += ")";
-      //3b. Change filter of the final url      
+
+      // 3b. Change filter of the final url      
+
       FinalURL.ChangeLDAPFilter(filter);
       
-      //4. Read from information source
+      // 4. Read from information source
       
       DataHandle handler(FinalURL);
       DataBufferPar buffer;
@@ -71,10 +78,11 @@ namespace Arc {
       if (!handler->StopReading())
 	return;
 
-      //5. Fill jobs with information
+      // 5. Fill jobs with information
       XMLNode XMLresult(result);
 
-      for(it = HostIterator->second.begin(); it != HostIterator->second.end(); it++){
+      for(std::list<Job*>::iterator it = HostIterator->second.begin();
+	  it != HostIterator->second.end(); it++){
 	XMLNodeList JobXMLInfoList = XMLresult.XPathLookup("//nordugrid-job-globalid"
 							   "[nordugrid-job-globalid='"+(*it)->JobID.str()+"']", NS());
 	if (JobXMLInfoList.empty())
@@ -159,7 +167,8 @@ namespace Arc {
 
   } //end GetJobInformation
 
-  bool JobControllerARC0::GetThisJob(Job ThisJob, std::string downloaddir){
+  bool JobControllerARC0::GetThisJob(Job ThisJob,
+				     const std::string& downloaddir) {
     
     logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
     bool SuccesfulDownload = true;
@@ -169,13 +178,8 @@ namespace Arc {
 
       std::list<std::string> downloadthese = GetDownloadFiles(source);
 
-      std::cout<<"List of downloadable files:"<<std::endl;      
-      std::cout<<"Number of files: "<< downloadthese.size()<<std::endl;      
-
-      
       //loop over files
       for(std::list<std::string>::iterator i = downloadthese.begin();i != downloadthese.end(); i++){
-	std::cout << *i <<std::endl;	
 	std::string src = ThisJob.JobID.str() + "/"+*i;
 	std::string path_temp = ThisJob.JobID.Path(); 
 	size_t slash = path_temp.find_first_of("/");
@@ -195,16 +199,14 @@ namespace Arc {
 
     return SuccesfulDownload;
 
-  }//end GetThisJob
+  } // end GetThisJob
 
-  bool JobControllerARC0::CleanThisJob(Job ThisJob, bool force){
+  bool JobControllerARC0::CleanThisJob(Job ThisJob, bool force) {
 
     logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
 
-    //connect
-    FTPControl ftpCtrl;
-    bool gotConnected = ftpCtrl.connect(ThisJob.JobID, 500);
-    if(!gotConnected){
+    FTPControl ctrl;
+    if (!ctrl.Connect(ThisJob.JobID, 500)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -214,121 +216,109 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos+1);
     
-    //send commands
-    bool CommandSent = ftpCtrl.sendCommand("CWD " + jobpath, 500); 
-    if(!CommandSent){
+    if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
       logger.msg(ERROR, "Failed sending CWD command for job cleaning");
       return false;	    
     }
-    CommandSent = ftpCtrl.sendCommand("RMD " + jobidnum, 500); 
-    if(!CommandSent){
+
+    if (!ctrl.SendCommand("RMD " + jobidnum, 500)) {
       logger.msg(ERROR, "Failed sending RMD command for job cleaning");
-      return false;	    
-    }
-    
-    //disconnect
-    bool gotDisconnected = ftpCtrl.disconnect(500);
-    if(!gotDisconnected){
-      logger.msg(ERROR, "Failed to disconnect after job cleaning");
-      return false;	    
+      return false;
     }
 
-    logger.msg(DEBUG, "Job cleaning succesful");
+    if (!ctrl.Disconnect(500)) {
+      logger.msg(ERROR, "Failed to disconnect after job cleaning");
+      return false;
+    }
+
+    logger.msg(DEBUG, "Job cleaning successful");
+
     return true;
 
+  } // end CleanThisJob
 
-  }//end CleanThisJob    
-
-  bool JobControllerARC0::CancelThisJob(Job ThisJob){
+  bool JobControllerARC0::CancelThisJob(Job ThisJob) {
     
     logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
-    
-    //connect
-    FTPControl ftpCtrl;
-    bool gotConnected = ftpCtrl.connect(ThisJob.JobID, 500);
-    if(!gotConnected){
+
+    FTPControl ctrl;
+    if (!ctrl.Connect(ThisJob.JobID, 500)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
-    
+
     std::string path = ThisJob.JobID.Path();
     std::string::size_type pos = path.rfind('/');
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos+1);
-    
-    //send commands
-    bool CommandSent = ftpCtrl.sendCommand("CWD " + jobpath, 500); 
-    if(!CommandSent){
+
+    if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
       logger.msg(ERROR, "Failed sending CWD command for job cancelling");
-      return false;	    
+      return false;
     }
-    CommandSent = ftpCtrl.sendCommand("DELE " + jobidnum, 500); 
-    if(!CommandSent){
+
+    if (!ctrl.SendCommand("DELE " + jobidnum, 500)) {
       logger.msg(ERROR, "Failed sending DELE command for job cancelling");
-      return false;	    
+      return false;
     }
-    
-    //disconnect
-    bool gotDisconnected = ftpCtrl.disconnect(500);
-    if(!gotDisconnected){
+
+    if (!ctrl.Disconnect(500)) {
       logger.msg(ERROR, "Failed to disconnect after job cancelling");
-      return false;	    
+      return false;
     }
 
-    logger.msg(DEBUG, "Job cancel succesful");
-    return true;
+    logger.msg(DEBUG, "Job cancelling successful");
 
+    return true;
   }
 
-  URL JobControllerARC0::GetFileUrlThisJob(Job ThisJob, std::string whichfile){
+  URL JobControllerARC0::GetFileUrlThisJob(Job ThisJob,
+					   const std::string& whichfile) {
 
-    std::string urlstring;
+    URL url(ThisJob.JobID);
 
     if (whichfile == "stdout")
-      urlstring = ThisJob.JobID.str() + '/' + ThisJob.StdOut;
+      url.ChangePath(url.Path() + '/' + ThisJob.StdOut);
     else if (whichfile == "stderr")
-      urlstring = ThisJob.JobID.str() + '/' + ThisJob.StdErr;
-    else if (whichfile == "gmlog"){
-      urlstring = ThisJob.JobID.str();
-      urlstring.insert(urlstring.rfind('/'), "/info");
-      urlstring += "/errors";
+      url.ChangePath(url.Path() + '/' + ThisJob.StdErr);
+    else if (whichfile == "gmlog") {
+      std::string path = url.Path();
+      path.insert(path.rfind('/'), "/info");
+      url.ChangePath(path + "/errors");
     }
-    
-    return URL(urlstring);
 
+    return url;
   }
 
-  std::list<std::string> JobControllerARC0::GetDownloadFiles(Arc::DataHandle& dir, std::string dirname){
-    
+  std::list<std::string> JobControllerARC0::GetDownloadFiles(DataHandle& dir,
+							     const std::string&
+							     dirname) {
     std::list<std::string> files;
-    
+
     std::list<FileInfo> outputfiles;
     dir->ListFiles(outputfiles, true);
-    
-    for(std::list<Arc::FileInfo>::iterator i = outputfiles.begin(); i != outputfiles.end(); i++){
-      if(i->GetType() == 0 || i->GetType() == 1){
-	std::cout<<"adding file "<< i->GetName() << std::endl;
-	if(!dirname.empty()){
+
+    for (std::list<Arc::FileInfo>::iterator i = outputfiles.begin();
+	 i != outputfiles.end(); i++) {
+      if (i->GetType() == 0 || i->GetType() == 1)
+	if (!dirname.empty())
 	  files.push_back(dirname + "/"+ i->GetName());
-	} else {
+	else
 	  files.push_back(i->GetName());
-	}
-      } else if(i->GetType() == 2){
-	std::cout<<"Found directory" << i->GetName() << std::endl;	
-	Arc::DataHandle tmpdir(dir->str()+"/"+i->GetName());
-	std::list<std::string> morefiles = GetDownloadFiles(tmpdir,i->GetName());
-	for(std::list<std::string>::iterator j = morefiles.begin(); j != morefiles.end(); j++){
-	  if(!dirname.empty()){
-	    files.push_back(dirname + "/"+ *j);
-	  } else {
+      else if (i->GetType() == 2) {
+	DataHandle tmpdir(dir->str() + "/" + i->GetName());
+	std::list<std::string> morefiles =
+	  GetDownloadFiles(tmpdir, i->GetName());
+	for (std::list<std::string>::iterator j = morefiles.begin();
+	    j != morefiles.end(); j++)
+	  if (!dirname.empty())
+	    files.push_back(dirname + "/" + *j);
+	  else
 	    files.push_back(*j);
-	  }
-	}
       }
     }
 
     return files;
-
   }
     
 } // namespace Arc

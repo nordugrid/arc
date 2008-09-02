@@ -13,14 +13,14 @@ namespace Arc {
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
-  ACC *SubmitterCREAM::Instance(Config *cfg, ChainContext *) {
+  ACC *SubmitterCREAM::Instance(Config *cfg, ChainContext*) {
     return new SubmitterCREAM(cfg);
   }
 
-  std::pair<URL, URL> SubmitterCREAM::Submit(Arc::JobDescription& jobdesc) {
+  bool SubmitterCREAM::Submit(JobDescription& jobdesc, XMLNode &info) {
     MCCConfig cfg;
     std::string delegationid = UUID();
-    URL url(SubmissionEndpoint);
+    URL url(submissionEndpoint);
     url.ChangePath("ce-cream/services/gridsite-delegation");
     Cream::CREAMClient gLiteClient1(url, cfg);
     gLiteClient1.createDelegation(delegationid);
@@ -31,13 +31,14 @@ namespace Arc {
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "JDL");
     Cream::creamJobInfo jobInfo = gLiteClient2.submit(jobdescstring);
-    std::cout << "jobId: " << jobInfo.jobId << std::endl;
-    std::cout << "creamURL: " << jobInfo.creamURL << std::endl;
-    std::cout << "ISB:" << jobInfo.ISB_URI << std::endl;
-    std::cout << "OSB:" << jobInfo.OSB_URI << std::endl;
 
-    return std::make_pair(jobInfo.creamURL + '/' + jobInfo.jobId,
-			  jobInfo.OSB_URI);
+    info.NewChild("JobID") = jobInfo.creamURL + '/' + jobInfo.jobId;
+    info.NewChild("InfoEndpoint") = jobInfo.OSB_URI; // should change
+    info.NewChild("ISB") = jobInfo.ISB_URI;
+    info.NewChild("OSB") = jobInfo.OSB_URI;
+    info.NewChild("DelegationID") = delegationid;
+
+    return true;
   }
 
 } // namespace Arc

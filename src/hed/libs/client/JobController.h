@@ -65,10 +65,11 @@ namespace Arc{
 
     //Implemented by specialized class
     virtual void GetJobInformation() = 0;
-    virtual bool GetThisJob(Job ThisJob, std::string downloaddir) = 0;
+    virtual bool GetThisJob(Job ThisJob, const std::string& downloaddir) = 0;
     virtual bool CleanThisJob(Job ThisJob, bool force) = 0;
     virtual bool CancelThisJob(Job ThisJob) = 0;
-    virtual Arc::URL GetFileUrlThisJob(Job ThisJob, std::string whichfile) = 0;
+    virtual URL GetFileUrlThisJob(Job ThisJob,
+				  const std::string& whichfile) = 0;
 
   protected:
     std::list<Arc::Job> JobStore;

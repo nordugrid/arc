@@ -242,6 +242,7 @@ namespace Arc {
       // ComputingService/ComputingEndpoint attributes
       if (cluster["nordugrid-cluster-contactstring"])
 	target.url = (std::string)cluster["nordugrid-cluster-contactstring"];
+
       target.Interface = "GridFTP";
       target.Implementor = "NorduGrid";
       target.ImplementationName = "ARC0";
@@ -256,7 +257,8 @@ namespace Arc {
       else if(cluster["nordugrid-cluster-issuerca"])
 	target.IssuerCA = (std::string)cluster["nordugrid-cluster-issuerca"];
       if (cluster["nordugrid-cluster-trustedca"])
-	target.TrustedCA = (std::string)cluster["nordugrid-cluster-trustedca"];
+	for(XMLNode n = cluster["nordugrid-cluster-trustedca"]; n; ++n)
+	  target.TrustedCA.push_back((std::string) n);
       if (cluster["nordugrid-cluster-nodeaccess"])
 	target.Staging = (std::string)cluster["nordugrid-cluster-nodeaccess"];
       

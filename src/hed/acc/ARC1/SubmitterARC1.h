@@ -2,13 +2,9 @@
 #define __ARC_SUBMITTERARC1_H__
 
 #include <arc/client/Submitter.h>
-#include <stdexcept>
-#include <arc/ArcConfig.h>
-#include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/Loader.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/URL.h>
 
 namespace Arc { 
 
@@ -19,14 +15,14 @@ namespace Arc {
     : public Submitter {
 
   private:
-    static Arc::Logger logger;
+    static Logger logger;
 
     SubmitterARC1(Config *cfg);
     ~SubmitterARC1();
 
   public:
     static ACC *Instance(Config *cfg, ChainContext *cxt);
-    std::pair<URL, URL> Submit(Arc::JobDescription& jobdesc);
+    bool Submit(JobDescription& jobdesc, XMLNode &info);
   };
 
 } // namespace Arc

@@ -38,13 +38,13 @@ namespace Arc {
       std::list<std::string>::iterator it;
       
       for(it = jobs.begin(); it != jobs.end(); it++){
-	Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[id='"+ *it+"']", Arc::NS())).begin());
-	if(GridFlavour == (std::string) ThisXMLJob["flavour"]){
+	Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[JobID='"+ *it+"']", Arc::NS())).begin());
+	if(GridFlavour == (std::string) ThisXMLJob["Flavour"]){
 	  Job ThisJob;
-	  ThisJob.JobID = (std::string) ThisXMLJob["id"];
-	  ThisJob.InfoEndpoint = (std::string) ThisXMLJob["source"];
-	  ThisJob.Cluster = (std::string) ThisXMLJob["cluster"];
-	  ThisJob.LocalSubmissionTime = (std::string) ThisXMLJob["submissiontime"];
+	  ThisJob.JobID = (std::string) ThisXMLJob["JobID"];
+	  ThisJob.InfoEndpoint = (std::string) ThisXMLJob["InfoEndpoint"];
+	  ThisJob.Cluster = (std::string) ThisXMLJob["Cluster"];
+	  ThisJob.LocalSubmissionTime = (std::string) ThisXMLJob["SubmissionTime"];
 	  JobStore.push_back(ThisJob);	  
 	}
       }
@@ -55,19 +55,19 @@ namespace Arc {
       logger.msg(DEBUG, "Filling JobStore with jobs according to selected clusters");	
       logger.msg(DEBUG, "Using joblist file %s", joblist);	
      
-      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[flavour='"+ GridFlavour+"']", Arc::NS());
+      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[Flavour='"+ GridFlavour+"']", Arc::NS());
       XMLNodeList::iterator iter;
       
       for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
 
-	URL ThisJobRunsOn = (std::string) (*iter)["cluster"];
+	URL ThisJobRunsOn = (std::string) (*iter)["Cluster"];
 
 	if(PresentInList(ThisJobRunsOn, clusterselect)){
 	  Job ThisJob;
-	  ThisJob.JobID = (std::string) (*iter)["id"];
-	  ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
-	  ThisJob.Cluster = (std::string) (*iter)["cluster"];
-	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["submissiontime"];
+	  ThisJob.JobID = (std::string) (*iter)["JobID"];
+	  ThisJob.InfoEndpoint = (std::string) (*iter)["InfoEndpoint"];
+	  ThisJob.Cluster = (std::string) (*iter)["Cluster"];
+	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["SubmissionTime"];
 	  JobStore.push_back(ThisJob);
 	}
       }
@@ -96,19 +96,19 @@ namespace Arc {
       logger.msg(DEBUG, "Filling JobStore with all jobs, except those running on rejected clusters");	
       logger.msg(DEBUG, "Using joblist file %s", joblist);	
       
-      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[flavour='"+ GridFlavour+"']", Arc::NS());
+      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[Flavour='"+ GridFlavour+"']", Arc::NS());
       XMLNodeList::iterator iter;
       
       for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
 
-	URL ThisJobRunsOn = (std::string) (*iter)["cluster"];
+	URL ThisJobRunsOn = (std::string) (*iter)["Cluster"];
 
 	if(!PresentInList(ThisJobRunsOn, clusterreject)){
 	  Job ThisJob;
-	  ThisJob.JobID = (std::string) (*iter)["id"];
-	  ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
-	  ThisJob.Cluster = (std::string) (*iter)["cluster"];
-	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["submissiontime"];
+	  ThisJob.JobID = (std::string) (*iter)["JobID"];
+	  ThisJob.InfoEndpoint = (std::string) (*iter)["InfoEndpoint"];
+	  ThisJob.Cluster = (std::string) (*iter)["Cluster"];
+	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["SubmissionTime"];
 	  JobStore.push_back(ThisJob);
 	}
       }
@@ -482,7 +482,7 @@ namespace Arc {
     
     //Identify jobs in joblist and remove from list
     for(it = jobs.begin(); it != jobs.end(); it++){
-      Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[id='"+ (*it)+"']", Arc::NS())).begin());
+      Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[JobID='"+ (*it)+"']", Arc::NS())).begin());
       if(ThisXMLJob){
 	logger.msg(DEBUG, "Removing job %s from joblist file", (*it));	
 	ThisXMLJob.Destroy();

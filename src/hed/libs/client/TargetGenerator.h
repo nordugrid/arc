@@ -24,7 +24,7 @@ namespace Arc {
     ~TargetGenerator();
 
     void GetTargets(int targetType, int detailLevel);
-    const std::list<ExecutionTarget> FoundTargets() const;
+    const std::list<ExecutionTarget>& FoundTargets() const;
 
     bool AddService(const URL& url);
     bool AddIndexServer(const URL& url);

@@ -5,33 +5,33 @@
 #define ARCLIB_JOBARC0CONTROLLER
 
 #include <arc/client/JobController.h>
-#include <arc/data/DataHandle.h>
 
 namespace Arc{
 
   class ChainContext;
   class Config;
-  
+  class DataHandle;
+
   class JobControllerARC0 : public JobController {
-    
+
   public: 
-    
+
     JobControllerARC0(Arc::Config *cfg);
     ~JobControllerARC0();
-    
+
     void GetJobInformation();
     static ACC *Instance(Config *cfg, ChainContext *cxt);
 
   private:
     static Logger logger;
-    bool GetThisJob(Job ThisJob, std::string downloaddir);
+    bool GetThisJob(Job ThisJob, const std::string& downloaddir);
     bool CleanThisJob(Job ThisJob, bool force);
     bool CancelThisJob(Job ThisJob);
-    URL GetFileUrlThisJob(Job ThisJob, std::string whichfile);
-    std::list<std::string> GetDownloadFiles(Arc::DataHandle& dir, std::string dirname = "");
-    
+    URL GetFileUrlThisJob(Job ThisJob, const std::string& whichfile);
+    std::list<std::string> GetDownloadFiles(DataHandle& dir,
+					    const std::string& dirname = "");
   };
-  
+
 } //namespace ARC
 
 #endif

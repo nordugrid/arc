@@ -1,27 +1,20 @@
 #include <arc/XMLNode.h>
-#include <arc/ArcConfig.h>
-#include <arc/data/DataBufferPar.h>
-#include <arc/data/DataHandle.h>
-#include <arc/StringConv.h>
 #include <arc/client/UserConfig.h>
+#include <arc/data/DataHandle.h>
 
-#include "JobControllerARC1.h"
 #include "arex_client.h"
-
-#include <map>
-#include <iostream>
-#include <algorithm>
+#include "JobControllerARC1.h"
 
 namespace Arc {
 
   Logger JobControllerARC1::logger(JobController::logger, "ARC1");
 
-  JobControllerARC1::JobControllerARC1(Arc::Config *cfg)
+  JobControllerARC1::JobControllerARC1(Config *cfg)
     : JobController(cfg, "ARC1") {}
   
   JobControllerARC1::~JobControllerARC1() {}
 
-  ACC *JobControllerARC1::Instance(Config *cfg, ChainContext *) {
+  ACC *JobControllerARC1::Instance(Config *cfg, ChainContext*) {
     return new JobControllerARC1(cfg);
   }
   
@@ -53,23 +46,20 @@ namespace Arc {
     }
   }
 
-  bool JobControllerARC1::GetThisJob(Job ThisJob, std::string downloaddir) {
+  bool JobControllerARC1::GetThisJob(Job ThisJob,
+				     const std::string& downloaddir) {
 
     logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
-    bool SuccesfulDownload = true;
+    bool SuccessfulDownload = true;
 
-    Arc::DataHandle source(ThisJob.JobID);    
-    if(source){
+    DataHandle source(ThisJob.JobID);    
+    if (source) {
 
       std::list<std::string> downloadthese = GetDownloadFiles(source);
-
-      std::cout<<"List of downloadable files:"<<std::endl;      
-      std::cout<<"Number of files: "<< downloadthese.size()<<std::endl;      
 
       //loop over files
       for(std::list<std::string>::iterator i = downloadthese.begin();
 	  i != downloadthese.end(); i++) {
-	std::cout << *i <<std::endl;	
 	std::string src = ThisJob.JobID.str() + "/"+ *i;
 	std::string path_temp = ThisJob.JobID.Path(); 
 	size_t slash = path_temp.find_last_of("/");
@@ -80,12 +70,13 @@ namespace Arc {
 	  dst = downloaddir + "/" + *i;
 	bool GotThisFile = CopyFile(src, dst);
 	if(!GotThisFile)
-	  SuccesfulDownload = false;
+	  SuccessfulDownload = false;
       }
     }
     else
       logger.msg(ERROR, "Failed dowloading job: %s. "
 		 "Could not get data handle.", ThisJob.JobID.str());
+    return SuccessfulDownload;
   }
 
   bool JobControllerARC1::CleanThisJob(Job ThisJob, bool force) {
@@ -141,21 +132,20 @@ namespace Arc {
   }
 
   URL JobControllerARC1::GetFileUrlThisJob(Job ThisJob,
-					   std::string whichfile) {}
+					   const std::string& whichfile) {}
 
   std::list<std::string>
-  JobControllerARC1::GetDownloadFiles(Arc::DataHandle& dir,
-				      std::string dirname) {
+  JobControllerARC1::GetDownloadFiles(DataHandle& dir,
+				      const std::string& dirname) {
 
     std::list<std::string> files;
 
     std::list<FileInfo> outputfiles;
     dir->ListFiles(outputfiles, true);
 
-    for(std::list<Arc::FileInfo>::iterator i = outputfiles.begin();
+    for(std::list<FileInfo>::iterator i = outputfiles.begin();
 	i != outputfiles.end(); i++) {
       if(i->GetType() == 0 || i->GetType() == 1) {
-	std::cout<<"adding file "<< i->GetName() << std::endl;
 	if(!dirname.empty())
 	  if (dirname[dirname.size() - 1] != '/')
 	    files.push_back(dirname + "/" + i->GetName());
@@ -165,12 +155,11 @@ namespace Arc {
 	  files.push_back(i->GetName());
       }
       else if(i->GetType() == 2) {
-	std::cout<<"Found directory " << i->GetName() << std::endl;
 	std::string dirurl(dir->str());
 	if (dirurl[dirurl.size() - 1] != '/')
 	  dirurl += "/";
 	dirurl += i->GetName();
-	Arc::DataHandle tmpdir(dirurl);
+	DataHandle tmpdir(dirurl);
 	std::list<std::string> morefiles = GetDownloadFiles(tmpdir,
 							    i->GetName());
 	for(std::list<std::string>::iterator j = morefiles.begin();

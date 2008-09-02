@@ -36,12 +36,12 @@ namespace Arc {
       for (std::list<std::string>::const_iterator it = jobs.begin();
 	   it != jobs.end(); it++) {
 	std::list<Arc::XMLNode> XMLJobs =
-	  JobIdStorage.XPathLookup("//Job[id='"+ *it+"']", Arc::NS());
+	  JobIdStorage.XPathLookup("//Job[JobID='"+ *it+"']", Arc::NS());
 	if(!XMLJobs.empty()) {
 	  Arc::XMLNode &ThisXMLJob = *XMLJobs.begin();
 	  if (std::find(NeededControllers.begin(), NeededControllers.end(),
-			(std::string) ThisXMLJob["flavour"]) == NeededControllers.end()){
-	    std::string flavour = (std::string) ThisXMLJob["flavour"];
+			(std::string) ThisXMLJob["Flavour"]) == NeededControllers.end()){
+	    std::string flavour = (std::string) ThisXMLJob["Flavour"];
 	    logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
 	    NeededControllers.push_back(flavour);
 	  }  
@@ -59,10 +59,10 @@ namespace Arc {
       for (Arc::XMLNodeList::iterator JobIter = ActiveJobs.begin();
 	   JobIter != ActiveJobs.end(); JobIter++) {
 	if (std::find(NeededControllers.begin(), NeededControllers.end(),
-		      (std::string)(*JobIter)["flavour"]) == NeededControllers.end()){
-	  std::string flavour = (*JobIter)["flavour"];
+		      (std::string)(*JobIter)["Flavour"]) == NeededControllers.end()){
+	  std::string flavour = (*JobIter)["Flavour"];
 	  logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
-	  NeededControllers.push_back((std::string)(*JobIter)["flavour"]);
+	  NeededControllers.push_back((std::string)(*JobIter)["Flavour"]);
 	}
       }
     
