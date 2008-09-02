@@ -1,6 +1,6 @@
-pkglib_LTLIBRARIES = libhttpd.la
+pkglib_LTLIBRARIES = libhopi.la
 
-libhttpd_la_SOURCES = httpd.cpp PayloadFile.cpp httpd.h PayloadFile.h
-libhttpd_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libhttpd_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS)
-libhttpd_la_LDFLAGS = -no-defined -avoid-version -module
+libhopi_la_SOURCES = hopi.cpp PayloadFile.cpp hopi.h PayloadFile.h
+libhopi_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+libhopi_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS)
+libhopi_la_LDFLAGS = -no-defined -avoid-version -module

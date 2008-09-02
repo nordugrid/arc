@@ -17,7 +17,7 @@ PDP_SERVICE =
 endif 
 
 if HTTPD_SERVICE_ENABLED
-HTTPD_SERVICE = httpd 
+HTTPD_SERVICE = hopi
 else 
 HTTPD_SERVICE = 
 endif 

@@ -913,7 +913,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/pdp/Makefile
-                 src/services/httpd/Makefile
+                 src/services/hopi/Makefile
                  src/services/arex2/Makefile
                  src/services/isis/Makefile
                  src/services/saml/Makefile

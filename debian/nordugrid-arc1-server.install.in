@@ -2,7 +2,7 @@
 @SCHED_SERVICE_ENABLED_TRUE@/usr/sbin/manage_jobq
 usr/lib/arc/libecho.so
 usr/lib/arc/libpdp.so
-usr/lib/arc/libhttpd.so
+usr/lib/arc/libhopi.so
 usr/lib/arc/libisis.so
 @SCHED_SERVICE_ENABLED_TRUE@usr/lib/arc/libgrid_sched.so
 @GRIDFTP_ENABLED_TRUE@usr/lib/arc/libaccARC0.so
