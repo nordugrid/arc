@@ -6,7 +6,7 @@ arex2           - Ferenc's playground
 echo_java       - Demonstration services: how to write Java service 
 echo_python     - Simple test service to demonstrate how Python based services should work
 eils            - External Information Link Service/Information Capability
-httpd           - Simple HTTP(S) service to support GET and PUT operations.
+hopi            - Simple HTTP(S) service to support GET and PUT operations.
 isis            - Information Indexing Service/Information Capability
 janitor         - Janitor - RTE/Resource Management Capability
 mars            - Monitoring and Accounting Recording Service/Information Capability

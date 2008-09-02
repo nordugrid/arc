@@ -5,7 +5,7 @@
 
 #include <arc/message/PayloadRaw.h>
 
-namespace HTTPD {
+namespace Hopi {
 
 /** Implementation of PayloadRawInterface which provides access to ordinary file.
   Currently only read-only mode is supported. */

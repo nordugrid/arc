@@ -123,15 +123,15 @@ class HardlinkingBackend:
         return create_checksum(file(os.path.join(self.datadir, localID), 'rb'), checksumType)
 
 
-class HTTPDBackend( HardlinkingBackend ):
+class HopiBackend( HardlinkingBackend ):
     """
-    Backend for HTTPD with hardlinking
+    Backend for Hopi with hardlinking
     """
 
     def __init__(self, backendcfg, ns_uri, file_arrived, log):
         HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, log)
-        self.log('DEBUG', "HTTPDBackend datadir:", self.datadir)
-        self.log('DEBUG', "HTTPDBackend transferdir:", self.transferdir)        
+        self.log('DEBUG', "HopiBackend datadir:", self.datadir)
+        self.log('DEBUG', "HopiBackend transferdir:", self.transferdir)        
 
 
 import pwd

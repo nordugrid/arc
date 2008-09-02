@@ -575,10 +575,10 @@ AC_ARG_ENABLE(pdp_service, AC_HELP_STRING([--disable-pdp-service], [disable buil
 AC_MSG_NOTICE([PDP Service enabled: $enable_pdp_service])
 AM_CONDITIONAL([PDP_SERVICE_ENABLED],[test "x$enable_pdp_service" = "xyes"])
 
-# HTTPD service
-AC_ARG_ENABLE(httpd_service, AC_HELP_STRING([--disable-httpd-service], [disable building HTTPD Service]),[],enable_httpd_service="yes")
-AC_MSG_NOTICE([HTTPD Service enabled: $enable_httpd_service])
-AM_CONDITIONAL([HTTPD_SERVICE_ENABLED],[test "x$enable_httpd_service" = "xyes"])
+# Hopi service
+AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),[],enable_hopi_service="yes")
+AC_MSG_NOTICE([Hopi Service enabled: $enable_hopi_service])
+AM_CONDITIONAL([HOPI_SERVICE_ENABLED],[test "x$enable_hopi_service" = "xyes"])
 
 # Paul service 
 AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],enable_paul_service="yes")
@@ -996,7 +996,7 @@ Included components:
 A-Rex service:      ${enable_a_rex_service}
 ISI service:        ${enable_isi_service}
 PDP service:        ${enable_pdp_service}
-HTTPD service:      ${enable_httpd_service}
+HOPI service:       ${enable_hopi_service}
 SCHED service:      ${enable_sched_service}
 STORAGE service:    ${enable_storage_service}
 PAUL service:       ${enable_paul_service}

@@ -593,13 +593,13 @@ A file of a Shepherd service is referenced by its \emph{referenceID}. Each file 
 \subsection{Backend modules} % (fold)
 \label{sub:backend_modules}
 
-The Shepherd could communicate with the file transfer services via backend modules. Currently there are two kinds of backend modules, one for the \emph{byteio} service (which is a simple implementation of a subset of the ByteIO interface) and one for the \emph{httpd} service (which is a simple HED-based HTTP server).
+The Shepherd could communicate with the file transfer services via backend modules. Currently there are two kinds of backend modules, one for the \emph{byteio} service (which is a simple implementation of a subset of the ByteIO interface) and one for the \emph{hopi} service (which is a simple HED-based HTTP server).
 
 In both cases the Shepherd and the transfer services should have access to the same local filesystem where the Shepherd creates two separate directories: one for storing all the files (e.g.~\verb!./store!) and one for the file transfers (e.g.~\verb!./transfer!). The store directory always contains all the files the Shepherd manages, the transfer directory is empty at the beginning.
 
-Let's see the scenario for the httpd service which should be in a special `slave' mode for this kind of operation: if a client asks for a file called \verb!file1!, and this file is in the store directory (\verb!./store/file!), then the Shepherd service creates a hardlink into the transfer directory (e.g.~\verb!./transfer/abc!) and sets this file read-only. If the httpd service is configured that way that it handles the HTTP path \verb!/prb! and it is serving files from the directory \verb!./transfer! then after the hardlink is created, we have this URL for this file: \verb!http://localhost:60000/prb/abc!. Now we can give this URL to the client. Then the client \verb!GET!s this URL and gets the file. The httpd service removes (unlinks) this file immediately after the \verb!GET! request arrived, which makes this \verb!http://localhost:60000/prb/abc! URL invalid (so this is a one-time URL), but because of the hardlink the file is still there in the store directory, it is just removed from the transfer directory. Now if some other user wants this file, the Shepherd creates an other hardlink, e.g.~\verb!./transfer/qwe! and now we have an URL \verb!http://localhost:60000/prb/qwe!.
+Let's see the scenario for the hopi service which should be in a special `slave' mode for this kind of operation: if a client asks for a file called \verb!file1!, and this file is in the store directory (\verb!./store/file!), then the Shepherd service creates a hardlink into the transfer directory (e.g.~\verb!./transfer/abc!) and sets this file read-only. If the hopi service is configured that way that it handles the HTTP path \verb!/prb! and it is serving files from the directory \verb!./transfer! then after the hardlink is created, we have this URL for this file: \verb!http://localhost:60000/prb/abc!. Now we can give this URL to the client. Then the client \verb!GET!s this URL and gets the file. The hopi service removes (unlinks) this file immediately after the \verb!GET! request arrived, which makes this \verb!http://localhost:60000/prb/abc! URL invalid (so this is a one-time URL), but because of the hardlink the file is still there in the store directory, it is just removed from the transfer directory. Now if some other user wants this file, the Shepherd creates an other hardlink, e.g.~\verb!./transfer/qwe! and now we have an URL \verb!http://localhost:60000/prb/qwe!.
 
-If a client wants to upload a new file, then the Shepherd creates an empty file in the store directory, e.g.~\verb!./store/file2! and creates a hardlink into the transfer directory, e.g.~\verb!./transfer/oiu! and makes it writable, and now we have a URL \verb!http://localhost:60000/prb/oiu!, and the client is able to do a \verb!PUT! to this URL. When the client \verb!PUT!s the file there, the httpd service immediately removes the uploaded file from the transfer directory, but because it has a hardlink in the store directory, the file is stored there as \verb!./store/file2!. The backend module for the httpd service periodically checks whether a new file has two or just one hard links. If it has only one that means that a file is uploaded, so it could notify the Shepherd that the file is arrived. In order to do that, all the backend modules get a callback method `file\_arrived' from the Shepherd.
+If a client wants to upload a new file, then the Shepherd creates an empty file in the store directory, e.g.~\verb!./store/file2! and creates a hardlink into the transfer directory, e.g.~\verb!./transfer/oiu! and makes it writable, and now we have a URL \verb!http://localhost:60000/prb/oiu!, and the client is able to do a \verb!PUT! to this URL. When the client \verb!PUT!s the file there, the hopi service immediately removes the uploaded file from the transfer directory, but because it has a hardlink in the store directory, the file is stored there as \verb!./store/file2!. The backend module for the hopi service periodically checks whether a new file has two or just one hard links. If it has only one that means that a file is uploaded, so it could notify the Shepherd that the file is arrived. In order to do that, all the backend modules get a callback method `file\_arrived' from the Shepherd.
 
 In case of the byteio service, there is some small differences. The byteio service does not removes the files from the transfer directory, but it calls the backend module via SOAP to notify it that something is happened. The byteio backend has one SOAP method called `\textbf{notify}':
 \begin{description}
@@ -738,9 +738,9 @@ $ arc_storage_cli put testfile /tmp/
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's putFile method...
 - done in 0.08 seconds.
-- Got transfer URL: http://localhost:60000/httpd/d15900f5-34ee-4bba-bb10-73d60d1c0d75
+- Got transfer URL: http://localhost:60000/hopi/d15900f5-34ee-4bba-bb10-73d60d1c0d75
 - Uploading from 'testfile'
-    to 'http://localhost:60000/httpd/d15900f5-34ee-4bba-bb10-73d60d1c0d75' with http...
+    to 'http://localhost:60000/hopi/d15900f5-34ee-4bba-bb10-73d60d1c0d75' with http...
 Uploading 20 bytes... data sent, waiting... done.
 - done in 0.0042 seconds.
 'testfile' (20 bytes) uploaded as '/tmp/testfile'.
@@ -766,8 +766,8 @@ $ arc_storage_cli get /tmp/testfile newfile
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's getFile method...
 - done in 0.05 seconds.
-- Got transfer URL: http://localhost:60000/httpd/dab911d0-110f-468e-b0c3-627af6e3af31
-- Downloading from 'http://localhost:60000/httpd/dab911d0-110f-468e-b0c3-627af6e3af31'
+- Got transfer URL: http://localhost:60000/hopi/dab911d0-110f-468e-b0c3-627af6e3af31
+- Downloading from 'http://localhost:60000/hopi/dab911d0-110f-468e-b0c3-627af6e3af31'
     to 'newfile' with http...
 Downloading 20 bytes... done.
 - done in 0.0035 seconds.

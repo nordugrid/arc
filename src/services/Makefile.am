@@ -16,10 +16,10 @@ else
 PDP_SERVICE = 
 endif 
 
-if HTTPD_SERVICE_ENABLED
-HTTPD_SERVICE = hopi
+if HOPI_SERVICE_ENABLED
+HOPI_SERVICE = hopi
 else 
-HTTPD_SERVICE = 
+HOPI_SERVICE = 
 endif 
 
 if SAML_ENABLED
@@ -52,5 +52,5 @@ else
 PYTHON_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE)
-DIST_SUBDIRS = echo_java echo_python a-rex isis pdp httpd paul sched storage arex2 wrappers saml
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE)
+DIST_SUBDIRS = echo_java echo_python a-rex isis pdp hopi paul sched storage arex2 wrappers saml

@@ -10,7 +10,7 @@
 #include <iostream>
 #include "PayloadFile.h"
 
-namespace HTTPD {
+namespace Hopi {
 
 PayloadFile::PayloadFile(const char* filename):handle_(-1),addr_(NULL),size_(0) {
   handle_=open(filename,O_RDONLY);

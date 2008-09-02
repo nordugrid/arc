@@ -14,37 +14,37 @@
 #include <arc/message/MessageAttributes.h>
 
 
-#include "httpd.h"
+#include "hopi.h"
 #include "PayloadFile.h"
 
-namespace HTTPD {
+namespace Hopi {
 
 static Arc::Service *get_service(Arc::Config *cfg, Arc::ChainContext*)
 {
-    return new HTTPD(cfg);
+    return new Hopi(cfg);
 }
 
-HTTPD::HTTPD(Arc::Config *cfg):Service(cfg), logger(Arc::Logger::rootLogger, "HTTPD")
+Hopi::Hopi(Arc::Config *cfg):Service(cfg), logger(Arc::Logger::rootLogger, "Hopi")
 {
-    logger.msg(Arc::INFO, "HTTPD Initialized"); 
+    logger.msg(Arc::INFO, "Hopi Initialized"); 
     doc_root = (std::string)((*cfg)["DocumentRoot"]);
     if (doc_root.empty() == 1) {
         doc_root = "./";
     }
-    logger.msg(Arc::INFO, "HTTPD DocumentRoot is " + doc_root);
+    logger.msg(Arc::INFO, "Hopi DocumentRoot is " + doc_root);
     slave_mode = (std::string)((*cfg)["SlaveMode"]);
     if (slave_mode.empty() == 1) {
         slave_mode = "0";
     }  
-    if (slave_mode == "1") logger.msg(Arc::INFO, "HTTPD SlaveMode is on!");
+    if (slave_mode == "1") logger.msg(Arc::INFO, "Hopi SlaveMode is on!");
 }
 
-HTTPD::~HTTPD(void)
+Hopi::~Hopi(void)
 {
-    logger.msg(Arc::INFO, "HTTPD shutdown");
+    logger.msg(Arc::INFO, "Hopi shutdown");
 }
 
-Arc::PayloadRawInterface *HTTPD::Get(const std::string &path, const std::string &base_url)
+Arc::PayloadRawInterface *Hopi::Get(const std::string &path, const std::string &base_url)
 {
     // XXX eliminate relativ paths first
     std::string full_path = Glib::build_filename(doc_root, path);
@@ -75,13 +75,13 @@ Arc::PayloadRawInterface *HTTPD::Get(const std::string &path, const std::string 
     return NULL;
 }
 
-Arc::MCC_Status HTTPD::Put(const std::string &path, Arc::PayloadRawInterface &buf)
+Arc::MCC_Status Hopi::Put(const std::string &path, Arc::PayloadRawInterface &buf)
 {
     // XXX eliminate relativ paths first
     logger.msg(Arc::DEBUG, "PUT called");
     std::string full_path = Glib::build_filename(doc_root, path);
     if ((slave_mode == "1") && (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == false)) {
-        logger.msg(Arc::ERROR, "HTTPD SlaveMode is active, PUT is only allowed to existing files.");        
+        logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files.");        
         return Arc::MCC_Status();
     }
     int fd = open(full_path.c_str(), O_CREAT|O_WRONLY|O_TRUNC, 0600);
@@ -119,7 +119,7 @@ Arc::MCC_Status HTTPD::Put(const std::string &path, Arc::PayloadRawInterface &bu
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status HTTPD::process(Arc::Message &inmsg, Arc::Message &outmsg)
+Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
 {
     std::string method = inmsg.Attributes()->get("HTTP:METHOD");
     std::string url = inmsg.Attributes()->get("HTTP:ENDPOINT");
@@ -166,9 +166,9 @@ Arc::MCC_Status HTTPD::process(Arc::Message &inmsg, Arc::Message &outmsg)
     return Arc::MCC_Status();
 }
 
-} // namesapce HTTPD
+} // namesapce Hopi
 
 service_descriptors ARC_SERVICE_LOADER = {
-    { "httpd", 0, &HTTPD::get_service },
+    { "hopi", 0, &Hopi::get_service },
     { NULL, 0, NULL}
 };

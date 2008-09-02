@@ -4,22 +4,22 @@ It can be used as a simple file transfer service.
 Configuration
 -------------
 
-The httpd service needs a directory which it could serve. The <DocumentRoot> element of the service configuration xml contains the path of this directory.
+The hopi service needs a directory which it could serve. The <DocumentRoot> element of the service configuration xml contains the path of this directory.
 
-    <Service name="httpd" id="httpd">
+    <Service name="hopi" id="hopi">
         <DocumentRoot>./testdir</DocumentRoot>
     </Service>
 
-The httpd service has a special mode called SlaveMode, which is needed by the Shepherd service to use this httpd service as a transfer service.
+The hopi service has a special mode called SlaveMode, which is needed by the Shepherd service to use this hopi service as a transfer service.
 
-    <Service name="httpd" id="httpd3">
+    <Service name="hopi" id="hopi3">
         <DocumentRoot>./shepherd_transfer3</DocumentRoot>
         <SlaveMode>1</SlaveMode>
     </Service>
     
 If the SlaveMode is not "1" or not specified, then it os off.
 
-The httpd service could handle GET and PUT requests.
+The hopi service could handle GET and PUT requests.
 We can configure HED this way:
 
 
@@ -30,15 +30,15 @@ We can configure HED this way:
         </tcp:Listen>
     </Component>
     <Component name="http.service" id="http">
-        <next id="httpd">GET</next>
-        <next id="httpd">PUT</next>
+        <next id="hopi">GET</next>
+        <next id="hopi">PUT</next>
     </Component>
-    <Service name="httpd" id="httpd">
+    <Service name="hopi" id="hopi">
         <DocumentRoot>./testdir</DocumentRoot>
     </Service>
 
 Here the component called "http.service" is the HTTP MCC, a message chain component which could handle HTTP request and route them to other components or service.
-So actually the httpd service is not dealing with HTTP itself, because the HTTP part is handled by the HTTP MCC. The httpd service just handles the content.
+So actually the hopi service is not dealing with HTTP itself, because the HTTP part is handled by the HTTP MCC. The hopi service just handles the content.
 This configuration means that no other services or components can receive HTTP/GET or HTTP/PUT request on this port.
 
 The other configuration option is using a Plexer:
@@ -54,18 +54,18 @@ The other configuration option is using a Plexer:
         <next id="plexer">PUT</next>
     </Component>
     <Plexer name="plexer.service" id="plexer">
-        <next id="httpd">^/prb</next>
+        <next id="hopi">^/prb</next>
     </Plexer>
-    <Service name="httpd" id="httpd">
+    <Service name="hopi" id="hopi">
         <DocumentRoot>./testdir</DocumentRoot>
     </Service>
     
-With this configuration the httpd service is accessible with the path '/prb'.
+With this configuration the hopi service is accessible with the path '/prb'.
 
 Operation in normal mode
 ------------------------
 
-If the HED is listening on localhost:60000 and the httpd service is wired to the HTTP MMC without the plexer, you can GET this URL: http://localhost:60000, and you will get a directory listing of the specified DocumentRoot directory: './testdir'.
+If the HED is listening on localhost:60000 and the hopi service is wired to the HTTP MMC without the plexer, you can GET this URL: http://localhost:60000, and you will get a directory listing of the specified DocumentRoot directory: './testdir'.
 
     $ curl http://localhost:60000
     <HTML>
@@ -105,7 +105,7 @@ You can PUT a file to the server. e.g. if you PUT to http://localhost:60000/dir/
     $ curl http://localhost:60000/dir/new_file
     This file will be put to the server.
 
-If you request a PUT to an already existing file, the httpd service will overwrite it if it has write-permission.
+If you request a PUT to an already existing file, the hopi service will overwrite it if it has write-permission.
 
     $ curl http://localhost:60000/abc
     This file is called 'abc'.
@@ -113,7 +113,7 @@ If you request a PUT to an already existing file, the httpd service will overwri
     $ curl http://localhost:60000/abc
     This file will be put to the server.
 
-If we use a Plexer, and the httpd service has a path of '/prb':
+If we use a Plexer, and the hopi service has a path of '/prb':
 
     $ curl http://localhost:60000/prb
     <HTML>
@@ -145,14 +145,14 @@ In slave mode there are these differencies:
 This does not make much sense first, but this is the way how it is used by the Shepherd service:
 
 The Shepherd service uses two seperate directories: one for storing all the files ('./store') and one for the file transfers ('./transfer'). The store directory always contains all the files the Shepherd stores, the transfer directory is empty at the beginning.
-If a client asks for a file called 'file1', this file is in the store directory ('./store/file'), and the Shepherd service creates a hardlink into the transfer directory (e.g. './transfer/abc') and sets this file read-only. If the httpd service has the path '/prb' and has the DocumentRoot './transfer' then after the hardlink is created, we have this URL for this file: http://localhost:60000/prb/abc Now we can give this URL to the client. Then the client GETs this URL and gets the file, and the httpd removes (unlinks) this file, which makes this http://localhost:60000/prb/abc URL invalid, and the file is still there in the store directory. Now if some other user wants this file, the Shepperd creates an other hardlink, e.g. './transfer/qwe' and new we have an URL http://localhost:60000/prb/qwe
+If a client asks for a file called 'file1', this file is in the store directory ('./store/file'), and the Shepherd service creates a hardlink into the transfer directory (e.g. './transfer/abc') and sets this file read-only. If the hopi service has the path '/prb' and has the DocumentRoot './transfer' then after the hardlink is created, we have this URL for this file: http://localhost:60000/prb/abc Now we can give this URL to the client. Then the client GETs this URL and gets the file, and the hopi removes (unlinks) this file, which makes this http://localhost:60000/prb/abc URL invalid, and the file is still there in the store directory. Now if some other user wants this file, the Shepperd creates an other hardlink, e.g. './transfer/qwe' and new we have an URL http://localhost:60000/prb/qwe
 So these are one-time URLs.
-If a client wants to upload a new file, then the Shepperd creates an empty file in the store, e.g. './store/file2' and creates a hardlink, e.g. './transfer/oiu', and make it writable, and now we have a URL http://localhost:60000/prb/oiu which is an existing file, and the client is able to do a PUT to this URL. When the client PUT the file there, the httpd service in slave mode immediately removes the uploaded file from the transfer dir, but because it has a hardlink in the store dir, so the file will be there as './store/file2'.
+If a client wants to upload a new file, then the Shepperd creates an empty file in the store, e.g. './store/file2' and creates a hardlink, e.g. './transfer/oiu', and make it writable, and now we have a URL http://localhost:60000/prb/oiu which is an existing file, and the client is able to do a PUT to this URL. When the client PUT the file there, the hopi service in slave mode immediately removes the uploaded file from the transfer dir, but because it has a hardlink in the store dir, so the file will be there as './store/file2'.
 
-So this is the way the Shepherd service integrates with a slave mode httpd service.
+So this is the way the Shepherd service integrates with a slave mode hopi service.
 
 
 Known limitation
 ----------------
 
-The current version of the httpd service (2008. july 10.) is reads the whole file into memory when PUTing or GETing a file.
+The current version of the hopi service (2008. july 10.) is reads the whole file into memory when PUTing or GETing a file.

@@ -14,17 +14,17 @@
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
-    <Plugins><Name>httpd</Name></Plugins>
+    <Plugins><Name>hopi</Name></Plugins>
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="http"/>
             <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
         <Component name="http.service" id="http">
-	    <next id="httpd">GET</next>
-	    <next id="httpd">PUT</next>
+	    <next id="hopi">GET</next>
+	    <next id="hopi">PUT</next>
         </Component>
-        <Service name="httpd" id="httpd">
+        <Service name="hopi" id="hopi">
             <DocumentRoot>./</DocumentRoot>
         </Service>
     </Chain>

@@ -32,7 +32,7 @@
             <next id="librarian">^/Librarian$</next>
             <next id="bartender">^/Bartender$</next>
             <next id="shepherd">^/Shepherd$</next>
-            <next id="httpd">^/httpd/</next>
+            <next id="hopi">^/hopi/</next>
         </Plexer>
         <Service name="pythonservice" id="ahash">
             <ClassName>storage.ahash.ahash.AHashService</ClassName>
@@ -76,7 +76,7 @@
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
             <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
         </Service>
-        <Service name="httpd" id="httpd">
+        <Service name="hopi" id="hopi">
             <DocumentRoot>/var/spool/arc/shepherd_transfer</DocumentRoot>
             <SlaveMode>1</SlaveMode>
         </Service>
