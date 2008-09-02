@@ -30,6 +30,7 @@ class Client:
         self.url = url
         self.print_xml = print_xml
         self.xmlnode_class = xmlnode_class
+        self.connection = None
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.
@@ -75,17 +76,23 @@ class Client:
         timeout = 60
         start = time.time()
         while True:
-            try:	
-                # create an HTTP connection
-                h = httplib.HTTPConnection(self.host, self.port)
+            try:
+                if self.connection:
+                    h = self.connection
+                    self.connection = None
+                else:
+                    # create an HTTP connection
+                    h = httplib.HTTPConnection(self.host, self.port)
+                    # print 'new', h, self.host, self.port, self.path
                 # get the XML from outpayload, and send it as POST
                 h.request('POST', self.path, outpayload.GetXML())
                 # get the response object
                 r = h.getresponse()
                 # read the response data
                 resp = r.read()
-                # close the connection
-                h.close()
+                # if '91ed65f6-91b2-429e-8e7e-886557c7bda5' in resp:
+                #     print '\n    the service sent:\n', resp
+                self.connection = h
                 # return the data and the status
                 return resp, r.status, r.reason
             except socket.error, e:
