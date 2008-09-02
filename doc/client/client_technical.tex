@@ -131,7 +131,7 @@ invoking the ExecutionTarget's ``Stat'' command which prints all variables (if t
 retrieval process).
 
 Following a broker decision jobs are to be submitted. Since all information about the selected computation resides within the 
-selected ExecutionTarget, the ExecutionTarget is capable of returning a submitter (see next section) suitable submitting a 
+selected ExecutionTarget, the ExecutionTarget is capable of returning a submitter (see next section) capable of submitting a 
 job to the resource which is represents.}
 \end{itemize}
 
@@ -173,29 +173,65 @@ read all its details through the InterrogateTarget method.
 \chapter{Job Submission and Management}
 \label{sec:JobManagement}
 \section{Submission}
-Almost every day a new grid cluster is purchased and made available around the world (either to the 
-general public or restricted to authorized users). More available clusters create a need for better and 
-faster resource discovery and information retrieval, making this task an utmost important component of the 
-new client library.
+Job submission starts with the resource discovery and target preparation as outlined in the section above. Not before a list 
+of possible targets (which allows the user) is available is the job description read in order to enable bulk job submission of 
+widely different jobs without having to reperform the resource discovery. The job submission makes use of the following classes:
 
 \begin{itemize}
-\item{{\bf Submitter} is base class}
+\item{{\bf Broker} is not yet implemented and thus not described here.}
 
-\item{{\bf JobDescription} is }
+\item{{\bf JobDescription} is responsible for handling all job descriptions. Thus it is capable of handling the xRSL, JDL and 
+JSDL job description languages and to some extent also translate between them. Validation (syntax and semantical) is performed 
+automatically when the source is set. Features easy retrieval of list of local input files which should be uploaded to the 
+computing service.}
 
-\item{{\bf Broker} is }
+\item{{\bf Submitter} is base class for grid specific specializations (plugin).  It submits job(s) to a service and 
+uploads (by the job needed) local input files. Returns an XML node containing all needed information about the job 
+for later job management. The Submitter is returned by the ExecutionTarget selected for job execution and thus the 
+ExecutionTarget populates (through XML config element) the Submitter with information about submission endpoint (URL) 
+and job description languages ``spoken'' by the target.}
+
 \end{itemize}
 
+\begin{figure}[ht]
+\centering{{\scalebox{0.75}{\includegraphics{JobSubmission.png}}}
+\caption{\label{fig:JobSub}Diagram depicting the process of submitting a job to a computing service, including finding the 
+best possible resource for the job.} }
+\end{figure}
+
+Figure \ref{fig:JobSub} shows a job submission sequence and below a description of each step is given:
+
+\begin{enumerate}
+\item{The TargetGenerator has prepared a list of targets. Depending on the URLs provided to the TargetGenerator the list of 
+found targets may be empty or contain several targets. Targets may even represent more than one grid flavour. The list of 
+found targets are taken as input to the Broker.}
+\item{In order to choose between services the Broker needs to know the specific job requirements, thus the JobDescription is 
+needed as input to the brokering process.}
+\item{The broker outputs a ordered list of ExecutionTargets according to the provided JobDescription.}
+\item{As explained in Section~\ref{sec:TargetDiscovery} each ExectionTarget has a method to return a specialized Submitter 
+capable of submitting jobs to the service it represents. Thus the best suitable ExecutionTarget for the job is asked to return 
+a Submitter for the submission.}
+\item{The Submitter takes the JobDescription as input and uploads it to the computing service.}
+\item{The Submitter identifies local input files from the JobDescription and uploads them to the computing service.}
+\end{enumerate}
+
 \section{Management}
-Almost every day a new grid cluster is purchased and made available around the world (either to the 
-general public or restricted to authorized users). More available clusters create a need for better and 
-faster resource discovery and information retrieval, making this task an utmost important component of the 
-new client library.
+Information about active jobs is stored in a local xml file which is used for later job management. As this file may contain 
+information about jobs running on completely different grid flavours, job management should be handled using plugins similar to 
+resource discovery and job submission. The following classes are used:
 
 \begin{itemize}
-\item{{\bf JobSupervisor} is base class}
+\item{{\bf JobSupervisor} is responsible for loading the appropriate JobController for managing a job running on a specific 
+grid flavour. In order to match a job identification string (jobid) with a grid flavour a lookup in the local xml file is 
+performed. The JobSupervisor main functionality is to return a list of JobControllers which are capable of managing all jobs 
+addressed by a certain command.}
 
-\item{{\bf JobController} is }
+\item{{\bf JobController} is both base class for grid specific specializations, but also the implementor of all public functionality 
+offered by the JobControllers. In other words all virtual functions of the JobController are private. Upon initialization the 
+JobController reads into and fills a local store of jobs called JobsStore.
+The public functions of the 
+JobController offer to get (download), clean, cancel, etc one or more jobs and uses the private specializations for issueing the command. 
+This ensures consistency in how the commands are handled }
 
 \item{{\bf Job} is }
 \end{itemize}
