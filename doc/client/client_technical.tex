@@ -82,65 +82,49 @@
 \label{sec:intro}
 
 This document describes from a technical viewpoint a plugin based client library for the new 
-Web Service (WS) based Advanced Resource Connector (ARC) middleware. The library is capable of 
-handling resource discovery, job submission and job control and interoperates with several 
-different grid flavours. The support for different grid flavours is enabled through the modular 
-design using plugins specialized for each supported middleware, and presently supported are ARC0 
-(ARC classic), ARC1 and the gLite middlewares. Future extensions to support additional middlewares 
-involve plugin compilation only i.e. no recompilation of main libraries or client.
+Web Service (WS) based Advanced Resource Connector (ARC) middleware. The library consists of 
+a set of C++ classes for 
+
+\begin{itemize}
+\item{handling proxy, user and host certificates,}
+\item{performing resource discovery and information retrieval,}
+\item{job submission and management and}
+\item{data handling.}
+\end{itemize}
+
+All capabilities are enabled for three different grid flavours (Production ARC, ARC1 and gLite) 
+through the modular design using plugins specialized for each supported middleware. Future 
+extensions to support additional middlewares involve plugin compilation only i.e. no recompilation 
+of main libraries or client.
 
 Using the library a set of command line tools have been built which puts the library's functionality 
 at the fingertips of users. While this documentation will illustrate how such command line tool can be 
 built, the main documention of the command line tools is given in the client user manual [ref].
 
-Finally the library has been designed with care for later usage within a graphical user interface. This 
-particularly applies to the job management part.
+In the following we will give a functionality overview in Section~\ref{sec:FuncOver} while all technical 
+details will be given in Section~\ref{sec:Implementation}. Section~\ref{sec:cli} will through examples 
+show how command line interfaces can be built upon the library.
 
-\chapter{Resource Discovery and Information Retrieval}
+\chapter{Functionality Overview}
+\label{sec:FuncOver}
+The new ARClib makes extensive use of plugins for command handling. These plugins are handled by a set 
+of higher level classes which thus are the ones to offer the plugin functionality to external calls. In 
+this section an overview of the library's main functionality is given which also introduces the most 
+important higher level classes.
+\section{Resource Discovery and Information Retrieval}
 \label{sec:TargetDiscovery}
-Almost every day a new grid cluster is purchased and made available around the world (either to the 
-general public or restricted to authorized users). More available clusters create a need for better and 
-faster resource discovery and information retrieval, making this task an utmost important component of the 
-new client library.
+With the increasing number of grid clusters around the world, a reliable and fast resource discovery and 
+information retrieval capability is of crucial importance for a user interface. The new ARClib resource 
+discovery and information retrieval component consists of three classes; The TargetGenerator, the 
+TargetRetriever and the ExecutionTarget. Of these the TargetRetriever is a base class for further grid 
+middleware specific specialization (plugin).
 
-The new client library's resource discovery and information retrieval component consists of three classes, one 
-of which a base class for further grid middleware specific specialization (plugin):
-
-\begin{itemize}
-\item{{\bf TargetGenerator} is responsible for loading TargetRetriever plugins in accordance with the input URLs. 
-e.g. if an URL pointing to an ARC1 resource is given the TargetRetrieverARC1 is loaded. When queried for resources 
-(``targets'') the TargetGenerator passes the request to the loaded TargetRetrievers running them as individual threads 
-for improved performance. The TargetGenerator keeps records of by TargetRetriever found servers and services 
-(index or computing) in order to avoid multiple queries. Accepted targets are stored in the FoundTargets array kept by 
-the TargetGenerator.}
-
-\item{{\bf TargetRetriever} is base class for TargetRetriever grid middleware specializations. Contains the pure 
-virtual method GetTargets which is to be implemented by the specialized class. While it is not mandatory it is recommended 
-that the specialized class divides this function into two components: QueryIndex and InterrogateTarget. The former is 
-responsible for querying index servers, and if the result yields an addresss to a different index server then the 
-specialized TargetRetriever should call itself recursively with the found url. Discovered computing services are sent 
-to the InterrogateTarget function (or if the TargetRetriever was initialized with a computing service url then it should 
-jump directly to this point) which collects the detailed information about the service.}
-
-\item{{\bf ExecutionTarget} is the class representation of a computing resource (queue) capable of running a grid job. It
-serves as input to the broker which is foreseen to be able to select between different ExecutionTargets from different 
-grid flavours without apriori knowing their difference. The ExecutionTarget class mimics the glue2 information model (with 
-a flattened structure), and thus a mapping between attributes from other information systems into the glue2 format is needed. 
-Appendix XX shows the current mapping for the production ARC, ARC1 and gLite middlewares. All information can be printed by 
-invoking the ExecutionTarget's ``Stat'' command which prints all variables (if they have been filled during the information 
-retrieval process).
-
-Following a broker decision jobs are to be submitted. Since all information about the selected computation resides within the 
-selected ExecutionTarget, the ExecutionTarget is capable of returning a submitter (see next section) capable of submitting a 
-job to the resource which is represents.}
-\end{itemize}
-
-Figure \ref{fig:ResDisc} depicts how the classes work together in a command chain to discover all resources registered with 
-a certain information server. Below a description of each step is given:
+Figure \ref{fig:ResDisc} depicts how the classes work together in a command chain to discover all resources 
+registered with a certain information server. Below a description of each step is given:
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.75}{\includegraphics{TargetDiscovery.png}}}
-\caption{\label{fig:ResDisc}Diagram depicting the process of resource discovery.} }
+\caption{\label{fig:ResDisc}Diagram depicting the process of resource discovery and information retrieval.} }
 \end{figure}
 
 \begin{enumerate}
@@ -170,28 +154,11 @@ The example above outlines how the TargetRetriever works when initialized with a
 as indicated it also accepts service URLs in which case the TargetRetriever will try to register the service and if allowed 
 read all its details through the InterrogateTarget method.
 
-\chapter{Job Submission and Management}
-\label{sec:JobManagement}
-\section{Submission}
+\section{Job Submission}
+\label{sec:JobSubmission}
 Job submission starts with the resource discovery and target preparation as outlined in the section above. Not before a list 
 of possible targets (which allows the user) is available is the job description read in order to enable bulk job submission of 
 widely different jobs without having to reperform the resource discovery. The job submission makes use of the following classes:
-
-\begin{itemize}
-\item{{\bf Broker} is not yet implemented and thus not described here.}
-
-\item{{\bf JobDescription} is responsible for handling all job descriptions. Thus it is capable of handling the xRSL, JDL and 
-JSDL job description languages and to some extent also translate between them. Validation (syntax and semantical) is performed 
-automatically when the source is set. Features easy retrieval of list of local input files which should be uploaded to the 
-computing service.}
-
-\item{{\bf Submitter} is base class for grid specific specializations (plugin).  It submits job(s) to a service and 
-uploads (by the job needed) local input files. Returns an XML node containing all needed information about the job 
-for later job management. The Submitter is returned by the ExecutionTarget selected for job execution and thus the 
-ExecutionTarget populates (through XML config element) the Submitter with information about submission endpoint (URL) 
-and job description languages ``spoken'' by the target.}
-
-\end{itemize}
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.75}{\includegraphics{JobSubmission.png}}}
@@ -215,35 +182,85 @@ a Submitter for the submission.}
 \item{The Submitter identifies local input files from the JobDescription and uploads them to the computing service.}
 \end{enumerate}
 
-\section{Management}
+\section{Job Management}
 Information about active jobs is stored in a local xml file which is used for later job management. As this file may contain 
 information about jobs running on completely different grid flavours, job management should be handled using plugins similar to 
 resource discovery and job submission. The following classes are used:
 
-\begin{itemize}
-\item{{\bf JobSupervisor} is responsible for loading the appropriate JobController for managing a job running on a specific 
+\section{Data Handling}
+\label{sec:DataHandling}
+
+\chapter{Implementation}
+\label{sec:Implementation}
+Clever text here.
+\section{Generic Classes}
+\subsection{TargetGenerator} The TargetGenerator is responsible for loading TargetRetriever plugins in accordance with the 
+input URLs. e.g. if an URL pointing to an ARC1 resource is given the TargetRetrieverARC1 is loaded. When queried for resources 
+(``targets'') the TargetGenerator passes the request to the loaded TargetRetrievers running them as individual threads 
+for improved performance. The TargetGenerator keeps records of by TargetRetriever found servers and services 
+(index or computing) in order to avoid multiple queries. Accepted targets are stored in the FoundTargets array kept by 
+the TargetGenerator.
+
+\subsection{TargetRetriever} The TargetRetriever is base class for TargetRetriever grid middleware specializations. Contains the pure 
+virtual method GetTargets which is to be implemented by the specialized class. While it is not mandatory it is recommended 
+that the specialized class divides this function into two components: QueryIndex and InterrogateTarget. The former is 
+responsible for querying index servers, and if the result yields an addresss to a different index server then the 
+specialized TargetRetriever should call itself recursively with the found url. Discovered computing services are sent 
+to the InterrogateTarget function (or if the TargetRetriever was initialized with a computing service url then it should 
+jump directly to this point) which collects the detailed information about the service.
+
+\subsection{ExecutionTarget} The ExecutionTarget is the class representation of a computing resource (queue) capable of running a grid job. It
+serves as input to the broker which is foreseen to be able to select between different ExecutionTargets from different 
+grid flavours without apriori knowing their difference. The ExecutionTarget class mimics the glue2 information model (with 
+a flattened structure), and thus a mapping between attributes from other information systems into the glue2 format is needed. 
+Appendix XX shows the current mapping for the production ARC, ARC1 and gLite middlewares. All information can be printed by 
+invoking the ExecutionTarget's ``Stat'' command which prints all variables (if they have been filled during the information 
+retrieval process).
+
+Following a broker decision jobs are to be submitted. Since all information about the selected computation resides within the 
+selected ExecutionTarget, the ExecutionTarget is capable of returning a submitter (see next section) capable of submitting a 
+job to the resource which is represents.
+
+\subsection{Broker} is not yet implemented and thus not described here.
+
+\subsection{JobDescription} The JobDescription is responsible for handling all job descriptions. Thus it is capable of handling the xRSL, JDL and 
+JSDL job description languages and to some extent also translate between them. Validation (syntax and semantical) is performed 
+automatically when the source is set. Features easy retrieval of list of local input files which should be uploaded to the 
+computing service.
+
+\subsection{Submitter} Submitter is base class for grid specific specializations (plugin).  It submits job(s) to a service and 
+uploads (by the job needed) local input files. Returns an XML node containing all needed information about the job 
+for later job management. The Submitter is returned by the ExecutionTarget selected for job execution and thus the 
+ExecutionTarget populates (through XML config element) the Submitter with information about submission endpoint (URL) 
+and job description languages ``spoken'' by the target.
+
+\subsection{JobSupervisor} is responsible for loading the appropriate JobController for managing a job running on a specific 
 grid flavour. In order to match a job identification string (jobid) with a grid flavour a lookup in the local xml file is 
 performed. The JobSupervisor main functionality is to return a list of JobControllers which are capable of managing all jobs 
-addressed by a certain command.}
+addressed by a certain command.
 
-\item{{\bf JobController} is both base class for grid specific specializations, but also the implementor of all public functionality 
+\subsection{JobController} is both base class for grid specific specializations, but also the implementor of all public functionality 
 offered by the JobControllers. In other words all virtual functions of the JobController are private. Upon initialization the 
-JobController reads into and fills a local store of jobs called JobsStore.
-The public functions of the 
-JobController offer to get (download), clean, cancel, etc one or more jobs and uses the private specializations for issueing the command. 
-This ensures consistency in how the commands are handled }
+JobController converts the information stored in the local XML to Jobs which are stored in a JobControler internal store called JobsStore. 
+The public functions of the JobController offer to get (download), clean, cancel, etc one or more jobs and uses the private specializations 
+for issueing the command. This ensures consistency in how the commands are handled between the different grid flavours. Jobs that are 
+permanently removed following a command are removed from both the JobStore and local xml file. Thus it is foreseen that the JobControllers 
+may be used in a future graphical user interface where it becomes a persistent object continously monitoring jobs.
 
-\item{{\bf Job} is }
-\end{itemize}
+\subsection{Job} is generic job class for storing all job related information. Attributes are derived from the glue2 information model 
+and thus a mapping is needed for non glue2 compliant grid middlewares. Appendix XX shows the present mapping schema.
 
-\chapter{Data Management}
-\label{sec:DataManagement}
+\subsection{UserConfig}
 
-\chapter{Specialized Classes (Grid Flavour Plugins)}
+\section{Specialized Classes (Grid Flavour Plugins)}
 \label{sec:plugins}
-\section{ARC0 Plugins}
-\section{ARC1 Plugins}
-\section{gLite Plugins}
+\subsection{ARC0 Plugins}
+\subsection{ARC1 Plugins}
+\subsection{gLite Plugins}
+
+\section{Support Classes}
+\subsection{URL}
+\subsection{Logger}
 
 \chapter{Building Command Line Interfaces}
 \label{sec:cli}
