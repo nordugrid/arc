@@ -33,7 +33,7 @@ public:
  * if the tokentype is Encryption, the encrypted soap body will be 
  * decrypted and replaced by decrypted message.
  */
-  X509Token(SOAPEnvelope& soap, X509TokenType tokentype = Signature);
+  X509Token(SOAPEnvelope& soap);
 
 /** Constructor. Add X509 Token information into the SOAP header.
  *Generated token contains elements X509 token and signature, and is
@@ -45,7 +45,7 @@ public:
  *@param keyfile  The key file which will be used to create signature. Not needed when create encryption.
  *@param tokentype Token type: Signature or Encryption.
  */
-  X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype = Signature);
+  X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType token_type = Signature);
 
 /** Deconstructor. Nothing to be done except finalizing the xmlsec library.
  */
@@ -79,11 +79,12 @@ private:
 /** Tells if specified SOAP header has WSSE element and X509Token inside 
  * the WSSE element. 
  */
-  static bool Check(SOAPEnvelope& soap);
+  bool Check(SOAPEnvelope& soap);
 
 private:
   xmlNodePtr signature_nd;
   std::string cert_str;
+  X509TokenType tokentype;  
 };
 
 } // namespace Arc

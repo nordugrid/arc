@@ -69,8 +69,14 @@ bool X509Token::Check(SOAPEnvelope& soap) {
     std::cerr<<"No Security element in SOAP Header"<<std::endl;
     return false;
   };
-  if(!wsse["wsse:BinarySecurityToken"]) {
-    std::cerr<<"No X509Token element in SOAP Header"<<std::endl;
+  if((bool)(wsse["wsse:BinarySecurityToken"])) {
+    tokentype = Signature;
+  }
+  else if((bool)(wsse["xenc:EncryptedKey"])) {
+    tokentype = Encryption;
+  }
+  else {
+    std::cerr<<"No wsse:Security or xenc:EncryptedKey element in SOAP Header"<<std::endl;
     return false;
   };
   return true;
@@ -80,10 +86,10 @@ X509Token::operator bool(void) {
   return (bool)header;
 }
 
-X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope(soap){
-  //if(!Check(soap)){
-  //  return;    
-  //}
+X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
+  if(!Check(soap)){
+    return;    
+  }
 
   if(!init_xmlsec()) return; 
  
@@ -254,7 +260,7 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
 }
 
 
-X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype) : SOAPEnvelope (soap) {
+X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType token_type) : SOAPEnvelope (soap), tokentype(token_type) {
 
   if(!init_xmlsec()) return;
 

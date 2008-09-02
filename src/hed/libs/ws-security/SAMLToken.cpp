@@ -384,5 +384,10 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     std::cout<<"WSSE: "<<str<<std::endl;
   }
 }
+
+SAMLToken::~SAMLToken(void) {
+  final_xmlsec();
+}
+
 } // namespace Arc
 

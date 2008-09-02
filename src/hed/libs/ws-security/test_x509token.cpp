@@ -53,7 +53,7 @@ int main(void) {
   soap4.GetXML(str);
   std::cout<<"SOAP message with X509Token and encrypted body"<<str<<std::endl<<std::endl;
 
-  Arc::X509Token xt4(soap4, Arc::X509Token::Encryption);
+  Arc::X509Token xt4(soap4);
 
   xt4.GetXML(str);
   std::cout<<"SOAP message with decrypted body"<<str<<std::endl<<std::endl;
