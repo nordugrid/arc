@@ -16,6 +16,8 @@ class EchoService:
         # time.sleep(10)
         # get the payload from the message
         inpayload = inmsg.Payload()
+        attributes = inmsg.Attributes()
+        print dict([(name, attributes.get(name)) for name in ['HTTP:ENDPOINT', 'HTTP:METHOD', 'TLS:PEERDN', 'TLS:IDENTITYDN']])
         print "EchoService (python) got:", inpayload.GetXML()
         # we want to use members of the 'urn:echo' namespace
         # so we need to know which namespace prefix was assigned to it
