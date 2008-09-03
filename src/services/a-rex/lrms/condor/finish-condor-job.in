@@ -26,7 +26,7 @@ controldir=$CONFIG_controldir
 grami=$(find $controldir -name "job.??????????*.grami" -maxdepth 1 \
           | xargs grep -l "^joboption_jobid=$lrmsid$")
 
-if [[ ! -f $grami ]]; then
+if [ ! -f $grami ]; then
     echo "$progname: No GRAMI file for job $lrmsid could be found." 1>&2
     exit 1
 fi
@@ -47,7 +47,7 @@ echo "arg 3 $3" >>"$gmlog"
 condor_log=$(sed -n 's/^condor_log=\(.*\)/\1/p' "$grami")
 
 # Use /dev/null if we couldn't find the log.  Should never happen.
-if [[ ! -f $condor_log ]]; then
+if [ ! -f $condor_log ]; then
     echo "$progname: couldn't find Condor log file ($condor_log)"
     echo "$progname: using /dev/null as log file"
     condor_log=/dev/null
@@ -273,7 +273,7 @@ else
 fi
 
 # Check whether the job was killed by Condor. If yes, check for exceeded resources limits
-if [[ ( ! -z "$RemoveReason" && "$RemoveReason" != "None" ) || ! -z "$PeriodicRemove" ]]; then
+if ( [ ! -z "$RemoveReason" ] && [ "$RemoveReason" != "None" ] ) || [ ! -z "$PeriodicRemove" ]; then
     exitcode=271
     overlimit='unknown'
     used_walltime=$WallTime

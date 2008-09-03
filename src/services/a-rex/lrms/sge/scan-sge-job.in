@@ -226,7 +226,7 @@ for ctr_dir in $control_dirs ; do
             fi
           else
             # SGE reports a problem
-            if [[ -z "$failedcode" ]]; then
+            if [ -z "$failedcode" ]; then
               : # Should never happen
             elif [ "$failedcode" = "0" ]; then
               : # Should never happen
