@@ -18,8 +18,6 @@ GMKICK=${basedir}/gm-kick
 ##############################################################
 # Set SGE specific environment.
 ##############################################################
-ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
-
 if [ ! -f "${basedir}/configure-sge-env.sh" ] ; then
     echo "${basedir}/configure-sge-env.sh not found." >&2
     exit 1
