@@ -8,7 +8,7 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/UserConfig.h>
 
-#include "arex_client.h"
+#include "AREXClient.h"
 #include "TargetRetrieverARC1.h"
 
 namespace Arc {

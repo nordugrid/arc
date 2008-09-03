@@ -8,7 +8,7 @@
 #include <arc/client/UserConfig.h>
 
 #include "SubmitterARC1.h"
-#include "arex_client.h"
+#include "AREXClient.h"
 
 namespace Arc {
 

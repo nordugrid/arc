@@ -3,7 +3,7 @@ pkglib_LTLIBRARIES = libaccARC1.la
 libaccARC1_la_SOURCES  = TargetRetrieverARC1.cpp TargetRetrieverARC1.h \
 			 SubmitterARC1.cpp SubmitterARC1.h \
 			 JobControllerARC1.cpp JobControllerARC1.h \
-			 arex_client.cpp arex_client.h \
+			 AREXClient.cpp AREXClient.h \
 			 DescriptorsARC1.cpp
 libaccARC1_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 			 -I$(top_srcdir)/include

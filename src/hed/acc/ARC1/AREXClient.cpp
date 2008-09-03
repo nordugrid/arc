@@ -3,7 +3,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/ws-addressing/WSA.h>
 
-#include "arex_client.h"
+#include "AREXClient.h"
 
 namespace Arc {
 

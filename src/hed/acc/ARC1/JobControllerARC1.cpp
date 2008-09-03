@@ -2,7 +2,7 @@
 #include <arc/client/UserConfig.h>
 #include <arc/data/DataHandle.h>
 
-#include "arex_client.h"
+#include "AREXClient.h"
 #include "JobControllerARC1.h"
 
 namespace Arc {
