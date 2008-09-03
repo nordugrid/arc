@@ -37,8 +37,7 @@ void arccat(const std::list<std::string>& jobs,
   
   if(TheJobControllers.empty())
     return;
-  std::cout<<"Number of JobControllers: "<<TheJobControllers.size() <<std::endl; 
-  
+
   std::list<Arc::JobController*>::iterator iter;
   
   std::string whichfile;
