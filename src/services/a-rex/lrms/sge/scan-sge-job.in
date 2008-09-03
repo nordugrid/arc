@@ -113,7 +113,7 @@ for ctr_dir in $control_dirs ; do
       if [ -f  "$acctfile" ]; then
         briefacct=`mktemp "$TMP_DIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
         tail -n 1000 "$acctfile" > "$briefacct"
-        if [ $? == 0 ]; then extraargs="-f $briefacct"; fi
+        if [ $? = 0 ]; then extraargs="-f $briefacct"; fi
       fi
 
       # get accounting info. write diag file
@@ -216,8 +216,8 @@ for ctr_dir in $control_dirs ; do
 
           fi # grami file
 
-          if [ "$failedcode" == "0" ]; then
-            if [ "$exitcode" == "0" ]; then
+          if [ "$failedcode" = "0" ]; then
+            if [ "$exitcode" = "0" ]; then
               echo "SGE job $id finished succesfully" 1>&2
               echo "$exitcode" > "$donefile"
             else
@@ -228,24 +228,24 @@ for ctr_dir in $control_dirs ; do
             # SGE reports a problem
             if [[ -z "$failedcode" ]]; then
               : # Should never happen
-            elif [ "$failedcode" == "0" ]; then
+            elif [ "$failedcode" = "0" ]; then
               : # Should never happen
-            elif [ "$failedcode" == "25" ]; then
+            elif [ "$failedcode" = "25" ]; then
               failedreason="SGE error $failedcode: Job will be rescheduled"
-            elif [ "$failedcode" == "24" ]; then
+            elif [ "$failedcode" = "24" ]; then
               failedreason="SGE error $failedcode: Job will be migrated"
-            elif [ "$failedcode" == "100" ]; then
+            elif [ "$failedcode" = "100" ]; then
 	      # This happens when SGE signals the job, as in the case when a
 	      # resource limit is exceeded.  We don't know for sure whether
 	      # they were enforced or not but if a job is killed by SGE, this
 	      # might the likely cause.
 	      if [ -z "$overlimit" ]; then
                 failedreason="SGE error $failedreason"
-              elif [ $overlimit == "memory" ]; then
+              elif [ $overlimit = "memory" ]; then
                 failedreason="job killed: vmem"
-              elif [ $overlimit == "cputime" ]; then
+              elif [ $overlimit = "cputime" ]; then
                 failedreason="job killed: cput"
-              elif [ $overlimit == "walltime" ]; then
+              elif [ $overlimit = "walltime" ]; then
                 failedreason="job killed: wall"
               fi
             else
@@ -258,7 +258,7 @@ for ctr_dir in $control_dirs ; do
 
             # Change exit code in the diag file
             cp "$diagfile" "$diagfile_tmp"
-            if [ $? == 0 ]; then
+            if [ $? = 0 ]; then
               cat "$diagfile_tmp" | grep -v "^exitcode=" > "$diagfile"
               echo "exitcode=$exitcode"  >>  "$diagfile"
               rm -f "$diagfile_tmp"

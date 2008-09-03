@@ -337,7 +337,7 @@ move_files_to_frontend
   # anything else is a sign of problems, which should be logged
   warnings=$(cat $LRMS_JOB_OUT $LRMS_JOB_ERR \
              | grep -v '^.our job .* has been submitted' | grep -v '^Exit')
-  if [ ! -z "$warnings" ]; then echo -e "WARNING: $warnings\n"; fi
+  if [ ! -z "$warnings" ]; then echo "WARNING: $warnings"; echo; fi
 
   exitcode=0
   if [ -z $job_id ] ; then
@@ -352,7 +352,7 @@ move_files_to_frontend
 
   # Remove temporary job script file
   rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
-  echo -e "----- exiting submit_sge_job -----\n"
+  echo "----- exiting submit_sge_job -----"
 ) 1>&2
 
 exit $exitcode

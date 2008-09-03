@@ -200,7 +200,7 @@ echo "$progname: ----- Invoking condor_history for ID $condorid -----" >> "$gmlo
 # record of the job at first try, sleep a bit, and try again
 for to in 10 30; do
     $CONDOR_BIN_PATH/condor_history -l $condorid > $tmphist 2>> "$gmlog"
-    if [ $? == 0 ] && [ -s $tmphist ] && [ `wc -l $tmphist|awk '{print $1}'` -gt 1 ]; then
+    if [ $? = 0 ] && [ -s $tmphist ] && [ `wc -l $tmphist|awk '{print $1}'` -gt 1 ]; then
       break;
     fi
     echo "$progname: No condor_history yet, sleeping $to seconds" >> "$gmlog"
@@ -208,7 +208,7 @@ for to in 10 30; do
 done
 
 # Extract information from condor_history output
-if [ $? == 0 ] && [ -s $tmphist ] && [ `wc -l $tmphist|awk '{print $1}'` -gt 1 ]; then
+if [ $? = 0 ] && [ -s $tmphist ] && [ `wc -l $tmphist|awk '{print $1}'` -gt 1 ]; then
     { echo "$progname: ----- begin condor history message -----"
       cat $tmphist
       echo "$progname: ----- end condor history message -----"
@@ -255,7 +255,7 @@ else
 fi
 
 # set an exit code (if not already set), and a preliminary message
-if [ -z "$exitcode" ] || [ "$exitcode" == "None" ]; then
+if [ -z "$exitcode" ] || [ "$exitcode" = "None" ]; then
     exitcode=271
     if [ ! -z "$RemoveReason" ] && [ "$RemoveReason" != "None" ]; then
         message="$RemoveReason"
@@ -266,7 +266,7 @@ if [ -z "$exitcode" ] || [ "$exitcode" == "None" ]; then
     else
         message="Unknown Condor error"
     fi
-elif [ "$exitcode" == 0 ]; then
+elif [ "$exitcode" = 0 ]; then
     message=""
 else
     message="Job finished with non-zero exit code"
@@ -313,13 +313,13 @@ if [[ ( ! -z "$RemoveReason" && "$RemoveReason" != "None" ) || ! -z "$PeriodicRe
   
     if [ -z "$overlimit" ]; then
         :
-    elif [ $overlimit == "memory" ]; then
+    elif [ $overlimit = "memory" ]; then
         message="job killed: vmem"
-    elif [ $overlimit == "cputime" ]; then
+    elif [ $overlimit = "cputime" ]; then
         message="job killed: cput"
-    elif [ $overlimit == "walltime" ]; then
+    elif [ $overlimit = "walltime" ]; then
         message="job killed: wall"
-    elif [ $overlimit == "unknown" ]; then
+    elif [ $overlimit = "unknown" ]; then
         message="job killed: $message"
     fi
 fi
