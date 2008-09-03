@@ -39,6 +39,6 @@ usr/lib/arc/condor_env.pm
 usr/lib/arc/change-lsf-mode.sh
 usr/lib/arc/finish-condor-job
 
-usr/lib/arc/cluster+qju.pl
+usr/lib/arc/CEinfo.pl
 usr/share/arc/nordugrid.schema
 

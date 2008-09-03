@@ -8,7 +8,7 @@ GLUE 2 support is incomplete.
 
 
 
-cluster+qju.pl - driver for information collection. It calls all other infomation
+CEinfo.pl      - driver for information collection. It calls all other infomation
                  collectors and prints results in XML.
 
 InfoCollector.pm  - base class for all information collectors (all files *Info.pm)

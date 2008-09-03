@@ -284,12 +284,12 @@ model~\cite{is} and the GLUE2 schema~\cite{glue2}.
 
 The information system interface consists of a set of Perl scripts which
 generates an XML output to \texttt{STDOUT} by one invocation of the Perl script named
-\texttt{cluster+qju.pl}. The XML output includes two representations of the output data,
+\texttt{CEinfo.pl}. The XML output includes two representations of the output data,
 namely the classic NorduGrid information schema and an incomplete GLUE2 schema representation.
 
 The information collector scripts are divided between several separate scripts:
 \begin{itemize}
-\item \texttt{cluster+qju.pl} - driver for information collection. It calls all other information collectors and prints the results in XML. The information collection is done by one single invocation of this script.
+\item \texttt{CEinfo.pl} - driver for information collection. It calls all other information collectors and prints the results in XML. The information collection is done by one single invocation of this script.
 \item \texttt{InfoCollector.pm} - base class for all information collectors (i.e.: all files \texttt{*Info.pm}).
 \item \texttt{InfoChecker.pm} - used by \texttt{InfoCollector} to validate options and results against a ``schema''.
 \item \texttt{GMJobsInfo.pm} - collects information about jobs from GM status files.

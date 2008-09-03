@@ -58,7 +58,7 @@ void ARexService::InformationCollector(void) {
     std::string xml_str;
     {
       std::string cmd;
-      cmd=nordugrid_libexec_loc+"/cluster+qju.pl --config "+nordugrid_config_loc;
+      cmd=nordugrid_libexec_loc+"/CEinfo.pl --config "+nordugrid_config_loc;
       Arc::Run run(cmd);
       std::string stdin_str;
       std::string stderr_str;

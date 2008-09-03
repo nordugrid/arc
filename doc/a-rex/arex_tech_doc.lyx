@@ -3448,7 +3448,7 @@ gm-kick
 \begin_layout Itemize
 
 \emph on
-cluster+qju.pl
+CEinfo.pl
 \emph default
  - Collects and generates information about computing resource as XML document
  in NorduGrid and Glue 2 format.
