@@ -8,6 +8,9 @@ echo "----- starting cancel_pbs_job -----" 1>&2
 
 joboption_lrms=pbs
 
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
 . ${basedir}/cancel_common.sh $1
 
 ##############################################################
