@@ -32,11 +32,6 @@ fi
 # Set LSF specific environment. # relies on $joboption_queue #
 ##############################################################
 
-if [ -z ${ARC_LOCATION} ] ; then
-    echo "ARC_LOCATION not set." 1>&2
-    exit 1
-fi
-
 if [ ! -f "${basedir}/configure-lsf-env.sh" ] ; then
     echo "${basedir}/configure-lsf-env.sh not found." 1>&2
     exit 1
@@ -61,8 +56,6 @@ RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
 # enforce this 
 RUNTIME_FRONTEND_SEES_NODE='yes'
 RUNTIME_NODE_SEES_FRONTEND='yes'
-RUNTIME_ARC_LOCATION="$ARC_LOCATION"
-RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
 
 
 joboption_lrms=LSF
@@ -419,6 +412,8 @@ echo "" >> $LRMS_JOB_SCRIPT
 ####################################################
 
 if [ "$joboption_localtransfer" = 'yes' ] ; then
+RUNTIME_ARC_LOCATION="$ARC_LOCATION"
+RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
 echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $LRMS_JOB_SCRIPT
 echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $LRMS_JOB_SCRIPT
 echo "DOWNLOADER=\${DOWNLOADER:-$basedir/downloader}" >> $LRMS_JOB_SCRIPT

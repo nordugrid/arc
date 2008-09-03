@@ -17,8 +17,6 @@ init () {
    NODENAME=${NODENAME:-"@nodename@"}
 
    RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
-   RUNTIME_ARC_LOCATION="$ARC_LOCATION"
-   RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
 } 
 
 
@@ -229,6 +227,8 @@ EOSCR
 #######################################################################
 download_input_files () {
   if [ "$joboption_localtransfer" = 'yes' ] ; then
+    RUNTIME_ARC_LOCATION="$ARC_LOCATION"
+    RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
     echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $LRMS_JOB_SCRIPT
     echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $LRMS_JOB_SCRIPT
     echo "DOWNLOADER=\${DOWNLOADER:-$basedir/downloader}" >> $LRMS_JOB_SCRIPT

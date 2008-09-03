@@ -23,10 +23,6 @@ joboption_lrms=SGE
 basedir=`dirname $0`
 basedir=`cd $basedir; pwd`
 
-if [ -z ${ARC_LOCATION} ] ; then
-    echo "ARC_LOCATION not set." 1>&2
-    exit 1
-fi
 if [ ! -f "${basedir}/submit_common.sh" ] ; then
     echo "${basedir}/submit_common.sh not found." 1>&2
     exit 1
