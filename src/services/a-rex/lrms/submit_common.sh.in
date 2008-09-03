@@ -209,9 +209,10 @@ setup_local_transfer () {
 
 upload_output_files () {
    if [ "$joboption_localtransfer" = 'yes' ] ; then
+     echo "UPLOADER=\${UPLOADER:-$basedir/uploader}" >> $LRMS_JOB_SCRIPT
      cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
      if [ "$RESULT" = '0' ] ; then
-       ${UPLOADER:-$basedir/uploader} -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
+       $UPLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
        if [ $? -ne '0' ] ; then
          echo 'ERROR: Uploader failed.' 1>&2
          if [ "$RESULT" = '0' ] ; then RESULT=1 ; fi
