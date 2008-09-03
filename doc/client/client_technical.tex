@@ -33,6 +33,7 @@
 \newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
 \newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
 \newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\newcommand{\ACC}{\texttt{ACC}}
 \newcommand{\TargetGenerator}{\texttt{TargetGenerator}}
 \newcommand{\TargetRetriever}{\texttt{TargetRetriever}}
 \newcommand{\ExecutionTarget}{\texttt{ExecutionTarget}}
@@ -42,6 +43,8 @@
 \newcommand{\JobSupervisor}{\texttt{JobSupervisor}}
 \newcommand{\JobController}{\texttt{JobController}}
 \newcommand{\Job}{\texttt{Job}}
+\newcommand{\UserConfig}{\texttt{UserConfig}}
+\newcommand{\ClientInterface}{\texttt{ClientInterface}}
 \definecolor{shadecolor}{rgb}{1,1,0.6}
 \definecolor{salmon}{rgb}{1,0.9,1}
 \definecolor{bordeaux}{rgb}{0.75,0.,0.}
@@ -205,6 +208,8 @@ resource discovery and job submission. The following classes are used:
 \label{sec:Implementation}
 Clever text here.
 \section{Generic Classes}
+\subsection{{\ACC}}
+
 \subsection{{\TargetGenerator}} The {\TargetGenerator} class is the main class for resource discovery and information retrieval. It loads 
 {\TargetRetriever} plugins in accordance with the input URLs using the ARC Loader (e.g. if an URL pointing to an ARC1 resource is given 
 the TargetRetrieverARC1 is loaded).
@@ -258,56 +263,252 @@ PrintTargetInfo(bool longlist) const;
 \end{verbatim}
 \end{shaded}
 
-\subsection{{\TargetRetriever}} The {\TargetRetriever} is base class for {\TargetRetriever} grid middleware specializations. Contains the pure 
-virtual method GetTargets which is to be implemented by the specialized class. While it is not mandatory it is recommended 
-that the specialized class divides this function into two components: QueryIndex and InterrogateTarget. The former is 
-responsible for querying index servers, and if the result yields an addresss to a different index server then the 
-specialized {\TargetRetriever} should call itself recursively with the found url. Discovered computing services are sent 
-to the InterrogateTarget function (or if the {\TargetRetriever} was initialized with a computing service url then it should 
-jump directly to this point) which collects the detailed information about the service.
+\subsection{{\TargetRetriever}} The {\TargetRetriever} is base class for {\TargetRetriever} grid middleware specializations and 
+inherits from the \texttt{ACC} base class in order to be loadable by the ARC \texttt{Loader}. It is designed to work on conjunction 
+with the {\TargetGenerator} contains and contains the pure virtual method
 
-\subsection{{\ExecutionTarget}} The {\ExecutionTarget} is the class representation of a computing resource (queue) capable of running a grid job. It
-serves as input to the broker which is foreseen to be able to select between different {\ExecutionTarget}s from different 
-grid flavours without apriori knowing their difference. The {\ExecutionTarget} class mimics the glue2 information model (with 
-a flattened structure), and thus a mapping between attributes from other information systems into the glue2 format is needed. 
-Appendix XX shows the current mapping for the production ARC, ARC1 and gLite middlewares. All information can be printed by 
-invoking the {\ExecutionTarget}'s ``Stat'' command which prints all variables (if they have been filled during the information 
-retrieval process).
+\begin{shaded}
+\begin{verbatim}
+virtual void GetTargets(TargetGenerator& mom, int targetType,
+                        int detailLevel) = 0;
+\end{verbatim}
+\end{shaded}
 
-Following a broker decision jobs are to be submitted. Since all information about the selected computation resides within the 
-selected {\ExecutionTarget}, the {\ExecutionTarget} is capable of returning a submitter (see next section) capable of submitting a 
-job to the resource which is represents.
+which is to be implemented by the specialized class. While it is not mandatory it is recommended that the specialized class 
+divides this method into two components: QueryIndex and InterrogateTarget. The former is handles index server queries, and the 
+latter the computing service queries and {\ExecutionTarget} preparation. 
 
-\subsection{{\Broker}} is not yet implemented and thus not described here.
+If an index server query yields an url to a different index server then the one queried, then the {\TargetRetriever} should 
+call itself recursively creating a new {\TargetRetriever} for the discovered index server. 
 
-\subsection{{\JobDescription}} The {\JobDescription} is responsible for handling all job descriptions. Thus it is capable of handling the xRSL, JDL and 
-JSDL job description languages and to some extent also translate between them. Validation (syntax and semantical) is performed 
-automatically when the source is set. Features easy retrieval of list of local input files which should be uploaded to the 
-computing service.
+\subsection{{\ExecutionTarget}} The {\ExecutionTarget} is the class representation of a computing resource (queue) capable of 
+executing a grid job. It serves as input to the {\Broker} which is foreseen to be able to select between different 
+{\ExecutionTarget}s from different grid flavours without apriori knowing their difference. The {\ExecutionTarget} class 
+mimics the glue2 information model (with a flattened structure), and thus a mapping between attributes from other information 
+systems into the glue2 format is needed.  Appendix XX shows the current mapping for the production ARC, ARC1 and gLite middlewares. 
 
-\subsection{{\Submitter}} {\Submitter} is base class for grid specific specializations (plugin).  It submits job(s) to a service and 
-uploads (by the job needed) local input files. Returns an XML node containing all needed information about the job 
-for later job management. The {\Submitter} is returned by the {\ExecutionTarget} selected for job execution and thus the 
-{\ExecutionTarget} populates (through XML config element) the {\Submitter} with information about submission endpoint (URL) 
-and job description languages ``spoken'' by the target.
+All attributes of the {\ExecutionTarget} can be printed by the method
 
-\subsection{{\JobSupervisor}} is responsible for loading the appropriate {\JobController} for managing a job running on a specific 
-grid flavour. In order to match a job identification string (jobid) with a grid flavour a lookup in the local xml file is 
-performed. The {\JobSupervisor} main functionality is to return a list of {\JobController}s which are capable of managing all jobs 
-addressed by a certain command.
+\begin{shaded}
+\begin{verbatim}                                                                                                                            
+void Print(bool longlist) const;
+\end{verbatim}
+\end{shaded}
 
-\subsection{{\JobController}} is both base class for grid specific specializations, but also the implementor of all public functionality 
-offered by the {\JobController}s. In other words all virtual functions of the {\JobController} are private. Upon initialization the 
-{\JobController} converts the information stored in the local XML to Jobs which are stored in a JobControler internal store called JobsStore. 
-The public functions of the {\JobController} offer to get (download), clean, cancel, etc one or more jobs and uses the private specializations 
-for issueing the command. This ensures consistency in how the commands are handled between the different grid flavours. Jobs that are 
-permanently removed following a command are removed from both the JobStore and local xml file. Thus it is foreseen that the {\JobController}s 
-may be used in a future graphical user interface where it becomes a persistent object continously monitoring jobs.
+Following a broker decision jobs are to be submitted. Since all information about the selected computing service resides within the 
+selected {\ExecutionTarget}, the {\ExecutionTarget} is capable of returning a {\Submitter} capable of submitting a 
+job to the service which is represents.
 
-\subsection{{\Job}} is generic job class for storing all job related information. Attributes are derived from the glue2 information model 
-and thus a mapping is needed for non glue2 compliant grid middlewares. Appendix XX shows the present mapping schema.
+\begin{shaded}
+\begin{verbatim}
+Submitter *GetSubmitter() const;
+\end{verbatim}
+\end{shaded}
 
-\subsection{UserConfig}
+\subsection{{\Broker}} The {\Broker} is not yet implemented and thus not described here.
+
+\subsection{{\JobDescription}} When addressing interoperability it is of paramount importance to transparently address grid job 
+descriptions written in different job description languages by translating them automatically. In the ARClib library this functionality 
+is implemented in the {\JobDescription} class. This is a generic class that takes a job description (string )as input 
+
+\begin{shaded}
+\begin{verbatim}
+setSource( const std::string source ) throw(JobDescriptionError);
+\end{verbatim}
+\end{shaded}
+
+in any supported formats (currently xRSL, JDL, JSDL), converts and stores it in a JSDL-like internal job description format. The identification 
+of the source's description format is internally handled by a \texttt{JobDescriptionOrderer} class which identifies the format by pattern
+matching.
+
+Different operations, like getting the job description in other formats or getting job-related information, can be performed using the 
+description-independent functions of this class, e.g.:
+
+\begin{shaded}
+\begin{verbatim}
+getProduct(std::string& product, std::string format="JSDL") throw(JobDescriptionError);
+\end{verbatim}
+\end{shaded}
+
+The {\JobDescription} class has tree back-end classes, sometimes referred to as back-end or translator modules, corresponding to the three 
+supported job description languages. The {\JobDescription} class chooses the appropriate back-end module according to the pattern match 
+performed by the \texttt{JobDescriptionOrderer}, and uses the back-end module for parsing and generating the job descriptions.
+
+\subsection{{\Submitter}} {\Submitter} is base class for grid specific specializations (plugin). It submits job(s) to the service 
+it represents and uploads (by the job needed) local input files. 
+
+\begin{shaded}
+\begin{verbatim}
+virtual bool Submit(JobDescription& jobdesc, XMLNode& info) = 0;
+\end{verbatim}
+\end{shaded}
+
+The \texttt{Submit} method fills the XML node \texttt{info} with all needed information about the job for later job management. 
+The {\Submitter} is returned by the {\ExecutionTarget} selected for job execution and thus the {\ExecutionTarget} populates 
+(through XML config element) the {\Submitter} with information about submission endpoint (URL) and job description languages 
+``spoken'' by the target.
+
+\subsection{{\JobSupervisor}} The {\JobSupervisor} is responsible for loading the appropriate {\JobController}s for managing 
+jobs running on a certain grid flavour. Job manipulation can be performed either on individual jobs or on groups of jobs (e.g. 
+all jobs running on certain cluster or all jobs with job state ``FINISHED''), and in order to translate the by user given 
+information into a set of loadable {\JobController}s the {\JobSupervisor} makes extensive use of the local XML file housing 
+information about all active jobs. Thus the {\JobSupervisor} constructor becomes
+
+\begin{shaded}
+\begin{verbatim}
+JobSupervisor(const std::list<std::string>& jobs,
+              const std::list<std::string>& clusterselect,
+              const std::list<std::string>& clusterreject,
+              const std::string joblist);
+\end{verbatim}
+\end{shaded}
+
+where \texttt{jobs} is a list of job identification strings (jobids), \texttt{clusterselect} is a list of selected computing services, 
+\texttt{clusterreject} is a list of rejected computing services and \texttt{joblist} is a string pointing to the local XML file 
+with job information. Syntax for \texttt{clusterselect} and \texttt{clusterreject} is identical to the one used by the {\TargetGenerator}
+for for internal consistency.
+
+Although being loaded by the {\JobSupervisor} the {\JobController} objects truly resides within the ARC Loader which is a member 
+of the {\JobSupervisor} class. In order to get handles on the {\JobController}s the inline method
+
+\begin{shaded}
+\begin{verbatim}
+std::list<Arc::JobController*> GetJobControllers(){return JobControllers;}
+\end{verbatim}
+\end{shaded}
+
+returns a list of pointers to the loaded {\JobController}s.
+
+\subsection{{\JobController}} The {\JobController} is both base class for grid specific specializations, but also the implementor of all 
+public functionality offered by the {\JobController}s. In other words all virtual functions of the {\JobController} are private. The 
+initialization of a (specialized) {\JobController} object takes two steps. First the constructor has to invoked
+
+\begin{shaded}
+\begin{verbatim}
+JobController(Arc::Config *cfg, std::string flavour);
+\end{verbatim}
+\end{shaded}
+
+This is usually done by the ARC Loader which sees to that the {\JobController} receives information about its flavour (grid) and 
+the local XML file containing information about all active jobs (flavour independent). Next step is the filling of the {\JobController}'s
+job pool \texttt{JobStore} which is the pool of jobs that the {\JobController} can manage.
+
+\begin{shaded}
+\begin{verbatim}
+void FillJobStore(std::list<std::string> jobs,
+                  std::list<std::string> clusterselect,
+                  std::list<std::string> cluterreject);
+\end{verbatim}
+\end{shaded}
+
+Here \texttt{jobs}, \texttt{clusterselect} and \texttt{clusterreject} have the same interpretation as in the {\JobSupervisor} constructor. 
+However, while the latter only had to identify which {\JobController}s should be loaded, the {\JobController} itself has to decode the 
+supplied lists into a list of jobs with non-overlapping entries which will be filled into the JobStore. Due to possible conflicts 
+within the supplied lists, rules have to be set up for dealing with contradictions:
+
+\begin{enumerate}
+\item{If the \texttt{jobs} list has entries, fill \texttt{JobStore} with the by user requested jobs.}
+\item{If the \texttt{clusterselect} list has entries, fill \texttt{JobStore} with the jobs running on the selected clusters.}
+\item{If clusters are rejected and \texttt{JobStore} has entries, remove from \texttt{JobStore} all jobs running on rejected clusters.}
+\item{If \texttt{jobs} and \texttt{clusterselect} are both empty lists, fill \texttt{JobStore} with all jobs except those 
+running on possible rejected clusters.}
+\end{enumerate}
+
+The steps above completes the initialization of the {\JobController} which is now ready for handling jobs. The public functions of the 
+{\JobController} offer to get (download), clean, cancel, etc one or more jobs and uses the private specializations for issueing the command. 
+Here examplified by the \texttt{Stat} command:
+
+\begin{shaded}
+\begin{small}
+\begin{verbatim}
+void JobController::Stat(const std::list<std::string>& jobs,
+                    const std::list<std::string>& clusterselect,
+                    const std::list<std::string>& clusterreject,
+                    const std::list<std::string>& status,
+                    const bool longlist,
+                    const int timeout){
+    
+  GetJobInformation();
+
+  //Add here functionality for identifying jobs according to clusterselect, clusterreject & status
+
+  for(std::list<Arc::Job>::iterator jobiter = JobStore.begin();jobiter!= JobStore.end();jobiter++){
+    if(jobiter->State.empty()){
+      std::cout<<Arc::IString("Job state information not found:%s",jobiter->JobID.str())<<std::endl;
+      Time now;
+      if(now - jobiter->LocalSubmissionTime < 90){
+        std::cout<<Arc::IString("This job was very recently "
+                                "submitted and might not yet" 
+                                "have reached the information-system")<<std::endl;
+      }
+      continue;
+    }
+    jobiter->Print(longlist);
+  }
+}
+\end{verbatim}
+\end{small}
+\end{shaded}
+
+The \texttt{Stat} command prints the job information to screen and in order to do so the {\JobController} has to query local information
+server for the latest status. Due to different protocols used for different grid flavours (e.g. ldap for production ARC), the 
+\texttt{GetJobInformation} has to be grid flavour specific and is only declared as a private virtual method within the {\JobController}
+base class. For details about the flavour specific implementations see Section~\ref{sec:plugins}.
+
+It should be noted that the \texttt{Stat} example above appears to have several unused variables (arguments). This is an artifact 
+caused by the ongoing development in which the {\JobController} is being prepared for usage in a future graphical user interface (GUI).
+In a GUI it would be desirable to make the {\JobController} a persistent object which exists throughout the lifetime of the GUI and 
+which is capable of monitoring and managing all jobs running on a certain grid flavour. In order to do so the \texttt{JobStore} should 
+become a pool of all jobs, and the public functions should take arguments which identifies which jobs from the pool should be subject 
+to the command. In the present implementation commands are performed on all jobs in \texttt{JobStore}.
+
+\subsection{{\Job}} The {\Job} is a generic job class for storing all job related information. Attributes are derived from the 
+glue2 information model and thus a mapping is needed for non glue2 compliant grid middlewares. Appendix XX shows the present 
+mapping schema.
+
+All attributes of the {\Job} can be printed by the method
+
+\begin{shaded}
+\begin{verbatim}                                                                                                                            
+void Print(bool longlist) const;
+\end{verbatim}
+\end{shaded}
+
+\subsection{{\UserConfig}} The {\UserConfig} class handles the client setup i.e. proxy, certificate and key location, user and system 
+configuration and local joblist location. Upon initialization (constructor) the {\UserConfig} locates the user files
+
+\begin{shaded}
+\begin{verbatim}                                                                                                                            
+$HOME/.arc/client.xml
+$HOME/.arc/jobs.xml
+\end{verbatim}
+\end{shaded}
+
+and if either of them is non-existing a default (empty) one is created.
+
+The {\UserConfig} has two main public methods
+
+\begin{shaded}
+\begin{verbatim}
+const std::string& JobsFile();
+const XMLNode ConfTree();
+\end{verbatim}
+\end{shaded}
+
+where \texttt{JobsFile()} returns the string pointing to the jobs.xml file while \texttt{ConfTree()}
+returns a configuration XML object which is the merge between the user and system configurations.
+In order to do this the method has to locate the system configuration and resolve possible conflicts 
+with the user configuration. This proceeds through the following chain of actions:
+
+\begin{enumerate}
+\item{Try reading system configuration from \texttt{<ARC Install Location>/etc/arcclient.xml}}
+\item{If the previous step failed try reading system configuration from \texttt{/etc/arcclient.xml}}
+\item{Merge system and user configuration by adding all system configuration not already listed 
+in the user configuration to the latter.}
+\item{Check if \texttt{\$X509\_USER\_PROXY} is set, if set add this as \texttt{ProxyPath} to configuration}
+\end{enumerate}  
+
+\subsection{{\ClientInterface}}
 
 \section{Specialized Classes (Grid Flavour Plugins)}
 \label{sec:plugins}
@@ -318,6 +519,7 @@ and thus a mapping is needed for non glue2 compliant grid middlewares. Appendix 
 \section{Support Classes}
 \subsection{URL}
 \subsection{Logger}
+\subsection{XMLNode}
 
 \chapter{Building Command Line Interfaces}
 \label{sec:cli}
