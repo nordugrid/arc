@@ -14,12 +14,6 @@ basedir=`cd $basedir; pwd`
 # Assume that gm-kick is installed in the same directory
 GMKICK=${basedir}/gm-kick
 
-# "Checking NORDUGRID... "
-if [ -z ${ARC_LOCATION} ] ; then
-    echo "ARC_LOCATION not set." 1>&2
-    exit 1
-fi
-# "Sourcing ${ARC_LOCATION} config... " 1>&2
 if [ ! -f "${basedir}/configure-lsf-env.sh" ] ; then
     echo "${basedir}/configure-lsf-env.sh not found." 1>&2
     exit 1

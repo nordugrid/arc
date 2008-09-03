@@ -16,8 +16,6 @@ lrmsid=${2##*Condor Job }
 condorid=${lrmsid%% *}
 lrmsid=${lrmsid%%.*}.condor
 
-ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
-
 # Initialize environment for Condor commands!
 . $basedir/configure-condor-env.sh || exit 1
 

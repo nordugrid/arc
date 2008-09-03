@@ -3,10 +3,6 @@
 # must be called with the grami file as argument
 # remember to set $joboption_lrms
 
-if [ -z ${ARC_LOCATION} ] ; then
-    echo "ARC_LOCATION not set."  1>&2
-    exit 1
-fi
 if [ -z ${basedir} ] ; then
     echo "basedir not set."  1>&2
     exit 1

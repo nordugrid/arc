@@ -14,14 +14,6 @@ GMKICK=${basedir}/gm-kick
 control_dir="$1"
 test -d "$control_dir" || exit 1
 
-# Get ARC_LOCATION
-if test "${ARC_LOCATION}" = ""
-then
-  ARC_LOCATION=/usr/local
-#  echo "ARC_LOCATION is not set." 1>&2
-#  exit 1
-fi
-
 # Get LoadLeveler environment
 if test -f "${basedir}/configure-ll-env.sh"
 then
