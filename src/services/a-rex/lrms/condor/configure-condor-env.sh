@@ -29,10 +29,10 @@ config_import_section "grid-manager"
 
 # Synopsis:
 # 
-#   source config_parser.sh
+#   . config_parser.sh
 #   config_parse_file /etc/arc.conf || exit 1
 #   config_import_section "common"
-#   source configure-condor-env.sh || exit 1
+#   . configure-condor-env.sh || exit 1
 
 
 if [ ! -z "$CONFIG_condor_config" ];   then CONDOR_CONFIG=$CONFIG_condor_config; fi
