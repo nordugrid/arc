@@ -161,8 +161,8 @@ else
 fi
 
 # Project name for accounting
-if [ ! -z "${joboption_project}" ] ; then
-  echo "#BSUB -P $joboption_project" >> $LRMS_JOB_SCRIPT
+if [ ! -z "${joboption_rsl_project}" ] ; then
+  echo "#BSUB -P $joboption_rsl_project" >> $LRMS_JOB_SCRIPT
 fi
 
 # job name for convenience

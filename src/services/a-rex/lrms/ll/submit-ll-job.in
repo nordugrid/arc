@@ -77,8 +77,8 @@ fi
 echo "LL jobname: $jobname" 1>&2
 
 # Project account number for accounting
-if [ ! -z "${joboption_project}" ] ; then
-  echo "# @ account_no = $joboption_project" >> $LRMS_JOB_SCRIPT
+if [ ! -z "${joboption_rsl_project}" ] ; then
+  echo "# @ account_no = $joboption_rsl_project" >> $LRMS_JOB_SCRIPT
 fi
 
 ##############################################################

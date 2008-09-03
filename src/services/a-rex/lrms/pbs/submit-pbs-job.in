@@ -94,7 +94,7 @@ RTE_stage0
 mktempscript
 
 
-PBS_QSUB='qsub -r n -S /bin/sh -m n '
+PBS_QSUB='qsub -r n -S /bin/bash -m n '
 if [ ! -z "$PBS_BIN_PATH" ] ; then
   PBS_QSUB=${PBS_BIN_PATH}/${PBS_QSUB}
 fi
@@ -114,8 +114,8 @@ if [ ! -z "${joboption_queue}" ] ; then
   echo "#PBS -q $joboption_queue" >> $LRMS_JOB_SCRIPT
 fi
 # project name for accounting
-if [ ! -z "${joboption_project}" ] ; then
-  echo "#PBS -A $joboption_project" >> $LRMS_JOB_SCRIPT
+if [ ! -z "${joboption_rsl_project}" ] ; then
+  echo "#PBS -A $joboption_rsl_project" >> $LRMS_JOB_SCRIPT
 fi
 # job name for convenience
 if [ ! -z "${joboption_jobname}" ] ; then

@@ -2,6 +2,26 @@
 #Common functions for submit scripts
 ######################################################
 
+# This script should not be executed directly but is sourced in
+# from various backend scripts that itself are called from the
+# grid manager. Its purpose is to prepare the runtime environments,
+# which is almost the same procedure invariant of the backend
+# used.
+#
+# To test the functionality of this script, you may source
+# this script from the bourne command shell, i.e. 
+# 
+#	. /opt/nordugrid/libexec/submit_common.sh
+# 
+# and it should give no error. Then call the methods defined in
+# this script directly. Also, you can test the parse_arg_file
+# by executing
+#
+#	/opt/nordugrid/libexec/submit_common.sh <args>
+#
+# directly. More tests still require to be added.
+
+
 init () {
    # Only CPU time specified in job limits, rough limit for wall time
    walltime_ratio='1'
@@ -19,15 +39,27 @@ init () {
    RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
 } 
 
+usage="usage: `basename $0` (<arguments file>|-h|--help)"
 
 parse_arg_file () {
    arg_file=$1
    if [ -z "$arg_file" ] ; then
       echo "Arguments file should be specified" 1>&2
+      echo "$usage" 1>&2
+      exit 1
+   fi
+   if [ "--help" == "$1" -o "-h" == "$1" ]; then
+      echo "$usage" 1>&2
+      cat <<EOHELP 1>&2
+
+This script should not be executed directly but it is
+called from the grid manager.
+EOHELP
       exit 1
    fi
    if [ ! -f $arg_file ] ; then
-      echo "Missing arguments file" 1>&2
+      echo "No such arguments file at '$arg_file'" 1>&2
+      echo "$usage" 1>&2
       exit 1
    fi
    . $arg_file
@@ -454,3 +486,6 @@ $joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
 
 }
 
+if [ "submit_common.sh" = `basename $0` ]; then
+  parse_arg_file $*
+fi
