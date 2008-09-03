@@ -23,6 +23,7 @@
 %include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/MCC_Status.h"
 %rename(next) Arc::AttributeIterator::operator++;
+#ifdef SWIGPYTHON
 %pythonappend Arc::MessageAttributes::getAll %{
         d = dict()
         while val.hasMore():
@@ -30,6 +31,7 @@
             val.next()
         return d
 %}
+#endif
 %include "../src/hed/libs/message/MessageAttributes.h"
 %apply std::string& OUTPUT { std::string &val };
 %include "../src/hed/libs/message/SecAttr.h"
