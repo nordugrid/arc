@@ -56,11 +56,11 @@ cat $1 1>&2
 #################################################################
 
 if [ ! -f "${basedir}/configure-sge-env.sh" ] ; then
-    echo "${basedir}/configure-sge-env.sh not found." >&2
+    echo "${basedir}/configure-sge-env.sh not found." 1>&2
     exit 1
 fi
 
-. ${basedir}/configure-sge-env.sh >&2 || exit $?
+. ${basedir}/configure-sge-env.sh 1>&2 || exit $?
 
 ##############################################################
 # Zero stage of runtime environments

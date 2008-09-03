@@ -27,7 +27,7 @@ grami=$(find $controldir -name "job.??????????*.grami" -maxdepth 1 \
           | xargs grep -l "^joboption_jobid=$lrmsid$")
 
 if [[ ! -f $grami ]]; then
-    echo "$progname: No GRAMI file for job $lrmsid could be found." >&2
+    echo "$progname: No GRAMI file for job $lrmsid could be found." 1>&2
     exit 1
 fi
 

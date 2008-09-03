@@ -14,12 +14,12 @@ debug=:
 $debug "run at `date`"
 $debug "options = $@"
 
-if [ -z "$1" ] ; then echo "Argument missing" >&2 ; exit 1 ; fi
+if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
 
 for control_dir in "$@" ; do
 
     if [ ! -d "${control_dir}" ]; then 
-	echo "No control dir $control_dir" >&2
+	echo "No control dir $control_dir" 1>&2
         continue
     fi
 
@@ -70,11 +70,11 @@ for control_dir in "$@" ; do
 	fi	
         fork_comment=""
 	if [ -z "$exitcode" ]; then
-            echo "Job $job with PID $joboption_jobid died unexpectedly" >&2
-            fork_comment="Job died unexpectedly" >&2
+            echo "Job $job with PID $joboption_jobid died unexpectedly" 1>&2
+            fork_comment="Job died unexpectedly" 1>&2
     	    exitcode=1
 	elif [ "$exitcode" -ne '0' ]; then
-            fork_comment="Job finished with non-zero exit code" >&2
+            fork_comment="Job finished with non-zero exit code" 1>&2
 	fi
         $debug "got exitcode=$exitcode"
 	echo "$exitcode $fork_comment" > "${control_dir}/job.${job}.lrms_done"

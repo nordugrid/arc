@@ -60,7 +60,7 @@ fi
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 . $basedir/config_parser.sh
 
-config_parse_file $ARC_CONFIG >&2 || exit $?
+config_parse_file $ARC_CONFIG 1>&2 || exit $?
 config_import_section "common"
 config_import_section "cluster"
 

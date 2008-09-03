@@ -4,7 +4,7 @@
 #
 
 progname=`basename $0`
-echo "----- starting $progname -----" >&2
+echo "----- starting $progname -----" 1>&2
 
 joboption_lrms=ll
 

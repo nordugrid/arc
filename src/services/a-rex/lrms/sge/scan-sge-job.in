@@ -19,10 +19,10 @@ GMKICK=${basedir}/gm-kick
 # Set SGE specific environment.
 ##############################################################
 if [ ! -f "${basedir}/configure-sge-env.sh" ] ; then
-    echo "${basedir}/configure-sge-env.sh not found." >&2
+    echo "${basedir}/configure-sge-env.sh not found." 1>&2
     exit 1
 fi
-. "${basedir}/configure-sge-env.sh" >&2 || exit $?
+. "${basedir}/configure-sge-env.sh" 1>&2 || exit $?
 
 ##############################################################
 
@@ -49,7 +49,7 @@ done
 # Get all jobs
 pids=`${SGE_BIN_PATH}/qstat -u '*' 2>/dev/null | sed -n 's/^  *\([0-9][0-9]*\) .*/\1/p'`
 if [ $? != 0 ]; then
-  echo "[`date`] Failed running ${SGE_BIN_PATH}/qstat" >&2
+  echo "[`date`] Failed running ${SGE_BIN_PATH}/qstat" 1>&2
   sleep 60
   exit 1
 fi
@@ -61,8 +61,8 @@ for ctr_dir in $control_dirs ; do
 
   # Change to the next control directory.
   # This will work even with relative $ctr_dir paths.
-  cd $workdir || { echo "Cannot change directory to: $workdir" >&2; continue; } 
-  cd $ctr_dir || { echo "Cannot change directory to: $ctr_dir" >&2; continue; }
+  cd $workdir || { echo "Cannot change directory to: $workdir" 1>&2; continue; } 
+  cd $ctr_dir || { echo "Cannot change directory to: $ctr_dir" 1>&2; continue; }
   ctr_dir=`pwd`
 
   # Obtain ids of pending/running jobs stored in job.*.local.
@@ -149,7 +149,7 @@ for ctr_dir in $control_dirs ; do
       if grep -q "^failed=24 *: migrating"    "$diagfile_acct" \
       || grep -q "^failed=25 *: rescheduling" "$diagfile_acct"; then
           rm -f "$diagfile_acct"
-          echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct" >&2
+          echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct" 1>&2
       fi
 
       # Add accounting info to $diagfile
@@ -218,10 +218,10 @@ for ctr_dir in $control_dirs ; do
 
           if [ "$failedcode" == "0" ]; then
             if [ "$exitcode" == "0" ]; then
-              echo "SGE job $id finished succesfully" >&2
+              echo "SGE job $id finished succesfully" 1>&2
               echo "$exitcode" > "$donefile"
             else
-              echo "SGE job $id failed with exit code $exitcode" >&2
+              echo "SGE job $id failed with exit code $exitcode" 1>&2
               echo "$exitcode Job finished with non-zero exit code" > "$donefile"
             fi
           else
@@ -253,7 +253,7 @@ for ctr_dir in $control_dirs ; do
             fi
             exitcode=$((failedcode+256))
             exitcode=271
-            echo "SGE job $id failed: $failedreason" >&2
+            echo "SGE job $id failed: $failedreason" 1>&2
             echo $exitcode $failedreason > "$donefile"
 
             # Change exit code in the diag file
@@ -295,10 +295,10 @@ for ctr_dir in $control_dirs ; do
     if [ "$counter" -gt 5 ]; then
       # Cannot wait more for accounting info.
       if [ -z "$exitcode" ]; then
-        echo "SGE job $id finished with unknown exit code." >&2
+        echo "SGE job $id finished with unknown exit code." 1>&2
         echo "256 Job disappeared from SGE." > "$donefile"
       else
-        echo "SGE job $id failed with exit code $exitcode." >&2
+        echo "SGE job $id failed with exit code $exitcode." 1>&2
         echo "$exitcode Job finished with non-zero exit code" > "$donefile"
       fi
       rm -f "$countfile"
