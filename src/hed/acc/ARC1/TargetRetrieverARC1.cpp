@@ -94,7 +94,12 @@ namespace Arc {
     const XMLNode cfgtree = uc.ConfTree();
     cfg.AddProxy(cfgtree["ProxyPath"]);
     Arc::AREXClient ac(url, cfg);
-    XMLNode ServerStatus(ac.sstat());
+    std::string status;
+    if (!ac.sstat(status)) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
+    }
+    XMLNode ServerStatus(status);
 
     ExecutionTarget target;
 

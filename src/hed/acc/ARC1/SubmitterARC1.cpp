@@ -35,9 +35,11 @@ namespace Arc {
     jobdesc.getProduct(jobdescstring, "JSDL");
     std::istringstream jsdlfile(jobdescstring);
 
-    AREXFileList files;
-    std::string jobid = ac.submit(jsdlfile, files,
-				  submissionEndpoint.Protocol() == "https");
+    std::string jobid;
+    if (!ac.submit(jsdlfile, jobid, submissionEndpoint.Protocol() == "https")) {
+      logger.msg(ERROR, "Failed submitting job");
+      return false;
+    }
 
     XMLNode jobidx(jobid);
     URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));

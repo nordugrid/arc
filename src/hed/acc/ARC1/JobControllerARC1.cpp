@@ -1,6 +1,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/UserConfig.h>
 #include <arc/data/DataHandle.h>
+#include <arc/message/MCC.h>
 
 #include "AREXClient.h"
 #include "JobControllerARC1.h"
@@ -42,7 +43,8 @@ namespace Arc {
       id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
       std::string idstr;
       id.GetXML(idstr);
-      iter->State = ac.stat(idstr);
+      if (!ac.stat(idstr, iter->State))
+	logger.msg(ERROR, "Failed retrieving job status information");
     }
   }
 
