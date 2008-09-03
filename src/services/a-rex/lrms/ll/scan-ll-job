@@ -22,7 +22,7 @@ else
   echo "${basedir}/configure-ll-env.sh not found." 1>&2
   exit 1
 fi
-. "${basedir}/configure-ll-env.sh
+. "${basedir}/configure-ll-env.sh"
 
 #for i in "$control_dir"/job.*.local
 find $control_dir -maxdepth 1 -type f -name job\*.local | while read i
