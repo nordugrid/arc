@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
-#include <stdexcept>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -33,39 +32,33 @@ namespace Arc{
             std::string ISB_URI;
             std::string OSB_URI;
         };
-        
-        class CREAMClientError : public std::runtime_error {
-            public:
-                CREAMClientError(const std::string& what="");
-        };
 
         class CREAMClient {
             public:
-                CREAMClient(const Arc::URL& url,const Arc::MCCConfig& cfg) throw(CREAMClientError);
+	  CREAMClient(const URL& url,const MCCConfig& cfg);
                 ~CREAMClient();
                 void setDelegationId(const std::string& delegId) { this->delegationId = delegId; };
-                void createDelegation(const std::string& delegation_id) throw(CREAMClientError);
-                void destroyDelegation(const std::string& delegation_id) throw(CREAMClientError);
-                creamJobInfo submit(const std::string& jsdl_text) throw(CREAMClientError);
-                std::string stat(const std::string& jobid) throw(CREAMClientError);
-                void cancel(const std::string& jobid) throw(CREAMClientError);
-                void purge(const std::string& jobid) throw(CREAMClientError);
+                bool createDelegation(const std::string& delegation_id);
+                bool destroyDelegation(const std::string& delegation_id);
+                bool submit(const std::string& jsdl_text, creamJobInfo& info);
+                bool stat(const std::string& jobid, std::string& status);
+                bool cancel(const std::string& jobid);
+                bool purge(const std::string& jobid);
                 
                 // Data moving attributes
                 std::string job_root;
                 
             private:
-                Arc::ClientSOAP* client;
-                Arc::NS cream_ns;
+                ClientSOAP* client;
+                NS cream_ns;
                 std::string proxyPath;
                 std::string delegationId;
-                static Arc::Logger logger;
+                static Logger logger;
                 
 
-                creamJobInfo registerJob(const std::string& jdl_text) throw(CREAMClientError);
-                void startJob(const std::string& jobid) throw(CREAMClientError);
-                void putFiles(const std::vector< std::pair< std::string, std::string > >& fileList, const creamJobInfo job) throw(CREAMClientError);
-                void getFiles() throw(CREAMClientError);
+                bool registerJob(const std::string& jdl_text, creamJobInfo& info);
+                bool startJob(const std::string& jobid);
+                void putFiles(const std::vector< std::pair< std::string, std::string > >& fileList, const creamJobInfo job);
                 
         };
     } // namespace cream

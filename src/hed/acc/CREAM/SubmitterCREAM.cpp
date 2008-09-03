@@ -23,14 +23,21 @@ namespace Arc {
     URL url(submissionEndpoint);
     url.ChangePath("ce-cream/services/gridsite-delegation");
     Cream::CREAMClient gLiteClient1(url, cfg);
-    gLiteClient1.createDelegation(delegationid);
+    if (!gLiteClient1.createDelegation(delegationid)) {
+      logger.msg(ERROR, "Create delegation failed");
+      return false;
+    }
     url.ChangePath("ce-cream/services/CREAM2");
     Cream::CREAMClient gLiteClient2(url, cfg);
     gLiteClient2.setDelegationId(delegationid);
     gLiteClient2.job_root = Glib::get_current_dir();
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "JDL");
-    Cream::creamJobInfo jobInfo = gLiteClient2.submit(jobdescstring);
+    Cream::creamJobInfo jobInfo;
+    if (!gLiteClient2.submit(jobdescstring, jobInfo)) {
+      logger.msg(ERROR, "Submission failed");
+      return false;
+    }
 
     info.NewChild("JobID") = jobInfo.creamURL + '/' + jobInfo.jobId;
     info.NewChild("InfoEndpoint") = jobInfo.OSB_URI; // should change

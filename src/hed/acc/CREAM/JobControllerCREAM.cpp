@@ -25,7 +25,9 @@ namespace Arc {
       URL url(iter->JobID);
       url.ChangePath(*pi);
       Cream::CREAMClient gLiteClient(url, cfg);
-      iter->State = gLiteClient.stat(pi.Rest());
+      if (!gLiteClient.stat(pi.Rest(), iter->State)) {
+	logger.msg(ERROR, "Could not retrieve job information");
+      }
     }
   }
 
@@ -62,30 +64,31 @@ namespace Arc {
   }
 
   bool JobControllerCREAM::CleanThisJob(Job ThisJob, bool force) {
-    bool cleaned = true;
 
     MCCConfig cfg;
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);
     Cream::CREAMClient gLiteClient(url, cfg);
-    gLiteClient.purge(pi.Rest());
-
-    return cleaned;
+    if (!gLiteClient.purge(pi.Rest())) {
+      logger.msg(ERROR, "Failed to clean job");
+      return false;
+    }
+    return true;
   }
 
   bool JobControllerCREAM::CancelThisJob(Job ThisJob){
 
-    bool cancelled = true;
-
     MCCConfig cfg;
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);
     Cream::CREAMClient gLiteClient(url, cfg);
-    gLiteClient.cancel(pi.Rest());
-    
-    return cancelled;
+    if (!gLiteClient.cancel(pi.Rest())) {
+      logger.msg(ERROR, "Failed to cancel job");
+      return false;
+    }
+    return true;
   }
 
   URL JobControllerCREAM::GetFileUrlThisJob(Job ThisJob,
