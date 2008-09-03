@@ -22,8 +22,18 @@
 
 %include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/MCC_Status.h"
+%rename(next) Arc::AttributeIterator::operator++;
+%pythonappend Arc::MessageAttributes::getAll %{
+        d = dict()
+        while val.hasMore():
+            d[val.key()] = val.__ref__()
+            val.next()
+        return d
+%}
 %include "../src/hed/libs/message/MessageAttributes.h"
+%apply std::string& OUTPUT { std::string &val };
 %include "../src/hed/libs/message/SecAttr.h"
+%clear std::string &val;
 %include "../src/hed/libs/message/MessageAuth.h"
 %include "../src/hed/libs/message/Message.h"
 %include "../src/hed/libs/message/PayloadRaw.h"
