@@ -368,7 +368,7 @@ namespace Arc {
     if (pos != std::string::npos)
       type = type.substr(0, pos);
 
-    if (strcasecmp(type.c_str(), "text/html") == 0) {
+    if (type.empty() || (strcasecmp(type.c_str(), "text/html") == 0)) {
 
       DataBufferPar buffer;
 
