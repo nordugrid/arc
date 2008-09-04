@@ -123,7 +123,7 @@ options are also recommended to use:
   export PKG_CONFIG_PATH="/home/<user>/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
   ./configure --with-dbcxx-include="/home/<user>/db47/include" \
-    LDFLAGS="-L/home/<user>/db47/lib -lintl"
+    LDFLAGS="-L/home/<user>/db47/lib"
 
 
 7. Building the software:
