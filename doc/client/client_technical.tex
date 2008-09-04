@@ -105,7 +105,7 @@ a set of C++ classes for
 \end{itemize}
 
 All capabilities are enabled for three different grid flavours (Production ARC, ARC1 and gLite) 
-through the modular design using plugins specialized for each supported middleware. Future 
+through a modular design using plugins specialized for each supported middleware. Future 
 extensions to support additional middlewares involve plugin compilation only i.e. no recompilation 
 of main libraries or client.
 
@@ -136,7 +136,7 @@ registered with a certain information server. Below a description of each step i
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.75}{\includegraphics{TargetDiscovery.png}}}
-\caption{\label{fig:ResDisc}Diagram depicting the process of resource discovery and information retrieval.} }
+\caption{\label{fig:ResDisc}Diagram depicting the resource discovery and information retrieval process} }
 \end{figure}
 
 \begin{enumerate}
@@ -178,7 +178,7 @@ The {\Submitter} is base class for further grid middleware specific specializati
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.75}{\includegraphics{JobSubmission.png}}}
-\caption{\label{fig:JobSub}Diagram depicting the process of submitting a job to a computing service.}}
+\caption{\label{fig:JobSub}Diagram depicting the submission of a job to a computing service.}}
 \end{figure}
 
 Figure \ref{fig:JobSub} shows a job submission sequence and below a description of each step is given:
@@ -197,9 +197,28 @@ represents. The best suitable {\ExecutionTarget} for the job is asked to return 
 \end{enumerate}
 
 \section{Job Management}
-Information about active jobs is stored in a local xml file which is used for later job management. As this file may contain 
-information about jobs running on completely different grid flavours, job management should be handled using plugins similar to 
-resource discovery and job submission. The following classes are used:
+Once a job is submitted job related information (job identification string, cluster etc) is stored in a local xml file which hosts 
+similar information for all active jobs. This file may contain jobs runnng on completely different grid flavour, and thus job 
+management should be handled using plugins similar to resource discovery and job submission. The job managing plugin is called 
+the {\JobController} and it is supported by the {\JobSupervisor} and {\Job} classes.
+
+\begin{figure}[ht]
+\centering{{\scalebox{0.75}{\includegraphics{JobManagement.png}}}
+\caption{\label{fig:JobMan}Diagram depicting how job controlling plugins, {\JobController}s, are loaded and initialized.}}
+\end{figure}
+
+Figure~\ref{fig:JobMan} shows how the three different classes work together and below a step by step description is given:
+
+\begin{enumerate}
+\item{The {\JobSupervisor} takes three arguments Jobs (job identification strings), ClusterSelect and ClusterReject.}
+\item{A job identification string does not uniguely define which grid flavour runs a certain job. Thus this information is stored 
+in joblist.xml upon submission by the {\Submitter} and joblist.xml is extensively used by the {\JobSupervisor} to identify the 
+{\JobController} flavours which are to be loaded.}
+\item{Suitable {\JobController}s are loaded}
+\item{Jobs, ClusterSelect and ClusterReject are passed to the {\JobController} which uses the information to 
+fill its internal JobStore.}
+\item{Residing within the {\JobSupervisor} the {\JobController}s are now accesible for external calls (i.e. job handling).}
+\end{enumerate}
 
 \section{Data Handling}
 \label{sec:DataHandling}
@@ -506,7 +525,20 @@ with the user configuration. This proceeds through the following chain of action
 \item{Merge system and user configuration by adding all system configuration not already listed 
 in the user configuration to the latter.}
 \item{Check if \texttt{\$X509\_USER\_PROXY} is set, if set add this as \texttt{ProxyPath} to configuration}
-\end{enumerate}  
+\item{If \texttt{\$X509\_USER\_PROXY} is not set and configuration tree does not already contain 
+a \texttt{ProxyPath} set \texttt{ProxyPath} to \texttt{/tmp/x509up\_u + userid}.}
+\item{Check if \texttt{\$X509\_USER\_CERT} is set, if set add this as \texttt{CertificatePath} to configuration}
+\item{If \texttt{\$X509\_USER\_CERT} is not set and configuration tree does not already contain 
+a \texttt{CertificatePath} set \texttt{CertificatePath} to \texttt{/etc/grid-security/hostcert.pem} 
+if user is superuser otherwise \texttt{\$HOME/.globus/usercert.pem}.}
+\item{Check if \texttt{\$X509\_USER\_KEY} is set, if set add this as \texttt{KeyPath} to configuration}
+\item{If \texttt{\$X509\_USER\_KEY} is not set and configuration tree does not already contain 
+a \texttt{KeyPath} set \texttt{KeyPath} to \texttt{/etc/grid-security/hostkey.pem} 
+if user is superuser otherwise \texttt{\$HOME/.globus/userkey.pem}.}
+\item{Check if \texttt{\$X509\_CERT\_DIR} is set, if set add this as \texttt{CACertificatesDir} to configuration}
+\item{If \texttt{\$X509\_CERT\_DIR} is not set and configuration tree does not already contain 
+a \texttt{CACertificatesDir} set \texttt{CACertificatesDir} to \texttt{/etc/grid-security/certificates}.}
+\end{enumerate}
 
 \subsection{{\ClientInterface}}
 
