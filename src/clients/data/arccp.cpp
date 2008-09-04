@@ -242,11 +242,13 @@ void arccp(const Arc::URL& source_url_,
   }
 
   if (destination_url.Path()[destination_url.Path().length() - 1] != '/') {
+/*
     if (source_url.Path()[source_url.Path().length() - 1] == '/') {
       logger.msg(Arc::ERROR,
 		 "Fileset copy to single object is not supported yet");
       return;
     }
+*/
   }
   else {
     // Copy TO fileset/directory

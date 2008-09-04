@@ -63,7 +63,7 @@ test -d debian_dummy && {
 		find debian/tmp/ -type f ! -name '.*' -print0 | xargs -0 -ri echo '{}' | \
 		  while read -r i ; do
 			if test -e "${i}" ; then
-				filename=$(echo "${i}" | sed -e 's#.*debian/tmp/[^/]\+/##')
+				filename=`echo "${i}" | sed -e 's#.*debian/tmp/[^/]\+/##'`
 				test -e "${filename}" || echo "${filename}" >>debian/deletable.files
 			fi
 		  done

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-13 01:39+0300\n"
+"POT-Creation-Date: 2008-08-28 10:49+0300\n"
 "PO-Revision-Date: 2008-05-29 12:15+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -363,7 +363,8 @@ msgstr "[serviceurl] id-file"
 #: ../src/clients/a-rex/apclean.cpp:48 ../src/clients/a-rex/apget.cpp:185
 #: ../src/clients/a-rex/apkill.cpp:47 ../src/clients/a-rex/apsstat.cpp:43
 #: ../src/clients/a-rex/apstat.cpp:47 ../src/clients/a-rex/apsub.cpp:85
-#: ../src/clients/credentials/approxy.cpp:56 ../src/clients/wsrf/apinfo.cpp:43
+#: ../src/clients/credentials/arcproxy.cpp:56
+#: ../src/clients/wsrf/arcinfo.cpp:43
 msgid "path to proxy file"
 msgstr "sökväg till proxyfil"
 
@@ -385,40 +386,43 @@ msgstr "sökväg till proxyfil"
 #: ../src/clients/cream2/glitestat.cpp:31
 #: ../src/clients/cream2/glitesub.cpp:38
 #: ../src/clients/cream2/gliteundelegate.cpp:31
-#: ../src/clients/credentials/approxy.cpp:57
-#: ../src/clients/credentials/approxy.cpp:61
-#: ../src/clients/credentials/approxy.cpp:65 ../src/clients/data/arccp.cpp:473
-#: ../src/clients/data/arccp.cpp:478 ../src/clients/pdp/arcdecision.cpp:35
-#: ../src/clients/wsrf/apinfo.cpp:44 ../src/clients/wsrf/apinfo.cpp:48
-#: ../src/clients/wsrf/apinfo.cpp:52 ../src/clients/wsrf/apinfo.cpp:60
+#: ../src/clients/credentials/arcproxy.cpp:57
+#: ../src/clients/credentials/arcproxy.cpp:61
+#: ../src/clients/credentials/arcproxy.cpp:65
+#: ../src/clients/data/arccp.cpp:475 ../src/clients/data/arccp.cpp:480
+#: ../src/clients/pdp/arcdecision.cpp:35 ../src/clients/wsrf/arcinfo.cpp:44
+#: ../src/clients/wsrf/arcinfo.cpp:48 ../src/clients/wsrf/arcinfo.cpp:52
+#: ../src/clients/wsrf/arcinfo.cpp:60
 msgid "path"
 msgstr "sökväg"
 
 #: ../src/clients/a-rex/apclean.cpp:52 ../src/clients/a-rex/apget.cpp:189
 #: ../src/clients/a-rex/apkill.cpp:51 ../src/clients/a-rex/apsstat.cpp:47
 #: ../src/clients/a-rex/apstat.cpp:51 ../src/clients/a-rex/apsub.cpp:89
-#: ../src/clients/credentials/approxy.cpp:60 ../src/clients/wsrf/apinfo.cpp:47
+#: ../src/clients/credentials/arcproxy.cpp:60
+#: ../src/clients/wsrf/arcinfo.cpp:47
 msgid "path to certificate file"
 msgstr "sökväg till certifikatfil"
 
 #: ../src/clients/a-rex/apclean.cpp:56 ../src/clients/a-rex/apget.cpp:193
 #: ../src/clients/a-rex/apkill.cpp:55 ../src/clients/a-rex/apsstat.cpp:51
 #: ../src/clients/a-rex/apstat.cpp:55 ../src/clients/a-rex/apsub.cpp:93
-#: ../src/clients/credentials/approxy.cpp:64 ../src/clients/wsrf/apinfo.cpp:51
+#: ../src/clients/credentials/arcproxy.cpp:64
+#: ../src/clients/wsrf/arcinfo.cpp:51
 msgid "path to private key file"
 msgstr "sökväg till privat nyckelfil"
 
 #: ../src/clients/a-rex/apclean.cpp:60 ../src/clients/a-rex/apget.cpp:197
 #: ../src/clients/a-rex/apkill.cpp:59 ../src/clients/a-rex/apsstat.cpp:55
 #: ../src/clients/a-rex/apstat.cpp:59 ../src/clients/a-rex/apsub.cpp:97
-#: ../src/clients/wsrf/apinfo.cpp:55
+#: ../src/clients/wsrf/arcinfo.cpp:55
 msgid "path to CA directory"
 msgstr "sökväg till CA-katalog"
 
 #: ../src/clients/a-rex/apclean.cpp:61 ../src/clients/a-rex/apget.cpp:198
 #: ../src/clients/a-rex/apget.cpp:206 ../src/clients/a-rex/apkill.cpp:60
 #: ../src/clients/a-rex/apsstat.cpp:56 ../src/clients/a-rex/apstat.cpp:60
-#: ../src/clients/a-rex/apsub.cpp:98 ../src/clients/wsrf/apinfo.cpp:56
+#: ../src/clients/a-rex/apsub.cpp:98 ../src/clients/wsrf/arcinfo.cpp:56
 msgid "directory"
 msgstr "katalog"
 
@@ -431,79 +435,83 @@ msgstr "katalog"
 #: ../src/clients/cream2/glitestat.cpp:30
 #: ../src/clients/cream2/glitesub.cpp:37
 #: ../src/clients/cream2/gliteundelegate.cpp:30
-#: ../src/clients/pdp/arcdecision.cpp:34 ../src/clients/wsrf/apinfo.cpp:59
+#: ../src/clients/pdp/arcdecision.cpp:34 ../src/clients/wsrf/arcinfo.cpp:59
 msgid "path to config file"
 msgstr "sökväg till inställningsfil"
 
 #: ../src/clients/a-rex/apclean.cpp:69 ../src/clients/a-rex/apget.cpp:210
 #: ../src/clients/a-rex/apkill.cpp:68 ../src/clients/a-rex/apsstat.cpp:64
 #: ../src/clients/a-rex/apstat.cpp:68 ../src/clients/a-rex/apsub.cpp:109
-#: ../src/clients/arclib/arcclean.cpp:89 ../src/clients/arclib/arcget.cpp:100
-#: ../src/clients/arclib/arckill.cpp:89 ../src/clients/arclib/arcstat.cpp:116
-#: ../src/clients/arclib/arcsub.cpp:260
+#: ../src/clients/arclib/arccat.cpp:125 ../src/clients/arclib/arcclean.cpp:103
+#: ../src/clients/arclib/arcget.cpp:112 ../src/clients/arclib/arckill.cpp:103
+#: ../src/clients/arclib/arcstat.cpp:131 ../src/clients/arclib/arcsub.cpp:263
 #: ../src/clients/cream2/gliteclean.cpp:36
 #: ../src/clients/cream2/glitedelegate.cpp:35
 #: ../src/clients/cream2/glitekill.cpp:35
 #: ../src/clients/cream2/glitestat.cpp:35
 #: ../src/clients/cream2/glitesub.cpp:42
 #: ../src/clients/cream2/gliteundelegate.cpp:35
-#: ../src/clients/credentials/approxy.cpp:73 ../src/clients/data/arccp.cpp:496
-#: ../src/clients/data/arcls.cpp:137 ../src/clients/data/arcrm.cpp:127
-#: ../src/clients/pdp/arcdecision.cpp:39 ../src/clients/wsrf/apinfo.cpp:64
+#: ../src/clients/credentials/arcproxy.cpp:73
+#: ../src/clients/data/arccp.cpp:498 ../src/clients/data/arcls.cpp:137
+#: ../src/clients/data/arcrm.cpp:127 ../src/clients/pdp/arcdecision.cpp:39
+#: ../src/clients/wsrf/arcinfo.cpp:64
 msgid "FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"
 msgstr "FATAL, ERROR, WARNING, INFO, DEBUG eller VERBOSE"
 
 #: ../src/clients/a-rex/apclean.cpp:70 ../src/clients/a-rex/apget.cpp:211
 #: ../src/clients/a-rex/apkill.cpp:69 ../src/clients/a-rex/apsstat.cpp:65
 #: ../src/clients/a-rex/apstat.cpp:69 ../src/clients/a-rex/apsub.cpp:110
-#: ../src/clients/arclib/arcclean.cpp:90 ../src/clients/arclib/arcget.cpp:101
-#: ../src/clients/arclib/arckill.cpp:90 ../src/clients/arclib/arcstat.cpp:117
-#: ../src/clients/arclib/arcsub.cpp:261
+#: ../src/clients/arclib/arccat.cpp:126 ../src/clients/arclib/arcclean.cpp:104
+#: ../src/clients/arclib/arcget.cpp:113 ../src/clients/arclib/arckill.cpp:104
+#: ../src/clients/arclib/arcstat.cpp:132 ../src/clients/arclib/arcsub.cpp:264
 #: ../src/clients/cream2/gliteclean.cpp:37
 #: ../src/clients/cream2/glitedelegate.cpp:36
 #: ../src/clients/cream2/glitekill.cpp:36
 #: ../src/clients/cream2/glitestat.cpp:36
 #: ../src/clients/cream2/glitesub.cpp:43
 #: ../src/clients/cream2/gliteundelegate.cpp:36
-#: ../src/clients/credentials/approxy.cpp:74 ../src/clients/data/arccp.cpp:497
-#: ../src/clients/data/arcls.cpp:138 ../src/clients/data/arcrm.cpp:128
-#: ../src/clients/pdp/arcdecision.cpp:40 ../src/clients/wsrf/apinfo.cpp:65
+#: ../src/clients/credentials/arcproxy.cpp:74
+#: ../src/clients/data/arccp.cpp:499 ../src/clients/data/arcls.cpp:138
+#: ../src/clients/data/arcrm.cpp:128 ../src/clients/pdp/arcdecision.cpp:40
+#: ../src/clients/wsrf/arcinfo.cpp:65
 msgid "debuglevel"
 msgstr "debugnivå"
 
 #: ../src/clients/a-rex/apclean.cpp:73 ../src/clients/a-rex/apget.cpp:214
 #: ../src/clients/a-rex/apkill.cpp:72 ../src/clients/a-rex/apsstat.cpp:68
 #: ../src/clients/a-rex/apstat.cpp:72 ../src/clients/a-rex/apsub.cpp:113
-#: ../src/clients/arclib/arcclean.cpp:93 ../src/clients/arclib/arcget.cpp:104
-#: ../src/clients/arclib/arckill.cpp:93 ../src/clients/arclib/arcstat.cpp:120
-#: ../src/clients/arclib/arcsub.cpp:269
+#: ../src/clients/arclib/arccat.cpp:129 ../src/clients/arclib/arcclean.cpp:107
+#: ../src/clients/arclib/arcget.cpp:116 ../src/clients/arclib/arckill.cpp:107
+#: ../src/clients/arclib/arcstat.cpp:135 ../src/clients/arclib/arcsub.cpp:272
 #: ../src/clients/cream2/gliteclean.cpp:40
 #: ../src/clients/cream2/glitedelegate.cpp:39
 #: ../src/clients/cream2/glitekill.cpp:39
 #: ../src/clients/cream2/glitestat.cpp:39
 #: ../src/clients/cream2/glitesub.cpp:46
 #: ../src/clients/cream2/gliteundelegate.cpp:39
-#: ../src/clients/credentials/approxy.cpp:77 ../src/clients/data/arccp.cpp:500
-#: ../src/clients/data/arcls.cpp:141 ../src/clients/data/arcrm.cpp:131
-#: ../src/clients/pdp/arcdecision.cpp:43 ../src/clients/wsrf/apinfo.cpp:68
+#: ../src/clients/credentials/arcproxy.cpp:77
+#: ../src/clients/data/arccp.cpp:502 ../src/clients/data/arcls.cpp:141
+#: ../src/clients/data/arcrm.cpp:131 ../src/clients/pdp/arcdecision.cpp:43
+#: ../src/clients/wsrf/arcinfo.cpp:68
 msgid "print version information"
 msgstr "skriv ut versionsinformation"
 
 #: ../src/clients/a-rex/apclean.cpp:82 ../src/clients/a-rex/apget.cpp:223
 #: ../src/clients/a-rex/apkill.cpp:81 ../src/clients/a-rex/apsstat.cpp:77
 #: ../src/clients/a-rex/apstat.cpp:81 ../src/clients/a-rex/apsub.cpp:122
-#: ../src/clients/arclib/arcclean.cpp:112 ../src/clients/arclib/arcget.cpp:123
-#: ../src/clients/arclib/arckill.cpp:112 ../src/clients/arclib/arcstat.cpp:139
-#: ../src/clients/arclib/arcsub.cpp:288
+#: ../src/clients/arclib/arccat.cpp:148 ../src/clients/arclib/arcclean.cpp:126
+#: ../src/clients/arclib/arcget.cpp:135 ../src/clients/arclib/arckill.cpp:126
+#: ../src/clients/arclib/arcstat.cpp:154 ../src/clients/arclib/arcsub.cpp:291
 #: ../src/clients/cream2/gliteclean.cpp:49
 #: ../src/clients/cream2/glitedelegate.cpp:48
 #: ../src/clients/cream2/glitekill.cpp:48
 #: ../src/clients/cream2/glitestat.cpp:48
 #: ../src/clients/cream2/glitesub.cpp:55
 #: ../src/clients/cream2/gliteundelegate.cpp:48
-#: ../src/clients/credentials/approxy.cpp:86 ../src/clients/data/arccp.cpp:509
-#: ../src/clients/data/arcls.cpp:150 ../src/clients/data/arcrm.cpp:140
-#: ../src/clients/pdp/arcdecision.cpp:52 ../src/clients/wsrf/apinfo.cpp:77
+#: ../src/clients/credentials/arcproxy.cpp:86
+#: ../src/clients/data/arccp.cpp:511 ../src/clients/data/arcls.cpp:150
+#: ../src/clients/data/arcrm.cpp:140 ../src/clients/pdp/arcdecision.cpp:52
+#: ../src/clients/wsrf/arcinfo.cpp:77
 #, c-format
 msgid "%s version %s"
 msgstr "%s version %s"
@@ -512,7 +520,7 @@ msgstr "%s version %s"
 msgid "path to download directory"
 msgstr "sökväg till nedladdningskatalog"
 
-#: ../src/clients/a-rex/apsstat.cpp:40 ../src/clients/wsrf/apinfo.cpp:40
+#: ../src/clients/a-rex/apsstat.cpp:40 ../src/clients/wsrf/arcinfo.cpp:40
 msgid "service_url"
 msgstr "serviceurl"
 
@@ -524,193 +532,14 @@ msgstr "serviceurl jsdl-file id-file"
 msgid "delegate proxy"
 msgstr "delegera proxy"
 
-#: ../src/clients/a-rex/arex_client.cpp:56
-#: ../src/clients/a-rex/arex_client.cpp:84
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:69
-msgid "Creating an A-REX client."
-msgstr "Skapar en A-REX-klient."
-
-#: ../src/clients/a-rex/arex_client.cpp:65
-#: ../src/clients/echo/echo_client.cpp:26
-msgid "Failed to load client configuration."
-msgstr "Misslyckades med att ladda klientinställningar."
-
-#: ../src/clients/a-rex/arex_client.cpp:70
-#: ../src/clients/echo/echo_client.cpp:31
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:71
-msgid "Client side MCCs are loaded."
-msgstr "Klientsidans MCC:er har laddats."
-
-#: ../src/clients/a-rex/arex_client.cpp:73
-#: ../src/clients/echo/echo_client.cpp:34
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:74
-msgid "Client chain does not have entry point."
-msgstr "Klientkedjan har ingen ingångspunkt."
-
-#: ../src/clients/a-rex/arex_client.cpp:102
-#: ../src/clients/echo/echo_client.cpp:51
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:110
-msgid "Creating and sending request."
-msgstr "Skapar och sänder förfrågan."
-
-#: ../src/clients/a-rex/arex_client.cpp:157
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:164
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:228
-#, c-format
-msgid "Job description to be sent: %s"
-msgstr "Jobbeskrivning som skall sändas: %s"
-
-#: ../src/clients/a-rex/arex_client.cpp:178
-msgid "Failed to find delegation credentials in client configuration."
-msgstr "Misslyckades med att hitta delegeringskreditiv i klientinställningar."
-
-#: ../src/clients/a-rex/arex_client.cpp:187
-#: ../src/clients/a-rex/arex_client.cpp:216 ../src/services/a-rex/test.cpp:86
-msgid "Initiating delegation procedure"
-msgstr "Initialiserar delegeringsprocess"
-
-#: ../src/clients/a-rex/arex_client.cpp:189
-#: ../src/clients/a-rex/arex_client.cpp:218
-msgid "Failed to initiate delegation."
-msgstr "Misslyckades med att initiera delegering."
-
-#: ../src/clients/a-rex/arex_client.cpp:199
-#: ../src/clients/a-rex/arex_client.cpp:231
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:180
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:239
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:311
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:408
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:456
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:495
-msgid "Submission request failed."
-msgstr "Insändningsförfrågan misslyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:203
-#: ../src/clients/a-rex/arex_client.cpp:288
-#: ../src/clients/a-rex/arex_client.cpp:363
-#: ../src/clients/a-rex/arex_client.cpp:431
-#: ../src/clients/a-rex/arex_client.cpp:501
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:74
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:140
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:186
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:243
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:315
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:412
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:460
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:499
-msgid "There was no SOAP response."
-msgstr "Det fanns inget SOAP-svar."
-
-#: ../src/clients/a-rex/arex_client.cpp:234
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:182
-msgid "Submission request succeed."
-msgstr "Insändningsförfrågan lyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:236
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:184
-msgid "There were no response to a submission request."
-msgstr "Det kom inget svar på en insändningsförfrågan."
-
-#: ../src/clients/a-rex/arex_client.cpp:243
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:190
-msgid "A response to a submission request was not a SOAP message."
-msgstr "Ett svar på en insändningsförfrågan var inget SOAP-meddelande."
-
-#: ../src/clients/a-rex/arex_client.cpp:262
-#, fuzzy, c-format
-msgid "Submission returned failure : %s"
-msgstr "Insändningsförfrågan misslyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:271
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:49
-msgid "Creating and sending a status request."
-msgstr "Skapar och sänder en statusförfrågan."
-
-#: ../src/clients/a-rex/arex_client.cpp:305
-msgid "A status request failed."
-msgstr "En statusförfrågan misslyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:308
-msgid "A status request succeed."
-msgstr "En statusförfrågan lyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:310
-msgid "There were no response to a status request."
-msgstr "Det kom inget svar på en statusförfrågan."
-
-#: ../src/clients/a-rex/arex_client.cpp:318
-msgid "The response of a status request was not a SOAP message."
-msgstr "Ett svar på en statusförfrågan var inget SOAP-meddelande."
-
-#: ../src/clients/a-rex/arex_client.cpp:348
-msgid "Creating and sending a service status request."
-msgstr "Skapar och sänder en servicestatusförfrågan."
-
-#: ../src/clients/a-rex/arex_client.cpp:380
-msgid "A service status request failed."
-msgstr "En servicestatusförfrågan misslyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:383
-msgid "A service status request succeed."
-msgstr "En servicestatusförfrågan lyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:385
-msgid "There were no response to a service status request."
-msgstr "Det kom inget svar på en servicestatusförfrågan."
-
-#: ../src/clients/a-rex/arex_client.cpp:393
-msgid "The response of a service status request was not a SOAP message."
-msgstr "Ett svar på en servicestatusförfrågan var inget SOAP-meddelande."
-
-#: ../src/clients/a-rex/arex_client.cpp:415
-#: ../src/clients/a-rex/arex_client.cpp:488
-#: ../src/hed/acc/CREAM/CREAMClient.cpp:120
-msgid "Creating and sending request to terminate a job."
-msgstr "Skapar och sänder förfrågan för att avsluta ett jobb."
-
-#: ../src/clients/a-rex/arex_client.cpp:448
-msgid "A job termination request failed."
-msgstr "En förfrågan för att avsluta ett jobb misslyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:451
-msgid "A job termination request succeed."
-msgstr "En förfrågan för att avsluta ett jobb lyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:454
-msgid "There was no response to a job termination request."
-msgstr "Det kom inget svar på en förfrågan för att avsluta ett jobb."
-
-#: ../src/clients/a-rex/arex_client.cpp:463
-msgid "The response of a job termination request was not a SOAP message"
-msgstr ""
-"Ett svar på en förfrågan för att avsluta ett jobb var inget SOAP-meddelande."
-
-#: ../src/clients/a-rex/arex_client.cpp:517
-msgid "A job cleaning request failed."
-msgstr "En förfrågan om uppstädning efter ett jobb misslyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:520
-msgid "A job cleaning request succeed."
-msgstr "En förfrågan om uppstädning efter ett jobb lyckades."
-
-#: ../src/clients/a-rex/arex_client.cpp:523
-msgid "There was no response to a job cleaning request."
-msgstr "Det kom inget svar på en förfrågan om uppstädning efter ett jobb."
-
-#: ../src/clients/a-rex/arex_client.cpp:532
-msgid "The response of a job cleaning request was not a SOAP message"
-msgstr ""
-"Ett svar på en förfrågan om uppstädning efter ett jobb var inget SOAP-"
-"meddelande."
-
-#: ../src/clients/arclib/arcclean.cpp:50 ../src/clients/arclib/arcget.cpp:54
-#: ../src/clients/arclib/arckill.cpp:50 ../src/clients/arclib/arcstat.cpp:62
-#: ../src/clients/arclib/arcsub.cpp:206
+#: ../src/clients/arclib/arccat.cpp:74 ../src/clients/arclib/arcclean.cpp:64
+#: ../src/clients/arclib/arcget.cpp:66 ../src/clients/arclib/arckill.cpp:64
+#: ../src/clients/arclib/arcstat.cpp:77
 msgid "[jobid]"
 msgstr "[jobb-id]"
 
-#: ../src/clients/arclib/arcclean.cpp:51 ../src/clients/arclib/arcget.cpp:55
-#: ../src/clients/arclib/arckill.cpp:51
+#: ../src/clients/arclib/arccat.cpp:75 ../src/clients/arclib/arcclean.cpp:65
+#: ../src/clients/arclib/arcget.cpp:67 ../src/clients/arclib/arckill.cpp:65
 #, fuzzy
 msgid ""
 "Argument to -c has format:\n"
@@ -728,89 +557,107 @@ msgstr ""
 "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
 "name=local,o=grid"
 
-#: ../src/clients/arclib/arcclean.cpp:57 ../src/clients/arclib/arcget.cpp:61
-#: ../src/clients/arclib/arckill.cpp:57 ../src/clients/arclib/arcstat.cpp:74
+#: ../src/clients/arclib/arccat.cpp:81 ../src/clients/arclib/arcclean.cpp:71
+#: ../src/clients/arclib/arcget.cpp:73 ../src/clients/arclib/arckill.cpp:71
+#: ../src/clients/arclib/arcstat.cpp:89
 msgid "all jobs"
 msgstr "alla jobb"
 
-#: ../src/clients/arclib/arcclean.cpp:62 ../src/clients/arclib/arcget.cpp:66
-#: ../src/clients/arclib/arckill.cpp:62 ../src/clients/arclib/arcstat.cpp:79
+#: ../src/clients/arclib/arccat.cpp:86 ../src/clients/arclib/arcclean.cpp:76
+#: ../src/clients/arclib/arcget.cpp:78 ../src/clients/arclib/arckill.cpp:76
+#: ../src/clients/arclib/arcstat.cpp:94
 msgid "file containing a list of jobids"
 msgstr "fil som innehåller en jobb-id-lista"
 
-#: ../src/clients/arclib/arcclean.cpp:63 ../src/clients/arclib/arcget.cpp:67
-#: ../src/clients/arclib/arckill.cpp:63 ../src/clients/arclib/arcstat.cpp:80
-#: ../src/clients/arclib/arcsub.cpp:242
+#: ../src/clients/arclib/arccat.cpp:87 ../src/clients/arclib/arcclean.cpp:77
+#: ../src/clients/arclib/arcget.cpp:79 ../src/clients/arclib/arckill.cpp:77
+#: ../src/clients/arclib/arcstat.cpp:95 ../src/clients/arclib/arcsub.cpp:245
 msgid "filename"
 msgstr "filnamn"
 
-#: ../src/clients/arclib/arcclean.cpp:68 ../src/clients/arclib/arcget.cpp:72
-#: ../src/clients/arclib/arckill.cpp:68 ../src/clients/arclib/arcstat.cpp:85
-#: ../src/clients/arclib/arcsub.cpp:218
+#: ../src/clients/arclib/arccat.cpp:92 ../src/clients/arclib/arcclean.cpp:82
+#: ../src/clients/arclib/arcget.cpp:84 ../src/clients/arclib/arckill.cpp:82
+#: ../src/clients/arclib/arcstat.cpp:100 ../src/clients/arclib/arcsub.cpp:221
 msgid "explicity select or reject a specific cluster"
 msgstr "välj eller välj bort ett specifikt kluster"
 
-#: ../src/clients/arclib/arcclean.cpp:69 ../src/clients/arclib/arcget.cpp:73
-#: ../src/clients/arclib/arckill.cpp:69 ../src/clients/arclib/arcstat.cpp:86
-#: ../src/clients/arclib/arcsub.cpp:219
+#: ../src/clients/arclib/arccat.cpp:93 ../src/clients/arclib/arcclean.cpp:83
+#: ../src/clients/arclib/arcget.cpp:85 ../src/clients/arclib/arckill.cpp:83
+#: ../src/clients/arclib/arcstat.cpp:101 ../src/clients/arclib/arcsub.cpp:222
 msgid "[-]name"
 msgstr "[-]namn"
 
-#: ../src/clients/arclib/arcclean.cpp:74 ../src/clients/arclib/arcget.cpp:78
-#: ../src/clients/arclib/arckill.cpp:74 ../src/clients/arclib/arcstat.cpp:91
+#: ../src/clients/arclib/arccat.cpp:98 ../src/clients/arclib/arcclean.cpp:88
+#: ../src/clients/arclib/arcget.cpp:90 ../src/clients/arclib/arckill.cpp:88
+#: ../src/clients/arclib/arcstat.cpp:106
 msgid "only select jobs whose status is statusstr"
 msgstr "välj endast jobb vars status är statusstr"
 
-#: ../src/clients/arclib/arcclean.cpp:75 ../src/clients/arclib/arcget.cpp:79
-#: ../src/clients/arclib/arckill.cpp:75 ../src/clients/arclib/arcstat.cpp:92
+#: ../src/clients/arclib/arccat.cpp:99 ../src/clients/arclib/arcclean.cpp:89
+#: ../src/clients/arclib/arcget.cpp:91 ../src/clients/arclib/arckill.cpp:89
+#: ../src/clients/arclib/arcstat.cpp:107
 msgid "statusstr"
 msgstr "statusstr"
 
-#: ../src/clients/arclib/arcclean.cpp:80
+#: ../src/clients/arclib/arccat.cpp:103
+msgid "show stdout of the job (default)"
+msgstr ""
+
+#: ../src/clients/arclib/arccat.cpp:107
+msgid "show stderr of the job"
+msgstr ""
+
+#: ../src/clients/arclib/arccat.cpp:117
+msgid "show the grid manager's error log of the job"
+msgstr ""
+
+#: ../src/clients/arclib/arccat.cpp:120 ../src/clients/arclib/arcclean.cpp:98
+#: ../src/clients/arclib/arcget.cpp:107 ../src/clients/arclib/arckill.cpp:98
+#: ../src/clients/arclib/arcstat.cpp:126 ../src/clients/arclib/arcsub.cpp:258
+#: ../src/clients/data/arccp.cpp:493 ../src/clients/data/arcls.cpp:132
+#: ../src/clients/data/arcrm.cpp:122
+msgid "timeout in seconds (default 20)"
+msgstr "timeout i sekunder (förval 20)"
+
+#: ../src/clients/arclib/arccat.cpp:121 ../src/clients/arclib/arcclean.cpp:99
+#: ../src/clients/arclib/arcget.cpp:108 ../src/clients/arclib/arckill.cpp:99
+#: ../src/clients/arclib/arcstat.cpp:127 ../src/clients/arclib/arcsub.cpp:259
+#: ../src/clients/data/arccp.cpp:494 ../src/clients/data/arcls.cpp:133
+#: ../src/clients/data/arcrm.cpp:123
+msgid "seconds"
+msgstr "sekunder"
+
+#: ../src/clients/arclib/arccat.cpp:154 ../src/clients/arclib/arcclean.cpp:132
+#: ../src/clients/arclib/arcget.cpp:141 ../src/clients/arclib/arckill.cpp:132
+#, fuzzy
+msgid "No valid jobids given"
+msgstr "ogiltigt jobb-id"
+
+#: ../src/clients/arclib/arcclean.cpp:94
 msgid ""
 "remove the job from the local list of jobs even if the job is not found in "
 "the MDS"
 msgstr ""
 
-#: ../src/clients/arclib/arcclean.cpp:84 ../src/clients/arclib/arcget.cpp:95
-#: ../src/clients/arclib/arckill.cpp:84 ../src/clients/arclib/arcstat.cpp:111
-#: ../src/clients/arclib/arcsub.cpp:255 ../src/clients/data/arccp.cpp:491
-#: ../src/clients/data/arcls.cpp:132 ../src/clients/data/arcrm.cpp:122
-msgid "timeout in seconds (default 20)"
-msgstr "timeout i sekunder (förval 20)"
-
-#: ../src/clients/arclib/arcclean.cpp:85 ../src/clients/arclib/arcget.cpp:96
-#: ../src/clients/arclib/arckill.cpp:85 ../src/clients/arclib/arcstat.cpp:112
-#: ../src/clients/arclib/arcsub.cpp:256 ../src/clients/data/arccp.cpp:492
-#: ../src/clients/data/arcls.cpp:133 ../src/clients/data/arcrm.cpp:123
-msgid "seconds"
-msgstr "sekunder"
-
-#: ../src/clients/arclib/arcclean.cpp:118 ../src/clients/arclib/arcget.cpp:129
-#: ../src/clients/arclib/arckill.cpp:118
-#, fuzzy
-msgid "No valid jobids given"
-msgstr "ogiltigt jobb-id"
-
-#: ../src/clients/arclib/arcget.cpp:84
+#: ../src/clients/arclib/arcget.cpp:96
 msgid ""
 "download directory (the job directory will be created in this directory)"
 msgstr ""
 
-#: ../src/clients/arclib/arcget.cpp:86
+#: ../src/clients/arclib/arcget.cpp:98
 #, fuzzy
 msgid "dirname"
 msgstr "filnamn"
 
-#: ../src/clients/arclib/arcget.cpp:91
+#: ../src/clients/arclib/arcget.cpp:103
 msgid "keep files on gatekeeper (do not clean)"
 msgstr ""
 
-#: ../src/clients/arclib/arckill.cpp:80
+#: ../src/clients/arclib/arckill.cpp:94
 msgid "keep the files on the server (don't clean)"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:63
+#: ../src/clients/arclib/arcstat.cpp:78
 #, fuzzy
 msgid ""
 "Argument to -i has format:\n"
@@ -833,24 +680,24 @@ msgstr ""
 "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
 "name=local,o=grid"
 
-#: ../src/clients/arclib/arcstat.cpp:96 ../src/clients/arclib/arcsub.cpp:223
+#: ../src/clients/arclib/arcstat.cpp:111 ../src/clients/arclib/arcsub.cpp:226
 msgid "url to a index server"
 msgstr "url till en indexserver"
 
-#: ../src/clients/arclib/arcstat.cpp:97 ../src/clients/arclib/arcsub.cpp:224
+#: ../src/clients/arclib/arcstat.cpp:112 ../src/clients/arclib/arcsub.cpp:227
 #: ../src/clients/data/arcls.cpp:116 ../src/clients/data/arcrm.cpp:113
 msgid "url"
 msgstr "url"
 
-#: ../src/clients/arclib/arcstat.cpp:102
+#: ../src/clients/arclib/arcstat.cpp:117
 msgid "show information about clusters and queues"
 msgstr "visa information om kluster och köer"
 
-#: ../src/clients/arclib/arcstat.cpp:107 ../src/clients/data/arcls.cpp:119
+#: ../src/clients/arclib/arcstat.cpp:122 ../src/clients/data/arcls.cpp:119
 msgid "long format (more information)"
 msgstr "långt format (mer information)"
 
-#: ../src/clients/arclib/arcstat.cpp:145
+#: ../src/clients/arclib/arcstat.cpp:160
 msgid "Option -a [-all] can not be used together with jobid"
 msgstr "Flaggan -a [-all] kan ej användas tillsammans med jobb-id"
 
@@ -863,16 +710,16 @@ msgstr "Ingen jobbeskrivning angiven"
 msgid "Can not open file: %s"
 msgstr "Kan inte öpna fil: %s"
 
-#: ../src/clients/arclib/arcsub.cpp:74 ../src/clients/arclib/arcsub.cpp:95
+#: ../src/clients/arclib/arcsub.cpp:76 ../src/clients/arclib/arcsub.cpp:97
 msgid "Invalid JobDescription. Job removed from submission."
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:75 ../src/clients/arclib/arcsub.cpp:96
+#: ../src/clients/arclib/arcsub.cpp:77 ../src/clients/arclib/arcsub.cpp:98
 #, fuzzy
 msgid "Job description given:"
 msgstr "Jobbeskrivning som skall sändas: %s"
 
-#: ../src/clients/arclib/arcsub.cpp:114
+#: ../src/clients/arclib/arcsub.cpp:116
 #, c-format
 msgid ""
 "Job submission failed because the specified cluster %s did not return any "
@@ -881,21 +728,41 @@ msgstr ""
 "Jobbinsändning misslyckades p.g.a. att det angivna klustret %s inte "
 "returnerade någon information"
 
-#: ../src/clients/arclib/arcsub.cpp:172
+#: ../src/clients/arclib/arcsub.cpp:140
+#, fuzzy
+msgid "No targets found"
+msgstr "Antal funna destinationer: %ld"
+
+#: ../src/clients/arclib/arcsub.cpp:146
+#, fuzzy
+msgid "Submitting jobs"
+msgstr " Insändande klient: %s"
+
+#: ../src/clients/arclib/arcsub.cpp:158
+#, fuzzy, c-format
+msgid "Job submitted with jobid: %s"
+msgstr " Insänt från %s"
+
+#: ../src/clients/arclib/arcsub.cpp:175
 msgid "Job submission summary:"
 msgstr "Jobbinsändningssammanfattning:"
 
-#: ../src/clients/arclib/arcsub.cpp:175
+#: ../src/clients/arclib/arcsub.cpp:178
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr "%d av %d jobb sändes in"
 
-#: ../src/clients/arclib/arcsub.cpp:179
+#: ../src/clients/arclib/arcsub.cpp:182
 #, c-format
 msgid "The following %d were not submitted"
 msgstr "Följande %d sändes inte in"
 
-#: ../src/clients/arclib/arcsub.cpp:207
+#: ../src/clients/arclib/arcsub.cpp:209
+#, fuzzy
+msgid "[filename ...]"
+msgstr "filnamn"
+
+#: ../src/clients/arclib/arcsub.cpp:210
 #, fuzzy
 msgid ""
 "Argument to -i has format:\n"
@@ -918,32 +785,32 @@ msgstr ""
 "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
 "name=local,o=grid"
 
-#: ../src/clients/arclib/arcsub.cpp:229
+#: ../src/clients/arclib/arcsub.cpp:232
 msgid "jobdescription string describing the job to be submitted"
 msgstr "jobbeskrivningssträng som beskriver jobbet som ska sändas in"
 
-#: ../src/clients/arclib/arcsub.cpp:230 ../src/clients/arclib/arcsub.cpp:236
-#: ../src/clients/credentials/approxy.cpp:69
+#: ../src/clients/arclib/arcsub.cpp:233 ../src/clients/arclib/arcsub.cpp:239
+#: ../src/clients/credentials/arcproxy.cpp:69
 msgid "string"
 msgstr "sträng"
 
-#: ../src/clients/arclib/arcsub.cpp:235
+#: ../src/clients/arclib/arcsub.cpp:238
 msgid "jobdescription file describing the job to be submitted"
 msgstr "jobbeskrivningsfil som beskriver jobbet som ska sändas in"
 
-#: ../src/clients/arclib/arcsub.cpp:241
+#: ../src/clients/arclib/arcsub.cpp:244
 msgid "file where the jobids will be stored"
 msgstr "fil där jobb-id kommer att sparas"
 
-#: ../src/clients/arclib/arcsub.cpp:246
+#: ../src/clients/arclib/arcsub.cpp:249
 msgid "add dryrun option"
 msgstr "lägg till dryrun-attribut"
 
-#: ../src/clients/arclib/arcsub.cpp:251
+#: ../src/clients/arclib/arcsub.cpp:254
 msgid "do not submit - dump job description"
 msgstr "sänd inte - skriv ut jobbeskrivningen"
 
-#: ../src/clients/arclib/arcsub.cpp:265
+#: ../src/clients/arclib/arcsub.cpp:268
 msgid "allow unknown attributes in job description"
 msgstr "tillåt okända attribut i jobbeskrivningen"
 
@@ -971,27 +838,27 @@ msgstr "delegerings-id"
 msgid "id"
 msgstr "id"
 
-#: ../src/clients/credentials/approxy.cpp:29
+#: ../src/clients/credentials/arcproxy.cpp:29
 #, c-format
 msgid "OpenSSL Error -- %s"
 msgstr "OpenSSL-fel -- %s"
 
-#: ../src/clients/credentials/approxy.cpp:30
+#: ../src/clients/credentials/arcproxy.cpp:30
 #, c-format
 msgid "Library  : %s"
 msgstr "Bibliotek: %s"
 
-#: ../src/clients/credentials/approxy.cpp:31
+#: ../src/clients/credentials/arcproxy.cpp:31
 #, c-format
 msgid "Function : %s"
 msgstr "Funktion : %s"
 
-#: ../src/clients/credentials/approxy.cpp:32
+#: ../src/clients/credentials/arcproxy.cpp:32
 #, c-format
 msgid "Reason   : %s"
 msgstr "Anledning: %s"
 
-#: ../src/clients/credentials/approxy.cpp:48
+#: ../src/clients/credentials/arcproxy.cpp:48
 #, fuzzy
 msgid ""
 "Supported constraints are:\n"
@@ -1007,7 +874,7 @@ msgstr ""
 "  validityPeriod=tid\n"
 "  proxyPolicy=policy-innehåll"
 
-#: ../src/clients/credentials/approxy.cpp:68
+#: ../src/clients/credentials/arcproxy.cpp:68
 msgid "proxy constraints"
 msgstr "proxyvillkor"
 
@@ -1031,14 +898,14 @@ msgstr "Antalet källor och destinationer stämmer inte överens"
 msgid "Fileset registration is not supported yet"
 msgstr "Filuppsättningsregistrering understöds inte ännu"
 
-#: ../src/clients/data/arccp.cpp:113 ../src/clients/data/arccp.cpp:279
-#: ../src/clients/data/arccp.cpp:312 ../src/clients/data/arccp.cpp:377
+#: ../src/clients/data/arccp.cpp:113 ../src/clients/data/arccp.cpp:281
+#: ../src/clients/data/arccp.cpp:314 ../src/clients/data/arccp.cpp:379
 #, c-format
 msgid "Unsupported source url: %s"
 msgstr "Icke understödd käll-URL: %s"
 
-#: ../src/clients/data/arccp.cpp:117 ../src/clients/data/arccp.cpp:316
-#: ../src/clients/data/arccp.cpp:381
+#: ../src/clients/data/arccp.cpp:117 ../src/clients/data/arccp.cpp:318
+#: ../src/clients/data/arccp.cpp:383
 #, c-format
 msgid "Unsupported destination url: %s"
 msgstr "Icke understödd destinations-URL: %s"
@@ -1067,81 +934,77 @@ msgstr "Misslyckades med att acceptera ny fil/destination"
 msgid "Failed to register new file/destination"
 msgstr "Misslyckades med att registrera ny fil/destination"
 
-#: ../src/clients/data/arccp.cpp:247
-msgid "Fileset copy to single object is not supported yet"
-msgstr "Kopiering av filuppsättning till ett enstaka objekt stöds ej ännu"
-
-#: ../src/clients/data/arccp.cpp:257
+#: ../src/clients/data/arccp.cpp:259
 msgid "Can't extract object's name from source url"
 msgstr "Kan ej extrahera objektets namn från käll-URL"
 
-#: ../src/clients/data/arccp.cpp:274
+#: ../src/clients/data/arccp.cpp:276
 msgid "Fileset copy for this kind of source is not supported"
 msgstr "Kopiering av filuppsättning för denna källtyp stöds inte"
 
-#: ../src/clients/data/arccp.cpp:285 ../src/clients/data/arcls.cpp:45
+#: ../src/clients/data/arccp.cpp:287 ../src/clients/data/arcls.cpp:45
 msgid "Failed listing metafiles"
 msgstr "Misslyckades med att lista metafiler"
 
-#: ../src/clients/data/arccp.cpp:291
+#: ../src/clients/data/arccp.cpp:293
 msgid "Failed listing files"
 msgstr "Misslyckades med att lista filer"
 
-#: ../src/clients/data/arccp.cpp:302
+#: ../src/clients/data/arccp.cpp:304
 #, c-format
 msgid "Name: %s"
 msgstr "Namn: %s"
 
-#: ../src/clients/data/arccp.cpp:307
+#: ../src/clients/data/arccp.cpp:309
 #, c-format
 msgid "Source: %s"
 msgstr "Källa: %s"
 
-#: ../src/clients/data/arccp.cpp:308
+#: ../src/clients/data/arccp.cpp:310
 #, c-format
 msgid "Destination: %s"
 msgstr "Destinaltion: %s"
 
-#: ../src/clients/data/arccp.cpp:336
+#: ../src/clients/data/arccp.cpp:338
 #, c-format
 msgid "Current transfer FAILED: %s"
 msgstr "Nuvarande överföring MISSLYCKADES: %s"
 
-#: ../src/clients/data/arccp.cpp:338
+#: ../src/clients/data/arccp.cpp:340
 msgid "Current transfer FAILED."
 msgstr "Nuvarande överföring MISSLYCKADES."
 
-#: ../src/clients/data/arccp.cpp:347
+#: ../src/clients/data/arccp.cpp:349
 msgid "Current transfer complete."
 msgstr "Nuvarande överföring slutförd."
 
-#: ../src/clients/data/arccp.cpp:350
+#: ../src/clients/data/arccp.cpp:352
 msgid "Some transfers failed"
 msgstr "Några överföringar misslyckades"
 
-#: ../src/clients/data/arccp.cpp:361
+#: ../src/clients/data/arccp.cpp:363
 #, c-format
 msgid "Directory: %s"
 msgstr "Katalog: %s"
 
-#: ../src/clients/data/arccp.cpp:403
+#: ../src/clients/data/arccp.cpp:405
 #, c-format
 msgid "Transfer FAILED: %s"
 msgstr "Överföring MISSLYCKADES: %s"
 
-#: ../src/clients/data/arccp.cpp:407
+#: ../src/clients/data/arccp.cpp:409
 msgid "Transfer FAILED."
 msgstr "Överföring MISSLYCKADES."
 
-#: ../src/clients/data/arccp.cpp:416
+#: ../src/clients/data/arccp.cpp:418
 msgid "Transfer complete."
 msgstr "Överföring slutförd."
 
-#: ../src/clients/data/arccp.cpp:430
+#: ../src/clients/data/arccp.cpp:432
 msgid "source destination"
 msgstr "källa destination"
 
-#: ../src/clients/data/arccp.cpp:434
+#: ../src/clients/data/arccp.cpp:436
 msgid ""
 "use passive transfer (does not work if secure is on, default if secure is "
 "not requested)"
@@ -1149,11 +1012,11 @@ msgstr ""
 "använd passiv överföring (fungerar inte om säker överföring är aktiv, "
 "förvalt om säker överföring inte begärts"
 
-#: ../src/clients/data/arccp.cpp:440
+#: ../src/clients/data/arccp.cpp:442
 msgid "do not try to force passive transfer"
 msgstr "försök inte forcera passiv överföring"
 
-#: ../src/clients/data/arccp.cpp:445
+#: ../src/clients/data/arccp.cpp:447
 msgid ""
 "if the destination is an indexing service and not the same as the source and "
 "the destination is already registered, then the copy is normally not done. "
@@ -1166,11 +1029,11 @@ msgstr ""
 "denna flagga anges antas källan varar en kopia av destinationen som skapats "
 "på ett okontrollerat sätt och kopian skapas på samma sätt som vid replikering"
 
-#: ../src/clients/data/arccp.cpp:456
+#: ../src/clients/data/arccp.cpp:458
 msgid "show progress indicator"
 msgstr "visa fortskridandeindikator"
 
-#: ../src/clients/data/arccp.cpp:461
+#: ../src/clients/data/arccp.cpp:463
 msgid ""
 "do not transfer file, just register it - destination must be non-existing "
 "meta-url"
@@ -1178,40 +1041,40 @@ msgstr ""
 "kopiera inte filen, registrera den bara - destinationen måste vara icke-"
 "existerande meta-url"
 
-#: ../src/clients/data/arccp.cpp:467
+#: ../src/clients/data/arccp.cpp:469
 msgid "use secure transfer (insecure by default)"
 msgstr "använd säker överföring (osäker som förval)"
 
-#: ../src/clients/data/arccp.cpp:472
+#: ../src/clients/data/arccp.cpp:474
 msgid "path to local cache (use to put file into cache)"
 msgstr "sökväg till lokalt cache (använd för att lägga in fil i cache)"
 
-#: ../src/clients/data/arccp.cpp:477
+#: ../src/clients/data/arccp.cpp:479
 msgid "path for cache data (if different from -y)"
 msgstr "sökväg för cachedata (om skiljt från -y)"
 
-#: ../src/clients/data/arccp.cpp:482 ../src/clients/data/arcls.cpp:128
+#: ../src/clients/data/arccp.cpp:484 ../src/clients/data/arcls.cpp:128
 msgid "operate recursively up to specified level"
 msgstr "arbeta rekursivt upp till den angivna nivån"
 
-#: ../src/clients/data/arccp.cpp:483 ../src/clients/data/arcls.cpp:129
+#: ../src/clients/data/arccp.cpp:485 ../src/clients/data/arcls.cpp:129
 msgid "level"
 msgstr "nivå"
 
-#: ../src/clients/data/arccp.cpp:487
+#: ../src/clients/data/arccp.cpp:489
 msgid "number of retries before failing file transfer"
 msgstr "antal försök innan överföring misslyckas"
 
-#: ../src/clients/data/arccp.cpp:488
+#: ../src/clients/data/arccp.cpp:490
 msgid "number"
 msgstr "nummer"
 
-#: ../src/clients/data/arccp.cpp:514 ../src/clients/data/arcls.cpp:155
+#: ../src/clients/data/arccp.cpp:516 ../src/clients/data/arcls.cpp:155
 #: ../src/clients/data/arcrm.cpp:145
 msgid "Wrong number of parameters specified"
 msgstr "Fel antal parametrar angivna"
 
-#: ../src/clients/data/arccp.cpp:519
+#: ../src/clients/data/arccp.cpp:521
 msgid "Options 'p' and 'n' can't be used simultaneously"
 msgstr "Flaggorna 'p' och 'n' kan inte användas samtidigt"
 
@@ -1283,6 +1146,26 @@ msgstr ""
 #: ../src/clients/echo/echo_client.cpp:17
 msgid "Creating an echo client."
 msgstr "Skapar en echo-klient."
+
+#: ../src/clients/echo/echo_client.cpp:26
+#: ../src/hed/acc/ARC1/arex_client.cpp:65
+msgid "Failed to load client configuration."
+msgstr "Misslyckades med att ladda klientinställningar."
+
+#: ../src/clients/echo/echo_client.cpp:31
+#: ../src/hed/acc/ARC1/arex_client.cpp:70
+msgid "Client side MCCs are loaded."
+msgstr "Klientsidans MCC:er har laddats."
+
+#: ../src/clients/echo/echo_client.cpp:34
+#: ../src/hed/acc/ARC1/arex_client.cpp:73
+msgid "Client chain does not have entry point."
+msgstr "Klientkedjan har ingen ingångspunkt."
+
+#: ../src/clients/echo/echo_client.cpp:51
+#: ../src/hed/acc/ARC1/arex_client.cpp:102
+msgid "Creating and sending request."
+msgstr "Skapar och sänder förfrågan."
 
 #: ../src/clients/echo/echo_client.cpp:70
 msgid "Echo request failed."
@@ -1360,84 +1243,254 @@ msgstr ""
 msgid "globus_ftp_handle_destroy: %s"
 msgstr ""
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:162
-msgid "Downloading ARC0 jobs"
-msgstr ""
-
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:181
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:164
+#: ../src/hed/acc/ARC1/JobControllerARC1.cpp:54
+#: ../src/hed/acc/CREAM/JobControllerCREAM.cpp:33
 #, c-format
 msgid "Downloading job: %s"
 msgstr ""
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:208
-#, c-format
-msgid "Failed dowloading job: %s. Job will not be cleaned or removed."
-msgstr ""
-
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:215
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:234
-#, fuzzy, c-format
-msgid "Failed cleaning job: %s"
-msgstr "Misslyckades med att läsa object: %s"
-
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:219
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:193
+#: ../src/hed/acc/ARC1/JobControllerARC1.cpp:83
+#: ../src/hed/acc/CREAM/JobControllerCREAM.cpp:62
 #, c-format
 msgid "Failed dowloading job: %s. Could not get data handle."
 msgstr ""
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:228
-msgid "Cleaning jobs ..."
-msgstr ""
-
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:242
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:202
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:244
 #, fuzzy, c-format
 msgid "Cleaning job: %s"
 msgstr "Kan inte hitta jobb-id: %s"
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:248
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:208
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:250
 #, fuzzy
 msgid "Failed to connect for job cleaning"
 msgstr "Misslyckades med att öppna fil för läsning: %s"
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:260
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:220
 msgid "Failed sending CWD command for job cleaning"
 msgstr ""
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:265
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:225
 msgid "Failed sending RMD command for job cleaning"
 msgstr ""
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:272
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:232
 #, fuzzy
 msgid "Failed to disconnect after job cleaning"
 msgstr "Misslyckades med att initiera delegering"
 
-#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:276
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:236
 #, fuzzy
 msgid "Job cleaning succesful"
 msgstr "En förfrågan om uppstädning efter ett jobb misslyckades."
+
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:262
+#, fuzzy
+msgid "Failed sending CWD command for job cancelling"
+msgstr "Misslyckades med att öppna fil för läsning: %s"
+
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:267
+#, fuzzy
+msgid "Failed sending DELE command for job cancelling"
+msgstr "Misslyckades med att öppna fil för läsning: %s"
+
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:274
+#, fuzzy
+msgid "Failed to disconnect after job cancelling"
+msgstr "Misslyckades med att initiera delegering"
+
+#: ../src/hed/acc/ARC0/JobControllerARC0.cpp:278
+#, fuzzy
+msgid "Job cancel succesful"
+msgstr "En förfrågan om uppstädning efter ett jobb misslyckades."
+
+#: ../src/hed/acc/ARC0/SubmitterARC0.cpp:215
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:47
+#, fuzzy
+msgid "Failed uploading local input files"
+msgstr "Misslyckades med att läsa fillista"
 
 #: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:37
 #, c-format
 msgid "TargetRetriverARC0 initialized with %s service url: %s"
 msgstr "TargetRetriverARC0 initialiserad med %s-serviceurl: %s"
 
-#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:71
+#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:47
+#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:67
+msgid "Malformed URL"
+msgstr ""
+
+#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:48
+#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:68
+#, fuzzy, c-format
+msgid "URL = %s"
+msgstr " URL: %s"
+
+#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:80
 msgid "TargetRetrieverARC0 initialized with unknown url type"
 msgstr "TargetRetrieverARC0 initialiserad med okänd url-typ"
 
-#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:194
-msgid "Something wrong with the client_entry"
-msgstr ""
-
-#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:34
+#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:36
 #, c-format
 msgid "TargetRetriverARC1 initialized with %s service url: %s"
 msgstr "TargetRetriverARC1 initialiserad med %s-serviceurl: %s"
 
-#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:68
+#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:70
 msgid "TargetRetrieverARC1 initialized with unknown url type"
 msgstr "TargetRetrieverARC1 initialiserad med okänd url-typ"
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:56
+#: ../src/hed/acc/ARC1/arex_client.cpp:84
+msgid "Creating an A-REX client."
+msgstr "Skapar en A-REX-klient."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:157
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:228
+#, c-format
+msgid "Job description to be sent: %s"
+msgstr "Jobbeskrivning som skall sändas: %s"
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:178
+msgid "Failed to find delegation credentials in client configuration."
+msgstr "Misslyckades med att hitta delegeringskreditiv i klientinställningar."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:187
+#: ../src/hed/acc/ARC1/arex_client.cpp:216 ../src/services/a-rex/test.cpp:86
+msgid "Initiating delegation procedure"
+msgstr "Initialiserar delegeringsprocess"
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:189
+#: ../src/hed/acc/ARC1/arex_client.cpp:218
+msgid "Failed to initiate delegation."
+msgstr "Misslyckades med att initiera delegering."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:199
+#: ../src/hed/acc/ARC1/arex_client.cpp:231
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:239
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:311
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:408
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:456
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:495
+msgid "Submission request failed."
+msgstr "Insändningsförfrågan misslyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:203
+#: ../src/hed/acc/ARC1/arex_client.cpp:288
+#: ../src/hed/acc/ARC1/arex_client.cpp:363
+#: ../src/hed/acc/ARC1/arex_client.cpp:431
+#: ../src/hed/acc/ARC1/arex_client.cpp:501
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:74
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:140
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:186
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:243
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:315
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:412
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:460
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:499
+msgid "There was no SOAP response."
+msgstr "Det fanns inget SOAP-svar."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:234
+msgid "Submission request succeed."
+msgstr "Insändningsförfrågan lyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:236
+msgid "There were no response to a submission request."
+msgstr "Det kom inget svar på en insändningsförfrågan."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:243
+msgid "A response to a submission request was not a SOAP message."
+msgstr "Ett svar på en insändningsförfrågan var inget SOAP-meddelande."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:262
+#, fuzzy, c-format
+msgid "Submission returned failure : %s"
+msgstr "Insändningsförfrågan misslyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:271
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:49
+msgid "Creating and sending a status request."
+msgstr "Skapar och sänder en statusförfrågan."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:305
+msgid "A status request failed."
+msgstr "En statusförfrågan misslyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:308
+msgid "A status request succeed."
+msgstr "En statusförfrågan lyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:310
+msgid "There were no response to a status request."
+msgstr "Det kom inget svar på en statusförfrågan."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:318
+msgid "The response of a status request was not a SOAP message."
+msgstr "Ett svar på en statusförfrågan var inget SOAP-meddelande."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:348
+msgid "Creating and sending a service status request."
+msgstr "Skapar och sänder en servicestatusförfrågan."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:380
+msgid "A service status request failed."
+msgstr "En servicestatusförfrågan misslyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:383
+msgid "A service status request succeed."
+msgstr "En servicestatusförfrågan lyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:385
+msgid "There were no response to a service status request."
+msgstr "Det kom inget svar på en servicestatusförfrågan."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:393
+msgid "The response of a service status request was not a SOAP message."
+msgstr "Ett svar på en servicestatusförfrågan var inget SOAP-meddelande."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:415
+#: ../src/hed/acc/ARC1/arex_client.cpp:488
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:120
+msgid "Creating and sending request to terminate a job."
+msgstr "Skapar och sänder förfrågan för att avsluta ett jobb."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:448
+msgid "A job termination request failed."
+msgstr "En förfrågan för att avsluta ett jobb misslyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:451
+msgid "A job termination request succeed."
+msgstr "En förfrågan för att avsluta ett jobb lyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:454
+msgid "There was no response to a job termination request."
+msgstr "Det kom inget svar på en förfrågan för att avsluta ett jobb."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:463
+msgid "The response of a job termination request was not a SOAP message"
+msgstr ""
+"Ett svar på en förfrågan för att avsluta ett jobb var inget SOAP-meddelande."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:517
+msgid "A job cleaning request failed."
+msgstr "En förfrågan om uppstädning efter ett jobb misslyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:520
+msgid "A job cleaning request succeed."
+msgstr "En förfrågan om uppstädning efter ett jobb lyckades."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:523
+msgid "There was no response to a job cleaning request."
+msgstr "Det kom inget svar på en förfrågan om uppstädning efter ett jobb."
+
+#: ../src/hed/acc/ARC1/arex_client.cpp:532
+msgid "The response of a job cleaning request was not a SOAP message"
+msgstr ""
+"Ett svar på en förfrågan om uppstädning efter ett jobb var inget SOAP-"
+"meddelande."
 
 #: ../src/hed/acc/CREAM/CREAMClient.cpp:26
 msgid "Creating a CREAM client."
@@ -2458,331 +2511,609 @@ msgstr "PDP: %s kan inte laddas"
 msgid "Grid identity is mapped to local identity '%s'"
 msgstr "Grididentitet mappas till lokal identitet '%s'"
 
-#: ../src/hed/libs/client/JobController.cpp:32
+#: ../src/hed/libs/client/ExecutionTarget.cpp:79
 #, c-format
-msgid "Identifying all jobs of flavour %s"
-msgstr ""
+msgid "Cluster: %s"
+msgstr "Kluster: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:33
-#: ../src/hed/libs/client/JobController.cpp:48
-#, fuzzy, c-format
-msgid "Using joblist file %s"
-msgstr "Jobbidentifierare saknas"
-
-#: ../src/hed/libs/client/JobController.cpp:47
+#: ../src/hed/libs/client/ExecutionTarget.cpp:81
+#: ../src/hed/libs/client/ExecutionTarget.cpp:112
 #, c-format
-msgid "Identifying individual jobs of flavour %s"
-msgstr ""
+msgid " Health State: %s"
+msgstr " Hälsotillstånd: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:63
-#, c-format
-msgid "JobController%s has identified %d jobs"
-msgstr ""
-
-#: ../src/hed/libs/client/JobController.cpp:71
-#, c-format
-msgid "Job: %s"
-msgstr "Jobb: %s"
-
-#: ../src/hed/libs/client/JobController.cpp:73
-#, c-format
-msgid " Name: %s"
-msgstr " Namn: %s"
-
-#: ../src/hed/libs/client/JobController.cpp:75
-#, fuzzy, c-format
-msgid " State: %s"
-msgstr " Status: %s"
-
-#: ../src/hed/libs/client/JobController.cpp:77
-#, c-format
-msgid " Exit Code: %d"
-msgstr " Avslutningskod: %d"
-
-#: ../src/hed/libs/client/JobController.cpp:81
-#, fuzzy, c-format
-msgid " Error: %s"
-msgstr " Fel: %s"
-
-#: ../src/hed/libs/client/JobController.cpp:86
-#: ../src/hed/libs/client/TargetGenerator.cpp:178
+#: ../src/hed/libs/client/ExecutionTarget.cpp:85
+#: ../src/hed/libs/client/Job.cpp:47
 #, c-format
 msgid " Owner: %s"
 msgstr " Ägare: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:88
+#: ../src/hed/libs/client/ExecutionTarget.cpp:87
+#, c-format
+msgid " PostCode: %s"
+msgstr " Postnummer: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:89
+#, c-format
+msgid " Place: %s"
+msgstr " Ort: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:91
+#, c-format
+msgid " Latitude: %f"
+msgstr " Latitud: %f"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:93
+#, c-format
+msgid " Longitude: %f"
+msgstr " Longitud: %f"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:96
+msgid "Endpoint information"
+msgstr "Ändpunktsinformation"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:98
+#, c-format
+msgid " URL: %s"
+msgstr " URL: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:100
+#, c-format
+msgid " Interface Name: %s"
+msgstr " Gränssnittsnamn: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:102
+#, fuzzy, c-format
+msgid " Interface Extension: %s"
+msgstr " Gränssnittsversion: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:105
+#, c-format
+msgid " Implementor: %s"
+msgstr " Implementerare: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:107
+#, c-format
+msgid " Implementation Name: %s"
+msgstr " Implementeringsnamn: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:109
+#, c-format
+msgid " Implementation Version: %s"
+msgstr " Implementeringsversion: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:114
+#, fuzzy, c-format
+msgid " Serving State: %s"
+msgstr " Status: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:116
+#, c-format
+msgid " Issuer CA: %s"
+msgstr " Utfärdar-CA: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:118
+#, c-format
+msgid " Staging: %s"
+msgstr " Laddar ned/upp: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:120
+msgid "Queue information"
+msgstr "Köinformation"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:122
+#, c-format
+msgid " Mapping Queue: %s"
+msgstr " Mappar till kö: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:124
+#, c-format
+msgid " Max Wall Time: %s"
+msgstr " Största klocktid: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:126
+#, c-format
+msgid " Min Wall Time: %s"
+msgstr " Minsta klocktid: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:128
+#, c-format
+msgid " Default Wall Time: %s"
+msgstr " Förvald klocktid: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:130
+#, c-format
+msgid " Max CPU Time: %s"
+msgstr " Största CPU-tid: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:132
+#, fuzzy, c-format
+msgid " Min CPU Time: %s"
+msgstr " Största CPU-tid: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:134
+#, c-format
+msgid " Default CPU Time: %s"
+msgstr " Förvald CPU-tid: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:136
+#, c-format
+msgid " Max Total Jobs: %i"
+msgstr " Största totalt antal jobb: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:138
+#, c-format
+msgid " Max Running Jobs: %i"
+msgstr " Största antal exekverande jobb: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:140
+#, fuzzy, c-format
+msgid " Max Waiting Jobs: %i"
+msgstr " Största antal pre-LRMS-väntade jobb: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:142
+#, c-format
+msgid " Max Pre LRMS Waiting Jobs: %i"
+msgstr " Största antal pre-LRMS-väntade jobb: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:144
+#, c-format
+msgid " Max User Running Jobs: %i"
+msgstr " Största antal exekverande jobb för användaren: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:146
+#, c-format
+msgid " Max Slots Per Job: %i"
+msgstr " Största antal slotar per jobb: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:148
+#, c-format
+msgid " Max Stage In Streams: %i"
+msgstr " Största antal nedladdningsströmmar: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:150
+#, c-format
+msgid " Max Stage Out Streams: %i"
+msgstr " Största antal uppladdningsströmmar: %i"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:152
+#, fuzzy, c-format
+msgid " Max Memory: %i"
+msgstr " Använt minne: %d"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:154
+#, c-format
+msgid " Max Disk Space: %i"
+msgstr ""
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:156
+#, fuzzy, c-format
+msgid " Default Storage Service: %s"
+msgstr " Förvald klocktid: %s"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:158
+#, fuzzy
+msgid " Supports Preemption"
+msgstr "Icke understödd operation"
+
+#: ../src/hed/libs/client/ExecutionTarget.cpp:160
+#, fuzzy
+msgid " Doesn't Support Preemption"
+msgstr "Icke understödd operation"
+
+#: ../src/hed/libs/client/Job.cpp:32
+#, c-format
+msgid "Job: %s"
+msgstr "Jobb: %s"
+
+#: ../src/hed/libs/client/Job.cpp:34
+#, c-format
+msgid " Name: %s"
+msgstr " Namn: %s"
+
+#: ../src/hed/libs/client/Job.cpp:36
+#, fuzzy, c-format
+msgid " State: %s"
+msgstr " Status: %s"
+
+#: ../src/hed/libs/client/Job.cpp:38
+#, c-format
+msgid " Exit Code: %d"
+msgstr " Avslutningskod: %d"
+
+#: ../src/hed/libs/client/Job.cpp:42
+#, fuzzy, c-format
+msgid " Error: %s"
+msgstr " Fel: %s"
+
+#: ../src/hed/libs/client/Job.cpp:49
 #, c-format
 msgid " Other Messages: %s"
 msgstr ""
 
-#: ../src/hed/libs/client/JobController.cpp:90
+#: ../src/hed/libs/client/Job.cpp:51
 #, fuzzy, c-format
 msgid " ExecutionCE: %s"
 msgstr "Undantag: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:92
+#: ../src/hed/libs/client/Job.cpp:53
 #, c-format
 msgid " Queue: %s"
 msgstr " Kö: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:94
+#: ../src/hed/libs/client/Job.cpp:55
 #, fuzzy, c-format
 msgid " Used Slots: %d"
 msgstr " Använt minne: %d"
 
-#: ../src/hed/libs/client/JobController.cpp:96
+#: ../src/hed/libs/client/Job.cpp:57
 #, fuzzy, c-format
 msgid " Waiting Position: %d"
 msgstr " Största antal väntade jobb: %i"
 
-#: ../src/hed/libs/client/JobController.cpp:98
+#: ../src/hed/libs/client/Job.cpp:59
 #, fuzzy, c-format
 msgid " Stdin: %s"
 msgstr " stdin: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:100
+#: ../src/hed/libs/client/Job.cpp:61
 #, fuzzy, c-format
 msgid " Stdout: %s"
 msgstr " stdout: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:102
+#: ../src/hed/libs/client/Job.cpp:63
 #, fuzzy, c-format
 msgid " Stderr: %s"
 msgstr " stderr: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:104
+#: ../src/hed/libs/client/Job.cpp:65
 #, c-format
 msgid " Grid Manager Log Directory: %s"
 msgstr " Gridhanterarens loggkatalog: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:106
+#: ../src/hed/libs/client/Job.cpp:67
 #, c-format
 msgid " Submitted: %s"
 msgstr " Insändare: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:108
+#: ../src/hed/libs/client/Job.cpp:69
 #, fuzzy, c-format
 msgid " End Time: %s"
 msgstr " Minsta CPU-tid: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:110
+#: ../src/hed/libs/client/Job.cpp:71
 #, c-format
 msgid " Submitted from: %s"
 msgstr " Insänt från %s"
 
-#: ../src/hed/libs/client/JobController.cpp:112
+#: ../src/hed/libs/client/Job.cpp:73
 #, c-format
 msgid " Submitting client: %s"
 msgstr " Insändande klient: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:114
+#: ../src/hed/libs/client/Job.cpp:75
 #, c-format
 msgid " Requested CPU Time: %s"
 msgstr " Begärd CPU-tid: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:116
+#: ../src/hed/libs/client/Job.cpp:77
 #, c-format
 msgid " Used CPU Time: %s"
 msgstr " Använd CPU-tid: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:118
+#: ../src/hed/libs/client/Job.cpp:79
 #, c-format
 msgid " Used Wall Time: %s"
 msgstr " Använd klocktid: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:120
+#: ../src/hed/libs/client/Job.cpp:81
 #, c-format
 msgid " Used Memory: %d"
 msgstr " Använt minne: %d"
 
-#: ../src/hed/libs/client/JobController.cpp:123
+#: ../src/hed/libs/client/Job.cpp:84
 #, c-format
 msgid " Results were deleted: %s"
 msgstr " Resultaten har raderats: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:127
+#: ../src/hed/libs/client/Job.cpp:88
 #, c-format
 msgid " Proxy valid until: %s"
 msgstr " Proxy giltig till: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:129
+#: ../src/hed/libs/client/Job.cpp:90
 #, c-format
 msgid " Entry valid from: %s"
 msgstr " Post giltig från: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:131
-#, c-format
-msgid " Entry valid until: %s"
-msgstr " Post giltig till: %s"
+#: ../src/hed/libs/client/Job.cpp:92
+#, fuzzy, c-format
+msgid " Entry valid for: %s"
+msgstr " Post giltig från: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:170
+#: ../src/hed/libs/client/JobController.cpp:35
+msgid "Filling JobStore with jobs according to specified jobids"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:36
+#: ../src/hed/libs/client/JobController.cpp:56
+#: ../src/hed/libs/client/JobController.cpp:80
+#: ../src/hed/libs/client/JobController.cpp:97
+#, fuzzy, c-format
+msgid "Using joblist file %s"
+msgstr "Jobbidentifierare saknas"
+
+#: ../src/hed/libs/client/JobController.cpp:55
+msgid "Filling JobStore with jobs according to selected clusters"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:79
+msgid "Removing from JobStore jobs according to cluster reject list"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:85
+#, c-format
+msgid "Removing Job %s from JobStore as it runs on a rejected cluster"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:96
+msgid ""
+"Filling JobStore with all jobs, except those running on rejected clusters"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:117
+#, fuzzy
+msgid "FillJobStore has finished succesfully"
+msgstr "CreateActivity avslutades OK"
+
+#: ../src/hed/libs/client/JobController.cpp:118
+#, c-format
+msgid "JobStore%s contains %d jobs"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:130
+#, c-format
+msgid "Getting %s jobs"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:141
+#: ../src/hed/libs/client/JobController.cpp:204
+#: ../src/hed/libs/client/JobController.cpp:273
+#, fuzzy, c-format
+msgid "Job information not found: %s"
+msgstr "Inga platser funna för destination: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:149
+#: ../src/hed/libs/client/JobController.cpp:212
+#: ../src/hed/libs/client/JobController.cpp:330
+#, fuzzy, c-format
+msgid "Job has already been deleted: %s"
+msgstr " Resultaten har raderats: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:167
+#, fuzzy, c-format
+msgid "Failed downloading job %s"
+msgstr "Misslyckades med att läsa object: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:174
+#: ../src/hed/libs/client/JobController.cpp:237
+#: ../src/hed/libs/client/JobController.cpp:297
+#, fuzzy, c-format
+msgid "Failed cleaning job %s"
+msgstr "Misslyckades med att läsa object: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:193
+#, fuzzy, c-format
+msgid "Killing %s jobs"
+msgstr "Dödar: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:217
+#, fuzzy, c-format
+msgid "Job has already finished: %s"
+msgstr " Resultaten har raderats: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:230
+#, fuzzy, c-format
+msgid "Failed cancelling (stop) job %s"
+msgstr "Misslyckades med att läsa object: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:256
+#, fuzzy, c-format
+msgid "Cleaning %s jobs"
+msgstr "Kan inte hitta jobb-id: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:267
+#, c-format
+msgid "Job %s will only be deleted from local joblist"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:315
+#, c-format
+msgid "Performing the 'cat' command on %s jobs"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:325
+#: ../src/hed/libs/client/JobController.cpp:392
+#, fuzzy, c-format
+msgid "Job state information not found: %s"
+msgstr "Inga platser funna för destination: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:336
+#, fuzzy, c-format
+msgid "Job has not started yet: %s"
+msgstr "JobID: %s tillstånd: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:341
+#, c-format
+msgid "Can not determine the stdout location: %s"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:345
+#, fuzzy, c-format
+msgid "Can not determine the stderr location: %s"
+msgstr "Fel under programexekveringen"
+
+#: ../src/hed/libs/client/JobController.cpp:364
+#, fuzzy, c-format
+msgid "%s from job %s"
+msgstr "Processera jobb: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:395
+msgid ""
+"This job was very recently submitted and might not yethave reached the "
+"information-system"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:435
 msgid "Now copying (from -> to)"
 msgstr ""
 
-#: ../src/hed/libs/client/JobController.cpp:171
+#: ../src/hed/libs/client/JobController.cpp:436
 #, fuzzy, c-format
 msgid " %s -> %s)"
 msgstr "%s -> %s"
 
-#: ../src/hed/libs/client/JobController.cpp:188
+#: ../src/hed/libs/client/JobController.cpp:440
+#, fuzzy, c-format
+msgid "Failed to get DataHandle on source: %s"
+msgstr "Misslyckades med att slå upp källa: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:445
+#, fuzzy, c-format
+msgid "Failed to get DataHandle on destination: %s"
+msgstr "Misslyckades med att slå upp destination: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:461
 #, fuzzy, c-format
 msgid "File download failed: %s"
 msgstr "Misslyckades med att läsa fil: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:190
+#: ../src/hed/libs/client/JobController.cpp:463
 #, fuzzy
 msgid "File download failed"
 msgstr "Misslyckades med att läsa fil: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:212
+#: ../src/hed/libs/client/JobController.cpp:475
+msgid "Removing jobs from joblist and jobstore"
+msgstr ""
+
+#: ../src/hed/libs/client/JobController.cpp:487
 #, c-format
 msgid "Removing job %s from joblist file"
 msgstr ""
 
-#: ../src/hed/libs/client/JobController.cpp:215
+#: ../src/hed/libs/client/JobController.cpp:490
 #, c-format
-msgid "Job %s has been deleted, but is not listed in joblist"
+msgid ""
+"Job %s has been delete (i.e. was in JobStore), but is not listed in joblist"
 msgstr ""
 
-#: ../src/hed/libs/client/JobController.cpp:231
+#: ../src/hed/libs/client/JobController.cpp:506
 #, c-format
 msgid "JobStore%s now contains %d jobs"
 msgstr ""
 
-#: ../src/hed/libs/client/JobSupervisor.cpp:43
+#: ../src/hed/libs/client/JobController.cpp:507
+msgid "Finished removing jobs from joblist and jobstore"
+msgstr ""
+
+#: ../src/hed/libs/client/JobSupervisor.cpp:33
 msgid "Identifying needed JobControllers according to specified job ids"
 msgstr ""
 
-#: ../src/hed/libs/client/JobSupervisor.cpp:52
-#: ../src/hed/libs/client/JobSupervisor.cpp:71
+#: ../src/hed/libs/client/JobSupervisor.cpp:42
+#: ../src/hed/libs/client/JobSupervisor.cpp:61
 #, c-format
 msgid "Need jobController for grid flavour %s"
 msgstr ""
 
-#: ../src/hed/libs/client/JobSupervisor.cpp:56
+#: ../src/hed/libs/client/JobSupervisor.cpp:46
 #, c-format
 msgid " Job Id = %s not found"
 msgstr ""
 
-#: ../src/hed/libs/client/JobSupervisor.cpp:61
+#: ../src/hed/libs/client/JobSupervisor.cpp:51
 msgid ""
 "Identifying needed JobControllers according to all jobs present in joblist"
 msgstr ""
 
-#: ../src/hed/libs/client/JobSupervisor.cpp:116
-#, fuzzy
-msgid "Getting job information"
-msgstr "skriv ut versionsinformation"
-
-#: ../src/hed/libs/client/JobSupervisor.cpp:130
-msgid "Downloading job output"
+#: ../src/hed/libs/client/Submitter.cpp:53
+#, c-format
+msgid "Uploading %d job input files to cluster"
 msgstr ""
 
-#: ../src/hed/libs/client/JobSupervisor.cpp:145
-#, fuzzy
-msgid "Printing job information"
-msgstr "skriv ut versionsinformation"
-
-#: ../src/hed/libs/client/JobSupervisor.cpp:158
-msgid "Cleaning job(s)"
-msgstr ""
-
-#: ../src/hed/libs/client/JobSupervisor.cpp:171
-#, fuzzy
-msgid "Killing job(s)"
-msgstr "Dödar: %s"
+#: ../src/hed/libs/client/Submitter.cpp:82
+#: ../src/hed/libs/client/Submitter.cpp:83
+#, fuzzy, c-format
+msgid "Failed uploading file: %s"
+msgstr "Misslyckades med att läsa fil: %s"
 
 #: ../src/hed/libs/client/TargetGenerator.cpp:123
 #, c-format
 msgid "Number of Targets found: %ld"
 msgstr "Antal funna destinationer: %ld"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:172
-#, c-format
-msgid "Cluster: %s"
-msgstr "Kluster: %s"
+#: ../src/hed/libs/client/UserConfig.cpp:35
+#, fuzzy
+msgid "Could not find system configuration"
+msgstr "Misslyckades med att ladda inställningar"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:174
-#, c-format
-msgid " Health State: %s"
-msgstr " Hälsotillstånd: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:180
-#, c-format
-msgid " PostCode: %s"
-msgstr " Postnummer: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:182
-#, c-format
-msgid " Place: %s"
-msgstr " Ort: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:184
-#, c-format
-msgid " Latitude: %f"
-msgstr " Latitud: %f"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:186
-#, c-format
-msgid " Longitude: %f"
-msgstr " Longitud: %f"
-
-#: ../src/hed/libs/client/UserConfig.cpp:26
+#: ../src/hed/libs/client/UserConfig.cpp:40
 #, fuzzy, c-format
 msgid "Can not access user's home directory: %s (%s)"
 msgstr "kan inte skapa katalog: %s"
 
-#: ../src/hed/libs/client/UserConfig.cpp:32
+#: ../src/hed/libs/client/UserConfig.cpp:46
 #, c-format
 msgid "User's home directory is not a directory: %s"
 msgstr ""
 
-#: ../src/hed/libs/client/UserConfig.cpp:42
+#: ../src/hed/libs/client/UserConfig.cpp:56
 #, fuzzy, c-format
 msgid "Can not create ARC user config directory: %s (%s)"
 msgstr "kan inte skapa katalog: %s"
 
-#: ../src/hed/libs/client/UserConfig.cpp:46
+#: ../src/hed/libs/client/UserConfig.cpp:60
 #, fuzzy, c-format
 msgid "Created ARC user config directory: %s"
 msgstr "Misslyckades med att läsa kontrollkatalog: %s"
 
-#: ../src/hed/libs/client/UserConfig.cpp:50
+#: ../src/hed/libs/client/UserConfig.cpp:64
 #, fuzzy, c-format
 msgid "Can not access ARC user config directory: %s (%s)"
 msgstr "kan inte skapa katalog: %s"
 
-#: ../src/hed/libs/client/UserConfig.cpp:57
+#: ../src/hed/libs/client/UserConfig.cpp:71
 #, c-format
 msgid "ARC user config directory is not a directory: %s"
 msgstr ""
 
-#: ../src/hed/libs/client/UserConfig.cpp:68
+#: ../src/hed/libs/client/UserConfig.cpp:82
 #, c-format
 msgid "Created empty ARC user config file: %s"
 msgstr ""
 
-#: ../src/hed/libs/client/UserConfig.cpp:72
+#: ../src/hed/libs/client/UserConfig.cpp:86
 #, fuzzy, c-format
 msgid "Can not access ARC user config file: %s (%s)"
 msgstr "Kan inte läsa certifikatfil: %s"
 
-#: ../src/hed/libs/client/UserConfig.cpp:79
+#: ../src/hed/libs/client/UserConfig.cpp:93
 #, c-format
 msgid "ARC user config file is not a regular file: %s"
 msgstr ""
 
-#: ../src/hed/libs/client/UserConfig.cpp:90
+#: ../src/hed/libs/client/UserConfig.cpp:113
 #, c-format
 msgid "Created empty ARC user jobs file: %s"
 msgstr ""
 
-#: ../src/hed/libs/client/UserConfig.cpp:94
+#: ../src/hed/libs/client/UserConfig.cpp:117
 #, fuzzy, c-format
 msgid "Can not access ARC user jobs file: %s (%s)"
 msgstr "Kan inte läsa nyckelfil: %s"
 
-#: ../src/hed/libs/client/UserConfig.cpp:101
+#: ../src/hed/libs/client/UserConfig.cpp:124
 #, c-format
 msgid "ARC user jobs file is not a regular file: %s"
 msgstr ""
@@ -3362,22 +3693,22 @@ msgstr "Mappar %s till %s"
 msgid "cannot create directory: %s"
 msgstr "kan inte skapa katalog: %s"
 
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:65
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:88
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:115
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:147
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:67
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:90
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:117
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:149
 #, fuzzy, c-format
 msgid "Error init transaction: %s"
 msgstr "Fel vid registrering till %s ISIS"
 
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:72
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:101
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:122
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:74
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:103
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:124
 #, c-format
 msgid "Error to put data to xml database: %s"
 msgstr ""
 
-#: ../src/hed/libs/dbxml/XmlContainer.cpp:167
+#: ../src/hed/libs/dbxml/XmlContainer.cpp:169
 #, fuzzy, c-format
 msgid "Error during the transaction: %s"
 msgstr "Fel under programexekveringen"
@@ -3780,7 +4111,7 @@ msgstr "tomt nästa kedjeelement"
 msgid "Security check failed in SOAP MCC for outgoing message"
 msgstr "Säkerhetskontroll misslyckades i SOAP MCC för utgående meddelande"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:85 ../src/hed/mcc/tcp/MCCTCP.cpp:438
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:85 ../src/hed/mcc/tcp/MCCTCP.cpp:440
 msgid "Cannot initialize winsock library"
 msgstr "Kan inte initiera winsockbibliotek"
 
@@ -3841,23 +4172,23 @@ msgstr "Misslyckades med att acceptera förbindelseförfrågan"
 msgid "next chain element called"
 msgstr "nästa kedjeelement anropat"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:444
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:446
 msgid "No Connect element specified"
 msgstr "Inget Connect-element specificerat"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:450
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:452
 msgid "Missing Port in Connect element"
 msgstr "Port saknas i Connect-element"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:456
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:458
 msgid "Missing Host in Connect element"
 msgstr "Värd saknas i Connect-element"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:477
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:479
 msgid "client process called"
 msgstr "klientprocess anropad"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:495 ../src/hed/mcc/tls/MCCTLS.cpp:749
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:497 ../src/hed/mcc/tls/MCCTLS.cpp:764
 msgid "Failed to send content of buffer"
 msgstr "Misslyckades med att skicka innehåll till buffer"
 
@@ -3993,63 +4324,72 @@ msgstr "Misslyckades med att hämta tillämpningsdata från OpenSSL"
 msgid "Certificate %s failed Globus signing policy"
 msgstr "Certifikat %s underkändes av Globus signeringspolicy"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:347
+#: ../src/hed/mcc/tls/MCCTLS.cpp:344
 msgid "tls_random_seed from file: could not read files"
 msgstr "tls_random_seed från fil: kunde inte läsa filer"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:401 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:18
+#: ../src/hed/mcc/tls/MCCTLS.cpp:398 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:18
 #, c-format
 msgid "Can not load certificate file - %s"
 msgstr "Kunde inte ladda certifikatfil - %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:407 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:26
+#: ../src/hed/mcc/tls/MCCTLS.cpp:404 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:26
 #, c-format
 msgid "Can not load key file - %s"
 msgstr "Kunde inte ladda nyckelfil - %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:412 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:32
+#: ../src/hed/mcc/tls/MCCTLS.cpp:409 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:32
 msgid "Private key does not match certificate"
 msgstr "Den privata nyckeln passar inte certifikatet"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:444
+#: ../src/hed/mcc/tls/MCCTLS.cpp:440
 msgid "MCC_TLS::do_ssl_init"
 msgstr "MCC_TLS::do_ssl_init"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:447
+#: ../src/hed/mcc/tls/MCCTLS.cpp:443
 msgid "SSL_library_init failed"
 msgstr "SSL_library_init misslyckades"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:459
+#: ../src/hed/mcc/tls/MCCTLS.cpp:456
 msgid "Failed to allocate SSL locks"
 msgstr "Misslyckades med att allokera SSL-lås"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:497 ../src/hed/mcc/tls/MCCTLS.cpp:689
+#: ../src/hed/mcc/tls/MCCTLS.cpp:473
+msgid "SSL initialization counter lost sync"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:475
+#, fuzzy
+msgid "MCC_TLS::do_ssl_deinit"
+msgstr "MCC_TLS::do_ssl_init"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:510 ../src/hed/mcc/tls/MCCTLS.cpp:703
 msgid "Can not create the SSL Context object"
 msgstr "Kan inte skapa SSL-kontextobjekt"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:524 ../src/hed/mcc/tls/MCCTLS.cpp:707
+#: ../src/hed/mcc/tls/MCCTLS.cpp:537 ../src/hed/mcc/tls/MCCTLS.cpp:721
 msgid "Can't set OpenSSL verify flags"
 msgstr "Kan inte ange OpenSSL verifikationsflaggor"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:541
+#: ../src/hed/mcc/tls/MCCTLS.cpp:554
 msgid "DH set error"
 msgstr "DH-fel"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:620
+#: ../src/hed/mcc/tls/MCCTLS.cpp:634
 #, c-format
 msgid "Peer name: %s"
 msgstr "Peer-namn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:624 ../src/hed/mcc/tls/MCCTLS.cpp:635
+#: ../src/hed/mcc/tls/MCCTLS.cpp:638 ../src/hed/mcc/tls/MCCTLS.cpp:649
 #, c-format
 msgid "Identity name: %s"
 msgstr "Identitetsnamn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:651 ../src/hed/mcc/tls/MCCTLS.cpp:757
+#: ../src/hed/mcc/tls/MCCTLS.cpp:665 ../src/hed/mcc/tls/MCCTLS.cpp:772
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för inkommande meddelande"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:740
+#: ../src/hed/mcc/tls/MCCTLS.cpp:755
 msgid "Security check failed in TLS MCC for outgoing message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för utgående meddelande"
 
@@ -4566,8 +4906,8 @@ msgid "process: POST"
 msgstr "process: POST"
 
 #: ../src/services/a-rex/arex.cpp:222 ../src/services/arex2/arex2.cpp:113
-#: ../src/services/isis/isis.cpp:142 ../src/services/pdp/pdpservice.cpp:58
-#: ../src/services/saml/aaservice.cpp:94
+#: ../src/services/isis/isis.cpp:157 ../src/services/pdp/pdpservice.cpp:58
+#: ../src/services/saml/aaservice.cpp:96
 #: ../src/services/sched/grid_sched.cpp:86
 #: ../src/services/wrappers/java/javawrapper.cpp:112
 #: ../src/services/wrappers/python/pythonwrapper.cpp:371
@@ -4580,13 +4920,13 @@ msgid "process: request=%s"
 msgstr "process: begäran=%s"
 
 #: ../src/services/a-rex/arex.cpp:235 ../src/services/arex2/arex2.cpp:120
-#: ../src/services/isis/isis.cpp:148 ../src/services/sched/grid_sched.cpp:92
+#: ../src/services/isis/isis.cpp:163 ../src/services/sched/grid_sched.cpp:92
 #: ../src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr "indata definierar ej operation"
 
 #: ../src/services/a-rex/arex.cpp:238 ../src/services/arex2/arex2.cpp:123
-#: ../src/services/isis/isis.cpp:151 ../src/services/sched/grid_sched.cpp:95
+#: ../src/services/isis/isis.cpp:166 ../src/services/sched/grid_sched.cpp:95
 #: ../src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
@@ -4733,17 +5073,17 @@ msgstr ""
 "CreateActivity: svar = \n"
 "%s"
 
-#: ../src/services/a-rex/get.cpp:69
+#: ../src/services/a-rex/get.cpp:70
 #, c-format
 msgid "Get: there is no job %s - %s"
 msgstr "Get: det finns inget jobb %s - %s"
 
-#: ../src/services/a-rex/get.cpp:76
+#: ../src/services/a-rex/get.cpp:77
 #, c-format
 msgid "Get: can't process file %s/%s"
 msgstr "Get: kan inte processera fil %s/%s"
 
-#: ../src/services/a-rex/get.cpp:84
+#: ../src/services/a-rex/get.cpp:85
 #, fuzzy
 msgid "http_get: start=%u, end=%u, burl=%s, bpath=%s, hpath=%"
 msgstr "http_get: början=%u, slut=%u"
@@ -4797,7 +5137,7 @@ msgstr "GetActivityStatuses: jobb %s - kan inte förstå EPR"
 msgid "GetActivityStatuses: job %s - %s"
 msgstr "GetActivityStatuses: jobb %s - %s"
 
-#: ../src/services/a-rex/get_activity_statuses.cpp:66
+#: ../src/services/a-rex/get_activity_statuses.cpp:67
 #, c-format
 msgid ""
 "GetActivityStatuses: response = \n"
@@ -4806,7 +5146,7 @@ msgstr ""
 "GetActivityStatuses: begäran = \n"
 "%s"
 
-#: ../src/services/a-rex/get_factory_attributes_document.cpp:36
+#: ../src/services/a-rex/get_factory_attributes_document.cpp:37
 #: ../src/services/sched/get_factory_document.cpp:34
 #, c-format
 msgid ""
@@ -4816,7 +5156,7 @@ msgstr ""
 "GetFactoryAttributesDocument: begäran = \n"
 "%s"
 
-#: ../src/services/a-rex/get_factory_attributes_document.cpp:59
+#: ../src/services/a-rex/get_factory_attributes_document.cpp:61
 #: ../src/services/sched/get_factory_document.cpp:55
 #, c-format
 msgid ""
@@ -4831,40 +5171,40 @@ msgstr ""
 msgid "Cleaned %lli bytes in cache"
 msgstr "Rensade %lli byte i cache"
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:43
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:44
 msgid "Cache: Can't recognize myself."
 msgstr "Cache: Kan inte känna igen mig själv."
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:78
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:79
 #, c-format
 msgid "Cache: can't obtain info about file system at %s"
 msgstr "Cache: kan inte erhålla information om filsystemet vid %s"
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:206
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:207
 #, c-format
 msgid "Cache: have to remove %lli bytes"
 msgstr "Cache: måste ta bort %lli byte"
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:211
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:212
 msgid "Cache: Warning: can't obtain list of cache files"
 msgstr "Cache: Varning: kan inte erhålla lista av cachefiler"
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:230
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:250
 #, c-format
 msgid "Cache: Warning: Failed reading control directory: %s"
 msgstr "Cache: Varning: Misslyckades med att läsa kontrollkatalog: %s"
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:231
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:251
 msgid "Cache: Warning: Stale locks won't be removed"
 msgstr "Cache: Varning: Förlegade lås kommer ej att tas bort"
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:260
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:258
 #, c-format
 msgid "Cache: job %s does not exist or has finished, removing stale locks"
 msgstr ""
 "Cache: jobb %s existerar ej eller har avslutats, tar bort förlegade lås"
 
-#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:267
+#: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:265
 #, c-format
 msgid "Cache: in %s - %s requested to remove %lli, removed %lli"
 msgstr "Cache: i %s - %s begärde att ta bort %lli, tog bort %lli"
@@ -5851,7 +6191,7 @@ msgstr "%s: Pluginexekvering misslyckades"
 msgid "%s: Delete request due to internal problems"
 msgstr "%s: Radera begäran p.g.a. interna problem"
 
-#: ../src/services/a-rex/grid-manager/jobs/states.cpp:1239
+#: ../src/services/a-rex/grid-manager/jobs/states.cpp:1263
 #, c-format
 msgid "Failed reading control directory: %s"
 msgstr "Misslyckades med att läsa kontrollkatalog: %s"
@@ -6178,16 +6518,21 @@ msgstr " Kö: %s"
 msgid "S: %s"
 msgstr "JSDL: %s"
 
-#: ../src/services/isis/isis.cpp:162
+#: ../src/services/isis/isis.cpp:137
+#, fuzzy, c-format
+msgid "Outdated data: %s"
+msgstr "Erhållen XML: %s"
+
+#: ../src/services/isis/isis.cpp:177
 #, fuzzy, c-format
 msgid "SOAP operation not supported: %s"
 msgstr "SOAP-process understöds inte: %s"
 
-#: ../src/services/isis/isis.cpp:177
+#: ../src/services/isis/isis.cpp:192
 msgid "You should specify service id!"
 msgstr ""
 
-#: ../src/services/isis/isis.cpp:182
+#: ../src/services/isis/isis.cpp:197
 msgid "Invalid database path definition"
 msgstr ""
 
@@ -6487,18 +6832,18 @@ msgstr "Insändningsförfrågan misslyckades."
 msgid "Policy Decision Request succeed!!!"
 msgstr "Förfrågan lyckades!!!"
 
-#: ../src/services/saml/aaservice.cpp:101
+#: ../src/services/saml/aaservice.cpp:103
 msgid "lasso_assertion_query_process_request_msg failed"
 msgstr "lasso_assertion_query_process_request_msg misslyckades"
 
-#: ../src/services/saml/aaservice.cpp:108
+#: ../src/services/saml/aaservice.cpp:110
 #, c-format
 msgid ""
 "The NameID inside request is the same as the NameID from the tls "
 "authentication: %s"
 msgstr "Namn-id i begäran är detsamma som namn-id från TLS-autentiseringen: %s"
 
-#: ../src/services/saml/aaservice.cpp:111
+#: ../src/services/saml/aaservice.cpp:113
 #, c-format
 msgid ""
 "The NameID inside request is: %s; not the same as the NameID from the tls "
@@ -6507,27 +6852,27 @@ msgstr ""
 "Namn-id i begäran är: %s; inte detsamma som namn-id från TLS-"
 "autentiseringen: %s"
 
-#: ../src/services/saml/aaservice.cpp:140
+#: ../src/services/saml/aaservice.cpp:142
 msgid "There should be Name attribute in request's <Attribute> node"
 msgstr "Det skall finnas ett Name-attribute i begärans Attribute-nod"
 
-#: ../src/services/saml/aaservice.cpp:185
+#: ../src/services/saml/aaservice.cpp:187
 msgid "Can't find federation for identity"
 msgstr "Kan inte hitta federation för identitet"
 
-#: ../src/services/saml/aaservice.cpp:190
+#: ../src/services/saml/aaservice.cpp:192
 msgid "Can not find NameID"
 msgstr "Kan inte hitta namn-ID"
 
-#: ../src/services/saml/aaservice.cpp:217
+#: ../src/services/saml/aaservice.cpp:219
 msgid "lasso_assertion_query_build_response_msg failed"
 msgstr "lasso_assertion_query_build_response_msg misslyckades"
 
-#: ../src/services/saml/aaservice.cpp:220
+#: ../src/services/saml/aaservice.cpp:222
 msgid "assertionResponseBody shouldn't be NULL"
 msgstr "assertionResponseBody skall inte vara NULL"
 
-#: ../src/services/saml/aaservice.cpp:243 ../src/services/saml/test.cpp:79
+#: ../src/services/saml/aaservice.cpp:245 ../src/services/saml/test.cpp:79
 #: ../src/services/saml/test_client.cpp:69
 msgid "lasso_assertion_query_new() failed"
 msgstr "lasso_assertion_query_new() misslyckades"
@@ -6556,8 +6901,8 @@ msgstr "Servicen väntar på förfrågningar"
 
 #: ../src/services/sched/bes.cpp:22 ../src/services/sched/bes.cpp:39
 #: ../src/services/sched/bes.cpp:78 ../src/services/sched/bes.cpp:140
-#: ../src/services/sched/bes.cpp:181 ../src/services/sched/bes.cpp:229
-#: ../src/services/sched/bes.cpp:269
+#: ../src/services/sched/bes.cpp:192 ../src/services/sched/bes.cpp:240
+#: ../src/services/sched/bes.cpp:280
 msgid "Cannot create SOAP fault"
 msgstr "Kan inte skapa SOAP-fel"
 
@@ -6565,23 +6910,23 @@ msgstr "Kan inte skapa SOAP-fel"
 msgid "Failed to accept delegation"
 msgstr "Misslyckades med att acceptera delegering"
 
-#: ../src/services/sched/bes.cpp:132 ../src/services/sched/bes.cpp:173
+#: ../src/services/sched/bes.cpp:132 ../src/services/sched/bes.cpp:184
 #, c-format
 msgid "GetActivityStatuses: job %s not found"
 msgstr "GetActivityStatuses: jobb %s ej funnet"
 
-#: ../src/services/sched/bes.cpp:144 ../src/services/sched/bes.cpp:185
-#: ../src/services/sched/bes.cpp:233 ../src/services/sched/bes.cpp:273
+#: ../src/services/sched/bes.cpp:144 ../src/services/sched/bes.cpp:196
+#: ../src/services/sched/bes.cpp:244 ../src/services/sched/bes.cpp:284
 #, c-format
 msgid "Fatal error: %s"
 msgstr "Fatalt fel: %s"
 
-#: ../src/services/sched/bes.cpp:221
+#: ../src/services/sched/bes.cpp:232
 #, c-format
 msgid "ChangeActivityStatuses: job %s not found"
 msgstr "ChangeActivityStatuses: jobb %s ej funnet"
 
-#: ../src/services/sched/bes.cpp:261
+#: ../src/services/sched/bes.cpp:272
 #, c-format
 msgid "GetActivityDocuments: job %s not found"
 msgstr "GetActivityDocuments: jobb %s ej funnet"
@@ -6897,6 +7242,20 @@ msgstr "Skapar en echo-klient."
 msgid "SOAP invokation failed"
 msgstr "Insändningsförfrågan misslyckades."
 
+#~ msgid "Fileset copy to single object is not supported yet"
+#~ msgstr "Kopiering av filuppsättning till ett enstaka objekt stöds ej ännu"
+
+#~ msgid " Entry valid until: %s"
+#~ msgstr " Post giltig till: %s"
+
+#, fuzzy
+#~ msgid "Getting job information"
+#~ msgstr "skriv ut versionsinformation"
+
+#, fuzzy
+#~ msgid "Printing job information"
+#~ msgstr "skriv ut versionsinformation"
+
 #, fuzzy
 #~ msgid "Cerficate format for BIO is: %s"
 #~ msgstr "Certifikatformat för BIO är: %d"
@@ -7042,75 +7401,6 @@ msgstr "Insändningsförfrågan misslyckades."
 
 #~ msgid " Alias: %s"
 #~ msgstr " Alias: %s"
-
-#~ msgid "Endpoint information"
-#~ msgstr "Ändpunktsinformation"
-
-#~ msgid " URL: %s"
-#~ msgstr " URL: %s"
-
-#~ msgid " Interface Name: %s"
-#~ msgstr " Gränssnittsnamn: %s"
-
-#~ msgid " Interface Version: %s"
-#~ msgstr " Gränssnittsversion: %s"
-
-#~ msgid " Implementor: %s"
-#~ msgstr " Implementerare: %s"
-
-#~ msgid " Implementation Name: %s"
-#~ msgstr " Implementeringsnamn: %s"
-
-#~ msgid " Implementation Version: %s"
-#~ msgstr " Implementeringsversion: %s"
-
-#~ msgid " Issuer CA: %s"
-#~ msgstr " Utfärdar-CA: %s"
-
-#~ msgid " Staging: %s"
-#~ msgstr " Laddar ned/upp: %s"
-
-#~ msgid "Queue information"
-#~ msgstr "Köinformation"
-
-#~ msgid " Mapping Queue: %s"
-#~ msgstr " Mappar till kö: %s"
-
-#~ msgid " Max Wall Time: %s"
-#~ msgstr " Största klocktid: %s"
-
-#~ msgid " Min Wall Time: %s"
-#~ msgstr " Minsta klocktid: %s"
-
-#~ msgid " Default Wall Time: %s"
-#~ msgstr " Förvald klocktid: %s"
-
-#~ msgid " Max CPU Time: %s"
-#~ msgstr " Största CPU-tid: %s"
-
-#~ msgid " Default CPU Time: %s"
-#~ msgstr " Förvald CPU-tid: %s"
-
-#~ msgid " Max Total Jobs: %i"
-#~ msgstr " Största totalt antal jobb: %i"
-
-#~ msgid " Max Running Jobs: %i"
-#~ msgstr " Största antal exekverande jobb: %i"
-
-#~ msgid " Max Pre LRMS Waiting Jobs: %i"
-#~ msgstr " Största antal pre-LRMS-väntade jobb: %i"
-
-#~ msgid " Max User Running Jobs: %i"
-#~ msgstr " Största antal exekverande jobb för användaren: %i"
-
-#~ msgid " Max Slots Per Job: %i"
-#~ msgstr " Största antal slotar per jobb: %i"
-
-#~ msgid " Max Stage In Streams: %i"
-#~ msgstr " Största antal nedladdningsströmmar: %i"
-
-#~ msgid " Max Stage Out Streams: %i"
-#~ msgstr " Största antal uppladdningsströmmar: %i"
 
 #~ msgid "UnAuthorized from arc.pdp!!!"
 #~ msgstr "Oautoriserad från arc.pdp!!!"
