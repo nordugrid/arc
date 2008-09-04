@@ -1239,6 +1239,8 @@ else:
             print 'Usage: getFile <source LN> [<target filename>]'
         else:
             LN = args[0]
+            if LN.endswith('/'):
+                LN = LN[:-1]
             try:
                 filename = args[1]
             except:
