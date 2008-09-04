@@ -16,8 +16,14 @@
     <Plugins><Name>mccsoap</Name></Plugins>
     <Chain>
         <Component name="tcp.service" id="tcp">
-            <next id="http"/> 
+            <next id="tls"/> 
             <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <KeyPath>./key.pem</KeyPath>
+            <CertificatePath>./cert.pem</CertificatePath>
+            <CACertificatePath>./ca.pem</CACertificatePath>
         </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -45,18 +51,28 @@
             <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
             <LogLevel>ERROR</LogLevel>
             <AHashURL>http://localhost:60000/AHash</AHashURL>
+            <ClientSSLConfig>
+                <KeyPath>./key.pem</KeyPath>
+                <CertificatePath>./cert.pem</CertificatePath>
+                <CACertificatePath>./ca.pem</CACertificatePath>
+            </ClientSSLConfig>
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
         </Service>
         <Service name="pythonservice" id="bartender">
             <ClassName>storage.bartender.bartender.BartenderService</ClassName>
             <LogLevel>ERROR</LogLevel>
-            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
+            <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
+            <ClientSSLConfig>
+                <KeyPath>./key.pem</KeyPath>
+                <CertificatePath>./cert.pem</CertificatePath>
+                <CACertificatePath>./ca.pem</CACertificatePath>
+            </ClientSSLConfig>
         </Service>
         <Service name="pythonservice" id="shepherd">
             <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
             <LogLevel>ERROR</LogLevel>
-            <ServiceID>http://localhost:60000/Shepherd</ServiceID>
+            <ServiceID>https://localhost:60000/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
@@ -68,10 +84,15 @@
                 <DataDir>/var/spool/arc/shepherd_store</DataDir>
                 <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
                 <!-- Change this prefix to the external interface of your machine -->
-                <TURLPrefix>http://localhost:60000/hopi/</TURLPrefix>
+                <TURLPrefix>https://localhost:60000/hopi/</TURLPrefix>
             </BackendCfg>
-            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
-            <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
+            <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
+            <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
+            <ClientSSLConfig>
+                <KeyPath>./key.pem</KeyPath>
+                <CertificatePath>./cert.pem</CertificatePath>
+                <CACertificatePath>./ca.pem</CACertificatePath>
+            </ClientSSLConfig>
         </Service>
         <Service name="hopi" id="hopi">
             <DocumentRoot>/var/spool/arc/shepherd_transfer</DocumentRoot>
