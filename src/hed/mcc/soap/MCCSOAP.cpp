@@ -115,12 +115,13 @@ MCC_SOAP_Client::MCC_SOAP_Client(Arc::Config *cfg):MCC_SOAP(cfg) {
 MCC_SOAP_Client::~MCC_SOAP_Client(void) {
 }
 
-static MCC_Status make_raw_fault(Message& outmsg,const char* = NULL) 
+static MCC_Status make_raw_fault(Message& outmsg,const char* reason = NULL) 
 {
   NS ns;
   SOAPEnvelope soap(ns,true);
   soap.Fault()->Code(SOAPFault::Receiver);
   std::string xml; soap.GetXML(xml);
+  if(reason != NULL) soap.Fault()->Reason(0, reason);
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
   outmsg.Payload(payload);
@@ -170,7 +171,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // Checking authentication and authorization; 
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
-    return make_raw_fault(outmsg);
+    return make_raw_fault(outmsg, "Can not pass the authentication or authorization checking from service side in soap level.");
   };
   // Call next MCC 
   MCCInterface* next = Next();
