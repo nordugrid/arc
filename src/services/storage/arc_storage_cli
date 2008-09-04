@@ -12,18 +12,18 @@ false = '0'
 
 def parse_url(url):
     import urlparse
-    (_, host_port, path, _, _, _) = urlparse.urlparse(url)
+    (proto, host_port, path, _, _, _) = urlparse.urlparse(url)
     if ':' in host_port:
         host, port = host_port.split(':')
     else:
         host = host_port
         port = 80
-    return host, port, path
+    return proto, host, int(port), path
 
 common_supported_protocols = ['http']
 CHUNKSIZE = 2**20
 
-def upload_to_turl(turl, protocol, fobj, size = None):
+def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     """docstring for upload_to_turl"""
     if protocol not in common_supported_protocols:
         raise Exception, 'Unsupported protocol'
@@ -31,9 +31,12 @@ def upload_to_turl(turl, protocol, fobj, size = None):
         from storage.client import ByteIOClient
         return ByteIOClient(turl).write(fobj)
     elif protocol == 'http':
-        host, port, path = parse_url(turl)
+        proto, host, port, path = parse_url(turl)
         import httplib
-        h = httplib.HTTPConnection(host, port)
+        if proto == 'https':
+            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+        else:
+            h = httplib.HTTPConnection(host, port)
         if not size:
             size = os.path.getsize(fobj.name)
         print 'Uploading %s bytes...' % size,
@@ -59,7 +62,7 @@ def upload_to_turl(turl, protocol, fobj, size = None):
         #resp = r.read()
         return r.status
 
-def download_from_turl(turl, protocol, fobj):
+def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
     """docstring for download_from_turl"""
     if protocol not in common_supported_protocols:
         raise Exception, 'Unsupported protocol'
@@ -67,9 +70,12 @@ def download_from_turl(turl, protocol, fobj):
         from storage.client import ByteIOClient
         ByteIOClient(turl).read(file = f)
     elif protocol == 'http':
-        host, port, path = parse_url(turl)
+        proto, host, port, path = parse_url(turl)
         import httplib
-        h = httplib.HTTPConnection(host, port)
+        if proto == 'https':
+            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+        else:
+            h = httplib.HTTPConnection(host, port)
         h.request('GET', path)
         r = h.getresponse()
         size = int(r.getheader('Content-Length', CHUNKSIZE))
@@ -729,7 +735,7 @@ class Client:
 
     NS_class = FakeNS
 
-    def __init__(self, url, ns, print_xml = False):
+    def __init__(self, url, ns, print_xml = False, ssl_config = {}):
         """ The constructor of the Client class.
         
         Client(url, ns, print_xml = false)
@@ -739,14 +745,17 @@ class Client:
         print_xml is for debugging, prints all the SOAP messages to the screen
         """
         import urlparse
-        (_, host_port, path, _, _, _) = urlparse.urlparse(url)
+        (proto, host_port, path, _, _, _) = urlparse.urlparse(url)
+        self.ssl_config = {}
+        if proto == 'https':
+            self.ssl_config = ssl_config
         if ':' in host_port:
             host, port = host_port.split(':')
         else:
             host = host_port
             port = 80
         self.host = host
-        self.port = port
+        self.port = int(port)
         self.path = path
         self.ns = ns
         self.url = url
@@ -800,8 +809,11 @@ class Client:
         """
         # TODO: use the client-side libs of ARCHED
         import httplib
-        # create an HTTP connection
-        h = httplib.HTTPConnection(self.host, self.port)
+        if self.ssl_config:
+            h = httplib.HTTPSConnection(self.host, self.port, key_file = self.ssl_config.get('key_file', None), cert_file = self.ssl_config.get('cert_file', None))
+        else:
+            # create an HTTP connection
+            h = httplib.HTTPConnection(self.host, self.port)
         # get the XML from outpayload, and send it as POST
         h.request('POST', self.path, outpayload.GetXML())
         # get the response object
@@ -820,7 +832,7 @@ class Client:
 class BartenderClient(Client):
     """ Client for the Bartender service. """
     
-    def __init__(self, url, print_xml = False):
+    def __init__(self, url, print_xml = False, ssl_config = {}):
         """ Constructior of the client.
         
         BartenderClient(url, print_xml = False)
@@ -831,7 +843,7 @@ class BartenderClient(Client):
         # sets the namespace
         ns = self.NS_class({'bar':bartender_uri})
         # calls the superclass' constructor
-        Client.__init__(self, url, ns, print_xml)
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def stat(self, requests):
         """ Get metadata of a file or collection
@@ -1176,14 +1188,9 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False   
 
+bartender = None
+
 def call_it(method_name, *args):
-    try:
-        bartender_url = os.environ['ARC_BARTENDER_URL']
-        print '- The URL of the Bartender:', bartender_url
-    except:
-        bartender_url = 'http://localhost:60000/Bartender'
-        print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
-    bartender = BartenderClient(bartender_url, print_xml)    
     print '- Calling the Bartender\'s %s method...' % method_name
     start = time.time()
     try:
@@ -1200,6 +1207,23 @@ if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'li
     print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]'
     print 'Without arguments, each method prints its own help.'
 else:
+    try:
+        bartender_url = os.environ['ARC_BARTENDER_URL']
+        print '- The URL of the Bartender:', bartender_url
+    except:
+        bartender_url = 'http://localhost:60000/Bartender'
+        print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
+    ssl_config = {}
+    if bartender_url.startswith('https'):
+        try:
+            ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
+            ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
+            print '- The key file:', ssl_config['key_file']
+            print '- The cert file:', ssl_config['cert_file']
+        except:
+            ssl_config = {}
+            print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
+    bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
     command = args.pop(0)[0:3]
     if command in ['sta']:
         if len(args) < 1:
@@ -1258,7 +1282,7 @@ else:
                     print '- Got transfer URL:', turl
                     print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
                     start = time.time()
-                    download_from_turl(turl, protocol, f)
+                    download_from_turl(turl, protocol, f, ssl_config = ssl_config)
                     f.close()
                     size = os.path.getsize(filename)
                     print '- done in %.4f seconds.' % (time.time()-start)
@@ -1312,7 +1336,7 @@ else:
                 f = file(filename,'rb')
                 print "- Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol)
                 start = time.time()
-                upload_to_turl(turl, protocol, f)
+                upload_to_turl(turl, protocol, f, ssl_config = ssl_config)
                 print '- done in %.4f seconds.' % (time.time()-start)
                 print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
             else:

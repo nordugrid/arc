@@ -7,12 +7,12 @@ from storage.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, librarian_uri, bartender_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
-                            serialize_ids, deserialize_ids, sestore_guid
+                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config
 import traceback
 
 class Bartender:
 
-    def __init__(self, librarian):
+    def __init__(self, librarian, ssl_config):
         """ Constructor of the Bartender business-logic class.
         
         Bartender(librarian)
@@ -20,6 +20,7 @@ class Bartender:
         librarian is LibrarianClient object which can be used to access a Librarian service
         """
         self.librarian = librarian
+        self.ssl_config = ssl_config
 
     def stat(self, requests):
         """ Returns stat information about entries.
@@ -213,7 +214,7 @@ class Bartender:
                                 url, referenceID, _ = location
                                 # create an ShepherdClient with this URL, then send a get request with the referenceID
                                 #   we only support byteio protocol currently. 'getFile' is the requestID of this request
-                                get_response = dict(ShepherdClient(url).get({'getFile' :
+                                get_response = dict(ShepherdClient(url, ssl_config = self.ssl_config).get({'getFile' :
                                     [('referenceID', referenceID)] + [('protocol', proto) for proto in protocols]})['getFile'])
                                 # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                 if get_response.has_key('error'):
@@ -283,7 +284,7 @@ class Bartender:
             self.log('DEBUG', 'Shepherd chosen:', se)
             # the serviceID currently is a URL 
             # create an ShepherdClient with this URL
-            return ShepherdClient(se)
+            return ShepherdClient(se, ssl_config = self.ssl_config)
         except:
             self.log()
             return None
@@ -612,9 +613,10 @@ class BartenderService(Service):
         Service.__init__(self, 'Bartender', request_names, 'bar', bartender_uri, cfg)
         # get the URL of the Librarian from the config file
         librarian_url = str(cfg.Get('LibrarianURL'))
+        ssl_config = parse_ssl_config(cfg)
         # create a LibrarianClient from the URL
-        librarian = LibrarianClient(librarian_url)
-        self.bartender = Bartender(librarian)
+        librarian = LibrarianClient(librarian_url, ssl_config = ssl_config)
+        self.bartender = Bartender(librarian, ssl_config)
         self.bartender.log = self.log
 
     def stat(self, inpayload):
@@ -972,7 +974,8 @@ class BartenderService(Service):
         #           </bar:listResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
-
+        if inpayload.auth:
+            print 'Bartender auth "list": ', inpayload.auth
         requests = parse_node(inpayload.Child().Get('listRequestList'),
             ['requestID', 'LN'], single = True)
         neededMetadata = [

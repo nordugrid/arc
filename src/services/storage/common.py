@@ -17,18 +17,18 @@ sestore_guid = '1'
 
 def parse_url(url):
     import urlparse
-    (_, host_port, path, _, _, _) = urlparse.urlparse(url)
+    (proto, host_port, path, _, _, _) = urlparse.urlparse(url)
     if ':' in host_port:
         host, port = host_port.split(':')
     else:
         host = host_port
         port = 80
-    return host, port, path
+    return proto, host, int(port), path
 
 common_supported_protocols = ['http', 'byteio']
 CHUNKSIZE = 2**20
 
-def upload_to_turl(turl, protocol, fobj, size = None):
+def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     """docstring for upload_to_turl"""
     if protocol not in common_supported_protocols:
         raise Exception, 'Unsupported protocol'
@@ -36,9 +36,12 @@ def upload_to_turl(turl, protocol, fobj, size = None):
         from storage.client import ByteIOClient
         return ByteIOClient(turl).write(fobj)
     elif protocol == 'http':
-        host, port, path = parse_url(turl)
+        proto, host, port, path = parse_url(turl)
         import httplib
-        h = httplib.HTTPConnection(host, port)
+        if proto == 'https':
+            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+        else:
+            h = httplib.HTTPConnection(host, port)
         if not size:
             size = os.path.getsize(fobj.name)
         print 'Uploading %s bytes...' % size,
@@ -65,7 +68,7 @@ def upload_to_turl(turl, protocol, fobj, size = None):
         #resp = r.read()
         return r.status
 
-def download_from_turl(turl, protocol, fobj):
+def download_from_turl(turl, protocol, fobj, ssl_config = {}):
     """docstring for download_from_turl"""
     if protocol not in common_supported_protocols:
         raise Exception, 'Unsupported protocol'
@@ -73,9 +76,12 @@ def download_from_turl(turl, protocol, fobj):
         from storage.client import ByteIOClient
         ByteIOClient(turl).read(file = f)
     elif protocol == 'http':
-        host, port, path = parse_url(turl)
+        proto, host, port, path = parse_url(turl)
         import httplib
-        h = httplib.HTTPConnection(host, port)
+        if proto == 'https':
+            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+        else:
+            h = httplib.HTTPConnection(host, port)
         h.request('GET', path)
         r = h.getresponse()
         size = int(r.getheader('Content-Length', CHUNKSIZE))
@@ -353,6 +359,9 @@ def node_to_data(node, names, single = False, string = True):
 
 def get_data_node(node):
     return node.Get('Body').Child().Child()
+
+def get_attributes(node):
+    return dict([(attribute.Name(), str(attribute)) for attribute in [node.Attribute(i) for i in range(node.AttributesSize())]])
 
 def get_child_nodes(node):
     """ Get all the children nodes of an XMLNode
@@ -747,3 +756,77 @@ class PickleStore:
                     os.rename(tmp_fn,fn)
         except:
             self.log()
+
+auth_mapping = {'identity' : ('Subject', 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'),
+            'LN' : ('Resource', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/logicalname'),
+            'method' : ('Action', 'http://www.nordugrid.org/schemas/policy-arc/types/stroge/method')}
+
+storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
+
+class AuthRequest(dict):
+    
+    def get_request(self, format = 'ARCAuth'):
+        if format not in ['ARCAuth']:
+            raise Exception, 'Unsupported format %s' % format
+        if format == 'ARCAuth':
+            result = []
+            for name, value in self.items():
+                if auth_mapping.has_key(name):
+                    section, attrid = auth_mapping[name]
+                    if section == 'Subject':
+                        result.append('    <Subject>\n      <Attribute AttributeId="%s" Type="string">%s</Attribute>\n    </Subject>\n' % (attrid, value))
+                    else:
+                        result.append('    <%s AttributeId="%s" Type="string">%s</%s>\n' % (section, attrid, value, section))
+            return '<Request xmlns="http://www.nordugrid.org/schemas/request-arc">\n  <RequestItem>\n%s  </RequestItem>\n</Request>' % ''.join(result)
+
+            
+class AuthPolicy(dict):
+
+    def get_policy(self, format = 'ARCAuth'):
+        if format not in ['ARCAuth']:
+            raise Exception, 'Unsupported format %s' % format
+        if format == 'ARCAuth':
+            result = []
+            for identity, actions in self.items():
+                methods = [a for a in actions if a in storage_actions]
+                result.append('  <Rule Effect="Permit">\n    <Description>%s is allowed to do these: %s</Description>\n' % (identity, ', '.join(methods)) +
+                '    <Subjects>\n      <Subject>\n        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">%s</Attribute>\n      </Subject>\n    </Subjects>\n' % identity +
+                '    <Actions>\n' + ''.join(['      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">%s</Action>\n' % method for method in methods]) + '    </Actions>\n' +
+                '  </Rule>\n')
+            return '<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" CombiningAlg="Deny-Overrides">\n%s</Policy>\n' % ''.join(result)            
+    
+    def set_policy(self, policy, format = 'ARCAuth'):
+        self.clear()
+        if format not in ['ARCAuth']:
+            raise Exception, 'Unsupported format %s' % format
+        if format == 'ARCAuth':
+            for rule in get_child_nodes(policy):
+                identities = []
+                for subject in get_child_nodes(rule.Get('Subjects')):
+                    for attribute in get_child_nodes(subject):
+                        if get_attributes(attribute).get('AttributeId', '') == 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity':
+                            identities.append(str(attribute))
+                methods = [str(action) \
+                    for action in get_child_nodes(rule.Get('Actions')) \
+                        if get_attributes(action).get('AttributeId', '') == 'http://www.nordugrid.org/schemas/policy-arc/types/storage/method']
+                for identity in identities:
+                    self[identity] = methods
+                    
+
+def parse_arc_policy(policy):
+    import arc
+    p = AuthPolicy()
+    p.set_policy(arc.XMLNode(policy))
+    return p
+
+def parse_ssl_config(cfg):
+    try:
+        client_ssl_node = cfg.Get(('ClientSSLConfig'))
+        ssl_config = {}
+        ssl_config['key_file'] = str(client_ssl_node.Get('KeyPath'))
+        ssl_config['cert_file'] = str(client_ssl_node.Get('CertificatePath'))
+        ssl_config['ca_file'] = str(client_ssl_node.Get('CACertificatePath'))
+        return ssl_config
+    except:
+        traceback.print_exc()
+        return {}

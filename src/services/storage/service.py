@@ -3,6 +3,7 @@ import traceback
 import inspect
 import time
 import sys
+from storage.common import AuthRequest
 
 log_levels = ['VERBOSE', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL']
 
@@ -68,6 +69,12 @@ class Service:
     
     def _call_request(self, request_name, inmsg):
         inpayload = inmsg.Payload()
+        attributes = inmsg.Attributes().getAll()
+        auth = AuthRequest()
+        identity = attributes.get('TLS:IDENTITYDN', '')
+        if identity:
+            auth['identity'] = identity
+        inpayload.auth = auth
         return getattr(self,request_name)(inpayload)
     
     def process(self, inmsg, outmsg):

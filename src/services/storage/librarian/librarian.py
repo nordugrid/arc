@@ -8,7 +8,7 @@ from storage.xmltree import XMLTree
 from storage.client import AHashClient
 from storage.common import librarian_uri, global_root_guid, true, false, sestore_guid
 from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, \
-    create_metadata, parse_node, serialize_ids
+    create_metadata, parse_node, serialize_ids, parse_ssl_config
 import traceback
 import copy
 
@@ -18,7 +18,8 @@ class Librarian:
         self.log = log
         # URL of the A-Hash
         ahash_url = str(cfg.Get('AHashURL'))
-        self.ahash = AHashClient(ahash_url)
+        ssl_config = parse_ssl_config(cfg)
+        self.ahash = AHashClient(ahash_url, ssl_config = ssl_config)
         try:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
@@ -282,6 +283,8 @@ class LibrarianService(Service):
         return out
 
     def traverseLN(self, inpayload):
+        if inpayload.auth:
+            print 'Librarian auth "traverseLN": ', inpayload.auth
         requests = parse_node(inpayload.Child().Child(), ['requestID', 'LN'], single = True)
         response = self.librarian.traverseLN(requests)
         for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in response.items():

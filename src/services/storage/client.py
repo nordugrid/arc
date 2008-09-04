@@ -13,7 +13,7 @@ class Client:
 
     NS_class = arc.NS
 
-    def __init__(self, url, ns, print_xml = False, xmlnode_class = arc.XMLNode):
+    def __init__(self, url, ns, print_xml = False, xmlnode_class = arc.XMLNode, ssl_config = {}):
         """ The constructor of the Client class.
         
         Client(url, ns, print_xml = false)
@@ -22,7 +22,10 @@ class Client:
         ns contains the namespaces we want to use with each message
         print_xml is for debugging, prints all the SOAP messages to the screen
         """
-        host, port, path = parse_url(url)
+        proto, host, port, path = parse_url(url)
+        self.ssl_config = {}
+        if proto == 'https':
+            self.ssl_config = ssl_config
         self.host = host
         self.port = port
         self.path = path
@@ -81,9 +84,12 @@ class Client:
                     h = self.connection
                     self.connection = None
                 else:
-                    # create an HTTP connection
-                    h = httplib.HTTPConnection(self.host, self.port)
-                    # print 'new', h, self.host, self.port, self.path
+                    if self.ssl_config:
+                        h = httplib.HTTPSConnection(self.host, self.port, key_file = self.ssl_config.get('key_file', None), cert_file = self.ssl_config.get('cert_file', None))
+                    else:
+                        # create an HTTP connection
+                        h = httplib.HTTPConnection(self.host, self.port)
+                    print 'new', h, self.host, self.port, self.path, self.ssl_config
                 # get the XML from outpayload, and send it as POST
                 h.request('POST', self.path, outpayload.GetXML())
                 # get the response object
@@ -112,9 +118,9 @@ class Client:
 
 class AHashClient(Client):
 
-    def __init__(self, url, print_xml = False):
+    def __init__(self, url, print_xml = False, ssl_config = {}):
         ns = self.NS_class({'ahash': ahash_uri})
-        Client.__init__(self, url, ns, print_xml)
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def get_tree(self, IDs, neededMetadata = []):
         tree = XMLTree(from_tree =
@@ -202,9 +208,9 @@ class AHashClient(Client):
 
 class LibrarianClient(Client):
     
-    def __init__(self, url, print_xml = False):
+    def __init__(self, url, print_xml = False, ssl_config = {}):
         ns = self.NS_class({'lbr':librarian_uri})
-        Client.__init__(self, url, ns, print_xml)
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def get(self, GUIDs, neededMetadata = []):
         tree = XMLTree(from_tree =
@@ -335,7 +341,7 @@ class LibrarianClient(Client):
 class BartenderClient(Client):
     """ Client for the Bartender service. """
     
-    def __init__(self, url, print_xml = False):
+    def __init__(self, url, print_xml = False, ssl_config = {}):
         """ Constructior of the client.
         
         BartenderClient(url, print_xml = False)
@@ -346,7 +352,7 @@ class BartenderClient(Client):
         # sets the namespace
         ns = self.NS_class({'bar':bartender_uri})
         # calls the superclass' constructor
-        Client.__init__(self, url, ns, print_xml)
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def stat(self, requests):
         """ Get metadata of a file or collection
@@ -683,9 +689,9 @@ class BartenderClient(Client):
 
 class ShepherdClient(Client):
 
-    def __init__(self, url, print_xml = False):
+    def __init__(self, url, print_xml = False, ssl_config = {}):
         ns = self.NS_class({'she':shepherd_uri})
-        Client.__init__(self, url, ns, print_xml)
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def _putget(self, putget, requests):
         tree = XMLTree(from_tree =
@@ -763,9 +769,9 @@ class ShepherdClient(Client):
 
 class NotifyClient(Client):
 
-    def __init__(self, url, print_xml = False):
+    def __init__(self, url, print_xml = False, ssl_config = {}):
         ns = self.NS_class({'she':shepherd_uri})
-        Client.__init__(self, url, ns, print_xml)
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def notify(self, subject, state):
         tree = XMLTree(from_tree =
