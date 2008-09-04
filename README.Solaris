@@ -44,8 +44,8 @@ Source code:
 Performing configuration and installation:
   cd build_unix/
   ../dist/configure --enable-cxx  --enable-debug --prefix=/home/<user>/db47
-  make
-  make install
+  gmake
+  gmake install
 
 
 3. Installing xmlsec1:
@@ -56,8 +56,8 @@ Source code:
 Performing configuration and installation:
 
   ./configure --prefix=/home/<user>/xmlsec1
-  make
-  make install
+  gmake
+  gmake install
   export PKG_CONFIG_PATH="/home/<user>/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 
