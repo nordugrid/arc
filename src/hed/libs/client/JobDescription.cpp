@@ -307,12 +307,12 @@ namespace Arc {
         if ( sm.toLowerCase( format ) == "jdl" ) {
             if ( VERBOSEX ) std::cerr << "[JobDescription] Generate JDL output" << std::endl;
             JDLParser parser;
-            if ( !parser.parse( jobTree, product ) ) throw JobDescriptionError("Generating " + format + " output was unsuccessful");
+            if ( !parser.getProduct( jobTree, product ) ) throw JobDescriptionError("Generating " + format + " output was unsuccessful");
             return;
         } else if ( sm.toLowerCase( format ) == "xrsl" ) {
             if ( VERBOSEX ) std::cerr << "[JobDescription] Generate XRSL output" << std::endl;
             XRSLParser parser;
-            if ( !parser.parse( jobTree, product ) ) throw JobDescriptionError("Generating " + format + " output was unsuccessful");
+            if ( !parser.getProduct( jobTree, product ) ) throw JobDescriptionError("Generating " + format + " output was unsuccessful");
             return;
         } else if ( sm.toLowerCase( format ) == "jsdl" ) {
             if ( VERBOSEX ) std::cerr << "[JobDescription] Generate JSDL output" << std::endl;
@@ -739,7 +739,7 @@ namespace Arc {
             if ( !bool( jobTree["JobDescription"]["RemoteLogging"] ) ) jobTree["JobDescription"].NewChild("RemoteLogging");
             jobTree["JobDescription"]["RemoteLogging"].NewChild("URL");
             jobTree["JobDescription"]["RemoteLogging"]["URL"] = simpleXRSLvalue( attributeValue );
-            return true;    
+            return true;
         } else if ( attributeName == "credentialserver" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
             if ( !bool( jobTree["JobDescription"]["CredentialServer"] ) ) jobTree["JobDescription"].NewChild("CredentialServer");
@@ -1239,10 +1239,158 @@ namespace Arc {
         return true;
     }
 
-    //This feature is not supported yet
-    bool JDLParser::getProduct( const Arc::XMLNode& /* jobTree */, std::string& /* product */ ) {
-        if ( DEBUGX ) std::cerr << "[JDLParser] Converting to JDL - This feature is not supported yet" << std::endl;
-        return false;
+    bool JDLParser::getProduct( const Arc::XMLNode& jobTree, std::string& product ) {
+        product = "[\n  Type = \"job\";\n";
+        if (jobTree["JobDescription"]["Application"]["POSIXApplication"]["Executable"]) {
+            product += "  Executable = \"";
+            product += (std::string) jobTree["JobDescription"]["Application"]["POSIXApplication"]["Executable"];
+            product += "\";\n";
+        }
+        if (jobTree["JobDescription"]["Application"]["POSIXApplication"]["Argument"]) {
+            product += "  Arguments = \"";
+            bool first = true;
+            for (int i=0; i<jobTree["JobDescription"]["Application"]["POSIXApplication"].Size(); i++) {
+                if ( jobTree["JobDescription"]["Application"]["POSIXApplication"].Child(i).Name() == "Argument" ) {
+                    if ( !first ) product += " ";
+                    else first = false;
+                    product += (std::string) jobTree["JobDescription"]["Application"]["POSIXApplication"].Child(i);
+                }
+            }
+            product += "\";\n";
+        }
+        if (jobTree["JobDescription"]["Application"]["POSIXApplication"]["Input"]) {
+            product += "  StdInput = \"";
+            product += (std::string) jobTree["JobDescription"]["Application"]["POSIXApplication"]["Input"];
+            product += "\";\n";
+        }
+        if (jobTree["JobDescription"]["Application"]["POSIXApplication"]["Output"]) {
+            product += "  StdOutput = \"";
+            product += (std::string) jobTree["JobDescription"]["Application"]["POSIXApplication"]["Output"];
+            product += "\";\n";
+        }
+        if (jobTree["JobDescription"]["Application"]["POSIXApplication"]["Error"]) {
+            product += "  StdError = \"";
+            product += (std::string) jobTree["JobDescription"]["Application"]["POSIXApplication"]["Error"];
+            product += "\";\n";
+        }
+
+        std::vector<Arc::XMLNode> posix_environment_children;
+        int posix_size = jobTree["JobDescription"]["Application"]["POSIXApplication"].Size();
+        for (int i=0; i<posix_size; i++) {
+            Arc::XMLNode node = jobTree["JobDescription"]["Application"]["POSIXApplication"].Child(i);
+            if (node.Name() == "Environment") {
+                posix_environment_children.push_back(node);
+            }
+        }
+        if (posix_environment_children.size() > 0) {
+            product += "  Environment = {\n";
+            for (std::vector<Arc::XMLNode>::iterator it = posix_environment_children.begin(); 
+                 it != posix_environment_children.end(); it++) {
+                product += "    \"" + (std::string) (*it).Attribute("name") + "=" + (std::string) (*it) + "\"";
+                if (it + 1 != posix_environment_children.end()) product += ",";
+                product += "\n";
+            }
+            product += "    };\n";
+        }
+        if (jobTree["JDLDescription"]["BatchSystem"]) {
+            product += "  BatchSystem = \"";
+            product += (std::string) jobTree["JDLDescription"]["BatchSystem"];
+            product += "\";\n";
+        }
+        if (jobTree["JDLDescription"]["Prologue"]["Executable"]) {
+            product += "  Prologue = \"";
+            product += (std::string) jobTree["JDLDescription"]["Prologue"]["Executable"];
+            product += "\";\n";
+        }
+        if (jobTree["JDLDescription"]["Prologue"]["Arguments"]) {
+            product += "  PrologueArguments = \"";
+            bool first = true;
+            for (int i=0; i<jobTree["JDLDescription"]["Prologue"].Size(); i++) {
+                if ( jobTree["JDLDescription"]["Prologue"].Child(i).Name() == "Argument" ) {
+                    if ( !first ) product += " ";
+                    else first = false;
+                    product += (std::string) jobTree["JDLDescription"]["Prologue"].Child(i);
+                }
+            }
+            product += "\";\n";
+        }
+        if (jobTree["JDLDescription"]["Epilogue"]["Executable"]) {
+            product += "  Epilogue = \"";
+            product += (std::string) jobTree["JDLDescription"]["Epilogue"]["Executable"];
+            product += "\";\n";
+        }
+        if (jobTree["JDLDescription"]["Epilogue"]["Arguments"]) {
+            product += "  EpilogueArguments = \"";
+            bool first = true;
+            for (int i=0; i<jobTree["JDLDescription"]["Epilogue"].Size(); i++) {
+                if ( jobTree["JDLDescription"]["Epilogue"].Child(i).Name() == "Argument" ) {
+                    if ( !first ) product += " ";
+                    else first = false;
+                    product += (std::string) jobTree["JDLDescription"]["Epilogue"].Child(i);
+                }
+            }
+            product += "\";\n";
+        }
+        std::vector<Arc::XMLNode> isb_children;
+        std::vector<Arc::XMLNode> osb_children;
+
+        for (int i=0; i<jobTree["JobDescription"].Size(); i++) {
+            if ( jobTree["JobDescription"].Child(i).Name() == "DataStaging" ) {
+                Arc::XMLNode node = jobTree["JobDescription"].Child(i);
+                if (node["Source"]) isb_children.push_back(node);
+                else if (node["Target"]) osb_children.push_back(node);
+            }
+        }
+
+        if (isb_children.size() > 0) {
+            product += "  InputSandbox = {\n";
+            for (std::vector<Arc::XMLNode>::iterator it = isb_children.begin(); 
+                 it != isb_children.end(); it++) {
+                product += "    \"" + (std::string) (*it)["Source"]["URI"] + "\"";
+                if (it + 1 != isb_children.end()) product += ",";
+                product += "\n";
+            }
+            product += "    };\n";
+         }
+         if (osb_children.size() > 0) {
+            product += "  OutputSandbox = {\n";
+            for (std::vector<Arc::XMLNode>::iterator it = osb_children.begin(); 
+                 it != osb_children.end(); it++) {
+                product += "    \"" + (std::string) (*it)["Target"]["URI"] + "\"";
+                if (it + 1 != osb_children.end()) product += ",";
+                product += "\n";
+            }
+            product += "    };\n";
+        }
+        if (jobTree["JobDescription"]["Reruns"]) {
+            product += "  RetryCount = \"";
+            product += (std::string) jobTree["JobDescription"]["Reruns"];
+            product += "\";\n";
+        }
+        if (jobTree["JDLDescription"]["AllowZippedISB"]) {
+            product += "  AllowZippedISB = \"";
+            product += (std::string) jobTree["JDLDescription"]["AllowZippedISB"];
+            product += "\";\n";
+        }
+        if (jobTree["JDLDescription"]["ZippedISB"]) {
+            product += "  ZippedISB = \"";
+            product += (std::string) jobTree["JDLDescription"]["ZippedISB"];
+            product += "\";\n";
+        }
+        if (jobTree["JobDescription"]["Resources"]["SessionLifetime"]) {
+            std::string outputValue;
+            int attValue = atoi( ((std::string) jobTree["JobDescription"]["Resources"]["SessionLifetime"]).c_str() );
+            int nowSeconds = time(NULL);
+            std::stringstream ss;
+            ss << attValue + nowSeconds;
+            ss >> outputValue;
+            product += "  ExpiryTime = \"";
+            product += outputValue;
+            product += "\";\n";
+        }
+        product += "]";
+
+        return true;
     }
 
 } // namespace Arc
