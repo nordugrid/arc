@@ -1239,8 +1239,6 @@ else:
             print 'Usage: getFile <source LN> [<target filename>]'
         else:
             LN = args[0]
-            if LN.endswith('/'):
-                LN = LN[:-1]
             try:
                 filename = args[1]
             except:
@@ -1250,13 +1248,13 @@ else:
             if os.path.exists(filename):
                 print '"%s"' % filename, 'already exists'
             else:
-                f = file(filename, 'wb')
                 request = {'0' : (LN, ['http'])}
                 #print 'getFile', request
                 response = call_it('getFile', request)
                 #print response
                 success, turl, protocol = response['0']
                 if success == 'done':
+                    f = file(filename, 'wb')
                     print '- Got transfer URL:', turl
                     print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
                     start = time.time()
@@ -1266,8 +1264,6 @@ else:
                     print '- done in %.4f seconds.' % (time.time()-start)
                     print "'%s' (%s bytes) downloaded as '%s'." % (LN, size, filename)
                 else:
-                    f.close()
-                    os.unlink(filename)
                     print '%s: %s' % (LN, success)
     # elif command == 'add':
     #     if len(args) < 2:
