@@ -198,7 +198,7 @@ exit 0
 
 %files
 %defattr(-,root,root,-)
-%doc ChangeLog NEWS README INSTALL AUTHORS
+%doc ChangeLog README INSTALL AUTHORS
 %{_libdir}/lib*.so.*
 %{_datadir}/locale/*/LC_MESSAGES/Arc.mo
 
