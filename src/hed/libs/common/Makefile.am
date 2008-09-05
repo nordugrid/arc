@@ -70,8 +70,8 @@ test_regex_LDADD=./libarccommon.la
 
 if MYSQL_LIBRARY_ENABLED
 test_db_SOURCES=test_db.cpp
-test_db_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-test_db_LDFLAGS=$(LIBXML2_LIBS) $(EXTRA_LIBS)
+test_db_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
+test_db_LDFLAGS=$(LIBXML2_LIBS) $(MYSQL_LIBS) $(EXTRA_LIBS)
 test_db_LDADD=./libarccommon.la
 endif
 
