@@ -4,7 +4,7 @@
 AC_PREREQ(2.56)
 AC_CANNONICAL_SYSTEM
 AC_INIT([arc],[0.9.0],[http://bugzilla.nordugrid.org/])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
