@@ -54,21 +54,10 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
-workdir=`pwd`
-
 # Go through directories
 for ctr_dir in $control_dirs ; do
-
-  # Change to the next control directory.
-  # This will work even with relative $ctr_dir paths.
-  cd $workdir || { echo "Cannot change directory to: $workdir" 1>&2; continue; } 
-  cd $ctr_dir || { echo "Cannot change directory to: $ctr_dir" 1>&2; continue; }
-  ctr_dir=`pwd`
-
-  # Obtain ids of pending/running jobs stored in job.*.local.
-  # Control files are in the current directory, therefore we don't need to
-  # worry about spaces in the paths returned by find.
-  rjobs=`find . -name 'job.*.status' 2>/dev/null | xargs egrep -lv 'DELETED|FINISHED' 2>/dev/null | sed s/status$/local/`
+  # Obtain ids of pending/running jobs stored in job.*.local
+  rjobs=`find $ctr_dir -name 'job.*.status' 2>/dev/null | xargs egrep -lv 'DELETED|FINISHED' 2>/dev/null | sed s/status$/local/`
   if [ -z "$rjobs" ] ; then continue ; fi
   ids=`echo $rjobs | xargs grep -h '^localid=' 2>/dev/null | sed 's/^localid=\([^ ]*\)/\1/'`
   if [ -z "$ids" ] ; then continue ; fi
@@ -83,7 +72,7 @@ for ctr_dir in $control_dirs ; do
   # go through missing ids
   for id in $bids ; do
     # find grid job corresponding to current local id
-    jobfile=`find . -name 'job.*.local' 2>/dev/null | xargs grep -l "localid=$id\$" 2>/dev/null`
+    jobfile=`find $ctr_dir -name 'job.*.local' 2>/dev/null | xargs grep -l "localid=$id\$" 2>/dev/null`
     if [ -z "$jobfile" ] ; then continue ; fi
     # extract grid id
     gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
