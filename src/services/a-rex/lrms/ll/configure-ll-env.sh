@@ -25,6 +25,7 @@ config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
 
+
 # Path to ll commands
 LL_BIN_PATH=${LL_BIN_PATH:-$CONFIG_ll_bin_path}
 if [ ! -d ${LL_BIN_PATH} ] ; then

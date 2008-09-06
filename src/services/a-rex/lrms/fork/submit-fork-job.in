@@ -5,7 +5,6 @@
 #  This script creates a temporary job script and runs it.
 
 echo "----- starting submit_fork_job -----" 1>&2
-
 joboption_lrms=fork
 
 basedir=`dirname $0`
@@ -22,7 +21,7 @@ init
 RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
 export RUNTIME_CONFIG_DIR
 # For fork job only directory we need is local scratch
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-@runtime_local_scratch_dir@}
+RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-@runtime_frontend_sees_node@}
 RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
 
 

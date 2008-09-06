@@ -3,7 +3,7 @@
 #  Cancel job running in Condor
 #
 
-progname=`basename $0`
+progname=`basename "$0"`
 echo "----- starting $progname -----" 1>&2
 
 joboption_lrms=condor

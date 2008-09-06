@@ -25,6 +25,7 @@ config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
 
+
 # Path to PBS commands
 PBS_BIN_PATH=${PBS_BIN_PATH:-$CONFIG_pbs_bin_path}
 if [ ! -d ${PBS_BIN_PATH} ] ; then

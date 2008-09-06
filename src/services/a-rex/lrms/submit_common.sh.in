@@ -301,10 +301,10 @@ include_std_streams () {
     input_redirect="<\$RUNTIME_JOB_STDIN"
   fi
   if [ ! -z "$joboption_stdout" ] ; then
-    output_redirect="$output_redirect 1>\$RUNTIME_JOB_STDOUT"
+    output_redirect="1>\$RUNTIME_JOB_STDOUT"
   fi
   if [ ! -z "$joboption_stderr" ] ; then
-    if [ X"$joboption_stderr" = X"$joboption_stdout" ] ; then
+    if [ "$joboption_stderr" = "$joboption_stdout" ] ; then
       output_redirect="$output_redirect 2>&1"
     else
       output_redirect="$output_redirect 2>\$RUNTIME_JOB_STDERR"
@@ -466,7 +466,6 @@ if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $command | awk '{pr
 EOSCR
     echo '  echo "Cannot run $executable: $interpreter: not found"' "$output_redirect 1>&2" >> $LRMS_JOB_SCRIPT
     echo '  exit 1; }' >> $LRMS_JOB_SCRIPT
-
 
   if [ -z "$GNU_TIME" ] ; then
     echo "$joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
