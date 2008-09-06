@@ -1,0 +1,11 @@
+POTFILES-check:
+
+POTFILES.in: POTFILES-check
+	@( cd $(top_srcdir) ; find src \( -name "*.cpp" -o -name "*.h" \) -print ) | sort > POTFILES.in.2 ; \
+	if diff POTFILES.in POTFILES.in.2 >/dev/null 2>&1 ; then \
+		rm -f POTFILES.in.2 ; \
+	else \
+		mv POTFILES.in.2 POTFILES.in ; \
+	fi
+
+DISTFILES.extra1 = Rules-POTFILES

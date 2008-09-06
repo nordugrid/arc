@@ -200,7 +200,7 @@ exit 0
 %defattr(-,root,root,-)
 %doc ChangeLog README INSTALL AUTHORS
 %{_libdir}/lib*.so.*
-%{_datadir}/locale/*/LC_MESSAGES/Arc.mo
+%{_datadir}/locale/*/LC_MESSAGES/arc.mo
 
 %files client
 %defattr(-,root,root,-)

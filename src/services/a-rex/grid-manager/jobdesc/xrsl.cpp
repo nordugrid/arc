@@ -10,12 +10,7 @@
 #include <arc/StringConv.h>
 #include "xrsl.h"
 
-#ifdef HAVE_LIBINTL_H
-#include <libintl.h>
-#define _(A) dgettext("arclib", (A))
-#else
 #define _(A) (A)
-#endif
 
 
 std::list<std::string> GetOneList(globus_list_t* list) throw(XrslError);

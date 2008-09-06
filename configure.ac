@@ -4,7 +4,7 @@
 AC_PREREQ(2.56)
 AC_CANNONICAL_SYSTEM
 AC_INIT([arc],[0.9.0],[http://bugzilla.nordugrid.org/])
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
@@ -24,7 +24,9 @@ AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 # gettext
-AM_GNU_GETTEXT
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.17])
+[ -e po/POTFILES.in ] || touch po/POTFILES.in
 
 # Portable 64bit file offsets
 AC_SYS_LARGEFILE
@@ -710,7 +712,7 @@ gl_FSUSAGE
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h sasl.h sasl/sasl.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h uuid/uuid.h getopt.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h limits.h netdb.h netinet/in.h sasl.h sasl/sasl.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h uuid/uuid.h getopt.h])
 AC_CXX_HAVE_SSTREAM
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -966,7 +968,7 @@ AC_CONFIG_FILES([Makefile
                  swig/Makefile
                  java/Makefile
                  python/Makefile
-                 intl/Makefile
+                 po/Makefile.in
                  doc/Makefile
                  include/Makefile
                  debian/Makefile

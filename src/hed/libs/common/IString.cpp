@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_LIBINTL_H
+#ifdef ENABLE_NLS
 #include <libintl.h>
 #endif
 
@@ -24,8 +24,8 @@ namespace Arc {
   }
 
   const char* FindTrans(const char* p) {
-#ifdef HAVE_LIBINTL_H
-    return dgettext("Arc", p);
+#ifdef ENABLE_NLS
+    return dgettext(PACKAGE, p);
 #else
     return p;
 #endif

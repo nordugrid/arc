@@ -1,0 +1,7 @@
+DOMAIN = $(PACKAGE)
+subdir = po
+top_builddir = ..
+XGETTEXT_OPTIONS = -kmsg:2 -kIString:1 -kistring:1
+COPYRIGHT_HOLDER = NorduGrid collaboration
+MSGID_BUGS_ADDRESS = support@nordugrid.org
+EXTRA_LOCALE_CATEGORIES =

@@ -6,7 +6,7 @@
 #include <arc/Logger.h>
 #include <arc/Utils.h>
 
-#ifdef HAVE_LIBINTL_H
+#ifdef ENABLE_NLS
 #include <libintl.h>
 #endif
 
@@ -43,8 +43,8 @@ namespace Arc {
           "if this is not correct.", INSTPREFIX);
       location = INSTPREFIX;
     }
-#ifdef HAVE_LIBINTL_H
-    bindtextdomain("Arc", (location + "/share/locale").c_str());
+#ifdef ENABLE_NLS
+    bindtextdomain(PACKAGE, (location + "/share/locale").c_str());
 #endif
   }
 
