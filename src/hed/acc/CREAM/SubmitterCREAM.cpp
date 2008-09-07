@@ -1,8 +1,5 @@
 #include <arc/GUID.h>
 #include <arc/message/MCC.h>
-
-#include <glibmm/miscutils.h>
-
 #include <arc/client/JobDescription.h>
 
 #include "CREAMClient.h"
@@ -32,7 +29,6 @@ namespace Arc {
     url.ChangePath("ce-cream/services/CREAM2");
     CREAMClient gLiteClient2(url, cfg);
     gLiteClient2.setDelegationId(delegationid);
-    gLiteClient2.job_root = Glib::get_current_dir();
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "JDL");
     creamJobInfo jobInfo;

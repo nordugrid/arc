@@ -31,14 +31,10 @@ namespace Arc {
                 bool stat(const std::string& jobid, std::string& status);
                 bool cancel(const std::string& jobid);
                 bool purge(const std::string& jobid);
-                
-                // Data moving attributes
-                std::string job_root;
-                
+
             private:
                 ClientSOAP* client;
                 NS cream_ns;
-                std::string proxyPath;
                 std::string delegationId;
                 static Logger logger;
         };
