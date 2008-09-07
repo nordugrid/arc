@@ -226,9 +226,9 @@ namespace Arc {
       ctx.set_summary(summary);
     if (!description.empty())
       ctx.set_description(description);
-    ctx.set_translation_domain("Arc");
+    ctx.set_translation_domain(PACKAGE);
     Glib::OptionGroup grp("main", "Main Group");
-    grp.set_translation_domain("Arc");
+    grp.set_translation_domain(PACKAGE);
 
     for (std::list<OptionBase *>::iterator it = options.begin();
 	 it != options.end(); it++)
