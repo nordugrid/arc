@@ -1,5 +1,7 @@
-#include <arc/URL.h>
+#include <arc/data/DataHandle.h>
 #include <arc/message/MCC.h>
+#include <arc/Logger.h>
+#include <arc/URL.h>
 
 #include "CREAMClient.h"
 #include "JobControllerCREAM.h"
@@ -24,7 +26,7 @@ namespace Arc {
       PathIterator pi(iter->JobID.Path(), true);
       URL url(iter->JobID);
       url.ChangePath(*pi);
-      Cream::CREAMClient gLiteClient(url, cfg);
+      CREAMClient gLiteClient(url, cfg);
       if (!gLiteClient.stat(pi.Rest(), iter->State)) {
 	logger.msg(ERROR, "Could not retrieve job information");
       }
@@ -69,7 +71,7 @@ namespace Arc {
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);
-    Cream::CREAMClient gLiteClient(url, cfg);
+    CREAMClient gLiteClient(url, cfg);
     if (!gLiteClient.purge(pi.Rest())) {
       logger.msg(ERROR, "Failed to clean job");
       return false;
@@ -83,7 +85,7 @@ namespace Arc {
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);
-    Cream::CREAMClient gLiteClient(url, cfg);
+    CREAMClient gLiteClient(url, cfg);
     if (!gLiteClient.cancel(pi.Rest())) {
       logger.msg(ERROR, "Failed to cancel job");
       return false;

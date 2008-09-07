@@ -53,8 +53,6 @@ time_t timegm (struct tm *tm) {
 
 namespace Arc {
 
-namespace Cream {
-
 time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
   struct tm tm;
   int offset;
@@ -396,7 +394,5 @@ std::string checkPath(std::string p){
    inf.close();
    return p.assign("");
 } 
-
-} // namespace Cream
 
 } // namespace Arc

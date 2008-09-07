@@ -4,13 +4,16 @@
 
 #include <glibmm/miscutils.h>
 
+#include <arc/client/ClientInterface.h>
 #include <arc/client/UserConfig.h>
+#include <arc/message/MCC.h>
+#include <arc/Logger.h>
+#include <arc/URL.h>
 
 #include "CREAMClient.h"
 #include "OpenSSLFunctions.h"
 
 namespace Arc{
-    namespace Cream{
 
         Logger CREAMClient::logger(Logger::rootLogger, "CREAM-Client");
         
@@ -312,45 +315,6 @@ namespace Arc{
             return true;
         } // CREAMClient::startJob()
        
-        bool CREAMClient::submit(const std::string& jsdl_text, creamJobInfo& info) {
-            std::string jobid;
-            std::string jdl_text;
-            
-            JobDescription jobDesc;
-            jobDesc.setSource( jsdl_text );
-            jobDesc.getProduct( jdl_text, "JDL" );
-
-            // Register the new job
-            if(!this->registerJob(jdl_text, info)) {
-                logger.msg(ERROR, "Job registration failed");
-                return false;
-            }
-            jobid = info.jobId;
-            
-            // Get the URI's from the DataStaging/Source files
-            //std::vector< std::pair< std::string, std::string > > sourceFiles;
-            //XMLNode xml_repr = jobDesc.getXML();
-            //XMLNode sourceNode = xml_repr["JobDescription"]["DataStaging"];
-            //while ((bool)sourceNode) {
-            //    if ((bool)sourceNode["Source"]) {
-            //        std::pair< std::string, std::string > item((std::string) sourceNode["FileName"], (std::string) sourceNode["Source"]["URI"]);
-            //        sourceFiles.push_back(item);
-            //    }
-            //    ++sourceNode;
-            //}
-            
-            // Put the files necessary
-            std::vector< std::pair< std::string, std::string> > files = jobDesc.getUploadableFiles();
-            putFiles(files, info);
-            
-            // Start executing of the job
-            if (!startJob(jobid)) {
-                logger.msg(ERROR,"Failed starting job");
-                return false;
-            }
-            return true;
-        }
-        
         bool CREAMClient::createDelegation(const std::string& delegation_id) {
             logger.msg(INFO, "Creating delegation.");
             
@@ -394,9 +358,9 @@ namespace Arc{
             std::string proxy = (std::string) cfgtree["ProxyPath"];
             std::string signedcert;
             char *cert=NULL; 
-            int timeleft = Cream::getCertTimeLeft(proxy);
+            int timeleft = getCertTimeLeft(proxy);
             
-            if (Cream::makeProxyCert(&cert,(char*) getProxyReqReturnValue.c_str(),(char*) proxy.c_str(),(char *) proxy.c_str(),timeleft)) {
+            if (makeProxyCert(&cert,(char*) getProxyReqReturnValue.c_str(),(char*) proxy.c_str(),(char *) proxy.c_str(),timeleft)) {
                 logger.msg(ERROR, "DelegateProxy failed.");
                 return false;
             }
@@ -471,56 +435,5 @@ namespace Arc{
             delete resp;
             return true;
         } // CREAMClient::destroyDelegation()
-
-        static void progress(FILE *o, const char *, unsigned int,
-            unsigned long long int all, unsigned long long int max,
-            double, double) {
-            static int rs = 0;
-            const char rs_[4] = {'|', '/', '-', '\\'};
-                if (max) {
-                fprintf(o, "\r|");
-                unsigned int l = (74 * all + 37) / max;
-                if (l > 74) l = 74;
-                unsigned int i = 0;
-                for (; i < l; i++) fprintf(o, "=");
-                fprintf(o, "%c", rs_[rs++]);
-                if (rs > 3) rs = 0;
-                for (; i < 74; i++) fprintf(o, " ");
-                fprintf(o, "|\r");
-                fflush(o);
-                return;
-            }
-            fprintf(o, "\r%llu kB                    \r", all / 1024);
-        }
-
-        void CREAMClient::putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, const creamJobInfo job) {
-            
-            // Create mover
-            DataMover mover;
-            mover.retry(true);
-            mover.secure(false);
-            mover.passive(false);
-            mover.verbose(true);
-            mover.set_progress_indicator(&progress);
-            
-            DataCache cache;
-            for (std::vector< std::pair< std::string, std::string > >::const_iterator file = fileList.begin(); file != fileList.end(); file++) {
-                std::string src = Glib::build_filename(job_root, (*file).first);
-                std::string dst = Glib::build_filename(job.ISB_URI, (*file).second);
-                DataHandle source(src);
-                DataHandle destination(dst);
-                
-                std::string failure;
-                int timeout = 300;
-                if (!mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0, timeout, failure)) {
-                    if (!failure.empty()) std::cerr << "File moving was not succeeded: " << failure << std::endl;
-                    else std::cerr << "File moving was not succeeded." << std::endl;
-                }
-                
-            }
-            
-        } // CREAMClient::putFiles()
-
-    } // namespace cream
 
 } // namespace Arc

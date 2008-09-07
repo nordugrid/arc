@@ -3,6 +3,8 @@
 
 #include <glibmm/miscutils.h>
 
+#include <arc/client/JobDescription.h>
+
 #include "CREAMClient.h"
 #include "SubmitterCREAM.h"
 
@@ -22,19 +24,27 @@ namespace Arc {
     std::string delegationid = UUID();
     URL url(submissionEndpoint);
     url.ChangePath("ce-cream/services/gridsite-delegation");
-    Cream::CREAMClient gLiteClient1(url, cfg);
+    CREAMClient gLiteClient1(url, cfg);
     if (!gLiteClient1.createDelegation(delegationid)) {
       logger.msg(ERROR, "Create delegation failed");
       return false;
     }
     url.ChangePath("ce-cream/services/CREAM2");
-    Cream::CREAMClient gLiteClient2(url, cfg);
+    CREAMClient gLiteClient2(url, cfg);
     gLiteClient2.setDelegationId(delegationid);
     gLiteClient2.job_root = Glib::get_current_dir();
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "JDL");
-    Cream::creamJobInfo jobInfo;
-    if (!gLiteClient2.submit(jobdescstring, jobInfo)) {
+    creamJobInfo jobInfo;
+    if (!gLiteClient2.registerJob(jobdescstring, jobInfo)) {
+      logger.msg(ERROR, "Submission failed");
+      return false;
+    }
+    if (!PutFiles(jobdesc, jobInfo.ISB_URI)) {
+      logger.msg(ERROR, "Submission failed");
+      return false;
+    }
+    if (!gLiteClient2.startJob(jobInfo.jobId)) {
       logger.msg(ERROR, "Submission failed");
       return false;
     }
