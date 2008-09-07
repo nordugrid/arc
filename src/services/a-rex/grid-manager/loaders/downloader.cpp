@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 /*
   Download files specified in job.ID.input and check if user uploaded files.
   result: 0 - ok, 1 - unrecoverable error, 2 - potentially recoverable.

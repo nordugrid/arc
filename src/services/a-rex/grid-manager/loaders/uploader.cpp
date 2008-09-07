@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 /*
   Upload files specified in job.ID.output.
   result: 0 - ok, 1 - unrecoverable error, 2 - potentially recoverable.
