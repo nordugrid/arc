@@ -574,10 +574,10 @@ fi
 AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service])
 AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"])
 
-# PDP service
-AC_ARG_ENABLE(pdp_service, AC_HELP_STRING([--disable-pdp-service], [disable building PDP Service]),[],enable_pdp_service="yes")
-AC_MSG_NOTICE([PDP Service enabled: $enable_pdp_service])
-AM_CONDITIONAL([PDP_SERVICE_ENABLED],[test "x$enable_pdp_service" = "xyes"])
+# Charon service
+AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),[],enable_charon_service="yes")
+AC_MSG_NOTICE([Charon Service enabled: $enable_charon_service])
+AM_CONDITIONAL([CHARON_SERVICE_ENABLED],[test "x$enable_charon_service" = "xyes"])
 
 # Hopi service
 AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),[],enable_hopi_service="yes")
@@ -915,7 +915,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
-                 src/services/pdp/Makefile
+                 src/services/charon/Makefile
                  src/services/hopi/Makefile
                  src/services/arex2/Makefile
                  src/services/isis/Makefile
@@ -998,7 +998,7 @@ MYSQL CLIENT LIB:   ${enable_mysql}
 Included components:
 A-Rex service:      ${enable_a_rex_service}
 ISI service:        ${enable_isi_service}
-PDP service:        ${enable_pdp_service}
+CHARON service:        ${enable_charon_service}
 HOPI service:       ${enable_hopi_service}
 SCHED service:      ${enable_sched_service}
 STORAGE service:    ${enable_storage_service}
