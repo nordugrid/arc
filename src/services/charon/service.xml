@@ -4,6 +4,11 @@
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:charon="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
 >
+  <Server>
+    <PidFile>/var/run/arched.pid</PidFile>
+    <Logger level="VERBOSE">./charon.log</Logger>
+  </Server>
+
     <ModuleManager>
         <Path>.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
@@ -23,7 +28,7 @@
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/>
-            <tcp:Listen><tcp:Port>60001</tcp:Port></tcp:Listen>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
