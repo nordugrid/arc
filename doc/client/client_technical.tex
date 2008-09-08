@@ -230,8 +230,12 @@ fill its internal JobStore.}
 
 \chapter{Implementation}
 \label{sec:Implementation}
-Clever text here.
+In this section an overview of all important classes in the new ARC1lib is given. The overview is subdivided in two 
+parts where first all the generic classes are presented, Section~\ref{sec:genclass}, before the grid flavour specializations 
+are presented in Section~\ref{sec:plugins}. Classes are described both in words and by code.
+
 \section{Generic Classes}
+\label{sec:genclass}
 \subsection{{\ACC}}
 The Arc Client Component ({\ACC}) class is a completely empty base class needed for the {\Loader} 
 in order to create loadable classes.
@@ -354,7 +358,7 @@ setSource( const std::string source ) throw(JobDescriptionError);
 \end{verbatim}
 \end{shaded}
 
-in any supported formats (currently xRSL, JDL, JSDL), converts and stores it in a JSDL-like internal job description format. The identification 
+in any supported formats (currently xRSL~\cite{xrsl}, JDL~\cite{jdl}, JSDL~\cite{jsdl}), converts and stores it in a JSDL-like internal job description format. The identification 
 of the source's description format is internally handled by a \texttt{JobDescriptionOrderer} class which identifies the format by pattern
 matching.
 
@@ -548,11 +552,11 @@ a \texttt{ProxyPath} set \texttt{ProxyPath} to \texttt{/tmp/x509up\_u + userid}.
 \item{Check if \texttt{\$X509\_USER\_CERT} is set, if set add this as \texttt{CertificatePath} to configuration}
 \item{If \texttt{\$X509\_USER\_CERT} is not set and configuration tree does not already contain 
 a \texttt{CertificatePath} set \texttt{CertificatePath} to \texttt{/etc/grid-security/hostcert.pem} 
-if user is superuser otherwise 
+if user is superuser otherwise \newline
 \texttt{\$HOME/.globus/usercert.pem}.}
 \item{Check if \texttt{\$X509\_USER\_KEY} is set, if set add this as \texttt{KeyPath} to configuration}
 \item{If \texttt{\$X509\_USER\_KEY} is not set and configuration tree does not already contain 
-a \texttt{KeyPath} set \texttt{KeyPath} to \texttt{/etc/grid-security/hostkey.pem} 
+a \texttt{KeyPath} set \texttt{KeyPath} to \texttt{/etc/grid-security/hostkey.pem}
 if user is superuser otherwise \texttt{\$HOME/.globus/userkey.pem}.}
 \item{Check if \texttt{\$X509\_CERT\_DIR} is set, if set add this as \texttt{CACertificatesDir} to configuration}
 \item{If \texttt{\$X509\_CERT\_DIR} is not set and configuration tree does not already contain 
@@ -564,7 +568,7 @@ Locating Arc Client Components (plugins) is handled by the {\ACCConfig} class. I
 and implements only one method
 
 \begin{shaded}
-\begin{verbatim}                                                                                                                            
+\begin{verbatim}
 virtual XMLNode MakeConfig(XMLNode cfg) const;
 \end{verbatim}
 \end{shaded}
@@ -638,13 +642,76 @@ way the ARC1 plugin does.
 Stage-in and stage-out of input and output files are done using the
 gridftp protocol. The gridftp DMC is therefore required.
 
-\section{Support Classes}
-\subsection{{\URL}}
-\subsection{Logger}
-\subsection{XMLNode}
-
 \chapter{Building Command Line Interfaces}
 \label{sec:cli}
+Given all components listed above it possible to write versatile command line interfaces (cli) for 
+grid job submission and management. ARC1lib offers the following native commands:
+
+\begin{enumerate}
+\item{\texttt{arcstat} - for computing resource or grid job status queries.}
+\item{\texttt{arcsub} - for grid job submission}
+\item{\texttt{arcget} - for downloading output of finished, cancelled or failed grid jobs.}
+\item{\texttt{arckill} - for terminating grid jobs.}
+\item{\texttt{arcclean} - for removing a grid job's session directory including all contents}
+\item{\texttt{arccat} - for performing the \texttt{cat} command to a running grid job's std out or std error file.}
+\end{enumerate}
+
+Each of the commands above are encoded within one C++ file with the following structure:
+
+\begin{shaded}
+\begin{verbatim}
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/ArcLocation.h>
+#include <arc/IString.h>
+#include <arc/Logger.h>
+#include <arc/OptionParser.h>
+#include <arc/client/UserConfig.h>
+#include <arc/IString.h>
+
+void MyCommand(MyArgument1,
+               MyArgument2){
+
+  //Implementation of MyCommand
+
+}
+
+int main(int argc, char **argv){
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("argument"), "", istring(
+                              "Clarifying text here));
+
+  //add command options
+  bool all = false;
+  options.AddOption('a', "all",
+		    istring("all jobs"),
+		    all);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  //call command
+  MyCommand(all, params);
+
+  return 0;
+
+}
+\end{verbatim}
+\end{shaded}
+
+The structure above has two separate blocks of code where the first block is the MyCommand method which is be 
+called by the main program (second block). Certainly this is not the only way of building (structuring) a 
+command line interface, but it has the benefit of a clear structure in addition to that the method implemented 
+can easily be reused in a different location without code duplication.
 
 \bibliography{grid}
 \end{document}
