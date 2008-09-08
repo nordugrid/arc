@@ -10,10 +10,10 @@ else
 ISI_SERVICE = 
 endif 
 
-if PDP_SERVICE_ENABLED
-PDP_SERVICE = pdp 
+if CHARON_SERVICE_ENABLED
+CHARON_SERVICE = charon 
 else 
-PDP_SERVICE = 
+CHARON_SERVICE = 
 endif 
 
 if HOPI_SERVICE_ENABLED
@@ -52,5 +52,5 @@ else
 PYTHON_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE)
-DIST_SUBDIRS = echo_java echo_python a-rex isis pdp hopi paul sched storage arex2 wrappers saml
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(CHARON_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE)
+DIST_SUBDIRS = echo_java echo_python a-rex isis charon hopi paul sched storage arex2 wrappers saml
