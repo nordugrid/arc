@@ -111,7 +111,7 @@ of main libraries or client.
 
 Using the library a set of command line tools have been built which puts the library's functionality 
 at the fingertips of users. While this documentation will illustrate how such command line tool can be 
-built, the main documention of the command line tools is given in the client user manual [ref].
+built, the main documentation of the command line tools is given in the client user manual [ref].
 
 In the following we will give a functionality overview in Section~\ref{sec:FuncOver} while all technical 
 details will be given in Section~\ref{sec:Implementation}. Section~\ref{sec:cli} will through examples 
@@ -198,7 +198,7 @@ represents. The best suitable {\ExecutionTarget} for the job is asked to return 
 
 \section{Job Management}
 Once a job is submitted job related information (job identification string, cluster etc) is stored in a local xml file which hosts 
-similar information for all active jobs. This file may contain jobs runnng on completely different grid flavour, and thus job 
+similar information for all active jobs. This file may contain jobs running on completely different grid flavour, and thus job 
 management should be handled using plugins similar to resource discovery and job submission. The job managing plugin is called 
 the {\JobController} and it is supported by the {\JobSupervisor} and {\Job} classes.
 
@@ -211,13 +211,13 @@ Figure~\ref{fig:JobMan} shows how the three different classes work together and 
 
 \begin{enumerate}
 \item{The {\JobSupervisor} takes three arguments Jobs (job identification strings), ClusterSelect and ClusterReject.}
-\item{A job identification string does not uniguely define which grid flavour runs a certain job. Thus this information is stored 
+\item{A job identification string does not uniquely define which grid flavour runs a certain job. Thus this information is stored 
 in joblist.xml upon submission by the {\Submitter} and joblist.xml is extensively used by the {\JobSupervisor} to identify the 
 {\JobController} flavours which are to be loaded.}
 \item{Suitable {\JobController}s are loaded}
 \item{Jobs, ClusterSelect and ClusterReject are passed to the {\JobController} which uses the information to 
 fill its internal JobStore.}
-\item{Residing within the {\JobSupervisor} the {\JobController}s are now accesible for external calls (i.e. job handling).}
+\item{Residing within the {\JobSupervisor} the {\JobController}s are now accessible for external calls (i.e. job handling).}
 \end{enumerate}
 
 \section{Data Handling}
@@ -247,7 +247,7 @@ where \texttt{clusterselect}, \texttt{clusterreject} and \texttt{indexurls} are 
 an URL or a regular string defined as an alias in the user (or system) configuration. Without any further explanation it is 
 hard to decode from an URL if it points to a index server or computing service of a certain grid flavour. Thus in order for 
 the {\TargetGenerator} to know which {\TargetRetriever} should be loaded URLs have to be given in a format where the grid 
-flavour preceeds the actual URL, e.g:
+flavour precedes the actual URL, e.g:
 
 \begin{shaded}
 \begin{small}
@@ -434,8 +434,8 @@ running on possible rejected clusters.}
 \end{enumerate}
 
 The steps above completes the initialization of the {\JobController} which is now ready for handling jobs. The public functions of the 
-{\JobController} offer to get (download), clean, cancel, etc one or more jobs and uses the private specializations for issueing the command. 
-Here examplified by the \texttt{Stat} command:
+{\JobController} offer to get (download), clean, cancel, etc one or more jobs and uses the private specializations for issuing the command. 
+Here exemplified by the \texttt{Stat} command:
 
 \begin{shaded}
 \begin{small}
@@ -545,8 +545,54 @@ a \texttt{CACertificatesDir} set \texttt{CACertificatesDir} to \texttt{/etc/grid
 \section{Specialized Classes (Grid Flavour Plugins)}
 \label{sec:plugins}
 \subsection{ARC0 Plugins}
+
+The ARC0 plugins enables support for the interfaces used by computing
+elements running ARC version 0.x.
+
+The ARC 0.x local information system uses the globus GRIS with a
+propriety ARC schema. The information index server used is the globus
+GIIS. Both these servers are using the LDAP protocol. The
+specialization of the {\TargetRetriever} class for ARC0 is implemented
+using the LDAP DMC.
+
+Jobs running on an ARC 0.x computing element are handled by the ARC
+grid-manager. Job submission and job control are done using the
+gridftp protocol. The specializations of the {\Submitter} and
+{\JobController} classes use the globus ftp control library.
+
+Stage-in and stage-out of input and output files are also done using
+the gridftp protocol. This means that proper functionality of the ARC0
+plugins requires the gridftp DMC.
+
 \subsection{ARC1 Plugins}
+
+The computing element in ARC version 1.x is the A-Rex service running
+in a HED container.
+
+A-Rex implements the BES standard interface. Since this is a SOAP
+based interface the specializations of the {\TargetRetriever},
+{\Submitter} and {\JobController} classes make use of an MCC chain
+ending with the SOAP client MCC.
+
+The A-Rex service uses the https protocol put and get methods for
+stage-in and stage-out of input and output files. Therefore, the ARC1
+plugins requires the http DMC.
+
 \subsection{gLite Plugins}
+
+The CREAM plugin implements support for the CREAM interface to the
+gLite computing element.
+
+CREAM resources are registered in top level and site BDIIs. The CREAM
+specialization of the {\TargetRetriever} therefore makes use of the
+LDAP DMC.
+
+The CREAM interface is a propriety SOAP based interface. The CREAM
+specializations of the {\Submitter} and {\JobController} classes
+therefore use an MCC chain ending with the SOAP client MCC.
+
+Stage-in and stage-out of input and output files are done using the
+gridftp protocol. The gridftp DMC is therefore required.
 
 \section{Support Classes}
 \subsection{URL}
