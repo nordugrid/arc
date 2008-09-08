@@ -33,15 +33,15 @@ namespace Arc {
     jobdesc.getProduct(jobdescstring, "JDL");
     creamJobInfo jobInfo;
     if (!gLiteClient2.registerJob(jobdescstring, jobInfo)) {
-      logger.msg(ERROR, "Submission failed");
+      logger.msg(ERROR, "Job registration failed");
       return false;
     }
     if (!PutFiles(jobdesc, jobInfo.ISB_URI)) {
-      logger.msg(ERROR, "Submission failed");
+      logger.msg(ERROR, "Failed uploading local input files");
       return false;
     }
     if (!gLiteClient2.startJob(jobInfo.jobId)) {
-      logger.msg(ERROR, "Submission failed");
+      logger.msg(ERROR, "Failed starting job");
       return false;
     }
 

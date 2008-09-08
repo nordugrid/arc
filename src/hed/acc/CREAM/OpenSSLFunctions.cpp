@@ -384,15 +384,4 @@ int makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int mi
   return 0;
 }
 
-
-std::string checkPath(std::string p){
-   std::ifstream inf(p.c_str());
-   if (inf.good()){
-      inf.close();
-      return p;
-   }
-   inf.close();
-   return p.assign("");
-} 
-
 } // namespace Arc
