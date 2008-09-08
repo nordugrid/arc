@@ -1,9 +1,9 @@
 <ArcConfig>
  <Chain>
   <Component name="tls.client">
-   <KeyPath>key.pem</KeyPath>
-   <CertificatePath>cert.pem</CertificatePath>
-   <CACertificatePath>ca.pem</CACertificatePath>
+   <KeyPath>../../tests/echo/key.pem</KeyPath>
+   <CertificatePath>../../tests/echo/cert.pem</CertificatePath>
+   <CACertificatePath>../../tests/echo/ca.pem</CACertificatePath>
    <!--KeyPath>/home/USER/userkey.pem</KeyPath-->
    <!--CertificatePath>/home/USER/usercert.pem</CertificatePath-->
    <!--CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir-->
