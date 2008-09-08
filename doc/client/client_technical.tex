@@ -11,7 +11,7 @@
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
-  pdfauthor = {Author Name},
+  pdfauthor = {Paper author},
   pdftitle = {Paper title},
   pdfsubject = {Paper subject},
   pdfkeywords = {Paper,keyword,comma-separated},
@@ -45,6 +45,12 @@
 \newcommand{\Job}{\texttt{Job}}
 \newcommand{\UserConfig}{\texttt{UserConfig}}
 \newcommand{\ClientInterface}{\texttt{ClientInterface}}
+\newcommand{\URL}{\texttt{URL}}
+\newcommand{\XML}{\texttt{XML}}
+\newcommand{\Loader}{\texttt{Loader}}
+\newcommand{\ACCConfig}{\texttt{ACCConfig}}
+\newcommand{\Logger}{\texttt{Logger}}
+\newcommand{\XMLNode}{\texttt{XMLNode}}
 \definecolor{shadecolor}{rgb}{1,1,0.6}
 \definecolor{salmon}{rgb}{1,0.9,1}
 \definecolor{bordeaux}{rgb}{0.75,0.,0.}
@@ -65,14 +71,14 @@
 
 %-------- Change this to NORDUGRID-XXXXXXX-NN
 
-{\raggedleft NORDUGRID-XXXXXXX-NN\par}
+{\raggedleft NORDUGRID-TECH-20\par}
 
 {\raggedleft \today\par}
 
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large Paper title}\Large \par}
+{\centering \textsc{\Large ARC1lib, A Client Library for ARC1}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -80,8 +86,10 @@
     
 \vspace*{1.5cm}
 %%%%---- A list of authors ----
-    {\centering \large Paper author\footnote{authors@address} \large \par}
-    
+{\centering \large Mattias Ellert\footnote{mattias.ellert@fysast.uu.se} \large \par}
+{\centering \large Iv\'{a}n M\'{a}rton\footnote{martoni@niif.hu} \large \par}
+{\centering \large Bjarte Mohn\footnote{bjarte.mohn@fysast.uu.se} \large \par}
+{\centering \large P\'{e}ter Stef\'{a}n\footnote{stefan@niif.hu} \large \par}
 %%%%---- An abstract - if style is article ----
 %\begin{abstract}
 %The abstract
@@ -94,7 +102,7 @@
 \label{sec:intro}
 
 This document describes from a technical viewpoint a plugin based client library for the new 
-Web Service (WS) based Advanced Resource Connector (ARC) middleware. The library consists of 
+Web Service (WS) based Advanced Resource Connector~\cite{arc} ARC middleware. The library consists of 
 a set of C++ classes for 
 
 \begin{itemize}
@@ -104,14 +112,14 @@ a set of C++ classes for
 \item{data handling.}
 \end{itemize}
 
-All capabilities are enabled for three different grid flavours (Production ARC, ARC1 and gLite) 
+All capabilities are enabled for three different grid flavours (Production ARC, ARC1 and gLite~\cite{glite}) 
 through a modular design using plugins specialized for each supported middleware. Future 
 extensions to support additional middlewares involve plugin compilation only i.e. no recompilation 
 of main libraries or client.
 
 Using the library a set of command line tools have been built which puts the library's functionality 
 at the fingertips of users. While this documentation will illustrate how such command line tool can be 
-built, the main documentation of the command line tools is given in the client user manual [ref].
+built, the main documentation of the command line tools is given in the client user manual~\cite{ui}.
 
 In the following we will give a functionality overview in Section~\ref{sec:FuncOver} while all technical 
 details will be given in Section~\ref{sec:Implementation}. Section~\ref{sec:cli} will through examples 
@@ -119,14 +127,14 @@ show how command line interfaces can be built upon the library.
 
 \chapter{Functionality Overview}
 \label{sec:FuncOver}
-The new ARClib makes extensive use of plugins for command handling. These plugins are handled by a set 
+The new ARC1lib makes extensive use of plugins for command handling. These plugins are handled by a set 
 of higher level classes which thus are the ones to offer the plugin functionality to external calls. In 
 this section an overview of the library's main functionality is given which also introduces the most 
 important higher level classes.
 \section{Resource Discovery and Information Retrieval}
 \label{sec:TargetDiscovery}
 With the increasing number of grid clusters around the world, a reliable and fast resource discovery and 
-information retrieval capability is of crucial importance for a user interface. The new ARClib resource 
+information retrieval capability is of crucial importance for a user interface. The new ARC1lib resource 
 discovery and information retrieval component consists of three classes; The {\TargetGenerator}, the 
 {\TargetRetriever} and the {\ExecutionTarget}. Of these the {\TargetRetriever} is a base class for further grid 
 middleware specific specialization (plugin).
@@ -140,15 +148,15 @@ registered with a certain information server. Below a description of each step i
 \end{figure}
 
 \begin{enumerate}
-\item{The {\TargetGenerator} takes three URL arrays as input. First array contains individually selected computing services, while the 
+\item{The {\TargetGenerator} takes three {\URL} arrays as input. First array contains individually selected computing services, while the 
 second array contains individually selected index servers (1a). The last array contains a list of rejected services. This 
 list is parsed through alias resolve before being inserted as filter to the storage of found services (1b).}
-\item{The complete list of URLs pointing to computing services and index servers.}
-\item{For each URL a {\TargetRetriever} plugin is loaded using the ARC loader. The {\TargetRetriever} is initialized 
-with the URL and the information about this URL pointing to a computing service or an index server.}
+\item{The complete list of {\URL}s pointing to computing services and index servers.}
+\item{For each {\URL} a {\TargetRetriever} plugin is loaded using the ARC loader. The {\TargetRetriever} is initialized 
+with the {\URL} and the information about this {\URL} pointing to a computing service or an index server.}
 \item{An external call is received calling for targets to be prepared. Call is propagated to all loaded {\TargetRetriever}s.}
 \item{The call for targets is processed by each {\TargetRetriever} in parallel. If the {\TargetRetriever} is initialized with an 
-index server URL it first registers at the Index Servers store kept by the {\TargetGenerator}. If allowed to register, the index 
+index server {\URL} it first registers at the Index Servers store kept by the {\TargetGenerator}. If allowed to register, the index 
 server is queried and the query result processed.}
 \item{The TargetRetriver finds a registered service and contacts the Found Services store kept by the {\TargetGenerator} to check 
 if the service in question has been found be another {\TargetRetriever}. (Services often registers at more than one index server, 
@@ -158,12 +166,12 @@ thus different {\TargetRetriever}s may discover the same service.)}
 (e.g. status printing or job submission).}
 \item{Index servers often registers with other index servers creating a nested hierarchical information structure. For this 
 reason a {\TargetRetriever} processing the query result from an index server may encounter other index servers. In such
-events the {\TargetRetriever} will call itself recursively creating a new thread for the new URL. This ensures optimum speed and 
+events the {\TargetRetriever} will call itself recursively creating a new thread for the new {\URL}. This ensures optimum speed and 
 performance for resource discovery.}
 \end{enumerate}
 
-The example above outlines how the {\TargetRetriever} works when initialized with an URL pointing to and index server. However, 
-as indicated it also accepts initialization with a service URLs, in which case the {\TargetRetriever} will try to register the 
+The example above outlines how the {\TargetRetriever} works when initialized with an {\URL} pointing to and index server. However, 
+as indicated it also accepts initialization with a service {\URL}s, in which case the {\TargetRetriever} will try to register the 
 service in the {\TargetGenerator} Found Services store. If allowed the {\TargetRetriever} will progress with the target interrogation 
 method.
 
@@ -184,7 +192,7 @@ The {\Submitter} is base class for further grid middleware specific specializati
 Figure \ref{fig:JobSub} shows a job submission sequence and below a description of each step is given:
 
 \begin{enumerate}
-\item{The {\TargetGenerator} has prepared a list of {\ExecutionTarget}s. Depending on the URLs provided to the {\TargetGenerator} the list of 
+\item{The {\TargetGenerator} has prepared a list of {\ExecutionTarget}s. Depending on the {\URL}s provided to the {\TargetGenerator} the list of 
 found {\ExecutionTarget}s may be empty or contain several targets. Targets may even represent more than one grid flavour. The list of 
 found targets are given as input to the {\Broker}.}
 \item{In order to rank the found services ({\ExecutionTarget}s) the {\Broker} needs detailed knowledge about the job requirements, thus the 
@@ -220,18 +228,28 @@ fill its internal JobStore.}
 \item{Residing within the {\JobSupervisor} the {\JobController}s are now accessible for external calls (i.e. job handling).}
 \end{enumerate}
 
-\section{Data Handling}
-\label{sec:DataHandling}
-
 \chapter{Implementation}
 \label{sec:Implementation}
 Clever text here.
 \section{Generic Classes}
 \subsection{{\ACC}}
+The Arc Client Component ({\ACC}) class is a completely empty base class needed for the {\Loader} 
+in order to create loadable classes.
+
+\begin{shaded}
+\begin{verbatim}
+class ACC {
+protected:
+  ACC() {}
+public:
+  virtual ~ACC() {}
+};
+\end{verbatim}
+\end{shaded}
 
 \subsection{{\TargetGenerator}} The {\TargetGenerator} class is the main class for resource discovery and information retrieval. It loads 
-{\TargetRetriever} plugins in accordance with the input URLs using the ARC Loader (e.g. if an URL pointing to an ARC1 resource is given 
-the TargetRetrieverARC1 is loaded).
+{\TargetRetriever} plugins in accordance with the input {\URL}s using the ARC {\Loader}~\cite{hed} (e.g. if an {\URL} pointing to an ARC1 
+resource is given the TargetRetrieverARC1 is loaded).
 
 To perform a resource discovery, first construct a {\TargetGenerator} object using the {\TargetGenerator} constructor,
 
@@ -244,10 +262,10 @@ TargetGenerator(const std::list<std::string>& clusterselect,
 \end{shaded}
 
 where \texttt{clusterselect}, \texttt{clusterreject} and \texttt{indexurls} are lists of strings where each string is either 
-an URL or a regular string defined as an alias in the user (or system) configuration. Without any further explanation it is 
-hard to decode from an URL if it points to a index server or computing service of a certain grid flavour. Thus in order for 
-the {\TargetGenerator} to know which {\TargetRetriever} should be loaded URLs have to be given in a format where the grid 
-flavour precedes the actual URL, e.g:
+an {\URL} or a regular string defined as an alias in the user (or system) configuration. Without any further explanation it is 
+hard to decode from an {\URL} if it points to a index server or computing service of a certain grid flavour. Thus in order for 
+the {\TargetGenerator} to know which {\TargetRetriever} should be loaded {\URL}s have to be given in a format where the grid 
+flavour precedes the actual {\URL}, e.g:
 
 \begin{shaded}
 \begin{small}
@@ -258,7 +276,7 @@ ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-nam
 \end{small}
 \end{shaded}
 
-where the former is the URL to an index server while the latter is an URL to a computing service.
+where the former is the {\URL} to an index server while the latter is an {\URL} to a computing service.
 
 To prepare a list of {\ExecutionTarget}s use the {\TargetGenerator} object and invoke its method
 
@@ -327,8 +345,8 @@ Submitter *GetSubmitter() const;
 \subsection{{\Broker}} The {\Broker} is not yet implemented and thus not described here.
 
 \subsection{{\JobDescription}} When addressing interoperability it is of paramount importance to transparently address grid job 
-descriptions written in different job description languages by translating them automatically. In the ARClib library this functionality 
-is implemented in the {\JobDescription} class. This is a generic class that takes a job description (string )as input 
+descriptions written in different job description languages by translating them automatically. In the ARC1lib library this functionality 
+is implemented in the {\JobDescription} class. This is a generic class that takes a job description (string) as input 
 
 \begin{shaded}
 \begin{verbatim}
@@ -362,15 +380,15 @@ virtual bool Submit(JobDescription& jobdesc, XMLNode& info) = 0;
 \end{verbatim}
 \end{shaded}
 
-The \texttt{Submit} method fills the XML node \texttt{info} with all needed information about the job for later job management. 
+The \texttt{Submit} method fills the {\XML} node \texttt{info} with all needed information about the job for later job management. 
 The {\Submitter} is returned by the {\ExecutionTarget} selected for job execution and thus the {\ExecutionTarget} populates 
-(through XML config element) the {\Submitter} with information about submission endpoint (URL) and job description languages 
+(through {\XML} config element) the {\Submitter} with information about submission endpoint ({\URL}) and job description languages 
 ``spoken'' by the target.
 
 \subsection{{\JobSupervisor}} The {\JobSupervisor} is responsible for loading the appropriate {\JobController}s for managing 
 jobs running on a certain grid flavour. Job manipulation can be performed either on individual jobs or on groups of jobs (e.g. 
 all jobs running on certain cluster or all jobs with job state ``FINISHED''), and in order to translate the by user given 
-information into a set of loadable {\JobController}s the {\JobSupervisor} makes extensive use of the local XML file housing 
+information into a set of loadable {\JobController}s the {\JobSupervisor} makes extensive use of the local {\XML} file housing 
 information about all active jobs. Thus the {\JobSupervisor} constructor becomes
 
 \begin{shaded}
@@ -383,11 +401,11 @@ JobSupervisor(const std::list<std::string>& jobs,
 \end{shaded}
 
 where \texttt{jobs} is a list of job identification strings (jobids), \texttt{clusterselect} is a list of selected computing services, 
-\texttt{clusterreject} is a list of rejected computing services and \texttt{joblist} is a string pointing to the local XML file 
+\texttt{clusterreject} is a list of rejected computing services and \texttt{joblist} is a string pointing to the local {\XML} file 
 with job information. Syntax for \texttt{clusterselect} and \texttt{clusterreject} is identical to the one used by the {\TargetGenerator}
 for for internal consistency.
 
-Although being loaded by the {\JobSupervisor} the {\JobController} objects truly resides within the ARC Loader which is a member 
+Although being loaded by the {\JobSupervisor} the {\JobController} objects truly resides within the ARC {\Loader} which is a member 
 of the {\JobSupervisor} class. In order to get handles on the {\JobController}s the inline method
 
 \begin{shaded}
@@ -408,8 +426,8 @@ JobController(Arc::Config *cfg, std::string flavour);
 \end{verbatim}
 \end{shaded}
 
-This is usually done by the ARC Loader which sees to that the {\JobController} receives information about its flavour (grid) and 
-the local XML file containing information about all active jobs (flavour independent). Next step is the filling of the {\JobController}'s
+This is usually done by the ARC {\Loader} which sees to that the {\JobController} receives information about its flavour (grid) and 
+the local {\XML} file containing information about all active jobs (flavour independent). Next step is the filling of the {\JobController}'s
 job pool \texttt{JobStore} which is the pool of jobs that the {\JobController} can manage.
 
 \begin{shaded}
@@ -515,7 +533,7 @@ const XMLNode ConfTree();
 \end{shaded}
 
 where \texttt{JobsFile()} returns the string pointing to the jobs.xml file while \texttt{ConfTree()}
-returns a configuration XML object which is the merge between the user and system configurations.
+returns a configuration {\XML} object which is the merge between the user and system configurations.
 In order to do this the method has to locate the system configuration and resolve possible conflicts 
 with the user configuration. This proceeds through the following chain of actions:
 
@@ -530,7 +548,8 @@ a \texttt{ProxyPath} set \texttt{ProxyPath} to \texttt{/tmp/x509up\_u + userid}.
 \item{Check if \texttt{\$X509\_USER\_CERT} is set, if set add this as \texttt{CertificatePath} to configuration}
 \item{If \texttt{\$X509\_USER\_CERT} is not set and configuration tree does not already contain 
 a \texttt{CertificatePath} set \texttt{CertificatePath} to \texttt{/etc/grid-security/hostcert.pem} 
-if user is superuser otherwise \texttt{\$HOME/.globus/usercert.pem}.}
+if user is superuser otherwise 
+\texttt{\$HOME/.globus/usercert.pem}.}
 \item{Check if \texttt{\$X509\_USER\_KEY} is set, if set add this as \texttt{KeyPath} to configuration}
 \item{If \texttt{\$X509\_USER\_KEY} is not set and configuration tree does not already contain 
 a \texttt{KeyPath} set \texttt{KeyPath} to \texttt{/etc/grid-security/hostkey.pem} 
@@ -540,62 +559,87 @@ if user is superuser otherwise \texttt{\$HOME/.globus/userkey.pem}.}
 a \texttt{CACertificatesDir} set \texttt{CACertificatesDir} to \texttt{/etc/grid-security/certificates}.}
 \end{enumerate}
 
+\subsection{{\ACCConfig}}
+Locating Arc Client Components (plugins) is handled by the {\ACCConfig} class. It inherits from \texttt{BaseConfig} 
+and implements only one method
+
+\begin{shaded}
+\begin{verbatim}                                                                                                                            
+virtual XMLNode MakeConfig(XMLNode cfg) const;
+\end{verbatim}
+\end{shaded}
+
+The \texttt{MakeConfig} method searches plugin paths for all libraries named \texttt{libacc*}. Matching 
+libraries are added as plugins to the configuration object \texttt{cfg}.
+
 \subsection{{\ClientInterface}}
+\subsubsection{ClientTCP}
+\subsubsection{ClientHTTP}
+\subsubsection{ClientSOAP}
 
 \section{Specialized Classes (Grid Flavour Plugins)}
 \label{sec:plugins}
 \subsection{ARC0 Plugins}
-
 The ARC0 plugins enables support for the interfaces used by computing
 elements running ARC version 0.x.
 
-The ARC 0.x local information system uses the globus GRIS with a
-propriety ARC schema. The information index server used is the globus
-GIIS. Both these servers are using the LDAP protocol. The
+The ARC 0.x local information system uses the {\GT}~\cite{globus} GRIS with a
+propriety ARC schema. The information index server used is the {\GT}
+GIIS. Both these servers are using the LDAP~\cite{ldap} protocol. The
 specialization of the {\TargetRetriever} class for ARC0 is implemented
-using the LDAP DMC.
+using the ARC LDAP Data Management Component (DMC) (see \cite{hed} for 
+technical details).
 
 Jobs running on an ARC 0.x computing element are handled by the ARC
-grid-manager. Job submission and job control are done using the
-gridftp protocol. The specializations of the {\Submitter} and
+grid-manager~\cite{gm}. Job submission and job control are done using the
+gridftp~\cite{gridftp} protocol. The specializations of the {\Submitter} and
 {\JobController} classes use the globus ftp control library.
 
 Stage-in and stage-out of input and output files are also done using
-the gridftp protocol. This means that proper functionality of the ARC0
+the gridftp~\cite{gridftp} protocol. This means that proper functionality of the ARC0
 plugins requires the gridftp DMC.
 
 \subsection{ARC1 Plugins}
+The computing element in ARC version 1.x is the A-Rex~\cite{arex} service running
+in a HED~\cite{hed} container.
 
-The computing element in ARC version 1.x is the A-Rex service running
-in a HED container.
-
-A-Rex implements the BES standard interface. Since this is a SOAP
+A-Rex implements the BES~\cite{ogsa-bes} standard interface. Since this is a SOAP~\cite{soap}
 based interface the specializations of the {\TargetRetriever},
-{\Submitter} and {\JobController} classes make use of an MCC chain
-ending with the SOAP client MCC.
+{\Submitter} and {\JobController} classes make use of a chain of ARC Message Chain Components 
+(MCC~\cite{hed}) ending with the SOAP client MCC.
 
 The A-Rex service uses the https protocol put and get methods for
 stage-in and stage-out of input and output files. Therefore, the ARC1
 plugins requires the http DMC.
 
 \subsection{gLite Plugins}
+The gLite computing element offers several interfaces, one of them being the Web Service based 
+computing element interface known as the CREAM CE~\cite{cream}. The current revision of this 
+interface (CREAM version 2) has been chosen for implementation within ARC1lib for the following 
+reasons:
 
-The CREAM plugin implements support for the CREAM interface to the
-gLite computing element.
+\begin{itemize}
+\item CREAM2 has a Web Service interface that fits the Web Service based ARC.
+\item CREAM2 enables direct access to the gLite computing element without having to go via the gLite workload management system.
+\item CREAM2 contains numerous improvements when compared to the earlier CREAM versions.
+\item CREAM2 supports direct job status queries.
+\item CREAM2 offers a convenient way of handling input and output files through accessing the input and output sandbox via GridFTP.
+\end{itemize}
 
-CREAM resources are registered in top level and site BDIIs. The CREAM
+gLite resources are registered in top level and site BDIIs. The CREAM
 specialization of the {\TargetRetriever} therefore makes use of the
-LDAP DMC.
+LDAP DMC similarly to the ARC0 plugins.
 
 The CREAM interface is a propriety SOAP based interface. The CREAM
 specializations of the {\Submitter} and {\JobController} classes
-therefore use an MCC chain ending with the SOAP client MCC.
+therefore use an MCC chain ending with the SOAP client MCC the same 
+way the ARC1 plugin does.
 
 Stage-in and stage-out of input and output files are done using the
 gridftp protocol. The gridftp DMC is therefore required.
 
 \section{Support Classes}
-\subsection{URL}
+\subsection{{\URL}}
 \subsection{Logger}
 \subsection{XMLNode}
 
