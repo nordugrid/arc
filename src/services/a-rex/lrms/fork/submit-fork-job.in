@@ -1,4 +1,4 @@
-#!/bin/sh -f
+#!@posix_shell@ -f
 # set -x
 #
 #  Input: path to grami file (same as Globus).

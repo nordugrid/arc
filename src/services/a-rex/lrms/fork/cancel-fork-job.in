@@ -1,4 +1,4 @@
-#!/bin/sh -f
+#!@posix_shell@ -f
 # set -x
 # 
 #  Cancel job running in FORK.

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!@posix_shell@
 #
 #  Periodically monitor for jobs which has finished or failed but not
 #  reported an exitcode

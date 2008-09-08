@@ -1,4 +1,4 @@
-#!/bin/bash -f
+#!@posix_shell@ -f
 # set -xv
 #
 #  Submits job to Sun Grid Engine (SGE).

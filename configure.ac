@@ -817,6 +817,21 @@ AC_SUBST(runtime_local_scratch_dir)
 AC_SUBST(runtime_frontend_sees_node)
 AC_SUBST(runtime_node_sees_frontend)
 
+# Shell for the job control scripts
+
+case $host_os in
+
+  solaris2.9* | solaris2.8* )
+      # Solaris 9 and earlier have pre-standard /bin/sh
+      posix_shell='/usr/xpg4/bin/sh'
+      ;;
+  * )
+      posix_shell='/bin/sh'
+      ;;
+esac
+
+AC_SUBST(posix_shell)
+
 DATE=`date +%Y-%m-%d`
 AC_SUBST(DATE)
 
@@ -915,6 +930,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
+                 src/services/a-rex/lrms/sge/cancel-sge-job
                  src/services/charon/Makefile
                  src/services/hopi/Makefile
                  src/services/arex2/Makefile

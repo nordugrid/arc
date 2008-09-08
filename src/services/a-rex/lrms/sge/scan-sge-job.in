@@ -1,4 +1,4 @@
-#!/bin/bash -f
+#!@posix_shell@ -f
 # set -xv
 #
 # Periodically read log files of PBS and put mark files

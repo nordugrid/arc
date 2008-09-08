@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # set environment variables:
 #   SGE_BIN_PATH
 #   SGE_ROOT
