@@ -3,12 +3,13 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+  xmlns:charon="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
   xmlns:echo="urn:echo_config"
 >
   <!-- Common configuration of the daemon -->
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
-    <Logger level="VERBOSE">./pdp.log</Logger>
+    <Logger level="VERBOSE">./charon.log</Logger>
   </Server>
     <ModuleManager>
         <Path>/mn/tid/epf-a1/weizhonq/susy_backup/new-arc-install/lib/arc/</Path>
@@ -18,7 +19,7 @@
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Plugins><Name>arcpdc</Name></Plugins>
-    <Plugins><Name>pdp</Name></Plugins>
+    <Plugins><Name>charon</Name></Plugins>
 
     <Chain>
         <Component name="tcp.service" id="tcp">
@@ -38,35 +39,35 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="pdp_service">^/PDP_Service$</next>
+            <next id="charon_service">^/Charon$</next>
             <next id="echo">^/Echo$</next>
         </Plexer>
-        <Service name="pdp.service" id="pdp_service">
+        <Service name="charon" id="charon_service">
             <!--The element <Evaluator/>, <Policy/> and <Request/> configuration 
             are supposed to be used to load object; element <PolicyStore/> is 
             supposed to be used to get the location of policy-->
-            <pdp:PDPConfig>
-                <pdp:PolicyStore>
-                  <pdp:Location Type="file">pdp_policy.xml.example</pdp:Location>
+            <charon:PDPConfig>
+                <charon:PolicyStore>
+                  <charon:Location Type="file">charon_policy.xml.example</charon:Location>
                   <!-- other policy location-->
-                </pdp:PolicyStore>
-                <pdp:Evaluator name="arc.evaluator" />
-                <pdp:Policy name="arc.policy" />
-                <pdp:Request name="arc.request" />
-            </pdp:PDPConfig>
+                </charon:PolicyStore>
+                <charon:Evaluator name="arc.evaluator" />
+                <charon:Policy name="arc.policy" />
+                <charon:Request name="arc.request" />
+            </charon:PDPConfig>
         </Service>
         <Service name="echo" id="echo">
             <SecHandler name="arc.authz" id="authz" event="incoming">
               <PDP name="simplelist.pdp" location="simplelist"/>
               <PDP name="arc.pdp">
-                <PolicyStore>
-                  <Location type="file">Policy_Example.xml</Location>
+                <pdp:PolicyStore>
+                  <pdp:Location type="file">Policy_Example.xml</pdp:Location>
                   <!-- other policy location-->
-                </PolicyStore>
+                </pdp:PolicyStore>
               </PDP>
-              <!--Remote pdp service invoking-->
+              <!--Remote pdp service (charon) invoking-->
               <!--PDP name="pdpservice.invoker">
-                <ServiceEndpoint>https://127.0.0.1:60000/PDP_Service</ServiceEndpoint>
+                <ServiceEndpoint>https://127.0.0.1:60000/Charon</ServiceEndpoint>
                 <KeyPath>./key.pem</KeyPath>
                 <CertificatePath>./cert.pem</CertificatePath>
                 <CACertificatePath>./ca.pem</CACertificatePath>

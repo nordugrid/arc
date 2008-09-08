@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/pdp"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/pdp"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
   elementFormDefault="qualified">
+
+    <xsd:element name="PDPConfig" type="PDPConfigType"/>
+    <xsd:complexType name="PDPConfigType">
+        <xsd:sequence>
+            <xsd:element name="PolicyStore" type="PolicyStoreType" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Evalutor" type="EvaluatorType"/>
+            <xsd:element name="Policy" type="PolicyType"/>
+            <xsd:element name="Request" type="RequestType"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <!--
         This element specified file containing policy document.

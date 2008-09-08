@@ -2,7 +2,7 @@
 <ArcConfig 
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+  xmlns:charon="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
 >
     <ModuleManager>
         <Path>.libs/</Path>
@@ -18,7 +18,7 @@
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Plugins><Name>arcpdc</Name></Plugins>
-    <Plugins><Name>pdp</Name></Plugins>
+    <Plugins><Name>charon</Name></Plugins>
 
     <Chain>
         <Component name="tcp.service" id="tcp">
@@ -35,21 +35,21 @@
             <next id="soap">POST</next>
         </Component>
         <Component name="soap.service" id="soap">
-	    <next id="pdp_service"/>
+	    <next id="charon_service"/>
         </Component>
-        <Service name="pdp.service" id="pdp_service">
+        <Service name="charon" id="charon_service">
             <!--The element <Evaluator/>, <Policy/> and <Request/> configuration 
             are supposed to be used to load object; element <PolicyStore/> is 
             supposed to be used to get the location of policy-->
-            <pdp:PDPConfig>
-                <pdp:PolicyStore>
-                  <Location Type="file">pdp_policy.xml.example</Location>
+            <charon:PDPConfig>
+                <charon:PolicyStore>
+                  <charon:Location Type="file">charon_policy.xml.example</charon:Location>
                   <!-- other policy location-->
-                </pdp:PolicyStore>
-                <pdp:Evaluator name="arc.evaluator" />
-                <pdp:Policy name="arc.policy" />
-                <pdp:Request name="arc.request" />
-            </pdp:PDPConfig>
+                </charon:PolicyStore>
+                <charon:Evaluator name="arc.evaluator" />
+                <charon:Policy name="arc.policy" />
+                <charon:Request name="arc.request" />
+            </charon:PDPConfig>
         </Service>
     </Chain>
 </ArcConfig>

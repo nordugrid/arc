@@ -19,17 +19,17 @@
 #include <arc/security/ArcPDP/Source.h>
 #include <arc/Thread.h>
 
-#include "pdpservice.h"
+#include "charon.h"
 
 namespace ArcSec {
 
 static Arc::LogStream logcerr(std::cerr);
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Service_PDP(cfg);
+    return new Charon(cfg);
 }
 
-Arc::MCC_Status Service_PDP::make_soap_fault(Arc::Message& outmsg) {
+Arc::MCC_Status Charon::make_soap_fault(Arc::Message& outmsg) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
@@ -40,12 +40,12 @@ Arc::MCC_Status Service_PDP::make_soap_fault(Arc::Message& outmsg) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
+Arc::MCC_Status Charon::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
 
   // Identify which of served endpoints request is for.
-  // Service_PDP can only accept POST method
+  // Charon can only accept POST method
   if(method == "POST") {
     logger.msg(Arc::DEBUG, "process: POST");
     // Both input and output are supposed to be SOAP
@@ -114,8 +114,8 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     else if(!atleast_onedeny && atleast_onepermit) result = true;
     else if(!atleast_onedeny && !atleast_onepermit) result = false;
 
-    if(result) logger.msg(Arc::INFO, "Authorized from Service_PDP");
-    else logger.msg(Arc::ERROR, "UnAuthorized from Service_PDP; Some of the RequestItem does not satisfy Policy");
+    if(result) logger.msg(Arc::INFO, "Authorized from Charon service");
+    else logger.msg(Arc::ERROR, "UnAuthorized from Charon service; Some of the RequestItem does not satisfy Policy");
 
     //Put those request items which satisfy the policies into the response SOAP message (implicitly
     //means the decision result: <ItemA, permit>, <ItemB, permit>, <ItemC, deny> (ItemC will not in the 
@@ -151,7 +151,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   return Arc::MCC_Status();
 }
 
-Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "PDP_Service"), eval(NULL) {
+Charon::Charon(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "Charon"), eval(NULL) {
   logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_["ra"]="http://www.nordugrid.org/schemas/request-arc";
@@ -181,7 +181,7 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   }
 }
 
-Service_PDP::~Service_PDP(void) {
+Charon::~Charon(void) {
   if(eval)
     delete eval;
   eval = NULL;
@@ -190,7 +190,7 @@ Service_PDP::~Service_PDP(void) {
 } // namespace ArcSec
 
 service_descriptors ARC_SERVICE_LOADER = {
-    { "pdp.service", 0, &ArcSec::get_service },
+    { "charon", 0, &ArcSec::get_service },
     { NULL, 0, NULL }
 };
 
