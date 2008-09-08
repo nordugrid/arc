@@ -25,7 +25,7 @@ AM_PROG_LIBTOOL
 
 # gettext
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.11])
+AM_GNU_GETTEXT_VERSION([0.11.3])
 [[ -e po/POTFILES.in ]] || touch po/POTFILES.in
 
 # Portable 64bit file offsets
