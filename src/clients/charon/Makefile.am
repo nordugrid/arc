@@ -1,5 +1,5 @@
 bin_PROGRAMS = arcdecision
-doc_DATA = pdp_client.xml.example pdp_request.xml.example
+doc_DATA = charon_client.xml.example charon_request.xml.example
 
 man_MANS = arcdecision.1 
 

@@ -1,16 +1,16 @@
-arcdecision -- client for accessing pdp service and get 
+arcdecision -- client for accessing pdp service (charon) and get 
 decision result
 Firstly, make sure the ARC_LOCATION has been set.
 The usage is like this:
-./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60000/PDP_Service pdp_request.xml
+./arcdecision -c charon_client.xml -d VERBOSE https://127.0.0.1:60000/Charon charon_request.xml
 
 Explaination about the arguments:
--c pdp_client.xml   specify the configuration information about client, 
-                    see $ARC_LOCATION/share/doc/arc/pdp_client.xml.example
+-c charon_client.xml   specify the configuration information about client, 
+                    see $ARC_LOCATION/share/doc/arc/charon_client.xml.example
 -d FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE   specify debug level 
 service url   specify the url of pdp service
 request file  the request should be in specific format, 
-              see $ARC_LOCATION/share/doc/arc/pdp_request.xml.example
+              see $ARC_LOCATION/share/doc/arc/charon_request.xml.example
 
 If succeed to send the request, you can get back the policy decision information 
 like below:
@@ -46,5 +46,5 @@ The policy decision result is inside soap body. It include the decision "PERMIT"
 and the <RequestItem/>s which have satisfed the policy. Because the request can include a 
 number of <RequestItem/>s, and some of them may satisfy policy but some not. It is the policy
 enforcement point to make the real decision according to the response from pdp service, especially
-those <RequestItem/>s which satisfy policy. So the decision result given by pdp_service is 
+those <RequestItem/>s which satisfy policy. So the decision result given by pdp service is 
 only a suggestive decision.
