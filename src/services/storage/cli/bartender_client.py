@@ -9,7 +9,23 @@ if len(args) > 0 and args[0] == '-x':
     print_xml = True
 else:
     print_xml = False
-bartender = BartenderClient('http://localhost:60000/Bartender', print_xml)
+try:
+    bartender_url = os.environ['ARC_BARTENDER_URL']
+    # print '- The URL of the Bartender:', bartender_url
+except:
+    bartender_url = 'http://localhost:60000/Bartender'
+    print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
+ssl_config = {}
+if bartender_url.startswith('https'):
+    try:
+        ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
+        ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
+        # print '- The key file:', ssl_config['key_file']
+        # print '- The cert file:', ssl_config['cert_file']
+    except:
+        ssl_config = {}
+        print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
+bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
 if len(args) == 0 or args[0] not in ['stat', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
     print 'Supported methods: stat, makeCollection, unmakeCollection, list, move, putFile, getFile, delFile, addReplica, modify' 
 else:
@@ -56,7 +72,7 @@ else:
             print '\n', LN, success
             if success == 'done':
                 print 'Downloading from', turl, 'to', filename, 'with', protocol
-                download_from_turl(turl, protocol, f)
+                download_from_turl(turl, protocol, f, ssl_config = ssl_config)
     elif command == 'addReplica':
         if len(args) < 2:
             print 'Usage: addReplica <source filename> <GUID>'
@@ -71,7 +87,7 @@ else:
             if success == 'done':
                 f = file(filename,'rb')
                 print 'Uploading from', filename, 'to', turl, 'with', protocol
-                upload_to_turl(turl, protocol, f)
+                upload_to_turl(turl, protocol, f, ssl_config = ssl_config)
     elif command == 'putFile':
         if len(args) < 2:
             print 'Usage: putFile <source filename> <target LN>'
@@ -94,7 +110,7 @@ else:
             if success == 'done':
                 f = file(filename,'rb')
                 print 'Uploading from', filename, 'to', turl, 'with', protocol
-                upload_to_turl(turl, protocol, f)
+                upload_to_turl(turl, protocol, f, ssl_config = ssl_config)
     elif command == 'unmakeCollection':
         if len(args) < 1:
             print 'Usage: unmakeCollection <LN>'

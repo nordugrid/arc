@@ -1,4 +1,4 @@
-import arc, sys, time, StringIO
+import arc, sys, time, StringIO, os
 from storage.xmltree import XMLTree
 from storage.client import ShepherdClient, ByteIOClient
 from storage.common import create_checksum
@@ -8,9 +8,25 @@ if len(args) > 0 and args[0] == '-x':
     print_xml = True
 else:
     print_xml = False
-shepherd = ShepherdClient('http://localhost:60000/Shepherd', print_xml)
-if len(args) == 0 or args[0] not in ['get', 'put', 'stat', 'reporting']:
-    print 'Supported methods: get put stat reporting'
+try:
+    shepherd_url = os.environ['ARC_SHEPHERD_URL']
+    # print '- The URL of the Shepherd:', shepherd_url
+except:
+    shepherd_url = 'http://localhost:60000/Shepherd'
+    print '- ARC_SHEPHERD_URL environment variable not found, using', shepherd_url
+ssl_config = {}
+if shepherd_url.startswith('https'):
+    try:
+        ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
+        ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
+        # print '- The key file:', ssl_config['key_file']
+        # print '- The cert file:', ssl_config['cert_file']
+    except:
+        ssl_config = {}
+        print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
+shepherd = ShepherdClient(shepherd_url, print_xml, ssl_config = ssl_config)    
+if len(args) == 0 or args[0] not in ['get', 'put', 'stat', 'delete', 'reporting']:
+    print 'Supported methods: get put stat delete reporting'
 else:
     command = args.pop(0)
     if command == 'get':
@@ -54,6 +70,13 @@ else:
             request = {'0' : args[0]}
             print 'stat', request
             print shepherd.stat(request)
+    elif command == 'delete':
+        if len(args) < 1:
+            print 'Usage: delete <referenceID>'
+        else:
+            request = {'0' : args[0]}
+            print 'delete', request
+            print shepherd.delete(request)
     elif command == 'reporting':
         if len(args) < 1 or args[0] not in ['on', 'off']:
             print 'Usage: reporting on|off'

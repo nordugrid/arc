@@ -124,9 +124,9 @@ class Librarian:
             else:
                 try:
                     GUID = metadata[('entry','GUID')]
-                    del metadata[('entry','GUID')]
                 except:
                     GUID = mkuid()
+                    metadata[('entry', 'GUID')] = GUID
                 check = self.ahash.change(
                     {'new': (GUID, 'set', 'entry', 'type', type, {'0' : ('unset','entry','type','')})}
                 )
@@ -283,8 +283,8 @@ class LibrarianService(Service):
         return out
 
     def traverseLN(self, inpayload):
-        if inpayload.auth:
-            print 'Librarian auth "traverseLN": ', inpayload.auth
+        # if inpayload.auth:
+        #     print 'Librarian auth "traverseLN": ', inpayload.auth
         requests = parse_node(inpayload.Child().Child(), ['requestID', 'LN'], single = True)
         response = self.librarian.traverseLN(requests)
         for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in response.items():

@@ -1,5 +1,11 @@
 #!/bin/bash
 export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
+export ARC_BARTENDER_URL=https://localhost:60000/Bartender
+export ARC_SHEPHERD_URL=https://localhost:60000/Shepherd
+export ARC_LIBRARIAN_URL=https://localhost:60000/Librarian
+export ARC_AHASH_URL=https://localhost:60000/AHash
+export ARC_KEY_FILE=/Users/zsombor/Development/arc/certs/userkey-john.pem
+export ARC_CERT_FILE=/Users/zsombor/Development/arc/certs/usercert-john.pem 
 if [ "$1" == "ahash" ]
 then
     shift

@@ -210,8 +210,8 @@ class AHashService(Service):
 
         'inpayload' is an XMLNode containing the IDs of the requested objects
         """
-        if inpayload.auth:
-            print 'A-Hash auth "get": ', inpayload.auth
+        # if inpayload.auth:
+        #     print 'A-Hash auth "get": ', inpayload.auth
         # extract the IDs from the XMLNode using the '//ID' XPath expression
         ids = [str(id) for id in inpayload.XPathLookup('//ahash:ID', self.ns)]
         # get the neededMetadata from the XMLNode
