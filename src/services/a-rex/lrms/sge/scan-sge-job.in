@@ -175,17 +175,17 @@ for ctr_dir in $control_dirs ; do
 
             if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
             && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
-            && [ $(( 100*used_memory/1024/req_memory )) -gt 95 ]; then
+            && [ $(( 100*$used_memory/1024/$req_memory )) -gt 95 ]; then
               overlimit="memory"
             fi
             if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] \
             && [ "$req_cputime" != "" ] && [ "$req_cputime" -gt 0 ] \
-            && [ $(( 100*used_cputime/req_cputime )) -gt 95 ]; then
+            && [ $(( 100*$used_cputime/$req_cputime )) -gt 95 ]; then
               overlimit="cputime"
             fi
             if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] \
             && [ "$req_walltime" != "" ] && [ "$req_walltime" -gt 0 ] \
-            && [ $(( 100*used_walltime/req_walltime )) -gt 95 ]; then
+            && [ $(( 100*$used_walltime/$req_walltime )) -gt 95 ]; then
               overlimit="walltime"
             fi
 
@@ -240,7 +240,7 @@ for ctr_dir in $control_dirs ; do
             else
               failedreason="SGE error $failedreason"
             fi
-            exitcode=$((failedcode+256))
+            exitcode=$(($failedcode+256))
             exitcode=271
             echo "SGE job $id failed: $failedreason" 1>&2
             echo $exitcode $failedreason > "$donefile"

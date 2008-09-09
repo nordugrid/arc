@@ -1,15 +1,28 @@
 #!/bin/bash
 
-# Configuration parser module for bash
+# Configuration parser module.
+# Requires a POSIX shell and perl
+
+##############################################
 #
 # Synopsis:
 #
 #   . $ARC_LOCATION/libexec/config_parser
+#
 #   config_parse_file /etc/arc.conf || exit 1
 #   config_import_section common
 #   config_import_section grid-manager
 #   config_import_section infosys
+#   
 #   env | grep CONFIG_
+#
+#   config_match_section queue/short || echo No such queue
+#
+#   for name in config_subsections queue; do
+#       echo Found section: queue/$name
+#   fi
+#
+##############################################
 
 #
 # Parse the config file given as an argument
@@ -17,13 +30,13 @@
 config_parse_file() {
     arc_conf=$1
     if [ -z "$arc_conf" ]; then
-        echo 'config_parser: No config file given!'
+        echo 'config_parser: No config file given!' 1>&2
         return 1
     elif [ ! -r "$arc_conf" ]; then
-        echo "config_parser: Cannot read config file: $arc_conf"
+        echo "config_parser: Cannot read config file: $arc_conf" 1>&2
         return 1
     fi
-    script='my ($nb,$no)=(0,0); while(<>) { if (/^\s*\[([^\]'\'']+)\]/) {
+    script='my ($nb,$no)=(0,0); while(<>) { chomp; if (/^\s*\[([\w\-\.\/]+)\]\s*$/) {
                 print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n" if $nb;
                 $nb++; $no=0;
                 print "_CONFIG_BLOCK${nb}_NAME='\''$1'\'';\n"; next;
@@ -31,12 +44,15 @@ config_parse_file() {
                 my ($opt,$val)=($1,$3); $val=~s/'\''/'\''\\'\'''\''/g;
                 print "_CONFIG_BLOCK${nb}_OPT${no}_NAME='\''$opt'\'';\n";
                 print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val'\'';\n";
+              } elsif (/^\s*#/) { # skip comment line
+              } elsif (/^\s*$/) { # skip empty line
+              } else { print "echo config_parser: Skipping bad line: $_ 1>&2\n";
             } }
             print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n";
             print "_CONFIG_NUM_BLOCKS='\''$nb'\'';\n";
            '
-    config=`cat $arc_conf | perl -w -e "$script"`
-    eval "$config" || return 1
+    config=`cat $arc_conf | perl -w -e "$script"` || return $?
+    eval "$config" || return $?
     unset config
 }
 
@@ -49,14 +65,14 @@ config_import_section() {
   i=0
   if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
   while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
-    i=$((i+1))
+    i=$(($i+1))
     eval name="\$_CONFIG_BLOCK${i}_NAME"
     if [ "x$block" != "x$name" ]; then continue; fi
     eval num="\$_CONFIG_BLOCK${i}_NUM"
     if [ -z "$num" ]; then return 1; fi
     j=0
     while [ $j -lt $num ]; do
-      j=$((j+1))
+      j=$(($j+1))
       eval name="\$_CONFIG_BLOCK${i}_OPT${j}_NAME"
       eval value="\$_CONFIG_BLOCK${i}_OPT${j}_VALUE"
       if [ -z "$name" ]; then return 1; fi
@@ -72,7 +88,7 @@ config_match_section() {
   i=0
   if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
   while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
-    i=$((i+1))
+    i=$(($i+1))
     eval name="\$_CONFIG_BLOCK${i}_NAME"
     if [ "x$block" = "x$name" ]; then return 0; fi
   done
@@ -84,7 +100,7 @@ config_subsections() {
   i=0
   if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
   while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
-    i=$((i+1))
+    i=$(($i+1))
     eval name="\$_CONFIG_BLOCK${i}_NAME"
     # skip the parent section itself
     if [ "x$block" = "x$name" ]; then continue; fi

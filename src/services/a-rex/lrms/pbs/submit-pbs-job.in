@@ -147,7 +147,7 @@ eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 while [ ! -z "${var_is_set}" ] ; do
   eval "var_value=\${joboption_nodeproperty_$i}"
   nodes_string="${nodes_string}:${var_value}"
-  i=$(( i + 1 ))
+  i=$(( $i + 1 ))
   eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 done
 echo "$nodes_string" >> $LRMS_JOB_SCRIPT
@@ -435,7 +435,7 @@ while [ "$PBS_TRIES" -lt '10' ] ; do
     PBS_TRIES=0
     continue
   fi 
-  PBS_TRIES=$(( PBS_TRIES + 1 ))
+  PBS_TRIES=$(( $PBS_TRIES + 1 ))
   sleep 2
 done
 if [ $PBS_RESULT -eq '0' ] ; then

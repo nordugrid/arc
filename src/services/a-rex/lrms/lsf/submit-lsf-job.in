@@ -81,7 +81,7 @@ eval "var_is_set=\${joboption_arg_$i+yes}"
 while [ ! -z "${var_is_set}" ] ; do
   eval "var_value=\${joboption_arg_$i}"
   joboption_args="$joboption_args \"${var_value}\""
-  i=$(( i + 1 ))
+  i=$(( $i + 1 ))
   eval "var_is_set=\${joboption_arg_$i+yes}"
 done
 
@@ -98,7 +98,7 @@ while [ ! -z "${var_is_set}" ] ; do
   else
     echo "Warning: runtime script ${var_value} is missing" 1>&2
   fi
-  joboption_num=$(( joboption_num + 1 ))
+  joboption_num=$(( $joboption_num + 1 ))
   eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
 done
 
@@ -251,7 +251,7 @@ eval "var_is_set=\${joboption_env_$i+yes}"
 while [ ! -z "${var_is_set}" ] ; do
   eval "var_value=\${joboption_env_$i}"
   echo "export ${var_value}" >> $LRMS_JOB_SCRIPT
-  i=$(( i + 1 ))
+  i=$(( $i + 1 ))
   eval "var_is_set=\${joboption_env_$i+yes}"
 done
 
@@ -478,7 +478,7 @@ while [ ! -z "${var_is_set}" ] ; do
   echo "    runtimeenvironments=\"\${runtimeenvironments}${var_value};\"" >> $LRMS_JOB_SCRIPT
   echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} 1 " >> $LRMS_JOB_SCRIPT
   echo "  fi" >> $LRMS_JOB_SCRIPT
-  i=$(( i + 1 ))
+  i=$(( $i + 1 ))
   eval "var_is_set=\${joboption_runtime_$i+yes}"
 done
 if [ ! "$i" = '0' ] ; then

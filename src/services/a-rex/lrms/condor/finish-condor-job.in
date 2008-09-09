@@ -249,7 +249,7 @@ fi
 
 if [ ! -z "$WallTime" ] && [ ! -z "$KernelTime" ] \
 && [ ! -z "$UserTime" ] && [ "$WallTime" -gt 0 ]; then
-    CPUUsage=$((100*(UserTime+KernelTime)/WallTime))
+    CPUUsage=$((100*($UserTime+$KernelTime)/$WallTime))
 else
     CPUUsage=0
 fi
@@ -279,21 +279,21 @@ if ( [ ! -z "$RemoveReason" ] && [ "$RemoveReason" != "None" ] ) || [ ! -z "$Per
     used_walltime=$WallTime
   
     if [ ! -z "$UserTime" ] && [ ! -z "$KernelTime" ]; then
-        used_cputime=$(( UserTime + KernelTime ))
+        used_cputime=$(( $UserTime + $KernelTime ))
     fi
     if [ ! -z "$UsedMemory" ]; then
         used_memory="$UsedMemory"
     fi
     if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] && [ "$req_memory" -gt 0 ] \
-    && [ $(( 100*used_memory/1024/req_memory )) -gt 95 ]; then
+    && [ $(( 100*$used_memory/1024/$req_memory )) -gt 95 ]; then
         overlimit="memory"
     fi
     if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] && [ "$req_cputime" -gt 0 ] \
-    && [ $(( 100*used_cputime/req_cputime )) -gt 98 ]; then
+    && [ $(( 100*$used_cputime/$req_cputime )) -gt 98 ]; then
         overlimit="cputime"
     fi
     if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] && [ "$req_walltime" -gt 0 ] \
-    && [ $(( 100*used_walltime/req_walltime )) -gt 98 ]; then
+    && [ $(( 100*$used_walltime/$req_walltime )) -gt 98 ]; then
         overlimit="walltime"
     fi
     {   echo "$progname: +++++++++++++++++++++++++++++"

@@ -49,8 +49,8 @@ state_file=$control_dir/pbs_log_scan.`id -un`
 lines=`cat "$state_file" 2>/dev/null`
 ldt=`echo $lines | awk '{split($0,field," ");print field[1]}' `
 lines=`echo $lines | awk '{split($0,field," ");print field[2]}'`
-lines_skip=$(( lines + 0 ))
-ldate=$(( ldt + 0 ))
+lines_skip=$(( $lines + 0 ))
+ldate=$(( $ldt + 0 ))
 if [ -z "$lines_skip" ] ; then lines_skip='0' ; fi
 if [ -z "$ldate" ] ; then ldate='0' ; fi
 
@@ -79,14 +79,14 @@ egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;00
   while [ $lines_skip -gt '0' ] ; do
     read rest_line
     if [ $? != '0' ] ; then break ; fi
-    lines_skip=$(( lines_skip - 1 ))
-    lines_processed=$(( lines_processed + 1 ))
+    lines_skip=$(( $lines_skip - 1 ))
+    lines_processed=$(( $lines_processed + 1 ))
   done
   while true ; do
     read rest_line
     if [ $? != '0' ] ; then break ; fi
     echo "$rest_line" | sed 's/^[^;]*;//'
-    lines_processed=$(( lines_processed + 1 ))
+    lines_processed=$(( $lines_processed + 1 ))
   done
   if [ "$lines_processed" -lt '0' ] ; then
     lines_processed=0;
@@ -151,7 +151,7 @@ sort -u | \
 	      fi
               if [ ! -z "$exitcode" ] ; then break ; fi
               sleep 10
-              diag_tries=$(( diag_tries - 1 ))
+              diag_tries=$(( $diag_tries - 1 ))
             done
           else
 	    if [ -z "$username" ] ; then
@@ -235,12 +235,12 @@ if [ "$readable_logs" = 'yes' ] ; then
       lines=`cat "$state_file" 2>/dev/null`
       ldt=`echo $lines | awk '{split($0,field," ");print field[1]}' `
       lines=`echo $lines | awk '{split($0,field," ");print field[2]}'`
-      lines_skip=$(( lines + 0 ))
-      ldate=$(( ldt + 0 ))
+      lines_skip=$(( $lines + 0 ))
+      ldate=$(( $ldt + 0 ))
       process_log_file
     fi
     sleep 10
-    time_count=$(( time_count + 1 ))
+    time_count=$(( $time_count + 1 ))
     if [ "$time_count" -gt 60 ] ; then break ; fi
   done
   exit 0
