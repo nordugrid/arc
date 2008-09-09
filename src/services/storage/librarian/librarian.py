@@ -56,8 +56,13 @@ class Librarian:
                 time.sleep(period)
 
     def _change_states(self, changes):
+        # we got a list of (GUID, serviceID, referenceID, state) - where GUID is of the file,
+        #   serviceID is of the shepherd, referenceID is of the replica within the shepherd, and state is of this replica
+        # we need to put the serviceID, referenceID pair into one string (a location)
         with_locations = [(GUID, serialize_ids([serviceID, referenceID]), state)
             for GUID, serviceID, referenceID, state in changes]
+        # we will ask the librarian for each file to modify the state of this location of this file (or add this location if it was not already there)
+        # but only if the file itself exists
         change_request = dict([
             (location, (GUID, 'set', 'locations', location, state,
                 {'only if file exists' : ('is', 'entry', 'type', 'file')}))
@@ -77,33 +82,51 @@ class Librarian:
             self.log('DEBUG', 'ERROR setting next heartbeat time!')
     
     def report(self, serviceID, filelist):
+        # we got the ID of the shepherd service, and a filelist which contains (GUID, referenceID, state) tuples
+        # here we get the list of registered services from the A-Hash (stored with the GUID 'sestore_guid')
         ses = self.ahash.get([sestore_guid])[sestore_guid]
-        serviceID = str(serviceID)
+        # we get the GUID of the shepherd
         serviceGUID = ses.get((serviceID,'serviceGUID'), None)
+        # or this shepherd was not registered yet
         if not serviceGUID:
-            #print 'report se is not registered yet', serviceID
+            ## print 'report se is not registered yet', serviceID
+            # let's create a new GUID
             serviceGUID = mkuid()
+            # let's add the new shepherd-GUID to the list of shepherd-GUIDs but only if someone else not done that just now
             ahash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
-            #print 'report ahash_request', ahash_request
+            ## print 'report ahash_request', ahash_request
             ahash_response = self.ahash.change(ahash_request)
-            #print 'report ahash_response', ahash_response
+            ## print 'report ahash_response', ahash_response
             success, unmetConditionID = ahash_response['report']
+            # if there was already a GUID for this service (which should have been created after we check it first but before we tried to create a new)
             if unmetConditionID:
+                # let's try to get the GUID of the shepherd once again
                 ses = self.ahash.get([sestore_guid])[sestore_guid]
                 serviceGUID = ses.get((serviceID, 'serviceGUID'))
+        # if the next heartbeat time of this shepherd is -1 or nonexistent, we will ask it to send all the file states, not just the changed
         please_send_all = int(ses.get((serviceID, 'nextHeartbeat'), -1)) == -1
+        # calculate the next heartbeat time
         next_heartbeat = str(int(time.time() + self.hbtimeout))
+        # register the next heartbeat time for this shepherd
         self._set_next_heartbeat(serviceID, next_heartbeat)
+        # change the states of replicas in the metadata of the files to the just now reported values
         self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
+        # get the metadata of the shepherd
         se = self.ahash.get([serviceGUID])[serviceGUID]
-        #print 'report se before:', se
-        change_request = dict([(referenceID, (serviceGUID, (state=='deleted') and 'unset' or 'set', 'file', referenceID, GUID, {}))
+        ## print 'report se before:', se
+        # we want to know which files this shepherd stores, that's why we collect the GUIDs and referenceIDs of all the replicas the shepherd reports
+        # we store this information in the A-Hash by the GUID of this shepherd (serviceGUID)
+        # so this request asks the A-Hash to store the referenceID and GUID of this file in the section called 'file' in the A-Hash entry of the Shepherd
+        # but if the shepherd reports that a replica is 'deleted' then it will be removed from this list (unset)
+        change_request = dict([(referenceID, (serviceGUID, (state == 'deleted') and 'unset' or 'set', 'file', referenceID, GUID, {}))
             for GUID, referenceID, state in filelist])
-        #print 'report change_request:', change_request
+        ## print 'report change_request:', change_request
         change_response = self.ahash.change(change_request)
-        #print 'report change_response:', change_response
-        se = self.ahash.get([serviceGUID])[serviceGUID]
-        #print 'report se after:', se
+        # TODO: check the response and do something if something is wrong
+        ## print 'report change_response:', change_response
+        ## se = self.ahash.get([serviceGUID])[serviceGUID]
+        ## print 'report se after:', se
+        # if we want the shepherd to send the state of all the files, not just the changed one, we return -1 as the next heartbeat's time
         if please_send_all:
             return -1
         else:

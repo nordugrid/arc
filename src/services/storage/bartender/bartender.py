@@ -401,7 +401,7 @@ class Bartender:
                     if success == 'done':
                         # if the file was successfully created, it still has no replica, so we initiate creating one
                         # if neededReplicas is 0, we do nothing
-                        if int(neededReplicas) > 0:
+                        if int(neededReplicas) > 0: # this will call shepherd.put()
                             success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
                 except:
                     success = 'internal error (%s)' % traceback.format_exc()

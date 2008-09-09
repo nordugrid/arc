@@ -55,30 +55,45 @@ class Shepherd:
         threading.Thread(target = self.reportingThread, args = []).start()
         
     def reportingThread(self):
+        # at the first start just wait for a few seconds
         time.sleep(5)
         while True:
+            # do this forever
             try:
+                # if reporting is on
                 if self.doReporting:
+                    # this list will hold the list of changed files we want to report
                     filelist = []
-                    while len(self.changed_states) > 0:
+                    # when the state of a file changed somewhere the file is appended to the global 'changed_states' list
+                    # so this list contains the files which state is changed between the last and the current cycle
+                    while len(self.changed_states) > 0: # while there is changed file
+                        # get the first one. the changed_states list contains referenceIDs
                         changed = self.changed_states.pop()
+                        # get its local data (GUID, size, state, etc.)
                         localData = self.store.get(changed)
                         if not localData.has_key('GUID'):
                             self.log('DEBUG', 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
                         else:
+                            # add to the filelist the GUID, the referenceID and the state of the file
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
                             # TODO: not sure this is the right place to remove the file
                             if localData['state']==DELETED:
                                 bsuccess = self.backend.remove(localData['localID'])
                                 self.store.set(changed, None)
                     #print 'reporting', self.serviceID, filelist
+                    # call the report method of the librarian with the collected filelist and with our serviceID
                     next_report = self.librarian.report(self.serviceID, filelist)
+                    # we should get the time of the next report
+                    # if we don't get any time, do the next report 10 seconds later
                     if not next_report:
                         next_report = 10
                     last_report = time.time()
+                    # if the next report time is below zero it means:
                     if next_report < 0: # 'please send all'
                         self.log('DEBUG', '\nreporting - asked to send all file data again')
-                        self.changed_states = self.store.list()
+                        # add the full list of stored files to the changed_state list - all the files will be reported next time (which is immediately, see below)
+                        self.changed_states.extend(self.store.list())
+                    # let's wait until there is any changed file or the reporting time is up - we need to do report even if no file changed (as a heartbeat)
                     while len(self.changed_states) == 0 and last_report + next_report * 0.5 > time.time():
                         time.sleep(1)
                 else:
@@ -93,101 +108,122 @@ class Shepherd:
     
     def _checking_checksum(self, referenceID):
         #print 'Checking checksum', referenceID
+        # get the local data of this file
         localData = self.store.get(referenceID)
+        # TODO: why is this here? it seems impossible to have a file without a localID (which is set in the get() method)
         if not localData.has_key('localID'):
             return CREATING, None, None
+        # ask the backend to create the checksum of the file 
         current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
+        # get the original checksum
         checksum = localData['checksum']
+        # get the current state (which is stored locally) or an empty string if it somehow has no state
         state = localData.get('state','')
         #print '-=-', referenceID, state, checksum, current_checksum
         if checksum == current_checksum:
+            # if the original and the current checksum is the same, then the replica is valid
             if state != ALIVE:
+                # if it is currently not ALIVE (but anything else: CREATING, INVALID, DELETED) then its state should be changed
+                # TODO: it seems wrong here to change a DELETED file back to ALIVE
                 self.log('DEBUG', '\nCHECKSUM OK', referenceID)
                 self.changeState(referenceID, ALIVE)
+            # now the state of the file is ALIVE, let's return it with the GUID and the localID (which will be needed later by checkingThread )
             return ALIVE, localData['GUID'], localData['localID']
         else:
+            # or if the checksum is not the same - we have a corrupt file, or a not-fully-uploaded one
             if state == CREATING:
-                # that's OK, the file is still being uploaded
+                # if the file's local state is CREATING, that's OK, the file is still being uploaded
                 return CREATING, None, None
             if state != INVALID:
+                # but if it is not INVALID and not CREATING - so it's ALIVE or DELETED: its state should be changed to INVALID
+                # TODO: changing the DELETED state seems wrong here
                 self.log('DEBUG', '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
                 self.changeState(referenceID, INVALID)
             return INVALID, localData['GUID'], localData['localID']
         
     def _file_arrived(self, referenceID):
+        # this is called usually by the backend when a file arrived (gets fully uploaded)
+        # let's change its state to ALIVE, but only if it is CREATING (do not change if it is INVALID or DELETED)
         self.changeState(referenceID, ALIVE, onlyIf = CREATING)
+        # call the checksum checker which will change it's state to INVALID if its checksum is not OK
         return self._checking_checksum(referenceID)
-    
-    def _checking_replicano(self, GUID, metadata):
-        self.log('VERBOSE','_checking_replicano', GUID, metadata)
-        try:
-            metadata = metadata[GUID]
-            needed_replicas = int(metadata.get(('states','neededReplicas'),1))
-            valid_replicas = len([property for (section, property), value in metadata.items()
-                              if section == 'locations' and value == ALIVE])
-            return valid_replicas >= needed_replicas
-        except:
-            self.log()
-            return True
-
-
-    def _checking_guid(self, GUID, metadata):
-        self.log('VERBOSE','_checking_guid', GUID, metadata)
-        try:
-            metadata = metadata.get(GUID)   
-            if isinstance(metadata,dict) and not metadata.has_key(('states', 'neededReplicas')):
-                # librarian couldn't find the file; we don't need any replicas
-                return 'NotInLibrarian'
-        except:
-            self.log()    
-            return 'LibrarianBroken'
-        self.log('VERBOSE','_checking_guid OK')
-        
+        # TODO: why set the file's state to ALIVE if the _checking_checksum method will change it anyways if it's valid? 
+        #       maybe the changeState call can be removed and just call _checking_checksum?
+        # TODO: either this checking should be in seperate thread, or the backend's should call this in a seperate thread?
         
     def checkingThread(self, period):
+        # first just wait a few seconds
         time.sleep(10)
         while True:
+            # do this forever
             try:
+                # get the referenceIDs of all the stored files
                 referenceIDs = self.store.list()
+                # count them
                 number = len(referenceIDs)
+                # if there are stored files at all
                 if number > 0:
+                    # we should check all the files periodically, with a given period, which determines the checking interval for one file
                     interval = period / number
+                    # but we don't want to run constantly, after a file is checked we should wait at least a specified amount of time
                     if interval < self.min_interval:
                         interval = self.min_interval
                     self.log('DEBUG','\n', self.serviceID, 'is checking', number, 'files with interval', interval)
+                    # randomize the list of files to be checked
                     random.shuffle(referenceIDs)
+                    # start checking the first one
                     for referenceID in referenceIDs:
                         try:
+                            # check the checksum: if the checksum is OK or not, it changes the state of the replica as well
+                            # and it returns the state and the GUID and the localID of the file
+                            #   if _checking_checksum changed the state then the new state is returned here:
                             state, GUID, localID = self._checking_checksum(referenceID)
-                            metadata={}
+                            # now the file's state is according to its checksum
+                            # if it is CREATING or ALIVE:
                             if state == CREATING or state == ALIVE:
-                                try:
-                                    metadata = self.librarian.get([GUID])
-                                except:
-                                    pass
-                            if state == CREATING or state == ALIVE:
-                                if self._checking_guid(GUID, metadata) == 'NotInLibrarian':
-                                    # guid not in librarian, we don't need the replicas
+                                # first we get the file's metadata from the librarian
+                                metadata = self.librarian.get([GUID])[GUID]
+                                # if this metadata is not a valid file then the file must be already removed
+                                if metadata.get(('entry', 'type'), '') != 'file':
+                                    # it seems this is not a real file anymore
+                                    # we should remove it
+                                    # TODO: maybe we should figure out some other way to remove the replica
                                     self.changeState(referenceID, DELETED)
                                     state = DELETED
-                            if state == ALIVE:
-                                if not self._checking_replicano(GUID, metadata):
-                                    self.log('DEBUG', '\n\nFile', GUID, 'has fewer replicas than needed.')
-                                    response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
-                                    success, turl, protocol = response['checkingThread']
-                                    #print 'addReplica response', success, turl, protocol
-                                    if success == 'done':
-                                        self.backend.copyTo(localID, turl, protocol)
-                                    else:
-                                        self.log('DEBUG', 'checkingThread error, bartender responded', success)
-                            if state == INVALID:
+                                # if the file is ALIVE (which means it is not CREATING or DELETED)
+                                if state == ALIVE:
+                                    # check the number of needed replicasa
+                                    needed_replicas = int(metadata.get(('states','neededReplicas'),-1))
+                                    # and the number of alive replicas
+                                    alive_replicas = len([property for (section, property), value in metadata.items()
+                                                              if section == 'locations' and value == ALIVE])
+                                    if alive_replicas < needed_replicas:
+                                        # if the file has fewer replicas than needed
+                                        self.log('DEBUG', '\n\nFile', GUID, 'has fewer replicas than needed.')
+                                        # we offer our copy to replication
+                                        response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
+                                        success, turl, protocol = response['checkingThread']
+                                        #print 'addReplica response', success, turl, protocol
+                                        if success == 'done':
+                                            # if it's OK, we asks the backend to upload our copy to the TURL we got from the bartender
+                                            self.backend.copyTo(localID, turl, protocol)
+                                            # TODO: this should be done in some other thread
+                                        else:
+                                            self.log('DEBUG', 'checkingThread error, bartender responded', success)
+                            # or if this replica is INVALID
+                            elif state == INVALID:
                                 self.log('DEBUG', '\n\nI have an invalid replica of file', GUID)
+                                # we try to get a valid one by simply downloading this file
                                 response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
                                 success, turl, protocol = response['checkingThread']
                                 if success == 'done':
+                                    # if it's OK, then we change the state of our replica to CREATING
                                     self.changeState(referenceID, CREATING)
+                                    # then asks the backend to get the file from the TURL we got from the bartender
                                     self.backend.copyFrom(localID, turl, protocol)
+                                    # and after this copying is done, we indicate that it's arrived
                                     self._file_arrived(referenceID)
+                                    # TODO: this should be done in some other thread
                                 else:
                                     self.log('DEBUG', 'checkingThread error, bartender responded', success)
                         except:
@@ -200,6 +236,7 @@ class Shepherd:
                 self.log()
 
     def changeState(self, referenceID, newState, onlyIf = None):
+        # change the file's local state and add it to the list of changed files
         self.store.lock()
         try:
             localData = self.store.get(referenceID)
@@ -208,12 +245,14 @@ class Shepherd:
                 return False
             oldState = localData['state']
             self.log('DEBUG', 'changeState', referenceID, oldState, '->', newState)
+            # if a previous state is given, change only if the current state is the given state
             if onlyIf and oldState != onlyIf:
                 self.store.unlock()
                 return False
             localData['state'] = newState
             self.store.set(referenceID, localData)
             self.store.unlock()
+            # append it to the list of changed files (these will be reported)
             self.changed_states.append(referenceID)
         except:
             self.log()
@@ -262,28 +301,38 @@ class Shepherd:
             protocols = [value for property, value in putRequestData if property == 'protocol']
             protocol_match = self.backend.matchProtocols(protocols)
             if protocol_match:
+                # just the first protocol
                 protocol = protocol_match[0]
                 acl = [value for property, value in putRequestData if property == 'acl']
+                # create a dictionary from the putRequestData which contains e.g. 'size', 'GUID', 'checksum', 'checksumType'
                 requestData = dict(putRequestData)
                 size = requestData.get('size')
+                # ask the backend if there is enough space 
                 availableSpace = self.backend.getAvailableSpace()
                 if availableSpace and availableSpace < size:
                     response[requestID] = [('error', 'not enough space')]
                 else:
+                    # create a new referenceID
                     referenceID = mkuid()
+                    # ask the backend to create a local ID
                     localID = self.backend.generateLocalID()
+                    # create the local data of the new file
                     file_data = {'localID' : localID,
                         'GUID' : requestData.get('GUID', None),
                         'checksum' : requestData.get('checksum', None),
                         'checksumType' : requestData.get('checksumType', None),
                         'size' : size,
                         'acl': acl,
-                        'state' : CREATING}
+                        'state' : CREATING} # first it has the state: CREATING
                     try:
+                        # ask the backend to initiate the transfer
                         turl = self.backend.prepareToPut(referenceID, localID, protocol)
                         if turl:
+                            # add the returnable data to the response dict
                             response[requestID] = [('TURL', turl), ('protocol', protocol), ('referenceID', referenceID)]
+                            # store the local data
                             self.store.set(referenceID, file_data)
+                            # indicate that this file is 'changed': it should be reported in the next reporting cycle (in reportingThread)
                             self.changed_states.append(referenceID)
                         else:
                             response[requestID] = [('error', 'internal error (empty TURL)')]
@@ -300,7 +349,7 @@ class Shepherd:
             localData = self.store.get(referenceID)
             try:
                 # note that actual deletion is done in self.reportingThread
-                self.changeState(referenceID,DELETED)
+                self.changeState(referenceID, DELETED)
                 response[requestID] = 'deleted'
             except:
                 response[requestID] = 'nosuchfile'
