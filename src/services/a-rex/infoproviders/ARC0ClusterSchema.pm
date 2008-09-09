@@ -24,7 +24,7 @@ sub arc0_info_schema {
             'nuj0:completiontime' => [ '*' ],
             'nuj0:runtimeenvironment' => [ '*' ],
             'nuj0:gmlog' => [ '*' ],
-            'nuj0:clientsoftware' => [ '' ],
+            'nuj0:clientsoftware' => [ '*' ],
             'nuj0:stdout' => [ '*' ],
             'nuj0:stderr' => [ '*' ],
             'nuj0:stdin' => [ '*' ],

@@ -21,12 +21,8 @@ use strict;
 #    LRMS modules.  Returning empty variable "" is perfectly ok if variable
 #    does not apply to a LRMS.
 #    
-# 3. Provide subroutine get_lrms_options_schema. The return value must be a
+# 2. Provide subroutine get_lrms_options_schema. The return value must be a
 #    schema describing the options that are recognized by the plugin.
-#
-# 2. References to subroutines defined in new LRMS modules should be added
-#    to the load_lrms subroutine in this module.
-
 
 ##############################################################################
 # Public interface to LRMS modules
@@ -75,6 +71,8 @@ my $lrms_info_schema = {
         'totalcpus'       => '',
         'queuedcpus'      => '',
         'usedcpus'        => '',
+        'queuedjobs'      => '',
+        'runningjobs'     => '',
         'cpudistribution' => ''
     },
     'queues' => {
@@ -106,6 +104,7 @@ my $lrms_info_schema = {
     'jobs' => {
         '*' => {
             'status'      => '',
+            'cpus'        => '*',
             'rank'        => '*',
             'mem'         => '*', # units: MB
             'walltime'    => '*', # units: minutes
@@ -122,31 +121,30 @@ our $log = LogUtils->getLogger("LRMSInfo");
 
 
 # Loads the needed LRMS plugin at runtime
+# First try to load XYZmod.pm (new interface), then XYZ.pm (old interface)
 
 sub load_lrms($) {
-    my $lrms_name = shift;
+    my $lrms_name = uc(shift);
 
-    if (lc($lrms_name) eq "fork" ) {
-        require Fork;
-        import  Fork qw(get_lrms_info get_lrms_options_schema);
-    } elsif ( lc($lrms_name) eq "sge" ) {
-        require SGE;
-        import  SGE  qw(get_lrms_info get_lrms_options_schema);
-    } elsif ( lc($lrms_name) eq "pbs" ) {
-        require PBS;
-        import  PBS  qw(get_lrms_info get_lrms_options_schema);
-    } elsif ( lc($lrms_name) eq "ll" ) {
-        require LL;
-        import  LL   qw(get_lrms_info get_lrms_options_schema);
-    } elsif ( lc($lrms_name) eq "lsf" ) {
-        require LSF;
-        import  LSF  qw(get_lrms_info get_lrms_options_schema);
-    } elsif ( lc($lrms_name) eq "condor" ) {
-        require Condor;
-        import Condor qw(get_lrms_info get_lrms_options_schema);
+    my $module = $lrms_name."mod";
+    eval { require $module.".pm" };
+
+    if ($@) {
+        $log->info("LRMS module $module not found");
+        $log->info("Falling back to ARC0.6 compatible module $lrms_name");
+
+        require ARC0mod;
+        import ARC0mod qw(get_lrms_info get_lrms_options_schema);
+        ARC0mod::load_lrms($lrms_name);
+
     } else {
-	$log->error("LRMS $lrms_name not implemented.") and die; 
+        eval { import $module qw(get_lrms_info get_lrms_options_schema) };
+        $log->error("Bad interface: $module") if $@; 
     }
+    $LogUtils::default_logger = LogUtils->getLogger($module);
+}
+
+sub load_old_lrms($) {
 }
 
 # override InfoCollector base class methods 
@@ -233,7 +231,7 @@ my $opt2 = {lrms => 'sge',
             sge_cell => 'cello',
             sge_bin_path => '/opt/n1ge6/bin/lx24-x86',
             queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete']}},
-            jobs => [63, 453]
+            jobs => [63, 36006]
            };
 
 my $opt3 = {lrms => 'pbs',
@@ -251,6 +249,6 @@ sub test {
     $log->debug("Results: " . Dumper($results));
 }
 
-#test($opt3);
+test($opt2);
 
 1;
