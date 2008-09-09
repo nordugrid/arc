@@ -134,12 +134,12 @@ Appendix~\ref{app:config}.
 
 
 \section{Job Submission}
-\label{sec:apsub}
+\label{sec:arcsub}
 
-The \verb#apsub# command is used to submit jobs to an A-REX service.
+The \verb#arcsub# command is used to submit jobs to an A-REX service.
 
 \begin{shaded}
-\paragraph{Usage} \verb:apsub <JSDL-file> <JobID-file>:
+\paragraph{Usage} \verb:arcsub <JSDL-file> <JobID-file>:
 \end{shaded}
 
 \paragraph{Arguments}
@@ -159,19 +159,19 @@ submission failed for some reason, an error message is displayed.
 
 
 \section{Job Status Query}
-\label{sec:apstat}
+\label{sec:arcstat}
 
-The \verb#apstat# command is used to query the status of a job that
+The \verb#arcstat# command is used to query the status of a job that
 has been submitted to an A-REX service.
 
 \begin{shaded}
-\paragraph{Usage} \verb:apstat <JobID-file>:
+\paragraph{Usage} \verb:arcstat <JobID-file>:
 \end{shaded}
 
 \paragraph{Arguments}
 \begin{description}
 \item[\texttt{<JobID-file>}] The name of a file in which the
-Job ID is stored. This file was created by \verb:apsub: when the job
+Job ID is stored. This file was created by \verb:arcsub: when the job
 was submitted.
 \end{description}
 
@@ -180,19 +180,19 @@ or an error message if the status request failed for some reason.
 
 
 \section{Job Termination}
-\label{sec:apkill}
+\label{sec:arckill}
 
-The \verb#apkill# command is used to terminate a job that has been
+The \verb#arckill# command is used to terminate a job that has been
 submitted to an A-REX service.
 
 \begin{shaded}
-\paragraph{Usage} \verb:apkill <JobID-file>:
+\paragraph{Usage} \verb:arckill <JobID-file>:
 \end{shaded}
 
 \paragraph{Arguments}
 \begin{description}
 \item[\texttt{<JobID-file>}] The name of a file in which the
-Job ID is stored. This file was created by \verb:apsub: when the job
+Job ID is stored. This file was created by \verb:arcsub: when the job
 was submitted.
 \end{description}
 

@@ -673,31 +673,31 @@ service except Echo service. Output should always be XML description of the serv
 A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided in
 \verb|$ARC_LOCATION/share/doc/| in files \verb|jsdl_simple.xml| and
 \verb|jsdl_stage.xml|. To submit job to A-REX service one may use
-\texttt{apsub} command:
+\texttt{arcsub} command:
 
 \begin{lstlisting}
-$ARC_LOCATION/bin/apsub https://localhost:60000/arex
+$ARC_LOCATION/bin/arcsub https://localhost:60000/arex
  /usr/local/share/doc/arc/jsdl_simple.xml id.xml
 \end{lstlisting}
 
 If everything goes properly somewhere in it's output there should be a message
 ``Submitted the job!''. Obtained job identifier is an XML document and is stored
-in id.xml file. It may then be used to query job state with \texttt{apstat}
+in id.xml file. It may then be used to query job state with \texttt{arcstat}
 utility:
 
 \begin{lstlisting}
-$ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+$ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
 Job status: Running/Submiting
 
-$ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+$ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
 Job status: Running/Finishing
 
-$ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+$ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
 Job status: Finished/Finished
 \end{lstlisting}
 
-Full set of A-REX client tools consists of \texttt{apsub}, \texttt{apstat},
-\texttt{apkill}, \texttt{asstat}, \texttt{apget} and \texttt{apclean} commands.
+Full set of A-REX client tools consists of \texttt{arcsub}, \texttt{arcstat},
+\texttt{arckill}, \texttt{arcget} and \texttt{arcclean} commands.
 For more information please see man pages ot those utilities.
 
 \section{Finding more information}

@@ -436,25 +436,25 @@ your home directory.
 
 A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided
 in $ARC_LOCATION/share/doc/ in files jsdl_simple.xml and jsdl_stage.xml . To 
-submit job to A-REX service one may use 'apsub' command
+submit job to A-REX service one may use 'arcsub' command
 
-$ARC_LOCATION/bin/apsub https://localhost:60000/arex /usr/local/share/doc/arc/jsdl_simple.xml id.xml
+$ARC_LOCATION/bin/arcsub https://localhost:60000/arex /usr/local/share/doc/arc/jsdl_simple.xml id.xml
 
 If everything goes properly somewhere in it's output there should be a message
 "Submitted the job!". Obtained job identifier is an XML document and is stored
-in id.xml file. It may then be used to query job state with 'apstat' utility.
+in id.xml file. It may then be used to query job state with 'arcstat' utility.
 
- $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+ $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
  Job status: Running/Submiting
 
- $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+ $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
  Job status: Running/Finishing
 
- $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+ $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
  Job status: Finished/Finished
 
-Full set of A-Rex client tools consists of apsub, apstat, apkill, asstat, apget 
-and apclean commands. For more information please see man pages ot those utilities.
+Full set of A-Rex client tools consists of arcsub, arcstat, arckill, arcget 
+and arcclean commands. For more information please see man pages ot those utilities.
 
 
 Security and Authorization
