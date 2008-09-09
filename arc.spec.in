@@ -267,6 +267,7 @@ exit 0
 %{_libexecdir}/smtp-send.sh
 %{_libexecdir}/gm-kick
 #
+%{_libexecdir}/ARC0mod.pm
 %{_libexecdir}/Condor.pm
 %{_libexecdir}/Fork.pm
 %{_libexecdir}/LL.pm

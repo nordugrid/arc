@@ -249,6 +249,6 @@ sub test {
     $log->debug("Results: " . Dumper($results));
 }
 
-test($opt2);
+#test($opt2);
 
 1;

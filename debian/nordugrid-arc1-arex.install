@@ -6,6 +6,7 @@ usr/lib/arc/uploader
 usr/lib/arc/smtp-send
 usr/lib/arc/smtp-send.sh
 
+usr/lib/arc/ARC0mod.pm
 usr/lib/arc/Condor.pm
 usr/lib/arc/Fork.pm
 usr/lib/arc/LL.pm

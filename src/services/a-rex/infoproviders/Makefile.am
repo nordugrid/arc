@@ -1,4 +1,4 @@
-libexec_SCRIPTS = SGE.pm Fork.pm PBS.pm \
+libexec_SCRIPTS = ARC0mod.pm SGE.pm Fork.pm PBS.pm \
 		  LL.pm LSF.pm Condor.pm condor_env.pm \
 		  CEinfo.pl LogUtils.pm \
 		  LRMSInfo.pm GMJobsInfo.pm HostInfo.pm \
