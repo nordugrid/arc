@@ -195,7 +195,7 @@ class XMLNode {
     belong to (e.g. xx="uri:test"). Query is run on whole XML document
     but only the elements belonging to this XML subtree are returned.
   */ 
-  XMLNodeList XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
+  XMLNodeList XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList) const;
   /** Get the root node from any child node of the tree */
   XMLNode GetRoot(void);
   /** Get the parent node from any child node of the tree */

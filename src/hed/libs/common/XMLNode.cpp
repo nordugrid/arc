@@ -528,7 +528,7 @@ void XMLNode::Destroy(void) {
   };
 }
 
-XMLNodeList XMLNode::XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList) {
+XMLNodeList XMLNode::XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList) const {
   std::list<XMLNode> retlist;
   if(node_ == NULL) return retlist;
   if(node_->type != XML_ELEMENT_NODE) return retlist;
