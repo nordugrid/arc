@@ -821,8 +821,7 @@ AC_SUBST(runtime_node_sees_frontend)
 
 case $host_os in
 
-  solaris2.9* | solaris2.8* )
-      # Solaris 9 and earlier have pre-standard /bin/sh
+  solaris* )
       posix_shell='/usr/xpg4/bin/sh'
       ;;
   * )
