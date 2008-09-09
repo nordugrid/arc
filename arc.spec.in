@@ -246,7 +246,7 @@ exit 0
 %{_sbindir}/manage_jobq
 %doc %{_mandir}/man8/manage_jobq.8*
 %{_libdir}/%{pkgdir}/libecho.so
-%{_libdir}/%{pkgdir}/libpdp.so
+%{_libdir}/%{pkgdir}/libcharon.so
 %{_libdir}/%{pkgdir}/libhopi.so
 %{_libdir}/%{pkgdir}/libisis.so
 %{_libdir}/%{pkgdir}/libgrid_sched.so
