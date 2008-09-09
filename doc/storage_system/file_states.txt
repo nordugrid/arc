@@ -1,0 +1,63 @@
+state changes
+
+new file
+--------
+- the bartender does not add any location, but creates the file entry without locations
+- shepherd reports to the librarian that the file is CREATING
+- librarian adds this replica to the file as a location, because the file entry does already exist, it assumes that this is a new replica of the file - but it is still CREATING
+( here the file can be deleted - what is happening in that case)
+- when the file is uploaded the backend calls the file_arrived() method of the shepherd, which calls the _checking_checksum() method which asks the backend to check the checksum and if it is the same as the registered checksum then changed to state to ALIVE (or to INVALID if the checksum is not OK)
+
+replication
+-----------
+- shepherd checks periodically all its files: turns out a file has fewer replica according to the Librarian as needed, shepherd call bartender's addReplica()
+- bartender chooses a new shepherd, initaties the upload, new shepherd reports a new replica is CREATING
+- the librarian adds this new location to the file (because it is an existing file) as CREATING
+- first shepherd uploads the file to the new shepherd, new shepherd calls the file_arrived() method - state of replica become ALIVE or INVALID depending on the checksum checking of the new shepherd
+
+delete file
+-----------
+- when a file is deleted, the bartender simply ask the Librarian to remove the file entry (after removing it from its parent collection - and only if it has no other hardlinks in some other collection)
+- the shepherd checks all of its files in the checkingThread method, which detects if a file is not exist according to the Librarian, then it changes the internal state of the file to DELETED, and then reports this state change to the Librarian 
+- the Librarian does not add this change to the file, because the file does not exists
+- the shepherd removes the replica in the reportingThread
+
+asking stat from the shepherd of a deleted file's replica:
+
+stat {'0': '89db7be1-7d16-4ecc-8bb9-286d05b01063'}
+{'0': {'referenceID': '89db7be1-7d16-4ecc-8bb9-286d05b01063', 'checksumType': 'md5', 'checksum': '34bce277cbf51f79fe4a25d8f648dac1', 'localID': '5ee9f959-c773-4c9a-8404-f1f8323e4a60', 'acl': '', 'state': 'alive', 'GUID': 'e80f4ac6-8a79-48e7-8319-c13cb1a84129', 'size': '6821'}}
+stat {'0': '89db7be1-7d16-4ecc-8bb9-286d05b01063'}
+{'0': {'referenceID': '89db7be1-7d16-4ecc-8bb9-286d05b01063', 'checksumType': 'md5', 'checksum': '34bce277cbf51f79fe4a25d8f648dac1', 'localID': '5ee9f959-c773-4c9a-8404-f1f8323e4a60', 'acl': '', 'state': 'deleted', 'GUID': 'e80f4ac6-8a79-48e7-8319-c13cb1a84129', 'size': '6821'}}
+stat {'0': '89db7be1-7d16-4ecc-8bb9-286d05b01063'}
+{'0': {'referenceID': '89db7be1-7d16-4ecc-8bb9-286d05b01063', 'checksumType': 'None', 'checksum': 'None', 'localID': 'None', 'acl': 'None', 'state': 'None', 'GUID': 'None', 'size': 'None'}}
+
+TODO: I think maybe the shepherd should simply remove the moment the librarian responds that the file is delete, and then this change to DELETED state is not needed - removing the file in the reportingThread is not a good concept, because the reportingThread should do only reportint, it does not change anything in the shepherd, just reports to the Librarian
+
+
+delete a replica via the shepherd
+---------------------------------
+- calling the shepherd delete method change the file's state to DELETED
+- when the shepherd does the periodic reporting, then it checks the state of files, and if a file has a DELETED state, then removes the file, then report to the Librarian that the file is DELETED
+- the Librarian sets the state of the given location to DELETED - which remains there because the shepherd already removed the file, and will never report anything about that replica again
+
+TODO: removing the actual file in the reportingThread is not good - maybe remove the actual file directly in the remove() method (backend.remove), but we want to somehow the deletion to the librarian, so we should not remove the local metadata in the remove() method, but change the state to DELETED, and we remove the local metadata in the reportingThread (store.set(..., None) ) if the state is DELETED, and report it to the Librarian (still I don't like the idea of changing anything in the reportingThread... any other idea?) - the Librarian should remove that locations where it gets a DELETED state (in the _change_states() method of the Librarian)
+
+
+delete a replica via the bartender
+----------------------------------
+- what if we want to use something similar as with deleting the whole file - remove the replica just from the Librarian and then let the Shepherd notice that and remove the replica: this could be useful, if the shepherd was offline for a while, and we removed that location from the librarian, then the shepherd comes online again and reports that it has that file - but we don't want that location to reappear in the list of location if we removed that deliberately when the shepherd was offline
+- currently if a shepherd reports that it has a valid replica of something and that file exists then the Librarian will add that location
+- what if we restrict the addition of locations e.g.:
+    - a reported replica location is only added to an existing file (this is already implemented)
+    - if the reported replica location is not already in the list of locations:
+        if the reported state is CREATING - we could add this new location
+        if the reported state is anything else (ALIVE, INVALID) - we don't add it
+    - if the reported replica location is already int the list of locations:
+        we change the state to the reported state
+        if the reported state is DELETED, we remove that location
+
+the shepherd should somehow check that its location is not in the list of locations so it should remove the file
+this could be problematic if the file is uploaded between reporting cycles, then it starts with an ALIVE state, and won't be added?
+or this could not happen?
+TODO: think this again, I am tired now...
+
