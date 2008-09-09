@@ -16,8 +16,9 @@ class HardlinkingBackend:
     public_request_names = []
     supported_protocols = ['http']
 
-    def __init__(self, backendcfg, ns_uri, file_arrived, log):
+    def __init__(self, backendcfg, ns_uri, file_arrived, log, ssl_config):
         """docstring for __init__"""
+        self.ssl_config = ssl_config
         self.log = log
         self.file_arrived = file_arrived
         #self.ns = arc.NS({'she' : ns_uri})
@@ -61,14 +62,14 @@ class HardlinkingBackend:
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
         self.log('DEBUG', self.turlprefix, 'Uploading file to', turl)
-        upload_to_turl(turl, protocol, f)
+        upload_to_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
         self.log('DEBUG', self.turlprefix, 'Downloading file from', turl)
-        download_from_turl(turl, protocol, f)
+        download_from_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
 
     def prepareToGet(self, referenceID, localID, protocol):
@@ -128,8 +129,8 @@ class HopiBackend( HardlinkingBackend ):
     Backend for Hopi with hardlinking
     """
 
-    def __init__(self, backendcfg, ns_uri, file_arrived, log):
-        HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, log)
+    def __init__(self, *args):
+        HardlinkingBackend.__init__(self, *args)
         self.log('DEBUG', "HopiBackend datadir:", self.datadir)
         self.log('DEBUG', "HopiBackend transferdir:", self.transferdir)        
 
@@ -141,8 +142,8 @@ class ApacheBackend( HardlinkingBackend ):
     Backend for Apache with hardlinking
     """
 
-    def __init__(self, backendcfg, ns_uri, file_arrived, log):
-        HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, log)
+    def __init__(self, *args):
+        HardlinkingBackend.__init__(self, *args)
         self.apacheuser = str(backendcfg.Get('ApacheUser'))
         self.uid = os.getuid()
         _, _, _, self.apachegid, _, _, _ = pwd.getpwnam(self.apacheuser) 

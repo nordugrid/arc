@@ -1213,6 +1213,10 @@ else:
     except:
         bartender_url = 'http://localhost:60000/Bartender'
         print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
+    try:
+        needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
+    except:
+        needed_replicas = 1
     ssl_config = {}
     if bartender_url.startswith('https'):
         try:
@@ -1325,7 +1329,7 @@ else:
             if LN.endswith('/'):
                 LN = LN + filename.split('/')[-1]
             metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
-                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 1}
+                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : needed_replicas}
             request = {'0': (LN, metadata, ['http'])}
             #print 'putFile', request
             response = call_it('putFile', request)

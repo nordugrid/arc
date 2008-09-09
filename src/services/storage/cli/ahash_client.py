@@ -1,4 +1,4 @@
-import arc, sys
+import arc, sys, os
 from storage.xmltree import XMLTree
 from storage.client import AHashClient
 print ":".join(sys.argv)
@@ -8,7 +8,23 @@ if len(args) > 0 and args[0] == '-x':
     print_xml = True
 else:
     print_xml = False
-ahash = AHashClient('http://localhost:60000/AHash', print_xml)
+try:
+    ahash_url = os.environ['ARC_AHASH_URL']
+    # print '- The URL of the A-Hash:', ahash_url
+except:
+    ahash_url = 'http://localhost:60000/AHash'
+    print '- ARC_AHASH_URL environment variable not found, using', ahash_url
+ssl_config = {}
+if ahash_url.startswith('https'):
+    try:
+        ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
+        ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
+        # print '- The key file:', ssl_config['key_file']
+        # print '- The cert file:', ssl_config['cert_file']
+    except:
+        ssl_config = {}
+        print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
+ahash = AHashClient(ahash_url, print_xml, ssl_config = ssl_config)    
 if len(args) == 0 or args[0] not in ['get', 'change', 'changeIf']:
     print 'Supported methods: get, change, changeIf'
 else:

@@ -1,4 +1,4 @@
-import arc, sys, time
+import arc, sys, time, os
 from storage.xmltree import XMLTree
 from storage.client import LibrarianClient
 args = sys.argv[1:]
@@ -7,7 +7,23 @@ if len(args) > 0 and args[0] == '-x':
     print_xml = True
 else:
     print_xml = False
-librarian = LibrarianClient('http://localhost:60000/Librarian', print_xml)
+try:
+    librarian_url = os.environ['ARC_LIBRARIAN_URL']
+    # print '- The URL of the Librarian:', librarian_url
+except:
+    librarian_url = 'http://localhost:60000/Librarian'
+    print '- ARC_LIBRARIAN_URL environment variable not found, using', librarian_url
+ssl_config = {}
+if librarian_url.startswith('https'):
+    try:
+        ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
+        ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
+        # print '- The key file:', ssl_config['key_file']
+        # print '- The cert file:', ssl_config['cert_file']
+    except:
+        ssl_config = {}
+        print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
+librarian = LibrarianClient(librarian_url, print_xml, ssl_config = ssl_config)    
 if len(args) == 0 or args[0] not in ['new', 'get', 'traverseLN', 'modifyMetadata', 'remove']:
     print 'Supported methods: new get traverseLN modifyMetadata'
 else:

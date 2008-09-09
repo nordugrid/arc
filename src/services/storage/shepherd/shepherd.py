@@ -20,9 +20,13 @@ class Shepherd:
     def __init__(self, cfg, log):
         self.log = log
         try:
+            ssl_config = parse_ssl_config(cfg)
+        except:
+            self.log('ERROR', 'Error parsing client SSL config')
+        try:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
-            self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.log)
+            self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.log, ssl_config)
         except:
             self.log('DEBUG', 'Cannot import backend class', backendclass)
             raise
@@ -34,7 +38,6 @@ class Shepherd:
             self.log('DEBUG', 'Cannot import store class', storeclass)
             raise
         try:
-            ssl_config = parse_ssl_config(cfg)
             librarianURL = str(cfg.Get('LibrarianURL'))
             self.librarian = LibrarianClient(librarianURL, ssl_config = ssl_config)
             bartenderURL = str(cfg.Get('BartenderURL'))
@@ -110,12 +113,14 @@ class Shepherd:
         #print 'Checking checksum', referenceID
         # get the local data of this file
         localData = self.store.get(referenceID)
-        # TODO: why is this here? it seems impossible to have a file without a localID (which is set in the get() method)
-        if not localData.has_key('localID'):
-            return CREATING, None, None
         # ask the backend to create the checksum of the file 
         current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
         # get the original checksum
+        # TODO: maybe we should use the checksum from the Librarian and not the locally stored one?
+        #     what if this shepherd was offline for a long time, and when it goes online again
+        #     the file with this GUID is changed somehow on the other Shepherds, so the checksum is different in the Librarian
+        #     but this still thinks that the file is OK according to the old checksum, and reports that
+        #     is it a scenario which could happen?
         checksum = localData['checksum']
         # get the current state (which is stored locally) or an empty string if it somehow has no state
         state = localData.get('state','')
@@ -133,7 +138,7 @@ class Shepherd:
             # or if the checksum is not the same - we have a corrupt file, or a not-fully-uploaded one
             if state == CREATING:
                 # if the file's local state is CREATING, that's OK, the file is still being uploaded
-                return CREATING, None, None
+                return CREATING, localData['GUID'], localData['localID']
             if state != INVALID:
                 # but if it is not INVALID and not CREATING - so it's ALIVE or DELETED: its state should be changed to INVALID
                 # TODO: changing the DELETED state seems wrong here
@@ -143,13 +148,12 @@ class Shepherd:
         
     def _file_arrived(self, referenceID):
         # this is called usually by the backend when a file arrived (gets fully uploaded)
-        # let's change its state to ALIVE, but only if it is CREATING (do not change if it is INVALID or DELETED)
-        self.changeState(referenceID, ALIVE, onlyIf = CREATING)
-        # call the checksum checker which will change it's state to INVALID if its checksum is not OK
-        return self._checking_checksum(referenceID)
-        # TODO: why set the file's state to ALIVE if the _checking_checksum method will change it anyways if it's valid? 
-        #       maybe the changeState call can be removed and just call _checking_checksum?
+        # call the checksum checker which will change the state to ALIVE if its checksum is OK, but leave it as CREATING if the checksum is wrong
         # TODO: either this checking should be in seperate thread, or the backend's should call this in a seperate thread?
+        state, _, _ = self._checking_checksum(referenceID)
+        # if _checking_checksum haven't change the state to ALIVE: the file is corrupt
+        if state == CREATING:
+            self.changeState(referenceID, INVALID)
         
     def checkingThread(self, period):
         # first just wait a few seconds
