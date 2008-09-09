@@ -233,7 +233,7 @@ sub queue_info ($) {
     $lrms_queue->{status} = 0 if $lrms_queue->{status} < 0;
 
     my $job_limit;
-    unless ( exists $qopts->{fork_job_limit} ) {
+    if ( not $qopts->{fork_job_limit} ) {
        $job_limit = 1;
     } elsif ($qopts->{fork_job_limit} eq "cpunumber") {
         $job_limit = $lrms_queue->{totalcpus};
@@ -244,7 +244,7 @@ sub queue_info ($) {
     $lrms_queue->{maxuserrun} = $job_limit;
     $lrms_queue->{maxqueuable} = $job_limit;
 
-    chomp( my $maxcputime = `ulimit "-t" 2>/dev/null` );
+    chomp( my $maxcputime = `ulimit "-t"` );
     if ($maxcputime =~ /^\d+$/) {
         $lrms_queue->{maxcputime} = $maxcputime;
         $lrms_queue->{maxwalltime} = $maxcputime;
