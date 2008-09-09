@@ -268,12 +268,12 @@ exit 0
 %{_libexecdir}/gm-kick
 #
 %{_libexecdir}/ARC0mod.pm
-%{_libexecdir}/Condor.pm
-%{_libexecdir}/Fork.pm
+%{_libexecdir}/CONDOR.pm
+%{_libexecdir}/FORKmod.pm
 %{_libexecdir}/LL.pm
 %{_libexecdir}/LSF.pm
 %{_libexecdir}/PBS.pm
-%{_libexecdir}/SGE.pm
+%{_libexecdir}/SGEmod.pm
 #
 %{_libexecdir}/ARC0ClusterInfo.pm
 %{_libexecdir}/ARC0ClusterSchema.pm
