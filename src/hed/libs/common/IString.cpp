@@ -25,9 +25,10 @@ namespace Arc {
 
   const char* FindTrans(const char* p) {
 #ifdef ENABLE_NLS
-    return dgettext(PACKAGE, p);
+    return dgettext(PACKAGE, p ? *p ? p : istring("(empty)") :
+		    istring("(null)"));
 #else
-    return p;
+    return p ? *p ? p : "(empty)" : "(null)";
 #endif
   }
 
