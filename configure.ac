@@ -956,7 +956,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcls.1
                  src/clients/data/arcrm.1
                  src/clients/echo/Makefile
-                 src/clients/echo/apecho.1
+                 src/clients/echo/arcecho.1
                  src/clients/charon/Makefile
                  src/clients/charon/arcdecision.1
                  src/clients/isis/Makefile

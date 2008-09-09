@@ -1,12 +1,12 @@
 .\" -*- nroff -*-
 .TH APECHO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
-apecho \- ARC echo client
+arcecho \- ARC echo client
 .SH SYNOPSIS
-.B apecho message
+.B arcecho message
 .SH DESCRIPTION
 .PP
-apecho is a simple service test tool, we can send a message to the echo service and it will response this message a bit else
+arcecho is a simple service test tool, we can send a message to the echo service and it will response this message a bit else
 .SH OPTIONS
 .TP
 \fB\ message\fR

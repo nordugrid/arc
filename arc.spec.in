@@ -207,8 +207,8 @@ exit 0
 %doc src/clients/echo/echo_client.xml
 %doc src/tests/echo/echo.xml
 %doc src/tests/echo/echo.wsdl
-%{_bindir}/apecho
-%doc %{_mandir}/man1/apecho.1*
+%{_bindir}/arcecho
+%doc %{_mandir}/man1/arcecho.1*
 %{_bindir}/arcinfo
 %doc %{_mandir}/man1/arcinfo.1*
 %{_bindir}/arcproxy

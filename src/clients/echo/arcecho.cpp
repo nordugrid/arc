@@ -1,4 +1,4 @@
-// apecho.cpp
+// arcecho.cpp
 
 #include <iostream>
 #include <fstream>
@@ -11,7 +11,7 @@
   "ap" means "Arc Prototype".
   
   Usage:
-  apecho <message>
+  arcecho <message>
 
   Arguments:
   <message> A message that the echo service shall return back again.

@@ -1,6 +1,6 @@
 usr/bin/arcinfo
 usr/bin/arcproxy
-usr/bin/apecho
+usr/bin/arcecho
 usr/bin/perftest
 usr/bin/arccat
 usr/bin/arccp
@@ -13,7 +13,7 @@ usr/bin/arckill
 usr/bin/arcclean
 @STORAGE_SERVICE_ENABLED_TRUE@usr/bin/arc_storage_cli
 usr/bin/arcdecision
-usr/share/man/man1/apecho.1
+usr/share/man/man1/arcecho.1
 usr/share/man/man1/arcinfo.1
 usr/share/man/man1/arcproxy.1
 usr/share/man/man1/arccat.1
