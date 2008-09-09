@@ -14,11 +14,30 @@
 namespace Arc {
 
   struct ThreadArg {
-    Arc::TargetGenerator *mom;
-    Arc::URL url;
+    TargetGenerator *mom;
+    std::string proxyPath;
+    std::string certificatePath;
+    std::string keyPath;
+    std::string caCertificatesDir;
+    URL url;
     int targetType;
     int detailLevel;
   };
+
+  ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom,
+						  int targetType,
+						  int detailLevel) {
+    ThreadArg *arg = new ThreadArg;
+    arg->mom = &mom;
+    arg->proxyPath = proxyPath;
+    arg->certificatePath = certificatePath;
+    arg->keyPath = keyPath;
+    arg->caCertificatesDir = caCertificatesDir;
+    arg->url = url;
+    arg->targetType = targetType;
+    arg->detailLevel = detailLevel;
+    return arg;
+  }
 
   Logger TargetRetrieverARC1::logger(TargetRetriever::logger, "ARC1");
 
@@ -40,11 +59,7 @@ namespace Arc {
     if (serviceType == "computing") {
       bool added = mom.AddService(url);
       if (added) {
-	ThreadArg *arg = new ThreadArg;
-	arg->mom = &mom;
-	arg->url = url;
-	arg->targetType = targetType;
-	arg->detailLevel = detailLevel;
+	ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
 	if (!CreateThreadFunction(&InterrogateTarget, arg)) {
 	  delete arg;
 	  mom.RetrieverDone();
@@ -55,11 +70,7 @@ namespace Arc {
     else if (serviceType == "index") {
       bool added = mom.AddIndexServer(url);
       if (added) {
-	ThreadArg *arg = new ThreadArg;
-	arg->mom = &mom;
-	arg->url = url;
-	arg->targetType = targetType;
-	arg->detailLevel = detailLevel;
+	ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
 	if (!CreateThreadFunction(&QueryIndex, arg)) {
 	  delete arg;
 	  mom.RetrieverDone();
@@ -84,19 +95,23 @@ namespace Arc {
   }
 
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
-    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
-    URL& url = ((ThreadArg *)arg)->url;
-    // int& targetType = ((ThreadArg *)arg)->targetType;
-    // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    ThreadArg* thrarg = (ThreadArg*)arg;
+    TargetGenerator& mom = *thrarg->mom;
+    URL& url = thrarg->url;
 
-    Arc::MCCConfig cfg;
-    UserConfig uc;
-    const XMLNode cfgtree = uc.ConfTree();
-    cfg.AddProxy(cfgtree["ProxyPath"]);
-    Arc::AREXClient ac(url, cfg);
+    MCCConfig cfg;
+    if (!thrarg->proxyPath.empty())
+      cfg.AddProxy(thrarg->proxyPath);
+    if (!thrarg->certificatePath.empty())
+      cfg.AddCertificate(thrarg->certificatePath);
+    if (!thrarg->keyPath.empty())
+      cfg.AddPrivateKey(thrarg->keyPath);
+    if (!thrarg->caCertificatesDir.empty())
+      cfg.AddCADir(thrarg->caCertificatesDir);
+    AREXClient ac(url, cfg);
     std::string status;
     if (!ac.sstat(status)) {
-      delete (ThreadArg *)arg;
+      delete thrarg;
       mom.RetrieverDone();
     }
     XMLNode ServerStatus(status);
@@ -130,7 +145,7 @@ namespace Arc {
 
     mom.AddTarget(target);
 
-    delete (ThreadArg *)arg;
+    delete thrarg;
     mom.RetrieverDone();
   }
 

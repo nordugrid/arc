@@ -12,6 +12,7 @@
 namespace Arc {
 
   class Loader;
+  class UserConfig;
 
   struct Benchmark{
     std::string Type;
@@ -139,7 +140,7 @@ namespace Arc {
     std::list<ApplicationEnvironment> ApplicationEnvironments;
 
     //Other
-    Submitter *GetSubmitter() const;
+    Submitter *GetSubmitter(const UserConfig& ucfg) const;
     std::string GridFlavour;
     URL Source;
     URL Cluster;

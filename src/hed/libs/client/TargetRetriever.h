@@ -23,6 +23,7 @@ namespace Arc {
   protected:
     URL url;
     std::string serviceType;
+
     static Logger logger;
   };
 

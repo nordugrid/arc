@@ -4,17 +4,19 @@
 #include <list>
 #include <string>
 
-#include <arc/client/JobController.h>
-#include <arc/loader/Loader.h>
-#include <arc/Logger.h>
-
 namespace Arc {
+
+  class JobController;
+  class Loader;
+  class Logger;
+  class UserConfig;
 
   class JobSupervisor {
   public:
     JobSupervisor(std::string joblist, std::list<std::string> jobids);
     
-    JobSupervisor(const std::list<std::string>& jobs,
+    JobSupervisor(const UserConfig& ucfg,
+		  const std::list<std::string>& jobs,
 		  const std::list<std::string>& clusterselect,
 		  const std::list<std::string>& clusterreject,
 		  const std::string joblist);
@@ -25,9 +27,8 @@ namespace Arc {
     
   private:
     static Logger logger;
-    Loader *ACCloader;
+    Loader *loader;
     std::list<Arc::JobController*> JobControllers;
-
   };
 
 } //namespace ARC

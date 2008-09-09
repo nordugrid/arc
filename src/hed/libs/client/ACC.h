@@ -7,9 +7,14 @@ namespace Arc {
 
   class ACC {
   protected:
-    ACC() {}
+    ACC(Config *cfg);
   public:
-    virtual ~ACC() {}
+    virtual ~ACC();
+  protected:
+    std::string proxyPath;
+    std::string certificatePath;
+    std::string keyPath;
+    std::string caCertificatesDir;
   };
 
   class ACCConfig

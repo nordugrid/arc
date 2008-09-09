@@ -21,10 +21,11 @@ namespace Arc {
 
         class CREAMClient {
             public:
-	  CREAMClient(const URL& url,const MCCConfig& cfg);
+                CREAMClient(const URL& url,const MCCConfig& cfg);
                 ~CREAMClient();
                 void setDelegationId(const std::string& delegId) { this->delegationId = delegId; };
-                bool createDelegation(const std::string& delegation_id);
+                bool createDelegation(const std::string& delegation_id,
+                                      const std::string& proxy);
                 bool destroyDelegation(const std::string& delegation_id);
                 bool registerJob(const std::string& jdl_text, creamJobInfo& info);
                 bool startJob(const std::string& jobid);

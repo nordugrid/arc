@@ -9,6 +9,16 @@
 #include <arc/client/ACC.h>
 
 namespace Arc {
+
+  ACC::ACC(Config *cfg) {
+    proxyPath = (std::string)(*cfg)["ProxyPath"];
+    certificatePath = (std::string)(*cfg)["CertificatePath"];
+    keyPath = (std::string)(*cfg)["KeyPath"];
+    caCertificatesDir = (std::string)(*cfg)["CACertificatesDir"];
+  }
+
+  ACC::~ACC() {}
+
   XMLNode ACCConfig::MakeConfig(XMLNode cfg) const {
     XMLNode mm = BaseConfig::MakeConfig(cfg);
     std::list<std::string> accs;

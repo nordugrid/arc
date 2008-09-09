@@ -25,7 +25,8 @@ namespace Arc {
 
     FTPControl ctrl;
 
-    if (!ctrl.Connect(submissionEndpoint, 500)) {
+    if (!ctrl.Connect(submissionEndpoint,
+		      proxyPath, certificatePath, keyPath, 500)) {
       logger.msg(ERROR, "Submit: Failed to connect");
       return false;
     }

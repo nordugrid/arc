@@ -18,11 +18,19 @@ namespace Arc {
 
   bool SubmitterCREAM::Submit(JobDescription& jobdesc, XMLNode &info) {
     MCCConfig cfg;
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
     std::string delegationid = UUID();
     URL url(submissionEndpoint);
     url.ChangePath("ce-cream/services/gridsite-delegation");
     CREAMClient gLiteClient1(url, cfg);
-    if (!gLiteClient1.createDelegation(delegationid)) {
+    if (!gLiteClient1.createDelegation(delegationid, proxyPath)) {
       logger.msg(ERROR, "Create delegation failed");
       return false;
     }

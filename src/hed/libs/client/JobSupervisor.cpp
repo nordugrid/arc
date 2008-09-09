@@ -6,14 +6,17 @@
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/Loader.h>
+#include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/client/UserConfig.h>
 
 namespace Arc {
 
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
   
-  JobSupervisor::JobSupervisor(const std::list<std::string>& jobs,
+  JobSupervisor::JobSupervisor(const UserConfig& ucfg,
+			       const std::list<std::string>& jobs,
 			       const std::list<std::string>& clusterselect,
 			       const std::list<std::string>& clusterreject,
 			       const std::string joblist){
@@ -35,10 +38,10 @@ namespace Arc {
 
       for (std::list<std::string>::const_iterator it = jobs.begin();
 	   it != jobs.end(); it++) {
-	std::list<Arc::XMLNode> XMLJobs =
-	  JobIdStorage.XPathLookup("//Job[JobID='"+ *it+"']", Arc::NS());
+	std::list<XMLNode> XMLJobs =
+	  JobIdStorage.XPathLookup("//Job[JobID='"+ *it+"']", NS());
 	if(!XMLJobs.empty()) {
-	  Arc::XMLNode &ThisXMLJob = *XMLJobs.begin();
+	  XMLNode &ThisXMLJob = *XMLJobs.begin();
 	  if (std::find(NeededControllers.begin(), NeededControllers.end(),
 			(std::string) ThisXMLJob["Flavour"]) == NeededControllers.end()){
 	    std::string flavour = (std::string) ThisXMLJob["Flavour"];
@@ -46,17 +49,18 @@ namespace Arc {
 	    NeededControllers.push_back(flavour);
 	  }  
 	} else{
-	  std::cout<<Arc::IString("Job Id = %s not found", (*it))<<std::endl;
+	  std::cout<<IString("Job Id = %s not found", (*it))<<std::endl;
 	}
       }
-    } else{ //load controllers for all grid flavours present in joblist
+    }
+    else { //load controllers for all grid flavours present in joblist
 
       logger.msg(DEBUG, "Identifying needed JobControllers according to all jobs present in joblist");
 
-      Arc::XMLNodeList ActiveJobs =
-	JobIdStorage.XPathLookup("/ArcConfig/Job", Arc::NS());
-      
-      for (Arc::XMLNodeList::iterator JobIter = ActiveJobs.begin();
+      XMLNodeList ActiveJobs =
+	JobIdStorage.XPathLookup("/ArcConfig/Job", NS());
+
+      for (XMLNodeList::iterator JobIter = ActiveJobs.begin();
 	   JobIter != ActiveJobs.end(); JobIter++) {
 	if (std::find(NeededControllers.begin(), NeededControllers.end(),
 		      (std::string)(*JobIter)["Flavour"]) == NeededControllers.end()){
@@ -65,41 +69,38 @@ namespace Arc {
 	  NeededControllers.push_back((std::string)(*JobIter)["Flavour"]);
 	}
       }
-    
     }
 
-    Arc::ACCConfig acccfg;
-    Arc::NS ns;
-    Arc::Config mcfg(ns);
+    ACCConfig acccfg;
+    NS ns;
+    Config mcfg(ns);
     acccfg.MakeConfig(mcfg);
-    
-    std::list<std::string>::const_iterator iter;
-    int JobControllerNumber = 1;
-    
-    for(iter = NeededControllers.begin(); iter != NeededControllers.end(); iter++){
-      Arc::XMLNode ThisJobController = mcfg.NewChild("ArcClientComponent");
-      ThisJobController.NewAttribute("name") = "JobController"+ (*iter);
-      ThisJobController.NewAttribute("id") = "controller" + Arc::tostring(JobControllerNumber);
-      ThisJobController.NewChild("joblist") = joblist;      
+    int JobControllerNumber = 0;
+
+    for (std::list<std::string>::const_iterator it = NeededControllers.begin();
+	 it != NeededControllers.end(); it++) {
+      XMLNode ThisJobController = mcfg.NewChild("ArcClientComponent");
+      ThisJobController.NewAttribute("name") = "JobController" + (*it);
+      ThisJobController.NewAttribute("id") = "controller" + tostring(JobControllerNumber);
+      ucfg.ApplySecurity(ThisJobController);
+      ThisJobController.NewChild("joblist") = joblist;
       JobControllerNumber++;
     }
-    
-    ACCloader = new Loader(&mcfg);
 
-    for(int i = 1; i < JobControllerNumber; i++){
-      JobController *JC = dynamic_cast<JobController*> (ACCloader->getACC("controller"+Arc::tostring(i)));
+    loader = new Loader(&mcfg);
+
+    for(int i = 0; i < JobControllerNumber; i++){
+      JobController *JC = dynamic_cast<JobController*>(loader->getACC("controller" + tostring(i)));
       if(JC) {
 	JobControllers.push_back(JC);
 	(*JobControllers.rbegin())->FillJobStore(jobs, clusterselect, clusterreject);
       }
     }
-    
   }
-  
+
   JobSupervisor::~JobSupervisor() {
-    
-    if (ACCloader)
-      delete ACCloader;
+    if (loader)
+      delete loader;
   }
 
 } // namespace Arc

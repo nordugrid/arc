@@ -23,6 +23,14 @@ namespace Arc {
     for (std::list<Job>::iterator iter = JobStore.begin();
 	 iter != JobStore.end(); iter++) {
       MCCConfig cfg;
+      if (!proxyPath.empty())
+	cfg.AddProxy(proxyPath);
+      if (!certificatePath.empty())
+	cfg.AddCertificate(certificatePath);
+      if (!keyPath.empty())
+	cfg.AddPrivateKey(keyPath);
+      if (!caCertificatesDir.empty())
+	cfg.AddCADir(caCertificatesDir);
       PathIterator pi(iter->JobID.Path(), true);
       URL url(iter->JobID);
       url.ChangePath(*pi);
@@ -68,6 +76,14 @@ namespace Arc {
   bool JobControllerCREAM::CleanThisJob(Job ThisJob, bool force) {
 
     MCCConfig cfg;
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);
@@ -82,6 +98,14 @@ namespace Arc {
   bool JobControllerCREAM::CancelThisJob(Job ThisJob){
 
     MCCConfig cfg;
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
     PathIterator pi(ThisJob.JobID.Path(), true);
     URL url(ThisJob.JobID);
     url.ChangePath(*pi);

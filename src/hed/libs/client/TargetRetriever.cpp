@@ -7,7 +7,7 @@ namespace Arc {
   Logger TargetRetriever::logger(Logger::getRootLogger(), "TargetRetriever");
 
   TargetRetriever::TargetRetriever(Config *cfg)
-    : ACC() {
+    : ACC(cfg) {
     url = (std::string)(*cfg)["URL"];
     serviceType = (std::string)(*cfg)["URL"].Attribute("ServiceType");
   }

@@ -4,6 +4,7 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/loader/Loader.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/client/UserConfig.h>
 
 namespace Arc {
 
@@ -54,7 +55,7 @@ namespace Arc {
 
   ExecutionTarget::~ExecutionTarget() {}
 
-  Submitter *ExecutionTarget::GetSubmitter() const {
+  Submitter *ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
 
     ACCConfig acccfg;
     NS ns;
@@ -64,6 +65,8 @@ namespace Arc {
     XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
     SubmitterComp.NewAttribute("name") = "Submitter" + GridFlavour;
     SubmitterComp.NewAttribute("id") = "submitter";
+    if (!ucfg.ApplySecurity(SubmitterComp))
+      return NULL;
     SubmitterComp.NewChild("Endpoint") = url.str();
     SubmitterComp.NewChild("Source") = Source.str();
     SubmitterComp.NewChild("MappingQueue") = MappingQueue;

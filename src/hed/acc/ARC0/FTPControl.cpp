@@ -5,8 +5,23 @@
 #include <arc/Logger.h>
 #include <arc/Thread.h>
 
+#include <globus_gsi_credential.h>
+
 #include "FTPControl.h"
 #include "GlobusErrorUtils.h"
+
+// This is a bit of a hack - using an internal globus gssapi function
+// which is not available in any public header.
+// But I have not found any other way to use a non-standard proxy or
+// certificate location without setting environment variables,
+// which we don't want to do since we are using threads.
+
+extern "C" {
+OM_uint32 globus_i_gsi_gss_create_cred(OM_uint32 *minor_status,
+				       const gss_cred_usage_t cred_usage,
+				       gss_cred_id_t *output_cred_handle_P,
+				       globus_gsi_cred_handle_t *cred_handle);
+}
 
 struct cbarg {
   Arc::SimpleCondition cond;
@@ -61,6 +76,10 @@ static void ReadWriteCallback(void *arg, globus_ftp_control_handle_t*,
   cb->cond.signal();
 }
 
+static int pwck(char*, int, int) {
+  return -1;
+}
+
 namespace Arc {
 
   Logger FTPControl::logger(Logger::getRootLogger(), "FTPControl");
@@ -73,7 +92,11 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_FTP_CONTROL_MODULE);
   }
 
-  bool FTPControl::Connect(const URL& url, int timeout) {
+  bool FTPControl::Connect(const URL& url,
+			   const std::string& proxyPath,
+			   const std::string& certificatePath,
+			   const std::string& keyPath,
+			   int timeout) {
 
     cbarg cb;
     bool timedin;
@@ -106,10 +129,65 @@ namespace Arc {
       return false;
     }
 
-    // should do some clever thing here to integrate ARC1 security framework
+    globus_gsi_cred_handle_t handle;
+    result = globus_gsi_cred_handle_init(&handle, NULL);
+    if (!result) {
+      logger.msg(ERROR, "Connect: Failed to init credential handle: %s",
+		 result.str());
+      return false;
+    }
+
+    if (!proxyPath.empty()) {
+      result = globus_gsi_cred_read_proxy(handle, proxyPath.c_str());
+      if (!result) {
+	logger.msg(ERROR, "Connect: Failed to read proxy file: %s",
+		   result.str());
+	globus_gsi_cred_handle_destroy(handle);
+	return false;
+      }
+    }
+    else if (!certificatePath.empty() || !keyPath.empty()) {
+      result =
+	globus_gsi_cred_read_cert(handle,
+				  const_cast<char*>(certificatePath.c_str()));
+      if (!result) {
+	logger.msg(ERROR, "Connect: Failed read certificate file: %s",
+		   result.str());
+	globus_gsi_cred_handle_destroy(handle);
+	return false;
+      }
+      result =
+	globus_gsi_cred_read_key(handle,
+				 const_cast<char*>(keyPath.c_str()),
+				 (int(*)())pwck);
+      if (!result) {
+	logger.msg(ERROR, "Connect: Failed to read key file: %s",
+		   result.str());
+	globus_gsi_cred_handle_destroy(handle);
+	return false;
+      }
+    }
+
+    gss_cred_id_t chandle;
+    OM_uint32 majstat, minstat;
+    majstat = globus_i_gsi_gss_create_cred(&minstat, GSS_C_BOTH,
+					   &chandle, &handle);
+    if (GSS_ERROR(majstat)) {
+      logger.msg(ERROR, "Connect: Failed to convert gsi credential to "
+		 "gss credential (major: %d, minor: %d)", majstat, minstat);
+      globus_gsi_cred_handle_destroy(handle);
+      return false;
+    }
+
+    result = globus_gsi_cred_handle_destroy(handle);
+    if (!result) {
+      logger.msg(ERROR, "Connect: Failed to destroy credential handle: %s",
+		 result.str());
+      return false;
+    }
+
     globus_ftp_control_auth_info_t auth;
-    result = globus_ftp_control_auth_info_init(&auth, GSS_C_NO_CREDENTIAL,
-					       GLOBUS_TRUE,
+    result = globus_ftp_control_auth_info_init(&auth, chandle, GLOBUS_TRUE,
 					       const_cast<char*>("ftp"),
 					       const_cast<char*>("user@"),
 					       GLOBUS_NULL, GLOBUS_NULL);

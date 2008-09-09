@@ -17,7 +17,7 @@ namespace Arc {
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
   Submitter::Submitter(Config *cfg)
-    : ACC() {
+    : ACC(cfg) {
     submissionEndpoint = (std::string)(*cfg)["Endpoint"];
     infoEndpoint = (std::string)(*cfg)["Source"];
     queue = (std::string)(*cfg)["MappingQueue"];

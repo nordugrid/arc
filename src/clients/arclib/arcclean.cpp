@@ -10,6 +10,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/UserConfig.h>
 
@@ -24,11 +25,11 @@ void arcclean(const std::list<std::string>& jobs,
 	      const bool force,
 	      const int timeout) {
 
-  Arc::UserConfig uc;
+  Arc::UserConfig uc("");
   if (!uc)
     return;
 
-  Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject,
+  Arc::JobSupervisor JobMaster(uc, jobs, clusterselect, clusterreject,
 			       joblist.empty() ? uc.JobsFile() : joblist);
 
   std::list<Arc::JobController*> TheJobControllers = JobMaster.GetJobControllers();

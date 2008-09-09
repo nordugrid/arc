@@ -17,8 +17,8 @@ namespace Arc {
   Logger JobController::logger(Logger::getRootLogger(), "JobController");
   
   JobController::JobController(Arc::Config *cfg, std::string flavour)
-    : ACC(), 
-      GridFlavour(flavour){
+    : ACC(cfg),
+      GridFlavour(flavour) {
     joblist = (std::string)(*cfg)["joblist"];
   }
 

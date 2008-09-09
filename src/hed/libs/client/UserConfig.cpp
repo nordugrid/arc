@@ -24,10 +24,10 @@ namespace Arc {
 
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
 
-  UserConfig::UserConfig()
-    : ok(false) {
+  UserConfig::UserConfig(const std::string& file)
+    : conffile(file),
+      ok(false) {
 
-    User user;
     struct stat st;
 
     if (stat(user.Home().c_str(), &st) != 0){
@@ -67,7 +67,8 @@ namespace Arc {
       return;
     }
 
-    conffile = confdir + "/client.xml";
+    if (conffile.empty())
+      conffile = confdir + "/client.xml";
 
     if (stat(conffile.c_str(), &st) != 0) {
       if (errno == ENOENT) {
@@ -111,130 +112,265 @@ namespace Arc {
       return;
     }
 
+    cfg.ReadFromFile(conffile);
+    syscfg.ReadFromFile(ArcLocation::Get() + "/etc/arcclient.xml");
+    if(!syscfg)
+      syscfg.ReadFromFile("/etc/arcclient.xml");
+    if(!syscfg)
+      logger.msg(WARNING, "Could not find system client configuration");
+
+    // Merge system and user configuration
+    XMLNode child;
+    for (int i = 0; (child = syscfg.Child(i)); i++)
+      if (!cfg[child.Name()])
+	for (XMLNode n = child; n; ++n)
+	  cfg.NewChild(n);
+
     ok = true;
   }
 
   UserConfig::~UserConfig() {}
 
-  const std::string& UserConfig::ConfFile() {
+  const std::string& UserConfig::ConfFile() const {
     return conffile;
   }
 
-  const std::string& UserConfig::JobsFile() {
+  const std::string& UserConfig::JobsFile() const {
     return jobsfile;
   }
 
-  const XMLNode UserConfig::ConfTree() {
+  bool UserConfig::ApplySecurity(XMLNode &ccfg) const {
 
-    if (!ok)
-      return cfg;
+    std::string path;
+    struct stat st;
 
-    if (!cfg) {
-      cfg.ReadFromFile(conffile);
-      syscfg.ReadFromFile(ArcLocation::Get() + "/etc/arcclient.xml");
-      if(!syscfg)
-	syscfg.ReadFromFile("/etc/arcclient.xml");
-      if(!syscfg)
-	logger.msg(ERROR, "Could not find system client configuration");
-
-      // Merge system and user configuration
-      XMLNode child;
-      for (int i = 0; (child = syscfg.Child(i)); i++)
-	if (!cfg[child.Name()])
-	  for (XMLNode n = child; n; ++n)
-	    cfg.NewChild(n);
-
-      User user;
-      std::string path;
-
-      // Proxy location
-      path = GetEnv("X509_USER_PROXY");
-      if (!path.empty())
-	if (!cfg["ProxyPath"])
-	  cfg.NewChild("ProxyPath") = path;
-	else
-	  cfg["ProxyPath"] = path;
-      else if (!cfg["ProxyPath"])
-	cfg.NewChild("ProxyPath") = "/tmp/x509up_u" + tostring(user.get_uid());
-
-      // Certificate location
-      path = GetEnv("X509_USER_CERT");
-      if (!path.empty())
-	if (!cfg["CertificatePath"])
-	  cfg.NewChild("CertificatePath") = path;
-	else
-	  cfg["CertificatePath"] = path;
-      else if (!cfg["CertificatePath"])
-	if (user.get_uid() == 0)
-	  cfg.NewChild("CertificatePath") = "/etc/grid-security/hostcert.pem";
-	else
-	  cfg.NewChild("CertificatePath") =
-	    user.Home() + "/.globus/usercert.pem";
-
-      // Private key location
-      path = GetEnv("X509_USER_KEY");
-      if (!path.empty())
-	if (!cfg["KeyPath"])
-	  cfg.NewChild("KeyPath") = path;
-	else
-	  cfg["KeyPath"] = path;
-      else if (!cfg["KeyPath"])
-	if (user.get_uid() == 0)
-	  cfg.NewChild("KeyPath") = "/etc/grid-security/hostkey.pem";
-	else
-	  cfg.NewChild("KeyPath") =
-	    user.Home() + "/.globus/userkey.pem";
-
-      // CA certificate directory location
-      path = GetEnv("X509_CERT_DIR");
-      if (!path.empty())
-	if (!cfg["CACertificatesDir"])
-	  cfg.NewChild("CACertificatesDir") = path;
-	else
-	  cfg["CACertificatesDir"] = path;
-      else if (!cfg["CACertificatesDir"])
-	cfg.NewChild("CACertificatesDir") = "/etc/grid-security/certificates";
+    if (!(path = GetEnv("X509_USER_PROXY")).empty()) {
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access proxy file: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Proxy is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using proxy file: %s", path);
+      ccfg.NewChild("ProxyPath") = path;
     }
 
-    return cfg;
+    else if (!(path = GetEnv("X509_USER_CERT")).empty()) {
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access certificate file: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Certificate is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using certificate file: %s", path);
+      ccfg.NewChild("CertificatePath") = path;
+
+      path = GetEnv("X509_USER_KEY");
+      if (path.empty()) {
+	logger.msg(ERROR, "X509_USER_CERT defined, but not X509_USER_KEY");
+	return false;
+      }
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access key file: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Key is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using key file: %s", path);
+      ccfg.NewChild("KeyPath") = path;
+    }
+
+    else if (!(path = (std::string) cfg["ProxyPath"]).empty()) {
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access proxy file: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Proxy is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using proxy file: %s", path);
+      ccfg.NewChild("ProxyPath") = path;
+    }
+
+    else if (!(path = (std::string) cfg["CertificatePath"]).empty()) {
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access certificate file: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Certificate is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using certificate file: %s", path);
+      ccfg.NewChild("CertificatePath") = path;
+
+      path = (std::string) cfg["KeyPath"];
+      if (path.empty()) {
+	logger.msg(ERROR, "CertificatePath defined, but not KeyPath");
+	return false;
+      }
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access key file: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Key is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using key file: %s", path);
+      ccfg.NewChild("KeyPath") = path;
+    }
+
+    else if (stat((path = "/tmp/x509up_u" +
+		   tostring(user.get_uid())).c_str(), &st) == 0) {
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Proxy is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using proxy file: %s", path);
+      ccfg.NewChild("ProxyPath") = path;
+    }
+
+    else {
+      logger.msg (WARNING, "Default proxy file does not exist: %s "
+		  "trying default certificate and key", path);
+      if (user.get_uid() == 0)
+	path = "/etc/grid-security/hostcert.pem";
+      else
+	path = user.Home() + "/.globus/usercert.pem";
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access certificate file: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Certificate is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using certificate file: %s", path);
+      ccfg.NewChild("CertificatePath") = path;
+
+      if (user.get_uid() == 0)
+	path = "/etc/grid-security/hostkey.pem";
+      else
+	path = user.Home() + "/.globus/userkey.pem";
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access key file: %s(%s)", path, StrError());
+	return false;
+      }
+      if (!S_ISREG(st.st_mode)) {
+	logger.msg(ERROR, "Key is not a file: %s", path);
+	return false;
+      }
+      logger.msg(INFO, "Using key file: %s", path);
+      ccfg.NewChild("KeyPath") = path;
+    }
+
+    if (!(path = GetEnv("X509_CERT_DIR")).empty()) {
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access CA certificate directory: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISDIR(st.st_mode)) {
+	logger.msg(ERROR, "CA certificate directory is not a directory: %s",
+		   path);
+	return false;
+      }
+      ccfg.NewChild("CACertificatesDir") = path;
+    }
+
+    else if (!(path = (std::string) cfg["CACertificatesDir"]).empty()) {
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access CA certificate directory: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISDIR(st.st_mode)) {
+	logger.msg(ERROR, "CA certificate directory is not a directory: %s",
+		   path);
+	return false;
+      }
+      logger.msg(INFO, "Using CA certificate directory: %s", path);
+      ccfg.NewChild("CACertificatesDir") = path;
+    }
+
+    else if (user.get_uid() != 0 &&
+	     stat((path = user.Home() +
+		   "/.globus/certificates").c_str(), &st) == 0) {
+      if (!S_ISDIR(st.st_mode)) {
+	logger.msg(ERROR, "CA certificate directory is not a directory: %s",
+		   path);
+	return false;
+      }
+      logger.msg(INFO, "Using CA certificate directory: %s", path);
+      ccfg.NewChild("CACertificatesDir") = path;
+    }
+
+    else {
+      path = "/etc/grid-security/certificates";
+      if (stat(path.c_str(), &st) != 0) {
+	logger.msg(ERROR, "Can not access CA certificate directory: %s(%s)",
+		   path, StrError());
+	return false;
+      }
+      if (!S_ISDIR(st.st_mode)) {
+	logger.msg(ERROR, "CA Certifcate directory is not a directory: %s",
+		   path);
+	return false;
+      }
+      logger.msg(INFO, "Using CA certificate directory: %s", path);
+      ccfg.NewChild("CACertificatesDir") = path;
+    }
+
+    return true;
   }
 
-  UserConfig::operator bool() {
+  UserConfig::operator bool() const {
     return ok;
   }
 
-  bool UserConfig::operator!() {
+  bool UserConfig::operator!() const {
     return !ok;
   }
 
-  std::list<std::string> UserConfig::ResolveAlias(std::string lookup, XMLNode cfg){
-    
-    std::list<std::string> ToBeReturned;
-    
-    //find alias in alias listing
-    XMLNodeList ResultList = cfg.XPathLookup("//Alias[@name='"+lookup+"']", Arc::NS());
-    if(ResultList.empty()){
-      ToBeReturned.push_back(lookup);
-    } else{
+  std::list<std::string> UserConfig::ResolveAlias(const std::string&
+						  lookup) const {
+    std::list<std::string> res;
 
-      XMLNode Result = *ResultList.begin();
-      
-      //read out urls from found alias
-      XMLNodeList URLs = Result.XPathLookup("//URL", Arc::NS());
-      
-      for(XMLNodeList::iterator iter = URLs.begin(); iter != URLs.end(); iter++){
-	ToBeReturned.push_back((std::string) (*iter));
-      }
-      //finally check for other aliases with existing alias
-      
-      for(XMLNode node = Result["Alias"]; node; ++node){
-	std::list<std::string> MoreURLs = ResolveAlias(node, cfg);
-	ToBeReturned.insert(ToBeReturned.end(), MoreURLs.begin(), MoreURLs.end());
+    //find alias in alias listing
+    XMLNodeList reslist = cfg.XPathLookup("//Alias[@name='" + lookup + "']",
+					  Arc::NS());
+    if (reslist.empty())
+      res.push_back(lookup);
+    else {
+      for (XMLNodeList::iterator it = reslist.begin();
+	   it != reslist.end(); it++) {
+
+	for(XMLNode node = (*it)["URL"]; node; ++node)
+	  res.push_back((std::string) (node));
+
+	for(XMLNode node = (*it)["Alias"]; node; ++node) {
+	  std::list<std::string> moreurls = ResolveAlias(node);
+	  res.insert(res.end(), moreurls.begin(), moreurls.end());
+	}
       }
     }
 
-    return ToBeReturned;
-
+    return res;
   }
 
 } // namespace Arc

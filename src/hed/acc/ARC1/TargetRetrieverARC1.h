@@ -11,6 +11,8 @@ namespace Arc {
   class URL;
   class XMLNode;
 
+  struct ThreadArg;
+
   class TargetRetrieverARC1
     : public TargetRetriever {
   private:
@@ -23,6 +25,10 @@ namespace Arc {
   private:
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
+
+    ThreadArg* CreateThreadArg(TargetGenerator& mom,
+			       int targetType, int detailLevel);
+
     static Logger logger;
   };
 

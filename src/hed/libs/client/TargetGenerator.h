@@ -15,10 +15,12 @@ namespace Arc {
   class Loader;
   class Logger;
   class URL;
+  class UserConfig;
 
   class TargetGenerator {
   public:
-    TargetGenerator(const std::list<std::string>& clusterselect,
+    TargetGenerator(const UserConfig& ucfg,
+		    const std::list<std::string>& clusterselect,
 		    const std::list<std::string>& clusterreject,
 		    const std::list<std::string>& giisurls);
     ~TargetGenerator();

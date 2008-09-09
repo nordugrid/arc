@@ -40,7 +40,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     return;
   }
 
-  Arc::UserConfig uc;
+  Arc::UserConfig uc("");
   if (!uc)
     return;
 
@@ -101,7 +101,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
   }
 
   //prepare targets
-  Arc::TargetGenerator TarGen(ClusterSelect, ClusterReject, IndexUrls);
+  Arc::TargetGenerator TarGen(uc, ClusterSelect, ClusterReject, IndexUrls);
   TarGen.GetTargets(0, 1);
 
   //store time of information request
@@ -145,7 +145,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 	   TarGen.FoundTargets().begin();
 	 target != TarGen.FoundTargets().end(); target++) {
 
-      Arc::Submitter *submitter = target->GetSubmitter();
+      Arc::Submitter *submitter = target->GetSubmitter(uc);
 
       Arc::NS ns;
       Arc::XMLNode info(ns, "Job");

@@ -5,7 +5,6 @@
 #include <string>
 
 #include <arc/client/JobDescription.h>
-#include <arc/client/UserConfig.h>
 
 #include "SubmitterARC1.h"
 #include "AREXClient.h"
@@ -26,9 +25,14 @@ namespace Arc {
   bool SubmitterARC1::Submit(JobDescription& jobdesc, XMLNode &info) {
 
     MCCConfig cfg;
-    UserConfig uc;
-    const XMLNode cfgtree = uc.ConfTree();
-    cfg.AddProxy(cfgtree["ProxyPath"]);
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
     AREXClient ac(submissionEndpoint, cfg);
 
     std::string jobdescstring;

@@ -10,6 +10,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/UserConfig.h>
@@ -27,20 +28,20 @@ void arcstat(const std::list<std::string>& jobs,
 	     const bool longlist,
 	     const int timeout) {
 
-  Arc::UserConfig uc;
+  Arc::UserConfig uc("");
   if (!uc)
     return;
 
   if (clusters) { // i.e we are looking for queue or cluster info, not jobs
     // retrieve information
-    Arc::TargetGenerator TarGen(clusterselect, clusterreject, giisurls);
+    Arc::TargetGenerator TarGen(uc, clusterselect, clusterreject, giisurls);
     TarGen.GetTargets(0, 1);
     // print information to screen
     TarGen.PrintTargetInfo(longlist);
   }
   else { // i.e we are looking for the status of jobs
 
-    Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject,
+    Arc::JobSupervisor JobMaster(uc, jobs, clusterselect, clusterreject,
 				 joblist.empty() ? uc.JobsFile() : joblist);
     
     std::list<Arc::JobController*> TheJobControllers = JobMaster.GetJobControllers();

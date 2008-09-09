@@ -206,7 +206,8 @@ namespace Arc {
     logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
 
     FTPControl ctrl;
-    if (!ctrl.Connect(ThisJob.JobID, 500)) {
+    if (!ctrl.Connect(ThisJob.JobID,
+		      proxyPath, certificatePath, keyPath, 500)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -242,7 +243,8 @@ namespace Arc {
     logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
 
     FTPControl ctrl;
-    if (!ctrl.Connect(ThisJob.JobID, 500)) {
+    if (!ctrl.Connect(ThisJob.JobID,
+		      proxyPath, certificatePath, keyPath, 500)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }

@@ -25,6 +25,7 @@ namespace Arc {
     URL submissionEndpoint;
     URL infoEndpoint;
     std::string queue;
+
     static Logger logger;
   };
 

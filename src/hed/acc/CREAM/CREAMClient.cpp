@@ -5,7 +5,6 @@
 #include <glibmm/miscutils.h>
 
 #include <arc/client/ClientInterface.h>
-#include <arc/client/UserConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
@@ -16,7 +15,7 @@
 namespace Arc{
 
         Logger CREAMClient::logger(Logger::rootLogger, "CREAM-Client");
-        
+
         static void set_cream_namespaces(NS& ns) {
             ns["SOAP-ENV"]="http://schemas.xmlsoap.org/soap/envelope/";
             ns["SOAP-ENC"]="http://schemas.xmlsoap.org/soap/encoding/";
@@ -26,22 +25,18 @@ namespace Arc{
             ns["ns2"]="http://glite.org/2007/11/ce/cream/types";
             ns["ns3"]="http://glite.org/2007/11/ce/cream";
         }
-                
+
         CREAMClient::CREAMClient(const URL& url, const MCCConfig& cfg)
           : client(NULL) {
             logger.msg(INFO, "Creating a CREAM client.");
-            MCCConfig modified_cfg = cfg;
-            UserConfig uc;
-            const XMLNode cfgtree = uc.ConfTree();
-            modified_cfg.AddProxy(cfgtree["ProxyPath"]);
-            client = new ClientSOAP(modified_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+            client = new ClientSOAP(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
             set_cream_namespaces(cream_ns);
         }
-        
+
         CREAMClient::~CREAMClient() {
             if(client) delete client;
         }
-        
+
         bool CREAMClient::stat(const std::string& jobid, std::string& status) {
             logger.msg(INFO, "Creating and sending a status request.");
             
@@ -56,10 +51,10 @@ namespace Arc{
                 XMLNode delegId = jobStatusRequest.NewChild("ns2:delegationProxyId", ns2);
                 delegId.Set(this->delegationId);
             }
-    
+
             // Send status request
             PayloadSOAP* resp = NULL;
-            
+
             if(client) {
                 MCC_Status status = client->process("http://glite.org/2007/11/ce/cream/JobStatus",&req,&resp);
                 if(resp == NULL) {
@@ -70,13 +65,13 @@ namespace Arc{
                 logger.msg(ERROR, "There is no connection chain configured.");
                 return false;
             }
-            
+
             XMLNode name, failureReason, fault;
             (*resp)["JobStatusResponse"]["result"]["jobStatus"]["name"].New(name);
             if ((*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"]) (*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"].New(failureReason);
             status = (std::string)name;
             std::string faultstring = (std::string)failureReason;
-            
+
             std::string result = (std::string)name;
             if ((*resp)["JobStatusResponse"]["result"]["JobUnknownFault"]) (*resp)["JobStatusResponse"]["result"]["JobUnknownFault"].New(fault);
             if ((*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"]) (*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"].New(fault);
@@ -96,12 +91,12 @@ namespace Arc{
             else {
                 return true;
             }
-            
+
         }  // CREAMClient::stat()
-        
+
         bool CREAMClient::cancel(const std::string& jobid) {
             logger.msg(INFO, "Creating and sending request to terminate a job.");
-    
+
             PayloadSOAP req(cream_ns);
             NS ns2;
             ns2["ns2"]="http://glite.org/2007/11/ce/cream/types";
@@ -109,7 +104,7 @@ namespace Arc{
             XMLNode jobId = jobCancelRequest.NewChild("ns2:jobId", ns2);
             XMLNode id = jobId.NewChild("ns2:id", ns2);
             id.Set(jobid);
-            
+
             // Send cancel request
             PayloadSOAP* resp = NULL;
             if(client) {
@@ -143,10 +138,10 @@ namespace Arc{
             }
             return true;
         }  // CREAMClient::cancel()
-        
+
         bool CREAMClient::purge(const std::string& jobid) {
             logger.msg(INFO, "Creating and sending request to clean a job.");
-            
+
             PayloadSOAP req(cream_ns);
             NS ns2;
             ns2["ns2"]="http://glite.org/2007/11/ce/cream/types";
@@ -155,7 +150,7 @@ namespace Arc{
             XMLNode id = jobId.NewChild("ns2:id", ns2);
             id.Set(jobid);
             XMLNode creamURL = jobId.NewChild("ns2:creamURL", ns2);
-            
+
             // Send clean request
             PayloadSOAP* resp = NULL;
             if(client) {
@@ -168,7 +163,7 @@ namespace Arc{
                 logger.msg(ERROR, "There is no connection chain configured.");
                 return false;
             }
-        
+
             XMLNode cancelled, fault;
             (*resp)["JobPurgeResponse"]["result"]["jobId"]["id"].New(cancelled);
             std::string result = (std::string)cancelled;
@@ -189,10 +184,10 @@ namespace Arc{
             }
             return true;
         }  // CREAMClient::purge()
-       
+
         bool CREAMClient::registerJob(const std::string& jdl_text, creamJobInfo& info) {
             logger.msg(INFO, "Creating and sending job register request.");
-            
+
             PayloadSOAP req(cream_ns);
             NS ns2;
             ns2["ns2"]="http://glite.org/2007/11/ce/cream/types";
@@ -207,9 +202,6 @@ namespace Arc{
             XMLNode autostart_node = act_job.NewChild("ns2:autoStart", ns2);
             autostart_node.Set("false");
             PayloadSOAP* resp = NULL;
-            
-            logger.msg(VERBOSE, "Job description to be sent: %s",jdl_text);
-            
             // Send job request
             if(client) {
                 MCC_Status status = client->process("http://glite.org/2007/11/ce/cream/JobRegister", &req,&resp);
@@ -248,7 +240,7 @@ namespace Arc{
                 }
                 ++property;
             }
-            
+
             delete resp;
             if ((bool)fault) {
                 logger.msg(ERROR, (std::string)(fault["Description"]));
@@ -261,7 +253,7 @@ namespace Arc{
             info.jobId = result;
             return true;
         } // CREAMClient::registerJob()
-       
+
         bool CREAMClient::startJob(const std::string& jobid) {
             logger.msg(INFO, "Creating and sending job start request.");
             
@@ -277,7 +269,7 @@ namespace Arc{
                 delegId.Set(this->delegationId);
             }
             PayloadSOAP* resp = NULL;
-            
+
             // Send job request
             if(client) {
                 MCC_Status status = client->process("http://glite.org/2007/11/ce/cream/JobStart", &req,&resp);
@@ -314,10 +306,11 @@ namespace Arc{
             }
             return true;
         } // CREAMClient::startJob()
-       
-        bool CREAMClient::createDelegation(const std::string& delegation_id) {
+
+        bool CREAMClient::createDelegation(const std::string& delegation_id,
+                                           const std::string& proxy) {
             logger.msg(INFO, "Creating delegation.");
-            
+
             PayloadSOAP req(cream_ns);
             NS ns1;
             ns1["ns1"]="http://www.gridsite.org/namespaces/delegation-2";
@@ -325,7 +318,7 @@ namespace Arc{
             XMLNode delegid = getProxyReqRequest.NewChild("delegationID", ns1);
             delegid.Set(delegation_id);
             PayloadSOAP* resp = NULL;
-            
+
             // Send job request
             if(client) {
                 MCC_Status status = client->process("", &req,&resp);
@@ -353,19 +346,16 @@ namespace Arc{
             }
             delete resp;
 
-            UserConfig uc;
-            const XMLNode cfgtree = uc.ConfTree();
-            std::string proxy = (std::string) cfgtree["ProxyPath"];
             std::string signedcert;
             char *cert=NULL; 
             int timeleft = getCertTimeLeft(proxy);
-            
+
             if (makeProxyCert(&cert,(char*) getProxyReqReturnValue.c_str(),(char*) proxy.c_str(),(char *) proxy.c_str(),timeleft)) {
                 logger.msg(ERROR, "DelegateProxy failed.");
                 return false;
             }
             signedcert.assign(cert);
-  
+
             PayloadSOAP req2(cream_ns);
             XMLNode putProxyRequest = req2.NewChild("ns1:putProxy", ns1);
             XMLNode delegid_node = putProxyRequest.NewChild("delegationID", ns1);
@@ -373,7 +363,7 @@ namespace Arc{
             XMLNode proxy_node = putProxyRequest.NewChild("proxy", ns1);
             proxy_node.Set(signedcert);
             resp = NULL;
-            
+
             // Send job request
             if(client) {
                 MCC_Status status = client->process("", &req2,&resp);
@@ -396,12 +386,12 @@ namespace Arc{
             }
             delete resp;
             return true;
-            
+
         } // CREAMClient::createDelegation()
-        
+
         bool CREAMClient::destroyDelegation(const std::string& delegation_id) {
             logger.msg(INFO, "Creating delegation.");
-            
+
             PayloadSOAP req(cream_ns);
             NS ns1;
             ns1["ns1"]="http://www.gridsite.org/namespaces/delegation-2";
@@ -409,7 +399,7 @@ namespace Arc{
             XMLNode delegid = getProxyReqRequest.NewChild("delegationID", ns1);
             delegid.Set(delegation_id);
             PayloadSOAP* resp = NULL;
-            
+
             // Send job request
             if(client) {
                 MCC_Status status = client->process("", &req,&resp);
@@ -430,7 +420,7 @@ namespace Arc{
 
             if (!(bool)(*resp) || !(bool)((*resp)["destroyResponse"])) {
                 logger.msg(ERROR, "Delegation destroying failed.");
-                return false;               
+                return false;
             }
             delete resp;
             return true;
