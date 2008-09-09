@@ -3,6 +3,10 @@ package LogUtils;
 use POSIX;
 use FileHandle;
 
+use Exporter;
+@ISA = ('Exporter');     # Inherit from Exporter
+@EXPORT_OK = qw(start_logging error warning info debug);
+
 use strict;
 
 our ($ERROR, $WARNING, $INFO, $DEBUG) = (0, 1, 2, 3);
@@ -12,6 +16,8 @@ our %opts = (
     logfiles => { '' => undef },    # default logging goes to STDERR
     levels   => { '' => $WARNING }  # default level is WARNING
 );
+
+our $default_logger = LogUtils->getLogger();
 
 # constructor
 
@@ -24,13 +30,15 @@ sub getLogger {
 
 # getters and setters
 
-sub level() {
+sub level {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self,$level) = @_;
     return $self->_searchopt($opts{levels}) unless defined $level;
     return $opts{levels}{$self->{name}} = $level;
 }
 
-sub logfile() {
+sub logfile {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self,$logfile) = @_;
     return $self->_searchopt($opts{logfiles}) unless defined $logfile;
     return $opts{logfiles}{$self->{name}} = $logfile;
@@ -38,22 +46,32 @@ sub logfile() {
 
 # convenience functions
 
-sub error($$) {
-    my ($self, $msg) = @_;
-    $self->log($ERROR,$msg);
+sub start_logging($$) {
+    $default_logger->level(shift);
+    $default_logger->logfile(shift);
 }
 
-sub warning($$) {
+sub error {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
+    my ($self, $msg) = @_;
+    $self->log($ERROR,$msg);
+    die;
+}
+
+sub warning {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
     $self->log($WARNING,$msg);
 }
 
-sub info($$) {
+sub info {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
     $self->log($INFO,$msg);
 }
 
-sub debug($$) {
+sub debug {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
     $self->log($DEBUG,$msg);
 }
@@ -107,14 +125,23 @@ sub test {
     print "LEvEl "  . $log->level()."\n";
     print "LEvEl "  . $log->level($LogUtils::INFO)."\n";
     print "Logfile ". $log->logfile("log.$$")."\n";
-    $log->error("Hi");
+    $log->warning("Hi");
     $log = LogUtils->getLogger("main.sub.one");
-    $log->error("Hi");
+    $log->warning("Hi");
     LogUtils->getLogger("main.sub.too")->info("Boo");
     LogUtils->getLogger("main.sub.too")->debug("Hoo");
     print "Contents of log.$$:\n". `cat log.$$; rm log.$$`;
 }
 
+sub test2 {
+    start_logging(2,'xxx');
+    debug('geee');
+    info('beee');
+    warning('meee');
+    error('mooo');
+}
+
 #test();
+#test2();
 
 1;
