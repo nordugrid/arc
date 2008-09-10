@@ -1,0 +1,183 @@
+#!/bin/bash
+#
+# Init file for the HED daemon
+#
+# Debian
+#
+# config files: 
+#
+#          /etc/arc/server.xml
+#          /etc/arc.conf
+
+export HED_CONFIG="/etc/arc/server.xml"
+export ARC_CONFIG="/etc/arc.conf"
+TCP_Port="60000"
+
+# source function library
+if [ -f /etc/init.d/functions ]; then
+  . /etc/init.d/functions
+else
+  success() { echo -n "OK" 
+  } 
+  failure() { echo -n "FAILURE"
+  }
+  status() {
+    pid=`pidof -o $$ -o $PPID -o %PPID -x $1`
+    if test "x$pid" != "x"; then
+      echo "$1 (pid $pid) is running..."
+      return 0
+    fi
+
+    if test -f "$PID_FILE"; then
+      read pid < "$PID_FILE"
+      if test "$pid" != ""; then
+        echo "$1 stopped but pid file exists"
+        return 1
+      fi
+    fi
+    if test -f $LOCKFILE; then
+      echo "$1 stopped but lockfile exist"
+      return 2
+    fi
+    echo "$1 is stopped"
+    return 3
+  }
+fi
+
+prog="arched"
+
+# GLOBUS_LOCATION
+GLOBUS_LOCATION=${GLOBUS_LOCATION:-/opt/globus}
+if [ ! -d "$GLOBUS_LOCATION" ]; then
+  echo "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found" 
+  exit 1
+fi
+export GLOBUS_LOCATION
+
+# NORDUGRID_LOCATION
+
+export NORDUGRID_LOCATION="/usr/local"
+export ARC_LOCATION="/usr/local"
+
+CMD="/usr/local/sbin/$prog"
+if ! test -x "$CMD"; then
+    failure "Missing executable"
+    echo
+    exit 1
+fi
+
+if [ ! -r "$HED_CONFIG" ]; then
+     echo "The HED configuration not found (usually /etc/arc/server.xml)"
+     exit 1
+fi
+
+
+# VOMS_LOCATION
+VOMS_LOCATION=${VOMS_LOCATION:-/usr}
+
+# GRIDSITE_LOCATION
+GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-/opt/gridsite}
+
+LD_LIBRARY_PATH=$NORDUGRID_LOCATION/lib:$GLOBUS_LOCATION/lib:$VOMS_LOCATION/lib:$GRIDSITE_LOCATION/lib:$LD_LIBRARY_PATH
+SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
+export LD_LIBRARY_PATH SASL_PATH
+
+if [ `id -u` = 0 ] ; then
+  # Debian does not have /var/lock/subsys
+  if test -d /var/lock/subsys; then
+    LOCKFILE=/var/lock/subsys/$prog
+  else
+    LOCKFILE=/var/lock/$prog
+  fi
+  PID_FILE=/var/run/$prog.pid
+else
+  LOCKFILE=$HOME/$prog.lock
+  PID_FILE=$HOME/$prog.pid
+fi
+
+CMD="$CMD -p '$PID_FILE' -c '$HED_CONFIG'"
+
+start()
+{
+    echo -n "Starting $prog: "
+
+    # Check if we are already running
+    if test -f $PID_FILE; then
+      read pid < $PID_FILE
+      if test "x$pid" != "x"; then
+        ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+        if [ "$?" == '0' ] ; then
+          failure "Error: already running ($pid)"
+          echo
+          return 1
+        fi
+      fi
+      rm -f "$PID_FILE" "$LOCKFILE"
+    fi
+
+    eval "$CMD"
+    RETVAL=$?
+
+    if [ $RETVAL -ne 0 ]; then
+        failure "$prog startup"
+    else
+       touch $LOCKFILE
+       success "$prog startup"
+    fi
+    echo
+    return $RETVAL
+}
+
+stop()
+{
+    echo -n "Stopping $prog: "
+
+    if test -f "$PID_FILE"; then
+      kill `cat "$PID_FILE"` && success "$prog shutdown" || failure "$prog shutdown"
+      RETVAL=$?
+      sleep 1
+      kill -9 `cat "$PID_FILE"` 1>/dev/null 2>&1
+      rm -f "$PID_FILE" "$LOCKFILE"
+      PORT_count=`netstat -a|grep $TCP_Port|wc -l`
+      echo ""
+      while [ $PORT_count != 0 ]
+      do
+          before_port=$PORT_count
+	  PORT_count=`netstat -a|grep $TCP_Port|wc -l`
+          if [ $before_port != $PORT_count ]
+	  then
+	      echo "Open port(s) count: " $PORT_count
+          fi
+          sleep 2
+      done
+      echo -n "Stopping $prog: Finished" 
+    else
+      failure "$prog shutdown - pidfile missing"
+    fi
+    echo
+    return $RETVAL
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+	status $prog
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  condrestart)
+        test -f $LOCKFILE && restart || :
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
+        exit 1
+esac
+
+exit $?
