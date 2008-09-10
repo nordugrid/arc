@@ -94,7 +94,7 @@ sub _collect($$) {
             my $msg = "Queue not defined for job $jobid";
             if ($config->{defaultqueue}) {
                 $log->warning($msg.". Assuming default: ".$config->{defaultqueue});
-                $job->{queue} = $config->{defaultqueue};
+                $qname = $job->{queue} = $config->{defaultqueue};
             } else {
                 $log->error($msg.". No default queue defined");
                 die;
@@ -102,9 +102,16 @@ sub _collect($$) {
         }
         if ($job->{status} eq 'INLRMS') {
             my $lrmsid = $job->{localid};
+            unless (defined $lrmsid) {
+                $log->error("localid missing for INLRMS job $jobid");
+                next;
+            }
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-    
-            if (defined $lrmsjob and $lrmsjob->{status} ne 'EXECUTED') {
+            unless ((defined $lrmsjob) and $lrmsjob->{status}) {
+                $log->error("LRMS plugin returned no status for job $jobid (lrmsid: $lrmsid)");
+                die;
+            }
+            if ((defined $lrmsjob) and $lrmsjob->{status} ne 'EXECUTED') {
                 if ($lrmsjob->{status} eq 'R' or $lrmsjob->{status} eq 'S') {
                     $gridrunning{$qname}++;
                 } else {
