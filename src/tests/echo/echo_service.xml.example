@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+  xmlns:echo="urn:echo_config"
+>
+  <!-- Common configuration of the daemon -->
+  <Server>
+    <Pidfile>/var/run/arched.pid</Pidfile>
+    <Logger level="VERBOSE">/var/log/arched.log</Logger>
+  </Server>
+  <!-- Where to find plugins -->
+  <ModuleManager>
+    <Path>@prefix@/lib/arc/</Path>
+  </ModuleManager>
+  <!-- Simply load all needed plugins -->
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>arcpdc</Name></Plugins>
+  <Plugins><Name>echo</Name></Plugins>
+  <!-- Create a chain -->
+  <Chain>
+    <!-- TCP listening socket -->
+    <Component name="tcp.service" id="tcp">
+      <next id="tls"/>
+      <!-- If id="tcp" then service will be HTTP instead of HTTPS -->
+      <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+    </Component>
+    <!-- Transport-level security -->
+    <Component name="tls.service" id="tls">
+      <next id="http"/>
+      <!-- Location of server's security keys -->
+      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+      <!--delegation.collector must be inside tls MCC. It will extract delegation policy from
+      peer proxy certificate-->
+      <SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler>  
+    </Component>
+    <!-- HTTP processing is done here -->
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+    </Component>
+    <!-- This one parses content into XML tree -->
+    <Component name="soap.service" id="soap">
+      <next id="plexer"/>
+    </Component>
+    <!-- Directing messages to proper service -->
+    <Plexer name="plexer.service" id="plexer">
+      <next id="echo">^/Echo$</next>
+    </Plexer>
+    <!-- Echo service -->
+    <Service name="echo" id="echo">
+      <echo:prefix>[ </echo:prefix>
+      <echo:suffix> ]</echo:suffix>
+    </Service>
+  </Chain>
+</ArcConfig>
+

@@ -9,10 +9,10 @@
   <!-- Common configuration of the daemon -->
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
-    <Logger level="VERBOSE">./charon.log</Logger>
+    <Logger level="VERBOSE">/var/log/charon.log</Logger>
   </Server>
     <ModuleManager>
-        <Path>/mn/tid/epf-a1/weizhonq/susy_backup/new-arc-install/lib/arc/</Path>
+        <Path>@prefix@/lib/arc/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
@@ -28,9 +28,10 @@
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
-	    <KeyPath>../../tests/echo/key.pem</KeyPath>
-	    <CertificatePath>../../tests/echo/cert.pem</CertificatePath>
-	    <CACertificatePath>../../tests/echo/ca.pem</CACertificatePath>
+	 <!-- Location of host certificates -->
+	    <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+	    <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+	    <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -56,15 +57,15 @@
                 <charon:Request name="arc.request" />
             </charon:PDPConfig>
         </Service>
-        <Service name="echo" id="echo">
+        <!--Service name="echo" id="echo">
             <SecHandler name="arc.authz" id="authz" event="incoming">
               <PDP name="simplelist.pdp" location="simplelist"/>
               <PDP name="arc.pdp">
                 <pdp:PolicyStore>
-                  <pdp:Location type="file">Policy_Example.xml</pdp:Location>
+                  <pdp:Location type="file">Policy_Example.xml</pdp:Location-->
                   <!-- other policy location-->
-                </pdp:PolicyStore>
-              </PDP>
+                <!--/pdp:PolicyStore-->
+              <!--/PDP-->
               <!--Remote pdp service (charon) invoking-->
               <!--PDP name="pdpservice.invoker">
                 <ServiceEndpoint>https://127.0.0.1:60000/Charon</ServiceEndpoint>
@@ -72,11 +73,11 @@
                 <CertificatePath>./cert.pem</CertificatePath>
                 <CACertificatePath>./ca.pem</CACertificatePath>
               </PDP-->
-              <PDP name="delegation.pdp"/>
+              <!--PDP name="delegation.pdp"/>
             </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
             <echo:suffix> ]</echo:suffix>
-        </Service>
+        </Service-->
     </Chain>
 </ArcConfig>

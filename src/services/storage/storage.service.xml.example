@@ -5,10 +5,10 @@
 >
     <Server>
         <Pidfile>/var/run/arched.pid</Pidfile>
-        <Logger level="ERROR">/var/log/arched.log</Logger>
+        <Logger level="VERBOSE">/var/log/arched.log</Logger>
     </Server>
     <ModuleManager>
-        <Path>/usr/local/lib/arc/</Path>
+        <Path>@prefix@/lib/arc/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
@@ -21,9 +21,9 @@
         </Component>
         <Component name="tls.service" id="tls">
             <next id="http"/>
-            <KeyPath>./key.pem</KeyPath>
-            <CertificatePath>./cert.pem</CertificatePath>
-            <CACertificatePath>./ca.pem</CACertificatePath>
+            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
         </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -45,7 +45,7 @@
             <LogLevel>ERROR</LogLevel>
             <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
             <StoreClass>storage.common.PickleStore</StoreClass>
-            <StoreCfg><DataDir>/var/spool/arc/ahash_data</DataDir></StoreCfg>
+            <StoreCfg><DataDir>/tmp/arc/ahash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="librarian">
             <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
@@ -77,12 +77,12 @@
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
             <StoreCfg>
-                <DataDir>/var/spool/arc/shepherd_data</DataDir>
+                <DataDir>/tmp/arc/shepherd_data</DataDir>
             </StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
             <BackendCfg>
-                <DataDir>/var/spool/arc/shepherd_store</DataDir>
-                <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
+                <DataDir>/tmp/arc/shepherd_store</DataDir>
+                <TransferDir>/tmp/arc/shepherd_transfer</TransferDir>
                 <!-- Change this prefix to the external interface of your machine -->
                 <TURLPrefix>https://localhost:60000/hopi/</TURLPrefix>
             </BackendCfg>
@@ -95,7 +95,7 @@
             </ClientSSLConfig>
         </Service>
         <Service name="hopi" id="hopi">
-            <DocumentRoot>/var/spool/arc/shepherd_transfer</DocumentRoot>
+            <DocumentRoot>/tmp/arc/shepherd_transfer</DocumentRoot>
             <SlaveMode>1</SlaveMode>
         </Service>
     </Chain>
