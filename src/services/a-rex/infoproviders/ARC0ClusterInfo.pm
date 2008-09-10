@@ -431,8 +431,8 @@ sub _collect($$) {
             my $lrms_user = $qinfo->{users}{$localid};
 
             # skip users that are not authorized in this queue
-            next if exists $lrms_user->{acl_users}
-                 and not grep { $_ eq $localid } @{$lrms_user->{acl_users}};
+            next if exists $qinfo->{acl_users}
+                 and not grep { $_ eq $localid } @{$qinfo->{acl_users}};
 
             my $u = {};
             push @{$ug->{'na0:name'}}, $u;

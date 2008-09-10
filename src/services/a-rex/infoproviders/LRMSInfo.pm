@@ -234,8 +234,9 @@ my $opt2 = {lrms => 'sge',
            };
 
 my $opt3 = {lrms => 'pbs',
-            pbs_bin_path => '/mn/tid/epf-a1/adrianta',
-            queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete']}},
+            pbs_bin_path => '/opt/torque/bin',
+            pbs_log_path => '/var/spool/torque/server_logs',
+            queues => {'batch' => {users => ['joe','pete']}},
             jobs => [63, 453]
            };
 
@@ -248,6 +249,6 @@ sub test {
     $log->debug("Results: " . Dumper($results));
 }
 
-#test($opt2);
+#test($opt3);
 
 1;

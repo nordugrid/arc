@@ -48,8 +48,6 @@ sub get_lrms_options_schema {
 sub get_lrms_info($) {
     my $options = shift;
 
-require Data::Dumper; import Data::Dumper qw(Dumper);
-
     my %cluster_config = %$options;
     delete $cluster_config{queues};
     delete $cluster_config{jobs};
@@ -60,11 +58,11 @@ require Data::Dumper; import Data::Dumper qw(Dumper);
     delete $cluster_info->{queue};
     $lrms_info->{cluster} = delete_empty($cluster_info);
 
-    my %queues = %{$options->{queues}};
+    my %queue_config = %{$options->{queues}};
 
-    for my $qname ( keys %queues ) {
+    for my $qname ( keys %queue_config ) {
 
-        my %queue_config = (%cluster_config, $queues{qname});
+        my %queue_config = (%cluster_config, %queue_config);
         delete $queue_config{users};
 
         my $jids = $options->{jobs};
@@ -80,15 +78,17 @@ require Data::Dumper; import Data::Dumper qw(Dumper);
         my $queue_info = { queue_info(\%queue_config, $qname) };
         $lrms_info->{queues}{$qname} = delete_empty($queue_info);
 
-        my $users = $queues{$qname}{users};
+        my $users = $queue_config{$qname}{users};
 
-        $queue_info->{users} = { users_info(\%queue_config, $qname,$users) };
+        $queue_info->{users} = { users_info(\%queue_config, $qname, $users) };
         for my $user ( values %{$queue_info->{users}} ) {
             my $freecpus = $user->{freecpus};
             $user->{freecpus} = split_freecpus($freecpus) if defined $freecpus;
             delete_empty($user);
         }
-        
+        $queue_info->{acl_users} = $queue_config{acl_users}
+            if defined $queue_config{acl_users};
+
     }
     return $lrms_info;
 }
