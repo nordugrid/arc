@@ -3761,7 +3761,7 @@ begin{comment}
 
 .
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -4991,6 +4991,24 @@ Authorization is performed by generic means provided by HED framework.
  element of assigned JSDL.
 \end_layout
 
+\begin_layout Subsection
+\begin_inset LatexCommand \label{sub:LRMS}
+
+\end_inset
+
+LRMS support
+\end_layout
+
+\begin_layout Standard
+For information about supported LRMSes and their specific features and configura
+tion options please read dedicated documentation at 
+\begin_inset LatexCommand \cite{backends-arc1}
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Standard
 \begin_inset ERT
 status collapsed
@@ -5005,14 +5023,6 @@ begin{comment}
 \end_inset
 
 (LRMS_COMMENT) 
-\end_layout
-
-\begin_layout Subsection
-\begin_inset LatexCommand \label{sub:LRMS}
-
-\end_inset
-
-LRMS support
 \end_layout
 
 \begin_layout Standard
