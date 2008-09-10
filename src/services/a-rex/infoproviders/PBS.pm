@@ -374,15 +374,23 @@ sub jobs_info ($) {
 		    if $state eq 'Q';
 
                 # INLRMS:X job state mapping
-                if ( $state eq "R" ) {
+                if ( $state eq "R" ) {      # running
                    $lrms_jobs->{$jid}{status} = "R";
-                } elsif ( $state eq "Q" ) {
+                } elsif ( $state eq "Q" ) { # queued, eligible to run or be routed
                    $lrms_jobs->{$jid}{status} = "Q";
-                } elsif ( $state eq "E" ) {
+                } elsif ( $state eq "E" ) { # exiting
                    $lrms_jobs->{$jid}{status} = "E";
-                } elsif ( $state eq "U" ) {
+                } elsif ( $state eq "S" ) { # suspended by server
+                   $lrms_jobs->{$jid}{status} = "S";
+                } elsif ( $state eq "U" ) { # suspended due to workstation becoming busy
                    $lrms_jobs->{$jid}{status} = "S";
                 } else {
+                   # H held
+                   # T in transition (being moved to a new location)
+                   # W waiting for its requested execution time to be reached
+                   # W stage-in request which failed for some reason
+                   # X subjobs only: subjob is finished (expired)
+                   # B array jobs only: job array has started
                    $lrms_jobs->{$jid}{status} = "O";
                 }
 
