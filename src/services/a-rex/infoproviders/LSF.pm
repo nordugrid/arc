@@ -260,9 +260,11 @@ sub cluster_info ($) {
     $lrms_cluster{totalcpus} = 0;
     $lrms_cluster{usedcpus} = 0;
     $lrms_cluster{queuedcpus} = 0;
+    $lrms_cluster{runningjobs} = 0;
+    $lrms_cluster{queuedjobs} = 0;
     my @cpudist;
     $lrms_cluster{cpudistribution} = "";
-    $lrms_cluster{queue};
+    $lrms_cluster{queue} = [];
 
     #lookup batch type and version
     ($lrms_cluster{lrms_type},$lrms_cluster{lrms_version}) = type_and_version();   
@@ -297,7 +299,10 @@ sub cluster_info ($) {
        if (! ($line =~ '^QUEUE')) {
          chomp($line);
          my ($q_name,$q_priority,$q_status,$q_mjobs,$q_mslots,$q_mslots_proc,$q_mjob_slots_host,$q_num_jobs,$q_job_pending,$q_job_running,$q_job_suspended) = split(" ", $line);
+	 #TODO: total number of jobs in queue is not equal to queued cpus.
          $lrms_cluster{queuedcpus}+=$q_num_jobs;
+         $lrms_cluster{runningjobs}+=$q_job_running;
+         $lrms_cluster{queuedjobs}+=$q_job_pending;
          push @queues, $q_name;
        }
     }  
@@ -334,7 +339,9 @@ sub jobs_info ($$@) {
        $lrms_jobs{$id}{reqwalltime}="";
        $lrms_jobs{$id}{reqcputime}="";
        $lrms_jobs{$id}{comment}=["job started: $job{start}"];
-       $lrms_jobs{$id}{rank}="";  
+       $lrms_jobs{$id}{rank}="";
+       #TODO fix to support parallel jobs
+       $lrms_jobs{$id}{cpus}=1;  
     }
 
     return %lrms_jobs;

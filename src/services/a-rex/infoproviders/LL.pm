@@ -438,6 +438,11 @@ sub cluster_info ($) {
 
     # Here waiting actually refers to jobsteps
     $lrms_cluster{queuedcpus} = $jobstatus{waiting};
+    # TODO: this is wrong, but we are not worse off than earlier
+    # we should count jobs, not cpus
+    $lrms_cluster{runningjobs} = $jobstatus{running};
+    $lrms_cluster{queuedjobs} = $jobstatus{waiting};
+    $lrms_cluster{queue} = [ ];
 
     return %lrms_cluster;
 }
@@ -542,15 +547,17 @@ sub jobs_info ($$$) {
 	$lrms_jobs{$id}{mem} = -1;
 	my $dispt = `date +%s -d "$jobinfo{$id}{Dispatch_Time}\n"`;
 	chomp $dispt;
- 	$lrms_jobs{$id}{walltime} = POSIX::ceil((time() - $dispt) /60),"\n";
+ 	$lrms_jobs{$id}{walltime} = POSIX::ceil((time() - $dispt) /60);
  	# Setting cputime, should be converted to minutes
         my (@cput) = split(/:/,$jobinfo{$id}{Step_Total_Time});       
-	$lrms_jobs{$id}{cputime} = int(@cput[0])*60 + int(@cput[1]) + int(@cput[2])/60; 
+	$lrms_jobs{$id}{cputime} = int($cput[0])*60 + int($cput[1]) + int($cput[2])/60; 
 	$lrms_jobs{$id}{reqwalltime} = $jobinfo{$id}{Wall_Clk_Hard_Limit};
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];
         $lrms_jobs{$id}{nodes} = ["$jobinfo{$id}{Allocated_Host}"];
         $lrms_jobs{$id}{rank} = -1;
+        $lrms_jobs{$id}{cpus} = 0;
+        $lrms_jobs{$id}{cpus} = $jobinfo{$id}{Step_Cpus};
     }
 
     return %lrms_jobs;
