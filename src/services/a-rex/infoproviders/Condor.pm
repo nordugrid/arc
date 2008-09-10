@@ -127,7 +127,7 @@ sub collect_jobids($$) {
     close LOCAL;
     foreach my $pair (values %pairs) {
         # get rid of .condor from localid.
-        $$pair{id} =~ s/(.*)\.condor$/\1.0/;
+        $$pair{id} =~ s/(.*)\.condor$/$1.0/;
         if ( $$pair{queue} eq $qname ) {
             push @jobids_thisqueue, $$pair{id};
         } else {
@@ -172,7 +172,7 @@ sub condor_digest_classad($) {
     for (split /\n+/, shift) {
         next unless /^(\w+)\s*=\s*(.*\S|)\s*$/;
         my ($field, $val) = ($1, $2);
-        $val =~ s/"(.*)"/\1/; # remove quotes, if any
+        $val =~ s/"(.*)"/$1/; # remove quotes, if any
         $classad{lc $field} = $val;
     }
     return %classad;
@@ -263,11 +263,31 @@ sub condor_queue_get_queued() {
 }
 
 #
-# Counts all queued jobs (iddle and held) in the cluster.
-#
-sub condor_cluster_get_queued() {
+# Counts all queued cpus (idle and held) in the cluster.
+# TODO: this counts jobs, not cpus.
+sub condor_cluster_get_queued_cpus() {
     my $sum = 0;
     do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
+    debug "===condor_cluster_get_queued: $sum";
+    return $sum;
+}
+
+#
+# Counts all queued jobs (idle and held) in the cluster.
+#
+sub condor_cluster_get_queued_jobs() {
+    my $sum = 0;
+    do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
+    debug "===condor_cluster_get_queued: $sum";
+    return $sum;
+}
+
+#
+# Counts all running jobs in the cluster.
+# TODO: also counts suspended jobs apparently.
+sub condor_cluster_get_running_jobs() {
+    my $sum = 0;
+    do {$sum++ if $$_{jobstatus} == 2} for values %alljobdata;
     debug "===condor_cluster_get_queued: $sum";
     return $sum;
 }
@@ -282,7 +302,7 @@ sub condor_queue_get_running() {
     my @qnod = condor_queue_get_nodes();
     for (@allnodedata) {
         my %node = %$_;
-        next unless grep { $node{name} =~ /^(vm\d+@)?$_/i } @qnod;
+        next unless grep { $node{name} =~ /^((vm|slot)\d+@)?$_/i } @qnod;
         next unless $node{state} =~ /^Unclaimed/i;
         push @free, $node{name};
     }
@@ -303,9 +323,8 @@ sub condor_cluster_get_usedcpus() {
 }
 
 #
-# Counts runnung jobs (condor JobStatus == 2) submitted by Grid
-# into the current queue
-#
+# Counts running jobs (condor JobStatus == 2) submitted by Grid
+# into the current queue. 
 sub condor_queue_get_gridrunning() {
     my $sum = 0;
     my @qnod = condor_queue_get_nodes();
@@ -317,7 +336,7 @@ sub condor_queue_get_gridrunning() {
         $host = $job{lastremotehost} unless $host;
         next unless $host;
         # only count job if it's running in the current queue
-        $sum++ if grep { $host =~ /^(vm\d+@)?$_/i } @qnod;
+        $sum++ if grep { $host =~ /^((vm|slot)\d+@)?$_/i } @qnod;
 
     }
     debug "===condor_queue_get_gridrunning: $sum";
@@ -361,7 +380,8 @@ sub condor_job_suspended($) {
 #
 sub cpudistribution {
     # List all machines in the pool.  Machines with multiple CPUs are listed
-    # one time for each CPU, with a prefix such as 'vm1@', 'vm2@', etc.
+    # one time for each CPU, with a prefix such as 'slot1@', 'slot2@', etc.
+    # (or 'vm1@', 'vm2@' in older Condor releases)
     my %machines;
     $machines{$$_{machine}}++ for @allnodedata;
 
@@ -408,7 +428,12 @@ sub cluster_info ($) {
     $lrms_cluster{totalcpus} = scalar @allnodedata;
     $lrms_cluster{cpudistribution} = cpudistribution();
     $lrms_cluster{usedcpus} = condor_cluster_get_usedcpus();
-    $lrms_cluster{queuedcpus} = condor_cluster_get_queued();
+    #NOTE: counts jobs, not cpus.
+    $lrms_cluster{queuedcpus} = condor_cluster_get_queued_cpus();
+
+    $lrms_cluster{queuedjobs} = condor_cluster_get_queued_jobs();
+    $lrms_cluster{runningjobs} = condor_cluster_get_running_jobs();
+
 
     # List LRMS queues.
     # This does not seem to be used in cluster.pl!
@@ -486,7 +511,7 @@ sub jobs_info ($$@) {
         # Replace .condor with .0. It is safe to assume that ProcId is 0 because
         # we only submit one job at a time.
         my $id0 = $id;
-        $id0 =~ s/(.*)\.condor$/\1.0/;
+        $id0 =~ s/(.*)\.condor$/$1.0/;
         debug "===jobs_info: Mapping $id to $id0";
 
         if ( $alljobdata{$id0} ) {
@@ -501,6 +526,8 @@ sub jobs_info ($$@) {
             $lrms_jobs{$id}{reqcputime} = floor($job{lc 'JobCpuLimit'} / 60); # caller knows these better
             $lrms_jobs{$id}{rank} = rank($id0) ? rank($id0) : '';
             $lrms_jobs{$id}{comment} = []; # TODO
+            $lrms_jobs{$id}{cpus} = $job{'CurrentHosts'};
+
             # For queued jobs, unset meanigless values
             if ($lrms_jobs{$id}{status} eq 'Q') {
                 $lrms_jobs{$id}{mem} = '';
