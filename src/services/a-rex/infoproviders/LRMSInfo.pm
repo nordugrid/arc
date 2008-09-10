@@ -127,7 +127,7 @@ sub load_lrms($) {
     my $lrms_name = uc(shift);
 
     my $module = $lrms_name."mod";
-    eval { require $module.".pm" };
+    eval { require "$module.pm" };
 
     if ($@) {
         $log->info("LRMS module $module not found");
@@ -138,8 +138,7 @@ sub load_lrms($) {
         ARC0mod::load_lrms($lrms_name);
 
     } else {
-        eval { import $module qw(get_lrms_info get_lrms_options_schema) };
-        $log->error("Bad interface: $module") if $@; 
+        import $module qw(get_lrms_info get_lrms_options_schema);
     }
     $LogUtils::default_logger = LogUtils->getLogger($module);
 }

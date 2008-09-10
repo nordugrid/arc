@@ -1,4 +1,4 @@
-package CONDOR;
+package Condor;
 
 use POSIX;
 use File::Basename;

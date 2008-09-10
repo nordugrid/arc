@@ -13,13 +13,21 @@ use strict;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
+our %modnames = ( PBS    => "PBS",
+                  SGE    => "SGE",
+                  LL     => "LL",
+                  LSF    => "LSF",
+                  CONDOR => "Condor",
+                  FORK   => "Fork"
+                );
 
 sub load_lrms($) {
-    my $module = shift;
-    eval { require $module.".pm" };
+    my $lrms_name = uc(shift);
+    my $module = $modnames{$lrms_name};
+    $log->error("No ARC0 module for $lrms_name") unless $module;
+    eval { require "$module.pm" };
     $log->error("LRMS module $module not found") if $@;
-    eval { import $module qw(cluster_info queue_info jobs_info users_info) };
-    $log->error("Bad interface: $module") if $@;
+    import $module qw(cluster_info queue_info jobs_info users_info);
 }
 
 # Just generic options, cannot assume anything LRMS specific here

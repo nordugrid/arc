@@ -7,12 +7,12 @@ usr/lib/arc/smtp-send
 usr/lib/arc/smtp-send.sh
 
 usr/lib/arc/ARC0mod.pm
-usr/lib/arc/CONDOR.pm
 usr/lib/arc/FORKmod.pm
+usr/lib/arc/SGEmod.pm
 usr/lib/arc/LL.pm
 usr/lib/arc/LSF.pm
 usr/lib/arc/PBS.pm
-usr/lib/arc/SGEmod.pm
+usr/lib/arc/Condor.pm
 
 usr/lib/arc/ARC0ClusterInfo.pm
 usr/lib/arc/ARC0ClusterSchema.pm
