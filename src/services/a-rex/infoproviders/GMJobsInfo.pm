@@ -54,7 +54,7 @@ our $gmjobs_info_schema = {
             # from .diag
             exitcode           => '*',
             nodenames          => [ '*' ],
-            UsedMem            => '*',
+            UsedMem            => '*', # units: kB
             WallTime           => '*',
             CpuTime            => '*'
         }
