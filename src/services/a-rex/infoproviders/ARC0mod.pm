@@ -28,6 +28,7 @@ sub load_lrms($) {
     eval { require "$module.pm" };
     $log->error("LRMS module $module not found") if $@;
     import $module qw(cluster_info queue_info jobs_info users_info);
+    $LogUtils::default_logger = LogUtils->getLogger($module);
 }
 
 # Just generic options, cannot assume anything LRMS specific here

@@ -134,13 +134,10 @@ sub load_lrms($) {
         $log->info("Falling back to ARC0.6 compatible module $lrms_name");
 
         require ARC0mod;
-        import ARC0mod qw(get_lrms_info get_lrms_options_schema);
         ARC0mod::load_lrms($lrms_name);
-
-    } else {
-        import $module qw(get_lrms_info get_lrms_options_schema);
+        $module = "ARC0mod";
     }
-    $LogUtils::default_logger = LogUtils->getLogger($module);
+    import $module qw(get_lrms_info get_lrms_options_schema);
 }
 
 sub load_old_lrms($) {
