@@ -54,7 +54,7 @@ sub _parse($$) {
         next if $line =~/^\s*$/;
     
         # new section stsrts here
-        if ( $line =~/^\s*\[(.+)\]/ ) {
+        if ($line =~ /^\s*\[([\w\-\.\/]+)\]\s*$/) {
             my $newsname = $1;
 
             # store completed section
@@ -63,25 +63,27 @@ sub _parse($$) {
             # start fresh section
             $sname = $newsname;
             $sopts = {};
-            next;
-        }
 
-        # Single or double quotes can be used. Quotes are removed from the values
-        next unless $line =~ /^(\w+)\s*=\s*(["'])(.*)(\2)\s*$/;
+        } elsif ($line =~ /^(\w+)\s*=\s*(["'])(.*)(\2)\s*$/) {
 
-        my $opt=$1;
-        my $value=$3;
-
-        # 'name' option is special: it names a subsection
-        if ($opt eq 'name') {
-            $sname =~ s#([^/]+).*#$1/$value#;
-        }
-
-        if (not defined $sopts->{$opt}) {
-           $sopts->{$opt} = $value;
-        }
-        else {
-           $sopts->{$opt} .= "[separator]".$value;
+            # Single or double quotes can be used. Quotes are removed from the values
+    
+            my $opt=$1;
+            my $value=$3;
+    
+            # 'name' option is special: it names a subsection
+            if ($opt eq 'name') {
+                $sname =~ s|^(.+?)(/[^/]*)?$|$1/$value|;
+            }
+    
+            if (not defined $sopts->{$opt}) {
+               $sopts->{$opt} = $value;
+            }
+            else {
+               $sopts->{$opt} .= "[separator]".$value;
+            }
+        } else {
+            # Bad line, ignore it for now
         }
     }
     close CONFIGFILE;
