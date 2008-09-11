@@ -12,7 +12,7 @@ Configuring Apache
 -------------------
 
 (/var/www/html/arc/shepherd/transfer may be replaced with anything you like as long as 
-it's directory under the apache DocumentRoot. Note that /var/www/html/arc and subdirs needs 
+it's a directory under the apache DocumentRoot. Note that /var/www/html/arc and subdirs needs 
 to be owned by the apache User:Group!)
 
 Make sure the following lines are in the httpd.conf file (or some file read by httpd.conf):
@@ -37,7 +37,7 @@ For a full sample configuration file for configuring the Shepherd with Apache, s
 arc1/src/services/storage/storage.service.apache.xml.example. Note specifically the sections
 BackendClass and BackendCFG in the shepher service configuration:
 
-    <BackendClass>storage.shepherd.apachebackend.ApacheBackend</BackendClass>
+    <BackendClass>storage.shepherd.hardlinkingbackend.ApacheBackend</BackendClass>
     <BackendCfg>
         <DataDir>/var/spool/arc/shepherd_store</DataDir>
         <TransferDir>/var/www/html/arc/shepherd/transfer</TransferDir>
