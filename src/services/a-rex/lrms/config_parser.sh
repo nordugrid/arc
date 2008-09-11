@@ -1,4 +1,4 @@
-#!/bin/bash
+##############################################
 
 # Configuration parser module.
 # Requires a POSIX shell and perl
@@ -36,18 +36,21 @@ config_parse_file() {
         echo "config_parser: Cannot read config file: $arc_conf" 1>&2
         return 1
     fi
-    script='my ($nb,$no)=(0,0); while(<>) { chomp; if (/^\s*\[([\w\-\.\/]+)\]\s*$/) {
+    script='my ($nb,$no,$bn)=(0,0,""); while(<>) { chomp;
+              if (/^\s*\[([\w\-\.\/]+)\]\s*$/) {
+                print "_CONFIG_BLOCK${nb}_NAME='\''$bn'\'';\n" if $nb;
                 print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n" if $nb;
-                $nb++; $no=0;
-                print "_CONFIG_BLOCK${nb}_NAME='\''$1'\'';\n"; next;
+                $nb++; $no=0; $bn=$1;
               } elsif (/^(\w+)\s*=\s*([\"'\''])(.*)(\2)\s*$/) { $no++;
                 my ($opt,$val)=($1,$3); $val=~s/'\''/'\''\\'\'''\''/g;
+                $bn =~ s|^(.+?)(/[^/]*)?$|$1/$val| if $opt eq "name";
                 print "_CONFIG_BLOCK${nb}_OPT${no}_NAME='\''$opt'\'';\n";
                 print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val'\'';\n";
               } elsif (/^\s*#/) { # skip comment line
               } elsif (/^\s*$/) { # skip empty line
               } else { print "echo config_parser: Skipping bad line: $_ 1>&2\n";
             } }
+            print "_CONFIG_BLOCK${nb}_NAME='\''$bn'\'';\n";
             print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n";
             print "_CONFIG_NUM_BLOCKS='\''$nb'\'';\n";
            '
