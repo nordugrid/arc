@@ -6,7 +6,7 @@
 #include <arc/Thread.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Submitter.h>
-#include <arc/data/DataCache.h>
+#include <arc/data/FileCache.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
@@ -27,7 +27,7 @@ namespace Arc {
 
   bool Submitter::PutFiles(JobDescription& jobdesc, const URL& url) {
 
-    DataCache cache;
+    FileCache cache;
     DataMover mover;
     mover.retry(true);
     mover.secure(false);

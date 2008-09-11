@@ -18,6 +18,7 @@
 #include <arc/data/DataMover.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataHandle.h>
+#include <arc/data/FileCache.h>
 #include <arc/data/MkDirRecursive.h>
 #include <arc/data/URLMap.h>
 
@@ -76,7 +77,7 @@ namespace Arc {
   typedef struct {
     DataPoint *source;
     DataPoint *destination;
-    DataCache *cache;
+    FileCache *cache;
     const URLMap *map;
     unsigned long long int min_speed;
     time_t min_speed_time;
@@ -174,7 +175,7 @@ namespace Arc {
   /* transfer data from source to destination */
   DataStatus DataMover::Transfer(DataPoint& source,
 				 DataPoint& destination,
-				 DataCache& cache, const URLMap& map,
+				 FileCache& cache, const URLMap& map,
 				 std::string& failure_description,
 				 DataMover::callback cb, void *arg,
 				 const char *prefix) {
@@ -187,7 +188,7 @@ namespace Arc {
 
   DataStatus DataMover::Transfer(DataPoint& source,
 				 DataPoint& destination,
-				 DataCache& cache, const URLMap& map,
+				 FileCache& cache, const URLMap& map,
 				 unsigned long long int min_speed,
 				 time_t min_speed_time,
 				 unsigned long long int
@@ -204,7 +205,7 @@ namespace Arc {
 	return DataStatus::TransferError;
       param->source = &source;
       param->destination = &destination;
-      param->cache = new DataCache(cache);
+      param->cache = new FileCache(cache);
       param->map = &map;
       param->min_speed = min_speed;
       param->min_speed_time = min_speed_time;
@@ -458,22 +459,36 @@ namespace Arc {
 	mapped_p.Passive(force_passive);
       }
       /* Try to initiate cache (if needed) */
+      std::string canonic_url = source.str();
       if (cacheable) {
 	res = DataStatus::Success;
 	for (;;) { /* cycle for outdated cache files */
 	  bool is_in_cache = false;
-	  if (!cache.start(source.GetURL(), is_in_cache)) {
+	  bool is_locked = false;
+	  if (!cache.Start(canonic_url, is_in_cache, is_locked)) {
+	    if (is_locked) {
+	      logger.msg(DEBUG, "Cached file is locked - should retry");
+	      return DataStatus::CacheErrorRetryable;
+	    }
 	    cacheable = false;
 	    logger.msg(INFO, "Failed to initiate cache");
 	    break;
 	  }
-	  if (is_in_cache) { /* just need to check permissions */
-	    logger.msg(INFO, "File is cached - checking permissions");
+	  if(is_in_cache) {
+	    // check for forced re-download option
+	    std::string cache_option = source.GetURL().Option("cache");
+	    if (cache_option == "renew") {
+	      logger.msg(DEBUG, "Forcing re-download of file %s", canonic_url);
+	      cache.StopAndDelete(canonic_url);
+	      continue;
+	    }
+	    /* just need to check permissions */
+	    logger.msg(INFO, "File is cached (%s) - checking permissions",
+		       cache.File(canonic_url));
 	    if (!source.Check()) {
 	      logger.msg(ERROR, "Permission checking failed: %s",
 			 source.str());
-	      cache.stop(DataCache::file_download_failed |
-			 DataCache::file_keep);
+	      cache.Stop(canonic_url);
 	      source.NextLocation(); /* try another source */
 	      logger.msg(DEBUG, "source.next_location");
 	      res = DataStatus::ReadStartError;
@@ -482,38 +497,45 @@ namespace Arc {
 	    logger.msg(DEBUG, "Permission checking passed");
 	    /* check if file is fresh enough */
 	    bool outdated = true;
-	    if (source.CheckCreated() && cache.CheckCreated()) {
-	      if (source.GetCreated() <= cache.GetCreated())
+	    if (source.CheckCreated() && cache.CheckCreated(canonic_url)) {
+	      Time sourcetime = source.GetCreated();
+	      Time cachetime = cache.GetCreated(canonic_url);
+	      logger.msg(DEBUG, "Source creation date: %s", sourcetime.str());
+	      logger.msg(DEBUG, "Cache creation date: %s", cachetime.str());
+	      if (sourcetime <= cachetime)
 		outdated = false;
 	    }
-	    else if (cache.CheckValid()) {
-	      if (cache.GetValid() > Time())
+	    if (cache.CheckValid(canonic_url)) {
+	      Time validtime = cache.GetValid(canonic_url);
+	      logger.msg(DEBUG, "Cache file valid until: %s", validtime.str());
+	      if (validtime > Time())
 		outdated = false;
 	    }
 	    if (outdated) {
-	      cache.stop(DataCache::file_not_valid);
-	      logger.msg(INFO, "Cached file is outdated");
+	      cache.StopAndDelete(canonic_url);
+	      logger.msg(INFO, "Cached file is outdated, will re-download");
 	      continue;
 	    }
+	    logger.msg(DEBUG, "Cached copy is still valid");
 	    if (source.ReadOnly()) {
 	      logger.msg(DEBUG, "Linking/copying cached file");
-	      if (!cache.link(destination.CurrentLocation().Path())) {
+	      if (!cache.LinkFile(destination.CurrentLocation().Path(),
+				   canonic_url)) {
 		/* failed cache link is unhandable */
-		cache.stop(DataCache::file_download_failed |
-			   DataCache::file_keep);
+		cache.Stop(canonic_url);
 		return DataStatus::CacheError;
 	      }
 	    }
 	    else {
 	      logger.msg(DEBUG, "Copying cached file");
-	      if (!cache.copy(destination.CurrentLocation().Path())) {
+	      if (!cache.CopyFile(destination.CurrentLocation().Path(),
+				   canonic_url)) {
 		/* failed cache copy is unhandable */
-		cache.stop(DataCache::file_download_failed |
-			   DataCache::file_keep);
+		cache.Stop(canonic_url);
 		return DataStatus::CacheError;
 	      }
 	    }
-	    cache.stop();
+	    cache.Stop(canonic_url);
 	    return DataStatus::Success;
 	    // Leave here. Rest of code below is for transfer.
 	  }
@@ -537,8 +559,7 @@ namespace Arc {
 	    logger.msg(DEBUG, "source.next_location");
 	    res = DataStatus::ReadStartError;
 	    if (cacheable)
-	      cache.stop(DataCache::file_download_failed |
-			 DataCache::file_keep);
+	      cache.StopAndDelete(canonic_url);
 	    continue;
 	  }
 	  logger.msg(DEBUG, "Permission checking passed");
@@ -567,8 +588,7 @@ namespace Arc {
 		  logger.msg(DEBUG, "source.next_location");
 		  res = DataStatus::ReadStartError;
 		  if (cacheable)
-		    cache.stop(DataCache::file_download_failed |
-			       DataCache::file_keep);
+		    cache.StopAndDelete(canonic_url);
 		  continue;
 		}
 	      }
@@ -581,14 +601,13 @@ namespace Arc {
 	      logger.msg(DEBUG, "source.next_location");
 	      res = DataStatus::ReadStartError;
 	      if (cacheable)
-		cache.stop(DataCache::file_download_failed |
-			   DataCache::file_keep);
+		cache.StopAndDelete(canonic_url);
 	      continue;
 	    }
 	    User user;
 	    (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) != 0);
 	    if (cacheable)
-	      cache.stop();
+	      cache.Stop(canonic_url);
 	    return DataStatus::Success;
 	    // Leave after making a link. Rest moves data.
 	  }
@@ -597,7 +616,7 @@ namespace Arc {
       URL churl;
       if (cacheable) {
 	/* create new destination for cache file */
-	churl = cache.file();
+	churl = cache.File(canonic_url);
 	logger.msg(INFO, "cache file: %s", churl.Path());
       }
       DataHandle chdest_h(churl);
@@ -619,7 +638,7 @@ namespace Arc {
 	if (source.NextLocation())
 	  logger.msg(DEBUG, "(Re)Trying next source");
 	if (cacheable)
-	  cache.stop(DataCache::file_download_failed | DataCache::file_keep);
+	  cache.StopAndDelete(canonic_url);
 	continue;
       }
       if (mapped)
@@ -632,7 +651,7 @@ namespace Arc {
 	  source.NextLocation(); /* not exactly sure if this would help */
 	  res = DataStatus::PreRegisterError;
 	  if (cacheable)
-	    cache.stop(DataCache::file_download_failed);
+	    cache.StopAndDelete(canonic_url);
 	  continue;
 	}
       destination.SetMeta(source);
@@ -648,7 +667,7 @@ namespace Arc {
 	res = DataStatus::PreRegisterError;
 	// Normally remote destination is not cached. But who knows.
 	if (cacheable)
-	  cache.stop(DataCache::file_download_failed | DataCache::file_keep);
+	  cache.StopAndDelete(canonic_url);
 	continue;
       }
       buffer.speed.reset();
@@ -670,11 +689,12 @@ namespace Arc {
 	}
       }
       else {
-	if (!chdest.StartWriting(buffer, &cache)) {
+	if (!chdest.StartWriting(buffer)) {
+	  // TODO: put callback to clean cache into FileCache
 	  logger.msg(ERROR, "Failed to start writing to cache");
 	  source_url.StopReading();
 	  // hope there will be more space next time
-	  cache.stop(DataCache::file_download_failed | DataCache::file_keep);
+	  cache.StopAndDelete(canonic_url);
 	  if (!destination.PreUnregister(replication ||
 					 destination_meta_initially_stored).Passed())
 	    logger.msg(ERROR, "Failed to unregister preregistered lfn. "
@@ -697,24 +717,23 @@ namespace Arc {
       if (cacheable) {
 	bool download_error = buffer.error();
 	if (!download_error) {
-	  if (source.CheckCreated())
-	    cache.SetCreated(source.GetCreated());
 	  if (source.CheckValid())
-	    cache.SetValid(source.GetValid());
+	    cache.SetValid(canonic_url, source.GetValid());
 	  logger.msg(DEBUG, "Linking/copying cached file");
-	  if (!cache.link(destination.CurrentLocation().Path())) {
+	  if (!cache.LinkFile(destination.CurrentLocation().Path(),
+			       canonic_url)) {
 	    buffer.error_write(true);
-	    cache.stop(DataCache::file_download_failed | DataCache::file_keep);
+	    cache.Stop(canonic_url);
 	    if (!destination.PreUnregister(replication ||
 					   destination_meta_initially_stored).Passed())
 	      logger.msg(ERROR, "Failed to unregister preregistered lfn. "
 			 "You may need to unregister it manually");
 	    return DataStatus::CacheError; /* retry won't help */
 	  }
-	  cache.stop();
+	  cache.Stop(canonic_url);
 	}
 	else
-	  cache.stop(DataCache::file_download_failed | DataCache::file_keep);
+	  cache.StopAndDelete(canonic_url);
 	// keep for retries
       }
       if (buffer.error()) {

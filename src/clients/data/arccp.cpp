@@ -9,7 +9,8 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/data/DataCache.h>
+#include <arc/User.h>
+#include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
@@ -327,8 +328,8 @@ void arccp(const Arc::URL& source_url_,
 	  destination->SetTries(tries);
 	}
 	Arc::User cache_user;
-	Arc::DataCache cache(cache_path, cache_data_path, "", id,
-			     cache_user);
+	Arc::FileCache cache(cache_path, cache_data_path, "", id,
+			     cache_user.get_uid(), cache_user.get_uid(), 1, 2);
 	std::string failure;
 	if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
 			    0, 0, 0, timeout, failure)) {
@@ -393,7 +394,8 @@ void arccp(const Arc::URL& source_url_,
     destination->SetTries(tries);
   }
   Arc::User cache_user;
-  Arc::DataCache cache(cache_path, cache_data_path, "", id, cache_user);
+  Arc::FileCache cache(cache_path, cache_data_path, "", id,
+		       cache_user.get_uid(), cache_user.get_gid(), 1, 2);
   if (verbose)
     mover.set_progress_indicator(&progress);
   std::string failure;

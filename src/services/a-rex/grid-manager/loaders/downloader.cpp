@@ -17,12 +17,13 @@
 
 #include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
-#include <arc/data/DataCache.h>
+#include <arc/data/FileCache.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataMover.h>
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/User.h>
 
 #include "../jobs/job.h"
 #include "../jobs/users.h"
@@ -438,7 +439,7 @@ int main(int argc,char** argv) {
   // odlog(DEBUG)<<"Cache: link dir: "<<cache_link_dir<<std::endl;
   // odlog(DEBUG)<<"Cache: uid: "<<cache_uid<<std::endl;
   // odlog(DEBUG)<<"Cache: gid: "<<cache_gid<<std::endl;
-  Arc::DataCache cache(cache_dir,cache_data_dir,cache_link_dir,id,cache_user);
+  Arc::FileCache cache(cache_dir,cache_data_dir,cache_link_dir,id,uid,gid,1,2);
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);

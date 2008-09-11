@@ -9,7 +9,7 @@
 #include <arc/Logger.h>
 
 #include <arc/data/DMC.h>
-#include <arc/data/DataCache.h>
+#include <arc/data/FileCache.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
@@ -35,7 +35,7 @@ class FileTransfer
 {
     private:
         Arc::DataMover *mover;
-        Arc::DataCache *cache;
+        Arc::FileCache *cache;
         Arc::URLMap url_map;
         Arc::Logger logger_;
         unsigned long long int min_speed;
@@ -65,8 +65,10 @@ class FileTransfer
             std::string cache_dir = cache_path;
             std::string cache_data_dir = cache_dir;
             std::string cache_link_dir;
-            cache = new Arc::DataCache (cache_dir, cache_data_dir, 
-                                        cache_link_dir, job_id, cache_user);
+            cache = new Arc::FileCache (cache_dir, cache_data_dir, 
+                                        cache_link_dir, job_id,
+                                        cache_user.get_uid(),
+                                        cache_user.get_gid(), 1, 2);
         }
 
         void download(const std::string &job_root, Job &j)

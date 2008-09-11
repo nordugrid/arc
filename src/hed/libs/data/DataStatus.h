@@ -60,38 +60,41 @@ namespace Arc {
       /// Error in caching procedure
       CacheError = 15,
 
+      /// Error in caching procedure (retryable)
+      CacheErrorRetryable = 16,
+
       /// Error due to provided credentials are expired
-      CredentialsExpiredError = 16,
+      CredentialsExpiredError = 17,
 
       /// Error deleting location or URL
-      DeleteError = 17,
+      DeleteError = 18,
 
       /// No valid location available
-      NoLocationError = 18,
+      NoLocationError = 19,
 
       /// No valid location available
-      LocationAlreadyExistsError = 19,
+      LocationAlreadyExistsError = 20,
 
       /// Operation has no sense for this kind of URL
-      NotSupportedForDirectDataPointsError = 20,
+      NotSupportedForDirectDataPointsError = 21,
 
       /// Feature is unimplemented
-      UnimplementedError = 21,
+      UnimplementedError = 22,
 
       /// DataPoint is already reading
-      IsReadingError = 22,
+      IsReadingError = 23,
 
       /// DataPoint is already writing
-      IsWritingError = 23,
+      IsWritingError = 24,
 
       /// Access check failed
-      CheckError = 24,
+      CheckError = 25,
 
       /// File listing failed
-      ListError = 25,
+      ListError = 26,
 
       /// Object initialization failed
-      NotInitializedError = 26,
+      NotInitializedError = 27,
 
       /// Undefined
       UnknownError = 27

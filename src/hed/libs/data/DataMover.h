@@ -4,7 +4,7 @@
 #include <list>
 #include <string>
 
-#include <arc/data/DataCache.h>
+#include <arc/data/FileCache.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataSpeed.h>
 #include <arc/data/DataStatus.h>
@@ -45,7 +45,7 @@ namespace Arc {
     /// \param destination destination URL.
     /// \param cache controls caching of downloaded files (if destination
     /// url is "file://"). If caching is not needed default constructor
-    /// DataCache() can be used.
+    /// FileCache() can be used.
     /// \param map URL mapping/convertion table (for 'source' URL).
     /// \param cb if not NULL, transfer is done in separate thread and 'cb'
     /// is called after transfer completes/fails.
@@ -53,7 +53,7 @@ namespace Arc {
     /// \param prefix if 'verbose' is activated this information will be
     /// printed before each line representing current transfer status.
     DataStatus Transfer(DataPoint& source, DataPoint& destination,
-			DataCache& cache, const URLMap& map,
+			FileCache& cache, const URLMap& map,
 			std::string& failure_description,
 			callback cb = NULL, void *arg = NULL,
 			const char *prefix = NULL);
@@ -65,7 +65,7 @@ namespace Arc {
     /// \param max_inactivity_time time for which should be no activity
     /// before transfer fails.
     DataStatus Transfer(DataPoint& source, DataPoint& destination,
-			DataCache& cache, const URLMap& map,
+			FileCache& cache, const URLMap& map,
 			unsigned long long int min_speed,
 			time_t min_speed_time,
 			unsigned long long int min_average_speed,

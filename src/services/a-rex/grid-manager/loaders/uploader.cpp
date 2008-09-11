@@ -7,7 +7,6 @@
   arguments: job_id control_directory session_directory
   optional arguments: -t threads , -u user
 */
-//@ #include "std.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -18,12 +17,13 @@
 
 #include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
-#include <arc/data/DataCache.h>
+#include <arc/data/FileCache.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataMover.h>
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/User.h>
 
 #include "../jobs/job.h"
 #include "../jobs/users.h"
@@ -34,13 +34,6 @@
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../cache/cache.h"
-/*@
-#include "../misc/log_time.h"
-#include "../misc/checksum.h"
-#include "../misc/url_options.h"
-#include "../datamove/datacache.h"
-#include "../datamove/datamovepar.h"
-*/
 
 //@
 #define olog std::cerr
@@ -355,7 +348,7 @@ int main(int argc,char** argv) {
       user.SetCacheDir(cache_dir,cache_data_dir,cache_link_dir);
     };
   };
-  Arc::DataCache cache(cache_dir,cache_data_dir,cache_link_dir,id,cache_user);
+  Arc::FileCache cache(cache_dir,cache_data_dir,cache_link_dir,id,uid,gid,1,2);
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
