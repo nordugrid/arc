@@ -110,7 +110,7 @@ sub diskspace ($) {
 sub grid_diskspace ($$) {
     my ($sessiondir, $localids) = @_;
     my $commonspace = diskspace($sessiondir);
-    $log->error("Failed checking disk space in sessiondir $sessiondir")
+    $log->warning("Failed checking disk space in sessiondir $sessiondir")
          unless $commonspace;
 
     my $users = {};
@@ -118,12 +118,12 @@ sub grid_diskspace ($$) {
         $users->{$u} = {};
 
         my ($name,$passwd,$uid,$gid,$quota,$comment,$gcos,$home,$shell,$expire) = getpwnam($u);
-        $log->error("User $u is not listed in the passwd file") unless $name;
+        $log->warning("User $u is not listed in the passwd file") unless $name;
 
         if ($sessiondir =~ /^\s*\*\s*$/) {
             $users->{$u}{gridarea} = $home."/.jobs";
             my $gridspace = diskspace($users->{$u}{gridarea}); 
-            $log->error("Failed checking disk space in personal gridarea $users->{$u}{gridarea}")
+            $log->warning("Failed checking disk space in personal gridarea $users->{$u}{gridarea}")
                 unless $gridspace;
             $users->{$u}{diskfree} = $gridspace->{megsfree} || 0;
         } else {
@@ -221,7 +221,7 @@ sub get_host_info {
             $host_info->{cpufreq} = int $info->{clock_MHz};
         };
         if ($@) {
-            $log->error("Failed running module Sun::Solaris::Kstat: $@") and die;
+            $log->error("Failed running module Sun::Solaris::Kstat: $@");
         }
 
     } else {
@@ -275,7 +275,7 @@ sub get_host_info {
     
     #nordugrid-cluster-sessiondirusage
     my $sessionspace = diskspace($options->{sessiondir});
-    $log->error("Failed checking disk space in sessiondir $options->{sessiondir}")
+    $log->warning("Failed checking disk space in sessiondir $options->{sessiondir}")
         unless $sessionspace;
     $host_info->{session_free} = $sessionspace->{megsfree} || 0;
     $host_info->{session_total} = $sessionspace->{megstotal} || 0;

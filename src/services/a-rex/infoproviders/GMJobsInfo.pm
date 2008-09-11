@@ -87,7 +87,7 @@ sub get_gmjobs_info($) {
     # the @gridmanager_jobs contains the IDs from the job.ID.status
 
     unless (opendir JOBDIR,  $controldir ) {
-        $log->error("Can't access the job control directory: $controldir") and return {};
+        $log->warning("Can't access the job control directory: $controldir") and return {};
     }
     my @allfiles = grep /\.status/, readdir JOBDIR;
     closedir JOBDIR;

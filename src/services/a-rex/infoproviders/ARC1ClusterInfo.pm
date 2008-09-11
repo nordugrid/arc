@@ -80,7 +80,7 @@ sub _collect($$) {
     for my $job (values %{$gmjobs_info}) {
         my $qname = $job->{queue} || '';
 
-        $log->error("queue not defined") and next unless $qname;
+        $log->warning("queue not defined") and next unless $qname;
 
         $gmtotalcount{totaljobs}++;
         $gmqueuecount{$qname}{totaljobs}++;
@@ -125,7 +125,7 @@ sub _collect($$) {
                 }
             }
             # none of the %states matched this job
-            $log->error("Unexpected job status: $job->{status}");
+            $log->warning("Unexpected job status: $job->{status}");
         };
 
 

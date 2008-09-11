@@ -80,7 +80,7 @@ sub _collect($$) {
         if ( $job->{status} =~ /FAILED/   ) { $gmjobcount{finished}++ ; next; }
         if ( $job->{status} =~ /KILLED/   ) { $gmjobcount{finished}++ ; next; }
         if ( $job->{status} =~ /DELETED/  ) { $gmjobcount{deleted}++  ; next; }
-        $log->error("Unexpected job status: $job->{status}");
+        $log->warning("Unexpected job status: $job->{status}");
     }
 
     # count grid jobs running and queued in LRMS for each queue
@@ -96,19 +96,19 @@ sub _collect($$) {
                 $log->warning($msg.". Assuming default: ".$config->{defaultqueue});
                 $qname = $job->{queue} = $config->{defaultqueue};
             } else {
-                $log->error($msg.". No default queue defined");
+                $log->warning($msg.". No default queue defined");
                 die;
             }
         }
         if ($job->{status} eq 'INLRMS') {
             my $lrmsid = $job->{localid};
             unless (defined $lrmsid) {
-                $log->error("localid missing for INLRMS job $jobid");
+                $log->warning("localid missing for INLRMS job $jobid");
                 next;
             }
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
             unless ((defined $lrmsjob) and $lrmsjob->{status}) {
-                $log->error("LRMS plugin returned no status for job $jobid (lrmsid: $lrmsid)");
+                $log->warning("LRMS plugin returned no status for job $jobid (lrmsid: $lrmsid)");
                 die;
             }
             if ((defined $lrmsjob) and $lrmsjob->{status} ne 'EXECUTED') {
@@ -362,9 +362,9 @@ sub _collect($$) {
             if ($gmjob->{status} eq "INLRMS") {
 
                 my $localid = $gmjob->{localid}
-                    or $log->error("No local id for job $jobid") and next;
+                    or $log->warning("No local id for job $jobid") and next;
                 my $lrmsjob = $lrms_info->{jobs}{$localid}
-                    or $log->error("No local job for $jobid") and next;
+                    or $log->warning("No local job for $jobid") and next;
 
                 $j->{'nuj0:usedmem'}     = [ $lrmsjob->{mem} ]        if defined $lrmsjob->{mem};
                 $j->{'nuj0:usedwalltime'}= [ $lrmsjob->{walltime} ]   if defined $lrmsjob->{walltime};

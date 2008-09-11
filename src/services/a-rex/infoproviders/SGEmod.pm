@@ -109,17 +109,17 @@ require Data::Dumper; import Data::Dumper qw(Dumper);
 sub run_callback {
     my ($command, $callback, @extraargs) = @_;
     my ($executable) = split ' ', $command;
-    $log->error("Not an executable: $executable") and die
+    $log->error("Not an executable: $executable")
         unless (-x "$executable");
     local *QQ;
-    $log->error("Failed creating pipe from: $command: $!") and die
+    $log->error("Failed creating pipe from: $command: $!")
         unless open QQ, "$command |";
 
     &$callback(*QQ, @extraargs);
 
     close QQ;
     my $status = $? >> 8;
-    $log->error("Failed running (exit status $status): $command")
+    $log->warning("Failed running (exit status $status): $command")
         if $status;
     return ! $status;
 }
@@ -251,7 +251,7 @@ sub count_array_spec($) {
         $line = <$fh>;
         return unless defined $line; # if there was no output
         my @hdr = split ' ',$line;
-        $log->error("qstat header line not recognized") and die
+        $log->error("qstat header line not recognized")
             unless ($hdr[0] eq 'queuename');
         
         $line = <$fh>;
@@ -262,14 +262,14 @@ sub count_array_spec($) {
 
         return unless defined $line; # if there are no waiting jobs
 
-        $line = <$fh>; $log->error("Unexpected line from qstat") and die unless $line =~ /############/;
-        $line = <$fh>; $log->error("Unexpected line from qstat") and die unless $line =~ /PENDING JOBS/;
-        $line = <$fh>; $log->error("Unexpected line from qstat") and die unless $line =~ /############/;
+        $line = <$fh>; $log->error("Unexpected line from qstat") unless $line =~ /############/;
+        $line = <$fh>; $log->error("Unexpected line from qstat") unless $line =~ /PENDING JOBS/;
+        $line = <$fh>; $log->error("Unexpected line from qstat") unless $line =~ /############/;
         $line = <$fh>;
         handle_waiting_jobs($fh);
     
         # there should be no lines left
-        $log->error("Cannot parse qstat output line: $line") and die
+        $log->error("Cannot parse qstat output line: $line")
             if defined $line;
     }
 
@@ -285,7 +285,7 @@ sub count_array_spec($) {
             if (not $compat_mode) {
                 ($currentqueue, $currentnode) = split '@',$qname,2;
                 unless ($currentnode) {
-                    $log->error("Queue name of the form 'queue\@host' expected. Got: $qname") and die;
+                    $log->error("Queue name of the form 'queue\@host' expected. Got: $qname");
                 }
             } else {
                 $currentqueue = $qname;
@@ -338,7 +338,7 @@ sub count_array_spec($) {
                 my ($jobid,$user,$role,$taskid) = ($1,$2,$5,$6);
                 $taskid = 0 unless $taskid; # 0 is an invalid task id
                 if ($role eq 'MASTER' and not defined $jobid) {
-                    $log->error("Cannot parse qstat output line: $line") and die;
+                    $log->error("Cannot parse qstat output line: $line");
                 } elsif (not defined $jobid) {
                     $jobid = $currentjobid;
                 } else {
@@ -391,7 +391,7 @@ sub count_array_spec($) {
                 my ($jobid,$user,$taskdef) = ($1,$2,$6);
                 my $ntasks = $taskdef ? count_array_spec($taskdef) : 1;
                 unless ($ntasks) {
-                    $log->error("Failed parsing task definition: $taskdef") and die;
+                    $log->error("Failed parsing task definition: $taskdef");
                 }
                 $waiting_jobs{$jobid} = {user => $user, state => $3, date => $4,
                                          slots => $5, tasks => $ntasks, rank => $rank};
@@ -404,7 +404,7 @@ sub count_array_spec($) {
                 my ($jobid,$user,$taskdef) = ($1,$2,$5);
                 my $ntasks = $taskdef ? count_array_spec($taskdef) : 1;
                 unless ($ntasks) {
-                    $log->error("Failed parsing task definition: $taskdef") and die;
+                    $log->error("Failed parsing task definition: $taskdef");
                 }
                 # The number of slots is not available from qstat output.
                 $waiting_jobs{$jobid} = {user => $user, state => $3, date => $4,
@@ -467,7 +467,7 @@ sub req_limits ($) {
 
 sub lrms_init() {
     $ENV{SGE_ROOT} = $options->{sge_root} || $ENV{SGE_ROOT};
-    $log->error("could not determine SGE_ROOT") and die unless $ENV{SGE_ROOT};
+    $log->error("could not determine SGE_ROOT") unless $ENV{SGE_ROOT};
 
     $ENV{SGE_CELL} = $options->{sge_cell} || $ENV{SGE_CELL} || 'default';
     $ENV{SGE_QMASTER_PORT} = $options->{sge_qmaster_port} if $options->{sge_qmaster_port};
@@ -478,7 +478,7 @@ sub lrms_init() {
     }
     $ENV{SGE_BIN_PATH} = $options->{sge_bin_path} || $ENV{SGE_BIN_PATH};
 
-    $log->error("SGE executables not found") and die unless -x "$ENV{SGE_BIN_PATH}/qsub";
+    $log->error("SGE executables not found") unless -x "$ENV{SGE_BIN_PATH}/qsub";
 
     $path = $ENV{SGE_BIN_PATH};
 }

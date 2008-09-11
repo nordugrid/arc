@@ -72,7 +72,7 @@ sub main {
     }
     
     unless ( $configfile ) {
-        $log->error("a command line argument is missing, see --help ") and die;
+        $log->error("a command line argument is missing, see --help ");
     }
     
     ##################################################
@@ -80,7 +80,7 @@ sub main {
     ##################################################
     
     my $parser = ConfigParser->new($configfile)
-        or $log->error("Cannot open $configfile") and die;
+        or $log->error("Cannot open $configfile");
     %config = (%config, $parser->get_section('common'));
     %config = (%config, $parser->get_section('cluster'));
     %config = (%config, $parser->get_section('grid-manager'));

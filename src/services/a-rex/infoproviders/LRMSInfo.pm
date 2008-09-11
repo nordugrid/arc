@@ -155,7 +155,7 @@ sub _check_options($$) {
     $self->{options} = $options;
 
     my $lrms_name = $options->{lrms};
-    $log->error('lrms option is missing') and die unless $lrms_name;
+    $log->error('lrms option is missing') unless $lrms_name;
 
     load_lrms($options->{lrms});
 

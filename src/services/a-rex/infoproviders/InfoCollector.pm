@@ -67,8 +67,8 @@ sub _check_options($) {
     my $log = $self->{logger};
     my $schema = $self->_get_options_schema();
     my @messages = InfoChecker->new($schema)->verify($options);
-    $log->error("Checker: options->$_") foreach @messages;
-    $log->error("Checker: ".@messages." required options are missing") and die if @messages;
+    $log->warning("Checker: options->$_") foreach @messages;
+    $log->error("Checker: ".@messages." required options are missing") if @messages;
 }
 
 sub _check_results($) {

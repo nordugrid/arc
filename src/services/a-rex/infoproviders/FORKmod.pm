@@ -138,7 +138,7 @@ sub cpu_threads_cores_sockets {
             }
         };
         if ($@) {
-            $log->error("Failed running module Sun::Solaris::Kstat: $@") and die;
+            $log->error("Failed running module Sun::Solaris::Kstat: $@");
         }
         $nsockets = $ncores = scalar keys %chips;
 
@@ -154,7 +154,7 @@ sub cpu_threads_cores_sockets {
 sub process_info() {
     my @pslines = `ps -e -o ppid,pid,vsz,time,etime,user,comm`;
     if ($? != 0) {
-        $log->error("Failed running ps -e -o ppid,pid...");
+        $log->warning("Failed running ps -e -o ppid,pid...");
         return ();
     }
     shift @pslines; # drop header line
@@ -209,7 +209,7 @@ sub cluster_info () {
         $lrms_cluster->{usedcpus} = ($1 <= $lrms_cluster->{totalcpus})
                          ? floor(0.5+$1) : $lrms_cluster->{totalcpus};
     } else {
-        $log->error("Failed getting load averages");
+        $log->warning("Failed getting load averages");
         $lrms_cluster->{usedcpus} = 0;
     }
     $lrms_cluster->{runningjobs} = $lrms_cluster->{usedcpus};
