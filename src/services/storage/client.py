@@ -89,15 +89,13 @@ class Client:
                     else:
                         # create an HTTP connection
                         h = httplib.HTTPConnection(self.host, self.port)
-                    print 'new', h, self.host, self.port, self.path, self.ssl_config
+                    # print 'new', h, self.host, self.port, self.path, self.ssl_config
                 # get the XML from outpayload, and send it as POST
                 h.request('POST', self.path, outpayload.GetXML())
                 # get the response object
                 r = h.getresponse()
                 # read the response data
                 resp = r.read()
-                # if '91ed65f6-91b2-429e-8e7e-886557c7bda5' in resp:
-                #     print '\n    the service sent:\n', resp
                 self.connection = h
                 # return the data and the status
                 return resp, r.status, r.reason

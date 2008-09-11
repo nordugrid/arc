@@ -447,8 +447,8 @@ class ShepherdService(Service):
         return out
 
     def get(self, inpayload):
-        if inpayload.auth:
-            print 'Shepherd auth "get": ', inpayload.auth
+        # if inpayload.auth:
+        #     print 'Shepherd auth "get": ', inpayload.auth
         request = self._putget_in('get', inpayload)
         response = self.shepherd.get(request)
         return self._putget_out('get', response)

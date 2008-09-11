@@ -974,8 +974,9 @@ class BartenderService(Service):
         #           </bar:listResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
-        if inpayload.auth:
-            print 'Bartender auth "list": ', inpayload.auth
+        
+        #if inpayload.auth:
+        #    print 'Bartender auth "list": ', inpayload.auth
         requests = parse_node(inpayload.Child().Get('listRequestList'),
             ['requestID', 'LN'], single = True)
         neededMetadata = [
