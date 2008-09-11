@@ -5,5 +5,5 @@ DBXML_DIR =
 endif
 
 # order is important!
-SUBDIRS=common message loader data delegation security ws-addressing ws-security wsrf client $(DBXML_DIR) infosys ws
-DIST_SUBDIRS=common message loader data delegation security ws-addressing ws-security wsrf client dbxml infosys ws
+SUBDIRS=common credential message loader data delegation security ws-addressing ws-security wsrf client $(DBXML_DIR) infosys ws
+DIST_SUBDIRS=common credential message loader data delegation security ws-addressing ws-security wsrf client dbxml infosys ws

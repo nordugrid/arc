@@ -840,6 +840,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/client/Makefile
                  src/hed/libs/common/Makefile
                  src/hed/libs/common/test/Makefile
+                 src/hed/libs/credential/Makefile
                  src/hed/libs/data/Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
@@ -889,7 +890,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/pdc/delegationsh/Makefile
                  src/hed/pdc/usernametokensh/Makefile
                  src/hed/pdc/x509tokensh/Makefile
-                 src/arclib/Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile

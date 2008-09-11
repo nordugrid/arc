@@ -8,7 +8,7 @@
 
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include <arc/arclib/Credential.h>
+#include <arc/credential/Credential.h>
 
 int main(void) {
   Arc::LogStream cdest(std::cerr);
