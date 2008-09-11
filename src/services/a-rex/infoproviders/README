@@ -20,8 +20,13 @@ HostInfo.pm - collects other information that can be collected on the front end
               certificates, Runtime environments ...)
 LRMSInfo.pm - collects information that is LRMS specific (queues, jobs, local
               user limits ...)
-Fork.pm, PBS.pm, SGE.pm, LL.pm, LSF.pm, Condor.pm - plugins for LRMSInfo. Only
-                           Fork, SGE and PBS are updated to the new framework.
+XXXXmod.pm  - plugins for LRMSInfo implementing the new LRMS module interface,
+              such as:
+    FORKmod.pm - Fork information module
+    SGEmod.pm  - SGE information module
+    ARC0mod.pm - special module that loads ARC0 information modules and does
+                 the conversion between the old interface and the new one.
+PBS.pm, LL.pm, LSF.pm, Condor.pm - ARC0 information modules
 
 ARC0ClusterInfo.pm - combines all information about A-REX and produces
                      information structured according to the classic NG schema.
