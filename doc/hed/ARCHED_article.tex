@@ -318,7 +318,9 @@ This chapter describes components which are implemented alongside with the HED i
 
 \texttt{Library name: \{lib\}mcctcp}
 
-\texttt{SEcuruty handler queues: incoming, outgoing}
+\texttt{Security handler queues: incoming, outgoing}
+
+\texttt{Message attrbiutes: TCP:HOST, TCP:PORT, TCP:REMOTEHOST, TCP:REMOTEPORT, TCP:ENDPOINT, ENDPOINT}
 
 % TODO: attributes and security attributes
 
@@ -329,9 +331,24 @@ This MCC can be configured as to what port to listen to.
 }{}
 
 \ifthenelse{\boolean{verbtechdesc}}{
-This MCC can be configuered with one or more \texttt{<tcp:Listen>} elements which in turn contain the elements \texttt{<tcp:Port>}, \texttt{<tcp:Interface>} and \texttt{<tcp:Version>}. The \texttt{<tcp:Port>} element is mandatory and should contain an integer corresponding to the TCP port to listen to. The \texttt{<tcp:Interface>} element is optional and is meant to identify the network interface to bind to. It is currently not used. The \texttt{<tcp:Version>} element is used to specify IP version. It is optional and should if present contain the single digit 4 or 6.
+This MCC can be configured with one or more \texttt{<tcp:Listen>} elements which in turn contain the elements \texttt{<tcp:Port>}, \texttt{<tcp:Interface>} and \texttt{<tcp:Version>}. The \texttt{<tcp:Port>} element is mandatory and should contain an integer corresponding to the TCP port to listen to. The \texttt{<tcp:Interface>} element is optional and is meant to identify the network interface to bind to. It is currently not used. The \texttt{<tcp:Version>} element is used to specify IP version. It is optional and should if present contain the single digit 4 or 6.
 
-The server side TCP MCC generates \texttt{PayloadStreamInterface} payload in the Message passed to next MCC whihc can be used for communicationg through open TCP channel. Currently it ignores any payload attached to the returned Message.
+The server side TCP MCC generates \texttt{PayloadStreamInterface} payload in the Message passed to next MCC whihc can be used for communicationg through open TCP channel. Currently it ignores any payload attached to the returned Message. That MCC also fills following Message Attrbutes in incoming message while passing to next MCC:
+\begin{enumerate}
+
+\item TCP:HOST - IP address of local interface which was used to establish TCP connection
+
+\item TCP:PORT - local TCP port which was used for connection
+
+\item TCP:REMOTEHOST - IP address of contacting client
+
+\item TCP:REMOTEPORT - TCP port of contacting client
+
+\item TCP:ENDPOINT - URL-like combination of ://(TCP:HOST):(TCP:PORT)
+
+\item ENDPOINT - same as TCP:ENDPOINT
+
+\end{enumerate}
 }{}
 
 The client side TCP MCC performs TCP connection to host and port specified in <Host> and <Port> elements inside <Connect> element of the MCC configuration. Then all incoming Messages of \texttt{process()} method are transfered ober TCP connection. Accepted Payload type of incoming Message is \texttt{PayloadRawInterface}. Returned Payload is of \texttt{PayloadStreamInterface} type. It represents established TCP conenction and \texttt{may} be used by previous MCCs in chain for direct communication. It is still prefered to call \texttt{process()} method instead.
@@ -392,11 +409,15 @@ The client side TCP MCC performs TCP connection to host and port specified in <H
 
 \texttt{Securuty handler queues: incoming, outgoing}
 
+\texttt{Message attrbiutes: TLS:PEERDN, TLS:IDENTITYDN}
+
 % TODO: attributes and security attributes
 
 The server and client TLS MCCs provide transport level security (TLS) over any stream channel. Curently they interoperate well with TCP MCCs.
 
 The server side MCC accepts payload of type PayloadStreamInterface. It then creates own instance of object inherited from PayloadStreamInterface bound to initial payload and passes it to next MCC. This object is maintained inside Message Context under name \texttt{tls.service} and is destroyed when Context becomes inactive. Currenlty this MCC does not expect any payload to be returned from rest of the chain and passes no payload to previous MCC.
+
+The server MCC fills Message Attributes TLS:PEERDN and TLS:IDENTITYDN representing subjects of last cretificate in client's certificate chain used for establishing secure connection and subject of last certificate which is not a proxy certificate correspondingly. Use of thos attributes is deprecated. It is advised to use Security Attributes instead.
 
 The client side MCC behaves in similar way. It also establishes PayloadStreamInterface type object linked to same type of payload of next MCC. To obtain that last payload it makes a first call to next MCC with payload of type PayloadRawInterface and then uses returned payload - which is expected to be of PayloadStreamInterface type - to create own payload object with streaming capabilities and returns it back to previous MCC for further usage.
 
@@ -457,13 +478,36 @@ Both client ans server side MCCs are implemented using OpenSSL toolkit \cite{ope
 
 \texttt{Securuty handler queues: incoming, outgoing}
 
+\texttt{Message attrbiutes: HTTP:METHOD, HTTP:CODE, HTTP:REASON, HTTP:RANGESTART, HTTP:RANGEEND, HTTP:ENDPOINT, HTTP:*, ENDPOINT}
+
 % TODO: attributes and security attributes
 
 The server side HTTP MCC accepts messages with \texttt{PayloadStreamInterface} payload and parses HTTP related information from it. Information from the HTTP header is added to the Message Attributes. The body of HTTP message is passed to next MCC as \texttt{PayloadRawInterface} payload. In response this MCC expects also the Message with \texttt{PayloadRawInterface}. It is then prepended with HTTP reponse header and pushes it into initially providded stream channel. for output it returns empty \texttt{PayloadRawInterface} payload.
 
-This MCC routes results to multiple next MCCs in the chain. For that it accepts only labeled <next> elements in cinfoguration. Label names are those of HTTP methods (uppercase). HTTP messages will be routed to their destinations according HTTP method requested.
+That MCC routes results to multiple next MCCs in the chain. For that it accepts only labeled <next> elements in confoguration. Label names are those of HTTP methods (uppercase). HTTP messages will be routed to their destinations according HTTP method requested.
+
+That MCC also fills following Message Attrbutes in incoming message while passing to next MCC:
+\begin{enumerate}
+
+\item HTTP:METHOD - HTTP method as defined in HTTP request header.
+
+\item HTTP:RANGESTART - Range request start offset
+
+\item HTTP:RANGEEND - Range request end offset
+
+\item HTTP:ENDPOINT - URL or path as specified in HTTP request header
+
+\item HTTP:* - Here * stands for any name. All HTTP options from HTTP request header are converted into Message Attributes named HTTP:\{option name\}
+
+\item ENDPOINT - same as HTTP:ENDPOINT
+
+\end{enumerate}
+
+For outgoing message server MCC converts all HTTP:* Message Attriutes into corresponding HTTP response header attribute.
 
 The client side HTTP MCC will accept \texttt{PayloadRawInterface} payload as HTTP body and after prepending it with HTTP information passes to next MCC also as \texttt{PayloadRawInterface}. It accepts \texttt{PayloadStreamInterface} in response and after processing passes \texttt{PayloadRawInterface} back trhough the chain.
+
+The client MCC also convert all HTTP:* Message Attributes into corresponding HTTP header options while creating HTTP request. If define it uses HTTP:METHOD and HTTP:ENDPOINT as method and URL/path of HTTP request. If not specified those defined in configuration are used. For HTTP response it sets HTTP:CODE and HTTP:REASON to response code and reason correspondingly. It also performs conversion from header options into HTTP:* Message Attributes.
 
 \paragraph{Configuration schema}
 
@@ -493,9 +537,15 @@ The client side HTTP MCC will accept \texttt{PayloadRawInterface} payload as HTT
 
 \texttt{Securuty handler queues: incoming, outgoing}
 
+\texttt{Message attrbiutes: SOAP:ENDPOINT, ENDPOINT}
+
 % TODO: attributes and security attributes
 
-These MCCs convert payloads between dat chunks presented by PayloadRawInterface type object into dedicated PayloadSOAP payloads and vice versa. Currently it has no specific configuration parameters.
+These MCCs convert payloads between data chunks presented by PayloadRawInterface type object into dedicated PayloadSOAP payloads and vice versa. Currently it has no specific configuration parameters.
+
+The server side MCC sets Message Attributes SOAP:ENDPOINT and ENDPOINT to URL present in 'texttt{To} element of Web Service Addressing information stored in SOAP header. For proper SOAP over HTTP binding it also sets \texttt{HTTP:Content-Type} Message Attribute to value \texttt{application/soap+xml} or \texttt{text/xml} for SOAP version 1.2 and 1.1 respectively for response message. Also in case of SOAP fault response \texttt{HTTP:CODE} is set to \texttt{500} and \texttt{HTTP:REASON} to \texttt{SOAP FAULT}.
+
+The client side MCC for outgoing message accepts \texttt{SOAP:ACTION} Message Attribute and uses it to fill \texttt{HTTP:Content-Type} or \texttt{HTTP:SOAPAction} depending on SOAP version.
 
 
 \section{Implemented Security Handlers}
@@ -527,23 +577,67 @@ These MCCs convert payloads between dat chunks presented by PayloadRawInterface 
 
 \subsection{File DMC}
 
+\texttt{Protocol name: file}
+
+This DMC implements access to local or remote mounted file system. It allows reading and writing content of file, listing content of directories and checking presence of the object.
+
+Name of pligin is \texttt{file} and it is located in \texttt{\{lib\}dmcfile} loadable module.
+
 
 \subsection{GridFTP/FTP DMC}
+
+\texttt{Protocol name: ftp, gsiftp}
+
+This DMC implements access to a data server using FTP or GridFTP protocol. It allows reading and writing content of stored file, listing content of directories and checking presence of the object.
+
+Name of pligin is \texttt{gridftp} and it is located in \texttt{\{lib\}dmcgridftp} loadable module.
 
 
 \subsection{HTTP DMC}
 
+\texttt{Protocol name: http, https, httpg (not implemented yet)}
+
+This DMC implements access to a data server using HTTP over TCP or over TLS protocol. It uses GET for reading and PUT for storing files. Data is always transfered in chunks due to current limitation of HTTP MCC. Listing is also supported. For that DMC extracts references from \texttt{A} tags of obtained HTLM content. If retrieved content is not HTML or if content of it's \texttt{TITLE} tag does not start from ""Index of /"" then only information about resquested URL itself is listed.
+
+Name of pligin is \texttt{http} and it is located in \texttt{\{lib\}dmchttp} loadable module.
+
 
 \subsection{LDAP DMC}
+
+\texttt{Protocol name: ldap}
+
+The LDAP DMC implements access to a data accessible through LDAP protocol. Currently it can only retrieve content of LDAP tree. Retrieved content is converted into XML. The DMC supports following kind of URL
+
+\texttt{ldap://host[:port]/base[?[attributes][?[scope][?filter]]]}
+
+\begin{itemize}
+\item \texttt{attributes} is coma separted list of attributes which has to be retrieved,
+\item \texttt{scope} is either \texttt{base}, \texttt{one} or \texttt{sub} as defined by LDAP,
+\item \texttt{filter} is LDAP filter.
+\end{itemize}
+
+Name of pligin is \texttt{ldap} and it is located in \texttt{\{lib\}dmcldap} loadable module.
 
 
 \subsection{LFC DMC}
 
+\texttt{Protocol name: lfc}
+
+The LFC DMC provides an access to LCG File Catalog service and supports file listing, URL resolution and (un)registration of file locations. It uses LFC protocol implementation provided by gLite middleware.
+
+Name of pligin is \texttt{lfc} and it is located in \texttt{\{lib\}dmclfc} loadable module.
+
 
 \subsection{RLS DMC}
 
+\texttt{Protocol name: rls}
 
-\chapter{Conclusion}
+The RLS DMC provides an access to Relica Location Service and supports file listing, URL resolution and (un)registration of file locations. It uses RLS protocol implementation provided by Globus Toolkit.
+
+Name of pligin is \texttt{rls} and it is located in \texttt{\{lib\}dmcrls} loadable module.
+
+
+%\chapter{Conclusion}
 
 \bibliography{grid}
 
