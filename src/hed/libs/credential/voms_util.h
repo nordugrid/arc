@@ -20,6 +20,7 @@ namespace ArcLib {
 
   bool addVOMSAC(AC** &aclist, std::string &codedac);
 
+  bool parseVOMSAC(X509* cert, std::vector<std::string>& output);
 
 }// namespace ArcLib
 

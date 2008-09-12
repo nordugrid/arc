@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <fstream>
+#include <glibmm/fileutils.h>
+
 #include "VOMSAttribute.h"
 #include "voms_util.h"
 extern "C" {
@@ -468,7 +471,619 @@ err:
     }
   }
 
+  static int cb(int ok, X509_STORE_CTX *ctx) {
+    if (!ok) {
+      if (ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) ok=1;
+      /* since we are just checking the certificates, it is
+       * ok if they are self signed. But we should still warn
+       * the user.
+       */
+      if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+      /* Continue after extension errors too */
+      if (ctx->error == X509_V_ERR_INVALID_CA) ok=1;
+      if (ctx->error == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
+      if (ctx->error == X509_V_ERR_CERT_CHAIN_TOO_LONG) ok=1;
+      if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+    }
+    return(ok);
+  }
 
+  static bool check_cert(X509 *cert, std::string& ca_cert_dir) {
+    X509_STORE *ctx = NULL;
+    X509_STORE_CTX *csc = NULL;
+    X509_LOOKUP *lookup = NULL;
+    int i = 0;
+
+    csc = X509_STORE_CTX_new();
+    ctx = X509_STORE_new();
+    if (ctx && csc) {
+      X509_STORE_set_verify_cb_func(ctx,cb);
+#ifdef SIGPIPE
+      signal(SIGPIPE,SIG_IGN);
+#endif
+      CRYPTO_malloc_init();
+      if ((lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
+        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_DEFAULT);
+        if ((lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
+          X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
+          ERR_clear_error();
+          X509_STORE_CTX_init(csc,ctx,cert,NULL);
+          i = X509_verify_cert(csc);
+        }
+      }
+    }
+    if (ctx) X509_STORE_free(ctx);
+    if (csc) X509_STORE_CTX_free(csc);
+
+    return (i != 0);
+  }
+
+  static bool check_cert(STACK_OF(X509) *stack, std::string& ca_cert_dir) {
+    X509_STORE *ctx = NULL;
+    X509_STORE_CTX *csc = NULL;
+    X509_LOOKUP *lookup = NULL;
+    int index = 0;
+
+    csc = X509_STORE_CTX_new();
+    ctx = X509_STORE_new();
+    if (ctx && csc) {
+      X509_STORE_set_verify_cb_func(ctx,cb);
+#ifdef SIGPIPE
+      signal(SIGPIPE,SIG_IGN);
+#endif
+      CRYPTO_malloc_init();
+      if ((lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
+        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_DEFAULT);
+        if ((lookup=X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
+          X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
+          for (int i = 1; i < sk_X509_num(stack); i++) {
+            X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
+            ERR_clear_error();
+            X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+            index = X509_verify_cert(csc);
+          }
+        }
+      }
+    }
+    if (ctx) X509_STORE_free(ctx);
+    if (csc) X509_STORE_CTX_free(csc);
+
+    return (index != 0);
+  }
+  
+  static bool check_sig_ac(X509* cert, AC* ac){
+    if (!cert || !ac) return false;
+
+    EVP_PKEY *key = X509_extract_key(cert);
+    if (!key) return false;
+
+    int res;
+#ifdef HAVE_OPENSSL_OLDRSA
+    res = ASN1_verify((int (*)())i2d_AC_INFO, ac->sig_alg, ac->signature,
+                        (char *)ac->acinfo, key);
+#else
+    res = ASN1_verify((int (*)(void*, unsigned char**))i2d_AC_INFO, ac->sig_alg, ac->signature,
+                        (char *)ac->acinfo, key);
+#endif
+
+    if (!res) std::cerr<<"Unable to verify AC signature"<<std::endl;
+  
+    EVP_PKEY_free(key);
+    return (res == 1);
+  }
+
+  static bool check_signature(AC* ac, std::string& subject, std::string& voname, std::string& hostname, 
+    std::string& ca_cert_dir, std::string& vomsdir, X509** issuer_cert) {
+    X509* issuer = NULL;
+
+    int nid = OBJ_txt2nid("certseq");
+    STACK_OF(X509_EXTENSION) *exts = ac->acinfo->exts;
+    int pos = X509v3_get_ext_by_NID(exts, nid, -1);
+    if (pos >= 0) {
+      //Check if the DN/CA file is installed for a given VO.
+      std::string filecerts = vomsdir + "/" + voname + "/" + hostname + ".lsc";
+      std::ifstream file(filecerts.c_str());
+      if (!file) { std::cerr<<"Can not find the "<<hostname<<".lsc file under "<<vomsdir<<"/"<<voname<<std::endl; return false; }
+      X509_EXTENSION* ext = sk_X509_EXTENSION_value(exts, pos);
+      AC_CERTS* certs = (AC_CERTS *)X509V3_EXT_d2i(ext);
+      STACK_OF(X509)* certstack = certs->stackcert;
+
+      bool success = false;
+      bool final = false;
+
+      do {
+        success = true;
+        for (int i = 0; i < sk_X509_num(certstack); i++) {
+          X509 *current = sk_X509_value(certstack, i);
+
+          std::string subject;
+          std::string issuer;
+          std::getline(file,subject);
+          std::getline(file,issuer);
+
+          if(subject.empty() || issuer.empty()) { 
+            success = false;
+            final = true;
+            break;
+          }
+
+          std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
+          std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
+
+          if(subject.compare(realsubject) !=0 || issuer.compare(realissuer) !=0) {
+            do {
+              std::getline(file, subject);
+            } while (file && subject.compare("------ NEXT CHAIN ------") == 0);
+            success = false;
+            break;
+          }
+        }
+        if (success || !file)
+        final = true;
+      } while (!final);
+
+      file.close();
+      if (!success) {
+        AC_CERTS_free(certs);
+        std::cerr<<"Unable to match certificate chain against file: "<<filecerts<<std::endl;
+        return false;
+      }
+                  
+      /* check if able to find the signing certificate 
+      among those specific for the vo or else in the vomsdir
+      directory */
+
+#ifdef HAVE_OPENSSL_OLDRSA
+      X509 *cert = (X509 *)ASN1_dup((int (*)())i2d_X509, (char * (*)())d2i_X509, (char *)sk_X509_value(certstack, 0));
+#else
+      X509 *cert = (X509 *)ASN1_dup((int (*)(void*, unsigned char**))i2d_X509, 
+                   (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)sk_X509_value(certstack, 0));
+#endif
+
+      bool found = false;
+
+      if (check_sig_ac(cert, ac))
+        found = true;
+      else
+        std::cerr<<"Unable to verify signature!"<<std::endl;
+
+      if (found) {
+        if (!check_cert(certstack, ca_cert_dir)) {
+          X509_free(cert);
+          cert = NULL;
+          std::cerr<<"Unable to verify certificate chain"<<std::endl;
+        }
+      }
+      else
+        std::cerr<<"Cannot find certificate of AC issuer for vo "<<voname<<std::endl;
+ 
+      AC_CERTS_free(certs);
+     
+      issuer = cert;
+    }
+ 
+    /* check if able to find the signing certificate 
+     *among those specific for the vo or else in the vomsdir
+     *directory 
+     */
+    if(issuer == NULL){
+      bool found  = false;
+      BIO * in = NULL;
+      X509 * x = NULL;
+      for(int i = 0; (i < 2 && !found); ++i) {
+        std::string directory = vomsdir + (i ? "" : "/" + voname);
+        Glib::Dir dir(directory); 
+        while(true){
+          std::string filename = dir.read_name(); 
+          if (!filename.empty()) {
+            in = BIO_new(BIO_s_file());
+            if (in) {
+              std::string temp = directory + "/" + filename;
+              if (BIO_read_filename(in, temp.c_str()) > 0) {
+                x = PEM_read_bio_X509(in, NULL, 0, NULL);
+                if (x) {
+                  if (check_sig_ac(x, ac)) { found = true; break; }
+                  else { X509_free(x); x = NULL; }
+                }
+              }
+              BIO_free(in); in = NULL;
+            }
+          }
+          else break;
+        }
+      }
+      if (in) BIO_free(in);
+      if (found) {
+        if (!check_cert(x, ca_cert_dir)) { X509_free(x); x = NULL; }
+      }
+      else std::cerr<<"Cannot find certificate of AC issuer for vo "<<voname<<std::endl;
+
+      issuer = x;
+    }
+
+    if(issuer == NULL) { std::cerr<<"Can not verify AC signature"<<std::endl; return false; } 
+
+    *issuer_cert = issuer; return true; 
+  }
+
+
+  static bool checkAttributes(STACK_OF(AC_ATTR) *atts, std::vector<std::string>& attributes) {
+    AC_ATTR *caps;
+    STACK_OF(AC_IETFATTRVAL) *values;
+    AC_IETFATTR *capattr;
+    AC_IETFATTRVAL *capname;
+    GENERAL_NAME *data;
+
+    /* find AC_ATTR with IETFATTR type */
+    int  nid = OBJ_txt2nid("idatcap");
+    int pos = X509at_get_attr_by_NID(atts, nid, -1);
+    if (!(pos >=0)) { std::cerr<<"Can not find AC_ATTR with IETFATTR type"<<std::endl; return false; }
+    caps = sk_AC_ATTR_value(atts, pos);
+  
+    /* check there's exactly one IETFATTR attribute */
+    if (sk_AC_IETFATTR_num(caps->ietfattr) != 1) {
+      std::cerr<<"Check there's exactly one IETFATTR attribute"<<std::endl; return false; 
+    }
+
+    /* retrieve the only AC_IETFFATTR */
+    capattr = sk_AC_IETFATTR_value(caps->ietfattr, 0);
+    values = capattr->values;
+  
+    /* check it has exactly one policyAuthority */
+    if (sk_GENERAL_NAME_num(capattr->names) != 1) {
+      std::cerr<<"Check there's exactly one policyAuthority"<<std::endl; return false;
+    }
+
+    /* store policyAuthority */
+    data = sk_GENERAL_NAME_value(capattr->names, 0);
+    if (data->type == GEN_URI) {
+      std::string voname;
+      voname.append("voname=").append((const char*)(data->d.ia5->data), data->d.ia5->length);
+      attributes.push_back(voname);
+    }
+    else {
+      std::cerr<<"The format of policyAuthority is wrong"<<std::endl; return false;
+    }
+
+    /* scan the stack of IETFATTRVAL to store attribute */
+    for (int i=0; i<sk_AC_IETFATTRVAL_num(values); i++) {
+      capname = sk_AC_IETFATTRVAL_value(values, i);
+
+      if (!(capname->type == V_ASN1_OCTET_STRING)) {
+        std::cerr<<"The IETFATTRVAL is not V_ASN1_OCTET_STRING"<<std::endl; return false;
+      }
+
+      std::string fqan((const char*)(capname->data), capname->length);
+      attributes.push_back(fqan);      
+    }
+
+    return true;
+  }
+
+  static std::string getfqdn(void) {
+    std::string name;
+    char hostname[256];
+    char domainname[256];
+
+    if ((!gethostname(hostname, 255)) && (!getdomainname(domainname, 255))) {
+      name.append(hostname); 
+      if(strcmp(domainname, "(none)")) {
+        if (*domainname == '.')
+          name.append(domainname);
+        else {
+          name.append(".").append(domainname);
+        }
+      }
+    }
+    return name;
+  }
+
+  static bool interpret_attributes(AC_FULL_ATTRIBUTES *full_attr, std::vector<std::string>& attributes) {
+    std::string name, value, qualifier, grantor;
+    std::string attribute;
+    GENERAL_NAME *gn = NULL;
+    STACK_OF(AC_ATT_HOLDER) *providers = NULL;
+    int i;
+
+    providers = full_attr->providers;
+
+    for (i = 0; i < sk_AC_ATT_HOLDER_num(providers); i++) {
+      AC_ATT_HOLDER *holder = sk_AC_ATT_HOLDER_value(providers, i);
+      STACK_OF(AC_ATTRIBUTE) *atts = holder->attributes;
+
+      gn = sk_GENERAL_NAME_value(holder->grantor, 0);
+      grantor.assign((const char*)(gn->d.ia5->data), gn->d.ia5->length);
+      if(grantor.empty()) { std::cerr<<"The attribute grantor is empty"<<std::endl; return false; }
+
+      for (int j = 0; j < sk_AC_ATTRIBUTE_num(atts); j++) {
+        AC_ATTRIBUTE *at = sk_AC_ATTRIBUTE_value(atts, j);
+
+        name.assign((const char*)(at->name->data), at->name->length);
+        if(name.empty()) { std::cerr<<"The attribute name is empty"<<std::endl; return false; }
+        value.assign((const char*)(at->value->data), at->value->length);
+        if(value.empty()) { std::cerr<<"The attribute value is empty"<<std::endl; return false; }
+        qualifier.assign((const char*)(at->qualifier->data), at->qualifier->length);
+        if(qualifier.empty()) { std::cerr<<"The attribute qualifier is empty"<<std::endl; return false; }
+
+        attribute.append("grantor=").append(grantor).append("/").append("name=").append(name).append("/").
+                  append("qualifier=").append(qualifier).append(":").append(value);
+        attributes.push_back(attribute);
+        attribute.clear(); 
+      }
+      grantor.clear();
+    }
+    return true;
+  }
+ 
+  static bool checkExtensions(STACK_OF(X509_EXTENSION) *exts, X509 *iss, std::vector<std::string>& output) {
+    int nid1 = OBJ_txt2nid("idcenoRevAvail");
+    int nid2 = OBJ_txt2nid("authorityKeyIdentifier");
+    int nid3 = OBJ_txt2nid("idceTargets");
+    int nid5 = OBJ_txt2nid("attributes");
+
+    int pos1 = X509v3_get_ext_by_NID(exts, nid1, -1);
+    int pos2 = X509v3_get_ext_by_NID(exts, nid2, -1);
+    int pos3 = X509v3_get_ext_by_critical(exts, 1, -1);
+    int pos4 = X509v3_get_ext_by_NID(exts, nid3, -1);
+    int pos5 = X509v3_get_ext_by_NID(exts, nid5, -1);
+
+    /* noRevAvail, Authkeyid MUST be present */
+    if (pos1 < 0 || pos2 < 0) {
+      std::cerr<<"noRevAvail, Authkeyid MUST be present"<<std::endl; return false;
+    }
+
+    /* The only critical extension allowed is idceTargets. */
+    while (pos3 >=0) {
+      X509_EXTENSION *ex;
+      AC_TARGETS *targets;
+      AC_TARGET *name;
+
+      ex = sk_X509_EXTENSION_value(exts, pos3);
+      if (pos3 == pos4) {
+        std::string fqdn = getfqdn();
+        int ok = 0;
+        int i;
+        ASN1_IA5STRING* fqdns = ASN1_IA5STRING_new();
+        if (fqdns) {
+          ASN1_STRING_set(fqdns, fqdn.c_str(), fqdn.size());
+          targets = (AC_TARGETS *)X509V3_EXT_d2i(ex);
+          if (targets)
+            for (i = 0; i < sk_AC_TARGET_num(targets->targets); i++) {
+              name = sk_AC_TARGET_value(targets->targets, i);
+              if (name->name && name->name->type == GEN_URI) {
+                ok = !ASN1_STRING_cmp(name->name->d.ia5, fqdns);
+                if (ok)
+                  break;
+              }
+            }
+          ASN1_STRING_free(fqdns);
+        }
+        if (!ok) { std::cerr<<"The fqdn does not match that in AC"<<std::endl; } // return false; }
+      }
+      else { std::cerr<<"The critical part of the AC extension can only be idceTargets"<<std::endl;  return false; }
+      pos3 = X509v3_get_ext_by_critical(exts, 1, pos3);
+    }
+
+    if (pos5 >= 0) {
+      X509_EXTENSION *ex = NULL;
+      AC_FULL_ATTRIBUTES *full_attr = NULL;
+      ex = sk_X509_EXTENSION_value(exts, pos5);
+      full_attr = (AC_FULL_ATTRIBUTES *)X509V3_EXT_d2i(ex);
+      if (full_attr) {
+        if (!interpret_attributes(full_attr, output)) {
+          std::cerr<<"Failed to parsed attributes from AC"<<std::endl; 
+          AC_FULL_ATTRIBUTES_free(full_attr); return false; 
+        }
+      }
+      AC_FULL_ATTRIBUTES_free(full_attr);
+    }
+
+    if (pos2 >= 0) {
+      X509_EXTENSION *ex;
+      bool keyerr = false; 
+      AUTHORITY_KEYID *key;
+      ex = sk_X509_EXTENSION_value(exts, pos2);
+      key = (AUTHORITY_KEYID *)X509V3_EXT_d2i(ex);
+      if (key) {
+        if (iss) {
+          if (key->keyid) {
+            unsigned char hashed[20];
+            if (!SHA1(iss->cert_info->key->public_key->data,
+                      iss->cert_info->key->public_key->length,
+                      hashed))
+              keyerr = true;
+          
+            if ((memcmp(key->keyid->data, hashed, 20) != 0) && 
+                (key->keyid->length == 20))
+              keyerr = true;
+          }
+          else {
+            if (!(key->issuer && key->serial)) keyerr = true;
+            if (M_ASN1_INTEGER_cmp((key->serial), (iss->cert_info->serialNumber))) keyerr = true;
+            if (key->serial->type != GEN_DIRNAME) keyerr = true;
+            if (X509_NAME_cmp(sk_GENERAL_NAME_value((key->issuer), 0)->d.dirn, (iss->cert_info->subject))) keyerr = true;
+          }
+        }
+        AUTHORITY_KEYID_free(key);
+      }
+      else {
+        keyerr = true;
+      }
+
+      if(keyerr) { std::cerr<<"authorityKey is wrong"<<std::endl;  return false; }
+    }
+
+    return true;
+  }
+
+  static bool check_acinfo(X509* cert, X509* issuer, AC* ac, std::vector<std::string>& output) {
+    if(!ac || !cert || !(ac->acinfo) || !(ac->acinfo->version) || !(ac->acinfo->holder) || (ac->acinfo->holder->digest)
+       || !(ac->acinfo->form) || !(ac->acinfo->form->names) || (ac->acinfo->form->is) || (ac->acinfo->form->digest)
+       || !(ac->acinfo->serial) || !(ac->acinfo->validity) || !(ac->acinfo->alg) || !(ac->acinfo->validity) 
+       || !(ac->acinfo->validity->notBefore) || !(ac->acinfo->validity->notAfter) || !(ac->acinfo->attrib)
+       || !(ac->sig_alg) || !(ac->signature)) return false;
+
+    //Check the validity time  
+    ASN1_GENERALIZEDTIME *start;
+    ASN1_GENERALIZEDTIME *end;
+    start = ac->acinfo->validity->notBefore;
+    end = ac->acinfo->validity->notAfter;
+
+    time_t ctime, dtime;
+    time (&ctime);
+    ctime += 300;
+    dtime = ctime-600;
+
+    if ((end->type != V_ASN1_GENERALIZEDTIME) || (end->type != V_ASN1_GENERALIZEDTIME)) {
+      std::cerr<<"Time format in AC is wrong"<<std::endl; return false;
+    }
+    if (((X509_cmp_current_time(start) >= 0) &&
+         (X509_cmp_time(start, &ctime) >= 0)) ||
+        ((X509_cmp_current_time(end) <= 0) &&
+         (X509_cmp_time(end, &dtime) <= 0))) {
+      std::cerr<<"Current time is out of the scope of valid period of the AC"<<std::endl; return false;
+    }
+
+    STACK_OF(GENERAL_NAME) *names;
+    GENERAL_NAME  *name;
+
+    if (ac->acinfo->holder->baseid) {
+      if(!(ac->acinfo->holder->baseid->serial) ||
+         !(ac->acinfo->holder->baseid->issuer)) {
+        std::cerr<<"The AC_IS is not complete"<<std::endl; return false;
+      }
+
+      if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
+        std::cerr<<"The holder serial number is not the same as that in AC"<<std::endl; return false;
+      }
+       
+      names = ac->acinfo->holder->baseid->issuer;
+      if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || (name->type != GEN_DIRNAME)) {
+        std::cerr<<"The holder issuer information in AC is wrong"<<std::endl; return false;
+      }
+      
+      //If the holder is self-signed, and the holder also self sign the AC
+      if (X509_NAME_cmp(name->d.dirn, cert->cert_info->subject) && X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
+        std::cerr<<"The holder itself can not sign an AC by using a self-sign certificate"<<std::endl; return false;
+      }
+
+      if ((ac->acinfo->holder->baseid->uid && cert->cert_info->issuerUID) ||
+          (!cert->cert_info->issuerUID && !ac->acinfo->holder->baseid->uid)) {
+        if (ac->acinfo->holder->baseid->uid) {
+          if (M_ASN1_BIT_STRING_cmp(ac->acinfo->holder->baseid->uid, cert->cert_info->issuerUID)) {
+            std::cerr<<"The holder issuerUID is not the same as that in AC"<<std::endl; return false;
+          }
+        }
+      }
+      else { std::cerr<<"The holder issuerUID is not the same as that in AC"<<std::endl; return false; }
+    }
+    else if (ac->acinfo->holder->name) {
+      names = ac->acinfo->holder->name;
+      if ((sk_GENERAL_NAME_num(names) == 1) ||      //??? 
+          ((name = sk_GENERAL_NAME_value(names,0))) ||
+          (name->type != GEN_DIRNAME)) {
+        if (X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
+          /* CHECK ALT_NAMES */
+          /* in VOMS ACs, checking into alt names is assumed to always fail. */
+          std::cerr<<"The holder issuer name is not the same as that in AC"<<std::endl; return false;
+        }
+      }
+    }
+  
+    names = ac->acinfo->form->names;
+    if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || (name->type != GEN_DIRNAME) ||
+       X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
+      std::cerr<<"The issuer's issuer name is not the same as that in AC"<<std::endl; return false;
+    }
+
+    if (ac->acinfo->serial->length > 20) {
+      std::cerr<<"The serial number of ACINFO is too long"<<std::endl; return false;
+    }
+   
+    //Check AC's extension
+    checkExtensions(ac->acinfo->exts, issuer, output); 
+
+    //Check AC's attribute    
+    checkAttributes(ac->acinfo->attrib, output);
+  }
+
+  bool verifyVOMSAC(AC* ac, std::string& subject, std::string& ca, std::string& ca_cert_dir, std::string& vomsdir, X509* holder, std
+::vector<std::string>& output) {
+    //Extract name 
+    STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
+    int nid = 0;
+    int pos = 0;
+    nid = OBJ_txt2nid("idatcap");
+    pos = X509at_get_attr_by_NID(atts, nid, -1);
+    if(!(pos >=0)) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+
+    AC_ATTR * caps = sk_AC_ATTR_value(atts, pos);
+    if(!caps) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+
+    AC_IETFATTR * capattr = sk_AC_IETFATTR_value(caps->ietfattr, 0);
+    if(!capattr) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+
+    GENERAL_NAME * name = sk_GENERAL_NAME_value(capattr->names, 0);
+    if(!name) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+
+    std::string voname((const char *)name->d.ia5->data, 0, name->d.ia5->length);
+    std::string::size_type cpos = voname.find("://");
+    std::string hostname;
+    if (cpos != std::string::npos) {
+      std::string::size_type cpos2 = voname.find(":", cpos+1);
+      if (cpos2 != std::string::npos)
+        hostname = voname.substr(cpos+3, (cpos2 - cpos - 3));
+      else {
+        std::cerr<<"Unable to determine hostname from AC"<<std::endl;
+        return false;
+      }
+      voname = voname.substr(0, cpos);
+    }
+    else {
+      std::cerr<<"Unable to extract vo name from AC"<<std::endl;
+      return false;
+    }
+ 
+    X509* issuer = NULL;
+
+    if(!check_signature(ac, subject, voname, hostname, ca_cert_dir, vomsdir, &issuer)) {
+      std::cerr<<"Can not verify the signature of the AC"<<std::endl; return false; 
+    }
+
+    check_acinfo(holder, issuer, ac, output);
+        
+  }
+
+  bool parseVOMSAC(X509* cert, std::vector<std::string>& output) {
+    //TODO: check the validity of certificate's DN
+
+    //Search the extension
+    int nid = 0;
+    int position = 0;
+    X509_EXTENSION * ext;
+    AC_SEQ* aclist = NULL;
+    position = X509_get_ext_by_NID(cert, nid, -1);
+    if(position >= 0) {
+      ext = X509_get_ext(cert, position);
+      if (ext){
+        aclist = (AC_SEQ *)X509V3_EXT_d2i(ext);
+      }
+    }    
+    if(aclist == NULL) { std::cerr<<"Not AC in the proxy certificate"<<std::endl; return false; }
+
+    bool verified = false;
+    int num = sk_AC_num(aclist->acs);
+    for (int i = 0; i < num; i++) {
+      AC *ac = (AC *)sk_AC_value(aclist->acs, i);
+      //if (verifyVOMSAC(ac, subject, ca, holder, output)) {
+      //  verified = true;
+      //}
+      if (!verified) break;
+    } 
+
+    return verified;
+
+  }
 
 } // namespace Arc
 
