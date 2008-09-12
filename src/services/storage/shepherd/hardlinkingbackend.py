@@ -144,6 +144,8 @@ class ApacheBackend( HardlinkingBackend ):
 
     def __init__(self, *args):
         HardlinkingBackend.__init__(self, *args)
+        # we need backendcfg to get ApacheUser
+        backendcfg = args[1]
         self.apacheuser = str(backendcfg.Get('ApacheUser'))
         self.uid = os.getuid()
         _, _, _, self.apachegid, _, _, _ = pwd.getpwnam(self.apacheuser) 
