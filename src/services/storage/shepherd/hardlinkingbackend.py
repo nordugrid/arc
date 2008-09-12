@@ -142,10 +142,8 @@ class ApacheBackend( HardlinkingBackend ):
     Backend for Apache with hardlinking
     """
 
-    def __init__(self, *args):
-        HardlinkingBackend.__init__(self, *args)
-        # we need backendcfg to get ApacheUser
-        backendcfg = args[1]
+    def __init__(self, backendcfg, ns_uri, file_arrived, log, ssl_config):
+        HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, log, ssl_config)
         self.apacheuser = str(backendcfg.Get('ApacheUser'))
         self.uid = os.getuid()
         _, _, _, self.apachegid, _, _, _ = pwd.getpwnam(self.apacheuser) 
