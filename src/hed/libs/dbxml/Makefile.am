@@ -14,4 +14,4 @@ libarcdbxml_la_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
-test_LDADD    = libarcdbxml.la
+test_LDADD    = ./libarcdbxml.la  $(top_srcdir)/src/hed/libs/common/libarccommon.la
