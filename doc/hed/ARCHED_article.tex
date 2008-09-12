@@ -252,6 +252,23 @@ Chain instantiation is handled by Loader component. It takes XML configuration o
 
 Each Loader object may create multiple non-intersecting chains and there may be multiple Loader objects in same executable. For each component mentioned in configuration Loader creates single object of corresponding class. On Loader destruction all handled components are destroyed too.
 
+The configuration of Loader is made of following elements (see also configuration schema at http://svn.nordugrid.org/trac/nordugrid/export/10146/arc1/trunk/src/hed/libs/loader/mcc.xsd):
+
+\begin{itemize}
+
+\item \texttt{Chain} is base element. It has no special meaning for configuration of chain and is only sed to group other elements in a logical way. Chains may be nested.
+
+\item \texttt{Component} represents the MCC. It's attribute \texttt{name} defines name of MCC which has to be instantiated. This MCC is being looked among those contained in modules loaded by \texttt{ModuleManager} element. If not found then the Loader tries to find module with name corresponding to name of the MCC. Each MCC also must have unique identifier specified by \texttt{id} attribute. Subelement \texttt{next} specifies link to next MCC in the Chain. It uses uinique identifier specified by \texttt{id}. The \texttt{next} element may have an optional text which is used to distinguish different Message propagation path in MCC specific way. The \texttt{SecurityHandler} subelement defines the Security Handler and queue ato which it has to be attached. Also attribute \texttt{entry} my be used to create an entry point to the Chain.
+
+\item \texttt{Plexer} element instantiates Plexer component. It's configuration is similar to one of \texttt{Component} element.
+
+\item \texttt{Service} element defines plugin implementing final Component in the Chain - service. Form Loader point of view it's configuration is identical to that of the \texttt{Component}.
+
+\item \texttt{ModuleManager} defines parameters needed to find loadable modules containiong plugins. Currently only subelement \texttt{path} is supported whihc defines path on file system where loadable modules may be found.
+
+\item \texttt{Plugins} specifies name of the loadable module.
+
+\end{itemize}
 
 \subsection{Sessions and Contexts}
 
@@ -286,7 +303,9 @@ The HED defines an interface for pluggable components implementing higher-level 
 
 \item List subcontent of endpoint (i.e. list files in directory)
 
-\item Register and unregister presence of data
+\item Register and unregister presence of data - for indexing endpoints
+
+\item Resolve final or lower level location of data from stored metadata - for indexing endpoints
 
 \end{enumerate}
 
@@ -295,6 +314,61 @@ The DMC may be implemented using third party software like it is currently done 
 Along with ordinary endpoints defining location of data directly - like HTTP, FTP, LDAP - the DMC can be used with indirect/indexing endpoints. Those are endpoints which define only location of meta-data associated with actual data or an interface/service providing functionality of managing/requesting data. For more information about indexing endpoints see description of supported URLs in \cite{urls}.
 
 More in depth techical information about the DMC can be found in \cite{dmc}.
+
+
+\subsection{Generic purpose components}
+
+The HED also includes vaste amount of common purpose components:
+
+\begin{itemize}
+
+\item XMLNode is class for managing parsed XML structures. It provides minimal functionality for operationg on XML elements, attributes and namespaces.
+
+\item Thread management functions provide few mostly used functions for thread creation.
+
+\item URL class gives access to various parts of URL. It has support for many specific URLs built-in.
+
+\item String utilities for easy conversion between various types to strings and back.
+
+\item Run class for starting, communicatiing and monitoring external processes.
+
+\item Logger class provides multilevel controllable logging functionality.
+
+\item Time and Period classes alows parsing and generating textual description of times, dates and time periods in various formats.
+
+\item RegularExpression class providing C++ wrapper for regexp related functions.
+
+\item Config class makes it possible to manipulate configuration file. And related classes give an access to specific parts of configuration.
+
+\item Counter and IntraProcessCounter provide a way to count abstract resources.
+
+\end{itemize}
+
+
+\subsection{Web Service related components}
+
+There is also a set of components implementing various Web Service related functionality. Those include:
+
+\begin{itemize}
+
+\item WSAEnpointReference and WSAHeader manipulate WS-Addressing \cite{ws-addr-soap} information in XML element and SOAP header correspondingly.
+
+\item SAMLToken, UsernameToken and X509Token are for consuming and generating token of same name according to various profiles of WS Security specifications \cite{ws-security}.
+
+\item WSRF and related and inherited classes offer a way to generate and anaylyze various Web Services Resource specification \cite{wsrf} related elements.
+
+\item DelegationConsumerSOAP, DelegationProviderSOAP and DelegationContainerSOAP implement web service interface which enables client to delegate X509 credentials to service.
+
+\item InformationInterface and related classes may be used to implement information interface service and client part in a way common for services built on top of HED. Also InfoCacheInterface extends it with caching functionality and InfoRegister provides service registration ability.
+
+\end{itemize}
+
+
+\subsection{Daemon}
+
+All componets of the Hosting Environment are compiled into loadable libraries and may be used in various executables. But there is also a dedicated executable provided - \texttt{arched}. It accepts configuration file containing XML document and passes it to Loader component. Then the Loader component takes care of loading all modules and instantiating all Message Chains. 
+The \texttt{arched} also initializes Logger component, configures it and directs it's output to specified or to screen. The \texttt{arched} normally runs as background process but can be run in foreground as well. 
+For more information about \texttt{arched} capabilities please read it's manual page.
 
 
 \subsection{Alternative implementation languages}
