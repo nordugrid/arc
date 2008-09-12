@@ -147,6 +147,12 @@ class Credential {
     /**Get the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
     std::string GetProxyPolicy(void);
 
+    /**Get CA certificate file*/
+    std::string GetCAFile(void) {return cacertfile_; };
+
+    /**Get CA certificate directory*/
+    std::string GetCADir(void) { return cacertdir_; };
+
     /**Output the private key into string*/
     bool OutputPrivatekey(std::string &content);
 

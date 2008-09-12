@@ -14,13 +14,15 @@ namespace ArcLib {
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes,
              AC **ac, std::string voname, std::string uri, int lifetime);
 
-  bool createVOMSAC(std::string &codedac, Credential &issuer_cred, Credential &holder_cred,
+  bool createVOMSAC(std::string& codedac, Credential& issuer_cred, Credential& holder_cred,
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes, 
              std::string &voname, std::string &uri, int lifetime);
 
   bool addVOMSAC(AC** &aclist, std::string &codedac);
 
   bool parseVOMSAC(X509* holder, std::string& ca_cert_dir, std::string& voms_dir, std::vector<std::string>& output);
+
+  bool parseVOMSAC(Credential& holder_cred, std::string& voms_dir, std::vector<std::string>& output);
 
 }// namespace ArcLib
 

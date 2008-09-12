@@ -185,6 +185,6 @@ int main(void) {
   out_f3.close();
 
 
-  //TODO: Get the proxy certificate with voms AC extension, and parse the extension by using voms api.
-
+  //TODO: Get the proxy certificate with voms AC extension, and parse the extension.
+  
 }

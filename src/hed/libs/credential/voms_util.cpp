@@ -1080,7 +1080,12 @@ err:
     } 
 
     return verified;
+  }
 
+  bool parseVOMSAC(Credential& holder_cred, std::string& voms_dir, std::vector<std::string>& output) {
+    std::string ca_cert_dir = holder_cred.GetCADir();
+    X509* holder = holder_cred.GetCert();
+    return(parseVOMSAC(holder, ca_cert_dir, voms_dir, output));
   }
 
 } // namespace Arc
