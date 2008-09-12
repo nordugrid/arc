@@ -15,7 +15,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
-#include <arc/arclib/Credential.h>
+#include <arc/credential/Credential.h>
 
 #include <lasso/lasso.h>
 #include <lasso/saml-2.0/assertion_query.h>
