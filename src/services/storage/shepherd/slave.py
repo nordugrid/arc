@@ -20,19 +20,20 @@ def handler(req):
 
     req.allow_methods(['M_PUT','M_GET'])
 
+    if req.filename.endswith('.transfering'):
+        raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
+
     if os.path.isfile(req.filename):
 
         req_method = req.the_request[:3]
-
-        if not (req_method == 'GET' or req_method == 'PUT'):
-            raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
 
         if req_method == 'GET':
             f = open(req.filename, 'rb', CHUNK_SIZE)
         elif req_method == 'PUT':
             f = open(req.filename, 'wb', CHUNK_SIZE)
 
-        os.remove(req.filename)
+        tmp_filename=req.filename+'.transfering'
+        os.rename(req.filename, tmp_filename)
 
         if 'GET' in req.the_request:
             
@@ -46,10 +47,11 @@ def handler(req):
 
 
         f.close()
+        os.remove(tmp_filename)
         
         return apache.OK
         
             
 
     else:
-        return apache.DECLINED
+        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
