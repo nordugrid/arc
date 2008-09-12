@@ -572,7 +572,7 @@ err:
     return (res == 1);
   }
 
-  static bool check_signature(AC* ac, std::string& subject, std::string& voname, std::string& hostname, 
+  static bool check_signature(AC* ac, std::string& voname, std::string& hostname, 
     std::string& ca_cert_dir, std::string& vomsdir, X509** issuer_cert) {
     X509* issuer = NULL;
 
@@ -1007,8 +1007,7 @@ err:
     checkAttributes(ac->acinfo->attrib, output);
   }
 
-  bool verifyVOMSAC(AC* ac, std::string& subject, std::string& ca, std::string& ca_cert_dir, std::string& vomsdir, X509* holder, std
-::vector<std::string>& output) {
+  bool verifyVOMSAC(AC* ac, std::string& ca_cert_dir, std::string& vomsdir, X509* holder, std::vector<std::string>& output) {
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
@@ -1046,25 +1045,24 @@ err:
  
     X509* issuer = NULL;
 
-    if(!check_signature(ac, subject, voname, hostname, ca_cert_dir, vomsdir, &issuer)) {
+    if(!check_signature(ac, voname, hostname, ca_cert_dir, vomsdir, &issuer)) {
       std::cerr<<"Can not verify the signature of the AC"<<std::endl; return false; 
     }
 
-    check_acinfo(holder, issuer, ac, output);
-        
+    if(check_acinfo(holder, issuer, ac, output)) return true;
+    else return false;
   }
 
-  bool parseVOMSAC(X509* cert, std::vector<std::string>& output) {
-    //TODO: check the validity of certificate's DN
+  bool parseVOMSAC(X509* holder, std::string& ca_cert_dir, std::string& voms_dir, std::vector<std::string>& output) {
 
     //Search the extension
     int nid = 0;
     int position = 0;
     X509_EXTENSION * ext;
     AC_SEQ* aclist = NULL;
-    position = X509_get_ext_by_NID(cert, nid, -1);
+    position = X509_get_ext_by_NID(holder, nid, -1);
     if(position >= 0) {
-      ext = X509_get_ext(cert, position);
+      ext = X509_get_ext(holder, position);
       if (ext){
         aclist = (AC_SEQ *)X509V3_EXT_d2i(ext);
       }
@@ -1075,9 +1073,9 @@ err:
     int num = sk_AC_num(aclist->acs);
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
-      //if (verifyVOMSAC(ac, subject, ca, holder, output)) {
-      //  verified = true;
-      //}
+      if (verifyVOMSAC(ac, ca_cert_dir, voms_dir, holder, output)) {
+        verified = true;
+      }
       if (!verified) break;
     } 
 
