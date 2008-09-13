@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarccredential.la
-noinst_PROGRAMS = test  testcertinfo testproxy2proxy 
+noinst_PROGRAMS = testproxy  testcertinfo testproxy2proxy 
 
 libarccredential_ladir = $(pkgincludedir)/arclib
 libarccredential_la_HEADERS  = Credential.h
