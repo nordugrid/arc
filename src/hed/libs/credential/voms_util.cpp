@@ -1060,6 +1060,7 @@ err:
     int position = 0;
     X509_EXTENSION * ext;
     AC_SEQ* aclist = NULL;
+    nid = OBJ_txt2nid("acseq");
     position = X509_get_ext_by_NID(holder, nid, -1);
     if(position >= 0) {
       ext = X509_get_ext(holder, position);
@@ -1082,8 +1083,7 @@ err:
     return verified;
   }
 
-  bool parseVOMSAC(Credential& holder_cred, std::string& voms_dir, std::vector<std::string>& output) {
-    std::string ca_cert_dir = holder_cred.GetCADir();
+  bool parseVOMSAC(Credential& holder_cred, std::string& ca_cert_dir, std::string& voms_dir, std::vector<std::string>& output) {
     X509* holder = holder_cred.GetCert();
     return(parseVOMSAC(holder, ca_cert_dir, voms_dir, output));
   }
