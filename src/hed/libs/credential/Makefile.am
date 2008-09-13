@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarccredential.la
-noinst_PROGRAMS = testproxy  testcertinfo testproxy2proxy 
+noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms
 
 libarccredential_ladir = $(pkgincludedir)/arclib
 libarccredential_la_HEADERS  = Credential.h
@@ -8,10 +8,10 @@ libarccredential_la_SOURCES  = Proxycertinfo.cpp Proxycertinfo.h cert_util.cpp c
 libarccredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 
-test_SOURCES  = test.cpp
-test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
-test_LDADD    = ./libarccredential.la
+testproxy_SOURCES  = testproxy.cpp
+testproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
+testproxy_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+testproxy_LDADD    = ./libarccredential.la
 
 testcertinfo_SOURCES  = testcertinfo.cpp
 testcertinfo_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
@@ -22,4 +22,9 @@ testproxy2proxy_SOURCES  = testproxy2proxy.cpp
 testproxy2proxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testproxy2proxy_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
 testproxy2proxy_LDADD    = ./libarccredential.la
+
+testvoms_SOURCES  = testvoms.cpp
+testvoms_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
+testvoms_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+testvoms_LDADD    = ./libarccredential.la
 
