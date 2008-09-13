@@ -10,7 +10,7 @@ ModuleManager::ModuleManager(Arc::Config *cfg)
 { 
   if(cfg==NULL) return;
   if(!(*cfg)) return;
-  Loader::logger.msg(INFO, "Module Manager Init");
+  Loader::logger.msg(DEBUG, "Module Manager Init");
   if(!MatchXMLName(*cfg,"ArcConfig")) return;
   XMLNode mm = (*cfg)["ModuleManager"];
   for (int n = 0;;++n) {
