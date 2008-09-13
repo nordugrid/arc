@@ -65,8 +65,9 @@ int main(void) {
 
   /* Parse the Attribute Certificate with string format
   * In real senario the Attribute Certificate with string format should be received from the other end, 
-  * e.g. the voms-proxy-init(voms client) receives a few Attribute Certificates from different VOs(voms server, and voms server
-  * signs AC), then composes the ACs into a AC list, and puts the AC list as a proxy certificate's extension.
+  * i.e. the voms-proxy-init(voms client) receives a few Attribute Certificates from different VOs
+  * (voms server, and voms server signs AC), then composes the ACs into a AC list, and puts the AC 
+  * list as a proxy certificate's extension.
   */
   ArcLib::AC** aclist = NULL;
   ArcLib::addVOMSAC(aclist, codedac);
@@ -75,48 +76,49 @@ int main(void) {
   /** b.Below is general proxy processing, which is the same as the 
   *ordinary proxy certificate requesting and signing
   *except adding AC list as an extension to proxy certificate
+  *In the case of voms proxy certificate generation, since voms proxy is a self-signed 
+  *proxy, both the request and signing side are the client itself.
   */
   //Use file location as parameters
   //Request side
   std::string req_file_ac("./request_withac.pem");
   std::string out_file_ac("./out_withac.pem");
-  ArcLib::Credential request3(t, Arc::Period(12*3600), keybits, "rfc", "independent", "policy.txt", proxydepth);
-  request3.GenerateRequest(req_file_ac.c_str());
+  ArcLib::Credential request(t, Arc::Period(12*3600), keybits, "rfc", "independent", "policy.txt", proxydepth);
+  request.GenerateRequest(req_file_ac.c_str());
 
   //Signing side
-  ArcLib::Credential proxy3;
-  proxy3.InquireRequest(req_file_ac.c_str());
+  ArcLib::Credential proxy;
+  proxy.InquireRequest(req_file_ac.c_str());
   //Add AC extension to proxy certificat before signing it
-  proxy3.AddExtension("acseq", (char**) aclist);
-
+  proxy.AddExtension("acseq", (char**) aclist);
 
   //X509_EXTENSION* ext = NULL;
   //ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("acseq"), (char*)aclist);
 
   ArcLib::Credential signer(cert, key, "", cafile);
-  signer.SignRequest(&proxy3, out_file_ac.c_str());
+  signer.SignRequest(&proxy, out_file_ac.c_str());
 
   //Back to request side, compose the signed proxy certificate, local private key,
   //and signing certificate into one file.
-  std::string private_key3, signing_cert3, signing_cert3_chain;
-  request3.OutputPrivatekey(private_key3);
-  signer.OutputCertificate(signing_cert3);
-  signer.OutputCertificateChain(signing_cert3_chain);
-  std::ofstream out_f3(out_file_ac.c_str(), std::ofstream::app);
-  out_f3.write(private_key3.c_str(), private_key3.size());
-  out_f3.write(signing_cert3.c_str(), signing_cert3.size());
-  out_f3.write(signing_cert3_chain.c_str(), signing_cert3_chain.size());
-  out_f3.close();
+  std::string private_key, signing_cert, signing_cert_chain;
+  request.OutputPrivatekey(private_key);
+  signer.OutputCertificate(signing_cert);
+  signer.OutputCertificateChain(signing_cert_chain);
+  std::ofstream out_f(out_file_ac.c_str(), std::ofstream::app);
+  out_f.write(private_key.c_str(), private_key.size());
+  out_f.write(signing_cert.c_str(), signing_cert.size());
+  out_f.write(signing_cert_chain.c_str(), signing_cert_chain.size());
+  out_f.close();
 
 
   /*2. Get the proxy certificate with voms AC extension, and parse the extension.*/
   //Use file location as parameters
   // Consume the proxy certificate with AC extenstion
   std::string in_file_ac("./out_withac.pem");
-  std::string ca_cert_dir("");
+  std::string ca_cert_dir("./testca");
   std::string vomsdir("");
-  ArcLib::Credential proxy4(in_file_ac, in_file_ac, ca_cert_dir, "");
+  ArcLib::Credential proxy2(in_file_ac, in_file_ac,"", cafile);
   std::vector<std::string> attributes;
-  ArcLib::parseVOMSAC(proxy4, ca_cert_dir, vomsdir, attributes); 
+  ArcLib::parseVOMSAC(proxy2, ca_cert_dir, vomsdir, attributes); 
 
 }

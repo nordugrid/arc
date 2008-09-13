@@ -1033,7 +1033,7 @@ err:
       if (cpos2 != std::string::npos)
         hostname = voname.substr(cpos+3, (cpos2 - cpos - 3));
       else {
-        std::cerr<<"Unable to determine hostname from AC"<<std::endl;
+        std::cerr<<"Unable to determine hostname from AC: "<<voname<<std::endl;
         return false;
       }
       voname = voname.substr(0, cpos);
