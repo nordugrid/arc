@@ -16,7 +16,7 @@
 
 namespace ArcLib {
 
-int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context* vctx) {
+int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx) {
   int i;
   int j;
   int retval = 0;
@@ -28,9 +28,9 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
   user_cert = cert;
   cert_store = X509_STORE_new();
   X509_STORE_set_verify_cb_func(cert_store, verify_callback);
-  if (certchain != NULL) {
-    for (i=0;i<sk_X509_num(certchain);i++) {
-      cert_in_chain = sk_X509_value(certchain,i);
+  if (*certchain != NULL) {
+    for (i=0;i<sk_X509_num(*certchain);i++) {
+      cert_in_chain = sk_X509_value(*certchain,i);
       if (!user_cert) {
         //Assume the first cert in cert chain is the user cert.
         user_cert = cert_in_chain;
@@ -79,6 +79,15 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
                
     if(!X509_verify_cert(store_ctx)) { goto err; }
   } 
+
+  //Replace the trusted certificate chain after verification passed, the
+  //trusted ca certificate is added
+  if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
+  *certchain = sk_X509_new_null();
+  for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
+    X509* tmp = NULL; tmp = X509_dup(sk_X509_value(store_ctx->chain,i));
+    sk_X509_insert(*certchain, tmp, i);
+  }
 
   retval = 1;
 

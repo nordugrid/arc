@@ -229,7 +229,7 @@ class Credential {
     X509 *           cert_;    //cert
     certType         cert_type_;
     EVP_PKEY *       pkey_;    //private key
-    STACK_OF(X509) * cert_chain_;  //cert chain
+    STACK_OF(X509) * cert_chain_;  //cert chain which is parsed from the certificate, after verification, the ca certificate will be included
     PROXYCERTINFO* proxy_cert_info_;
     Credformat       format;
     Arc::Time        start_;

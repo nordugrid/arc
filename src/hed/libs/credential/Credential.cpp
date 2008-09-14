@@ -292,7 +292,7 @@ namespace ArcLib {
   }
 
   bool Credential::Verify(void) {
-    if(verify_cert_chain(cert_, cert_chain_, &verify_ctx_)) {
+    if(verify_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
       credentialLogger.msg(INFO, "Certificate verification succeeded");
       return true;
     }
@@ -797,7 +797,10 @@ namespace ArcLib {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     X509 *cert;
-    for (int n = 0; n < sk_X509_num(cert_chain_); n++) {
+    std::cout<<"+++++ cert chain number: "<<sk_X509_num(cert_chain_)<<std::endl;
+
+    //Out put the cert chain, except the CA certificate and this certificate itself
+    for (int n = 1; n < sk_X509_num(cert_chain_) - 1; n++) {
       cert = sk_X509_value(cert_chain_, n);
       if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
       for(;;) {
@@ -1008,7 +1011,12 @@ err:
 
   STACK_OF(X509)* Credential::GetCertChain(void) {
     STACK_OF(X509)* chain = NULL;
-    chain = sk_X509_dup(cert_chain_);
+    chain = sk_X509_new_null();
+    //Return the cert chain (not including this certificate itself)
+    for (int i=1; i < sk_X509_num(cert_chain_); i++) {
+      X509* tmp = X509_dup(sk_X509_value(cert_chain_,i));
+      sk_X509_insert(chain, tmp, i);
+    }
     return chain;
   }
 

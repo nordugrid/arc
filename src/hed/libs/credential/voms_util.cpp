@@ -132,8 +132,8 @@ namespace ArcLib{
       return AC_ERR_PARAMETERS;
 
     a = *ac;
-    subname = X509_NAME_dup(X509_get_subject_name(holder));
-    issname = X509_NAME_dup(X509_get_issuer_name(holder));
+    subname = X509_NAME_dup(X509_get_subject_name(holder)); //old or new version?
+    issname = X509_NAME_dup(X509_get_subject_name(issuer));
 
     time(&curtime);
     time1 = ASN1_GENERALIZEDTIME_set(NULL, curtime);
@@ -296,13 +296,17 @@ namespace ArcLib{
     }
 
     stk = sk_X509_new_null();
+    
+    std::cout<<"++++++++ cert chain number: "<<sk_X509_num(issuerstack)<<std::endl;
+
     if (issuerstack) {
       for (int j =0; j < sk_X509_num(issuerstack); j++)
         sk_X509_push(stk, X509_dup(sk_X509_value(issuerstack, j)));
     }
 
-/*   for (i=0; i <sk_X509_num(stk); i ++) */
-/*     fprintf(stderr, "stk[%i] = %s\n", i , X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); */
+   int i;
+   for (i=0; i < sk_X509_num(stk); i++) 
+     fprintf(stderr, "stk[%i] = %s\n", i , X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); 
 
 #ifdef HAVE_OPENSSL_OLDRSA
     sk_X509_push(stk, (X509 *)ASN1_dup((int (*)())i2d_X509,
@@ -312,8 +316,8 @@ namespace ArcLib{
           (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)issuer));
 #endif
 
-/*   for (i=0; i <sk_X509_num(stk); i ++) */
-/*     fprintf(stderr, "stk[%i] = %d\n", i , sk_X509_value(stk, i)); */
+   for(i=0; i<sk_X509_num(stk); i++)
+     fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
 
     certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("certseq"), (char*)stk);
     sk_X509_pop_free(stk, X509_free);
@@ -610,6 +614,8 @@ err:
           std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
           std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
 
+          std::cout<<"Subject: "<<subject<<" Real Subject: "<<realsubject<<" Issuer: "<<issuer<<" Real Issuer: "<<realissuer<<std::endl;
+
           if(subject.compare(realsubject) !=0 || issuer.compare(realissuer) !=0) {
             do {
               std::getline(file, subject);
@@ -640,6 +646,9 @@ err:
                    (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)sk_X509_value(certstack, 0));
 #endif
 
+   for (int i=0; i <sk_X509_num(certstack); i ++)
+     fprintf(stderr, "+++ stk[%i] = %d  %s\n", i , sk_X509_value(certstack, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(certstack, i)), NULL, 0));
+
       bool found = false;
 
       if (check_sig_ac(cert, ac))
@@ -655,11 +664,11 @@ err:
         }
       }
       else
-        std::cerr<<"Cannot find certificate of AC issuer for vo "<<voname<<std::endl;
+        std::cerr<<"Cannot find certificate of AC issuer for vo: "<<voname<<std::endl;
  
       AC_CERTS_free(certs);
      
-      issuer = cert;
+      if(!cert)issuer = NULL;
     }
  
     /* check if able to find the signing certificate 
@@ -672,6 +681,7 @@ err:
       X509 * x = NULL;
       for(int i = 0; (i < 2 && !found); ++i) {
         std::string directory = vomsdir + (i ? "" : "/" + voname);
+        std::cout<<"Directory to find trusted certificate: "<<directory<<std::endl;
         Glib::Dir dir(directory); 
         while(true){
           std::string filename = dir.read_name(); 
@@ -954,7 +964,7 @@ err:
       }
 
       if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
-        std::cerr<<"The holder serial number is not the same as that in AC"<<std::endl; return false;
+        std::cerr<<"The holder serial number: "<<ASN1_INTEGER_get(cert->cert_info->serialNumber)<<" is not the same as that in AC: "<<ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial)<<std::endl; //return false;
       }
        
       names = ac->acinfo->holder->baseid->issuer;
@@ -993,7 +1003,7 @@ err:
     names = ac->acinfo->form->names;
     if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || (name->type != GEN_DIRNAME) ||
        X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
-      std::cerr<<"The issuer's issuer name is not the same as that in AC"<<std::endl; return false;
+      std::cerr<<"The issuer's issuer name: "<<X509_NAME_oneline(issuer->cert_info->subject,NULL,0)<<" is not the same as that in AC: "<<X509_NAME_oneline(name->d.dirn,NULL,0)<<std::endl; return false;
     }
 
     if (ac->acinfo->serial->length > 20) {

@@ -15,9 +15,9 @@ int main(void) {
   Arc::Logger::getRootLogger().addDestination(cdest);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
 
-  std::string cert("./cert.pem"); 
-  std::string key("./key.pem");
-  std::string cafile("./ca.pem"); 
+  std::string cert("./usercert.pem"); 
+  std::string key("./userkey-nopass.pem");
+  std::string cadir("./testca"); 
 
   int keybits = 1024;
   int proxydepth = 10;
@@ -27,14 +27,13 @@ int main(void) {
   /**1.Create VOMS AC (attribute certificate), and put it into extension part of proxy certificate*/
   //Get information from a credential which acts as AC issuer.
 
-  ArcLib::Credential issuer_cred(cert, key, "", cafile);
+  ArcLib::Credential issuer_cred(cert, key, cadir, "");
 
   //Get information from credential which acts as AC holder
   //Here we use the same credential for holder and issuer
   std::string cert1("./cert.pem");
-  std::string key1("./key.pem");
-  std::string cafile1("./ca.pem");   
-  ArcLib::Credential holder_cred(cert1, key1,"", cafile1);
+  std::string key1("./key.pem");  
+  ArcLib::Credential holder_cred(cert1, key1, cadir, "");
 
 
   /** a.Below is voms-specific processing*/
@@ -57,7 +56,7 @@ int main(void) {
   attrs.push_back("::role=guest");
 
   std::string voname = "knowarc";
-  std::string uri = "test.uio.no";
+  std::string uri = "testvoms.knowarc.eu:50000";
 
   std::string codedac;
   ArcLib::createVOMSAC(codedac, issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
@@ -83,7 +82,10 @@ int main(void) {
   //Request side
   std::string req_file_ac("./request_withac.pem");
   std::string out_file_ac("./out_withac.pem");
-  ArcLib::Credential request(t, Arc::Period(12*3600), keybits, "rfc", "independent", "policy.txt", proxydepth);
+
+  //The voms server is not supposed to generate rfc proxy?
+  //The current voms code is not supposed to parsing proxy with "CN=336628850"?
+  ArcLib::Credential request(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);
   request.GenerateRequest(req_file_ac.c_str());
 
   //Signing side
@@ -95,7 +97,7 @@ int main(void) {
   //X509_EXTENSION* ext = NULL;
   //ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("acseq"), (char*)aclist);
 
-  ArcLib::Credential signer(cert, key, "", cafile);
+  ArcLib::Credential signer(cert1, key1, cadir, "");
   signer.SignRequest(&proxy, out_file_ac.c_str());
 
   //Back to request side, compose the signed proxy certificate, local private key,
@@ -114,11 +116,18 @@ int main(void) {
   /*2. Get the proxy certificate with voms AC extension, and parse the extension.*/
   //Use file location as parameters
   // Consume the proxy certificate with AC extenstion
+ 
   std::string in_file_ac("./out_withac.pem");
+  //std::string in_file_ac("./knowarc_voms.pem");
   std::string ca_cert_dir("./testca");
-  std::string vomsdir("");
-  ArcLib::Credential proxy2(in_file_ac, in_file_ac,"", cafile);
+  std::string vomsdir(".");
+  ArcLib::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
   std::vector<std::string> attributes;
   ArcLib::parseVOMSAC(proxy2, ca_cert_dir, vomsdir, attributes); 
 
+  int i;
+  for(i=0; i<attributes.size(); i++) {
+    std::cout<<"Line "<<i<<" of the attributes returned: "<<attributes[i]<<std::endl;
+  }
+  return 0;
 }
