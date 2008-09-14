@@ -79,10 +79,6 @@ class Shepherd:
                         else:
                             # add to the filelist the GUID, the referenceID and the state of the file
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
-                            # TODO: not sure this is the right place to remove the file
-                            if localData['state']==DELETED:
-                                bsuccess = self.backend.remove(localData['localID'])
-                                self.store.set(changed, None)
                     #print 'reporting', self.serviceID, filelist
                     # call the report method of the librarian with the collected filelist and with our serviceID
                     next_report = self.librarian.report(self.serviceID, filelist)
@@ -127,21 +123,23 @@ class Shepherd:
         #print '-=-', referenceID, state, checksum, current_checksum
         if checksum == current_checksum:
             # if the original and the current checksum is the same, then the replica is valid
-            if state != ALIVE:
-                # if it is currently not ALIVE (but anything else: CREATING, INVALID, DELETED) then its state should be changed
-                # TODO: it seems wrong here to change a DELETED file back to ALIVE
+            if state == INVALID or state == CREATING:
+                # if it is currently INVALID or CREATING its state should be changed
                 self.log('DEBUG', '\nCHECKSUM OK', referenceID)
                 self.changeState(referenceID, ALIVE)
+                state = ALIVE
             # now the state of the file is ALIVE, let's return it with the GUID and the localID (which will be needed later by checkingThread )
-            return ALIVE, localData['GUID'], localData['localID']
+            return state, localData['GUID'], localData['localID']
         else:
             # or if the checksum is not the same - we have a corrupt file, or a not-fully-uploaded one
             if state == CREATING:
                 # if the file's local state is CREATING, that's OK, the file is still being uploaded
                 return CREATING, localData['GUID'], localData['localID']
+            if state == DELETED:
+                # if the file is DELETED we don't care if the checksum is wrong
+                return DELETED, localData['GUID'], localData['localID']
             if state != INVALID:
-                # but if it is not INVALID and not CREATING - so it's ALIVE or DELETED: its state should be changed to INVALID
-                # TODO: changing the DELETED state seems wrong here
+                # but if it is not INVALID, not CREATING and not DELETED - so it's ALIVE: its state should be changed to INVALID
                 self.log('DEBUG', '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
                 self.changeState(referenceID, INVALID)
             return INVALID, localData['GUID'], localData['localID']
@@ -191,9 +189,8 @@ class Shepherd:
                                 if metadata.get(('entry', 'type'), '') != 'file':
                                     # it seems this is not a real file anymore
                                     # we should remove it
-                                    # TODO: maybe we should figure out some other way to remove the replica
-                                    self.changeState(referenceID, DELETED)
-                                    state = DELETED
+                                    bsuccess = self.backend.remove(localID)
+                                    self.store.set(referenceID, None)
                                 # if the file is ALIVE (which means it is not CREATING or DELETED)
                                 if state == ALIVE:
                                     # check the number of needed replicasa
@@ -230,6 +227,10 @@ class Shepherd:
                                     # TODO: this should be done in some other thread
                                 else:
                                     self.log('DEBUG', 'checkingThread error, bartender responded', success)
+                            if state == DELETED:
+                                # remove replica if marked it as deleted
+                                bsuccess = self.backend.remove(localID)
+                                self.store.set(referenceID, None)
                         except:
                             self.log('DEBUG', 'ERROR checking checksum of', referenceID)
                             self.log()

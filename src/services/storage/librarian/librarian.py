@@ -62,9 +62,10 @@ class Librarian:
         with_locations = [(GUID, serialize_ids([serviceID, referenceID]), state)
             for GUID, serviceID, referenceID, state in changes]
         # we will ask the librarian for each file to modify the state of this location of this file (or add this location if it was not already there)
+        # if state == 'deleted' this location will be removed
         # but only if the file itself exists
         change_request = dict([
-            (location, (GUID, 'set', 'locations', location, state,
+            (location, (GUID, (state != 'deleted') and 'set' or 'unset', 'locations', location, state,
                 {'only if file exists' : ('is', 'entry', 'type', 'file')}))
                     for GUID, location, state in with_locations
         ])
