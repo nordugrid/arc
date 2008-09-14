@@ -1013,7 +1013,7 @@ err:
     STACK_OF(X509)* chain = NULL;
     chain = sk_X509_new_null();
     //Return the cert chain (not including this certificate itself)
-    for (int i=1; i < sk_X509_num(cert_chain_); i++) {
+    for (int i=1; i < sk_X509_num(cert_chain_)-1; i++) {
       X509* tmp = X509_dup(sk_X509_value(cert_chain_,i));
       sk_X509_insert(chain, tmp, i);
     }

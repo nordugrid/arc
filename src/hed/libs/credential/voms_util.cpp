@@ -132,7 +132,7 @@ namespace ArcLib{
       return AC_ERR_PARAMETERS;
 
     a = *ac;
-    subname = X509_NAME_dup(X509_get_subject_name(holder)); //old or new version?
+    subname = X509_NAME_dup(X509_get_issuer_name(holder)); //old or new version?
     issname = X509_NAME_dup(X509_get_subject_name(issuer));
 
     time(&curtime);
@@ -540,7 +540,7 @@ err:
         X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_DEFAULT);
         if ((lookup=X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
           X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
-          for (int i = 1; i < sk_X509_num(stack); i++) {
+          for (int i = 0; i < sk_X509_num(stack); i++) {
             X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
             ERR_clear_error();
             X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
@@ -600,12 +600,12 @@ err:
         for (int i = 0; i < sk_X509_num(certstack); i++) {
           X509 *current = sk_X509_value(certstack, i);
 
-          std::string subject;
-          std::string issuer;
-          std::getline(file,subject);
-          std::getline(file,issuer);
+          std::string subject_name;
+          std::string issuer_name;
+          std::getline(file,subject_name);
+          std::getline(file,issuer_name);
 
-          if(subject.empty() || issuer.empty()) { 
+          if(subject_name.empty() || issuer_name.empty()) { 
             success = false;
             final = true;
             break;
@@ -614,12 +614,12 @@ err:
           std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
           std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
 
-          std::cout<<"Subject: "<<subject<<" Real Subject: "<<realsubject<<" Issuer: "<<issuer<<" Real Issuer: "<<realissuer<<std::endl;
+          std::cout<<"Subject: "<<subject_name<<" Real Subject: "<<realsubject<<" Issuer: "<<issuer_name<<" Real Issuer: "<<realissuer<<std::endl;
 
-          if(subject.compare(realsubject) !=0 || issuer.compare(realissuer) !=0) {
+          if(subject_name.compare(realsubject) !=0 || issuer_name.compare(realissuer) !=0) {
             do {
-              std::getline(file, subject);
-            } while (file && subject.compare("------ NEXT CHAIN ------") == 0);
+              std::getline(file, subject_name);
+            } while (file && subject_name.compare("------ NEXT CHAIN ------") == 0);
             success = false;
             break;
           }
@@ -668,7 +668,7 @@ err:
  
       AC_CERTS_free(certs);
      
-      if(!cert)issuer = NULL;
+      if(cert != NULL)issuer = cert;
     }
  
     /* check if able to find the signing certificate 
@@ -973,6 +973,9 @@ err:
       }
       
       //If the holder is self-signed, and the holder also self sign the AC
+      std::cout<<"The holder DN in AC: "<<X509_NAME_oneline(name->d.dirn,NULL,0)<<std::endl;
+      std::cout<<"The holder DN: "<<X509_NAME_oneline(cert->cert_info->subject,NULL,0)<<std::endl;
+      std::cout<<"The holder's issuer DN: "<<X509_NAME_oneline(cert->cert_info->issuer,NULL,0)<<std::endl;
       if (X509_NAME_cmp(name->d.dirn, cert->cert_info->subject) && X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
         std::cerr<<"The holder itself can not sign an AC by using a self-sign certificate"<<std::endl; return false;
       }

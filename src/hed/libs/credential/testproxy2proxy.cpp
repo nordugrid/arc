@@ -100,6 +100,6 @@ int main(void) {
   pubkey = BIO_new_file(pubkey_file.c_str(), "w");
   PEM_write_bio_PUBKEY(pubkey, pkey);
 
-  std::cout<<"Verification result"<<n<<std::endl;
+  std::cout<<"Verification result: "<<(n==1?"Succeeded":"Failed")<<std::endl;
 
 }

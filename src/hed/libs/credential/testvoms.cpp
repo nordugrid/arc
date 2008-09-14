@@ -31,8 +31,8 @@ int main(void) {
 
   //Get information from credential which acts as AC holder
   //Here we use the same credential for holder and issuer
-  std::string cert1("./cert.pem");
-  std::string key1("./key.pem");  
+  std::string cert1("./out.pem");
+  std::string key1("./out.pem");
   ArcLib::Credential holder_cred(cert1, key1, cadir, "");
 
 
@@ -97,7 +97,9 @@ int main(void) {
   //X509_EXTENSION* ext = NULL;
   //ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("acseq"), (char*)aclist);
 
-  ArcLib::Credential signer(cert1, key1, cadir, "");
+  std::string cert2("./cert.pem");
+  std::string key2("./key.pem");
+  ArcLib::Credential signer(cert2, key2, cadir, "");
   signer.SignRequest(&proxy, out_file_ac.c_str());
 
   //Back to request side, compose the signed proxy certificate, local private key,

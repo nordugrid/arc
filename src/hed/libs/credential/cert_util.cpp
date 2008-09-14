@@ -250,7 +250,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     if((CERT_IS_GSI_2_PROXY(vctx->cert_type) && !CERT_IS_GSI_2_PROXY(type)) ||
          (CERT_IS_GSI_3_PROXY(vctx->cert_type) && !CERT_IS_GSI_3_PROXY(type)) ||
          (CERT_IS_RFC_PROXY(vctx->cert_type) && !CERT_IS_RFC_PROXY(type))) {
-      std::cerr<<"The proxy to be signed should be compatible with the signing certificate"<<vctx->cert_type<<type<<std::endl;
+      std::cerr<<"The proxy to be signed should be compatible with the signing certificate "<<vctx->cert_type<<" "<<type<<std::endl;
       return (0);
     }
 
