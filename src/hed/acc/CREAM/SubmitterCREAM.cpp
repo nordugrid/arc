@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/GUID.h>
 #include <arc/message/MCC.h>
 #include <arc/client/JobDescription.h>
@@ -8,15 +12,15 @@
 namespace Arc {
 
   SubmitterCREAM::SubmitterCREAM(Config *cfg)
-    : Submitter(cfg) {}
+    : Submitter(cfg, "CREAM") {}
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
-  ACC *SubmitterCREAM::Instance(Config *cfg, ChainContext*) {
+  ACC* SubmitterCREAM::Instance(Config *cfg, ChainContext*) {
     return new SubmitterCREAM(cfg);
   }
 
-  bool SubmitterCREAM::Submit(JobDescription& jobdesc, XMLNode &info) {
+  bool SubmitterCREAM::Submit(JobDescription& jobdesc, XMLNode& info) {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -27,20 +31,21 @@ namespace Arc {
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
     std::string delegationid = UUID();
-    URL url(submissionEndpoint);
-    url.ChangePath("ce-cream/services/gridsite-delegation");
-    CREAMClient gLiteClient1(url, cfg);
-    if (!gLiteClient1.createDelegation(delegationid, proxyPath)) {
+    URL delegationurl(submissionEndpoint);
+    delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
+    CREAMClient gLiteClientDelegation(delegationurl, cfg);
+    if (!gLiteClientDelegation.createDelegation(delegationid, proxyPath)) {
       logger.msg(ERROR, "Create delegation failed");
       return false;
     }
-    url.ChangePath("ce-cream/services/CREAM2");
-    CREAMClient gLiteClient2(url, cfg);
-    gLiteClient2.setDelegationId(delegationid);
+    URL submissionurl(submissionEndpoint);
+    submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
+    CREAMClient gLiteClientSubmission(submissionurl, cfg);
+    gLiteClientSubmission.setDelegationId(delegationid);
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "JDL");
     creamJobInfo jobInfo;
-    if (!gLiteClient2.registerJob(jobdescstring, jobInfo)) {
+    if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
       logger.msg(ERROR, "Job registration failed");
       return false;
     }
@@ -48,16 +53,15 @@ namespace Arc {
       logger.msg(ERROR, "Failed uploading local input files");
       return false;
     }
-    if (!gLiteClient2.startJob(jobInfo.jobId)) {
+    if (!gLiteClientSubmission.startJob(jobInfo.jobId)) {
       logger.msg(ERROR, "Failed starting job");
       return false;
     }
 
-    info.NewChild("JobID") = jobInfo.creamURL + '/' + jobInfo.jobId;
-    info.NewChild("InfoEndpoint") = jobInfo.OSB_URI; // should change
+    info.NewChild("JobID") = submissionurl.str() + '/' + jobInfo.jobId;
     info.NewChild("ISB") = jobInfo.ISB_URI;
     info.NewChild("OSB") = jobInfo.OSB_URI;
-    info.NewChild("DelegationID") = delegationid;
+    info.NewChild("AuxURL") = delegationurl.str() + '/' + delegationid;
 
     return true;
   }

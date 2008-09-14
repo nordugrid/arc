@@ -14,12 +14,12 @@ namespace Arc {
   class Loader;
   class UserConfig;
 
-  struct Benchmark{
+  struct Benchmark {
     std::string Type;
     double Value;
   };
 
-  struct ApplicationEnvironment{
+  struct ApplicationEnvironment {
     std::string Name;
     std::string Version;
     std::string State;
@@ -140,16 +140,14 @@ namespace Arc {
     std::list<ApplicationEnvironment> ApplicationEnvironments;
 
     //Other
-    Submitter *GetSubmitter(const UserConfig& ucfg) const;
     std::string GridFlavour;
-    URL Source;
-    URL Cluster;
+    URL Cluster; // contains the URL of the infosys that provided the info
+
+    Submitter* GetSubmitter(const UserConfig& ucfg) const;
     void Print(bool longlist) const;
 
   private:
-
     Loader *loader;
-
   };
 
 } // namespace Arc

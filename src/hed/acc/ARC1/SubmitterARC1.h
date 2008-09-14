@@ -6,7 +6,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/client/ClientInterface.h>
 
-namespace Arc { 
+namespace Arc {
 
   class ChainContext;
   class Config;
@@ -21,8 +21,8 @@ namespace Arc {
     ~SubmitterARC1();
 
   public:
-    static ACC *Instance(Config *cfg, ChainContext *cxt);
-    bool Submit(JobDescription& jobdesc, XMLNode &info);
+    static ACC* Instance(Config *cfg, ChainContext *cxt);
+    bool Submit(JobDescription& jobdesc, XMLNode& info);
   };
 
 } // namespace Arc

@@ -1,7 +1,10 @@
-#include <arc/data/DataHandle.h>
-#include <arc/message/MCC.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/Logger.h>
 #include <arc/URL.h>
+#include <arc/message/MCC.h>
 
 #include "CREAMClient.h"
 #include "JobControllerCREAM.h"
@@ -15,13 +18,13 @@ namespace Arc {
 
   JobControllerCREAM::~JobControllerCREAM() {}
 
-  ACC *JobControllerCREAM::Instance(Config *cfg, ChainContext*) {
+  ACC* JobControllerCREAM::Instance(Config *cfg, ChainContext*) {
     return new JobControllerCREAM(cfg);
   }
 
   void JobControllerCREAM::GetJobInformation() {
-    for (std::list<Job>::iterator iter = JobStore.begin();
-	 iter != JobStore.end(); iter++) {
+    for (std::list<Job>::iterator iter = jobstore.begin();
+	 iter != jobstore.end(); iter++) {
       MCCConfig cfg;
       if (!proxyPath.empty())
 	cfg.AddProxy(proxyPath);
@@ -35,45 +38,49 @@ namespace Arc {
       URL url(iter->JobID);
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg);
-      if (!gLiteClient.stat(pi.Rest(), iter->State)) {
+      if (!gLiteClient.stat(pi.Rest(), iter->State))
 	logger.msg(ERROR, "Could not retrieve job information");
-      }
     }
   }
 
-  bool JobControllerCREAM::GetThisJob(Job ThisJob,
-				      const std::string& downloaddir) {
+  bool JobControllerCREAM::GetJob(const Job& job,
+				  const std::string& downloaddir) {
 
-    logger.msg(DEBUG, "Downloading job: %s", ThisJob.InfoEndpoint.str());
-    bool SuccessfulDownload = true;
+    logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
 
-    DataHandle source(ThisJob.InfoEndpoint);    
-    if (source) {
+    std::string path = job.JobID.Path();
+    std::string::size_type pos = path.rfind('/');
+    std::string jobidnum = path.substr(pos + 1);
 
-      std::list<std::string> downloadthese = GetDownloadFiles(source);
+    std::list<std::string> files = GetDownloadFiles(job.OSB);
 
-      //loop over files
-      for(std::list<std::string>::iterator i = downloadthese.begin();
-	  i != downloadthese.end(); i++) {
-	std::string src = ThisJob.InfoEndpoint.str() + "/"+ *i;
-	std::string path_temp = ThisJob.JobID.Path(); 
-	size_t slash = path_temp.find_last_of("/");
-	std::string dst;
-	if(downloaddir.empty())
-	  dst = path_temp.substr(slash+1) + "/" + *i;
-	else
-	  dst = downloaddir + "/" + *i;
-	bool GotThisFile = CopyFile(src, dst);
-	if(!GotThisFile)
-	  SuccessfulDownload = false;
+    URL src(job.OSB);
+    URL dst(downloaddir.empty() ? jobidnum : downloaddir + '/' + jobidnum);
+
+    std::string srcpath = src.Path();
+    std::string dstpath = dst.Path();
+
+    if (srcpath[srcpath.size() - 1] != '/')
+      srcpath += '/';
+    if (dstpath[dstpath.size() - 1] != '/')
+      dstpath += '/';
+
+    bool ok = true;
+
+    for (std::list<std::string>::iterator it = files.begin();
+	 it != files.end(); it++) {
+      src.ChangePath(srcpath + *it);
+      dst.ChangePath(dstpath + *it);
+      if (!CopyFile(src, dst)) {
+	logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+	ok = false;
       }
     }
-    else
-      logger.msg(ERROR, "Failed dowloading job: %s. "
-		 "Could not get data handle.", ThisJob.InfoEndpoint.str());
+
+    return ok;
   }
 
-  bool JobControllerCREAM::CleanThisJob(Job ThisJob, bool force) {
+  bool JobControllerCREAM::CleanJob(const Job& job, bool force) {
 
     MCCConfig cfg;
     if (!proxyPath.empty())
@@ -84,18 +91,26 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    PathIterator pi(ThisJob.JobID.Path(), true);
-    URL url(ThisJob.JobID);
+    PathIterator pi(job.JobID.Path(), true);
+    URL url(job.JobID);
     url.ChangePath(*pi);
     CREAMClient gLiteClient(url, cfg);
     if (!gLiteClient.purge(pi.Rest())) {
       logger.msg(ERROR, "Failed to clean job");
       return false;
     }
+    PathIterator pi2(job.AuxURL.Path(), true);
+    URL url2(job.AuxURL);
+    url2.ChangePath(*pi2);
+    CREAMClient gLiteClient2(url2, cfg);
+    if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
+      logger.msg(ERROR, "Destroy delegation failed");
+      return false;
+    }
     return true;
   }
 
-  bool JobControllerCREAM::CancelThisJob(Job ThisJob){
+  bool JobControllerCREAM::CancelJob(const Job& job) {
 
     MCCConfig cfg;
     if (!proxyPath.empty())
@@ -106,8 +121,8 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    PathIterator pi(ThisJob.JobID.Path(), true);
-    URL url(ThisJob.JobID);
+    PathIterator pi(job.JobID.Path(), true);
+    URL url(job.JobID);
     url.ChangePath(*pi);
     CREAMClient gLiteClient(url, cfg);
     if (!gLiteClient.cancel(pi.Rest())) {
@@ -117,39 +132,7 @@ namespace Arc {
     return true;
   }
 
-  URL JobControllerCREAM::GetFileUrlThisJob(Job ThisJob,
-					    const std::string& whichfile){};
-
-  std::list<std::string>
-  JobControllerCREAM::GetDownloadFiles(DataHandle& dir,
-				       const std::string& dirname) {
-
-    std::list<std::string> files;
-
-    std::list<FileInfo> outputfiles;
-    dir->ListFiles(outputfiles, true);
-
-    for(std::list<FileInfo>::iterator i = outputfiles.begin();
-	i != outputfiles.end(); i++) {
-      if(i->GetType() == 0 || i->GetType() == 1) {
-	if(!dirname.empty())
-	  files.push_back(dirname + "/" + i->GetName());
-	else
-	  files.push_back(i->GetName());
-      }
-      else if(i->GetType() == 2) {
-	DataHandle tmpdir(dir->str() + "/" + i->GetName());
-	std::list<std::string> morefiles = GetDownloadFiles(tmpdir,
-							    i->GetName());
-	for(std::list<std::string>::iterator j = morefiles.begin();
-	    j != morefiles.end(); j++)
-	  if(!dirname.empty())
-	    files.push_back(dirname + "/"+ *j);
-	  else
-	    files.push_back(*j);
-      }
-    }
-    return files;
-  }
+  URL JobControllerCREAM::GetFileUrlForJob(const Job& job,
+					   const std::string& whichfile) {}
 
 } // namespace Arc

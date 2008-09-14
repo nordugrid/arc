@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArcConfig>
+  <DefaultServices>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index2.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index3.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index4.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC1" ServiceType="computing">https://knowarc1.grid.niif.hu:60000/arex</URL>
+    <URL Flavour="CREAM" ServiceType="index">ldap://cream.grid.upjs.sk:2170/o=Grid</URL>
+  </DefaultServices>
+</ArcConfig>

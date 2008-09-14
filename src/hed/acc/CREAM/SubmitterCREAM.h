@@ -16,8 +16,8 @@ namespace Arc {
     ~SubmitterCREAM();
 
   public:
-    static ACC *Instance(Config *cfg, ChainContext *cxt);
-    bool Submit(JobDescription& jobdesc, XMLNode &info);
+    static ACC* Instance(Config *cfg, ChainContext *cxt);
+    bool Submit(JobDescription& jobdesc, XMLNode& info);
   };
 
 } // namespace Arc

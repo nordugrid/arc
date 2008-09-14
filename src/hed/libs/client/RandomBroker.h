@@ -2,7 +2,7 @@
 
 namespace Arc {
 
-  class RandomBroker 
+  class RandomBroker
     : public DefaultBroker {
   protected:
     RandomBroker();

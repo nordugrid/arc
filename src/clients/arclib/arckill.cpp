@@ -14,57 +14,23 @@
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/UserConfig.h>
 
-
-static Arc::Logger logger(Arc::Logger::getRootLogger(), "arckill");
-
-void arckill(const std::list<std::string>& jobs,
-	     const std::list<std::string>& clusterselect,
-	     const std::list<std::string>& clusterreject,
-	     const std::list<std::string>& status,
-	     const std::string joblist,
-	     const bool keep,
-	     const int timeout) {
-
-  Arc::UserConfig uc("");
-  if (!uc)
-    return;
-
-  Arc::JobSupervisor JobMaster(uc, jobs, clusterselect, clusterreject,
-			       joblist.empty() ? uc.JobsFile() : joblist);
-
-  std::list<Arc::JobController*> TheJobControllers = JobMaster.GetJobControllers();
-  
-  if(TheJobControllers.empty())
-    return;
-
-  std::list<Arc::JobController*>::iterator iter;
-  
-  //This may benefit from being threaded
-  for(iter = TheJobControllers.begin(); iter != TheJobControllers.end(); iter++){
-    (*iter)->Kill(jobs,
-		  clusterselect,
-		  clusterreject,
-		  status,
-		  keep,
-		  timeout);
-  }
-
-}
-
 int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
+  Arc::Logger logger(Arc::Logger::getRootLogger(), "arckill");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[jobid]"), "", istring(
-			      "Argument to -c has format:\n"
-			      "GRID:URL e.g.\n"
-			      "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid"));
+  Arc::OptionParser options(istring("[jobid ...]"), "",
+			    istring("Argument to -c has format:\n"
+				    "GRID:URL e.g.\n"
+				    "ARC0:ldap://grid.tsl.uu.se:2135/"
+				    "nordugrid-cluster-name=grid.tsl.uu.se,"
+				    "Mds-Vo-name=local,o=grid"));
 
   bool all = false;
   options.AddOption('a', "all",
@@ -77,11 +43,11 @@ int main(int argc, char **argv) {
 		    istring("filename"),
 		    joblist);
 
-  std::list<std::string> clustertemp;
+  std::list<std::string> clusters;
   options.AddOption('c', "cluster",
 		    istring("explicity select or reject a specific cluster"),
 		    istring("[-]name"),
-		    clustertemp);
+		    clusters);
 
   std::list<std::string> status;
   options.AddOption('s', "status",
@@ -91,12 +57,17 @@ int main(int argc, char **argv) {
 
   bool keep = false;
   options.AddOption('k', "keep",
-		    istring("keep the files on the server (don't clean)"),
+		    istring("keep the files on the server (do not clean)"),
 		    keep);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
+
+  std::string conffile;
+  options.AddOption('z', "conffile",
+		    istring("configuration file (default ~/.arc/client.xml)"),
+		    istring("filename"), conffile);
 
   std::string debug;
   options.AddOption('d', "debug",
@@ -109,32 +80,51 @@ int main(int argc, char **argv) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
-  //sort clustertemp into clusterselect and clusterreject
-  std::list<std::string> clusterselect;
-  std::list<std::string> clusterreject;
-  for (std::list<std::string>::iterator it = clustertemp.begin();
-       it != clustertemp.end(); it++)
-    if ((*it).find_first_of('-') == 0)
-      clusterreject.push_back(*it);
-    else
-      clusterselect.push_back(*it);
-
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
+  Arc::UserConfig usercfg(conffile);
+  if (!usercfg) {
+    logger.msg(Arc::ERROR, "Failed configuration initialization");
+    return 1;
+  }
+
+  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+    debug = (std::string)usercfg.ConfTree()["Debug"];
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  }
+
   if (version) {
-    std::cout << Arc::IString("%s version %s", "arckill", VERSION) << std::endl;
+    std::cout << Arc::IString("%s version %s", "arckill", VERSION)
+	      << std::endl;
     return 0;
   }
 
-  if (params.empty() && joblist.empty() && !all) {
-    logger.msg(Arc::ERROR,
-	       "No valid jobids given");
+  std::list<Arc::URL> jobids;
+  jobids.insert(jobids.end(), params.begin(), params.end());
+
+  if (jobids.empty() && joblist.empty() && !all) {
+    logger.msg(Arc::ERROR, "No valid jobids given");
     return 1;
   }
-  
-  arckill(params, clusterselect, clusterreject, status,
-	  joblist, keep, timeout);
 
-  return 0;
+  if (joblist.empty())
+    joblist = usercfg.JobListFile();
+
+  Arc::JobSupervisor jobmaster(usercfg, jobids, clusters, joblist);
+
+  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
+
+  if (jobcont.empty()) {
+    logger.msg(Arc::ERROR, "No job controllers loaded");
+    return 1;
+  }
+
+  int retval = 0;
+  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
+       it != jobcont.end(); it++)
+    if (!(*it)->Kill(jobids, status, keep, timeout))
+      retval = 1;
+
+  return retval;
 }

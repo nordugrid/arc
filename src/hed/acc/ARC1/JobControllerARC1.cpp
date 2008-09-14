@@ -1,5 +1,8 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/XMLNode.h>
-#include <arc/data/DataHandle.h>
 #include <arc/message/MCC.h>
 
 #include "AREXClient.h"
@@ -11,16 +14,16 @@ namespace Arc {
 
   JobControllerARC1::JobControllerARC1(Config *cfg)
     : JobController(cfg, "ARC1") {}
-  
+
   JobControllerARC1::~JobControllerARC1() {}
 
-  ACC *JobControllerARC1::Instance(Config *cfg, ChainContext*) {
+  ACC* JobControllerARC1::Instance(Config *cfg, ChainContext*) {
     return new JobControllerARC1(cfg);
   }
-  
+
   void JobControllerARC1::GetJobInformation() {
-    for (std::list<Job>::iterator iter = JobStore.begin();
-	 iter != JobStore.end(); iter++) {
+    for (std::list<Job>::iterator iter = jobstore.begin();
+	 iter != jobstore.end(); iter++) {
       MCCConfig cfg;
       if (!proxyPath.empty())
 	cfg.AddProxy(proxyPath);
@@ -35,16 +38,17 @@ namespace Arc {
       url.ChangePath(*pi);
       AREXClient ac(url, cfg);
       NS ns;
-      ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-      ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-      ns["wsa"]="http://www.w3.org/2005/08/addressing";
-      ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
-      ns["jsdl-posix"]="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-      ns["jsdl-arc"]="http://www.nordugrid.org/ws/schemas/jsdl-arc";
-      ns["jsdl-hpcpa"]="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+      ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+      ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
+      ns["wsa"] = "http://www.w3.org/2005/08/addressing";
+      ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+      ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+      ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+      ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
       XMLNode id(ns, "ActivityIdentifier");
       id.NewChild("wsa:Address") = url.str();
-      id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
+      id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") =
+	pi.Rest();
       std::string idstr;
       id.GetXML(idstr);
       if (!ac.stat(idstr, iter->State))
@@ -52,40 +56,44 @@ namespace Arc {
     }
   }
 
-  bool JobControllerARC1::GetThisJob(Job ThisJob,
-				     const std::string& downloaddir) {
+  bool JobControllerARC1::GetJob(const Job& job,
+				 const std::string& downloaddir) {
 
-    logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
-    bool SuccessfulDownload = true;
+    logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
 
-    DataHandle source(ThisJob.JobID);    
-    if (source) {
+    std::string path = job.JobID.Path();
+    std::string::size_type pos = path.rfind('/');
+    std::string jobidnum = path.substr(pos + 1);
 
-      std::list<std::string> downloadthese = GetDownloadFiles(source);
+    std::list<std::string> files = GetDownloadFiles(job.JobID);
 
-      //loop over files
-      for(std::list<std::string>::iterator i = downloadthese.begin();
-	  i != downloadthese.end(); i++) {
-	std::string src = ThisJob.JobID.str() + "/"+ *i;
-	std::string path_temp = ThisJob.JobID.Path(); 
-	size_t slash = path_temp.find_last_of("/");
-	std::string dst;
-	if(downloaddir.empty())
-	  dst = path_temp.substr(slash+1) + "/" + *i;
-	else
-	  dst = downloaddir + "/" + *i;
-	bool GotThisFile = CopyFile(src, dst);
-	if(!GotThisFile)
-	  SuccessfulDownload = false;
+    URL src(job.JobID);
+    URL dst(downloaddir.empty() ? jobidnum : downloaddir + '/' + jobidnum);
+
+    std::string srcpath = src.Path();
+    std::string dstpath = dst.Path();
+
+    if (srcpath[srcpath.size() - 1] != '/')
+      srcpath += '/';
+    if (dstpath[dstpath.size() - 1] != '/')
+      dstpath += '/';
+
+    bool ok = true;
+
+    for (std::list<std::string>::iterator it = files.begin();
+	 it != files.end(); it++) {
+      src.ChangePath(srcpath + *it);
+      dst.ChangePath(dstpath + *it);
+      if (!CopyFile(src, dst)) {
+	logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+	ok = false;
       }
     }
-    else
-      logger.msg(ERROR, "Failed dowloading job: %s. "
-		 "Could not get data handle.", ThisJob.JobID.str());
-    return SuccessfulDownload;
+
+    return ok;
   }
 
-  bool JobControllerARC1::CleanThisJob(Job ThisJob, bool force) {
+  bool JobControllerARC1::CleanJob(const Job& job, bool force) {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -95,28 +103,27 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    PathIterator pi(ThisJob.JobID.Path(), true);
-    URL url(ThisJob.JobID);
+    PathIterator pi(job.JobID.Path(), true);
+    URL url(job.JobID);
     url.ChangePath(*pi);
     AREXClient ac(url, cfg);
     NS ns;
-    ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-    ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-    ns["wsa"]="http://www.w3.org/2005/08/addressing";
-    ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
-    ns["jsdl-posix"]="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-    ns["jsdl-arc"]="http://www.nordugrid.org/ws/schemas/jsdl-arc";
-    ns["jsdl-hpcpa"]="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+    ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
+    ns["wsa"] = "http://www.w3.org/2005/08/addressing";
+    ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+    ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
     XMLNode id(ns, "ActivityIdentifier");
     id.NewChild("wsa:Address") = url.str();
     id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
     std::string idstr;
     id.GetXML(idstr);
-    ac.clean(idstr);
-    return true;
+    return ac.clean(idstr);
   }
 
-  bool JobControllerARC1::CancelThisJob(Job ThisJob) {
+  bool JobControllerARC1::CancelJob(const Job& job) {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -126,70 +133,27 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    PathIterator pi(ThisJob.JobID.Path(), true);
-    URL url(ThisJob.JobID);
+    PathIterator pi(job.JobID.Path(), true);
+    URL url(job.JobID);
     url.ChangePath(*pi);
     AREXClient ac(url, cfg);
     NS ns;
-    ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-    ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-    ns["wsa"]="http://www.w3.org/2005/08/addressing";
-    ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
-    ns["jsdl-posix"]="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-    ns["jsdl-arc"]="http://www.nordugrid.org/ws/schemas/jsdl-arc";
-    ns["jsdl-hpcpa"]="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+    ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
+    ns["wsa"] = "http://www.w3.org/2005/08/addressing";
+    ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+    ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
     XMLNode id(ns, "ActivityIdentifier");
     id.NewChild("wsa:Address") = url.str();
     id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
     std::string idstr;
     id.GetXML(idstr);
-    ac.kill(idstr);
-    return true;
+    return ac.kill(idstr);
   }
 
-  URL JobControllerARC1::GetFileUrlThisJob(Job ThisJob,
-					   const std::string& whichfile) {}
-
-  std::list<std::string>
-  JobControllerARC1::GetDownloadFiles(DataHandle& dir,
-				      const std::string& dirname) {
-
-    std::list<std::string> files;
-
-    std::list<FileInfo> outputfiles;
-    dir->ListFiles(outputfiles, true);
-
-    for(std::list<FileInfo>::iterator i = outputfiles.begin();
-	i != outputfiles.end(); i++) {
-      if(i->GetType() == 0 || i->GetType() == 1) {
-	if(!dirname.empty())
-	  if (dirname[dirname.size() - 1] != '/')
-	    files.push_back(dirname + "/" + i->GetName());
-	  else
-	    files.push_back(dirname + i->GetName());
-	else
-	  files.push_back(i->GetName());
-      }
-      else if(i->GetType() == 2) {
-	std::string dirurl(dir->str());
-	if (dirurl[dirurl.size() - 1] != '/')
-	  dirurl += "/";
-	dirurl += i->GetName();
-	DataHandle tmpdir(dirurl);
-	std::list<std::string> morefiles = GetDownloadFiles(tmpdir,
-							    i->GetName());
-	for(std::list<std::string>::iterator j = morefiles.begin();
-	    j != morefiles.end(); j++)
-	  if(!dirname.empty())
-	    if (dirname[dirname.size() - 1] != '/')
-	      files.push_back(dirname + "/"+ *j);
-	    else
-	      files.push_back(dirname + *j);
-	  else
-	    files.push_back(*j);
-      }
-    }
-    return files;
-  }
+  URL JobControllerARC1::GetFileUrlForJob(const Job& job,
+					  const std::string& whichfile) {}
 
 } // namespace Arc

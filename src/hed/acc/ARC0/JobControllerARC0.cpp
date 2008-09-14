@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <map>
 
 #include <arc/data/DataBufferPar.h>
@@ -17,48 +21,33 @@ namespace Arc {
 
   JobControllerARC0::~JobControllerARC0() {}
 
-  ACC *JobControllerARC0::Instance(Config *cfg, ChainContext*) {
+  ACC* JobControllerARC0::Instance(Config *cfg, ChainContext*) {
     return new JobControllerARC0(cfg);
   }
 
   void JobControllerARC0::GetJobInformation() {
 
-    // 1. Sort jobs according to host and base dn (path)
+    std::map<std::string, std::list<Job*> > jobsbyhost;
+    for (std::list<Job>::iterator it = jobstore.begin();
+	 it != jobstore.end(); it++)
+      jobsbyhost[it->InfoEndpoint.ConnectionURL() + '/' +
+		 it->InfoEndpoint.Path()].push_back(&*it);
 
-    std::list<Job>::iterator iter;
-    std::map< std::string, std::list<Job*> > SortedByHost;
+    for (std::map<std::string, std::list<Job*> >::iterator hostit =
+	   jobsbyhost.begin(); hostit != jobsbyhost.end(); hostit++) {
 
-    for(iter = JobStore.begin(); iter != JobStore.end(); iter++)
-      SortedByHost[iter->InfoEndpoint.Host() + "/" +
-		   iter->InfoEndpoint.Path()].push_back(&*iter);
+      URL infourl = (*hostit->second.begin())->InfoEndpoint;
 
-    //Actions below this point could(should) be threaded in the future
-
-    std::map< std::string, std::list<Job*> >::iterator HostIterator;
-
-    for(HostIterator = SortedByHost.begin();
-	HostIterator != SortedByHost.end(); HostIterator++) {
-
-      // 2. Copy info endpoint url from one of the jobs      
-
-      URL FinalURL = (*HostIterator->second.begin())->InfoEndpoint;
-
-      // 3a. Prepare new filter      
-
+      // merge filters
       std::string filter = "(|";
-
-      for(std::list<Job*>::iterator it = HostIterator->second.begin();
-	  it != HostIterator->second.end(); it++)
+      for (std::list<Job*>::iterator it = hostit->second.begin();
+	   it != hostit->second.end(); it++)
 	filter += (*it)->InfoEndpoint.LDAPFilter();
       filter += ")";
 
-      // 3b. Change filter of the final url      
+      infourl.ChangeLDAPFilter(filter);
 
-      FinalURL.ChangeLDAPFilter(filter);
-      
-      // 4. Read from information source
-      
-      DataHandle handler(FinalURL);
+      DataHandle handler(infourl);
       DataBufferPar buffer;
 
       if (!handler->StartReading(buffer))
@@ -78,148 +67,161 @@ namespace Arc {
       if (!handler->StopReading())
 	return;
 
-      // 5. Fill jobs with information
-      XMLNode XMLresult(result);
+      XMLNode xmlresult(result);
 
-      for(std::list<Job*>::iterator it = HostIterator->second.begin();
-	  it != HostIterator->second.end(); it++){
-	XMLNodeList JobXMLInfoList = XMLresult.XPathLookup("//nordugrid-job-globalid"
-							   "[nordugrid-job-globalid='"+(*it)->JobID.str()+"']", NS());
-	if (JobXMLInfoList.empty())
+      for (std::list<Job*>::iterator it = hostit->second.begin();
+	   it != hostit->second.end(); it++) {
+
+	XMLNodeList jobinfolist =
+	  xmlresult.XPathLookup("//nordugrid-job-globalid"
+				"[nordugrid-job-globalid='" +
+				(*it)->JobID.str() + "']", NS());
+
+	if (jobinfolist.empty())
 	  continue;
-	XMLNode& JobXMLInfo = *JobXMLInfoList.begin();
-	if(JobXMLInfo["nordugrid-job-status"])
-	  (*it)->State = (std::string) JobXMLInfo["nordugrid-job-status"];
-	if(JobXMLInfo["nordugrid-job-globalowner"])
-	  (*it)->Owner = (std::string) JobXMLInfo["nordugrid-job-globalowner"];
-	if(JobXMLInfo["nordugrid-job-execcluster"])
-	  (*it)->ExecutionCE = (std::string) JobXMLInfo["nordugrid-job-execcluster"];
-	if(JobXMLInfo["nordugrid-job-execqueue"])
-	  (*it)->Queue = (std::string) JobXMLInfo["nordugrid-job-execqueue"];
-	if(JobXMLInfo["nordugrid-job-submissionui"])
-	  (*it)->SubmissionHost = (std::string) JobXMLInfo["nordugrid-job-submissionui"];
-	if(JobXMLInfo["nordugrid-job-submissiontime"])
-	  (*it)->SubmissionTime = (std::string) JobXMLInfo["nordugrid-job-submissiontime"];
-	if(JobXMLInfo["nordugrid-job-sessiondirerasetime"])
-	  (*it)->WorkingAreaEraseTime = (std::string) JobXMLInfo["nordugrid-job-sessiondirerasetime"];
-	if(JobXMLInfo["nordugrid-job-proxyexpirationtime"])
-	  (*it)->ProxyExpirationTime = (std::string) JobXMLInfo["nordugrid-job-proxyexpirationtime"];
-	if(JobXMLInfo["nordugrid-job-completiontime"])
-	  (*it)->EndTime = (std::string) JobXMLInfo["nordugrid-job-completiontime"];
-	if(JobXMLInfo["nordugrid-job-cpucount"])
-	  (*it)->UsedSlots = stringtoi(JobXMLInfo["nordugrid-job-cpucount"]);
-	if(JobXMLInfo["nordugrid-job-usedcputime"])
-	  (*it)->UsedTotalCPUTime = (std::string) JobXMLInfo["nordugrid-job-usedcputime"];
-	if(JobXMLInfo["nordugrid-job-usedwalltime"])
-	  (*it)->UsedWallTime = (std::string) JobXMLInfo["nordugrid-job-usedwalltime"];
-	if(JobXMLInfo["nordugrid-job-exitcode"])
-	  (*it)->ExitCode = stringtoi(JobXMLInfo["nordugrid-job-exitcode"]);
-	if(JobXMLInfo["Mds-validfrom"]){
-	  (*it)->CreationTime = (std::string) (JobXMLInfo["Mds-validfrom"]);
-	  if(JobXMLInfo["Mds-validto"]){
-	    Time Validto = (std::string) (JobXMLInfo["Mds-validto"]);
+
+	XMLNode& jobinfo = *jobinfolist.begin();
+
+	if (jobinfo["nordugrid-job-status"])
+	  (*it)->State = (std::string)jobinfo["nordugrid-job-status"];
+	if (jobinfo["nordugrid-job-globalowner"])
+	  (*it)->Owner = (std::string)jobinfo["nordugrid-job-globalowner"];
+	if (jobinfo["nordugrid-job-execcluster"])
+	  (*it)->ExecutionCE =
+	    (std::string)jobinfo["nordugrid-job-execcluster"];
+	if (jobinfo["nordugrid-job-execqueue"])
+	  (*it)->Queue = (std::string)jobinfo["nordugrid-job-execqueue"];
+	if (jobinfo["nordugrid-job-submissionui"])
+	  (*it)->SubmissionHost =
+	    (std::string)jobinfo["nordugrid-job-submissionui"];
+	if (jobinfo["nordugrid-job-submissiontime"])
+	  (*it)->SubmissionTime =
+	    (std::string)jobinfo["nordugrid-job-submissiontime"];
+	if (jobinfo["nordugrid-job-sessiondirerasetime"])
+	  (*it)->WorkingAreaEraseTime =
+	    (std::string)jobinfo["nordugrid-job-sessiondirerasetime"];
+	if (jobinfo["nordugrid-job-proxyexpirationtime"])
+	  (*it)->ProxyExpirationTime =
+	    (std::string)jobinfo["nordugrid-job-proxyexpirationtime"];
+	if (jobinfo["nordugrid-job-completiontime"])
+	  (*it)->EndTime =
+	    (std::string)jobinfo["nordugrid-job-completiontime"];
+	if (jobinfo["nordugrid-job-cpucount"])
+	  (*it)->UsedSlots = stringtoi(jobinfo["nordugrid-job-cpucount"]);
+	if (jobinfo["nordugrid-job-usedcputime"])
+	  (*it)->UsedTotalCPUTime =
+	    (std::string)jobinfo["nordugrid-job-usedcputime"];
+	if (jobinfo["nordugrid-job-usedwalltime"])
+	  (*it)->UsedWallTime =
+	    (std::string)jobinfo["nordugrid-job-usedwalltime"];
+	if (jobinfo["nordugrid-job-exitcode"])
+	  (*it)->ExitCode = stringtoi(jobinfo["nordugrid-job-exitcode"]);
+	if (jobinfo["Mds-validfrom"]) {
+	  (*it)->CreationTime = (std::string)(jobinfo["Mds-validfrom"]);
+	  if (jobinfo["Mds-validto"]) {
+	    Time Validto = (std::string)(jobinfo["Mds-validto"]);
 	    (*it)->Validity = Validto - (*it)->CreationTime;
 	  }
 	}
-	if(JobXMLInfo["nordugrid-job-stdout"])
-	  (*it)->StdOut = (std::string) (JobXMLInfo["nordugrid-job-stdout"]);
-	if(JobXMLInfo["nordugrid-job-stderr"])
-	  (*it)->StdErr = (std::string) (JobXMLInfo["nordugrid-job-stderr"]);
-	if(JobXMLInfo["nordugrid-job-stdin"])
-	  (*it)->StdIn = (std::string) (JobXMLInfo["nordugrid-job-stdin"]);
-	if(JobXMLInfo["nordugrid-job-reqcputime"])
-	  (*it)->RequestedTotalCPUTime = (std::string) (JobXMLInfo["nordugrid-job-reqcputime"]);
-	if(JobXMLInfo["nordugrid-job-reqwalltime"])
-	  (*it)->RequestedWallTime = (std::string) (JobXMLInfo["nordugrid-job-reqwalltime"]);
-	if(JobXMLInfo["nordugrid-job-rerunable"])
-	  (*it)->RestartState = (std::string) (JobXMLInfo["nordugrid-job-rerunable"]);
-	if(JobXMLInfo["nordugrid-job-queuerank"])
-	  (*it)->WaitingPosition = stringtoi(JobXMLInfo["nordugrid-job-queuerank"]);
-	if(JobXMLInfo["nordugrid-job-comment"])
-	  (*it)->OtherMessages = (std::string) (JobXMLInfo["nordugrid-job-comment"]);
-	if(JobXMLInfo["nordugrid-job-usedmem"])
-	  (*it)->UsedMainMemory = stringtoi(JobXMLInfo["nordugrid-job-usedmem"]);
-	if(JobXMLInfo["nordugrid-job-errors"]){
-	  for(XMLNode n = JobXMLInfo["nordugrid-job-errors"]; n; ++n){
-	    (*it)->Error.push_back((std::string) n);
-	  }	
-	}
-	if(JobXMLInfo["nordugrid-job-jobname"])
-	  (*it)->Name = (std::string) (JobXMLInfo["nordugrid-job-jobname"]);
-	if(JobXMLInfo["nordugrid-job-gmlog"])
-	  (*it)->LogDir = (std::string) (JobXMLInfo["nordugrid-job-gmlog"]);
-	if(JobXMLInfo["nordugrid-job-clientsofware"])
-	  (*it)->SubmissionClientName = (std::string) (JobXMLInfo["nordugrid-job-clientsoftware"]);
-	if(JobXMLInfo["nordugrid-job-executionnodes"]){
-	  for(XMLNode n = JobXMLInfo["nordugrid-job-executionnodes"]; n; ++n){
-	    (*it)->ExecutionNode.push_back((std::string) n);
-	  }
-	}
-	if(JobXMLInfo["nordugrid-job-runtimeenvironment"]){
-	  for(XMLNode n = JobXMLInfo["nordugrid-job-runtimeenvironment"]; n; ++n){
-	    (*it)->UsedApplicationEnvironment.push_back((std::string) n);
-	  }
-	}
-
+	if (jobinfo["nordugrid-job-stdout"])
+	  (*it)->StdOut = (std::string)(jobinfo["nordugrid-job-stdout"]);
+	if (jobinfo["nordugrid-job-stderr"])
+	  (*it)->StdErr = (std::string)(jobinfo["nordugrid-job-stderr"]);
+	if (jobinfo["nordugrid-job-stdin"])
+	  (*it)->StdIn = (std::string)(jobinfo["nordugrid-job-stdin"]);
+	if (jobinfo["nordugrid-job-reqcputime"])
+	  (*it)->RequestedTotalCPUTime =
+	    (std::string)(jobinfo["nordugrid-job-reqcputime"]);
+	if (jobinfo["nordugrid-job-reqwalltime"])
+	  (*it)->RequestedWallTime =
+	    (std::string)(jobinfo["nordugrid-job-reqwalltime"]);
+	if (jobinfo["nordugrid-job-rerunable"])
+	  (*it)->RestartState =
+	    (std::string)(jobinfo["nordugrid-job-rerunable"]);
+	if (jobinfo["nordugrid-job-queuerank"])
+	  (*it)->WaitingPosition =
+	    stringtoi(jobinfo["nordugrid-job-queuerank"]);
+	if (jobinfo["nordugrid-job-comment"])
+	  (*it)->OtherMessages =
+	    (std::string)(jobinfo["nordugrid-job-comment"]);
+	if (jobinfo["nordugrid-job-usedmem"])
+	  (*it)->UsedMainMemory =
+	    stringtoi(jobinfo["nordugrid-job-usedmem"]);
+	if (jobinfo["nordugrid-job-errors"])
+	  for (XMLNode n = jobinfo["nordugrid-job-errors"]; n; ++n)
+	    (*it)->Error.push_back((std::string)n);
+	if (jobinfo["nordugrid-job-jobname"])
+	  (*it)->Name = (std::string)(jobinfo["nordugrid-job-jobname"]);
+	if (jobinfo["nordugrid-job-gmlog"])
+	  (*it)->LogDir = (std::string)(jobinfo["nordugrid-job-gmlog"]);
+	if (jobinfo["nordugrid-job-clientsofware"])
+	  (*it)->SubmissionClientName =
+	    (std::string)(jobinfo["nordugrid-job-clientsoftware"]);
+	if (jobinfo["nordugrid-job-executionnodes"])
+	  for (XMLNode n = jobinfo["nordugrid-job-executionnodes"]; n; ++n)
+	    (*it)->ExecutionNode.push_back((std::string)n);
+	if (jobinfo["nordugrid-job-runtimeenvironment"])
+	  for (XMLNode n = jobinfo["nordugrid-job-runtimeenvironment"]; n; ++n)
+	    (*it)->UsedApplicationEnvironment.push_back((std::string)n);
       }
+    }
+  }
 
-    } //end loop over the different hosts
+  bool JobControllerARC0::GetJob(const Job& job,
+				 const std::string& downloaddir) {
 
-  } //end GetJobInformation
+    logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
 
-  bool JobControllerARC0::GetThisJob(Job ThisJob,
-				     const std::string& downloaddir) {
-    
-    logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
-    bool SuccesfulDownload = true;
+    std::string path = job.JobID.Path();
+    std::string::size_type pos = path.rfind('/');
+    std::string jobidnum = path.substr(pos + 1);
 
-    Arc::DataHandle source(ThisJob.JobID);    
-    if(source){
+    std::list<std::string> files = GetDownloadFiles(job.JobID);
 
-      std::list<std::string> downloadthese = GetDownloadFiles(source);
+    URL src(job.JobID);
+    URL dst(downloaddir.empty() ? jobidnum : downloaddir + '/' + jobidnum);
 
-      //loop over files
-      for(std::list<std::string>::iterator i = downloadthese.begin();i != downloadthese.end(); i++){
-	std::string src = ThisJob.JobID.str() + "/"+*i;
-	std::string path_temp = ThisJob.JobID.Path(); 
-	size_t slash = path_temp.find_first_of("/");
-	std::string dst;
-	if(downloaddir.empty()){
-	  dst = path_temp.substr(slash+1) + "/" + *i;
-	} else {
-	  dst = downloaddir + "/" + *i;
-	}
-	bool GotThisFile = CopyFile(src, dst);
-	if(!GotThisFile)
-	  SuccesfulDownload = false;
+    std::string srcpath = src.Path();
+    std::string dstpath = dst.Path();
+
+    if (srcpath[srcpath.size() - 1] != '/')
+      srcpath += '/';
+    if (dstpath[dstpath.size() - 1] != '/')
+      dstpath += '/';
+
+    bool ok = true;
+
+    for (std::list<std::string>::iterator it = files.begin();
+	 it != files.end(); it++) {
+      src.ChangePath(srcpath + *it);
+      dst.ChangePath(dstpath + *it);
+      if (!CopyFile(src, dst)) {
+	logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+	ok = false;
       }
-    } else {
-      logger.msg(ERROR, "Failed dowloading job: %s. Could not get data handle.", ThisJob.JobID.str());
     }
 
-    return SuccesfulDownload;
+    return ok;
+  }
 
-  } // end GetThisJob
+  bool JobControllerARC0::CleanJob(const Job& job, bool force) {
 
-  bool JobControllerARC0::CleanThisJob(Job ThisJob, bool force) {
-
-    logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
+    logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
     FTPControl ctrl;
-    if (!ctrl.Connect(ThisJob.JobID,
-		      proxyPath, certificatePath, keyPath, 500)) {
+    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, 500)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
-    
-    std::string path = ThisJob.JobID.Path();
+
+    std::string path = job.JobID.Path();
     std::string::size_type pos = path.rfind('/');
     std::string jobpath = path.substr(0, pos);
-    std::string jobidnum = path.substr(pos+1);
-    
+    std::string jobidnum = path.substr(pos + 1);
+
     if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
       logger.msg(ERROR, "Failed sending CWD command for job cleaning");
-      return false;	    
+      return false;
     }
 
     if (!ctrl.SendCommand("RMD " + jobidnum, 500)) {
@@ -236,23 +238,22 @@ namespace Arc {
 
     return true;
 
-  } // end CleanThisJob
+  }
 
-  bool JobControllerARC0::CancelThisJob(Job ThisJob) {
-    
-    logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
+  bool JobControllerARC0::CancelJob(const Job& job) {
+
+    logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
     FTPControl ctrl;
-    if (!ctrl.Connect(ThisJob.JobID,
-		      proxyPath, certificatePath, keyPath, 500)) {
+    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, 500)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
 
-    std::string path = ThisJob.JobID.Path();
+    std::string path = job.JobID.Path();
     std::string::size_type pos = path.rfind('/');
     std::string jobpath = path.substr(0, pos);
-    std::string jobidnum = path.substr(pos+1);
+    std::string jobidnum = path.substr(pos + 1);
 
     if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
       logger.msg(ERROR, "Failed sending CWD command for job cancelling");
@@ -274,15 +275,15 @@ namespace Arc {
     return true;
   }
 
-  URL JobControllerARC0::GetFileUrlThisJob(Job ThisJob,
-					   const std::string& whichfile) {
+  URL JobControllerARC0::GetFileUrlForJob(const Job& job,
+					  const std::string& whichfile) {
 
-    URL url(ThisJob.JobID);
+    URL url(job.JobID);
 
     if (whichfile == "stdout")
-      url.ChangePath(url.Path() + '/' + ThisJob.StdOut);
+      url.ChangePath(url.Path() + '/' + job.StdOut);
     else if (whichfile == "stderr")
-      url.ChangePath(url.Path() + '/' + ThisJob.StdErr);
+      url.ChangePath(url.Path() + '/' + job.StdErr);
     else if (whichfile == "gmlog") {
       std::string path = url.Path();
       path.insert(path.rfind('/'), "/info");
@@ -292,35 +293,4 @@ namespace Arc {
     return url;
   }
 
-  std::list<std::string> JobControllerARC0::GetDownloadFiles(DataHandle& dir,
-							     const std::string&
-							     dirname) {
-    std::list<std::string> files;
-
-    std::list<FileInfo> outputfiles;
-    dir->ListFiles(outputfiles, true);
-
-    for (std::list<Arc::FileInfo>::iterator i = outputfiles.begin();
-	 i != outputfiles.end(); i++) {
-      if (i->GetType() == 0 || i->GetType() == 1)
-	if (!dirname.empty())
-	  files.push_back(dirname + "/"+ i->GetName());
-	else
-	  files.push_back(i->GetName());
-      else if (i->GetType() == 2) {
-	DataHandle tmpdir(dir->str() + "/" + i->GetName());
-	std::list<std::string> morefiles =
-	  GetDownloadFiles(tmpdir, i->GetName());
-	for (std::list<std::string>::iterator j = morefiles.begin();
-	    j != morefiles.end(); j++)
-	  if (!dirname.empty())
-	    files.push_back(dirname + "/" + *j);
-	  else
-	    files.push_back(*j);
-      }
-    }
-
-    return files;
-  }
-    
 } // namespace Arc

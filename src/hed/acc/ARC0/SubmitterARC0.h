@@ -17,7 +17,7 @@ namespace Arc {
     static Logger logger;
 
   public:
-    static ACC *Instance(Config *cfg, ChainContext *cxt);
+    static ACC* Instance(Config *cfg, ChainContext *cxt);
     bool Submit(JobDescription& jobdesc, XMLNode& info);
   };
 

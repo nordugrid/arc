@@ -1,8 +1,5 @@
-/**
- * Class for bulk CREAM job control
- */
-#ifndef ARCLIB_JOBCONTROLLERCREAM
-#define ARCLIB_JOBCONTROLLERCREAM
+#ifndef __ARC_JOBCONTROLLERCREAM_H__
+#define __ARC_JOBCONTROLLERCREAM_H__
 
 #include <arc/client/JobController.h>
 
@@ -10,9 +7,10 @@ namespace Arc {
 
   class ChainContext;
   class Config;
-  class DataHandle;
+  class URL;
 
-  class JobControllerCREAM : public JobController {
+  class JobControllerCREAM
+    : public JobController {
 
   public:
 
@@ -20,18 +18,17 @@ namespace Arc {
     ~JobControllerCREAM();
 
     void GetJobInformation();
-    static ACC *Instance(Config *cfg, ChainContext *cxt);
+    static ACC* Instance(Config *cfg, ChainContext *cxt);
 
   private:
+    bool GetJob(const Job& job, const std::string& downloaddir);
+    bool CleanJob(const Job& job, bool force);
+    bool CancelJob(const Job& job);
+    URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
+
     static Logger logger;
-    bool GetThisJob(Job ThisJob, const std::string& downloaddir);
-    bool CleanThisJob(Job ThisJob, bool force);
-    bool CancelThisJob(Job ThisJob);
-    URL GetFileUrlThisJob(Job ThisJob, const std::string& whichfile);
-    std::list<std::string> GetDownloadFiles(DataHandle& dir,
-					    const std::string& dirname = "");
   };
 
 } // namespace Arc
 
-#endif
+#endif // __ARC_JOBCONTROLLERCREAM_H__

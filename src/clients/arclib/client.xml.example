@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArcConfig>
+  <!-- Default services (in not using the system defaults) -->
+  <DefaultServices>
+    <URL Flavour="ARC0" ServiceType="index">ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid</URL>
+    <URL Flavour="CREAM" ServiceType="index">ldap://cream.grid.upjs.sk:2170/o=Grid</URL>
+  </DefaultServices>
+  <!-- Example alias definitions -->
+  <Alias name="myfavorite1">
+    <URL Flavour="ARC0" ServiceType="computing">ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid</URL>
+  </Alias>
+  <Alias name="myfavorite2">
+    <URL Flavour="ARC1" ServiceType="computing">https://knowarc1.grid.niif.hu:60000/arex</URL>
+  </Alias>
+  <Alias name="myfavorite3">
+    <URL Flavour="CREAM" ServiceType="computing">ldap://cream.grid.upjs.sk:2170/Mds-Vo-name=knowarc-cream,o=grid</URL>
+  </Alias>
+  <Alias name="myfavorites">
+    <Alias>myfavorite1</Alias>
+    <Alias>myfavorite2</Alias>
+    <Alias>myfavorite3</Alias>
+  </Alias>
+  <!-- These are only needed if you are not using the default locations -->
+  <ProxyPath>/tmp/my-proxy</ProxyPath>
+  <CertificatePath>/home/username/cert.pem</CertificatePath>
+  <KeyPath>/home/username/key.pem</KeyPath>
+</ArcConfig>

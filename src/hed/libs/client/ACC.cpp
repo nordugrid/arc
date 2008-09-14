@@ -10,7 +10,8 @@
 
 namespace Arc {
 
-  ACC::ACC(Config *cfg) {
+  ACC::ACC(Config *cfg, const std::string& flavour)
+    : flavour(flavour) {
     proxyPath = (std::string)(*cfg)["ProxyPath"];
     certificatePath = (std::string)(*cfg)["CertificatePath"];
     keyPath = (std::string)(*cfg)["KeyPath"];
@@ -18,6 +19,10 @@ namespace Arc {
   }
 
   ACC::~ACC() {}
+
+  const std::string& ACC::Flavour() {
+    return flavour;
+  }
 
   XMLNode ACCConfig::MakeConfig(XMLNode cfg) const {
     XMLNode mm = BaseConfig::MakeConfig(cfg);

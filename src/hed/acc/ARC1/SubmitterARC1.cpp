@@ -14,15 +14,15 @@ namespace Arc {
   Logger SubmitterARC1::logger(Submitter::logger, "ARC1");
 
   SubmitterARC1::SubmitterARC1(Config *cfg)
-    : Submitter(cfg) {}
-  
+    : Submitter(cfg, "ARC1") {}
+
   SubmitterARC1::~SubmitterARC1() {}
 
-  ACC *SubmitterARC1::Instance(Config *cfg, ChainContext *) {
+  ACC* SubmitterARC1::Instance(Config *cfg, ChainContext*) {
     return new SubmitterARC1(cfg);
   }
 
-  bool SubmitterARC1::Submit(JobDescription& jobdesc, XMLNode &info) {
+  bool SubmitterARC1::Submit(JobDescription& jobdesc, XMLNode& info) {
 
     MCCConfig cfg;
     if (!proxyPath.empty())

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -6,7 +10,6 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/client/UserConfig.h>
 
 #include "AREXClient.h"
 #include "TargetRetrieverARC1.h"
@@ -42,11 +45,11 @@ namespace Arc {
   Logger TargetRetrieverARC1::logger(TargetRetriever::logger, "ARC1");
 
   TargetRetrieverARC1::TargetRetrieverARC1(Config *cfg)
-    : TargetRetriever(cfg) {}
+    : TargetRetriever(cfg, "ARC1") {}
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
-  ACC *TargetRetrieverARC1::Instance(Config *cfg, ChainContext *) {
+  ACC* TargetRetrieverARC1::Instance(Config *cfg, ChainContext*) {
     return new TargetRetrieverARC1(cfg);
   }
 
@@ -83,22 +86,21 @@ namespace Arc {
   }
 
   void TargetRetrieverARC1::QueryIndex(void *arg) {
-    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
-    // URL& url = ((ThreadArg *)arg)->url;
-    // int& targetType = ((ThreadArg *)arg)->targetType;
-    // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    ThreadArg *thrarg = (ThreadArg*)arg;
+    TargetGenerator& mom = *thrarg->mom;
+    // URL& url = thrarg->url;
 
     // TODO: ISIS
 
-    delete (ThreadArg *)arg;
+    delete thrarg;
     mom.RetrieverDone();
   }
 
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
-    ThreadArg* thrarg = (ThreadArg*)arg;
+    ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
-    URL& url = thrarg->url;
 
+    URL& url = thrarg->url;
     MCCConfig cfg;
     if (!thrarg->proxyPath.empty())
       cfg.AddProxy(thrarg->proxyPath);
@@ -113,14 +115,15 @@ namespace Arc {
     if (!ac.sstat(status)) {
       delete thrarg;
       mom.RetrieverDone();
+      return;
     }
+
     XMLNode ServerStatus(status);
 
     ExecutionTarget target;
 
     target.GridFlavour = "ARC1";
-    target.Source = url;
-    target.Cluster = url;
+    target.Cluster = thrarg->url;
     target.url = url;
     target.Interface = "BES";
     target.Implementor = "NorduGrid";
@@ -129,7 +132,7 @@ namespace Arc {
     target.DomainName = url.Host();
 
     if (ServerStatus["IsAcceptingNewActivities"]) {
-      if ((std::string) ServerStatus["IsAcceptingNewActivities"] == "true")
+      if ((std::string)ServerStatus["IsAcceptingNewActivities"] == "true")
 	target.HealthState = "active";
       else
 	target.HealthState = "inactive";
@@ -137,11 +140,11 @@ namespace Arc {
 
     if (ServerStatus["TotalNumberOfActivities"])
       target.TotalJobs =
-	stringtoi((std::string) ServerStatus["TotalNumberOfActivities"]);
+	stringtoi((std::string)ServerStatus["TotalNumberOfActivities"]);
 
     if (ServerStatus["LocalResourceManagerType"])
       target.ManagerType =
-	(std::string) ServerStatus["LocalResourceManagerType"];
+	(std::string)ServerStatus["LocalResourceManagerType"];
 
     mom.AddTarget(target);
 

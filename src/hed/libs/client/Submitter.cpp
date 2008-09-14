@@ -16,11 +16,11 @@ namespace Arc {
 
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
-  Submitter::Submitter(Config *cfg)
-    : ACC(cfg) {
-    submissionEndpoint = (std::string)(*cfg)["Endpoint"];
-    infoEndpoint = (std::string)(*cfg)["Source"];
-    queue = (std::string)(*cfg)["MappingQueue"];
+  Submitter::Submitter(Config *cfg, const std::string& flavour)
+    : ACC(cfg, flavour) {
+    submissionEndpoint = (std::string)(*cfg)["SubmissionEndpoint"];
+    cluster = (std::string)(*cfg)["Cluster"];
+    queue = (std::string)(*cfg)["Queue"];
   }
 
   Submitter::~Submitter() {}
@@ -44,19 +44,19 @@ namespace Arc {
       std::string dst = url.str() + '/' + file->first;
       DataHandle source(src);
       DataHandle destination(dst);
-      
+
       std::string failure;
       int timeout = 300;
       if (!mover.Transfer(*source, *destination, cache, URLMap(),
 			  0, 0, 0, timeout, failure)) {
 	if (!failure.empty())
-	  logger.msg(ERROR, "Failed uploading file: %s", failure); 
+	  logger.msg(ERROR, "Failed uploading file: %s", failure);
 	else
 	  logger.msg(ERROR, "Failed uploading file");
 	return false;
-      } 
+      }
     }
-    
+
     return true;
   }
 

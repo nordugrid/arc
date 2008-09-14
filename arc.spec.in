@@ -204,6 +204,7 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
+%doc src/clients/arclib/client.xml.example
 %doc src/clients/echo/echo_client.xml
 %doc src/tests/echo/echo.xml
 %doc src/tests/echo/echo.wsdl
@@ -237,6 +238,7 @@ exit 0
 %doc %{_mandir}/man1/perftest.1.gz
 %{_bindir}/arc_storage_cli
 %doc %{_mandir}/man1/arc_storage_cli.1*
+%{_sysconfdir}/arcclient.xml
 
 %files server
 %defattr(-,root,root,-)

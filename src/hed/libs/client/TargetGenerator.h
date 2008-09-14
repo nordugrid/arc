@@ -7,6 +7,7 @@
 #include <glibmm/thread.h>
 
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/UserConfig.h>
 #include <arc/loader/Loader.h>
 
 namespace Arc {
@@ -19,9 +20,8 @@ namespace Arc {
 
   class TargetGenerator {
   public:
-    TargetGenerator(const UserConfig& ucfg,
-		    const std::list<std::string>& clusterselect,
-		    const std::list<std::string>& clusterreject,
+    TargetGenerator(const UserConfig& usercfg,
+		    const std::list<std::string>& clusters,
 		    const std::list<std::string>& giisurls);
     ~TargetGenerator();
 
@@ -38,6 +38,11 @@ namespace Arc {
   private:
     Loader *loader;
 
+    URLListMap clusterselect;
+    URLListMap clusterreject;
+    URLListMap indexselect;
+    URLListMap indexreject;
+
     std::list<URL> foundServices;
     std::list<URL> foundIndexServers;
     std::list<ExecutionTarget> foundTargets;
@@ -50,11 +55,9 @@ namespace Arc {
     Glib::Mutex threadMutex;
     Glib::Cond threadCond;
 
-    std::list<std::string> ResolveAlias(std::string lookup, XMLNode cfg);
-
     static Logger logger;
   };
 
-} //namespace ARC
+} // namespace Arc
 
 #endif // __ARC_TARGETGENERATOR_H__

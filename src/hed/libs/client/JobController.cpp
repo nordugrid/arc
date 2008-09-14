@@ -1,464 +1,511 @@
-#include <arc/IString.h>
-#include <arc/ArcConfig.h>
-#include <arc/data/DataMover.h>
-#include <arc/data/DataHandle.h>
-#include <arc/data/URLMap.h>
-#include <arc/FileLock.h>
-#include <arc/XMLNode.h>
-#include <arc/User.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <algorithm>
+
+#include <arc/ArcConfig.h>
+#include <arc/FileLock.h>
+#include <arc/IString.h>
+#include <arc/XMLNode.h>
+#include <arc/data/DataMover.h>
+#include <arc/data/DataHandle.h>
+#include <arc/data/FileCache.h>
+#include <arc/data/URLMap.h>
 
 #include "JobController.h"
 
 namespace Arc {
 
   Logger JobController::logger(Logger::getRootLogger(), "JobController");
-  
-  JobController::JobController(Config *cfg, std::string flavour)
-    : ACC(cfg),
-      GridFlavour(flavour) {
-    joblist = (std::string)(*cfg)["joblist"];
-  }
+
+  JobController::JobController(Config *cfg, const std::string& flavour)
+    : ACC(cfg, flavour),
+      joblist((*cfg)["JobList"]) {}
 
   JobController::~JobController() {}
-  
-  void JobController::FillJobStore(std::list<std::string> jobs,
-				   std::list<std::string> clusterselect,
-				   std::list<std::string> clusterreject){
 
-    mcfg.ReadFromFile(joblist);
+  void JobController::FillJobStore(const std::list<URL>& jobids,
+				   const std::list<URL>& clusterselect,
+				   const std::list<URL>& clusterreject) {
 
-    if(!jobs.empty()){
+    if (!joblist.empty()) {
+      logger.msg(DEBUG, "Using job list file %s", joblist);
+      FileLock lock(joblist);
+      jobstorage.ReadFromFile(joblist);
+    }
+    else {
+      logger.msg(ERROR, "Job controller has no job list configuration");
+      return;
+    }
 
-      logger.msg(DEBUG, "Filling JobStore with jobs according to "
+    if (!jobids.empty()) {
+      logger.msg(DEBUG, "Filling job store with jobs according to "
 		 "specified jobids");
-      logger.msg(DEBUG, "Using joblist file %s", joblist);
 
-      std::list<std::string>::iterator it;
+      for (std::list<URL>::const_iterator it = jobids.begin();
+	   it != jobids.end(); it++) {
 
-      for(it = jobs.begin(); it != jobs.end(); it++){
-	XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[JobID='" + *it + "']",
-						 NS())).begin());
-	if(GridFlavour == (std::string) ThisXMLJob["Flavour"]){
-	  Job ThisJob;
-	  ThisJob.JobID = (std::string) ThisXMLJob["JobID"];
-	  ThisJob.InfoEndpoint = (std::string) ThisXMLJob["InfoEndpoint"];
-	  ThisJob.Cluster = (std::string) ThisXMLJob["Cluster"];
-	  ThisJob.LocalSubmissionTime = (std::string) ThisXMLJob["SubmissionTime"];
-	  JobStore.push_back(ThisJob);
+	XMLNodeList xmljobs =
+	  jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+
+	if (xmljobs.empty()) {
+	  logger.msg(DEBUG, "Job not found in job list: %s", it->str());
+	  continue;
+	}
+
+	XMLNode& xmljob = *xmljobs.begin();
+
+	if (flavour == (std::string)xmljob["Flavour"]) {
+	  Job job;
+	  job.JobID = (std::string)xmljob["JobID"];
+	  job.Flavour = (std::string)xmljob["Flavour"];
+	  job.Cluster = (std::string)xmljob["Cluster"];
+	  job.SubmissionEndpoint = (std::string)xmljob["SubmissionEndpoint"];
+	  job.InfoEndpoint = (std::string)xmljob["InfoEndpoint"];
+	  job.ISB = (std::string)xmljob["ISB"];
+	  job.OSB = (std::string)xmljob["OSB"];
+	  job.StdOut = (std::string)xmljob["StdOut"];
+	  job.StdErr = (std::string)xmljob["StdErr"];
+	  job.AuxURL = (std::string)xmljob["AuxURL"];
+	  job.AuxInfo = (std::string)xmljob["AuxInfo"];
+	  job.LocalSubmissionTime = (std::string)xmljob["LocalSubmissionTime"];
+	  jobstore.push_back(job);
 	}
       }
-    } // end if jobids are given
+    }
 
-    if(!clusterselect.empty()){
+    if (!clusterselect.empty()) {
+      logger.msg(DEBUG, "Filling job store with jobs according to list of "
+		 "selected clusters");
 
-      logger.msg(DEBUG, "Filling JobStore with jobs according to "
-		 "selected clusters");	
-      logger.msg(DEBUG, "Using joblist file %s", joblist);	
+      XMLNodeList xmljobs =
+	jobstorage.XPathLookup("//Job[Flavour='" + flavour + "']", NS());
 
-      XMLNodeList Jobs = mcfg.XPathLookup("//Job[Flavour='" +
-					  GridFlavour + "']", NS());
-      XMLNodeList::iterator iter;
+      for (XMLNodeList::iterator it = xmljobs.begin();
+	   it != xmljobs.end(); it++) {
 
-      for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
+	URL cluster = (std::string)(*it)["Cluster"];
 
-	URL ThisJobRunsOn = (std::string) (*iter)["Cluster"];
-
-	if(PresentInList(ThisJobRunsOn, clusterselect)){
-	  Job ThisJob;
-	  ThisJob.JobID = (std::string) (*iter)["JobID"];
-	  ThisJob.InfoEndpoint = (std::string) (*iter)["InfoEndpoint"];
-	  ThisJob.Cluster = (std::string) (*iter)["Cluster"];
-	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["SubmissionTime"];
-	  JobStore.push_back(ThisJob);
+	if (std::find(clusterselect.begin(), clusterselect.end(),
+		      cluster) != clusterselect.end()) {
+	  Job job;
+	  job.JobID = (std::string)(*it)["JobID"];
+	  job.Flavour = (std::string)(*it)["Flavour"];
+	  job.Cluster = (std::string)(*it)["Cluster"];
+	  job.SubmissionEndpoint = (std::string)(*it)["SubmissionEndpoint"];
+	  job.InfoEndpoint = (std::string)(*it)["InfoEndpoint"];
+	  job.ISB = (std::string)(*it)["ISB"];
+	  job.OSB = (std::string)(*it)["OSB"];
+	  job.StdOut = (std::string)(*it)["StdOut"];
+	  job.StdErr = (std::string)(*it)["StdErr"];
+	  job.AuxURL = (std::string)(*it)["AuxURL"];
+	  job.AuxInfo = (std::string)(*it)["AuxInfo"];
+	  job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
+	  jobstore.push_back(job);
 	}
       }
-    } //end if clusters are selected
+    }
 
-    if(!clusterreject.empty()){
-      if(!JobStore.empty()){
+    if (!clusterreject.empty())
+      if (!jobstore.empty()) {
+	logger.msg(DEBUG, "Removing jobs from job store according to list of "
+		   "rejected clusters");
 
-	logger.msg(DEBUG, "Removing from JobStore jobs according to "
-		   "cluster reject list");	
-	logger.msg(DEBUG, "Using joblist file %s", joblist);	
-
-	std::list<Job>::iterator iter = JobStore.begin();
-	while(iter!= JobStore.end()){
-	  if(PresentInList(iter->Cluster, clusterreject)){
-	    logger.msg(DEBUG, "Removing Job %s from JobStore as it runs "
-		       "on a rejected cluster", iter->JobID.str());
-	    JobStore.erase(iter);
-	    continue;
+	std::list<Job>::iterator it = jobstore.begin();
+	while (it != jobstore.end())
+	  if (std::find(clusterreject.begin(), clusterreject.end(),
+			it->Cluster) != clusterreject.end()) {
+	    logger.msg(DEBUG, "Removing job %s from job store since it runs "
+		       "on a rejected cluster", it->JobID.str());
+	    it = jobstore.erase(it);
 	  }
-	  iter++;
+	  else
+	    it++;
+      }
+
+    if (jobids.empty() && clusterselect.empty()) {
+      logger.msg(DEBUG, "Filling job store with all jobs, except those "
+		 "running on rejected clusters");
+
+      XMLNodeList xmljobs =
+	jobstorage.XPathLookup("//Job[Flavour='" + flavour + "']", NS());
+
+      for (XMLNodeList::iterator it = xmljobs.begin();
+	   it != xmljobs.end(); it++) {
+
+	URL cluster = (std::string)(*it)["Cluster"];
+
+	if (std::find(clusterreject.begin(), clusterreject.end(),
+		      cluster) == clusterreject.end()) {
+	  Job job;
+	  job.JobID = (std::string)(*it)["JobID"];
+	  job.Flavour = (std::string)(*it)["Flavour"];
+	  job.Cluster = (std::string)(*it)["Cluster"];
+	  job.SubmissionEndpoint = (std::string)(*it)["SubmissionEndpoint"];
+	  job.InfoEndpoint = (std::string)(*it)["InfoEndpoint"];
+	  job.ISB = (std::string)(*it)["ISB"];
+	  job.OSB = (std::string)(*it)["OSB"];
+	  job.StdOut = (std::string)(*it)["StdOut"];
+	  job.StdErr = (std::string)(*it)["StdErr"];
+	  job.AuxURL = (std::string)(*it)["AuxURL"];
+	  job.AuxInfo = (std::string)(*it)["AuxInfo"];
+	  job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
+	  jobstore.push_back(job);
 	}
       }
-    } // end if cluster reject is given
-
-    if(jobs.empty() && clusterselect.empty()){ // add all
-
-      logger.msg(DEBUG, "Filling JobStore with all jobs, except those "
-		 "running on rejected clusters");	
-      logger.msg(DEBUG, "Using joblist file %s", joblist);	
-
-      XMLNodeList Jobs = mcfg.XPathLookup("//Job[Flavour='" +
-					  GridFlavour + "']", NS());
-      XMLNodeList::iterator iter;
-
-      for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
-
-	URL ThisJobRunsOn = (std::string) (*iter)["Cluster"];
-
-	if(!PresentInList(ThisJobRunsOn, clusterreject)){
-	  Job ThisJob;
-	  ThisJob.JobID = (std::string) (*iter)["JobID"];
-	  ThisJob.InfoEndpoint = (std::string) (*iter)["InfoEndpoint"];
-	  ThisJob.Cluster = (std::string) (*iter)["Cluster"];
-	  ThisJob.LocalSubmissionTime = (std::string) (*iter)["SubmissionTime"];
-	  JobStore.push_back(ThisJob);
-	}
-      }
-    } // end adding all jobs except those running on rejected clusters
+    }
 
     logger.msg(DEBUG, "FillJobStore has finished succesfully");
-    logger.msg(DEBUG, "JobStore%s contains %d jobs", GridFlavour,
-	       JobStore.size());
+    logger.msg(DEBUG, "Job store for %s contains %ld jobs",
+	       flavour, jobstore.size());
+  }
 
-  } // end FillJobStore
-
-  void JobController::Get(const std::list<std::string>& jobs,
-			  const std::list<std::string>& clusterselect,
-			  const std::list<std::string>& clusterreject,
+  bool JobController::Get(const std::list<URL>& jobids,
 			  const std::list<std::string>& status,
-			  const std::string downloaddir,
+			  const std::string& downloaddir,
 			  const bool keep,
-			  const int timeout){
+			  const int timeout) {
 
-    logger.msg(DEBUG, "Getting %s jobs", GridFlavour);	
-    std::list<std::string> JobsToBeRemoved;
+    logger.msg(DEBUG, "Getting %s jobs", flavour);
+    std::list<URL> toberemoved;
 
-    //First get information about the selected jobs
     GetJobInformation();
 
-    // Second, filter them according to their state
-    // (i.e. which states we can download)
-    std::list<Job*> Downloadable;
-    for(std::list<Job>::iterator jobiter = JobStore.begin();
-	jobiter!= JobStore.end(); jobiter++) {
+    std::list<Job*> downloadable;
+    for (std::list<Job>::iterator it = jobstore.begin();
+	 it != jobstore.end(); it++) {
 
-      if (jobiter->State.empty()){
-	logger.msg(WARNING, "Job information not found: %s",
-		   jobiter->JobID.str());
+      if (it->State.empty()) {
+	logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
 	continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-				       jobiter->State) == status.end())
+				       it->State) == status.end())
 	continue;
 
       /* Need to fix this after we have implemented "normalized states"
-      if ( jobiter->State == "DELETED") {
-	logger.msg(WARNING, "Job has already been deleted: %s",
-		   jobiter->JobID.str());
-	continue;
-      }
+	 if (it->State == "DELETED") {
+	 logger.msg(WARNING, "Job has already been deleted: %s",
+	  it->JobID.str());
+	 continue;
+	 }
 
-      if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" &&
-	  jobiter->State != "KILLED"){
-	logger.msg(WARNING, "Job has not finished yet: %s",
-		   jobiter->JobID.str());
-	continue;
-      }
-      */
+	 if (it->State != "FINISHED" && it->State != "FAILED" &&
+	  it->State != "KILLED"){
+	 logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+	 continue;
+	 }
+       */
 
-      Downloadable.push_back(&(*jobiter));
+      downloadable.push_back(&(*it));
     }
 
-    //loop over jobs
-    for(std::list<Job*>::iterator jobiter = Downloadable.begin();
-	jobiter!= Downloadable.end(); jobiter++){
-      //first download job output
-      bool downloaded = GetThisJob(**jobiter, downloaddir);
-      if(!downloaded){
-	logger.msg(ERROR, "Failed downloading job %s", (*jobiter)->JobID.str());
+    bool ok = true;
+    for (std::list<Job*>::iterator it = downloadable.begin();
+	 it != downloadable.end(); it++) {
+
+      bool downloaded = GetJob(**it, downloaddir);
+      if (!downloaded) {
+	logger.msg(ERROR, "Failed downloading job %s", (*it)->JobID.str());
+	ok = false;
 	continue;
       }
-      //second clean job (unless keep)
-      if(!keep){
-	bool cleaned = CleanThisJob(**jobiter, true);
-	if(!cleaned){
-	  logger.msg(ERROR, "Failed cleaning job %s", (*jobiter)->JobID.str());
+
+      if (!keep) {
+	bool cleaned = CleanJob(**it, true);
+	if (!cleaned) {
+	  logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
+	  ok = false;
 	  continue;
 	}
-	JobsToBeRemoved.push_back((*jobiter)->JobID.str());
+	toberemoved.push_back((*it)->JobID);
       }
-    } //end loop over jobs
+    }
 
-    //Remove succesfully downloaded jobs
-    RemoveJobs(JobsToBeRemoved);
+    RemoveJobs(toberemoved);
+
+    return ok;
   }
 
-  void JobController::Kill(const std::list<std::string>& jobs,
-			   const std::list<std::string>& clusterselect,
-			   const std::list<std::string>& clusterreject,
+  bool JobController::Kill(const std::list<URL>& jobids,
 			   const std::list<std::string>& status,
 			   const bool keep,
-			   const int timeout){
+			   const int timeout) {
 
-    logger.msg(DEBUG, "Killing %s jobs", GridFlavour);
-    std::list<std::string> JobsToBeRemoved;
+    logger.msg(DEBUG, "Killing %s jobs", flavour);
+    std::list<URL> toberemoved;
 
-    //First get information about the selected jobs
     GetJobInformation();
 
-    //Second, filter them according to their state (i.e. which states we can kill)
-    std::list<Job*> Killable;
-    for(std::list<Job>::iterator jobiter = JobStore.begin();
-	jobiter!= JobStore.end(); jobiter++){
+    std::list<Job*> killable;
+    for (std::list<Job>::iterator it = jobstore.begin();
+	 it != jobstore.end(); it++) {
 
-      if (jobiter->State.empty()){
-	logger.msg(WARNING, "Job information not found: %s",
-		   jobiter->JobID.str());
+      if (it->State.empty()) {
+	logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
 	continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-				       jobiter->State) == status.end())
+				       it->State) == status.end())
 	continue;
 
       /* Need to fix this after we have implemented "normalized states"
-      if ( jobiter->State == "DELETED") {
-	logger.msg(WARNING, "Job has already been deleted: %s",
-		   jobiter->JobID.str());
-	continue;
-      }
+	 if (it->State == "DELETED") {
+	 logger.msg(WARNING, "Job has already been deleted: %s",
+	  it->JobID.str());
+	 continue;
+	 }
 
-      if (jobiter->State == "FINISHED" || jobiter->State == "FAILED" ||
-	  jobiter->State == "KILLED"){
-	logger.msg(WARNING, "Job has already finished: %s",
-		   jobiter->JobID.str())<<std::endl;
-	continue;
-      }
-      */
+	 if (it->State == "FINISHED" || it->State == "FAILED" ||
+	  it->State == "KILLED") {
+	 logger.msg(WARNING, "Job has already finished: %s", it->JobID.str());
+	 continue;
+	 }
+       */
 
-      Killable.push_back(&(*jobiter));
+      killable.push_back(&(*it));
     }
 
-    //loop over jobs
-    for(std::list<Job*>::iterator jobiter = Killable.begin(); jobiter!= Killable.end(); jobiter++){
-      //first cancel job (i.e. stop execution)
-      bool cancelled = CancelThisJob(**jobiter);
-      if(!cancelled){
-	std::cout<<IString("Failed cancelling (stop) job %s", (*jobiter)->JobID.str())<<std::endl;
+    bool ok = true;
+    for (std::list<Job*>::iterator it = killable.begin();
+	 it != killable.end(); it++) {
+
+      bool cancelled = CancelJob(**it);
+      if (!cancelled) {
+	logger.msg(ERROR, "Failed cancelling job %s", (*it)->JobID.str());
+	ok = false;
 	continue;
       }
-      //second clean job (unless keep)
-      if(!keep){
-	bool cleaned = CleanThisJob(**jobiter, true);
-	if(!cleaned){
-	  std::cout<<IString("Failed cleaning job %s", (*jobiter)->JobID.str())<<std::endl;
+
+      if (!keep) {
+	bool cleaned = CleanJob(**it, true);
+	if (!cleaned) {
+	  logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
+	  ok = false;
 	  continue;
 	}
-	JobsToBeRemoved.push_back((*jobiter)->JobID.str());
+	toberemoved.push_back((*it)->JobID.str());
       }
-    } //end loop over jobs
-    
-    //Remove succesfully killed and cleaned jobs
-    RemoveJobs(JobsToBeRemoved);
+    }
 
+    RemoveJobs(toberemoved);
+
+    return ok;
   }
 
-  void JobController::Clean(const std::list<std::string>& jobs,
-			    const std::list<std::string>& clusterselect,
-			    const std::list<std::string>& clusterreject,
+  bool JobController::Clean(const std::list<URL>& jobids,
 			    const std::list<std::string>& status,
 			    const bool force,
-			    const int timeout){
-    
-    logger.msg(DEBUG, "Cleaning %s jobs", GridFlavour);
-    std::list<std::string> JobsToBeRemoved;
-    
-    //First get information about the selected jobs
+			    const int timeout) {
+
+    logger.msg(DEBUG, "Cleaning %s jobs", flavour);
+    std::list<URL> toberemoved;
+
     GetJobInformation();
-    
-    // Second, filter them according to their state
-    // (i.e. which states we can clean)
-    std::list<Job*> Cleanable;
-    for(std::list<Job>::iterator jobiter = JobStore.begin();
-	jobiter!= JobStore.end(); jobiter++) {
 
-      if (force && jobiter->State.empty() && status.empty()){
-	logger.msg(WARNING, "Job %s will only be deleted from local joblist",
-		   jobiter->JobID.str());
-	JobsToBeRemoved.push_back(jobiter->JobID.str());
+    std::list<Job*> cleanable;
+    for (std::list<Job>::iterator it = jobstore.begin();
+	 it != jobstore.end(); it++) {
+
+      if (force && it->State.empty() && status.empty()) {
+	logger.msg(WARNING, "Job %s will only be deleted from local job list",
+		   it->JobID.str());
+	toberemoved.push_back(it->JobID);
 	continue;
       }
 
-      if (jobiter->State.empty()){
-	logger.msg(WARNING, "Job information not found: %s",
-		   jobiter->JobID.str());
+      if (it->State.empty()) {
+	logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
 	continue;
       }
-      
+
       if (!status.empty() && std::find(status.begin(), status.end(),
-				       jobiter->State) == status.end())
+				       it->State) == status.end())
 	continue;
 
       /* Need to fix this after we have implemented "normalized states"
-      if (jobiter->State != "FINISHED" && jobiter->State != "FAILED" && 
-      	  jobiter->State != "KILLED" && jobiter->State != "DELETED") {
-      	logger.msg(WARNING, "Job has not finished yet: %s",
-		   jobiter->JobID.str());
-      	continue;
-      }
-      */
+	 if (it->State != "FINISHED" && it->State != "FAILED" &&
+	  it->State != "KILLED" && it->State != "DELETED") {
+	 logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+	 continue;
+	 }
+       */
 
-      Cleanable.push_back(&(*jobiter));
+      cleanable.push_back(&(*it));
     }
 
-    //loop over jobs
-    for(std::list<Job*>::iterator jobiter = Cleanable.begin();
-	jobiter!= Cleanable.end(); jobiter++){
-      bool cleaned = CleanThisJob(**jobiter, force);
-      if(!cleaned){
-	if(force)
-	  JobsToBeRemoved.push_back((*jobiter)->JobID.str()); 
-	logger.msg(ERROR, "Failed cleaning job %s", (*jobiter)->JobID.str());
+    bool ok = true;
+    for (std::list<Job*>::iterator it = cleanable.begin();
+	 it != cleanable.end(); it++) {
+      bool cleaned = CleanJob(**it, force);
+      if (!cleaned) {
+	if (force)
+	  toberemoved.push_back((*it)->JobID);
+	logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
+	ok = false;
 	continue;
       }
-      JobsToBeRemoved.push_back((*jobiter)->JobID.str());
-    } //end loop over jobs
+      toberemoved.push_back((*it)->JobID);
+    }
 
-    //Remove succesfully killed and cleaned jobs
-    RemoveJobs(JobsToBeRemoved);
+    RemoveJobs(toberemoved);
+
+    return ok;
   }
 
-  void JobController::Cat(const std::list<std::string>& jobs,
-			  const std::list<std::string>& clusterselect,
-			  const std::list<std::string>& clusterreject,
+  bool JobController::Cat(const std::list<URL>& jobids,
 			  const std::list<std::string>& status,
-			  const std::string whichfile,
-			  const int timeout){
+			  const std::string& whichfile,
+			  const int timeout) {
 
-    logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", GridFlavour);
+    logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", flavour);
 
-    // First get information about the selected jobs
     GetJobInformation();
 
-    // Second, filter them according to their state
-    // (i.e. which states we can clean)
-    std::list<Job*> Catable;
-    for(std::list<Job>::iterator jobiter = JobStore.begin();
-	jobiter!= JobStore.end(); jobiter++){
-      
-      if(jobiter->State.empty()){
+    std::list<Job*> catable;
+    for (std::list<Job>::iterator it = jobstore.begin();
+	 it != jobstore.end(); it++) {
+
+      if (it->State.empty()) {
 	logger.msg(WARNING, "Job state information not found: %s",
-		   jobiter->JobID.str());
-	continue;
-      }
-      if(whichfile == "stdout" || whichfile == "stderr"){
-	if(jobiter->State == "DELETED"){
-	  logger.msg(WARNING, "Job has already been deleted: %s",
-		     jobiter->JobID.str());
-	  continue;
-	}
-	if(jobiter->State == "ACCEPTING" || jobiter->State == "ACCEPTED" ||
-	   jobiter->State == "PREPARING" || jobiter->State == "PREPARED" ||
-	   jobiter->State == "INLRMS:Q") {
-	  logger.msg(WARNING, "Job has not started yet: %s",
-		     jobiter->JobID.str());
-	  continue;
-	}
-      }
-      if(whichfile == "stdout" && jobiter->StdOut.empty()){
-	logger.msg(ERROR, "Can not determine the stdout location: %s",
-		   jobiter->JobID.str());
-	continue;
-      }
-      if(whichfile == "stderr" && jobiter->StdErr.empty()){
-	logger.msg(ERROR, "Can not determine the stderr location: %s",
-		   jobiter->JobID.str());
+		   it->JobID.str());
 	continue;
       }
 
-      Catable.push_back(&(*jobiter));
+      /* Need to fix this after we have implemented "normalized states"
+	 if (whichfile == "stdout" || whichfile == "stderr") {
+	 if(it->State == "DELETED") {
+	  logger.msg(WARNING, "Job has already been deleted: %s",
+	    it->JobID.str());
+	  continue;
+	 }
+	 if(it->State == "ACCEPTING" || it->State == "ACCEPTED" ||
+	   it->State == "PREPARING" || it->State == "PREPARED" ||
+	   it->State == "INLRMS:Q") {
+	  logger.msg(WARNING, "Job has not started yet: %s", it->JobID.str());
+	  continue;
+	 }
+	 }
+       */
+
+      if (whichfile == "stdout" && it->StdOut.empty()) {
+	logger.msg(ERROR, "Can not determine the stdout location: %s",
+		   it->JobID.str());
+	continue;
+      }
+      if (whichfile == "stderr" && it->StdErr.empty()) {
+	logger.msg(ERROR, "Can not determine the stderr location: %s",
+		   it->JobID.str());
+	continue;
+      }
+
+      catable.push_back(&(*it));
     }
 
-    //loop over jobs
-    for(std::list<Job*>::iterator jobiter = Catable.begin();
-	jobiter!= Catable.end(); jobiter++){
-
-      //get the file (stdout, stderr or gmlog)
-      URL src = GetFileUrlThisJob((**jobiter), whichfile);
+    bool ok = true;
+    for (std::list<Job*>::iterator it = catable.begin();
+	 it != catable.end(); it++) {
+      URL src = GetFileUrlForJob((**it), whichfile);
       URL dst("/tmp/arccat.XXXXXX");
       bool copied = CopyFile(src, dst);
 
-      //output to screen
-      if(copied){
+      if (copied) {
 	std::cout << IString("%s from job %s", whichfile,
-			     (*jobiter)->JobID.str()) << std::endl;
+			     (*it)->JobID.str()) << std::endl;
 	char str[2000];
 	std::fstream file("/tmp/arccat.XXXXXX", std::fstream::in);
-        while(!file.eof()) {
-	  file.getline(str,2000);
+	while (!file.eof()) {
+	  file.getline(str, 2000);
 	  std::cout << str;
-        }         
+	}
 	file.close();
 	std::cout << std::endl;
       }
+      else
+	ok = false;
+    }
 
-    } //end loop over jobs
+    return ok;
   }
 
-  void JobController::Stat(const std::list<std::string>& jobs,
-			   const std::list<std::string>& clusterselect,
-			   const std::list<std::string>& clusterreject,
+  bool JobController::Stat(const std::list<URL>& jobids,
 			   const std::list<std::string>& status,
 			   const bool longlist,
-			   const int timeout){
+			   const int timeout) {
 
-    // Somewhere here add functionality for identifying jobs subject
-    // to the action (options -c -s etc)
     GetJobInformation();
 
-    for(std::list<Job>::iterator jobiter = JobStore.begin();
-	jobiter!= JobStore.end(); jobiter++) {
-      if(jobiter->State.empty()){
+    for (std::list<Job>::iterator it = jobstore.begin();
+	 it != jobstore.end(); it++) {
+      if (it->State.empty()) {
 	logger.msg(WARNING, "Job state information not found: %s",
-		   jobiter->JobID.str());
+		   it->JobID.str());
 	Time now;
-	if(now - jobiter->LocalSubmissionTime < 90){
+	if (now - it->LocalSubmissionTime < 90)
 	  logger.msg(WARNING, "This job was very recently "
-		     "submitted and might not yet" 
+		     "submitted and might not yet"
 		     "have reached the information-system");
-	}
 	continue;
       }
-      jobiter->Print(longlist);
+      it->Print(longlist);
     }
+    return true;
   }
 
-  bool JobController::CopyFile(URL src, URL dst){
+  std::list<std::string> JobController::GetDownloadFiles(const URL& dir) {
+
+    std::list<std::string> files;
+    std::list<FileInfo> outputfiles;
+
+    DataHandle handle(dir);
+    handle->ListFiles(outputfiles, true);
+
+    for (std::list<FileInfo>::iterator i = outputfiles.begin();
+	 i != outputfiles.end(); i++) {
+      if (i->GetType() == FileInfo::file_type_unknown ||
+	  i->GetType() == FileInfo::file_type_file)
+	files.push_back(i->GetName());
+      else if (i->GetType() == FileInfo::file_type_dir) {
+	std::string path = dir.Path();
+	if (path[path.size() - 1] != '/')
+	  path += "/";
+	URL tmpdir(dir);
+	tmpdir.ChangePath(path + i->GetName());
+	std::list<std::string> morefiles = GetDownloadFiles(tmpdir);
+	std::string dirname = i->GetName();
+	if (dirname[dirname.size() - 1] != '/')
+	  dirname += "/";
+	for (std::list<std::string>::iterator it = morefiles.begin();
+	     it != morefiles.end(); it++)
+	  files.push_back(dirname + *it);
+      }
+    }
+    return files;
+  }
+
+  bool JobController::CopyFile(const URL& src, const URL& dst) {
 
     DataMover mover;
     mover.retry(true);
     mover.secure(false);
     mover.passive(true);
-    mover.verbose(true);
-            
+    mover.verbose(false);
+
     logger.msg(DEBUG, "Now copying (from -> to)");
     logger.msg(DEBUG, " %s -> %s)", src.str(), dst.str());
 
     DataHandle source(src);
-    if(!source){
+    if (!source) {
       logger.msg(ERROR, "Failed to get DataHandle on source: %s", src.str());
       return false;
     }
     DataHandle destination(dst);
-    if(!destination){
+    if (!destination) {
       logger.msg(ERROR, "Failed to get DataHandle on destination: %s",
 		 dst.str());
       return false;
@@ -469,85 +516,58 @@ namespace Arc {
     int timeout = 10;
     if (!mover.Transfer(*source, *destination, cache, URLMap(),
 			0, 0, 0, timeout, failure)) {
-      if (!failure.empty()) {
+      if (!failure.empty())
 	logger.msg(ERROR, "File download failed: %s", failure);
-      }else{
+      else
 	logger.msg(ERROR, "File download failed");
-      }
       return false;
     }
 
     return true;
 
-  } //end CopyFile
+  }
 
-  //Delete jobs from both joblist file and local JobStore
-  void JobController::RemoveJobs(std::list<std::string> jobs){
+  bool JobController::RemoveJobs(const std::list<URL>& jobids) {
 
-    logger.msg(DEBUG, "Removing jobs from joblist and jobstore");
+    logger.msg(DEBUG, "Removing jobs from job list and job store");
 
-    //lock Joblist file
     FileLock lock(joblist);
-    mcfg.ReadFromFile(joblist);
+    jobstorage.ReadFromFile(joblist);
 
-    std::list<std::string>::iterator it;
+    for (std::list<URL>::const_iterator it = jobids.begin();
+	 it != jobids.end(); it++) {
 
-    //Identify jobs in joblist and remove from list
-    for(it = jobs.begin(); it != jobs.end(); it++){
-      XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[JobID='" + (*it) + "']",
-					       NS())).begin());
-      if(ThisXMLJob){
-	logger.msg(DEBUG, "Removing job %s from joblist file", (*it));	
-	ThisXMLJob.Destroy();
-      }else {
-	logger.msg(ERROR, "Job %s has been delete (i.e. was in JobStore), "
-		   "but is not listed in joblist", (*it));	
+      XMLNodeList xmljobs =
+	jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+
+      if (xmljobs.empty())
+	logger.msg(ERROR, "Job %s has been deleted (i.e. was in job store), "
+		   "but is not listed in job list", it->str());
+      else {
+	XMLNode& xmljob = *xmljobs.begin();
+	if (xmljob) {
+	  logger.msg(DEBUG, "Removing job %s from job list file", it->str());
+	  xmljob.Destroy();
+	}
       }
-      //Remove job from JobStore
-      std::list<Job>::iterator jobiter = JobStore.begin();
-      while(jobiter != JobStore.end()){
-	if(jobiter->JobID.str() == (*it)){
-	  JobStore.erase(jobiter);
+
+      std::list<Job>::iterator it2 = jobstore.begin();
+      while (it2 != jobstore.end()) {
+	if (it2->JobID == *it) {
+	  it2 = jobstore.erase(it2);
 	  break;
 	}
-	jobiter++;
+	it2++;
       }
     }
 
-    //write new joblist to file
-    mcfg.SaveToFile(joblist);
+    jobstorage.SaveToFile(joblist);
 
-    logger.msg(DEBUG, "JobStore%s now contains %d jobs", GridFlavour,
-	       JobStore.size());	    
-    logger.msg(DEBUG, "Finished removing jobs from joblist and jobstore");
+    logger.msg(DEBUG, "Job store for %s now contains %d jobs",
+	       flavour, jobstore.size());
+    logger.msg(DEBUG, "Finished removing jobs from job list and job store");
 
-  }//end RemoveJobs
-
-
-  //Present implementation not ideal for later GUI usage, i.e. does not make use of jobs, clusterselect, clusterreject 
-  //(we know that the JobStore is only filled with jobs according to these criteria)
-  //(note for later: GetJobInformation should be modified to take jobs, clusterselect, clusterreject, status as input)
-  /*
-  std::list<Job*> JobController::IdentifyJobs(jobs, clusterselect, clusterreject, status){
-    GetJobInformation();    
+    return true;
   }
-  */
-
-  bool JobController::PresentInList(URL url, std::list<std::string> searchurl_strings){
-    bool answer(true);
-    std::list<URL> SearchUrls;
-
-    //First, resolve aliases and prepare list of URLs to search within
-    for(std::list<std::string>::iterator iter  = searchurl_strings.begin();
-	iter != searchurl_strings.end(); iter++){
-      //check if alias (not yet implemented)
-      SearchUrls.push_back(*iter);
-    }
-
-    if(std::find(SearchUrls.begin(),SearchUrls.end(), url) == SearchUrls.end())
-      answer = false;
-
-    return answer;
- }
 
 } // namespace Arc

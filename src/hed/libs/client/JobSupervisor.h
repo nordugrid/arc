@@ -4,6 +4,8 @@
 #include <list>
 #include <string>
 
+#include <arc/URL.h>
+
 namespace Arc {
 
   class JobController;
@@ -13,22 +15,21 @@ namespace Arc {
 
   class JobSupervisor {
   public:
-    JobSupervisor(std::string joblist, std::list<std::string> jobids);
-    
-    JobSupervisor(const UserConfig& ucfg,
-		  const std::list<std::string>& jobs,
-		  const std::list<std::string>& clusterselect,
-		  const std::list<std::string>& clusterreject,
-		  const std::string joblist);
-    
+    JobSupervisor(const UserConfig& usercfg,
+		  const std::list<URL>& jobids,
+		  const std::list<std::string>& clusters,
+		  const std::string& joblist);
+
     ~JobSupervisor();
-    
-    std::list<Arc::JobController*> GetJobControllers(){return JobControllers;}
-    
+
+    const std::list<Arc::JobController*> GetJobControllers() {
+      return jobcontrollers;
+    }
+
   private:
     static Logger logger;
     Loader *loader;
-    std::list<Arc::JobController*> JobControllers;
+    std::list<Arc::JobController*> jobcontrollers;
   };
 
 } //namespace ARC

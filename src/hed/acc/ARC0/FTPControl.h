@@ -15,11 +15,11 @@ namespace Arc {
     FTPControl();
     ~FTPControl();
 
-    bool Connect(const URL &url, const std::string& proxyPath,
+    bool Connect(const URL& url, const std::string& proxyPath,
 		 const std::string& certificatePath,
 		 const std::string& keyPath, int timeout);
-    bool SendCommand(const std::string &cmd, int timeout);
-    bool SendCommand(const std::string &cmd, std::string &response,
+    bool SendCommand(const std::string& cmd, int timeout);
+    bool SendCommand(const std::string& cmd, std::string& response,
 		     int timeout);
     bool SendData(const std::string& data, const std::string& filename,
 		  int timeout);

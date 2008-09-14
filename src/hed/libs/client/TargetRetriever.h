@@ -15,7 +15,7 @@ namespace Arc {
   class TargetRetriever
     : public ACC {
   protected:
-    TargetRetriever(Config *cfg);
+    TargetRetriever(Config *cfg, const std::string& flavor);
   public:
     virtual ~TargetRetriever();
     virtual void GetTargets(TargetGenerator& mom, int targetType,

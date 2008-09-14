@@ -56,7 +56,8 @@ namespace Arc {
   }
 
   ClientInterface::ClientInterface(const BaseConfig& cfg)
-    : xmlcfg(NS()),  //Need to add all of the configuration namespaces here?
+    : xmlcfg(NS()),
+      //Need to add all of the configuration namespaces here?
       loader() {
     cfg.MakeConfig(xmlcfg);
     xmlcfg.NewChild("Chain");
@@ -144,7 +145,7 @@ namespace Arc {
     if (repmsg.Payload() != NULL)
       try {
 	*response =
-	  dynamic_cast<Arc::PayloadStreamInterface *>(repmsg.Payload());
+	  dynamic_cast<Arc::PayloadStreamInterface*>(repmsg.Payload());
       }
       catch (std::exception&) {
 	delete repmsg.Payload();
@@ -243,7 +244,7 @@ namespace Arc {
     info->type = repmsg.Attributes()->get("HTTP:content-type");
     if (repmsg.Payload() != NULL)
       try {
-	*response = dynamic_cast<Arc::PayloadRawInterface *>(repmsg.Payload());
+	*response = dynamic_cast<Arc::PayloadRawInterface*>(repmsg.Payload());
       }
       catch (std::exception&) {
 	delete repmsg.Payload();
@@ -254,13 +255,16 @@ namespace Arc {
   ClientSOAP::ClientSOAP(const BaseConfig& cfg, const std::string& host,
 			 int port, bool tls, const std::string& path)
     : ClientHTTP(cfg, host, port, tls, path),
-      soap_entry(NULL){
+      soap_entry(NULL) {
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
-    //Add the ws-security configuration for the soap client. Currently only usernametoken is supported
-    if((cfg.wsstype == Arc::USERNAMETOKEN) && (!(cfg.wssinfo.password_encoding).empty())
-      && (!(cfg.wssinfo.username).empty())&& (!(cfg.wssinfo.password).empty())) {
+    // Add the ws-security configuration for the soap client
+    // Currently only usernametoken is supported
+    if ((cfg.wsstype == Arc::USERNAMETOKEN) &&
+	(!(cfg.wssinfo.password_encoding).empty()) &&
+	(!(cfg.wssinfo.username).empty()) &&
+	(!(cfg.wssinfo.password).empty())) {
       XMLNode sechandler = comp.NewChild("SecHandler");
       sechandler.NewAttribute("name") = "usernametoken.handler";
       sechandler.NewAttribute("id") = "usernametoken";
@@ -307,7 +311,7 @@ namespace Arc {
     MCC_Status r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL)
       try {
-	*response = dynamic_cast<Arc::PayloadSOAP *>(repmsg.Payload());
+	*response = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
       }
       catch (std::exception&) {
 	delete repmsg.Payload();

@@ -1,8 +1,13 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <algorithm>
 #include <iostream>
 
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
+#include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/Loader.h>
@@ -14,86 +19,118 @@
 namespace Arc {
 
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
-  
-  JobSupervisor::JobSupervisor(const UserConfig& ucfg,
-			       const std::list<std::string>& jobs,
-			       const std::list<std::string>& clusterselect,
-			       const std::list<std::string>& clusterreject,
-			       const std::string joblist){
 
-    Config JobIdStorage;
-    if(!joblist.empty()){
+  JobSupervisor::JobSupervisor(const UserConfig& usercfg,
+			       const std::list<URL>& jobids,
+			       const std::list<std::string>& clusters,
+			       const std::string& joblist)
+    : loader(NULL) {
+
+    URLListMap clusterselect;
+    URLListMap clusterreject;
+
+    if (!usercfg.ResolveAlias(clusters, clusterselect, clusterreject)) {
+      logger.msg(Arc::ERROR, "Failed resolving aliases");
+      return;
+    }
+
+    Config jobstorage;
+    if (!joblist.empty()) {
       FileLock lock(joblist);
-      JobIdStorage.ReadFromFile(joblist);
+      jobstorage.ReadFromFile(joblist);
     }
 
-    std::list<std::string> NeededControllers;
+    std::list<std::string> controllers;
 
-    //Need to fix below sorting on clusterselect and clusterreject
+    if (!jobids.empty()) {
 
-    //First, if jobids are specified, only load JobControllers needed by those jobs
-    if (!jobs.empty()) {
-      logger.msg(DEBUG, "Identifying needed JobControllers according to "
-		 "specified job ids");
+      logger.msg(DEBUG, "Identifying needed job controllers according to "
+		 "specified jobids");
 
-      for (std::list<std::string>::const_iterator it = jobs.begin();
-	   it != jobs.end(); it++) {
-	std::list<XMLNode> XMLJobs =
-	  JobIdStorage.XPathLookup("//Job[JobID='"+ *it+"']", NS());
-	if(!XMLJobs.empty()) {
-	  XMLNode &ThisXMLJob = *XMLJobs.begin();
-	  if (std::find(NeededControllers.begin(), NeededControllers.end(),
-			(std::string) ThisXMLJob["Flavour"]) == NeededControllers.end()){
-	    std::string flavour = (std::string) ThisXMLJob["Flavour"];
-	    logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
-	    NeededControllers.push_back(flavour);
-	  }  
-	} else{
-	  std::cout<<IString("Job Id = %s not found", (*it))<<std::endl;
+      for (std::list<URL>::const_iterator it = jobids.begin();
+	   it != jobids.end(); it++) {
+
+	XMLNodeList xmljobs =
+	  jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+
+	if (xmljobs.empty()) {
+	  logger.msg(DEBUG, "Job not found in job list: %s", it->str());
+	  continue;
+	}
+
+	XMLNode& xmljob = *xmljobs.begin();
+
+	if (std::find(controllers.begin(), controllers.end(),
+		      (std::string)xmljob["Flavour"]) == controllers.end()) {
+	  std::string flavour = (std::string)xmljob["Flavour"];
+	  logger.msg(DEBUG, "Need job controller for grid flavour %s",
+		     flavour);
+	  controllers.push_back(flavour);
 	}
       }
     }
-    else { //load controllers for all grid flavours present in joblist
 
-      logger.msg(DEBUG, "Identifying needed JobControllers according to all jobs present in joblist");
+    if (!clusterselect.empty()) {
 
-      XMLNodeList ActiveJobs =
-	JobIdStorage.XPathLookup("/ArcConfig/Job", NS());
+      logger.msg(DEBUG, "Identifying needed job controllers according to "
+		 "specified clusters");
 
-      for (XMLNodeList::iterator JobIter = ActiveJobs.begin();
-	   JobIter != ActiveJobs.end(); JobIter++) {
-	if (std::find(NeededControllers.begin(), NeededControllers.end(),
-		      (std::string)(*JobIter)["Flavour"]) == NeededControllers.end()){
-	  std::string flavour = (*JobIter)["Flavour"];
-	  logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
-	  NeededControllers.push_back((std::string)(*JobIter)["Flavour"]);
+      for (URLListMap::iterator it = clusterselect.begin();
+	   it != clusterselect.end(); it++)
+	if (std::find(controllers.begin(), controllers.end(),
+		      it->first) == controllers.end()) {
+	  logger.msg(DEBUG, "Need job controller for grid flavour %s",
+		     it->first);
+	  controllers.push_back(it->first);
 	}
-      }
+    }
+
+    if (jobids.empty() && clusterselect.empty()) {
+
+      logger.msg(DEBUG, "Identifying needed job controllers according to "
+		 "all jobs present in job list");
+
+      XMLNodeList xmljobs = jobstorage.XPathLookup("/ArcConfig/Job", NS());
+
+      for (XMLNodeList::iterator it = xmljobs.begin();
+	   it != xmljobs.end(); it++)
+	if (std::find(controllers.begin(), controllers.end(),
+		      (std::string)(*it)["Flavour"]) == controllers.end()) {
+	  std::string flavour = (*it)["Flavour"];
+	  logger.msg(DEBUG, "Need job controller for grid flavour %s",
+		     flavour);
+	  controllers.push_back(flavour);
+	}
     }
 
     ACCConfig acccfg;
     NS ns;
-    Config mcfg(ns);
-    acccfg.MakeConfig(mcfg);
-    int JobControllerNumber = 0;
+    Config cfg(ns);
+    acccfg.MakeConfig(cfg);
+    int ctrlnum = 0;
 
-    for (std::list<std::string>::const_iterator it = NeededControllers.begin();
-	 it != NeededControllers.end(); it++) {
-      XMLNode ThisJobController = mcfg.NewChild("ArcClientComponent");
-      ThisJobController.NewAttribute("name") = "JobController" + (*it);
-      ThisJobController.NewAttribute("id") = "controller" + tostring(JobControllerNumber);
-      ucfg.ApplySecurity(ThisJobController);
-      ThisJobController.NewChild("joblist") = joblist;
-      JobControllerNumber++;
+    for (std::list<std::string>::iterator it = controllers.begin();
+	 it != controllers.end(); it++) {
+
+      XMLNode jobctrl = cfg.NewChild("ArcClientComponent");
+      jobctrl.NewAttribute("name") = "JobController" + (*it);
+      jobctrl.NewAttribute("id") = "controller" + tostring(ctrlnum);
+      usercfg.ApplySecurity(jobctrl);
+      jobctrl.NewChild("JobList") = joblist;
+      ctrlnum++;
     }
 
-    loader = new Loader(&mcfg);
+    loader = new Loader(&cfg);
 
-    for(int i = 0; i < JobControllerNumber; i++){
-      JobController *JC = dynamic_cast<JobController*>(loader->getACC("controller" + tostring(i)));
-      if(JC) {
-	JobControllers.push_back(JC);
-	(*JobControllers.rbegin())->FillJobStore(jobs, clusterselect, clusterreject);
+    for (int i = 0; i < ctrlnum; i++) {
+      JobController *jobctrl =
+	dynamic_cast<JobController*>(loader->getACC("controller" +
+						    tostring(i)));
+      if (jobctrl) {
+	jobctrl->FillJobStore(jobids,
+			      clusterselect[jobctrl->Flavour()],
+			      clusterreject[jobctrl->Flavour()]);
+	jobcontrollers.push_back(jobctrl);
       }
     }
   }

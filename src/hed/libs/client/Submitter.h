@@ -15,7 +15,7 @@ namespace Arc {
   class Submitter
     : public ACC {
   protected:
-    Submitter(Config *cfg);
+    Submitter(Config *cfg, const std::string& flavour);
   public:
     virtual ~Submitter();
     virtual bool Submit(JobDescription& jobdesc, XMLNode& info) = 0;
@@ -23,7 +23,7 @@ namespace Arc {
     bool PutFiles(JobDescription& jobdesc, const URL& url);
 
     URL submissionEndpoint;
-    URL infoEndpoint;
+    URL cluster;
     std::string queue;
 
     static Logger logger;

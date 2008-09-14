@@ -52,6 +52,7 @@ static void ControlCallback(void *arg, globus_ftp_control_handle_t*,
     case GLOBUS_FTP_POSITIVE_INTERMEDIATE_REPLY:
       cb->responseok = true;
       break;
+
     default:
       cb->responseok = false;
       break;
@@ -196,7 +197,7 @@ namespace Arc {
 		 result.str());
       return false;
     }
-    
+
     cb.ctrl = false;
     result = globus_ftp_control_authenticate(&control_handle, &auth,
 					     GLOBUS_TRUE,
@@ -226,7 +227,7 @@ namespace Arc {
 
     cbarg cb;
     bool timedin;
-    GlobusResult result ;
+    GlobusResult result;
 
     cb.ctrl = false;
     result = globus_ftp_control_send_command(&control_handle, cmd.c_str(),

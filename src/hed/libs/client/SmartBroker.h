@@ -2,7 +2,7 @@
 
 namespace Arc {
 
-  class SmartBroker 
+  class SmartBroker
     : public DefaultBroker {
   protected:
     SmartBroker();

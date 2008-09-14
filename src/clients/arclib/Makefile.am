@@ -31,3 +31,7 @@ arcclean_LDADD    = $(CLILIBS)
 arccat_SOURCES  = arccat.cpp
 arccat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arccat_LDADD    = $(CLILIBS)
+
+sysconf_DATA = arcclient.xml
+doc_DATA = client.xml.example
+EXTRA_DIST = $(doc_DATA) $(sysconf_DATA)

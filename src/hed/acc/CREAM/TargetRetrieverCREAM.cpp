@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -15,20 +19,39 @@
 namespace Arc {
 
   struct ThreadArg {
-    Arc::TargetGenerator *mom;
-    Arc::URL url;
+    TargetGenerator *mom;
+    std::string proxyPath;
+    std::string certificatePath;
+    std::string keyPath;
+    std::string caCertificatesDir;
+    URL url;
     int targetType;
     int detailLevel;
   };
 
+  ThreadArg* TargetRetrieverCREAM::CreateThreadArg(TargetGenerator& mom,
+						   int targetType,
+						   int detailLevel) {
+    ThreadArg *arg = new ThreadArg;
+    arg->mom = &mom;
+    arg->proxyPath = proxyPath;
+    arg->certificatePath = certificatePath;
+    arg->keyPath = keyPath;
+    arg->caCertificatesDir = caCertificatesDir;
+    arg->url = url;
+    arg->targetType = targetType;
+    arg->detailLevel = detailLevel;
+    return arg;
+  }
+
   Logger TargetRetrieverCREAM::logger(TargetRetriever::logger, "CREAM");
 
   TargetRetrieverCREAM::TargetRetrieverCREAM(Config *cfg)
-    : TargetRetriever(cfg) {}
+    : TargetRetriever(cfg, "CREAM") {}
 
   TargetRetrieverCREAM::~TargetRetrieverCREAM() {}
 
-  ACC *TargetRetrieverCREAM::Instance(Config *cfg, ChainContext *) {
+  ACC* TargetRetrieverCREAM::Instance(Config *cfg, ChainContext*) {
     return new TargetRetrieverCREAM(cfg);
   }
 
@@ -41,11 +64,7 @@ namespace Arc {
     if (serviceType == "computing") {
       bool added = mom.AddService(url);
       if (added) {
-	ThreadArg *arg = new ThreadArg;
-	arg->mom = &mom;
-	arg->url = url;
-	arg->targetType = targetType;
-	arg->detailLevel = detailLevel;
+	ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
 	if (!CreateThreadFunction(&InterrogateTarget, arg)) {
 	  delete arg;
 	  mom.RetrieverDone();
@@ -56,11 +75,7 @@ namespace Arc {
     else if (serviceType == "index") {
       bool added = mom.AddIndexServer(url);
       if (added) {
-	ThreadArg *arg = new ThreadArg;
-	arg->mom = &mom;
-	arg->url = url;
-	arg->targetType = targetType;
-	arg->detailLevel = detailLevel;
+	ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
 	if (!CreateThreadFunction(&QueryIndex, arg)) {
 	  delete arg;
 	  mom.RetrieverDone();
@@ -73,11 +88,10 @@ namespace Arc {
   }
 
   void TargetRetrieverCREAM::QueryIndex(void *arg) {
-    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
-    URL& url = ((ThreadArg *)arg)->url;
-    int& targetType = ((ThreadArg *)arg)->targetType;
-    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    ThreadArg *thrarg = (ThreadArg*)arg;
+    TargetGenerator& mom = *thrarg->mom;
 
+    URL& url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
     url.ChangeLDAPFilter("(|(GlueServiceType=bdii_site)"
 			 "(GlueServiceType=bdii_top))");
@@ -85,7 +99,7 @@ namespace Arc {
     DataBufferPar buffer;
 
     if (!handler->StartReading(buffer)) {
-      delete (ThreadArg *)arg;
+      delete thrarg;
       mom.RetrieverDone();
       return;
     }
@@ -102,7 +116,7 @@ namespace Arc {
       }
 
     if (!handler->StopReading()) {
-      delete (ThreadArg *)arg;
+      delete thrarg;
       mom.RetrieverDone();
       return;
     }
@@ -126,7 +140,7 @@ namespace Arc {
       URLXML.NewAttribute("ServiceType") = "index";
 
       TargetRetrieverCREAM retriever(&cfg);
-      retriever.GetTargets(mom, targetType, detailLevel);
+      retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
     std::list<XMLNode> siteBDIIs =
@@ -148,25 +162,24 @@ namespace Arc {
       URLXML.NewAttribute("ServiceType") = "computing";
 
       TargetRetrieverCREAM retriever(&cfg);
-      retriever.GetTargets(mom, targetType, detailLevel);
+      retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
-    delete (ThreadArg *)arg;
+    delete thrarg;
     mom.RetrieverDone();
   }
 
   void TargetRetrieverCREAM::InterrogateTarget(void *arg) {
-    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
-    URL& url = ((ThreadArg *)arg)->url;
-    // int& targetType = ((ThreadArg *)arg)->targetType;
-    // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    ThreadArg *thrarg = (ThreadArg*)arg;
+    TargetGenerator& mom = *thrarg->mom;
 
+    URL url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
     DataHandle handler(url);
     DataBufferPar buffer;
 
     if (!handler->StartReading(buffer)) {
-      delete (ThreadArg *)arg;
+      delete thrarg;
       mom.RetrieverDone();
       return;
     }
@@ -183,7 +196,7 @@ namespace Arc {
       }
 
     if (!handler->StopReading()) {
-      delete (ThreadArg *)arg;
+      delete thrarg;
       mom.RetrieverDone();
       return;
     }
@@ -203,6 +216,7 @@ namespace Arc {
       ExecutionTarget target;
 
       target.GridFlavour = "CREAM";
+      target.Cluster = thrarg->url;
 
       std::string key;
       std::string::size_type pos = std::string::npos;
@@ -249,115 +263,115 @@ namespace Arc {
 
       /* These are the available attributes:
 
-         VOView["GlueVOViewLocalID"];
-         VOView["GlueCEAccessControlBaseRule"]; // multi
-         VOView["GlueCEStateRunningJobs"];
-         VOView["GlueCEStateWaitingJobs"];
-         VOView["GlueCEStateTotalJobs"];
-         VOView["GlueCEStateFreeJobSlots"];
-         VOView["GlueCEStateEstimatedResponseTime"];
-         VOView["GlueCEStateWorstResponseTime"];
-         VOView["GlueCEInfoDefaultSE"];
-         VOView["GlueCEInfoApplicationDir"];
-         VOView["GlueCEInfoDataDir"];
-         VOView["GlueChunkKey"];
-         VOView["GlueSchemaVersionMajor"];
-         VOView["GlueSchemaVersionMinor"];
+	 VOView["GlueVOViewLocalID"];
+	 VOView["GlueCEAccessControlBaseRule"]; // multi
+	 VOView["GlueCEStateRunningJobs"];
+	 VOView["GlueCEStateWaitingJobs"];
+	 VOView["GlueCEStateTotalJobs"];
+	 VOView["GlueCEStateFreeJobSlots"];
+	 VOView["GlueCEStateEstimatedResponseTime"];
+	 VOView["GlueCEStateWorstResponseTime"];
+	 VOView["GlueCEInfoDefaultSE"];
+	 VOView["GlueCEInfoApplicationDir"];
+	 VOView["GlueCEInfoDataDir"];
+	 VOView["GlueChunkKey"];
+	 VOView["GlueSchemaVersionMajor"];
+	 VOView["GlueSchemaVersionMinor"];
 
-         CE["GlueCEHostingCluster"];
-         CE["GlueCEName"];
-         CE["GlueCEUniqueID"];
-         CE["GlueCEImplementationName"];
-         CE["GlueCEImplementationVersion"];
-         CE["GlueCECapability"]; // multi
-         CE["GlueCEInfoGatekeeperPort"];
-         CE["GlueCEInfoHostName"];
-         CE["GlueCEInfoLRMSType"];
-         CE["GlueCEInfoLRMSVersion"];
-         CE["GlueCEInfoJobManager"];
-         CE["GlueCEInfoContactString"]; // multi
-         CE["GlueCEInfoApplicationDir"];
-         CE["GlueCEInfoDataDir"];
-         CE["GlueCEInfoDefaultSE"];
-         CE["GlueCEInfoTotalCPUs"];
-         CE["GlueCEStateEstimatedResponseTime"];
-         CE["GlueCEStateRunningJobs"];
-         CE["GlueCEStateStatus"];
-         CE["GlueCEStateTotalJobs"];
-         CE["GlueCEStateWaitingJobs"];
-         CE["GlueCEStateWorstResponseTime"];
-         CE["GlueCEStateFreeJobSlots"];
-         CE["GlueCEStateFreeCPUs"];
-         CE["GlueCEPolicyMaxCPUTime"];
-         CE["GlueCEPolicyMaxObtainableCPUTime"];
-         CE["GlueCEPolicyMaxRunningJobs"];
-         CE["GlueCEPolicyMaxWaitingJobs"];
-         CE["GlueCEPolicyMaxTotalJobs"];
-         CE["GlueCEPolicyMaxWallClockTime"];
-         CE["GlueCEPolicyMaxObtainableWallClockTime"];
-         CE["GlueCEPolicyPriority"];
-         CE["GlueCEPolicyAssignedJobSlots"];
-         CE["GlueCEPolicyMaxSlotsPerJob"];
-         CE["GlueCEPolicyPreemption"];
-         CE["GlueCEAccessControlBaseRule"]; // multi
-         CE["GlueForeignKey"];
-         CE["GlueInformationServiceURL"];
-         CE["GlueSchemaVersionMajor"];
-         CE["GlueSchemaVersionMinor"];
+	 CE["GlueCEHostingCluster"];
+	 CE["GlueCEName"];
+	 CE["GlueCEUniqueID"];
+	 CE["GlueCEImplementationName"];
+	 CE["GlueCEImplementationVersion"];
+	 CE["GlueCECapability"]; // multi
+	 CE["GlueCEInfoGatekeeperPort"];
+	 CE["GlueCEInfoHostName"];
+	 CE["GlueCEInfoLRMSType"];
+	 CE["GlueCEInfoLRMSVersion"];
+	 CE["GlueCEInfoJobManager"];
+	 CE["GlueCEInfoContactString"]; // multi
+	 CE["GlueCEInfoApplicationDir"];
+	 CE["GlueCEInfoDataDir"];
+	 CE["GlueCEInfoDefaultSE"];
+	 CE["GlueCEInfoTotalCPUs"];
+	 CE["GlueCEStateEstimatedResponseTime"];
+	 CE["GlueCEStateRunningJobs"];
+	 CE["GlueCEStateStatus"];
+	 CE["GlueCEStateTotalJobs"];
+	 CE["GlueCEStateWaitingJobs"];
+	 CE["GlueCEStateWorstResponseTime"];
+	 CE["GlueCEStateFreeJobSlots"];
+	 CE["GlueCEStateFreeCPUs"];
+	 CE["GlueCEPolicyMaxCPUTime"];
+	 CE["GlueCEPolicyMaxObtainableCPUTime"];
+	 CE["GlueCEPolicyMaxRunningJobs"];
+	 CE["GlueCEPolicyMaxWaitingJobs"];
+	 CE["GlueCEPolicyMaxTotalJobs"];
+	 CE["GlueCEPolicyMaxWallClockTime"];
+	 CE["GlueCEPolicyMaxObtainableWallClockTime"];
+	 CE["GlueCEPolicyPriority"];
+	 CE["GlueCEPolicyAssignedJobSlots"];
+	 CE["GlueCEPolicyMaxSlotsPerJob"];
+	 CE["GlueCEPolicyPreemption"];
+	 CE["GlueCEAccessControlBaseRule"]; // multi
+	 CE["GlueForeignKey"];
+	 CE["GlueInformationServiceURL"];
+	 CE["GlueSchemaVersionMajor"];
+	 CE["GlueSchemaVersionMinor"];
 
-         Cluster["GlueClusterName"];
-         Cluster["GlueClusterService"];
-         Cluster["GlueClusterUniqueID"];
-         Cluster["GlueForeignKey"];
-         Cluster["GlueInformationServiceURL"];
-         Cluster["GlueSchemaVersionMajor"];
-         Cluster["GlueSchemaVersionMinor"];
+	 Cluster["GlueClusterName"];
+	 Cluster["GlueClusterService"];
+	 Cluster["GlueClusterUniqueID"];
+	 Cluster["GlueForeignKey"];
+	 Cluster["GlueInformationServiceURL"];
+	 Cluster["GlueSchemaVersionMajor"];
+	 Cluster["GlueSchemaVersionMinor"];
 
-         SubCluster["GlueChunkKey"];
-         SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"]; // multi
-         SubCluster["GlueHostArchitectureSMPSize"];
-         SubCluster["GlueHostArchitecturePlatformType"];
-         SubCluster["GlueHostBenchmarkSF00"];
-         SubCluster["GlueHostBenchmarkSI00"];
-         SubCluster["GlueHostMainMemoryRAMSize"];
-         SubCluster["GlueHostMainMemoryVirtualSize"];
-         SubCluster["GlueHostNetworkAdapterInboundIP"];
-         SubCluster["GlueHostNetworkAdapterOutboundIP"];
-         SubCluster["GlueHostOperatingSystemName"];
-         SubCluster["GlueHostOperatingSystemRelease"];
-         SubCluster["GlueHostOperatingSystemVersion"];
-         SubCluster["GlueHostProcessorClockSpeed"];
-         SubCluster["GlueHostProcessorModel"];
-         SubCluster["GlueHostProcessorVendor"];
-         SubCluster["GlueSubClusterName"];
-         SubCluster["GlueSubClusterUniqueID"];
-         SubCluster["GlueSubClusterPhysicalCPUs"];
-         SubCluster["GlueSubClusterLogicalCPUs"];
-         SubCluster["GlueSubClusterTmpDir"];
-         SubCluster["GlueSubClusterWNTmpDir"];
-         SubCluster["GlueInformationServiceURL"];
-         SubCluster["GlueSchemaVersionMajor"];
-         SubCluster["GlueSchemaVersionMinor"];
+	 SubCluster["GlueChunkKey"];
+	 SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"]; // multi
+	 SubCluster["GlueHostArchitectureSMPSize"];
+	 SubCluster["GlueHostArchitecturePlatformType"];
+	 SubCluster["GlueHostBenchmarkSF00"];
+	 SubCluster["GlueHostBenchmarkSI00"];
+	 SubCluster["GlueHostMainMemoryRAMSize"];
+	 SubCluster["GlueHostMainMemoryVirtualSize"];
+	 SubCluster["GlueHostNetworkAdapterInboundIP"];
+	 SubCluster["GlueHostNetworkAdapterOutboundIP"];
+	 SubCluster["GlueHostOperatingSystemName"];
+	 SubCluster["GlueHostOperatingSystemRelease"];
+	 SubCluster["GlueHostOperatingSystemVersion"];
+	 SubCluster["GlueHostProcessorClockSpeed"];
+	 SubCluster["GlueHostProcessorModel"];
+	 SubCluster["GlueHostProcessorVendor"];
+	 SubCluster["GlueSubClusterName"];
+	 SubCluster["GlueSubClusterUniqueID"];
+	 SubCluster["GlueSubClusterPhysicalCPUs"];
+	 SubCluster["GlueSubClusterLogicalCPUs"];
+	 SubCluster["GlueSubClusterTmpDir"];
+	 SubCluster["GlueSubClusterWNTmpDir"];
+	 SubCluster["GlueInformationServiceURL"];
+	 SubCluster["GlueSchemaVersionMajor"];
+	 SubCluster["GlueSchemaVersionMinor"];
 
-         Site["GlueSiteUniqueID"];
-         Site["GlueSiteName"];
-         Site["GlueSiteDescription"];
-         Site["GlueSiteEmailContact"];
-         Site["GlueSiteUserSupportContact"];
-         Site["GlueSiteSysAdminContact"];
-         Site["GlueSiteSecurityContact"];
-         Site["GlueSiteLocation"];
-         Site["GlueSiteLatitude"];
-         Site["GlueSiteLongitude"];
-         Site["GlueSiteWeb"];
-         Site["GlueSiteSponsor"];
-         Site["GlueSiteOtherInfo"];
-         Site["GlueSiteOtherInfo"];
-         Site["GlueForeignKey"];
-         Site["GlueSchemaVersionMajor"];
-         Site["GlueSchemaVersionMinor"];
+	 Site["GlueSiteUniqueID"];
+	 Site["GlueSiteName"];
+	 Site["GlueSiteDescription"];
+	 Site["GlueSiteEmailContact"];
+	 Site["GlueSiteUserSupportContact"];
+	 Site["GlueSiteSysAdminContact"];
+	 Site["GlueSiteSecurityContact"];
+	 Site["GlueSiteLocation"];
+	 Site["GlueSiteLatitude"];
+	 Site["GlueSiteLongitude"];
+	 Site["GlueSiteWeb"];
+	 Site["GlueSiteSponsor"];
+	 Site["GlueSiteOtherInfo"];
+	 Site["GlueSiteOtherInfo"];
+	 Site["GlueForeignKey"];
+	 Site["GlueSchemaVersionMajor"];
+	 Site["GlueSchemaVersionMinor"];
 
-         ... now do the mapping */
+	 ... now do the mapping */
 
       if (Site["GlueSiteName"])
 	target.DomainName = (std::string)Site["GlueSiteName"];
@@ -371,8 +385,8 @@ namespace Arc {
       if (Site["GlueSiteLongitude"])
 	target.Longitude = stringtof(Site["GlueSiteLongitude"]);
 
-      if (CE["GlueCEUniqueID"])
-	target.url = "https://" + (std::string)CE["GlueCEUniqueID"];
+      if (CE["GlueCEInfoContactString"])
+	target.url = (std::string)CE["GlueCEInfoContactString"];
 
       if (CE["GlueCEImplementationName"])
 	target.ImplementationName =
@@ -424,12 +438,14 @@ namespace Arc {
 	target.MaxTotalJobs = stringtoi(CE["GlueCEPolicyMaxTotalJobs"]);
 
       if (VOView["GlueCEPolicyMaxRunningJobs"])
-	target.MaxRunningJobs = stringtoi(VOView["GlueCEPolicyMaxRunningJobs"]);
+	target.MaxRunningJobs =
+	  stringtoi(VOView["GlueCEPolicyMaxRunningJobs"]);
       else if (CE["GlueCEPolicyMaxRunningJobs"])
 	target.MaxRunningJobs = stringtoi(CE["GlueCEPolicyMaxRunningJobs"]);
 
       if (VOView["GlueCEPolicyMaxWaitingJobs"])
-	target.MaxWaitingJobs = stringtoi(VOView["GlueCEPolicyMaxWaitingJobs"]);
+	target.MaxWaitingJobs =
+	  stringtoi(VOView["GlueCEPolicyMaxWaitingJobs"]);
       else if (CE["GlueCEPolicyMaxWaitingJobs"])
 	target.MaxWaitingJobs = stringtoi(CE["GlueCEPolicyMaxWaitingJobs"]);
 
@@ -440,9 +456,11 @@ namespace Arc {
 
       // is this correct ???
       if (VOView["GlueCEPolicyAssignedJobSlots"])
-	target.MaxUserRunningJobs = stringtoi(VOView["GlueCEPolicyAssignedJobSlots"]);
+	target.MaxUserRunningJobs =
+	  stringtoi(VOView["GlueCEPolicyAssignedJobSlots"]);
       else if (CE["GlueCEPolicyAssignedJobSlots"])
-	target.MaxUserRunningJobs = stringtoi(CE["GlueCEPolicyAssignedJobSlots"]);
+	target.MaxUserRunningJobs =
+	  stringtoi(CE["GlueCEPolicyAssignedJobSlots"]);
 
       if (VOView["MaxSlotsPerJob"])
 	target.MaxSlotsPerJob = stringtoi(VOView["MaxSlotsPerJob"]);
@@ -454,12 +472,14 @@ namespace Arc {
       // target.SchedulingPolicy      - not available in schema
 
       if (SubCluster["GlueHostMainMemoryVirtualSize"])
-	target.MaxMemory = stringtoi(SubCluster["GlueHostMainMemoryVirtualSize"]);
+	target.MaxMemory =
+	  stringtoi(SubCluster["GlueHostMainMemoryVirtualSize"]);
 
       // target.MaxDiskSpace          - not available in schema
 
       if (VOView["GlueCEInfoDefaultSE"])
-	target.DefaultStorageService = (std::string)VOView["GlueCEInfoDefaultSE"];
+	target.DefaultStorageService =
+	  (std::string)VOView["GlueCEInfoDefaultSE"];
       else if (CE["GlueCEInfoDefaultSE"])
 	target.DefaultStorageService = (std::string)CE["GlueCEInfoDefaultSE"];
 
@@ -502,16 +522,16 @@ namespace Arc {
 
       for (XMLNode node =
 	     SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
-	   node; ++node){
+	   node; ++node) {
 	ApplicationEnvironment RT;
-	RT.Name = (std::string) node;
+	RT.Name = (std::string)node;
 	target.ApplicationEnvironments.push_back(RT);
       }
       //Register target in TargetGenerator list
       mom.AddTarget(target);
     }
 
-    delete (ThreadArg *)arg;
+    delete thrarg;
     mom.RetrieverDone();
   }
 

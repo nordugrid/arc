@@ -1,37 +1,34 @@
-/**
- * Class for bulk ARC1 job control
- */
-#ifndef ARCLIB_JOBARC1CONTROLLER
-#define ARCLIB_JOBARC1CONTROLLER
+#ifndef __ARC_JOBCONTROLLERARC1_H__
+#define __ARC_JOBCONTROLLERARC1_H__
 
 #include <arc/client/JobController.h>
 
-namespace Arc{
+namespace Arc {
 
   class ChainContext;
   class Config;
-  class DataHandle;
+  class URL;
 
-  class JobControllerARC1 : public JobController {
-    
-  public: 
-    
-    JobControllerARC1(Arc::Config *cfg);
-    ~JobControllerARC1();
-    
-    void GetJobInformation();
-    static ACC *Instance(Config *cfg, ChainContext *cxt);
-    
+  class JobControllerARC1
+    : public JobController {
+
   private:
-    static Logger logger;
-    bool GetThisJob(Job ThisJob, const std::string& downloaddir);
-    bool CleanThisJob(Job ThisJob, bool force);
-    bool CancelThisJob(Job ThisJob);
-    URL GetFileUrlThisJob(Job ThisJob, const std::string& whichfile);
-    std::list<std::string> GetDownloadFiles(DataHandle& dir,
-					    const std::string& dirname = "");
-  };
-  
-} //namespace ARC
+    JobControllerARC1(Arc::Config *cfg);
+  public:
+    ~JobControllerARC1();
 
-#endif
+    void GetJobInformation();
+    static ACC* Instance(Config *cfg, ChainContext *cxt);
+
+  private:
+    bool GetJob(const Job& job, const std::string& downloaddir);
+    bool CleanJob(const Job& job, bool force);
+    bool CancelJob(const Job& job);
+    URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
+
+    static Logger logger;
+  };
+
+} // namespace Arc
+
+#endif // __ARC_JOBCONTROLLERARC1_H__

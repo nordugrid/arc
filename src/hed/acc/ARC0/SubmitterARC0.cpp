@@ -13,11 +13,11 @@ namespace Arc {
   Logger SubmitterARC0::logger(Submitter::logger, "ARC0");
 
   SubmitterARC0::SubmitterARC0(Config *cfg)
-    : Submitter(cfg) {}
+    : Submitter(cfg, "ARC0") {}
 
   SubmitterARC0::~SubmitterARC0() {}
 
-  ACC *SubmitterARC0::Instance(Config *cfg, ChainContext*) {
+  ACC* SubmitterARC0::Instance(Config *cfg, ChainContext*) {
     return new SubmitterARC0(cfg);
   }
 
@@ -72,6 +72,7 @@ namespace Arc {
     }
 
     // Prepare contact url for information about this job
+    URL infoEndpoint(cluster);
     infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
 				  jobid.str() + ")");
     infoEndpoint.ChangeLDAPScope(URL::subtree);
@@ -81,5 +82,5 @@ namespace Arc {
 
     return true;
   }
-  
+
 } // namespace Arc

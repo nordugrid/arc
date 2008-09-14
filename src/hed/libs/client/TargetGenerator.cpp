@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <algorithm>
 #include <iostream>
 
@@ -12,74 +16,67 @@
 #include <arc/client/UserConfig.h>
 
 namespace Arc {
-  
+
   Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
-  
-  TargetGenerator::TargetGenerator(const UserConfig& ucfg,
-				   const std::list<std::string>& clusterselect,
-				   const std::list<std::string>& /* clusterreject */,
-				   const std::list<std::string>& indexurls) 
-    : threadCounter(0){
+
+  TargetGenerator::TargetGenerator(const UserConfig& usercfg,
+				   const std::list<std::string>& clusters,
+				   const std::list<std::string>& indexurls)
+    : loader(NULL),
+      threadCounter(0) {
+
+    if (!usercfg.ResolveAlias(clusters, indexurls, clusterselect,
+			      clusterreject, indexselect, indexreject))
+      return;
+
+    if (clusterselect.empty() && indexselect.empty())
+      if (!usercfg.DefaultServices(clusterselect, indexselect))
+	return;
 
     ACCConfig acccfg;
     NS ns;
-    Config mcfg(ns);
-    acccfg.MakeConfig(mcfg);
+    Config cfg(ns);
+    acccfg.MakeConfig(cfg);
+    int targetcnt = 0;
 
-    bool ClustersSpecified = false;
-    bool IndexServersSpecified = false;
-    int TargetURL = 0;
+    for (URLListMap::iterator it = clusterselect.begin();
+	 it != clusterselect.end(); it++)
+      for (std::list<URL>::iterator it2 = it->second.begin();
+	   it2 != it->second.end(); it2++) {
 
-    // first add to config element the specified target clusters (if any)
-    for (std::list<std::string>::const_iterator it = clusterselect.begin();
-	 it != clusterselect.end(); it++) {
+	XMLNode retriever = cfg.NewChild("ArcClientComponent");
+	retriever.NewAttribute("name") = "TargetRetriever" + it->first;
+	retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
+	usercfg.ApplySecurity(retriever); // check return value ?
+	XMLNode url = retriever.NewChild("URL") = it2->str();
+	url.NewAttribute("ServiceType") = "computing";
+	targetcnt++;
+      }
 
-      std::string::size_type colon = it->find_first_of(":");
-      std::string GridFlavour = it->substr(0, colon);
-      std::string SomeURL = it->substr(colon + 1);
+    for (URLListMap::iterator it = indexselect.begin();
+	 it != indexselect.end(); it++)
+      for (std::list<URL>::iterator it2 = it->second.begin();
+	   it2 != it->second.end(); it2++) {
 
-      XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
-      ThisRetriever.NewAttribute("name") = "TargetRetriever" + GridFlavour;
-      ThisRetriever.NewAttribute("id") = "retriever" + tostring(TargetURL);
-      ucfg.ApplySecurity(ThisRetriever); // check return value ?
-      XMLNode ThisURL = ThisRetriever.NewChild("URL") = SomeURL;
-      ThisURL.NewAttribute("ServiceType") = "computing";
+	XMLNode retriever = cfg.NewChild("ArcClientComponent");
+	retriever.NewAttribute("name") = "TargetRetriever" + it->first;
+	retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
+	usercfg.ApplySecurity(retriever); // check return value ?
+	XMLNode url = retriever.NewChild("URL") = it2->str();
+	url.NewAttribute("ServiceType") = "index";
+	targetcnt++;
+      }
 
-      TargetURL++;
-      ClustersSpecified = true;
-    }
-
-    // next steps are index servers (giis'es in ARC0)
-    for (std::list<std::string>::const_iterator it = indexurls.begin();
-	 it != indexurls.end(); it++) {
-
-      std::string::size_type colon = it->find_first_of(":");
-      std::string GridFlavour = it->substr(0, colon);
-      std::string SomeURL = it->substr(colon + 1);
-
-      XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
-      ThisRetriever.NewAttribute("name") = "TargetRetriever" + GridFlavour;
-      ThisRetriever.NewAttribute("id") = "retriever" + tostring(TargetURL);
-      ucfg.ApplySecurity(ThisRetriever); // check return value ?
-      XMLNode ThisURL = ThisRetriever.NewChild("URL") = SomeURL;
-      ThisURL.NewAttribute("ServiceType") = "index";
-
-      TargetURL++;
-      IndexServersSpecified = true;
-    }
-
-    if (TargetURL == 0) {
-      std::cout << "No Target URL specified (or no alias match), "
-	"no targets will be found" << std::endl;
-    }
-
-    //finally, initialize loader
-    loader = new Loader(&mcfg);
+    loader = new Loader(&cfg);
   }
 
   TargetGenerator::~TargetGenerator() {}
 
   void TargetGenerator::GetTargets(int targetType, int detailLevel) {
+
+    if (!loader)
+      return;
+
     TargetRetriever *TR;
     for (int i = 0;
 	 (TR = dynamic_cast<TargetRetriever*>(loader->getACC("retriever" +
@@ -88,6 +85,7 @@ namespace Arc {
       TR->GetTargets(*this, targetType, detailLevel);
     while (threadCounter > 0)
       threadCond.wait(threadMutex);
+
     logger.msg(INFO, "Number of Targets found: %ld", foundTargets.size());
   }
 
@@ -96,6 +94,23 @@ namespace Arc {
   }
 
   bool TargetGenerator::AddService(const URL& url) {
+
+    for (URLListMap::iterator it = clusterreject.begin();
+	 it != clusterreject.end(); it++)
+      if (std::find(it->second.begin(), it->second.end(), url) !=
+	  it->second.end()) {
+	logger.msg(INFO, "Rejecting service: %s", url.str());
+	return false;
+      }
+
+    for (URLListMap::iterator it = indexreject.begin();
+	 it != indexreject.end(); it++)
+      if (std::find(it->second.begin(), it->second.end(), url) !=
+	  it->second.end()) {
+	logger.msg(INFO, "Rejecting service: %s", url.str());
+	return false;
+      }
+
     bool added = false;
     Glib::Mutex::Lock serviceLock(serviceMutex);
     if (std::find(foundServices.begin(), foundServices.end(), url) ==

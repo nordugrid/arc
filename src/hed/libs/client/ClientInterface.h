@@ -55,7 +55,7 @@ namespace Arc {
     MCC_Status process(PayloadRawInterface *request,
 		       PayloadStreamInterface **response, bool tls);
     // PayloadStreamInterface *stream();
-    MCC *GetEntry() {
+    MCC* GetEntry() {
       return tls_entry ? tls_entry : tcp_entry;
     }
     virtual void Load();
@@ -89,7 +89,7 @@ namespace Arc {
 		       uint64_t range_start, uint64_t range_end,
 		       PayloadRawInterface *request,
 		       HTTPClientInfo *info, PayloadRawInterface **response);
-    MCC *GetEntry() {
+    MCC* GetEntry() {
       return http_entry;
     }
     virtual void Load();
@@ -107,12 +107,12 @@ namespace Arc {
     : public ClientHTTP {
   public:
     /** Constructor creates MCC chain and connects to server.
-       	cfg - common configuration,
-       	host - hostname of remote server,
-       	port - TCP port of remote server,
-       	tls - true if connection to use HTTPS, false for HTTP,
-       	path - internal path of service to be contacted.
-       	TODO: use URL.
+	cfg - common configuration,
+	host - hostname of remote server,
+	port - TCP port of remote server,
+	tls - true if connection to use HTTPS, false for HTTP,
+	path - internal path of service to be contacted.
+	TODO: use URL.
      */
     ClientSOAP()
       : soap_entry(NULL) {}
@@ -124,7 +124,7 @@ namespace Arc {
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action, PayloadSOAP *request,
 		       PayloadSOAP **response);
-    MCC *GetEntry() {
+    MCC* GetEntry() {
       return soap_entry;
     }
     virtual void Load();

@@ -1,3 +1,4 @@
+src/clients/arclib/client.xml.example
 src/clients/echo/echo_client.xml
 src/tests/echo/echo.xml
 src/tests/echo/echo.wsdl
