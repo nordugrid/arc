@@ -14,6 +14,7 @@ ALIVE = 'alive'
 CREATING = 'creating'
 INVALID = 'invalid'
 DELETED = 'deleted'
+THIRDWHEEL = 'thirdwheel'
 
 class Shepherd:
 
@@ -211,6 +212,25 @@ class Shepherd:
                                             # TODO: this should be done in some other thread
                                         else:
                                             self.log('DEBUG', 'checkingThread error, bartender responded', success)
+                                    elif alive_replicas > needed_replicas:
+                                        self.log('DEBUG', '\n\nFile', GUID, 'has %d more replicas than needed.'%(alive_replicas-needed_replicas))
+                                        self.changeState(referenceID, THIRDWHEEL)
+                            # or if this replica is not needed
+                            elif state == THIRDWHEEL:
+                                # first we get the file's metadata from the librarian
+                                metadata = self.librarian.get([GUID])[GUID]
+                                # get the number of THIRDWHEELS not on this Shepherd (self.serviceID)
+                                thirdwheels = len([property for (section, property), value in metadata.items()
+                                                   if section == 'locations' and value == THIRDWHEEL and not property.startswith(self.serviceID)])
+                                # if no-one else have a thirdwheel replica, we delete this replica
+                                if thirdwheels == 0:
+                                    #bsuccess = self.backend.remove(localID)
+                                    #self.store.set(referenceID, None)
+                                    self.changeState(referenceID, DELETED)
+                                # else we sheepishly set the state back to ALIVE
+                                else:
+                                    self.changeState(referenceID, ALIVE)
+                                    state = ALIVE
                             # or if this replica is INVALID
                             elif state == INVALID:
                                 self.log('DEBUG', '\n\nI have an invalid replica of file', GUID)
