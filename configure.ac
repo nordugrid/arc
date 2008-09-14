@@ -945,6 +945,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/storage/shepherd/Makefile 
                  src/services/storage/ahash/Makefile 
                  src/services/storage/bartender/Makefile 
+                 src/services/storage/store/Makefile 
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
                  src/services/wrappers/Makefile

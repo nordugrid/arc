@@ -8,6 +8,6 @@ man_MANS = arc_storage_cli.1
 
 EXTRA_DIST = $(python_DATA) $(doc_DATA) $(bin_SCRIPTS)
 
-SUBDIRS = librarian cli shepherd ahash bartender
-DIST_SUBDIRS = librarian cli shepherd ahash bartender
+SUBDIRS = librarian cli shepherd ahash bartender store
+DIST_SUBDIRS = librarian cli shepherd ahash bartender store
 
