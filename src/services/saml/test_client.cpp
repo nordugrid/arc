@@ -7,6 +7,23 @@
 #include <fstream>
 #include <signal.h>
 
+#include <xmlsec/base64.h>
+#include <xmlsec/errors.h>
+#include <xmlsec/xmltree.h>
+#include <xmlsec/xmldsig.h>
+#include <xmlsec/xmlenc.h>
+#include <xmlsec/templates.h>
+#include <xmlsec/crypto.h>
+#include <xmlsec/openssl/app.h>
+
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <openssl/rand.h>
+#ifdef CHARSET_EBCDIC
+#include <openssl/ebcdic.h>
+#endif
+
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -15,23 +32,21 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
+#include <arc/DateTime.h>
+#include <arc/GUID.h>
 #include <arc/credential/Credential.h>
 
-#include <lasso/lasso.h>
-#include <lasso/saml-2.0/assertion_query.h>
-#include <lasso/xml/saml-2.0/saml2_attribute.h>
-#include <lasso/xml/saml-2.0/saml2_attribute_value.h>
-#include <lasso/xml/saml-2.0/samlp2_attribute_query.h>
-#include <lasso/xml/saml-2.0/saml2_assertion.h>
-#include <lasso/xml/saml-2.0/saml2_audience_restriction.h>
-#include <lasso/xml/saml-2.0/samlp2_response.h>
-#include <lasso/xml/saml-2.0/saml2_attribute_statement.h>
-#include <lasso/xml/xml.h>
+#include "../../hed/libs/common/XmlSecUtils.h"
+#include "../../hed/libs/common/XMLSecNode.h"
 
+#define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
+#define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
+
+#define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
+#define DSIG_NAMESPACE   "http://www.w3.org/2000/09/xmldsig#"
 
 ///A example about how to compose a SAML <AttributeQuery> and call the Service_AA service, by
-///using lasso library to compose <AttributeQuery> and process the <Response>. A example with 
-/// the same functioanlity but by using opensaml library will be available later.
+///using xmlsec library to compose <AttributeQuery> and process the <Response>.
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
@@ -59,66 +74,56 @@ int main(void) {
   //    Compose request and send to aa service
   // -------------------------------------------------------
   //Compose request
-  LassoAssertionQuery *assertion_query;
-  assertion_query = NULL;
-  lasso_init();
-  LassoServer *server;
-  server = lasso_server_new("./sp_saml_metadata.xml", "./key.pem", NULL, "./cert.pem");
-  lasso_server_add_provider(server, LASSO_PROVIDER_ROLE_ATTRIBUTEAUTHORITY, "./aa_saml_metadata.xml", "./cert.pem", "./ca.pem");
-  assertion_query = lasso_assertion_query_new (server);
-  if(assertion_query == NULL) { logger.msg(Arc::DEBUG, "lasso_assertion_query_new() failed"); return -1; }
+  Arc::NS ns;
+  ns["saml"] = SAML_NAMESPACE;
+  ns["samlp"] = SAMLP_NAMESPACE;
 
-  //The LocalNameIdentifier could be parsed from the local credential
-  std::string identity_sp("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
-    <Federation xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\
-       RemoteProviderID=\"https://idp.com/SAML\"\
-       FederationDumpVersion=\"2\">\
-      <LocalNameIdentifier>\
-        <saml:NameID Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName\"></saml:NameID>\
-      </LocalNameIdentifier>\
-    </Federation>\
-   </Identity>");
   std::string cert("./cert.pem");
   std::string key("./key.pem");
   std::string cafile("./ca.pem");
   ArcLib::Credential cred(cert, key, "", cafile);
   std::string local_dn = cred.GetDN();
 
-  Arc::XMLNode id_node(identity_sp);
-  id_node["Federation"]["LocalNameIdentifier"]["NameID"] = local_dn;
-  //The "RemoteProviderID" could be also set here
-  id_node.GetXML(identity_sp);
+  //Compose <samlp:AttributeQuery/>
+  Arc::XMLNode attr_query(ns, "samlp:AttributeQuery");
+  std::string sp_name("https://sp.com/SAML"); //TODO
+  std::string query_id = Arc::UUID();
+  attr_query.NewAttribute("ID") = query_id;
+  Arc::Time t;
+  std::string current_time = t.str(Arc::UTCTime);
+  attr_query.NewAttribute("IssueInstant") = current_time;
+  attr_query.NewAttribute("Version") = std::string("2.0");
+  attr_query.NewChild("saml:Issuer") = sp_name;
 
-  lasso_profile_set_identity_from_dump(LASSO_PROFILE(assertion_query), identity_sp.c_str());
-
-  std::string remote_provide_id = (std::string)(id_node["Federation"].Attribute("RemoteProviderID"));
-  int rc = lasso_assertion_query_init_request(assertion_query, (char*)(remote_provide_id.c_str()), LASSO_HTTP_METHOD_SOAP, LASSO_ASSERTION_QUERY_REQUEST_TYPE_ATTRIBUTE);
-  if(rc != 0) { logger.msg(Arc::ERROR, "lasso_assertion_query_init_request failed"); return -1; }
+  //<saml:Subject/>
+  Arc::XMLNode subject = attr_query.NewChild("saml:Subject");
+  Arc::XMLNode name_id = subject.NewChild("saml:NameID");
+  name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName");
+  name_id = local_dn;
 
   //Add one or more <Attribute>s into AttributeQuery here, which means the Requestor would
   //get these <Attribute>s from AA
-  LassoSaml2Attribute *attribute;
-  attribute = LASSO_SAML2_ATTRIBUTE(lasso_saml2_attribute_new());
-  attribute->Name = g_strdup("urn:oid:1.3.6.1.4.1.5923.1.1.1.6");
-  attribute->NameFormat = g_strdup("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
-  attribute->FriendlyName = g_strdup("eduPersonPrincipalName");
-  //Since here the request only would get the attributevalue from the AA,
-  //we don't specify the AttributeValue inside the Attribute.
+  //<saml:Attribute/>
+  Arc::XMLNode attribute = attr_query.NewChild("saml:Attribute");
+  attribute.NewAttribute("Name")=std::string("urn:oid:1.3.6.1.4.1.5923.1.1.1.6");
+  attribute.NewAttribute("NameFormat")=std::string("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
+  attribute.NewAttribute("FriendlyName")=std::string("eduPersonPrincipalName");
 
-  LassoSamlp2AttributeQuery *attribute_query;
-  attribute_query = LASSO_SAMLP2_ATTRIBUTE_QUERY(LASSO_PROFILE(assertion_query)->request);
-  attribute_query->Attribute = g_list_append(attribute_query->Attribute, attribute);
+  Arc::init_xmlsec();
+  Arc::XMLSecNode attr_query_secnd(attr_query);
+  std::string attr_query_idname("ID");
+  attr_query_secnd.AddSignatureTemplate(attr_query_idname, Arc::XMLSecNode::RSA_SHA1);
+  if(attr_query_secnd.SignNode(key,cert)) {
+    std::cout<<"Succeed to sign the signature under <samlp:AttributeQuery/>"<<std::endl;
+  }
 
-  //Build the soap message
-  rc = lasso_assertion_query_build_request_msg(assertion_query);
-  if(rc != 0) { logger.msg(Arc::ERROR, "lasso_assertion_query_build_request_msg failed"); return -1; }
+  std::string str;
+  attr_query.GetXML(str);
+  std::cout<<"++++ "<<str<<std::endl;
 
-  std::string assertionRequestBody(LASSO_PROFILE(assertion_query)->msg_body);
-  if(assertionRequestBody.empty()) { logger.msg(Arc::ERROR,"assertionRequestBody shouldn't be NULL"); return -1; }
-  std::cout<<"Request: ---assertionRequestBody: "<<assertionRequestBody<<std::endl;
-
-  //Conver the lasso-generated soap message into Arc's PayloasSOAP.
-  Arc::SOAPEnvelope envelope(assertionRequestBody);
+  Arc::NS soap_ns;
+  Arc::SOAPEnvelope envelope(soap_ns);
+  envelope.NewChild(attr_query);
   Arc::PayloadSOAP *payload = new Arc::PayloadSOAP(envelope);
 
   std::string tmp;
@@ -147,27 +152,111 @@ int main(void) {
     logger.msg(Arc::ERROR, "There is no response");
     return -1;
   };
+
   Arc::PayloadSOAP* resp = NULL;
   try {
    resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
   } catch(std::exception&) { };
   if(resp == NULL) {
     logger.msg(Arc::ERROR, "Response is not SOAP");
-    delete repmsg.Payload();
+    delete repmsg.Payload();  Arc::final_xmlsec();
     return -1;
   };
- 
-  std::string assertionResponseBody;
-  resp->GetXML(assertionResponseBody);
-  //Can't use logger here, because it has restriction for string length
-  //logger.msg(Arc::INFO, "Response: %s", assertionResponseBody);
-  std::cout<<"Response: "<<assertionResponseBody<<std::endl;
 
-  //Consume the response from AA, by using the original AssertionQuery Profile
-  rc = lasso_assertion_query_process_response_msg(assertion_query, (gchar*)(assertionResponseBody.c_str()));
-  if(rc != 0) { logger.msg(Arc::ERROR, "lasso_assertion_query_process_response_msg failed"); }
+  // -------------------------------------------------------
+  //   Comsume the response from aa service
+  // -------------------------------------------------------
+  //
+  //Consume the response from AA
+  Arc::XMLNode attr_resp;
+  
+  //<samlp:Response/>
+  attr_resp = (*resp).Body().Child(0);
+ 
+  //TODO: metadata processing.
+  //std::string aa_name = attr_resp["saml:Issuer"]; 
+ 
+  //Check validity of the signature on <samlp:Response/>
+  std::string resp_idname = "ID";
+  std::string cafile1 = "./ca.pem";
+  std::string capath1 = "";
+  Arc::XMLSecNode attr_resp_secnode(attr_resp);
+  if(attr_resp_secnode.VerifyNode(resp_idname, cafile1, capath1)) {
+    logger.msg(Arc::INFO, "Succeed to verify the signature under <samlp:Response/>");
+  }
+  else {
+    logger.msg(Arc::ERROR, "Failed to verify the signature under <samlp:Response/>");
+    delete repmsg.Payload(); Arc::final_xmlsec(); return -1;
+  }
+ 
+ 
+  //Check whether the "InResponseTo" is the same as the local ID
+  std::string responseto_id = (std::string)(attr_resp.Attribute("InResponseTo"));
+  if(query_id != responseto_id) {
+    logger.msg(Arc::INFO, "The Response is not going to this end");
+    delete repmsg.Payload(); Arc::final_xmlsec(); return -1;
+  }
+
+  std::string resp_time = attr_resp.Attribute("IssueInstant");
+
+  //<samlp:Status/>
+  std::string statuscode_value = attr_resp["samlp:Status"]["samlp:StatusCode"];
+  if(statuscode_value == "urn:oasis:names:tc:SAML:2.0:status:Success")
+    logger.msg(Arc::INFO, "The StatusCode is Success");
+
+  //<saml:Assertion/>
+  Arc::XMLNode assertion = attr_resp["saml:Assertion"];
+
+  //TODO: metadata processing.
+  //std::string aa_name = assertion["saml:Issuer"];
+ 
+  //Check validity of the signature on <saml:Assertion/>
+  std::string assertion_idname = "ID";
+  std::string cafile2 = "./ca.pem";
+  std::string capath2 = "";
+  Arc::XMLSecNode assertion_secnode(assertion);
+  if(assertion_secnode.VerifyNode(assertion_idname, cafile2, capath2)) {
+    logger.msg(Arc::INFO, "Succeed to verify the signature under <saml:Assertion/>");
+  }
+  else {
+    logger.msg(Arc::ERROR, "Failed to verify the signature under <saml:Assertion/>");
+    delete repmsg.Payload(); Arc::final_xmlsec(); return -1;
+  }
+
+  //<saml:Subject/>, TODO: 
+  Arc::XMLNode subject_nd = assertion["saml:Subject"];
+
+  //<saml:Condition/>, TODO: Condition checking
+  Arc::XMLNode cond_nd = assertion["saml:Conditions"];
+
+  //<saml:AttributeStatement/>
+  Arc::XMLNode attr_statement = assertion["saml:AttributeStatement"];
+
+  //<saml:Attribute/>
+  Arc::XMLNode attr_nd;
+  std::vector<std::string> attributes_value;
+  for(int i=0;;i++) {
+    attr_nd = attr_statement["saml:Attribute"][i];
+    if(!attr_nd) break;
+
+    std::string name = attr_nd.Attribute("Name");
+    std::string nameformat = attr_nd.Attribute("NameFormat");
+    std::string friendname = attribute.Attribute("FriendlyName");
+
+    Arc::XMLNode attr_value = attr_nd["saml:AttributeValue"];
+
+    std::string str;
+    str.append("Name=").append(friendname).append(" Value=").append(attr_value);
+    attributes_value.push_back(str);
+  }
+
+  for(int i=0; i<attributes_value.size(); i++) {
+    std::cout<<"Attribute Value: "<<attributes_value[i]<<std::endl;  
+  }
 
   delete repmsg.Payload();
+
+  Arc::final_xmlsec();
 
   return 0;
 }
