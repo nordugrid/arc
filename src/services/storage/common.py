@@ -1,3 +1,5 @@
+import os, traceback
+
 # namespace URIs of the storage services
 ahash_uri = 'http://www.nordugrid.org/schemas/ahash'
 librarian_uri = 'http://www.nordugrid.org/schemas/librarian'
@@ -589,6 +591,7 @@ def splitLN(LN):
     # put the slashes back between the rest items
     dirname = '/'.join(parts)
     return rootguid, dirname, basename
+
 
 auth_mapping = {'identity' : ('Subject', 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'),
             'LN' : ('Resource', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/logicalname'),
