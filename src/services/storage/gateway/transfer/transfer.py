@@ -10,22 +10,25 @@ class Transfer:
 
                 print "Transfer Constructor..."
 
-        def transferData(self, request,options):
+        def transferData(self, hostnames,options):
 
                 print "Inside transferData function of Transfer .."
-		print request
-		
-		externalURL = 'gsiftp://'+str(request)		
-		
-		print "external URL "+externalURL
-		if options is None:		
-			status, output = commands.getstatusoutput('arcls '+externalURL)	
-		else:
-			status, output = commands.getstatusoutput('arcls '+options+' '+externalURL)
-		#print status
-		#print output
 		response = {}
-		response['1'] = (status,output)
+		for host in hostnames:
+				
+			externalURL = 'gsiftp://'+str(host)		
+			if not options:
+				print 'arcls '+externalURL		
+				status, output = commands.getstatusoutput('arcls '+externalURL)	
+			else:
+				print 'arcls '+str(options[0])+' '+str(externalURL)
+				status, output = commands.getstatusoutput('arcls '+str(options[0])+' '+str(externalURL))
+			print status
+			print output	
+			if status == 0 and output.find('ERROR') == -1 or output.find('Failed') == -1:
+				  
+				response[host] = (status,output)
+			
 		return response 
 
 class TransferService(Service):
@@ -44,12 +47,13 @@ class TransferService(Service):
                 print "\n ---"
 
                 request_node = get_child_nodes(inpayload.Child())
-                request = str(request_node[0].Get('hostname'))
-		options = str(request_node[0].Get('options'))
-		#print request 
-
-		response = self.transfer.transferData(request,options)
-		
+                hostnames = []
+		options = []
+		for index in range(len(request_node)):
+			hostnames.append(str(request_node[index].Get('hostname')))
+			options.append(str(request_node[0].Get('options')) )
+		response = self.transfer.transferData(hostnames,options)
+		print response
 		return create_response('transfer:transferData',
                                ['transfer:ID','transfer:status','transfer:output'], response, self.newSOAPPayload())
 		
