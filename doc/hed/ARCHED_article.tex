@@ -112,7 +112,7 @@ In the design of the HED, several goals and requirements were considered. These 
 
 The implementation language needed to be object oriented, efficient and provide easy access to system functionality. This eventually lead to the adoption of C++. but languages such as Java and Python were also considered at an early stage.
 
-External dependencies needed to be kept to a minimum while also taking into consideration their ubiquity or relative rarity as well as license related concerns. Software of this level of complexity must of course depend on many external libraries and components but each such dependenscy has been introduced only after due consideration.
+External dependencies needed to be kept to a minimum while also taking into consideration their ubiquity or relative rarity as well as license related concerns. Software of this level of complexity must of course depend on many external libraries and components but each such dependency has been introduced only after due consideration.
 
 Conservation of resources was an important goal. The present design enables many services sharing both the same process and the same network ports or even port while at the same time exhibiting a remarkably low memory footprint.
 
@@ -124,7 +124,7 @@ Conservation of resources was an important goal. The present design enables many
 \section{Technical design}
 
 %How was this implemented, dynamic loading, mcc...
-In the technical design it turned out that the endeavours to provide dynamic loading, portability and a well tested high level memory management could all be greatly assisted by introducing glibmm - the C++ interface to the gnome projects library for memory management and related functionality. This enables the developers to write code in a way easily portable across various operating systems and architectures.
+In the technical design it turned out that the endeavors to provide dynamic loading, portability and a well tested high level memory management could all be greatly assisted by introducing glibmm - the C++ interface to the gnome projects library for memory management and related functionality. This enables the developers to write code in a way easily portable across various operating systems and architectures.
 
 %Most of the configuration 
 
@@ -133,7 +133,7 @@ The HED itself means three things:
 
 \item the daemon (called \texttt{arched}) which hooks up the system and initialize components the way as it is described by the configuration files. This configuration describes the components and their relations to each other. In optimal cases these single services run on any node where ARC1 is deployed and started. Without loadable components the daemon itself does nothing usefull.
 
-\item sometimes using the HED terms to refer to collection of libraries which is used by service or other component developers. These libraries define interfaces and implement some common classes which may simplify the life of service and component developes however only few of these classes are mandatory to use to make the components and services loadable and hookable by the daemon.
+\item sometimes using the HED terms to refer to collection of libraries which is used by service or other component developers. These libraries define interfaces and implement some common classes which may simplify the life of service and component developers however only few of these classes are mandatory to use to make the components and services loadable and hookable by the daemon.
 
 \item the collection of components implementing minimal set of protocols needed for implementing so called Web Services.
 
@@ -146,13 +146,13 @@ Unless otherwise stated the term HED will be used through this document to refer
 
 \texttt{Relevant classes: Arc::MCC, Arc::Loader}
 
-In the HED data channels to the outside world may be set up by chains of small processing units called Message Chain Components (MCCs). The chain is an ordered list of MCCs and their interconection can be described in the configuration file. The MCCs work on units called Messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general Attributes and Security Attributes where information relevant to each protocol is accumulated as the message progresses. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configured.
+In the HED data channels to the outside world may be set up by chains of small processing units called Message Chain Components (MCCs). The chain is an ordered list of MCCs and their interconnection can be described in the configuration file. The MCCs work on units called Messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general Attributes and Security Attributes where information relevant to each protocol is accumulated as the message progresses. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configured.
 
 Each MCC has an entry method \texttt{process()} which is called with Message being processed. It then processes Message by modifying it or creating new Message. Then MCC calls entry method of next MCC in the chain. For information how messages are handled and about memory management policies please see API description of MCC class in \cite{hed-api}.
 
-The developer who writes an MCC is free to choose any 3rd party library and component to implement the functionalty of the MCC but at least currently the MCCs should be written in the same language as the HED was written (C++) and should use the \texttt{MCC} interface class and \texttt{Message} class provided by \texttt{arcloader} and \texttt{arcmessage} libraries of ARC1.
+The developer who writes an MCC is free to choose any 3rd party library and component to implement the functionality of the MCC but at least currently the MCCs should be written in the same language as the HED was written (C++) and should use the \texttt{MCC} interface class and \texttt{Message} class provided by \texttt{arcloader} and \texttt{arcmessage} libraries of ARC1.
 
-The MCC may implement some routing algorithm which means one MCC may have connections to multiple other MCCs. Typical scenario is that the HTTP MCC at the server side routes the HTTP messages with POST HTTP operation to a SOAP MCC but the messages with GET operation to for example a simple HTTPD service component. For that purpose <next> elements in MCC configuraton may have optional \texttt{id} attribute which allows to assign labels to all chain links to next MCCs in the chain. Supported labels are MCC dependant. By default simple MCCs support only one unnamed link. The MCCs with routing capabilities must have all supported labels documented.
+The MCC may implement some routing algorithm which means one MCC may have connections to multiple other MCCs. Typical scenario is that the HTTP MCC at the server side routes the HTTP messages with POST HTTP operation to a SOAP MCC but the messages with GET operation to for example a simple HTTP service component. For that purpose <next> elements in MCC configuration may have optional \texttt{id} attribute which allows to assign labels to all chain links to next MCCs in the chain. Supported labels are MCC dependant. By default simple MCCs support only one unnamed link. The MCCs with routing capabilities must have all supported labels documented.
 
 As the data is passed through the individual MCCs, they each populate structures with both general attributes and special security attributes that are available at that particular protocol level.
 
@@ -161,7 +161,7 @@ In general every MCC have optimal and natural places in certain chains and this 
 
 \subsubsection{Server and Client Side MCCs}
 
-Most of the MCCs has a client and a server version because the behavior of an MCC should be different depending on whether it is sitting on the server or client side. The typical scenario here is illustrated by the TCP MCC which should listen and wait for incomming messages on a socket on the server side but call \texttt{connect()} on the client side.
+Most of the MCCs has a client and a server version because the behavior of an MCC should be different depending on whether it is sitting on the server or client side. The typical scenario here is illustrated by the TCP MCC which should listen and wait for incoming messages on a socket on the server side but call \texttt{connect()} on the client side.
 
 Server and Client side MCCs are separate elements although definitely sharing some code and normally provided inside same plugin module.
 
@@ -170,13 +170,13 @@ Server and Client side MCCs are separate elements although definitely sharing so
 
 \texttt{Relevant classes: Arc::Payload, Arc::PayloadRawInterface, Arc::PayloadRaw, Arc::PayloadStreamInterface, Arc::PayloadStream, Arc::PayloadSOAP}
 
-Main content of the information is transfered using the Payload part of the Message. There are no limitations on functionality of Payload object except that it must be inherited from MessagePayload class. Despite being flexible such approach would be useless. This is why HED defines three Payload interfaces and their simplest implementations. All MCCs which are distributed with the HED use, implement and extend those interfaces. Those include:
+Main content of the information is transferred using the Payload part of the Message. There are no limitations on functionality of Payload object except that it must be inherited from MessagePayload class. Despite being flexible such approach would be useless. This is why HED defines three Payload interfaces and their simplest implementations. All MCCs which are distributed with the HED use, implement and extend those interfaces. Those include:
 
 \begin{enumerate}
 
 \item PayloadRawInterface and it's implementation PayloadRaw. This interface represents set of catenated in-memory chunks. It's meant to be used for information available as whole. And also for prepending and appending information without actually moving and copying data chunks in memory.
 
-\item PayloadStreamInterface and it's implementation PayloadStream. It covers case of sequentially accessible information. The main purpose of that Payload is to serve protocols which define continous data stream like TCP.
+\item PayloadStreamInterface and it's implementation PayloadStream. It covers case of sequentially accessible information. The main purpose of that Payload is to serve protocols which define continuous data stream like TCP.
 
 \item PayloadSOAP represents parsed SOAP message. It's introduced to cover need for writing SOAP based Web Services in unified way.
 
@@ -203,9 +203,9 @@ Here only basic information about security related objects is presented. For mor
 
 Security Attributes are storing various aspects of Message useful for authorization decisions to be made. Those normally include operation being requested, target of operation and identity of subject making request. They can also contain authorization policies. Actually nothing stops from storing an other type of information but there is no convention developed for that.
 
-The Secuirity Attributes are stored as key and value pairs. Each key may have only single value attached. Keys are simple strings. By convention each MCC or Security Handler (see below) produce Security Attribute with name corresponding to protocol name. For example Security Attribute stored under name TLS holds information collected at Transport Level Security layer.
+The Security Attributes are stored as key and value pairs. Each key may have only single value attached. Keys are simple strings. By convention each MCC or Security Handler (see below) produce Security Attribute with name corresponding to protocol name. For example Security Attribute stored under name TLS holds information collected at Transport Level Security layer.
 
-The value if Secuirity Attribute is an object of class inherited from SecAttr. The HED implements class SecAttr which serves as definition of interface for all Security Attributes. It defines way collected information may be turned into useful format. For that each Security Attribute value implements method Export for converting internal information into one of supported formats. Currently only implemented is ARC Authorization Request/Policy (see below). Please see API description of SecAttr and MessageAuth classes in \cite{hed-api} for more information.
+The value if Security Attribute is an object of class inherited from SecAttr. The HED implements class SecAttr which serves as definition of interface for all Security Attributes. It defines way collected information may be turned into useful format. For that each Security Attribute value implements method Export for converting internal information into one of supported formats. Currently only implemented is ARC Authorization Request/Policy (see below). Please see API description of SecAttr and MessageAuth classes in \cite{hed-api} for more information.
 
 Each MCC developed inside and outside the HED must come with explanation of generated and consumed Security Attributes. Dedicated components for dealing with Security Attribute - Security Handlers are described below.
 
@@ -221,7 +221,7 @@ The Security Handlers are arranged into named queues. Elements in every queue ar
 
 \subsection{Services and Clients}
 
-The services are dynamically loaded on start up just like the MCCs. They almost identic to MCCs with an exception that they constitute the last link in the Message Chain. They are attached to the Chain in the same manner as other MCCs. But differently from MCC the \texttt{process()} method of the Service does not pass Message to other components of the Chain. Instead they have to process incoming Messages and produce outgoing ones.
+The services are dynamically loaded on start up just like the MCCs. They are almost identical to MCCs with an exception that they constitute the last link in the Message Chain. They are attached to the Chain in the same manner as other MCCs. But differently from MCC the \texttt{process()} method of the Service does not pass Message to other components of the Chain. Instead they have to process incoming Messages and produce outgoing ones.
 
 The clients are not represented by any specific component. The client code sees the Chain as single object with named entry points. Those entries are used by clients to insert request Message and get result Message on output. For simplifying task of writing clients there is library \texttt{arcclient} provided which wraps task of creating Chains and Messages for widely used SOAP, HTTP, TLS, TCP communications.
 
@@ -230,7 +230,7 @@ The clients are not represented by any specific component. The client code sees 
 
 \texttt{Relevant classes: Arc::Plexer }
 
-In general case multiple Services living in the HED so the incomming Message should route to the proper Service. The Plexer MCC does this job. It takes the the ENDPOINT attributes of the message collected by other MCCs compares this attribute to regular expression defined in the configuration file and forward the message to the all matching service. It acts as a dispacher. The Plexer is also special in a sence that it is not a plugin but part of the \texttt{arcloader} library. 
+In general case multiple Services living in the HED so the incoming Message should route to the proper Service. The Plexer MCC does this job. It takes the the ENDPOINT attributes of the message collected by other MCCs compares this attribute to regular expression defined in the configuration file and forward the message to the all matching service. It acts as a dispatcher. The Plexer is also special in a sense that it is not a plugin but part of the \texttt{arcloader} library. 
 
 This Plexer provides only basic functionality and is capable of doing only simple routing. But because each MCC has multiple routing capabilities it is possible to provide pluggable MCC implementing more sophisticated and/or more specific routing algorithms.
 
@@ -241,7 +241,7 @@ This Plexer provides only basic functionality and is capable of doing only simpl
 
 For reporting errors each \texttt{process()} method returns instance of MCC\_Status class. That object carries predefined set of common error codes.
 
-This way for error reporting is mostly meant to be used for reporting problems related to code execution. For errors caused by processing corresponding protocol MCC should generate proper response Message which carries error description. Only if protocol does not provide error handling MCC\_Status should be used. It is also advisable to convert MCC\_Status error obtained from next MCC in the Chain into protocol psecific error Message if possible.
+This way for error reporting is mostly meant to be used for reporting problems related to code execution. For errors caused by processing corresponding protocol MCC should generate proper response Message which carries error description. Only if protocol does not provide error handling MCC\_Status should be used. It is also advisable to convert MCC\_Status error obtained from next MCC in the Chain into protocol specific error Message if possible.
 
 
 \subsection{Instantiation of the Chain}
@@ -256,15 +256,15 @@ The configuration of Loader is made of following elements (see also configuratio
 
 \begin{itemize}
 
-\item \texttt{Chain} is base element. It has no special meaning for configuration of chain and is only sed to group other elements in a logical way. Chains may be nested.
+\item \texttt{Chain} is base element. It has no special meaning for configuration of chain and is only used to group other elements in a logical way. Chains may be nested.
 
-\item \texttt{Component} represents the MCC. It's attribute \texttt{name} defines name of MCC which has to be instantiated. This MCC is being looked among those contained in modules loaded by \texttt{ModuleManager} element. If not found then the Loader tries to find module with name corresponding to name of the MCC. Each MCC also must have unique identifier specified by \texttt{id} attribute. Subelement \texttt{next} specifies link to next MCC in the Chain. It uses uinique identifier specified by \texttt{id}. The \texttt{next} element may have an optional text which is used to distinguish different Message propagation path in MCC specific way. The \texttt{SecurityHandler} subelement defines the Security Handler and queue ato which it has to be attached. Also attribute \texttt{entry} my be used to create an entry point to the Chain.
+\item \texttt{Component} represents the MCC. It's attribute \texttt{name} defines name of MCC which has to be instantiated. This MCC is being looked among those contained in modules loaded by \texttt{ModuleManager} element. If not found then the Loader tries to find module with name corresponding to name of the MCC. Each MCC also must have unique identifier specified by \texttt{id} attribute. Subelement \texttt{next} specifies link to next MCC in the Chain. It uses unique identifier specified by \texttt{id}. The \texttt{next} element may have an optional text which is used to distinguish different Message propagation path in MCC specific way. The \texttt{SecurityHandler} subelement defines the Security Handler and queue to which it has to be attached. Also attribute \texttt{entry} my be used to create an entry point to the Chain.
 
 \item \texttt{Plexer} element instantiates Plexer component. It's configuration is similar to one of \texttt{Component} element.
 
 \item \texttt{Service} element defines plugin implementing final Component in the Chain - service. Form Loader point of view it's configuration is identical to that of the \texttt{Component}.
 
-\item \texttt{ModuleManager} defines parameters needed to find loadable modules containiong plugins. Currently only subelement \texttt{path} is supported whihc defines path on file system where loadable modules may be found.
+\item \texttt{ModuleManager} defines parameters needed to find loadable modules containing plugins. Currently only subelement \texttt{path} is supported which defines path on file system where loadable modules may be found.
 
 \item \texttt{Plugins} specifies name of the loadable module.
 
@@ -272,7 +272,7 @@ The configuration of Loader is made of following elements (see also configuratio
 
 \subsection{Sessions and Contexts}
 
-\texttt{Relevant classes: Arc::MessageContext, Arc::MessageContextElement, Arc::MessageAuthContext, Arc::ChianContext }
+\texttt{Relevant classes: Arc::MessageContext, Arc::MessageContextElement, Arc::MessageAuthContext, Arc::ChainContext }
 
 The HED defines three lifetimes for operations happening inside the Chain and components which can be associated with them:
 
@@ -284,7 +284,7 @@ The HED defines three lifetimes for operations happening inside the Chain and co
 
 \item The Session lifetime - is defined by existence of some logical connection between Messages being processed. Corresponding container MessageContext is normally created by first MCC in a chain and attached to the Message. Actual lifetime of that container is MCC specific. For TCP MCC it corresponds to TCP connection. The MessageContext holds objects inherited from MessageContextElement class. The Security Attributes can also be stored in dedicated container - MessageAuthContext - with Session lifetime. At end of  the Session all associated objects are destroyed.
 
-\item The Chain lifetime - is time period while componnets making the Chain exist. This lifetime is represented by ChainContext class. Differently from other context objects this one doe not allow free manipulation of contained objects. Instead it provides an interface to some internal structures of Loader object. Those include factories and lists of object of all types created by particular instance of the Loader.
+\item The Chain lifetime - is time period while components making the Chain exist. This lifetime is represented by ChainContext class. Differently from other context objects this one doe not allow free manipulation of contained objects. Instead it provides an interface to some internal structures of Loader object. Those include factories and lists of object of all types created by particular instance of the Loader.
 
 \end{enumerate}
 
@@ -313,16 +313,16 @@ The DMC may be implemented using third party software like it is currently done 
 
 Along with ordinary endpoints defining location of data directly - like HTTP, FTP, LDAP - the DMC can be used with indirect/indexing endpoints. Those are endpoints which define only location of meta-data associated with actual data or an interface/service providing functionality of managing/requesting data. For more information about indexing endpoints see description of supported URLs in \cite{urls}.
 
-More in depth techical information about the DMC can be found in \cite{dmc}.
+More in depth technical information about the DMC can be found in \cite{dmc}.
 
 
 \subsection{Generic purpose components}
 
-The HED also includes vaste amount of common purpose components:
+The HED also includes vast amount of common purpose components:
 
 \begin{itemize}
 
-\item XMLNode is class for managing parsed XML structures. It provides minimal functionality for operationg on XML elements, attributes and namespaces.
+\item XMLNode is class for managing parsed XML structures. It provides minimal functionality for operating on XML elements, attributes and namespaces.
 
 \item Thread management functions provide few mostly used functions for thread creation.
 
@@ -330,11 +330,11 @@ The HED also includes vaste amount of common purpose components:
 
 \item String utilities for easy conversion between various types to strings and back.
 
-\item Run class for starting, communicatiing and monitoring external processes.
+\item Run class for starting, communicating and monitoring external processes.
 
 \item Logger class provides multilevel controllable logging functionality.
 
-\item Time and Period classes alows parsing and generating textual description of times, dates and time periods in various formats.
+\item Time and Period classes allows parsing and generating textual description of times, dates and time periods in various formats.
 
 \item RegularExpression class providing C++ wrapper for regexp related functions.
 
@@ -355,7 +355,7 @@ There is also a set of components implementing various Web Service related funct
 
 \item SAMLToken, UsernameToken and X509Token are for consuming and generating token of same name according to various profiles of WS Security specifications \cite{ws-security}.
 
-\item WSRF and related and inherited classes offer a way to generate and anaylyze various Web Services Resource specification \cite{wsrf} related elements.
+\item WSRF and related and inherited classes offer a way to generate and analyze various Web Services Resource specification \cite{wsrf} related elements.
 
 \item DelegationConsumerSOAP, DelegationProviderSOAP and DelegationContainerSOAP implement web service interface which enables client to delegate X509 credentials to service.
 
@@ -373,14 +373,14 @@ For more information about \texttt{arched} capabilities please read it's manual 
 
 \subsection{Alternative implementation languages}
 
-In order to facilitate the developement of services, API bindings for languages other than C++ are provided and some service developement has already been done in Python language. Currently only available language bindings are Python and Java. And currently it is possible to write only SOAP Service modules in Python and Java due to multiple inheritance limitation.
+In order to facilitate the development of services, API bindings for languages other than C++ are provided and some service development has already been done in Python language. Currently only available language bindings are Python and Java. And currently it is possible to write only SOAP Service modules in Python and Java due to multiple inheritance limitation.
 
 % TODO more of it
 
 
 \chapter{Implemented elements}
 
-This chapter describes components which are implemented alongside with the HED infractructure itself. Although strictly not belonging to infrastructure this minimal set of components is necessary to make inrastructure useful.
+This chapter describes components which are implemented alongside with the HED infrastructure itself. Although strictly not belonging to infrastructure this minimal set of components is necessary to make infrastructure useful.
 
 
 \section{Implemented MCCs}
@@ -394,11 +394,11 @@ This chapter describes components which are implemented alongside with the HED i
 
 \texttt{Security handler queues: incoming, outgoing}
 
-\texttt{Message attrbiutes: TCP:HOST, TCP:PORT, TCP:REMOTEHOST, TCP:REMOTEPORT, TCP:ENDPOINT, ENDPOINT}
+\texttt{Message attributes: TCP:HOST, TCP:PORT, TCP:REMOTEHOST, TCP:REMOTEPORT, TCP:ENDPOINT, ENDPOINT}
 
 % TODO: attributes and security attributes
 
-The server side TCP MCC in the HED is special in that it produces messages by listening on a network socket rather than passing on messages from other MCCs. As such it spawns new thread for every new connection to handle Messages and their responses throughout the Message Chain. One could envision other MCCs having these properties but producing messages from other sources such as e.g. unix sockets.
+The server side TCP MCC in the HED is special in that it produces messages by listening on a network socket rather than passing on messages from other MCCs. As such it spawns new thread for every new connection to handle Messages and their responses throughout the Message Chain. One could envision other MCCs having these properties but producing messages from other sources such as e.g. UNIX sockets.
 
 \ifthenelse{\boolean{brieftechdesc}}{
 This MCC can be configured as to what port to listen to.
@@ -407,7 +407,7 @@ This MCC can be configured as to what port to listen to.
 \ifthenelse{\boolean{verbtechdesc}}{
 This MCC can be configured with one or more \texttt{<tcp:Listen>} elements which in turn contain the elements \texttt{<tcp:Port>}, \texttt{<tcp:Interface>} and \texttt{<tcp:Version>}. The \texttt{<tcp:Port>} element is mandatory and should contain an integer corresponding to the TCP port to listen to. The \texttt{<tcp:Interface>} element is optional and is meant to identify the network interface to bind to. It is currently not used. The \texttt{<tcp:Version>} element is used to specify IP version. It is optional and should if present contain the single digit 4 or 6.
 
-The server side TCP MCC generates \texttt{PayloadStreamInterface} payload in the Message passed to next MCC whihc can be used for communicationg through open TCP channel. Currently it ignores any payload attached to the returned Message. That MCC also fills following Message Attrbutes in incoming message while passing to next MCC:
+The server side TCP MCC generates \texttt{PayloadStreamInterface} payload in the Message passed to next MCC which can be used for communicating through open TCP channel. Currently it ignores any payload attached to the returned Message. That MCC also fills following Message Attributes in incoming message while passing to next MCC:
 \begin{enumerate}
 
 \item TCP:HOST - IP address of local interface which was used to establish TCP connection
@@ -425,7 +425,7 @@ The server side TCP MCC generates \texttt{PayloadStreamInterface} payload in the
 \end{enumerate}
 }{}
 
-The client side TCP MCC performs TCP connection to host and port specified in <Host> and <Port> elements inside <Connect> element of the MCC configuration. Then all incoming Messages of \texttt{process()} method are transfered ober TCP connection. Accepted Payload type of incoming Message is \texttt{PayloadRawInterface}. Returned Payload is of \texttt{PayloadStreamInterface} type. It represents established TCP conenction and \texttt{may} be used by previous MCCs in chain for direct communication. It is still prefered to call \texttt{process()} method instead.
+The client side TCP MCC performs TCP connection to host and port specified in <Host> and <Port> elements inside <Connect> element of the MCC configuration. Then all incoming Messages of \texttt{process()} method are transferred over TCP connection. Accepted Payload type of incoming Message is \texttt{PayloadRawInterface}. Returned Payload is of \texttt{PayloadStreamInterface} type. It represents established TCP connection and \texttt{may} be used by previous MCCs in chain for direct communication. It is still preferred to call \texttt{process()} method instead.
 
 \paragraph{Configuration schema}
 
@@ -481,21 +481,21 @@ The client side TCP MCC performs TCP connection to host and port specified in <H
 
 \texttt{Library name: \{lib\}mcctls}
 
-\texttt{Securuty handler queues: incoming, outgoing}
+\texttt{Security handler queues: incoming, outgoing}
 
-\texttt{Message attrbiutes: TLS:PEERDN, TLS:IDENTITYDN}
+\texttt{Message attributes: TLS:PEERDN, TLS:IDENTITYDN}
 
 % TODO: attributes and security attributes
 
-The server and client TLS MCCs provide transport level security (TLS) over any stream channel. Curently they interoperate well with TCP MCCs.
+The server and client TLS MCCs provide transport level security (TLS) over any stream channel. Currently they interoperate well with TCP MCCs.
 
-The server side MCC accepts payload of type PayloadStreamInterface. It then creates own instance of object inherited from PayloadStreamInterface bound to initial payload and passes it to next MCC. This object is maintained inside Message Context under name \texttt{tls.service} and is destroyed when Context becomes inactive. Currenlty this MCC does not expect any payload to be returned from rest of the chain and passes no payload to previous MCC.
+The server side MCC accepts payload of type PayloadStreamInterface. It then creates own instance of object inherited from PayloadStreamInterface bound to initial payload and passes it to next MCC. This object is maintained inside Message Context under name \texttt{tls.service} and is destroyed when Context becomes inactive. Currently this MCC does not expect any payload to be returned from rest of the chain and passes no payload to previous MCC.
 
-The server MCC fills Message Attributes TLS:PEERDN and TLS:IDENTITYDN representing subjects of last cretificate in client's certificate chain used for establishing secure connection and subject of last certificate which is not a proxy certificate correspondingly. Use of thos attributes is deprecated. It is advised to use Security Attributes instead.
+The server MCC fills Message Attributes TLS:PEERDN and TLS:IDENTITYDN representing subjects of last certificate in client's certificate chain used for establishing secure connection and subject of last certificate which is not a proxy certificate correspondingly. Use of those attributes is deprecated. It is advised to use Security Attributes instead.
 
 The client side MCC behaves in similar way. It also establishes PayloadStreamInterface type object linked to same type of payload of next MCC. To obtain that last payload it makes a first call to next MCC with payload of type PayloadRawInterface and then uses returned payload - which is expected to be of PayloadStreamInterface type - to create own payload object with streaming capabilities and returns it back to previous MCC for further usage.
 
-Both client ans server side MCCs are implemented using OpenSSL toolkit \cite{openssl}, use X.509 infrastructure \cite{x509} for establishing secure connection and may be configured to get private key, certfificate or proxy credentials from files esiding at local file system. It also possible to specify location of Certification Authority cerfificate or to use all certificates located in specified directory. for more information see configuration schema with comments below.
+Both client ans server side MCCs are implemented using OpenSSL toolkit \cite{openssl}, use X.509 infrastructure \cite{x509} for establishing secure connection and may be configured to get private key, certificate or proxy credentials from files residing at local file system. It also possible to specify location of Certification Authority certificate or to use all certificates located in specified directory. for more information see configuration schema with comments below.
 
 
 \paragraph{Configuration schema}
@@ -550,17 +550,17 @@ Both client ans server side MCCs are implemented using OpenSSL toolkit \cite{ope
 
 \texttt{Library name: \{lib\}mcchttp}
 
-\texttt{Securuty handler queues: incoming, outgoing}
+\texttt{Security handler queues: incoming, outgoing}
 
-\texttt{Message attrbiutes: HTTP:METHOD, HTTP:CODE, HTTP:REASON, HTTP:RANGESTART, HTTP:RANGEEND, HTTP:ENDPOINT, HTTP:*, ENDPOINT}
+\texttt{Message attributes: HTTP:METHOD, HTTP:CODE, HTTP:REASON, HTTP:RANGESTART, HTTP:RANGEEND, HTTP:ENDPOINT, HTTP:*, ENDPOINT}
 
 % TODO: attributes and security attributes
 
-The server side HTTP MCC accepts messages with \texttt{PayloadStreamInterface} payload and parses HTTP related information from it. Information from the HTTP header is added to the Message Attributes. The body of HTTP message is passed to next MCC as \texttt{PayloadRawInterface} payload. In response this MCC expects also the Message with \texttt{PayloadRawInterface}. It is then prepended with HTTP reponse header and pushes it into initially providded stream channel. for output it returns empty \texttt{PayloadRawInterface} payload.
+The server side HTTP MCC accepts messages with \texttt{PayloadStreamInterface} payload and parses HTTP related information from it. Information from the HTTP header is added to the Message Attributes. The body of HTTP message is passed to next MCC as \texttt{PayloadRawInterface} payload. In response this MCC expects also the Message with \texttt{PayloadRawInterface}. It is then prepended with HTTP response header and pushes it into initially provided stream channel. for output it returns empty \texttt{PayloadRawInterface} payload.
 
-That MCC routes results to multiple next MCCs in the chain. For that it accepts only labeled <next> elements in confoguration. Label names are those of HTTP methods (uppercase). HTTP messages will be routed to their destinations according HTTP method requested.
+That MCC routes results to multiple next MCCs in the chain. For that it accepts only labeled <next> elements in configuration. Label names are those of HTTP methods (uppercase). HTTP messages will be routed to their destinations according HTTP method requested.
 
-That MCC also fills following Message Attrbutes in incoming message while passing to next MCC:
+That MCC also fills following Message Attributes in incoming message while passing to next MCC:
 \begin{enumerate}
 
 \item HTTP:METHOD - HTTP method as defined in HTTP request header.
@@ -577,9 +577,9 @@ That MCC also fills following Message Attrbutes in incoming message while passin
 
 \end{enumerate}
 
-For outgoing message server MCC converts all HTTP:* Message Attriutes into corresponding HTTP response header attribute.
+For outgoing message server MCC converts all HTTP:* Message Attributes into corresponding HTTP response header attribute.
 
-The client side HTTP MCC will accept \texttt{PayloadRawInterface} payload as HTTP body and after prepending it with HTTP information passes to next MCC also as \texttt{PayloadRawInterface}. It accepts \texttt{PayloadStreamInterface} in response and after processing passes \texttt{PayloadRawInterface} back trhough the chain.
+The client side HTTP MCC will accept \texttt{PayloadRawInterface} payload as HTTP body and after prepending it with HTTP information passes to next MCC also as \texttt{PayloadRawInterface}. It accepts \texttt{PayloadStreamInterface} in response and after processing passes \texttt{PayloadRawInterface} back through the chain.
 
 The client MCC also convert all HTTP:* Message Attributes into corresponding HTTP header options while creating HTTP request. If define it uses HTTP:METHOD and HTTP:ENDPOINT as method and URL/path of HTTP request. If not specified those defined in configuration are used. For HTTP response it sets HTTP:CODE and HTTP:REASON to response code and reason correspondingly. It also performs conversion from header options into HTTP:* Message Attributes.
 
@@ -609,9 +609,9 @@ The client MCC also convert all HTTP:* Message Attributes into corresponding HTT
 
 \texttt{Library name: \{lib\}mccsoap}
 
-\texttt{Securuty handler queues: incoming, outgoing}
+\texttt{Security handler queues: incoming, outgoing}
 
-\texttt{Message attrbiutes: SOAP:ENDPOINT, ENDPOINT}
+\texttt{Message attributes: SOAP:ENDPOINT, ENDPOINT}
 
 % TODO: attributes and security attributes
 
@@ -624,26 +624,27 @@ The client side MCC for outgoing message accepts \texttt{SOAP:ACTION} Message At
 
 \section{Implemented Security Handlers}
 
+For more information about security related capabilities of the HED please see dedicated document at \cite{sec-arc1}.
 
-\subsection{Simple List Auth}
-
-\texttt{Plugin name: arc.authz}
-
-\texttt{Library name: \{lib\}arcpdc}
-
-
-\subsection{Username Token}
-
-\texttt{Plugin name: usernametoken.handler}
-
-\texttt{Library name: \{lib\}arcpdc}
+%\subsection{Simple List Auth}
+%
+%\texttt{Plugin name: arc.authz}
+%
+%\texttt{Library name: \{lib\}arcpdc}
 
 
-\subsection{X.509 Token}
+%\subsection{Username Token}
+%
+%\texttt{Plugin name: usernametoken.handler}
+%
+%\texttt{Library name: \{lib\}arcpdc}
 
-\texttt{Plugin name: x509token.handler}
 
-\texttt{Library name: \{lib\}arcpdc}
+%\subsection{X.509 Token}
+%
+%\texttt{Plugin name: x509token.handler}
+%
+%\texttt{Library name: \{lib\}arcpdc}
 
 
 \section{Implemented DMCs}
@@ -655,7 +656,7 @@ The client side MCC for outgoing message accepts \texttt{SOAP:ACTION} Message At
 
 This DMC implements access to local or remote mounted file system. It allows reading and writing content of file, listing content of directories and checking presence of the object.
 
-Name of pligin is \texttt{file} and it is located in \texttt{\{lib\}dmcfile} loadable module.
+Name of plugin is \texttt{file} and it is located in \texttt{\{lib\}dmcfile} loadable module.
 
 
 \subsection{GridFTP/FTP DMC}
@@ -664,16 +665,16 @@ Name of pligin is \texttt{file} and it is located in \texttt{\{lib\}dmcfile} loa
 
 This DMC implements access to a data server using FTP or GridFTP protocol. It allows reading and writing content of stored file, listing content of directories and checking presence of the object.
 
-Name of pligin is \texttt{gridftp} and it is located in \texttt{\{lib\}dmcgridftp} loadable module.
+Name of plugin is \texttt{gridftp} and it is located in \texttt{\{lib\}dmcgridftp} loadable module.
 
 
 \subsection{HTTP DMC}
 
 \texttt{Protocol name: http, https, httpg (not implemented yet)}
 
-This DMC implements access to a data server using HTTP over TCP or over TLS protocol. It uses GET for reading and PUT for storing files. Data is always transfered in chunks due to current limitation of HTTP MCC. Listing is also supported. For that DMC extracts references from \texttt{A} tags of obtained HTLM content. If retrieved content is not HTML or if content of it's \texttt{TITLE} tag does not start from ""Index of /"" then only information about resquested URL itself is listed.
+This DMC implements access to a data server using HTTP over TCP or over TLS protocol. It uses GET for reading and PUT for storing files. Data is always transferred in chunks due to current limitation of HTTP MCC. Listing is also supported. For that DMC extracts references from \texttt{A} tags of obtained HTML content. If retrieved content is not HTML or if content of it's \texttt{TITLE} tag does not start from ""Index of /"" then only information about resquested URL itself is listed.
 
-Name of pligin is \texttt{http} and it is located in \texttt{\{lib\}dmchttp} loadable module.
+Name of plugin is \texttt{http} and it is located in \texttt{\{lib\}dmchttp} loadable module.
 
 
 \subsection{LDAP DMC}
@@ -685,12 +686,12 @@ The LDAP DMC implements access to a data accessible through LDAP protocol. Curre
 \texttt{ldap://host[:port]/base[?[attributes][?[scope][?filter]]]}
 
 \begin{itemize}
-\item \texttt{attributes} is coma separted list of attributes which has to be retrieved,
+\item \texttt{attributes} is coma separated list of attributes which has to be retrieved,
 \item \texttt{scope} is either \texttt{base}, \texttt{one} or \texttt{sub} as defined by LDAP,
 \item \texttt{filter} is LDAP filter.
 \end{itemize}
 
-Name of pligin is \texttt{ldap} and it is located in \texttt{\{lib\}dmcldap} loadable module.
+Name of plugin is \texttt{ldap} and it is located in \texttt{\{lib\}dmcldap} loadable module.
 
 
 \subsection{LFC DMC}
@@ -699,16 +700,16 @@ Name of pligin is \texttt{ldap} and it is located in \texttt{\{lib\}dmcldap} loa
 
 The LFC DMC provides an access to LCG File Catalog service and supports file listing, URL resolution and (un)registration of file locations. It uses LFC protocol implementation provided by gLite middleware.
 
-Name of pligin is \texttt{lfc} and it is located in \texttt{\{lib\}dmclfc} loadable module.
+Name of plugin is \texttt{lfc} and it is located in \texttt{\{lib\}dmclfc} loadable module.
 
 
 \subsection{RLS DMC}
 
 \texttt{Protocol name: rls}
 
-The RLS DMC provides an access to Relica Location Service and supports file listing, URL resolution and (un)registration of file locations. It uses RLS protocol implementation provided by Globus Toolkit.
+The RLS DMC provides an access to Replica Location Service and supports file listing, URL resolution and (un)registration of file locations. It uses RLS protocol implementation provided by Globus Toolkit.
 
-Name of pligin is \texttt{rls} and it is located in \texttt{\{lib\}dmcrls} loadable module.
+Name of plugin is \texttt{rls} and it is located in \texttt{\{lib\}dmcrls} loadable module.
 
 
 %\chapter{Conclusion}
