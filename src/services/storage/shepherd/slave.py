@@ -23,7 +23,7 @@ def handler(req):
     if req.filename.endswith('.transfering'):
         raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
 
-    if os.path.isfile(req.filename):
+    if os.path.isfile(req.filename) and not req.filename.endswith('.py'):
 
         req_method = req.the_request[:3]
 
