@@ -25,9 +25,12 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[jobid ...]"), "",
-			    istring("Argument to -c has format:\n"
-				    "GRID:URL e.g.\n"
+  Arc::OptionParser options(istring("[job ...]"),
+			    istring("The arccat command performs the cat "
+				    "command on the stdout, stderr or grid\n"
+				    "manager's error log of the job."),
+			    istring("Argument to -c has the format "
+				    "Flavour:URL e.g.\n"
 				    "ARC0:ldap://grid.tsl.uu.se:2135/"
 				    "nordugrid-cluster-name=grid.tsl.uu.se,"
 				    "Mds-Vo-name=local,o=grid"));
@@ -39,7 +42,7 @@ int main(int argc, char **argv) {
 
   std::string joblist;
   options.AddOption('j', "joblist",
-		    istring("file containing a list of jobids"),
+		    istring("file containing a list of jobs"),
 		    istring("filename"),
 		    joblist);
 
@@ -57,19 +60,14 @@ int main(int argc, char **argv) {
 
   bool show_stdout = true;
   options.AddOption('o', "stdout",
-		    istring("show stdout of the job (default)"),
+		    istring("show the stdout of the job (default)"),
 		    show_stdout);
 
   bool show_stderr = false;
   options.AddOption('e', "stderr",
-		    istring("show stderr of the job"),
+		    istring("show the stderr of the job"),
 		    show_stderr);
-  /*
-  bool follow = false;
-  options.AddOption('f', "follow",
-		    istring("show tail of requested file and follow it's changes"),
-		    follow);
-  */
+
   bool show_gmlog = false;
   options.AddOption('l', "gmlog",
 		    istring("show the grid manager's error log of the job"),

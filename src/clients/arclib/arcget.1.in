@@ -1,4 +1,4 @@
-.\" -*- nroff -*- 
+.\" -*- nroff -*-
 .TH ARCGET 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
@@ -17,27 +17,27 @@ command is used for retrieving the results from a job.
 
 .SH OPTIONS
 
-.IP "\fB-a\fR, \fB-all\fR"
+.IP "\fB-a\fR, \fB--all\fR"
 all jobs
-.IP "\fB-j\fR \fIfilename\fR, \fB-joblist\fR \fIfilename\fR"
-file containing a list of jobids
-.IP "\fB-c\fR [-]\fIname\fR, \fB-cluster\fR [-]\fIname\fR"
+.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
+file containing a list of jobs
+.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
-.IP "\fB-s\fR \fIstatusstr\fR, \fB-status\fR \fIstatusstr\fR"
+.IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
-.IP "\fB-dir\fR \fIdirname\fR"
+.IP "\fB-D\fR, \fB--dir\fR=\fIdirname\fR"
 download directory (the job directory will be created in this directory)
-.IP "\fB-j\fR, \fB-usejobname\fR"
-use the jobname instead of the short ID as the job directory name
-.IP "\fB-k\fR, \fB-keep\fR"
+.IP "\fB-k\fR, \fB--keep\fR"
 keep files on the remote cluster (do not clean)
-.IP "\fB-t\fR \fItime\fR, \fB-timeout\fR \fItime\fR"
-timeout for network operations in seconds
-.IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
-.IP "\fB-v\fR, \fB-version\fR"
+.IP "\fB-v\fR, \fB--version\fR"
 print version information
-.IP "\fB-?\fR, \fB-help\fR"
+.IP "\fB-?\fR, \fB--help\fR"
 print help
 .LP
 
@@ -51,7 +51,7 @@ list of jobids and/or jobnames
 
 The
 .B arcget
-command downloads the results after a job has completed on an ARC
+command downloads the results after a job has completed on an grid
 enabled computing resource. Only the results of jobs that have
 finished can be downloaded. The job can be referred to either by the
 jobid that was returned by
@@ -62,16 +62,18 @@ submitted contained a jobname attribute.
 More than one jobid and/or jobname can be given. If several jobs were
 submitted with the same jobname the results of all those jobs are
 downloaded. If the
-.B -joblist
-option is used the list of jobids is read from a file with the
+.B --joblist
+option is used the list of jobs is read from a file with the
 specified filename. By specifying the
-.B -all
+.B --all
 option, the results of all active jobs are downloaded.
 
 The
-.B -cluster
-option can be used to select or reject jobs at specific clusters. The
-.B -status
+.B --cluster
+option can be used to select or reject jobs at specific clusters. See
+.BR arcsub (1)
+for a discussion of the format of arguments to this option. The
+.B --status
 option can be used to select jobs in a specific state. These options
 can be repeated several times.
 
@@ -80,24 +82,28 @@ download directory that will contain the downloaded files.
 
 If the download was successful the job will be removed from the remote
 cluster unless the
-.B -keep
+.B --keep
 option was specified.
 
 .SH FILES
 
 .TP
-.B .arc/config.xml
+.B ~/.arc/client.xml
 Some options can be given default values by specifying them in the
-ARC configuration file.
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
 
 .TP
-.B .arc/jobs.xml
+.B ~/.arc/jobs.xml
 This a local list of the user's active jobs. When a job is
 successfully submitted it is added to this list and when it is removed
 from the remote cluster it is removed from this list. This list is
 used as the list of all active jobs when the user specifies the
-.B -all
-option to the various NorduGrid ARC user interface commands.
+.B --all
+option to the various NorduGrid ARC user interface commands. By using the
+.B --joblist
+option a different file can be used than the default.
 
 .SH ENVIRONMENT VARIABLES
 
@@ -112,10 +118,12 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 
 .SH SEE ALSO
 
-.BR arcsub (1),
-.BR arcstat (1),
-.BR arckill (1),
 .BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcstat (1),
+.BR arcsub (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1).
+.BR arcrm (1),
+.BR arcclient.xml (5).

@@ -113,7 +113,9 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("url"));
+  Arc::OptionParser options(istring("url"), 
+			    istring("The arcrm command deletes files and on "
+				    "grid storage elements."));
 
   bool force = false;
   options.AddOption('f', "force",

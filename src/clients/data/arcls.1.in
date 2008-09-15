@@ -1,24 +1,81 @@
 .\" -*- nroff -*-
-.TH ARCLS 1 "24 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCLS 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
 .SH NAME
-arcls - list files or directories
-.SH SYNOPSIS
-.B arcls
-[\fIOPTION\fR]... [\fIFILE\fR]...
+
+arcls \- list files or directories
+
 .SH DESCRIPTION
-.\" Add any additional description here
-.PP
-arcls list files
+
+The
+.B arcls
+command is used for listing files in grid storage elements and file index
+catalogues.
+
+.SH SYNOPSIS
+
+.B arcls [options] url
+
 .SH OPTIONS
-.TP
-\fB\-d\fR
-level of information printed. Possible values are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL.
-.PP
-.SH "REPORTING BUGS"
-Report bugs to http://bugzilla.nordugrid.org/
-.SH COPYRIGHT
-We need to have this
+
+.IP "\fB-l\fR, \fB--long\fR"
+long format (more information)
+.IP "\fB-L\fR, \fB--locations\fR"
+show URLs of file locations
+.IP "\fB-r\fR, \fB--recursive\fR=\fIlevel\fR"
+operate recursively up to specified level
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+
+.SH ARGUMENTS
+
+.IP "\fBurl\fR"
+the location to list
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcls
+command lists files and directories on grid storage elements and in
+file index catalogues.
+
 .SH FILES
-.BR ~/.arccfg.xml
+
+.TP
+.B ~/.arc/client.xml
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
 .SH AUTHOR
-Written by developers
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arccp (1),
+.BR arcrm (1),
+.BR arcclient.xml (5).

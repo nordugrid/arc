@@ -439,7 +439,9 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("source destination"));
+  Arc::OptionParser options(istring("source destination"),
+			    istring("The arccp command copies files to, from "
+				    "and between grid storage elements."));
 
   bool passive = false;
   options.AddOption('p', "passive",
@@ -503,15 +505,15 @@ int main(int argc, char **argv) {
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
 
-  std::string debug;
-  options.AddOption('d', "debug",
-		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
-		    istring("debuglevel"), debug);
-
   std::string conffile;
   options.AddOption('z', "conffile",
 		    istring("configuration file (default ~/.arc/client.xml)"),
 		    istring("filename"), conffile);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),

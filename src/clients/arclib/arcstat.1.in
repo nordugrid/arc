@@ -1,4 +1,4 @@
-.\" -*- nroff -*- 
+.\" -*- nroff -*-
 .TH ARCSTAT 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
@@ -19,27 +19,29 @@ the grid.
 
 .SH OPTIONS
 
-.IP "\fB-a\fR, \fB-all\fR"
+.IP "\fB-a\fR, \fB--all\fR"
 all jobs
-.IP "\fB-j\fR \fIfilename\fR, \fB-joblist\fR \fIfilename\fR"
-file containing a list of jobids
-.IP "\fB-c\fR [-]\fIname\fR, \fB-cluster\fR [-]\fIname\fR"
+.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
+file containing a list of jobs
+.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
-.IP "\fB-s\fR \fIstatusstr\fR, \fB-status\fR \fIstatusstr\fR"
+.IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
-.IP "\fB-i\fR \fIurl\fR, \fB-indexurl\fR \fIurl\fR"
-url to an information index server
-.IP "\fB-q\fR, \fB-queues\fR"
+.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+explicitly select or reject an index server
+.IP "\fB-q\fR, \fB--queues\fR"
 show information about clusters and queues
-.IP "\fB-l\fR, \fB-long\fR"
+.IP "\fB-l\fR, \fB--long\fR"
 long format (more information)
-.IP "\fB-t\fR \fItime\fR, \fB-timeout\fR \fItime\fR"
-timeout for network operations in seconds
-.IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
-.IP "\fB-v\fR, \fB-version\fR"
+.IP "\fB-v\fR, \fB--version\fR"
 print version information
-.IP "\fB-?\fR, \fB-help\fR"
+.IP "\fB-?\fR, \fB--help\fR"
 print help
 .LP
 
@@ -63,28 +65,30 @@ submitted contained a jobname attribute.
 More than one jobid and/or jobname can be given. If several jobs were
 submitted with the same jobname the status of all those jobs are
 shown. If the
-.B -joblist
-option is used the list of jobids is read from a file with the
+.B --joblist
+option is used the list of jobs is read from a file with the
 specified filename. By specifying the
-.B -all
+.B --all
 option, the status of all active jobs will be shown. If the
-.B -long
+.B --long
 option is given more detailed information is given.
 
 The
-.B -cluster
-option can be used to select or reject jobs at specific clusters. The
-.B -status
+.B --cluster
+option can be used to select or reject jobs at specific clusters. See
+.BR arcsub (1)
+for a discussion of the format of arguments to this option. The
+.B --status
 option can be used to select jobs in a specific state. These options
 can be repeated several times.
 
 If the
-.B -queues
+.B --queues
 option is used,
 .B arcstat
 gives the status of the clusters and queues available rather than
 of the jobs submitted. In this case the
-.B -cluster
+.B --cluster
 option can be used to select or reject clusters for which the status
 should be returned.
 
@@ -92,41 +96,34 @@ The
 .B arcstat
 command locates the available clusters by querying information index
 servers. Which servers to query can be specified by giving the
-.B -indexurl
-option to the command. The url to the index server should be given in
-the format
-
-.B FLAVOR:protocol://hostname[:port]/path
-
-Several indices can be specified by repeating the \fB-indexurl\fR
-option:
-
-.B arcstat
-.B -indexurl
-.I url1
-.B -indexurl
-.I url2
-...
+.B --index
+option to the command. See
+.BR arcsub (1)
+for a discussion of the format of arguments to this option.
 
 Also in this case the
-.B -long
+.B --long
 option can be used to obtain more detailed information.
 
 .SH FILES
 
 .TP
-.B .arc/config.xml
+.B ~/.arc/client.xml
 Some options can be given default values by specifying them in the
-ARC configuration file.
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
 
 .TP
-.B .arc/jobs.xml
+.B ~/.arc/jobs.xml
 This a local list of the user's active jobs. When a job is
 successfully submitted it is added to this list and when it is removed
 from the remote cluster it is removed from this list. This list is
 used as the list of all active jobs when the user specifies the
-.B -all
-option to the various NorduGrid ARC user interface commands.
+.B --all
+option to the various NorduGrid ARC user interface commands. By using the
+.B --joblist
+option a different file can be used than the default.
 
 .SH ENVIRONMENT VARIABLES
 
@@ -141,10 +138,12 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 
 .SH SEE ALSO
 
-.BR arcsub (1),
+.BR arccat (1),
+.BR arcclean (1),
 .BR arcget (1),
 .BR arckill (1),
-.BR arcclean (1),
+.BR arcsub (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1).
+.BR arcrm (1),
+.BR arcclient.xml (5).

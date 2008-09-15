@@ -239,6 +239,7 @@ exit 0
 %{_bindir}/arc_storage_cli
 %doc %{_mandir}/man1/arc_storage_cli.1*
 %{_sysconfdir}/arcclient.xml
+%doc %{_mandir}/man5/arcclient.xml.5*
 
 %files server
 %defattr(-,root,root,-)

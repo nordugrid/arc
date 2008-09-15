@@ -26,16 +26,21 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[jobid ...]"), "",
-			    istring("Argument to -i has format:\n"
-				    "GRID:URL e.g.\n"
+  Arc::OptionParser options(istring("[job ...]"),
+			    istring("The arcstat command is used for "
+				    "obtaining the status of jobs that have\n"
+				    "been submitted to grid enabled resources "
+				    "and the status of the clusters\n"
+				    "in the grid."),
+			    istring("Argument to -i has the format "
+				    "Flavour:URL e.g.\n"
 				    "ARC0:ldap://grid.tsl.uu.se:2135/"
 				    "mds-vo-name=sweden,O=grid\n"
 				    "CREAM:ldap://cream.grid.upjs.sk:2170/"
 				    "o=grid\n"
 				    "\n"
-				    "Argument to -c has format:\n"
-				    "GRID:URL e.g.\n"
+				    "Argument to -c has the format "
+				    "Flavour:URL e.g.\n"
 				    "ARC0:ldap://grid.tsl.uu.se:2135/"
 				    "nordugrid-cluster-name=grid.tsl.uu.se,"
 				    "Mds-Vo-name=local,o=grid"));
@@ -47,7 +52,7 @@ int main(int argc, char **argv) {
 
   std::string joblist;
   options.AddOption('j', "joblist",
-		    istring("file containing a list of jobids"),
+		    istring("file containing a list of jobs"),
 		    istring("filename"),
 		    joblist);
 
@@ -64,8 +69,9 @@ int main(int argc, char **argv) {
 		    status);
 
   std::list<std::string> indexurls;
-  options.AddOption('i', "indexurl", istring("url to a index server"),
-		    istring("url"),
+  options.AddOption('i', "index",
+		    istring("explicity select or reject an index server"),
+		    istring("[-]name"),
 		    indexurls);
 
   bool queues = false;

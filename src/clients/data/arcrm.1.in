@@ -1,24 +1,75 @@
 .\" -*- nroff -*-
-.TH ARCRM 1 "24 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCRM 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
 .SH NAME
-arcrm - remove file at given URL
-.SH SYNOPSIS
-.B arcrm
-[\fIOPTION\fR] service_url job_file id_file
+
+arcrm \- delete files
+
 .SH DESCRIPTION
-.\" Add any additional description here
-.PP
-arcrm remove files
+
+The
+.B arcrm
+command deletes files and on grid storage elements.
+
+.SH SYNOPSIS
+
+.B arcrm [options] url
+
 .SH OPTIONS
-.TP
-\fB\-d\fR
-level of information printed. Possible values are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL.
-.PP
-.SH "REPORTING BUGS"
-Report bugs to http://bugzilla.nordugrid.org/
-.SH COPYRIGHT
-We need to have this
+
+.IP "\fB-f\fR, \fB--force\fR"
+remove logical file name registration even if not all physical instances were removed
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+
+.SH ARGUMENTS
+
+.IP "\fBurl\fR"
+the location to delete
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcrm
+command deletes files and on grid storage elements.
+
 .SH FILES
-.BR ~/.arccfg.xml
+
+.TP
+.B ~/.arc/client.xml
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
 .SH AUTHOR
-Written by developers
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arccp (1),
+.BR arcls (1),
+.BR arcclient.xml (5).

@@ -25,9 +25,11 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[jobid ...]"), "",
-			    istring("Argument to -c has format:\n"
-				    "GRID:URL e.g.\n"
+  Arc::OptionParser options(istring("[job ...]"),
+			    istring("The arckillcommand is used to kill "
+				    "running jobs."),
+			    istring("Argument to -c has the format "
+				    "Flavour:URL e.g.\n"
 				    "ARC0:ldap://grid.tsl.uu.se:2135/"
 				    "nordugrid-cluster-name=grid.tsl.uu.se,"
 				    "Mds-Vo-name=local,o=grid"));
@@ -39,7 +41,7 @@ int main(int argc, char **argv) {
 
   std::string joblist;
   options.AddOption('j', "joblist",
-		    istring("file containing a list of jobids"),
+		    istring("file containing a list of jobs"),
 		    istring("filename"),
 		    joblist);
 

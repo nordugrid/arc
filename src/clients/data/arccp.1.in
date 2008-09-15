@@ -1,24 +1,99 @@
 .\" -*- nroff -*-
-.TH ARCCP 1 "24 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCCP 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
 .SH NAME
-arccp - copy files
-.SH SYNOPSIS
-.B arccp
-[\fIOPTION\fR] source destination
+
+arccp \- copy files
+
 .SH DESCRIPTION
-.\" Add any additional description here
-.PP
-arccp copy files
+
+The
+.B arccp
+command copies files to, from and between grid storage elements.
+
+.SH SYNOPSIS
+
+.B arccp [options] source destination
+
 .SH OPTIONS
-.TP
-\fB\-d\fR
-level of information printed. Possible values are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL.
-.PP
-.SH "REPORTING BUGS"
-Report bugs to http://bugzilla.nordugrid.org/
-.SH COPYRIGHT
-We need to have this
+
+.IP "\fB-p\fR, \fB--passive\fR"
+use passive transfer (does not work if secure is on, default if secure is not requested)
+.IP "\fB-n\fR, \fB--nopassive\fR"
+do not try to force passive transfer
+.IP "\fB-f\fR, \fB--force\fR"
+if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication
+.IP "\fB-i\fR, \fB--indicate\fR"
+show progress indicator
+.IP "\fB-T\fR, \fB--notransfer\fR"
+do not transfer file, just register it - destination must be non-existing meta-url
+.IP "\fB-u\fR, \fB--secure\fR"
+use secure transfer (insecure by default)
+.IP "\fB-y\fR, \fB--cache\fR=\fIpath\fR"
+path to local cache (use to put file into cache)
+.IP "\fB-Y\fR, \fB--cachedata\fR=\fIpath\fR"
+path for cache data (if different from -y)
+.IP "\fB-r\fR, \fB--recursive\fR=\fIlevel\fR"
+operate recursively up to specified level
+.IP "\fB-R\fR, \fB--retries\fR=\fInumber\fR"
+number of retries before failing file transfer
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+
+.SH ARGUMENTS
+
+.IP "\fBsource\fR"
+the source of the transfer
+.IP "\fBdestination\fR"
+the destination of the transfer
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arccp
+command copies files to, from and between grid storage elements. It can
+also be used to register files in file index catalogues, either
+automatically as the result of a file transfer, or by using the
+.B --notransfer
+option.
+
 .SH FILES
-.BR ~/.arccfg.xml
+
+.TP
+.B ~/.arc/client.xml
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
 .SH AUTHOR
-Written by developers
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arcls (1),
+.BR arcrm (1),
+.BR arcclient.xml (5).

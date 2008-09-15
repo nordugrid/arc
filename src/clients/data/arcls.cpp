@@ -117,7 +117,10 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("url"));
+  Arc::OptionParser options(istring("url"),
+			    istring("The arcls command is used for listing "
+				    "files in grid storage elements "
+				    "and file\nindex catalogues."));
 
   bool longlist = false;
   options.AddOption('l', "long", istring("long format (more information)"),
