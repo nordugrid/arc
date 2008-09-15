@@ -1,6 +1,8 @@
 import arc
 from storage.service import Service
 from storage.common import transfer_uri, create_response
+from storage.common import create_response, get_child_nodes, true
+import commands
 
 class Transfer:
 
@@ -8,11 +10,22 @@ class Transfer:
 
                 print "Transfer Constructor..."
 
-        def transferData(self, requests):
+        def transferData(self, request,options):
 
                 print "Inside transferData function of Transfer .."
+		print request
+		
+		externalURL = 'gsiftp://'+str(request)		
+		
+		print "external URL "+externalURL
+		if options is None:		
+			status, output = commands.getstatusoutput('arcls '+externalURL)	
+		else:
+			status, output = commands.getstatusoutput('arcls '+options+' '+externalURL)
+		#print status
+		#print output
 		response = {}
-		response['11'] = ('finished', 'successful')
+		response['1'] = (status,output)
 		return response 
 
 class TransferService(Service):
@@ -26,9 +39,17 @@ class TransferService(Service):
 
         def transferData(self, inpayload):
 
-                print "Inside transferFile function of TransferService  .."
-                requests = {'transferFile_request1':'first', 'transferFile_request2':'second'}
-                response = self.transfer.transferData(requests)
+                print "\n --- \n Inside list function of TransferService"
+                print "Message from the client:", inpayload.GetXML()
+                print "\n ---"
+
+                request_node = get_child_nodes(inpayload.Child())
+                request = str(request_node[0].Get('hostname'))
+		options = str(request_node[0].Get('options'))
+		#print request 
+
+		response = self.transfer.transferData(request,options)
+		
 		return create_response('transfer:transferData',
-                               ['transfer:ID','transfer:status','transfer:trnasfer'], response, self.newSOAPPayload())
+                               ['transfer:ID','transfer:status','transfer:output'], response, self.newSOAPPayload())
 		
