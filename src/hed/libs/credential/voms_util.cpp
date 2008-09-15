@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <glibmm/fileutils.h>
+#include <unistd.h>
 
 #include "VOMSAttribute.h"
 #include "voms_util.h"
