@@ -1,21 +1,27 @@
 	GATEWAY COMPONENT OF ARC-1
 
 GatewayService: 
+
 High level service, deals with the low level service.
 
 ExternalStorageInformationSerivce: 
+
 Low level service, used to provide information regarding external storage systems.
 
 TransferService: 
+
 Low level Service, initiates the data tranfer.
 
 Description:
-Gateway services are heavily dependent on DMC(Data Management Component of ARC1). Currently TransferService uses the DMC client commandline tool arcls only. Final version will access DMC using python bindings. 
+
+Gateway services are heavily dependent on DMC. Currently TransferService uses the DMC client commandline tools arcls, arccp and arcrm. Final version will access DMC using python bindings. 
 
 Important Note: 
+
 Current version only supports LISTING of the file/directory from the DCACHE store using gridftp protocol. 
 
 Available External Stores:
+
 For the test porpose we are using small DCACHE setup available in Uppsala University, running on the machine
 
 	sal1.uppmax.uu.se 	(DCACHE ADMIN NODE)
@@ -24,12 +30,14 @@ For the test porpose we are using small DCACHE setup available in Uppsala Univer
 Both of them running the gridftpdoor.
 
 Requirments:
+
 ARC1 should be installed including DMC. Check whether you can run the following commands,
 
 	# arcls <gridftp-url>
 	# arccp <gridftp-url-1> <gridftp-url-2>
 	
 How it works:
+
 1- Gateway client send the request to the gateway service with the following parameters
 
 	request - contains the path of the file/directory in the external system. for example,
@@ -51,6 +59,7 @@ How it works:
 4- Transfer service connects to the external store get the relavent information and send it back to the Gateway service.     
  
 Usage:
+
 1- use run.sh to start the services. Both 'run.sh' and 'service.xml' for the gatway services are available in the following path 'arc1/src/services/storage/gateway/Client'.
 
 2- open any python editor e-g 'ipython'
@@ -75,5 +84,7 @@ Usage:
 	I am assuming "dCache" as a sub-collection to identify the external store.
  
 3- It will return a python-dictionary having status and the output of the request.   	    
-	{'': ['0','torque-2.2.1.tar.gz_3\ntorque-2.2.1.tar.gz\ntorque-2.2.1.tar.gz_1\ntorque-2.2.1.tar.gz_2']}
+	
+	{'': ['0',
+      'torque-2.2.1.tar.gz_3\ntorque-2.2.1.tar.gz\ntorque-2.2.1.tar.gz_1\ntorque-2.2.1.tar.gz_2']}
 
