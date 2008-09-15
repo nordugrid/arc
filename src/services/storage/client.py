@@ -825,21 +825,19 @@ class ByteIOClient(Client):
         resp, _, _ = self.call_raw(out)
         return resp
 
-################### Gateway Client ############
-
 class GatewayClient(Client):
 
         def __init__(self, url):
-        
+
                 ns = arc.NS({'gateway':gateway_uri})
                 # calls the superclass' constructor
                 Client.__init__(self, url, ns)
-                
+
         def getFile(self, requests):
-        
+
 
                 """requests will come with the source and the destination URLS of the file. """
-                
+
                 sourceURL = requests[0]
                 destinationURL = requests[1]
                 tree = XMLTree(from_tree = ('gateway:getFile', [
@@ -847,20 +845,20 @@ class GatewayClient(Client):
                                                         ('gateway:sourceURL',sourceURL),
                                                         ('gateway:destinationURL',destinationURL)
                                                                 ])
-                                                        ]))     
-                print tree                              
+                                                        ]))
+                print tree
                 msg, _, _ = self.call(tree)
                 xml = arc.XMLNode(msg)
                 print xml
                 elements = parse_node(xml.Child().Child().Child(),
                 ['requestID', 'success','TURL'], string = True)
                 return elements
-                
+
         def putFile(self, requests):
-        
+
 
                 """requests will come with the source and the destination URLS of the file. """
-                
+
                 sourceURL = requests[0]
                 destinationURL = requests[1]
                 tree = XMLTree(from_tree = ('gateway:putFile', [
@@ -868,14 +866,14 @@ class GatewayClient(Client):
                                                         ('gateway:sourceURL',sourceURL),
                                                         ('gateway:destinationURL',destinationURL)
                                                                 ])
-                                                        ]))     
-                print tree                              
+                                                        ]))
+                print tree
                 msg, _, _ = self.call(tree)
                 xml = arc.XMLNode(msg)
                 elements = parse_node(xml.Child().Child().Child(),
                 ['requestID', 'success','status'], string = True)
                 return elements
-                
+
         def list(self, requests,options=''):
 
                 """requests contain the path of the file or directory.
@@ -889,8 +887,11 @@ class GatewayClient(Client):
                                                          ]))
                 msg, _, _ = self.call(tree)
                 xml = arc.XMLNode(msg)
-                elements = parse_node(xml.Child().Child().Child(),
-                ['ID', 'status','output'], string = True)
+                elements = parse_to_dict(get_data_node(xml),
+                        ['requestID', 'status','output'])
+
+                #elements = parse_node(xml.Child().Child().Child(),
+                #['ID', 'status','output'], string = True)
                 return elements
 
 class ExternalStorageInformationClient(Client):
@@ -929,9 +930,9 @@ class TransferClient(Client):
                 print request
                 tree = XMLTree(from_tree = ('transfer:transferData', [
                                                         ('transfer:URLs',[
-                                                                ('transfer:hostname', request[0]),
+                                                                ('transfer:hostname', res),
                                                                 ('transfer:options', options)
-                                                                        ])
+                                                                        ])for res in request
                                                                 ]))
 
                 msg, _, _ = self.call(tree)
