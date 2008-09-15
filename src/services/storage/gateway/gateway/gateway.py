@@ -3,7 +3,7 @@ import time
 from storage.common import create_response, gateway_uri, externalInfo_uri, transfer_uri,get_child_nodes, true
 from storage.client import ExternalStorageInformationClient, TransferClient
 from storage.service import Service 
-
+import commands
 class Gateway:
 
 	def __init__(self, externalInfo_url, transfer_url):
@@ -14,19 +14,19 @@ class Gateway:
 	
 	def getFile(self, requests):
 		
-		xx = self.externalstorageinformation.getInfo()
+		xx = self.externalstorageinformation.getInfo(requests)
 		print xx
 		response = {}
 		print "Inside getFile function of Gateway.."
 		xx = self.transfer.transferData()
 		print xx
 		
-		response['1111'] = ('OK', 'TURL' )
+		response['1111'] = ('OK', 'TURL')
                 return response
 			
 	def putFile(self, requests):
 
-                xx = self.externalstorageinformation.getInfo()
+                xx = self.externalstorageinformation.getInfo(requests)
                 print xx
                 response = {}
                 print "Inside putFile function of Gateway.."
@@ -35,16 +35,23 @@ class Gateway:
 		response['2222'] = ('OK','Done' )
                 return response
 
-	def list(self, requests):
+	def list(self, requests, options):
 
-		print "Inside list function of Gateway.."
-		response = {}
-		xx = self.externalstorageinformation.getInfo()
-                print xx
-		xx = self.transfer.transferData()
-                print xx
-                response['3333'] = ('OK','Done' )
-                return response
+                #print '\n externalrequest = ', requests
+		externalURL = [] 
+		response ={}
+		
+		if 'dCache' in requests:
+			#print "Inside list function of Gateway.."
+			response = self.externalstorageinformation.getInfo('dCache')
+                	print response
+			if response['0'][0] != 'NoHostFound':
+				for res in response:
+					externalURL.append(response[res][0]+str(requests.split('dCache')[1]))	
+				response = self.transfer.transferData(externalURL, options)
+                	else:
+				response['1']=('-1','NoHostFound')
+		return response
 	
 
 """ A high level service that contacts the externalStorageInformationService and TransferService To 
@@ -96,9 +103,14 @@ class GatewayService(Service):
 
 	def list(self, inpayload):
 
-		print "Inside list function of GatewayService"
-		requests = {'list_request1':'first', 'list_request2':'second'}
-		response = self.gateway.list(requests)
+		print "\n --- \n Inside list function of GatewayService"
+		print "Message from the client:", inpayload.GetXML()
+                print "\n ---"
+
+		request_node = get_child_nodes(inpayload.Child())
+                externalrequest = str(request_node[0].Get('externalURL'))                
+		options = str(request_node[0].Get('options'))
+		response = self.gateway.list(externalrequest, options)
 		return create_response('gateway:list',
-                        ['gateway:requestID', 'gateway:success', 'gateway:status'], response, self.newSOAPPayload() )
+                        ['gateway:requestID', 'gateway:status', 'output'], response, self.newSOAPPayload() )
 
