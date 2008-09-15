@@ -6,6 +6,13 @@ librarian_uri = 'http://www.nordugrid.org/schemas/librarian'
 bartender_uri = 'http://www.nordugrid.org/schemas/bartender'
 shepherd_uri = 'http://www.nordugrid.org/schemas/shepherd'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
+
+# For Gateway service
+gateway_uri = 'urn:storagegateway'
+externalInfo_uri = 'urn:externalinfo'
+transfer_uri = 'urn:transfer'
+
+
 # URI for the simple transfer mechanism of ByteIO
 byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/simple'
 # True and False values used in the XML representation

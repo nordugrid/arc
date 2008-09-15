@@ -825,4 +825,120 @@ class ByteIOClient(Client):
         resp, _, _ = self.call_raw(out)
         return resp
 
+################### Gateway Client ############
+
+class GatewayClient(Client):
+
+        def __init__(self, url):
+        
+                ns = arc.NS({'gateway':gateway_uri})
+                # calls the superclass' constructor
+                Client.__init__(self, url, ns)
+                
+        def getFile(self, requests):
+        
+
+                """requests will come with the source and the destination URLS of the file. """
+                
+                sourceURL = requests[0]
+                destinationURL = requests[1]
+                tree = XMLTree(from_tree = ('gateway:getFile', [
+                                                ('gateway:URLs',[
+                                                        ('gateway:sourceURL',sourceURL),
+                                                        ('gateway:destinationURL',destinationURL)
+                                                                ])
+                                                        ]))     
+                print tree                              
+                msg, _, _ = self.call(tree)
+                xml = arc.XMLNode(msg)
+                print xml
+                elements = parse_node(xml.Child().Child().Child(),
+                ['requestID', 'success','TURL'], string = True)
+                return elements
+                
+        def putFile(self, requests):
+        
+
+                """requests will come with the source and the destination URLS of the file. """
+                
+                sourceURL = requests[0]
+                destinationURL = requests[1]
+                tree = XMLTree(from_tree = ('gateway:putFile', [
+                                                ('gateway:URLs',[
+                                                        ('gateway:sourceURL',sourceURL),
+                                                        ('gateway:destinationURL',destinationURL)
+                                                                ])
+                                                        ]))     
+                print tree                              
+                msg, _, _ = self.call(tree)
+                xml = arc.XMLNode(msg)
+                elements = parse_node(xml.Child().Child().Child(),
+                ['requestID', 'success','status'], string = True)
+                return elements
+                
+        def list(self, requests,options=''):
+
+                """requests contain the path of the file or directory.
+                options contain whether user needs long listing or not."""
+
+                tree = XMLTree(from_tree = ('gateway:list', [
+                                                ('gateway:URLs',[
+                                                        ('gateway:externalURL', requests),
+                                                        ('gateway:options',options)
+                                                                ])
+                                                         ]))
+                msg, _, _ = self.call(tree)
+                xml = arc.XMLNode(msg)
+                elements = parse_node(xml.Child().Child().Child(),
+                ['ID', 'status','output'], string = True)
+                return elements
+
+class ExternalStorageInformationClient(Client):
+
+        def __init__(self, url):
+
+                ns = arc.NS({'externalStorageInformation':externalInfo_uri})
+                # calls the superclass' constructor
+                Client.__init__(self, url, ns)
+
+        def getInfo(self, request):
+
+                print "External Storage getInfo function"
+                tree = XMLTree(from_tree = ('externalStorageInformation:getInfo', [
+                                                        ('externalStorageInformation:store',[
+                                                                ('externalStorageInformation:name', request)
+                                                                        ])
+                                                                ]))
+                msg, _, _  = self.call(tree)
+                xml = arc.XMLNode(msg)
+                elements = parse_node(xml.Child().Child().Child(),
+                ['ID', 'hostname', 'status'], string = True)
+                return elements
+
+class TransferClient(Client):
+
+        def __init__(self, url):
+
+                ns = arc.NS({'transfer':transfer_uri})
+                # calls the superclass' constructor
+                Client.__init__(self, url, ns)
+
+        def transferData(self,request,options):
+
+                print "Transfer test function"
+                print request
+                tree = XMLTree(from_tree = ('transfer:transferData', [
+                                                        ('transfer:URLs',[
+                                                                ('transfer:hostname', request[0]),
+                                                                ('transfer:options', options)
+                                                                        ])
+                                                                ]))
+
+                msg, _, _ = self.call(tree)
+                xml = arc.XMLNode(msg)
+                elements = parse_node(xml.Child().Child().Child(),
+                ['ID', 'status', 'output'], string = True)
+                return elements
+
+####################################################
 
