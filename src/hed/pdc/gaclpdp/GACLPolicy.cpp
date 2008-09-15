@@ -11,7 +11,7 @@
 
 Arc::Logger ArcSec::GACLPolicy::logger(Arc::Logger::rootLogger, "GACLPolicy");
 
-static Arc::LoadableClass* get_policy(void** arg) {
+static Arc::LoadableClass* get_policy(void* arg) {
   if(arg==NULL) {
     std::cerr<<"There should be XMLNode as argument when creating ArcPolicy"<<std::endl; return NULL;
   } else {

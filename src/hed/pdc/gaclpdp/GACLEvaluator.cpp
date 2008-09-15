@@ -9,7 +9,7 @@
 
 #include "GACLEvaluator.h"
 
-static Arc::LoadableClass* get_evaluator(void** arg) {
+static Arc::LoadableClass* get_evaluator(void* arg) {
     return new ArcSec::GACLEvaluator((Arc::XMLNode*) arg);
 }
 

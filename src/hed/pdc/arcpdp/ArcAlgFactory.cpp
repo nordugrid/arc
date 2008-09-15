@@ -9,7 +9,7 @@
 #include <arc/security/ArcPDP/alg/DenyOverridesAlg.h>
 #include <arc/security/ArcPDP/alg/PermitOverridesAlg.h>
 
-static Arc::LoadableClass* get_alg_factory (void**) {
+static Arc::LoadableClass* get_alg_factory (void*) {
     return new ArcSec::ArcAlgFactory();
 }
 

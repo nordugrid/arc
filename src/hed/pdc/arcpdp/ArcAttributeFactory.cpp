@@ -14,7 +14,7 @@
 
 #include "ArcAttributeProxy.h"
 
-static Arc::LoadableClass* get_attr_factory (void**) {
+static Arc::LoadableClass* get_attr_factory (void*) {
     return new ArcSec::ArcAttributeFactory();
 }
 

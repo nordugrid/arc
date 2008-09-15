@@ -11,7 +11,7 @@
 typedef struct {
     const char* name;
     int version;
-    Arc::LoadableClass *(*get_instance)(void **argument);//,Arc::ChainContext* ctx);
+    Arc::LoadableClass *(*get_instance)(void *argument);
 } loader_descriptor;
 
 typedef loader_descriptor loader_descriptors[];
@@ -36,7 +36,7 @@ class ClassLoader : public ModuleManager{
 
     //virtual LoadableClass *Instance(const std::string& className);
     //LoadableClass *Instance(std::string& classId, Config* cfg); 
-    LoadableClass *Instance(const std::string& classId, void** arg = NULL);
+    LoadableClass *Instance(const std::string& classId, void* arg = NULL);
 
     //template <class LC>
     //void Instance(const std::string className, LC *&p, Config* cfg);

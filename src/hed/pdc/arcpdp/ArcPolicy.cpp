@@ -13,7 +13,7 @@ Arc::Logger ArcSec::ArcPolicy::logger(Arc::Logger::rootLogger, "ArcPolicy");
 
 /** get_policy (in charge of class-loading of ArcPolicy) can only 
 accept one type of argument--XMLNode */
-static Arc::LoadableClass* get_policy(void** arg) {
+static Arc::LoadableClass* get_policy(void* arg) {
     //std::cout<<"Argument type of ArcPolicy:"<<typeid(arg).name()<<std::endl;
     if(arg==NULL) { std::cerr<<"There should be XMLNode as argument when creating ArcPolicy"<<std::endl; return NULL; }
     else{

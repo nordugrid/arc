@@ -11,7 +11,7 @@
 #include "ArcRequestItem.h"
 
 /** get_request (in charge of class-loading of ArcRequest) can only accept two types of argument: NULL, XMLNode*/
-static Arc::LoadableClass* get_request(void** arg) {
+static Arc::LoadableClass* get_request(void* arg) {
   //std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
   if(arg==NULL) { return new ArcSec::ArcRequest(); }
   else {

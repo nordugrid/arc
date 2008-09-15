@@ -86,7 +86,7 @@ void ClassLoader::load_all_instances(Config *cfg){
 
 }
 
-LoadableClass* ClassLoader::Instance(const std::string& classId, void** arg){
+LoadableClass* ClassLoader::Instance(const std::string& classId, void* arg){
   identifier_map_t::iterator it;
   void* ptr;
   for(it=id_map.begin(); it!=id_map.end(); ++it){
