@@ -5,6 +5,7 @@
 #include <list>
 
 #include <arc/Logger.h>
+#include <arc/XMLNode.h>
 #include <arc/data/DataPoint.h>
 
 namespace Arc {
@@ -118,6 +119,23 @@ namespace Arc {
       if (GetValid() != p.GetValid())
 	return false;
     return true;
+  }
+
+  void DataPoint::AssignCredentials(const std::string& proxyPath,
+				    const std::string& certificatePath,
+				    const std::string& keyPath,
+				    const std::string& caCertificatesDir) {
+    this->proxyPath = proxyPath;
+    this->certificatePath = certificatePath;
+    this->keyPath = keyPath;
+    this->caCertificatesDir = caCertificatesDir;
+  }
+
+  void DataPoint::AssignCredentials(const XMLNode& node) {
+    proxyPath = (std::string)node["ProxyPath"];
+    certificatePath = (std::string)node["CertificatePath"];
+    keyPath = (std::string)node["KeyPath"];
+    caCertificatesDir = (std::string)node["CACertificatesDir"];
   }
 
 } // namespace Arc

@@ -10,12 +10,15 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/XMLNode.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/DataHandle.h>
 #include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
 void arcls(const Arc::URL& dir_url,
+	   Arc::XMLNode credentials,
 	   bool show_details,
 	   bool show_urls,
 	   int recursion,
@@ -29,7 +32,7 @@ void arcls(const Arc::URL& dir_url,
     }
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
 	 dir != dirs.end(); dir++)
-      arcls(*dir, show_details, show_urls, recursion, timeout);
+      arcls(*dir, credentials, show_details, show_urls, recursion, timeout);
     return;
   }
 
@@ -38,6 +41,7 @@ void arcls(const Arc::URL& dir_url,
     logger.msg(Arc::ERROR, "Unsupported url given");
     return;
   }
+  url->AssignCredentials(credentials);
   std::list<Arc::FileInfo> files;
   url->SetSecure(false);
   if (!url->ListFiles(files, show_details)) {
@@ -96,7 +100,7 @@ void arcls(const Arc::URL& dir_url,
 	else
 	  suburl.ChangePath(suburl.Path() + i->GetName());
 	std::cout << suburl.str() << ":" << std::endl;
-	arcls(suburl, show_details, show_urls, recursion - 1, timeout);
+	arcls(suburl, credentials, show_details, show_urls, recursion - 1, timeout);
 	std::cout << std::endl;
       }
   }
@@ -132,6 +136,11 @@ int main(int argc, char **argv) {
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
 
+  std::string conffile;
+  options.AddOption('z', "conffile",
+		    istring("configuration file (default ~/.arc/client.xml)"),
+		    istring("filename"), conffile);
+
   std::string debug;
   options.AddOption('d', "debug",
 		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
@@ -146,6 +155,17 @@ int main(int argc, char **argv) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
+  Arc::UserConfig usercfg(conffile);
+  if (!usercfg) {
+    logger.msg(Arc::ERROR, "Failed configuration initialization");
+    return 1;
+  }
+
+  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+    debug = (std::string)usercfg.ConfTree()["Debug"];
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  }
+
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcls", VERSION) << std::endl;
     return 0;
@@ -157,7 +177,12 @@ int main(int argc, char **argv) {
   }
 
   std::list<std::string>::iterator it = params.begin();
-  arcls(*it, longlist, locations, recursion, timeout);
+
+  Arc::NS ns;
+  Arc::XMLNode cred(ns, "cred");
+  usercfg.ApplySecurity(cred);
+
+  arcls(*it, cred, longlist, locations, recursion, timeout);
 
   return 0;
 }

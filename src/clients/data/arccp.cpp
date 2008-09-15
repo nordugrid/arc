@@ -10,6 +10,8 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/User.h>
+#include <arc/XMLNode.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
@@ -18,7 +20,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arccp");
 
-static void progress(FILE *o, const char *, unsigned int,
+static void progress(FILE *o, const char*, unsigned int,
 		     unsigned long long int all, unsigned long long int max,
 		     double, double) {
   static int rs = 0;
@@ -47,6 +49,7 @@ static void progress(FILE *o, const char *, unsigned int,
 
 void arcregister(const Arc::URL& source_url,
 		 const Arc::URL& destination_url,
+		 Arc::XMLNode credentials,
 		 bool secure,
 		 bool passive,
 		 bool force_meta,
@@ -74,7 +77,7 @@ void arcregister(const Arc::URL& source_url,
 				       destination = destinations.begin();
 	 (source != sources.end()) && (destination != destinations.end());
 	 source++, destination++)
-      arcregister(*source, *destination, secure, passive, force_meta, timeout);
+      arcregister(*source, *destination, credentials, secure, passive, force_meta, timeout);
     return;
   }
   if (source_url.Protocol() == "urllist") {
@@ -86,7 +89,7 @@ void arcregister(const Arc::URL& source_url,
     }
     for (std::list<Arc::URL>::iterator source = sources.begin();
 	 source != sources.end(); source++)
-      arcregister(*source, destination_url, secure, passive, force_meta,
+      arcregister(*source, destination_url, credentials, secure, passive, force_meta,
 		  timeout);
     return;
   }
@@ -99,7 +102,7 @@ void arcregister(const Arc::URL& source_url,
     }
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
 	 destination != destinations.end(); destination++)
-      arcregister(source_url, *destination, secure, passive, force_meta,
+      arcregister(source_url, *destination, credentials, secure, passive, force_meta,
 		  timeout);
     return;
   }
@@ -109,7 +112,9 @@ void arcregister(const Arc::URL& source_url,
     return;
   }
   Arc::DataHandle source(source_url);
+  source->AssignCredentials(credentials);
   Arc::DataHandle destination(destination_url);
+  destination->AssignCredentials(credentials);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
     return;
@@ -171,6 +176,7 @@ void arcregister(const Arc::URL& source_url,
 
 void arccp(const Arc::URL& source_url_,
 	   const Arc::URL& destination_url_,
+	   Arc::XMLNode credentials,
 	   bool secure,
 	   bool passive,
 	   bool force_meta,
@@ -210,7 +216,7 @@ void arccp(const Arc::URL& source_url_,
 				       destination = destinations.begin();
 	 (source != sources.end()) && (destination != destinations.end());
 	 source++, destination++)
-      arccp(*source, *destination, secure, passive, force_meta, recursion,
+      arccp(*source, *destination, credentials, secure, passive, force_meta, recursion,
 	    tries, verbose, timeout);
     return;
   }
@@ -224,7 +230,7 @@ void arccp(const Arc::URL& source_url_,
 
     for (std::list<Arc::URL>::iterator source = sources.begin();
 	 source != sources.end(); source++)
-      arccp(*source, destination_url, secure, passive, force_meta, recursion,
+      arccp(*source, destination_url, credentials, secure, passive, force_meta, recursion,
 	    tries, verbose, timeout);
     return;
   }
@@ -237,7 +243,7 @@ void arccp(const Arc::URL& source_url_,
     }
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
 	 destination != destinations.end(); destination++)
-      arccp(source_url, *destination, secure, passive, force_meta, recursion,
+      arccp(source_url, *destination, credentials, secure, passive, force_meta, recursion,
 	    tries, verbose, timeout);
     return;
   }
@@ -276,6 +282,7 @@ void arccp(const Arc::URL& source_url_,
 	return;
       }
       Arc::DataHandle source(source_url);
+      source->AssignCredentials(credentials);
       if (!source) {
 	logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
 	return;
@@ -287,12 +294,11 @@ void arccp(const Arc::URL& source_url_,
 	  return;
 	}
       }
-      else {
+      else
 	if (!source->ListFiles(files, true)) {
 	  logger.msg(Arc::ERROR, "Failed listing files");
 	  return;
 	}
-      }
       bool failures = false;
       // Handle transfer of files first (treat unknown like files)
       for (std::list<Arc::FileInfo>::iterator i = files.begin();
@@ -308,7 +314,9 @@ void arccp(const Arc::URL& source_url_,
 	logger.msg(Arc::INFO, "Source: %s", s_url);
 	logger.msg(Arc::INFO, "Destination: %s", d_url);
 	Arc::DataHandle source(s_url);
+	source->AssignCredentials(credentials);
 	Arc::DataHandle destination(d_url);
+	destination->AssignCredentials(credentials);
 	if (!source) {
 	  logger.msg(Arc::INFO, "Unsupported source url: %s", s_url);
 	  continue;
@@ -366,14 +374,16 @@ void arccp(const Arc::URL& source_url_,
 	  d_url += i->GetName();
 	  s_url += "/";
 	  d_url += "/";
-	  arccp(s_url, d_url, secure, passive, force_meta, recursion - 1,
+	  arccp(s_url, d_url, credentials, secure, passive, force_meta, recursion - 1,
 		tries, verbose, timeout);
 	}
       return;
     }
   }
   Arc::DataHandle source(source_url);
+  source->AssignCredentials(credentials);
   Arc::DataHandle destination(destination_url);
+  destination->AssignCredentials(credentials);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
     return;
@@ -498,6 +508,11 @@ int main(int argc, char **argv) {
 		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
 		    istring("debuglevel"), debug);
 
+  std::string conffile;
+  options.AddOption('z', "conffile",
+		    istring("configuration file (default ~/.arc/client.xml)"),
+		    istring("filename"), conffile);
+
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
 		    version);
@@ -506,6 +521,17 @@ int main(int argc, char **argv) {
 
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  Arc::UserConfig usercfg(conffile);
+  if (!usercfg) {
+    logger.msg(Arc::ERROR, "Failed configuration initialization");
+    return 1;
+  }
+
+  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+    debug = (std::string)usercfg.ConfTree()["Debug"];
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  }
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arccp", VERSION) << std::endl;
@@ -530,10 +556,14 @@ int main(int argc, char **argv) {
   ++it;
   std::string destination = *it;
 
+  Arc::NS ns;
+  Arc::XMLNode cred(ns, "cred");
+  usercfg.ApplySecurity(cred);
+
   if (nocopy)
-    arcregister(source, destination, secure, passive, force, timeout);
+    arcregister(source, destination, cred, secure, passive, force, timeout);
   else
-    arccp(source, destination, secure, passive, force, recursion,
+    arccp(source, destination, cred, secure, passive, force, recursion,
 	  retries + 1, verbose, timeout);
 
   return 0;

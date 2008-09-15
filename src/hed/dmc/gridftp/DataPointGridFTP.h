@@ -56,8 +56,8 @@ namespace Arc {
 				   globus_object_t *error,
 				   globus_byte_t *buffer, globus_size_t length,
 				   globus_off_t offset, globus_bool_t eof);
-    static void *ftp_read_thread(void *arg);
-    static void *ftp_write_thread(void *arg);
+    static void* ftp_read_thread(void *arg);
+    static void* ftp_write_thread(void *arg);
 
     std::string ftp_dir_path;
     bool mkdir_ftp();

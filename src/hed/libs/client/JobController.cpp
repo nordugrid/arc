@@ -463,6 +463,8 @@ namespace Arc {
     std::list<FileInfo> outputfiles;
 
     DataHandle handle(dir);
+    handle->AssignCredentials(proxyPath, certificatePath,
+			      keyPath, caCertificatesDir);
     handle->ListFiles(outputfiles, true);
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
@@ -504,12 +506,17 @@ namespace Arc {
       logger.msg(ERROR, "Failed to get DataHandle on source: %s", src.str());
       return false;
     }
+    source->AssignCredentials(proxyPath, certificatePath,
+			      keyPath, caCertificatesDir);
+
     DataHandle destination(dst);
     if (!destination) {
       logger.msg(ERROR, "Failed to get DataHandle on destination: %s",
 		 dst.str());
       return false;
     }
+    destination->AssignCredentials(proxyPath, certificatePath,
+				   keyPath, caCertificatesDir);
 
     FileCache cache;
     std::string failure;

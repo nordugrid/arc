@@ -8,6 +8,7 @@
 
 #include "DataPointGridFTP.h"
 #include "GlobusErrorUtils.h"
+#include "GSSCredential.h"
 #include "Lister.h"
 
 namespace Arc {
@@ -15,9 +16,9 @@ namespace Arc {
   Logger DataPointGridFTP::logger(DataPoint::logger, "GridFTP");
 
   void DataPointGridFTP::ftp_complete_callback(void *arg,
-					       globus_ftp_client_handle_t *,
+					       globus_ftp_client_handle_t*,
 					       globus_object_t *error) {
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error == GLOBUS_SUCCESS) {
       logger.msg(VERBOSE, "ftp_complete_callback: success");
       it->condstatus = DataStatus::Success;
@@ -32,14 +33,14 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_check_callback(void *arg,
-					    globus_ftp_client_handle_t *,
+					    globus_ftp_client_handle_t*,
 					    globus_object_t *error,
-					    globus_byte_t *,
+					    globus_byte_t*,
 					    globus_size_t,
 					    globus_off_t,
 					    globus_bool_t eof) {
     logger.msg(DEBUG, "ftp_check_callback");
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error != GLOBUS_SUCCESS) {
       logger.msg(DEBUG, "Globus error: %s", globus_object_to_string(error));
       return;
@@ -48,7 +49,7 @@ namespace Arc {
       return;
     GlobusResult res =
       globus_ftp_client_register_read(&(it->ftp_handle),
-				      (globus_byte_t *)(it->ftp_buf),
+				      (globus_byte_t*)(it->ftp_buf),
 				      sizeof(it->ftp_buf),
 				      &ftp_check_callback, it);
     if (!res) {
@@ -123,7 +124,7 @@ namespace Arc {
       ftp_eof_flag = false;
       logger.msg(DEBUG, "check_ftp: globus_ftp_client_register_read");
       res = globus_ftp_client_register_read(&ftp_handle,
-					    (globus_byte_t *)ftp_buf,
+					    (globus_byte_t*)ftp_buf,
 					    sizeof(ftp_buf),
 					    &ftp_check_callback, this);
       if (!res) {
@@ -282,9 +283,9 @@ namespace Arc {
       }
       else if (!condstatus)
 	logger.msg(INFO, "start_reading_ftp: failed to get file's size");
-	// buffer->error_read(true);
-	// reading = false;
-	// return read_start_error;
+      // buffer->error_read(true);
+      // reading = false;
+      // return read_start_error;
       else {
 	/* provide some metadata */
 	logger.msg(INFO, "start_reading_ftp: obtained size: %llu", size);
@@ -318,9 +319,9 @@ namespace Arc {
       if (!condstatus)
 	logger.msg(INFO, "start_reading_ftp: "
 		   "failed to get file's modification time");
-	// buffer->error_read(true);
-	// reading = false;
-	// return condstatus;
+      // buffer->error_read(true);
+      // reading = false;
+      // return condstatus;
       else {
 	time_t modify_time;
 	int modify_utime;
@@ -391,8 +392,8 @@ namespace Arc {
     return condstatus;
   }
 
-  void *DataPointGridFTP::ftp_read_thread(void *arg) {
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+  void* DataPointGridFTP::ftp_read_thread(void *arg) {
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     int h;
     unsigned int l;
     GlobusResult res;
@@ -412,7 +413,7 @@ namespace Arc {
       }
       res =
 	globus_ftp_client_register_read(&(it->ftp_handle),
-					(globus_byte_t *)((*(it->buffer))[h]),
+					(globus_byte_t*)((*(it->buffer))[h]),
 					l, &(it->ftp_read_callback), it);
       if (!res) {
 	logger.msg(VERBOSE, "ftp_read_thread: Globus error: %s", res.str());
@@ -448,29 +449,29 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_read_callback(void *arg,
-					   globus_ftp_client_handle_t *,
+					   globus_ftp_client_handle_t*,
 					   globus_object_t *error,
 					   globus_byte_t *buffer,
 					   globus_size_t length,
 					   globus_off_t offset,
 					   globus_bool_t eof) {
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error != GLOBUS_SUCCESS) {
       logger.msg(DEBUG, "ftp_read_callback: failure");
-      it->buffer->is_read((char *)buffer, 0, 0);
+      it->buffer->is_read((char*)buffer, 0, 0);
       return;
     }
     logger.msg(VERBOSE, "ftp_read_callback: success");
-    it->buffer->is_read((char *)buffer, length, offset);
+    it->buffer->is_read((char*)buffer, length, offset);
     if (eof)
       it->ftp_eof_flag = true;
     return;
   }
 
   void DataPointGridFTP::ftp_get_complete_callback(void *arg,
-						   globus_ftp_client_handle_t *,
+						   globus_ftp_client_handle_t*,
 						   globus_object_t *error) {
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     /* data transfer finished */
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to get ftp file");
@@ -483,7 +484,7 @@ namespace Arc {
   }
 
   DataStatus DataPointGridFTP::StartWriting(DataBufferPar& buf,
-					    DataCallback *) {
+					    DataCallback*) {
     if (!ftp_active)
       return DataStatus::NotInitializedError;
     if (reading)
@@ -554,8 +555,8 @@ namespace Arc {
     return condstatus;
   }
 
-  void *DataPointGridFTP::ftp_write_thread(void *arg) {
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+  void* DataPointGridFTP::ftp_write_thread(void *arg) {
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     int h;
     unsigned int l;
     unsigned long long int o;
@@ -574,7 +575,7 @@ namespace Arc {
 	char dummy;
 	o = it->buffer->eof_position();
 	res = globus_ftp_client_register_write(&(it->ftp_handle),
-					       (globus_byte_t *)(&dummy), 0, o,
+					       (globus_byte_t*)(&dummy), 0, o,
 					       eof, &ftp_write_callback, it);
 	break;
 	// if(res == GLOBUS_SUCCESS) break;
@@ -582,7 +583,7 @@ namespace Arc {
       }
       res =
 	globus_ftp_client_register_write(&(it->ftp_handle),
-					 (globus_byte_t *)((*(it->buffer))[h]),
+					 (globus_byte_t*)((*(it->buffer))[h]),
 					 l, o, eof, &ftp_write_callback, it);
       if (!res) {
 	it->buffer->is_notwritten(h);
@@ -598,27 +599,27 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_write_callback(void *arg,
-					    globus_ftp_client_handle_t *,
+					    globus_ftp_client_handle_t*,
 					    globus_object_t *error,
 					    globus_byte_t *buffer,
 					    globus_size_t,
 					    globus_off_t,
 					    globus_bool_t) {
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error != GLOBUS_SUCCESS) {
       logger.msg(DEBUG, "ftp_write_callback: failure");
-      it->buffer->is_written((char *)buffer);
+      it->buffer->is_written((char*)buffer);
       return;
     }
     logger.msg(VERBOSE, "ftp_write_callback: success");
-    it->buffer->is_written((char *)buffer);
+    it->buffer->is_written((char*)buffer);
     return;
   }
 
   void DataPointGridFTP::ftp_put_complete_callback(void *arg,
-						   globus_ftp_client_handle_t *,
+						   globus_ftp_client_handle_t*,
 						   globus_object_t *error) {
-    DataPointGridFTP *it = (DataPointGridFTP *)arg;
+    DataPointGridFTP *it = (DataPointGridFTP*)arg;
     /* data transfer finished */
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to store ftp file");
@@ -639,7 +640,8 @@ namespace Arc {
     if (writing)
       return DataStatus::IsWritingError;
     set_attributes();
-    Lister lister;
+    GSSCredential credential(proxyPath, certificatePath, keyPath);
+    Lister lister(credential);
     if (lister.retrieve_dir(url) != 0) {
       logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
       return DataStatus::ListError;
@@ -813,12 +815,15 @@ namespace Arc {
       globus_ftp_client_operationattr_set_dcau(&ftp_opattr, &dcau);
     }
     else { // gridftp protocol
-      char *subj = getenv("SUBJECT");
-      if (subj)
-	globus_ftp_client_operationattr_set_authorization(&ftp_opattr,
-							  GSS_C_NO_CREDENTIAL,
-							  NULL, NULL, NULL,
-							  subj);
+
+      GSSCredential credential(proxyPath, certificatePath, keyPath);
+
+      globus_ftp_client_operationattr_set_authorization(&ftp_opattr,
+							credential,
+							":globus-mapping:",
+							"user@",
+							GLOBUS_NULL,
+							GLOBUS_NULL);
       if (force_secure || (url.Option("secure") == "yes")) {
 	globus_ftp_client_operationattr_set_mode(&ftp_opattr,
 						 GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);

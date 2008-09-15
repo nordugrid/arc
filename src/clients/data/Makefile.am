@@ -3,6 +3,7 @@ bin_PROGRAMS = arccp arcls arcrm
 man_MANS = arccp.1 arcls.1 arcrm.1
 
 CLILIBS = $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 arccp_SOURCES  = arccp.cpp

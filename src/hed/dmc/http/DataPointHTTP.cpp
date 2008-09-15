@@ -259,18 +259,6 @@ namespace Arc {
     lock_.unlock();
   }
 
-  // Globus legacy
-  static void get_environment_credentials(BaseConfig& cfg) {
-    if (getenv("X509_USER_CERT"))
-      cfg.AddCertificate(getenv("X509_USER_CERT"));
-    if (getenv("X509_USER_KEY"))
-      cfg.AddPrivateKey(getenv("X509_USER_KEY"));
-    if (getenv("X509_USER_PROXY"))
-      cfg.AddProxy(getenv("X509_USER_PROXY"));
-    if (getenv("X509_CERT_DIR"))
-      cfg.AddCADir(getenv("X509_CERT_DIR"));
-  }
-
   DataPointHTTP::DataPointHTTP(const URL& url)
     : DataPointDirect(url),
       chunks(NULL),
@@ -349,7 +337,14 @@ namespace Arc {
   DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool) {
 
     MCCConfig cfg;
-    get_environment_credentials(cfg);
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
     ClientHTTP client(cfg, url.Host(), url.Port(),
                       url.Protocol() == "https", url.str());
 
@@ -443,7 +438,14 @@ namespace Arc {
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
-    get_environment_credentials(cfg);
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
@@ -505,7 +507,14 @@ namespace Arc {
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
-    get_environment_credentials(cfg);
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
@@ -606,7 +615,14 @@ namespace Arc {
         delete client;
         client = NULL;
         MCCConfig cfg;
-        get_environment_credentials(cfg);
+        if (!point.proxyPath.empty())
+          cfg.AddProxy(point.proxyPath);
+        if (!point.certificatePath.empty())
+          cfg.AddCertificate(point.certificatePath);
+        if (!point.keyPath.empty())
+          cfg.AddPrivateKey(point.keyPath);
+        if (!point.caCertificatesDir.empty())
+          cfg.AddCADir(point.caCertificatesDir);
         client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
         continue;
       }
@@ -733,7 +749,14 @@ namespace Arc {
         delete client;
         client = NULL;
         MCCConfig cfg;
-        get_environment_credentials(cfg);
+        if (!point.proxyPath.empty())
+          cfg.AddProxy(point.proxyPath);
+        if (!point.certificatePath.empty())
+          cfg.AddCertificate(point.certificatePath);
+        if (!point.keyPath.empty())
+          cfg.AddPrivateKey(point.keyPath);
+        if (!point.caCertificatesDir.empty())
+          cfg.AddCADir(point.caCertificatesDir);
         client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
         continue;
       }

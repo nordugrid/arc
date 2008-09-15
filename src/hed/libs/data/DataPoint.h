@@ -15,6 +15,7 @@ namespace Arc {
   class Logger;
   class DataBufferPar;
   class DataCallback;
+  class XMLNode;
 
   /// This base class is an abstraction of URL.
   /** Specializations should be provided for different kind of direct
@@ -281,6 +282,15 @@ namespace Arc {
     /// Remove locations present in another DataPoint object
     virtual DataStatus RemoveLocations(const DataPoint& p) = 0;
 
+    /// Assing credentials used for authentication
+    void AssignCredentials(const std::string& proxyPath,
+			   const std::string& certifcatePath,
+			   const std::string& keyPath,
+			   const std::string& caCertificatesDir);
+
+    /// Assing credentials used for authentication (using XML node)
+    void AssignCredentials(const XMLNode& node);
+
   protected:
     URL url;
     static Logger logger;
@@ -291,6 +301,12 @@ namespace Arc {
     Time created;
     Time valid;
     int triesleft;
+
+    // authentication
+    std::string proxyPath;
+    std::string certificatePath;
+    std::string keyPath;
+    std::string caCertificatesDir;
   };
 
 } // namespace Arc

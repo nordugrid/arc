@@ -9,6 +9,8 @@
 #include <arc/DateTime.h>
 #include <arc/data/FileInfo.h>
 
+#include "GSSCredential.h"
+
 #define LISTER_MAX_RESPONSES 3
 
 namespace Arc {
@@ -42,6 +44,7 @@ namespace Arc {
     std::string userpass;
     std::string path;
     std::string scheme;
+    GSSCredential& credential;
 
     callback_status_t wait_for_callback();
     callback_status_t wait_for_data_callback();
@@ -65,7 +68,7 @@ namespace Arc {
     int setup_pasv(globus_ftp_control_host_port_t& pasv_addr);
 
   public:
-    Lister();
+    Lister(GSSCredential& credential);
     ~Lister();
     int retrieve_dir(const URL& url);
     operator bool() {

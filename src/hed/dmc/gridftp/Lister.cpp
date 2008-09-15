@@ -16,6 +16,7 @@
 #include <arc/data/FileInfo.h>
 
 #include "GlobusErrorUtils.h"
+#include "GSSCredential.h"
 #include "Lister.h"
 
 
@@ -119,10 +120,10 @@ namespace Arc {
     globus_mutex_unlock(&mutex);
   }
 
-  void Lister::resp_callback(void *arg, globus_ftp_control_handle_t *,
+  void Lister::resp_callback(void *arg, globus_ftp_control_handle_t*,
 			     globus_object_t *error,
 			     globus_ftp_control_response_t *response) {
-    Lister *it = (Lister *)arg;
+    Lister *it = (Lister*)arg;
     globus_mutex_lock(&(it->mutex));
     if (error != GLOBUS_SUCCESS) {
       it->callback_status = CALLBACK_ERROR;
@@ -138,7 +139,7 @@ namespace Arc {
 	if (response->response_buffer)
 	  globus_ftp_control_response_copy(response, it->resp);
 	else {    // invalid reply causes *_copy to segfault
-	  it->resp->response_buffer = (globus_byte_t *)strdup("000 ");
+	  it->resp->response_buffer = (globus_byte_t*)strdup("000 ");
 	  it->resp->response_buffer_size = 5;
 	  it->resp->response_length = 4;
 	  it->resp->code = 0;
@@ -147,7 +148,7 @@ namespace Arc {
 	(it->resp_n)++;
       }
       it->callback_status = CALLBACK_DONE;
-      dos_to_unix((char *)(it->resp->response_buffer));
+      dos_to_unix((char*)(it->resp->response_buffer));
       logger.msg(DEBUG, "Response: %s", it->resp->response_buffer);
     }
     globus_cond_signal(&(it->cond));
@@ -155,13 +156,13 @@ namespace Arc {
   }
 
   void Lister::list_read_callback(void *arg,
-				  globus_ftp_control_handle_t *,
+				  globus_ftp_control_handle_t*,
 				  globus_object_t *error,
-				  globus_byte_t *,
+				  globus_byte_t*,
 				  globus_size_t length,
 				  globus_off_t,
 				  globus_bool_t eof) {
-    Lister *it = (Lister *)arg;
+    Lister *it = (Lister*)arg;
     length += it->list_shift;
     if (error != GLOBUS_SUCCESS) {
       /* no such file or connection error - assume no such file */
@@ -233,7 +234,7 @@ namespace Arc {
       }
     }
     if (!eof) {
-      if (globus_ftp_control_data_read(it->handle, (globus_byte_t *)
+      if (globus_ftp_control_data_read(it->handle, (globus_byte_t*)
 				       ((it->readbuf) + (it->list_shift)),
 				       sizeof(it->readbuf) -
 				       (it->list_shift) - 1,
@@ -260,7 +261,7 @@ namespace Arc {
 				  globus_bool_t,
 				  globus_object_t *error) {
     /* if(!callback_active) return; */
-    Lister *it = (Lister *)arg;
+    Lister *it = (Lister*)arg;
     if (error != GLOBUS_SUCCESS) {
       std::string tmp = globus_object_to_string(error);
       logger.msg(INFO, "Failure: %s", tmp);
@@ -272,7 +273,7 @@ namespace Arc {
     }
     it->list_shift = 0;
     it->fnames.clear();
-    if (globus_ftp_control_data_read(hctrl, (globus_byte_t *)(it->readbuf),
+    if (globus_ftp_control_data_read(hctrl, (globus_byte_t*)(it->readbuf),
 				     sizeof(it->readbuf) - 1,
 				     &list_read_callback, arg) !=
 	GLOBUS_SUCCESS) {
@@ -298,9 +299,9 @@ namespace Arc {
       callback_status = CALLBACK_NOTREADY;
       globus_mutex_unlock(&mutex);
       if (arg)
-	cmd = (char *)malloc(strlen(arg) + strlen(command) + 4);
+	cmd = (char*)malloc(strlen(arg) + strlen(command) + 4);
       else
-	cmd = (char *)malloc(strlen(command) + 3);
+	cmd = (char*)malloc(strlen(command) + 3);
       if (cmd == NULL) {
 	logger.msg(ERROR, "Memory allocation error");
 	return GLOBUS_FTP_UNKNOWN_REPLY;
@@ -340,9 +341,9 @@ namespace Arc {
       }
       if ((sresp) && (resp_n > 0)) {
 	if (delim == 0) {
-	  (*sresp) = (char *)malloc(resp[resp_n - 1].response_length);
+	  (*sresp) = (char*)malloc(resp[resp_n - 1].response_length);
 	  if ((*sresp) != NULL) {
-	    memcpy(*sresp, (char *)(resp[resp_n - 1].response_buffer + 4),
+	    memcpy(*sresp, (char*)(resp[resp_n - 1].response_buffer + 4),
 		   resp[resp_n - 1].response_length - 4);
 	    (*sresp)[resp[resp_n - 1].response_length - 4] = 0;
 	    logger.msg(DEBUG, "Response: %s", *sresp);
@@ -353,7 +354,7 @@ namespace Arc {
 	else {
 	  /* look for pair of enclosing characters */
 	  logger.msg(DEBUG, "Response: %s", resp[resp_n - 1].response_buffer);
-	  char *s_start = (char *)(resp[resp_n - 1].response_buffer + 4);
+	  char *s_start = (char*)(resp[resp_n - 1].response_buffer + 4);
 	  char *s_end = NULL;
 	  int l = 0;
 	  s_start = strchr(s_start, delim);
@@ -370,7 +371,7 @@ namespace Arc {
 	      l = s_end - s_start;
 	  }
 	  if (l > 0) {
-	    (*sresp) = (char *)malloc(l + 1);
+	    (*sresp) = (char*)malloc(l + 1);
 	    if ((*sresp) != NULL) {
 	      memcpy(*sresp, s_start, l);
 	      (*sresp)[l] = 0;
@@ -396,12 +397,13 @@ namespace Arc {
     /* !!!!!!! Memory LOST - cmd !!!!!!!! */
   }
 
-  Lister::Lister()
+  Lister::Lister(GSSCredential& credential)
     : inited(false),
       handle(NULL),
       resp_n(0),
       callback_status(CALLBACK_NOTREADY),
       connected(false),
+      credential(credential),
       port((unsigned short int)(-1)) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {
       logger.msg(ERROR, "Failed initing condition");
@@ -412,7 +414,7 @@ namespace Arc {
       globus_cond_destroy(&cond);
       return;
     }
-    handle = (globus_ftp_control_handle_t *)
+    handle = (globus_ftp_control_handle_t*)
 	     malloc(sizeof(globus_ftp_control_handle_t));
     if (handle == NULL) {
       logger.msg(ERROR, "Failed allocating memory for handle");
@@ -551,11 +553,11 @@ namespace Arc {
       username = url.Username();
       userpass = url.Passwd();
       /*
-         !!!!!!!!!!!!!!!!!!!!!!!!!!!
-         disconnect here ???????????
+	 !!!!!!!!!!!!!!!!!!!!!!!!!!!
+	 disconnect here ???????????
        */
       if (!(res = globus_ftp_control_connect(handle,
-					     const_cast<char *>(host.c_str()),
+					     const_cast<char*>(host.c_str()),
 					     port, &resp_callback, this))) {
 	logger.msg(ERROR, "Failed connecting to server %s:%d",
 		   host.c_str(), port);
@@ -569,15 +571,15 @@ namespace Arc {
 	return -1;
       }
       resp_destroy();
-      char *username_ = const_cast<char *>(username.c_str());
-      char *userpass_ = const_cast<char *>(userpass.c_str());
+      char *username_ = const_cast<char*>(username.c_str());
+      char *userpass_ = const_cast<char*>(userpass.c_str());
       globus_bool_t use_auth;
       if (scheme == "gsiftp") {
 	if (username.empty())
 	  username_ = default_gsiftp_user;
 	if (userpass.empty())
 	  userpass_ = default_gsiftp_pass;
-	if (globus_ftp_control_auth_info_init(&auth, GSS_C_NO_CREDENTIAL,
+	if (globus_ftp_control_auth_info_init(&auth, credential,
 					      GLOBUS_TRUE, username_,
 					      userpass_, GLOBUS_NULL,
 					      GLOBUS_NULL) !=

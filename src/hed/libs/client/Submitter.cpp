@@ -43,7 +43,11 @@ namespace Arc {
       std::string src = file->second;
       std::string dst = url.str() + '/' + file->first;
       DataHandle source(src);
+      source->AssignCredentials(proxyPath, certificatePath,
+				keyPath, caCertificatesDir);
       DataHandle destination(dst);
+      destination->AssignCredentials(proxyPath, certificatePath,
+				     keyPath, caCertificatesDir);
 
       std::string failure;
       int timeout = 300;

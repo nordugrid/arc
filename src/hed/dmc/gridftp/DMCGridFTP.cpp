@@ -26,11 +26,11 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
   }
 
-  DMC *DMCGridFTP::Instance(Config *cfg, ChainContext *) {
+  DMC* DMCGridFTP::Instance(Config *cfg, ChainContext*) {
     return new DMCGridFTP(cfg);
   }
 
-  DataPoint *DMCGridFTP::iGetDataPoint(const URL& url) {
+  DataPoint* DMCGridFTP::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "gsiftp" && url.Protocol() != "ftp")
       return NULL;
     return new DataPointGridFTP(url);
@@ -39,6 +39,6 @@ namespace Arc {
 } // namespace Arc
 
 dmc_descriptors ARC_DMC_LOADER = {
-  {"gridftp", 0, &Arc::DMCGridFTP::Instance},
-  {NULL, 0, NULL}
+  { "gridftp", 0, &Arc::DMCGridFTP::Instance },
+  { NULL, 0, NULL }
 };

@@ -9,12 +9,14 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/DataHandle.h>
 #include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
 void arcrm(const Arc::URL& file_url,
+	   Arc::XMLNode credentials,
 	   bool errcont,
 	   int timeout) {
   if (file_url.Protocol() == "filelist") {
@@ -26,7 +28,7 @@ void arcrm(const Arc::URL& file_url,
     }
     for (std::list<Arc::URL>::iterator file = files.begin();
 	 file != files.end(); file++)
-      arcrm(*file, errcont, timeout);
+      arcrm(*file, credentials, errcont, timeout);
     return;
   }
 
@@ -35,6 +37,7 @@ void arcrm(const Arc::URL& file_url,
     logger.msg(Arc::ERROR, "Unsupported url given");
     return;
   }
+  url->AssignCredentials(credentials);
   bool remove_lfn = true;
   if (file_url.Locations().size() != 0)
     remove_lfn = false;
@@ -122,6 +125,11 @@ int main(int argc, char **argv) {
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
 
+  std::string conffile;
+  options.AddOption('z', "conffile",
+		    istring("configuration file (default ~/.arc/client.xml)"),
+		    istring("filename"), conffile);
+
   std::string debug;
   options.AddOption('d', "debug",
 		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
@@ -136,6 +144,17 @@ int main(int argc, char **argv) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
+  Arc::UserConfig usercfg(conffile);
+  if (!usercfg) {
+    logger.msg(Arc::ERROR, "Failed configuration initialization");
+    return 1;
+  }
+
+  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+    debug = (std::string)usercfg.ConfTree()["Debug"];
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  }
+
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcrm", VERSION) << std::endl;
     return 0;
@@ -146,8 +165,12 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  Arc::NS ns;
+  Arc::XMLNode cred(ns, "cred");
+  usercfg.ApplySecurity(cred);
+
   std::list<std::string>::iterator it = params.begin();
-  arcrm(*it, force, timeout);
+  arcrm(*it, cred, force, timeout);
 
   return 0;
 }
