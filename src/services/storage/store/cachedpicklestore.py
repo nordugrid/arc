@@ -8,16 +8,15 @@ class CachedPickleStore(PickleStore):
     """ Class for storing object in a serialized python format. """
 
     def __init__(self, storecfg, non_existent_object = {}, log = None):
-        """ Constructor of PickleStore.
+        """ Constructor of CachedPickleStore.
 
-        PickleStore(storecfg)
+        CachedPickleStore(storecfg)
 
         'storecfg' is an XMLNode with a 'DataDir'
         'non_existent_object' will be returned if an object not found
         """
         PickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log('DEBUG', "CachedPickleStore constructor called")
-        self.log('DEBUG', "datadir:", self.datadir)
+        self.log('DEBUG', "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
         self.store = {}
         self._load_storage()
 
@@ -44,9 +43,8 @@ class CachedPickleStore(PickleStore):
         If there is no object with this ID, returns the given non_existent_object value.
         """
         try:
-            # generates a filename from the ID
-            # then use pickle to load the previously serialized data
-            return self.store[ID]
+            # return a copy of the in-memory stored object
+            return copy.deepcopy(self.store[ID])
         except KeyError:
             # don't print 'KeyError' if there is no such ID
             pass
@@ -57,13 +55,13 @@ class CachedPickleStore(PickleStore):
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
-    def set(self, ID, object):
+    def set(self, ID, obj):
         """ Stores an object with the given ID..
 
-        set(ID, object)
+        set(ID, obj)
 
         'ID' is the ID of the object
-        'object' is the object itself
+        'obj' is the object itself
         If there is already an object with this ID it will be overwritten completely.
         """
         if not ID:
@@ -72,10 +70,11 @@ class CachedPickleStore(PickleStore):
             # generates a filename from the ID
             fn = self._filename(ID)
             tmp_fn = self._tmpfilename(ID)
-            # if 'object' is empty, don't make file
-            if object:
+            # if 'obj' is empty, don't make file
+            if obj:
+                # TODO: what if something happens between the disk write and the in-memory store update, and only the disk gets updated?
                 # serialize the given list into tmp_fn
-                pickle.dump(object, file(tmp_fn,'wb'))
+                pickle.dump(obj, file(tmp_fn,'wb'))
                 # try to rename the file
                 try:
                     os.rename(tmp_fn,fn)
@@ -83,7 +82,8 @@ class CachedPickleStore(PickleStore):
                     # try to create parent dir first, then rename the file
                     os.mkdir(os.path.dirname(fn))
                     os.rename(tmp_fn,fn)
-                self.store[ID] = object
+                # store a copy of the object
+                self.store[ID] = copy.deepcopy(obj)
             elif os.path.isfile(fn):
                 # object empty, file is not needed anymore
                 os.remove(fn)
