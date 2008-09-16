@@ -104,6 +104,8 @@ class Client:
                 # return the data and the status
                 return resp, r.status, r.reason
             except socket.error, e:
+                if e[0] == 61:
+                    raise Exception, "Connection refused to '%s:%s%s'" % (self.host, self.port, self.path)
                 if e[0] != 99:
                     raise
                 #print "error connecting to %s:%s/%s" % (self.host, self.port, self.path), e,
