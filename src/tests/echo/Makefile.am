@@ -2,7 +2,7 @@ pkglib_LTLIBRARIES = libecho.la
 noinst_PROGRAMS=test test_client test_clientinterface test_service
 bin_PROGRAMS=perftest
 docdir = @docdir@
-doc_DATA = echo.xml echo.wsdl
+doc_DATA = echo_service.xml.example echo.wsdl
 
 libecho_la_SOURCES  = echo.cpp echo.h
 libecho_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

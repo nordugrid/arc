@@ -4,7 +4,7 @@ pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
 
 docdir = @docdir@
-doc_DATA = arex.xml arc_arex.conf arex_secure.xml
+doc_DATA = arex_service.xml.example arc_arex.conf arex_service-secure.xml.example
 
 #GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
 #                   grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la \
@@ -26,5 +26,7 @@ test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                 $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                 $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
                 $(top_srcdir)/src/hed/libs/infosys/libinfosys.la #$(top_srcdir)/src/hed/libs/ws/libarcws.la
+
+sysconf_DATA = arc_arex.conf
 
 EXTRA_DIST = $(doc_DATA)

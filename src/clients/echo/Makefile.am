@@ -1,6 +1,6 @@
 bin_PROGRAMS = arcecho
 SOURCES = echo_client.cpp echo_client.h
-doc_DATA = echo_client.xml
+doc_DATA = echo_client.xml.example
 
 arcecho_SOURCES  = $(SOURCES) arcecho.cpp
 arcecho_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include 

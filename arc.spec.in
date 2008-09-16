@@ -269,6 +269,7 @@ exit 0
 %doc src/services/a-rex/arex_service.xml.example
 %doc src/services/a-rex/arex_service-secure.xml.example
 %doc src/services/a-rex/arc_arex.conf
+%config(noreplace) %{_sysconfdir}/arc_arex.conf
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libexecdir}/downloader
 %{_libexecdir}/uploader
