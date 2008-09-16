@@ -38,7 +38,12 @@ class CentralAHash:
         self.log = log
         self.log('DEBUG', "CentralAHash constructor called")
         # import the storeclass and call its constructor with the datadir
-        self.store = import_class_from_string(storeclass)(storecfg, log = self.log)
+        try:
+            cl = import_class_from_string(storeclass)
+        except:
+            self.log('ERROR', 'Error importing', storeclass)
+            raise Exception, 'A-Hash cannot run without a store.'
+        self.store = cl(storecfg, log = self.log)
 
     def get(self, ids, neededMetadata = []):
         """ Gets all data of the given IDs.
@@ -201,7 +206,12 @@ class AHashService(Service):
         # this is a directory for storing object data
         storecfg = cfg.Get('StoreCfg')
         # import and instatiate the business logic class
-        self.ahash = import_class_from_string(ahashclass)(storeclass, storecfg, self.log)
+        try:
+            cl = import_class_from_string(ahashclass)
+        except:
+            self.log('ERROR', 'Error importing class', ahashclass)
+            raise Exception, 'A-Hash cannot run.'
+        self.ahash = cl(storeclass, storecfg, self.log)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
