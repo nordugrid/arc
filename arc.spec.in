@@ -205,8 +205,9 @@ exit 0
 %files client
 %defattr(-,root,root,-)
 %doc src/clients/arclib/client.xml.example
-%doc src/clients/echo/echo_client.xml
-%doc src/tests/echo/echo.xml
+%doc src/clients/echo/echo_client.xml.example
+%doc src/clients/charon/charon_client.xml.example
+%doc src/clients/charon/charon_request.xml.example
 %doc src/tests/echo/echo.wsdl
 %{_bindir}/arcecho
 %doc %{_mandir}/man1/arcecho.1*
@@ -248,6 +249,11 @@ exit 0
 %doc %{_mandir}/man8/arched.8*
 %{_sbindir}/manage_jobq
 %doc %{_mandir}/man8/manage_jobq.8*
+%doc src/services/charon/charon_policy.xml.example
+%doc src/services/charon/charon_service.xml.example
+%doc src/services/hopi/hopi_service.xml.example
+%doc src/services/storage/storage.service.xml.example
+%doc src/tests/echo/echo_service.xml.example
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libcharon.so
 %{_libdir}/%{pkgdir}/libhopi.so
@@ -260,8 +266,8 @@ exit 0
 
 %files arex
 %defattr(-,root,root,-)
-%doc src/services/a-rex/arex.xml
-%doc src/services/a-rex/arex_secure.xml
+%doc src/services/a-rex/arex_service.xml.example
+%doc src/services/a-rex/arex_service-secure.xml.example
 %doc src/services/a-rex/arc_arex.conf
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libexecdir}/downloader
