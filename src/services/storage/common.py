@@ -662,6 +662,28 @@ def parse_arc_policy(policy):
     p.set_policy(arc.XMLNode(policy))
     return p
 
+def make_decisions(policies, request):
+    import arc
+    loader = arc.EvaluatorLoader()
+    evaluator = loader.getEvaluator('arc.evaluator')
+    print 'calling evaluate with request', request, 'and policies:'
+    for policy in policies:
+        print policy
+        p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
+        evaluator.addPolicy(p)
+    r = loader.getRequest('arc.request', arc.Source(str(request)))
+    response = evaluator.evaluate(r)
+    print response
+    responses = response.getResponseItems()
+    print responses
+    response_list = [responses.getItem(i).res for i in range(responses.size())]
+    print response_list
+    if response_list.count(arc.DECISION_DENY) > 0:
+        return False
+    if response_list.count(arc.DECISION_PERMIT) > 0:
+        return True
+    return False
+
 def parse_ssl_config(cfg):
     try:
         client_ssl_node = cfg.Get(('ClientSSLConfig'))

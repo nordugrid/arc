@@ -71,10 +71,6 @@ namespace ArcSec {
         void addPolicy(Policy* policy,const std::string& id = "");
         Response* evaluate(Request* request);
         Response* evaluate(const Source& request);
-        Response* evaluate(Request* request, const Source& policy);
-        Response* evaluate(const Source& request, const Source& policy);
-        Response* evaluate(Request* request, Policy* policyobj);
-        Response* evaluate(const Source& request, Policy* policyobj);
     };
 
     class EvaluatorLoader {
