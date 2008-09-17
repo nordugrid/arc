@@ -640,8 +640,7 @@ namespace Arc {
     if (writing)
       return DataStatus::IsWritingError;
     set_attributes();
-    GSSCredential credential(proxyPath, certificatePath, keyPath);
-    Lister lister(credential);
+    Lister lister(*credential);
     if (lister.retrieve_dir(url) != 0) {
       logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
       return DataStatus::ListError;
@@ -731,6 +730,7 @@ namespace Arc {
     : DataPointDirect(url),
       ftp_active(false),
       condstatus(DataStatus::Success),
+      credential(NULL),
       reading(false),
       writing(false) {
     is_secure = false;
@@ -816,10 +816,11 @@ namespace Arc {
     }
     else { // gridftp protocol
 
-      GSSCredential credential(proxyPath, certificatePath, keyPath);
+      if (!credential)
+	credential = new GSSCredential(proxyPath, certificatePath, keyPath);
 
       globus_ftp_client_operationattr_set_authorization(&ftp_opattr,
-							credential,
+							*credential,
 							":globus-mapping:",
 							"user@",
 							GLOBUS_NULL,
@@ -859,6 +860,8 @@ namespace Arc {
       globus_ftp_client_handle_destroy(&ftp_handle);
       globus_ftp_client_operationattr_destroy(&ftp_opattr);
     }
+    if (credential)
+      delete credential;
   }
 
   bool DataPointGridFTP::WriteOutOfOrder() {

@@ -12,6 +12,7 @@
 
 namespace Arc {
 
+  class GSSCredential;
   class URL;
 
   class DataPointGridFTP
@@ -26,6 +27,7 @@ namespace Arc {
 
     SimpleCondition cond;
     DataStatus condstatus;
+    GSSCredential *credential;
 
     bool reading;
     bool writing;
