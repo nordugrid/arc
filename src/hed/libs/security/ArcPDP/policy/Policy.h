@@ -13,12 +13,14 @@ namespace ArcSec {
 
 class EvaluatorContext;
 
-///Base class for Policy, PolicySet, or Rule
-/*Basically, each policy object is a container which includes a few elements 
-e.g., ArcPolicySet objects includes a few ArcPolicy objects; ArcPolicy object includes a few ArcRule objects.
-there is logical relationship between ArcRules or ArcPolicies, which is called combining algorithm. According to algorithm, 
-evaluation results from the elements are combined, and then the combined evaluation result is returned to the up-level. 
-*/
+///Interface for containing and processing different types of policy.
+/**Basically, each policy object is a container which includes a few elements 
+ *e.g., ArcPolicySet objects includes a few ArcPolicy objects; ArcPolicy object 
+ *includes a few ArcRule objects. There is logical relationship between ArcRules 
+ *or ArcPolicies, which is called combining algorithm. According to algorithm, 
+ *evaluation results from the elements are combined, and then the combined 
+ *evaluation result is returned to the up-level. 
+ */
 class Policy : public Arc::LoadableClass {
 protected:
   std::list<Policy*> subelements;
@@ -26,27 +28,29 @@ protected:
  
 public:
   Policy() {};
-  Policy(Arc::XMLNode*) {};  
+  Policy(Arc::XMLNode*) {}; 
+/**Constructor based on the policy node and the EvaluatorContext which 
+ * includes the factory objects for combining algorithm and function
+ */ 
   Policy(Arc::XMLNode*, EvaluatorContext*) {};
   virtual ~Policy(){};
   
   ///Evaluate whether the two targets to be evaluated match to each other
   virtual MatchResult match(EvaluationCtx*) = 0;
 
-  /*
-    Evaluate policy
-    For the <Rule> of Arc, only get the "Effect" from rules; 
-    For the <Policy> of Arc, combine the evaluation result from <Rule>;
-    For the <Rule> of XACML, evaluate the <Condition> node by using information from request, 
-    and use the "Effect" attribute of <Rule>;
-    For the <Policy> of XACML, combine the evaluation result from <Rule>
-  */
+/**Evaluate policy
+ * For the <Rule> of Arc, only get the "Effect" from rules;
+ * For the <Policy> of Arc, combine the evaluation result from <Rule>;
+ * For the <Rule> of XACML, evaluate the <Condition> node by using information from request, 
+ * and use the "Effect" attribute of <Rule>;
+ * For the <Policy> of XACML, combine the evaluation result from <Rule>
+ */
   virtual Result eval(EvaluationCtx*) = 0;
 
   /**Add a policy element to into "this" object */
   virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
 
-  /**set Evaluator Context for the usage in creating low-level policy object*/
+  /**Set Evaluator Context for the usage in creating low-level policy object*/
   virtual void setEvaluatorContext(EvaluatorContext*) {};
 
   /**Parse XMLNode, and construct the low-level Rule object*/

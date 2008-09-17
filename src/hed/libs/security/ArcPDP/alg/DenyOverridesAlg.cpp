@@ -41,6 +41,7 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
     else if(match == INDETERMINATE)
       atleast_oneerror = true;
 
+#if 0
     else if(match == NO_MATCH) {
       Result res = policy->eval(ctx);
       if(res == DECISION_DENY)
@@ -58,6 +59,7 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
         return DECISION_DENY;
       }
     }
+#endif
   }
   
   if(potentialdeny) return DECISION_INDETERMINATE;
