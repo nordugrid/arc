@@ -22,7 +22,7 @@ namespace Arc {
 
     ~JobSupervisor();
 
-    const std::list<Arc::JobController*> GetJobControllers() {
+    const std::list<Arc::JobController*>& GetJobControllers() {
       return jobcontrollers;
     }
 
