@@ -1,0 +1,9 @@
+# External Storage Configuration File
+
+# Example:
+#	<storetype>=<protocol>;<hostname>;<port>
+#		or
+#	<storetype>=<protocol>;<hostname>
+
+
+dcache=gridftp;sal1.uppmax.uu.se;2811
