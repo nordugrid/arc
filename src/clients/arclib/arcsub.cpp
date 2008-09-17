@@ -255,9 +255,9 @@ int main(int argc, char **argv) {
 	continue;
       }
 
-      if (it->getXML()["JobIdentification"]["JobName"])
-	info.NewChild("Name") =
-	  (std::string) it->getXML()["JobIdentification"]["JobName"];
+      if (it->getXML()["JobDescription"]["JobIdentification"]["JobName"])
+	info.NewChild("Name") = (std::string)
+	  it->getXML()["JobDescription"]["JobIdentification"]["JobName"];
       info.NewChild("Flavour") = target->GridFlavour;
       info.NewChild("Cluster") = target->Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();

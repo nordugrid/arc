@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
   options.AddOption('v', "version", istring("print version information"),
 		    version);
 
-  std::list<std::string> params = options.Parse(argc, argv);
+  std::list<std::string> jobs = options.Parse(argc, argv);
 
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -103,18 +103,15 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  std::list<Arc::URL> jobids;
-  jobids.insert(jobids.end(), params.begin(), params.end());
-
-  if (jobids.empty() && joblist.empty() && !all) {
-    logger.msg(Arc::ERROR, "No valid jobids given");
+  if (jobs.empty() && joblist.empty() && !all) {
+    logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
   if (joblist.empty())
     joblist = usercfg.JobListFile();
 
-  Arc::JobSupervisor jobmaster(usercfg, jobids, clusters, joblist);
+  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, joblist);
 
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
@@ -126,7 +123,7 @@ int main(int argc, char **argv) {
   int retval = 0;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++)
-    if (!(*it)->Clean(jobids, status, force, timeout))
+    if (!(*it)->Clean(status, force, timeout))
       retval = 1;
 
   return retval;

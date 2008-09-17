@@ -21,11 +21,12 @@ namespace Arc {
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
-			       const std::list<URL>& jobids,
+			       const std::list<std::string>& jobs,
 			       const std::list<std::string>& clusters,
 			       const std::string& joblist)
     : loader(NULL) {
 
+    URLListMap jobids;
     URLListMap clusterselect;
     URLListMap clusterreject;
 
@@ -42,30 +43,37 @@ namespace Arc {
 
     std::list<std::string> controllers;
 
-    if (!jobids.empty()) {
+    if (!jobs.empty()) {
 
       logger.msg(DEBUG, "Identifying needed job controllers according to "
-		 "specified jobids");
+		 "specified jobs");
 
-      for (std::list<URL>::const_iterator it = jobids.begin();
-	   it != jobids.end(); it++) {
+      for (std::list<std::string>::const_iterator it = jobs.begin();
+	   it != jobs.end(); it++) {
 
 	XMLNodeList xmljobs =
-	  jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+	  jobstorage.XPathLookup("//Job[JobID='" + *it + "' or "
+				 "Name='" + *it + "']", NS());
 
 	if (xmljobs.empty()) {
-	  logger.msg(DEBUG, "Job not found in job list: %s", it->str());
+	  logger.msg(WARNING, "Job not found in job list: %s", *it);
 	  continue;
 	}
 
-	XMLNode& xmljob = *xmljobs.begin();
+	for (XMLNodeList::iterator xit = xmljobs.begin();
+	     xit != xmljobs.end(); xit++) {
 
-	if (std::find(controllers.begin(), controllers.end(),
-		      (std::string)xmljob["Flavour"]) == controllers.end()) {
-	  std::string flavour = (std::string)xmljob["Flavour"];
-	  logger.msg(DEBUG, "Need job controller for grid flavour %s",
-		     flavour);
-	  controllers.push_back(flavour);
+	  URL jobid = (std::string)(*xit)["JobID"];
+	  std::string flavour = (std::string)(*xit)["Flavour"];
+
+	  jobids[flavour].push_back(jobid);
+
+	  if (std::find(controllers.begin(), controllers.end(),
+			flavour) == controllers.end()) {
+		logger.msg(DEBUG, "Need job controller for grid flavour %s",
+			   flavour);
+		controllers.push_back(flavour);
+	  }
 	}
       }
     }
@@ -85,7 +93,7 @@ namespace Arc {
 	}
     }
 
-    if (jobids.empty() && clusterselect.empty()) {
+    if (jobs.empty() && clusterselect.empty()) {
 
       logger.msg(DEBUG, "Identifying needed job controllers according to "
 		 "all jobs present in job list");
@@ -127,7 +135,7 @@ namespace Arc {
 	dynamic_cast<JobController*>(loader->getACC("controller" +
 						    tostring(i)));
       if (jobctrl) {
-	jobctrl->FillJobStore(jobids,
+	jobctrl->FillJobStore(jobids[jobctrl->Flavour()],
 			      clusterselect[jobctrl->Flavour()],
 			      clusterreject[jobctrl->Flavour()]);
 	jobcontrollers.push_back(jobctrl);

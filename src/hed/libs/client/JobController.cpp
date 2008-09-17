@@ -163,8 +163,7 @@ namespace Arc {
 	       flavour, jobstore.size());
   }
 
-  bool JobController::Get(const std::list<URL>& jobids,
-			  const std::list<std::string>& status,
+  bool JobController::Get(const std::list<std::string>& status,
 			  const std::string& downloaddir,
 			  const bool keep,
 			  const int timeout) {
@@ -231,8 +230,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Kill(const std::list<URL>& jobids,
-			   const std::list<std::string>& status,
+  bool JobController::Kill(const std::list<std::string>& status,
 			   const bool keep,
 			   const int timeout) {
 
@@ -298,8 +296,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Clean(const std::list<URL>& jobids,
-			    const std::list<std::string>& status,
+  bool JobController::Clean(const std::list<std::string>& status,
 			    const bool force,
 			    const int timeout) {
 
@@ -358,8 +355,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Cat(const std::list<URL>& jobids,
-			  const std::list<std::string>& status,
+  bool JobController::Cat(const std::list<std::string>& status,
 			  const std::string& whichfile,
 			  const int timeout) {
 
@@ -433,8 +429,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Stat(const std::list<URL>& jobids,
-			   const std::list<std::string>& status,
+  bool JobController::Stat(const std::list<std::string>& status,
 			   const bool longlist,
 			   const int timeout) {
 

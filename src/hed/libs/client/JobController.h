@@ -25,29 +25,24 @@ namespace Arc {
 		      const std::list<URL>& clusterselect,
 		      const std::list<URL>& cluterreject);
 
-    bool Get(const std::list<URL>& jobids,
-	     const std::list<std::string>& status,
+    bool Get(const std::list<std::string>& status,
 	     const std::string& downloaddir,
 	     const bool keep,
 	     const int timeout);
 
-    bool Kill(const std::list<URL>& jobids,
-	      const std::list<std::string>& status,
+    bool Kill(const std::list<std::string>& status,
 	      const bool keep,
 	      const int timeout);
 
-    bool Clean(const std::list<URL>& jobids,
-	       const std::list<std::string>& status,
+    bool Clean(const std::list<std::string>& status,
 	       const bool force,
 	       const int timeout);
 
-    bool Cat(const std::list<URL>& jobids,
-	     const std::list<std::string>& status,
+    bool Cat(const std::list<std::string>& status,
 	     const std::string& whichfile,
 	     const int timeout);
 
-    bool Stat(const std::list<URL>& jobids,
-	      const std::list<std::string>& status,
+    bool Stat(const std::list<std::string>& status,
 	      const bool longlist,
 	      const int timeout);
 
