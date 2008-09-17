@@ -10,7 +10,6 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
-#include <arc/URL.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/UserConfig.h>
