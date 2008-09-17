@@ -22,7 +22,7 @@ namespace Arc {
   public:
     TargetGenerator(const UserConfig& usercfg,
 		    const std::list<std::string>& clusters,
-		    const std::list<std::string>& giisurls);
+		    const std::list<std::string>& indexurls);
     ~TargetGenerator();
 
     void GetTargets(int targetType, int detailLevel);
