@@ -24,6 +24,7 @@ class HardlinkingBackend:
         #self.ns = arc.NS({'she' : ns_uri})
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
+        # TODO: add '/' at the end of TURLPrefix if needed
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
