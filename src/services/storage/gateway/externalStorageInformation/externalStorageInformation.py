@@ -11,23 +11,28 @@ class ExternalStorageInformation:
 		
 	def getInfo(self, request):
 		
-		filetext = []
-		hostname = []
+		information = {}
 		print "Inside getInfo function of ExternalStorageInformation .."	
-		#print os.getcwd()
-		if request == 'dCache': 
-			if (os.path.isfile("../externalStorageInformation/externaldCacheStore")):	
-				f = open('../externalStorageInformation/externaldCacheStore', "r")
-				for line in f.readlines():
-					filetext.append(line)
-					#print filetext
-				for  host in filetext:
-					hostname.append(host.split('=')[1].rstrip('\n'))
-		else:
-			hostname.append('NoHostFound')
-		#text = "sal1.uppmax.uu.se"
-		#print hostname
-		return hostname					
+		if (os.path.isfile("../externalStorageInformation/externalStores")):	
+			f = open('../externalStorageInformation/externalStores', "r")
+			for line in f.readlines():
+				if request == 'dCache':
+					if line.split('=')[0] == 'dcache':  
+						secondline = line.split('=')[1]
+						hostprotocolport = secondline.split(';')
+						print hostprotocolport
+						if len(hostprotocolport) == 3:
+							information[hostprotocolport[1]]= (hostprotocolport[0],hostprotocolport[2].rstrip('\n'))
+						elif len(hostprotocolport) == 2:
+							information[hostprotocolport[1].rstrip('\n')]= (hostprotocolport[0].rstrip('\n'),'2811')
+						else:
+							information["NoHostFound"]=('','','')
+
+	
+		print information
+		if information == {}:
+			information["NoHostFound"]=('','','')
+		return information					
 class ExternalStorageInformationService(Service):
 
 	def __init__(self, cfg):
@@ -46,20 +51,8 @@ class ExternalStorageInformationService(Service):
                 request_node = get_child_nodes(inpayload.Child())
                 request = str(request_node[0].Get('name')) 
 		
-		#print request
-		
-		response = {}	
 		
 		print "Inside getInfo function of ExternalStorageInformationService .."
-		#requests = {'getInfo_request1':'first', 'getInfo_request2':'second'}
-		hostname = self.externalInfo.getInfo(request)
-		#print request
-		if hostname != []:
-			for i in range(len(hostname)):
-				response[i] = (hostname[i],'OK')
-		else:
-			response[0] = ('','')	
+		information = self.externalInfo.getInfo(request)
 		return create_response('externalStorageInformation:getInfo',
-                               ['externalStorageInformation:ID','externalStorageInformation:hostname','externalStorageInformation:status'], response, self.newSOAPPayload())
-		#return create_response('externalStorageInformation:getInfo',
-		#		['externalStorageInformation:ID','externalStorageInformation:say','externalStorageInformation:oo'], response, self.newSOAPPayload())
+                               ['externalStorageInformation:hostname','externalStorageInformation:protocol','externalStorageInformation:port'], information, self.newSOAPPayload())

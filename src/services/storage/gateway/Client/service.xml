@@ -9,11 +9,11 @@
         <Logger level="ERROR">./logfile</Logger>
     </Server>
     <ModuleManager>
-        <Path>../../../../../../arc1/src/services/wrappers/python/.libs/</Path>
-        <Path>../../../../../../arc1/src/hed/mcc/http/.libs/</Path>
-        <Path>../../../../../../arc1/src/hed/mcc/soap/.libs/</Path>
-        <Path>../../../../../../arc1/src/hed/mcc/tcp/.libs/</Path>
-        <Path>../../../../../../arc1/src/hed/mcc/tls/.libs/</Path>
+        <Path>../../../../../../arc1-trunk/src/services/wrappers/python/.libs/</Path>
+        <Path>../../../../../../arc1-trunk/src/hed/mcc/http/.libs/</Path>
+        <Path>../../../../../../arc1-trunk/src/hed/mcc/soap/.libs/</Path>
+        <Path>../../../../../../arc1-trunk/src/hed/mcc/tcp/.libs/</Path>
+        <Path>../../../../../../arc1-trunk/src/hed/mcc/tls/.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>

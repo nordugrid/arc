@@ -10,25 +10,31 @@ class Transfer:
 
                 print "Transfer Constructor..."
 
-        def transferData(self, hostnames,options):
+        def transferData(self, request):
 
                 print "Inside transferData function of Transfer .."
+		print request
 		response = {}
-		for host in hostnames:
+		for host in request.keys():
+			if request[host][1] == 'gridftp': 	
 				
-			externalURL = 'gsiftp://'+str(host)		
-			if not options:
-				print 'arcls '+externalURL		
-				status, output = commands.getstatusoutput('arcls '+externalURL)	
-			else:
-				print 'arcls '+str(options[0])+' '+str(externalURL)
-				status, output = commands.getstatusoutput('arcls '+str(options[0])+' '+str(externalURL))
+				externalURL = 'gsiftp://'+str(host)+':'+request[host][2]+'/'+request[host][3]
+				print 'arcls '+request[host][0]+' '+externalURL		
+				status, output = commands.getstatusoutput('arcls '+request[host][0]+' '+externalURL)	
+			#else:
+			#	print 'arcls '+str(options[0])+' '+str(externalURL)
+			#	status, output = commands.getstatusoutput('arcls '+str(options[0])+' '+str(externalURL))
 			print status
 			print output	
-			if status == 0 and output.find('ERROR') == -1 or output.find('Failed') == -1:
-				  
-				response[host] = (status,output)
-			
+			if status == 0: 
+	
+				if output.find('ERROR') == -1 or output.find('Failed') == -1:
+					response[host] = (status,output)
+				else:
+					
+					response[host]	= (-1, 'Error while processing the request \n'+str(output))		
+			else: 
+                                response[host]  = (-1, 'Internal error while executing request \n'+output)			
 		return response 
 
 class TransferService(Service):
@@ -47,12 +53,10 @@ class TransferService(Service):
                 print "\n ---"
 
                 request_node = get_child_nodes(inpayload.Child())
-                hostnames = []
-		options = []
+             	request = {}
 		for index in range(len(request_node)):
-			hostnames.append(str(request_node[index].Get('hostname')))
-			options.append(str(request_node[0].Get('options')) )
-		response = self.transfer.transferData(hostnames,options)
+			request[str(request_node[index].Get('hostname'))] = (str(request_node[index].Get('flags')), str(request_node[index].Get('protocol')),str(request_node[index].Get('port')), str(request_node[index].Get('path')))
+		response = self.transfer.transferData(request)
 		print response
 		return create_response('transfer:transferData',
                                ['transfer:ID','transfer:status','transfer:output'], response, self.newSOAPPayload())

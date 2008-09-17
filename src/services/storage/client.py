@@ -104,8 +104,6 @@ class Client:
                 # return the data and the status
                 return resp, r.status, r.reason
             except socket.error, e:
-                if e[0] == 61:
-                    raise Exception, "Connection refused to '%s:%s%s'" % (self.host, self.port, self.path)
                 if e[0] != 99:
                     raise
                 #print "error connecting to %s:%s/%s" % (self.host, self.port, self.path), e,
@@ -880,7 +878,7 @@ class GatewayClient(Client):
                 ['requestID', 'success','status'], string = True)
                 return elements
 
-        def list(self, requests,options=''):
+        def list(self, requests, flags = '' ):
 
                 """requests contain the path of the file or directory.
                 options contain whether user needs long listing or not."""
@@ -888,7 +886,7 @@ class GatewayClient(Client):
                 tree = XMLTree(from_tree = ('gateway:list', [
                                                 ('gateway:URLs',[
                                                         ('gateway:externalURL', requests),
-                                                        ('gateway:options',options)
+                                                        ('gateway:flags', flags)
                                                                 ])
                                                          ]))
                 msg, _, _ = self.call(tree)
@@ -898,7 +896,16 @@ class GatewayClient(Client):
 
                 #elements = parse_node(xml.Child().Child().Child(),
                 #['ID', 'status','output'], string = True)
-                return elements
+                #return elements
+		for ele in elements:
+			print "\n "
+			print "External URL: "+ele
+			print "Output >>>>>>>>>"
+			print "---------------"
+			print elements[ele]['output']
+			print "---------------"
+			print "Status: "+str(elements[ele]['status'])
+			print "---------------"
 
 class ExternalStorageInformationClient(Client):
 
@@ -919,7 +926,7 @@ class ExternalStorageInformationClient(Client):
                 msg, _, _  = self.call(tree)
                 xml = arc.XMLNode(msg)
                 elements = parse_node(xml.Child().Child().Child(),
-                ['ID', 'hostname', 'status'], string = True)
+                ['hostname', 'protocol', 'port'], string = True)
                 return elements
 
 class TransferClient(Client):
@@ -930,15 +937,18 @@ class TransferClient(Client):
                 # calls the superclass' constructor
                 Client.__init__(self, url, ns)
 
-        def transferData(self,request,options):
+        def transferData(self,request):
 
                 print "Transfer test function"
                 print request
                 tree = XMLTree(from_tree = ('transfer:transferData', [
                                                         ('transfer:URLs',[
                                                                 ('transfer:hostname', res),
-                                                                ('transfer:options', options)
-                                                                        ])for res in request
+                                                                ('transfer:flags', request[res][0]),
+								('transfer:protocol',request[res][1]),
+								('transfer:port',request[res][2]),
+                                                                ('transfer:path',request[res][3])
+								        ])for res in request.keys()
                                                                 ]))
 
                 msg, _, _ = self.call(tree)

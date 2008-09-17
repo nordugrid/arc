@@ -35,22 +35,31 @@ class Gateway:
 		response['2222'] = ('OK','Done' )
                 return response
 
-	def list(self, requests, options):
+	def list(self, requests, flags):
 
-                #print '\n externalrequest = ', requests
-		externalURL = [] 
-		response ={}
+		request = {}
 		
 		if 'dCache' in requests:
-			#print "Inside list function of Gateway.."
 			response = self.externalstorageinformation.getInfo('dCache')
                 	print response
-			if response['0'][0] != 'NoHostFound':
-				for res in response:
-					externalURL.append(response[res][0]+str(requests.split('dCache')[1]))	
-				response = self.transfer.transferData(externalURL, options)
+			if response.keys()[0] != 'NoHostFound':
+				for res in response.keys():
+					
+					request[res] = (flags,response[res][0],response[res][1],str(requests.split('dCache')[1]))
+				print "request from gateway for transfer"
+				print request
+					
+				response = self.transfer.transferData(request)
                 	else:
-				response['1']=('-1','NoHostFound')
+
+				response['1']=('-2','NoHostFound')
+		print "\n"
+		print response
+
+		for host in response.keys():
+			if response[host][0] == '-1':	
+				del response[host]
+
 		return response
 	
 
@@ -109,8 +118,10 @@ class GatewayService(Service):
 
 		request_node = get_child_nodes(inpayload.Child())
                 externalrequest = str(request_node[0].Get('externalURL'))                
-		options = str(request_node[0].Get('options'))
-		response = self.gateway.list(externalrequest, options)
+		flags = str(request_node[0].Get('flags'))
+		response = self.gateway.list(externalrequest, flags)
+		 
+
 		return create_response('gateway:list',
                         ['gateway:requestID', 'gateway:status', 'output'], response, self.newSOAPPayload() )
 
