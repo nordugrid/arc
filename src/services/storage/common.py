@@ -600,9 +600,76 @@ def splitLN(LN):
     return rootguid, dirname, basename
 
 
+# Example of these auth classes:
+#
+# In [2]: p1 = AuthPolicy()
+# 
+# In [3]: p1['User1'] = ['+read', '+modifyMetadata', '-delete']
+# 
+# In [4]: p1['User2'] = ['+modifyPolicy']
+# 
+# In [5]: p1
+# Out[5]: {'User1': ['+read', '+modifyMetadata', '-delete'], 'User2': ['+modifyPolicy']}
+# 
+# In [6]: s = p1.get_policy()
+# 
+# In [7]: print s
+# <Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" CombiningAlg="Deny-Overrides">
+#   <Rule Effect="Permit">
+#     <Description>User2 is allowed to modifyPolicy</Description>
+#     <Subjects>
+#       <Subject>
+#         <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">User2</Attribute>
+#       </Subject>
+#     </Subjects>
+#     <Actions>
+#       <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">modifyPolicy</Action>
+#     </Actions>
+#   </Rule>
+#   <Rule Effect="Permit">
+#     <Description>User1 is allowed to read</Description>
+#     <Subjects>
+#       <Subject>
+#         <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">User1</Attribute>
+#       </Subject>
+#     </Subjects>
+#     <Actions>
+#       <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">read</Action>
+#     </Actions>
+#   </Rule>
+#   <Rule Effect="Permit">
+#     <Description>User1 is allowed to modifyMetadata</Description>
+#     <Subjects>
+#       <Subject>
+#         <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">User1</Attribute>
+#       </Subject>
+#     </Subjects>
+#     <Actions>
+#       <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">modifyMetadata</Action>
+#     </Actions>
+#   </Rule>
+#   <Rule Effect="Deny">
+#     <Description>User1 is not allowed to delete</Description>
+#     <Subjects>
+#       <Subject>
+#         <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">User1</Attribute>
+#       </Subject>
+#     </Subjects>
+#     <Actions>
+#       <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">delete</Action>
+#     </Actions>
+#   </Rule>
+# </Policy>
+# 
+# 
+# In [9]: p2 = parse_arc_policy(s)
+# 
+# In [10]: p2
+# Out[10]: {'User1': ['-delete', '+modifyMetadata', '+read'], 'User2': ['+modifyPolicy']}
+
 auth_mapping = {'identity' : ('Subject', 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'),
             'LN' : ('Resource', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/logicalname'),
-            'method' : ('Action', 'http://www.nordugrid.org/schemas/policy-arc/types/stroge/method')}
+            'method' : ('Action', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/method')}
 
 storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
 
@@ -631,12 +698,19 @@ class AuthPolicy(dict):
         if format == 'ARCAuth':
             result = []
             for identity, actions in self.items():
-                methods = [a for a in actions if a in storage_actions]
-                result.append('  <Rule Effect="Permit">\n    <Description>%s is allowed to do these: %s</Description>\n' % (identity, ', '.join(methods)) +
-                '    <Subjects>\n      <Subject>\n        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">%s</Attribute>\n      </Subject>\n    </Subjects>\n' % identity +
-                '    <Actions>\n' + ''.join(['      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">%s</Action>\n' % method for method in methods]) + '    </Actions>\n' +
-                '  </Rule>\n')
-            return '<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" CombiningAlg="Deny-Overrides">\n%s</Policy>\n' % ''.join(result)            
+                methods = [a for a in actions if a[1:] in storage_actions]
+                for pmethod in methods:
+                    permit = pmethod[0] == '+'
+                    method = pmethod[1:]
+                    result.append('  <Rule Effect="%s">\n' % (permit and 'Permit' or 'Deny')+
+                    '    <Description>%s is %s to %s</Description>\n' % (identity, permit and 'allowed' or 'not allowed', method) +
+                    '    <Subjects>\n      <Subject>\n' + 
+                    '        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">%s</Attribute>\n      </Subject>\n    </Subjects>\n' % identity +
+                    '    <Actions>\n' + 
+                    '      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">%s</Action>\n' % method +
+                    '    </Actions>\n' +
+                    '  </Rule>\n')
+            return '<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" CombiningAlg="Deny-Overrides">\n%s</Policy>\n' % ''.join(result)            
     
     def set_policy(self, policy, format = 'ARCAuth'):
         self.clear()
@@ -644,17 +718,17 @@ class AuthPolicy(dict):
             raise Exception, 'Unsupported format %s' % format
         if format == 'ARCAuth':
             for rule in get_child_nodes(policy):
+                permit = str(rule.Attribute('Effect')) == 'Permit'
                 identities = []
                 for subject in get_child_nodes(rule.Get('Subjects')):
                     for attribute in get_child_nodes(subject):
                         if get_attributes(attribute).get('AttributeId', '') == 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity':
                             identities.append(str(attribute))
-                methods = [str(action) \
+                methods = [(permit and '+' or '-') + str(action) \
                     for action in get_child_nodes(rule.Get('Actions')) \
                         if get_attributes(action).get('AttributeId', '') == 'http://www.nordugrid.org/schemas/policy-arc/types/storage/method']
                 for identity in identities:
-                    self[identity] = methods
-                    
+                    self[identity] = methods + self.get(identity, [])
 
 def parse_arc_policy(policy):
     import arc
@@ -662,20 +736,19 @@ def parse_arc_policy(policy):
     p.set_policy(arc.XMLNode(policy))
     return p
 
-def make_decisions(policies, request):
+def make_decision(policy, request):
     import arc
     loader = arc.EvaluatorLoader()
     evaluator = loader.getEvaluator('arc.evaluator')
-    print 'calling evaluate with request', request, 'and policies:'
-    for policy in policies:
-        print policy
-        p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
-        evaluator.addPolicy(p)
+    print 'calling evaluate with request:'
+    print request
+    print 'and policy:'
+    print policy
+    p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
+    evaluator.addPolicy(p)
     r = loader.getRequest('arc.request', arc.Source(str(request)))
     response = evaluator.evaluate(r)
-    print response
     responses = response.getResponseItems()
-    print responses
     response_list = [responses.getItem(i).res for i in range(responses.size())]
     print response_list
     if response_list.count(arc.DECISION_DENY) > 0:
