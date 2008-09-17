@@ -103,14 +103,6 @@ namespace Arc {
 	return false;
       }
 
-    for (URLListMap::iterator it = indexreject.begin();
-	 it != indexreject.end(); it++)
-      if (std::find(it->second.begin(), it->second.end(), url) !=
-	  it->second.end()) {
-	logger.msg(INFO, "Rejecting service: %s", url.str());
-	return false;
-      }
-
     bool added = false;
     Glib::Mutex::Lock serviceLock(serviceMutex);
     if (std::find(foundServices.begin(), foundServices.end(), url) ==
@@ -124,6 +116,15 @@ namespace Arc {
   }
 
   bool TargetGenerator::AddIndexServer(const URL& url) {
+
+    for (URLListMap::iterator it = indexreject.begin();
+	 it != indexreject.end(); it++)
+      if (std::find(it->second.begin(), it->second.end(), url) !=
+	  it->second.end()) {
+	logger.msg(INFO, "Rejecting service: %s", url.str());
+	return false;
+      }
+
     bool added = false;
     Glib::Mutex::Lock indexServerLock(indexServerMutex);
     if (std::find(foundIndexServers.begin(), foundIndexServers.end(), url) ==
