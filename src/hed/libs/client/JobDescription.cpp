@@ -1139,7 +1139,10 @@ namespace Arc {
             // Not supported yet
             return true;
         } else if ( attributeName == "myproxyserver" ) {
-            // Not supported yet
+            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+            if ( !bool( jobTree["JobDescription"]["CredentialServer"] ) ) jobTree["JobDescription"].NewChild("CredentialServer");
+            if ( !bool( jobTree["JobDescription"]["CredentialServer"]["URL"] ) ) jobTree["JobDescription"]["CredentialServer"].NewChild("URL");
+            jobTree["JobDescription"]["CredentialServer"]["URL"] = simpleJDLvalue( attributeValue );
             return true;
         } else if ( attributeName == "hlrlocation" ) {
             // Not supported yet
@@ -1387,6 +1390,12 @@ namespace Arc {
             product += "  ExpiryTime = \"";
             product += outputValue;
             product += "\";\n";
+        }
+        if (jobTree["JobDescription"]["CredentialServer"]["URL"]) {
+            product += "  MyProxyServer = \"";
+            product += (std::string) jobTree["JobDescription"]["CredentialServer"]["URL"];
+            product += "\";\n";
+
         }
         product += "]";
 
