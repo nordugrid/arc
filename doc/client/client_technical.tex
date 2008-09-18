@@ -520,6 +520,27 @@ chooses the appropriate back-end module according to the pattern match
 performed by the \texttt{JobDescriptionOrderer}, and uses the back-end
 module for parsing and generating the job descriptions.
 
+The parsing is possible from any language but by the other hand the
+output generation is not so widespread supported. There is only the
+JSDL and JDL output generation implemented yet and there are limitations
+too.
+
+The conversion means mainly a syntactial transformation and of course
+can do nothing in that cases where is not enough data to assemble the
+given attribute or can loose information where the received attribute
+has no equivalent pair in the output language.
+
+By the JSDL output generation the {\JobDescription} class is using the
+core JSDL's capabilities raised with the JSDL-POSIX and JSDL-ARC extensions.
+The loss of information is minimal in case of generating such an output.
+
+By the JDL generation the last version of JDL specification was used 
+(v0.9\footnote{\url{https://edms.cern.ch/file/590869/1/EGEE-JRA1-TEC-590869-JDL-Attributes-v0-9.pdf}})
+and only the not lapsing attributes are implemented (the deprecated
+attributes are excluded).
+
+Actually there is no XRSL generation implemented yet.
+
 \subsection{{\Submitter}}
 
 {\Submitter} is base class for grid specific specializations (plugin).
