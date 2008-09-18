@@ -80,8 +80,6 @@ class Client:
         """
         # TODO: use the client-side libs of ARCHED
         import httplib
-        timeout = 60
-        start = time.time()
         while True:
             try:
                 if self.connection:
@@ -101,22 +99,21 @@ class Client:
                 # read the response data
                 resp = r.read()
                 self.connection = h
+                # TODO: it seems that if we don't close the connection here, then the first SIGKILL
+                # or ctrl-c won't stop arched, somehow these connections keep it running
+                # after the second signal, arched is stopped, but the connection's don't get closed properly
+                # but if we close the connection here with:
+                h.close()
+                # then the connection reusing mechanism above can't do anything useful
+                # maybe with ClientSOAP or ClientHTTP it will be better
+                
                 # return the data and the status
                 return resp, r.status, r.reason
             except socket.error, e:
-                if e[0] != 99:
-                    raise
-                #print "error connecting to %s:%s/%s" % (self.host, self.port, self.path), e,
-                #sys.stdout.flush()
-                if time.time() < start + timeout:
-                    time.sleep(5)
-                    #print "Retrying."
-                    #sys.stdout.flush()
+                if e[0] == 61: 
+                    raise Exception, "Connection refused to '%s:%s%s'" % (self.host, self.port, self.path) 
                 else:
-                    #print "Giving up."
-                    #sys.stdout.flush()
-                    return '<Fault>Cannot connect.</Fault>', None, None
-
+                    raise
 
 class AHashClient(Client):
 
