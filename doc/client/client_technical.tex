@@ -93,7 +93,7 @@
 {\centering \large Mattias Ellert\footnote{mattias.ellert@fysast.uu.se} \large \par}
 {\centering \large Iv\'{a}n M\'{a}rton\footnote{martoni@niif.hu} \large \par}
 {\centering \large Bjarte Mohn\footnote{bjarte.mohn@fysast.uu.se} \large \par}
-{\centering \large P\'{e}ter Stef\'{a}n\footnote{stefan@niif.hu} \large \par}
+{\centering \large G\'{a}bor R\H{o}czei\footnote{roczei@niif.hu} \large \par}
 %%%%---- An abstract - if style is article ----
 %\begin{abstract}
 %The abstract
@@ -450,10 +450,10 @@ resource (queue) capable of executing a grid job. It serves as input
 to the {\Broker} which is foreseen to be able to select between
 different {\ExecutionTarget}s from different grid flavours without a
 priori knowing their difference. The {\ExecutionTarget} class mimics
-the glue2 information model (with a flattened structure), and thus a
+the Glue2 information model (with a flattened structure), and thus a
 mapping between attributes from other information systems into the
-glue2 format is needed. Appendix XX shows the current mapping for the
-production ARC, ARC1 and gLite middlewares.
+Glue2 format is needed. Appendix \ref{app:ExTarget} shows the current
+mapping for the production ARC, ARC1 and gLite middlewares.
 
 All attributes of the {\ExecutionTarget} can be printed by the method
 
@@ -668,9 +668,9 @@ Section~\ref{sec:plugins}.
 \subsection{{\Job}} The
 
 {\Job} is a generic job class for storing all job related information.
-Attributes are derived from the glue2 information model and thus a
-mapping is needed for non glue2 compliant grid middlewares. Appendix
-XX shows the present mapping schema.
+Attributes are derived from the Glue2 information model and thus a
+mapping is needed for non Glue2 compliant grid middlewares. Appendix
+\ref{app:job} shows the present mapping schema.
 
 All attributes of the {\Job} can be printed by the method
 
@@ -999,6 +999,525 @@ int main(int argc, char **argv) {
 }
 \end{verbatim}
 \end{shaded}
+
+\appendix
+
+\chapter{{\ExecutionTarget}}
+\label{app:ExTarget}
+
+\section{Domain and Location attributes}
+
+\subsection*{std::string DomainName}
+
+ARC0: nordugrid-cluster-name \\
+CREAM: GlueSiteName
+
+\subsection*{std::string Owner}
+
+ARC0: nordugrid-cluster-owner
+
+\subsection*{std::string Address}
+
+\subsection*{std::string Place}
+
+CREAM: GlueSiteLocation
+
+\subsection*{std::string PostCode}
+
+ARC0: nordugrid-cluster-location
+
+\subsection*{float Latitude}
+
+CREAM: GlueSiteLatitude
+
+\subsection*{float Longitude}
+
+CREAM: GlueSiteLongitude
+
+\section{ComputingService and ComputingEndpoint attributes}
+
+\subsection*{std::string CEID}
+
+\subsection*{std::string CEName}
+
+\subsection*{std::string Capability}
+
+\subsection*{std::string Type}
+
+\subsection*{std::string QualityLevel}
+
+\subsection*{URL url}
+
+ARC0: nordugrid-cluster-contactstring \\
+CREAM: GlueCEInfoContactString
+
+\subsection*{std::string Technology}
+
+\subsection*{std::string Interface}
+
+ARC0: ``GridFTP''
+
+\subsection*{std::string InterfaceExtension}
+
+\subsection*{std::string SupportedProfile}
+
+\subsection*{std::string Implementor}
+
+ARC0: ``NorduGrid''
+
+\subsection*{std::string ImplementationName}
+
+ARC0: ``ARC0'' \\
+CREAM: GlueCEImplementationName
+
+\subsection*{std::string ImplementationVersion}
+
+ARC0: nordugrid-cluster-middleware \\
+CREAM: GlueCEImplementaionVersion
+
+\subsection*{std::string HealthState}
+
+ARC0: nordugrid-queue-status
+
+\subsection*{std::string ServingState}
+
+CREAM: GlueCEStateStatus (GlueVOView $||$ GlueCE)
+
+\subsection*{std::string IssuerCA}
+
+ARC0: nordugrid-cluster-issuerca (nordugrid-cluster-issuerca-hash)
+
+\subsection*{std::list<std::string> TrustedCA}
+
+ARC0: nordugrid-cluster-trustedca
+
+\subsection*{Time DowntimeStarts}
+
+\subsection*{Time DowntimeEnds}
+
+\subsection*{std::string Staging}
+
+ARC0: nordugrid-cluster-nodeaccess
+
+\subsection*{std::string Jobdescription}
+
+\section{ComputingService and ComputingShare load attributes}
+
+\subsection*{int TotalJobs}
+
+ARC0: nordugrid-cluster-totaljobs \\
+CREAM: GlueCEStateTotalJobs (GlueVOView $||$ GlueCE)
+
+\subsection*{int RunningJobs}
+
+ARC0: nordugrid-queue-running \\
+CREAM: GlueCEStateRunningJobs (GlueVOView $||$ GlueCE)
+
+\subsection*{int WaitingJobs}
+
+ARC0: nordugrid-queue-queued $||$ nordugrid-cluster-queuedjobs \\
+CREAM: GlueCEStateWaitingJobs (GlueVOView $||$ GlueCE)
+
+\subsection*{int StagingJobs}
+
+\subsection*{int SuspendedJobs}
+
+\subsection*{int PreLRMSWaitingJobs}
+
+ARC0: nordugrid-queue-prelrmsqueued
+
+\subsection*{int LocalRunningJobs}
+
+ARC0: nordugrid-queue-running $-$ nordugrid-queue-gridrunning
+
+\subsection*{int LocalWaitingJobs}
+
+ARC0: nordugrid-queue-queued $-$ nordugrid-queue-gridqueue
+
+\subsection*{int FreeSlots}
+
+CREAM: GlueCEStateFreeJobSlots $||$ GlueCEStateFreeCPUs (GlueVOView $||$ GlueCE)
+
+\subsection*{std::string FreeSlotsWithDuration}
+
+\subsection*{int UsedSlots}
+
+ARC0: nordugrid-queue-usedcpus
+
+\subsection*{int RequestedSlots}
+
+\section{ComputingShare attributes}
+
+\subsection*{std::string MappingQueue}
+
+ARC0: nordugrid-queue-name
+
+\subsection*{Period MaxWallTime}
+
+ARC0: nordugrid-queue-maxwalltime \\
+CREAM: GlueCEPolicyMaxWallClockTime (GlueVOView $||$ GlueCE)
+
+\subsection*{Period MaxTotalWallTime}
+
+\subsection*{Period MinWallTime}
+
+ARC0: nordugrid-queue-minwalltime
+
+\subsection*{Period DefaultWallTime}
+
+ARC0: nordugrid-queue-defaultwalltime
+
+\subsection*{Period MaxCPUTime}
+
+ARC0: nordugrid-queue-maxcputime \\
+CREAM: GlueCEPolicyMaxCPUTime (GlueVOView $||$ GlueCE)
+
+\subsection*{Period MaxTotalCPUTime}
+
+\subsection*{Period MinCPUTime}
+
+ARC0: nordugrid-queue-defaultcputime
+
+\subsection*{Period DefaultCPUTime}
+
+ARC0: nordugrid-queue-defaultcputime
+
+\subsection*{int MaxTotalJobs}
+
+CREAM: GlueCEPolicyMaxTotalJobs (GlueVOView $||$ GlueCE)
+
+\subsection*{int MaxRunningJobs}
+
+ARC0: nordugrid-queue-maxrunning \\
+CREAM: GlueCEPolicyMaxRunningJobs (GlueVOView $||$ GlueCE)
+
+\subsection*{int MaxWaitingJobs}
+
+ARC0: nordugrid-queue-maxqueable \\
+CREAM: GlueCEPolicyMaxWaitingJobs (GlueVOView $||$ GlueCE)
+
+\subsection*{int NodeMemory}
+
+ARC0: nordugrid-queue-nodememory $||$ nordugrid-cluster-nodememory \\
+CREAM: GlueHostMainMemoryRAMSize
+
+\subsection*{int MaxPreLRMSWaitingJobs}
+
+\subsection*{int MaxUserRunningJobs}
+
+ARC0: nordugrid-queue-maxuserrun \\
+CREAM: GlueCEPolicyAssignedJobSlots (GlueVOView $||$ GlueCE) % ??
+
+\subsection*{int MaxSlotsPerJob}
+
+CREAM: GlueCEPolicyMaxSlotsPerJob (GlueVOView $||$ GlueCE)
+
+\subsection*{int MaxStageInStreams}
+\subsection*{int MaxStageOutStreams}
+\subsection*{std::string SchedulingPolicy}
+
+ARC0: nordugrid-queue-schedulingpolicy
+
+\subsection*{int MaxMemory}
+
+ARC0: nordugrid-queue-nodememory $||$ nordugrid-cluster-nodememory \\
+CREAM: GlueHostMainMemoryVirtualSize
+
+\subsection*{int MaxDiskSpace}
+\subsection*{URL DefaultStorageService}
+
+ARC0: nordugrid-cluster-localse \\
+CREAM: GlueCEInfoDefaultSE (GlueVOView $||$ GlueCE)
+
+\subsection*{bool Preemption}
+
+CREAM: GlueCEPolicyPreemption (GlueVOView $||$ GlueCE)
+
+\subsection*{Period EstimatedAverageWaitingTime}
+
+CREAM: GlueCEStateEstimatedResponseTime (GlueVOView $||$ GlueCE)
+
+\subsection*{Period EstimatedWorstWaitingTime}
+
+CREAM: GlueCEStateWorstResponseTime (GlueVOView $||$ GlueCE)
+
+\subsection*{std::string ReservationPolicy}
+
+\section{ComputingManager attributes}
+
+\subsection*{std::string ManagerType}
+
+ARC0: nordugrid-cluster-lrms-type (nordugrid-cluster-lrms-version)
+
+\subsection*{bool Reservation}
+\subsection*{bool BulkSubmission}
+\subsection*{int TotalPhysicalCPUs}
+
+ARC0: nordugrid-queue-totalcpus $||$ nordugrid-cluster-totalcpus
+
+\subsection*{int TotalLogicalCPUs}
+
+ARC0: nordugrid-queue-totalcpus $||$ nordugrid-cluster-totalcpus
+
+\subsection*{int TotalSlots}
+
+ARC0: nordugrid-queue-totalcpus $||$ nordugrid-cluster-totalcpus
+
+\subsection*{bool Homogeneity}
+
+ARC0: nordugrid-queue-homogeneity $||$ nordugrid-cluster-homogeneity
+
+\subsection*{std::string NetworkInfo}
+
+\subsection*{bool WorkingAreaShared}
+
+\subsection*{int WorkingAreaFree}
+
+ARC0: nordugrid-cluster-sessiondir-free
+
+\subsection*{Period WorkingAreaLifeTime}
+
+ARC0: nordugrid-cluster-sessiondir-lifetime
+
+\subsection*{int CacheFree}
+
+ARC0: nordugrid-cluster-cache-free
+
+\section{ExecutionEnvironment attributes}
+
+\subsection*{std::string Platform}
+
+ARC0: nordugrid-queue-architecture $||$ nordugrid-cluster-architecture
+
+\subsection*{bool VirtualMachine}
+
+\subsection*{std::string CPUVendor}
+
+ARC0: nordugrid-queue-nodecpu $||$ nordugrid-cluster-nodecpu
+
+\subsection*{std::string CPUModel}
+
+ARC0: nordugrid-queue-nodecpu $||$ nordugrid-cluster-nodecpu
+
+\subsection*{std::string CPUVersion}
+
+ARC0: nordugrid-queue-nodecpu $||$ nordugrid-cluster-nodecpu
+
+\subsection*{int CPUClockSpeed}
+
+\subsection*{int MainMemorySize}
+
+\subsection*{std::string OSFamily}
+
+ARC0: nordugrid-queue-opsys $||$ nordugrid-cluster-opsys
+
+\subsection*{std::string OSName}
+
+ARC0: nordugrid-queue-opsys $||$ nordugrid-cluster-opsys
+
+\subsection*{std::string OSVersion}
+
+\subsection*{bool ConnectivityIn}
+
+\subsection*{bool ConnectivityOut}
+
+\subsection*{std::list<Benchmark> Benchmarks}
+
+ARC0: nordugrid-queue-benchmark $||$ nordugrid-cluster-benchmark
+
+\section{ApplicationEnvironment}
+
+\subsection*{std::list<ApplicationEnvironment> ApplicationEnvironments}
+
+ARC0: nordugrid-cluster-runtimeenvironment \\
+CREAM: GlueHostApplicationSoftwareRunTimeEnvironment
+
+\chapter{{\Job}}
+\label{app:job}
+
+\section{Information stored in the job list file}
+
+\subsection*{std::string Flavour}
+
+\subsection*{URL JobID}
+
+\subsection*{URL Cluster}
+
+\subsection*{URL SubmissionEndpoint}
+
+\subsection*{URL InfoEndpoint}
+
+\subsection*{URL ISB}
+
+\subsection*{URL OSB}
+
+\subsection*{URL AuxURL}
+
+\subsection*{std::string AuxInfo}
+
+\section{Information retrieved from the informtaion system}
+
+\subsection*{std::string Name}
+
+ARC0: nordugrid-job-jobname
+
+\subsection*{std::string Type}
+
+\subsection*{URL IDFromEndpoint}
+
+\subsection*{std::string LocalIdFromManager}
+
+\subsection*{std::string JobDescription}
+
+\subsection*{std::string State}
+
+ARC0: nordugrid-job-status
+
+\subsection*{std::string RestartState}
+
+ARC0: nordugrid-job-rerunable
+
+\subsection*{int ExitCode}
+
+ARC0: nordugrid-job-exitcode
+
+\subsection*{std::string ComputingManagerExitCode}
+
+\subsection*{std::list<std::string> Error}
+
+ARC0: nordugrid-job-errors
+
+\subsection*{int WaitingPosition}
+
+ARC0: nordugrid-job-queuerank
+
+\subsection*{std::string UserDomain}
+
+\subsection*{std::string Owner}
+
+ARC0: nordugrid-job-globalowner
+
+\subsection*{std::string LocalOwner}
+
+\subsection*{Period RequestedWallTime}
+
+ARC0: nordugrid-job-reqwalltime
+
+\subsection*{Period RequestedTotalCPUTime}
+
+ARC0: nordugrid-job-reqcputime
+
+\subsection*{int RequestedMainMemory}
+
+\subsection*{int RequestedSlots}
+
+\subsection*{std::string StdIn}
+
+ARC0: nordugrid-job-stdin
+
+\subsection*{std::string StdOut}
+
+ARC0: nordugrid-job-stdout
+
+\subsection*{std::string StdErr}
+
+ARC0: nordugrid-job-stderr
+
+\subsection*{std::string LogDir}
+
+ARC0: nordugrid-job-gmlog
+
+\subsection*{std::list<std::string> ExecutionNode}
+
+Arc0: nordugrid-job-executionnodes
+
+\subsection*{std::string ExecutionCE}
+
+ARC0: nordugrid-job-execcluster
+
+\subsection*{std::string Queue}
+
+ARC0: nordugrid-job-execqueue
+
+\subsection*{Period UsedWallTime}
+
+ARC0: nordugrid-job-usedwalltime
+
+\subsection*{Period UsedTotalCPUTime}
+
+ARC0: nordugrid-job-usedcputime
+
+\subsection*{int UsedMainMemory}
+
+ARC0: nordugrid-job-usedmem
+
+\subsection*{std::list<std::string> UsedApplicationEnvironment}
+
+ARC0: nordugrid-job-runtimeenvironment
+
+\subsection*{int UsedSlots}
+
+ARC0: nordugrid-job-cpucount
+
+\subsection*{Time LocalSubmissionTime}
+
+\subsection*{Time SubmissionTime}
+
+ARC0: nordugrid-job-submissiontime
+
+\subsection*{Time ComputingManagerSubmissionTime}
+
+\subsection*{Time StartTime}
+
+\subsection*{Time ComputingManagerEndTime}
+
+\subsection*{Time EndTime}
+
+ARC0: nordugrid-job-completiontime
+
+\subsection*{Time WorkingAreaEraseTime}
+
+ARC0: nordugrid-job-sessiondirerasetime
+
+\subsection*{Time ProxyExpirationTime}
+
+ARC0: nordugrid-job-proxyexpirationtime
+
+\subsection*{std::string SubmissionHost}
+
+ARC0: nordugrid-job-submissionui
+
+\subsection*{std::string SubmissionClientName}
+
+ARC0: nordugrid-job-clientsoftware
+
+\subsection*{Time CreationTime}
+
+ARC0: Mds-validfrom
+
+\subsection*{Period Validity}
+
+ARC0: Mds-validto $-$ Mds-validfrom
+
+\subsection*{std::string OtherMessages}
+
+ARC0: nordugrid-job-comment
+
+\section{Associations}
+
+\subsection*{URL JobManagementEndpoint}
+
+\subsection*{URL DataStagingEndpoint}
+
+\section{ExecutionEnvironment (condensed)}
+
+\subsection*{bool VirtualMachine}
+
+\subsection*{std::string UsedCPUType}
+
+\subsection*{std::string UsedOSFamily}
+
+\subsection*{std::string UsedPlatform}
 
 \bibliography{grid}
 
