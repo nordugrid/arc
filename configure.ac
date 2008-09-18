@@ -1015,7 +1015,7 @@ MYSQL CLIENT LIB:   ${enable_mysql}
 Included components:
 A-Rex service:      ${enable_a_rex_service}
 ISI service:        ${enable_isi_service}
-CHARON service:        ${enable_charon_service}
+CHARON service:     ${enable_charon_service}
 HOPI service:       ${enable_hopi_service}
 SCHED service:      ${enable_sched_service}
 STORAGE service:    ${enable_storage_service}
