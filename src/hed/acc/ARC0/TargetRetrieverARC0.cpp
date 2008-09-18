@@ -287,9 +287,11 @@ namespace Arc {
 	target.LocalRunningJobs =
 	  stringtoi(std::string(queue["nordugrid-queue-running"])) -
 	  stringtoi(std::string(queue["nordugrid-queue-gridrunning"]));
-      if (queue["nordugrid-queue-queued"])
+      if (queue["nordugrid-queue-queued"] &&
+	  queue["nordugrid-queue-gridqueued"])
 	target.LocalWaitingJobs =
-	  stringtoi(std::string(queue["nordugrid-queue-queued"]));
+	  stringtoi(std::string(queue["nordugrid-queue-queued"])) -
+	  stringtoi(std::string(queue["nordugrid-queue-gridqueued"]));
       if (cluster["nordugrid-queue-usedcpus"])
 	target.UsedSlots =
 	  stringtoi(std::string(cluster["nordugrid-queue-usedcpus"]));
@@ -386,10 +388,10 @@ namespace Arc {
 	target.CPUModel = (std::string)queue["nordugrid-queue-nodecpu"];
 	target.CPUVersion = (std::string)queue["nordugrid-queue-nodecpu"];
       }
-      else if (cluster["nordugrid-cluster-totalcpus"]) {
-	target.CPUVendor = (std::string)queue["nordugrid-queue-nodecpu"];
-	target.CPUModel = (std::string)queue["nordugrid-queue-nodecpu"];
-	target.CPUVersion = (std::string)queue["nordugrid-queue-nodecpu"];
+      else if (cluster["nordugrid-cluster-nodecpu"]) {
+	target.CPUVendor = (std::string)queue["nordugrid-cluster-nodecpu"];
+	target.CPUModel = (std::string)queue["nordugrid-cluster-nodecpu"];
+	target.CPUVersion = (std::string)queue["nordugrid-cluster-nodecpu"];
       }
       if (queue["nordugrid-queue-opsys"]) {
 	target.OSFamily = (std::string)queue["nordugrid-queue-opsys"];

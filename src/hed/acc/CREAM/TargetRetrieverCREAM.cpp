@@ -462,10 +462,12 @@ namespace Arc {
 	target.MaxUserRunningJobs =
 	  stringtoi(CE["GlueCEPolicyAssignedJobSlots"]);
 
-      if (VOView["MaxSlotsPerJob"])
-	target.MaxSlotsPerJob = stringtoi(VOView["MaxSlotsPerJob"]);
-      else if (CE["MaxSlotsPerJob"])
-	target.MaxSlotsPerJob = stringtoi(CE["MaxSlotsPerJob"]);
+      if (VOView["GlueCEPolicyMaxSlotsPerJob"])
+	target.MaxSlotsPerJob =
+	  stringtoi(VOView["GlueCEPolicyMaxSlotsPerJob"]);
+      else if (CE["GlueCEPolicyMaxSlotsPerJob"])
+	target.MaxSlotsPerJob =
+	  stringtoi(CE["GlueCEPolicyMaxSlotsPerJob"]);
 
       // target.MaxStageInStreams     - not available in schema
       // target.MaxStageOutStreams    - not available in schema
