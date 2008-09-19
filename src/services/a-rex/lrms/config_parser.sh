@@ -48,7 +48,7 @@ config_parse_file() {
                 print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val'\'';\n";
               } elsif (/^\s*#/) { # skip comment line
               } elsif (/^\s*$/) { # skip empty line
-              } else { print "echo config_parser: Skipping bad line: $_ 1>&2\n";
+              } else { print "echo config_parser: Skipping bad input at line number $. 1>&2\n";
             } }
             print "_CONFIG_BLOCK${nb}_NAME='\''$bn'\'';\n";
             print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n";
