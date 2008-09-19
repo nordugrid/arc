@@ -737,6 +737,15 @@ def parse_arc_policy(policy):
     return p
 
 def make_decision(policy, request):
+    if type(policy) != str:
+        metadata = policy
+        try:
+            p = parse_arc_policy(metadata.get(('policies', 'main'), ''))
+            if not p: # no policy: PERMIT
+                return True
+            policy = p.get_policy()
+        except:
+            return False
     import arc
     loader = arc.EvaluatorLoader()
     evaluator = loader.getEvaluator('arc.evaluator')
@@ -753,9 +762,10 @@ def make_decision(policy, request):
     print response_list
     if response_list.count(arc.DECISION_DENY) > 0:
         return False
-    if response_list.count(arc.DECISION_PERMIT) > 0:
-        return True
-    return False
+    return True
+    # if response_list.count(arc.DECISION_PERMIT) > 0:
+    #     return True
+    # return False
 
 def parse_ssl_config(cfg):
     try:

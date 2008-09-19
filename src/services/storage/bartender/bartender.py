@@ -7,7 +7,7 @@ from storage.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, librarian_uri, bartender_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
-                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config
+                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config, make_decision, parse_arc_policy
 import traceback
 
 class Bartender:
@@ -22,22 +22,30 @@ class Bartender:
         self.librarian = librarian
         self.ssl_config = ssl_config
 
-    def stat(self, requests):
+    def stat(self, auth, requests):
         """ Returns stat information about entries.
         
-        stat(requests)
+        stat(auth, requests)
         
+        auth is an AuthRequest object containing information about the user's identity
         requests is a dictionary with requestIDs as keys, and Logical Names as values.
     
         Returns a dictionary with requestIDs as keys, and metadata as values.
         The 'metadata' is a dictionary with (section, property) pairs as keys.
         """
+        auth['method'] = 'read'
+        print auth.get_request()
         response = {}
         # get the information from the librarian
         traverse_response = self.librarian.traverseLN(requests)
         # we are only interested in the metadata and if the traversing was complete or not
         for requestID, (metadata, _, _, _, wasComplete, _) in traverse_response.items():
             if wasComplete: # if it was complete, then we found the entry and got the metadata
+                try:
+                    print make_decision(metadata, auth.get_request())
+                except:
+                    self.log()
+                    metadata = {}
                 response[requestID] = metadata
             else: # if it was not complete, then we didn't found the entry, so metadata will be empty
                 response[requestID] = {}
@@ -666,7 +674,7 @@ class BartenderService(Service):
                 for request_node in request_nodes
         ])
         # call the Bartender class
-        response = self.bartender.stat(requests)
+        response = self.bartender.stat(inpayload.auth, requests)
         # create the metadata XML structure of each request
         for requestID, metadata in response.items():
             response[requestID] = create_metadata(metadata, 'bar')
