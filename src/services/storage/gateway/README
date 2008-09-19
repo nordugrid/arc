@@ -18,7 +18,7 @@ Gateway services are heavily dependent on DMC. Currently TransferService uses th
 
 Important Note: 
 
-Current version only supports LISTING of the file/directory from the DCACHE store using gridftp protocol. 
+Current version only supports LISTING and COPYING of file/directory from the DCACHE store using gridftp protocol. 
 
 Available External Stores:
 
@@ -34,8 +34,11 @@ Requirments:
 ARC1 should be installed including DMC. Check whether you can run the following commands,
 
 	# arcls <gridftp-url>
-	# arccp <gridftp-url-1> <gridftp-url-2>
-	
+	# arccp <url-1> <url-2>
+		or
+	# arccp <local-path> <gridftp-url>	(Using putFile method)
+	# arccp <gridftp-url> <local-path>	(Using getFile method)
+		
 How it works:
 
 1- Gateway client send the request to the gateway service with the following parameters
@@ -64,27 +67,58 @@ Usage:
 
 2- open any python editor e-g 'ipython'
 
-	2a- from storage.client import GatewayClient
+	2a- In [1]: from storage.client import GatewayClient
 
-	2b- gatewayObj = GatewayClient('http://localhost:60000/Gateway') 
+	2b- In [2]: gatewayObj = GatewayClient('http://localhost:60000/Gateway') 
 
-	2c- gatewayObj.list('/dCache/pnfs/uppmax.uu.se/data')
+	2c- In [3]: gatewayObj.list('/dCache/pnfs/uppmax.uu.se/data')
 
 			or
 
-	2c- gatewayObj.list('/mycollection/dCache/pnfs/uppmax.uu.se/data')
+	2c- In [3]: gatewayObj.list('/mycollection/dCache/pnfs/uppmax.uu.se/data')
 
 			or
 
 	2c- For the long-listing: 
 
-	    gatewayObj.list('/dCache/pnfs/uppmax.uu.se/data', '-l')  
+	    In [3]: gatewayObj.list('/dCache/pnfs/uppmax.uu.se/data', '-l')  
 	
-	Note:
-	I am assuming "dCache" as a sub-collection to identify the external store.
- 
-3- It will return a python-dictionary having status and the output of the request.   	    
-	
-	{'': ['0',
-      'torque-2.2.1.tar.gz_3\ntorque-2.2.1.tar.gz\ntorque-2.2.1.tar.gz_1\ntorque-2.2.1.tar.gz_2']}
 
+	Note:
+	Assuming "dCache" as a sub-collection to identify the external store.
+ 
+	It will return a python-dictionary having status and the output of the request.   	    
+	
+	In [6]: g.list('/dCache/pnfs/uppmax.uu.se/data')
+
+ 
+		External URL: sal1.uppmax.uu.se
+		Output >>>>>>>>>
+		---------------
+		torque-2.2.1.tar.gz_3
+		torque_new_1
+		torque_new_2
+		torque_new_3
+		torque
+		torque_new
+		torque-2.2.1.tar.gz
+		torque-2.2.1.tar.gz_1
+		torque-2.2.1.tar.gz_2
+		---------------
+		Status: 0
+		---------------
+
+4- For download or upload the files use getFile and putFile methods. Open any python editor e-g "ipython"
+
+		2a- In [1]: from storage.client import GatewayClient
+
+        	2b- In [2]: gatewayObj = GatewayClient('http://localhost:60000/Gateway')
+
+        	2c- In [3]: gatewayObj.g.putFile(['/tmp/torque','/mycollection/dCache/pnfs/uppmax.uu.se/data/torque_new_2'])
+                        
+				or
+
+        	2c- In [4]: gatewayObj.g.getFile(['/mycollection/dCache/pnfs/uppmax.uu.se/data/torque','/tmp/torque'])
+
+
+	

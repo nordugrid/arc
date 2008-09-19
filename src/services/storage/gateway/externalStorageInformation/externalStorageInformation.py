@@ -1,3 +1,16 @@
+"""
+Gateway Component of ARC1 storage System. 
+
+Service Class = ExternalStorageInformationService
+Worker Class  = ExternalStorageInformation
+
+Author: Salman Zubair Toor
+email: salman.toor@it.uu.se
+
+"""
+
+
+
 import arc
 from storage.common import externalInfo_uri, create_response
 from storage.common import create_response, get_child_nodes, true
@@ -11,6 +24,14 @@ class ExternalStorageInformation:
 		
 	def getInfo(self, request):
 		
+		""" This method receives the type of the external store to be used and
+                 get the information from the configuration file externalStore.
+                
+                This method returns following information:
+                hostname: hostname of the required type of the external store
+                protocol: available protocol for that host
+                port: for example 2811 for gridftp and 8443 for srm"""
+		
 		information = {}
 		print "Inside getInfo function of ExternalStorageInformation .."	
 		if (os.path.isfile("../externalStorageInformation/externalStores")):	
@@ -22,16 +43,16 @@ class ExternalStorageInformation:
 						hostprotocolport = secondline.split(';')
 						print hostprotocolport
 						if len(hostprotocolport) == 3:
-							information[hostprotocolport[1]]= (hostprotocolport[0],hostprotocolport[2].rstrip('\n'))
+							information[hostprotocolport[1]]= [hostprotocolport[0],hostprotocolport[2].rstrip('\n')]
 						elif len(hostprotocolport) == 2:
-							information[hostprotocolport[1].rstrip('\n')]= (hostprotocolport[0].rstrip('\n'),'2811')
+							information[hostprotocolport[1].rstrip('\n')]= [hostprotocolport[0].rstrip('\n'),'2811']
 						else:
-							information["NoHostFound"]=('','','')
+							information["NoHostFound"]=['','']
 
 	
 		print information
 		if information == {}:
-			information["NoHostFound"]=('','','')
+			information["NoHostFound"]=['','']
 		return information					
 class ExternalStorageInformationService(Service):
 
@@ -44,6 +65,15 @@ class ExternalStorageInformationService(Service):
 		
 	def getInfo(self, inpayload):
 		
+		""" This method receives the type of the external store to be used and 
+		pass this info to the working class of ExternalStorageInformationService
+		
+		This method returns following information:
+		hostname: hostname of the required type of the external store
+		protocol: available protocol for that host
+		port: for example 2811 for gridftp and 8443 for srm"""
+
+
 		print "\n --- \n Inside list function of ExternalStorageInformationService"
                 print "Message from the client:", inpayload.GetXML()
                 print "\n ---"
