@@ -19,6 +19,7 @@
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
+	<Plugins><Name>javaservice</Name></Plugins>
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/> 
@@ -40,11 +41,8 @@
             <next id="echo">/Echo</next>
         </Plexer>
         <Service name="arcservice_javawrapper" id="echo">
-            <ClassPath>.:/home/szferi/arc1/src/services/echo_java/:/home/szferi/arc1/java/arc.jar</ClassPath>
+            <ClassPath>/usr/local/share/java/arc.jar:/usr/local/share/java:/home/szferi/arc1/src/services/echo_java/:/home/szferi/arc1/java/arc.jar</ClassPath>
             <ClassName>EchoService</ClassName>
-            <!-- <SecHandler name="simplelist.authz" id="authz" event="incoming">
-                <PDP name="simplelist.pdp" type="plaintxt" location="../../tests/echo/accesslist"/>
-            </SecHandler> -->
         </Service>
     </Chain>
 </ArcConfig>

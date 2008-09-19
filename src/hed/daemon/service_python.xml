@@ -19,6 +19,7 @@
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
+	<Plugins><Name>pythonservice</Name></Plugins>
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/> 
