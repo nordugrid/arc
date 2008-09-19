@@ -209,6 +209,10 @@ namespace Arc {
 	continue;
       }
 
+      if(MatchXMLName(cn, "Server")) {
+	continue;
+      }
+
       if(MatchXMLName(cn, "ModuleManager")) {
 	continue;
       }
