@@ -5,6 +5,8 @@
 
 namespace ArcSec {
 
+#define IN_RANGE "-in-range"
+#define NAME_STRING_IN_RANGE "string-in-range"
 #define NAME_TIME_IN_RANGE "time-in-range"
 
 class InRangeFunction : public Function {

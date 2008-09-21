@@ -4,12 +4,14 @@
 
 #include "InRangeFunction.h"
 #include "../attr/DateTimeAttribute.h"
+#include "../attr/StringAttribute.h"
 
 namespace ArcSec {
 
 std::string InRangeFunction::getFunctionName(std::string datatype){
   std::string ret;
   if (datatype ==  DateTimeAttribute::getIdentifier()) ret = NAME_TIME_IN_RANGE;
+  else if (datatype ==  StringAttribute::getIdentifier()) ret = NAME_STRING_IN_RANGE;
   return ret;
 }
 
@@ -28,6 +30,16 @@ bool InRangeFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
     try{
       v0 = dynamic_cast<PeriodAttribute*>(arg0);
       v1 = dynamic_cast<DateTimeAttribute*>(arg1);
+    } catch(std::exception&){ };
+    if(v1->inrange(v0))
+      return true;
+  }
+  else if(fnName == NAME_STRING_IN_RANGE) {
+    StringAttribute* v0;
+    StringAttribute* v1;
+    try{
+      v0 = dynamic_cast<StringAttribute*>(arg0);
+      v1 = dynamic_cast<StringAttribute*>(arg1);
     } catch(std::exception&){ };
     if(v1->inrange(v0))
       return true;

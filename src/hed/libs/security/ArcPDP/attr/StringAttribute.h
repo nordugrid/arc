@@ -16,6 +16,7 @@ public:
   virtual ~StringAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
+  virtual bool inrange(AttributeValue* other);
   virtual std::string encode() {return value;};
   std::string getValue(){ return value; };
   virtual std::string getType() {return identifier; };
