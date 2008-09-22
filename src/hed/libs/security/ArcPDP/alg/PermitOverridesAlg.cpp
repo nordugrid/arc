@@ -16,50 +16,38 @@ Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy
   std::list<Policy*>::iterator it;
   for(it = policies.begin(); it != policies.end(); it++) {
     Policy* policy = *it;
-    MatchResult match = policy->match(ctx);
+    Result res = policy->eval(ctx);
+
+    //If get a return DECISION_PERMIT, then regardless of whatelse result from the other Rule,
+    //always return PERMIT.
+    if(res == DECISION_PERMIT)
+      return DECISION_PERMIT;
     
-    //Evaluate the policy, if one policy evaluation return positive result, then return DECISION_PERMIT
-    if(match == MATCH) {
-      Result res = policy->eval(ctx);
-      if(res == DECISION_PERMIT)
-        return DECISION_PERMIT;
-
-      //Never happen currently      
-      if (res == DECISION_INDETERMINATE){
-        atleast_oneerror = true;
-        if((policy->getEffect()).compare("Permit")==0)
-          potentialpermit = true;
-      }
-      else if(res == DECISION_DENY)
-        atleast_onedeny = true;
-    }
-
-    //Never happen currently
-    else if(match == INDETERMINATE)
+    //If get a return DECISION_INDETERMINATE (this usually happens when there is something 
+    //wrong with the Attribute, like can not find Attribute with corrsponding AttributeId from RequestItem), 
+    //keep track of these cases. 
+    if (res == DECISION_INDETERMINATE){
       atleast_oneerror = true;
-
-    else if(match == NO_MATCH) {
-      Result res = policy->eval(ctx);
-      if(res == DECISION_DENY)
-        atleast_onedeny = true;
-
-      //DECISION_PERMIT only means ID_MATCH;
-      //The case here is: "id" is matched, but the "value" does not match. We can decide
-      //that the request try to access <Resource/>:<Action/> (with the same "id" in the policy),
-      //but specify different "value". We simply gives "deny".
-      else if(res == DECISION_PERMIT) {
-        atleast_onedeny = true;
-        EvalResult evalres = policy->getEvalResult();
-        evalres.effect="Deny";
-        policy->setEvalResult(evalres);
-      }
+ 
+      // If the Rule's effect is PERMIT, then this algorithm can not DENY, 
+      // since this Rule might have permitted if it can do its stuff
+      if((policy->getEffect()).compare("Permit")==0)
+        potentialpermit = true;
     }
+    //Keep track of whether we had at least one rule that is pertained to the request
+    else if(res == DECISION_DENY)
+      atleast_onedeny = true;
   }
-  
+ 
   if(potentialpermit) return DECISION_INDETERMINATE;
+
+  //Some Rule said DENY, so since nothing could have permitted, return DENY
   if(atleast_onedeny) return DECISION_DENY;
+
+  //No Rule said DENY, but if there is problem with one of the Rules, then return INDETERMINATE
   if(atleast_oneerror) return DECISION_INDETERMINATE;
 
+  //If here, none of the rules actually applied, return NOT_APPLICABLE
   return DECISION_NOT_APPLICABLE;
 }
 
