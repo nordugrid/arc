@@ -1,0 +1,368 @@
+
+* There are 2 basic objects - "policy" and "request". There is 1 main actor - Evaluator. 
+Curretly there are two types of policy: Policy and Rule. Policy is made of Rule elements.
+
+Evaluator matches request to policy and produces one of 4 following results:
+
+  PERMIT - policy explicitely permits activity specified in request because request 
+  matches some part of policy and corresponding effect specified in policy is PERMIT. 
+    Example: 
+      Rule: PERMIT person ALICE to PLAY in place called WONDERLAND
+      Request: person ALICE wants to PLAY in place called WONDERLAND
+
+  DENY - policy explicitely denies activity specified in Request because Request 
+  matches some part of policy and corresponding effect specified in policy is DENY.
+    Example:
+      Rule: DENY fruit APPLE to GROW on PEACH tree
+      Request: fruit APPLE to be GROWN on PEACH tree
+
+  INDETERMINATE - request has some part which does not correspond to policy.
+    Example: 
+      Rule: DENY fruit APPLE to GROW on PEACH tree
+      Request: fruit APPLE to be GROWN on WHEAT gound
+     or Request: flower SUNFLOWER to be grown on PEACH tree
+    Explaination: Here, it is not possible to perform any matching result - neither positive (DENY 
+    or PERMIT) nor negative (NOT_APPLICABLE)
+    In the request, the "ground" is completely different with the "tree" in 
+    policy. You can compare "PEACH tree" and "APPLE tree" because they are both "tree"; But
+    you can not compare "PEACH tree" and "WHEAT groud" becaue they can not be compared at all
+    (Policy is about tree and Request is about ground).
+    And also you can not compare "fruit APPLE" and "flower SUNFLOWER" 
+    (here policy is about fruits and Request is about flower).
+    Some other situation which cause the impossibility to compare two attributes could also 
+    cause "INDETERMINATE".
+
+  NOT_APPLICABLE - request has exactly corresponding parts as those in policy, but some value of those 
+    parts is not the same. Hence request does not match policy.
+    Example:
+      Rule: DENY fruit APPLE to GROW on PEACH tree
+      Request: fruit APPLE to be GROWN on APPLE tree 
+    or Request: fruit ORANGE to be GROWN on PEACH tree 
+    or Request: fruit ORANGE to be GROWN on APPLE tree 
+    Explanation: for each part of the policy, we can find relevant part from request: both policy and
+    request are about fruit, and about tree. But the values does not match.
+
+If it is required to reduce evaluation results to boolean value PERMIT maps to TRUE
+and rest of results to FALSE.
+
+    Note: It is also possible to specify secondary effect which would become 
+    active in case Request is not matching. For example:
+      DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT
+    But one shouldbe careful because example above would allow fruit PLUMS to grow on 
+    APPLE trees :)
+    This kind of requirement can be supported by using the algorithm between policies.
+    For example, in case of above scenario, we can use some algorithm like "Permit-if-notapplicable"
+
+
+* Policy matching
+Policy is made of Rule elements. Request is evaluated against each Rule. Each evaluation
+produces same results as policy evaluation described above. The results from all Rules 
+are then combined in order to produce final result for whole policy. Results combining
+algorithm is specified in Policy. There are 2 algorithms curretly:
+  1. Deny-Overrides - this is default if no algorithm specified.
+    If there is at least one DENY in results final result is DENY.
+    Otherwise if there is at least one Rule gives INDETERMINATE and this Rule
+      has Deny effect, final result is INDETERMINATE.
+    Otherwise if there is at least one Rule gives PERMIT, the final result is PERMIT.
+    Otherwise if there is at least one Rule gives INDETERMINATE, final result is INDETERMINATE.
+    Otherwise final result is NOT_APPLICABLE.
+
+    Special case is Policy wih no rules. Probably such policy shoudl be treated as always
+    producing DENY.
+    Question? If there is no Rule under Policy, it means no restriction from this Policy, what 
+      exactly shoud the Policy gives? DENY or NOT_APPLICABLE?
+
+  2. Permit-Overrides.
+    If there is at least one PERMIT in results， final result is PERMIT.
+    Otherwise if there is at least one Rule gives INDETERMINATE and this Rule
+      has Permit effect, final result is INDETERMINATE.
+    Otherwise if there is at least one Rule gives DENY, the final result is DENY.
+    Otherwise if there is at least one Rule gives INDETERMINATE, final result is INDETERMINATE.
+    Otherwise final result is NOT_APPLICABLE.
+
+    Special case is Policy wih no rules. Probably such policy shoudl be treated as always
+    producing DENY.
+    Question? The same as above.
+
+  Note: it would be useful to have more combining algorithms. Like the one which is metioned above:
+  "Permit-if-notapplicable", or "Permit-when-allPermit" (Permit when all the Rules gives Permit, this alg 
+   is useful in that case when we collecting different policy from a few sources, and we restrict that the 
+   request should satisfy all of them in order to get access). 
+
+
+* Request structure
+Request is made of RequestItem elements. Each RequestItem is evaluated against Policy Rule 
+and for each evaluation separate result is generated as described above.
+RequestItem is ade of 4 elements:
+  - Subject - represents entity requesting specified action
+  - Resource - destination/object of the action
+  - Action - specifies what has to be done on resource
+  - Context - for additional information which does not fit anywhere else, like the current time.
+Effectively RequestItem may have only one Subject, one Resource, one Action and one Context.
+If there are more than one element of any kind of sub-elelemt, then in the evaluator this RequestItem 
+is split into several items containing all possible permutations and results are obtained for every 
+item separately.
+How results are combined will be explained later.
+
+Additionally Subject could contain sub-elements SubjectAttribute. Those are meant to represent 
+different kinds of requesters' identities. Example:
+  Subject
+    SubjectAttribute: name is ALICE
+    SubjectAttribute: age is YOUNG
+    SubjectAttribute: gender is GIRL
+Context could also be made of ContextAttribute elements in the same way as Subject.
+
+
+The following is an example about the Request:
+<Request xmlns="http://www.nordugrid.org/schemas/request-arc">
+ <RequestItem>
+   <Subject>
+      <SubjectAttribute AttributeId="urn:knowarc:x509:identity">/O=KnowARC/OU=UiO/CN=Physicist</SubjectAttribute>
+      <SubjectAttribute AttributeId="urn:knowarc:voms:attribute>knowarc:atlasuser</SubjectAttribute>
+   </Subject>
+   <Subject AttributeId="urn:knowarc:shibboleth:attribute">member</Subject>
+   <Action AttributeId="urn:knowarc:fileoperation">Read</Action>
+   <Resource AttributeId="urn:knowarc:fileidentity>file:///home/test</Resource>
+   <Context AttributeId="urn:knowarc:time" Type="time">2008-09-15T20:30:20</Context>
+ </RequestItem>
+</Request>
+
+When evaluation, this RequestItem will be split into two RequestItems:
+
+<Request xmlns="http://www.nordugrid.org/schemas/request-arc">
+ <RequestItem>
+   <Subject>
+      <SubjectAttribute AttributeId="urn:knowarc:x509:identity">/O=KnowARC/OU=UiO/CN=Physicist</SubjectAttribute>
+      <SubjectAttribute AttributeId="urn:knowarc:voms:attribute>knowarc:atlasuser</SubjectAttribute>
+   </Subject>
+   <Action AttributeId="urn:knowarc:fileoperation">Read</Action>
+   <Resource AttributeId="urn:knowarc:fileidentity>file:///home/test</Resource>
+   <Context AttributeId="urn:knowarc:time" Type="time">2008-09-15T20:30:20</Context>
+ </RequestItem>
+ <RequestItem>
+   <Subject AttributeId="urn:knowarc:shibboleth:attribute">member</Subject>
+   <Action AttributeId="urn:knowarc:fileoperation">Read</Action>
+   <Resource AttributeId="urn:knowarc:fileidentity>file:///home/test</Resource>
+   <Context AttributeId="urn:knowarc:time" Type="time">2008-09-15T20:30:20</Context>
+ </RequestItem>
+</Request>
+
+The following means this Subject possesses both of these two Attribute.
+   <Subject>
+      <SubjectAttribute AttributeId="urn:knowarc:x509:identity">/O=KnowARC/OU=UiO/CN=Physicist</SubjectAttribute>
+      <SubjectAttribute AttributeId="urn:knowarc:voms:attribute>knowarc:atlasuser</SubjectAttribute>
+   </Subject>
+
+However, the following means two Subject each of which possesses one Attribute.
+   <Subject AttributeId="urn:knowarc:x509:identity">/O=KnowARC/OU=UiO/CN=Physicist</Subject>
+   <Subject AttributeId="urn:knowarc:voms:attribute>knowarc:atlasuser</Subject>
+
+
+
+The "Type" xml-attribute is for distinguishing how to processing the xml-node value, which is 
+critical when evaluate two value from request side and policy side because different type requires 
+different evaluating/comparing approach. The default "Type" is "string", in this case (also with the 
+"Function" xml-attribute on the policy side is "equal", which will be explained later), each letters of 
+these two values will be compared one by one when evaluating them.
+The "AttributeId" xml-attribute is for evaluator to find the Attribute with AttributeId from the 
+request side which corresponds to the Attribute with the same AttributeId on the policy side. Only if 
+two Attributes' AttributeId are equal, the evaluator will then compare the value. 
+
+
+Each RequestItem will be sequencialy and independently evalueted against policy/policies. So for one Request 
+(including a few RequestItems), some RequestItem could get positive evaluation result (PERMIT) from policy 
+engine, others could get negative evaluation result (DENY, NOT_APPLICABLE, INDETERMINATE).
+It is up to policy decision point to make final decision according to the evaluation results returned 
+by evaluator, and the evaluator itself can not give this kind of final decision.
+Basically the policy decision point will feed policy engine with request, get back evaluation results, 
+and make final decision.
+
+
+* Rule composition and matching 
+Policy rule is made of 4 elements - Subjects, Resources, Actions, Conditions (See the following example). 
+Those are only used to group multiple elements Subject, Resource, Action, Condition. For instance, you can
+merge two Rules with the same Resources, Actions, Conditions, and the same "Effect" but different Subjects
+into one Rule.
+
+There is no logical relationship between Subject, which means you can split one Rule with two Subject 
+(under Subjects) into two Rule (each of which has one Subject (under Subjects)). 
+
+From now only later ones (Subjects with only one Subject as sub-element, and the same for others) are 
+described. Their meaning is same as in request with Condition corresponding to Context. Subject 
+and Condition elements are also made of Attributes. All elements may be present more than 
+one time. During procedure of matching each element in RequestItem is matched against all elements 
+of same kind in Policy - Subject is matched to Subject, Resource to Resource, etc. For every 
+combination 3 possible results are produced:
+  MATCHED - element from RequestItem matched element in Policy Rule. Example:
+    RequestItem Resource: place called WONDERLAND
+    PolicyItem Resource: place called WONDERLAND
+  NOT MATCHED - element from RequestItem did not match element in Policy Rule. Example:
+    RequestItem Resource: place called WONDERLAND
+    PolicyItem Resource: place called PLAYGROUND
+  INDETERMINATE- element from RequestItem could not be compared to element in Policy
+  Rule because they are of incompatible ids/belong to different namespaces. Example:
+    RequestItem Resource: place called WONDERLAND (with namespaces "place")
+    PolicyItem Resource: LEMON tree (with namespaces "tree")
+The produced results then combined to produce final 4 types of results in following way:
+  - If for every element in RequestItem there is at least one MATCHED result then result for this
+  Policy Rule is as specified in the corresponding Effect (Deny or Permit).
+  - Otherwise if for every element in RequestItem there is at least one gets INDETERMINATE result 
+  then result for Policy Rule is INDETERMINATE.
+  - Otherwise result is NOT_APPLICABLE.
+  Special case is then RequestItem does not have the element(s) of some kind (Subject, Action, 
+  Resource or Context/Condition). If there are elements of corresponding kind in the Policy Rule
+  then such situation should be considered as INDETERMINATE. 
+
+
+The following is an example about the Policy:
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" CombiningAlg="Permit-Overrides">
+ <Rule Effect="Permit">
+  <Subjects>
+    <Subject>
+      <Attribute AttributeId="urn:knowarc:x509:identity">/O=KnowARC/OU=UiO/CN=Physicist</Attribute>
+      <Attribute AttributeId="urn:knowarc:voms:attribute>knowarc:atlasuser</Attribute>
+    </Subject>
+    <Subject AttributeId="urn:knowarc:shibboleth:attribute">member</Subject>
+  </Subjects>
+  <Actions>
+    <Action AttributeId="urn:knowarc:fileoperation">Read</Action>
+    <Action AttributeId="urn:knowarc:fileoperation">Delete</Action>   
+  </Actions>
+  <Resources>
+   <Resource AttributeId="urn:knowarc:fileidentity">file:///home/test</Resource>
+  </Resources>
+  <Conditions>
+   <Condition AttributeId="urn:knowarc:period" Type="period" Function="Inrange">2008-09-10T20:30:20/P1Y1M</Condition>
+  </Conditions>
+ </Rule>
+</Policy>
+
+For the Subject which includes two Attribute in this example:
+    <Subject>
+      <Attribute AttributeId="urn:knowarc:x509:identity">/O=KnowARC/OU=UiO/CN=Physicist</Attribute>
+      <Attribute AttributeId="urn:knowarc:voms:attribute>knowarc:atlasuser</Attribute>
+    </Subject>
+These two attribute means the Rule requires the request should possess at least both of these two attributes.
+
+However, you put these above two Attribute into two Subject:
+    <Subject AttributeId="urn:knowarc:x509:identity">/O=KnowARC/OU=UiO/CN=Physicist</Subject>
+    <Subject AttributeId="urn:knowarc:voms:attribute>knowarc:atlasuser</Subject>
+Then it means the Rule requires the request should possess at least any of these two attributes.
+ 
+
+For the xml-attribute "Type" and "AttributeId", the explaination for Request example also applies here.
+The "Function" xml-attribute is for distinguishing different comparison algorithm when comparing these 
+two xml-node value. If Function is absent, "equal" will be used as default.
+
+
+* Rule elements matching
+For elements without attributes those elements have:
+  - Kind specified by AttributeId XML attribute. There is no default.
+  - Matching algorithm specified by Id XML attribute. By default string-equal matching is used.
+  - Content
+  Example:
+    Kind: tree
+    Matching algorithm: default
+    Content: LEMON
+Matching procedure consists of following steps:
+  - Kinds are compared using simple string equal matching. If those do not match then result 
+  is INDETERMINATE.
+  - Matching algorithm is used to compare content of elements. Result is either 
+  MATCH or NO_MATCH according to matching algorithm.
+
+
+Each element on the RequestItem must satisfy corresponding element in Rule.
+In detail, for Subjects element under Rule, if there is at least one Subject (with one 
+Attribute or a few Attribute) which is matched by a Subject on this RequestItem, we say 
+this Subjects is matched by the RequestItem; and also the same for the other elements 
+(Actions, Resources, Conditions).
+
+
+The way to judging whether one Subject is matched by the Subject on this RequestItem: If and only 
+of all of the Attribute under this Subject are matched. 
+We use this exmple, if the Subject has three
+Attributes:
+  Subject:
+    SubjectAttribute: name is ALICE
+    SubjectAttribute: age is YOUNG
+    SubjectAttribute: gender is GIRL
+In xml, it is:
+    <Subject>
+      <Attribute AttributeId="name">Alice</Attribute>
+      <Attribute AttributeId="age>YOUNG</Attribute>
+      <Attribute AttributeId="gender>GIRL</Attribute>
+    </Subject>
+The it requires the Subject in the RequestItem possesses at least these three Attribute.
+ <RequestItem>
+    <Subject>
+      <Attribute AttributeId="name">Alice</Attribute>
+      <Attribute AttributeId="age">YOUNG</Attribute>
+      <Attribute AttributeId="gender">GIRL</Attribute>
+      <!--Some other Attribute-->
+      <!--Some other Attribute-->
+    </Subject>
+   <!--Action-->
+   <!--Resource-->
+   <!--Context-->
+ </RequestItem>
+The above example shows that the Subject in thie RequestItem "MATCH" one Subject on the Rule side.
+
+If the Subject in the RequestItem is like this:
+    <Subject>
+      <Attribute AttributeId="name">Alice</Attribute>
+      <Attribute AttributeId="age>YOUNG</Attribute>
+      <Attribute AttributeId="from">OSLO</Attribute>
+      <!--Some other Attribute, but it is not "gender"-->
+    </Subject>
+Then evaluator will gives INDETERMINATE as the match-making result of this two Subject.
+
+
+If the Subject in the RequestItem is like this:
+    <Subject>
+      <Attribute AttributeId="name">Bob</Attribute>
+      <Attribute AttributeId="age>YOUNG</Attribute>
+      <Attribute AttributeId="gender">BOY</Attribute>
+      <!--Some other Attribute-->
+    </Subject>
+Then evaluator will gives NO_MATCH as the match-making result of this two Subject.
+
+
+
+If and only if all of the elemens (Subjects, Actions, Resources, Conditions) which are not empty 
+under this Rule have been matched (gets MATCH) by this RequestItem, then the whole Rule is judged to be "matched". 
+And then the Effect will be got, if Effect=Deny, DENY decision will be made for this Rule; if Effect=Permit, 
+PERMIT decision will be made.
+
+Otherwise if any of the elements (Subjects, Actions, Resources, Conditions) has not been matched, 
+and "INDETERMINATE" is returned by evaluator, then the INDETERMINATE decision will be made for this Rule.
+
+Otherwise the NOT_APPLICABLE decision will be made for this Rule. This case means at least one of the elements of 
+this Rule gets "NO_MATCH", and the other elements gets "MATCH".
+
+
+* Appendix. Policy tree
+      Policy (1)
+        Rule (1-)
+          Subjects (1)
+            Subject (1-)
+              Attribute (1-)
+          Resources (0-1)
+            Resource (1-)
+          Actions (0-1)
+            Action (1-)
+          Conditions (0-1)
+            Condition (1-)
+              Attribute (1-)
+
+* Appendix. Request tree
+     Request (1)
+       RequestItem (1-)
+         Subject (1-)
+           SubjectAttribute (1-)
+         Resource (0-)
+         Action (0-)
+         Context (0-)
+           ContextAttribute (1-)
+
+
+ 
