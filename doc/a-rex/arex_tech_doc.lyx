@@ -1,4 +1,4 @@
-#LyX 1.4.5.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.4.5 created this file. For more info see http://www.lyx.org/
 \lyxformat 245
 \begin_document
 \begin_header
@@ -340,13 +340,15 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-A-REX is one of ARC middleware components that implements functions of so
- called 
+A-REX is one of ARC middleware components that implements functions of the
+ so called 
 \emph on
 Computing Element
 \emph default
  (CE).
- 
+ Here Computing Element is a service accepting requests containing description
+ of generic computational job and executing it in underlying local batch
+ system.
 \end_layout
 
 \begin_layout Standard
