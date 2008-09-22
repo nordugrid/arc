@@ -80,6 +80,10 @@ void ArcFnFactory::initFunctions(){
   fnmap.insert(std::pair<std::string, Function*>(fnName, new MatchFunction(fnName, argType)));
 
   //InRangeFunctions
+  fnName = InRangeFunction::getFunctionName(StringAttribute::getIdentifier());
+  argType = StringAttribute::getIdentifier();
+  fnmap.insert(std::pair<std::string, Function*>(fnName, new InRangeFunction(fnName, argType)));
+
   fnName = InRangeFunction::getFunctionName(PeriodAttribute::getIdentifier());
   argType = PeriodAttribute::getIdentifier();
   fnmap.insert(std::pair<std::string, Function*>(fnName, new InRangeFunction(fnName, argType)));

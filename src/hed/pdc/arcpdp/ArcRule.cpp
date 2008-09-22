@@ -188,6 +188,8 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
   ArcSec::AndList::iterator andit;
   std::list<ArcSec::RequestAttribute*>::iterator reqit;
 
+  bool indeterminate = true;
+
   idmatched = ID_NO_MATCH;
 
   //Go through each <Subject> <Resource> <Action> or <Context> under 
@@ -232,17 +234,16 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
       //Similar to above, except only "id" is considered, not including the "value" of <Attribute> 
       if(one_id_matched) all_id_matched +=1;
     }
-    //One Rule.Subjects.Subject is satisfied (all of the Attribute are satisfied) 
+    //One Rule.Subjects.Subject is satisfied (all of the Attribute value and Attribute Id are matched) 
     //by the RequestTuple.Subject
     if(all_fraction_matched == int((*orit).size())){
       idmatched = ID_MATCH;
       return MATCH;
     }
-    else if(all_id_matched == int((*orit).size())) { idmatched = ID_MATCH; }
-    else if(all_id_matched > 0 && (idmatched == ID_NO_MATCH || idmatched == ID_PARTIAL_MATCH)) { idmatched = ID_PARTIAL_MATCH; }
-    else if(all_id_matched > 0 && idmatched == ID_MATCH);
-    else if(all_id_matched == 0);
+    else if(all_id_matched == int((*orit).size())) { idmatched = ID_MATCH; indeterminate = false; break; }
+    else if(all_id_matched > 0) { idmatched = ID_PARTIAL_MATCH; /*indeterminate = false;*/ }
   }
+  if(indeterminate) return INDETERMINATE;
   return NO_MATCH;
 }
 
@@ -269,68 +270,42 @@ MatchResult ArcRule::match(EvaluationCtx* ctx){
       ( conditions.empty() || ctx_matched==MATCH)
     )
     return MATCH;
+
+  else if ( ( !(subjects.empty()) && sub_matched==INDETERMINATE ) || 
+            ( !(resources.empty()) &&res_matched==INDETERMINATE ) || 
+            ( !(actions.empty()) && act_matched==INDETERMINATE ) || 
+            ( !(conditions.empty()) && ctx_matched==INDETERMINATE)
+          )
+    return INDETERMINATE;
+
   else return NO_MATCH;
 }
 
-Result ArcRule::eval(EvaluationCtx*){// ctx){
+Result ArcRule::eval(EvaluationCtx* ctx){
   Result result = DECISION_NOT_APPLICABLE;
-  //TODO
-  if (effect == "Permit") { 
-    if(
-       (sub_idmatched == ID_MATCH || subjects.empty()) && (res_idmatched == ID_MATCH || resources.empty()) && 
-       (act_idmatched == ID_MATCH || actions.empty()) && (ctx_idmatched == ID_MATCH || conditions.empty())
-      )
-    {
-      //Two situation will go into this switch:
-      //Both "id" and "value" matchs; "id" matches, but "value" does not.
-      //For later situation, we will give "Deny" (See the DenyOverridesAlg.cpp and PermitOveridesAlg.cpp)
+  MatchResult match_res = match(ctx);
+
+  if(match_res == MATCH) {
+    if(effect == "Permit") {
       result = DECISION_PERMIT;
       evalres.effect = "Permit";
     }
-    //If the <Resource> or <Action> in RequestItem matches or partially matches any of the <Resources> or 
-    //<Actions> under <Rule>, we consider the <RequestItem> be rejected, because it means the request is 
-    //trying to get permission (Resource, Action) which is not supposed to be granted to him (Subject or 
-    //context has not been matched)
-    else if(
-       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) &&
-       (act_idmatched == ID_MATCH || act_idmatched == ID_PARTIAL_MATCH)
-      )
-    { 
+    else if(effect == "Deny") {
       result = DECISION_DENY;
       evalres.effect = "Deny";
     }
-    else {
-      result = DECISION_NOT_APPLICABLE;
-      evalres.effect = "Not_Applicable";
-    }
-  }  
-  else if (effect == "Deny") {
-    if(
-       (sub_idmatched == ID_MATCH || subjects.empty()) && (res_idmatched == ID_MATCH || resources.empty()) &&
-       (act_idmatched == ID_MATCH || actions.empty()) && (ctx_idmatched == ID_MATCH || conditions.empty())
-      )
-    {
-      result = DECISION_DENY;
-      evalres.effect = "Deny";
-    }
-    //If the <Resource> or <Action> in RequestItem matches or partially matches any of the <Resources> or
-    //<Actions> under <Rule>, we consider the <RequestItem> be rejected, because it means the request is
-    //trying to get permission (Resource, Action) which is not supposed to be granted to him (Subject or
-    //context has not been matched)
-    else if(
-       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) &&
-       (act_idmatched == ID_MATCH || act_idmatched == ID_PARTIAL_MATCH)
-      )
-    {
-      result = DECISION_DENY;
-      evalres.effect = "Deny";
-    }
-    else {
-      result = DECISION_NOT_APPLICABLE;
-      evalres.effect = "Not_Applicable";
-    }
+    return result;
   }
-  return result;
+  else if(match_res == INDETERMINATE) {
+    if(effect == "Permit") evalres.effect = "Permit";
+    else if(effect == "Deny") evalres.effect = "Deny";
+    return DECISION_INDETERMINATE; 
+  }
+  else if(match_res == NO_MATCH){
+    if(effect == "Permit") evalres.effect = "Permit";
+    else if(effect == "Deny") evalres.effect = "Deny";
+    return DECISION_NOT_APPLICABLE;
+  }
 }
 
 std::string ArcRule::getEffect(){
