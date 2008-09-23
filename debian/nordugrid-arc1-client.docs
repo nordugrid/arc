@@ -1,3 +1,5 @@
 src/clients/arclib/client.xml.example
 src/clients/echo/echo_client.xml.example
 src/tests/echo/echo.wsdl
+src/clients/charon/charon_client.xml.example
+src/clients/charon/charon_request.xml.example
