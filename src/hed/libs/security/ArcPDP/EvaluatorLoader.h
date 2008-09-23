@@ -24,6 +24,8 @@ class EvaluatorLoader {
   Request* getRequest(const std::string& classname, const Source& requestsource);
   /**Get policy object according to the class name, based on the policy source*/
   Policy* getPolicy(const std::string& classname, const Source& policysource);
+  /**Get proper policy object according to the policy source*/
+  Policy* getPolicy(const Source& policysource);
  protected:
   static Arc::Logger logger;
  private:

@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <glibmm.h>
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
@@ -77,10 +78,10 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Evaluator object according to configure information. 
     //It should be the caller to free the object
-    eval = (Evaluator*)(classloader->Instance(classname, (void**)(void*)&node));
+    eval = (Evaluator*)(classloader->Instance(classname, (void*)&node));
   }
 
-  if(!eval) logger.msg(Arc::ERROR, "Can not load arc evaluator object"); 
+  if(!eval) logger.msg(Arc::ERROR, "Can not load arc evaluator object: %s",classname); 
   return eval;
 }
 
@@ -118,10 +119,10 @@ Request* EvaluatorLoader::getRequest(const std::string& classname, const Source&
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Request object according to configure information. 
     //It should be the caller to free the object
-    req = (Request*)(classloader->Instance(classname, (void**)(void*)&reqnode));
+    req = (Request*)(classloader->Instance(classname, (void*)&reqnode));
   }
   
-  if(!req) logger.msg(Arc::ERROR, "Can not load arc request object"); 
+  if(!req) logger.msg(Arc::ERROR, "Can not load arc request object: %s",classname); 
   return req;
 }
 
@@ -159,8 +160,49 @@ Policy* EvaluatorLoader::getPolicy(const std::string& classname, const Source& p
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Policy object according to configure information. 
     //It should be the caller to free the object
-    policy = (Policy*)(classloader->Instance(classname, (void**)(void*)&policynode));
+    policy = (Policy*)(classloader->Instance(classname, (void*)&policynode));
   }
+
+  if(!policy) logger.msg(Arc::ERROR, "Can not load policy object: %s",classname); 
+  return policy;
+}
+
+Policy* EvaluatorLoader::getPolicy(const Source& policysource) {
+  ArcSec::Policy* policy = NULL;
+  Arc::ClassLoader* classloader = NULL;
+
+  //Get policy node
+  Arc::XMLNode policynode = policysource.Get();
+
+  //Get the lib path from environment, and put it into the configuration xml node
+  std::list<std::string> plugins = Arc::ArcLocation::GetPlugins();
+
+  Arc::XMLNode cfg("\
+    <ArcConfig\
+     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+     <ModuleManager/>\
+    </ArcConfig>");
+  for(std::list<std::string>::iterator plugin = plugins.begin();plugin!=plugins.end();++plugin) {
+    cfg["ModuleManager"].NewChild("Path")=*plugin;
+    try {
+      Glib::Dir dir(*plugin);
+      for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
+        if((*file).substr(0, 3) == "lib") {
+          std::string name = (*file).substr(3,(*file).find('.')-3);
+          Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
+          plugcfg.NewAttribute("Name")=name;
+          plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_policy_modules__";
+          // ?? plugcfg["Plugin"]="policy"; ??
+        };
+      };
+    } catch (Glib::FileError) {};
+  };
+
+  Arc::Config modulecfg(cfg);
+  classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
+  //Dynamically load Policy object according to configure information. 
+  //It should be the caller to free the object
+  policy = (Policy*)(classloader->Instance((void*)&policynode));
 
   if(!policy) logger.msg(Arc::ERROR, "Can not load policy object"); 
   return policy;
