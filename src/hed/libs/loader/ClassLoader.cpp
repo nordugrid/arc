@@ -104,5 +104,19 @@ LoadableClass* ClassLoader::Instance(const std::string& classId, void* arg){
   return NULL;
 }
 
+LoadableClass* ClassLoader::Instance(void* arg){
+  identifier_map_t::iterator it;
+  void* ptr;
+  for(it=id_map.begin(); it!=id_map.end(); ++it){
+    ptr =(*it).second;
+    for(loader_descriptor* desc = (loader_descriptor*)ptr; !((desc->name)==NULL); ++desc) {
+      loader_descriptor &descriptor =*desc; 
+      LoadableClass * res = (*descriptor.get_instance)(arg);
+      if(res) return res;
+    } 
+  }
+  return NULL;
+}
+
 } // namespace Arc
 
