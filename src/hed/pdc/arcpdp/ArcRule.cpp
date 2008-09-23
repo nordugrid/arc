@@ -128,8 +128,8 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
   return;
 }
 
-ArcRule::ArcRule(XMLNode* node, EvaluatorContext* ctx) : Policy(node) {
-  rulenode = *node;
+ArcRule::ArcRule(const XMLNode node, EvaluatorContext* ctx) : Policy(node) {
+  rulenode = node;
   evalres.node = rulenode;
   evalres.effect = "Not_applicable";
 
@@ -318,6 +318,11 @@ EvalResult& ArcRule::getEvalResult(){
 
 void ArcRule::setEvalResult(EvalResult& res){
   evalres = res;
+}
+
+
+ArcRule::operator bool(void) {
+  return true;
 }
 
 ArcRule::~ArcRule(){

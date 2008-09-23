@@ -13,10 +13,17 @@ Arc::Logger ArcSec::GACLPolicy::logger(Arc::Logger::rootLogger, "GACLPolicy");
 
 static Arc::LoadableClass* get_policy(void* arg) {
   if(arg==NULL) {
-    std::cerr<<"There should be XMLNode as argument when creating ArcPolicy"<<std::endl; return NULL;
-  } else {
-    return new ArcSec::GACLPolicy(*((Arc::XMLNode*)arg));
-  }
+    std::cerr<<"GACLPolicy creation needs XMLNode as argument"<<std::endl;
+    return NULL;
+  };
+  Arc::XMLNode& doc = *((Arc::XMLNode*)arg);
+  if(!doc) return new ArcSec::GACLPolicy;
+  ArcSec::GACLPolicy* policy = new ArcSec::GACLPolicy(doc);
+  if(!(*policy)) {
+    delete policy;
+    return NULL;
+  };
+  return policy;
 }
 
 loader_descriptors __arc_policy_modules__  = {
@@ -27,34 +34,31 @@ loader_descriptors __arc_policy_modules__  = {
 using namespace Arc;
 using namespace ArcSec;
 
-GACLPolicy::GACLPolicy(XMLNode node) : Policy(&node) {
+GACLPolicy::GACLPolicy(void) : Policy() {
+  NS ns;
+  policynode.Replace(XMLNode(ns,"gacl"));
+}
+
+GACLPolicy::GACLPolicy(const XMLNode node) : Policy(node) {
   if((!node) || (node.Size() == 0)) {
-    logger.msg(WARNING,"Policy is empty");
-    NS ns;
-    policynode.Replace(XMLNode(ns,"gacl"));
+    logger.msg(ERROR,"Policy is empty");
     return;
   };
   if(node.Name() != "gacl") {
-    logger.msg(WARNING,"Policy is not gacl");
-    NS ns;
-    policynode.Replace(XMLNode(ns,"gacl"));
+    logger.msg(ERROR,"Policy is not gacl");
     return;
   };
   node.New(policynode);
 }
 
-GACLPolicy::GACLPolicy(const Source& source) : Policy(&(source.Get())) {
+GACLPolicy::GACLPolicy(const Source& source) : Policy(source.Get()) {
   XMLNode node = source.Get();
   if((!node) || (node.Size() == 0)) {
-    logger.msg(WARNING,"Policy is empty");
-    NS ns;
-    policynode.Replace(XMLNode(ns,"gacl"));
+    logger.msg(ERROR,"Policy is empty");
     return;
   };
   if(node.Name() != "gacl") {
-    logger.msg(WARNING,"Policy is not gacl");
-    NS ns;
-    policynode.Replace(XMLNode(ns,"gacl"));
+    logger.msg(ERROR,"Policy is not gacl");
     return;
   };
   node.New(policynode);

@@ -11,14 +11,26 @@
 
 Arc::Logger ArcSec::ArcPolicy::logger(Arc::Logger::rootLogger, "ArcPolicy");
 
+static Arc::NS policyns("policy", "http://www.nordugrid.org/schemas/policy-arc");
+
 /** get_policy (in charge of class-loading of ArcPolicy) can only 
 accept one type of argument--XMLNode */
 static Arc::LoadableClass* get_policy(void* arg) {
     //std::cout<<"Argument type of ArcPolicy:"<<typeid(arg).name()<<std::endl;
-    if(arg==NULL) { std::cerr<<"There should be XMLNode as argument when creating ArcPolicy"<<std::endl; return NULL; }
-    else{
-    return new ArcSec::ArcPolicy((Arc::XMLNode*) arg);
-   }
+    // Check for NULL
+    if(arg==NULL) { 
+        std::cerr<<"ArcPolicy creation requires XMLNode as argument"<<std::endl;
+        return NULL;
+    }
+    // Check if empty or valid policy is supplied
+    Arc::XMLNode& doc = *((Arc::XMLNode*)arg);
+    if(!doc) return new ArcSec::ArcPolicy;
+    ArcSec::ArcPolicy* policy = new ArcSec::ArcPolicy(doc);
+    if(!policy) {
+      delete policy;
+      return NULL;
+    };
+    return policy;
 }
 
 loader_descriptors __arc_policy_modules__  = {
@@ -29,16 +41,37 @@ loader_descriptors __arc_policy_modules__  = {
 using namespace Arc;
 using namespace ArcSec;
 
-ArcPolicy::ArcPolicy(XMLNode* node) : Policy(node), comalg(NULL) {
-  if((!node) || (!(*node)) ||(node->Size() == 0))
-    logger.msg(WARNING,"Policy is empty");
-  node->New(policynode);
+ArcPolicy::ArcPolicy(void) : Policy(), comalg(NULL) {
+  Arc::XMLNode newpolicy(policyns,"policy:Policy");
+  newpolicy.New(policynode);
+  policytop=policynode;
 }
 
-ArcPolicy::ArcPolicy(XMLNode* node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
-  if((!node) || (!(*node)) || (node->Size() == 0)) 
+ArcPolicy::ArcPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
+  if((!node) || (node.Size() == 0)) {
+    logger.msg(ERROR,"Policy is empty");
+    return;
+  }
+  node.New(policynode);
+  std::list<XMLNode> res = policynode.XPathLookup("//policy:Policy",policyns);
+  if(res.empty()) {
+    policynode.Destroy();
+    return;
+  }
+  policytop = *(res.begin());
+}
+
+ArcPolicy::ArcPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
+  if((!node) || (node.Size() == 0)) {
     logger.msg(WARNING,"Policy is empty");
-  node->New(policynode);
+    return;
+  }
+  node.New(policynode);
+  std::list<XMLNode> res = policynode.XPathLookup("//policy:Policy",policyns);
+  if(res.empty()) {
+    policynode.Destroy();
+    return;
+  }
   setEvaluatorContext(ctx); 
   make_policy();
 }
@@ -48,6 +81,10 @@ void ArcPolicy::make_policy() {
   //According to the developer's requirement, EvalResult.node can include rules(in XMLNode) 
   //that "Permit" or "Deny" the request tuple. In the existing code, it include all 
   //the original rules.
+
+  if(!policynode) return;
+  if(!policytop) return;
+
   evalres.node = policynode;
   evalres.effect = "Not_applicable";
 
@@ -55,15 +92,10 @@ void ArcPolicy::make_policy() {
   //Get AlgFactory from EvaluatorContext
   algfactory = (AlgFactory*)(*evaluatorctx); 
 
-  XMLNode nd, rnd;
-
-  Arc::NS nsList;
-  std::list<XMLNode> res;
-  nsList["policy"]="http://www.nordugrid.org/schemas/policy-arc";
-
-  res = policynode.XPathLookup("//policy:Policy", nsList);
-  if(!(res.empty())){
-    nd = *(res.begin());
+  XMLNode nd = policytop;
+  XMLNode rnd;
+  if((bool)nd){
+    nd = policytop;
     id = (std::string)(nd.Attribute("PolicyId"));
 
     //Setup the rules' combining algorithm inside one policy, according to the "CombiningAlg" name
@@ -79,7 +111,7 @@ void ArcPolicy::make_policy() {
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];
     if(!rnd) break;
-    rule = new ArcRule(&rnd, evaluatorctx);
+    rule = new ArcRule(rnd, evaluatorctx);
     subelements.push_back(rule);
   }
 }
@@ -119,3 +151,4 @@ ArcPolicy::~ArcPolicy(){
       subelements.pop_back();
   }
 }
+

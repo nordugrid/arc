@@ -14,12 +14,17 @@ namespace ArcSec {
 class ArcPolicy : public Policy {
 public:
   /**Constructor*/
-  ArcPolicy(Arc::XMLNode* node);
+  ArcPolicy(void);
 
   /**Constructor*/
-  ArcPolicy(Arc::XMLNode* node, EvaluatorContext* ctx);  
+  ArcPolicy(const Arc::XMLNode node);
+
+  /**Constructor*/
+  ArcPolicy(const Arc::XMLNode node, EvaluatorContext* ctx);  
 
   virtual ~ArcPolicy();  
+
+  virtual operator bool(void) { return (bool)policynode; };
 
   virtual Result eval(EvaluationCtx* ctx);
 
@@ -55,6 +60,9 @@ private:
 
   /**Corresponding <Policy> node*/
   Arc::XMLNode policynode;
+
+  /**Top element of policy tree*/
+  Arc::XMLNode policytop;
 
 protected:
   static Arc::Logger logger;

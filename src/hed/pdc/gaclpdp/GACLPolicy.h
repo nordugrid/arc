@@ -7,11 +7,15 @@ namespace ArcSec {
 
 class GACLPolicy : public Policy {
 public:
+  GACLPolicy(void);
+
   GACLPolicy(const Source& source);
 
-  GACLPolicy(Arc::XMLNode source);
+  GACLPolicy(const Arc::XMLNode source);
 
   virtual ~GACLPolicy();  
+
+  virtual operator bool(void) { return (bool)policynode; };
 
   virtual Result eval(EvaluationCtx* ctx);
 

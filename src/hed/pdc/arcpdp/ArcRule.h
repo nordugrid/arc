@@ -67,7 +67,7 @@ enum Id_MatchResult {
 ///ArcRule class to parse Arc specific <Rule> node
 class ArcRule : public Policy {
 public:
-  ArcRule(Arc::XMLNode* node, EvaluatorContext* ctx);  
+  ArcRule(const Arc::XMLNode node, EvaluatorContext* ctx);  
 
   virtual std::string getEffect();
 
@@ -76,6 +76,8 @@ public:
   virtual MatchResult match(EvaluationCtx* ctx);
 
   virtual ~ArcRule();
+
+  virtual operator bool(void);
 
   virtual EvalResult& getEvalResult();
 
