@@ -19,75 +19,62 @@ Evaluator matches request to policy and produces one of 4 following results:
   INDETERMINATE - request has some part which does not correspond to policy.
     Example: 
       Rule: DENY fruit APPLE to GROW on PEACH tree
-      Request: fruit APPLE to be GROWN on WHEAT gound
-     or Request: flower SUNFLOWER to be grown on PEACH tree
-    Explaination: Here, it is not possible to perform any matching result - neither positive (DENY 
-    or PERMIT) nor negative (NOT_APPLICABLE)
-    In the request, the "ground" is completely different with the "tree" in 
-    policy. You can compare "PEACH tree" and "APPLE tree" because they are both "tree"; But
-    you can not compare "PEACH tree" and "WHEAT groud" becaue they can not be compared at all
-    (Policy is about tree and Request is about ground).
-    And also you can not compare "fruit APPLE" and "flower SUNFLOWER" 
-    (here policy is about fruits and Request is about flower).
-    Some other situation which cause the impossibility to compare two attributes could also 
-    cause "INDETERMINATE".
+      Request: fruit APPLE to be GROWN on WHEAT ground
+      Request: flower SUNFLOWER to be grown on PEACH tree
+    Explaination: Here, it is not possible to obtain any matching result - neither positive (DENY or PERMIT) nor negative (NOT_APPLICABLE, see below)
+    In the request, the "ground" is completely uncomparable to the "tree" in policy. One can compare "PEACH tree" and "APPLE tree" because they are both "tree"; But it is impossible to compare "PEACH tree" and "WHEAT ground" becaue they of different kind (Policy is about tree and Request is about ground).
+    In a similar way one can't compare "fruit APPLE" and "flower SUNFLOWER" (here policy is about fruits and Request is about flower).
+    Any other situation which makes it impossibile to compare two attributes will also cause "INDETERMINATE".
 
-  NOT_APPLICABLE - request has exactly corresponding parts as those in policy, but some value of those 
-    parts is not the same. Hence request does not match policy.
+  NOT_APPLICABLE - all parts of the Request have corresponding parts in the Policy, but some value of those parts are not the same. Hence request does not match policy.
     Example:
       Rule: DENY fruit APPLE to GROW on PEACH tree
       Request: fruit APPLE to be GROWN on APPLE tree 
-    or Request: fruit ORANGE to be GROWN on PEACH tree 
-    or Request: fruit ORANGE to be GROWN on APPLE tree 
-    Explanation: for each part of the policy, we can find relevant part from request: both policy and
-    request are about fruit, and about tree. But the values does not match.
+      Request: fruit ORANGE to be GROWN on PEACH tree 
+      Request: fruit ORANGE to be GROWN on APPLE tree 
+    Explanation: for each part of the Request evaluator can find relevant part in the Policy - both Policy and Request are about fruit and tree. But the values do not match.
 
-If it is required to reduce evaluation results to boolean value PERMIT maps to TRUE
-and rest of results to FALSE.
+If it is required to reduce evaluation results to boolean value PERMIT maps to TRUE and rest of results to FALSE.
 
     Note: It is also possible to specify secondary effect which would become 
-    active in case Request is not matching. For example:
+    active in case Request is NOT_APPLICABLE. For example:
       DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT
-    But one shouldbe careful because example above would allow fruit PLUMS to grow on 
-    APPLE trees :)
-    This kind of requirement can be supported by using the algorithm between policies.
-    For example, in case of above scenario, we can use some algorithm like "Permit-if-notapplicable"
+    But one should be careful because example above would allow fruit PLUMS to grow on APPLE trees :)
+    This kind of requirement can be supported by using the algorithm between policies.  For example, in case of above scenario, we can use some algorithm like "Permit-if-notapplicable"
+????????? LAST PARGRAPH IS UNCLEAR. NEEDS BETTER EXPLANATION.
 
 
 * Policy matching
 Policy is made of Rule elements. Request is evaluated against each Rule. Each evaluation
 produces same results as policy evaluation described above. The results from all Rules 
 are then combined in order to produce final result for whole policy. Results combining
-algorithm is specified in Policy. There are 2 algorithms curretly:
+algorithm is specified in Policy. There are 2 algorithms currently:
   1. Deny-Overrides - this is default if no algorithm specified.
-    If there is at least one DENY in results final result is DENY.
-    Otherwise if there is at least one Rule gives INDETERMINATE and this Rule
-      has Deny effect, final result is INDETERMINATE.
-    Otherwise if there is at least one Rule gives PERMIT, the final result is PERMIT.
-    Otherwise if there is at least one Rule gives INDETERMINATE, final result is INDETERMINATE.
-    Otherwise final result is NOT_APPLICABLE.
+    * If there is at least one DENY in results final result is DENY.
+    * Otherwise if there is at least one PERMIT, the final result is PERMIT.
+    * Otherwise if there is at least one NOT_APPLICABLE final result is NOT_APPLICABLE.
+    Otherwise final result is INDETERMINATE.
+???? NOTE CHANGES IN ALGORITHM ABOVE. INITIAL ALGORITHM WAS INCONSISTENT AND SELFCONTRADICTING. MORE DEFINITE RESULTS "PERMIT" AND "DENY" MUST HAVE HIGHER PRIORITY OVER LESS DEFINITE "NOT_APPLICABLE" AND LEAST DEFINITE "INDETERMINATE" MUST HAVE LOWEST PRIORITY. ALSO FOR NON-MATCHING RULE MUST NOT BE DEPENDENCY ON REQUESTED EFFECT.
 
-    Special case is Policy wih no rules. Probably such policy shoudl be treated as always
-    producing DENY.
+    Special case is Policy wih no rules. Probably such policy shoudl be treated as always producing DENY.
     Question? If there is no Rule under Policy, it means no restriction from this Policy, what 
       exactly shoud the Policy gives? DENY or NOT_APPLICABLE?
+???? It seems to be more logical to produce INDETERMINATE because there is no rule with elements which could be compared to request.
 
   2. Permit-Overrides.
-    If there is at least one PERMIT in results， final result is PERMIT.
-    Otherwise if there is at least one Rule gives INDETERMINATE and this Rule
-      has Permit effect, final result is INDETERMINATE.
-    Otherwise if there is at least one Rule gives DENY, the final result is DENY.
-    Otherwise if there is at least one Rule gives INDETERMINATE, final result is INDETERMINATE.
-    Otherwise final result is NOT_APPLICABLE.
+    If there is at least one PERMIT in results final result is PERMIT.
+    Otherwise if there is at least one DENY the final result is DENY.
+    Otherwise if there is at least one NOT_APPLICABLE final result is NOT_APPLICABLE.
+    Otherwise final result is INDETERMINATE.
 
-    Special case is Policy wih no rules. Probably such policy shoudl be treated as always
-    producing DENY.
+    Special case is Policy wih no rules. Probably such policy should be treated as always producing DENY.
     Question? The same as above.
 
   Note: it would be useful to have more combining algorithms. Like the one which is metioned above:
   "Permit-if-notapplicable", or "Permit-when-allPermit" (Permit when all the Rules gives Permit, this alg 
    is useful in that case when we collecting different policy from a few sources, and we restrict that the 
    request should satisfy all of them in order to get access). 
+???? AGREE, BUT NOT URGENT
 
 
 * Request structure
