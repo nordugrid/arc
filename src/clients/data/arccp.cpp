@@ -289,13 +289,13 @@ void arccp(const Arc::URL& source_url_,
       }
       std::list<Arc::FileInfo> files;
       if (source->IsIndex()) {
-	if (!source->ListFiles(files, recursion > 0)) {
+	if (!source->ListFiles(files, true, false)) {
 	  logger.msg(Arc::ERROR, "Failed listing metafiles");
 	  return;
 	}
       }
       else
-	if (!source->ListFiles(files, true)) {
+	if (!source->ListFiles(files, true, false)) {
 	  logger.msg(Arc::ERROR, "Failed listing files");
 	  return;
 	}

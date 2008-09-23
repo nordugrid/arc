@@ -91,10 +91,12 @@ namespace Arc {
        listed.
      \param files will contain list of file names and optionally
        their attributes.
-     \param resolve if false, do not try to obtain properties of
-       objects. */
+     \param long)list if true, list additional properties of each file.
+     \param resolve if true, resolve physical locations (relevant
+     	 for indexing services only). */
     virtual DataStatus ListFiles(std::list<FileInfo>& files,
-				 bool resolve = true) = 0;
+                                 bool long_list = false,
+                                 bool resolve = false) = 0;
 
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.

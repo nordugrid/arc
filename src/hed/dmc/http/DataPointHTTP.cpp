@@ -334,7 +334,7 @@ namespace Arc {
     return true;
   }
 
-  DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool) {
+  DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool, bool) {
 
     MCCConfig cfg;
     if (!proxyPath.empty())

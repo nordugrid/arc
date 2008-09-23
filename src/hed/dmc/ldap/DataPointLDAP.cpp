@@ -108,7 +108,7 @@ namespace Arc {
     return DataStatus::UnimplementedError;
   }
 
-  DataStatus DataPointLDAP::ListFiles(std::list<FileInfo>&, bool) {
+  DataStatus DataPointLDAP::ListFiles(std::list<FileInfo>&, bool, bool) {
     return DataStatus::UnimplementedError;
   }
 

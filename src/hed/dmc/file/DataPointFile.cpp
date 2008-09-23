@@ -391,7 +391,8 @@ namespace Arc {
   }
 
   DataStatus DataPointFile::ListFiles(std::list<FileInfo>& files,
-				      bool resolve) {
+                                      bool long_list,
+                                      bool resolve) {
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -406,7 +407,7 @@ namespace Arc {
       while ((file_name = dir.read_name()) != "") {
 	std::list<FileInfo>::iterator f =
 	  files.insert(files.end(), FileInfo(file_name.c_str()));
-	if (resolve) {
+	if (long_list) {
 	  std::string fname = dirname + "/" + file_name;
 	  struct stat st;
 	  if (stat(fname.c_str(), &st) == 0) {

@@ -632,7 +632,8 @@ namespace Arc {
   }
 
   DataStatus DataPointGridFTP::ListFiles(std::list<FileInfo>& files,
-					 bool resolve) {
+                                         bool long_list,
+                                         bool resolve) {
     if (!ftp_active)
       return DataStatus::NotInitializedError;
     if (reading)
@@ -651,7 +652,7 @@ namespace Arc {
 	 i != lister.end(); ++i) {
       std::list<FileInfo>::iterator f =
 	files.insert(files.end(), FileInfo(i->GetLastName()));
-      if (resolve) {
+      if (long_list) {
 	GlobusResult res;
 	globus_off_t size = 0;
 	globus_abstime_t gl_modify_time;

@@ -1068,13 +1068,13 @@ namespace Arc {
     return true;
   }
 
-  DataStatus DataPointRLS::ListFiles(std::list<FileInfo>& files, bool resolve) {
+  DataStatus DataPointRLS::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve) {
     std::list<URL> rlis;
     std::list<URL> lrcs;
     rlis.push_back(url.ConnectionURL());
     lrcs.push_back(url.ConnectionURL());
 
-    list_files_rls_t arg(*this, files, resolve);
+    list_files_rls_t arg(*this, files, long_list);
     rls_find_lrcs(rlis, lrcs, true, false,
 		  &list_files_callback, (void *)&arg);
     return arg.success;
