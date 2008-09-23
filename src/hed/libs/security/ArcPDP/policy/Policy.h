@@ -27,13 +27,26 @@ protected:
   static Arc::Logger logger; 
  
 public:
+  /// Template constructor - creates empty policy
   Policy() {};
-  Policy(Arc::XMLNode*) {}; 
-/**Constructor based on the policy node and the EvaluatorContext which 
- * includes the factory objects for combining algorithm and function
- */ 
-  Policy(Arc::XMLNode*, EvaluatorContext*) {};
+
+  /// Template constructor - creates policy based on XML document
+  /** If XML document is empty then empty policy is created. If it is not 
+    empty then it must be valid policy document - otherwise created object
+    should be invalid. */
+  Policy(const Arc::XMLNode) {};  
+
+  /// Template constructor - creates policy based on XML document
+  /** If XML document is empty then empty policy is created. If it is not 
+    empty then it must be valid policy document - otherwise created object
+    should be invalid. This constructor is based on the policy node and i
+    the EvaluatorContext which includes the factory objects for combining 
+    algorithm and function */ 
+  Policy(const Arc::XMLNode, EvaluatorContext*) {};
   virtual ~Policy(){};
+
+  /// Returns true is object is valid.
+  virtual operator bool(void) = 0;
   
   ///Evaluate whether the two targets to be evaluated match to each other
   virtual MatchResult match(EvaluationCtx*) = 0;
