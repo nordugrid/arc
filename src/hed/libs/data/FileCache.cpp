@@ -344,26 +344,46 @@ bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
   // create the meta file to store the URL, if it does not exist
   std::string meta_file = _getMetaFileName(url);
   err = stat( meta_file.c_str(), &fileStat ); 
-  if (0 != err) {
-    if (errno == ENOENT) {
-      // create new file
-      FILE * pFile;
-      pFile = fopen ((char*)meta_file.c_str(), "w");
-      if (pFile == NULL) {
-        logger.msg(ERROR, "Failed to create info file %s: %s", meta_file, strerror(errno));
-        remove(lock_file.c_str());
-        return false;
-      }
-      fputs ((char*)url.c_str(), pFile);
-      fclose (pFile);
-      // make read/writeable only by GM user
-      chmod(meta_file.c_str(), S_IRUSR | S_IWUSR);
-    }
-    else {
-      logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, strerror(errno));
+  if (0 == err) {
+    // check URL inside file for possible hash collisions
+    FILE * pFile;
+    char mystring [1024]; // should be long enough for a pid or url...
+    pFile = fopen ((char*)_getMetaFileName(url).c_str(), "r");
+    if (pFile == NULL) {
+      logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), strerror(errno));
       remove(lock_file.c_str());
       return false;
     }
+    fgets (mystring, sizeof(mystring), pFile);
+    fclose (pFile);
+    
+    std::string meta_str(mystring);
+    std::string::size_type space_pos = meta_str.find(' ', 0);
+    if (space_pos == std::string::npos) space_pos = meta_str.length(); 
+    if (meta_str.substr(0, space_pos) != url) {
+      logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached", url, filename, meta_str.substr(0, space_pos));
+      remove(lock_file.c_str());
+      return false;
+    }
+  }
+  else if (errno == ENOENT) {
+    // create new file
+	  FILE * pFile;
+	  pFile = fopen ((char*)meta_file.c_str(), "w");
+	  if (pFile == NULL) {
+	  	logger.msg(ERROR, "Failed to create info file %s: %s", meta_file, strerror(errno));
+	  	remove(lock_file.c_str());
+	  	return false;
+    }
+	  fputs ((char*)url.c_str(), pFile);
+	  fclose (pFile);
+	  // make read/writeable only by GM user
+	  chmod(meta_file.c_str(), S_IRUSR | S_IWUSR);
+  }
+  else {
+  	logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, strerror(errno));
+  	remove(lock_file.c_str());
+  	return false;
   }
   // now check if the cache file is there already
   err = stat( filename.c_str(), &fileStat );
@@ -772,22 +792,27 @@ bool FileCache::_cacheMkDir(std::string dir, bool all_read) {
     std::string::size_type slashpos = 0;
     do {
       slashpos = dir.find("/", slashpos+1);
-      char * dirname = (char*)dir.substr(0, slashpos).c_str();
+      std::string dirname = dir.substr(0, slashpos);
       // list dir to see if it exists (we can't tell the difference between
       // dir already exists and permission denied)
       struct stat statbuf;
-      if (stat(dirname, &statbuf) == 0) {
+      if (stat(dirname.c_str(), &statbuf) == 0) {
         continue;
       };
       
       // set perms based on all_read
       mode_t perm = S_IRWXU;
       if (all_read) perm |= S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH;
-      if (mkdir(dirname, perm) != 0) {
+      if (mkdir(dirname.c_str(), perm) != 0) {
         if (errno != EEXIST) {
           logger.msg(ERROR, "Error creating required dirs: %s", strerror(errno));
           return false;
         };
+      };
+      // chmod to get around GM umask setting
+      if (chmod(dirname.c_str(), perm) != 0) {
+        logger.msg(ERROR, "Error changing permission of dir %s: %s", dirname, strerror(errno));
+        return false;
       };
     } while (slashpos != std::string::npos);
   }

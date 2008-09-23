@@ -8,6 +8,7 @@
 #include "FileCacheHash.h"
 
 int FileCacheHash::MAX_MD5_LENGTH=32;
+int FileCacheHash::MAX_SHA1_LENGTH=40;
 
 std::string FileCacheHash::getHash(std::string url) {
   
@@ -15,7 +16,7 @@ std::string FileCacheHash::getHash(std::string url) {
    * example borrowed from http://www.openssl.org/docs/crypto/EVP_DigestInit.html
    */
   EVP_MD_CTX mdctx;
-  const EVP_MD *md = EVP_md5();
+  const EVP_MD *md = EVP_sha1(); // change to EVP_md5() for md5 hashes
   char * mess1 = (char*)url.c_str();
   unsigned char md_value[EVP_MAX_MD_SIZE];
   unsigned int md_len, i;

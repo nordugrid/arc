@@ -15,6 +15,10 @@ private:
    * Maximum length of an md5 hash
    */
   static int MAX_MD5_LENGTH;
+  /**
+   * Maximum length of a sha1 hash
+   */
+  static int MAX_SHA1_LENGTH;
 
 public:
   /**
@@ -24,7 +28,7 @@ public:
   /**
    * Return the maximum length of a hash string.
    */
-  static int maxLength() {return MAX_MD5_LENGTH;};
+  static int maxLength() {return MAX_SHA1_LENGTH;};
 };
 
 #endif /*FILE_CACHE_HASH_H_*/
