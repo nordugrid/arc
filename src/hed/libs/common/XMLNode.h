@@ -18,7 +18,23 @@ namespace Arc {
 
 class XMLNode;
 
-typedef std::map<std::string,std::string> NS;
+class NS: public std::map<std::string,std::string> {
+ public:
+  /// Constructor creates empty namespace
+  NS(void) { };
+  /// Constructor creates namespace with one entry
+  NS(const char* prefix,const char* uri) {
+    operator[](prefix)=uri;
+  }
+  /// Constructor creates namespace with multiple entries
+  /*** Array is made of prexif and URI pairs and must be NULL terminated */
+  NS(const char* nslist[][2]) {
+    for(int n = 0;nslist[n][0];++n) {
+      operator[](nslist[n][0])=nslist[n][1];
+    };
+  };
+};
+
 typedef std::list<Arc::XMLNode> XMLNodeList; 
 
 /// Wrapper for LibXML library Tree interface. 
