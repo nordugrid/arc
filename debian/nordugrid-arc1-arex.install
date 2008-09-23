@@ -43,3 +43,4 @@ usr/lib/arc/finish-condor-job
 usr/lib/arc/CEinfo.pl
 usr/share/arc/nordugrid.schema
 
+etc/arc_arex.conf
