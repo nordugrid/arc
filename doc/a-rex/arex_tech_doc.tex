@@ -1,71 +1,21 @@
-%% LyX 1.4.5 created this file.  For more info, see http://www.lyx.org/.
-%% Do not edit unless you really know what you are doing.
-\documentclass[twoside,english]{article}
-\usepackage{pslatex}
-\usepackage[T1]{fontenc}
-\usepackage[latin1]{inputenc}
-\usepackage{geometry}
-\geometry{verbose,a4paper,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{amsmath}
-\usepackage{setspace}
-\onehalfspacing
-\usepackage{amssymb}
-\IfFileExists{url.sty}{\usepackage{url}}
-                      {\newcommand{\url}{\texttt}}
-
-\makeatletter
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
-\newenvironment{LyXParagraphLeftIndent}[1]%
-{
-  \begin{list}{}{%
-    \setlength{\topsep}{0pt}%
-    \addtolength{\leftmargin}{#1}
-    \setlength{\parsep}{0pt plus 1pt}%
-  }
-  \item[]
-}
-{\end{list}}
-%% Because html converters don't know tabularnewline
-\providecommand{\tabularnewline}{\\}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Textclass specific LaTeX commands.
-\newenvironment{lyxlist}[1]
-{\begin{list}{}
-{\settowidth{\labelwidth}{#1}
- \setlength{\leftmargin}{\labelwidth}
- \addtolength{\leftmargin}{\labelsep}
- \renewcommand{\makelabel}[1]{##1\hfil}}}
-{\end{list}}
-\newenvironment{lyxcode}
-{\begin{list}{}{
-\setlength{\rightmargin}{\leftmargin}
-\setlength{\listparindent}{0pt}% needed for AMS classes
-\raggedright
-\setlength{\itemsep}{0pt}
-\setlength{\parsep}{0pt}
-\normalfont\ttfamily}%
- \item[]}
-{\end{list}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
-\usepackage{graphicx}                              %for PNG images (pdflatex)
-%\usepackage{graphics}                              %for EPS images (latex)
-\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\documentclass{article}                            %for shorter notes
+\usepackage{graphics}                              %for EPS images (latex)
 \usepackage{color}                                 %for defining custom colors
 \usepackage{framed}                                %for shaded and framed paragraphs
 \usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
 \usepackage{geometry}                              %for defining page size
 \usepackage{longtable}                             %for breaking tables
+\usepackage{listings}                              %for code listings
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\lstloadlanguages{bash,XML}
 \usepackage{multirow}
 \usepackage{verbatim}
+\usepackage{array}
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
   pdfauthor = {A.Konstantinov},
-  pdftitle = {The NorduGrid Grid Manager and GridFTP Server.},
+  pdftitle = {The ARC Computational Job Management Component -- A-REX},
   pdfsubject = {},
   pdfkeywords = {},
   pdfcreator = {PDFLaTeX with hyperref package},
@@ -90,24 +40,32 @@
 \definecolor{salmon}{rgb}{1,0.9,1}
 \definecolor{bordeaux}{rgb}{0.75,0.,0.}
 \definecolor{cyan}{rgb}{0,1,1}
+\definecolor{lightblue}{cmyk}{0.05,0,0,0.05}
+\lstset{
+frame=single,
+backgroundcolor=\color{shadecolor},
+fillcolor=\color{shadecolor},
+rulecolor=\color{lightblue},
+basicstyle=\ttfamily,
+xleftmargin=0.05\linewidth,
+aboveskip=2\medskipamount
+}
 %
-
-\usepackage{babel}
-\makeatother
+%
+%----- DON'T CHANGE HEADER MATTER
 \begin{document}
 \def\today{\number\day/\number\month/\number\year}
 
 \begin{titlepage}
 
 \begin{tabular}{rl}
-
-\resizebox*{3cm}{!}{\includegraphics{ng-logo}}
-
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
 &\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
-
 \end{tabular}
 
 \hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
 
 {\raggedleft NORDUGRID-TECH-14\par}
 
@@ -115,49 +73,45 @@
 
 \vspace*{2cm}
 
-
-
-\begin{center}
-\textsc{\large The ARC Computational Job Management Component - A-REX}
-\par\end{center}{\large \par}
-
+%%%%---- The title ----
+{\centering \textsc{\Large ARC Computational Job Management Component -- A-REX}\Large \par}
 \vspace*{0.5cm}
-
-\begin{center}
-\textit{\large Description and Administrator's Manual}
-\par\end{center}{\large \par}
-
+    
+%%%%---- A subtitle, if necessary ----
+{\centering \textit{\large Description and Administrator's Manual}\large \par}
+    
 \vspace*{1.5cm}
-
-{\centering \large A.Konstantinov\footnote{aleks@fys.uio.no} \large \par}
-
+%%%%---- A list of authors ----
+    {\centering \large A.~Konstantinov\footnote{aleks@fys.uio.no} \large \par}
+    
+%%%%---- An abstract - if style is article ----
+%\begin{abstract}
+%The abstract
+%\end{abstract}
 \end{titlepage}
 
-\tableofcontents{}
-
+%\tableofcontents                          %Comment if use article style
 \newpage
-
-
 \section{Introduction\label{sec:intro}}
 
 A-REX is one of ARC middleware components that implements functions
-of the so called \emph{Computing Element} (CE). Here Computing Element
+of the so-called \emph{Computing Element} (CE). Here Computing Element
 is a service accepting requests containing description of generic
-computational job and executing it in underlying local batch system.
+computational job and executing it in the underlying local batch system. 
 
-It takes care of job pre- and post-processing. This comprises the
+It takes care of job pre- and post-processing. This comprises
 stage-in of files containing input data or program modules from wide
-range of sources and the transfer or storing of output results.
+range of sources and transfer or storing of output results.
 
-The A-REX implements a Web Service (WS) interface which provides a
+A-REX implements a Web Service (WS) interface which provides a
 way to submit and control computational tasks (jobs) to be executed
-by the A-REX and he underlying Local Resource Management System.
+by A-REX and the underlying Local Resource Management System.
 
-\textbf{You should use this document for advanced configuration purposes
+\begin{framed}You should use this document for advanced configuration purposes
 and understanding of internals of the aforementioned tools. For general
 installation and configuration of whole system refer to other documents
-available at \url{http://www.nordugrid.org/papers.html}. }
-
+available at \url{http://www.nordugrid.org/papers.html}.
+\end{framed}
 
 \section{Main concepts\label{sec:main concepts}}
 
@@ -179,21 +133,19 @@ modules) is performed via HTTP(S). An URL for accessing input/output
 files is  obtained through the WS Local Information Description Interface
 (LIDI) of A-REX.
 
-Each job gets an identifier (\textit{jobid}). This is a handle - WS-Addressing
-\cite{ws-addr-soap} XML document - which identifies the job in the
-A-REX and the Information Interface.
+Each job gets an identifier (\textit{jobid}). This is a handle -- WS-Addressing~\cite{ws-addr-soap} XML document -- which identifies the job in the
+A-REX and in the Information Interface.
 
 Jobs are initiated and controlled through the WS interface. Complete
-job descriptions (JD)are passed to the A-REX through WS in JSDL\cite{jsdl}
+job descriptions (JD) are passed to the A-REX through WS in JSDL~\cite{jsdl}
 coded description. Input data files and job executables are transferred
-separately through the same interface, as described in the next section.
-
+separately through the same interface, as described in Section~\ref{sec:input/output data}.
 
 \section{Input/output data\label{sec:input/output data}}
 
-One of the most important tasks of the A-REX is to take care of processing
+One of the most important tasks of the A-REX is to take care of processing of the
 input and output data (files) of the job. Input files are gathered
-in the SD or associated cache area. There are two ways to put a file
+in the SD or in the associated cache area. There are two ways to put a file
 into the SD:
 
 \begin{itemize}
@@ -203,7 +155,7 @@ ensure that all required files will be available in the SD.\\
 The supported protocols for sources at the moment are (in case of
 full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over SSLv3). Also
 some less standard sources are supported. Those are described below.
-The A-REX fully relies on HED framework \cite{hed} for data transferring
+The A-REX fully relies on HED framework~\cite{hed} for data transferring
 capabilities. Hence actual set of supported protocols depends on installed
 Data Management Components of the HED.
 \item Upload is initiated by the user directly or through the User Interface
@@ -238,20 +190,17 @@ finished. If job execution fails for any reason (if exit code of main
 executable is not 0) all files from first group are transferred to
 second one.
 
-
-\section{\label{Section: Job Flow}Job flow}
+\section{Job flow\label{Section:Job Flow}}
 
 From the point of view of the A-REX a job passes through various states.
-Picture \ref{job states diagram} presents a diagram of the possible
+Figure~\ref{job states diagram} presents a diagram of the possible
 states of a job.%
-\begin{figure}[tbh]
-\begin{centering}
-\includegraphics{pic1}
-\par\end{centering}
 
-
+\begin{figure}[th]
+\centering \includegraphics{pic1.pdf}
 \caption{\label{job states diagram}Job states}
 \end{figure}
+
 A user can examine the state of a job by querying the dedicated Local
 Information Description Interface of A-REX using the UI or any other
 suitable tool or through query method of WS interface. 
@@ -266,11 +215,11 @@ Below is the description of all actions taken by the A-REX at every
 state:
 
 \begin{itemize}
-\item \textbf{Accepted} - In this state the job has been submitted to a
+\item \textbf{Accepted} -- In this state the job has been submitted to a
 CE but is not processed yet. The A-REX will analyze the JD and move
 to the next stage. If the JD can not be processed the job will be
 canceled and moved to the state \textbf{Finishing}.
-\item \textbf{Preparing} - The input data is being gathered in the SD (stage-in).
+\item \textbf{Preparing} -- The input data is being gathered in the SD (stage-in).
 The A-REX is downloading the files specified in the JD and is waiting
 for files which are supposed to be uploaded by the UI. If all files
 are successfully gathered the job moves to the next state. If \textbf{any}
@@ -281,25 +230,25 @@ limit is exceeded, jobs ready to enter the \textbf{Preparing} state
  will stay in the \textbf{Accepted} state, but prefixed with the PENDING:
 mark. Exceptions are jobs which have no files to be downloaded. These
 are processed out of limits.
-\item \textbf{Submiting} - The job is being passed for execution to the
+\item \textbf{Submiting} -- The job is being passed for execution to the
 \emph{Local Resource Management System} (LRMS). The corresponding
 backends for many LRMSs are provided with the default installation.
 If the local job submission is successful the job moves to the \textbf{Executing}
 state. Otherwise it moves to \textbf{Finishing}. It is possible to
 limit the aggregate number of jobs in \textbf{Submiting} and \textbf{Executing}
 states.
-\item \textbf{Executing} - The job is queued or being executed in the LRMS.
+\item \textbf{Executing} -- The job is queued or being executed in the LRMS.
 The A-REX takes no actions except waiting until the job finishes.
-\item \textbf{Killing} - Necessary action to cancel the job in the LRMS
+\item \textbf{Killing} -- Necessary action to cancel the job in the LRMS
 is being taken.
-\item \textbf{Finishing} - The output data is being processed (stage-out).
+\item \textbf{Finishing} -- The output data is being processed (stage-out).
 Specified data files are moved to the specified SEs and are optionally
 registered at an Indexing Service. The user can download data files
 from the SD by using the UI or other adequate tool. All the files
 not specified as output files are removed from the SD at very beginning
 of this state. It is possible to limit number of simultaneous jobs
 in this state.
-\item \textbf{Finished} - No more processing is performed by the A-REX.
+\item \textbf{Finished} -- No more processing is performed by the A-REX.
 The user can continue to download data files from the SD. The SD is
 kept available for some time (default is 1 week). After that the job
 is moved to the state \textbf{Deleted}. The 'deletion' time can be
@@ -311,7 +260,7 @@ This is needed in order to not break the configuration limits. Exception
 is a job failed in \textbf{Executing} state and lacking input files
 specified in JD. Such a job is treated like failed in \textbf{Preparing}
 state.
-\item \textbf{Deleted} - The job is moved to this state if the user have
+\item \textbf{Deleted} -- The job is moved to this state if the user have
 not requested job to be cleaned before the SD's lifetime expires.
 Only minimal subset of information about such job is kept. The SD
 is not available anymore.
@@ -320,23 +269,20 @@ In case of a failure special processing is applied to output files.
 All specified output files are treated as \textbf{downloadable by
 the user}. No files will be moved to their destination SE.
 
-
-\section{URLs}
+\section{URLs\label{sec:urls}}
 
 In full installation the A-REX and it's components support the following
 data transfer protocols and corresponding URLs: \emph{ftp, gsiftp,
 http, https, lfc} and \emph{rls.} For more information please see
 {}``The Hosting Environment of the Advanced Resource Connector middleware''
-document \cite{hed}.
+document~\cite{hed}.
 
-
-\section{\label{section: internals}Internals}
-
+\section{Internals\label{section:internals}}
 
 \subsection{Internal Files of the A-REX}
 
-For each local UNIX user listed in the A-REX configuration - including
-a generic one which covers all local user identities - a \textit{control
+For each local UNIX user listed in the A-REX configuration -- including
+a generic one which covers all local user identities -- a \textit{control
 directory} exists. In this directory the A-REX stores information
 about jobs belonging to that user. Multiple users can share the same
 \textit{control directory}. In most common configuration case A-REX
@@ -350,10 +296,10 @@ The files in the control directory and their formats are described
 below:
 
 \begin{itemize}
-\item \textit{job.ID.status} - current state of the job. This is a plain
+\item \textit{job.ID.status} -- current state of the job. This is a plain
 text file containing a single word representing the internal name
 of current state of the job. Possible values and corresponding external
-job states are :
+job states are:
 
 \begin{itemize}
 \item ACCEPTED
@@ -366,68 +312,70 @@ job states are :
 \item DELETED
 \end{itemize}
 \end{itemize}
-See section \ref{Section: Job Flow} for a description of the various
+
+See Section~\ref{Section:Job Flow} for a description of the various
 states. Additionally each value can be prepended the prefix {}``PENDING:''
-(like PENDING:ACCEPTED, see section \ref{Section: Job Flow}). This
+(like PENDING:ACCEPTED, see Section~\ref{Section:Job Flow}). This
 is used to show that a job is \emph{ready} to be moved to the next
 state but it has to stay in it's current state \emph{only} because
 otherwise some limits set in the configuration would be exceeded.
 
 \begin{itemize}
-\item \textit{job.ID.description} - contains the description of the job
+\item \textit{job.ID.description} -- contains the description of the job
 (JD).
-\item \textit{job.ID.local} - information about the job used by the A-REX.
+\item \textit{job.ID.local} -- information about the job used by the A-REX.
 It consists of lines of format \textit{{}``name = value''}. Not
 all of them are always available. The following names are defined:
 
 \begin{itemize}
-\item \textit{subject} - user certificate's subject, also known as the distinguished
+\item \textit{subject} -- user certificate's subject, also known as the distinguished
 name (DN)
-\item \textit{starttime} - GMT time when the job was accepted represented
+\item \textit{starttime} -- GMT time when the job was accepted represented
 in the Generalized Time format of LDAP 
-\item \textit{lifetime} - time period to preserve the SD after the job has
+\item \textit{lifetime} -- time period to preserve the SD after the job has
 finished in seconds
-\item \textit{cleanuptime} - GMT time when the job should be removed from
+\item \textit{cleanuptime} -- GMT time when the job should be removed from
 the cluster and it's SD deleted in Generalized Time format
-\item \textit{notify} - email addresses and flags to send mail to about
+\item \textit{notify} -- email addresses and flags to send mail to about
 the job specified status changes
-\item \textit{processtime} - GMT time when to start processing the job in
+\item \textit{processtime} -- GMT time when to start processing the job in
 Generalized Time format
-\item \textit{exectime} - GMT time when to start job execution in Generalized
+\item \textit{exectime} -- GMT time when to start job execution in Generalized
 Time format
-\item \textit{expiretime} - GMT time when the credentials delegated to the
+\item \textit{expiretime} -- GMT time when the credentials delegated to the
 job expire in Generalized Time format
-\item \textit{rerun} - number of retries left to rerun the job
-\item \textit{jobname} - name of the job as supplied by the user
-\item \textit{lrms} - name of the LRMS backend to be used for local submission
-\item \textit{queue} - name of the queue to run the job at
-\item \textit{localid} - job id in LRMS (appears only after the job has
+\item \textit{rerun} -- number of retries left to rerun the job
+\item \textit{jobname} -- name of the job as supplied by the user
+\item \textit{lrms} -- name of the LRMS backend to be used for local submission
+\item \textit{queue} -- name of the queue to run the job at
+\item \textit{localid} -- job id in LRMS (appears only after the job has
 reached state \textbf{InLRMS})
-\item \textit{args} - executable name followed by a list of command-line
+\item \textit{args} -- executable name followed by a list of command-line
 arguments
-\item \textit{downloads} - number of files to download into the SD before
+\item \textit{downloads} -- number of files to download into the SD before
 execution
-\item \textit{uploads} - number of files to upload from the SD after execution
-\item \textit{gmlog} - directory name which holds files containing information
+\item \textit{uploads} -- number of files to upload from the SD after execution
+\item \textit{gmlog} -- directory name which holds files containing information
 about the job when accessed through GridFTP interface
-\item \textit{clientname} - name (as provided by the user interface) and
+\item \textit{clientname} -- name (as provided by the user interface) and
 IP address:port of the submitting client machine
-\item \textit{clientsoftware} - version of software used to submit the job
-\item \textit{sessiondir} - the job's SD
-\item \textit{failedstate} - state in which job failed (available only if
+\item \textit{clientsoftware} -- version of software used to submit the job
+\item \textit{sessiondir} -- the job's SD
+\item \textit{failedstate} -- state in which job failed (available only if
 it is possible to restart the job)
-\item \textit{jobreport} - URL of a user requested \emph{logger service}.
+\item \textit{jobreport} -- URL of a user requested \emph{logger service}.
 The A-REX will also send job records to this service in addition to
 the default logger service configured in the configuration (This feature
 does not work in current implementation).
 \end{itemize}
 \end{itemize}
+
 This file is filled partially during job submission and fully when
 the job moves from the \textbf{Accepted} to the \textbf{Preparing}
 state.
 
 \begin{itemize}
-\item \textit{job.ID.input} - list of input files. Each line contains 2
+\item \textit{job.ID.input} -- list of input files. Each line contains 2
 values separated by a space. First value contains name of the file
 relative to the SD. Second value is an URL or a file description.
 Example:
@@ -438,18 +386,18 @@ Example:
 \emph{URL} represents location from which file can be downloaded.
 Each URL can contain additional options.
 
-\textit{file description} - {[}size]{[}.checksum].
+\textit{file description} -- {[}size]{[}.checksum].
 
-\hspace*{1cm}\textit{size} - size of the file in bytes.
+\hspace*{1cm}\textit{size} -- size of the file in bytes.
 
-\hspace*{1cm}\textit{checksum} - checksum of the file identical to
+\hspace*{1cm}\textit{checksum} -- checksum of the file identical to
 the one produced by \textbf{\textit{cksum}} (1).
 
 Both size and checksum can be left out. Special kind of file description
 {*}.{*} is used to specify files which are \textbf{not} required to
 exist.
-
 \end{itemize}
+
 This file is used by the '\textbf{\textit{downloader}}' utility. Files
 with \emph{URL} will be downloaded to the SD and files with 'file
 description' will simply be checked to exist. Each time a new \textbf{valid}
@@ -458,11 +406,12 @@ is updated. Any external tool can thus track the process of collecting
 input files by checking \textit{job.ID.input.}
 
 \begin{itemize}
-\item \textit{job.ID.output} - list of output files. Each line contains
+\item \textit{job.ID.output} -- list of output files. Each line contains
 1 or 2 values separated by a space. First value is the name of the
 file relative to the SD. The second value, if present, is a URL. Supported
 URLs are the same as those supported by job.ID.input.
 \end{itemize}
+
 This file is used by the '\textbf{\textit{uploader}}' utility. Files
 with \textit{URL} will be uploaded to SE and remaining files will
 be left in the SD. Each time a file is uploaded it is removed from
@@ -471,49 +420,47 @@ as output files are removed from the SD at the the beginning of the
 \textbf{Finishing} state.
 
 \begin{itemize}
-\item \textit{job.ID.failed} - the existence of this file marks the failure
+\item \textit{job.ID.failed} -- the existence of this file marks the failure
 of the job. It can also contain one or more lines of text describing
 the reason of failure. Failure includes the return code different
 from zero of the job itself.
-\item \textit{job.ID.errors} - this file contains the output produced by
+\item \textit{job.ID.errors} -- this file contains the output produced by
 external utilities like \textbf{\textit{downloader}}, \textbf{\textit{uploader}},
 script for job submission to LRMS, etc on their stderr handle. Those
 are not necessarily errors, but can be just useful information about
 actions taken during the job processing. In case of problem include
 content of that file while asking for help.
-\item \textit{job.ID.diag} - information about resources used during execution
+\item \textit{job.ID.diag} -- information about resources used during execution
 of job and other information suitable for diagnostics and statistics.
 It's format is similar to that of \textit{job.ID.local}. The following
 names are at least defined:
-
 \begin{itemize}
-\item \textit{nodename} - name of computing node which was used to execute
+\item \textit{nodename} -- name of computing node which was used to execute
 job,
-\item \textit{runtimeenvironments} - used runtime environments separated
+\item \textit{runtimeenvironments} -- used runtime environments separated
 by ';',
-\item \textit{exitcode} - numerical exit code of job,
-\item \textit{frontend\_distribution} - name and version of operating system
+\item \textit{exitcode} -- numerical exit code of job,
+\item \textit{frontend\_distribution} -- name and version of operating system
 distribution on frontend computer,
-\item \textit{frontend\_system} - name of operating on frontend computer,
-\item \textit{frontend\_subject} - subject (DN) of certificate representing
+\item \textit{frontend\_system} -- name of operating on frontend computer,
+\item \textit{frontend\_subject} -- subject (DN) of certificate representing
 frontend computer,
-\item \textit{frontend\_ca} - subject (DN) of issuer of certificate representing
+\item \textit{frontend\_ca} -- subject (DN) of issuer of certificate representing
 frontend computer,
 \end{itemize}
 and other information provided by GNU \emph{time} utility. Note that
 some implementation of \emph{time} insert unrequested information
 in their output. Hence some lines can have broken format.
-
 \item \textit{job.ID.proxy} -delegated X509 credentials.
-\item \textit{job.ID.proxy.tmp} - temporary X509 credentials with different
+\item \textit{job.ID.proxy.tmp} -- temporary X509 credentials with different
 UNIX ownership used by processes run with effective \emph{user id}
 different form job owner's \emph{id}.
 \end{itemize}
+
 There are other files with names like job.ID.{*} which are created
 and used by different parts of the A-REX. Their presence in the \textit{control
 directory} can not be guaranteed and can change depending on changes
 in the A-REX code.
-
 
 \subsection{Web Service Interface}
 
@@ -521,16 +468,15 @@ A-REX Web Service Interface provides means to submit a description
 of a computational job to a computing resource, to stage-in additional
 data, to monitor and control processing of jobs, and obtain data produced
 during the execution of a job. The WS Interface is built and deployed
-inside the Hosting Environment Daemon (HED) infrastructure\cite{hed}.
-
+inside the Hosting Environment Daemon (HED) infrastructure~\cite{hed}.
 
 \subsubsection{Basic Execution Service Interface}
 
 The job submission and control interface is based on a document produced
-by the OGF OGSA Basic Execution Services (BES) Working Group\cite{ogsa-bes}.
+by the OGF OGSA Basic Execution Services (BES) Working Group~\cite{ogsa-bes}.
 
 The exchange of SOAP messages is performed via HTTP(S). The BES interface
-is represented by two port-types - BES-Management and BES-Factory.
+is represented by two port-types -- BES-Management and BES-Factory.
 The former is made to control the A-REX service itself and thus defines
 operations to start and stop the functionality of the BES service.
 The A-REX does not implement remote control of service functionality.
@@ -541,25 +487,22 @@ to provide information about the service. A-REX fully implements the
 functionality of this port-type.
 
 For job descriptions A-REX accepts the Job Submission Description
-Language (JSDL)\cite{jsdl} documents as defined by the OGF Job Submission
+Language (JSDL)~\cite{jsdl} documents as defined by the OGF Job Submission
 Description Language Working Group. Supported elements and extensions
 are described below.
-
 
 \subsubsection{Extensions to OGSA BES interface}
 
 A-REX introduces a new operation in addition to those provided by
 BES. It does that by defining its own port-type with the single operation
-\emph{ChangeActivityStatus} (see Appendix C). This operation provides
+\emph{ChangeActivityStatus} (see Appendix~\ref{annex:arex-wsdl}). This operation provides
 a way to request simple transfers between states of jobs and corresponding
 actions.
 
 \begin{itemize}
 \item \emph{ChangeActivityStatus}
-
 \begin{itemize}
 \item Input
-
 \begin{itemize}
 \item \emph{ActivityStatusType OldStatus}: Description of the state the
 job is supposed to be in during execution of this request. If the
@@ -570,13 +513,11 @@ optional.
 job is to be put into.
 \end{itemize}
 \item Output
-
 \begin{itemize}
 \item \emph{ActivityStatusType NewStatus}: Description of the current state
 of the job.
 \end{itemize}
 \item Fault(s)
-
 \begin{itemize}
 \item \emph{NotAuthorizedFault}: Indicates that the client is not allowed
 to do this operation.
@@ -586,6 +527,7 @@ is not possible.
 \end{itemize}
 \end{itemize}
 \end{itemize}
+
 On result of this command, the job should be put into the requested
 state. If such a procedure cannot be performed immediately then the
 corresponding sequence is initiated and fault OperationWillBeAppliedEventuallyFault
@@ -594,15 +536,15 @@ will be returned.
 Since BES allows implementations to extend their initial activity
 states with additional sub-states, A-REX defines a set of sub-states
 of activity processing in addition to those defined by the BES, as
-listed in Table \ref{tab:Job-states-definitions}. Their meaning is
-described in section \ref{Section: Job Flow}.
+listed in Table~\ref{tab:Job-states-definitions}. Their meaning is
+described in Section~\ref{Section:Job Flow}.
 
 %
 \begin{table}
 
 \caption{\label{tab:Job-states-definitions}Job states definitions and mappings}
 
-\begin{tabular}{|>{\centering}p{0.15\columnwidth}|>{\centering}p{0.15\columnwidth}|c|>{\raggedright}p{0.4\columnwidth}|}
+\begin{tabular}{|>{\centering}p{0.15\columnwidth}|>{\centering}p{0.15\columnwidth}|>{\centering}p{0.2\columnwidth}|p{0.4\columnwidth}|}
 \hline 
 Applicable BES State&
 ARC Sub-state&
@@ -610,121 +552,57 @@ A-REX internal state&
 Description\tabularnewline
 \hline
 \hline 
-\renewcommand{\multirowsetup}{\centering}\multirow{2}{2cm}{Pending}&
-Accepting&
-ACCEPTED&
+\multirow{2}{*}{Pending}& Accepting& ACCEPTED &
 Job is in the process of being submitted. This state is not recognised
-by the A-REX yet. \emph{Accepted} is first reported state.\tabularnewline
-\cline{2-2} \cline{3-3} \cline{4-4} 
-\multicolumn{1}{|c|}{}&
-Accepted&
-ACCEPTED&
-Job was submitted\tabularnewline
-\hline 
-\renewcommand{\multirowsetup}{\centering}\multirow{7}{2cm}{Running}&
-Preparing&
-PREPARING&
-Stage-in process is going on\tabularnewline
-\cline{2-2} \cline{3-3} \cline{4-4} 
-\multicolumn{1}{|c|}{}&
-Prepared&
-PREPARING+PENDING&
-Stage-in process has finished\tabularnewline
-\cline{2-2} \cline{3-3} \cline{4-4} 
-\multicolumn{1}{|c|}{}&
-Submiting&
-SUBMIT&
-Communication with local batch system is in process\tabularnewline
-\hline 
-&
-Queued&
-INLRMS&
+by the A-REX yet. \emph{Accepted} is first reported state\\ \cline{2-4}
+&Accepted& ACCEPTED& Job was submitted\\ \hline 
+\multirow{8}{*}{Running}& Preparing& PREPARING& Stage-in process is going on\\ \cline{2-4} 
+&Prepared& PREPARING + PENDING& Stage-in process has finished\\ \cline{2-4} 
+&Submiting& SUBMIT& Communication with local batch system is in process\\ \cline{2-4} 
+&Queued& INLRMS&
 Job entered local batch system but is not runnning now. This state
-is not recognised by the A-REX yet. \emph{Executing} is reported instead \tabularnewline
-\cline{2-2} \cline{3-3} \cline{4-4} 
-\multicolumn{1}{|c|}{}&
-Executing&
-INLRMS&
-Job is being executed in local batch system\tabularnewline
-\cline{2-2} \cline{3-3} \cline{4-4} 
-\multicolumn{1}{|c|}{}&
-Executed&
-INLRMS, INLRMS+PENDING&
+is not recognised by the A-REX yet. \emph{Executing} is reported instead\\ \cline{2-4} 
+&Executing& INLRMS& Job is being executed in local batch system\\ \cline{2-4} 
+&Executed& INLRMS, INLRMS + PENDING&
 Job execution in local batch system has finished. The A-REX dos not
 detect job states inside local batch system yet. As result this state
-is reported only if job is \emph{Pending}.\tabularnewline
-\cline{2-2} \cline{3-3} \cline{4-4} 
-\multicolumn{1}{|c|}{}&
-Killing&
-CANCELING&
-Communication with local batch system to terminate execution is in
-process\tabularnewline
-\cline{2-2} \cline{3-3} \cline{4-4} 
-\multicolumn{1}{|c|}{}&
-Finishing&
-FINISHING&
-Stage-out process is going on\tabularnewline
-\hline 
-Cancelled&
-Killed&
-FINISHED&
+is reported only if job is \emph{Pending}.\\ \cline{2-4} 
+&Killing& CANCELING& Communication with local batch system to terminate execution is in process\\ \cline{2-4} 
+&Finishing& FINISHING& Stage-out process is going on\\ \hline 
+Cancelled& Killed& FINISHED&
 Job was stopped by explicit user request. The A-REX currently does
-not remember this request. \emph{Failed} is reported instead.\tabularnewline
-\hline 
-Failed&
-Failed&
-FINISHED&
-\multicolumn{1}{l|}{There was a failure during execution}\tabularnewline
-\hline 
-Finished&
-Finished&
-FINISHED&
-Job finished successfully\tabularnewline
-\hline 
-Finished&
-Deleted&
-DELETED&
-Job finished and was left in A-REX too long\tabularnewline
-\hline 
-All&
-Pending&
-PENDING&
+not remember this request. \emph{Failed} is reported instead.\\ \hline 
+Failed& Failed& FINISHED& There was a failure during execution\\ \hline 
+Finished& Finished& FINISHED& Job finished successfully\\ \hline 
+Finished& Deleted& DELETED& Job finished and was left in A-REX too long\\ \hline 
+All& Pending& PENDING&
 Job is prevented from going to the next state due to some internal
-limits; this sub-state appears in parallel with other sub-states\tabularnewline
-\hline 
-All&
-Held&
-&
+limits; this sub-state appears in parallel with other sub-states\\ \hline 
+All& Held& &
 Job processing is suspended on client request; this sub-state appears
 in parallel with other sub-states. This state is reserved for future
-and is not implemented yet.\tabularnewline
-\hline
+and is not implemented yet.\\ \hline
 \end{tabular}
 \end{table}
 
-
-
 \subsubsection{Delegation Interface}
 
-The A-REX also supports the Delegation Interface (see Appendix D).
+The A-REX also supports the Delegation Interface (see Appendix~\ref{annex:delegation-wsdl}).
 This is a common purpose interface to be used by ARC services which
 accepts delegated credentials from clients. The Delegation Interface
 implements two operations: initialization of credentials delegation
 (DelegateCredentialsInit) and update/renewal of credentials (UpdateCredentials).
 
 \begin{itemize}
-\item \emph{DelegateCredentialsInit} operation - this operation performs
+\item \emph{DelegateCredentialsInit} operation -- this operation performs
 the first half of the credentials delegation sequence.
-
 \begin{itemize}
 \item Input
-
 \begin{itemize}
 \item None. On this request the service generates a pair of \emph{public}
 and private keys. The public key is then sent to the client in response.
 \end{itemize}
 \item Output(s)
-
 \begin{itemize}
 \item \emph{TokenRequestType TokenRequest}: Contains the public key generated
 by the service as a Value element. It also provides an identifier
@@ -732,7 +610,6 @@ in the Id element which should be used to refer to the corresponding
 private key.
 \end{itemize}
 \item Fault(s)
-
 \begin{itemize}
 \item \emph{UnsupportedFault}: Indicates that the service does not support
 this operation despite supporting the port-type.
@@ -740,13 +617,11 @@ this operation despite supporting the port-type.
 token.
 \end{itemize}
 \end{itemize}
-\item \emph{UpdateCredentials} operation - this operation makes it possible
+\item \emph{UpdateCredentials} operation -- this operation makes it possible
 to update the content of delegated credentials (like in the case of
 credentials being renewed) unrelated to other operations of the service.
-
 \begin{itemize}
 \item Input
-
 \begin{itemize}
 \item \emph{DelegatedTokenType DelegatedToken}: Contains an X509 proxy certificate
 based on the public key from the DelegateCredentialsInit signed by
@@ -758,12 +633,10 @@ must also be used for delegating credentials as part of other operations
 on service.
 \end{itemize}
 \item Output(s)
-
 \begin{itemize}
 \item None.
 \end{itemize}
 \item Fault(s)
-
 \begin{itemize}
 \item \emph{UnsupportedFault}: Indicates that service does not support this
 operation despite supporting the port-type.
@@ -772,6 +645,7 @@ token.
 \end{itemize}
 \end{itemize}
 \end{itemize}
+
 Additionally, A-REX Web Service Interface allows delegation to be
 performed as part of the \emph{CreateActivity} operation of the BES-Factory
 port-type. For this it accepts the element \emph{DelegatedCredentials}
@@ -779,103 +653,99 @@ inside the \emph{CreateActivity} element. The \emph{Id} element of
 \emph{DelegatedCredentials} must contain an identifier obtained in
 response to the previous \emph{DelegateCredentialsInit} operation.
 For more information about delegations and delegation interface refer
-to \cite{wsrf-rp}.
-
+to~\cite{wsrf-rp}.
 
 \subsubsection{Local Information Description Interface}
 
 The A-REX implements the Local Information Description Interface (LIDI)
 interface common for all ARC services. This interface is based on
-OASIS Web Services Resource Properties specification\cite{wsrf-rp}.
+OASIS Web Services Resource Properties specification~\cite{wsrf-rp}.
 Information about resources and maintained activities/jobs are represented
 in a \emph{WS-Resource Properties} informational XML document. The
 document type is defined in the A-REX WSDL as a \emph{ResourceInformationDocumentType}.
 It contains the following elements/resources:
 
-\begin{lyxlist}{00.00.0000}
-\item [{\emph{nordugrid}}] - description of computing resource that uses
-NorudGrid LDAP schema \cite{is} converted to XML document.
-\item [{\emph{Domains}}] \emph{-} description of a computation resource
+\begin{list}{--}{\setlength{\labelwidth}{0.5cm}\setlength{\rightmargin}{\leftmargin}}
+\item [{\emph{nordugrid}}] -- description of computing resource that uses
+NorudGrid LDAP schema~\cite{is} converted to XML document.
+\item [{\emph{Domains}}] -- description of a computation resource
 that uses Glue2 schema.
-\end{lyxlist}
+\end{list}
 All information can be accessed either through requests on particular
 resources or through XPath queries using WS-Resource Properties operations.
 
-
 \subsubsection{Supported JSDL elements}
 
-A-REX supports the following elements from the JSDL version 1.0 specification\cite{jsdl}
+A-REX supports the following elements from the JSDL version 1.0 specification~\cite{jsdl}
 including POSIX Applications extension and JSDL HPC Profile Application
-Extension \cite{jsdl-hpc}:
+Extension~\cite{jsdl-hpc}:
 
-\begin{lyxlist}{00.00.0000}
-\item [{\emph{JobName}}] \emph{-} name of the job as assigned by the user.
-\item [{\emph{Executable}\ (POSIX,HPC)}] - name of the executable file.
-\item [{\emph{Argument}\ (POSIX,HPC)}] - arguments the executable will
+\begin{list}{--}{\setlength{\labelwidth}{0.5cm}\setlength{\rightmargin}{\leftmargin}}
+\item [{\emph{JobName}}] -- name of the job as assigned by the user.
+\item [{\emph{Executable}\ (POSIX,HPC)}] -- name of the executable file.
+\item [{\emph{Argument}\ (POSIX,HPC)}] -- arguments the executable will
 be launched with.
 \item [{\emph{DataStaging}}]~
-
-\begin{lyxlist}{00.00.0000}
-\item [{Filename}] - name of the data file on the executing node.
-\item [{\emph{Source}}] - source where the file will be taken from before
+\begin{list}{--}{\setlength{\labelwidth}{0.5cm}\setlength{\rightmargin}{\leftmargin}}
+\item [{Filename}] -- name of the data file on the executing node.
+\item [{\emph{Source}}] -- source where the file will be taken from before
 execution.
-\item [{\emph{Target}}] \emph{-} destination the file will be delivered
+\item [{\emph{Target}}] -- destination the file will be delivered
 to after execution.
-\end{lyxlist}
-\item [{\emph{Input}\ (POSIX,HPC)}] - file to be used as standard input
+\end{list}
+\item [{\emph{Input}\ (POSIX,HPC)}] -- file to be used as standard input
 for the executable.
-\item [{\emph{Output}\ (POSIX,HPC)}] - file to be used as standard output
+\item [{\emph{Output}\ (POSIX,HPC)}] -- file to be used as standard output
 for the executable.
-\item [{\emph{Error}\ (POSIX,HPC)}] - file to be used as standard error
+\item [{\emph{Error}\ (POSIX,HPC)}] -- file to be used as standard error
 for the executable.
-\item [{\emph{MemoryLimit}\ (POSIX)}] - amount of physical memory needed
+\item [{\emph{MemoryLimit}\ (POSIX)}] -- amount of physical memory needed
 for execution.
-\item [{\emph{TotalPhysicalMemory}}] - same as MemoryLimit.
-\item [{\emph{IndividualPhysicalMemory}}] - same as MemoryLimit.
-\item [{\emph{CPUTimeLimit}\ (POSIX)}] - maximal amount of CPU time needed
+\item [{\emph{TotalPhysicalMemory}}] -- same as MemoryLimit.
+\item [{\emph{IndividualPhysicalMemory}}] -- same as MemoryLimit.
+\item [{\emph{CPUTimeLimit}\ (POSIX)}] -- maximal amount of CPU time needed
 for execution.
-\item [{\emph{TotalCPUTime}}] - same as CPUTimeLimit.
-\item [{\emph{IndividualCPUTime}}] - same as CPUTimeLimit.
-\item [{\emph{WallTimeLimit}\ (POSIX)}] - amount of clock time needed
+\item [{\emph{TotalCPUTime}}] -- same as CPUTimeLimit.
+\item [{\emph{IndividualCPUTime}}] -- same as CPUTimeLimit.
+\item [{\emph{WallTimeLimit}\ (POSIX)}] -- amount of clock time needed
 for execution.
-\item [{\emph{TotalCPUCount}}] \emph{-} number of CPUs needed for execution.
-\item [{\emph{IndividualCPUCount}}] - same as \emph{TotalCPUCount}.
-\end{lyxlist}
-%Environment(POSIX) - environment variable.
-
+\item [{\emph{TotalCPUCount}}] -- number of CPUs needed for execution.
+\item [{\emph{IndividualCPUCount}}] -- same as \emph{TotalCPUCount}.
+\end{list}
+%Environment(POSIX) -- environment variable.
 
 \subsubsection{ARC-specific JSDL Extensions}
 
 A-REX accepts JSDL documents having the following additional elements
-(see Appendix E):
+(see Appendix~\ref{annex:jsdl-extension}):
 
-\begin{lyxlist}{00.00.0000}
-\item [{\emph{IsExecutable}}] \emph{-} marks file to become executable
+\begin{list}{--}{\setlength{\labelwidth}{0.5cm}\setlength{\rightmargin}{\leftmargin}}
+\item [{\emph{IsExecutable}}] -- marks file to become executable
 after being delivered to the computing resource.
-\item [{\emph{RunTimeEnvironment}}] - specifies the name of the Runtime
+\item [{\emph{RunTimeEnvironment}}] -- specifies the name of the Runtime
 Environment needed for job execution.
-\item [{\emph{Middleware}}] - request for specific middleware on the computing
+\item [{\emph{Middleware}}] -- request for specific middleware on the computing
 resource frontend.
-\item [{\emph{RemoteLogging}}] \emph{-} destination for the usage record
+\item [{\emph{RemoteLogging}}] -- destination for the usage record
 report of the executed job.
-\item [{\emph{LocalLogging}}] - name for the virtual directory available
+\item [{\emph{LocalLogging}}] -- name for the virtual directory available
 through job interface and containing various debug information about
 job execution.
-\item [{\emph{AccessControl}}] - ACL expression which describes the identities
+\item [{\emph{AccessControl}}] -- ACL expression which describes the identities
 of those clients who are allowed to perform operations on this job.
-\item [{\emph{Notify}}] - Email destination for notification of job state
+\item [{\emph{Notify}}] -- Email destination for notification of job state
 changes.
-\item [{\emph{SessionLifeTime}}] - duration for the directory containing
+\item [{\emph{SessionLifeTime}}] -- duration for the directory containing
 job-related files to exist after the job finished executing.
-\item [{\emph{JoinOutputs}}] - specifies if standard output and standard
+\item [{\emph{JoinOutputs}}] -- specifies if standard output and standard
 error channels must be merged.
-\item [{\emph{Reruns}}] \emph{-} defines how many times a job is allowed
+\item [{\emph{Reruns}}] -- defines how many times a job is allowed
 to rerun in case of failure.
-\item [{\emph{CredentialServer}}] \emph{-} URL of MyProxy service which
+\item [{\emph{CredentialServer}}] -- URL of MyProxy service which
 may be used for renewing the expired delegated job credentials.
-\item [{\emph{CandidateTarget}}] \emph{-} specifies host name and queue
+\item [{\emph{CandidateTarget}}] -- specifies host name and queue
 of a computing resource.
-\end{lyxlist}
+\end{list}
 
 \section{Cache\label{sec:cache}}
 
@@ -884,59 +754,61 @@ command is present in configuration file. The A-REX does not cache
 files marked as executable in job. Caching can also be explicitly
 turned off by user for each file by using \textit{cache=no} option
 in URL (for URL options read {}``Protocols, Uniform Resource Locators
-(URL) and extensions supported in ARC'' \cite{urls}). The disc space
+(URL) and extensions supported in ARC''~\cite{urls}). The disc space
 occupied by cache is controlled by removing unused files. For more
-information look in section \ref{SubSection: ConfigFile}.
+information look in Section~\ref{SubSection:ConfigFile}.
 
-\emph{NOTE: The caching algorithm used by A-REX and described above
+\begin{framed}
+NOTE: The caching algorithm used by A-REX and described above
 is currently being replaced by a better one which is no robust and
-provides better scalability.}
-
+provides better scalability.
+\end{framed}
 
 \subsection{Structure}
 
 Cache directory contains plain files. Those are
 
 \begin{itemize}
-\item \textit{list} - stores names of the files (8 digit numbers) and corresponding
+\item \textit{list} -- stores names of the files (8 digit numbers) and corresponding
 URLs delimited by blank space. Each pair is delimited by some amount
 of \textbackslash{}0 codes. Also creation and expiration times are
 stored if available
-\item \textit{old} - stores URLs which have been removed from cache. Records
+\item \textit{old} -- stores URLs which have been removed from cache. Records
 are delimited by some amount of \textbackslash{}0 codes and are meant
 to be removed by some external routine.
-\item \textit{new} - stores URLs which have been added to cache. Records
+\item \textit{new} -- stores URLs which have been added to cache. Records
 are delimited by some amount of \textbackslash{}0 codes and are removed
 when corresponding files are removed from cache. They can also be
 handled by some external routines. Every time record is added to \emph{old}
 it is removed from \emph{new}.
-\item \textit{statistics} - consists of strings containing \emph{name=value}
+\item \textit{statistics} -- consists of strings containing \emph{name=value}
 pairs. Following names are defined:
 
 \begin{itemize}
-\item \textit{hardsize} -size of file system for storing cached data
-\item \textit{hardfree} - amount of disc space available on that file system
-\item \textit{softsize} - if cache exceeds this size files are started being
+\item \textit{hardsize} -- size of file system for storing cached data
+\item \textit{hardfree} -- amount of disc space available on that file system
+\item \textit{softsize} -- if cache exceeds this size files are started being
 removed 
-\item \textit{softfree} - space left till softsize (can be negative)
-\item \textit{claimed} - space used by files claimed by running jobs
-\item \textit{unclaimed} - space used by files not being currently used
+\item \textit{softfree} -- space left till softsize (can be negative)
+\item \textit{claimed} -- space used by files claimed by running jobs
+\item \textit{unclaimed} -- space used by files not being currently used
 by any job
 \end{itemize}
-\item \textit{\#\#\#\#\#\#\#\#.info} - stores state of file (\textit{\#\#\#\#\#\#\#\#}
+\item \textit{\#\#\#\#\#\#\#\#.info} -- stores state of file (\textit{\#\#\#\#\#\#\#\#}
 stands for 8 digits). State is represented by one character:\\
-\textit{c} - just created, content is empty.\\
-\textit{f} - failed to download (treated same as 'c').\\
-\textit{r} - ready to be used, content is valid.\\
-\textit{d} - being downloaded. 'd' is followed by identifier of application/job
+\textit{c} -- just created, content is empty.\\
+\textit{f} -- failed to download (treated same as 'c').\\
+\textit{r} -- ready to be used, content is valid.\\
+\textit{d} -- being downloaded. 'd' is followed by identifier of application/job
 downloading that file. During content's download this file has write
 lock set.
-\item \textit{\#\#\#\#\#\#\#\#.claim} - stores list of identifiers of applications/jobs
+\item \textit{\#\#\#\#\#\#\#\#.claim} -- stores list of identifiers of applications/jobs
 using this file. Identifiers are stored one per line.
-\item \textit{\#\#\#\#\#\#\#\#} - files storing content of corresponding
+\item \textit{\#\#\#\#\#\#\#\#} -- files storing content of corresponding
 URL. These can be stored in separate directory.
 \end{itemize}
-Files \textit{list, old , new} and \textit{\#\#\#\#\#\#\#\#.info}
+
+Files \textit{list, old, new} and \textit{\#\#\#\#\#\#\#\#.info}
 has to be stored on file system which has support for files' locking.
 
 
@@ -974,50 +846,50 @@ files are readable only by that particular Unix user. Another kind
 of cache is \textit{shared}. Files in the shared cache are owned by
 the Unix user who started A-REX and are readable by everyone.
 
-
 \section{Files and directories\label{sec:files and directories}}
-
 
 \subsection{Modules}
 
 The A-REX consists of several separate modules. These are:
 
 \begin{itemize}
-\item \textit{libarex.so} - The main module providing main functionality
+\item \textit{libarex.so} -- The main module providing main functionality
 and web interface. It is implemented as HTTP and SOAP service inside
 HED. It is responsible for processing jobs, moving them through states
 and running other modules.
-\item \textit{downloader} - This is a module responsible for gathering input
+\item \textit{downloader} -- This is a module responsible for gathering input
 files in the SD. It processes the \textit{job.ID.input} file and updates
 it.
-\item \textit{uploader} - This module is responsible for delivering output
+\item \textit{uploader} -- This module is responsible for delivering output
 files to the specified SEs and registration at an Indexing Service
 (like RLS) as needed. It processes and updates the \textit{job.ID.output}
 file.
 \end{itemize}
-%cache-register - Utility to register cached data into an Indexing Service. It reads and modifies cache informational files old and new (as described in section ). Configuration is read directly from the A-REX's configuration file (see section ). It is run by the A-REX every 5 minutes.
 
-%frontend-info-collector - Utility to gather information about the frontend. It puts collected information into the job.ID.diag file.
+%cache-register -- Utility to register cached data into an Indexing Service. It reads and modifies cache informational files old and new (as described in Section ). Configuration is read directly from the A-REX's configuration file (see Section ). It is run by the A-REX every 5 minutes.
+
+%frontend-info-collector -- Utility to gather information about the frontend. It puts collected information into the job.ID.diag file.
 
 \begin{itemize}
-\item \emph{gm-kick} - Sends a signal to the A-REX though a FIFO file to
+\item \emph{gm-kick} -- Sends a signal to the A-REX though a FIFO file to
 wake it up. It's used to increase responsiveness of A-REX.
-\item \emph{CEinfo.pl} - Collects and generates information about computing
+\item \emph{CEinfo.pl} -- Collects and generates information about computing
 resource as XML document in NorduGrid and Glue 2 format.
 \end{itemize}
+
 The following modules are always run under the Unix account to which
 a Grid user is mapped.
 
 \begin{itemize}
-\item \textit{smtp-send.sh} and \textit{smtp-send} - These are the modules
+\item \textit{smtp-send.sh} and \textit{smtp-send} -- These are the modules
 responsible for sending e-mail notifications to the user. The format
 of the mail messages can be easily changed by editing the simple shell
 script \textit{smtp-send.sh}. 
-\item \textit{submit-{*}-job} - Here {*} stands for the name of the LRMS.
+\item \textit{submit-{*}-job} -- Here {*} stands for the name of the LRMS.
 Currently supported LRMS are PBS/Torque, Condor, LoadLeveler, LSF
 and SGE. Also \emph{fork} pseudo-LRMS is supported for testing purposes.
 This module is responsible for job submission to the LRMS.
-\item \textit{cancel-{*}-job} - This script is for canceling jobs which
+\item \textit{cancel-{*}-job} -- This script is for canceling jobs which
 have been already submitted to the LRMS.
 \item \textit{scan-{*}-job} -This shell script is responsible for notifying
 the A-REX about completion of jobs. It's implementation for PBS uses
@@ -1025,10 +897,11 @@ server logs to extract information about jobs. If logs are not available
 it uses the less reliable \emph{qstat} command for that. Other backends
 use different techniques.
 \end{itemize}
+
 \begin{comment}In addition, there is also an administration utility:
 
 \begin{itemize}
-\item \textit{gm-jobs} - prints a list of jobs available on the cluster
+\item \textit{gm-jobs} -- prints a list of jobs available on the cluster
 and the number of jobs in each state.\\
 \hspace*{0.5cm}gm-jobs {[}-h] {[}-l] {[}-u uid] {[}-U name]\\
 \hspace*{0.5cm}-l -- print more information about each job,\\
@@ -1037,26 +910,22 @@ and the number of jobs in each state.\\
 \end{itemize}
 \end{comment}
 
-
 \subsection{Directories}
 
 The A-REX is installed into a single installation point referred as
 \$ARC\_LOCATION and the following sub-directories are used:
 
-\begin{LyXParagraphLeftIndent}{1cm}
-\$ARC\_LOCATION/bin -- tools
+\begin{itemize}
+\item[] \$ARC\_LOCATION/bin -- tools
+\item[] \$ARC\_LOCATION/libexec -- program modules used by A-REX
+\item[] /etc -- central configuration file -- location used by default
+\item[] \$ARC\_LOCATION/lib/arc -- service module
+\end{itemize}
 
-\$ARC\_LOCATION/libexec -- program modules used by A-REX
-
-/etc -- central configuration file - location used by default
-
-\$ARC\_LOCATION/lib/arc -- service module
-
-\end{LyXParagraphLeftIndent}
 The A-REX also uses following directories:
 
 \begin{itemize}
-\item \textit{session root directory} - This is the directory in which a
+\item \textit{session root directory} -- This is the directory in which a
 user's SDs are created. It's location is configurable per UNIX user.
 Several (or even all) users may share the same session root directory.\\
 The A-REX need to have permission to create new files and directories
@@ -1082,11 +951,11 @@ In order for jobs to access their input files, session root directories
 should be shared across cluster nodes. Otherwise, LRMS-specific methods
 must be used to transfer files to execution nodes. 
 \end{itemize}
-\begin{comment} (LRMS\_COMMENT) For more information see section
-\ref{sub:LRMS}.\end{comment}
+
+\begin{comment} (LRMS\_COMMENT) For more information see Section~\ref{sub:LRMS}.\end{comment}
 
 \begin{itemize}
-\item \textit{control directory} - In this directory A-REX stores an information
+\item \textit{control directory} -- In this directory A-REX stores an information
 about accepted jobs. It must have full permissions there.\\
 A subdirectory called \textit{log} is created there. It is used to
 accumulate information about started and finished jobs. This information
@@ -1098,22 +967,21 @@ the corresponding file is deleted.
 
 \section{Configuration}
 
-
-\subsection{\label{SubSection: ConfigFile}Configuration of the A-REX}
+\subsection{Configuration of the A-REX\label{SubSection:ConfigFile}}
 
 Due to historical reasons configuration of the A-REX is split into
-2 parts. The small part is located inside HED configuration (see appendix
-B) for schema and description of supported elements. It refers to
+2 parts. The small part is located inside HED configuration (see Appendix~\ref{annex:arex-conf}) for schema and description of supported elements. It refers to
 file containing main part of configuration. The default location of
-main configuration file is \textit{/etc/arc.conf .}
+main configuration file is \textit{/etc/arc.conf}.
 
 The configuration file can contain empty lines and comments in lines
-starting from \#. It is separated into sections. Each sections starts
+starting with \#. It is separated into sections. Each section starts
 from string containing pattern
 
-\begin{itemize}
-\item \emph{{[}section name/subsection name/subsubsection name]}. 
-\end{itemize}
+\begin{shaded}
+\verb|[section name/subsection name/subsubsection name]|
+\end{shaded}
+
 Each section continues till next section or end of file. One configuration
 file can have commands for multiple services/modules/programs. Each
 service get it's own section named after it. The A-REX uses section
@@ -1121,25 +989,25 @@ service get it's own section named after it. The A-REX uses section
 to reflect their internal modular structure. Commands in section \emph{{[}common]}
 apply to all services. Command lines have format 
 
-\begin{itemize}
-\item \emph{name=''arguments string''.}
-\end{itemize}
+\begin{shaded}
+\verb|name=''arguments string''|
+\end{shaded}
 Following commands are defined:
 
 \begin{itemize}
-\item \textbf{\textit{joblog}}\textit{={[}path]} - specifies where to store
+\item \textbf{\textit{joblog}}\textit{={[}path]} -- specifies where to store
 log file containing information about started and finished jobs.
-\item \textbf{\textit{jobreport}}\textit{={[}URL ... number]} - specifies
+\item \textbf{\textit{jobreport}}\textit{={[}URL ... number]} -- specifies
 that A-REX has to report information about jobs being processed (started,
 finished) to centralized service running at given \textit{URL}. Multiple
 entries and multiple URLs are allowed. \textit{number} specifies how
 long old records have to be kept if failed to be reported. That value
 is specified in days. Last specified value becomes effective.
-\item \textbf{\textit{securetransfer}}\textit{=yes|no} - specifies whether
+\item \textbf{\textit{securetransfer}}\textit{=yes|no} -- specifies whether
 to use encryption while transferring data. Currently works for GridFTP
 only. Default is \emph{no}. It is overridden by value specified in
 URL options.
-\item \textbf{\textit{localtransfer}}\textit{=yes|no} - specifies whether
+\item \textbf{\textit{localtransfer}}\textit{=yes|no} -- specifies whether
 to pass file downloading/uploading task to computing node. If set
 to yes the A-REX won't initiate download/upload files. Instead it
 composes script submitted to LRMS in way to make it do that. This
@@ -1149,56 +1017,56 @@ set accordingly. Default is \emph{no}.
 \item \textbf{\textit{maxjobs}}\textit{={[}max\_processed\_jobs {[}max\_running\_jobs]]}
 - specifies maximum number of jobs being processed by the A-REX at
 different stages:\\
-\textit{max\_processed\_jobs} - maximal amount of jobs being processed
+\textit{max\_processed\_jobs} -- maximal amount of jobs being processed
 by A-REX. This does not limit amount of jobs, which can be submitted
 to A-REX\\
-\textit{max\_running jobs} - maximal amount of jobs passed to Local
+\textit{max\_running jobs} -- maximal amount of jobs passed to Local
 Resource Management System\\
 Missing value or -1 means no limit.
 \item \textbf{\textit{maxlod}}\textit{={[}max\_frontend\_jobs {[}emergency\_frontend\_jobs
-{[}max\_transferred\_files]]]} - specifies maximum load caused by
+{[}max\_transferred\_files]]]} -- specifies maximum load caused by
 jobs being processed on frontend:\\
-\textit{max\_frontend\_jobs} - maximal amount of jobs heavily using
+\textit{max\_frontend\_jobs} -- maximal amount of jobs heavily using
 resources of frontend (applied before moving job to PREPARING and
 FINISHING states)\textit{}\\
-\textit{emergency\_frontend\_jobs} - if limit of \textit{max\_frontend\_jobs}
+\textit{emergency\_frontend\_jobs} -- if limit of \textit{max\_frontend\_jobs}
 is used only by PREPARING or by FINISHING jobs aforementioned number
-of jobs can be moved to another state .This is used to avoid case
+of jobs can be moved to another state. This is used to avoid case
 then jobs can't finish due to big amount of recently submitted jobs.\textit{}\\
-\textit{max\_transfered\_files} - maximal number of files being transferred
+\textit{max\_transfered\_files} -- maximal number of files being transferred
 in parallel by every job. Used to decrease load on not so powerful
 frontends.\\
 Missing value or -1 means no limit.
-\item \textbf{\textit{wakeupperiod}}\textit{=time} - specifies how often
+\item \textbf{\textit{wakeupperiod}}\textit{=time} -- specifies how often
 the A-REX checks for job state changes (like new arrived job, job
 finished in LRMS, etc.). \textit{time} is a minimal time period specified
 in seconds. Default is \emph{3 minutes}.
-\item \textbf{\textit{cacheregistration}}\textit{=yes|no} - enables or disables
+\item \textbf{\textit{cacheregistration}}\textit{=yes|no} -- enables or disables
 registration of cache data into Indexing Services like RC or RLS.
 The default is \emph{no}. Only files downloaded through \emph{meta-url}
 are registered. Registration is done to same service used for obtaining
 information about file. For this operation credentials of the A-REX
 (host key and certificate) are used. If required new files storage
 location is registered at Indexing Service with quasi-url \emph{cache://hostname/}
-and name \emph{hostname:cache} .
-\item \textbf{\textit{authplugin}}\textit{=state options plugin} - specifies
+and name \emph{hostname:cache}.
+\item \textbf{\textit{authplugin}}\textit{=state options plugin} -- specifies
 \emph{plugin} (external executable) to be run every time job is going
 to switch to \emph{state}. Following states are allowed: ACCEPTED,
 PREPARING, SUBMIT, FINISHING, FINISHED and DELETED. If exit code is
 not 0 job is canceled by default. \textit{Options} consist of \textit{name}=\textit{value}
 pairs separated by a comma. Following \textit{name}s are supported:\\
-\textit{timeout} - specifies how long in seconds execution of the
+\textit{timeout} -- specifies how long in seconds execution of the
 plugin allowed to last (mandatory, {}``\textit{timeout=}{}`` can
 be skipped for backward compatibility).\\
-\textit{onsuccess}, \textit{onfailure} and \textit{ontimeout} - defines
+\textit{onsuccess}, \textit{onfailure} and \textit{ontimeout} -- defines
 action taken in each case (\textit{onsuccess} happens if exit code
 is 0). Possible actions are:\\
-\textit{pass} - continue execution,\\
-\textit{log} - write information about result into log file and continue
+\textit{pass} -- continue execution,\\
+\textit{log} -- write information about result into log file and continue
 execution,\\
-\textit{fail} - write information about result into log file and cancel
+\textit{fail} -- write information about result into log file and cancel
 job.
-\item \textbf{\textit{localcred}}\textit{=timeout plugin} - specifies \emph{plugin}
+\item \textbf{\textit{localcred}}\textit{=timeout plugin} -- specifies \emph{plugin}
 (external executable or function in shared library) to be run every
 time job has to do something on behalf of local user. Execution of
 \emph{plugin} may not last longer than \emph{timeout} seconds. If
@@ -1206,45 +1074,45 @@ time job has to do something on behalf of local user. Execution of
 function(char{*},char{*},char{*},...)} from shared library \emph{path}
 is called (\emph{timeout} is not functional in that case). If exit
 code is not 0 current operation will fail.
-\item \textbf{\textit{norootpower}}\textit{=yes/no} - if set to \emph{yes}
+\item \textbf{\textit{norootpower}}\textit{=yes/no} -- if set to \emph{yes}
 all processes involved in job management will use local identity of
 a user to which Grid identity is mapped in order to access file system
 at path specified in \textbf{\textit{session}} command (see below).
 Sometimes this may involve running temporary external process.
 \item \textbf{\textit{speedcontrol}}\textit{=min\_speed min\_time min\_average\_speed
-max\_inactivity} - specifies how long/slow data transfer is allowed
+max\_inactivity} -- specifies how long/slow data transfer is allowed
 to take place. Transfer is canceled if transfer rate (bytes per second)
 is lower than \emph{min\_speed} for at least \emph{min\_time} seconds,
 or if average rate is lower than \emph{min\_average\_speed}, or no
 data is received for longer than \textit{max\_inactivity} seconds.
-\item \textbf{\textit{copyurl}}\textit{=template replacement} - specifies
+\item \textbf{\textit{copyurl}}\textit{=template replacement} -- specifies
 that URLs, starting from template should be accessed in a different
 way (most probably Unix open). The \textit{template} part of the URL
 will be replaced with \textit{replacement.} \textit{replacement} can
 be either URL or local path starting from '/'. It is advisable to
 end template with '/'.
 \item \textbf{\textit{linkurl}}\textit{=template replacement {[}node\_path]}
-- mostly identical to \textit{copyurl} but file won't be copied. Instead
+-- mostly identical to \textit{copyurl} but file won't be copied. Instead
 soft-link will be created. \textit{replacement} specifies the way
 to access the file from the frontend, and is used to check permissions.
 The \textit{node\_path} specifies how the file can be accessed from
 computing nodes, and will be used for soft-link creation. If \textit{node\_path}
-is missing - \textit{local\_path} will be used instead. Both \textit{node\_path}
+is missing, \textit{local\_path} will be used instead. Both \textit{node\_path}
 and \textit{replacement} should not be URLs.
-
-
+\begin{framed}
 NOTE: URLs which fit into \textit{copyurl} or \textit{linkurl} are
 treated as more easily accessible than other URLs. That means if A-REX
 has to choose between few URLs from which should it download input
 file, these will be tried first.
-
+\end{framed}
 \end{itemize}
-\noindent Per UNIX user commands:
+
+Per UNIX user commands:
 
 \begin{itemize}
-\item \textbf{\textit{mail}}\textit{=e-mail\_address} - specifies an email
+\item \textbf{\textit{mail}}\textit{=e-mail\_address} -- specifies an email
 address \textbf{from} which the notification mails are sent.
-\item \textbf{\textit{defaultttl}}\textit{=ttl {[}ttr]} - specifies the
+\item \textbf{\textit{defaultttl}}\textit{=ttl {[}ttr]} -- specifies the
 time in seconds for the SD to be available after job finished (\emph{ttl})
 and after job was deleted (\emph{ttr}) due to \emph{ttl}. Defaults
 are 7days for \emph{ttl} and 30 days for \emph{ttr}.
@@ -1252,25 +1120,25 @@ are 7days for \emph{ttl} and 30 days for \emph{ttr}.
 - specifies names for the LRMS and queue. Queue name can also be specified
 in the JD (currently it is not allowed to override LRMS by usingon
 the JD).
-\item \textbf{\textit{session}}\textit{=path} - specifies path to the directory
+\item \textbf{\textit{session}}\textit{=path} -- specifies path to the directory
 in which the SD is created. If the path is {*} the default one is
-used - \textit{\$HOME/.jobs} . In new configuration file this command
+used -- \textit{\$HOME/.jobs}. In new configuration file this command
 is called \textbf{\textit{sessiondir}}.
-\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} - specifies
+\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} -- specifies
 the directory to store cached data. Empty \emph{path} disables caching.
 Default is not to cache data. Optional \textit{link\_path} specifies
 the path at which cache is accessible at computing nodes. If \textit{link\_path}
 is set to '.' files are not soft-linked, but copied to session directory.
-\item \textbf{\textit{privatecache}}\textit{=path {[}link\_path]} - same
+\item \textbf{\textit{privatecache}}\textit{=path {[}link\_path]} -- same
 as \textit{cache} command, but cache belongs (owned) to user. For
 shared caches use 'cache'.
-\item \textbf{\textit{cachedata}}\textit{=path} - allows to specify separate
+\item \textbf{\textit{cachedata}}\textit{=path} -- allows to specify separate
 place to store cache files containing data itself. This can be useful
 in case of big data storage available only on NFS server which does
 not support file locking. If command or \textit{path} is missing -
 default is to store data at place specified in \textit{cache} or \textit{privatecache}
 command, together with control files. 
-\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} - specifies
+\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} -- specifies
 high and low water-mark for space used by cache. Values are specified
 in bytes. Both \textit{high\_mark} and \textit{low\_mark} can be negative
 values. In that case corresponding positive value means space left
@@ -1279,97 +1147,98 @@ to \textit{high\_mark}. By default this feature is turned off. To
 turn it off explicitly \textit{cachesize} without parameters should
 be specified. If turned off cache will grow up till it fills whole
 file system.
-\item \textbf{\textit{maxrerun}}\textit{=number} - specifies maximal number
+\item \textbf{\textit{maxrerun}}\textit{=number} -- specifies maximal number
 of times job will be allowed to rerun after it failed at any stage.
 Default value is \emph{5}. This only specifies a upper limit. Actual
 number is provided in job description and defaults to 0.
 \end{itemize}
+
 All per-user commands should be put before \textit{control} command
 which initiates serviced user.
 
 \begin{itemize}
 \item \textbf{\textit{control}}\textit{=path username {[}username {[}...]]}
 - This option initiates UNIX user as being serviced by the A-REX.
-\textit{path} refers to the control directory (see section \ref{section: internals}
+\textit{path} refers to the control directory (see Section~\ref{section:internals}
 for the description of control directory). If the path is {*} the
-default one is used - \$HOME/.jobstatus . \textit{username} stands
+default one is used -- \verb|$HOME/.jobstatus|. \textit{username} stands
 for UNIX name of the local user. Multiple names can be specified.
-If the name is {*} it is substituted by all names found in file /etc/grid-security/grid-mapfile
-(for the format of this file one should study the Globus project \cite{globus}).\\
+If the name is {*} it is substituted by all names found in file \texttt{/etc/grid-security/grid-mapfile}
+(for the format of this file one should study the Globus project~\cite{globus}).\\
 Also the special name '.'(dot) can be used. Corresponding control
 directory will be used for \textbf{any} user. This option should be
 the last one in the configuration file. There is also command \textbf{\textit{controldir}}\textit{=path}.
 It uses special username '.' and is always executed last independent
 of placement in file.
 \item \textbf{\textit{helper}}\textit{=username command {[}argument {[}argument
-{[}...]]]} - associates external program with the local UNIX user.
+{[}...]]]} -- associates external program with the local UNIX user.
 This program will be kept running under account of the specified user.
 \textit{username} stands for the name of the user. Special names can
-be used: '{*}' - all names from /etc/grid-security/grid-mapfile, '.'
+be used: '{*}' -- all names from /etc/grid-security/grid-mapfile, '.'
 - root user. The user should be already configured with \textit{control}
 option (except root, who is always configured). \textit{command} is
 an executable and \textit{argument}s are passed as arguments to it.
 \end{itemize}
+
 \begin{comment}
 
 Following are global commands specific to communication with underlying
 LRMS (PBS in this case).
 
 \begin{itemize}
-\item \textbf{\textit{pbs\_bin\_path}}\textit{=path} - path to directory
+\item \textbf{\textit{pbs\_bin\_path}}\textit{=path} -- path to directory
 which contains PBS commands.
-\item \textbf{\textit{pbs\_log\_path}}\textit{=path} - path to directory
+\item \textbf{\textit{pbs\_log\_path}}\textit{=path} -- path to directory
 with PBS server's log files.
 \end{itemize}
 \end{comment}
 
 \begin{itemize}
-\item \textbf{\textit{gnu\_time}}\textit{=path} - path to \emph{time} utility.
-\item \textbf{\textit{tmpdir}}\textit{=path} - path to directory for temporary
+\item \textbf{\textit{gnu\_time}}\textit{=path} -- path to \emph{time} utility.
+\item \textbf{\textit{tmpdir}}\textit{=path} -- path to directory for temporary
 files.
-\item \textbf{\textit{runtimedir}}\textit{=path} - path to directory which
+\item \textbf{\textit{runtimedir}}\textit{=path} -- path to directory which
 contains \emph{runtimenvironment} scripts.
-\item \textbf{\textit{shared\_filesystem}}\textit{=yes|no} - if computing
+\item \textbf{\textit{shared\_filesystem}}\textit{=yes|no} -- if computing
 nodes have an access to session directory through a shared file system
 like NFS. \begin{comment} Corresponds to an environment variable
-RUNTIME\_NODE\_SEES\_FRONTEND (see section \ref{sub:LRMS}). \end{comment}
-\item \textbf{\textit{nodename}}\textit{=command} - command to obtain hostname
+RUNTIME\_NODE\_SEES\_FRONTEND (see Section~\ref{sub:LRMS}). \end{comment}
+\item \textbf{\textit{nodename}}\textit{=command} -- command to obtain hostname
 of computing node.
-\item \textbf{\textit{scratchdir}}\textit{=path} - path on computing node
+\item \textbf{\textit{scratchdir}}\textit{=path} -- path on computing node
 where to move session directory before execution.
-\item \textbf{\textit{shared\_scratch}}\textit{=path} - path on frontend
+\item \textbf{\textit{shared\_scratch}}\textit{=path} -- path on frontend
 where \textbf{\textit{scratchdir}} can be found.
 \end{itemize}
+
 In the command arguments (paths, executables, ...) following substitutions
 can be used:
 
-\begin{lyxlist}{00.00.0000}
-\item [{\%R}] - session root - see command \emph{session}
-\item [{\%C}] - control dir - see command \emph{control}
-\item [{\%U}] - username
-\item [{\%u}] - userid - numerical
-\item [{\%g}] - groupid - numerical
-\item [{\%H}] - home dir - home specified in /etc/passwd
-\item [{\%Q}] - default queue - look command 'defaultlrms'
-\item [{\%L}] - default lrms - look command 'defaultlrms'
-\item [{\%W}] - installation path - \$\{ARC\_LOCATION\}
-\item [{\%G}] - globus path - \$\{GLOBUS\_LOCATION\}
-\item [{\%c}] - list of all control directories
-\item [{\%I}] - job's ID (for plugins only, substituted in runtime)
-\item [{\%S}] - job's state (for \emph{authplugin} plugins only, substituted
+\begin{itemize}
+\item [{\%R}] -- session root -- see command \emph{session}
+\item [{\%C}] -- control dir -- see command \emph{control}
+\item [{\%U}] -- username
+\item [{\%u}] -- userid -- numerical
+\item [{\%g}] -- groupid -- numerical
+\item [{\%H}] -- home dir -- home specified in /etc/passwd
+\item [{\%Q}] -- default queue -- look command 'defaultlrms'
+\item [{\%L}] -- default lrms -- look command 'defaultlrms'
+\item [{\%W}] -- installation path -- \$\{ARC\_LOCATION\}
+\item [{\%G}] -- globus path -- \$\{GLOBUS\_LOCATION\}
+\item [{\%c}] -- list of all control directories
+\item [{\%I}] -- job's ID (for plugins only, substituted in runtime)
+\item [{\%S}] -- job's state (for \emph{authplugin} plugins only, substituted
 in runtime)
-\item [{\%O}] - reason (for \emph{localcred} plugins only, substituted
-in runtime).\\
-Possible reasons are:
-
-\begin{lyxlist}{00.00.0000}
-\item [{new}] - new job, new credentials
-\item [{renew}] - old job, new credentials
-\item [{write}] - write/delete file, create/delete directory
-\item [{read}] - read file, directory, etc.
-\item [{extern}] - call external program 
-\end{lyxlist}
-\end{lyxlist}
+\item [{\%O}] -- reason (for \emph{localcred} plugins only, substituted
+in runtime). Possible reasons are:
+\begin{list}{--}{\setlength{\labelwidth}{0.5cm}\setlength{\rightmargin}{\leftmargin}}
+\item [{new}] -- new job, new credentials
+\item [{renew}] -- old job, new credentials
+\item [{write}] -- write/delete file, create/delete directory
+\item [{read}] -- read file, directory, etc.
+\item [{extern}] -- call external program 
+\end{list}
+\end{itemize}
 
 \subsection{Authorization\label{sub:Authorization}}
 
@@ -1378,11 +1247,10 @@ Currently A-REX does not implement any internal authorization techniques
 except those imposed by Access Policy assigned to jobs through AccessControl
 element of assigned JSDL.
 
-
-\subsection{\label{sub:LRMS}LRMS support}
+\subsection{LRMS support\label{sub:LRMS}}
 
 For information about supported LRMSes and their specific features
-and configuration options please read dedicated documentation at \cite{backends-arc1}.
+and configuration options please read dedicated documentation~\cite{backends-arc1}.
 
 \begin{comment}(LRMS\_COMMENT) 
 
@@ -1401,49 +1269,49 @@ variables. Most of them can be specified on frontend in A-REX's environment
 and overwritten on cluster's node through PBS configuration. Some
 of them may be set in configuration file too.
 
-\textbf{\textit{PBS\_BIN\_PATH}} - path to PBS executables. Like \emph{/usr/local/bin}
+\textbf{\textit{PBS\_BIN\_PATH}} -- path to PBS executables. Like \emph{/usr/local/bin}
 for example. \emph{}Corresponds to \emph{pbs\_bin\_path} configuration
 command.
 
-\textbf{\textit{PBS\_LOG\_PATH}} - path to PBS server logs. Corresponds
+\textbf{\textit{PBS\_LOG\_PATH}} -- path to PBS server logs. Corresponds
 to \emph{pbs\_log\_path} configuration command.
 
-\textbf{\textit{TMP\_DIR}} - path to directory to store temporary
+\textbf{\textit{TMP\_DIR}} -- path to directory to store temporary
 files. Default value is \emph{/tmp}. Corresponds to \emph{tmpdir}
 configuration command.
 
-\textbf{\textit{RUNTIME\_CONFIG\_DIR}} - path where runtime setup
+\textbf{\textit{RUNTIME\_CONFIG\_DIR}} -- path where runtime setup
 scripts can be found. Corresponds to \emph{runtimedir} configuration
 command.
 
-\textbf{\textit{GNU\_TIME}} - path to GNU time utility. It is important
+\textbf{\textit{GNU\_TIME}} -- path to GNU time utility. It is important
 to provide path to utility compatible with GNU time. If such utility
 is not available, modify \textit{submit-pbs-job} to either reset this
 variable or change usage of available utility. Corresponds to \emph{gnu\_time}
 configuration command.
 
-\textbf{\textit{NODENAME}} - command to obtain name of cluster's node.
+\textbf{\textit{NODENAME}} -- command to obtain name of cluster's node.
 Default is \emph{/bin/hostname -f}. Corresponds to \emph{nodename}
 configuration command.
 
-\textbf{\textit{RUNTIME\_LOCAL\_SCRATCH\_DIR}} - if defined should
+\textbf{\textit{RUNTIME\_LOCAL\_SCRATCH\_DIR}} -- if defined should
 contain path to the directory on computing node, which can be used
 to store job's files during execution. \emph{scratchdir} configuration
 command.
 
-\textbf{\textit{RUNTIME\_FRONTEND\_SEES\_NODE}} - if defined should
+\textbf{\textit{RUNTIME\_FRONTEND\_SEES\_NODE}} -- if defined should
 contain path corresponding to \textit{}\\
 \textit{RUNTIME\_LOCAL\_SCRATCH\_DIR} as seen on \textbf{frontend}
 machine. Corresponds to \emph{shared\_scratch} configuration command.
 
-\textbf{\textit{RUNTIME\_NODE\_SEES\_FRONTEND}} - if set to {}``\emph{no}''
+\textbf{\textit{RUNTIME\_NODE\_SEES\_FRONTEND}} -- if set to {}``\emph{no}''
 means computing node does not share file system with frontend. In
 that case content of the SD is moved to computing node by using means
 provided by the LRMS. Results are moved back after job's execution
 in a same way. Corresponds to \emph{shared\_filesystem} configuration
 command.
 
-Figures \ref{fig:no node scratch},\ref{fig:node scratch, not vis on front},\ref{fig:node scratch, vis on front}
+Figures~\ref{fig:no-node-scratch},~\ref{fig:node-scratch-not-vis-on-front},~\ref{fig:node-scratch-vis-on-front}
 present some possible combinations for RUNTIME\_LOCAL\_SCRATCH\_DIR
 and \\
 RUNTIME\_FRONTEND\_SEES\_NODE and explain how data movement is performed.
@@ -1456,55 +1324,49 @@ the job's output files are ready to be uploaded to an external storage
 element or be downloaded by the user.
 
 %
-\begin{figure}[tbh]
+\begin{figure}[ht]
 \begin{centering}
-\includegraphics{pic2}
-\par\end{centering}
-
-
-\caption{\label{fig:no node scratch}Both RUNTIME\_LOCAL\_SCRATCH\_DIR and
+\includegraphics{pic2.pdf}
+\end{centering}
+\caption{\label{fig:no-node-scratch}Both RUNTIME\_LOCAL\_SCRATCH\_DIR and
 RUNTIME\_FRONTEND\_SEES\_NODE are undefined. It is assumed that session
 directories are visible from computing nodes. The job is executed
 directly in the session directory prepared by the A-REX on the frontend.}
 \end{figure}
 %
-\begin{figure}[htbp]
+\begin{figure}[ht]
 \begin{centering}
-\includegraphics{pic3}
-\par\end{centering}
-
-
-\caption{\label{fig:node scratch, not vis on front}RUNTIME\_LOCAL\_SCRATCH\_DIR
+\includegraphics{pic3.pdf}
+\end{centering}
+\caption{\label{fig:node-scratch-not-vis-on-front}RUNTIME\_LOCAL\_SCRATCH\_DIR
 is set to the location of the scratch directory on the computing node,
 RUNTIME\_FRONTEND\_SEES\_NODE is undefined.}
 
-\begin{lyxlist}{00.00.0000}
-\item [{a)}] After the job script starts all input files are moved to 'scratch
+\begin{itemize}
+\item [{a)}] After the job script starts all the input files are moved to the 'scratch
 directory' on the computing node.
-\item [{b)}] The job runs in a separate directory in 'scratch directory'.
+\item [{b)}] The job runs in a separate directory in the 'scratch directory'.
 Only the files representing the job's \textit{stdout} and \textit{stderr}
 are placed in the original 'session directory' and soft-linked in
-'scratch'. After execution all files from 'scratch' are moved back
+'scratch'. After execution all the files from 'scratch' are moved back
 to the original 'session directory'.
-\item [{c)}] All output files are in 'session directory' and are ready
+\item [{c)}] All output files are in the 'session directory' and are ready
 to be uploaded/downloaded.
-\end{lyxlist}
+\end{itemize}
 
 \end{figure}
 %
-\begin{figure}[htbp]
+\begin{figure}[ht]
 \begin{centering}
-\includegraphics{pic4}
-\par\end{centering}
-
-
-\caption{\label{fig:node scratch, vis on front}Both RUNTIME\_LOCAL\_SCRATCH\_DIR
+\includegraphics{pic4.pdf}
+\end{centering}
+\caption{\label{fig:node-scratch-vis-on-front}Both RUNTIME\_LOCAL\_SCRATCH\_DIR
 and RUNTIME\_FRONTEND\_SEES\_NODE are set to the location of the scratch
 directory on the computing node and the location where this scratch
-directory is accessible from the frontend, respectively.}
+directory is accessible from the frontend, respectively}.
 
-\begin{lyxlist}{00.00.0000}
-\item [{a)}] After the job script starts all input files are moved to 'scratch
+\begin{itemize}
+\item [{a)}] After the job script starts all input files are moved to the 'scratch
 directory' on the computing node. The original 'session directory'
 is removed and replaced with a soft-link to copy of session directory
 in 'scratch directory' as seen on the frontend.
@@ -1512,61 +1374,60 @@ in 'scratch directory' as seen on the frontend.
 All files are also available on frontend through the soft-link. After
 execution the soft-link is replaced with a directory and all files
 from 'scratch' are moved back to the original 'session directory'.
-\item [{c)}] All output files are in 'session directory' and are ready
+\item [{c)}] All output files are in the 'session directory' and are ready
 to be uploaded/downloaded. 
-\end{lyxlist}
+\end{itemize}
 
 \end{figure}
 
-
 \end{comment}
-
 
 \subsection{Runtime environment}
 
-The A-REX can run specially prepared \emph{BASH} scripts prior creation
-of job's script, before and after executing job's main executable.
-Those scripts are requested by user through \emph{runtimeenvironment}
-attribute in RSL and are run with only argument set equal to '0',
-'1' or '2' during creation of job's script, before execution of main
-executable and after main executable finished accordingly. They all
+The A-REX can run specially prepared \emph{BASH} scripts prior to creation
+of the job's script, before and after executing job's main executable.
+Those scripts are requested by the user through the \emph{runtimeenvironment}
+attribute in JSDL and are run with the only argument set either equal to '0',
+'1' or '2' during creation of the job's script, before execution of the main
+executable and after main the executable is finished, respectively. They all
 are run through BASH's 'source' command, and hence can manipulate
-shell variables. With argument '0' scripts are run by the A-REX on
+shell variables. With argument '0' scripts are run by the A-REX on the
 frontend. Some environment variables are defined in that case and
 can be changed to influence job's execution later:
 
 \begin{itemize}
-\item joboption\_directory - session directory.
-\item joboption\_arg\_\# - command with arguments to be executed as specified
+\item joboption\_directory -- session directory.
+\item joboption\_arg\_\# -- command with arguments to be executed as specified
 in the JD (\textbf{not} bash array).
-\item joboption\_env\_\# - array of 'NAME=VALUE' environment variables (\textbf{not}
+\item joboption\_env\_\# -- array of 'NAME=VALUE' environment variables (\textbf{not}
 bash array).
-\item joboption\_runtime\_\# - array of requested \emph{runtimeenvironment}
+\item joboption\_runtime\_\# -- array of requested \emph{runtimeenvironment}
 names (\textbf{not} bash array).
-\item joboption\_num - \emph{runtimeenvironment} currently beeing processed
+\item joboption\_num -- \emph{runtimeenvironment} currently beeing processed
 (number starting from 0).
-\item joboption\_stdin - name of file to be attached to stdin handle.
-\item joboption\_stdout - same for stdout.
-\item joboption\_stderr - same for stderr.
-\item joboption\_maxcputime - amount of CPU time requested (minutes).
-\item joboption\_maxmemory - amount of memory requested (megabytes).
-\item joboption\_count - number of processors requested.
-\item joboption\_lrms - LRMS to be used to run job.
-\item joboption\_queue - name of a queue of LRMS to put job into.
-\item joboption\_nodeproperty\_\# - array of properties of computing nodes
+\item joboption\_stdin -- name of file to be attached to stdin handle.
+\item joboption\_stdout -- same for stdout.
+\item joboption\_stderr -- same for stderr.
+\item joboption\_maxcputime -- amount of CPU time requested (minutes).
+\item joboption\_maxmemory -- amount of memory requested (megabytes).
+\item joboption\_count -- number of processors requested.
+\item joboption\_lrms -- LRMS to be used to run job.
+\item joboption\_queue -- name of a queue of LRMS to put job into.
+\item joboption\_nodeproperty\_\# -- array of properties of computing nodes
 (LRMS specific, \textbf{not} bash array).
-\item joboption\_jobname - name of the job as given by user.
-\item joboption\_rsl - whole RSL for very clever submission scripts.
-\item joboption\_rsl\_\emph{name} - RSL attributes and values (like joboption\_rsl\_executable=''/bin/echo'')
+\item joboption\_jobname -- name of the job as given by user.
+\item joboption\_rsl -- whole RSL for very clever submission scripts.
+\item joboption\_rsl\_\emph{name} -- RSL attributes and values (like joboption\_rsl\_executable=''/bin/echo'')
 \end{itemize}
-For example \emph{joboption\_arg\_\#} could be changed to wrap main
+
+For example \emph{joboption\_arg\_\#} could be changed to wrap the main
 executable. Or \emph{joboption\_runtime} could be expanded if current
 one depends on others.
 
-With argument '1' scripts are run just before main executable is run.
-They are executed on computing node. Such script can prepare environment
+With argument '1' scripts are run just before the main executable is run.
+They are executed on the computing node. Such a script can prepare environment
 for some third-party software package. A current directory in that
-case is one which would be used for execution of job. Variable HOME
+case is the one which would be used for execution of the job. Variable \verb|$HOME|
 also points to that directory.
 
 With argument '2' scripts are executed after main executable finished.
@@ -1575,71 +1436,60 @@ Main purpose is to clean possible changes done by scripts run with
 stage also happens on computing node and is not reliable. If the job
 is killed by LRMS they most probably won't be executed.
 
-For publicly available runtime environments please see RTE \url{http://gridrer.csc.fi/}
-.
-
+For publicly available runtime environments please see the RTE repository at \url{http://gridrer.csc.fi/}.
 
 \section{Installation\label{sec:installation}}
 
-The A-REX is installed as part of ARC 1 middleware and is available
-in NorduGrid download area at ARC1 Download \url{http://download.nordugrid.org/software/nordugrid-arc1/}
-.There are packages available for various Linux distributions. The
-A-REX comes in nordugrid-arc1-arex package. Source code ready for
+The A-REX is installed as an ARC1 component of ARC middleware and is available
+in NorduGrid download area at ARC1 Download \url{http://download.nordugrid.org/software/nordugrid-arc1/}.There are packages available for various Linux distributions. The
+A-REX comes in the \texttt{nordugrid-arc1-arex} package. Source code ready for
 compilation is available too.
-
 
 \subsection{Requirements}
 
-If installed from binary packages all dependencies are handled automatically.
-For compilation from source code please read included README file.
+When installed from binary packages, all the dependencies are handled automatically.
+For compilation from source code please read included README files.
 
 
 \subsection{Setup of the A-REX}
 
 The A-REX service is a pluggable module of the HED. So first You need
-to setup your HED - see HED documentation. 
+to setup your HED -- see HED documentation. 
 
-Then You need to add A-REX to the HED configuration. Add new <Name>
-element inside <Plugins> containing string \emph{arex}. That will
+Then You need to add A-REX to the HED configuration. Add new \verb|<Name>|
+element inside \verb|<Plugins>| containing string \emph{arex}. That will
 make HED load libarex plugin library. 
 
-Then add new <Service> element with attribute name=''a-rex''. That
+Then add new \verb|<Service>| element with attribute \verb|name=``a-rex''|. That
 will instantiate A-REX service. Now to make service accessible extend
-<Plexer> element with new <next> referring to an id of the service.
-Write <Service> element carefully - here is an example:
+\verb|<Plexer>| element with new \verb|<next>| referring to an id of the service.
+Write \verb|<Service>| element carefully -- here is an example:
 
-\begin{lyxcode}
-~~~~<!-{}-~A-Rex~service~-{}->
+\begin{shaded}
+\begin{verbatim}
+    <!-{}- A-Rex service -{}->
+    <Service name=\char`\"{}a-rex\char`\"{} id=\char`\"{}a-rex\char`\"{}>
+      <!-{}- Optional endpoint element is advised in case of multiple IP adresses -{}->
+      <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
+      <!-{}- Use information generated by identity.map plugin or default provided below -{}->
+      <arex:usermap><arex:defaultLocalName>nobody</arex:defaultLocalName></arex:usermap>
+      <!-{}- grid-manager part of a-rex requires legacy configuration file.
+           Use arc\_arex.conf example or write own. -{}->
+      <arex:gmconfig>/etc/arc\_arex.conf</arex:gmconfig>
+    </Service>
+\end{verbatim}
+\end{shaded}
 
-~~~~<Service~name=\char`\"{}a-rex\char`\"{}~id=\char`\"{}a-rex\char`\"{}>
-
-~~~~~~<!-{}-~Optional~endpoint~element~is~advised~in~case~of~multiple~IP~adresses~-{}->
-
-~~~~~~<arex:endpoint>https://localhost:60000/arex</arex:endpoint>
-
-~~~~~~<!-{}-~Use~information~generated~by~identity.map~plugin~or~default~provided~below~-{}->
-
-~~~~~~<arex:usermap><arex:defaultLocalName>nobody</arex:defaultLocalName></arex:usermap>
-
-~~~~~~<!-{}-~grid-manager~part~of~a-rex~requires~legacy~configuration~file.
-
-~~~~~~~~~~~Use~arc\_arex.conf~example~or~write~own.~-{}->
-
-~~~~~~<arex:gmconfig>/etc/arc\_arex.conf</arex:gmconfig>
-
-~~~~</Service>
-\end{lyxcode}
-For in-depth information about available elements see Appendix B. 
+For in-depth information about available elements see Appendix~\ref{annex:arex-conf}. 
 
 Use a template arc\_arex.conf or write own A-REX configuration file.
 For information about format and available configuration commands
-see Section \ref{SubSection: ConfigFile}.
+see Section~\ref{SubSection:ConfigFile}.
 
 
 \subsection{Usage}
 
-Please read \emph{User Guide} \cite{userguide1} for usage instructions.
-
+Please read \emph{User Guide}~\cite{userguide1} for usage instructions.
 
 \subsection{Running as non-root}
 
@@ -1659,7 +1509,7 @@ course).
 
 \appendix
 
-\section{Session directory access through HTTP(S) interface}
+\section{Session directory access through HTTP(S) interface\label{annex:a}}
 
 In addition to the BES interface A-REX provides access to the SD through
 pure HTTP(S) interface. This functionality is used for uploading user-stageable
@@ -1667,1252 +1517,715 @@ files during job submission and for staging out result files produced
 by job. It can also be used to monitor job execution by checking content
 of application dependent files in SD.
 
-The BES defines job identifier as WS Addressing \cite{ws-addr-soap}
-Endpoint Reference (EPR) - XML document. The EPR is extendable and
-the A-REX adds it own element JobSessionDir belonging to namespace
-http://www.nordugrid.org/schemas/a-rex as direct child of ReferenceParameters
+The BES defines job identifier as WS Addressing~\cite{ws-addr-soap}
+Endpoint Reference (EPR) -- XML document. The EPR is extendable and 
+the A-REX adds it own element \texttt{JobSessionDir} belonging to the namespace
+\texttt{http://www.nordugrid.org/schemas/a-rex} as a direct child of ReferenceParameters
 element. This new element contains the URL of SD.
 
 Obtained URL should be extended with file names relative to SD and
 HTTP methods PUT and GET may be used to upload/download content of
-those files. For directories - including SD itself - GET method is
+those files. For directories -- including SD itself -- GET method is
 supported which returns HTML encoded non-recursive list of files and
 directories. The files and subdirectories have their URLs inside HTML
-element <A>.
+element \verb|<A>|.
 
 
-\section{Configuration schema of A-REX}
+\section{Configuration schema of A-REX\label{annex:arex-conf}}
 
-\begin{lyxcode}
-<?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
-
+\begin{footnotesize}
+\begin{verbatim}
+<?xml version=\char`\"{}1.0\char`\"{} encoding=\char`\"{}UTF-8\char`\"{}?>
 <xsd:schema
-
 xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
-
 xmlns=\char`\"{}http://www.nordugrid.org/schemas/ArcConfig/2007/arex\char`\"{}
-
 xmlns:arc=\char`\"{}http://www.nordugrid.org/schemas/ArcConfig/2007/arex\char`\"{}
-
 targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/ArcConfig/2007/arex\char`\"{}
-
 elementFormDefault=\char`\"{}qualified\char`\"{}>
-
-~~<xsd:complexType~name=\char`\"{}endpoint\_Type\char`\"{}>
-
-~~~~<!-{}-
-
-~~~~This~element~defines~URL~of~A-REX~service~as~seen~from~outside.
-
-~~~~-{}->
-
-~~~~<xsd:simpleContent>
-
-~~~~~~<xsd:extension~base=\char`\"{}xsd:string\char`\"{}>~
-
-~~~~~~</xsd:extension>
-
-~~~~</xsd:simpleContent>
-
-~~</xsd:complexType>
-
-~~<xsd:element~name=\char`\"{}endpoint\char`\"{}~type=\char`\"{}endpoint\_Type\char`\"{}/>
-
-~~<xsd:complexType~name=\char`\"{}gmconfig\_Type\char`\"{}>
-
-~~~~<!-{}-
-
-~~~~This~element~defines~path~to~arc0~Grid~Manager~configuartion~file.
-
-~~~~By~default~it~is~/etc/arc.conf.
-
-~~~~-{}->
-
-~~~~<xsd:simpleContent>
-
-~~~~~~<xsd:extension~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~~~~</xsd:extension>
-
-~~~~</xsd:simpleContent>
-
-~~</xsd:complexType>
-
-~~<xsd:element~name=\char`\"{}gmconfig\char`\"{}~type=\char`\"{}gmconfig\_Type\char`\"{}/>
-
-~~<xsd:simpleType~name=\char`\"{}gmrun\_Type\char`\"{}>
-
-~~~~<!-{}-
-
-~~~~This~element~defines~how~grid-manager~part~of~A-Rex~is~run.
-
-~~~~{*}~internal~-~as~a~thread~inside~service~container.
-
-~~~~{*}~none~-~no~grid-manager~is~run.
-
-~~~~{*}~external~-~as~a~separate~executable~(not~supported~anymore).
-
-~~~~Default~is~'internal'.
-
-~~~~-{}->
-
-~~~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~~~~<xsd:enumeration~value=\char`\"{}internal\char`\"{}/>
-
-~~~~~~<xsd:enumeration~value=\char`\"{}external\char`\"{}/>
-
-~~~~~~<xsd:enumeration~value=\char`\"{}none\char`\"{}/>
-
-~~~~</xsd:restriction>
-
-~~</xsd:simpleType>
-
-~~<xsd:element~name=\char`\"{}gmrun\char`\"{}~type=\char`\"{}gmrun\_Type\char`\"{}/>
-
-~~<xsd:complexType~name=\char`\"{}usermap\_Type\char`\"{}>
-
-~~~~<xsd:sequence>
-
-~~~~~~<xsd:element~name=\char`\"{}defaultLocalName\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~~</xsd:sequence>
-
-~~</xsd:complexType>
-
-~~<xsd:element~name=\char`\"{}usermap\char`\"{}~type=\char`\"{}usermap\_Type\char`\"{}/>
-
-~~<!-{}-~CommonName~attribute~of~bes-factory.~-{}->
-
-~~<xsd:element~name=\char`\"{}commonName\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~<!-{}-~LongDescription~attribute~of~bes-factory.~-{}->
-
-~~<xsd:element~name=\char`\"{}longDescription\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~<!-{}-~Name~of~Local~Resource~Management~System.~-{}->
-
-~~<xsd:element~name=\char`\"{}LRMSName\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~<!-{}-
-
-~~Name~of~Operating~System.
-
-~~The~values~are~based~on~the~OSType~field~of~the~CIM\_OperatingSystem~model:
-
-~~http://www.dmtf.org/standards/cim/cim\_schema\_v29
-
-~~-{}->
-
-~~<xsd:element~name=\char`\"{}OperatingSystem\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
+  <xsd:complexType name=\char`\"{}endpoint\_Type\char`\"{}>
+    <!-{}-
+    This element defines URL of A-REX service as seen from outside.
+    -{}->
+    <xsd:simpleContent>
+      <xsd:extension base=\char`\"{}xsd:string\char`\"{}> 
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:element name=\char`\"{}endpoint\char`\"{} type=\char`\"{}endpoint\_Type\char`\"{}/>
+  <xsd:complexType name=\char`\"{}gmconfig\_Type\char`\"{}>
+    <!-{}-
+    This element defines path to arc0 Grid Manager configuartion file.
+    By default it is /etc/arc.conf.
+    -{}->
+    <xsd:simpleContent>
+      <xsd:extension base=\char`\"{}xsd:string\char`\"{}>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:element name=\char`\"{}gmconfig\char`\"{} type=\char`\"{}gmconfig\_Type\char`\"{}/>
+  <xsd:simpleType name=\char`\"{}gmrun\_Type\char`\"{}>
+    <!-{}-
+    This element defines how grid-manager part of A-Rex is run.
+    {*} internal - as a thread inside service container.
+    {*} none - no grid-manager is run.
+    {*} external - as a separate executable (not supported anymore).
+    Default is 'internal'.
+    -{}->
+    <xsd:restriction base=\char`\"{}xsd:string\char`\"{}>
+      <xsd:enumeration value=\char`\"{}internal\char`\"{}/>
+      <xsd:enumeration value=\char`\"{}external\char`\"{}/>
+      <xsd:enumeration value=\char`\"{}none\char`\"{}/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:element name=\char`\"{}gmrun\char`\"{} type=\char`\"{}gmrun\_Type\char`\"{}/>
+  <xsd:complexType name=\char`\"{}usermap\_Type\char`\"{}>
+    <xsd:sequence>
+      <xsd:element name=\char`\"{}defaultLocalName\char`\"{} type=\char`\"{}xsd:string\char`\"{}
+                   minOccurs=\char`\"{}0\char`\"{}/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name=\char`\"{}usermap\char`\"{} type=\char`\"{}usermap\_Type\char`\"{}/>
+  <!-{}- CommonName attribute of bes-factory. -{}->
+  <xsd:element name=\char`\"{}commonName\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+  <!-{}- LongDescription attribute of bes-factory. -{}->
+  <xsd:element name=\char`\"{}longDescription\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+  <!-{}- Name of Local Resource Management System. -{}->
+  <xsd:element name=\char`\"{}LRMSName\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+  <!-{}-
+  Name of Operating System.
+  The values are based on the OSType field of the CIM\_OperatingSystem model:
+  http://www.dmtf.org/standards/cim/cim\_schema\_v29
+  -{}->
+  <xsd:element name=\char`\"{}OperatingSystem\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
 </xsd:schema>
-\end{lyxcode}
-
-\section{A-REX WSDL}
-
-\begin{lyxcode}
-<?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
-
-<wsdl:definitions~targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/a-rex\char`\"{}
-
-~xmlns:SOAP-ENV=\char`\"{}http://schemas.xmlsoap.org/soap/envelope/\char`\"{}
-
-~xmlns:SOAP-ENC=\char`\"{}http://schemas.xmlsoap.org/soap/encoding/\char`\"{}
-
-~xmlns:xsi=\char`\"{}http://www.w3.org/2001/XMLSchema-instance\char`\"{}
-
-~xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
-
-~xmlns:soap=\char`\"{}http://schemas.xmlsoap.org/wsdl/soap/\char`\"{}
-
-~xmlns:wsdl=\char`\"{}http://schemas.xmlsoap.org/wsdl/\char`\"{}
-
-~xmlns:wsa=\char`\"{}http://www.w3.org/2005/08/addressing\char`\"{}
-
-~xmlns:bes-factory=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory\char`\"{}
-
-~xmlns:bes-mgmt=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-management\char`\"{}
-
-~xmlns:deleg=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}
-
-~xmlns:wsrf-rpw=\char`\"{}http://docs.oasis-open.org/wsrf/rpw-2\char`\"{}
-
-~xmlns:a-rex=\char`\"{}http://www.nordugrid.org/schemas/a-rex\char`\"{}>
-
-~~<wsdl:import~namespase=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory\char`\"{}~location=\char`\"{}./bes-factory.wsdl\char`\"{}/>
-
-~~<wsdl:import~namespase=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-management\char`\"{}~location=\char`\"{}./bes-management.wsdl\char`\"{}/>
-
-~~<wsdl:import~namespase=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}~location=\char`\"{}../schemas/delegation.wsdl\char`\"{}/>
-
-~~<wsdl:import~namespase=\char`\"{}http://docs.oasis-open.org/wsrf/rpw-2\char`\"{}~location=\char`\"{}http://docs.oasis-open.org/wsrf/rpw-2.wsdl\char`\"{}/>
-
-~~<wsdl:types>
-
-~~~~<xsd:schema~targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/a-rex\char`\"{}>
-
-~~~~~~<xsd:import~namespace=\char`\"{}http://www.w3.org/2005/08/addressing\char`\"{}~schemaLocation=\char`\"{}./ws-addr.xsd\char`\"{}/>
-
-~~~~~~<xsd:simpleType~name=\char`\"{}ActivitySubStateType\char`\"{}>
-
-~~~~~~~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Accepting\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Accepted\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Preparing\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Prepared\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Submiting\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Executing\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Killing\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Executed\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Finishing\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Finished\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Failed\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Deleted\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Pending\char`\"{}/>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}Held\char`\"{}/>
-
-~~~~~~~~</xsd:restriction>
-
-~~~~~~</xsd:simpleType>
-
-~~~~~~<xsd:element~name=\char`\"{}State\char`\"{}~type=\char`\"{}a-rex:ActivitySubStateType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}ResourceInformationDocumentType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~~<xsd:element~name=\char`\"{}BESFactory\char`\"{}~type=\char`\"{}bes-factory:FactoryResourceAttributesDocumentType\char`\"{}/>
-
-~~~~~~~~~~<xsd:complexType~name=\char`\"{}Glue2Resource\char`\"{}~minOccurs='0'>
-
-~~~~~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~~~~~<xsd:any~namespace=\char`\"{}\#\#other\char`\"{}~processContents=\char`\"{}lax\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}/>
-
-~~~~~~~~~~~~</xsd:sequence>
-
-~~~~~~~~~~</xsd:complexType>
-
-~~~~~~~~~~<xsd:complexType~name=\char`\"{}Activities\char`\"{}~minOccurs='0'>
-
-~~~~~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~~~~~<xsd:complexType~name=\char`\"{}Activity\char`\"{}~minOccurs='0'~maxOccurs='unbounded'>
-
-~~~~~~~~~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~~~~~~~~~<xsd:element~name=\char`\"{}ActivityIdentifier\char`\"{}~type=\char`\"{}wsa:EndpointReferenceType\char`\"{}/>
-
-~~~~~~~~~~~~~~~~~~<xsd:element~ref=\char`\"{}bes-factory:ActivityDocument\char`\"{}~minOccurs='0'/>
-
-~~~~~~~~~~~~~~~~~~<xsd:complexType~name=\char`\"{}Glue2Job\char`\"{}~minOccurs='0'>
-
-~~~~~~~~~~~~~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~~~~~~~~~~~~~<xsd:any~namespace=\char`\"{}\#\#other\char`\"{}~processContents=\char`\"{}lax\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}/>
-
-~~~~~~~~~~~~~~~~~~~~</xsd:sequence>
-
-~~~~~~~~~~~~~~~~~~</xsd:complexType>
-
-~~~~~~~~~~~~~~~~</xsd:sequence>
-
-~~~~~~~~~~~~~~</xsd:complexType>
-
-~~~~~~~~~~~~</xsd:sequence>
-
-~~~~~~~~~~</xsd:complexType>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:complexType~name=\char`\"{}ChangeActivityStatusRequestType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}ActivityIdentifier\char`\"{}~type=\char`\"{}wsa:EndpointReferenceType\char`\"{}/>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}OldStatus\char`\"{}~type=\char`\"{}bes-factory:ActivityStatusType\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}NewStatus\char`\"{}~type=\char`\"{}bes-factory:ActivityStatusType\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}ChangeActivityStatus\char`\"{}~type=\char`\"{}a-rex:ChangeActivityStatusRequestType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}ChangeActivityStatusResponseType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}NewStatus\char`\"{}~type=\char`\"{}bes-factory:ActivityStatusType\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}ChangeActivityStatusResponse\char`\"{}~type=\char`\"{}a-rex:ChangeActivityStatusResponseType\char`\"{}/>
-
-~~~~</xsd:schema>
-
-~~</wsdl:types>
-
-~~<wsdl:message~name=\char`\"{}ChangeActivityStatusRequest\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}ChangeActivityStatusRequest\char`\"{}~element=\char`\"{}a-rex:ChangeActivityStatus\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:message~name=\char`\"{}ChangeActivityStatusResponse\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}ChangeActivityStatusResponse\char`\"{}~element=\char`\"{}a-rex:ChangeActivityStatusResponse\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:portType~name=\char`\"{}a-rex\char`\"{}>
-
-~~~~<wsdl:operation~name=\char`\"{}ChangeActivityStatus\char`\"{}>
-
-~~~~~~<wsdl:documentation>
-
-~~~~~~~~This~operation~allows~any~simple~status~change~request
-
-~~~~~~~~which~involves~no~additional~parameters.~It~should~be
-
-~~~~~~~~used~to~modify~job/activity~execution~flow:
-
-~~~~~~~~~~-~To~put~job~on~hold
-
-~~~~~~~~~~-~To~rerun~job~in~case~of~failure
-
-~~~~~~~~~~-~To~cancel~job~(same~as~TerminateActivity~of~BESFActory)
-
-~~~~~~~~~~-~To~remove/release~job~-~as~long~as~non-existence~is~a~state
-
-~~~~~~~~~~-~Any~other~status~change~no~supported~by~BES
-
-~~~~~~</wsdl:documentation>
-
-~~~~~~<wsdl:input~name=\char`\"{}ChangeActivityStatusRequest\char`\"{}
-
-~~~~~~~~message=\char`\"{}a-rex:ChangeActivityStatusRequest\char`\"{}/>
-
-~~~~~~<wsdl:output~name=\char`\"{}ChangeActivityStatusResponse\char`\"{}
-
-~~~~~~~~message=\char`\"{}a-rex:ChangeActivityStatusResponse\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}NotAuthorizedFault\char`\"{}
-
-~~~~~~~~message=\char`\"{}bes-factory:NotAuthorizedFault\char`\"{}
-
-~~~~~~~~wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}InvalidActivityIdentifierFault\char`\"{}
-
-~~~~~~~~message=\char`\"{}bes-factory:InvalidActivityIdentifierFault\char`\"{}
-
-~~~~~~~~wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{}
-
-~~~~~~~~~message=\char`\"{}bes-factory:CantApplyOperationToCurrentStateFault\char`\"{}
-
-~~~~~~~~~wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{}
-
-~~~~~~~~~message=\char`\"{}bes-factory:OperationWillBeAppliedEventuallyFault\char`\"{}
-
-~~~~~~~~~wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
-
-~~~~</wsdl:operation>
-
-~~</wsdl:portType>
-
-~~<wsdl:binding~name=\char`\"{}a-rex\char`\"{}~type=\char`\"{}a-rex:a-rex\char`\"{}>
-
-~~~~<soap:binding~style=\char`\"{}document\char`\"{}~transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
-
-~~~~<wsdl:operation~name=\char`\"{}ChangeActivityStatus\char`\"{}>
-
-~~~~~~<soap:operation~soapAction=\char`\"{}ChangeActivityStatus\char`\"{}/>
-
-~~~~~~<wsdl:input~name=\char`\"{}ChangeActivityStatusRequest\char`\"{}>
-
-~~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:input>
-
-~~~~~~<wsdl:output~name=\char`\"{}ChangeActivityStatusResponse\char`\"{}>
-
-~~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:output>
-
-~~~~~~<wsdl:fault~name=\char`\"{}NotAuthorizedFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}NotAuthorizedFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}InvalidActivityIdentifierFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}InvalidActivityIdentifierFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~</wsdl:operation>
-
-~~</wsdl:binding>
-
-~~<wsdl:binding~name=\char`\"{}GetResourcePropertyDocument\char`\"{}~type=\char`\"{}wsrf-rpw:GetResourcePropertyDocument\char`\"{}>
-
-~~~~<soap:binding~style=\char`\"{}document\char`\"{}~transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
-
-~~~~<wsdl:operation~name=\char`\"{}GetResourcePropertyDocument\char`\"{}>
-
-~~~~~~<soap:operation~soapAction=\char`\"{}GetResourcePropertyDocument\char`\"{}/>
-
-~~~~~~<wsdl:input~name=\char`\"{}wsrf-rpw:GetResourcePropertyDocumentRequest\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:input>
-
-~~~~~~<wsdl:output~name=\char`\"{}wsrf-rpw:GetResourcePropertyDocumentResponse\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:output>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ResourceUnknownFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}ResourceUnknownFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ResourceUnavailableFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}ResourceUnavailabbleFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~</wsdl:operation>
-
-~~</wsdl:binding>
-
-~~<wsdl:binding~name=\char`\"{}GetResourceProperty\char`\"{}~type=\char`\"{}wsrf-rpw:GetResourceProperty\char`\"{}>
-
-~~~~<soap:binding~style=\char`\"{}document\char`\"{}~transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
-
-~~~~<wsdl:operation~name=\char`\"{}GetResourceProperty\char`\"{}>
-
-~~~~~~<soap:operation~soapAction=\char`\"{}GetResourceProperty\char`\"{}/>
-
-~~~~~~<wsdl:input~name=\char`\"{}wsrf-rpw:GetResourcePropertyRequest\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:input>
-
-~~~~~~<wsdl:output~name=\char`\"{}wsrf-rpw:GetResourcePropertyResponse\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:output>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ResourceUnknownFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}ResourceUnknownFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ResourceUnavailableFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}ResourceUnavailabbleFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~</wsdl:operation>
-
-~~</wsdl:binding>
-
-~~<wsdl:binding~name=\char`\"{}QueryResourceProperties\char`\"{}~type=\char`\"{}wsrf:QueryResourceProperties\char`\"{}>
-
-~~~~<soap:binding~style=\char`\"{}document\char`\"{}~transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
-
-~~~~<wsdl:operation~name=\char`\"{}QueryResourceProperties\char`\"{}>
-
-~~~~~~<soap:operation~soapAction=\char`\"{}QueryResourceProperties\char`\"{}/>
-
-~~~~~~<wsdl:input~name=\char`\"{}wsrf-rpw:QueryResourcePropertiesRequest\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:input>
-
-~~~~~~<wsdl:output~name=\char`\"{}wsrf-rpw:QueryResourcePropertiesResponse\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:output>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ResourceUnknownFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}ResourceUnknownFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ResourceUnavailableFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}ResourceUnavailabbleFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}UnknownQueryExpressionDialectFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}UnknownQueryExpressionDialectFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}InvalidQueryExpressionFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}InvalidQueryExpressionFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~~~<wsdl:fault~name=\char`\"{}QueryEvaluationErrorFault\char`\"{}>
-
-~~~~~~~~<soap:fault~name=\char`\"{}QueryEvaluationErrorFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
-
-~~~~~~</wsdl:fault>
-
-~~~~</wsdl:operation>
-
-~~</wsdl:binding>
-
-~~<wsdl:service~name=\char`\"{}a-rex\char`\"{}>
-
-~~~~<wsdl:port~name=\char`\"{}delegation\char`\"{}~binding=\char`\"{}deleg:DelegationBinding\char`\"{}>
-
-~~~~</wsdl:port>
-
-~~~~<wsdl:port~name=\char`\"{}bes-factory\char`\"{}~binding=\char`\"{}bes-factory:BESFactoryBinding\char`\"{}>
-
-~~~~</wsdl:port>
-
-~~~~<wsdl:port~name=\char`\"{}bes-mgmt\char`\"{}~binding=\char`\"{}bes-mgmt:BESManagementBinding\char`\"{}>
-
-~~~~</wsdl:port>
-
-~~~~<wsdl:port~name=\char`\"{}GetResourcePropertyDocument\char`\"{}~binding=\char`\"{}a-rex:GetResourcePropertyDocument\char`\"{}>
-
-~~~~</wsdl:port>
-
-~~~~<wsdl:port~name=\char`\"{}GetResourceProperty\char`\"{}~binding=\char`\"{}a-rex:GetResourceProperty\char`\"{}>
-
-~~~~</wsdl:port>
-
-~~~~<wsdl:port~name=\char`\"{}QueryResourceProperties\char`\"{}~binding=\char`\"{}a-rex:QueryResourceProperties\char`\"{}>
-
-~~~~</wsdl:port>
-
-~~~~<wsdl:port~name=\char`\"{}a-rex\char`\"{}~binding=\char`\"{}a-rex:a-rex\char`\"{}>
-
-~~~~</wsdl:port>
-
-~~</wsdl:service>
-
+\end{verbatim}
+\end{footnotesize}
+
+\section{A-REX WSDL\label{annex:arex-wsdl}}
+
+\begin{footnotesize}\begin{verbatim}
+<?xml version=\char`\"{}1.0\char`\"{} encoding=\char`\"{}UTF-8\char`\"{}?>
+<wsdl:definitions targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/a-rex\char`\"{}
+ xmlns:SOAP-ENV=\char`\"{}http://schemas.xmlsoap.org/soap/envelope/\char`\"{}
+ xmlns:SOAP-ENC=\char`\"{}http://schemas.xmlsoap.org/soap/encoding/\char`\"{}
+ xmlns:xsi=\char`\"{}http://www.w3.org/2001/XMLSchema-instance\char`\"{}
+ xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
+ xmlns:soap=\char`\"{}http://schemas.xmlsoap.org/wsdl/soap/\char`\"{}
+ xmlns:wsdl=\char`\"{}http://schemas.xmlsoap.org/wsdl/\char`\"{}
+ xmlns:wsa=\char`\"{}http://www.w3.org/2005/08/addressing\char`\"{}
+ xmlns:bes-factory=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory\char`\"{}
+ xmlns:bes-mgmt=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-management\char`\"{}
+ xmlns:deleg=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}
+ xmlns:wsrf-rpw=\char`\"{}http://docs.oasis-open.org/wsrf/rpw-2\char`\"{}
+ xmlns:a-rex=\char`\"{}http://www.nordugrid.org/schemas/a-rex\char`\"{}>
+  <wsdl:import namespase=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory\char`\"{}
+               location=\char`\"{}./bes-factory.wsdl\char`\"{}/>
+  <wsdl:import namespase=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-management\char`\"{}
+               location=\char`\"{}./bes-management.wsdl\char`\"{}/>
+  <wsdl:import namespase=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}
+               location=\char`\"{}../schemas/delegation.wsdl\char`\"{}/>
+  <wsdl:import namespase=\char`\"{}http://docs.oasis-open.org/wsrf/rpw-2\char`\"{}
+               location=\char`\"{}http://docs.oasis-open.org/wsrf/rpw-2.wsdl\char`\"{}/>
+  <wsdl:types>
+    <xsd:schema targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/a-rex\char`\"{}>
+      <xsd:import namespace=\char`\"{}http://www.w3.org/2005/08/addressing\char`\"{}
+                  schemaLocation=\char`\"{}./ws-addr.xsd\char`\"{}/>
+      <xsd:simpleType name=\char`\"{}ActivitySubStateType\char`\"{}>
+        <xsd:restriction base=\char`\"{}xsd:string\char`\"{}>
+          <xsd:enumeration value=\char`\"{}Accepting\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Accepted\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Preparing\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Prepared\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Submiting\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Executing\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Killing\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Executed\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Finishing\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Finished\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Failed\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Deleted\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Pending\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Held\char`\"{}/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:element name=\char`\"{}State\char`\"{} type=\char`\"{}a-rex:ActivitySubStateType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}ResourceInformationDocumentType\char`\"{}>
+        <xsd:sequence>
+           <xsd:element name=\char`\"{}BESFactory\char`\"{}
+                        type=\char`\"{}bes-factory:FactoryResourceAttributesDocumentType\char`\"{}/>
+          <xsd:complexType name=\char`\"{}Glue2Resource\char`\"{} minOccurs='0'>
+            <xsd:sequence>
+              <xsd:any namespace=\char`\"{}\#\#other\char`\"{} processContents=\char`\"{}lax\char`\"{}
+                       minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}unbounded\char`\"{}/>
+            </xsd:sequence>
+          </xsd:complexType>
+          <xsd:complexType name=\char`\"{}Activities\char`\"{} minOccurs='0'>
+            <xsd:sequence>
+              <xsd:complexType name=\char`\"{}Activity\char`\"{} minOccurs='0' maxOccurs='unbounded'>
+                <xsd:sequence>
+                  <xsd:element name=\char`\"{}ActivityIdentifier\char`\"{}
+                               type=\char`\"{}wsa:EndpointReferenceType\char`\"{}/>
+                  <xsd:element ref=\char`\"{}bes-factory:ActivityDocument\char`\"{} minOccurs='0'/>
+                  <xsd:complexType name=\char`\"{}Glue2Job\char`\"{} minOccurs='0'>
+                    <xsd:sequence>
+                      <xsd:any namespace=\char`\"{}\#\#other\char`\"{} processContents=\char`\"{}lax\char`\"{}
+                               minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}unbounded\char`\"{}/>
+                    </xsd:sequence>
+                  </xsd:complexType>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name=\char`\"{}ChangeActivityStatusRequestType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}ActivityIdentifier\char`\"{} type=\char`\"{}wsa:EndpointReferenceType\char`\"{}/>
+          <xsd:element name=\char`\"{}OldStatus\char`\"{} type=\char`\"{}bes-factory:ActivityStatusType\char`\"{}
+                       minOccurs=\char`\"{}0\char`\"{}/>
+          <xsd:element name=\char`\"{}NewStatus\char`\"{} type=\char`\"{}bes-factory:ActivityStatusType\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}ChangeActivityStatus\char`\"{}
+                   type=\char`\"{}a-rex:ChangeActivityStatusRequestType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}ChangeActivityStatusResponseType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}NewStatus\char`\"{} type=\char`\"{}bes-factory:ActivityStatusType\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}ChangeActivityStatusResponse\char`\"{}
+                   type=\char`\"{}a-rex:ChangeActivityStatusResponseType\char`\"{}/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name=\char`\"{}ChangeActivityStatusRequest\char`\"{}>
+    <wsdl:part name=\char`\"{}ChangeActivityStatusRequest\char`\"{}
+               element=\char`\"{}a-rex:ChangeActivityStatus\char`\"{}/>
+  </wsdl:message>
+  <wsdl:message name=\char`\"{}ChangeActivityStatusResponse\char`\"{}>
+    <wsdl:part name=\char`\"{}ChangeActivityStatusResponse\char`\"{}
+               element=\char`\"{}a-rex:ChangeActivityStatusResponse\char`\"{}/>
+  </wsdl:message>
+  <wsdl:portType name=\char`\"{}a-rex\char`\"{}>
+    <wsdl:operation name=\char`\"{}ChangeActivityStatus\char`\"{}>
+      <wsdl:documentation>
+        This operation allows any simple status change request
+        which involves no additional parameters. It should be
+        used to modify job/activity execution flow:
+          - To put job on hold
+          - To rerun job in case of failure
+          - To cancel job (same as TerminateActivity of BESFActory)
+          - To remove/release job - as long as non-existence is a state
+          - Any other status change no supported by BES
+      </wsdl:documentation>
+      <wsdl:input name=\char`\"{}ChangeActivityStatusRequest\char`\"{}
+        message=\char`\"{}a-rex:ChangeActivityStatusRequest\char`\"{}/>
+      <wsdl:output name=\char`\"{}ChangeActivityStatusResponse\char`\"{}
+        message=\char`\"{}a-rex:ChangeActivityStatusResponse\char`\"{}/>
+      <wsdl:fault name=\char`\"{}NotAuthorizedFault\char`\"{}
+        message=\char`\"{}bes-factory:NotAuthorizedFault\char`\"{}
+        wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}InvalidActivityIdentifierFault\char`\"{}
+        message=\char`\"{}bes-factory:InvalidActivityIdentifierFault\char`\"{}
+        wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{}
+         message=\char`\"{}bes-factory:CantApplyOperationToCurrentStateFault\char`\"{}
+         wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{}
+         message=\char`\"{}bes-factory:OperationWillBeAppliedEventuallyFault\char`\"{}
+         wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name=\char`\"{}a-rex\char`\"{} type=\char`\"{}a-rex:a-rex\char`\"{}>
+    <soap:binding style=\char`\"{}document\char`\"{}
+                  transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
+    <wsdl:operation name=\char`\"{}ChangeActivityStatus\char`\"{}>
+      <soap:operation soapAction=\char`\"{}ChangeActivityStatus\char`\"{}/>
+      <wsdl:input name=\char`\"{}ChangeActivityStatusRequest\char`\"{}>
+         <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:input>
+      <wsdl:output name=\char`\"{}ChangeActivityStatusResponse\char`\"{}>
+         <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:output>
+      <wsdl:fault name=\char`\"{}NotAuthorizedFault\char`\"{}>
+        <soap:fault name=\char`\"{}NotAuthorizedFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}InvalidActivityIdentifierFault\char`\"{}>
+        <soap:fault name=\char`\"{}InvalidActivityIdentifierFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{}>
+        <soap:fault name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{}>
+        <soap:fault name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name=\char`\"{}GetResourcePropertyDocument\char`\"{}
+                type=\char`\"{}wsrf-rpw:GetResourcePropertyDocument\char`\"{}>
+    <soap:binding style=\char`\"{}document\char`\"{}
+                  transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
+    <wsdl:operation name=\char`\"{}GetResourcePropertyDocument\char`\"{}>
+      <soap:operation soapAction=\char`\"{}GetResourcePropertyDocument\char`\"{}/>
+      <wsdl:input name=\char`\"{}wsrf-rpw:GetResourcePropertyDocumentRequest\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:input>
+      <wsdl:output name=\char`\"{}wsrf-rpw:GetResourcePropertyDocumentResponse\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:output>
+      <wsdl:fault name=\char`\"{}ResourceUnknownFault\char`\"{}>
+        <soap:fault name=\char`\"{}ResourceUnknownFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}ResourceUnavailableFault\char`\"{}>
+        <soap:fault name=\char`\"{}ResourceUnavailabbleFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name=\char`\"{}GetResourceProperty\char`\"{} type=\char`\"{}wsrf-rpw:GetResourceProperty\char`\"{}>
+    <soap:binding style=\char`\"{}document\char`\"{}
+                  transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
+    <wsdl:operation name=\char`\"{}GetResourceProperty\char`\"{}>
+      <soap:operation soapAction=\char`\"{}GetResourceProperty\char`\"{}/>
+      <wsdl:input name=\char`\"{}wsrf-rpw:GetResourcePropertyRequest\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:input>
+      <wsdl:output name=\char`\"{}wsrf-rpw:GetResourcePropertyResponse\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:output>
+      <wsdl:fault name=\char`\"{}ResourceUnknownFault\char`\"{}>
+        <soap:fault name=\char`\"{}ResourceUnknownFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}ResourceUnavailableFault\char`\"{}>
+        <soap:fault name=\char`\"{}ResourceUnavailabbleFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{}>
+        <soap:fault name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name=\char`\"{}QueryResourceProperties\char`\"{} type=\char`\"{}wsrf:QueryResourceProperties\char`\"{}>
+    <soap:binding style=\char`\"{}document\char`\"{}
+                  transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
+    <wsdl:operation name=\char`\"{}QueryResourceProperties\char`\"{}>
+      <soap:operation soapAction=\char`\"{}QueryResourceProperties\char`\"{}/>
+      <wsdl:input name=\char`\"{}wsrf-rpw:QueryResourcePropertiesRequest\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:input>
+      <wsdl:output name=\char`\"{}wsrf-rpw:QueryResourcePropertiesResponse\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:output>
+      <wsdl:fault name=\char`\"{}ResourceUnknownFault\char`\"{}>
+        <soap:fault name=\char`\"{}ResourceUnknownFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}ResourceUnavailableFault\char`\"{}>
+        <soap:fault name=\char`\"{}ResourceUnavailabbleFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{}>
+        <soap:fault name=\char`\"{}InvalidResourcePropertyQNameFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}UnknownQueryExpressionDialectFault\char`\"{}>
+        <soap:fault name=\char`\"{}UnknownQueryExpressionDialectFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}InvalidQueryExpressionFault\char`\"{}>
+        <soap:fault name=\char`\"{}InvalidQueryExpressionFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}QueryEvaluationErrorFault\char`\"{}>
+        <soap:fault name=\char`\"{}QueryEvaluationErrorFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name=\char`\"{}a-rex\char`\"{}>
+    <wsdl:port name=\char`\"{}delegation\char`\"{} binding=\char`\"{}deleg:DelegationBinding\char`\"{}>
+    </wsdl:port>
+    <wsdl:port name=\char`\"{}bes-factory\char`\"{} binding=\char`\"{}bes-factory:BESFactoryBinding\char`\"{}>
+    </wsdl:port>
+    <wsdl:port name=\char`\"{}bes-mgmt\char`\"{} binding=\char`\"{}bes-mgmt:BESManagementBinding\char`\"{}>
+    </wsdl:port>
+    <wsdl:port name=\char`\"{}GetResourcePropertyDocument\char`\"{}
+               binding=\char`\"{}a-rex:GetResourcePropertyDocument\char`\"{}>
+    </wsdl:port>
+    <wsdl:port name=\char`\"{}GetResourceProperty\char`\"{} binding=\char`\"{}a-rex:GetResourceProperty\char`\"{}>
+    </wsdl:port>
+    <wsdl:port name=\char`\"{}QueryResourceProperties\char`\"{}
+               binding=\char`\"{}a-rex:QueryResourceProperties\char`\"{}>
+    </wsdl:port>
+    <wsdl:port name=\char`\"{}a-rex\char`\"{} binding=\char`\"{}a-rex:a-rex\char`\"{}>
+    </wsdl:port>
+  </wsdl:service>
 </wsdl:definitions>
-\end{lyxcode}
-
-\section{Delegation WSDL}
-
-\begin{lyxcode}
-<?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
-
-<wsdl:definitions~targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}
-
-~xmlns:SOAP-ENV=\char`\"{}http://schemas.xmlsoap.org/soap/envelope/\char`\"{}
-
-~xmlns:SOAP-ENC=\char`\"{}http://schemas.xmlsoap.org/soap/encoding/\char`\"{}
-
-~xmlns:xsi=\char`\"{}http://www.w3.org/2001/XMLSchema-instance\char`\"{}
-
-~xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
-
-~xmlns:soap=\char`\"{}http://schemas.xmlsoap.org/wsdl/soap/\char`\"{}
-
-~xmlns:wsdl=\char`\"{}http://schemas.xmlsoap.org/wsdl/\char`\"{}
-
-~xmlns:wsa=\char`\"{}http://www.w3.org/2005/08/addressing\char`\"{}
-
-~xmlns:deleg=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}>
-
-~~<wsdl:types>
-
-~~~~<xsd:schema~targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}>
-
-~~~~~~<!-{}-~Common~types~-{}->
-
-~~~~~~<xsd:simpleType~name=\char`\"{}TokenFormatType\char`\"{}>
-
-~~~~~~~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~~~~~~~~<xsd:enumeration~value=\char`\"{}x509\char`\"{}/>
-
-~~~~~~~~</xsd:restriction>
-
-~~~~~~</xsd:simpleType>
-
-~~~~~~<xsd:complexType~name=\char`\"{}ReferenceType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:any~namespace=\char`\"{}\#\#other\char`\"{}~processContents=\char`\"{}lax\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:complexType~name=\char`\"{}DelegatedTokenType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Id\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Value\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Reference\char`\"{}~type=\char`\"{}deleg:ReferenceType\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~~~<xsd:attribute~name=\char`\"{}Format\char`\"{}~type=\char`\"{}deleg:TokenFormatType\char`\"{}~use=\char`\"{}required\char`\"{}/>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}DelegatedToken\char`\"{}~type=\char`\"{}deleg:DelegatedTokenType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}TokenRequestType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Id\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Value\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~~~<xsd:attribute~name=\char`\"{}Format\char`\"{}~type=\char`\"{}deleg:TokenFormatType\char`\"{}~use=\char`\"{}required\char`\"{}/>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}TokenRequest\char`\"{}~type=\char`\"{}deleg:TokenRequestType\char`\"{}/>
-
-~~~~~~<!-{}-~Types~for~messages~-{}->
-
-~~~~~~<xsd:complexType~name=\char`\"{}DelegateCredentialsInitRequestType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}DelegateCredentialsInit\char`\"{}~type=\char`\"{}deleg:DelegateCredentialsInitRequestType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}DelegateCredentialsInitResponseType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}TokenRequest\char`\"{}~type=\char`\"{}deleg:TokenRequestType\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}~type=\char`\"{}deleg:DelegateCredentialsInitResponseType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}UpdateCredentialsRequestType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}DelegatedToken\char`\"{}~type=\char`\"{}deleg:DelegatedTokenType\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}UpdateCredentials\char`\"{}~type=\char`\"{}deleg:UpdateCredentialsRequestType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}UpdateCredentialsResponseType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}UpdateCredentialsResponse\char`\"{}~type=\char`\"{}deleg:UpdateCredentialsResponseType\char`\"{}/>
-
-~~~~~~<!-{}-~Faults~-{}->
-
-~~~~~~<xsd:complexType~name=\char`\"{}UnsupportedFaultType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Description\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}UnsupportedFault\char`\"{}~type=\char`\"{}deleg:UnsupportedFaultType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}ProcessingFaultType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Description\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}ProcessingFault\char`\"{}~type=\char`\"{}deleg:ProcessingFaultType\char`\"{}/>
-
-~~~~~~<xsd:complexType~name=\char`\"{}WrongReferenceFaultType\char`\"{}>
-
-~~~~~~~~<xsd:sequence>
-
-~~~~~~~~~~<xsd:element~name=\char`\"{}Description\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~~~~~~</xsd:sequence>
-
-~~~~~~</xsd:complexType>
-
-~~~~~~<xsd:element~name=\char`\"{}WrongReferenceFault\char`\"{}~type=\char`\"{}deleg:WrongReferenceFaultType\char`\"{}/>
-
-~~~~</xsd:schema>
-
-~~</wsdl:types>
-
-~~<wsdl:message~name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}~element=\char`\"{}deleg:DelegateCredentialsInit\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:message~name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}~element=\char`\"{}deleg:DelegateCredentialsInitResponse\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:message~name=\char`\"{}UpdateCredentialsRequest\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}UpdateCredentialsRequest\char`\"{}~element=\char`\"{}deleg:UpdateCredentials\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:message~name=\char`\"{}UpdateCredentialsResponse\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}UpdateCredentialsResponse\char`\"{}~element=\char`\"{}deleg:UpdateCredentialsResponse\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:message~name=\char`\"{}UnsupportedFault\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}Detail\char`\"{}~element=\char`\"{}deleg:UnsupportedFault\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:message~name=\char`\"{}ProcessingFault\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}Detail\char`\"{}~element=\char`\"{}deleg:ProcessingFault\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:message~name=\char`\"{}WrongReferenceFault\char`\"{}>
-
-~~~~<wsdl:part~name=\char`\"{}Detail\char`\"{}~element=\char`\"{}deleg:WrongReferenceFault\char`\"{}/>
-
-~~</wsdl:message>
-
-~~<wsdl:portType~name=\char`\"{}DelegationPortType\char`\"{}>
-
-~~~<wsdl:operation~name=\char`\"{}DelegateCredentialsInit\char`\"{}>
-
-~~~~~~<wsdl:documentation>
-
-~~~~~~</wsdl:documentation>
-
-~~~~~~<wsdl:input~name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:DelegateCredentialsInitRequest\char`\"{}/>
-
-~~~~~~<wsdl:output~name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:DelegateCredentialsInitResponse\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}UnsupportedFault\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:UnsupportedFault\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ProcessingFault\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:ProcessingFault\char`\"{}/>
-
-~~~~</wsdl:operation>
-
-~~~<wsdl:operation~name=\char`\"{}UpdateCredentials\char`\"{}>
-
-~~~~~~<wsdl:documentation>
-
-~~~~~~</wsdl:documentation>
-
-~~~~~~<wsdl:input~name=\char`\"{}UpdateCredentialsRequest\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:UpdateCredentialsRequest\char`\"{}/>
-
-~~~~~~<wsdl:output~name=\char`\"{}UpdateCredentialsResponse\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:UpdateCredentialsResponse\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}UnsupportedFault\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:UnsupportedFault\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}ProcessingFault\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:ProcessingFault\char`\"{}/>
-
-~~~~~~<wsdl:fault~name=\char`\"{}WrongReferenceFault\char`\"{}
-
-~~~~~~~~message=\char`\"{}deleg:WrongReferenceFault\char`\"{}/>
-
-~~~~</wsdl:operation>
-
-~~</wsdl:portType>
-
-~~<wsdl:binding~name=\char`\"{}DelegationBinding\char`\"{}~type=\char`\"{}deleg:DelegationPortType\char`\"{}>
-
-~~~~<soap:binding~style=\char`\"{}document\char`\"{}~transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
-
-~~~~<wsdl:operation~name=\char`\"{}DelegateCredentialsInit\char`\"{}>
-
-~~~~~~<soap:operation~soapAction=\char`\"{}DelegateCredentialsInit\char`\"{}/>
-
-~~~~~~<wsdl:input~name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}>
-
-~~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:input>
-
-~~~~~~<wsdl:output~name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}>
-
-~~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:output>
-
-~~~~</wsdl:operation>
-
-~~~~<wsdl:operation~name=\char`\"{}UpdateCredentials\char`\"{}>
-
-~~~~~~<soap:operation~soapAction=\char`\"{}UpdateCredentials\char`\"{}/>
-
-~~~~~~<wsdl:input~name=\char`\"{}UpdateCredentialsRequest\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:input>
-
-~~~~~~<wsdl:output~name=\char`\"{}UpdateCredentialsResponse\char`\"{}>
-
-~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
-
-~~~~~~</wsdl:output>
-
-~~~~</wsdl:operation>
-
-~~</wsdl:binding>
-
+\end{verbatim}
+\end{footnotesize}
+
+\section{Delegation WSDL\label{annex:delegation-wsdl}}
+
+\begin{footnotesize}\begin{verbatim}
+<?xml version=\char`\"{}1.0\char`\"{} encoding=\char`\"{}UTF-8\char`\"{}?>
+<wsdl:definitions targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}
+ xmlns:SOAP-ENV=\char`\"{}http://schemas.xmlsoap.org/soap/envelope/\char`\"{}
+ xmlns:SOAP-ENC=\char`\"{}http://schemas.xmlsoap.org/soap/encoding/\char`\"{}
+ xmlns:xsi=\char`\"{}http://www.w3.org/2001/XMLSchema-instance\char`\"{}
+ xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
+ xmlns:soap=\char`\"{}http://schemas.xmlsoap.org/wsdl/soap/\char`\"{}
+ xmlns:wsdl=\char`\"{}http://schemas.xmlsoap.org/wsdl/\char`\"{}
+ xmlns:wsa=\char`\"{}http://www.w3.org/2005/08/addressing\char`\"{}
+ xmlns:deleg=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}>
+  <wsdl:types>
+    <xsd:schema targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/delegation\char`\"{}>
+      <!-{}- Common types -{}->
+      <xsd:simpleType name=\char`\"{}TokenFormatType\char`\"{}>
+        <xsd:restriction base=\char`\"{}xsd:string\char`\"{}>
+          <xsd:enumeration value=\char`\"{}x509\char`\"{}/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name=\char`\"{}ReferenceType\char`\"{}>
+        <xsd:sequence>
+          <xsd:any namespace=\char`\"{}\#\#other\char`\"{} processContents=\char`\"{}lax\char`\"{}
+                   minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}unbounded\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name=\char`\"{}DelegatedTokenType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}Id\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+          <xsd:element name=\char`\"{}Value\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+          <xsd:element name=\char`\"{}Reference\char`\"{} type=\char`\"{}deleg:ReferenceType\char`\"{}
+                       minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}unbounded\char`\"{}/>
+        </xsd:sequence>
+        <xsd:attribute name=\char`\"{}Format\char`\"{} type=\char`\"{}deleg:TokenFormatType\char`\"{}
+                       use=\char`\"{}required\char`\"{}/>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}DelegatedToken\char`\"{} type=\char`\"{}deleg:DelegatedTokenType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}TokenRequestType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}Id\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+          <xsd:element name=\char`\"{}Value\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+        </xsd:sequence>
+        <xsd:attribute name=\char`\"{}Format\char`\"{} type=\char`\"{}deleg:TokenFormatType\char`\"{}
+                       use=\char`\"{}required\char`\"{}/>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}TokenRequest\char`\"{} type=\char`\"{}deleg:TokenRequestType\char`\"{}/>
+      <!-{}- Types for messages -{}->
+      <xsd:complexType name=\char`\"{}DelegateCredentialsInitRequestType\char`\"{}>
+        <xsd:sequence>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}DelegateCredentialsInit\char`\"{}
+                   type=\char`\"{}deleg:DelegateCredentialsInitRequestType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}DelegateCredentialsInitResponseType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}TokenRequest\char`\"{} type=\char`\"{}deleg:TokenRequestType\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}
+                   type=\char`\"{}deleg:DelegateCredentialsInitResponseType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}UpdateCredentialsRequestType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}DelegatedToken\char`\"{} type=\char`\"{}deleg:DelegatedTokenType\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}UpdateCredentials\char`\"{}
+                   type=\char`\"{}deleg:UpdateCredentialsRequestType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}UpdateCredentialsResponseType\char`\"{}>
+        <xsd:sequence>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}UpdateCredentialsResponse\char`\"{}
+                   type=\char`\"{}deleg:UpdateCredentialsResponseType\char`\"{}/>
+      <!-{}- Faults -{}->
+      <xsd:complexType name=\char`\"{}UnsupportedFaultType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}Description\char`\"{} type=\char`\"{}xsd:string\char`\"{}
+                       minOccurs=\char`\"{}0\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}UnsupportedFault\char`\"{} type=\char`\"{}deleg:UnsupportedFaultType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}ProcessingFaultType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}Description\char`\"{} type=\char`\"{}xsd:string\char`\"{}
+                       minOccurs=\char`\"{}0\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}ProcessingFault\char`\"{} type=\char`\"{}deleg:ProcessingFaultType\char`\"{}/>
+      <xsd:complexType name=\char`\"{}WrongReferenceFaultType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}Description\char`\"{} type=\char`\"{}xsd:string\char`\"{}
+                       minOccurs=\char`\"{}0\char`\"{}/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name=\char`\"{}WrongReferenceFault\char`\"{} type=\char`\"{}deleg:WrongReferenceFaultType\char`\"{}/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}>
+    <wsdl:part name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}
+               element=\char`\"{}deleg:DelegateCredentialsInit\char`\"{}/>
+  </wsdl:message>
+  <wsdl:message name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}>
+    <wsdl:part name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}
+               element=\char`\"{}deleg:DelegateCredentialsInitResponse\char`\"{}/>
+  </wsdl:message>
+  <wsdl:message name=\char`\"{}UpdateCredentialsRequest\char`\"{}>
+    <wsdl:part name=\char`\"{}UpdateCredentialsRequest\char`\"{} element=\char`\"{}deleg:UpdateCredentials\char`\"{}/>
+  </wsdl:message>
+  <wsdl:message name=\char`\"{}UpdateCredentialsResponse\char`\"{}>
+    <wsdl:part name=\char`\"{}UpdateCredentialsResponse\char`\"{}
+               element=\char`\"{}deleg:UpdateCredentialsResponse\char`\"{}/>
+  </wsdl:message>
+  <wsdl:message name=\char`\"{}UnsupportedFault\char`\"{}>
+    <wsdl:part name=\char`\"{}Detail\char`\"{} element=\char`\"{}deleg:UnsupportedFault\char`\"{}/>
+  </wsdl:message>
+  <wsdl:message name=\char`\"{}ProcessingFault\char`\"{}>
+    <wsdl:part name=\char`\"{}Detail\char`\"{} element=\char`\"{}deleg:ProcessingFault\char`\"{}/>
+  </wsdl:message>
+  <wsdl:message name=\char`\"{}WrongReferenceFault\char`\"{}>
+    <wsdl:part name=\char`\"{}Detail\char`\"{} element=\char`\"{}deleg:WrongReferenceFault\char`\"{}/>
+  </wsdl:message>
+  <wsdl:portType name=\char`\"{}DelegationPortType\char`\"{}>
+   <wsdl:operation name=\char`\"{}DelegateCredentialsInit\char`\"{}>
+      <wsdl:documentation>
+      </wsdl:documentation>
+      <wsdl:input name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}
+        message=\char`\"{}deleg:DelegateCredentialsInitRequest\char`\"{}/>
+      <wsdl:output name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}
+        message=\char`\"{}deleg:DelegateCredentialsInitResponse\char`\"{}/>
+      <wsdl:fault name=\char`\"{}UnsupportedFault\char`\"{}
+        message=\char`\"{}deleg:UnsupportedFault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}ProcessingFault\char`\"{}
+        message=\char`\"{}deleg:ProcessingFault\char`\"{}/>
+    </wsdl:operation>
+   <wsdl:operation name=\char`\"{}UpdateCredentials\char`\"{}>
+      <wsdl:documentation>
+      </wsdl:documentation>
+      <wsdl:input name=\char`\"{}UpdateCredentialsRequest\char`\"{}
+        message=\char`\"{}deleg:UpdateCredentialsRequest\char`\"{}/>
+      <wsdl:output name=\char`\"{}UpdateCredentialsResponse\char`\"{}
+        message=\char`\"{}deleg:UpdateCredentialsResponse\char`\"{}/>
+      <wsdl:fault name=\char`\"{}UnsupportedFault\char`\"{}
+        message=\char`\"{}deleg:UnsupportedFault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}ProcessingFault\char`\"{}
+        message=\char`\"{}deleg:ProcessingFault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}WrongReferenceFault\char`\"{}
+        message=\char`\"{}deleg:WrongReferenceFault\char`\"{}/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name=\char`\"{}DelegationBinding\char`\"{} type=\char`\"{}deleg:DelegationPortType\char`\"{}>
+    <soap:binding style=\char`\"{}document\char`\"{}
+                  transport=\char`\"{}http://schemas.xmlsoap.org/soap/http\char`\"{}/>
+    <wsdl:operation name=\char`\"{}DelegateCredentialsInit\char`\"{}>
+      <soap:operation soapAction=\char`\"{}DelegateCredentialsInit\char`\"{}/>
+      <wsdl:input name=\char`\"{}DelegateCredentialsInitRequest\char`\"{}>
+         <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:input>
+      <wsdl:output name=\char`\"{}DelegateCredentialsInitResponse\char`\"{}>
+         <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name=\char`\"{}UpdateCredentials\char`\"{}>
+      <soap:operation soapAction=\char`\"{}UpdateCredentials\char`\"{}/>
+      <wsdl:input name=\char`\"{}UpdateCredentialsRequest\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:input>
+      <wsdl:output name=\char`\"{}UpdateCredentialsResponse\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{}/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
 </wsdl:definitions>
-\end{lyxcode}
-
-\section{ARC extensions for JSDL schema}
-
-\begin{lyxcode}
-<?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
-
-<xsd:schema~xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
-
-~~~~~~~~~~~~xmlns=\char`\"{}http://www.nordugrid.org/ws/schemas/jsdl-arc\char`\"{}
-
-~~~~~~~~~~~~xmlns:jsdl-arc=\char`\"{}http://www.nordugrid.org/ws/schemas/jsdl-arc\char`\"{}
-
-~~~~~~~~~~~~targetNamespace=\char`\"{}http://www.nordugrid.org/ws/schemas/jsdl-arc\char`\"{}>
-
-~<xsd:simpleType~name=\char`\"{}GMState\_Type\char`\"{}>
-
-~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~<xsd:enumeration~value=\char`\"{}ACCEPTED\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}PREPARING\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}SUBMIT\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}INLRMS\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}FINISHING\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}FINISHED\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}DELETED\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}CANCELING\char`\"{}/>
-
-~~</xsd:restriction>
-
-~</xsd:simpleType>
-
-~<xsd:complexType~name=\char`\"{}Version\_Type\char`\"{}>
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}UpperExclusive\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}LowerExclusive\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}Exact\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}Exclusive\char`\"{}~type=\char`\"{}xsd:boolean\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:simpleType~name=\char`\"{}SessionType\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:Resources\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}SessionType\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~<xsd:enumeration~value=\char`\"{}INTERNAL\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}LIMITED\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}READONLY\char`\"{}/>
-
-~~~<xsd:enumeration~value=\char`\"{}FULL\char`\"{}/>
-
-~~</xsd:restriction>
-
-~</xsd:simpleType>
-
-~<xsd:simpleType~name=\char`\"{}IsExecutable\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:DataStaging\_Type~(default:~false)~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}IsExecutable\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:boolean\char`\"{}/>
-
-~</xsd:simpleType>
-
-~<xsd:simpleType~name=\char`\"{}FileParameters\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:DataStaging\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}IsExecutable\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}/>
-
-~</xsd:simpleType>
-
-~<xsd:simpleType~name=\char`\"{}JoinOutputs\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~(default:~false)~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}JoinOutputs\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:boolean\char`\"{}/>
-
-~</xsd:simpleType>
-
-~<xsd:simpleType~name=\char`\"{}Reruns\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~(default:~false)~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}Reruns\char`\"{}~minOccurs=\char`\"{}0\char`\"{}//~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:integer\char`\"{}/>
-
-~</xsd:simpleType>
-
-~<xsd:complexType~name=\char`\"{}RunTimeEnvironment\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:Resources\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}RunTimeEnvironment\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}Name\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}Version\char`\"{}~type=\char`\"{}Version\_Type\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:complexType~name=\char`\"{}Middleware\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:Resources\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}Middleware\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}Name\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}Version\char`\"{}~type=\char`\"{}Version\_Type\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:complexType~name=\char`\"{}RemoteLogging\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}RemoteLogging\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}3\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}URL\char`\"{}~minOccurs=\char`\"{}1\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}~type=\char`\"{}xsd:anyURI\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:complexType~name=\char`\"{}CredentialServer\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}CredentialServer\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}URL\char`\"{}~minOccurs=\char`\"{}1\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}~type=\char`\"{}xsd:anyURI\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:complexType~name=\char`\"{}LocalLogging\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}LocalLogging\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}Directory\char`\"{}~minOccurs=\char`\"{}1\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:simpleType~name=\char`\"{}AccessControlType\_Type\char`\"{}>
-
-~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~<xsd:enumeration~value=\char`\"{}GACL\char`\"{}/>
-
-~~</xsd:restriction>
-
-~</xsd:simpleType>
-
-~<xsd:complexType~name=\char`\"{}AccessControl\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}AccessControl\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}OwnerAlwaysAllowed\char`\"{}~type=\char`\"{}xsd:boolean\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}Type\char`\"{}~type=\char`\"{}AccessControlType\_Type\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}Content\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:simpleType~name=\char`\"{}NotificationType\_Type\char`\"{}>
-
-~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
-
-~~~<xsd:enumeration~value=\char`\"{}Email\char`\"{}/>
-
-~~</xsd:restriction>
-
-~</xsd:simpleType>
-
-~<xsd:complexType~name=\char`\"{}Notify\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}Notify\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}3\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}Type\char`\"{}~type=\char`\"{}NotificationType\_Type\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}Endpoint\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}State\char`\"{}~minOccurs=\char`\"{}1\char`\"{}~maxOccurs=\char`\"{}unbounded\char`\"{}~type=\char`\"{}GMState\_Type\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:simpleType~name=\char`\"{}SessionLifeTime\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:Resources\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}SessionLifeTime\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}/~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:long\char`\"{}/>
-
-~</xsd:simpleType>
-
-~<xsd:simpleType~name=\char`\"{}GridTimeLimit\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:Resources\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}GridTimeLimit\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}/~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:positiveInteger\char`\"{}/>
-
-~</xsd:simpleType>
-
-~<xsd:complexType~name=\char`\"{}CandidateTarget\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:Resources\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}jsdl-arc:CandidateTarget\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}/~-{}->
-
-~~<xsd:sequence>
-
-~~~<xsd:element~name=\char`\"{}HostName\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~~<xsd:element~name=\char`\"{}QueueName\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
-
-~~</xsd:sequence>
-
-~</xsd:complexType>
-
-~<xsd:simpleType~name=\char`\"{}Time\_Type\char`\"{}>
-
-~~<xsd:documentation>~For~jsdl:JobDescription\_Type~</xsd:documentation>
-
-~~<!-{}-~xsd:element~ref=\char`\"{}ProcessingStartTime\char`\"{}~minOccurs=\char`\"{}0\char`\"{}~maxOccurs=\char`\"{}1\char`\"{}/~-{}->
-
-~~<xsd:restriction~base=\char`\"{}xsd:dateTime\char`\"{}/>
-
-~</xsd:simpleType>
-
-~<!-{}-=========================================================-{}->
-
-~<xsd:element~name=\char`\"{}IsExecutable\char`\"{}~type=\char`\"{}IsExecutable\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}FileParameters\char`\"{}~type=\char`\"{}FileParameters\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}RunTimeEnvironment\char`\"{}~type=\char`\"{}RunTimeEnvironment\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}Middleware\char`\"{}~type=\char`\"{}Middleware\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}RemoteLogging\char`\"{}~type=\char`\"{}RemoteLogging\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}LocalLogging\char`\"{}~type=\char`\"{}LocalLogging\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}AccessControl\char`\"{}~type=\char`\"{}AccessControl\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}Notify\char`\"{}~type=\char`\"{}Notify\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}SessionLifeTime\char`\"{}~type=\char`\"{}SessionLifeTime\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}SessionType\char`\"{}~type=\char`\"{}SessionType\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}JoinOutputs\char`\"{}~type=\char`\"{}JoinOutputs\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}Reruns\char`\"{}~type=\char`\"{}Reruns\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}CredentialServer\char`\"{}~type=\char`\"{}CredentialServer\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}GridTimeLimit\char`\"{}~type=\char`\"{}GridTimeLimit\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}CandidateTarget\char`\"{}~type=\char`\"{}CandidateTarget\_Type\char`\"{}/>
-
-~<xsd:element~name=\char`\"{}ProcessingStartTime\char`\"{}~type=\char`\"{}Time\_Type\char`\"{}/>
-
+\end{verbatim}
+\end{footnotesize}
+
+\section{ARC extensions for JSDL schema\label{annex:jsdl-extension}}
+
+\begin{footnotesize}\begin{verbatim}
+<?xml version=\char`\"{}1.0\char`\"{} encoding=\char`\"{}UTF-8\char`\"{}?>
+<xsd:schema xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
+            xmlns=\char`\"{}http://www.nordugrid.org/ws/schemas/jsdl-arc\char`\"{}
+            xmlns:jsdl-arc=\char`\"{}http://www.nordugrid.org/ws/schemas/jsdl-arc\char`\"{}
+            targetNamespace=\char`\"{}http://www.nordugrid.org/ws/schemas/jsdl-arc\char`\"{}>
+ <xsd:simpleType name=\char`\"{}GMState\_Type\char`\"{}>
+  <xsd:restriction base=\char`\"{}xsd:string\char`\"{}>
+   <xsd:enumeration value=\char`\"{}ACCEPTED\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}PREPARING\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}SUBMIT\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}INLRMS\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}FINISHING\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}FINISHED\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}DELETED\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}CANCELING\char`\"{}/>
+  </xsd:restriction>
+ </xsd:simpleType>
+ <xsd:complexType name=\char`\"{}Version\_Type\char`\"{}>
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}UpperExclusive\char`\"{} type=\char`\"{}xsd:string\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+   <xsd:element name=\char`\"{}LowerExclusive\char`\"{} type=\char`\"{}xsd:string\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+   <xsd:element name=\char`\"{}Exact\char`\"{} type=\char`\"{}xsd:string\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                maxOccurs=\char`\"{}unbounded\char`\"{}/>
+   <xsd:element name=\char`\"{}Exclusive\char`\"{} type=\char`\"{}xsd:boolean\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:simpleType name=\char`\"{}SessionType\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:Resources\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}SessionType\char`\"{} minOccurs=\char`\"{}0\char`\"{}/ -{}->
+  <xsd:restriction base=\char`\"{}xsd:string\char`\"{}>
+   <xsd:enumeration value=\char`\"{}INTERNAL\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}LIMITED\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}READONLY\char`\"{}/>
+   <xsd:enumeration value=\char`\"{}FULL\char`\"{}/>
+  </xsd:restriction>
+ </xsd:simpleType>
+ <xsd:simpleType name=\char`\"{}IsExecutable\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:DataStaging\_Type (default: false) </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}IsExecutable\char`\"{} minOccurs=\char`\"{}0\char`\"{}/ -{}->
+  <xsd:restriction base=\char`\"{}xsd:boolean\char`\"{}/>
+ </xsd:simpleType>
+ <xsd:simpleType name=\char`\"{}FileParameters\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:DataStaging\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}IsExecutable\char`\"{} minOccurs=\char`\"{}0\char`\"{}/ -{}->
+  <xsd:restriction base=\char`\"{}xsd:string\char`\"{}/>
+ </xsd:simpleType>
+ <xsd:simpleType name=\char`\"{}JoinOutputs\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type (default: false) </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}JoinOutputs\char`\"{} minOccurs=\char`\"{}0\char`\"{}/ -{}->
+  <xsd:restriction base=\char`\"{}xsd:boolean\char`\"{}/>
+ </xsd:simpleType>
+ <xsd:simpleType name=\char`\"{}Reruns\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type (default: false) </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}Reruns\char`\"{} minOccurs=\char`\"{}0\char`\"{}// -{}->
+  <xsd:restriction base=\char`\"{}xsd:integer\char`\"{}/>
+ </xsd:simpleType>
+ <xsd:complexType name=\char`\"{}RunTimeEnvironment\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:Resources\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}RunTimeEnvironment\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}unbounded\char`\"{}/ -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}Name\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+   <xsd:element name=\char`\"{}Version\char`\"{} type=\char`\"{}Version\_Type\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:complexType name=\char`\"{}Middleware\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:Resources\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}Middleware\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}unbounded\char`\"{}/ -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}Name\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+   <xsd:element name=\char`\"{}Version\char`\"{} type=\char`\"{}Version\_Type\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:complexType name=\char`\"{}RemoteLogging\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}RemoteLogging\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}3\char`\"{}/ -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}URL\char`\"{} minOccurs=\char`\"{}1\char`\"{} maxOccurs=\char`\"{}1\char`\"{}
+                type=\char`\"{}xsd:anyURI\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:complexType name=\char`\"{}CredentialServer\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}CredentialServer\char`\"{} minOccurs=\char`\"{}0\char`\"{}/ -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}URL\char`\"{} minOccurs=\char`\"{}1\char`\"{} maxOccurs=\char`\"{}1\char`\"{}
+                type=\char`\"{}xsd:anyURI\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:complexType name=\char`\"{}LocalLogging\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}LocalLogging\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}1\char`\"{}/ -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}Directory\char`\"{} minOccurs=\char`\"{}1\char`\"{} maxOccurs=\char`\"{}1\char`\"{}
+                type=\char`\"{}xsd:string\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:simpleType name=\char`\"{}AccessControlType\_Type\char`\"{}>
+  <xsd:restriction base=\char`\"{}xsd:string\char`\"{}>
+   <xsd:enumeration value=\char`\"{}GACL\char`\"{}/>
+  </xsd:restriction>
+ </xsd:simpleType>
+ <xsd:complexType name=\char`\"{}AccessControl\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}AccessControl\char`\"{} minOccurs=\char`\"{}0\char`\"{}/ -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}OwnerAlwaysAllowed\char`\"{} type=\char`\"{}xsd:boolean\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+   <xsd:element name=\char`\"{}Type\char`\"{} type=\char`\"{}AccessControlType\_Type\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+   <xsd:element name=\char`\"{}Content\char`\"{} minOccurs=\char`\"{}0\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:simpleType name=\char`\"{}NotificationType\_Type\char`\"{}>
+  <xsd:restriction base=\char`\"{}xsd:string\char`\"{}>
+   <xsd:enumeration value=\char`\"{}Email\char`\"{}/>
+  </xsd:restriction>
+ </xsd:simpleType>
+ <xsd:complexType name=\char`\"{}Notify\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}Notify\char`\"{} minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}3\char`\"{}/
+    -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}Type\char`\"{} type=\char`\"{}NotificationType\_Type\char`\"{}
+                minOccurs=\char`\"{}0\char`\"{}/>
+   <xsd:element name=\char`\"{}Endpoint\char`\"{} minOccurs=\char`\"{}0\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+   <xsd:element name=\char`\"{}State\char`\"{} minOccurs=\char`\"{}1\char`\"{} maxOccurs=\char`\"{}unbounded\char`\"{}
+                type=\char`\"{}GMState\_Type\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:simpleType name=\char`\"{}SessionLifeTime\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:Resources\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}SessionLifeTime\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}1\char`\"{}/ -{}->
+  <xsd:restriction base=\char`\"{}xsd:long\char`\"{}/>
+ </xsd:simpleType>
+ <xsd:simpleType name=\char`\"{}GridTimeLimit\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:Resources\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}GridTimeLimit\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}1\char`\"{}/ -{}->
+  <xsd:restriction base=\char`\"{}xsd:positiveInteger\char`\"{}/>
+ </xsd:simpleType>
+ <xsd:complexType name=\char`\"{}CandidateTarget\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:Resources\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}jsdl-arc:CandidateTarget\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}1\char`\"{}/ -{}->
+  <xsd:sequence>
+   <xsd:element name=\char`\"{}HostName\char`\"{} minOccurs=\char`\"{}0\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+   <xsd:element name=\char`\"{}QueueName\char`\"{} minOccurs=\char`\"{}0\char`\"{} type=\char`\"{}xsd:string\char`\"{}/>
+  </xsd:sequence>
+ </xsd:complexType>
+ <xsd:simpleType name=\char`\"{}Time\_Type\char`\"{}>
+  <xsd:documentation> For jsdl:JobDescription\_Type </xsd:documentation>
+  <!-{}- xsd:element ref=\char`\"{}ProcessingStartTime\char`\"{} minOccurs=\char`\"{}0\char`\"{}
+                     maxOccurs=\char`\"{}1\char`\"{}/ -{}->
+  <xsd:restriction base=\char`\"{}xsd:dateTime\char`\"{}/>
+ </xsd:simpleType>
+ <!-{}-=========================================================-{}->
+ <xsd:element name=\char`\"{}IsExecutable\char`\"{} type=\char`\"{}IsExecutable\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}FileParameters\char`\"{} type=\char`\"{}FileParameters\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}RunTimeEnvironment\char`\"{} type=\char`\"{}RunTimeEnvironment\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}Middleware\char`\"{} type=\char`\"{}Middleware\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}RemoteLogging\char`\"{} type=\char`\"{}RemoteLogging\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}LocalLogging\char`\"{} type=\char`\"{}LocalLogging\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}AccessControl\char`\"{} type=\char`\"{}AccessControl\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}Notify\char`\"{} type=\char`\"{}Notify\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}SessionLifeTime\char`\"{} type=\char`\"{}SessionLifeTime\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}SessionType\char`\"{} type=\char`\"{}SessionType\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}JoinOutputs\char`\"{} type=\char`\"{}JoinOutputs\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}Reruns\char`\"{} type=\char`\"{}Reruns\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}CredentialServer\char`\"{} type=\char`\"{}CredentialServer\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}GridTimeLimit\char`\"{} type=\char`\"{}GridTimeLimit\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}CandidateTarget\char`\"{} type=\char`\"{}CandidateTarget\_Type\char`\"{}/>
+ <xsd:element name=\char`\"{}ProcessingStartTime\char`\"{} type=\char`\"{}Time\_Type\char`\"{}/>
 </xsd:schema>
-\end{lyxcode}
+\end{verbatim}
+\end{footnotesize}
 
-\section{Error messages of A-REX}
+\section{Error messages of A-REX\label{annex:arex-errors}}
 
 If job has not finished successfully the A-REX puts one or more lines
 into \textit{job.ID.failed}. Possible values include those generated
 by the A-REX itself:\\
-\begin{longtable}{|p{2.5in}|p{4in}|}
+\begin{longtable}{|p{5cm}|p{10cm}|}
 \hline 
 \emph{Error string}&
 \emph{Reason/description}\tabularnewline
@@ -2952,7 +2265,7 @@ job could not be parsed\tabularnewline
 Failed in files upload (post-processing)&
 Failed to upload some or all output files\tabularnewline
 \hline 
-Failed in files upload due to expired credentials - try to renew&
+Failed in files upload due to expired credentials -- try to renew&
 Failed to upload some or all output files most probably due to expired
 credentials (proxy certificate)\tabularnewline
 \hline 
@@ -2965,7 +2278,7 @@ Generic error related to \emph{uploader} component\tabularnewline
 Failed in files download (pre-processing)&
 Failed to upload some or all input files\tabularnewline
 \hline 
-Failed in files download due to expired credentials - try to renew&
+Failed in files download due to expired credentials -- try to renew&
 Failed to download some or all input files most probably due to expired
 credentials (proxy certificate)\tabularnewline
 \hline 
@@ -3003,7 +2316,7 @@ External plugin specified in A-REX configuration could not be executed.\tabularn
 \medskip{}
 Provided by downloader component (URL is replcaced by source of input
 file, FILE by name of file):\\
-\begin{longtable}{|p{2.5in}|p{4in}|}
+\begin{longtable}{|p{5cm}|p{10cm}|}
 \hline 
 \emph{Error string}&
 \emph{Reason/description}\tabularnewline
@@ -3011,99 +2324,99 @@ file, FILE by name of file):\\
 Internal error in downloader&
 Generic error \tabularnewline
 \hline 
-Input file: URL - unknown error&
+Input file: URL -- unknown error&
 Generic error \tabularnewline
 \hline 
-Input file: URL - unexpected error&
+Input file: URL -- unexpected error&
 Generic error \tabularnewline
 \hline 
-Input file: URL - bad source URL&
+Input file: URL -- bad source URL&
 Source URL is either malformed or not supported\tabularnewline
 \hline 
-Input file: URL - bad destination URL&
+Input file: URL -- bad destination URL&
 Shouldn't happen\tabularnewline
 \hline 
-Input file: URL - failed to resolve source locations&
+Input file: URL -- failed to resolve source locations&
 File either not registred or other problems related to Data Indexing
 service.\tabularnewline
 \hline 
-Input file: URL - failed to resolve destination locations&
+Input file: URL -- failed to resolve destination locations&
 Shouldn't happen\tabularnewline
 \hline 
-Input file: URL - failed to register new destination file&
+Input file: URL -- failed to register new destination file&
 Shouldn't happen\tabularnewline
 \hline 
-Input file: URL - can't start reading from source&
+Input file: URL -- can't start reading from source&
 Problems related to accessing instance of file at Data Storing service.\tabularnewline
 \hline 
-Input file: URL - can't read from source&
+Input file: URL -- can't read from source&
 -//-\tabularnewline
 \hline 
-Input file: URL - can't start writing to destination&
+Input file: URL -- can't start writing to destination&
 Access problems in a session directory\tabularnewline
 \hline 
-Input file: URL - can't write to destination&
+Input file: URL -- can't write to destination&
 -//-\tabularnewline
 \hline 
-Input file: URL - data transfer was too slow&
+Input file: URL -- data transfer was too slow&
 Timeouted while trying to download file\tabularnewline
 \hline 
-Input file: URL - failed while closing connection to source&
+Input file: URL -- failed while closing connection to source&
 Shouldn't happen\tabularnewline
 \hline 
-Input file: URL - failed while closing connection to destination&
+Input file: URL -- failed while closing connection to destination&
 Shouldn't happen\tabularnewline
 \hline 
-Input file: URL - failed to register new location&
+Input file: URL -- failed to register new location&
 Shouldn't happen\tabularnewline
 \hline 
-Input file: URL - can't use local cache&
+Input file: URL -- can't use local cache&
 Problems with A-REX cache \tabularnewline
 \hline 
-Input file: URL - system error&
+Input file: URL -- system error&
 Operating System returned error code where unexpected\tabularnewline
 \hline 
-Input file: URL - delegated credentials expired&
+Input file: URL -- delegated credentials expired&
 Access to source requires credententials and they are either outdated
 or missing (not delegated).\tabularnewline
 \hline 
-User file: FILENAME - Bad information about file: checksum can't be
+User file: FILENAME -- Bad information about file: checksum can't be
 parsed.&
 In job description there is a checksum provided for file uploadable
 by user interface and this record can't be interpreted.\tabularnewline
 \hline 
-User file: FILENAME - Bad information about file: size can't be parsed.&
+User file: FILENAME -- Bad information about file: size can't be parsed.&
 In job description there is a size provided for file uploadable by
 user interface and this record can't be interpreted.\tabularnewline
 \hline 
-User file: FILENAME - Expected file. Directory found.&
+User file: FILENAME -- Expected file. Directory found.&
 Instead of file uploadable by user interface A-REX found directory
 with same name in a session directory.\tabularnewline
 \hline 
-User file: FILENAME - Expected ordinary file. Special object found.&
+User file: FILENAME -- Expected ordinary file. Special object found.&
 Instead of file uploadable by user interface A-REX found special object
 with same name in a session directory.\tabularnewline
 \hline 
-User file: FILENAME - Delivered file is bigger than specified.&
+User file: FILENAME -- Delivered file is bigger than specified.&
 The size of file uploadable by user interface is bigger \tabularnewline
 \hline
-User file: FILENAME - Delivered file is unreadable.&
+User file: FILENAME -- Delivered file is unreadable.&
 A-REX can't check user uploadable file due to some internal error.
 Most probably due to improperly configured local permissions.\tabularnewline
 \hline
-User file: FILENAME - Could not read file to compute checksum.&
+User file: FILENAME -- Could not read file to compute checksum.&
 A-REX can't read user uploadable file due to some internal error.
 Most probably due to improperly configured local permissions.\tabularnewline
 \hline
-User file: FILENAME - Timeout waiting&
+User file: FILENAME -- Timeout waiting&
 A-REX waited for user uploadable file too long.\tabularnewline
 \hline
 \end{longtable}
 
-\medskip{}
 Provided by uploader component (URL is replaced by destination of
-output file) :\\
-\begin{longtable}{|p{2.5in}|p{4in}|}
+output file) :
+
+\begin{longtable}{|p{5cm}|p{10cm}|}
 \hline 
 \emph{Error string}&
 \emph{Reason/description}\tabularnewline
@@ -3111,62 +2424,62 @@ output file) :\\
 Internal error in uploader&
 Generic error \tabularnewline
 \hline 
-Output file: URL - unknown error&
+Output file: URL -- unknown error&
 Generic error \tabularnewline
 \hline 
-Output file: URL - unexpected error&
+Output file: URL -- unexpected error&
 Generic error \tabularnewline
 \hline 
 User requested to store output locally URL&
 Destination is URL of type \emph{file}.\tabularnewline
 \hline 
-Output file: URL - bad source URL&
+Output file: URL -- bad source URL&
 Shouldn't happen\tabularnewline
 \hline 
-Output file: URL - bad destination URL&
+Output file: URL -- bad destination URL&
 Destination URL is either malformed or not supported\tabularnewline
 \hline 
-Output file: URL - failed to resolve source locations&
+Output file: URL -- failed to resolve source locations&
 Shouldn't happen\tabularnewline
 \hline 
-Output file: URL - failed to resolve destination locations&
+Output file: URL -- failed to resolve destination locations&
 Problems related to Data Indexing service.\tabularnewline
 \hline 
-Output file: URL - failed to register new destination file&
+Output file: URL -- failed to register new destination file&
 -//-\tabularnewline
 \hline 
-Output file: URL - can't start reading from source&
+Output file: URL -- can't start reading from source&
 User request to store output file, but there is no such file or there
 are problems accessing session directory\tabularnewline
 \hline 
-Output file: URL - can't start writing to destination&
+Output file: URL -- can't start writing to destination&
 Problems with Data Storing services\tabularnewline
 \hline 
-Output file: URL - can't read from source&
+Output file: URL -- can't read from source&
 Problems accessing session directory\tabularnewline
 \hline 
-Output file: URL - can't write to destination&
+Output file: URL -- can't write to destination&
 Problems with Data Storing services\tabularnewline
 \hline 
-Output file: URL - data transfer was too slow&
+Output file: URL -- data transfer was too slow&
 Timeout during transfer\tabularnewline
 \hline 
-Output file: URL - failed while closing connection to source&
+Output file: URL -- failed while closing connection to source&
 Shouldn't happen\tabularnewline
 \hline 
-Output file: URL - failed while closing connection to destination&
+Output file: URL -- failed while closing connection to destination&
 Shouldn't happen\tabularnewline
 \hline 
-Output file: URL - failed to register new location&
+Output file: URL -- failed to register new location&
 Problems related to Data Indexing service.\tabularnewline
 \hline 
-Output file: URL - can't use local cache&
+Output file: URL -- can't use local cache&
 Shouldn't happen\tabularnewline
 \hline 
-Output file: URL - system error&
+Output file: URL -- system error&
 Operating System returned error code where unexpected\tabularnewline
 \hline 
-Output file: URL - delegated credentials expired&
+Output file: URL -- delegated credentials expired&
 Access to destination requires credententials and they are either
 outdated or missing (not delegated).\tabularnewline
 \hline
