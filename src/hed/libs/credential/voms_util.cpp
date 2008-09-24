@@ -503,9 +503,9 @@ err:
     ctx = X509_STORE_new();
     if (ctx && csc) {
       X509_STORE_set_verify_cb_func(ctx,cb);
-#ifdef SIGPIPE
-      signal(SIGPIPE,SIG_IGN);
-#endif
+//#ifdef SIGPIPE
+//      signal(SIGPIPE,SIG_IGN);
+//#endif
       CRYPTO_malloc_init();
       if ((lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
         X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_DEFAULT);
@@ -533,9 +533,9 @@ err:
     ctx = X509_STORE_new();
     if (ctx && csc) {
       X509_STORE_set_verify_cb_func(ctx,cb);
-#ifdef SIGPIPE
-      signal(SIGPIPE,SIG_IGN);
-#endif
+//#ifdef SIGPIPE
+//      signal(SIGPIPE,SIG_IGN);
+//#endif
       CRYPTO_malloc_init();
       if ((lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
         X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_DEFAULT);
