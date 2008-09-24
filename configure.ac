@@ -843,6 +843,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/common/test/Makefile
                  src/hed/libs/credential/Makefile
                  src/hed/libs/data/Makefile
+                 src/hed/libs/data/test/Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
                  src/hed/libs/message/Makefile
