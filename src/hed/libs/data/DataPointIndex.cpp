@@ -19,14 +19,14 @@ namespace Arc {
 
   const URL& DataPointIndex::CurrentLocation() const {
     static const URL empty;
-    if (location == locations.end())
+    if (locations.end() == location)
       return empty;
     return *location;
   }
 
   const std::string& DataPointIndex::CurrentLocationMetadata() const {
     static const std::string empty;
-    if (location == locations.end())
+    if (locations.end() == location)
       return empty;
     return location->Name();
   }
@@ -38,7 +38,7 @@ namespace Arc {
   bool DataPointIndex::LocationValid() const {
     if (triesleft <= 0)
       return false;
-    if (location == locations.end())
+    if (locations.end() == location)
       return false;
     return true;
   }
@@ -47,10 +47,10 @@ namespace Arc {
     if (!LocationValid())
       return false;
     ++location;
-    if (location == locations.end())
+    if (locations.end() == location)
       if (--triesleft > 0)
 	location = locations.begin();
-    if (location != locations.end())
+    if (locations.end() != location)
       h = *location;
     else
       h.Clear();
@@ -58,12 +58,12 @@ namespace Arc {
   }
 
   DataStatus DataPointIndex::RemoveLocation() {
-    if (location == locations.end())
+    if (locations.end() == location)
       return DataStatus::NoLocationError;
     location = locations.erase(location);
-    if (location == locations.end())
+    if (locations.end() == location)
       location = locations.begin();
-    if (location != locations.end())
+    if (locations.end() != location)
       h = *location;
     else
       h.Clear();
@@ -88,9 +88,9 @@ namespace Arc {
 	    p_int = locations.erase(p_int);
 	else
 	  ++p_int;
-    if (location == locations.end())
+    if (locations.end() == location)
       location = locations.begin();
-    if (location != locations.end())
+    if (locations.end() != location)
       h = *location;
     else
       h.Clear();
@@ -113,9 +113,9 @@ namespace Arc {
     triesleft = std::max(0, n);
     if (triesleft == 0)
       location = locations.end();
-    else if (location == locations.end())
+    else if (locations.end() == location)
       location = locations.begin();
-    if (location != locations.end())
+    if (locations.end() != location)
       h = *location;
     else
       h.Clear();
