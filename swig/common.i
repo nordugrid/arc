@@ -45,4 +45,52 @@
 
 %include "../src/hed/libs/common/ArcConfig.h"
 %include "../src/hed/libs/common/IString.h"
+%rename(LogStream_ostream) LogStream;
 %include "../src/hed/libs/common/Logger.h"
+
+#ifdef SWIGPYTHON
+
+// code from: http://www.nabble.com/Using-std%3A%3Aistream-from-Python-ts7920114.html#a7923253
+%inline %{ 
+class CPyOutbuf : public std::streambuf 
+{ 
+public: 
+     CPyOutbuf(PyObject* obj) { 
+         m_PyObj = obj; 
+         Py_INCREF(m_PyObj); 
+     } 
+     ~CPyOutbuf() { 
+         Py_DECREF(m_PyObj); 
+     } 
+protected: 
+     int_type overflow(int_type c) { 
+         PyObject_CallMethod(m_PyObj, "write", "c", c); 
+         return c; 
+     } 
+     int_type xsputn(const char* s, std::streamsize count) { 
+         PyObject_CallMethod(m_PyObj, "write", "s#", s, int(count)); 
+         return count; 
+     } 
+     PyObject* m_PyObj; 
+}; 
+
+class CPyOstream : public std::ostream 
+{ 
+public: 
+     CPyOstream(PyObject* obj) : m_Buf(obj), std::ostream(&m_Buf) {} 
+private: 
+     CPyOutbuf m_Buf; 
+}; 
+
+%} 
+
+%pythoncode %{
+    def LogStream(file):
+        os = CPyOstream(file)
+        os.thisown = False
+        ls = LogStream_ostream(os)
+        ls.thisown = False
+        return ls
+
+%}
+#endif
