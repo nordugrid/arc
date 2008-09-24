@@ -1,6 +1,7 @@
 #ifndef __ARC_ISTRING__
 #define __ARC_ISTRING__
 
+#include <list>
 #include <string>
 #include <ostream>
 
@@ -52,14 +53,9 @@ namespace Arc {
     }
 
     ~PrintF() {
-      Delete(t0);
-      Delete(t1);
-      Delete(t2);
-      Delete(t3);
-      Delete(t4);
-      Delete(t5);
-      Delete(t6);
-      Delete(t7);
+      for (std::list<char*>::iterator it = ptrs.begin();
+	   it != ptrs.end(); it++)
+	free(*it);
     }
 
     void msg(std::ostream& os) {
@@ -75,44 +71,26 @@ namespace Arc {
 
     // general case
     template <class T, class U>
-    inline static void Copy(T& t, const U& u) {
+    inline void Copy(T& t, const U& u) {
       t = u;
     }
 
-    // const char[]
+    // char[] and const char[]
     template <class T>
-    inline static void Copy(T& t, const char* const& u) {
-      strcpy(t, u);
-    }
-
-    // char[]
-    template <class T>
-    inline static void Copy(T& t, char* const& u) {
+    inline void Copy(T& t, const char u[]) {
       strcpy(t, u);
     }
 
     // const char*
-    inline static void Copy(const char*& t, const char* const& u) {
+    inline void Copy(const char*& t, const char* const& u) {
       t = strdup(u);
+      ptrs.push_back(const_cast<char*>(t));
     }
 
     // char*
-    inline static void Copy(char*& t, char* const& u) {
+    inline void Copy(char*& t, char* const& u) {
       t = strdup(u);
-    }
-
-    // general case (including const char[] and char[])
-    template <class T>
-    inline static void Delete(const T&) {}
-
-    // const char* (but not const char[])
-    inline static void Delete(const char*& t) {
-      free(const_cast<char*>(t));
-    }
-
-    // char* (but not char[])
-    inline static void Delete(char*& t) {
-      free(t);
+      ptrs.push_back(t);
     }
 
     // general case
@@ -136,6 +114,11 @@ namespace Arc {
       return FindTrans(t.c_str());
     }
 
+    // std::string ()()
+    inline static const char* Get(std::string (*t)()) {
+      return FindTrans(t().c_str());
+    }
+
     std::string m;
     T0 t0;
     T1 t1;
@@ -145,6 +128,7 @@ namespace Arc {
     T5 t5;
     T6 t6;
     T7 t7;
+    std::list<char*> ptrs;
   };
 
   class IString {
