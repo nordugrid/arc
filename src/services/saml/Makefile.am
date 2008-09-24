@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = libaa.la
 noinst_PROGRAMS = login_tests saml_tests test_service test_client #test
 
-libaa_la_SOURCES  = aaservice.cpp aaservice.h
+libaa_la_SOURCES  = aaservice.cpp aaservice.h saml_util.cpp saml_util.h
 libaa_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
 libaa_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                     $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
