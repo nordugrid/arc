@@ -39,7 +39,8 @@ FileCache::FileCache(std::string cache_path,
   std::vector<struct CacheParameters> caches;
   caches.push_back(cache_info);
   
-  _init(caches, id, job_uid, job_gid, cache_dir_length, cache_dir_levels);
+  // if problem in init, clear _caches so object is invalid
+  if (!_init(caches, id, job_uid, job_gid, cache_dir_length, cache_dir_levels)) _caches.clear();
 }
 
 FileCache::FileCache(std::vector<struct CacheParameters> caches,
@@ -49,7 +50,8 @@ FileCache::FileCache(std::vector<struct CacheParameters> caches,
     int cache_dir_length,
     int cache_dir_levels) {
   
-  _init(caches, id, job_uid, job_gid, cache_dir_length, cache_dir_levels);
+  // if problem in init, clear _caches so object is invalid
+  if (!_init(caches, id, job_uid, job_gid, cache_dir_length, cache_dir_levels)) _caches.clear();
 }
 
 bool FileCache::_init(std::vector<struct CacheParameters> caches,
@@ -137,6 +139,19 @@ bool FileCache::_init(std::vector<struct CacheParameters> caches,
 
     
 FileCache::FileCache(const FileCache& cache) {
+  
+  // our hostname and pid
+  struct utsname buf;
+  if (uname(&buf) != 0) {
+    logger.msg(ERROR, "Cannot determine hostname from uname()");
+    return;
+  }
+  _hostname = buf.nodename;
+  int pid_i = getpid();
+  std::stringstream ss;
+  ss << pid_i;
+  ss >> _pid;
+  
   _caches = cache._caches;
   _cache_path = cache._cache_path;
   _cache_job_dir_path = cache._cache_job_dir_path;
@@ -147,18 +162,7 @@ FileCache::FileCache(const FileCache& cache) {
   _cache_dir_length = cache._cache_dir_length;
   _cache_dir_levels = cache._cache_dir_levels;
   
-  // our hostname and pid
-  struct utsname buf;
-  if (uname(&buf) != 0) {
-    logger.msg(ERROR, "Cannot determine hostname from uname()");
-    // return false;
-  }
-  _hostname = buf.nodename;
-  int pid_i = getpid();
-  std::stringstream ss;
-  ss << pid_i;
-  ss >> _pid;
-  
+
 }
 
 FileCache::~FileCache(void) {
@@ -642,12 +646,12 @@ Time FileCache::GetCreated(std::string url) {
   }
   
   time_t ctime = fileStat.st_ctime;
-  if (ctime <= 0) return 0;
-  return ctime;
+  if (ctime <= 0) return Time(0);
+  return Time(ctime);
 }
 
 bool FileCache::CheckValid(std::string url) {
-  return (GetValid(url) != -0);
+  return (GetValid(url) != Time(0));
 }
 
 Time FileCache::GetValid(std::string url) {
@@ -659,40 +663,42 @@ Time FileCache::GetValid(std::string url) {
   pFile = fopen ((char*)_getMetaFileName(url).c_str(), "r");
   if (pFile == NULL) {
     logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), strerror(errno));
-    return -1;
+    return Time(0);
   }
   fgets (mystring, sizeof(mystring), pFile);
   fclose (pFile);
   
   std::string meta_str(mystring);
   // if the file contains only the url, we don't have an expiry time
-  if (meta_str == url) return 0;
+  if (meta_str == url) return Time(0);
 
-  // check sensible formatting - should be like "rls://rls1.ndgf.org/file1 1234567890"
+  // check sensible formatting - should be like "rls://rls1.ndgf.org/file1 20080101123456Z"
   if (meta_str.substr(0, url.length()+1) != url+" ") {
     logger.msg(ERROR, "Mismatching url in file %s: %s Expected %s", _getMetaFileName(url), meta_str, url);
-    return 0;
+    return Time(0);
   }
-  if (meta_str.length() != url.length() + 11) {
+  if (meta_str.length() != url.length() + 16) {
     logger.msg(ERROR, "Bad format in file %s: %s", _getMetaFileName(url), meta_str);
-    return 0;
+    return Time(0);
   }
   if (meta_str.substr(url.length(), 1) != " ") {
     logger.msg(ERROR, "Bad separator in file %s: %s", _getMetaFileName(url), meta_str);
-    return 0;    
+    return Time(0);    
   }
-  if (meta_str.substr(url.length() + 1).length() != 10) {
+  if (meta_str.substr(url.length() + 1).length() != 15) {
     logger.msg(ERROR, "Bad value of expiry time in %s: %s", _getMetaFileName(url), meta_str);
-    return 0;
+    return Time(0);
   }
   
-  // convert to int
+  // convert to Time object
+  return Time(meta_str.substr(url.length() + 1));
+  /*
   int exp_time;
   if(EOF == sscanf(meta_str.substr(url.length() + 1).c_str(), "%i", &exp_time) || exp_time < 0) {
     logger.msg(ERROR, "Error with converting time in file %s: %s", _getMetaFileName(url), meta_str);
     return 0;
   }
-  return (time_t)exp_time;
+  return (time_t)exp_time;*/
 }
 
 bool FileCache::SetValid(std::string url, Time val) {
@@ -704,10 +710,7 @@ bool FileCache::SetValid(std::string url, Time val) {
     logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
     return false;
   }
-  // convert time to string
-  std::stringstream out;
-  out << val;
-  std::string file_data = url + " " + out.str();
+  std::string file_data = url + " " + val.str(MDSTime);
   fputs ((char*)file_data.c_str(), pFile);
   fclose (pFile);
   return true;
