@@ -839,7 +839,7 @@ class GatewayClient(Client):
 
         def __init__(self, url):
 
-                ns = arc.NS({'gateway':gateway_uri})
+                ns = arc.NS('gateway', gateway_uri)
                 # calls the superclass' constructor
                 Client.__init__(self, url, ns)
 
@@ -987,7 +987,7 @@ class ExternalStorageInformationClient(Client):
 
         def __init__(self, url):
 
-                ns = arc.NS({'externalStorageInformation':externalInfo_uri})
+                ns = arc.NS('externalStorageInformation', externalInfo_uri)
                 # calls the superclass' constructor
                 Client.__init__(self, url, ns)
 
@@ -1028,7 +1028,7 @@ class TransferClient(Client):
 
         def __init__(self, url):
 
-                ns = arc.NS({'transfer':transfer_uri})
+                ns = arc.NS('transfer', transfer_uri)
                 # calls the superclass' constructor
                 Client.__init__(self, url, ns)
 

@@ -489,7 +489,7 @@ def create_response(method_name, tag_names, elements, payload, single = False):
         elements = {'123': ['alive', '871432'], '456': ['alive', '945']}
         tag_names = ['requestID', 'state', 'size']
         method_name = 'stat'
-        payload = arc.PayloadSOAP(arc.NS({}))
+        payload = arc.PayloadSOAP(arc.NS())
 
     after create_response(method_name, tag_names, elements, payload, single = False) payload will contain:
     

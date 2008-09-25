@@ -61,7 +61,7 @@ class Service:
         self.request_names = request_names
         self.namespace_prefix = namespace_prefix
         self.namespace_uri = namespace_uri
-        self.ns = arc.NS({namespace_prefix : namespace_uri})
+        self.ns = arc.NS(namespace_prefix, namespace_uri)
         
     
     def newSOAPPayload(self):

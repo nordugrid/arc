@@ -29,7 +29,7 @@ class EchoService:
         # put it between the response-prefix and the response-suffix
         hear = self.prefix + say + self.suffix
         # create an answer payload
-        outpayload = arc.PayloadSOAP(arc.NS({'echo':'urn:echo'}))
+        outpayload = arc.PayloadSOAP(arc.NS('echo', 'urn:echo'))
         # here we defined that 'echo' prefix will be the namespace prefix of 'urn:echo'
         # and we create a node at '/echo:echoResponse/echo:hear' and put the string in it
         outpayload.NewChild('echo:echoResponse').NewChild('echo:hear').Set(hear)

@@ -21,7 +21,7 @@ class HardlinkingBackend:
         self.ssl_config = ssl_config
         self.log = log
         self.file_arrived = file_arrived
-        #self.ns = arc.NS({'she' : ns_uri})
+        #self.ns = arc.NS('she', ns_uri)
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
         # TODO: add '/' at the end of TURLPrefix if needed

@@ -13,7 +13,7 @@ class ByteIOBackend:
     def __init__(self, backendcfg, ns_uri, file_arrived, log):
         self.log = log
         self.file_arrived = file_arrived
-        self.ns = arc.NS({'she' : ns_uri})
+        self.ns = arc.NS('she', ns_uri)
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
