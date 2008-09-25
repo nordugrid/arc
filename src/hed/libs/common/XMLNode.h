@@ -143,7 +143,7 @@ class XMLNode {
   /** Fills argument with this instance XML subtree textual representation if the XML
    subtree is corresponding to the encoding format specified in the argument, e.g. utf-8
   */
-  void GetXML(std::string& out_xml_str,const std::string& encoding,bool user_friendly) const;
+  void GetXML(std::string& out_xml_str,const std::string& encoding,bool user_friendly = false) const;
   /** Fills argument with whole XML document textual representation */
   void GetDoc(std::string& out_xml_str,bool user_friendly = false) const;
   /** Returns textual content of node excluding content of children nodes */
