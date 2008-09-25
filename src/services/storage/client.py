@@ -111,9 +111,13 @@ class Client:
                 return resp, r.status, r.reason
             except socket.error, e:
                 if e[0] == 61: 
-                    raise Exception, "Connection refused to '%s:%s%s'" % (self.host, self.port, self.path) 
+                    raise Exception, "Connection refused to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path) 
                 else:
+                    print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
                     raise
+            except:
+                print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
+                raise
 
 class AHashClient(Client):
 

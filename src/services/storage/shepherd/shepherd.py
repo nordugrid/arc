@@ -82,7 +82,12 @@ class Shepherd:
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
                     #print 'reporting', self.serviceID, filelist
                     # call the report method of the librarian with the collected filelist and with our serviceID
-                    next_report = self.librarian.report(self.serviceID, filelist)
+                    try:
+                        next_report = self.librarian.report(self.serviceID, filelist)
+                    except:
+                        self.log()
+                        # if next_report is below zero, then we will send everything again
+                        next_report = -1
                     # we should get the time of the next report
                     # if we don't get any time, do the next report 10 seconds later
                     if not next_report:
@@ -94,6 +99,7 @@ class Shepherd:
                         # add the full list of stored files to the changed_state list - all the files will be reported next time (which is immediately, see below)
                         self.changed_states.extend(self.store.list())
                     # let's wait until there is any changed file or the reporting time is up - we need to do report even if no file changed (as a heartbeat)
+                    time.sleep(1)
                     while len(self.changed_states) == 0 and last_report + next_report * 0.5 > time.time():
                         time.sleep(1)
                 else:

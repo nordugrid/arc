@@ -762,10 +762,9 @@ def make_decision(policy, request):
     print response_list
     if response_list.count(arc.DECISION_DENY) > 0:
         return False
-    return True
-    # if response_list.count(arc.DECISION_PERMIT) > 0:
-    #     return True
-    # return False
+    if response_list.count(arc.DECISION_PERMIT) > 0:
+        return True
+    return False
 
 def parse_ssl_config(cfg):
     try:
