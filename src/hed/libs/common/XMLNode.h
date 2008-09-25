@@ -33,6 +33,7 @@ class NS: public std::map<std::string,std::string> {
       operator[](nslist[n][0])=nslist[n][1];
     };
   };
+  NS(const std::map<std::string,std::string>& nslist):std::map<std::string,std::string>(nslist) { };
 };
 
 typedef std::list<Arc::XMLNode> XMLNodeList; 
