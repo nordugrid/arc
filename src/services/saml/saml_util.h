@@ -6,6 +6,8 @@
 
 #include <xmlsec/crypto.h>
 
+#include <arc/XMLNode.h>
+
 namespace Arc {
 
   typedef enum {
@@ -16,6 +18,8 @@ namespace Arc {
   std::string SignQuery(std::string query, SignatureMethod sign_method, std::string& privkey_file);
 
   bool VerifyQuery(const std::string query, const xmlSecKey *sender_public_key);
+
+  std::string BuildDeflatedQuery(const Arc::XMLNode& node);
 
 }// namespace Arc
 

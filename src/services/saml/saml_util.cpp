@@ -6,8 +6,8 @@
 #include <fstream>
 #include <glibmm/fileutils.h>
 #include <unistd.h>
-
 #include <cstring>
+#include <zlib.h>
 
 #include <libxml/uri.h>
 
@@ -215,5 +215,58 @@ namespace Arc {
     return true;
   }
 
+  std::string BuildDeflatedQuery(const Arc::XMLNode& node) {
+    //deflated, b64'ed and url-escaped
+    std::string encoding("utf-8");
+    std::string query;
+    node.GetXML(query, encoding);
+
+    unsigned long len;
+    z_stream stream;
+    xmlChar *out;
+    len = query.length();
+    out = (xmlChar*)(malloc(len * 2));
+
+    stream.next_in = (Bytef*)(query.c_str());
+    stream.avail_in = len;
+    stream.next_out = out;
+    stream.avail_out = len * 2;
+
+    stream.zalloc = NULL;
+    stream.zfree = NULL;
+    stream.opaque = NULL;
+
+    int rc;
+    /* -MAX_WBITS to disable zib headers */
+    rc = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -MAX_WBITS, 5, 0);
+    if (rc == Z_OK) {
+      rc = deflate(&stream, Z_FINISH);
+      if (rc != Z_STREAM_END) {
+        deflateEnd(&stream);
+        if (rc == Z_OK) {
+          rc = Z_BUF_ERROR;
+        }
+      } 
+      else {
+        rc = deflateEnd(&stream);
+      }
+    }
+    if (rc != Z_OK) {
+      free(out);
+      std::cerr<<"Failed to deflate the data"<<std::endl;
+      return std::string();
+    }
+
+    xmlChar* b64_out;
+    b64_out = xmlSecBase64Encode(out, stream.total_out, 0);
+    free(out);
+    out = xmlURIEscapeStr(b64_out, NULL);
+    std::string res((char*)out);
+
+    xmlFree(b64_out);
+    xmlFree(out);
+
+    return res;
+  }
 
 } //namespace Arc
