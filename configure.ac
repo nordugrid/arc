@@ -406,6 +406,19 @@ fi
 AC_MSG_NOTICE([MySQL client library enabled: $enable_mysql])
 AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$enable_mysql" = "xyes"])
 
+# check zlib 
+AC_ARG_WITH(zlib,
+  AC_HELP_STRING([--with-zlib=PATH], [where zlib is installed]),
+    [ if test -d "$withval"; then 
+         CPPFLAGS="${CPPFLAGS} -I$withval/include"
+	 LDFLAGS="${LDFLAGS} -L$withval/lib"
+      fi
+    ]
+)
+AC_CHECK_HEADER([zlib.h],,AC_MSG_ERROR([unable to find zlib header files]))
+AC_CHECK_LIB([z],[deflateInit2_],,AC_MSG_ERROR([unable to link with zlib library]))
+
+
 ###############################################
 #
 # Check for Berkeley DB C++
