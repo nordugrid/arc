@@ -184,14 +184,14 @@ information server. Below a description of each step is given:
 \item{These lists are parsed through alias resolution before being
   used to initialize the complete list of selected and rejected
   {\URL}s pointing to computing services and index servers.}
-\item{An external call is received calling for targets to be
-  prepared.}
 \item{For each selected index server and computing service a
   {\TargetRetriever} plugin for the server's or service's grid flavour
   is loaded using the ARC loader. The {\TargetRetriever} is
   initialized with its {\URL} and the information about whether it
-  represents a computing service or an index server. The call for
-  targets is processed by each {\TargetRetriever} in parallel.}
+  represents a computing service or an index server.}
+\item{An external call is received calling for targets to be
+  prepared. The call for targets is processed by each
+  {\TargetRetriever} in parallel.}
 \item{A {\TargetRetriever} representing an index server first tries to
   register at the index server store kept by the {\TargetGenerator}.
   If allowed to register, the index server is queried and the query
