@@ -1,12 +1,21 @@
 lib_LTLIBRARIES = libarccredential.la
 noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms
 
+if XMLSEC_ENABLED
+SAML_UTIL_HEADER = saml_util.h
+SAML_UTIL_CPP = saml_util.cpp
+else
+SAML_UTIL_HEADER =
+SAML_UTIL_CPP =
+endif
+
 libarccredential_ladir = $(pkgincludedir)/arclib
-libarccredential_la_HEADERS  = Credential.h
-libarccredential_la_SOURCES  = Proxycertinfo.cpp Proxycertinfo.h cert_util.cpp cert_util.h Credential.cpp listfunc.c listfunc.h \
-                            VOMSAttribute.cpp VOMSAttribute.h voms_util.cpp voms_util.h
-libarccredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(OPENSSL_LIBS)
+libarccredential_la_HEADERS  = Credential.h voms_util.h $(SAML_UTIL_HEADER)
+libarccredential_la_SOURCES  = Proxycertinfo.cpp Proxycertinfo.h cert_util.cpp cert_util.h \
+                               Credential.cpp listfunc.c listfunc.h \
+                               VOMSAttribute.cpp VOMSAttribute.h voms_util.cpp $(SAML_UTIL_CPP)
+libarccredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
+libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(XMLSEC_LIBS) $(OPENSSL_LIBS)
 
 testproxy_SOURCES  = testproxy.cpp
 testproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include

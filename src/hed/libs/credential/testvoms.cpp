@@ -119,8 +119,8 @@ int main(void) {
   //Use file location as parameters
   // Consume the proxy certificate with AC extenstion
  
-  std::string in_file_ac("./out_withac.pem");
-  //std::string in_file_ac("./knowarc_voms.pem");
+  //std::string in_file_ac("./out_withac.pem");
+  std::string in_file_ac("./knowarc_voms.pem");
   std::string ca_cert_dir("./testca");
   std::string vomsdir(".");
   ArcLib::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
