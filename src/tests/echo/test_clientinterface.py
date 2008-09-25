@@ -9,11 +9,12 @@ logger = arc.Logger(root_logger, "Test")
 logger.msg(arc.INFO, "Creating a soap client");
 
 cfg = arc.MCCConfig()
-cfg.AddPrivateKey('key.pem')
-cfg.AddCertificate('cert.pem')
-cfg.AddCAFile('ca.pem')
+# cfg.AddPrivateKey('key.pem')
+# cfg.AddCertificate('cert.pem')
+# cfg.AddCAFile('ca.pem')
 
-s = arc.ClientSOAP(cfg, 'localhost', 60000, True, '/Echo')
+# s = arc.ClientSOAP(cfg, 'localhost', 60000, True, '/Echo')
+s = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Echo')
 
 logger.msg(arc.INFO, "Creating and sending request")
 ns = arc.NS({'echo':'urn:echo'})
