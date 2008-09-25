@@ -11,6 +11,17 @@ namespace Arc {
 
   //! Logging levels.
   /*! Logging levels for tagging and filtering log messages.
+	FATAL level designates very severe error events that will 
+	  presumably lead the application to abort.
+	ERROR level designates error events that might still allow 
+	  the application to continue running.
+	WARNING level designates potentially harmful situations.
+	INFO level designates informational messages that highlight 
+	  the progress of the application at coarse-grained level.
+	DEBUG level designates fine-grained informational events 
+	  that are most useful to debug an application.
+	VERBOSE level designates finer-grained informational events 
+	than the DEBUG
    */
   enum LogLevel {
     VERBOSE = 1,
