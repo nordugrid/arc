@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = libaa.la
-noinst_PROGRAMS = login_tests saml_tests test_service test_client #test
+noinst_PROGRAMS = login_tests saml_tests test_service test_client test_client_authn #test
 
-libaa_la_SOURCES  = aaservice.cpp aaservice.h saml_util.cpp saml_util.h
+libaa_la_SOURCES  = aaservice.cpp aaservice.h
 libaa_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
 libaa_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                     $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
@@ -29,6 +29,14 @@ saml_tests_LDADD = $(LASSO_LIBS)
 test_client_SOURCES  = test_client.cpp
 test_client_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
 test_client_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                       $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+                       $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                       $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+                       $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_LIBS)
+
+test_client_authn_SOURCES  = test_client_authn.cpp
+test_client_authn_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
+test_client_authn_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                        $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
