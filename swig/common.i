@@ -6,6 +6,9 @@
 %}
 %include <typemaps.i>
 
+%template(NS_map) std::map<std::string, std::string>;
+
+
 #ifdef SWIGJAVA
 %ignore Arc::MatchXMLName(const XMLNode&, const char*);
 %ignore Arc::MatchXMLNamespace(const XMLNode&, const char*);
