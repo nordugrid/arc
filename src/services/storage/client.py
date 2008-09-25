@@ -122,7 +122,7 @@ class Client:
 class AHashClient(Client):
 
     def __init__(self, url, print_xml = False, ssl_config = {}):
-        ns = self.NS_class({'ahash': ahash_uri})
+        ns = self.NS_class('ahash', ahash_uri)
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def get_tree(self, IDs, neededMetadata = []):
@@ -212,7 +212,7 @@ class AHashClient(Client):
 class LibrarianClient(Client):
     
     def __init__(self, url, print_xml = False, ssl_config = {}):
-        ns = self.NS_class({'lbr':librarian_uri})
+        ns = self.NS_class('lbr', librarian_uri)
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def get(self, GUIDs, neededMetadata = []):
@@ -353,7 +353,7 @@ class BartenderClient(Client):
         if print_xml is true this will print the SOAP messages
         """
         # sets the namespace
-        ns = self.NS_class({'bar':bartender_uri})
+        ns = self.NS_class('bar',bartender_uri)
         # calls the superclass' constructor
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
@@ -693,7 +693,7 @@ class BartenderClient(Client):
 class ShepherdClient(Client):
 
     def __init__(self, url, print_xml = False, ssl_config = {}):
-        ns = self.NS_class({'she':shepherd_uri})
+        ns = self.NS_class('she', shepherd_uri)
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def _putget(self, putget, requests):
@@ -773,7 +773,7 @@ class ShepherdClient(Client):
 class NotifyClient(Client):
 
     def __init__(self, url, print_xml = False, ssl_config = {}):
-        ns = self.NS_class({'she':shepherd_uri})
+        ns = self.NS_class('she', shepherd_uri)
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
     def notify(self, subject, state):
@@ -789,7 +789,7 @@ class NotifyClient(Client):
 class ByteIOClient(Client):
 
     def __init__(self, url):
-        ns = self.NS_class({'rb':rbyteio_uri})
+        ns = self.NS_class('rb', rbyteio_uri)
         Client.__init__(self, url, ns)
 
     def read(self, start_offset = None, bytes_per_block = None, num_blocks = None, stride = None, file = None):
