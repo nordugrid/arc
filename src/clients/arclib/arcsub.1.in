@@ -81,6 +81,20 @@ If the job is successfully submitted a jobid is printed to
 stdout. This jobid uniquely identifies the job while it is being
 executed.
 
+Information about active jobs are stored in a local joblist file. By
+using the
+.B --joblist
+option a customized location for this file can be defined. If this
+option is used when submitting a job using
+.BR arcsub ,
+the same joblist
+file must be specified using the
+.B --joblist
+option for all subsequent handling of the job using
+.BR arcstat (1),
+.BR arcget (1),
+etc.
+
 The
 .B arcsub
 command locates the available clusters by querying information index
