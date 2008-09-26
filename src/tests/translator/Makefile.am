@@ -1,4 +1,4 @@
-bin_PROGRAMS = translator
+noinst_PROGRAMS = translator
 SOURCES = translator.cpp
 
 translator_SOURCES  = $(SOURCES)
