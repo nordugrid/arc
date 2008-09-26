@@ -3,8 +3,9 @@ bin_PROGRAMS = arccp arcls arcrm
 man_MANS = arccp.1 arcls.1 arcrm.1
 
 CLILIBS = $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la
 
 arccp_SOURCES  = arccp.cpp
 arccp_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
