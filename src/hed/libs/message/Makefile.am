@@ -10,4 +10,4 @@ libarcmessage_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDADD    = libarcmessage.la
+test_LDADD    = libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
