@@ -14,8 +14,8 @@ class StringStore(PickleStore):
         'non_existent_object' will be returned if an object not found
         """
         PickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log('DEBUG', "StringStore constructor called")
-        self.log('DEBUG', "datadir:", self.datadir)
+        self.log.msg('DEBUG', "StringStore constructor called")
+        self.log.msg('DEBUG', "datadir:", self.datadir)
 
     def get(self, ID):
         """ Returns the object with the given ID.
@@ -37,8 +37,8 @@ class StringStore(PickleStore):
             pass
         except:
             # print whatever exception happened
-            self.log()
-            self.log('ERROR', "filename:", self._filename(ID))
+            self.log.msg()
+            self.log.msg('ERROR', "filename:", self._filename(ID))
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -74,4 +74,4 @@ class StringStore(PickleStore):
                 # object empty, file is not needed anymore
                 os.remove(fn)
         except:
-            self.log()
+            self.log.msg()

@@ -16,7 +16,7 @@ class CachedPickleStore(PickleStore):
         'non_existent_object' will be returned if an object not found
         """
         PickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log('DEBUG', "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
+        self.log.msg('DEBUG', "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
         self.store = {}
         self._load_storage()
 
@@ -50,8 +50,8 @@ class CachedPickleStore(PickleStore):
             pass
         except:
             # print whatever exception happened
-            self.log()
-            self.log("ERROR", "ID", ID)
+            self.log.msg()
+            self.log.msg("ERROR", "ID", ID)
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -89,4 +89,4 @@ class CachedPickleStore(PickleStore):
                 os.remove(fn)
                 del(self.store[ID])
         except:
-            self.log()
+            self.log.msg()

@@ -36,8 +36,8 @@ class ZODBStore(BaseStore):
         'non_existent_object' will be returned if an object not found
         """
         BaseStore.__init__(self, storecfg, non_existent_object, log)
-        self.log('DEBUG', "ZODBStore constructor called")
-        self.log('DEBUG', "datadir:", self.datadir)
+        self.log.msg('DEBUG', "ZODBStore constructor called")
+        self.log.msg('DEBUG', "datadir:", self.datadir)
         self.dbfile = os.path.join(self.datadir,'metadata.fs')
         if os.path.isfile(self.dbfile):
             self.db = DB(FileStorage.FileStorage(self.dbfile))
@@ -88,8 +88,8 @@ class ZODBStore(BaseStore):
             pass
         except:
             # print whatever exception happened
-            self.log()
-            self.log("ERROR", "ID", ID)
+            self.log.msg()
+            self.log.msg("ERROR", "ID", ID)
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -111,4 +111,4 @@ class ZODBStore(BaseStore):
                 self.metadata.addMeta(ID, object)
             get_transaction().commit()
         except:
-            self.log()
+            self.log.msg()

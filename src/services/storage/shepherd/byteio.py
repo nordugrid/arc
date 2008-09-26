@@ -19,25 +19,25 @@ class ByteIOBackend:
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
-        self.log('DEBUG', "ByteIOBackend datadir:", self.datadir)
+        self.log.msg('DEBUG', "ByteIOBackend datadir:", self.datadir)
         if not os.path.exists(self.transferdir):
             os.mkdir(self.transferdir)
         else:
             for filename in os.listdir(self.transferdir):
                 os.remove(os.path.join(self.transferdir, filename))
-        self.log('DEBUG', "ByteIOBackend transferdir:", self.transferdir)
+        self.log.msg('DEBUG', "ByteIOBackend transferdir:", self.transferdir)
         self.idstore = {}
 
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
-        self.log('DEBUG', self.turlprefix, 'Uploading file to', turl)
+        self.log.msg('DEBUG', self.turlprefix, 'Uploading file to', turl)
         upload_to_turl(turl, protocol, f)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
-        self.log('DEBUG', self.turlprefix, 'Downloading file from', turl)
+        self.log.msg('DEBUG', self.turlprefix, 'Downloading file from', turl)
         download_from_turl(turl, protocol, f)
         f.close()
 
@@ -48,7 +48,7 @@ class ByteIOBackend:
         try:
             os.link(os.path.join(self.datadir, localID), os.path.join(self.transferdir, turl_id))
             self.idstore[turl_id] = referenceID
-            self.log('DEBUG', self.turlprefix, '++', self.idstore)
+            self.log.msg('DEBUG', self.turlprefix, '++', self.idstore)
             turl = self.turlprefix + turl_id
             return turl
         except:
@@ -63,7 +63,7 @@ class ByteIOBackend:
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[turl_id] = referenceID
-        self.log('DEBUG', self.turlprefix, '++', self.idstore)
+        self.log.msg('DEBUG', self.turlprefix, '++', self.idstore)
         turl = self.turlprefix + turl_id
         return turl
 
@@ -93,7 +93,7 @@ class ByteIOBackend:
         referenceID = self.idstore.get(subject,None)
         state = str(request_node.Get('state'))
         path = os.path.join(self.transferdir, subject)
-        self.log('DEBUG', self.turlprefix, 'Removing', path)
+        self.log.msg('DEBUG', self.turlprefix, 'Removing', path)
         os.remove(path)
         self.file_arrived(referenceID)
         out = arc.PayloadSOAP(self.ns)
@@ -104,16 +104,21 @@ class ByteIOBackend:
         return create_checksum(file(os.path.join(self.datadir, localID), 'rb'), checksumType)
 
 from storage.service import Service
+from storage.logger import Logger
 
 class ByteIOService(Service):
 
     def __init__(self, cfg):
+        self.service_name = 'ByteIO'
+        self.log_level = str(cfg.Get('LogLevel'))
+        # init logging
+        self.log = Logger(self.service_name, self.log_level)
         # names of provided methods
         request_names = ['read', 'write']
         # call the Service's constructor
-        Service.__init__(self, 'ByteIO', request_names, 'rb', rbyteio_uri)
+        Service.__init__(self, 'ByteIO', request_names, 'rb', rbyteio_uri, self.log, cfg)
         self.transferdir = str(cfg.Get('TransferDir'))
-        self.log('DEBUG', "ByteIOService transfer dir:", self.transferdir)
+        self.log.msg('DEBUG', "ByteIOService transfer dir:", self.transferdir)
         self.notify = NotifyClient(str(cfg.Get('NotifyURL')))
 
     def _filename(self, subject):
@@ -129,7 +134,7 @@ class ByteIOService(Service):
             file(fn) # check existance
             f = file(fn,'wb') # open for overwriting
         except:
-            self.log()
+            self.log.msg()
             raise Exception, 'denied'
         encoded_data = str(transfer_node)
         data = base64.b64decode(encoded_data)
@@ -137,7 +142,7 @@ class ByteIOService(Service):
             f.write(data)
             f.close()
         except:
-            self.log()
+            self.log.msg()
             raise Exception, 'write failed'
         self.notify.notify(subject, 'received')
         out = self.newSOAPPayload()
@@ -148,7 +153,7 @@ class ByteIOService(Service):
         try:
             data = file(self._filename(subject),'rb').read()
         except:
-            self.log()
+            self.log.msg()
             data = ''
         self.notify.notify(subject, 'sent')
         out = self.newSOAPPayload()
@@ -165,7 +170,7 @@ class ByteIOService(Service):
         # TODO: somehow detect if this is just the path of the service which means: no subject
         subject = inmsg.Attributes().get('ENDPOINT').split('/')[-1]
         # the subject of the byteio request: reference to the file
-        self.log('DEBUG', 'Subject:', subject)
+        self.log.msg('DEBUG', 'Subject:', subject)
         inpayload = inmsg.Payload()
         return getattr(self,request_name)(inpayload, subject)
 

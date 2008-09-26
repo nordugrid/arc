@@ -15,8 +15,8 @@ class PickleStore(BaseStore):
         'non_existent_object' will be returned if an object not found
         """
         BaseStore.__init__(self, storecfg, non_existent_object, log)
-        self.log('DEBUG', "PickleStore constructor called")
-        self.log('DEBUG', "datadir:", self.datadir)
+        self.log.msg('DEBUG', "PickleStore constructor called")
+        self.log.msg('DEBUG', "datadir:", self.datadir)
 
     def _filename(self, ID):
         """ Creates a filename from an ID.
@@ -70,7 +70,7 @@ class PickleStore(BaseStore):
                 ID = base64.b64decode(name)
                 IDs.append(ID)
             except:
-                self.log()
+                self.log.msg()
         return IDs
 
     def get(self, ID):
@@ -93,8 +93,8 @@ class PickleStore(BaseStore):
             pass
         except:
             # print whatever exception happened
-            self.log()
-            self.log('ERROR', "filename:", self._filename(ID))
+            self.log.msg()
+            self.log.msg('ERROR', "filename:", self._filename(ID))
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -128,4 +128,4 @@ class PickleStore(BaseStore):
                 # object empty, file is not needed anymore
                 os.remove(fn)
         except:
-            self.log()
+            self.log.msg()

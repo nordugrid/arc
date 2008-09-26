@@ -50,26 +50,26 @@ class HardlinkingBackend:
                         # if the file does not exist, maybe it's already removed
                         del self.idstore[localID]
                         nlink = 0
-                    self.log('DEBUG', 'checking', localID, referenceID, nlink)
+                    self.log.msg('DEBUG', 'checking', localID, referenceID, nlink)
                     if nlink == 1:
                         # if there is just one link for this file, it is already removed from the transfer dir
                         self.file_arrived(referenceID)
                         del self.idstore[localID]
             except:
-                self.log()
+                self.log.msg()
     
         
 
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
-        self.log('DEBUG', self.turlprefix, 'Uploading file to', turl)
+        self.log.msg('DEBUG', self.turlprefix, 'Uploading file to', turl)
         upload_to_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
-        self.log('DEBUG', self.turlprefix, 'Downloading file from', turl)
+        self.log.msg('DEBUG', self.turlprefix, 'Downloading file from', turl)
         download_from_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
 
@@ -82,7 +82,7 @@ class HardlinkingBackend:
             # set it to readonly
             os.chmod(filepath, 0444)
             os.link(filepath, os.path.join(self.transferdir, turl_id))
-            self.log('DEBUG', self.turlprefix, '++', self.idstore)
+            self.log.msg('DEBUG', self.turlprefix, '++', self.idstore)
             turl = self.turlprefix + turl_id
             return turl
         except:
@@ -97,7 +97,7 @@ class HardlinkingBackend:
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[localID] = referenceID
-        self.log('DEBUG', self.turlprefix, '++', self.idstore)
+        self.log.msg('DEBUG', self.turlprefix, '++', self.idstore)
         turl = self.turlprefix + turl_id
         return turl
 
@@ -132,8 +132,8 @@ class HopiBackend( HardlinkingBackend ):
 
     def __init__(self, *args):
         HardlinkingBackend.__init__(self, *args)
-        self.log('DEBUG', "HopiBackend datadir:", self.datadir)
-        self.log('DEBUG', "HopiBackend transferdir:", self.transferdir)        
+        self.log.msg('DEBUG', "HopiBackend datadir:", self.datadir)
+        self.log.msg('DEBUG', "HopiBackend transferdir:", self.transferdir)        
 
 
 import pwd
@@ -148,8 +148,8 @@ class ApacheBackend( HardlinkingBackend ):
         self.apacheuser = str(backendcfg.Get('ApacheUser'))
         self.uid = os.getuid()
         _, _, _, self.apachegid, _, _, _ = pwd.getpwnam(self.apacheuser) 
-        self.log('DEBUG', "ApacheBackend datadir:", self.datadir)
-        self.log('DEBUG', "ApacheBackend transferdir:", self.transferdir)
+        self.log.msg('DEBUG', "ApacheBackend datadir:", self.datadir)
+        self.log.msg('DEBUG', "ApacheBackend transferdir:", self.transferdir)
         
 
     def prepareToPut(self, referenceID, localID, protocol):

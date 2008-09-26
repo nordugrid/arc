@@ -24,7 +24,7 @@ class Librarian:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
         except:
-            self.log('DEBUG', 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
+            self.log.msg('DEBUG', 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
             raise
         threading.Thread(target = self.checkingThread, args = [period]).start()
         
@@ -52,7 +52,7 @@ class Librarian:
                         self._set_next_heartbeat(serviceID, -1)
                 time.sleep(period)
             except:
-                self.log()
+                self.log.msg()
                 time.sleep(period)
 
     def _change_states(self, changes):
@@ -80,7 +80,7 @@ class Librarian:
         ahash_response = self.ahash.change(ahash_request)
         #print '_set_next_heartbeat response', ahash_response
         if ahash_response['report'][0] != 'set':
-            self.log('DEBUG', 'ERROR setting next heartbeat time!')
+            self.log.msg('DEBUG', 'ERROR setting next heartbeat time!')
     
     def report(self, serviceID, filelist):
         # we got the ID of the shepherd service, and a filelist which contains (GUID, referenceID, state) tuples
@@ -202,7 +202,7 @@ class Librarian:
             except KeyError:
                 return metadata
             except:
-                self.log()
+                self.log.msg()
                 return {}
 
 
@@ -230,7 +230,7 @@ class Librarian:
                     restLN = '/'.join(path)
                     response[rID] = (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
                 except:
-                    self.log()
+                    self.log.msg()
                     response[rID] = ([], False, '', guid0, None, '/'.join(path))
             #print '?\n? traversedList, wasComplete, traversedLN, GUID, metadata, restLN\n? ', response
         return response
@@ -268,6 +268,7 @@ class Librarian:
         return response
     
 from storage.service import Service
+from storage.logger import Logger
     
 class LibrarianService(Service):
     """ LibrarianService class implementing the XML interface of the storage Librarian service. """
@@ -279,10 +280,14 @@ class LibrarianService(Service):
 
         'cfg' is an XMLNode which containes the config of this service.
         """
+        self.service_name = 'Librarian'
+        self.log_level = str(cfg.Get('LogLevel'))
+        # init logging
+        self.log = Logger(self.service_name, self.log_level)
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
-        Service.__init__(self, 'Librarian', request_names, 'lbr', librarian_uri, cfg)
+        Service.__init__(self, 'Librarian', request_names, 'lbr', librarian_uri, self.log, cfg)
         self.librarian = Librarian(cfg, self.log)
     
     def new(self, inpayload):

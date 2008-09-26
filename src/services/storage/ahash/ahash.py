@@ -36,12 +36,12 @@ class CentralAHash:
         'storecfg' is an XMLNode with the configuration of the storeclass
         """
         self.log = log
-        self.log('DEBUG', "CentralAHash constructor called")
+        self.log.msg('DEBUG', "CentralAHash constructor called")
         # import the storeclass and call its constructor with the datadir
         try:
             cl = import_class_from_string(storeclass)
         except:
-            self.log('ERROR', 'Error importing', storeclass)
+            self.log.msg('ERROR', 'Error importing', storeclass)
             raise Exception, 'A-Hash cannot run without a store.'
         self.store = cl(storecfg, log = self.log)
 
@@ -175,7 +175,7 @@ class CentralAHash:
             except:
                 # if there was an exception, set this to failed
                 success = 'failed'
-                self.log()
+                self.log.msg()
             # we are done, release the lock
             self.store.unlock()
             # append the result of the change to the response list
@@ -184,6 +184,7 @@ class CentralAHash:
 
 from storage.xmltree import XMLTree
 from storage.service import Service
+from storage.logger import Logger
 
 class AHashService(Service):
     """ AHashService class implementing the XML interface of the A-Hash service. """
@@ -195,10 +196,14 @@ class AHashService(Service):
 
         'cfg' is an XMLNode which containes the config of this service.
         """
+        self.service_name = 'A-Hash'
+        self.log_level = str(cfg.Get('LogLevel'))
+        # init logging
+        self.log = Logger(self.service_name, self.log_level)
         # names of provided methods
         request_names = ['get','change']
         # call the Service's constructor
-        Service.__init__(self, 'A-Hash', request_names, 'ahash', ahash_uri, cfg)
+        Service.__init__(self, self.service_name, request_names, 'ahash', ahash_uri, self.log, cfg)
         # the name of the class which implements the business logic of the A-Hash service
         ahashclass = str(cfg.Get('AHashClass'))
         # the name of the class which is capable of storing the object
@@ -209,7 +214,7 @@ class AHashService(Service):
         try:
             cl = import_class_from_string(ahashclass)
         except:
-            self.log('ERROR', 'Error importing class', ahashclass)
+            self.log.msg('ERROR', 'Error importing class', ahashclass)
             raise Exception, 'A-Hash cannot run.'
         self.ahash = cl(storeclass, storecfg, self.log)
 
@@ -231,7 +236,7 @@ class AHashService(Service):
                     for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
             ]
         except:
-            self.log()
+            self.log.msg()
             neededMetadata = []
         # gets the result from the business logic class
         objects = self.ahash.get(ids, neededMetadata)
