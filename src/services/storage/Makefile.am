@@ -1,7 +1,7 @@
 pythondir= $(PYTHON_SITE_PACKAGES)/storage
 docdir = @docdir@
 
-python_DATA = __init__.py client.py common.py service.py xmltree.py
+python_DATA = __init__.py client.py common.py service.py xmltree.py logger.py
 bin_SCRIPTS = arc_storage_cli
 doc_DATA = storage.service.xml.example
 man_MANS = arc_storage_cli.1
