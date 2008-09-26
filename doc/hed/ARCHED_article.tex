@@ -563,21 +563,21 @@ The server side HTTP MCC accepts Messages with \texttt{PayloadStreamInterface} p
 That MCC routes results to multiple next MCCs in the chain. For that it accepts only labeled <next> elements in the configuration. Label names are those of HTTP methods (uppercase). HTTP Messages will be routed to their destinations according HTTP method requested.
 
 That MCC also fills following Message Attributes in the incoming Message while passing to the next MCC:
-\begin{enumerate}
+\begin{itemize}
 
 \item HTTP:METHOD - HTTP method as defined in HTTP request header.
 
-\item HTTP:RANGESTART - Range request start offset
+\item HTTP:RANGESTART - Range request start offset.
 
-\item HTTP:RANGEEND - Range request end offset
+\item HTTP:RANGEEND - Range request end offset.
 
-\item HTTP:ENDPOINT - URL or path as specified in HTTP request header
+\item HTTP:ENDPOINT - URL or path as specified in HTTP request header.
 
-\item HTTP:* - Here * stands for any name. All HTTP options from HTTP request header are converted into Message Attributes named HTTP:\{option name\}
+\item HTTP:* - Here * stands for any name. All HTTP options from HTTP request header are converted into Message Attributes named HTTP:\{option name\}.
 
-\item ENDPOINT - same as HTTP:ENDPOINT
+\item ENDPOINT - same as HTTP:ENDPOINT.
 
-\end{enumerate}
+\end{itemize}
 
 For outgoing Message server MCC converts all HTTP:* Message Attributes into corresponding HTTP response header attribute.
 
