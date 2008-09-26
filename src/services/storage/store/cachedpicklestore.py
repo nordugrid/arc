@@ -1,3 +1,4 @@
+import arc
 import copy, os, base64
 import cPickle as pickle
 
@@ -16,7 +17,7 @@ class CachedPickleStore(PickleStore):
         'non_existent_object' will be returned if an object not found
         """
         PickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log.msg('DEBUG', "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
+        self.log.msg(arc.DEBUG, "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
         self.store = {}
         self._load_storage()
 
@@ -51,7 +52,7 @@ class CachedPickleStore(PickleStore):
         except:
             # print whatever exception happened
             self.log.msg()
-            self.log.msg("ERROR", "ID", ID)
+            self.log.msg(arc.ERROR, "ID", ID)
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 

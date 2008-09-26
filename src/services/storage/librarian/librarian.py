@@ -24,7 +24,7 @@ class Librarian:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
         except:
-            self.log.msg('DEBUG', 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
+            self.log.msg(arc.DEBUG, 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
             raise
         threading.Thread(target = self.checkingThread, args = [period]).start()
         
@@ -80,7 +80,7 @@ class Librarian:
         ahash_response = self.ahash.change(ahash_request)
         #print '_set_next_heartbeat response', ahash_response
         if ahash_response['report'][0] != 'set':
-            self.log.msg('DEBUG', 'ERROR setting next heartbeat time!')
+            self.log.msg(arc.DEBUG, 'ERROR setting next heartbeat time!')
     
     def report(self, serviceID, filelist):
         # we got the ID of the shepherd service, and a filelist which contains (GUID, referenceID, state) tuples
@@ -282,6 +282,8 @@ class LibrarianService(Service):
         """
         self.service_name = 'Librarian'
         self.log_level = str(cfg.Get('LogLevel'))
+        if self.log_level:
+            self.log_level = eval('arc.'+self.log_level)
         # init logging
         self.log = Logger(self.service_name, self.log_level)
         # names of provided methods

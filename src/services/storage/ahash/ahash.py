@@ -36,12 +36,12 @@ class CentralAHash:
         'storecfg' is an XMLNode with the configuration of the storeclass
         """
         self.log = log
-        self.log.msg('DEBUG', "CentralAHash constructor called")
+        self.log.msg(arc.DEBUG, "CentralAHash constructor called")
         # import the storeclass and call its constructor with the datadir
         try:
             cl = import_class_from_string(storeclass)
         except:
-            self.log.msg('ERROR', 'Error importing', storeclass)
+            self.log.msg(arc.ERROR, 'Error importing', storeclass)
             raise Exception, 'A-Hash cannot run without a store.'
         self.store = cl(storecfg, log = self.log)
 
@@ -198,6 +198,8 @@ class AHashService(Service):
         """
         self.service_name = 'A-Hash'
         self.log_level = str(cfg.Get('LogLevel'))
+        if self.log_level:
+            self.log_level = eval('arc.'+self.log_level)
         # init logging
         self.log = Logger(self.service_name, self.log_level)
         # names of provided methods
@@ -214,7 +216,7 @@ class AHashService(Service):
         try:
             cl = import_class_from_string(ahashclass)
         except:
-            self.log.msg('ERROR', 'Error importing class', ahashclass)
+            self.log.msg(arc.ERROR, 'Error importing class', ahashclass)
             raise Exception, 'A-Hash cannot run.'
         self.ahash = cl(storeclass, storecfg, self.log)
 

@@ -92,7 +92,7 @@ class Bartender:
         modify_success = self.librarian.modifyMetadata(cat_mod_requests)
         # check the files with more parents (hardlinks) again
         if check_again:
-            self.log.msg('DEBUG', '\n\n!!!!check_again', check_again)
+            self.log.msg(arc.DEBUG, '\n\n!!!!check_again', check_again)
             checked_again = self.librarian.get(check_again)
             do_delete = {}
             for GUID, metadata in checked_again.items():
@@ -100,7 +100,7 @@ class Bartender:
                 parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
                 if parentno == 0:
                     do_delete[GUID] = GUID
-            self.log.msg('DEBUG', '\n\n!!!!do_delete', do_delete)
+            self.log.msg(arc.DEBUG, '\n\n!!!!do_delete', do_delete)
             self.librarian.remove(do_delete)
         return response
             
@@ -117,7 +117,7 @@ class Bartender:
         # the first item of the list is the Logical Name, we want to remove the trailing slash, and
         # leave the other items intact
         requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
-        self.log.msg('DEBUG', '//// _traverse request trailing slash removed:', dict(requests))
+        self.log.msg(arc.DEBUG, '//// _traverse request trailing slash removed:', dict(requests))
         # then we do the traversing. a traverse request contains a requestID and the Logical Name
         # so we just need the key (which is the request ID) and the first item of the value (which is the LN)
         traverse_request = dict([(rID, data[0]) for rID, data in requests])
@@ -154,15 +154,15 @@ class Bartender:
                 # if it was successful and we have a parent collection
                 if child_name and parent_GUID:
                     # we need to add the newly created librarian-entry to the parent collection
-                    self.log.msg('DEBUG', 'adding', child_GUID, 'to parent', parent_GUID)
+                    self.log.msg(arc.DEBUG, 'adding', child_GUID, 'to parent', parent_GUID)
                     # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
                     modify_response = self.librarian.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
-                    self.log.msg('DEBUG', 'modifyMetadata response', modify_response)
+                    self.log.msg(arc.DEBUG, 'modifyMetadata response', modify_response)
                     # get the 'success' value
                     modify_success = modify_response['_new']
                     # if the new element was not set, we have a problem
                     if modify_success != 'set':
-                        self.log.msg('DEBUG', 'modifyMetadata failed, removing the new librarian entry', child_GUID)
+                        self.log.msg(arc.DEBUG, 'modifyMetadata failed, removing the new librarian entry', child_GUID)
                         # remove the newly created librarian-entry
                         self.librarian.remove({'_new' : child_GUID})
                         return 'failed to add child to parent', child_GUID
@@ -190,7 +190,7 @@ class Bartender:
             protocol = ''
             success = 'unknown'
             try:
-                self.log.msg('DEBUG', traverse_response[rID])
+                self.log.msg(arc.DEBUG, traverse_response[rID])
                 # split the traverse response
                 metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
                 # wasComplete is true if the given LN was found, so it could have been fully traversed
@@ -217,7 +217,7 @@ class Bartender:
                             while not ok and len(valid_locations) > 0:
                                 # if there are more valid_locations, randomly select one
                                 location = valid_locations.pop(random.choice(range(len(valid_locations))))
-                                self.log.msg('DEBUG', 'location chosen:', location)
+                                self.log.msg(arc.DEBUG, 'location chosen:', location)
                                 # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
                                 url, referenceID, _ = location
                                 # create an ShepherdClient with this URL, then send a get request with the referenceID
@@ -227,7 +227,7 @@ class Bartender:
                                 # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                 if get_response.has_key('error'):
                                     # if there was an error
-                                    self.log.msg('DEBUG', 'ERROR', get_response['error'])
+                                    self.log.msg(arc.DEBUG, 'ERROR', get_response['error'])
                                     success = 'error while getting TURL (%s)' % get_response['error']
                                 else:
                                     # get the TURL and the choosen protocol, these will be set as reply for this requestID
@@ -256,7 +256,7 @@ class Bartender:
         for rID, GUID in requests.items():
             # for each requested GUID
             states = data[GUID]
-            self.log.msg('DEBUG', 'addReplica', 'requestID', rID, 'GUID', GUID, 'states', states, 'protocols', protocols)
+            self.log.msg(arc.DEBUG, 'addReplica', 'requestID', rID, 'GUID', GUID, 'states', states, 'protocols', protocols)
             # get the size and checksum information of the file
             size = states[('states','size')]
             checksumType = states[('states','checksumType')]
@@ -280,16 +280,16 @@ class Bartender:
         # SEs contains entries such as {(serviceID, 'nextHeartbeat') : timestamp} which indicates
         #   when a specific Shepherd service should report next
         #   if this timestamp is not a positive number, that means the Shepherd have not reported in time, probably it is not alive
-        self.log.msg('DEBUG', 'Registered Shepherds in Librarian', SEs)
+        self.log.msg(arc.DEBUG, 'Registered Shepherds in Librarian', SEs)
         # get all the Shepherds which has a positiv nextHeartbeat timestamp and which has not already been used
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
-        self.log.msg('DEBUG', 'Alive Shepherds:', alive_SEs)
+        self.log.msg(arc.DEBUG, 'Alive Shepherds:', alive_SEs)
         if len(alive_SEs) == 0:
             return None
         try:
             # choose one randomly
             se = random.choice(alive_SEs)
-            self.log.msg('DEBUG', 'Shepherd chosen:', se)
+            self.log.msg(arc.DEBUG, 'Shepherd chosen:', se)
             # the serviceID currently is a URL 
             # create an ShepherdClient with this URL
             return ShepherdClient(se, ssl_config = self.ssl_config)
@@ -321,7 +321,7 @@ class Bartender:
         # call the SE's put method with the prepared request
         put_response = dict(shepherd.put({'putFile': put_request})['putFile'])
         if put_response.has_key('error'):
-            self.log.msg('DEBUG', 'ERROR', put_response['error'])
+            self.log.msg(arc.DEBUG, 'ERROR', put_response['error'])
             # TODO: we should handle this, remove the new file or something
             return 'put error (%s)' % put_response['error'], turl, protocols
         else:
@@ -333,14 +333,14 @@ class Bartender:
             #referenceID = put_response['referenceID']
             ## currently the serviceID is the URL of the shepherd service
             #serviceID = shepherd.url
-            #self.log.msg('DEBUG', 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
+            #self.log.msg(arc.DEBUG, 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
             ## the serviceID and the referenceID is the location of the replica, serialized as one string
             ## put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)
             #modify_response = self.librarian.modifyMetadata({'putFile' :
             #        (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
             #modify_success = modify_response['putFile']
             #if modify_success != 'set':
-            #    self.log.msg('DEBUG', 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID)
+            #    self.log.msg(arc.DEBUG, 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID)
             #    return 'failed to add new location to file', turl, protocol
             #    # TODO: error handling
             #else:
@@ -363,7 +363,7 @@ class Bartender:
             metadata_ok = False
             try:
                 # get the size and checksum of the new file
-                self.log.msg('DEBUG', protocols)
+                self.log.msg(arc.DEBUG, protocols)
                 size = child_metadata[('states', 'size')]
                 checksum = child_metadata[('states', 'checksum')]
                 checksumType = child_metadata[('states', 'checksumType')]
@@ -378,7 +378,7 @@ class Bartender:
                     # split the Logical Name, rootguid will be the GUID of the root collection of this LN,
                     #   child_name is the name of the new file withing the parent collection
                     rootguid, _, child_name = splitLN(LN)
-                    self.log.msg('DEBUG', 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid)
+                    self.log.msg(arc.DEBUG, 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid)
                     # get the traverse response corresponding to this request
                     #   metadata is the metadata of the last element which could been traversed, e.g. the parent of the new file
                     #   GUID is the GUID of the same
@@ -387,7 +387,7 @@ class Bartender:
                     #   wasComplete indicates if the traverse was complete or not, if it was complete means that this LN exists
                     #   traversedlist contains the GUID and metadata of each element along the path of the LN
                     metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-                    self.log.msg('DEBUG', 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+                    self.log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
                     if wasComplete: # this means the LN already exists, so we couldn't put a new file there
                         success = 'LN exists'
                     elif child_name == '': # this only can happen if the LN was a single GUID
@@ -422,7 +422,7 @@ class Bartender:
         response = {}
         for rID, [LN] in requests:
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            self.log.msg('DEBUG', 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            self.log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             if not wasComplete:
                 success = 'no such LN'
             else:
@@ -458,7 +458,7 @@ class Bartender:
             # for each request first split the Logical Name
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            self.log.msg('DEBUG', 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            self.log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             if wasComplete: # this means the LN exists
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
@@ -529,12 +529,12 @@ class Bartender:
             traverse_request[requestID + 'source'] = remove_trailing_slash(sourceLN)
             traverse_request[requestID + 'target'] = targetLN
         traverse_response = self.librarian.traverseLN(traverse_request)
-        self.log.msg('DEBUG', '\/\/', traverse_response)
+        self.log.msg(arc.DEBUG, '\/\/', traverse_response)
         response = {}
         for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
             sourceLN = remove_trailing_slash(sourceLN)
             # for each request
-            self.log.msg('DEBUG', requestID, sourceLN, targetLN, preserveOriginal)
+            self.log.msg(arc.DEBUG, requestID, sourceLN, targetLN, preserveOriginal)
             # get the old and the new name of the entry, these are the last elements of the Logical Names
             _, _, old_child_name = splitLN(sourceLN)
             _, _, new_child_name = splitLN(targetLN)
@@ -564,7 +564,7 @@ class Bartender:
                 #   so we just put the old name after it
                 if new_child_name == '':
                     new_child_name = old_child_name
-                self.log.msg('DEBUG', 'adding', sourceGUID, 'to parent', targetGUID)
+                self.log.msg(arc.DEBUG, 'adding', sourceGUID, 'to parent', targetGUID)
                 # adding the entry to the new parent
                 mm_resp = self.librarian.modifyMetadata(
                     {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
@@ -579,7 +579,7 @@ class Bartender:
                         # then we need to remove the source LN
                         # get the parent of the source: the source traverse has a list of the GUIDs of all the element along the path
                         source_parent_guid = sourceTraversedList[-2][1]
-                        self.log.msg('DEBUG', 'removing', sourceGUID, 'from parent', source_parent_guid)
+                        self.log.msg(arc.DEBUG, 'removing', sourceGUID, 'from parent', source_parent_guid)
                         # delete the entry from the source parent
                         mm_resp = self.librarian.modifyMetadata(
                             {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
@@ -614,8 +614,10 @@ from storage.logger import Logger
 class BartenderService(Service):
 
     def __init__(self, cfg):
-        self.service_name = 'A-Hash'
+        self.service_name = 'Bartender'
         self.log_level = str(cfg.Get('LogLevel'))
+        if self.log_level:
+            self.log_level = eval('arc.'+self.log_level)
         # init logging
         self.log = Logger(self.service_name, self.log_level)
 

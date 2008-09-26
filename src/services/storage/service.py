@@ -1,5 +1,4 @@
 import arc
-import traceback
 import inspect
 import time
 import sys
@@ -14,10 +13,8 @@ class Service:
             self.log_level = str(cfg.Get('LogLevel'))
         else:
             self.log_level = None
-        if not self.log_level:
-            self.log_level = 'ERROR'#arc.ERROR
         self.service_name = service_name
-        self.log.msg('DEBUG', service_name, "constructor called")
+        self.log.msg(arc.DEBUG, service_name, "constructor called")
         self.request_names = request_names
         self.namespace_prefix = namespace_prefix
         self.namespace_uri = namespace_uri
@@ -59,13 +56,13 @@ class Service:
             if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
-            self.log.msg('DEBUG','%s.%s called' % (self.service_name, request_name))
+            self.log.msg(arc.DEBUG,'%s.%s called' % (self.service_name, request_name))
             # if the request name is in the supported names,
             # then this class should have a method with this name
             # the 'getattr' method returns this method
             # which then we could call with the incoming payload
             # and which will return the response payload
-            self.log.msg('VERBOSE', inpayload.GetXML())
+            self.log.msg(arc.VERBOSE, inpayload.GetXML())
             outpayload = self._call_request(request_name, inmsg)
             # sets the payload of the outgoing message
             outmsg.Payload(outpayload)

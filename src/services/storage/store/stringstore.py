@@ -1,3 +1,4 @@
+import arc
 import copy, os, base64
 
 from storage.store.picklestore import PickleStore
@@ -14,8 +15,8 @@ class StringStore(PickleStore):
         'non_existent_object' will be returned if an object not found
         """
         PickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log.msg('DEBUG', "StringStore constructor called")
-        self.log.msg('DEBUG', "datadir:", self.datadir)
+        self.log.msg(arc.DEBUG, "StringStore constructor called")
+        self.log.msg(arc.DEBUG, "datadir:", self.datadir)
 
     def get(self, ID):
         """ Returns the object with the given ID.
@@ -38,7 +39,7 @@ class StringStore(PickleStore):
         except:
             # print whatever exception happened
             self.log.msg()
-            self.log.msg('ERROR', "filename:", self._filename(ID))
+            self.log.msg(arc.ERROR, "filename:", self._filename(ID))
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 

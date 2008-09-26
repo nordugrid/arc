@@ -1,4 +1,5 @@
 import arc, sys
+import traceback
 
 class Logger:
 
@@ -10,7 +11,8 @@ class Logger:
         self.root_logger = arc.Logger_getRootLogger()
         self.logger = arc.Logger(self.root_logger, self.service_name)
         if self.log_level:
-            self.logger.setThreshold(self.log_levels[self.log_level])
+            # Do we need to be set specific log levels?
+            self.logger.setThreshold(self.log_level)
         else:
             self.logger.setThreshold(self.root_logger.getThreshold())
         self.logger.addDestination(arc.LogStream(sys.stderr))
@@ -18,14 +20,8 @@ class Logger:
     def msg(self, *args):
         """docstring for log"""
         # initializing logging facility
-        try:
-            system = self.service_name
-        except:
-            system = 'Storage'
-        try:
-            log_level = self.log_level
-        except:
-            log_level = 'DEBUG'
+        system = self.service_name
+        log_level = self.log_level
         args = list(args)
         if not args:
             severity = arc.ERROR

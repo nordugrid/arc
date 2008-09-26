@@ -1,3 +1,4 @@
+import arc
 import copy, os, base64
 
 from storage.store.cachedpicklestore import CachedPickleStore
@@ -14,8 +15,8 @@ class CachedStringStore(CachedPickleStore):
         'non_existent_object' will be returned if an object not found
         """
         CachedPickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log.msg('DEBUG', "CachedStringStore constructor called")
-        self.log.msg('DEBUG', "datadir:", self.datadir)
+        self.log.msg(arc.DEBUG, "CachedStringStore constructor called")
+        self.log.msg(arc.DEBUG, "datadir:", self.datadir)
         self.store = {}
         self._load_storage()
 
