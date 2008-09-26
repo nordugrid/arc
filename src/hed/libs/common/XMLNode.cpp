@@ -630,6 +630,7 @@ void XMLNode::GetXML(std::string& out_xml_str,const std::string& encoding,bool u
   if(handler == NULL) return;
   xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
   xmlNodeDumpOutput(buf,doc,node_,0,user_friendly?1:0, encoding.c_str());
+  xmlOutputBufferFlush(buf);
   out_xml_str=(char*)(buf->conv ? buf->conv->content : buf->buffer->content);
   xmlOutputBufferClose(buf);
 }
