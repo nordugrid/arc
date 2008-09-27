@@ -5,4 +5,3 @@ libgaclpdp_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/incl
 libgaclpdp_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la
 libgaclpdp_la_LDFLAGS  = -no-undefined
 
-EXTRA_DIST = $(doc_DATA)
