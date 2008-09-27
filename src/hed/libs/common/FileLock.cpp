@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <glibmm.h>
 
 #include <arc/FileLock.h>
 
@@ -22,7 +23,7 @@ namespace Arc {
     while ((fd == -1) && (errno == EEXIST)) {
       if (fd != -1)
 	close(fd);
-      usleep (10000);
+      Glib::usleep (10000);
       fd = open(lockfile.c_str(), O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR);
     }
     if (fd != -1)
