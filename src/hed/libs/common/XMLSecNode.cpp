@@ -243,7 +243,7 @@ bool XMLSecNode::EncryptNode(std::string& cert_file, SymEncryptionType encrpt_ty
   return true;
 }
 
-bool XMLSecNode::DecryptNode(std::string& privkey_file) {
+bool XMLSecNode::DecryptNode(std::string& privkey_file, XMLNode& decrypted_node) {
   XMLNode encrypted_data = (*this)["xenc:EncryptedData"];
   XMLNode enc_method1 = encrypted_data["xenc:EncryptionMethod"];
   std::string algorithm = (std::string)(enc_method1.Attribute("Algorithm"));
@@ -287,18 +287,28 @@ bool XMLSecNode::DecryptNode(std::string& privkey_file) {
 
   xmlDocPtr doc_data_nd = NULL;
   doc_data_nd = xmlNewDoc((xmlChar*)"1.0");
-  xmlDocSetRootElement(doc_key_nd, todecrypt_data_nd);
+  xmlDocSetRootElement(doc_data_nd, todecrypt_data_nd);
   encCtx = xmlSecEncCtxCreate(NULL);
-  if (encCtx == NULL) { std::cerr<<"Failed to create encryption context"<<std::endl;  xmlFreeDoc(doc_key_nd); return false; }
+  if (encCtx == NULL) { std::cerr<<"Failed to create encryption context"<<std::endl; xmlFreeDoc(doc_key_nd); xmlFreeDoc(doc_data_nd); return false; }
   encCtx->encKey = symmetric_key;
   encCtx->mode = xmlEncCtxModeEncryptedData;
-  if ((xmlSecEncCtxDecrypt(encCtx, todecrypt_data_nd) < 0) || (encCtx->result == NULL)) {
+  xmlSecBufferPtr decrypted_buf;
+  decrypted_buf = xmlSecEncCtxDecryptToBuffer(encCtx, todecrypt_data_nd);
+  if(decrypted_buf == NULL) {
     std::cerr<<"Failed to decrypt EncryptedData"<<std::endl;
-    xmlSecEncCtxDestroy(encCtx);  xmlFreeDoc(doc_key_nd); return false;
+    xmlSecEncCtxDestroy(encCtx); xmlFreeDoc(doc_key_nd);  xmlFreeDoc(doc_data_nd); return false;
   }
+
+  std::string decrypted_str((const char*)decrypted_buf->data);
+  //std::cout<<"Decrypted node: "<<decrypted_str<<std::endl;
+
+  XMLNode decrypted_data = XMLNode(decrypted_str);
+  decrypted_data.New(decrypted_node);
+
   xmlSecEncCtxDestroy(encCtx);
   xmlFreeDoc(doc_key_nd);
-	
+  xmlFreeDoc(doc_data_nd);
+
   return true;
 }
 

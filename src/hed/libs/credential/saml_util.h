@@ -21,6 +21,8 @@ namespace Arc {
 
   std::string BuildDeflatedQuery(const Arc::XMLNode& node);
 
+  bool BuildNodefromMsg(const std::string msg, Arc::XMLNode& node);
+
 }// namespace Arc
 
 #endif /* __ARC_SAMLUTIL_H__ */

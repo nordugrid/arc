@@ -28,7 +28,7 @@ class XMLSecNode: public XMLNode {
    bool SignNode(std::string& privkey_file, std::string& cert_file);
    bool VerifyNode(std::string& id_name, std::string& ca_file, std::string& ca_path);
    bool EncryptNode(std::string& cert_file, SymEncryptionType encrpt_type);
-   bool DecryptNode(std::string& privkey_file);
+   bool DecryptNode(std::string& privkey_file, Arc::XMLNode& decrypted_node);
 };
 
 } // namespace Arc 

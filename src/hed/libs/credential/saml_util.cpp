@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+
 #include <glibmm/fileutils.h>
 #include <unistd.h>
 #include <cstring>
@@ -221,6 +223,16 @@ namespace Arc {
     std::string query;
     node.GetXML(query, encoding);
 
+    //std::ostringstream oss (std::ostringstream::out);
+    //node.SaveToStream(oss);
+    //query = oss.str();
+   
+    //Arc::XMLNode node1(query);
+    //std::string query1;
+    //node1.GetXML(query1, encoding);  
+ 
+    std::cout<<"Query:  "<<query<<std::endl; 
+
     unsigned long len;
     z_stream stream;
     xmlChar *out;
@@ -268,5 +280,40 @@ namespace Arc {
 
     return res;
   }
+
+  static bool is_base64(const char *message) {
+    const char *c;
+    c = message;
+    while (*c != 0 && (isalnum(*c) || *c == '+' || *c == '/' || *c == '\n' || *c == '\r')) c++;
+    while (*c == '=' || *c == '\n' || *c == '\r') c++;
+    if (*c == 0) return true;
+    return false;
+  }
+
+  bool BuildNodefromMsg(const std::string msg, Arc::XMLNode& node) {
+    bool b64 = false;
+    char* str = (char*)(msg.c_str());
+    if (is_base64(msg.c_str())) {   
+      str = (char*)malloc(msg.length());
+      int r = xmlSecBase64Decode((xmlChar*)(msg.c_str()), (xmlChar*)str, msg.length());
+      if (r >= 0) b64 = true;
+      else {
+        free(str);
+        str = (char*)(msg.c_str());
+      }
+    }
+
+    if (strchr(str, '<')) {
+      Arc::XMLNode nd(str);
+      if(!nd) { std::cerr<<"Message format unknown"<<std::endl; free(str); return false; }
+      if (b64) free(str);
+      nd.New(node);
+      return true;
+    }
+
+    //if (strchr(str, '&') || strchr(str, '='))
+    if(b64) free(str);
+    return false;
+  }  
 
 } //namespace Arc
