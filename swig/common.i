@@ -65,11 +65,11 @@ public:
      } 
 protected: 
      int_type overflow(int_type c) { 
-         PyObject_CallMethod(m_PyObj, "write", "c", c); 
+         PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "c", c); 
          return c; 
      } 
-     int_type xsputn(const char* s, std::streamsize count) { 
-         PyObject_CallMethod(m_PyObj, "write", "s#", s, int(count)); 
+     std::streamsize xsputn(const char* s, std::streamsize count) { 
+         PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", s, int(count)); 
          return count; 
      } 
      PyObject* m_PyObj; 
