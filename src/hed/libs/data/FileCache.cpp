@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#ifndef WIN32
+
 #include <cerrno>
 
 #include <sys/types.h>
@@ -9,6 +11,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <sys/utsname.h>
 
 #include <arc/Logger.h>
 
@@ -451,13 +454,13 @@ std::string FileCache::File(std::string url) {
   return _caches.at(_chooseCache(hash)).cache_path+"/"+hash;
 }
 
-bool FileCache::LinkFile(std::string link_path, std::string url) {
+bool FileCache::Link(std::string link_path, std::string url) {
 
   // choose cache
   struct CacheParameters cache_params = _caches.at(_chooseCache(FileCacheHash::getHash(url)));
   
   // if _cache_link_path is '.' then copy instead, bypassing the hard-link
-  if (cache_params.cache_link_path == ".") return CopyFile(link_path, url);
+  if (cache_params.cache_link_path == ".") return Copy(link_path, url);
    
   std::string hard_link_path = cache_params.cache_job_dir_path + "/" + _id;
   std::string filename = link_path.substr(link_path.rfind("/")+1);
@@ -517,7 +520,7 @@ bool FileCache::LinkFile(std::string link_path, std::string url) {
   return true;
 }
 
-bool FileCache::CopyFile(std::string dest_path, std::string url) {
+bool FileCache::Copy(std::string dest_path, std::string url) {
   
   // check the original file exists
   std::string cache_file = File(url);
@@ -834,3 +837,6 @@ int FileCache::_chooseCache(std::string hash) {
 }
 
 } // namespace Arc
+
+#endif /*WIN32*/
+

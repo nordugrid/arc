@@ -1,9 +1,11 @@
 #ifndef FILECACHE_H_
 #define FILECACHE_H_
 
+
+#ifndef WIN32
+
 #include <sstream>
 #include <vector>
-#include <sys/utsname.h>
 
 #include <arc/DateTime.h>
 
@@ -267,11 +269,11 @@ class FileCache {
    * @param link_path path to the session dir for soft-link or new file
    * @param url url of file to link to or copy
    */
-  bool LinkFile(std::string link_path, std::string url);
+  bool Link(std::string link_path, std::string url);
   /**
    * Copy the cache file corresponding to url to the dest_path 
    */
-  bool CopyFile(std::string dest_path, std::string url);
+  bool Copy(std::string dest_path, std::string url);
   /**
    * Remove some amount of oldest information from cache. 
    * Returns true on success. Not implemented.
@@ -331,5 +333,14 @@ class FileCache {
 };
 
 } // namespace Arc
+
+#else
+
+class FileCache {
+ public:
+  operator bool() { return false; };
+};
+
+#endif /*WIN32*/
 
 #endif /*FILECACHE_H_*/

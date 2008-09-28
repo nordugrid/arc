@@ -463,6 +463,7 @@ namespace Arc {
       }
       /* Try to initiate cache (if needed) */
       std::string canonic_url = source.str();
+#ifndef WIN32
       if (cacheable) {
 	res = DataStatus::Success;
 	for (;;) { /* cycle for outdated cache files */
@@ -522,7 +523,7 @@ namespace Arc {
 	    logger.msg(DEBUG, "Cached copy is still valid");
 	    if (source.ReadOnly()) {
 	      logger.msg(DEBUG, "Linking/copying cached file");
-	      if (!cache.LinkFile(destination.CurrentLocation().Path(),
+	      if (!cache.Link(destination.CurrentLocation().Path(),
 				   canonic_url)) {
 		/* failed cache link is unhandable */
 		cache.Stop(canonic_url);
@@ -531,7 +532,7 @@ namespace Arc {
 	    }
 	    else {
 	      logger.msg(DEBUG, "Copying cached file");
-	      if (!cache.CopyFile(destination.CurrentLocation().Path(),
+	      if (!cache.Copy(destination.CurrentLocation().Path(),
 				   canonic_url)) {
 		/* failed cache copy is unhandable */
 		cache.Stop(canonic_url);
@@ -548,6 +549,7 @@ namespace Arc {
 	  if (res != DataStatus::Success)
 	    continue;
       }
+#endif /*WIN32*/
       if (mapped) {
 	if ((mapped_url.Protocol() == "link") ||
 	    (mapped_url.Protocol() == "file")) {
@@ -561,8 +563,10 @@ namespace Arc {
 	    source.NextLocation(); /* try another source */
 	    logger.msg(DEBUG, "source.next_location");
 	    res = DataStatus::ReadStartError;
+#ifndef WIN32
 	    if (cacheable)
 	      cache.StopAndDelete(canonic_url);
+#endif
 	    continue;
 	  }
 	  logger.msg(DEBUG, "Permission checking passed");
@@ -590,8 +594,10 @@ namespace Arc {
 		  source.NextLocation(); /* try another source */
 		  logger.msg(DEBUG, "source.next_location");
 		  res = DataStatus::ReadStartError;
+#ifndef WIN32
 		  if (cacheable)
 		    cache.StopAndDelete(canonic_url);
+#endif
 		  continue;
 		}
 	      }
@@ -603,25 +609,31 @@ namespace Arc {
 	      source.NextLocation(); /* try another source */
 	      logger.msg(DEBUG, "source.next_location");
 	      res = DataStatus::ReadStartError;
+#ifndef WIN32
 	      if (cacheable)
 		cache.StopAndDelete(canonic_url);
+#endif
 	      continue;
 	    }
 	    User user;
 	    (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) != 0);
+#ifndef WIN32
 	    if (cacheable)
 	      cache.Stop(canonic_url);
+#endif
 	    return DataStatus::Success;
 	    // Leave after making a link. Rest moves data.
 	  }
 	}
       }
       URL churl;
+#ifndef WIN32
       if (cacheable) {
 	/* create new destination for cache file */
 	churl = cache.File(canonic_url);
 	logger.msg(INFO, "cache file: %s", churl.Path());
       }
+#endif
       DataHandle chdest_h(churl);
       DataPoint& chdest(*chdest_h);
       if (chdest_h) {
@@ -640,8 +652,10 @@ namespace Arc {
 	/* try another source */
 	if (source.NextLocation())
 	  logger.msg(DEBUG, "(Re)Trying next source");
+#ifndef WIN32
 	if (cacheable)
 	  cache.StopAndDelete(canonic_url);
+#endif
 	continue;
       }
       if (mapped)
@@ -653,8 +667,10 @@ namespace Arc {
 		     "Metadata of source and destination are different");
 	  source.NextLocation(); /* not exactly sure if this would help */
 	  res = DataStatus::PreRegisterError;
+#ifndef WIN32
 	  if (cacheable)
 	    cache.StopAndDelete(canonic_url);
+#endif
 	  continue;
 	}
       destination.SetMeta(source);
@@ -669,8 +685,10 @@ namespace Arc {
 	logger.msg(DEBUG, "destination.next_location");
 	res = DataStatus::PreRegisterError;
 	// Normally remote destination is not cached. But who knows.
+#ifndef WIN32
 	if (cacheable)
 	  cache.StopAndDelete(canonic_url);
+#endif
 	continue;
       }
       buffer.speed.reset();
@@ -692,6 +710,7 @@ namespace Arc {
 	}
       }
       else {
+#ifndef WIN32
 	if (!chdest.StartWriting(buffer)) {
 	  // TODO: put callback to clean cache into FileCache
 	  logger.msg(ERROR, "Failed to start writing to cache");
@@ -704,6 +723,7 @@ namespace Arc {
 		       "You may need to unregister it manually");
 	  return DataStatus::CacheError; // repeating won't help here
 	}
+#endif
       }
       logger.msg(DEBUG, "Waiting for buffer");
       for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();)
@@ -717,13 +737,14 @@ namespace Arc {
 	source.SetMeta(mapped_p); // pass more metadata (checksum)
       logger.msg(DEBUG, "Closing write channel");
       write_failure = destination_url.StopWriting();
+#ifndef WIN32
       if (cacheable) {
 	bool download_error = buffer.error();
 	if (!download_error) {
 	  if (source.CheckValid())
 	    cache.SetValid(canonic_url, source.GetValid());
 	  logger.msg(DEBUG, "Linking/copying cached file");
-	  if (!cache.LinkFile(destination.CurrentLocation().Path(),
+	  if (!cache.Link(destination.CurrentLocation().Path(),
 			       canonic_url)) {
 	    buffer.error_write(true);
 	    cache.Stop(canonic_url);
@@ -739,6 +760,7 @@ namespace Arc {
 	  cache.StopAndDelete(canonic_url);
 	// keep for retries
       }
+#endif
       if (buffer.error()) {
 	if (!destination.PreUnregister(replication ||
 				       destination_meta_initially_stored).Passed())
