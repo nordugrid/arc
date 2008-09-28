@@ -1,3 +1,11 @@
+#ifdef WIN32
+
+int main(void) {
+  return -1;
+}
+
+#else
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -133,3 +141,5 @@ int main(void) {
   }
   return 0;
 }
+
+#endif
