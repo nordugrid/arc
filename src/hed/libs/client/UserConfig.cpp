@@ -21,6 +21,10 @@
 #define GetEnv(NAME) (getenv(NAME) ? getenv(NAME) : "")
 #endif
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 namespace Arc {
 
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
