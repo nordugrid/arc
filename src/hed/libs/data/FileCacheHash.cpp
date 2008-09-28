@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include <openssl/evp.h>
+
 #include "FileCacheHash.h"
 
 int FileCacheHash::MAX_MD5_LENGTH=32;

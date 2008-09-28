@@ -2,7 +2,6 @@
 #define FILE_CACHE_HASH_H_
 
 #include <string>
-#include <openssl/evp.h>
 
 /**
  * FileCacheHash provides methods to make hashes from strings.
