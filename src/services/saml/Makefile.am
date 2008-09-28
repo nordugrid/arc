@@ -40,6 +40,7 @@ test_client_authn_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                        $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+                       $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                        $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_LIBS)
 
 test_service_SOURCES  = test_service.cpp
