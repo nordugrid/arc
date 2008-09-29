@@ -513,11 +513,10 @@ namespace Arc {
                 Arc::XMLNode ds = jobTree["JobDescription"].NewChild("DataStaging");
                 Arc::XMLNode fn = ds.NewChild("FileName");
                 fn = (*it)[0];
-                if ( (*it)[1] != "" ) {
-                    Arc::XMLNode source = ds.NewChild("Source");
-                    Arc::XMLNode uri = source.NewChild("URI");
-                    uri = (*it)[1];
-                }
+                Arc::XMLNode source = ds.NewChild("Source");
+                Arc::XMLNode uri = source.NewChild("URI");
+                if ( (*it)[1] != "" ) uri = (*it)[1];
+                else uri = (*it)[0];
             }
             return true;
         } else if ( attributeName == "executables" ) {
