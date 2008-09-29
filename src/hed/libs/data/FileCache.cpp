@@ -138,6 +138,7 @@ bool FileCache::_init(std::vector<struct CacheParameters> caches,
   std::stringstream ss;
   ss << pid_i;
   ss >> _pid;
+  return true;
 }
 
     
