@@ -269,6 +269,8 @@ class Librarian:
     
 from storage.service import Service
 from storage.logger import Logger
+
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Librarian'))
     
 class LibrarianService(Service):
     """ LibrarianService class implementing the XML interface of the storage Librarian service. """
@@ -281,11 +283,8 @@ class LibrarianService(Service):
         'cfg' is an XMLNode which containes the config of this service.
         """
         self.service_name = 'Librarian'
-        self.log_level = str(cfg.Get('LogLevel'))
-        if self.log_level:
-            self.log_level = eval('arc.'+self.log_level)
         # init logging
-        self.log = Logger(self.service_name, self.log_level)
+        self.log = log
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor

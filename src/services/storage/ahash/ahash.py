@@ -186,6 +186,8 @@ from storage.xmltree import XMLTree
 from storage.service import Service
 from storage.logger import Logger
 
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'A-Hash'))
+
 class AHashService(Service):
     """ AHashService class implementing the XML interface of the A-Hash service. """
 
@@ -197,11 +199,8 @@ class AHashService(Service):
         'cfg' is an XMLNode which containes the config of this service.
         """
         self.service_name = 'A-Hash'
-        self.log_level = str(cfg.Get('LogLevel'))
-        if self.log_level:
-            self.log_level = eval('arc.'+self.log_level)
         # init logging
-        self.log = Logger(self.service_name, self.log_level)
+        self.log = log
         # names of provided methods
         request_names = ['get','change']
         # call the Service's constructor

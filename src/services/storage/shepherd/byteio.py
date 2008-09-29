@@ -106,15 +106,13 @@ class ByteIOBackend:
 from storage.service import Service
 from storage.logger import Logger
 
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'ByteIO'))
+
 class ByteIOService(Service):
 
     def __init__(self, cfg):
         self.service_name = 'ByteIO'
-        self.log_level = str(cfg.Get('LogLevel'))
-        if self.log_level:
-            self.log_level = eval('arc.'+self.log_level)
-        # init logging
-        self.log = Logger(self.service_name, self.log_level)
+        self.log = log
         # names of provided methods
         request_names = ['read', 'write']
         # call the Service's constructor

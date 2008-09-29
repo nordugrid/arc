@@ -17,27 +17,26 @@ DELETED = 'deleted'
 THIRDWHEEL = 'thirdwheel'
 
 class Shepherd:
-    def log(self,*args):
-        print args
+
     def __init__(self, cfg, log):
         self.log = log
         try:
             ssl_config = parse_ssl_config(cfg)
         except:
-            self.log.msg('ERROR', 'Error parsing client SSL config')
+            self.log.msg(arc.ERROR, 'Error parsing client SSL config')
         try:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
             self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.log, ssl_config)
         except:
-            self.log.msg('DEBUG', 'Cannot import backend class', backendclass)
+            self.log.msg(arc.DEBUG, 'Cannot import backend class', backendclass)
             raise
         try:
             storeclass = str(cfg.Get('StoreClass'))
             storecfg = cfg.Get('StoreCfg')
             self.store = import_class_from_string(storeclass)(storecfg, log = self.log)
         except:
-            self.log.msg('DEBUG', 'Cannot import store class', storeclass)
+            self.log.msg(arc.DEBUG, 'Cannot import store class', storeclass)
             raise
         try:
             librarianURL = str(cfg.Get('LibrarianURL'))
@@ -46,13 +45,13 @@ class Shepherd:
             self.bartender = BartenderClient(bartenderURL, ssl_config = ssl_config)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
-            self.log.msg('DEBUG', 'Cannot get LibrarianURL, BartenderURL or serviceID')
+            self.log.msg(arc.DEBUG, 'Cannot get LibrarianURL, BartenderURL or serviceID')
             raise
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
             self.min_interval = float(str(cfg.Get('MinCheckInterval')))
         except:
-            self.log.msg('DEBUG', 'Cannot set CheckPeriod, MinCheckInterval')
+            self.log.msg(arc.DEBUG, 'Cannot set CheckPeriod, MinCheckInterval')
             raise
         self.changed_states = self.store.list()
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
@@ -77,7 +76,7 @@ class Shepherd:
                         # get its local data (GUID, size, state, etc.)
                         localData = self.store.get(changed)
                         if not localData.has_key('GUID'):
-                            self.log.msg('DEBUG', 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
+                            self.log.msg(arc.DEBUG, 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
                         else:
                             # add to the filelist the GUID, the referenceID and the state of the file
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
@@ -96,7 +95,7 @@ class Shepherd:
                     last_report = time.time()
                     # if the next report time is below zero it means:
                     if next_report < 0: # 'please send all'
-                        self.log.msg('DEBUG', '\nreporting - asked to send all file data again')
+                        self.log.msg(arc.DEBUG, '\nreporting - asked to send all file data again')
                         # add the full list of stored files to the changed_state list - all the files will be reported next time (which is immediately, see below)
                         self.changed_states.extend(self.store.list())
                     # let's wait until there is any changed file or the reporting time is up - we need to do report even if no file changed (as a heartbeat)
@@ -133,7 +132,7 @@ class Shepherd:
             # if the original and the current checksum is the same, then the replica is valid
             if state == INVALID or state == CREATING:
                 # if it is currently INVALID or CREATING its state should be changed
-                self.log.msg('DEBUG', '\nCHECKSUM OK', referenceID)
+                self.log.msg(arc.DEBUG, '\nCHECKSUM OK', referenceID)
                 self.changeState(referenceID, ALIVE)
                 state = ALIVE
             # now the state of the file is ALIVE, let's return it with the GUID and the localID (which will be needed later by checkingThread )
@@ -148,7 +147,7 @@ class Shepherd:
                 return DELETED, localData['GUID'], localData['localID']
             if state != INVALID:
                 # but if it is not INVALID, not CREATING and not DELETED - so it's ALIVE: its state should be changed to INVALID
-                self.log.msg('DEBUG', '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
+                self.log.msg(arc.DEBUG, '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
                 self.changeState(referenceID, INVALID)
             return INVALID, localData['GUID'], localData['localID']
         
@@ -178,7 +177,7 @@ class Shepherd:
                     # but we don't want to run constantly, after a file is checked we should wait at least a specified amount of time
                     if interval < self.min_interval:
                         interval = self.min_interval
-                    self.log.msg('DEBUG','\n', self.serviceID, 'is checking', number, 'files with interval', interval)
+                    self.log.msg(arc.DEBUG,'\n', self.serviceID, 'is checking', number, 'files with interval', interval)
                     # randomize the list of files to be checked
                     random.shuffle(referenceIDs)
                     # start checking the first one
@@ -208,7 +207,7 @@ class Shepherd:
                                                               if section == 'locations' and value == ALIVE])
                                     if alive_replicas < needed_replicas:
                                         # if the file has fewer replicas than needed
-                                        self.log.msg('DEBUG', '\n\nFile', GUID, 'has fewer replicas than needed.')
+                                        self.log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
                                         # we offer our copy to replication
                                         response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
                                         success, turl, protocol = response['checkingThread']
@@ -218,9 +217,9 @@ class Shepherd:
                                             self.backend.copyTo(localID, turl, protocol)
                                             # TODO: this should be done in some other thread
                                         else:
-                                            self.log.msg('DEBUG', 'checkingThread error, bartender responded', success)
+                                            self.log.msg(arc.DEBUG, 'checkingThread error, bartender responded', success)
                                     elif alive_replicas > needed_replicas:
-                                        self.log.msg('DEBUG', '\n\nFile', GUID, 'has %d more replicas than needed.'%(alive_replicas-needed_replicas))
+                                        self.log.msg(arc.DEBUG, '\n\nFile', GUID, 'has %d more replicas than needed.'%(alive_replicas-needed_replicas))
                                         self.changeState(referenceID, THIRDWHEEL)
                             # or if this replica is not needed
                             elif state == THIRDWHEEL:
@@ -240,7 +239,7 @@ class Shepherd:
                                     state = ALIVE
                             # or if this replica is INVALID
                             elif state == INVALID:
-                                self.log.msg('DEBUG', '\n\nI have an invalid replica of file', GUID)
+                                self.log.msg(arc.DEBUG, '\n\nI have an invalid replica of file', GUID)
                                 # we try to get a valid one by simply downloading this file
                                 response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
                                 success, turl, protocol = response['checkingThread']
@@ -253,13 +252,13 @@ class Shepherd:
                                     self._file_arrived(referenceID)
                                     # TODO: this should be done in some other thread
                                 else:
-                                    self.log.msg('DEBUG', 'checkingThread error, bartender responded', success)
+                                    self.log.msg(arc.DEBUG, 'checkingThread error, bartender responded', success)
                             if state == DELETED:
                                 # remove replica if marked it as deleted
                                 bsuccess = self.backend.remove(localID)
                                 self.store.set(referenceID, None)
                         except:
-                            self.log.msg('DEBUG', 'ERROR checking checksum of', referenceID)
+                            self.log.msg(arc.DEBUG, 'ERROR checking checksum of', referenceID)
                             self.log.msg()
                         time.sleep(interval)
                 else:
@@ -276,7 +275,7 @@ class Shepherd:
                 self.store.unlock()
                 return False
             oldState = localData['state']
-            self.log.msg('DEBUG', 'changeState', referenceID, oldState, '->', newState)
+            self.log.msg(arc.DEBUG, 'changeState', referenceID, oldState, '->', newState)
             # if a previous state is given, change only if the current state is the given state
             if onlyIf and oldState != onlyIf:
                 self.store.unlock()
@@ -294,7 +293,7 @@ class Shepherd:
     def get(self, request):
         response = {}
         for requestID, getRequestData in request.items():
-            self.log.msg('DEBUG', '\n\n', getRequestData)
+            self.log.msg(arc.DEBUG, '\n\n', getRequestData)
             referenceID = dict(getRequestData)['referenceID']
             protocols = [value for property, value in getRequestData if property == 'protocol']
             #print 'Shepherd.get:', referenceID, protocols
@@ -401,17 +400,17 @@ class Shepherd:
 from storage.service import Service
 from storage.logger import Logger
 
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Shepherd'))
+
 class ShepherdService(Service):
 
     def __init__(self, cfg):
+        self.log = log
         try:
             serviceID = str(cfg.Get('ServiceID')).split('/')[-1]
         except:
             serviceID = "Shepherd"
         self.service_name = serviceID
-        self.log_level = str(cfg.Get('LogLevel'))
-        # init logging
-        self.log = Logger(self.service_name, self.log_level)
         # names of provided methods
         request_names = ['get', 'put', 'stat', 'delete', 'toggleReport']
         # create the business-logic class
