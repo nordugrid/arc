@@ -27,6 +27,7 @@
 
 namespace ArcSec {
 
+#ifndef WIN32
 class FileLock {
  private:
   int h_;
@@ -51,6 +52,15 @@ class FileLock {
   operator bool(void) { return (h_ != -1); };
   bool operator!(void) { return (h_ == -1); };
 };
+#else
+// TODO: implement
+class FileLock {
+ public:
+  FileLock(int) { };
+  operator bool(void) { return false; };
+  bool operator!(void) { return true; };
+};
+#endif
 
 SimpleMap::SimpleMap(const std::string& dir):dir_(dir) {
   if((dir_.length() == 0) || (dir_[dir_.length()-1] != '/')) dir_+="/";
