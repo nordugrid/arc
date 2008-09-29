@@ -9,7 +9,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifndef WIN32
 #include <termios.h>
+#endif
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -124,11 +126,15 @@ int main(int argc, char* argv[]){
       };
       proxy_path=s;
     };
+#ifndef WIN32
     struct termios to;
     tcgetattr(STDIN_FILENO,&to);
     to.c_lflag &= ~ECHO; tcsetattr(STDIN_FILENO,TCSANOW,&to);
     Arc::DelegationProvider provider(cert_path,key_path,&std::cin);
     to.c_lflag |= ECHO; tcsetattr(STDIN_FILENO,TCSANOW,&to);
+#else
+    Arc::DelegationProvider provider(cert_path,key_path,&std::cin);
+#endif
     if(!provider) {
       throw std::runtime_error("Failed to acquire credentials");
     };
