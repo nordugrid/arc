@@ -2,8 +2,6 @@
 #define FILECACHE_H_
 
 
-#ifndef WIN32
-
 #include <sstream>
 #include <vector>
 
@@ -14,6 +12,8 @@
 namespace Arc {
 
 class Logger;
+
+#ifndef WIN32
 
 /**
  * Contains data on the parameters of a cache.
@@ -332,15 +332,31 @@ class FileCache {
 
 };
 
-} // namespace Arc
-
 #else
 
 class FileCache {
  public:
+  FileCache(std::string cache_path,
+            std::string cache_job_dir_path,
+            std::string cache_link_path,
+            std::string id,
+            uid_t job_uid,
+            gid_t job_gid,
+            int cache_dir_length,
+            int cache_dir_levels) { };
+  FileCache(std::vector<struct CacheParameters> caches,
+            std::string id,
+            uid_t job_uid,
+            gid_t job_gid,
+            int cache_dir_length,
+            int cache_dir_levels) { };
+  FileCache(const FileCache& cache) { };
+  FileCache() { };
   operator bool() { return false; };
 };
 
 #endif /*WIN32*/
+
+} // namespace Arc
 
 #endif /*FILECACHE_H_*/
