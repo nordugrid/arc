@@ -1,5 +1,5 @@
 src/services/charon/charon_policy.xml.example
 src/services/charon/charon_service.xml.example
 src/services/hopi/hopi_service.xml.example
-src/services/storage/storage.service.xml.example
+src/services/storage/storage_service.xml.example
 src/tests/echo/echo_service.xml.example

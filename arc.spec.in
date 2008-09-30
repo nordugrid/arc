@@ -252,7 +252,7 @@ exit 0
 %doc src/services/charon/charon_policy.xml.example
 %doc src/services/charon/charon_service.xml.example
 %doc src/services/hopi/hopi_service.xml.example
-%doc src/services/storage/storage.service.xml.example
+%doc src/services/storage/storage_service.xml.example
 %doc src/tests/echo/echo_service.xml.example
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libcharon.so

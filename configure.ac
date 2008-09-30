@@ -908,6 +908,8 @@ AC_CONFIG_FILES([Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
+                 src/services/a-rex/arex_service.xml.example
+                 src/services/a-rex/arex_service-secure.xml.example		 
                  src/services/a-rex/config/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/cache/Makefile
@@ -946,7 +948,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/a-rex/lrms/sge/cancel-sge-job
                  src/services/charon/Makefile
+                 src/services/charon/charon_service.xml.example
                  src/services/hopi/Makefile
+                 src/services/hopi/hopi_service.xml.example
                  src/services/arex2/Makefile
                  src/services/isis/Makefile
                  src/services/saml/Makefile
@@ -954,6 +958,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/sched/manage_jobq.8
                  src/services/paul/Makefile
                  src/services/storage/Makefile 
+                 src/services/storage/storage_service.xml.example
                  src/services/storage/arc_storage_cli.1
                  src/services/storage/librarian/Makefile 
                  src/services/storage/cli/Makefile 
@@ -963,6 +968,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/storage/store/Makefile 
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
+                 src/tests/echo/echo_service.xml.example
                  src/services/wrappers/Makefile
                  src/services/wrappers/java/Makefile
                  src/services/wrappers/python/Makefile
@@ -973,6 +979,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcrm.1
                  src/clients/echo/Makefile
                  src/clients/echo/arcecho.1
+                 src/clients/echo/echo_client.xml.example
                  src/clients/charon/Makefile
                  src/clients/charon/arcdecision.1
                  src/clients/isis/Makefile

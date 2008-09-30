@@ -12,7 +12,7 @@ fuse      - FUSE interface to storage for mounting storage system
 And has the following files:
 client.py                       - collection of python classes which can be used to talk to the services
 common.py                       - collection of python methods and classes used by more than one service
-storage.service.xml.example     - an example service configuration xml for HED with HTTP Shepherd backend
+storage_service.xml.example     - an example service configuration xml for HED with HTTP Shepherd backend
 storage.service.xml.3S.example  - an example service configuration xml for HED with 3 ByteIO-backed Shepherds
 service.py                      - a python superclass of service classes with common features
 xmltree.py                      - a python class for easy handling of simple XML structures
@@ -79,7 +79,7 @@ If you are using a virtual machine, you can use the default location to install.
 The following instructions are for the default installation directory.
 
 You can use the example configuration file which is by default installed to:
-    /usr/local/share/doc/arc/storage.service.xml.example
+    /usr/local/share/doc/arc/storage_service.xml.example
 
 You need some working directories and a place for a logfile, e.g.:
     $ sudo mkdir /var/spool/arc; sudo chmod a+wrx /var/spool/arc
@@ -96,7 +96,7 @@ You may add the external interface of your machine to the section where it is in
 You may replace 'localhost' with the hostname of your machine.
 
 Then you can start the server with:
-/usr/local/sbin/arched -c /usr/local/share/doc/arc/storage.service.xml.example 
+/usr/local/sbin/arched -c /usr/local/share/doc/arc/storage_service.xml.example 
 
 Now you can use the arc_storage_clithon script which is by default installed to /usr/local/bin.
 But you can grab this script and use it on any other machine which has no ARC installed at all.
