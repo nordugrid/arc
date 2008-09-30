@@ -3,10 +3,12 @@
 #include "../FileCache.h"
 
 #include <cerrno>
-
 #include <list>
+
+#include <unistd.h>
 #include <utime.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/utsname.h>
 
 class FileCacheTest : public CppUnit::TestFixture { 
