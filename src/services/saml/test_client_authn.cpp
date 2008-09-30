@@ -218,7 +218,7 @@ int main(void) {
   Arc::XMLNode assertion_nd = node["saml:EncryptedAssertion"];
   std::string saml_assertion;
   assertion_nd.GetXML(saml_assertion);
-  std::cout<<"Encrypted saml assertion"<<saml_assertion<<std::endl;
+  std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
 
   Arc::XMLSecNode sec_assertion_nd(assertion_nd);
   Arc::XMLNode decrypted_assertion_nd; 
@@ -228,6 +228,22 @@ int main(void) {
   std::string decrypted_saml_assertion;
   decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
   std::cout<<"Decrypted SAML Assertion: "<<decrypted_saml_assertion<<std::endl;
+
+  //Decrypted the <saml:EncryptedID> in the above saml assertion
+  Arc::XMLNode nameid_nd = decrypted_assertion_nd["saml:Subject"]["saml:EncryptedID"];
+  std::string nameid;
+  nameid_nd.GetXML(nameid);
+  std::cout<<"Encrypted name id: "<<nameid<<std::endl;
+
+  Arc::XMLSecNode sec_nameid_nd(nameid_nd);
+  Arc::XMLNode decrypted_nameid_nd;
+  r = sec_nameid_nd.DecryptNode(privkey_file, decrypted_nameid_nd);
+  if(!r) { std::cout<<"Can not decrypted the EncryptedID from saml assertion"<<std::endl; return 0; }
+
+  std::string decrypted_nameid;
+  decrypted_nameid_nd.GetXML(decrypted_nameid);
+  std::cout<<"Decrypted SAML NameID: "<<decrypted_nameid<<std::endl;
+
 
   //-----------------------
   //SP: AttributeQuery
