@@ -867,6 +867,14 @@ void FileCacheTest::testBadConstructor() {
   caches.push_back(params2);
   _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid, 2, 3);
   CPPUNIT_ASSERT( !(*_fc1) );
+  // call some methods
+  bool available = false;
+  bool is_locked = false;
+  CPPUNIT_ASSERT( !(_fc1->Start(_url, available, is_locked)) );
+  CPPUNIT_ASSERT_EQUAL(std::string(""), _fc1->File(_url));
+  CPPUNIT_ASSERT( !(_fc1->Stop(_url)));
+  CPPUNIT_ASSERT( !(_fc1->StopAndDelete(_url)));
+  CPPUNIT_ASSERT( !(_fc1->CheckCreated(_url)));
 }
 
 void FileCacheTest::testInternal() {

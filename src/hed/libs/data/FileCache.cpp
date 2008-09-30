@@ -174,6 +174,8 @@ FileCache::~FileCache(void) {
 
 bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
 	
+  if(!(*this)) return false;
+  
   available = false;
   is_locked = false;
   std::string filename = File(url);
@@ -405,6 +407,8 @@ bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
 
 bool FileCache::Stop(std::string url) {
   
+  if(!(*this)) return false;
+
   // check the lock is ok to delete
   if (!_checkLock(url)) return false;
 
@@ -418,6 +422,8 @@ bool FileCache::Stop(std::string url) {
 
 bool FileCache::StopAndDelete(std::string url) {
   
+  if(!(*this)) return false;
+
   // check the lock is ok to delete, and if so, remove the file and the
   // associated lock
   if (!_checkLock(url)) return false;
@@ -443,6 +449,8 @@ bool FileCache::StopAndDelete(std::string url) {
 
 std::string FileCache::File(std::string url) {
   
+  if(!(*this)) return "";
+  
   // get the hash of the url
   std::string hash = FileCacheHash::getHash(url);
   
@@ -456,7 +464,9 @@ std::string FileCache::File(std::string url) {
 }
 
 bool FileCache::Link(std::string link_path, std::string url) {
-
+  
+  if(!(*this)) return false;
+  
   // choose cache
   struct CacheParameters cache_params = _caches.at(_chooseCache(FileCacheHash::getHash(url)));
   
@@ -523,6 +533,8 @@ bool FileCache::Link(std::string link_path, std::string url) {
 
 bool FileCache::Copy(std::string dest_path, std::string url) {
   
+  if(!(*this)) return false;
+
   // check the original file exists
   std::string cache_file = File(url);
   struct stat fileStat;
