@@ -81,6 +81,7 @@ XmlContainer::put(const std::string &name, const std::string &content)
             db_->put(tid, &key, &value, 0);
             tid->commit(0);
             return true;
+#ifdef HAVE_DBDEADLOCKEXCEPTION
         } catch (DbDeadlockException &e) {
             try { 
                 tid->abort();
@@ -89,6 +90,7 @@ XmlContainer::put(const std::string &name, const std::string &content)
                 logger_.msg(Arc::ERROR, "put: cannot abort transaction: %s", e.what());
                 return false;
             }
+#endif
         } catch (DbException &e) {
             logger_.msg(Arc::ERROR, "put: %s", e.what());
             try {
@@ -120,6 +122,7 @@ XmlContainer::get(const std::string &name)
             }
             tid->commit(0);
             return "";
+#ifdef HAVE_DBDEADLOCKEXCEPTION
         } catch (DbDeadlockException &e) {
             try {
                 tid->abort();
@@ -128,6 +131,7 @@ XmlContainer::get(const std::string &name)
                 logger_.msg(Arc::ERROR, "get: cannot abort transaction: %s", e.what());
                 return "";
             }
+#endif
         } catch (DbException &e) {
             logger_.msg(Arc::ERROR, "get: %s", e.what());
             try {
@@ -151,6 +155,7 @@ XmlContainer::del(const std::string &name)
             env_->txn_begin(NULL, &tid, 0);
             db_->del(tid, &key, 0);
             tid->commit(0);
+#ifdef HAVE_DBDEADLOCKEXCEPTION
         } catch (DbDeadlockException &e) {
             try {
                 tid->abort();
@@ -159,6 +164,7 @@ XmlContainer::del(const std::string &name)
                 logger_.msg(Arc::ERROR, "del: cannot abort transaction: %s", e.what());
                 return;
             }
+#endif
         } catch (DbException &e) {
             logger_.msg(Arc::ERROR, "del: %s", e.what());
             try {
@@ -208,6 +214,7 @@ XmlContainer::get_doc_names(void)
             cursor->close();
             tid->commit(0);
             return result;
+#ifdef HAVE_DBDEADLOCKEXCEPTION
         } catch (DbDeadlockException &e) {
             try {
                 if (cursor != NULL) {
@@ -219,6 +226,7 @@ XmlContainer::get_doc_names(void)
                 logger_.msg(Arc::ERROR, "get_doc_names: cannot abort transaction: %s", e.what());
                 return empty_result;
             }
+#endif
         } catch (DbException &e) {
             logger_.msg(Arc::ERROR, "Error during the transaction: %s", e.what());
             try {

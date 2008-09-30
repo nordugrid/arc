@@ -517,6 +517,10 @@ fi
 
 AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
 AC_SUBST(DBCXX_LIBS)
+if test ! "x$DBCXX_LIBS" = "x"
+then
+  AC_DBCXX_HAVE_DBDEADLOCKEXCEPTION
+fi
 AC_LANG_RESTORE
 
 # globus/gpt packages
