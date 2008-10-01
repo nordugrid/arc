@@ -40,7 +40,8 @@ If it is required to reduce evaluation results to boolean value PERMIT maps to T
     active in case Request is NOT_APPLICABLE. For example:
       DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT
     But one should be careful because example above would allow fruit PLUMS to grow on APPLE trees :)
-    This kind of requirement can be supported by using the algorithm between policies.  For example, in case of above scenario, we can use some algorithm like "Permit-if-notapplicable"
+    This kind of requirement can be supported by using the algorithm between policies.  For example, in case of above scenario, we can use some algorithm like "Permit-if-notapplicable". See below the "Policy matching" part for more explaination.  
+ 
 ????????? LAST PARGRAPH IS UNCLEAR. NEEDS BETTER EXPLANATION.
 
 
@@ -71,9 +72,35 @@ algorithm is specified in Policy. There are 2 algorithms currently:
     Question? The same as above.
 
   Note: it would be useful to have more combining algorithms. Like the one which is metioned above:
-  "Permit-if-notapplicable", or "Permit-when-allPermit" (Permit when all the Rules gives Permit, this alg 
+  "Permit-if-notapplicable", or "Permit-if-allPermit" (Permit if all the Rules gives Permit, this alg 
    is useful in that case when we collecting different policy from a few sources, and we restrict that the 
    request should satisfy all of them in order to get access). 
+  3. Permit-if-notapplicable
+    The use case is "DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT", in this case there is only one
+    Rule under Policy, and this Rule is with "Deny" effect.
+    If this Rule gives DENY in results, final result is DENY.
+    Otherwise if this Rule gives NOT_APPLICABLE, final result is PERMIT.
+    Otherwise final result is INDETERMINATE. 
+ 
+  4. Permit-if-all-Permit
+    If all of the Rule give PERMIT, the final result is PERMIT.
+    Otherwise if there is at least one DENY the final result is DENY.
+    Otherwise if there is at least one NOT_APPLICABLE final result is NOT_APPLICABLE.
+    Otherwise final result is INDETERMINATE.
+
+  5. OnlyOneApplicable
+    If there is one gives INDETERMINATE, final result INDETERMINATE is given immediately.
+    Otherwise if there is exactly only one gives applicable result (DENY or PERMIT), final result
+      is as this result.
+    Otherwise if there is more than one gives applicable result, final result is INDTERMINATE.
+    Otherwise final result is NOT_APPLICABLE.
+
+  This algorithm makes sure that only one Rule is selected when making decision.
+
+  6. FirstApplicable
+    If there is one give DENY, PERMIT or INDETERMINATE result, final result is given immediately as this result.
+    Otherwise final result is NOT_APPLICABLE.
+
 ???? AGREE, BUT NOT URGENT
 
 
