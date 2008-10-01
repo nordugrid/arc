@@ -40,7 +40,7 @@ namespace Arc {
 int passphrase_callback(char* buf, int size, int rwflag, void *) {
   int len;
   char prompt[128];
-  snprintf(prompt, sizeof(prompt), "Enter passphrase for the key file which will be used for X509 Token: \n");
+  snprintf(prompt, sizeof(prompt), "Enter passphrase for the key file: \n");
   int r = EVP_read_pw_string(buf, size, prompt, 0);
   if(r != 0) {
     std::cerr<<"Failed to read passphrase from stdin"<<std::endl;
