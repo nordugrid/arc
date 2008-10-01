@@ -259,9 +259,6 @@ exit 0
 %{_libdir}/%{pkgdir}/libhopi.so
 %{_libdir}/%{pkgdir}/libisis.so
 %{_libdir}/%{pkgdir}/libgrid_sched.so
-%{_libdir}/%{pkgdir}/libaccARC0.so
-%{_libdir}/%{pkgdir}/libaccARC1.so
-%{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libpaul.so
 
 %files arex
@@ -331,12 +328,15 @@ exit 0
 %{_libdir}/%{pkgdir}/libdmcldap.so
 %{_libdir}/%{pkgdir}/libarcpdc.so
 %{_libdir}/%{pkgdir}/libidentitymap.so
+%{_libdir}/%{pkgdir}/libaccARC1.so
+%{_libdir}/%{pkgdir}/libaccCREAM.so
 
 %files plugins-globus
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libdmclfc.so
 %{_libdir}/%{pkgdir}/libdmcrls.so
+%{_libdir}/%{pkgdir}/libaccARC0.so
 
 %files python
 %defattr(-,root,root,-)

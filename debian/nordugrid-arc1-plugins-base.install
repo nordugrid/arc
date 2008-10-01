@@ -4,3 +4,6 @@ usr/lib/arc/libdmchttp.so
 usr/lib/arc/libarcpdc.so
 usr/lib/arc/libidentitymap.so
 usr/lib/arc/libdmcldap.so
+@GRIDFTP_ENABLED_TRUE@usr/lib/arc/libaccARC0.so
+usr/lib/arc/libaccARC1.so
+usr/lib/arc/libaccCREAM.so

@@ -5,9 +5,6 @@ usr/lib/arc/libcharon.so
 usr/lib/arc/libhopi.so
 usr/lib/arc/libisis.so
 @SCHED_SERVICE_ENABLED_TRUE@usr/lib/arc/libgrid_sched.so
-@GRIDFTP_ENABLED_TRUE@usr/lib/arc/libaccARC0.so
-usr/lib/arc/libaccARC1.so
-usr/lib/arc/libaccCREAM.so
 usr/lib/arc/libpaul.so
 usr/share/man/man8/arched.8*
 usr/share/man/man8/manage_jobq.8*
