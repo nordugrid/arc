@@ -42,7 +42,7 @@ XMLSecNode::XMLSecNode(XMLNode& node):XMLNode(node) {
 XMLSecNode::~XMLSecNode(void) {
 }
 
-void XMLSecNode::AddSignatureTemplate(std::string& id_name, SignatureMethod sign_method) {
+void XMLSecNode::AddSignatureTemplate(const std::string& id_name, const SignatureMethod sign_method) {
   xmlNodePtr signature = NULL;
   xmlNodePtr reference = NULL;
   if(sign_method == RSA_SHA1)
@@ -75,7 +75,7 @@ void XMLSecNode::AddSignatureTemplate(std::string& id_name, SignatureMethod sign
   xmlSecTmplKeyInfoAddX509Data(key_info);
 }
 
-bool XMLSecNode::SignNode(std::string& privkey_file, std::string& cert_file) {
+bool XMLSecNode::SignNode(const std::string& privkey_file, const std::string& cert_file) {
   //Generate signature according to the information inside signature template;
   XMLNode signature = (*this)["Signature"];
   xmlNodePtr signatureptr = ((XMLSecNode*)(&signature))->node_;
@@ -98,7 +98,7 @@ bool XMLSecNode::SignNode(std::string& privkey_file, std::string& cert_file) {
   return true;
 }
 
-bool XMLSecNode::VerifyNode(std::string& id_name, std::string& ca_file, std::string& ca_path) {
+bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path) {
   xmlNodePtr node = this->node_;
   xmlDocPtr docPtr = node->doc;
   xmlChar* id = xmlGetProp(node, (xmlChar *)(id_name.c_str()));
@@ -138,7 +138,7 @@ bool XMLSecNode::VerifyNode(std::string& id_name, std::string& ca_file, std::str
   else { std::cerr<<"Invalid signature in this node"<<std::endl; xmlSecDSigCtxDestroy(dsigCtx); return false; }
 }
 
-bool XMLSecNode::EncryptNode(std::string& cert_file, SymEncryptionType encrpt_type) {
+bool XMLSecNode::EncryptNode(const std::string& cert_file, const SymEncryptionType encrpt_type) {
   xmlNodePtr data_nd = this->node_;
   xmlDocPtr doc_nd = data_nd->doc;
 
@@ -243,7 +243,7 @@ bool XMLSecNode::EncryptNode(std::string& cert_file, SymEncryptionType encrpt_ty
   return true;
 }
 
-bool XMLSecNode::DecryptNode(std::string& privkey_file, XMLNode& decrypted_node) {
+bool XMLSecNode::DecryptNode(const std::string& privkey_file, XMLNode& decrypted_node) {
   XMLNode encrypted_data = (*this)["xenc:EncryptedData"];
   XMLNode enc_method1 = encrypted_data["xenc:EncryptionMethod"];
   std::string algorithm = (std::string)(enc_method1.Attribute("Algorithm"));
