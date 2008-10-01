@@ -22,7 +22,7 @@
 	    <next id="httpd">GET</next>
 	    <next id="httpd">PUT</next>
         </Component>
-        <Service name="httpd" id="httpd">
+        <Service name="hopi" id="httpd">
             <DocumentRoot>/tmp/</DocumentRoot>
             <PathPrefix></PathPrefix>
         </Service>
