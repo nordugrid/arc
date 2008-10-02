@@ -54,13 +54,19 @@ class ExternalStorageInformation:
 		if information == {}:
 			information["NoHostFound"]=['','']
 		return information					
+
+from storage.logger import Logger
+
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'ExternalStorageInformationService'))
+
 class ExternalStorageInformationService(Service):
 
 	def __init__(self, cfg):
 	
 		print "ExternalStorageInformationService Constructor..."
 		request_names = ['getInfo']
-		Service.__init__(self,'ExternalStorageInformation', request_names, 'externalstorageinformation',externalInfo_uri)
+		self.log = log
+		Service.__init__(self,'ExternalStorageInformation', request_names, 'externalstorageinformation',externalInfo_uri, self.log)
 		self.externalInfo = ExternalStorageInformation()
 		
 	def getInfo(self, inpayload):

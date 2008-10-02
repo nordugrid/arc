@@ -121,6 +121,9 @@ class Gateway:
 
 		return response
 	
+from storage.logger import Logger
+
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Gateway'))
 
 """ A high level service that contacts the externalStorageInformationService and TransferService To 
     to provide a bridge between ARC Storage Manager and thrid party storage system."""
@@ -129,10 +132,11 @@ class GatewayService(Service):
 
 	def __init__(self, cfg):
 
-        	print "GatewayService Constructor..."
+		print "GatewayService Constructor..."
   
 		request_names = ['getFile','list','putFile']
-		Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri)
+		self.log = log
+		Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri, self.log)
 		externalInfo_url = str(cfg.Get('ExternalStorageInformationURL'))
 		transfer_url = str(cfg.Get('TransferURL'))
 		
