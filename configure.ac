@@ -764,18 +764,24 @@ if test "x$WIN32" = "xyes" ; then
   AC_MSG_NOTICE([In WIN32 environment many (all) services are not supported yet])
 fi
 # A-Rex
-enable_a_rex_service="no"
-if test ! "x$WIN32" = "xyes" ; then
-  AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes")
-fi
+AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],[
+  if test ! "x$WIN32" = "xyes" ; then
+    enable_a_rex_service="yes"
+  else
+    enable_a_rex_service="no"
+  fi
+])
 AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service])
 AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
 
 # ISI(S)
-enable_isi_service="no"
-if test ! "x$WIN32" = "xyes" ; then
-  AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],enable_isi_service="yes")
-fi
+AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],[
+  if test ! "x$WIN32" = "xyes" ; then
+    enable_isi_service="yes"
+  else
+    enable_isi_service="no"
+  fi
+])
 if test "$enable_isi_service" = "yes"; then
   if test "$DBCXX_LIBS" = ""; then
     enable_isi_service="no"
@@ -786,35 +792,47 @@ AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service])
 AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"])
 
 # Charon service
-enable_charon_service="no"
-if test ! "x$WIN32" = "xyes" ; then
-  AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),[],enable_charon_service="yes")
-fi
+AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),[],[
+  if test ! "x$WIN32" = "xyes" ; then
+    enable_charon_service="yes"
+  else
+    enable_charon_service="no"
+  fi
+])
 AC_MSG_NOTICE([Charon Service enabled: $enable_charon_service])
 AM_CONDITIONAL([CHARON_SERVICE_ENABLED],[test "x$enable_charon_service" = "xyes"])
 
 # Hopi service
-enable_hopi_service="no"
-if test ! "x$WIN32" = "xyes" ; then
-  AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),[],enable_hopi_service="yes")
-fi
+AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),[],[
+  if test ! "x$WIN32" = "xyes" ; then
+    enable_hopi_service="yes"
+  else
+    enable_hopi_service="no"
+  fi
+])
 AC_MSG_NOTICE([Hopi Service enabled: $enable_hopi_service])
 AM_CONDITIONAL([HOPI_SERVICE_ENABLED],[test "x$enable_hopi_service" = "xyes"])
 
 # Paul service 
-enable_paul_service="no"
-if test ! "x$WIN32" = "xyes" ; then
-  AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],enable_paul_service="yes")
-fi
+AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],[
+  if test ! "x$WIN32" = "xyes" ; then
+    enable_paul_service="yes"
+  else
+    enable_paul_service="no"
+  fi
+])
 AC_MSG_NOTICE([PAUL Service enabled: $enable_paul_service])
 AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"])
 
 # Sched service
-enable_sched_service="no"
 if test "x$HAVE_DBCXX" = "xyes"; then
-  if test ! "x$WIN32" = "xyes" ; then
-    AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],enable_sched_service="yes")
-  fi
+  AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],[
+    if test ! "x$WIN32" = "xyes" ; then
+      enable_sched_service="yes"
+    else
+      enable_sched_service="no"
+    fi
+  ])
 fi
 AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service])
 AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"])
