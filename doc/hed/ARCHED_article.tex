@@ -16,7 +16,7 @@
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
-  pdfauthor = {M. Ellert, J. J\"{o}nemo, A. Konstantinov, M. Norden, W. Qiang, F. Szalai},
+  pdfauthor = {D. Cameron, M. Ellert, J. J\"{o}nemo, A. Konstantinov, I. Marton, B. Mohn, J. K. Nilsen, M. Norden, W. Qiang, G. Roczei, O. Smirnova, F. Szalai, A. Waananen},
   pdftitle = {The Hosting Environment of the Advanced Resource Connector middleware},
   pdfsubject = {Paper subject},
   pdfkeywords = {HED,ARC},
@@ -71,7 +71,7 @@
 
 \vspace*{1.5cm}
 %%%%---- A list of authors ----
-    {\centering \large M. Ellert, J. J\"{o}nemo\footnote{johan.jonemo@hep.lu.se}, A. Konstantinov\footnote{aleksandr.konstantinov@fys.uio.no}, M. Nord\'{e}n, W. Qiang, F. Szalai \large \par}
+    {\centering \large D. Cameron, M. Ellert, J. J\"{o}nemo, A. Konstantinov\footnote{aleksandr.konstantinov@fys.uio.no}, I. Marton, B. Mohn, J. K. Nilsen, M. N\'{o}rden, W. Qiang, G. Roczei, O. Smirnova, F. Szalai, A. W\"{a}\"{a}n\"{a}nen \large \par}
 
 %%%%---- An abstract - if style is article ----
 %\begin{abstract}
@@ -114,6 +114,7 @@ For examples please see the source code in the repository \cite{svn-arc1}. Many 
 In the design of the HED, several goals and requirements were considered. These were weighed against each other and the factual context.
 
 The implementation language had to be object oriented, efficient and capable of providing easy access to system functionality. This eventually lead to the adoption of C++. But languages such as Java and Python were also considered in the early stage.
+Our investigation showed that there are Open Source tools which allow C++ modules to be relatively easy interfaced from modules written in other considered programming languages. C++ modules also work in opposite way being capable to use modules written in various other languages.
 
 External dependencies needed to be kept to a minimum while also taking into consideration their ubiquity or relative rarity as well as license related concerns. Software of this level of complexity must depend on many external libraries and components but each such dependency has been introduced only after thorough consideration.
 
@@ -717,7 +718,7 @@ Name of plugin is \texttt{rls} and it is located in \texttt{\{lib\}dmcrls} loada
 
 \chapter{Future work}
 
-Interfaces in HED are mature and stable with the exception of the security infrastructure which still needs improvements.
+Interfaces in HED are mature and stable with only the security infrastructure still being extended.
 
 Most of the work has shifted to the development of higher level libraries and services based on the HED. But the HED also continiously being expanded by adding new plugins.
 
