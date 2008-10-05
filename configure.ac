@@ -1056,6 +1056,7 @@ AC_CONFIG_FILES([Makefile
                  debian/nordugrid-arc1-java.install
                  debian/nordugrid-arc1-lib.install
                  debian/nordugrid-arc1-python.install
+                 debian/nordugrid-arc1-plugins-base.install
                  arc.spec
                  src/hed/daemon/arched.8
 ])
