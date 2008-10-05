@@ -16,8 +16,11 @@ endif
 if DOC_ENABLED 
 DOC_SD = doc
 endif
+if GETTEXT_ENABLED
+PO_SD = po
+endif
 
-SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) po $(DOC_SD)
+SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(PO_SD) $(DOC_SD)
 
 DIST_SUBDIRS = src swig java python po doc include debian
 

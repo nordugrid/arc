@@ -24,9 +24,11 @@ AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 # gettext
+gettext_available="yes"
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.11.3])
 [[ -e po/POTFILES.in ]] || touch po/POTFILES.in
+AM_CONDITIONAL([GETTEXT_ENABLED],[test "x$gettext_available" = "xyes"])
 
 # Portable 64bit file offsets
 AC_SYS_LARGEFILE
