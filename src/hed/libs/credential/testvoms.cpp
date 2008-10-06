@@ -54,7 +54,7 @@ int main(void) {
   */
 
   std::vector<std::string> fqan;
-  fqan.push_back("knowarc.eu");
+  fqan.push_back("/knowarc.eu");
 
   std::vector<std::string> targets;
   targets.push_back("www.nordugrid.no");
@@ -130,10 +130,11 @@ int main(void) {
   //std::string in_file_ac("./out_withac.pem");
   std::string in_file_ac("./knowarc_voms.pem");
   std::string ca_cert_dir("./testca");
+  std::string ca_cert_file("");
   std::string vomsdir(".");
   ArcLib::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
   std::vector<std::string> attributes;
-  ArcLib::parseVOMSAC(proxy2, ca_cert_dir, vomsdir, attributes); 
+  ArcLib::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomsdir, attributes); 
 
   int i;
   for(i=0; i<attributes.size(); i++) {

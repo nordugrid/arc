@@ -493,11 +493,16 @@ err:
     return(ok);
   }
 
-  static bool check_cert(X509 *cert, std::string& ca_cert_dir) {
+  static bool check_cert(X509 *cert, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
     X509_STORE *ctx = NULL;
     X509_STORE_CTX *csc = NULL;
     X509_LOOKUP *lookup = NULL;
     int i = 0;
+
+    if(ca_cert_dir.empty() && ca_cert_file.empty()) {
+      std::cerr<<"CA dir or CA file should be setup"<<std::endl;
+      return false;
+    }
 
     csc = X509_STORE_CTX_new();
     ctx = X509_STORE_new();
@@ -507,14 +512,17 @@ err:
 //      signal(SIGPIPE,SIG_IGN);
 //#endif
       CRYPTO_malloc_init();
-      if ((lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
-        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_DEFAULT);
-        if ((lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
-          X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
-          ERR_clear_error();
-          X509_STORE_CTX_init(csc,ctx,cert,NULL);
-          i = X509_verify_cert(csc);
-        }
+      if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
+        X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
+        ERR_clear_error();
+        X509_STORE_CTX_init(csc,ctx,cert,NULL);
+        i = X509_verify_cert(csc);
+      }
+      else if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
+        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_PEM);
+        ERR_clear_error();
+        X509_STORE_CTX_init(csc,ctx,cert,NULL);
+        i = X509_verify_cert(csc);
       }
     }
     if (ctx) X509_STORE_free(ctx);
@@ -523,11 +531,16 @@ err:
     return (i != 0);
   }
 
-  static bool check_cert(STACK_OF(X509) *stack, std::string& ca_cert_dir) {
+  static bool check_cert(STACK_OF(X509) *stack, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
     X509_STORE *ctx = NULL;
     X509_STORE_CTX *csc = NULL;
     X509_LOOKUP *lookup = NULL;
     int index = 0;
+
+    if(ca_cert_dir.empty() && ca_cert_file.empty()) {
+      std::cerr<<"CA dir or CA file should be setup"<<std::endl;
+      return false;
+    }
 
     csc = X509_STORE_CTX_new();
     ctx = X509_STORE_new();
@@ -537,16 +550,23 @@ err:
 //      signal(SIGPIPE,SIG_IGN);
 //#endif
       CRYPTO_malloc_init();
-      if ((lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
-        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_DEFAULT);
-        if ((lookup=X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
-          X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
-          for (int i = 0; i < sk_X509_num(stack); i++) {
-            X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
-            ERR_clear_error();
-            X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
-            index = X509_verify_cert(csc);
-          }
+
+      if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
+        X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
+        for (int i = 0; i < sk_X509_num(stack); i++) {
+          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
+          ERR_clear_error();
+          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+          index = X509_verify_cert(csc);
+        }
+      }
+      else if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
+        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_PEM);
+        for (int i = 0; i < sk_X509_num(stack); i++) {
+          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
+          ERR_clear_error();
+          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+          index = X509_verify_cert(csc);
         }
       }
     }
@@ -578,7 +598,7 @@ err:
   }
 
   static bool check_signature(AC* ac, std::string& voname, std::string& hostname, 
-    std::string& ca_cert_dir, std::string& vomsdir, X509** issuer_cert) {
+    const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::string& vomsdir, X509** issuer_cert) {
     X509* issuer = NULL;
 
     int nid = OBJ_txt2nid("certseq");
@@ -658,7 +678,7 @@ err:
         std::cerr<<"Unable to verify signature!"<<std::endl;
 
       if (found) {
-        if (!check_cert(certstack, ca_cert_dir)) {
+        if (!check_cert(certstack, ca_cert_dir, ca_cert_file)) {
           X509_free(cert);
           cert = NULL;
           std::cerr<<"Unable to verify certificate chain"<<std::endl;
@@ -705,7 +725,7 @@ err:
       }
       if (in) BIO_free(in);
       if (found) {
-        if (!check_cert(x, ca_cert_dir)) { X509_free(x); x = NULL; }
+        if (!check_cert(x, ca_cert_dir, ca_cert_file)) { X509_free(x); x = NULL; }
       }
       else std::cerr<<"Cannot find certificate of AC issuer for vo "<<voname<<std::endl;
 
@@ -1029,7 +1049,8 @@ err:
     checkAttributes(ac->acinfo->attrib, output);
   }
 
-  bool verifyVOMSAC(AC* ac, std::string& ca_cert_dir, std::string& vomsdir, X509* holder, std::vector<std::string>& output) {
+  bool verifyVOMSAC(AC* ac, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+        const std::string& vomsdir, X509* holder, std::vector<std::string>& output) {
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
@@ -1067,7 +1088,7 @@ err:
  
     X509* issuer = NULL;
 
-    if(!check_signature(ac, voname, hostname, ca_cert_dir, vomsdir, &issuer)) {
+    if(!check_signature(ac, voname, hostname, ca_cert_dir, ca_cert_file, vomsdir, &issuer)) {
       std::cerr<<"Can not verify the signature of the AC"<<std::endl; return false; 
     }
 
@@ -1075,7 +1096,8 @@ err:
     else return false;
   }
 
-  bool parseVOMSAC(X509* holder, std::string& ca_cert_dir, std::string& voms_dir, std::vector<std::string>& output) {
+  bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+        const std::string& voms_dir, std::vector<std::string>& output) {
 
     //Search the extension
     int nid = 0;
@@ -1096,7 +1118,7 @@ err:
     int num = sk_AC_num(aclist->acs);
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
-      if (verifyVOMSAC(ac, ca_cert_dir, voms_dir, holder, output)) {
+      if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, voms_dir, holder, output)) {
         verified = true;
       }
       if (!verified) break;
@@ -1105,9 +1127,10 @@ err:
     return verified;
   }
 
-  bool parseVOMSAC(Credential& holder_cred, std::string& ca_cert_dir, std::string& voms_dir, std::vector<std::string>& output) {
+  bool parseVOMSAC(Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file,
+         const std::string& voms_dir, std::vector<std::string>& output) {
     X509* holder = holder_cred.GetCert();
-    return(parseVOMSAC(holder, ca_cert_dir, voms_dir, output));
+    return(parseVOMSAC(holder, ca_cert_dir, ca_cert_file, voms_dir, output));
   }
 
 } // namespace Arc
