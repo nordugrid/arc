@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-  RandomBroker::RandomBroker() {}
+  RandomBroker::RandomBroker(Arc::JobDescription jd) {}
   RandomBroker::~RandomBroker() {}
 
 } // namespace Arc

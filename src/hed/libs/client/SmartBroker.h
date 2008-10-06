@@ -1,12 +1,13 @@
-#include "DefaultBroker.h"
+#include "Broker.h"
 
 namespace Arc {
 
   class SmartBroker
-    : public DefaultBroker {
+    : public Broker {
   protected:
-    SmartBroker();
+    SmartBroker(Arc::JobDescription jd);
     virtual ~SmartBroker();
+    void sort_Targets() {};
   };
 
 } // namespace Arc

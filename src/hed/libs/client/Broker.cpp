@@ -2,11 +2,22 @@
 #include <config.h>
 #endif
 
-#include <arc/client/DefaultBroker.h>
-
+//#include <arc/client/Broker.h>
+#include "Broker.h"
 namespace Arc {
-
-  DefaultBroker::DefaultBroker() {}
-  DefaultBroker::~DefaultBroker() {}
+  Broker::Broker() {}
+  Broker::Broker( Arc::JobDescription jd) {
+  
+              //Pre filtering
+      
+             // end of Pre filtering
+             //Broker::sort_Targets();
+  }
+  
+  Broker::~Broker() {}
+  
+  ExecutionTarget Broker::get_Target() {}
+  
+  
 
 } // namespace Arc
