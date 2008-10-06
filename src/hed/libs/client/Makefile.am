@@ -1,12 +1,12 @@
 lib_LTLIBRARIES = libarcclient.la
 
 libarcclient_ladir = $(pkgincludedir)/client
-libarcclient_la_HEADERS  = ACC.h DefaultBroker.h ExecutionTarget.h \
+libarcclient_la_HEADERS  = ACC.h Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
 	Job.h JobController.h JobSupervisor.h JobDescription.h \
 	ClientInterface.h UserConfig.h  \
         RandomBroker.h SmartBroker.h	
-libarcclient_la_SOURCES  = ACC.cpp DefaultBroker.cpp ExecutionTarget.cpp \
+libarcclient_la_SOURCES  = ACC.cpp Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
 	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp \
 	ClientInterface.cpp UserConfig.cpp  \
