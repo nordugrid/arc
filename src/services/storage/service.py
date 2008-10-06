@@ -7,13 +7,12 @@ from storage.common import AuthRequest
 class Service:
     
     def __init__(self, service_name, request_names, namespace_prefix, namespace_uri, log, cfg = None):
-        self.log = log
         #if cfg:
         #    self.log_level = str(cfg.Get('LogLevel'))
         #else:
         #    self.log_level = None
         self.service_name = service_name
-        self.log.msg(arc.DEBUG, service_name, "constructor called")
+        log.msg(arc.DEBUG, service_name, "constructor called")
         self.request_names = request_names
         self.namespace_prefix = namespace_prefix
         self.namespace_uri = namespace_uri
