@@ -1,34 +1,69 @@
-Building ARC on Windows system
+Building ARC on Windows system using MinGW
+-------------------------------------------
 
-- Install Automated MingW Installer 
+- Install Automated MingW Installer - http://www.mingw.org
 (http://sourceforge.net/project/showfiles.php?group_id=2435)
-	- Select g++ and mingw make to install
-- Install MSYS
-- Intsall msysDTK
-- Install from mysysPORT
-	- libiconv
-	- zlib
-- Install extra regex pacakage from contribution package
-	- libgnurx dll does not exsist in regexp package you can get it from
-	http://ftp.gnome.org/pub/binaries/win32/dependencies/libgnurx-x.y.z-x.y.zip
+	- During installtion make sure You have "g++" and "mingw make" selected
+  From MinGW also install
+  - MSYS - http://www.mingw.org/wiki/msys
+    From MSYS additionally install
+    - msysDTK - MSYS Developer Tool Kit
+  MSYS will create You msys shell start icon on your desktop. All operations 
+  below should be done from that shell.
+  - From contribution package mingwPORT - http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=233332
+    HINT: mingwPORT packages are installed in following way:
+      * Download corresponding package
+      * Unpack is (tar -zxvf package.tar.gz  or  bzip2 -cd paclage.tar.bz2 | tar -xvf -)
+      * cd inside package - cd package/mingwPORT
+      * Run installation scripr - ./mingwPORT.sh
+      * Answer all question by pressing Enter/Return key of your keyboard. Trying to enter
+        any values different from default may cause You a lot of headache.
+    - Install wget - it will be used by other packages during installation. 
+      HINT: wget package contains precompiled wget.exe which is needed for downloading 
+      wget source code. You have to put it into /tmp directry - or same place that is 
+      used for downloding source tarballs by mingwPORT.sh - otherwise that executable
+      may refuse to work. Do not ask me why because I do not know.
+    - Install libiconv
+    - Install zlib
+  - Install extra contribution package regex  - https://sourceforge.net/project/showfiles.php?group_id=2435&package_id=73286
 
-- Install gtkmm devel package (it includes glibmm)
-(http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/)
-- Install OpenSSL 
-(http://www.slproweb.com/products/Win32OpenSSL.html)
-- Possible problems:
-	libarccommon depends on ole32 to make the compile success you should:
-	cp /c/WINDOWS/system32/ole32.dll /mingw/lib/libole32.dll
-	cp /c/WINDOWS/system32/ws2_32.dll /migw/lib/libws2_32.dll
-	and SSL rename
-	cp /c/WINDOWS/system32/ssleay.dll /c/OpenSSL/lib/MinGW/libssleay32.dll
-	cp /c/WINDOWS/system32/libeay32.dll /c/OpenSSL/lib/MinGW/libeay32.dll
+- Install gtkmm devel package. It includes glibmm. 
+  (http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/)
+  TODO: We probably need to provide either mingwPORT or some other port which 
+  includes only glibmm. 
 
-- checkout code from SVN
-export ACLOCAL="aclocal -I /c/GTK/share/aclocal"
-export PATH=$PATH:/c/MingW/bin
-export PKG_CONFIG_PATH=/c/GTK/lib/pkgconfig
-./autogen.sh
-./configure CXXFLAGS="-g -O0 -I/include -L/usr/lib" OPENSSL_CFLAGS=-I/c/OpenSSL/include OPENSSL_LIBS="-L/c/OpenSSL/lib/MinGW/ -lssleay32 -leay32 -lz" OPENSSL_BIN="/c/OpenSSL/bin/openssl.exe" --disable-a-rex-service --disable-isi-service --disable-pdp-service --disable-httpd-service
-make
-add paths of DLLs to $PATH
+- Install OpenSSL. 
+  (http://www.slproweb.com/products/Win32OpenSSL.html)
+
+- After all installs are completed reopen MSYS shell to make it 
+  acquire new environment variables.
+  
+- If You have other GNU/POSIX-like environments it could be a good idea to adjust PATH 
+  variable to make sure there are no conflicting utilities picked.
+
+- Checkout code from subversion repository and build it using following steps
+  HINT: For nice subversion client for windows take a look at http://tortoisesvn.tigris.org
+  TODO: We have to make as little custom steps as possible
+  * Checkout code usng any tool You like
+  * Reopen MSYS
+  * Make aclocal see m4 macros which come with GTK. If your GTK is installed in C:\GTK\2.0
+    export ACLOCAL="aclocal -I /c/GTK/2.0/share/aclocal"
+    Adjust path in command according to installation location of GTK.
+  * You may also check if pkg-config sees GTK. echo $PKG_CONFIG_PATH should print something
+    like /C/GTK/2.0/lib/pkgconfig. If there is no GTK in path You may need to add it.
+  * Prepare source tree for configuration by running
+    autoreconf --verbose --force --install
+    HINT: If You see some weird errors at this stage then autom4te may need a patch as 
+    described in http://osdir.com/ml/sysutils.autoconf.general/2002-11/msg00081.html
+  * Configure source tree with something like
+    ./configure CXXFLAGS="-g" OPENSSL_CFLAGS=-I/c/OpenSSL/include OPENSSL_LIBS="-L/c/OpenSSL -lssl32 -leay32" --prefix=/c/arc
+    If You have installed OpenSSL at different location You may need to adjust paths.
+    During configuration stage You will see that most or all services are disabled. You may
+    enable then with --enable-servicename option. But take into account that building of services
+    in MinGW environment was not tested yet.
+    TODO: Expand ways OpenSSL is detected. This should also help in case of OpenBSD which 
+    has OpenSSL as part of system and not reflected in pkg-config.
+   * Build code with make
+   * Install it with make install
+
+- TODO: Explain how to make it work.
