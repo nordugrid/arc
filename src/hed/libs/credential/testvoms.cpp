@@ -127,8 +127,9 @@ int main(void) {
   //Use file location as parameters
   // Consume the proxy certificate with AC extenstion
  
-  //std::string in_file_ac("./out_withac.pem");
-  std::string in_file_ac("./knowarc_voms.pem");
+  std::string in_file_ac("./out_withac.pem");
+  //std::string in_file_ac("./knowarc_voms.pem"); //Put here the proxy certificate generated from voms-proxy-init
+  //std::string in_file_ac("./out.pem");
   std::string ca_cert_dir("./testca");
   std::string ca_cert_file("");
   std::string vomsdir(".");

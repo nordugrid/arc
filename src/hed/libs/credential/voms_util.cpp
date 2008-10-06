@@ -1112,7 +1112,7 @@ err:
         aclist = (AC_SEQ *)X509V3_EXT_d2i(ext);
       }
     }    
-    if(aclist == NULL) { std::cerr<<"Not AC in the proxy certificate"<<std::endl; return false; }
+    if(aclist == NULL) { std::cerr<<"No AC in the proxy certificate"<<std::endl; return false; }
 
     bool verified = false;
     int num = sk_AC_num(aclist->acs);
