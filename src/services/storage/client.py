@@ -879,12 +879,11 @@ class GatewayClient(Client):
 				command = 'arccp gsiftp://'+elements.keys()[0]+':'+elements[elements.keys()[0]]['port']+'/'+elements[elements.keys()[0]]['path']+'  file:///'+request[1]
 				
 				status, output = commands.getstatusoutput(command) 
-				if status == 0:
+                if status == 0:
 					print "File transfered successfully"
-					 				
-		else:
+                else:
 
-			print "file or directory not found in external store."	
+                    print "file or directory not found in external store.", status, output	
 			
 		#return elements
 
@@ -925,13 +924,14 @@ class GatewayClient(Client):
 				command = 'arccp file:///'+request[0]+' gsiftp://'+elements.keys()[0]+':'+elements[elements.keys()[0]]['port']+'/'+request[1].split('dCache')[1]
                                 #print command
 				status, output = commands.getstatusoutput(command)
+                print status, output
                               	
-				if status == 0:
-                                	print output
-				        print "File transfered successfully"
+                if status == 0:
+                    print output
+                    print "File transfered successfully"
 
                 else:
-                        print "file or directory not found in external store."
+                        print "file or directory not found in external store.", status, output
 
         def list(self, requests, flags = '' ):
 
