@@ -765,7 +765,15 @@ err:
       }
 
       std::string fqan((const char*)(capname->data), capname->length);
-      attributes.push_back(fqan);      
+      std::string str("VO=");
+      std::size_t pos = fqan.find("/",1);
+      if(pos==std::string::npos) str.append(fqan.substr(1));
+      else { 
+        std::size_t pos1 = fqan.find("/Role=");
+        if(pos1==std::string::npos) str.append(fqan.substr(1,pos-1)).append("/Group=").append(fqan.substr(pos+1));
+        else str.append(fqan.substr(1,pos-1)).append("/Group=").append(fqan.substr(pos+1, pos1-pos-1)).append(fqan.substr(pos1));
+      }
+      attributes.push_back(str);      
     }
 
     return true;
@@ -816,8 +824,8 @@ err:
         qualifier.assign((const char*)(at->qualifier->data), at->qualifier->length);
         if(qualifier.empty()) { std::cerr<<"The attribute qualifier is empty"<<std::endl; return false; }
 
-        attribute.append("grantor=").append(grantor).append("/").append("name=").append(name).append("/").
-                  append("qualifier=").append(qualifier).append(":").append(value);
+        //attribute.append("grantor=").append(grantor).append("/").append("qualifier=").append(qualifier).append(":").append(name).append("/").append("value=").append(value);
+        attribute.append("grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
         attributes.push_back(attribute);
         attribute.clear(); 
       }
