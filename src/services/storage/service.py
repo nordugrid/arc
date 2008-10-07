@@ -6,13 +6,13 @@ from storage.common import AuthRequest
 
 class Service:
     
-    def __init__(self, service_name, request_names, namespace_prefix, namespace_uri, log, cfg = None):
+    def __init__(self, service_name, request_names, namespace_prefix, namespace_uri, cfg = None):
         #if cfg:
         #    self.log_level = str(cfg.Get('LogLevel'))
         #else:
         #    self.log_level = None
         self.service_name = service_name
-        log.msg(arc.DEBUG, service_name, "constructor called")
+        self.log.msg(arc.DEBUG, service_name, "constructor called")
         self.request_names = request_names
         self.namespace_prefix = namespace_prefix
         self.namespace_uri = namespace_uri

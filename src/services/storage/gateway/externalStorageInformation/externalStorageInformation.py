@@ -66,7 +66,7 @@ class ExternalStorageInformationService(Service):
 		print "ExternalStorageInformationService Constructor..."
 		request_names = ['getInfo']
 		self.log = log
-		Service.__init__(self,'ExternalStorageInformation', request_names, 'externalstorageinformation',externalInfo_uri, self.log)
+		Service.__init__(self,'ExternalStorageInformation', request_names, 'externalstorageinformation',externalInfo_uri)
 		self.externalInfo = ExternalStorageInformation()
 		
 	def getInfo(self, inpayload):

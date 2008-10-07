@@ -288,7 +288,7 @@ class LibrarianService(Service):
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
-        Service.__init__(self, 'Librarian', request_names, 'lbr', librarian_uri, self.log, cfg)
+        Service.__init__(self, 'Librarian', request_names, 'lbr', librarian_uri, cfg)
         self.librarian = Librarian(cfg, self.log)
     
     def new(self, inpayload):

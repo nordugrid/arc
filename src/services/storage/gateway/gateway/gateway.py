@@ -136,7 +136,7 @@ class GatewayService(Service):
   
 		request_names = ['getFile','list','putFile']
 		self.log = log
-		Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri, self.log)
+		Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri)
 		externalInfo_url = str(cfg.Get('ExternalStorageInformationURL'))
 		transfer_url = str(cfg.Get('TransferURL'))
 		

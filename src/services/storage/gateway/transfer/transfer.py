@@ -70,7 +70,7 @@ class TransferService(Service):
                 print "TransferService Constructor..."
                 request_names = ['transferData']
                 self.log = log
-                Service.__init__(self,'Transfer', request_names, 'transfer',transfer_uri,self.log)
+                Service.__init__(self,'Transfer', request_names, 'transfer',transfer_uri)
                 self.transfer = Transfer()
 
         def transferData(self, inpayload):

@@ -204,7 +204,7 @@ class AHashService(Service):
         # names of provided methods
         request_names = ['get','change']
         # call the Service's constructor
-        Service.__init__(self, self.service_name, request_names, 'ahash', ahash_uri, self.log, cfg)
+        Service.__init__(self, self.service_name, request_names, 'ahash', ahash_uri, cfg)
         # the name of the class which implements the business logic of the A-Hash service
         ahashclass = str(cfg.Get('AHashClass'))
         # the name of the class which is capable of storing the object

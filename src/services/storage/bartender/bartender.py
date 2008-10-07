@@ -625,7 +625,7 @@ class BartenderService(Service):
         # call the Service's constructor, 'Bartender' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
         # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
-        Service.__init__(self, self.service_name, request_names, 'bar', bartender_uri, self.log, cfg)
+        Service.__init__(self, self.service_name, request_names, 'bar', bartender_uri, cfg)
         # get the URL of the Librarian from the config file
         librarian_url = str(cfg.Get('LibrarianURL'))
         ssl_config = parse_ssl_config(cfg)
