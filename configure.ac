@@ -607,19 +607,34 @@ if test x"$XMLSEC_INSTALLED" = xyes; then
     AC_DEFINE(HAVE_XMLSEC,,[define if XMLSEC package is available])
 fi
 
-test "x$prefix" = xNONE && xxxprefix=$ac_default_prefix || xxxprefix=$prefix
-test "x$exec_prefix" = xNONE && xxxexec_prefix=$xxxprefix || xxxexec_prefix=$exec_prefix
-pkglibsubdir=`echo ${libdir}/${PACKAGE} | \
-		   sed -e s#^${xxxexec_prefix}/## -e s#^\$\{exec_prefix\}/##`
-libexecsubdir=`echo ${libexecdir} | \
-		   sed -e s#^${xxxexec_prefix}/## -e s#^\$\{exec_prefix\}/##`
-instprefix=${xxxexec_prefix}
+# The macro is used to set exec_prefix to it's expected
+# value at the end of the configure script
+AC_LIB_WITH_FINAL_PREFIX([
+    eval instprefix="\"${exec_prefix}\""
+    eval pkglibdir="\"${libdir}/${PACKAGE}\""
+    eval pkglibexecdir="\"${libexecdir}/${PACKAGE}\""
+])
 
-AC_DEFINE_UNQUOTED(PKGLIBSUBDIR, ["${pkglibsubdir}"], [plugin installation subpath])
-AC_DEFINE_UNQUOTED(LIBEXECSUBDIR, ["${libexecsubdir}"], ["libexec" subpath])
+instprefix=`echo "${instprefix}" | sed 's#/$##'`
+pkglibsubdir=`echo "${pkglibdir}" | sed "s#^${instprefix}/##" \
+    | sed -e 's#/$##' -e 's#^/##'`
+pkglibexecsubdir=`echo "${pkglibexecdir}" | sed "s#^${instprefix}/##" \
+    | sed -e 's#/$##' -e 's#^/##'`
+inverse_pkglibexecsubdir=`echo "/${pkglibexecsubdir}/" \
+    | perl -pwe 's#/.(?=/)##g; s#/+#/#g; s#/[^/]+(?=/)#/..#g' \
+    | sed -e 's#/$##' -e 's#^/##'`
+pkglibdir_rel_to_pkglibexecdir=`echo "${inverse_pkglibexecsubdir}/${pkglibsubdir}" \
+    | sed -e 's#/$##' -e 's#^/##'`
+
+AC_SUBST(instprefix)
+AC_SUBST(pkglibsubdir)
+AC_SUBST(pkglibexecdir)
+AC_SUBST(pkglibexecsubdir)
+AC_SUBST(pkglibdir_rel_to_pkglibexecdir)
+
 AC_DEFINE_UNQUOTED(INSTPREFIX, ["${instprefix}"], [installation prefix])
-
-AC_SUBST(libexecsubdir)
+AC_DEFINE_UNQUOTED(PKGLIBSUBDIR, ["${pkglibsubdir}"], [plugin installation subpath])
+AC_DEFINE_UNQUOTED(PKGLIBEXECSUBDIR, ["${pkglibexecsubdir}"], [helper programs installation subpath])
 
 # Setup messages for reporting
 enable_rls=no
@@ -973,12 +988,14 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/infoproviders/Makefile
+                 src/services/a-rex/infoproviders/CEinfo.pl
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/submit_common.sh
                  src/services/a-rex/lrms/condor/Makefile
                  src/services/a-rex/lrms/condor/finish-condor-job
                  src/services/a-rex/lrms/condor/cancel-condor-job
+                 src/services/a-rex/lrms/condor/submit-condor-job
                  src/services/a-rex/lrms/fork/Makefile
                  src/services/a-rex/lrms/fork/scan-fork-job
                  src/services/a-rex/lrms/fork/submit-fork-job

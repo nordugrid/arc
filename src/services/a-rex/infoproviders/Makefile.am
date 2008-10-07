@@ -1,6 +1,8 @@
-libexec_SCRIPTS = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
+pkglibexec_SCRIPTS = CEinfo.pl
+
+pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
 		  LL.pm LSF.pm Condor.pm condor_env.pm \
-		  CEinfo.pl LogUtils.pm \
+		  LogUtils.pm \
 		  LRMSInfo.pm GMJobsInfo.pm HostInfo.pm \
 		  InfoChecker.pm InfoCollector.pm \
 		  ARC0ClusterSchema.pm ARC0ClusterInfo.pm \
@@ -8,4 +10,4 @@ libexec_SCRIPTS = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
 
 pkgdata_DATA = nordugrid.schema
 
-EXTRA_DIST = $(libexec_SCRIPTS) $(pkgdata_DATA)
+EXTRA_DIST = $(pkglibexec_SCRIPTS) $(pkglib_DATA) $(pkgdata_DATA)

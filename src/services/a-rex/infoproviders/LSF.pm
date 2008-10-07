@@ -1,7 +1,5 @@
 package LSF;
 
-use File::Basename;
-use lib dirname($0);
 @ISA = ('Exporter');
 @EXPORT_OK = ('cluster_info',
 	      'queue_info',

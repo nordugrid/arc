@@ -1,8 +1,5 @@
 package ARC1ClusterInfo;
 
-use File::Basename;
-use lib dirname($0);
-
 # This InfoCollector combines the output of the other information collectors
 # and prepares the GLUE2 information model of A-REX. The returned structure is
 # meant to be converted to XML with XML::Simple.

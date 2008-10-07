@@ -1,8 +1,5 @@
 package LRMSInfo;
 
-use File::Basename;
-use lib dirname($0);
-
 use base InfoCollector;
 use InfoChecker;
 
@@ -140,8 +137,6 @@ sub load_lrms($) {
     import $module qw(get_lrms_info get_lrms_options_schema);
 }
 
-sub load_old_lrms($) {
-}
 
 # override InfoCollector base class methods 
 

@@ -1,7 +1,5 @@
 package PBS;
 
-use File::Basename;
-use lib dirname($0);
 @ISA = ('Exporter');
 
 # Module implements these subroutines for the LRMS interface

@@ -1,7 +1,7 @@
 SUBDIRS = jobs cache run conf misc log mail jobdesc files loaders
 
 noinst_LTLIBRARIES = libgridmanager.la
-libexec_PROGRAMS = gm-kick
+pkglibexec_PROGRAMS = gm-kick
 
 libgridmanager_la_SOURCES  = grid_manager.cpp grid_manager.h
 libgridmanager_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(GLOBUS_RSL_CFLAGS) -I$(top_srcdir)/include

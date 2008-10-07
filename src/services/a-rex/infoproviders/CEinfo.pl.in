@@ -3,11 +3,20 @@
 package ClusterInfo;
 
 use File::Basename;
-use lib dirname($0);
-
 use Getopt::Long;
 use XML::Simple;
 use Data::Dumper;
+use Cwd;
+
+BEGIN {
+    if ($ENV{ARC_LOCATION}) {
+        my $libdir = $ENV{ARC_LOCATION} . '/@pkglibsubdir@';
+        unshift @INC, $libdir;
+    } else {
+        my $libdir = dirname($0) . '/@pkglibdir_rel_to_pkglibexecdir@';
+        unshift @INC, $libdir;
+    }
+}
 
 ########################################################
 # Driver for information collection

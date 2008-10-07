@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <arc/ArcLocation.h>
 #define olog std::cerr
-#define DEFAULT_ARC_LOCATION "/usr"
 #include "environment.h"
 
 #ifdef HAVE_GLIBMM_GETENV
@@ -35,9 +34,7 @@ std::string globus_loc("");
 std::string globus_scripts_loc;
 // ARC installation path - $ARC_LOCATION, executable path
 std::string nordugrid_loc("");
-// ARC user tools - $ARC_LOCATION/bin
-std::string nordugrid_bin_loc;
-// ARC system tools - $ARC_LOCATION/libexec
+// ARC system tools - $ARC_LOCATION/libexec/arc
 std::string nordugrid_libexec_loc;
 // ARC libraries and plugins - $ARC_LOCATION/lib
 std::string nordugrid_lib_loc;
@@ -81,29 +78,16 @@ bool read_env_vars(bool guess) {
     SetEnv("GLOBUS_LOCATION",globus_loc);
   };
   globus_scripts_loc=globus_loc+"/libexec";
+
   if(nordugrid_loc.empty()) {
     nordugrid_loc=GetEnv("ARC_LOCATION");
     if(nordugrid_loc.empty()) {
       nordugrid_loc=Arc::ArcLocation::Get();
-      if(nordugrid_loc.empty()) {
-        if(!guess) {
-          olog<<"ARC_LOCATION environment variable is not defined"<<std::endl;
-          return false;
-        } else {
-          nordugrid_loc=DEFAULT_ARC_LOCATION;
-        };
-      };
     };
-    SetEnv("ARC_LOCATION",nordugrid_loc);
+    nordugrid_lib_loc=nordugrid_loc+"/"+PKGLIBSUBDIR;
+    nordugrid_libexec_loc=nordugrid_loc+"/"+PKGLIBEXECSUBDIR;
   };
-  nordugrid_bin_loc=nordugrid_loc+"/bin";
-  // Try /usr installation first
-  nordugrid_libexec_loc=nordugrid_loc+"/"+LIBEXECSUBDIR+"/nordugrid";
-  nordugrid_lib_loc=nordugrid_loc+"/"+LIBEXECSUBDIR+"/nordugrid";
-  if(!dir_exists(nordugrid_libexec_loc.c_str())) {
-    nordugrid_libexec_loc=nordugrid_loc+"/"+LIBEXECSUBDIR;
-    nordugrid_lib_loc=nordugrid_loc+"/lib";
-  };
+
   if(nordugrid_config_loc.empty()) {
     std::string tmp = GetEnv("ARC_CONFIG");
     if(tmp.empty()) {
@@ -142,7 +126,6 @@ bool read_env_vars(bool guess) {
   };
   // Set all environement variables for other tools
   SetEnv("ARC_CONFIG",nordugrid_config_loc);
-  SetEnv("ARC_LOCATION",nordugrid_loc);
   if(support_mail_address.length() == 0) {
     char hn[100];
     support_mail_address="grid.manager@";

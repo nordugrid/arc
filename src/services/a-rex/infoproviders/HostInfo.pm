@@ -1,8 +1,6 @@
 package HostInfo;
 
 use Sys::Hostname;
-use File::Basename;
-use lib dirname($0);
 
 use base InfoCollector;
 use LogUtils;

@@ -1,4 +1,4 @@
-libexec_PROGRAMS=downloader uploader
+pkglibexec_PROGRAMS=downloader uploader
 
 downloader_SOURCES=downloader.cpp
 downloader_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
