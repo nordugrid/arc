@@ -406,21 +406,28 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::iterator it = catable.begin();
 	 it != catable.end(); it++) {
+      std::string filename("/tmp/arccat.XXXXXX");
+      int tmp_h = mkstemp(const_cast<char*>(filename.c_str()));
+      if (tmp_h == -1) {
+	logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
+	ok = false;
+	continue;
+      }
+      close(tmp_h);
+
       URL src = GetFileUrlForJob((**it), whichfile);
-      URL dst("/tmp/arccat.XXXXXX");
+      URL dst(filename);
       bool copied = CopyFile(src, dst);
 
       if (copied) {
 	std::cout << IString("%s from job %s", whichfile,
 			     (*it)->JobID.str()) << std::endl;
-	char str[2000];
-	std::fstream file("/tmp/arccat.XXXXXX", std::fstream::in);
-	while (!file.eof()) {
-	  file.getline(str, 2000);
-	  std::cout << str;
-	}
-	file.close();
-	std::cout << std::endl;
+	std::ifstream is(filename.c_str());
+	char c;
+	while (is.get(c))
+	  std::cout.put(c);
+	is.close();
+	unlink(filename.c_str());
       }
       else
 	ok = false;
