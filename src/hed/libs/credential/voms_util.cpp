@@ -598,7 +598,8 @@ err:
   }
 
   static bool check_signature(AC* ac, std::string& voname, std::string& hostname, 
-    const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::string& vomsdir, X509** issuer_cert) {
+    const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::vector<std::string>& vomscert_trust_dn, 
+    X509** issuer_cert) {
     X509* issuer = NULL;
 
     int nid = OBJ_txt2nid("certseq");
@@ -606,9 +607,6 @@ err:
     int pos = X509v3_get_ext_by_NID(exts, nid, -1);
     if (pos >= 0) {
       //Check if the DN/CA file is installed for a given VO.
-      std::string filecerts = vomsdir + "/" + voname + "/" + hostname + ".lsc";
-      std::ifstream file(filecerts.c_str());
-      if (!file) { std::cerr<<"Can not find the "<<hostname<<".lsc file under "<<vomsdir<<"/"<<voname<<std::endl; return false; }
       X509_EXTENSION* ext = sk_X509_EXTENSION_value(exts, pos);
       AC_CERTS* certs = (AC_CERTS *)X509V3_EXT_d2i(ext);
       STACK_OF(X509)* certstack = certs->stackcert;
@@ -616,6 +614,7 @@ err:
       bool success = false;
       bool final = false;
 
+      int k = 0;
       do {
         success = true;
         for (int i = 0; i < sk_X509_num(certstack); i++) {
@@ -623,8 +622,8 @@ err:
 
           std::string subject_name;
           std::string issuer_name;
-          std::getline(file,subject_name);
-          std::getline(file,issuer_name);
+          subject_name = vomscert_trust_dn[k++];
+          issuer_name = vomscert_trust_dn[k++];
 
           if(subject_name.empty() || issuer_name.empty()) { 
             success = false;
@@ -635,30 +634,27 @@ err:
           std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
           std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
 
-          std::cout<<"Subject: "<<subject_name<<" Real Subject: "<<realsubject<<" Issuer: "<<issuer_name<<" Real Issuer: "<<realissuer<<std::endl;
+          //std::cout<<"Subject: "<<subject_name<<" Real Subject: "<<realsubject<<" Issuer: "<<issuer_name<<" Real Issuer: "<<realissuer<<std::endl;
 
           if(subject_name.compare(realsubject) !=0 || issuer_name.compare(realissuer) !=0) {
             do {
-              std::getline(file, subject_name);
-            } while (file && subject_name.compare("------ NEXT CHAIN ------") == 0);
+              subject_name = vomscert_trust_dn[k];
+              if(subject_name.find("NEXT CHAIN") != std::string::npos) k++;
+            } while (k < vomscert_trust_dn.size() && subject_name.find("NEXT CHAIN") != std::string::npos);
             success = false;
             break;
           }
         }
-        if (success || !file)
-        final = true;
+        if (success || k >= vomscert_trust_dn.size()) final = true;
       } while (!final);
 
-      file.close();
       if (!success) {
         AC_CERTS_free(certs);
-        std::cerr<<"Unable to match certificate chain against file: "<<filecerts<<std::endl;
+        std::cerr<<"Unable to match certificate chain against voms trust DNs"<<std::endl;
         return false;
       }
                   
-      /* check if able to find the signing certificate 
-      among those specific for the vo or else in the vomsdir
-      directory */
+      /* check if able to find the DN in the vomscert_trust_dn which is corresponding to the signing certificate*/
 
 #ifdef HAVE_OPENSSL_OLDRSA
       X509 *cert = (X509 *)ASN1_dup((int (*)())i2d_X509, (char * (*)())d2i_X509, (char *)sk_X509_value(certstack, 0));
@@ -691,7 +687,8 @@ err:
      
       if(cert != NULL)issuer = cert;
     }
- 
+
+#if 0 
     /* check if able to find the signing certificate 
      *among those specific for the vo or else in the vomsdir
      *directory 
@@ -731,6 +728,7 @@ err:
 
       issuer = x;
     }
+#endif
 
     if(issuer == NULL) { std::cerr<<"Can not verify AC signature"<<std::endl; return false; } 
 
@@ -1050,7 +1048,7 @@ err:
   }
 
   bool verifyVOMSAC(AC* ac, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-        const std::string& vomsdir, X509* holder, std::vector<std::string>& output) {
+        const std::vector<std::string>& vomscert_trust_dn, X509* holder, std::vector<std::string>& output) {
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
@@ -1088,7 +1086,7 @@ err:
  
     X509* issuer = NULL;
 
-    if(!check_signature(ac, voname, hostname, ca_cert_dir, ca_cert_file, vomsdir, &issuer)) {
+    if(!check_signature(ac, voname, hostname, ca_cert_dir, ca_cert_file, vomscert_trust_dn, &issuer)) {
       std::cerr<<"Can not verify the signature of the AC"<<std::endl; return false; 
     }
 
@@ -1097,7 +1095,7 @@ err:
   }
 
   bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-        const std::string& voms_dir, std::vector<std::string>& output) {
+        const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output) {
 
     //Search the extension
     int nid = 0;
@@ -1118,7 +1116,7 @@ err:
     int num = sk_AC_num(aclist->acs);
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
-      if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, voms_dir, holder, output)) {
+      if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, holder, output)) {
         verified = true;
       }
       if (!verified) break;
@@ -1128,9 +1126,9 @@ err:
   }
 
   bool parseVOMSAC(Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file,
-         const std::string& voms_dir, std::vector<std::string>& output) {
+         const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output) {
     X509* holder = holder_cred.GetCert();
-    return(parseVOMSAC(holder, ca_cert_dir, ca_cert_file, voms_dir, output));
+    return(parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output));
   }
 
 } // namespace Arc

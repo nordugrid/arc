@@ -132,10 +132,15 @@ int main(void) {
   //std::string in_file_ac("./out.pem");
   std::string ca_cert_dir("./testca");
   std::string ca_cert_file("");
-  std::string vomsdir(".");
+  std::vector<std::string> vomscert_trust_dn;
+  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid ***");
+  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid abc");
+  vomscert_trust_dn.push_back("NEXT CHAIN");
+  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
+  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
   ArcLib::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
   std::vector<std::string> attributes;
-  ArcLib::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomsdir, attributes); 
+  ArcLib::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
 
   int i;
   for(i=0; i<attributes.size(); i++) {

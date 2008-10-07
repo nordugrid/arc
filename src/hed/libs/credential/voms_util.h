@@ -10,10 +10,20 @@ namespace ArcLib {
 
   void InitVOMSAttribute(void);
 
+  /**
+   *
+   *
+   */
   int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes,
              AC **ac, std::string voname, std::string uri, int lifetime);
 
+  /**Create AC(Attribute Certificate) with voms specific format.
+   * @param codedac  The coded AC as output of this method
+   * @param issuer_cred  The issuer credential which is used to sign the AC
+   * @param holer_cred   The holder credential, the holder certificate is the one which carries AC
+   * @param fqan          
+   */
   bool createVOMSAC(std::string& codedac, Credential& issuer_cred, Credential& holder_cred,
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes, 
              std::string &voname, std::string &uri, int lifetime);
@@ -43,11 +53,11 @@ namespace ArcLib {
    * 		      VO=knowarc/Group=UiO/Role=technician
    */
   bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-             const std::string& voms_dir, std::vector<std::string>& output);
+             const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output);
 
   /**Parse the certificate. The same as the above one */
   bool parseVOMSAC(Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-             const std::string& voms_dir, std::vector<std::string>& output);
+             const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output);
 
 }// namespace ArcLib
 
