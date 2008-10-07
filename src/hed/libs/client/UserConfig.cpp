@@ -410,8 +410,7 @@ namespace Arc {
 
     logger.msg(INFO, "Resolving alias: %s", alias);
 
-    Config cfg2(cfg);
-    XMLNodeList aliaslist = cfg2.XPathLookup("//Alias[@name='" +
+    XMLNodeList aliaslist = cfg.XPathLookup("//Alias[@name='" +
 					    alias + "']", NS());
 
     if (aliaslist.empty()) {
