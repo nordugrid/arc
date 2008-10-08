@@ -36,7 +36,7 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
   if(atleast_onepermit) return DECISION_PERMIT;
 
   //No Rule said DENY, none of the rules actually applied, return NOT_APPLICABLE
-  //if(atleast_onenotapplicable) return DECISION_NOT_APPLICABLE;
+  if(atleast_onenotapplicable) return DECISION_NOT_APPLICABLE;
 
   //If here, there is problem with one of the Rules, then return INDETERMINATE
   return DECISION_INDETERMINATE;
