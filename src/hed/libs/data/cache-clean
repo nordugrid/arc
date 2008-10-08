@@ -1,0 +1,354 @@
+#!/usr/bin/perl -w
+
+#
+#    Copyright 2008 Niklas Edmundsson <nikke@acc.umu.se>,
+#                   Tomas Ögren <stric@acc.umu.se>,
+#                   David Cameron <cameron@ndgf.org>
+#
+#    Originally developed by Niklas Edmundsson and Tomas Ögren as
+#    cleanbyage. Modified, renamed cache-clean and maintained
+#    for ARC by David Cameron.
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use Sys::Hostname;
+use File::Find ();
+use File::Path;
+use Getopt::Std;
+use Fcntl ':mode';
+use DirHandle;
+
+use strict;
+use warnings;
+
+# Set the variable $File::Find::dont_use_nlink if you're using AFS,
+# since AFS cheats.
+
+# for the convenience of &wanted calls, including -eval statements:
+use vars qw/*name *dir *prune/;
+*name   = *File::Find::name;
+*dir    = *File::Find::dir;
+*prune  = *File::Find::prune;
+
+sub wanted;
+sub debug;
+sub printsize;
+sub diskspace;
+
+my(%opts);
+
+# Min free percentage
+my $defminfree = 20;
+my $minfree = $defminfree;
+my $mincleanfree = $defminfree;
+
+my %files;
+my $totsize = 0;
+my $totlocksize = 0;
+my $totlockfiles = 0;
+
+getopts('hsdm:M:i:e:D', \%opts);
+if(defined($opts{m})) {
+    $minfree = $opts{m};
+}
+if(defined($opts{M})) {
+    $mincleanfree = $opts{M};
+}
+
+if($minfree < 0 || $minfree > 100) {
+    die "Bad value for -m: $minfree\n";
+}
+if($mincleanfree < 0 || $mincleanfree > 100) {
+    die "Bad value for -M: $mincleanfree\n";
+}
+if($mincleanfree < $minfree) {
+    die "-M can't be smaller than -m (now $mincleanfree/$minfree)\n";
+}
+
+if(defined($opts{'h'}) || ((!defined($opts{'M'}) || !defined($opts{'m'})) && !defined($opts{s}))) {
+    print <<EOH;
+   usage: $0 -h | -s | -m NN -M NN [-D] [dir1 [dir2 [...]]]
+        -h      - This help
+        -s      - Statistics mode, show cache usage stats, dont delete anything
+        -m NN   - Min free space to start cleaning (percent)
+        -M NN   - Free space to stop cleaning (percent)
+        -D      - Debug output
+
+   If dir arguments are not given, cache directories are read from arc.conf.
+
+EOH
+    exit 1;
+}
+
+debug "cache cleaning started";
+
+my @caches = @ARGV;
+
+if (!@caches) {
+    # find conf file and get cache dir
+    my $conffile = $ENV{"ARC_CONFIG"};
+    if (!$conffile || ! -e $conffile) {
+        $conffile = '/etc/arc.conf';    
+    }
+
+    die "Conf file not found. Use ARC_CONFIG to give non-standard location" if ! -e $conffile;
+
+    # parse to find cache dirs
+    open FILE, $conffile or die $!;
+    while (<FILE>) {
+        if (/^cachedir=/) {
+            if (/%/) {print "\n Warning: cache-clean cannot deal with substitutions - $_\n";}
+            elsif (m!^cachedir=((/\w+)+)! || m!^cachedir="((/\w+)+)!) {push(@caches, $1);} #"
+        }
+    }
+
+    close FILE;
+
+    die "No caches found in config file $conffile" if @caches==0;
+}
+
+foreach my $filesystem (@caches) {
+
+	$filesystem =~ s|/+$||;
+    next if ($filesystem eq "");
+
+    if ($filesystem =~ /%/) {
+        print STDERR "$filesystem: Warning: cache-clean cannot deal with substitutions\n";
+        next;
+    }
+
+    if (! -d $filesystem) {
+        debug "$filesystem: Cache is empty";
+        next;
+	}
+
+	# follow sym links to real filesystem
+	my $symlinkdest = $filesystem;
+	while ($symlinkdest) {
+  	    $filesystem = $symlinkdest;
+    	$symlinkdest = readlink($symlinkdest);
+    	$symlinkdest =~ s|/+$|| if $symlinkdest;
+	}
+
+    my $fsvalues = diskspace($filesystem);
+
+	if(!($fsvalues)) {
+  	    print STDERR "Unable to stat $filesystem\n";
+    	next;
+	}
+
+	my $fssize = $fsvalues->{total};
+	my $fsfree = $fsvalues->{free};
+
+	my $minfbytes=$fssize*$minfree/100;
+
+	debug ("$filesystem: used space ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize),"%)");
+	if ($fsfree > $minfbytes && !$opts{'s'}) {
+  	    debug "Used space is lower than upper limit (", 100-$minfree, "%)";
+    	next;
+	}
+
+	$minfbytes=$fssize*$mincleanfree/100;
+	
+	%files = ();
+	$totsize = 0;
+	$totlocksize = 0;
+	$totlockfiles = 0;
+
+	File::Find::find({wanted => \&wanted}, $filesystem."/data");
+
+	if($opts{'s'}) {
+  	    print "\nUsage statistics: $filesystem\n";
+        print "Total deletable files found: ",scalar keys %files," ($totlockfiles files locked)\n";
+        print "Total size of deletable files found: ",printsize($totsize)," (",printsize($totlocksize)," locked)\n";
+        print "Used space on file system: ",printsize($fssize-$fsfree)," / ",printsize($fssize), " (",sprintf("%.2f",100-100*$fsfree/$fssize),"%)\n";
+        my $increment = $totsize / 10;
+        if($increment < 1) {
+            print "Total size too small to show usage histogram\n";
+            next;
+        }
+
+        printf "%-21s %-25s %s\n", "At size (% of total)", "Newest file", "Oldest file";
+        my $nextinc = $increment;
+        my $accumulated = 0;
+        my ($newatime, $lastatime);
+
+        foreach my $fil (sort { $files{$b}{atime} <=> $files{$a}{atime} } 
+              keys %files) {
+            $accumulated += $files{$fil}{size};
+            if(!$newatime) {
+                $newatime = $files{$fil}{atime};
+            }
+
+            if($accumulated > $nextinc) {
+                printf "%-21s %-25s %s\n", 
+                printsize($accumulated)." (".int(($accumulated/$totsize)*100)."%)",
+                scalar localtime($newatime),
+                scalar localtime($files{$fil}{atime});
+                while($nextinc < $accumulated) {
+                    $nextinc += $increment;
+                }
+                $newatime = undef;
+                $lastatime = undef;
+            }
+            else {
+                $lastatime = $files{$fil}{atime};
+            }
+        }
+        printf "%-21s %-25s %s\n", 
+        printsize($accumulated)." (100%)", "-",
+        scalar localtime($lastatime) if($lastatime);
+        next;
+    }
+
+
+	foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
+        last if $fsfree > $minfbytes;
+
+        next if (-e "$fil.lock");
+
+        debug "file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}";
+        if ( unlink $fil ) {
+            $fsfree+=$files{$fil}{size};
+            if (defined($opts{'D'}) && -e "$fil.meta") {
+                open FILE, "$fil.meta";
+                my @lines = <FILE>;
+                close FILE;
+                my @values = split(' ', $lines[0]);
+                debug "unlink $fil - $values[0]";
+            }
+            else {
+                debug "unlink $fil";
+            }
+        } else {
+            print STDERR "unlink '$fil': $!\n";
+        }
+        # not critical if this fails
+        if ( unlink "$fil.meta" ) {
+            my $lastslash = rindex($fil, "/");
+            while (1) {
+                last unless ( rmdir(substr("$fil.meta", 0, $lastslash)));
+                debug "rmdir ".substr("$fil.meta", 0, $lastslash);
+                $lastslash = rindex($fil, "/", $lastslash-1);
+            }
+        } else {
+            print STDERR "unlink '$fil.meta': $!\n";
+        } 
+	}
+	debug ("Cleaning finished, used space now ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize),"%)");
+}
+exit 0;
+
+sub wanted {
+
+    return if $name =~ m|\.lock$|;
+    return if $name =~ m|\.meta$|;
+
+    my ($atime, $blocksize, $blocks);
+
+    ($atime, $blocksize, $blocks) = (stat($_))[8,11,12];
+
+    return unless defined $atime;
+
+    return unless (!$opts{'d'} && -d _) || -f _ || -l _;
+    if (-e "$name.lock") {
+        $totlocksize += $blocksize * $blocks;
+        $totlockfiles++;
+        return;
+    }
+
+    $files{$name}{atime}=$atime;
+    $files{$name}{size}=$blocksize * $blocks;
+    $totsize += $blocksize * $blocks;
+}
+
+sub debug
+{
+    if( !defined($opts{'D'}) || defined($opts{'s'})) {
+        return;
+    }
+
+    my (@args) = @_;
+
+    print STDERR scalar localtime(), ": ", @args, "\n";
+}
+
+sub printsize($)
+{
+    my $size = shift;
+
+    if($size > 1024*1024*1024*1024) {
+        $size = int($size/(1024*1024*1024*1024));
+        return "$size TB";
+    }
+    if($size > 1024*1024*1024) {
+        $size = int($size/(1024*1024*1024));
+        return "$size GB";
+    }
+    if($size > 1024*1024) {
+        $size = int($size/(1024*1024));
+        return "$size MB";
+    }
+    if($size > 1024) {
+        $size = int($size/1024);
+        return "$size kB";
+    }
+
+    return $size;
+}
+
+#
+# Returns disk space (total and free) in bytes on a filesystem
+# Taken from arc1/trunk/src/services/a-rex/infoproviders/HostInfo.pm
+# TODO: Put in common place
+#
+sub diskspace ($) {
+    my $path = shift;
+    my ($diskfree, $disktotal);
+
+    if ( -d "$path") {
+        # check if on afs
+        if ($path =~ m#/afs/#) {
+            my @dfstring =`fs listquota $path 2>/dev/null`;
+            if ($? != 0) {
+                print STDERR "Failed running: fs listquota $path\n";
+            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
+                $disktotal = int $1/1024;
+                $diskfree  = int(($1 - $2)/1024);
+            } else {
+                print STDERR "Failed interpreting output of: fs listquota $path\n";
+            }
+        # "ordinary" disk
+        } else {
+            my @dfstring =`df -k $path 2>/dev/null`;
+            if ($? != 0) {
+                print STDERR "Failed running: df -k $path\n";
+
+            # The first column may be printed on a separate line.
+            # The relevant numbers are always on the last line.
+            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+\d+\s+(\d+)\s+\d+%\s+\//) {
+    	        $disktotal = $1*1024;
+    	        $diskfree  = $2*1024;
+            } else {
+                print STDERR "Failed interpreting output of: df -k $path\n";
+            }
+        }
+    } else {
+        print STDERR "Not a directory: $path\n";
+    }
+
+    return undef unless defined($disktotal) and defined($diskfree);
+    return {total => $disktotal, free => $diskfree};
+}

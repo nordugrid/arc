@@ -1,0 +1,24 @@
+.TH cache-list 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.SH NAME
+
+cache-list \- List contents of the Grid Manager cache.
+
+.SH SYNOPSIS
+
+cache-list
+
+.SH DESCRIPTION
+
+.B cache-list
+prints to stdout each cache directory specified in the configuration file
+then a list of files in each cache directory and the corresponding URLs 
+of their source in the format:
+
+.B url filename
+
+This tool can be useful for finding out if a certain URL is stored in the
+cache, or simply to give a list of all URLs in the cache.
+
+.SH AUTHOR
+
+David Cameron <cameron@ndgf.org>

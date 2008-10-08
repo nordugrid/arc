@@ -68,7 +68,7 @@ class FileTransfer
             cache = new Arc::FileCache (cache_dir, cache_data_dir, 
                                         cache_link_dir, job_id,
                                         cache_user.get_uid(),
-                                        cache_user.get_gid(), 1, 2);
+                                        cache_user.get_gid());
         }
 
         void download(const std::string &job_root, Job &j)

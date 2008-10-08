@@ -1,0 +1,89 @@
+.TH cache-clean 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.SH NAME
+
+cache-clean \- Administration tool for the Grid Manager cache.
+
+.SH SYNOPSIS
+
+cache-clean -h | -s | -m NN -M NN [-D] [dir1 [dir2 [...]]]
+
+.SH DESCRIPTION
+
+.B cache-clean
+is a tool for administrators of ARC server installations to safely remove
+data and provide an overview of the contents of the Grid Manager cache.
+It is used by the Grid Manager to automatically manage cache contents.
+
+There are two modes of operation - printing statistics and deleting files.
+If
+.B -s
+is used, then statistics are printed on each cache. If
+.B -m
+and
+.B -M
+are used then files in each cache are deleted if the free space on 
+the file system is less than that given by
+.B -m,
+until the free space is equal to what is specified by
+.B -M. dir1, dir2...
+are the cache directories. If none are given then they are taken from the
+arc.conf configuration file.
+
+.B -h
+- print short help
+
+.B -s
+- print cache statistics, without deleting anything. The output displays
+for each cache the number of deletable (and locked) files, the total size of
+these files, the percentage usage of the file system in which the cache is
+stored, and a histogram of access times of the files in the cache.
+
+.B -m
+- the minimum free space (as % of the file system) at which to start cleaning
+
+.B -M
+- the minimum free space (as % of the file system) at which to stop cleaning
+
+.B -D
+- turn on debug output
+
+This tool is run periodically by the Grid Manager to keep the size of each
+cache within the limits specified in the configuration file. Therefore cleaning
+should not be performed manually, unless the cache size needs to be reduced
+temporarily. The most useful function for administrators is to give an overview
+of the contents of the cache, using the
+.B -s
+option.
+
+Within each cache directory specified in the configuration file, there is
+a subdirectory for data (data/) and one for per-job hard links (joblinks/).
+See the Grid Manager Administration Guide for more details.
+.B cache-clean
+should only operate on the data subdirectory, therefore when giving
+.B dir
+arguments they should be the top level cache directory.
+.B cache-clean
+will then automatically only look at files within the data directory.
+
+.B cache-clean
+calculates the bytes that deleting a file will free up based on the number
+of blocks the file occupies multiplied by the file system's block size. For
+large files this is approximately the same as the number of bytes in the file.
+However if the cache contains many small files (less than a few blocks)
+the results of cleaning may depend on the file system used. If the file system
+fills partially empty blocks with data from other files, then less
+space will be freed up than would be expected. More space will be cleaned 
+up in subsequent cycles however until the configured limit is reached.
+
+.SH EXAMPLE
+
+.B cache-clean -m20 -M30 -D
+
+Cache directories are taken from the configuration file and if the free
+space in a cache is below 20%, data is deleted until the free space reaches
+30%. Debug output is switched on so information is output on each file that
+is deleted.
+
+.SH AUTHOR
+
+David Cameron <cameron@ndgf.org>

@@ -14,6 +14,7 @@
 #include "environment.h"
 #include "gridmap.h"
 #include "../run/run_plugin.h"
+#include "conf_cache.h"
 #include "conf_file.h"
 
 #ifdef HAVE_GLIBMM_GETENV
@@ -43,10 +44,6 @@ RunPlugin cred_plugin;
 bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
   std::ifstream cfile;
   std::string session_root("");
-  std::string cache_dir("");
-  std::string cache_data_dir("");
-  std::string cache_link_dir("");
-  bool private_cache = false;
   std::string default_lrms("");
   std::string default_queue("");
   std::string default_reruns_s("");
@@ -69,8 +66,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   bool use_passive_transfer = false;
   bool use_local_transfer = false;
   bool superuser = (my_uid == 0);
-  long long int cache_max = 0;
-  long long int cache_min = 0;
   bool cache_registration = false;
   bool strict_session = false;
   unsigned int wakeup_period;
@@ -140,51 +135,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
     } else if(central_configuration && (command == "nodename")) {
       SetEnv("NODENAME",rest);
-    } else if((!central_configuration && (command == "cache")) || 
-              (central_configuration  && (command == "cachedir"))) { 
-      cache_dir = config_next_arg(rest);
-      cache_link_dir = config_next_arg(rest);
-      if(rest.length() != 0) {
-        logger.msg(Arc::WARNING,"junk in cache command"); goto exit;
-      };
-      private_cache=false;
-    }
-    else if(command == "privatecache") { 
-      cache_dir = config_next_arg(rest);
-      cache_link_dir = config_next_arg(rest);
-      if(rest.length() != 0) {
-        logger.msg(Arc::WARNING,"junk in privatecache command"); goto exit;
-      };
-      private_cache=true;
-    }
-    else if(command == "cachedata") {
-      cache_data_dir = config_next_arg(rest);
-      if(rest.length() != 0) {
-        logger.msg(Arc::WARNING,"junk in cachedata command"); goto exit;
-      };
-    }
-    else if(command == "cachesize") {
-      long long int i;
-      std::string cache_size_s = config_next_arg(rest);
-      if(cache_size_s.length() == 0) {
-        i=0;
-      }
-      else {
-        if(!Arc::stringto(cache_size_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in cachesize"); goto exit;
-        };
-      };
-      cache_max=i;
-      cache_size_s = config_next_arg(rest);
-      if(cache_size_s.length() == 0) {
-        i=cache_max;
-      }
-      else {
-        if(!Arc::stringto(cache_size_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in cachesize"); goto exit;
-        };
-      };
-      cache_min=i;
     }
     else if(command == "joblog") { /* where to write job inforamtion */ 
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
@@ -500,11 +450,24 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
           }
           else {
+            // get cache parameters for this user
+            try {
+              CacheConfig * cache_config = new CacheConfig(user->UnixName());
+              std::list<std::list<std::string> > cache_info = cache_config->getCacheDirs();
+              for (std::list<std::list<std::string> >::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
+                for (std::list<std::string>::iterator j = i->begin(); j != i->end(); j++) {
+                  user->substitute(*j);
+                }
+              }
+              cache_config->setCacheDirs(cache_info);
+              user->SetCacheParams(cache_config);
+            }
+            catch (CacheConfigException e) {
+              logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
+              logger.msg(Arc::ERROR, "Caching is disabled");
+            }
             std::string control_dir_ = control_dir;
             std::string session_root_ = session_root;
-            std::string cache_dir_ = cache_dir;
-            std::string cache_data_dir_ = cache_data_dir;
-            std::string cache_link_dir_ = cache_link_dir;
             user->SetLRMS(default_lrms,default_queue);
             user->SetKeepFinished(default_ttl);
             user->SetKeepDeleted(default_ttr);
@@ -512,13 +475,8 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             user->SetDiskSpace(default_diskspace);
             user->substitute(control_dir_);
             user->substitute(session_root_);
-            user->substitute(cache_dir_);
-            user->substitute(cache_data_dir_);
-            user->substitute(cache_link_dir_);
             user->SetControlDir(control_dir_);
             user->SetSessionRoot(session_root_);
-            user->SetCacheDir(cache_dir_,cache_data_dir_,cache_link_dir_,private_cache);
-            user->SetCacheSize(cache_max,cache_min);
             user->SetStrictSession(strict_session);
             /* add helper to poll for finished jobs */
             std::string cmd_ = nordugrid_libexec_loc;
@@ -616,14 +574,24 @@ bool print_serviced_users(const JobUsers &users) {
     logger.msg(Arc::INFO,"\tdefault LRMS     : %s",user->DefaultLRMS());
     logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue());
     logger.msg(Arc::INFO,"\tdefault ttl      : %u",user->KeepFinished());
-    if(user->CacheDir().length() != 0) {
-      if(user->CacheDataDir().length() == 0) {
-        logger.msg(Arc::INFO,"\tCache dir        : %s (%s)",user->CacheDir(),user->CachePrivate()?"private":"global");
-      } else {
-        logger.msg(Arc::INFO,"\tCache info dir   : %s (%s)",user->CacheDir(),user->CachePrivate()?"private":"global");
-        logger.msg(Arc::INFO,"\tCache data dir   : %s",user->CacheDataDir());
-      };
-    };
+    
+    CacheConfig * cache_config = user->CacheParams();
+
+    std::list<std::list<std::string> > conf_caches = cache_config->getCacheDirs();
+    if(conf_caches.empty()) {
+      logger.msg(Arc::INFO,"No cache directory found in configuration, caching is disabled");
+      continue;
+    }
+    // list each cache
+    for (std::list<std::list<std::string> >::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+      std::list<std::string>::iterator j = i->begin();
+      logger.msg(Arc::INFO, "\tCache :");
+      logger.msg(Arc::INFO, "\tCache data dir   : %s", *j); j++;
+      logger.msg(Arc::INFO, "\tCache job dir    : %s", *j); j++;
+      if (j != i->end() && !j->empty()) logger.msg(Arc::INFO, "\tCache link dir   : %s", *j);
+    }
+    if (cache_config->cleanCache()) logger.msg(Arc::INFO, "\tCache cleaning enabled");
+    else logger.msg(Arc::INFO, "\tCache cleaning disabled");
   };
   return true;
 }

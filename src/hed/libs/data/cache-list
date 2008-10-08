@@ -1,0 +1,51 @@
+#!/usr/bin/perl -w
+
+# Make a list of URLs in the cache and their corresponding
+# cache filenames
+
+use File::Find ();
+
+# for the convenience of &wanted calls, including -eval statements:
+use vars qw/*name *dir *prune/;
+*name   = *File::Find::name;
+*dir    = *File::Find::dir;
+*prune  = *File::Find::prune;
+
+sub wanted;
+
+# find conf file and get cache dir
+$conffile = $ENV{"ARC_CONFIG"};
+if (!$conffile || ! -e $conffile) {
+    $conffile = '/etc/arc.conf';    
+}
+
+die "Conf file not found. Use ARC_CONFIG to give non-standard location" if ! -e $conffile;
+
+# parse to find cache dirs
+my @caches;
+open FILE, $conffile or die $!;
+while (<FILE>) {
+    if (/^cachedir=/) {
+        if (/%/) {print "\n Warning: cache-clean cannot deal with substitutions - $_\n";}
+        elsif (m!^cachedir=((/\w+)+)! || m!^cachedir="((/\w+)+)!) {push(@caches, $1);}
+    }
+}
+
+close FILE;
+
+die "No caches found in config file $conffile" if @caches==0;
+
+foreach $cache (@caches) {
+	print "Cache: $cache\n";
+    if (! -d $cache) { print " Cache is empty\n"; }
+	else { File::Find::find({wanted => \&wanted}, $cache); }
+}
+
+sub wanted {
+    return if $name !~ m|\.meta$|;
+    open FILE, $name or die "$name $!";
+    my $line = <FILE>;
+    my @data = split(/\s+/, $line);
+    my $fname = substr($name, 0, rindex($name, ".meta"));
+    print " $data[0] $fname\n";
+}

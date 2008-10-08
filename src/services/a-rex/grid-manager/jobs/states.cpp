@@ -385,11 +385,12 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     std::string min_speed_time_s;
     std::string min_average_speed_s;
     std::string max_inactivity_time_s;
-    int argn=3;
+    int argn=4;
     const char* args[] = {
       (char*)(cmd.c_str()),
       "-U",
       (char*)(user_id_s.c_str()),
+      "-f",
       NULL, // -n
       NULL, // (-n)
       NULL, // -c
@@ -407,9 +408,6 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       NULL, // id
       NULL, // control
       NULL, // session
-      NULL, // cache
-      NULL, // cache data
-      NULL, // cache link
       NULL,
       NULL
     };
@@ -451,19 +449,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     args[argn]=(char*)(i->job_id.c_str()); argn++;
     args[argn]=(char*)(user->ControlDir().c_str()); argn++;
     args[argn]=(char*)(i->SessionDir().c_str()); argn++;
-    if(user->CachePrivate() || ((!user->CachePrivate()) && (!switch_user))) {
-      if(user->CacheDir().length() != 0) {
-        args[argn]=(char*)(user->CacheDir().c_str()); argn++;
-        if(user->CacheDataDir().length() != 0) {
-          args[argn]=(char*)(user->CacheDataDir().c_str()); argn++;
-        } else {
-          args[argn]=(char*)(user->CacheDir().c_str()); argn++;
-        };
-        if(user->CacheLinkDir().length() != 0) {
-          args[argn]=(char*)(user->CacheLinkDir().c_str()); argn++;
-        };
-      };
-    };
+
     if(!up) { logger.msg(Arc::INFO,"%s: State PREPARING: starting child: %s",i->job_id,args[0]); }
     else { logger.msg(Arc::INFO,"%s: State FINISHING: starting child: %s",i->job_id,args[0]); };
     job_errors_mark_put(*i,*user);
@@ -529,7 +515,12 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
           logger.msg(Arc::ERROR,"%s: State: PREPARING: credentials probably expired (exit code 3)",i->job_id);
           i->AddFailure("Failed in files download due to expired credentials - try to renew");
         };
-      } else {
+      } else if(i->child->Result() == 4) { // retryable cache error
+        logger.msg(Arc::VERBOSE, "%s: State: PREPARING/FINISHING: retryable error", i->job_id);
+        delete i->child; i->child=NULL;
+        return true;
+      } 
+      else {
         if(up) {
           logger.msg(Arc::ERROR,"%s: State: FINISHING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id,i->child->Result());
           i->AddFailure("Failed in files upload (post-processing)");

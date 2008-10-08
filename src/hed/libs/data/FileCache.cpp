@@ -19,6 +19,8 @@
 
 namespace Arc {
 
+const int FileCache::CACHE_DIR_LENGTH = 2;
+const int FileCache::CACHE_DIR_LEVELS = 1;
 const std::string FileCache::CACHE_LOCK_SUFFIX = ".lock";
 const std::string FileCache::CACHE_META_SUFFIX = ".meta";
 
@@ -29,9 +31,7 @@ FileCache::FileCache(std::string cache_path,
     std::string cache_link_path,
     std::string id,
     uid_t job_uid,
-    gid_t job_gid,
-    int cache_dir_length,
-    int cache_dir_levels) {
+    gid_t job_gid) {
   
   // make a vector of one item and call _init
   struct CacheParameters cache_info;
@@ -43,38 +43,26 @@ FileCache::FileCache(std::string cache_path,
   caches.push_back(cache_info);
   
   // if problem in init, clear _caches so object is invalid
-  if (!_init(caches, id, job_uid, job_gid, cache_dir_length, cache_dir_levels)) _caches.clear();
+  if (!_init(caches, id, job_uid, job_gid)) _caches.clear();
 }
 
 FileCache::FileCache(std::vector<struct CacheParameters> caches,
     std::string id,
     uid_t job_uid,
-    gid_t job_gid,
-    int cache_dir_length,
-    int cache_dir_levels) {
+    gid_t job_gid) {
   
   // if problem in init, clear _caches so object is invalid
-  if (!_init(caches, id, job_uid, job_gid, cache_dir_length, cache_dir_levels)) _caches.clear();
+  if (!_init(caches, id, job_uid, job_gid)) _caches.clear();
 }
 
 bool FileCache::_init(std::vector<struct CacheParameters> caches,
     std::string id,
     uid_t job_uid,
-    gid_t job_gid,
-    int cache_dir_length,
-    int cache_dir_levels) {
+    gid_t job_gid) {
   
   _id = id;
   _uid = job_uid;
   _gid = job_gid;
-  _cache_dir_length = cache_dir_length;
-  _cache_dir_levels = cache_dir_levels;
-  
-  // check for sane values
-  if (_cache_dir_length * _cache_dir_levels >= FileCacheHash::maxLength()) {
-    logger.msg(ERROR, "Too many subdirectory levels and/or subdirectory length too long");
-    return false;
-  }
   
   // for each cache
   for (int i = 0; i < (int)caches.size(); i++) {
@@ -163,10 +151,6 @@ FileCache::FileCache(const FileCache& cache) {
   _id = cache._id;
   _uid = cache._uid;
   _gid = cache._gid;
-  _cache_dir_length = cache._cache_dir_length;
-  _cache_dir_levels = cache._cache_dir_levels;
-  
-
 }
 
 FileCache::~FileCache(void) {
@@ -455,10 +439,10 @@ std::string FileCache::File(std::string url) {
   std::string hash = FileCacheHash::getHash(url);
   
   int index = 0;
-  for(int level = 0; level < _cache_dir_levels; level ++) {
-    hash.insert(index + _cache_dir_length, "/");
+  for(int level = 0; level < CACHE_DIR_LEVELS; level ++) {
+    hash.insert(index + CACHE_DIR_LENGTH, "/");
     // go to next slash position, add one since we just inserted a slash
-    index += _cache_dir_length + 1;
+    index += CACHE_DIR_LENGTH + 1;
   }
   return _caches.at(_chooseCache(hash)).cache_path+"/"+hash;
 }
@@ -745,9 +729,7 @@ bool FileCache::operator==(const FileCache& a) {
     a._cache_link_path == _cache_link_path &&
     a._id == _id &&
     a._uid == _uid &&
-    a._gid == _gid &&
-    a._cache_dir_length == _cache_dir_length &&
-    a._cache_dir_levels == _cache_dir_levels
+    a._gid == _gid
   );
 }
 bool FileCache::_checkLock(std::string url) {

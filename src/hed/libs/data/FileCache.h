@@ -37,31 +37,28 @@ struct CacheParameters {
  * the user's job. Stop() must then be called to release any
  * locks on the cache file.
  * 
- * The cache directory, the directory for per-job hard links and the
- * optional directory to link to when the soft-links are made
- * are set in the global configuration file. The names of cache files
- * are formed from a hash of the URL specified as input to the job.
- * To ease the load on the file system, the cache files are split
- * into subdirectories based on the characters in the hash.
- * The length of each subdirectory and number of subdirectories
- * can be specified in the conf file. For example if these two
- * parameters are respectively 2 and 3 the file with hash
+ * 
+ * The cache directory(ies) and the optional directory to link to
+ * when the soft-links are made are set in the global configuration
+ * file. The names of cache files are formed from a hash of the URL 
+ * specified as input to the job. To ease the load on the file system,
+ * the cache files are split into subdirectories based on the first
+ * two characters in the hash. For example the file with hash
  * 76f11edda169848038efbd9fa3df5693 is stored in
- * 76/f1/1e/dda169848038efbd9fa3df5693. A cache filename can be found
- * by passing the URL to File().
+ * 76/f11edda169848038efbd9fa3df5693. A cache filename can be found
+ * by passing the URL to Find(). For more information on the
+ * structure of the cache, see the Grid Manager Administration Guide.
  * 
  * A metadata file with the '.meta' suffix is stored next to each
  * cache file. This contains the URL corresponding to the cache
  * file and the expiry time, if it is available. For example
- * lfc://lfc1.ndgf.org//grid/atlas/test/test1 1208352933
+ * lfc://lfc1.ndgf.org//grid/atlas/test/test1 20081007151045Z
  * 
  * While cache files are downloaded, they are locked by creating a
  * lock file with the '.lock' suffix next to the cache file. Calling
  * Start() creates this lock and Stop() releases it. All processes
  * calling Start() must wait until they successfully obtain the lock
  * before downloading can begin.
- * NB! This method of file locking only works for processes running on
- * the same host.
  */
 class FileCache {
  private:
@@ -94,11 +91,6 @@ class FileCache {
   uid_t _uid;
   gid_t _gid;
   /**
-   * Parameters for the cache directory structure
-   */
-  int _cache_dir_length;
-  int _cache_dir_levels;
-  /**
    * Our hostname (same as given by uname -n)
    */
   std::string _hostname;
@@ -106,6 +98,14 @@ class FileCache {
    * Our pid
    */
   std::string _pid;
+  /**
+   * The length of each cache subdirectory
+   */
+  static const int CACHE_DIR_LENGTH;
+  /**
+   * The number of levels of cache subdirectories
+   */
+  static const int CACHE_DIR_LEVELS;
   /** 
    * The suffix to use for lock files
    */
@@ -120,9 +120,7 @@ class FileCache {
   bool _init(std::vector<struct CacheParameters> caches,
              std::string id,
              uid_t job_uid,
-             gid_t job_gid,
-             int cache_dir_length,
-             int cache_dir_levels);
+             gid_t job_gid);
   /**
    * Return the filename of the lock file associated to the given url
    */
@@ -170,18 +168,13 @@ class FileCache {
    * @param job_uid owner of job. The per-job dir will only be
    * readable by this user
    * @param job_gid owner group of job
-   * @param cache_dir_length the number of characters for each subdirectory
-   * name in the cache hierarchy
-   * @param cache_dir_levels the number of subdirectory levels in the cache
    */
   FileCache(std::string cache_path,
             std::string cache_job_dir_path,
             std::string cache_link_path,
             std::string id,
             uid_t job_uid,
-            gid_t job_gid,
-            int cache_dir_length,
-            int cache_dir_levels);
+            gid_t job_gid);
 
   /**
    * Create a new FileCache instance with multiple cache dirs
@@ -192,16 +185,11 @@ class FileCache {
    * @param job_uid owner of job. The per-job dir will only be
    * readable by this user
    * @param job_gid owner group of job
-   * @param cache_dir_length the number of characters for each subdirectory
-   * name in the cache hierarchy
-   * @param cache_dir_levels the number of subdirectory levels in the cache
    */
   FileCache(std::vector<struct CacheParameters> caches,
             std::string id,
             uid_t job_uid,
-            gid_t job_gid,
-            int cache_dir_length,
-            int cache_dir_levels);
+            gid_t job_gid);
   /**
    * Copy constructor
    */
@@ -341,15 +329,11 @@ class FileCache {
             std::string cache_link_path,
             std::string id,
             uid_t job_uid,
-            gid_t job_gid,
-            int cache_dir_length,
-            int cache_dir_levels) { };
+            gid_t job_gid) { };
   FileCache(std::vector<struct CacheParameters> caches,
             std::string id,
             uid_t job_uid,
-            gid_t job_gid,
-            int cache_dir_length,
-            int cache_dir_levels) { };
+            gid_t job_gid) { };
   FileCache(const FileCache& cache) { };
   FileCache() { };
   operator bool() { return false; };

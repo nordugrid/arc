@@ -3,11 +3,9 @@
 #endif
 /*
   Download files specified in job.ID.input and check if user uploaded files.
-  result: 0 - ok, 1 - unrecoverable error, 2 - potentially recoverable.
-  arguments: job_id control_directory session_directory [cache_directory]
-  optional arguments: -t threads , -u user
+  result: 0 - ok, 1 - unrecoverable error, 2 - potentially recoverable,
+  3 - certificate error, 4 - should retry.
 */
-//@ #include "std.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -33,19 +31,12 @@
 #include "../conf/environment.h"
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
-#include "../cache/cache.h"
-/*@
-#include "../misc/log_time.h"
-#include "../misc/checksum.h"
-#include "../misc/url_options.h"
-#include "../datamove/datacache.h"
-#include "../datamove/datamovepar.h"
-*/
+#include "../conf/conf_cache.h"
 
-//@
 #define olog std::cerr
 #define odlog(LEVEL) std::cerr
-//@
+
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 /* check for user uploaded files every 60 seconds */
 #define CHECK_PERIOD 60
@@ -75,24 +66,12 @@ class FileDataEx : public FileData {
 				      pair(NULL) {}
 };
 
-static JobDescription desc;
-static JobUser user;
-static std::string cache_dir;
-static std::string cache_data_dir;
-static std::string cache_link_dir;
-static uid_t cache_uid;
-static gid_t cache_gid;
-static char* id;
 static std::list<FileData> job_files_;
 static std::list<FileDataEx> job_files;
 static std::list<FileDataEx> processed_files;
 static std::list<FileDataEx> failed_files;
 static Arc::SimpleCondition pair_condition;
 static int pairs_initiated = 0;
-
-/* if != 0 - change owner of downloaded files to this user */
-uid_t file_owner = 0;
-uid_t file_group = 0;
 
 bool is_checksum(std::string str) {
   /* check if have : */
@@ -251,10 +230,12 @@ int main(int argc,char** argv) {
   time_t upload_timeout = 0;
   int n_threads = 1;
   int n_files = MAX_DOWNLOADS;
-//@  LogTime::Active(true);
-//@  LogTime::Level(DEBUG);
-  cache_uid=0;
-  cache_gid=0;
+  /* if != 0 - change owner of downloaded files to this user */
+  char * file_owner_username = "";
+  uid_t file_owner = 0;
+  gid_t file_group = 0;
+  std::vector<struct Arc::CacheParameters> caches;
+  bool use_conf_cache=false;
   unsigned long long int min_speed = 0;
   time_t min_speed_time = 300;
   unsigned long long int min_average_speed = 0;
@@ -271,7 +252,11 @@ int main(int argc,char** argv) {
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
-        olog<<"downloader [-t threads] [-n files] [-c] job_id control_directory session_directory [cache_directory [cache_data_directory [cache_link_directory]]]"<<std::endl; 
+        olog<<"Usage: downloader [-hclpZf] [-n files] [-t threads] [-U uid]"<<std::endl;
+        olog<<"          [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
+        olog<<"          [-a min_average_speed] [-i min_activity_time]"<<std::endl;
+        olog<<"          [-d debug_level] job_id control_directory"<<std::endl;
+        olog<<"          session_directory [cache options]"<<std::endl; 
         exit(1);
       }; break;
       case 'c': {
@@ -285,6 +270,9 @@ int main(int argc,char** argv) {
       }; break;
       case 'Z': {
         central_configuration=true;
+      }; break;
+      case 'f': {
+        use_conf_cache=true;
       }; break;
       case 'd': {
 //@        LogTime::Level(NotifyLevel(atoi(optarg)));
@@ -376,26 +364,70 @@ int main(int argc,char** argv) {
     };
   };
   // process required arguments
-  id = argv[optind+0];
+  char * id = argv[optind+0];
   if(!id) { olog << "Missing job id" << std::endl; return 1; };
   char* control_dir = argv[optind+1];
   if(!control_dir) { olog << "Missing control directory" << std::endl; return 1; };
   char* session_dir = argv[optind+2];
   if(!session_dir) { olog << "Missing session directory" << std::endl; return 1; };
-  if(argv[optind+3]) {
-    cache_dir = argv[optind+3];
-    olog<<"Cache directory is "<<cache_dir<<std::endl;
-    if(argv[optind+4]) {
-      cache_data_dir=argv[optind+4];
-      olog<<"Cache data directory is "<<cache_data_dir<<std::endl;
-      if(argv[optind+5]) {
-        cache_link_dir=argv[optind+5];
-        olog<<"Cache links will go to directory "<<cache_link_dir<<std::endl;
-      };
-    } else {
-      cache_data_dir=cache_dir;
+
+  // prepare Job and User descriptions (needed for substitutions in cache dirs)
+  JobDescription desc(id,session_dir);
+  uid_t uid;
+  gid_t gid;
+  if(file_owner != 0) { uid=file_owner; }
+  else { uid= getuid(); };
+  if(file_group != 0) { gid=file_group; }
+  else { gid= getgid(); };
+  desc.set_uid(uid,gid);
+  JobUser user(uid);
+  user.SetControlDir(control_dir);
+  user.SetSessionRoot(session_dir);
+  
+  // if u or U option not set, use our username
+  if (file_owner_username == "") {
+    struct passwd pw_;
+    struct passwd *pw;
+    char buf[BUFSIZ];
+    getpwuid_r(getuid(),&pw_,buf,BUFSIZ,&pw);
+    if(pw == NULL) {
+      olog<<"Wrong user name"<<std::endl; exit(1);
+    }
+    file_owner_username=pw->pw_name;
+  }
+  
+  if(use_conf_cache) {
+    // use cache dir(s) from conf file
+    try {
+      CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
+      std::list<std::list<std::string> > conf_caches = cache_config->getCacheDirs();
+      // add each cache to our list
+      for (std::list<std::list<std::string> >::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+        std::list<std::string>::iterator j = i->begin();
+        struct Arc::CacheParameters cache_params;
+        user.substitute(*j); cache_params.cache_path = (*j); j++;
+        user.substitute(*j); cache_params.cache_job_dir_path = (*j); j++;
+        if (j != i->end()) {user.substitute(*j); cache_params.cache_link_path = (*j);}
+        else cache_params.cache_link_path = "";
+        caches.push_back(cache_params);
+      }
+    }
+    catch (CacheConfigException e) {
+      olog<<"Error with cache configuration: "<<e.what()<<std::endl;
+      olog<<"Will not use caching"<<std::endl;
+    }
+  }
+  else {
+    if(argv[optind+3]) {
+      struct Arc::CacheParameters cache_params;
+      cache_params.cache_path = argv[optind+3];
+      if(!argv[optind+4]) { olog << "Missing cache per-job dir" << std::endl; return 1; };
+      cache_params.cache_job_dir_path = argv[optind+4];
+      if (argv[optind+5]) cache_params.cache_link_path = argv[optind+5];
+      else cache_params.cache_link_path = "";
+      caches.push_back(cache_params);
     };
-  };
+  }
   if(min_speed != 0) { olog<<"Minimal speed: "<<min_speed<<" B/s during "<<min_speed_time<<" s"<<std::endl; };
   if(min_average_speed != 0) { olog<<"Minimal average speed: "<<min_average_speed<<" B/s"<<std::endl; };
   if(max_inactivity_time != 0) { olog<<"Maximal inactivity time: "<<max_inactivity_time<<" s"<<std::endl; };
@@ -412,34 +444,18 @@ int main(int argc,char** argv) {
   UrlMapConfig url_map;
   olog<<"Downloader started"<<std::endl;
 
-  // prepare Job and User descriptions
-  desc=JobDescription(id,session_dir);
-  uid_t uid;
-  gid_t gid;
-  if(file_owner != 0) { uid=file_owner; }
-  else { uid= getuid(); };
-  if(file_group != 0) { gid=file_group; }
-  else { gid= getgid(); };
-  Arc::User cache_user;
-  desc.set_uid(uid,gid);
-  user=JobUser(uid);
-  user.SetControlDir(control_dir);
-  user.SetSessionRoot(session_dir); /* not needed */
-  if(!cache_dir.empty()) {
-    if(cache_link_dir.empty()) {
-      user.SetCacheDir(cache_dir,cache_data_dir);
+  Arc::FileCache * cache;
+  if(!caches.empty()) {
+    cache = new Arc::FileCache(caches,std::string(id),uid,gid);
+    if (!(*cache)) {
+      olog << "Error creating cache: " << std::endl;
+      exit(1);
     }
-    else {
-      user.SetCacheDir(cache_dir,cache_data_dir,cache_link_dir);
-    };
-  };
-  // get the list of input files
-  // odlog(DEBUG)<<"Cache: dir: "<<cache_dir<<std::endl;
-  // odlog(DEBUG)<<"Cache: data dir: "<<cache_data_dir<<std::endl;
-  // odlog(DEBUG)<<"Cache: link dir: "<<cache_link_dir<<std::endl;
-  // odlog(DEBUG)<<"Cache: uid: "<<cache_uid<<std::endl;
-  // odlog(DEBUG)<<"Cache: gid: "<<cache_gid<<std::endl;
-  Arc::FileCache cache(cache_dir,cache_data_dir,cache_link_dir,id,uid,gid,1,2);
+  }
+  else {
+    // if no cache defined, use null cache
+    cache = new Arc::FileCache();
+  }
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
@@ -506,7 +522,7 @@ int main(int argc,char** argv) {
           i->pair=pair;
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
-        if(!mover.Transfer(*(i->pair->source), *(i->pair->destination), cache,
+        if(!mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
 			   url_map, min_speed, min_speed_time,
 			   min_average_speed, max_inactivity_time,
 			   i->failure_description, &PointPair::callback, it,
@@ -605,7 +621,7 @@ exit:
   clean_files(job_files_,session_dir);
   // release cache just in case
   if(res != 0) {
-    if(!cache_dir.empty()) cache_release_url(cache_dir.c_str(),cache_data_dir.c_str(),cache_uid,cache_gid,id,true);
+    cache->Release();
   };
   remove_proxy();
   if(res != 0) {

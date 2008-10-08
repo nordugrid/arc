@@ -19,6 +19,7 @@
 #include <arc/Logger.h>
 #include <arc/Run.h>
 #include <arc/Thread.h>
+#include <arc/StringConv.h>
 #include "jobs/users.h"
 #include "jobs/states.h"
 #include "jobs/commfifo.h"
@@ -27,8 +28,6 @@
 #include "conf/daemon.h"
 #include "files/info_types.h"
 #include "files/delete.h"
-#include "cache/cache.h"
-#include "cache/cache_cleaner.h"
 #include "run/run_parallel.h"
 
 #include "grid_manager.h"
@@ -49,26 +48,14 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
 static void* cache_func(void* arg) {
   const JobUsers* users = (const JobUsers*)arg;
   Arc::Run *proc = NULL;
-  JobUser user(getuid()); // Need a user to run external binary 
-  user.SetControlDir(users->begin()->ControlDir()); // Should this requirement be removed ?
-  // configure cache history
-  for(JobUsers::const_iterator u = users->begin();u!=users->end();++u) {
-    if(u->CacheDir().length() == 0) continue; // cache not configured
-    uid_t cache_uid = 0;
-    gid_t cache_gid = 0;
-    bool private_cache = u->CachePrivate();
-    if(private_cache) {
-      cache_uid=u->get_uid();
-      cache_gid=u->get_gid();
-    };
-    cache_history(u->CacheDir().c_str(),!private_cache,cache_uid,cache_gid);
-  };
-  // run cache cleaning and registration periodically
+  JobUser gmuser(getuid()); // Cleaning should run under the GM user 
+  
+  // run cache cleaning periodically 
   for(;;) {
-    cache_cleaner(*users);
-    if(JobsList::CacheRegistration()) {
-      // it is logical to run registration after cleaning 
+    // go through each user and clean their caches. One user is processed per clean period
+    for (JobUsers::const_iterator cacheuser = users->begin(); cacheuser != users->end(); ++cacheuser) {
       int exit_code = -1;
+      // if previous process has not finished
       if(proc != NULL) {  
         if(!(proc->Running())) {
           exit_code=proc->Result();
@@ -77,24 +64,47 @@ static void* cache_func(void* arg) {
         };
       };
       if(proc == NULL) { // previous already exited
-        std::list<std::string> args;
-        std::string cmd = nordugrid_libexec_loc + "/cache-register";
-        args.push_back(cmd);
-        if(central_configuration) args.push_back(std::string("-Z"));
-        args.push_back(std::string("-c"));
-        args.push_back(nordugrid_config_loc);
-        //args.push_back(std::string("-d"));
-        //args.push_back(std::string("2"));
-        proc=new Arc::Run(args);
-        proc->KeepStdout();
-        proc->KeepStderr();
-        proc->KeepStdin();
-        if(!proc->Start()) {
-          logger.msg(Arc::ERROR,"Failed to run cache registration routine: %s",cmd);
+        CacheConfig * cache_info = cacheuser->CacheParams();
+        if (!cache_info->cleanCache()) continue;
+        
+        // get the cache dirs
+        std::list<std::list<std::string> > cache_info_dirs = cache_info->getCacheDirs();
+
+        // in arc.conf % of used space is given, but cleanbyage uses % of free space
+        std::string minfreespace = Arc::tostring(100-cache_info->getCacheMax());
+        std::string maxfreespace = Arc::tostring(100-cache_info->getCacheMin());  
+
+        // set log file location - controldir/job.cache-clean.errors
+        // TODO: use GM log?
+        gmuser.SetControlDir(cacheuser->ControlDir()); // Should this requirement be removed ?
+        int argc=0;
+        char* args[6+cache_info_dirs.size()];
+        
+        // do cache-clean -h for explanation of options
+        std::string cmd = nordugrid_libexec_loc + "/cache-clean";
+        args[argc++]=(char*)cmd.c_str();
+        args[argc++]=(char*)"-m";
+        args[argc++]=(char*)minfreespace.c_str();
+        args[argc++]=(char*)"-M";
+        args[argc++]=(char*)maxfreespace.c_str();
+        args[argc++]=(char*)"-D";
+        std::string cache_dir;
+        std::list<std::string> cache_dirs;
+        // have to loop over twice to avoid repeating the same pointer in args
+        for (std::list<std::list<std::string> >::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
+          cache_dir = *(i->begin());
+          cache_dirs.push_back(cache_dir.substr(0, cache_dir.length()-5));
+        }
+        for (std::list<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
+          args[argc++]=(char*)(*i).c_str();
+        }
+        if(JobsList::CacheRegistration()) { } // TODO: do unregistration
+        if(!RunParallel::run(gmuser,"cache-clean",args,&proc,false,false)) {
+          logger.msg(Arc::ERROR,"Failed to run cache cleanup script: %s", cmd);
         };
       };
+      for(unsigned int t=CACHE_CLEAN_PERIOD;t;) t=sleep(t);
     };
-    for(unsigned int t=CACHE_CLEAN_PERIOD;t;) t=sleep(t);
   };
   return NULL;
 }
@@ -296,9 +306,15 @@ static void grid_manager(void* arg) {
     };
     logger.msg(Arc::INFO,"Jobs cleaned.");
   };
-  if(pthread_create(&cache_thread,NULL,&cache_func,(void*)(&users))!=0) {
-    logger.msg(Arc::ERROR,"Failed to start new thread: cache won't be cleaned");
-  };
+  // check if cleaning is enabled for any user, if so activate cleaning thread
+  for (JobUsers::const_iterator cacheuser = users.begin(); cacheuser != users.end(); ++cacheuser) {
+    if (cacheuser->CacheParams()->cleanCache()) {
+      if(pthread_create(&cache_thread,NULL,&cache_func,(void*)(&users))!=0) {
+        logger.msg(Arc::INFO,"Failed to start new thread: cache won't be cleaned");
+      }
+      break;
+    }
+  }
   /* create control and session directories */
   for(JobUsers::iterator user = users.begin();user != users.end();++user) {
     user->CreateDirectories();

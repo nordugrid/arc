@@ -47,7 +47,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 JobUser::JobUser(void) {
   control_dir="";
   unix_name=""; home=""; uid=0; gid=0;
-  cache_dir=""; cache_data_dir=""; cache_link_dir=""; cache_max=0; cache_min=0;
+  cache_params=NULL;
   valid=false; jobs=NULL;
   session_root="";
   keep_finished=DEFAULT_KEEP_FINISHED;
@@ -72,23 +72,6 @@ void JobUser::SetControlDir(const std::string &dir) {
 void JobUser::SetSessionRoot(const std::string &dir) {
   if(dir.length() == 0) { session_root=home + "/.jobs"; }
   else { session_root=dir; };
-}
-
-void JobUser::SetCacheDir(const std::string &dir,const std::string &data_dir,bool priv) {
-  SetCacheDir(dir,data_dir,"",priv);
-}
-
-void JobUser::SetCacheSize(long long int cache_max_,long long int cache_min_) {
-  if((cache_min_==0) || (cache_max_==0)) cache_min_=cache_max_;
-  cache_max=cache_max_;
-  cache_min=cache_min_;
-}
-
-void JobUser::SetCacheDir(const std::string &dir,const std::string &data_dir,const std::string &link_dir,bool priv) {
-  cache_dir=dir;
-  if(data_dir == "") { cache_data_dir=dir; } else { cache_data_dir=data_dir; };
-  cache_link_dir=link_dir;
-  private_cache=priv;
 }
 
 bool JobUser::CreateDirectories(void) {
@@ -228,8 +211,6 @@ JobUser::JobUser(uid_t uid_,RunPlugin* cred) {
   SetControlDir("");
   SetSessionRoot("");
   SetLRMS("","");
-  SetCacheDir("","");
-  SetCacheSize(0);
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
@@ -262,8 +243,6 @@ JobUser::JobUser(const std::string &u_name,RunPlugin* cred) {
   SetControlDir("");
   SetSessionRoot("");
   SetLRMS("","");
-  SetCacheDir("","");
-  SetCacheSize(0);
   jobs=NULL;
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
@@ -283,12 +262,7 @@ JobUser::JobUser(const JobUser &user) {
   valid=user.valid;
   keep_finished=user.keep_finished;
   keep_deleted=user.keep_deleted;
-  cache_dir=user.cache_dir;
-  cache_data_dir=user.cache_data_dir;
-  cache_link_dir=user.cache_link_dir;
-  private_cache=user.private_cache;
-  cache_max=user.cache_max;
-  cache_min=user.cache_min;
+  cache_params=user.cache_params;
   cred_plugin=user.cred_plugin;
   strict_session=user.strict_session;
   sharelevel=user.sharelevel;

@@ -266,6 +266,8 @@ exit 0
 %doc src/services/a-rex/arex_service.xml.example
 %doc src/services/a-rex/arex_service-secure.xml.example
 %doc src/services/a-rex/arc_arex.conf
+%doc %{_mandir}/man1/cache-clean.1*
+%doc %{_mandir}/man1/cache-list.1*
 %config(noreplace) %{_sysconfdir}/arc_arex.conf
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libexecdir}/%{pkgdir}/downloader
@@ -273,6 +275,8 @@ exit 0
 %{_libexecdir}/%{pkgdir}/smtp-send
 %{_libexecdir}/%{pkgdir}/smtp-send.sh
 %{_libexecdir}/%{pkgdir}/gm-kick
+%{_libexecdir}/%{pkgdir}/cache-clean
+%{_libexecdir}/%{pkgdir}/cache-list
 #
 %{_libdir}/%{pkgdir}/ARC0mod.pm
 %{_libdir}/%{pkgdir}/FORKmod.pm

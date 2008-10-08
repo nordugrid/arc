@@ -7,6 +7,8 @@
 
 #include <arc/Run.h>
 
+#include "../conf/conf_cache.h"
+
 class JobsList;
 class RunPlugin;
 
@@ -43,16 +45,8 @@ class JobUser {
   std::string control_dir;
   /* directory where directories used to run jobs are created */
   std::string session_root;
-  /* directories to store cache information and cached files */
-  std::string cache_dir;
-  std::string cache_data_dir;
-  /* directory used to create soft-links to cached files */
-  std::string cache_link_dir;
-  /* if cache is owned ONLY by this user */
-  bool   private_cache;
-  /* upper and lower watermarks for cache */
-  long long int cache_max;
-  long long int cache_min;
+  /* cache information */
+  CacheConfig * cache_params;
   /* default LRMS and queue to use */
   std::string default_lrms;
   std::string default_queue;
@@ -94,9 +88,7 @@ class JobUser {
   /* Set and get corresponding private values */
   void SetControlDir(const std::string &dir);
   void SetSessionRoot(const std::string &dir);
-  void SetCacheDir(const std::string &dir,const std::string &data_dir,bool priv = false);
-  void SetCacheDir(const std::string &dir,const std::string &data_dir,const std::string &link_dir,bool priv = false);
-  void SetCacheSize(long long int cache_max,long long int cache_min = 0);
+  void SetCacheParams(CacheConfig* params) { cache_params = params; };
   void SetLRMS(const std::string &lrms_name,const std::string &queue_name);
   void SetKeepFinished(time_t ttl) { keep_finished=ttl; };
   void SetKeepDeleted(time_t ttr) { keep_deleted=ttr; };
@@ -108,12 +100,8 @@ class JobUser {
   bool is_valid(void) { return valid; };
   const std::string & ControlDir(void) const { return control_dir; };
   const std::string & SessionRoot(void) const { return session_root; };
-  const std::string & CacheDir(void) const { return cache_dir; };
-  const std::string & CacheDataDir(void) const { return cache_data_dir; };
-  const std::string & CacheLinkDir(void) const { return cache_link_dir; };
-  long long int CacheMaxSize(void) const { return cache_max; };
-  long long int CacheMinSize(void) const { return cache_min; };
-  bool CachePrivate(void) const { return private_cache; };
+  CacheConfig * CacheParams(void) const { return cache_params; };
+  bool CachePrivate(void) const { return false; };
   const std::string & DefaultLRMS(void) const { return default_lrms; };
   const std::string & DefaultQueue(void) const { return default_queue; };
   const std::string & UnixName(void) const { return unix_name; };
