@@ -76,7 +76,11 @@ public:
   /**Add policy to the evaluator. Policy will be marked with id. */
   virtual void addPolicy(Policy* policy,const std::string& id = "") = 0;
 
+  /**Specifies one of simple combining algorithms. In case of multiple policies their results will be combined using this algorithm. */
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg) = 0;
+
+  /**Specifies loadable combining algorithms. In case of multiple policies their results will be combined using this algorithm. To switch to simple algorithm specify NULL argument. */
+  virtual void setCombiningAlg(CombiningAlg* alg = NULL) = 0;
 
 protected:
   /**Evaluate the request by using the EvaluationCtx object (which includes the information about request)*/
