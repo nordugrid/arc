@@ -32,8 +32,17 @@
 	    <tls:KeyPath>./key.pem</tls:KeyPath>
 	    <tls:CertificatePath>./cert.pem</tls:CertificatePath>
 	    <tls:CACertificatePath>./ca.pem</tls:CACertificatePath>
+            <tls:VOMSCertTrustDNChain>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
+            </tls:VOMSCertTrustDNChain>
+            <!--tls:VOMSCertTrustDNChain>
+              <tls:VOMSCertTrustRegex>^/O=Grid/O=NorduGrid</tls:VOMSCertTrustRegex>
+            </tls:VOMSCertTrustDNChain>
+            <tls:VOMSCertTrustDNChainsLocation>./</tls:VOMSCertTrustDNChainsLocation-->
+
             <!--delegation.collector must be inside tls MCC-->
-            <SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler>
+            <!--SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler-->
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -65,7 +74,7 @@
                 <CertificatePath>./cert.pem</CertificatePath>
                 <CACertificatePath>./ca.pem</CACertificatePath>
               </PDP-->
-              <PDP name="delegation.pdp"/>
+              <!--PDP name="delegation.pdp"/-->
             </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
