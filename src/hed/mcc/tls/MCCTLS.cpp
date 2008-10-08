@@ -254,7 +254,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, const std::string& ca_dir, con
    if(identity_.empty()) identity_=subject;
 
    //Parse the attribute from peer certificate
-   //bool res = ArcLib::parseVOMSAC(peercert, ca_dir, ca_file, vomscert_trust_dn, attributes_);
+   bool res = ArcLib::parseVOMSAC(peercert, ca_dir, ca_file, vomscert_trust_dn, attributes_);
 
    X509* hostcert = payload.GetCert();
    if (hostcert != NULL) {
@@ -309,6 +309,11 @@ bool TLSSecAttr::Export(Format format,XMLNode &val) const {
     };
     if(!identity_.empty()) {
        add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+    };
+    if(!attributes_.empty()) {
+      for(int k=0; k < attributes_.size(); k++) {
+        add_subject_attribute(subj, attributes_[k],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+      };
     };
     if(!target_.empty()) {
       XMLNode resource = item.NewChild("ra:Resource");
@@ -512,12 +517,13 @@ static void get_vomscert_trustDN(Arc::Config* cfg, Logger& logger, std::vector<s
     nd = (*cfg)["VOMSCertTrustDNChain"][i];
     if(!nd) break;
     for(int j=0;;j++) {
-      cnd = nd["VOMSCertTrustDN"];
+      cnd = nd["VOMSCertTrustDN"][j];
       if(!cnd) break;
       vomscert_trust_dn.push_back((std::string)cnd);
     }
     vomscert_trust_dn.push_back("----NEXT CHAIN----");
   }
+
   //If it is configured by indexing to some seperated file
   Arc::XMLNode locnd = (*cfg)["VOMSCertTrustDNChainsLocation"];
   if((bool)locnd) {
@@ -534,7 +540,7 @@ static void get_vomscert_trustDN(Arc::Config* cfg, Logger& logger, std::vector<s
       nd = node["VOMSCertTrustDNChain"][i];
       if(!nd) break;
       for(int j=0;;j++) {
-        cnd = nd["VOMSCertTrustDN"];
+        cnd = nd["VOMSCertTrustDN"][j];
         if(!cnd) break;
         vomscert_trust_dn.push_back((std::string)cnd);
       }
@@ -553,7 +559,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
    globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
    proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
-   //get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
+   get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
    if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
    if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
    if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
