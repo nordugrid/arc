@@ -65,11 +65,17 @@ int main(void) {
   ns["saml"] = SAML_NAMESPACE;
   ns["samlp"] = SAMLP_NAMESPACE;
 
-  std::string cert("./usercert.pem");
-  std::string key("./userkey-nopass.pem");
-  std::string cafile("./1f0e8352.0");
+//  std::string cert("./usercert.pem");
+//  std::string key("./userkey-nopass.pem");
+//  std::string cafile("./1f0e8352.0");
+
+  std::string cert("./cert.pem");
+  std::string key("./key.pem");
+  std::string cafile("./ca.pem");
+
   ArcLib::Credential cred(cert, key, "", cafile);
-  std::string local_dn = cred.GetDN();
+  //std::string local_dn = cred.GetDN();
+  std::string local_dn("CN=test,O=UiO,ST=Oslo,C=NO");
 
   //Compose <samlp:AttributeQuery/>
   Arc::XMLNode attr_query(ns, "samlp:AttributeQuery");
@@ -133,8 +139,14 @@ int main(void) {
   if (!cafile.empty())
     cfg.AddCAFile(cafile);
 
-  std::string path("/voms/saml/testvo/services/AttributeAuthorityPortType");
-  std::string service_url_str("http://127.0.0.1:8080");
+  std::string path("/voms/saml/knowarc/services/AttributeAuthorityPortType");
+  std::string service_url_str("https://squark.uio.no:8443");
+
+//  std::string path("/voms/saml/testvo/services/AttributeAuthorityPortType");
+//  std::string service_url_str("https://127.0.0.1:8443");
+
+//  std::string path("/voms/saml/testvo/services/AttributeAuthorityPortType");
+//  std::string service_url_str("http://127.0.0.1:8080");
 
 //  std::string path("/voms/saml/omiieurope/services/AttributeAuthorityPortType");
 //  std::string service_url_str("https://omii002.cnaf.infn.it:8443");
@@ -156,6 +168,9 @@ int main(void) {
     return -1;
   }
 
+  response->GetXML(str);
+  std::cout<<"Response: "<<str<<std::endl;
+
   // -------------------------------------------------------
   //   Comsume the response from saml voms service
   // -------------------------------------------------------
@@ -169,6 +184,7 @@ int main(void) {
   //std::string aa_name = attr_resp["saml:Issuer"]; 
  
   //Check validity of the signature on <samlp:Response/>
+/*
   std::string resp_idname = "ID";
   std::string cafile1 = "./ca.pem";
   std::string capath1 = "";
@@ -180,7 +196,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Failed to verify the signature under <samlp:Response/>");
     Arc::final_xmlsec(); return -1;
   }
- 
+*/
  
   //Check whether the "InResponseTo" is the same as the local ID
   std::string responseto_id = (std::string)(attr_resp.Attribute("InResponseTo"));
@@ -203,6 +219,7 @@ int main(void) {
   //std::string aa_name = assertion["saml:Issuer"];
  
   //Check validity of the signature on <saml:Assertion/>
+/*
   std::string assertion_idname = "ID";
   std::string cafile2 = "./ca.pem";
   std::string capath2 = "";
@@ -214,6 +231,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Failed to verify the signature under <saml:Assertion/>");
     Arc::final_xmlsec(); return -1;
   }
+*/
 
   //<saml:Subject/>, TODO: 
   Arc::XMLNode subject_nd = assertion["saml:Subject"];
@@ -233,13 +251,14 @@ int main(void) {
 
     std::string name = attr_nd.Attribute("Name");
     std::string nameformat = attr_nd.Attribute("NameFormat");
-    std::string friendname = attr_nd.Attribute("FriendlyName");
 
-    Arc::XMLNode attr_value = attr_nd["saml:AttributeValue"];
-
-    std::string str;
-    str.append("Name=").append(friendname).append(" Value=").append(attr_value);
-    attributes_value.push_back(str);
+    for(int j=0;;j++) {
+      Arc::XMLNode attr_value = attr_nd["saml:AttributeValue"][j];
+      if(!attr_value) break;
+      std::string str;
+      str.append("Name=").append(name).append(" Value=").append(attr_value);
+      attributes_value.push_back(str);
+    }
   }
 
   for(int i=0; i<attributes_value.size(); i++) {
