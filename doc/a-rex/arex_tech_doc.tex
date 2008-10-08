@@ -749,102 +749,129 @@ of a computing resource.
 
 \section{Cache\label{sec:cache}}
 
-The A-REX can cache input files. Caching is enabled if corresponding
-command is present in configuration file. The A-REX does not cache
-files marked as executable in job. Caching can also be explicitly
-turned off by user for each file by using \textit{cache=no} option
-in URL (for URL options read {}``Protocols, Uniform Resource Locators
-(URL) and extensions supported in ARC''~\cite{urls}). The disc space
-occupied by cache is controlled by removing unused files. For more
-information look in Section~\ref{SubSection:ConfigFile}.
+The A-REX can cache input files. Caching is enabled if one or more cache
+directories are specified in the configuration file. The A-REX does not
+cache files marked as executable in a job. Caching can also be explicitly
+turned off by the user for each file by using the\textit{ cache=no}
+option in the URL (for URL options read {}``Protocols, Uniform Resource
+Locators (URL) and extensions supported in ARC'' \cite{urls}). The
+disk space occupied by the cache is controlled by removing old files.
+For more information look in section \ref{SubSection:ConfigFile}.
 
-\begin{framed}
-NOTE: The caching algorithm used by A-REX and described above
-is currently being replaced by a better one which is no robust and
-provides better scalability.
-\end{framed}
 
 \subsection{Structure}
 
-Cache directory contains plain files. Those are
+Cached files are stored in sub-direcories under the \emph{data} directory
+in each main cache directory. Filenames are constructed from an SHA-1
+hash of the URL of the file, and split into subdirectories based on
+the two initial characters of the hash. This enables the cached files
+to be evenly split over a number of subdirectories. If
+more than one cache directory is used the initial letter of the hash
+also determines which cache is to be used. The algorithm is simply
+to use the cache directory at index \emph{i} in the list of directories,
+where \emph{i} is found from the initial letter of the hash mod the
+number of caches. This limits the maximum number of cache directories
+to 16, as SHA-1 hashes use the character set {[}\emph{0-9,a-f}]. In
+the extremely unlikely event of a collision between two URLs having
+the same SHA-1 hash, caching will not be used for the second file.
 
-\begin{itemize}
-\item \textit{list} -- stores names of the files (8 digit numbers) and corresponding
-URLs delimited by blank space. Each pair is delimited by some amount
-of \textbackslash{}0 codes. Also creation and expiration times are
-stored if available
-\item \textit{old} -- stores URLs which have been removed from cache. Records
-are delimited by some amount of \textbackslash{}0 codes and are meant
-to be removed by some external routine.
-\item \textit{new} -- stores URLs which have been added to cache. Records
-are delimited by some amount of \textbackslash{}0 codes and are removed
-when corresponding files are removed from cache. They can also be
-handled by some external routines. Every time record is added to \emph{old}
-it is removed from \emph{new}.
-\item \textit{statistics} -- consists of strings containing \emph{name=value}
-pairs. Following names are defined:
+There is no indexing system for the cache, and any cache filename
+can be easily determined from a URL by using the same hashing algorithm
+as the A-REX, e.g. the standard command line tool \emph{sha1sum. }The
+cache directory used by a file can be determined from the initial
+letter of the hash and the order of cache directories in the configuration
+file. Some associated metadata (the corresponding URL and an expiry
+time, if available) are stored in a file with the same name as the
+cache file, with a \emph{.meta} suffix.
 
-\begin{itemize}
-\item \textit{hardsize} -- size of file system for storing cached data
-\item \textit{hardfree} -- amount of disc space available on that file system
-\item \textit{softsize} -- if cache exceeds this size files are started being
-removed 
-\item \textit{softfree} -- space left till softsize (can be negative)
-\item \textit{claimed} -- space used by files claimed by running jobs
-\item \textit{unclaimed} -- space used by files not being currently used
-by any job
-\end{itemize}
-\item \textit{\#\#\#\#\#\#\#\#.info} -- stores state of file (\textit{\#\#\#\#\#\#\#\#}
-stands for 8 digits). State is represented by one character:\\
-\textit{c} -- just created, content is empty.\\
-\textit{f} -- failed to download (treated same as 'c').\\
-\textit{r} -- ready to be used, content is valid.\\
-\textit{d} -- being downloaded. 'd' is followed by identifier of application/job
-downloading that file. During content's download this file has write
-lock set.
-\item \textit{\#\#\#\#\#\#\#\#.claim} -- stores list of identifiers of applications/jobs
-using this file. Identifiers are stored one per line.
-\item \textit{\#\#\#\#\#\#\#\#} -- files storing content of corresponding
-URL. These can be stored in separate directory.
-\end{itemize}
+For example, with a cache directory \emph{/cache}, the file 
 
-Files \textit{list, old, new} and \textit{\#\#\#\#\#\#\#\#.info}
-has to be stored on file system which has support for files' locking.
+\begin{center}
+\emph{lfc://atlaslfc.nordugrid.org//grid/atlas/file1 }\\
+is mapped to\\
+\emph{/cache/data/78/f607405ab1df6b647fac7aa97dfb6089c19fb3}
+\par\end{center}
+
+and the file \emph{/cache/data/78/f607405ab1df6b647fac7aa97dfb6089c19fb3.meta
+}contains the original URL and an expiry time if one is available.
+
+At the start of a file download, the cache file is locked, so that
+it cannot be deleted and so that another download process cannot write
+the same file simultaneously. This done by creating a file with the
+same name as the cache filename but with a \emph{.lock} suffix. This
+file contains the process ID of the process and the hostname of the
+host holding the lock. If this file is present, another process cannot
+do anything with the cache file and must wait until the cache file
+is unlocked (i.e. the \emph{.lock} file no longer exists). The lock
+has a timeout of one day, so that stale locks left behind by a download
+process exiting abnormally will eventually be cleaned up. Also, if
+the process corresponding to the process ID stored inside the lock
+is no longer running on the host specified in the lock, it is safe
+to assume that the lock file can be deleted.
 
 
 \subsection{How it works}
 
-If a job requests an input file which is subject for caching, it is
-stored in the cache directory instead of the SD. The file is made
-available to the job by either soft-linking it in the SD or copying
-it to the SD. The latter option is more secure and hence advised.
+If a job requests an input file which can be cached or is allowed to
+be cached, it is stored in the selected cache directory, and depending
+on the configuration, either the file is copied to the SD or a hard
+link is created in a per-job directory and a soft link is created in
+the SD to there. The per-job directories are in the \emph{joblinks}
+subdirectory of the main cache directory. The former option is advised
+if the cache is on a file system which will suffer poor performance
+from a large number of jobs reading files on it, or the file system
+containing the cache is not accessible from worker nodes. The latter
+option is the default option. The per-job directory is only readable
+by the local user running the job, and the cache directory is readable
+only by the A-REX user (usually root). This means that the local user
+cannot access any other users' cache files. It also means that cache
+files can be removed without needing to know whether they are in use
+by a currently running job.
 
-Before downloading a file the A-REX tries to determine it's size and
-then tries to preallocate space in the cache directory by writing
-an empty file of the same size. If this fails (possibly because the
-file system has no more space), it tries to the remove oldest cached
-files which are not being used by any job. This means that \textbf{the
-real hard limit of cache size is the space available in the file-system}.
-In case cache gets full and it is impossible to free enough space,
-the download fails and then is retried without using cache.
+If the file system containing the cache is full and it is impossible
+to free any space, the download fails and is retried without using
+cacheing.
 
-Before giving access to an already cached file, the A-REX contacts
-the original file source to check if the user has sufficient access
-rights to the file. Not all protocols make this check possible. Also,
-file creation or validity times are checked to make sure the cached
-file is fresh. If it is impossible to obtain creation and invalidation
-times, the file is invalidated 24 hours after it was downloaded.
+Before giving access to a file already in the cache, the A-REX contacts
+the initial file source to check if the user has read permission on
+the file. Also file creation or validity times from the original source
+are checked to make sure the cached file is fresh enough. If it is
+impossible to obtain creation and invalidation times for the file,
+it is invalidated 24 hours after download.
 
-The A-REX checks the cache periodically. If the space used by cache
-exceeds the high water-mark given in the configuration file (\emph{softsize}),
-it tries to remove the oldest unused files until cache size drops
-below the low water-mark. This sets the soft limit of cache size.
+The A-REX checks the cache periodically. If the used space on the file
+system containing the cache exceeds the high water-mark given in the
+configuration file it tries to remove the least-recently accessed
+files to reduce size to the low water-mark.
 
-There are two kinds of caches supported. Files in \textit{private}
-cache are owned by the Unix user to which a Grid user is mapped. Those
-files are readable only by that particular Unix user. Another kind
-of cache is \textit{shared}. Files in the shared cache are owned by
-the Unix user who started A-REX and are readable by everyone.
+
+\subsection{Administration tools}
+
+The following tools (installed in \emph{\$ARC\_LOCATION/libexec})
+exist to help with administration of the cache:
+
+\begin{itemize}
+\item \emph{cache-clean} - This tool is used periodically (every 2 minutes)
+by the A-REX to keep the size of each cache within the configurated limits.
+It removes files from the cache if the total size of the cache is
+greater than the configured limit. It will attempt to remove files
+which are not locked in order of access time, starting with the earliest,
+until the size is lower than the configured lower limit. If the lower
+limit cannot be reached (because too many files are locked, or other
+files outside the cache are taking up space on the file system), the
+tool will exit before the lower limit is reached.\\
+\emph{cache-clean -h} gives a list of options. The most useful option
+for administrators is \emph{-s}, which does not delete anything, but
+gives summary information on the files in the cache, including information
+on the ages of the files in the cache.\\
+It is not recommended to run \emph{cache-clean }manually to clean
+up the cache, unless it is desired to temporarily clean up the cache
+with different size limits to those specified in the configuration.
+\item \emph{cache-list} - This tool is used to list all files present in
+each cache. It simply reads through all the \emph{.meta }files and
+prints to stdout a list of all URLs stored in each cache and their
+corresponding cache filename, one per line.
+\end{itemize}
 
 \section{Files and directories\label{sec:files and directories}}
 
@@ -1041,14 +1068,6 @@ Missing value or -1 means no limit.
 the A-REX checks for job state changes (like new arrived job, job
 finished in LRMS, etc.). \textit{time} is a minimal time period specified
 in seconds. Default is \emph{3 minutes}.
-\item \textbf{\textit{cacheregistration}}\textit{=yes|no} -- enables or disables
-registration of cache data into Indexing Services like RC or RLS.
-The default is \emph{no}. Only files downloaded through \emph{meta-url}
-are registered. Registration is done to same service used for obtaining
-information about file. For this operation credentials of the A-REX
-(host key and certificate) are used. If required new files storage
-location is registered at Indexing Service with quasi-url \emph{cache://hostname/}
-and name \emph{hostname:cache}.
 \item \textbf{\textit{authplugin}}\textit{=state options plugin} -- specifies
 \emph{plugin} (external executable) to be run every time job is going
 to switch to \emph{state}. Following states are allowed: ACCEPTED,
@@ -1124,29 +1143,25 @@ the JD).
 in which the SD is created. If the path is {*} the default one is
 used -- \textit{\$HOME/.jobs}. In new configuration file this command
 is called \textbf{\textit{sessiondir}}.
-\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} -- specifies
-the directory to store cached data. Empty \emph{path} disables caching.
-Default is not to cache data. Optional \textit{link\_path} specifies
-the path at which cache is accessible at computing nodes. If \textit{link\_path}
-is set to '.' files are not soft-linked, but copied to session directory.
-\item \textbf{\textit{privatecache}}\textit{=path {[}link\_path]} -- same
-as \textit{cache} command, but cache belongs (owned) to user. For
-shared caches use 'cache'.
-\item \textbf{\textit{cachedata}}\textit{=path} -- allows to specify separate
-place to store cache files containing data itself. This can be useful
-in case of big data storage available only on NFS server which does
-not support file locking. If command or \textit{path} is missing -
-default is to store data at place specified in \textit{cache} or \textit{privatecache}
-command, together with control files. 
-\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} -- specifies
-high and low water-mark for space used by cache. Values are specified
-in bytes. Both \textit{high\_mark} and \textit{low\_mark} can be negative
-values. In that case corresponding positive value means space left
-on file system. If \textit{low\_mark} is omitted it becomes equal
-to \textit{high\_mark}. By default this feature is turned off. To
-turn it off explicitly \textit{cachesize} without parameters should
-be specified. If turned off cache will grow up till it fills whole
-file system.
+\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} - specifies
+a directory to store cached data (see \ref{sec:cache}).\emph{ }Multiple
+cache directories may be specified by specifying multiple \emph{cachedir}
+commands. Cached data will be distributed evenly over the caches.
+Specifying no \emph{cachedir }command or commands with an empty path
+disables caching. Optional \textit{link\_path} specifies the path
+at which \emph{path} is accessible on computing nodes, if it is different
+from the path on the A-REX host. If \textit{link\_path} is set to '.'
+files are not soft-linked, nor are per-job links created, but files
+are copied to the session directory. In old configuration file this
+command is called \textbf{\textit{cache}}.
+\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} - specifies
+high and low watermarks for space used by each cache, as a percentage
+of the space on the file system on which the cache directory is located.
+When the max is exceeded, files will be deleted to bring the used
+space down to the min level. It is a good idea to have each cache
+on its own separate file system. To turn off this feature, \char`\"{}cachesize\char`\"{}
+without parameters can be specified. These cache settings apply to
+all caches specified by \emph{cachedir} commands.
 \item \textbf{\textit{maxrerun}}\textit{=number} -- specifies maximal number
 of times job will be allowed to rerun after it failed at any stage.
 Default value is \emph{5}. This only specifies a upper limit. Actual
