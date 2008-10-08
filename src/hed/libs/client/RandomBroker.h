@@ -6,7 +6,7 @@ namespace Arc {
 
     class RandomBroker: public Broker {
        public:
-	   RandomBroker(Arc::JobDescription jd);
+	   RandomBroker(Arc::TargetGenerator& targen);
                     //virtual ~RandomBroker();
        protected:	   
 	   void sort_Targets();

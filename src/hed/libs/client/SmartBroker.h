@@ -6,7 +6,7 @@ namespace Arc {
 
   class SmartBroker: public Broker {
         protected:
-                      SmartBroker(Arc::JobDescription jd);
+                      SmartBroker(Arc::TargetGenerator& targen);
                       virtual ~SmartBroker();
                       void sort_Targets() {};
   };

@@ -3,7 +3,7 @@
 
 #include <list>
 
-#include <arc/client/JobDescription.h>
+#include <arc/client/TargetGenerator.h>
 #include <arc/client/ExecutionTarget.h>
 
 namespace Arc {
@@ -12,7 +12,7 @@ namespace Arc {
        public:
                  ExecutionTarget& get_Target();
        protected:
-	 Broker( Arc::JobDescription jd);
+	 Broker( Arc::TargetGenerator& targen );
                  virtual ~Broker();
 	 virtual void sort_Targets()=0;
 	 

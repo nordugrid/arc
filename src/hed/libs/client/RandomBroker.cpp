@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-  RandomBroker::RandomBroker(Arc::JobDescription jd) : Broker( jd) {
+    RandomBroker::RandomBroker( Arc::TargetGenerator& targen) : Broker( targen ) {
           sort_Targets();
   }
   //RandomBroker::~RandomBroker() {}

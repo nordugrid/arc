@@ -7,7 +7,7 @@
 
 namespace Arc {
     
-    Broker::Broker( Arc::JobDescription jd) {
+    Broker::Broker( Arc::TargetGenerator& targen) {
               ExecutionTarget eTarget;
               eTarget.MaxCPUTime = 1; 
               found_Targets.push_back(eTarget);
