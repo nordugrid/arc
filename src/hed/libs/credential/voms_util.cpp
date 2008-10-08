@@ -6,6 +6,8 @@
 #include <glibmm/fileutils.h>
 #include <unistd.h>
 
+#include <arc/ArcRegex.h>
+
 #include "VOMSAttribute.h"
 #include "voms_util.h"
 extern "C" {
@@ -597,6 +599,17 @@ err:
     return (res == 1);
   }
 
+  static bool regex_match(std::string& label, std::string& value) {
+    bool match=false;
+    Arc::RegularExpression regex(label);
+    if(regex.isOk()){
+      std::list<std::string> unmatched, matched;
+      if(regex.match(value, unmatched, matched))
+        match=true;
+    }
+    return match;
+  }
+
   static bool check_signature(AC* ac, std::string& voname, std::string& hostname, 
     const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::vector<std::string>& vomscert_trust_dn, 
     X509** issuer_cert) {
@@ -622,24 +635,63 @@ err:
 
           std::string subject_name;
           std::string issuer_name;
-          subject_name = vomscert_trust_dn[k++];
-          issuer_name = vomscert_trust_dn[k++];
+          subject_name = vomscert_trust_dn[k];
+          size_t pos = std::string::npos;
+          pos = subject_name.find_first_of("^");
+          std::string str;
+          if(k < vomscert_trust_dn.size()-1) {
+            str = vomscert_trust_dn[k+1];
+          }
+ 
+          //If this line ("k"th line) is the last line in this chain, then this line should be regular expression,
+          //here only regex "^" is considered.
+          //And this line is also considered to check the issuer
+          //"k" will not be increased, then this line will be used for checking the next certificate
+          if((k >= (vomscert_trust_dn.size()-1) || str.find("NEXT CHAIN") != std::string::npos) 
+              && (pos != std::string::npos && pos == subject_name.find_first_not_of(" ")))
+            issuer_name = subject_name;
+          //If there is another line after this line, then that line ("k"+1) will be used to check the issuer.
+          //And the "k" line will not be used any more for the next certificate.
+          else if ((vomscert_trust_dn[k+1]).find("NEXT CHAIN") == std::string::npos) {
+            issuer_name = vomscert_trust_dn[++k];
+          }
+          //If "k" line is the last line, but it is not regular expression. 
+          else {
+            std::cerr<<"Wrong definition in voms certificate DN"<<std::endl; return false;
+          }
 
+          /*
           if(subject_name.empty() || issuer_name.empty()) { 
             success = false;
             final = true;
             break;
           }
+          */
 
           std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
           std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
 
-          //std::cout<<"Subject: "<<subject_name<<" Real Subject: "<<realsubject<<" Issuer: "<<issuer_name<<" Real Issuer: "<<realissuer<<std::endl;
+          //std::cout<<"Subject: "<<subject_name<<" Real Subject: "<<realsubject<<std::endl
+          //<<"Issuer: "<<issuer_name<<" Real Issuer: "<<realissuer<<std::endl;
 
-          if(subject_name.compare(realsubject) !=0 || issuer_name.compare(realissuer) !=0) {
+          bool sub_match=false, iss_match=false;
+          bool sub_isregex=false, iss_isregex=false;
+          if(pos != std::string::npos && pos == subject_name.find_first_not_of(" ")) {
+            sub_isregex = true;
+            sub_match = regex_match(subject_name, realsubject);
+          }
+          pos = issuer_name.find_first_of("^");
+          if(pos != std::string::npos && pos == issuer_name.find_first_not_of(" ")) {
+            iss_isregex = true;
+            iss_match = regex_match(issuer_name, realissuer);
+          }
+          if(!sub_isregex) sub_match = (subject_name == realsubject) ? true : false;
+          if(!iss_isregex) iss_match = (issuer_name == realissuer) ? true : false;          
+
+          if(!sub_match || !iss_match) {
             do {
-              subject_name = vomscert_trust_dn[k];
-              if(subject_name.find("NEXT CHAIN") != std::string::npos) k++;
+              subject_name = vomscert_trust_dn[++k];
+              //std::cout<<"++++++  "<<subject_name<<std::endl;
             } while (k < vomscert_trust_dn.size() && subject_name.find("NEXT CHAIN") != std::string::npos);
             success = false;
             break;

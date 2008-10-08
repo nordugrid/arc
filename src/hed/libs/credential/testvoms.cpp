@@ -133,8 +133,10 @@ int main(void) {
   std::string ca_cert_dir("./testca");
   std::string ca_cert_file("");
   std::vector<std::string> vomscert_trust_dn;
-  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid ***");
-  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid abc");
+
+  vomscert_trust_dn.push_back("^/O=Grid/O=NorduGrid");
+  //vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid ***");
+  //vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid abc");
   vomscert_trust_dn.push_back("NEXT CHAIN");
   vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
   vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
