@@ -10,6 +10,14 @@
 #define NOGDI
 #endif
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+
+#include <openssl/err.h>
+#include <openssl/rand.h>
+#include <openssl/ssl.h>
+
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/loader/Loader.h>
@@ -17,10 +25,6 @@
 #include <arc/XMLNode.h>
 #include <arc/message/SecAttr.h>
 #include <arc/credential/voms_util.h>
-
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/ssl.h>
 
 #include "GlobusSigningPolicy.h"
 
@@ -34,7 +38,8 @@ class TLSSecAttr: public Arc::SecAttr {
  friend class MCC_TLS_Service;
  friend class MCC_TLS_Client;
  public:
-  TLSSecAttr(PayloadTLSStream&, const std::string& ca_dir, const std::string& ca_file);
+  TLSSecAttr(PayloadTLSStream&, const std::string& ca_dir, const std::string& ca_file, 
+           const std::vector<std::string>& vomscert_trust_dn);
   virtual ~TLSSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(Format format,XMLNode &val) const;
@@ -206,7 +211,8 @@ mcc_descriptors ARC_MCC_LOADER = {
 using namespace Arc;
 
 
-TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, const std::string& ca_dir, const std::string& ca_file) {
+TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, const std::string& ca_dir, const std::string& ca_file, 
+   const std::vector<std::string>& vomscert_trust_dn) {
    char buf[100];
    std::string subject;
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
@@ -248,8 +254,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, const std::string& ca_dir, con
    if(identity_.empty()) identity_=subject;
 
    //Parse the attribute from peer certificate
-   std::string vomsdir(".");
-   bool res = ArcLib::parseVOMSAC(peercert, ca_dir, ca_file, vomsdir, attributes_);
+   bool res = ArcLib::parseVOMSAC(peercert, ca_dir, ca_file, vomscert_trust_dn, attributes_);
 
    X509* hostcert = payload.GetCert();
    if (hostcert != NULL) {
@@ -500,6 +505,46 @@ class MCC_TLS_Context:public MessageContextElement {
   virtual ~MCC_TLS_Context(void) { if(stream) delete stream; };
 };
 
+static void get_vomscert_trustDN(Arc::Config* cfg, Logger& logger, std::vector<std::string>& vomscert_trust_dn) {
+  Arc::XMLNode nd, cnd;
+  //If the voms trust DN about server certificate is configured in service.xml
+  for(int i=0;; i++) {
+    nd = (*cfg)["VOMSCertTrustDNChain"][i];
+    if(!nd) break;
+    for(int j=0;;j++) {
+      cnd = nd["VOMSCertTrustDN"];
+      if(!cnd) break;
+      vomscert_trust_dn.push_back((std::string)cnd);
+    }
+    vomscert_trust_dn.push_back("----NEXT CHAIN----");
+  }
+  //If it is configured by indexing to some seperated file
+  Arc::XMLNode locnd = (*cfg)["VOMSCertTrustDNChainsLocation"];
+  if((bool)locnd) {
+    std::string filename = (std::string)locnd;
+    std::ifstream file(filename.c_str());
+    if (!file) {
+      logger.msg(ERROR, "Can not find the file %s including trusted voms cert DN", filename);
+      file.close(); return;
+    }
+    Arc::XMLNode node;
+    file >> node;
+
+    for(int i=0;; i++) {
+      nd = node["VOMSCertTrustDNChain"][i];
+      if(!nd) break;
+      for(int j=0;;j++) {
+        cnd = nd["VOMSCertTrustDN"];
+        if(!cnd) break;
+        vomscert_trust_dn.push_back((std::string)cnd);
+      }
+      vomscert_trust_dn.push_back("----NEXT CHAIN----");
+    }
+    file.close();
+  }
+  return;
+}
+
 /*The main functionality of the constructor method is creat SSL context object*/
 MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    cert_file_ = (std::string)((*cfg)["CertificatePath"]);
@@ -508,6 +553,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
    globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
    proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
+   get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
    if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
    if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
    if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
@@ -632,7 +678,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream);
    // Filling security attributes
    if(tstream) {
-      TLSSecAttr* sattr = new TLSSecAttr(*tstream, ca_dir_, ca_file_);
+      TLSSecAttr* sattr = new TLSSecAttr(*tstream, ca_dir_, ca_file_, vomscert_trust_dn_);
       nextinmsg.Auth()->set("TLS",sattr);
       // TODO: Remove following code, use SecAttr instead
       //Getting the subject name of peer(client) certificate

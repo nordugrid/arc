@@ -41,6 +41,7 @@ namespace Arc {
     std::string cert_file_;
     std::string key_file_;
     bool globus_policy_;
+    std::vector<std::string> vomscert_trust_dn_;
   };
 
 /** This MCC implements TLS server side functionality. Upon creation this 
