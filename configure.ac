@@ -1068,6 +1068,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/policy-delegation/Makefile
                  src/tests/translator/Makefile
                  src/tests/xpath/Makefile
+                 src/tests/arcpolicy/Makefile
                  src/utils/wsdl2hed.1
                  src/utils/Makefile
                  swig/Makefile

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Request xmlns="http://www.nordugrid.org/schemas/request-arc">
+  <RequestItem>
+   <Subject>
+     <Attribute AttributeId="urn:user" Type="string">Alice</Attribute>
+   </Subject>
+   <Resource AttributeId="urn:service" Type="string">foo</Resource>
+   <Action AttributeId="urn:access" Type="string">read</Action>
+  </RequestItem>
+  <RequestItem>
+   <Subject>
+     <Attribute AttributeId="urn:computer" Type="string">PC</Attribute>
+   </Subject>
+   <Resource AttributeId="urn:service" Type="string">foo</Resource>
+   <Action AttributeId="urn:access" Type="string">read</Action>
+  </RequestItem>
+</Request>
+

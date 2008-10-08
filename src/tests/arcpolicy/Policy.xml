@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc"
+        PolicyId="sm-example:arcpdppolicy"
+        CombiningAlg="Deny-Permit-NotApplicable-Indeterminate">
+   <Rule Effect="Permit"> 
+      <Subjects>
+         <Subject>
+            <Attribute AttributeId="urn:user" Type="string">Alice</Attribute>
+         </Subject>
+      </Subjects>
+      <Resources>
+         <Resource AttributeId="urn:service" Type="string">foo</Resource>
+      </Resources>
+      <Actions>
+         <Action AttributeId="urn:access" Type="string">read</Action>
+      </Actions>
+      <Conditions/>
+   </Rule>
+   <Rule Effect="Deny"> 
+      <Subjects>
+         <Subject>
+            <Attribute AttributeId="urn:user" Type="string">Alice</Attribute>
+         </Subject>
+      </Subjects>
+      <Resources>
+         <Resource AttributeId="urn:service" Type="string">foo</Resource>
+      </Resources>
+      <Actions>
+         <Action AttributeId="urn:access" Type="string">read</Action>
+      </Actions>
+      <Conditions/>
+   </Rule>
+   <Rule Effect="Permit"> 
+      <Subjects>
+         <Subject>
+            <Attribute AttributeId="urn:car" Type="string">Cadillac</Attribute>
+         </Subject>
+      </Subjects>
+      <Resources>
+         <Resource AttributeId="urn:service" Type="string">foo</Resource>
+      </Resources>
+      <Actions>
+         <Action AttributeId="urn:access" Type="string">read</Action>
+      </Actions>
+      <Conditions/>
+   </Rule>
+</Policy>
+
