@@ -10,17 +10,17 @@ namespace Arc {
 
   class Broker {
        public:
-                 ExecutionTarget get_Target();
+                 ExecutionTarget& get_Target();
        protected:
-	 Broker();
 	 Broker( Arc::JobDescription jd);
                  virtual ~Broker();
 	 virtual void sort_Targets()=0;
-       private:
+	 
 	 std::list<Arc::ExecutionTarget> found_Targets;
+       private:	 
 	 std::list<Arc::ExecutionTarget>::iterator current;
   };
-
+  
 } // namespace Arc
 
 #endif // __ARC_BROKER_H__

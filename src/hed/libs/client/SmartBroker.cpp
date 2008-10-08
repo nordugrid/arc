@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-  SmartBroker::SmartBroker(Arc::JobDescription jd) {}
+  SmartBroker::SmartBroker(Arc::JobDescription jd) : Broker( jd) {}
   SmartBroker::~SmartBroker() {}
 
 } // namespace Arc

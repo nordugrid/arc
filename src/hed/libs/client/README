@@ -5,7 +5,7 @@ The following classes/files are present:
 
 o ACC - Base class for Arc Client Components (plugins)
 o ClientInterface - Sets up client side mcc chain
-o DefaultBroker - Default Broker
+o Broker - Base class for Broker
 o ExecutionTarget - Generic execution target (flattened glue2 structure)
 o JobController - Base class for specialization (see src/hed/acc)
 o Job - Generic representation of a job

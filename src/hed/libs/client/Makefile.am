@@ -1,4 +1,5 @@
 lib_LTLIBRARIES = libarcclient.la
+noinst_PROGRAMS = test_broker
 
 libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS  = ACC.h Broker.h ExecutionTarget.h \
@@ -18,3 +19,7 @@ libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
+test_broker_SOURCES  = test_broker.cpp
+test_broker_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+test_broker_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+test_broker_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la
