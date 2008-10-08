@@ -28,7 +28,7 @@ public:
   virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies);
 
  /**Get the identifier*/ 
-  virtual std::string& getalgId(void){return algId;};
+  virtual const std::string& getalgId(void) const {return algId;};
 };
 
 } // namespace ArcSec

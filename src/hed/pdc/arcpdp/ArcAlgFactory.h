@@ -20,6 +20,7 @@ public:
   virtual CombiningAlg* createAlg(const std::string& type);
 
 private:
+  void initCombiningAlg(CombiningAlg* alg);
   void initCombiningAlgs();
 };
 

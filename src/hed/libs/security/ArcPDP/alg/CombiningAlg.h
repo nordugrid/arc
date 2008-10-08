@@ -30,7 +30,7 @@ public:
  /**Get the identifier of the combining algorithm class
  *@return The identity of the algorithm
  */
-  virtual std::string& getalgId(void) = 0;
+  virtual const std::string& getalgId(void) const = 0;
 };
 
 } // namespace ArcSec

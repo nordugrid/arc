@@ -8,6 +8,7 @@
 #include "ArcAlgFactory.h"
 #include <arc/security/ArcPDP/alg/DenyOverridesAlg.h>
 #include <arc/security/ArcPDP/alg/PermitOverridesAlg.h>
+#include <arc/security/ArcPDP/alg/OrderedAlg.h>
 
 static Arc::LoadableClass* get_alg_factory (void*) {
     return new ArcSec::ArcAlgFactory();
@@ -22,10 +23,39 @@ loader_descriptors __arc_algfactory_modules__  = {
 using namespace Arc;
 using namespace ArcSec;
 
+void ArcAlgFactory::initCombiningAlg(CombiningAlg* alg) {
+  if(alg) algmap[alg->getalgId()]=alg;
+}
+
 void ArcAlgFactory::initCombiningAlgs(){
   //Some Arc specified algorithm types
-  algmap.insert(std::pair<std::string, CombiningAlg*>("Deny-Overrides", new DenyOverridesCombiningAlg()));
-  algmap.insert(std::pair<std::string, CombiningAlg*>("Permit-Overrides", new PermitOverridesCombiningAlg()));
+  CombiningAlg* alg = NULL;
+  initCombiningAlg(new DenyOverridesCombiningAlg);
+  initCombiningAlg(new PermitOverridesCombiningAlg);
+  initCombiningAlg(new PermitDenyIndeterminateNotApplicableCombiningAlg);
+  initCombiningAlg(new PermitDenyNotApplicableIndeterminateCombiningAlg);
+  initCombiningAlg(new PermitIndeterminateDenyNotApplicableCombiningAlg);
+  initCombiningAlg(new PermitIndeterminateNotApplicableDenyCombiningAlg);
+  initCombiningAlg(new PermitNotApplicableDenyIndeterminateCombiningAlg);
+  initCombiningAlg(new PermitNotApplicableIndeterminateDenyCombiningAlg);
+  initCombiningAlg(new DenyPermitIndeterminateNotApplicableCombiningAlg);
+  initCombiningAlg(new DenyPermitNotApplicableIndeterminateCombiningAlg);
+  initCombiningAlg(new DenyIndeterminatePermitNotApplicableCombiningAlg);
+  initCombiningAlg(new DenyIndeterminateNotApplicablePermitCombiningAlg);
+  initCombiningAlg(new DenyNotApplicablePermitIndeterminateCombiningAlg);
+  initCombiningAlg(new DenyNotApplicableIndeterminatePermitCombiningAlg);
+  initCombiningAlg(new IndeterminatePermitDenyNotApplicableCombiningAlg);
+  initCombiningAlg(new IndeterminatePermitNotApplicableDenyCombiningAlg);
+  initCombiningAlg(new IndeterminateDenyPermitNotApplicableCombiningAlg);
+  initCombiningAlg(new IndeterminateDenyNotApplicablePermitCombiningAlg);
+  initCombiningAlg(new IndeterminateNotApplicablePermitDenyCombiningAlg);
+  initCombiningAlg(new IndeterminateNotApplicableDenyPermitCombiningAlg);
+  initCombiningAlg(new NotApplicablePermitDenyIndeterminateCombiningAlg);
+  initCombiningAlg(new NotApplicablePermitIndeterminateDenyCombiningAlg);
+  initCombiningAlg(new NotApplicableDenyPermitIndeterminateCombiningAlg);
+  initCombiningAlg(new NotApplicableDenyIndeterminatePermitCombiningAlg);
+  initCombiningAlg(new NotApplicableIndeterminatePermitDenyCombiningAlg);
+  initCombiningAlg(new NotApplicableIndeterminateDenyPermitCombiningAlg);
   /** TODO:  other algorithm type............. */
 
 }
