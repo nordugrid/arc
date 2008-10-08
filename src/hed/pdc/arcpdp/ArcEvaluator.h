@@ -33,6 +33,8 @@ private:
 
   EvaluatorCombiningAlg combining_alg;
 
+  CombiningAlg* combining_alg_ex;
+
 public:
   ArcEvaluator (Arc::XMLNode* cfg);
   ArcEvaluator (const char * cfgfile);
@@ -62,6 +64,8 @@ public:
   virtual void removePolicies(void) { plstore->removePolicies(); };
 
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg);
+
+  virtual void setCombiningAlg(CombiningAlg* alg);
 
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx);

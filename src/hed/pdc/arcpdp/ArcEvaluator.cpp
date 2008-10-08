@@ -128,7 +128,7 @@ ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
   attrfactory = NULL;
   algfactory = NULL;
   combining_alg = EvaluatorFailsOnDeny;
-
+  combining_alg_ex = NULL;
   context = NULL;
 
   parsecfg(*m_cfg);
@@ -136,6 +136,7 @@ ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
 
 ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
   combining_alg = EvaluatorFailsOnDeny;
+  combining_alg_ex = NULL;
   std::string str;
   std::string xml_str = "";
   std::ifstream f(cfgfile);
@@ -151,6 +152,10 @@ ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
 
 void ArcEvaluator::setCombiningAlg(EvaluatorCombiningAlg alg) {
   combining_alg = alg;
+}
+
+void ArcEvaluator::setCombiningAlg(CombiningAlg* alg) {
+  combining_alg_ex = alg;
 }
 
 Request* ArcEvaluator::make_reqobj(XMLNode& reqnode){
@@ -230,8 +235,11 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
     ctx->setEvalTuple(*it);
 
     policies = plstore->findPolicy(ctx);
-    
+
     std::list<PolicyStore::PolicyElement> permitset;
+    
+    if(!combining_alg) {
+
     bool atleast_onepermit = false;
     bool atleast_onedeny = false;
     bool atleast_onenotapplicable = false;
@@ -333,6 +341,39 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
     }
     //Store the ResponseItem
     resp->addResponseItem(item);
+    
+    } else { // if(combining_alg_ex)
+      // Now if real combining algorithm defined use it instead
+      // of hardcoded mess above.
+      std::list<Policy*> plist;
+      // Preparing list of policies to evaluate
+      for(policyit = policies.begin(); policyit != policies.end(); policyit++){
+        plist.push_back((Policy*)(*policyit));
+      };
+      // Running request tuple and policies through evaluator 
+      // and combining results 
+      // TODO: record permitset (is it really needed?)
+      Result result = combining_alg_ex->combine(ctx,plist);
+      ResponseItem* item = new ResponseItem;
+      RequestTuple* reqtuple = new RequestTuple;
+      reqtuple->duplicate(*(*it));
+      item->reqtp = reqtuple;
+      item->reqxml = reqtuple->getNode();
+      item->res = result;
+      // Recording positive response - not implemented yet
+      //if(result == DECISION_PERMIT) {
+      //  std::list<PolicyStore::PolicyElement>::iterator permit_it;
+      //  for(pit = permitset.begin(); pit != permitset.end(); pit++){
+      //    item->pls.push_back((Policy*)(*pit));
+      //    EvalResult evalres = ((Policy*)(*pit))->getEvalResult();
+      //    //TODO, handle policyset
+      //    XMLNode policyxml = evalres.node;
+      //    (item->plsxml).push_back(policyxml);
+      //  }
+      //}
+      //Store the ResponseItem
+      resp->addResponseItem(item);
+    }
   }
 
   if(ctx)
