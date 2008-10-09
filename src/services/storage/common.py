@@ -698,18 +698,23 @@ class AuthPolicy(dict):
         if format == 'ARCAuth':
             result = []
             for identity, actions in self.items():
-                methods = [a for a in actions if a[1:] in storage_actions]
-                for pmethod in methods:
-                    permit = pmethod[0] == '+'
-                    method = pmethod[1:]
-                    result.append('  <Rule Effect="%s">\n' % (permit and 'Permit' or 'Deny')+
-                    '    <Description>%s is %s to %s</Description>\n' % (identity, permit and 'allowed' or 'not allowed', method) +
-                    '    <Subjects>\n      <Subject>\n' + 
-                    '        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">%s</Attribute>\n      </Subject>\n    </Subjects>\n' % identity +
-                    '    <Actions>\n' + 
-                    '      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">%s</Action>\n' % method +
-                    '    </Actions>\n' +
-                    '  </Rule>\n')
+                raw_methods = [a for a in actions if a[1:] in storage_actions]
+                methods = {}
+                methods[True] = [method[1:] for method in raw_methods if method[0] == '+']
+                methods[False] = [method[1:] for method in raw_methods if method[0] != '+']
+                for permit, method_list in methods.items():
+                    if method_list:
+                        result.append('  <Rule Effect="%s">\n' % (permit and 'Permit' or 'Deny') +
+                        '    <Description>%s is %s to %s</Description>\n' % (identity, permit and 'allowed' or 'not allowed', ', '.join(method_list)) +
+                        '    <Subjects>\n' +
+                        '      <Subject>\n' + 
+                        '        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">%s</Attribute>\n' % identity +
+                        '      </Subject>\n' +
+                        '    </Subjects>\n' +
+                        '    <Actions>\n' + 
+                        ''.join(['      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">%s</Action>\n' % method for method in method_list]) +
+                        '    </Actions>\n' +
+                        '  </Rule>\n')
             return '<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" CombiningAlg="Deny-Overrides">\n%s</Policy>\n' % ''.join(result)            
     
     def set_policy(self, policy, format = 'ARCAuth'):
@@ -730,41 +735,54 @@ class AuthPolicy(dict):
                 for identity in identities:
                     self[identity] = methods + self.get(identity, [])
 
+def create_owner_policy(identity):
+    p = AuthPolicy()
+    p[identity] = ['+' + action for action in storage_actions]
+    return p
+
 def parse_arc_policy(policy):
     import arc
     p = AuthPolicy()
     p.set_policy(arc.XMLNode(policy))
     return p
 
-def make_decision(policy, request):
-    if type(policy) != str:
-        metadata = policy
-        try:
-            p = parse_arc_policy(metadata.get(('policies', 'main'), ''))
-            if not p: # no policy: PERMIT
-                return True
-            policy = p.get_policy()
-        except:
-            return False
+def make_decision_metadata(metadata, request):
+    policies = [v for ((s,p), v) in metadata.items() if s == 'policies']
+    return make_decision(policies, request)
+
+def make_decision(policies, request):
+    # if type(policy) != str:
+    #     metadata = policy
+    #     try:
+    #         p = parse_arc_policy(metadata.get(('policies', 'main'), ''))
+    #         if not p: # no policy: PERMIT
+    #             return True
+    #         policy = p.get_policy()
+    #     except:
+    #         return False
     import arc
     loader = arc.EvaluatorLoader()
     evaluator = loader.getEvaluator('arc.evaluator')
     print 'calling evaluate with request:'
     print request
-    print 'and policy:'
-    print policy
-    p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
-    evaluator.addPolicy(p)
+    print 'and policies:'
+    for policy in policies:
+        print policy
+        p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
+        evaluator.addPolicy(p)
     r = loader.getRequest('arc.request', arc.Source(str(request)))
     response = evaluator.evaluate(r)
     responses = response.getResponseItems()
     response_list = [responses.getItem(i).res for i in range(responses.size())]
-    print response_list
-    if response_list.count(arc.DECISION_DENY) > 0:
-        return False
-    if response_list.count(arc.DECISION_PERMIT) > 0:
-        return True
-    return False
+    return response_list[0]
+    # print response_list
+    # if response_list.count(arc.DECISION_DENY) > 0:
+    #     return 'deny'
+    # if response_list.count(arc.DECISION_PERMIT) > 0:
+    #     return 'permit'
+    # if response_list.count(arc.DECISION_NOT_APPLICABLE) > 0:
+    #     return 'not_applicable'
+    # return 'indeterminate'
 
 def parse_ssl_config(cfg):
     try:

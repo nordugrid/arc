@@ -3,11 +3,12 @@ import httplib
 import arc
 import random
 import time
+import traceback
 from storage.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, librarian_uri, bartender_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
-                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config, make_decision, parse_arc_policy
+                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config, make_decision_metadata, parse_arc_policy, create_owner_policy
 import traceback
 
 from storage.logger import Logger
@@ -37,7 +38,6 @@ class Bartender:
         The 'metadata' is a dictionary with (section, property) pairs as keys.
         """
         auth['method'] = 'read'
-        print auth.get_request()
         response = {}
         # get the information from the librarian
         traverse_response = self.librarian.traverseLN(requests)
@@ -45,22 +45,27 @@ class Bartender:
         for requestID, (metadata, _, _, _, wasComplete, _) in traverse_response.items():
             if wasComplete: # if it was complete, then we found the entry and got the metadata
                 try:
-                    print make_decision(metadata, auth.get_request())
+                    # decision = make_decision_metadata(metadata, auth.get_request())
+                    decision = arc.DECISION_PERMIT
+                    if decision != arc.DECISION_PERMIT:
+                        metadata = {('error','permission denied') : 'you are not allowed to read'}
                 except:
                     log.msg()
-                    metadata = {}
+                    metadata = {('error', 'error checking permission') : traceback.format_exc()}
                 response[requestID] = metadata
             else: # if it was not complete, then we didn't found the entry, so metadata will be empty
                 response[requestID] = {}
         return response
     
-    def delFile(self, requests):
+    def delFile(self, auth, requests):
         """ Delete a file from the storage: initiate the process.
         
         delFile(requests)
         
         requests is a dictionary with requestID as key and (Logical Name, child metadata, protocols) as value
         """
+        auth['method'] = 'delete'
+        auth_request = auth.get_request()
         import time
         response = {}
         # get the information from the librarian
@@ -70,14 +75,19 @@ class Bartender:
         cat_mod_requests = {}
         check_again = []
         for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
-            if wasComplete and metadata[('entry', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
+            # decision = make_decision_metadata(metadata, auth_request)
+            decision = arc.DECISION_PERMIT
+            if decision != arc.DECISION_PERMIT:
+                response[requestID] = 'denied'
+            elif wasComplete and metadata[('entry', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
                 parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
                 if parentno < 2:
                     # remove the file itself,  if this file has only one parent (hardlink), or has no parent at all
                     cat_rem_requests[requestID] = GUID
                 # if this entry has a parent:
                 if len(traversedList)>1:
-                    # notify the parents
+                    # notify the parent collection
+                    # TODO: get the metadata of the parent collection and check if the user has permission to removeEntry from it
                     parentLN, parentGUID = traversedList[-2]
                     cat_mod_requests[requestID + '_1'] = (parentGUID, 'unset', 'entries',
                                                       traversedList[-1][0],GUID)
@@ -129,7 +139,7 @@ class Bartender:
         # return the requests as list (without the trailing slashes) and the traverse response from the librarian
         return requests, traverse_response
 
-    def _new(self, child_metadata, child_name = None, parent_GUID = None):
+    def _new(self, auth, child_metadata, child_name = None, parent_GUID = None, parent_metadata = {}):
         """ Helper method which create a new entry in the librarian.
         
         _new(child_metadata, child_name = None, parent_GUID = None)
@@ -144,6 +154,7 @@ class Bartender:
         try:
             # set creation time stamp
             child_metadata[('timestamps', 'created')] = str(time.time())
+            # set owner's permissions
             if child_name and parent_GUID:
                 child_metadata[('parents', '%s/%s' % (parent_GUID, child_name))] = 'parent'
             # call the new method of the librarian with the child's metadata (requestID is '_new')
@@ -156,13 +167,19 @@ class Bartender:
             else:
                 # if it was successful and we have a parent collection
                 if child_name and parent_GUID:
-                    # we need to add the newly created librarian-entry to the parent collection
-                    log.msg(arc.DEBUG, 'adding', child_GUID, 'to parent', parent_GUID)
-                    # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
-                    modify_response = self.librarian.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
-                    log.msg(arc.DEBUG, 'modifyMetadata response', modify_response)
-                    # get the 'success' value
-                    modify_success = modify_response['_new']
+                    auth['method'] = 'addEntry'
+                    # decision = make_decision_metadata(parent_metadata, auth.get_request())
+                    decision = arc.DECISION_PERMIT
+                    if decision == arc.DECISION_PERMIT:
+                        # we need to add the newly created librarian-entry to the parent collection
+                        log.msg(arc.DEBUG, 'adding', child_GUID, 'to parent', parent_GUID)
+                        # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
+                        modify_response = self.librarian.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
+                        log.msg(arc.DEBUG, 'modifyMetadata response', modify_response)
+                        # get the 'success' value
+                        modify_success = modify_response['_new']
+                    else:
+                        modify_success = 'denied'
                     # if the new element was not set, we have a problem
                     if modify_success != 'set':
                         log.msg(arc.DEBUG, 'modifyMetadata failed, removing the new librarian entry', child_GUID)
@@ -177,13 +194,15 @@ class Bartender:
             log.msg()
             return 'internal error', None
 
-    def getFile(self, requests):
+    def getFile(self, auth, requests):
         """ Get files from the storage.
         
         getFile(requests)
         
         requests is a dictionary with requestID as key, and (Logical Name, protocol list) as value
         """
+        auth['method'] = 'read'
+        auth_request = auth.get_request()
         # call the _traverse helper method the get the information about the requested Logical Names
         requests, traverse_response = self._traverse(requests)
         response = {}
@@ -202,49 +221,54 @@ class Bartender:
                 else:
                     # metadata contains all the metadata of the given entry
                     # ('entry', 'type') is the type of the entry: file, collection, etc.
-                    type = metadata[('entry', 'type')]
-                    if type != 'file':
-                        success = 'is not a file'
+                    #decision = make_decision_metadata(metadata, auth_request)
+                    decision = arc.DECISION_PERMIT
+                    if decision != arc.DECISION_PERMIT:
+                        success = 'denied'
                     else:
-                        # if it is a file,  then we need all the locations where it is stored and alive
-                        # this means all the metadata entries with in the 'locations' sections whose value is 'alive'
-                        # the location itself serialized from the ID of the service and the ID of the replica within the service
-                        # so the location needs to be deserialized into two ID with deserialize_ids()
-                        # valid_locations will contain a list if (serviceID, referenceID, state)
-                        valid_locations = [deserialize_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
-                        # if this list is empty
-                        if not valid_locations:
-                            success = 'file has no valid replica'
+                        type = metadata[('entry', 'type')]
+                        if type != 'file':
+                            success = 'is not a file'
                         else:
-                            ok = False
-                            while not ok and len(valid_locations) > 0:
-                                # if there are more valid_locations, randomly select one
-                                location = valid_locations.pop(random.choice(range(len(valid_locations))))
-                                log.msg(arc.DEBUG, 'location chosen:', location)
-                                # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
-                                url, referenceID, _ = location
-                                # create an ShepherdClient with this URL, then send a get request with the referenceID
-                                #   we only support byteio protocol currently. 'getFile' is the requestID of this request
-                                get_response = dict(ShepherdClient(url, ssl_config = self.ssl_config).get({'getFile' :
-                                    [('referenceID', referenceID)] + [('protocol', proto) for proto in protocols]})['getFile'])
-                                # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
-                                if get_response.has_key('error'):
-                                    # if there was an error
-                                    log.msg(arc.DEBUG, 'ERROR', get_response['error'])
-                                    success = 'error while getting TURL (%s)' % get_response['error']
-                                else:
-                                    # get the TURL and the choosen protocol, these will be set as reply for this requestID
-                                    turl = get_response['TURL']
-                                    protocol = get_response['protocol']
-                                    success = 'done'
-                                    ok = True
+                            # if it is a file,  then we need all the locations where it is stored and alive
+                            # this means all the metadata entries with in the 'locations' sections whose value is 'alive'
+                            # the location itself serialized from the ID of the service and the ID of the replica within the service
+                            # so the location needs to be deserialized into two ID with deserialize_ids()
+                            # valid_locations will contain a list if (serviceID, referenceID, state)
+                            valid_locations = [deserialize_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
+                            # if this list is empty
+                            if not valid_locations:
+                                success = 'file has no valid replica'
+                            else:
+                                ok = False
+                                while not ok and len(valid_locations) > 0:
+                                    # if there are more valid_locations, randomly select one
+                                    location = valid_locations.pop(random.choice(range(len(valid_locations))))
+                                    log.msg(arc.DEBUG, 'location chosen:', location)
+                                    # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
+                                    url, referenceID, _ = location
+                                    # create an ShepherdClient with this URL, then send a get request with the referenceID
+                                    #   we only support byteio protocol currently. 'getFile' is the requestID of this request
+                                    get_response = dict(ShepherdClient(url, ssl_config = self.ssl_config).get({'getFile' :
+                                        [('referenceID', referenceID)] + [('protocol', proto) for proto in protocols]})['getFile'])
+                                    # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
+                                    if get_response.has_key('error'):
+                                        # if there was an error
+                                        log.msg(arc.DEBUG, 'ERROR', get_response['error'])
+                                        success = 'error while getting TURL (%s)' % get_response['error']
+                                    else:
+                                        # get the TURL and the choosen protocol, these will be set as reply for this requestID
+                                        turl = get_response['TURL']
+                                        protocol = get_response['protocol']
+                                        success = 'done'
+                                        ok = True
             except:
                 success = 'internal error (%s)' % traceback.format_exc()
             # set the success, turl, protocol for this request
             response[rID] = (success, turl, protocol)
         return response
    
-    def addReplica(self, requests, protocols):
+    def addReplica(self, auth, requests, protocols):
         """ This method initiates the addition of a new replica to a file.
         
         addReplica(requests, protocols)
@@ -252,31 +276,38 @@ class Bartender:
         requests is a dictionary with requestID-GUID pairs
         protocols is a list of supported protocols
         """
+        auth['method'] = 'addEntry'
+        auth_request = auth.get_request()
         # get the size and checksum information about all the requested GUIDs (these are in the 'states' section)
         #   the second argument of the get method specifies that we only need metadata from the 'states' section
-        data = self.librarian.get(requests.values(), [('states',''),('locations','')])
+        data = self.librarian.get(requests.values(), [('states',''),('locations',''),('policies','')])
         response = {}
         for rID, GUID in requests.items():
             # for each requested GUID
-            states = data[GUID]
-            log.msg(arc.DEBUG, 'addReplica', 'requestID', rID, 'GUID', GUID, 'states', states, 'protocols', protocols)
-            # get the size and checksum information of the file
-            size = states[('states','size')]
-            checksumType = states[('states','checksumType')]
-            checksum = states[('states','checksum')]
-            # list of shepherds with a replica of this file (to avoid using one shepherd twice)
-            exceptedSEs = [deserialize_ids(location)[0] 
-                           for (section, location), status in states.items() if section == 'locations']
-            # initiate replica addition of this file with the given protocols 
-            success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
-            # set the response of this request
-            response[rID] = (success, turl, protocol)
+            metadata = data[GUID]
+            #decision = make_decision_metadata(metadata, auth_request)
+            decision = arc.DECISION_PERMIT
+            if decision != arc.DECISION_PERMIT:
+                response[rID] = ('denied', None, None)
+            else:
+                log.msg(arc.DEBUG, 'addReplica', 'requestID', rID, 'GUID', GUID, 'metadata', metadata, 'protocols', protocols)
+                # get the size and checksum information of the file
+                size = metadata[('states','size')]
+                checksumType = metadata[('states','checksumType')]
+                checksum = metadata[('states','checksum')]
+                # list of shepherds with a replica of this file (to avoid using one shepherd twice)
+                exceptedSEs = [deserialize_ids(location)[0] 
+                               for (section, location), status in metadata.items() if section == 'locations']
+                # initiate replica addition of this file with the given protocols 
+                success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
+                # set the response of this request
+                response[rID] = (success, turl, protocol)
         return response
 
-    def find_alive_se(self, except_these=[]):
+    def _find_alive_se(self, except_these=[]):
         """  Get the list of currently alive Shepherds.
         
-        find_alive_se()
+        _find_alive_se()
         """
         # sestore_guid is the GUID of the librarian entry which the list of Shepherds registered by the Librarian
         SEs = self.librarian.get([sestore_guid])[sestore_guid]
@@ -318,7 +349,7 @@ class Bartender:
             ('checksum', checksum), ('GUID', GUID)] + \
             [('protocol', protocol) for protocol in protocols]
         # find an alive Shepherd
-        shepherd = self.find_alive_se(exceptedSEs)
+        shepherd = self._find_alive_se(exceptedSEs)
         if not shepherd:
             return 'no shepherd found', turl, protocol
         # call the SE's put method with the prepared request
@@ -349,7 +380,7 @@ class Bartender:
             #else:
             #    return 'done', turl, protocol
             
-    def putFile(self, requests):
+    def putFile(self, auth, requests):
         """ Put a new file to the storage: initiate the process.
         
         putFile(requests)
@@ -399,7 +430,7 @@ class Bartender:
                         child_metadata[('entry','type')] = 'file'
                         child_metadata[('entry','GUID')] = rootguid or global_root_guid
                         # create the new entry
-                        success, GUID = self._new(child_metadata)
+                        success, GUID = self._new(auth, child_metadata)
                     elif restLN != child_name or GUID == '':
                         # if the non-traversed part of the Logical Name is not actully the name of the new file
                         #   or we have no parent guid
@@ -408,7 +439,7 @@ class Bartender:
                         # if everything is OK, then we set the type of the new entry
                         child_metadata[('entry','type')] = 'file'
                         # then create it
-                        success, GUID = self._new(child_metadata, child_name, GUID)
+                        success, GUID = self._new(auth, child_metadata, child_name, GUID)
                     if success == 'done':
                         # if the file was successfully created, it still has no replica, so we initiate creating one
                         # if neededReplicas is 0, we do nothing
@@ -419,8 +450,10 @@ class Bartender:
             response[rID] = (success, turl, protocol)
         return response
 
-    def unmakeCollection(self, requests):
+    def unmakeCollection(self, auth, requests):
         """docstring for unmakeCollection"""
+        auth['method'] = 'delete'
+        auth_request = auth.get_request()
         requests, traverse_response = self._traverse(requests)
         response = {}
         for rID, [LN] in requests:
@@ -429,25 +462,31 @@ class Bartender:
             if not wasComplete:
                 success = 'no such LN'
             else:
-                number_of_entries = len([section for (section, _), _ in metadata.items() if section == 'entries'])
-                if number_of_entries > 0:
-                    success = 'collection is not empty'
+                #decision = make_decision_metadata(metadata, auth_request)
+                decision = arc.DECISION_PERMIT
+                if decision != arc.DECISION_PERMIT:
+                    success = 'denied'
                 else:
-                    try:
-                        parentLN, parentGUID = traversedlist[-2]
-                        mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
-                        mod_response = self.librarian.modifyMetadata(mod_requests)
-                        success = mod_response['unmake']
-                    except IndexError:
-                        # it has no parent
-                        success = 'unset'
-                    if success == 'unset':
-                        # TODO: handle hardlinks to collections
-                        success = self.librarian.remove({'unmake' : GUID})['unmake']
+                    number_of_entries = len([section for (section, _), _ in metadata.items() if section == 'entries'])
+                    if number_of_entries > 0:
+                        success = 'collection is not empty'
+                    else:
+                        try:
+                            parentLN, parentGUID = traversedlist[-2]
+                            # TODO: get the metadata of the parent, and check if the user has permission to removeEntry from it
+                            mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
+                            mod_response = self.librarian.modifyMetadata(mod_requests)
+                            success = mod_response['unmake']
+                        except IndexError:
+                            # it has no parent
+                            success = 'unset'
+                        if success == 'unset':
+                            # TODO: handle hardlinks to collections
+                            success = self.librarian.remove({'unmake' : GUID})['unmake']
             response[rID] = success
         return response
 
-    def makeCollection(self, requests):
+    def makeCollection(self, auth, requests):
         """ Create a new collection.
         
         makeCollection(requests)
@@ -462,24 +501,26 @@ class Bartender:
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
             log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            owner_identity = auth['identity']
+            owner_policy = create_owner_policy(owner_identity).get_policy()
+            child_metadata[('policies', owner_identity)] = owner_policy
+            child_metadata[('entry','type')] = 'collection'
             if wasComplete: # this means the LN exists
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
                 # this means the collection has no parent
-                child_metadata[('entry','type')] = 'collection'
                 child_metadata[('entry','GUID')] = rootguid or global_root_guid
-                success, _ = self._new(child_metadata)
+                success, _ = self._new(auth, child_metadata)
             elif restLN != child_name or GUID == '':
                 success = 'parent does not exist'
             else:
-                child_metadata[('entry','type')] = 'collection'
                 # if everything is OK, create the new collection
                 #   here GUID is of the parent collection
-                success, _ = self._new(child_metadata, child_name, GUID)
+                success, _ = self._new(auth, child_metadata, child_name, GUID, metadata)
             response[rID] = success
         return response
 
-    def list(self, requests, neededMetadata = []):
+    def list(self, auth, requests, neededMetadata = []):
         """ List the contents of a collection.
         
         list(requests, neededMetadata = [])
@@ -488,6 +529,8 @@ class Bartender:
         neededMetadata is a list of (section, property) where property could be empty which means all properties of that section
             if neededMetadata is empty it means we need everything
         """
+        auth['method'] = 'read'
+        auth_request = auth.get_request()
         # do traverse the requested Logical Names
         traverse_response = self.librarian.traverseLN(requests)
         response = {}
@@ -495,28 +538,35 @@ class Bartender:
             # for each LN
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
             if wasComplete:
-                # this means the LN exists, get its type
-                type = metadata[('entry', 'type')]
-                if type == 'file': # files have no contents, we do not list them
-                    status = 'is a file'
+                # this means the LN exists
+                #decision = make_decision_metadata(metadata, auth_request)
+                decision = arc.DECISION_PERMIT
+                if decision != arc.DECISION_PERMIT:
                     entries = {}
-                else: # if it is not a file, it must be a collection (currently there is no other type)
-                    status = 'found'
-                    # get all the properties and values from the 'entries' metadata section of the collection
-                    #   these are the names and GUIDs: the contents of the collection
-                    GUIDs = dict([(name, GUID)
-                        for (section, name), GUID in metadata.items() if section == 'entries'])
-                    # get the needed metadata of all the entries
-                    metadata = self.librarian.get(GUIDs.values(), neededMetadata)
-                    # create a dictionary with the name of the entry as key and (GUID, metadata) as value
-                    entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
+                    status = 'denied'
+                else:
+                    # let's get the type
+                    type = metadata[('entry', 'type')]
+                    if type == 'file': # files have no contents, we do not list them
+                        status = 'is a file'
+                        entries = {}
+                    else: # if it is not a file, it must be a collection (currently there is no other type)
+                        status = 'found'
+                        # get all the properties and values from the 'entries' metadata section of the collection
+                        #   these are the names and GUIDs: the contents of the collection
+                        GUIDs = dict([(name, GUID)
+                            for (section, name), GUID in metadata.items() if section == 'entries'])
+                        # get the needed metadata of all the entries
+                        metadata = self.librarian.get(GUIDs.values(), neededMetadata)
+                        # create a dictionary with the name of the entry as key and (GUID, metadata) as value
+                        entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
             else:
                 entries = {}
                 status = 'not found'
             response[requestID] = (entries, status)
         return response
 
-    def move(self, requests):
+    def move(self, auth, requests):
         """ Move a file or collection within the global namespace.
         
         move(requests)
@@ -525,6 +575,10 @@ class Bartender:
             (sourceLN, targetLN, preserverOriginal) as value
         if preserverOriginal is true this method creates a hard link instead of moving
         """
+        auth['method'] = 'addEntry'
+        auth_addEntry = auth.get_request()
+        auth['method'] = 'removeEntry'
+        auth_removeEntry = auth.get_request()
         traverse_request = {}
         # create a traverse request, each move request needs two traversing: source and target
         for requestID, (sourceLN, targetLN, _) in requests.items():
@@ -545,7 +599,7 @@ class Bartender:
             _, sourceGUID, _, _, sourceWasComplete, sourceTraversedList \
                 = traverse_response[requestID + 'source']
             # get the GUID form the target's traverse response, this should be the parent of the target LN
-            _, targetGUID, _, targetRestLN, targetWasComplete, targetTraversedList \
+            targetMetadata, targetGUID, _, targetRestLN, targetWasComplete, targetTraversedList \
                 = traverse_response[requestID + 'target']
             # if the source traverse was not complete: the source LN does not exist
             if not sourceWasComplete:
@@ -567,36 +621,43 @@ class Bartender:
                 #   so we just put the old name after it
                 if new_child_name == '':
                     new_child_name = old_child_name
-                log.msg(arc.DEBUG, 'adding', sourceGUID, 'to parent', targetGUID)
-                # adding the entry to the new parent
-                mm_resp = self.librarian.modifyMetadata(
-                    {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
-                        'parent' : (sourceGUID, 'set', 'parents', '%s/%s' % (targetGUID, new_child_name), 'parent')})
-                mm_succ = mm_resp['move']
-                if mm_succ != 'set':
-                    success = 'failed adding child to parent'
+                #decision = make_decision_metadata(targetmetadata, auth_addEntry)
+                decision = arc.DECISION_PERMIT
+                if decision != arc.DECISION_PERMIT:
+                    success = 'adding child to parent denied'
                 else:
-                    if preserveOriginal == true:
-                        success = 'moved'
+                    log.msg(arc.DEBUG, 'adding', sourceGUID, 'to parent', targetGUID)
+                    # adding the entry to the new parent
+                    mm_resp = self.librarian.modifyMetadata(
+                        {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
+                            'parent' : (sourceGUID, 'set', 'parents', '%s/%s' % (targetGUID, new_child_name), 'parent')})
+                    mm_succ = mm_resp['move']
+                    if mm_succ != 'set':
+                        success = 'failed adding child to parent'
                     else:
-                        # then we need to remove the source LN
-                        # get the parent of the source: the source traverse has a list of the GUIDs of all the element along the path
-                        source_parent_guid = sourceTraversedList[-2][1]
-                        log.msg(arc.DEBUG, 'removing', sourceGUID, 'from parent', source_parent_guid)
-                        # delete the entry from the source parent
-                        mm_resp = self.librarian.modifyMetadata(
-                            {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
-                                'parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), '')})
-                        mm_succ = mm_resp['move']
-                        if mm_succ != 'unset':
-                            success = 'failed removing child from parent'
-                            # TODO: need some handling; remove the new entry or something
-                        else:
+                        if preserveOriginal == true:
                             success = 'moved'
+                        else:
+                            # then we need to remove the source LN
+                            # get the parent of the source: the source traverse has a list of the GUIDs of all the element along the path
+                            source_parent_guid = sourceTraversedList[-2][1]
+                            # TODO: get the metadata of the parent, and decide if the user is allowed to removeEntry from it
+                            log.msg(arc.DEBUG, 'removing', sourceGUID, 'from parent', source_parent_guid)
+                            # delete the entry from the source parent
+                            mm_resp = self.librarian.modifyMetadata(
+                                {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
+                                    'parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), '')})
+                            mm_succ = mm_resp['move']
+                            if mm_succ != 'unset':
+                                success = 'failed removing child from parent'
+                                # TODO: need some handling; remove the new entry or something
+                            else:
+                                success = 'moved'
             response[requestID] = success
         return response
 
-    def modify(self, requests):
+    def modify(self, auth, requests):
+        # TODO: auth is completely missing here
         requests, traverse_response = self._traverse(requests)
         librarian_requests = {}
         not_found = []
@@ -719,7 +780,7 @@ class BartenderService(Service):
             (str(request_node.Get('requestID')), str(request_node.Get('LN')))
                 for request_node in request_nodes
         ])
-        response = self.bartender.delFile(requests)
+        response = self.bartender.delFile(inpayload.auth, requests)
         return create_response('bar:delFile',
             ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single=True)
 
@@ -766,7 +827,7 @@ class BartenderService(Service):
                 )
             ) for request_node in request_nodes
         ])
-        response = self.bartender.getFile(requests)
+        response = self.bartender.getFile(inpayload.auth, requests)
         return create_response('bar:getFile',
             ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
     
@@ -808,7 +869,7 @@ class BartenderService(Service):
         request_nodes = get_child_nodes(inpayload.Child().Get('addReplicaRequestList'))
         requests = dict([(str(request_node.Get('requestID')), str(request_node.Get('GUID')))
                 for request_node in request_nodes])
-        response = self.bartender.addReplica(requests, protocols)
+        response = self.bartender.addReplica(inpayload.auth, requests, protocols)
         return create_response('bar:addReplica',
             ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
     
@@ -867,7 +928,7 @@ class BartenderService(Service):
                 )
             ) for request_node in request_nodes
         ])
-        response = self.bartender.putFile(requests)
+        response = self.bartender.putFile(inpayload.auth, requests)
         return create_response('bar:putFile',
             ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
 
@@ -878,7 +939,7 @@ class BartenderService(Service):
                 [str(request_node.Get('LN'))]
             ) for request_node in request_nodes
         ])
-        response = self.bartender.unmakeCollection(requests)
+        response = self.bartender.unmakeCollection(inpayload.auth, requests)
         return create_response('bar:unmakeCollection',
             ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
 
@@ -924,7 +985,7 @@ class BartenderService(Service):
                 (str(request_node.Get('LN')), parse_metadata(request_node.Get('metadataList')))
             ) for request_node in request_nodes
         ])
-        response = self.bartender.makeCollection(requests)
+        response = self.bartender.makeCollection(inpayload.auth, requests)
         return create_response('bar:makeCollection',
             ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
 
@@ -995,7 +1056,7 @@ class BartenderService(Service):
             node_to_data(node, ['section', 'property'], single = True)
                 for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
         ]
-        response0 = self.bartender.list(requests, neededMetadata)
+        response0 = self.bartender.list(inpayload.auth, requests, neededMetadata)
         response = dict([
             (requestID,
             ([('bar:entry', [
@@ -1040,13 +1101,13 @@ class BartenderService(Service):
 
         requests = parse_node(inpayload.Child().Child(),
             ['requestID', 'sourceLN', 'targetLN', 'preserveOriginal'])
-        response = self.bartender.move(requests)
+        response = self.bartender.move(inpayload.auth, requests)
         return create_response('bar:move',
             ['bar:requestID', 'bar:status'], response, self.newSOAPPayload(), single = True)
 
     def modify(self, inpayload):
         requests = parse_node(inpayload.Child().Child(), ['bar:changeID',
             'bar:LN', 'bar:changeType', 'bar:section', 'bar:property', 'bar:value'])
-        response = self.bartender.modify(requests)
+        response = self.bartender.modify(inpayload.auth, requests)
         return create_response('bar:modify', ['bar:changeID', 'bar:success'],
             response, self.newSOAPPayload(), single = True)
