@@ -19,21 +19,38 @@ class EchoService:
         attributes = inmsg.Attributes()
         print attributes.getAll()
         print "EchoService (python) got:", inpayload.GetXML()
+        # the first child of the payload should be the name of the request
+        request_node = inpayload.Child()
         # we want to use members of the 'urn:echo' namespace
         # so we need to know which namespace prefix was assigned to it
         # we get the namespace prefix
-        echo_ns = inpayload.NamespacePrefix('urn:echo')
-        # then we can get 'prefix:echo/prefix:say'
-        echo_op = inpayload.Get(echo_ns + ':echo')
-        say = str(echo_op.Get(echo_ns + ':say'))
+        echo_ns = request_node.NamespacePrefix('urn:echo')
+        # get the qualified name of the request
+        request_name = request_node.FullName()
+        print "EchoService (python) request_name:",  request_name
+        if not request_name.startswith(echo_ns + ':'):
+            raise Exception, 'wrong namespace. expected: %s' % ('urn:echo')
+        # get the name of the request without the namespace prefix
+        request_name = request_node.Name()
+        # create an answer payload
+        ns = arc.NS({'echo': 'urn:echo'})
+        outpayload = arc.PayloadSOAP(ns)
+        # here we defined that 'echo' prefix will be the namespace prefix of 'urn:echo'
+        # get the message
+        say = str(request_node.Get('say'))
         # put it between the response-prefix and the response-suffix
         hear = self.prefix + say + self.suffix
-        # create an answer payload
-        outpayload = arc.PayloadSOAP(arc.NS('echo', 'urn:echo'))
-        # here we defined that 'echo' prefix will be the namespace prefix of 'urn:echo'
-        # and we create a node at '/echo:echoResponse/echo:hear' and put the string in it
+        if request_name == 'double':
+            # let's call http://localhost:60000/Echo
+            cfg = arc.MCCConfig()
+            s = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Echo')
+            new_payload = arc.PayloadSOAP(ns)
+            new_payload.NewChild('echo:echo').NewChild('echo:say').Set(hear)
+            print 'new_payload', new_payload.GetXML()
+            resp, status = s.process(new_payload)
+            hear = str(resp.Get('echoResponse').Get('hear'))
+        # we create a node at '/echo:echoResponse/echo:hear' and put the string in it
         outpayload.NewChild('echo:echoResponse').NewChild('echo:hear').Set(hear)
-        # put the payload into the outgoing message
         outmsg.Payload(outpayload)
         # return with STATUS_OK
         return arc.MCC_Status(arc.STATUS_OK)
