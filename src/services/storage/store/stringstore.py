@@ -3,10 +3,13 @@ import copy, os, base64
 
 from storage.store.picklestore import PickleStore
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.StringStore'))
+
 class StringStore(PickleStore):
     """ Class for storing string objects. """
 
-    def __init__(self, storecfg, non_existent_object = {}, log = None):
+    def __init__(self, storecfg, non_existent_object = {}):
         """ Constructor of PickleStore.
 
         PickleStore(storecfg)
@@ -14,9 +17,9 @@ class StringStore(PickleStore):
         'storecfg' is an XMLNode with a 'DataDir'
         'non_existent_object' will be returned if an object not found
         """
-        PickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log.msg(arc.DEBUG, "StringStore constructor called")
-        self.log.msg(arc.DEBUG, "datadir:", self.datadir)
+        PickleStore.__init__(self, storecfg, non_existent_object)
+        log.msg(arc.DEBUG, "StringStore constructor called")
+        log.msg(arc.DEBUG, "datadir:", self.datadir)
 
     def get(self, ID):
         """ Returns the object with the given ID.
@@ -38,8 +41,8 @@ class StringStore(PickleStore):
             pass
         except:
             # print whatever exception happened
-            self.log.msg()
-            self.log.msg(arc.ERROR, "filename:", self._filename(ID))
+            log.msg()
+            log.msg(arc.ERROR, "filename:", self._filename(ID))
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -75,4 +78,4 @@ class StringStore(PickleStore):
                 # object empty, file is not needed anymore
                 os.remove(fn)
         except:
-            self.log.msg()
+            log.msg()

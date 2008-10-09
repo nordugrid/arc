@@ -1,15 +1,12 @@
+import arc
 import os, threading, traceback
 
-
-def logprint(*args):
-    if args:
-        print ' '.join([str(arg) for arg in args])
-    else:
-        traceback.print_exc()
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.BaseStore'))
 
 class BaseStore:
     
-    def __init__(self, storecfg, non_existent_object = {}, log = None):
+    def __init__(self, storecfg, non_existent_object = {}):
         """ Constructor of BaseStore.
 
         BaseStore(storecfg)
@@ -17,10 +14,6 @@ class BaseStore:
         'storecfg' is an XMLNode with a 'DataDir'
         'non_existent_object' will be returned if an object not found
         """
-        if log:
-            self.log = log
-        else:
-            self.log = logprint
         # get the datadir from the storecfg XMLNode
         self.datadir = str(storecfg.Get('DataDir'))
         # set the value which we should return if there an object does not exist

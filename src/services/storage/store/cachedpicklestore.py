@@ -4,11 +4,13 @@ import cPickle as pickle
 
 from storage.store.picklestore import PickleStore
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.CachedPickleStore'))
 
 class CachedPickleStore(PickleStore):
     """ Class for storing object in a serialized python format. """
 
-    def __init__(self, storecfg, non_existent_object = {}, log = None):
+    def __init__(self, storecfg, non_existent_object = {}):
         """ Constructor of CachedPickleStore.
 
         CachedPickleStore(storecfg)
@@ -16,8 +18,8 @@ class CachedPickleStore(PickleStore):
         'storecfg' is an XMLNode with a 'DataDir'
         'non_existent_object' will be returned if an object not found
         """
-        PickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log.msg(arc.DEBUG, "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
+        PickleStore.__init__(self, storecfg, non_existent_object)
+        log.msg(arc.DEBUG, "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
         self.store = {}
         self._load_storage()
 
@@ -51,8 +53,8 @@ class CachedPickleStore(PickleStore):
             pass
         except:
             # print whatever exception happened
-            self.log.msg()
-            self.log.msg(arc.ERROR, "ID", ID)
+            log.msg()
+            log.msg(arc.ERROR, "ID", ID)
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -90,4 +92,4 @@ class CachedPickleStore(PickleStore):
                 os.remove(fn)
                 del(self.store[ID])
         except:
-            self.log.msg()
+            log.msg()

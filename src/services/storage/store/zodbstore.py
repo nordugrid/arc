@@ -5,6 +5,9 @@ from persistent import Persistent
 
 from storage.store.basestore import BaseStore
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.ZODBStore'))
+
 class Metadata(Persistent):
     """
     Class for persistent mutable metadata
@@ -28,7 +31,7 @@ class Metadata(Persistent):
 
 class ZODBStore(BaseStore):
 
-    def __init__(self, storecfg, non_existent_object = {}, log = None):
+    def __init__(self, storecfg, non_existent_object = {}):
         """ Constructor of ZODBStore.
 
         ZODBStore(storecfg)
@@ -36,9 +39,9 @@ class ZODBStore(BaseStore):
         'storecfg' is an XMLNode with a 'DataDir'
         'non_existent_object' will be returned if an object not found
         """
-        BaseStore.__init__(self, storecfg, non_existent_object, log)
-        self.log.msg(arc.DEBUG, "ZODBStore constructor called")
-        self.log.msg(arc.DEBUG, "datadir:", self.datadir)
+        BaseStore.__init__(self, storecfg, non_existent_object)
+        log.msg(arc.DEBUG, "ZODBStore constructor called")
+        log.msg(arc.DEBUG, "datadir:", self.datadir)
         self.dbfile = os.path.join(self.datadir,'metadata.fs')
         if os.path.isfile(self.dbfile):
             self.db = DB(FileStorage.FileStorage(self.dbfile))
@@ -89,8 +92,8 @@ class ZODBStore(BaseStore):
             pass
         except:
             # print whatever exception happened
-            self.log.msg()
-            self.log.msg(arc.ERROR, "ID", ID)
+            log.msg()
+            log.msg(arc.ERROR, "ID", ID)
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -112,4 +115,4 @@ class ZODBStore(BaseStore):
                 self.metadata.addMeta(ID, object)
             get_transaction().commit()
         except:
-            self.log.msg()
+            log.msg()

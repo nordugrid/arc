@@ -12,10 +12,11 @@ from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata,
 import traceback
 import copy
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Librarian'))
 
 class Librarian:
-    def __init__(self, cfg, log):
-        self.log = log
+    def __init__(self, cfg):
         # URL of the A-Hash
         ahash_url = str(cfg.Get('AHashURL'))
         ssl_config = parse_ssl_config(cfg)
@@ -24,7 +25,7 @@ class Librarian:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
         except:
-            self.log.msg(arc.DEBUG, 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
+            log.msg(arc.DEBUG, 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
             raise
         threading.Thread(target = self.checkingThread, args = [period]).start()
         
@@ -52,7 +53,7 @@ class Librarian:
                         self._set_next_heartbeat(serviceID, -1)
                 time.sleep(period)
             except:
-                self.log.msg()
+                log.msg()
                 time.sleep(period)
 
     def _change_states(self, changes):
@@ -80,7 +81,7 @@ class Librarian:
         ahash_response = self.ahash.change(ahash_request)
         #print '_set_next_heartbeat response', ahash_response
         if ahash_response['report'][0] != 'set':
-            self.log.msg(arc.DEBUG, 'ERROR setting next heartbeat time!')
+            log.msg(arc.DEBUG, 'ERROR setting next heartbeat time!')
     
     def report(self, serviceID, filelist):
         # we got the ID of the shepherd service, and a filelist which contains (GUID, referenceID, state) tuples
@@ -202,7 +203,7 @@ class Librarian:
             except KeyError:
                 return metadata
             except:
-                self.log.msg()
+                log.msg()
                 return {}
 
 
@@ -230,7 +231,7 @@ class Librarian:
                     restLN = '/'.join(path)
                     response[rID] = (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
                 except:
-                    self.log.msg()
+                    log.msg()
                     response[rID] = ([], False, '', guid0, None, '/'.join(path))
             #print '?\n? traversedList, wasComplete, traversedLN, GUID, metadata, restLN\n? ', response
         return response
@@ -268,9 +269,6 @@ class Librarian:
         return response
     
 from storage.service import Service
-from storage.logger import Logger
-
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Librarian'))
     
 class LibrarianService(Service):
     """ LibrarianService class implementing the XML interface of the storage Librarian service. """
@@ -284,12 +282,11 @@ class LibrarianService(Service):
         """
         self.service_name = 'Librarian'
         # init logging
-        self.log = log
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
         Service.__init__(self, 'Librarian', request_names, 'lbr', librarian_uri, cfg)
-        self.librarian = Librarian(cfg, self.log)
+        self.librarian = Librarian(cfg)
     
     def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),

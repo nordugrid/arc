@@ -14,6 +14,10 @@ from storage.common import create_response, gateway_uri, externalInfo_uri, trans
 from storage.client import ExternalStorageInformationClient, TransferClient
 from storage.service import Service 
 import commands
+
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Gateway'))
+
 class Gateway:
 
 	def __init__(self, externalInfo_url, transfer_url):
@@ -121,9 +125,6 @@ class Gateway:
 
 		return response
 	
-from storage.logger import Logger
-
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Gateway'))
 
 """ A high level service that contacts the externalStorageInformationService and TransferService To 
     to provide a bridge between ARC Storage Manager and thrid party storage system."""
@@ -135,7 +136,6 @@ class GatewayService(Service):
 		print "GatewayService Constructor..."
   
 		request_names = ['getFile','list','putFile']
-		self.log = log
 		Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri)
 		externalInfo_url = str(cfg.Get('ExternalStorageInformationURL'))
 		transfer_url = str(cfg.Get('TransferURL'))

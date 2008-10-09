@@ -3,10 +3,13 @@ import copy, os, base64
 
 from storage.store.cachedpicklestore import CachedPickleStore
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.CachedStringStore'))
+
 class CachedStringStore(CachedPickleStore):
     """ Class for storing object in a serialized python format. """
 
-    def __init__(self, storecfg, non_existent_object = {}, log = None):
+    def __init__(self, storecfg, non_existent_object = {}):
         """ Constructor of CachedStringStore.
 
         StringStore(storecfg)
@@ -14,9 +17,9 @@ class CachedStringStore(CachedPickleStore):
         'storecfg' is an XMLNode with a 'DataDir'
         'non_existent_object' will be returned if an object not found
         """
-        CachedPickleStore.__init__(self, storecfg, non_existent_object, log)
-        self.log.msg(arc.DEBUG, "CachedStringStore constructor called")
-        self.log.msg(arc.DEBUG, "datadir:", self.datadir)
+        CachedPickleStore.__init__(self, storecfg, non_existent_object)
+        log.msg(arc.DEBUG, "CachedStringStore constructor called")
+        log.msg(arc.DEBUG, "datadir:", self.datadir)
         self.store = {}
         self._load_storage()
 
@@ -59,4 +62,4 @@ class CachedStringStore(CachedPickleStore):
                 os.remove(fn)
                 del(self.store[ID])
         except:
-            self.log.msg()
+            log.msg()

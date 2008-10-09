@@ -17,6 +17,9 @@ from storage.common import transfer_uri, create_response
 from storage.common import create_response, get_child_nodes, true
 import commands
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.TransferService'))
+
 class Transfer:
 
         def __init__(self):
@@ -59,17 +62,12 @@ class Transfer:
 				response[host]  = [-1, 'Internal error while executing request \n'+output]			
 		return response 
 
-from storage.logger import Logger
-
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'TransferService'))
-
 class TransferService(Service):
 
         def __init__(self, cfg):
 
                 print "TransferService Constructor..."
                 request_names = ['transferData']
-                self.log = log
                 Service.__init__(self,'Transfer', request_names, 'transfer',transfer_uri)
                 self.transfer = Transfer()
 

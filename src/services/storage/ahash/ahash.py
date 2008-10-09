@@ -24,10 +24,13 @@ import traceback
 import time
 from storage.common import import_class_from_string, ahash_uri, node_to_data, create_metadata, get_child_nodes
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.A-Hash'))
+
 class CentralAHash:
     """ A centralized implementation of the A-Hash service. """
 
-    def __init__(self, storeclass, storecfg, log):
+    def __init__(self, storeclass, storecfg):
         """ The constructor of the CentralAHash class.
 
         CentralAHash(storeclass, storecfg)
@@ -35,15 +38,14 @@ class CentralAHash:
         'storeclass' is the name of the class which will store the data
         'storecfg' is an XMLNode with the configuration of the storeclass
         """
-        self.log = log
-        self.log.msg(arc.DEBUG, "CentralAHash constructor called")
+        log.msg(arc.DEBUG, "CentralAHash constructor called")
         # import the storeclass and call its constructor with the datadir
         try:
             cl = import_class_from_string(storeclass)
         except:
-            self.log.msg(arc.ERROR, 'Error importing', storeclass)
+            log.msg(arc.ERROR, 'Error importing', storeclass)
             raise Exception, 'A-Hash cannot run without a store.'
-        self.store = cl(storecfg, log = self.log)
+        self.store = cl(storecfg)
 
     def get(self, ids, neededMetadata = []):
         """ Gets all data of the given IDs.
@@ -175,7 +177,7 @@ class CentralAHash:
             except:
                 # if there was an exception, set this to failed
                 success = 'failed'
-                self.log.msg()
+                log.msg()
             # we are done, release the lock
             self.store.unlock()
             # append the result of the change to the response list
@@ -184,9 +186,6 @@ class CentralAHash:
 
 from storage.xmltree import XMLTree
 from storage.service import Service
-from storage.logger import Logger
-
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'A-Hash'))
 
 class AHashService(Service):
     """ AHashService class implementing the XML interface of the A-Hash service. """
@@ -199,8 +198,6 @@ class AHashService(Service):
         'cfg' is an XMLNode which containes the config of this service.
         """
         self.service_name = 'A-Hash'
-        # init logging
-        self.log = log
         # names of provided methods
         request_names = ['get','change']
         # call the Service's constructor
@@ -215,9 +212,9 @@ class AHashService(Service):
         try:
             cl = import_class_from_string(ahashclass)
         except:
-            self.log.msg(arc.ERROR, 'Error importing class', ahashclass)
+            log.msg(arc.ERROR, 'Error importing class', ahashclass)
             raise Exception, 'A-Hash cannot run.'
-        self.ahash = cl(storeclass, storecfg, self.log)
+        self.ahash = cl(storeclass, storecfg)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
@@ -237,7 +234,7 @@ class AHashService(Service):
                     for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
             ]
         except:
-            self.log.msg()
+            log.msg()
             neededMetadata = []
         # gets the result from the business logic class
         objects = self.ahash.get(ids, neededMetadata)

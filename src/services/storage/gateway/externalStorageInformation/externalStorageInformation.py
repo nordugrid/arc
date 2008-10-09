@@ -16,6 +16,10 @@ from storage.common import externalInfo_uri, create_response
 from storage.common import create_response, get_child_nodes, true
 from storage.service import Service
 import os 
+
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.ExternalStorageInformationService'))
+
 class ExternalStorageInformation:
 
 	def __init__(self):
@@ -55,9 +59,6 @@ class ExternalStorageInformation:
 			information["NoHostFound"]=['','']
 		return information					
 
-from storage.logger import Logger
-
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'ExternalStorageInformationService'))
 
 class ExternalStorageInformationService(Service):
 
@@ -65,7 +66,6 @@ class ExternalStorageInformationService(Service):
 	
 		print "ExternalStorageInformationService Constructor..."
 		request_names = ['getInfo']
-		self.log = log
 		Service.__init__(self,'ExternalStorageInformation', request_names, 'externalstorageinformation',externalInfo_uri)
 		self.externalInfo = ExternalStorageInformation()
 		

@@ -1,8 +1,7 @@
 import arc
 import traceback
 
-log_levels = {'VERBOSE':arc.VERBOSE, 'DEBUG':arc.DEBUG, 'INFO':arc.INFO, 
-              'WARNING':arc.WARNING, 'ERROR':arc.ERROR, 'FATAL':arc.FATAL}
+log_levels = [arc.VERBOSE, arc.DEBUG, arc.INFO, arc.WARNING, arc.ERROR, arc.FATAL]
 
 class Logger:
 
@@ -16,7 +15,7 @@ class Logger:
         if not args:
             severity = arc.ERROR
             args = ['Python exception:\n', traceback.format_exc()]
-        elif args[0] in log_levels.values():
+        elif args[0] in log_levels:
             severity = args.pop(0)
         else:
             severity = arc.DEBUG

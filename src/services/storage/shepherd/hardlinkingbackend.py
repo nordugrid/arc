@@ -7,6 +7,8 @@ import threading
 import time
 import stat
 
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.HardlinkingBackend'))
 
 class HardlinkingBackend:
     """
@@ -16,10 +18,9 @@ class HardlinkingBackend:
     public_request_names = []
     supported_protocols = ['http']
 
-    def __init__(self, backendcfg, ns_uri, file_arrived, log, ssl_config):
+    def __init__(self, backendcfg, ns_uri, file_arrived, ssl_config):
         """docstring for __init__"""
         self.ssl_config = ssl_config
-        self.log = log
         self.file_arrived = file_arrived
         #self.ns = arc.NS('she', ns_uri)
         self.datadir = str(backendcfg.Get('DataDir'))
@@ -50,26 +51,26 @@ class HardlinkingBackend:
                         # if the file does not exist, maybe it's already removed
                         del self.idstore[localID]
                         nlink = 0
-                    self.log.msg(arc.DEBUG, 'checking', localID, referenceID, nlink)
+                    log.msg(arc.DEBUG, 'checking', localID, referenceID, nlink)
                     if nlink == 1:
                         # if there is just one link for this file, it is already removed from the transfer dir
                         self.file_arrived(referenceID)
                         del self.idstore[localID]
             except:
-                self.log.msg()
+                log.msg()
     
         
 
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
-        self.log.msg(arc.DEBUG, self.turlprefix, 'Uploading file to', turl)
+        log.msg(arc.DEBUG, self.turlprefix, 'Uploading file to', turl)
         upload_to_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
-        self.log.msg(arc.DEBUG, self.turlprefix, 'Downloading file from', turl)
+        log.msg(arc.DEBUG, self.turlprefix, 'Downloading file from', turl)
         download_from_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
 
@@ -82,7 +83,7 @@ class HardlinkingBackend:
             # set it to readonly
             os.chmod(filepath, 0444)
             os.link(filepath, os.path.join(self.transferdir, turl_id))
-            self.log.msg(arc.DEBUG, self.turlprefix, '++', self.idstore)
+            log.msg(arc.DEBUG, self.turlprefix, '++', self.idstore)
             turl = self.turlprefix + turl_id
             return turl
         except:
@@ -97,7 +98,7 @@ class HardlinkingBackend:
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[localID] = referenceID
-        self.log.msg(arc.DEBUG, self.turlprefix, '++', self.idstore)
+        log.msg(arc.DEBUG, self.turlprefix, '++', self.idstore)
         turl = self.turlprefix + turl_id
         return turl
 
@@ -132,8 +133,8 @@ class HopiBackend( HardlinkingBackend ):
 
     def __init__(self, *args):
         HardlinkingBackend.__init__(self, *args)
-        self.log.msg(arc.DEBUG, "HopiBackend datadir:", self.datadir)
-        self.log.msg(arc.DEBUG, "HopiBackend transferdir:", self.transferdir)        
+        log.msg(arc.DEBUG, "HopiBackend datadir:", self.datadir)
+        log.msg(arc.DEBUG, "HopiBackend transferdir:", self.transferdir)        
 
 
 import pwd
@@ -143,13 +144,13 @@ class ApacheBackend( HardlinkingBackend ):
     Backend for Apache with hardlinking
     """
 
-    def __init__(self, backendcfg, ns_uri, file_arrived, log, ssl_config):
-        HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, log, ssl_config)
+    def __init__(self, backendcfg, ns_uri, file_arrived, ssl_config):
+        HardlinkingBackend.__init__(self, backendcfg, ns_uri, file_arrived, ssl_config)
         self.apacheuser = str(backendcfg.Get('ApacheUser'))
         self.uid = os.getuid()
         _, _, _, self.apachegid, _, _, _ = pwd.getpwnam(self.apacheuser) 
-        self.log.msg(arc.DEBUG, "ApacheBackend datadir:", self.datadir)
-        self.log.msg(arc.DEBUG, "ApacheBackend transferdir:", self.transferdir)
+        log.msg(arc.DEBUG, "ApacheBackend datadir:", self.datadir)
+        log.msg(arc.DEBUG, "ApacheBackend transferdir:", self.transferdir)
         
 
     def prepareToPut(self, referenceID, localID, protocol):
