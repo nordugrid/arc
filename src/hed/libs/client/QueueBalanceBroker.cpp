@@ -2,11 +2,11 @@
 #include <config.h>
 #endif
 
-#include <arc/client/SmartBroker.h>
+#include <arc/client/QueueBalanceBroker.h>
 
 namespace Arc {
     
-    QueueBalanceBroker::~QueueBalanceBroker() {}
+    //QueueBalanceBroker::~QueueBalanceBroker() {}
     
       // A template for the list sorting function //
      template<class T> class CompareExecutionTarget {
@@ -15,7 +15,7 @@ namespace Arc {
              virtual ~CompareExecutionTarget(){};
              bool operator()(const T& T1, const T& T2) const {
 		 //TODO: here come the compare
-                 return T1.MaxRunningJobs > T2.MaxRunningJobs;
+                 return T1.WaitingJobs < T2.WaitingJobs;
              }
      }; // End of template Compare
      

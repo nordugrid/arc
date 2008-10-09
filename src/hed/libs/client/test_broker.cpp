@@ -5,8 +5,7 @@
 #include <arc/client/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
 #include "RandomBroker.h"
-//#include "QueueBalanceBroker.h"
-#include "SmartBroker.h"
+#include "QueueBalanceBroker.h"
 
 int main() {
 
@@ -29,7 +28,7 @@ int main() {
     catch(char const* e) { std::cout <<"Exception: " << e <<std::endl;}
     
   try{
-        std::cout << " ***************  SMART Broker *************" << std::endl;	
+        std::cout << " ***************  QUEUEBALANCE Broker *************" << std::endl;	
         Arc::QueueBalanceBroker sr( targen, jobdescr );
         while(true){
 	     sr.get_Target().Print(true);

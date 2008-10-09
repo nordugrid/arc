@@ -6,12 +6,12 @@ libarcclient_la_HEADERS  = ACC.h Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
 	Job.h JobController.h JobSupervisor.h JobDescription.h \
 	ClientInterface.h UserConfig.h  \
-        RandomBroker.h SmartBroker.h	
+        RandomBroker.h QueueBalanceBroker.h	
 libarcclient_la_SOURCES  = ACC.cpp Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
 	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp \
 	ClientInterface.cpp UserConfig.cpp  \
-        RandomBroker.cpp SmartBroker.cpp
+        RandomBroker.cpp QueueBalanceBroker.cpp
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \

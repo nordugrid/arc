@@ -7,7 +7,7 @@ namespace Arc {
   class QueueBalanceBroker: public Broker {
         public:
                       QueueBalanceBroker(Arc::TargetGenerator& targen,  Arc::JobDescription jobd): Broker( targen, jobd ) {}
-                      virtual ~QueueBalanceBroker();
+//                      virtual ~QueueBalanceBroker();
         protected:
 	    void sort_Targets();
   };

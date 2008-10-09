@@ -18,16 +18,19 @@ namespace Arc {
               eTarget.MaxCPUTime = 1; 
               eTarget.RunningJobs = 1; 
               eTarget.MaxRunningJobs = 1; 
+              eTarget.WaitingJobs = 3;
               found_Targets.push_back(eTarget);
 
               eTarget.MinCPUTime = 1; 
-              eTarget.MaxRunningJobs = 22; 
+              eTarget.MaxRunningJobs = 22;
+              eTarget.WaitingJobs = 1; 
               found_Targets.push_back(eTarget);
 
               ExecutionTarget eTarget2;
               eTarget2.DefaultCPUTime = 1; 
               eTarget2.RunningJobs = 3; 
-              eTarget2.MaxRunningJobs = 31; 
+              eTarget2.MaxRunningJobs = 31;
+              eTarget2.WaitingJobs = 20; 
               found_Targets.push_back(eTarget2);
 	//end of "for get_Targets test"
  		      
