@@ -240,8 +240,8 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
       idmatched = ID_MATCH;
       return MATCH;
     }
-    else if(all_id_matched == int((*orit).size())) { idmatched = ID_MATCH; indeterminate = false; break; }
-    else if(all_id_matched > 0) { idmatched = ID_PARTIAL_MATCH; /*indeterminate = false;*/ }
+    else if(all_id_matched == int((*orit).size())) { idmatched = ID_MATCH; indeterminate = false; /*break;*/ }
+    //else if(all_id_matched > 0) { idmatched = ID_PARTIAL_MATCH; }
   }
   if(indeterminate) return INDETERMINATE;
   return NO_MATCH;
