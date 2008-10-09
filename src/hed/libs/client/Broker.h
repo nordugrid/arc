@@ -1,9 +1,11 @@
 #ifndef __ARC_BROKER_H__
 #define __ARC_BROKER_H__
 
-#include <list>
+#include <vector>
 
+#include <arc/Logger.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/client/JobDescription.h>
 #include <arc/client/ExecutionTarget.h>
 
 namespace Arc {
@@ -12,13 +14,13 @@ namespace Arc {
        public:
                  ExecutionTarget& get_Target();
        protected:
-	 Broker( Arc::TargetGenerator& targen );
+	 Broker( Arc::TargetGenerator& targen,  Arc::JobDescription jobd );
                  virtual ~Broker();
 	 virtual void sort_Targets()=0;
 	 
-	 std::list<Arc::ExecutionTarget> found_Targets;
+	 std::vector<Arc::ExecutionTarget> found_Targets;
        private:	 
-	 std::list<Arc::ExecutionTarget>::iterator current;
+	 std::vector<Arc::ExecutionTarget>::iterator current;		//current Target for a Job
   };
   
 } // namespace Arc

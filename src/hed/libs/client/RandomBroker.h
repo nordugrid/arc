@@ -1,15 +1,15 @@
 #ifndef __ARC_RANDOMBROKER_H__
 #define __ARC_RANDOMBROKER_H__
-#include "Broker.h"
+#include <arc/client/Broker.h>
 
 namespace Arc {
 
     class RandomBroker: public Broker {
        public:
-	   RandomBroker(Arc::TargetGenerator& targen);
+	   RandomBroker(Arc::TargetGenerator& targen,  Arc::JobDescription jobd): Broker( targen, jobd ) {}
                     //virtual ~RandomBroker();
        protected:	   
-	   void sort_Targets();
+	   virtual void sort_Targets();
   };
 
 } // namespace Arc

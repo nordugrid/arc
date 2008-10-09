@@ -2,18 +2,24 @@
 #include <config.h>
 #endif
 
-#include <arc/client/RandomBroker.h>
+#include <cstdlib>
+#include <algorithm>
 
+#include <arc/client/RandomBroker.h>
+	
 namespace Arc {
 
-    RandomBroker::RandomBroker( Arc::TargetGenerator& targen) : Broker( targen ) {
-          sort_Targets();
-  }
   //RandomBroker::~RandomBroker() {}
-  
+
   void RandomBroker::sort_Targets() {
-              std::cout <<"Random sort: not implemented yet"<<std::endl;
-              //not implemented yet
-  };
+            std::srand(time(NULL));
+            int i, j;    
+            for( unsigned int k=1; k<2*(std::rand()%found_Targets.size())+1; k++){
+	  i=rand()%found_Targets.size();
+	  j=rand()%found_Targets.size();
+	  std::iter_swap(found_Targets.begin()+i,found_Targets.begin()+j);
+            }      
+  }
+  
 
 } // namespace Arc
