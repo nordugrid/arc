@@ -29,12 +29,14 @@ class XMLSecNode: public XMLNode {
                      <Signature/> to refer to.
     *@param sign_method  The sign method for signing. Two options now, RSA_SHA1, DSA_SHA1
     */
-   void AddSignatureTemplate(const std::string& id_name, const SignatureMethod sign_method);
+   void AddSignatureTemplate(const std::string& id_name, const SignatureMethod sign_method, 
+      const std::string& incl_namespaces = "");
    /** Sign this node (identified by id_name).
     *@param privkey_file  The private key file. The private key is used for signing
     *@param cert_file     The certificate file. The certificate is used as the <KeyInfo/> part
                           of the <Signature/>; <KeyInfo/> will be used for the other end to verify
                           this <Signature/> 
+    *@param incl_namespaces  InclusiveNamespaces for Tranform in Signature
     */
    bool SignNode(const std::string& privkey_file, const std::string& cert_file);
    /** Verify the signature under this node

@@ -42,7 +42,8 @@ XMLSecNode::XMLSecNode(XMLNode& node):XMLNode(node) {
 XMLSecNode::~XMLSecNode(void) {
 }
 
-void XMLSecNode::AddSignatureTemplate(const std::string& id_name, const SignatureMethod sign_method) {
+void XMLSecNode::AddSignatureTemplate(const std::string& id_name, const SignatureMethod sign_method, 
+  const std::string& incl_namespaces) {
   xmlNodePtr signature = NULL;
   xmlNodePtr reference = NULL;
   if(sign_method == RSA_SHA1)
@@ -65,7 +66,9 @@ void XMLSecNode::AddSignatureTemplate(const std::string& id_name, const Signatur
   reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
                                               NULL, (xmlChar *)(uri.c_str()), NULL);
   xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
-  xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
+  xmlNodePtr transform = NULL;
+  transform = xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
+  xmlSecTmplTransformAddC14NInclNamespaces(transform, (const xmlChar*)(incl_namespaces.c_str()));
 
   xmlAttrPtr id_attr = xmlHasProp(nd, (xmlChar *)(id_name.c_str()));
   xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
