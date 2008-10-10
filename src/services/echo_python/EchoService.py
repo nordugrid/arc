@@ -41,7 +41,7 @@ class EchoService:
         # put it between the response-prefix and the response-suffix
         hear = self.prefix + say + self.suffix
         if request_name == 'double':
-            # let's call http://localhost:60000/Echo
+            print 'Calling http://localhost:60000/Echo'
             cfg = arc.MCCConfig()
             s = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Echo')
             new_payload = arc.PayloadSOAP(ns)
@@ -49,6 +49,10 @@ class EchoService:
             print 'new_payload', new_payload.GetXML()
             resp, status = s.process(new_payload)
             hear = str(resp.Get('echoResponse').Get('hear'))
+        elif request_name == 'wait':
+            print 'Start waiting 10 sec...'
+            time.sleep(10)
+            print 'Waiting ends.'
         # we create a node at '/echo:echoResponse/echo:hear' and put the string in it
         outpayload.NewChild('echo:echoResponse').NewChild('echo:hear').Set(hear)
         outmsg.Payload(outpayload)
