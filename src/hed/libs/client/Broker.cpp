@@ -2,17 +2,18 @@
 #include <config.h>
 #endif
 
-#include <arc/client/Broker.h>
 #include <list>
+
+#include <arc/client/Broker.h>
 
 namespace Arc {
     
-    Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
-    Arc::LogStream logcerr(std::cerr);
+    //Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
+    //Arc::LogStream logcerr(std::cerr);
     //Arc::Logger::getRootLogger().addDestination(logcerr);
     //Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
  	    
-    Broker::Broker( Arc::TargetGenerator& targen,  Arc::JobDescription jobd) {
+    Broker::Broker(Arc::TargetGenerator& targen,  Arc::JobDescription jobd) {
 	//for get_Targets test
               ExecutionTarget eTarget;
               eTarget.MaxCPUTime = 1; 
@@ -37,42 +38,47 @@ namespace Arc {
               targen.GetTargets(0, 1);
  	
               if (targen.FoundTargets().empty()) {
- 	    logger.msg(Arc::ERROR, "No Targets found!");
-	    //TODO: removed this and next comments
- 	    //throw "No Targets found!";
-             }
-             for (std::list<Arc::ExecutionTarget>::const_iterator target =
- 	           targen.FoundTargets().begin();
- 	         target != targen.FoundTargets().end(); target++) {  
-             //Pre filtering
+					logger.msg(Arc::ERROR, "No Targets found!");
+ 	    			throw "No Targets found!";
+              }
+
+              for (std::list<Arc::ExecutionTarget>::const_iterator target = \
+				   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
+				   target++) {  
+
+            		 // Candidate Set Generation
 	
-		     //if (the Target is good ) {
+				     //if (the Target is good ) {
 	                           //found_Targets.push_back( target );	     
-		     //}		     
-            // end of Pre filtering		     
-             }	
+				     //}		     
+
+            		// End of the Candidate Set Generation	     
+              }	
 		 
 
-             current =  found_Targets.begin();    
+             current = found_Targets.begin();    
    }
 
    Broker::~Broker() {}
     
-
    ExecutionTarget& Broker::get_Target() {
-            //If first time call this method, then must be sort the Targets list.
-            if ( current == found_Targets.begin()){
-                   sort_Targets();
-            }       
+		// If first time call this method, then must be sort the Targets list.
+
+    	if (current == found_Targets.begin()) {
+        	sort_Targets();
+        }       
        
-            std::vector<Arc::ExecutionTarget>::iterator ret_pointer;
-            ret_pointer = current;
-            current++;  
-            if ( ret_pointer==  found_Targets.end()){
-                    throw "No more ExecutionTarget!";  
-            }
-            return *ret_pointer;
+        std::vector<Arc::ExecutionTarget>::iterator ret_pointer;
+        ret_pointer = current;
+        current++;  
+
+        if (ret_pointer == found_Targets.end()) {
+        	throw "No more ExecutionTarget!";  
+        }
+
+        return *ret_pointer;
   }
-  
 
 } // namespace Arc
+
+

@@ -11,18 +11,24 @@
 namespace Arc {
 
   class Broker {
+
        public:
-                 ExecutionTarget& get_Target();
+			ExecutionTarget& get_Target();
+
        protected:
-	 Broker( Arc::TargetGenerator& targen,  Arc::JobDescription jobd );
-                 virtual ~Broker();
-	 virtual void sort_Targets()=0;
-	 
-	 std::vector<Arc::ExecutionTarget> found_Targets;
-       private:	 
-	 std::vector<Arc::ExecutionTarget>::iterator current;		//current Target for a Job
+			Broker(Arc::TargetGenerator& targen, Arc::JobDescription jobd);
+			virtual ~Broker();
+			virtual void sort_Targets() = 0;
+			std::vector<Arc::ExecutionTarget> found_Targets;
+
+       private:	
+			//current Target for a Job 
+			std::vector<Arc::ExecutionTarget>::iterator current;
+
   };
   
 } // namespace Arc
 
 #endif // __ARC_BROKER_H__
+
+
