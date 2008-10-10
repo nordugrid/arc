@@ -68,7 +68,8 @@ void XMLSecNode::AddSignatureTemplate(const std::string& id_name, const Signatur
   xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
   xmlNodePtr transform = NULL;
   transform = xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
-  xmlSecTmplTransformAddC14NInclNamespaces(transform, (const xmlChar*)(incl_namespaces.c_str()));
+  if(!incl_namespaces.empty())
+    xmlSecTmplTransformAddC14NInclNamespaces(transform, (const xmlChar*)(incl_namespaces.c_str()));
 
   xmlAttrPtr id_attr = xmlHasProp(nd, (xmlChar *)(id_name.c_str()));
   xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
