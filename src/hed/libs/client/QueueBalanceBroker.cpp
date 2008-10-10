@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <arc/client/QueueBalanceBroker.h>
 
 namespace Arc {
