@@ -38,7 +38,7 @@ namespace Arc {
               targen.GetTargets(0, 1);
  	
               if (targen.FoundTargets().empty()) {
-					logger.msg(Arc::ERROR, "No Targets found!");
+					//logger.msg(Arc::ERROR, "No Targets found!");
  	    			throw "No Targets found!";
               }
 
