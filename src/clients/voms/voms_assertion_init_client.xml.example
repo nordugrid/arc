@@ -1,0 +1,10 @@
+<ArcConfig>
+ <Chain>
+  <Component name="tls.client">
+  <!-- change the paths below to the location of your user certs -->
+   <KeyPath>/home/USER/userkey.pem</KeyPath>
+   <CertificatePath>/home/USER/usercert.pem</CertificatePath>
+   <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+  </Component>
+ </Chain>
+</ArcConfig>

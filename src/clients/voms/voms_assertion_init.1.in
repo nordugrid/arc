@@ -1,0 +1,59 @@
+.\" -*- nroff -*- 
+.TH VOMS_ASSERTION_INIT 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+voms_assertion_init \- ARC client to voms saml service
+
+.SH DESCRIPTION
+
+The
+.B voms_assertion_init
+command is a prototype client which is used for sending an attribute query request to a voms saml service.
+
+.SH SYNOPSIS
+
+.B voms_assertion_init [options] [filename ...]
+
+./voms_assertion_init -c voms_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
+
+.SH OPTIONS
+
+.IP "\fB-c\fR [-]\fIconfigurefile\fR, \fB-conf\fR [-]\fIconfigurefile\fR"
+specify the configuration file of this client
+.IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB-version\fR"
+print version information
+.IP "\fB-?\fR, \fB-help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBserviceurl\fR ..."
+url to voms saml service
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B voms_assertion_init
+command is a prototype client which is used for sending an attribute query request to a voms saml service.
+
+.IR Examples :
+.IP "\fBvoms_assertion_init -c voms_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType\fR ..."
+send the attribute query request to https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
+.LP
+
+.SH FILES
+
+.TP
+.B .arc/config.xml
+Some options can be given default values by specifying them in the
+ARC configuration file.
+
+.SH AUTHOR
+
+Weizhong Qiang <weizhong.qiang@fys.uio.no>
+
