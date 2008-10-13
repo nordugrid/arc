@@ -573,10 +573,10 @@ namespace Arc {
         } else if ( attributeName == "cputime" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
             if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("TotalCpuTime");
-            jobTree["JobDescription"]["Resources"]["TotalCpuTime"] = simpleXRSLvalue( attributeValue );
-            jobTree["JobDescription"]["Resources"].NewChild("IndividualCpuTime");
-            jobTree["JobDescription"]["Resources"]["IndividualCpuTime"] = simpleXRSLvalue( attributeValue );
+            jobTree["JobDescription"]["Resources"].NewChild("TotalCPUTime");
+            jobTree["JobDescription"]["Resources"]["TotalCPUTime"] = simpleXRSLvalue( attributeValue );
+            jobTree["JobDescription"]["Resources"].NewChild("IndividualCPUTime");
+            jobTree["JobDescription"]["Resources"]["IndividualCPUTime"] = simpleXRSLvalue( attributeValue );
             if ( !bool( jobTree["JobDescription"]["Application"] ) ) jobTree["JobDescription"].NewChild("Application");
             if ( !bool( jobTree["JobDescription"]["Application"]["POSIXApplication"] ) ) jobTree["JobDescription"]["Application"].NewChild("POSIXApplication");
             jobTree["JobDescription"]["Application"]["POSIXApplication"].NewChild("CPUTimeLimit");
@@ -728,10 +728,10 @@ namespace Arc {
         } else if ( attributeName == "count" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
             if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("TotalCpuCount");
-            jobTree["JobDescription"]["Resources"]["TotalCpuCount"] = simpleXRSLvalue( attributeValue );
-            jobTree["JobDescription"]["Resources"].NewChild("IndividualCpuCount");
-            jobTree["JobDescription"]["Resources"]["IndividualCpuCount"] = simpleXRSLvalue( attributeValue );
+            jobTree["JobDescription"]["Resources"].NewChild("TotalCPUCount");
+            jobTree["JobDescription"]["Resources"]["TotalCPUCount"] = simpleXRSLvalue( attributeValue );
+            jobTree["JobDescription"]["Resources"].NewChild("IndividualCPUCount");
+            jobTree["JobDescription"]["Resources"]["IndividualCPUCount"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "jobreport" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
