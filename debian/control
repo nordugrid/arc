@@ -85,7 +85,7 @@ Description: ARC development files
 
 Package: nordugrid-arc1-python
 Architecture: any
-Depends: norugrid-arc1-lib
+Depends: nordugrid-arc1-lib
 Description: ARC Python wrapper
  Python wrapper for ARC.
 
