@@ -16,7 +16,7 @@ namespace Arc {
 			ExecutionTarget& get_Target();
 
        protected:
-			Broker(Arc::TargetGenerator& targen, Arc::JobDescription jobd);
+			Broker(Arc::TargetGenerator& targen, Arc::JobDescription jd);
 			virtual ~Broker();
 			virtual void sort_Targets() = 0;
 			std::vector<Arc::ExecutionTarget> found_Targets;
@@ -30,5 +30,6 @@ namespace Arc {
 } // namespace Arc
 
 #endif // __ARC_BROKER_H__
+
 
 

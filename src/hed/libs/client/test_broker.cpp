@@ -19,6 +19,9 @@ int main() {
   Arc::TargetGenerator targen(usercfg, clusters, indexurls);
   Arc::JobDescription jobdescr;
 
+  std::string source("<JobDefinition><JobDescription><Resources>The resource item</Resources><Application>The application item</Application></JobDescription></JobDefinition>");
+  jobdescr.setSource(source);
+
   try {
 
         std::cout << "***************  RANDOM Broker *************" << std::endl;	
@@ -58,7 +61,6 @@ int main() {
   }
 
   return 0;
-
 }
 
 
