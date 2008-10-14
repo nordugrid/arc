@@ -849,16 +849,18 @@ AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"])
 
 # Sched service
 AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],[
-   if test "x$HAVE_DBCXX" = "xyes"; then
-    if test ! "x$WIN32" = "xyes" ; then
-      enable_sched_service="yes"
-    else
-      enable_sched_service="no"
-    fi
+  if test ! "x$WIN32" = "xyes" ; then
+    enable_sched_service="yes"
   else
     enable_sched_service="no"
   fi
 ])
+if test "$enable_sched_service" = "yes"; then
+  if test "$DBCXX_LIBS" = ""; then
+    enable_sched_service="no"
+    AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling SCHED Service])
+  fi
+fi
 AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service])
 AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"])
 
