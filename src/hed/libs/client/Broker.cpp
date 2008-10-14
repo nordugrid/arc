@@ -96,22 +96,22 @@ namespace Arc {
 			//This argoments are dependence from the Application item.
 			if ( jobd["JobDescription"]["Application"] ) {
 
-				if ( (int)(*target).MinWallTime.GetPeriod() != 0 ) {
+				if ( (int)(*target).MinWallTime.GetPeriod() != -1 ) {
 					if ( (int)(*target).MinWallTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 						continue;
 				}
 
-				if ( (int)(*target).MaxWallTime.GetPeriod() != 0 ) {
+				if ( (int)(*target).MaxWallTime.GetPeriod() != -1 ) {
 					if ( (int)(*target).MaxWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 						continue;
 				}
 
-				if ( (int)(*target).MaxTotalWallTime.GetPeriod() != 0 ) {
+				if ( (int)(*target).MaxTotalWallTime.GetPeriod() != -1 ) {
 					if ( (int)(*target).MaxTotalWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 						continue;
 				}
 
-				if ( (int)(*target).DefaultWallTime.GetPeriod() != 0 ) {
+				if ( (int)(*target).DefaultWallTime.GetPeriod() != -1 ) {
 					if ( (int)(*target).DefaultWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 						continue;
 				}
@@ -119,28 +119,28 @@ namespace Arc {
 			}
 
 			//This argoments are dependence from the Application and the Resource items.
-			if ( (int)(*target).MinCPUTime.GetPeriod() != 0 ) {
+			if ( (int)(*target).MinCPUTime.GetPeriod() != -1 ) {
 				if ( (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
 				     (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Resources"]["TotalCPUTime"] || 
 				     (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 					continue;
 			}
 
-			if ( (int)(*target).MaxCPUTime.GetPeriod() != 0 ) {
+			if ( (int)(*target).MaxCPUTime.GetPeriod() != -1 ) {
 				if ( (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
 				     (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["TotalCPUTime"] ||
 				     (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 					continue;
 			}
 
-			if ( (int)(*target).MaxTotalCPUTime.GetPeriod() != 0 ) {
+			if ( (int)(*target).MaxTotalCPUTime.GetPeriod() != -1 ) {
 				if ( (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
 				     (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["TotalCPUTime"] ||
 				     (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 					continue;
 			}
 
-			if ( (int)(*target).DefaultCPUTime.GetPeriod() != 0 ) {
+			if ( (int)(*target).DefaultCPUTime.GetPeriod() != -1 ) {
 				if ( (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
 				     (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["TotalCPUTime"] ||
 				     (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
