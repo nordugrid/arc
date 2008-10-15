@@ -249,12 +249,12 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, const std::string& ca_dir, con
          identity_=subject;
       };
 #endif
+      // Parse VOMS attributes from peer certificate
+      bool res = ArcLib::parseVOMSAC(peercert, ca_dir, ca_file, vomscert_trust_dn, attributes_);
+
       X509_free(peercert);
    };
    if(identity_.empty()) identity_=subject;
-
-   //Parse the attribute from peer certificate
-   //bool res = ArcLib::parseVOMSAC(peercert, ca_dir, ca_file, vomscert_trust_dn, attributes_);
 
    X509* hostcert = payload.GetCert();
    if (hostcert != NULL) {
