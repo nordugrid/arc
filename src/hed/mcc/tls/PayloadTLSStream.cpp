@@ -27,15 +27,23 @@ void PayloadTLSStream::HandleError(int code) {
 }
 
 void PayloadTLSStream::HandleError(Logger& logger,int code) {
-  if(code != SSL_ERROR_NONE) 
-     logger.msg(DEBUG, "SSL error Code: %d", code);
-  unsigned long e = ERR_get_error();
+  //if(code != SSL_ERROR_NONE) 
+  //   logger.msg(DEBUG, "SSL error Code: %d", code);
+  //unsigned long e = ERR_get_error();
+  unsigned long e = code;
   while(e != 0) {
-    logger.msg(ERROR, "DEBUG: SSL_write error: %d %s:%s:%s", 
-                      e, 
-                      ERR_lib_error_string(e),
-                      ERR_func_error_string(e),
-                      ERR_reason_error_string(e));
+    if(e == SSL_ERROR_SYSCALL) {
+      logger.msg(ERROR, "SSL error: %d - system call failed",e); 
+    } else {
+      const char* lib = ERR_lib_error_string(e);
+      const char* func = ERR_func_error_string(e);
+      const char* reason = ERR_reason_error_string(e);
+      logger.msg(ERROR, "SSL error: %d - %s:%s:%s", 
+                        e, 
+                        lib?lib:"",
+                        func?func:"",
+                        reason?reason:"");
+    };
     e = ERR_get_error();
   }
 }
