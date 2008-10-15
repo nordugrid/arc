@@ -384,6 +384,7 @@ void MCC_TCP_Service::executer(void* arg) {
     MessageContext context;
     MessageAuthContext auth_context;
     for(;;) {
+        // TODO: Check state of socket here and leave immediately if not connected anymore.
         // Preparing Message objects for chain
         Message nextinmsg;
         Message nextoutmsg;
