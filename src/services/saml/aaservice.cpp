@@ -242,7 +242,8 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   Arc::XMLSecNode assertion_secnd(assertion);
   std::string assertion_idname("ID");
-  assertion_secnd.AddSignatureTemplate(assertion_idname, Arc::XMLSecNode::RSA_SHA1);
+  std::string inclusive_namespaces = "saml ds";
+  assertion_secnd.AddSignatureTemplate(assertion_idname, Arc::XMLSecNode::RSA_SHA1, inclusive_namespaces);
   std::string privkey("key.pem");
   std::string cert("cert.pem");
   if(assertion_secnd.SignNode(privkey,cert)) {

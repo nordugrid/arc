@@ -1,5 +1,5 @@
 pkglib_LTLIBRARIES = libaa.la
-noinst_PROGRAMS = login_tests saml_tests test_service test_client test_client_authn test_client2voms_saml_service #test
+noinst_PROGRAMS = login_tests saml_tests test_service test_client test_client2shibboleth test_client2voms_saml_service #test
 
 libaa_la_SOURCES  = aaservice.cpp aaservice.h
 libaa_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
@@ -34,9 +34,9 @@ test_client_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
                        $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_LIBS)
 
-test_client_authn_SOURCES  = test_client_authn.cpp
-test_client_authn_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
-test_client_authn_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+test_client2shibboleth_SOURCES  = test_client2shibboleth.cpp
+test_client2shibboleth_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
+test_client2shibboleth_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                        $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \

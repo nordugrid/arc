@@ -74,8 +74,26 @@ int main(void) {
   std::string cafile("./ca.pem");
 
   ArcLib::Credential cred(cert, key, "", cafile);
-  //std::string local_dn = cred.GetDN();
-  std::string local_dn("CN=test,O=UiO,ST=Oslo,C=NO");
+  std::string local_dn_str = cred.GetDN();
+  std::string local_dn;
+  size_t pos1 = std::string::npos;
+  size_t pos2;
+  do {
+    std::string str;
+    pos2 = local_dn_str.find_last_of("/", pos1);
+    if(pos2 != std::string::npos && pos1 == std::string::npos) { 
+      str = local_dn_str.substr(pos2+1);
+      local_dn.append(str);
+      pos1 = pos2-1;
+    }
+    else if (pos2 != std::string::npos && pos1 != std::string::npos) {
+      str = local_dn_str.substr(pos2+1, pos1-pos2);
+      local_dn.append(str);
+      pos1 = pos2-1;
+    }
+    if(pos2 != (std::string::npos+1)) local_dn.append(",");
+  }while(pos2 != std::string::npos && pos2 != (std::string::npos+1));
+  //std::string local_dn("CN=test,O=UiO,ST=Oslo,C=NO");
 
   //Compose <samlp:AttributeQuery/>
   Arc::XMLNode attr_query(ns, "samlp:AttributeQuery");
@@ -170,6 +188,20 @@ int main(void) {
 
   response->GetXML(str);
   std::cout<<"Response: "<<str<<std::endl;
+ 
+  std::string file_name = "saml_assertion.xml";
+/*
+  std::ofstream out(file_name.c_str(), std::ios::out);
+  out << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+  out << str;
+  out.close();
+*/
+  std::ifstream in(file_name.c_str(), std::ios::in);
+  str.clear();
+  std::getline<char>(in,str,0);
+  in.close();
+
+  Arc::XMLNode node(str);
 
   // -------------------------------------------------------
   //   Comsume the response from saml voms service
@@ -178,15 +210,19 @@ int main(void) {
   Arc::XMLNode attr_resp;
   
   //<samlp:Response/>
-  attr_resp = (*response).Body().Child(0);
- 
+  //attr_resp = (*response).Body().Child(0);
+
+  attr_resp = node["soap-env:Body"].Child(0); 
+  attr_resp.GetXML(str);
+  std::cout<<"Response +++: "<<str<<std::endl;
+
   //TODO: metadata processing.
   //std::string aa_name = attr_resp["saml:Issuer"]; 
  
   //Check validity of the signature on <samlp:Response/>
 /*
   std::string resp_idname = "ID";
-  std::string cafile1 = "./ca.pem";
+  std::string cafile1 = "./1f0e8352.0";
   std::string capath1 = "";
   Arc::XMLSecNode attr_resp_secnode(attr_resp);
   if(attr_resp_secnode.VerifyNode(resp_idname, cafile1, capath1)) {
@@ -199,11 +235,13 @@ int main(void) {
 */
  
   //Check whether the "InResponseTo" is the same as the local ID
+/*
   std::string responseto_id = (std::string)(attr_resp.Attribute("InResponseTo"));
   if(query_id != responseto_id) {
     logger.msg(Arc::INFO, "The Response is not going to this end");
     Arc::final_xmlsec(); return -1;
   }
+*/
 
   std::string resp_time = attr_resp.Attribute("IssueInstant");
 
@@ -219,9 +257,12 @@ int main(void) {
   //std::string aa_name = assertion["saml:Issuer"];
  
   //Check validity of the signature on <saml:Assertion/>
-/*
+
+  assertion.GetXML(tmp);
+  std::cout<<"SAML Assertion: "<<tmp<<std::endl;
+
   std::string assertion_idname = "ID";
-  std::string cafile2 = "./ca.pem";
+  std::string cafile2 = "./1f0e8352.0";
   std::string capath2 = "";
   Arc::XMLSecNode assertion_secnode(assertion);
   if(assertion_secnode.VerifyNode(assertion_idname, cafile2, capath2)) {
@@ -231,7 +272,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Failed to verify the signature under <saml:Assertion/>");
     Arc::final_xmlsec(); return -1;
   }
-*/
+
 
   //<saml:Subject/>, TODO: 
   Arc::XMLNode subject_nd = assertion["saml:Subject"];
