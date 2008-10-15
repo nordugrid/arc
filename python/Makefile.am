@@ -20,7 +20,7 @@ include ./$(DEPDIR)/arc_wrap.deps
 arc_wrap.cpp arc.py: $(top_srcdir)/swig/*.i
 	grep -h '^#' $(top_srcdir)/swig/*.i | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT arc.py -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
-	$(SWIG) -v -c++ -python -module arc -o arc_wrap.cpp \
+	$(SWIG) -v -c++ -python -threads -module arc -o arc_wrap.cpp \
 		-I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
 	cp arc_wrap.cpp arc_wrap.cpp.bak
 	sed -e 's/^  int res = 0;$$//' \
