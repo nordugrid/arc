@@ -22,6 +22,8 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/UserConfig.h>
+#include <arc/client/RandomBroker.h>
+#include <arc/client/QueueBalanceBroker.h>
 
 int main(int argc, char **argv) {
 
@@ -239,27 +241,47 @@ int main(int argc, char **argv) {
 	 jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
 
-    // perform brokering (not yet implemented)
-    // for now use execution targets in the order found...
+    // perform brokering
+    //You can use the RandomBroker  or the QueueBalanceBroker.
+    Arc::RandomBroker broker(targen, *it);
+    //Arc::QueueBalanceBroker broker(targen, *it);
+    Arc::ExecutionTarget target;
 
-    for (std::list<Arc::ExecutionTarget>::const_iterator target =
-	   targen.FoundTargets().begin();
-	 target != targen.FoundTargets().end(); target++) {
+    while ( true ) {
+      try {
+                // for now use execution targets in the order found...
+                target = broker.get_Target();
+      }
+       catch (char* e) {
+    	logger.msg(Arc::ERROR, "Job submission failed because:  " + (std::string)e );
+                std::cout << "Job submission failed because:  " + (std::string)e << std::endl;
+ 	break;
+      }
+      catch (const char* e) {
+    	logger.msg(Arc::ERROR, "Job submission failed because:  " + (std::string)e );
+                std::cout << "Job submission failed because:  " + (std::string)e << std::endl;
+	break;
+      }
+      catch (...) {
+    	logger.msg(Arc::ERROR, "Job submission failed!  Unknown error." );
+                std::cout << "Job submission failed!  Unknown error." << std::endl;
+	break;
+      }
 
-      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
+      Arc::Submitter *submitter = target.GetSubmitter(usercfg);
 
       Arc::NS ns;
       Arc::XMLNode info(ns, "Job");
       if (!submitter->Submit(*it, info)) {
-	logger.msg(Arc::ERROR, "Submission to %s failed", target->url.str());
+	logger.msg(Arc::ERROR, "Submission to %s failed", target.url.str());
 	continue;
       }
 
       if (it->getXML()["JobDescription"]["JobIdentification"]["JobName"])
 	info.NewChild("Name") = (std::string)
 	  it->getXML()["JobDescription"]["JobIdentification"]["JobName"];
-      info.NewChild("Flavour") = target->GridFlavour;
-      info.NewChild("Cluster") = target->Cluster.str();
+      info.NewChild("Flavour") = target.GridFlavour;
+      info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
 
       jobstorage.NewChild("Job").Replace(info);
