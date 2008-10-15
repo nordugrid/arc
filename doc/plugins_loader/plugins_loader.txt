@@ -1,0 +1,34 @@
+
+Each plugin implements function (C convention)
+
+typedef Plugin* (*get_plugin_instance)(PluginArgument* arg);
+
+Here Plugin is base virtual class for every plugin implementation or wrapper (descision
+is up to plugin implementor). PluginArgument is base class for any class needed to pass 
+information necessary for instantiating Plugin.
+
+All get_plugin_instance() functions are listed in table refered to by symbol __arc_plugins_table__.
+Table is C array made of following elements:
+
+typedef struct {
+  const char* type;
+  const char* name;
+  uint32_t version;
+  get_plugin_instance instance; 
+} PluginDesription;
+
+Here 'type' points to a null terminated string which identifies type/kind of plugin.
+Supported kinds are (list not complete):
+ * "HED:MCC" - Chain Component
+ * "HED:DMC" - Data Management Component
+ * "HED:PDC" - Policy Decision Point
+ * "HED:SHC" - Security Handler
+It is allowed to extend amount of supported kinds. If You introduce new kind follow
+format "namespace:typename". Choose sufficiently long namespace part of kind to avoid 
+collisions.
+'name' points to null terminated string which identifies plugin.
+'version' specifies version of plugin if applicable. It is up to plugin's developer
+to choose versioning algorithm. It is advised to use scheme 
+  (major_number << 24) | (minor_number << 16) | (subminor_number) << 8 | bugfix_number.
+'instance' points to function which returns instance of plugin's class or some kind of 
+it's wrapper.
