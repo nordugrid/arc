@@ -75,6 +75,7 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
   XMLNode policy_store = (*cfg)["PolicyStore"];
   XMLNode policy_location = policy_store["Location"];
   for(;(bool)policy_location;++policy_location) policy_locations.push_back((std::string)policy_location);
+  policy_combining_alg = (std::string)((*cfg)["PolicyCombiningAlg"]);
 }
 
 bool ArcPDP::isPermitted(Message *msg){
@@ -113,6 +114,29 @@ bool ArcPDP::isPermitted(Message *msg){
         for(std::list<std::string>::iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
           eval->addPolicy(SourceFile(*it));
         }
+        if(!policy_combining_alg.empty()) {
+          if(policy_combining_alg == "EvaluatorFailsOnDeny") {
+            eval->setCombiningAlg(EvaluatorFailsOnDeny);
+          } else if(policy_combining_alg == "EvaluatorStopsOnDeny") {
+            eval->setCombiningAlg(EvaluatorStopsOnDeny);
+          } else if(policy_combining_alg == "EvaluatorStopsOnPermit") {
+            eval->setCombiningAlg(EvaluatorStopsOnPermit);
+          } else if(policy_combining_alg == "EvaluatorStopsNever") {
+            eval->setCombiningAlg(EvaluatorStopsNever);
+          } else {
+            AlgFactory* factory = eval->getAlgFactory();
+            if(!factory) {
+              logger.msg(WARNING, "Evaluator does not support loadable Combining Algorithms");
+            } else {
+              CombiningAlg* algorithm = factory->createAlg(policy_combining_alg);
+              if(!algorithm) {
+                logger.msg(ERROR, "Evaluator does not support specified Combining Algorithm - %s",policy_combining_alg);
+              } else {
+                eval->setCombiningAlg(algorithm);
+              };
+            };
+          };
+        };
         msg->Context()->Add(ctxid, pdpctx);
       } else {
         delete pdpctx;

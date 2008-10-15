@@ -47,7 +47,7 @@
   <xsd:attribute name="Id" type="xsd:anyURI" use="required"/>
   <!-- Combining Algorithm for Rules,  e.g. "DenyOverride" means any "Deny" evaluation 
        resulting from any Rule will override all "Permit" results from the other Rules. -->
-  <xsd:attribute name="RuleCombiningAlg" type="xsd:anyURI"/> 
+  <xsd:attribute name="RuleCombiningAlg" type="xsd:string"/> 
  </xsd:complexType>
 
 

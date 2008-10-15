@@ -17,7 +17,7 @@
     <xsd:element name="Filter" type="FilterType"/>
 
     <!--
-        This element specified file containing policy document.
+        This element specifies file containing policy document.
         There could be multiple sub elements <Location/>.
     -->
     <xsd:element name="PolicyStore" type="PolicyStoreType"/>
@@ -36,5 +36,15 @@
         </xsd:attribute>
         <xsd:restriction base="xsd:string"/>
     </xsd:complexType>
+
+    <!-- Combining Algorithm for Policies.
+       For supported names please check documentation. In addition to those there are 
+       also few legacy algorithms provided:
+         EvaluatorFailsOnDeny,
+         EvaluatorStopsOnDeny,
+         EvaluatorStopsOnPermit,
+         EvaluatorStopsNever.
+       Unfortunately they behavior is not well defined.
+    <xsd:element name="PolicyCombiningAlg" type="xsd:string"/>
 
 </xsd:schema>
