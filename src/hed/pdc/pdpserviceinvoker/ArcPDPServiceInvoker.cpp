@@ -102,22 +102,24 @@ bool ArcPDPServiceInvoker::isPermitted(Message *msg){
   if(client) {
     Arc::MCC_Status status = client->process(&req,&resp);
     if(!status) {
-      logger.msg(Arc::ERROR, "Policy Decision Service invokation failed");
-      throw std::runtime_error("Policy Decision Service invokation failed");
+      logger.msg(Arc::ERROR, "Policy Decision Service invocation failed");
     }
     if(resp == NULL) {
       logger.msg(Arc::ERROR,"There was no SOAP response");
-      throw std::runtime_error("There was no SOAP response");
     }
   }
 
-  std::string str;
-  resp->GetXML(str);
-  logger.msg(Arc::INFO, "Response: %s", str);
+  std::string authz_res;
+  if(resp) {
+    std::string str;
+    resp->GetXML(str);
+    logger.msg(Arc::INFO, "Response: %s", str);
 
-  std::string authz_res = (std::string)((*resp)["pdp:GetPolicyDecisionResponse"]["response:Response"]["response:AuthZResult"]);
+    // TODO: Fix namespaces
+    authz_res=(std::string)((*resp)["pdp:GetPolicyDecisionResponse"]["response:Response"]["response:AuthZResult"]);
 
-  if(resp) delete resp;
+    delete resp;
+  } 
 
   if(authz_res == "PERMIT") { logger.msg(Arc::INFO,"Authorized from remote pdp service"); return true; }
   else { logger.msg(Arc::INFO,"Unauthorized from remote pdp service"); return false; }
