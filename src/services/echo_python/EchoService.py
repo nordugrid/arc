@@ -31,6 +31,7 @@ class EchoService:
         if not request_name.startswith(echo_ns + ':'):
             raise Exception, 'wrong namespace. expected: %s' % ('urn:echo')
         # get the name of the request without the namespace prefix
+        # this is the name of the Body node's first child
         request_name = request_node.Name()
         # create an answer payload
         ns = arc.NS({'echo': 'urn:echo'})
@@ -41,26 +42,38 @@ class EchoService:
         # put it between the response-prefix and the response-suffix
         hear = self.prefix + say + self.suffix
         if request_name == 'double':
-            print 'Calling http://localhost:60000/Echo'
+            # if the name of the request is 'double'
+            # we create a new echo message which we send to http://localhost:60000/Echo using the ClientSOAP object
+            print 'Calling http://localhost:60000/Echo using ClientSOAP'
             cfg = arc.MCCConfig()
+            # creating the ClientSOAP object
             s = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Echo')
             new_payload = arc.PayloadSOAP(ns)
+            # creating the message
             new_payload.NewChild('echo:echo').NewChild('echo:say').Set(hear)
             print 'new_payload', new_payload.GetXML()
+            # sending the message
             resp, status = s.process(new_payload)
+            # get the response
             hear = str(resp.Get('echoResponse').Get('hear'))
         elif request_name == 'httplib':
+            # if the name of the request is 'httplib'
+            # we create a new echo message which we send to http://localhost:60000/echo using python's built-in http client
             import httplib
-            print 'Calling http://localhost:60000/Echo with httplib'
+            print 'Calling http://localhost:60000/Echo using httplib'
+            # create the connection
             h = httplib.HTTPConnection('localhost', 60000)
             new_payload = arc.PayloadSOAP(ns)
+            # create the message
             new_payload.NewChild('echo:echo').NewChild('echo:say').Set(hear)
             print 'new_payload', new_payload.GetXML()
+            # send the message
             h.request('POST', '/Echo', new_payload.GetXML())
             r = h.getresponse()
             response = r.read()
             print response
             resp = arc.XMLNode(response)
+            # get the response
             hear = str(resp.Child().Get('echoResponse').Get('hear'))
         elif request_name == 'wait':
             print 'Start waiting 10 sec...'
