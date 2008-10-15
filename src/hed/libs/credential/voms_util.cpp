@@ -1162,7 +1162,10 @@ err:
         aclist = (AC_SEQ *)X509V3_EXT_d2i(ext);
       }
     }    
-    if(aclist == NULL) { std::cerr<<"No AC in the proxy certificate"<<std::endl; return false; }
+    if(aclist == NULL) {
+      while(ERR_get_error() != 0);
+      std::cerr<<"No AC in the proxy certificate"<<std::endl; return false;
+    }
 
     bool verified = false;
     int num = sk_AC_num(aclist->acs);
@@ -1173,6 +1176,7 @@ err:
       }
       if (!verified) break;
     } 
+    while(ERR_get_error() != 0);
 
     return verified;
   }
