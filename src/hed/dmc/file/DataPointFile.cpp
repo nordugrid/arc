@@ -40,6 +40,7 @@ namespace Arc {
     if (url.Protocol() == "file") {
       cache = false;
       is_channel = false;
+      local = true;
     }
     else if (url.Path() == "-") {
       linkable = false;
