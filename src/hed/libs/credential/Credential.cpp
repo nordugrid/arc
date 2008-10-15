@@ -1005,7 +1005,7 @@ err:
 
   X509* Credential::GetCert(void) {
     X509* cert = NULL;
-    cert = X509_dup(cert_);
+    if(cert_) cert = X509_dup(cert_);
     return cert;
   }
 
