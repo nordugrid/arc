@@ -110,7 +110,7 @@ if (!@caches) {
     while (<FILE>) {
         if (/^cachedir=/) {
             if (/%/) {print "\n Warning: cache-clean cannot deal with substitutions - $_\n";}
-            elsif (m!^cachedir=((/\w+)+)! || m!^cachedir="((/\w+)+)!) {push(@caches, $1);} #"
+            elsif (m!^cachedir="(/\S+)\s(/\S+)"! || m!^cachedir="(/\S+)"! || m!^cachedir=(/\S+)!) {push(@caches, $1);}
         }
     }
 
