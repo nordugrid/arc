@@ -256,7 +256,7 @@ bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
     // look at modification time
     time_t mod_time = fileStat.st_mtime;
     time_t now = time(NULL);
-    logger.msg(DEBUG, "%l seconds since lock file was created", now - mod_time);
+    logger.msg(DEBUG, "%li seconds since lock file was created", now - mod_time);
     
     if ((now - mod_time) > lock_timeout) {
       logger.msg(DEBUG, "Timeout has expired, will remove lock file");
