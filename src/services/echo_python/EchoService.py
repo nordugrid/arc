@@ -49,6 +49,19 @@ class EchoService:
             print 'new_payload', new_payload.GetXML()
             resp, status = s.process(new_payload)
             hear = str(resp.Get('echoResponse').Get('hear'))
+        elif request_name == 'httplib':
+            import httplib
+            print 'Calling http://localhost:60000/Echo with httplib'
+            h = httplib.HTTPConnection('localhost', 60000)
+            new_payload = arc.PayloadSOAP(ns)
+            new_payload.NewChild('echo:echo').NewChild('echo:say').Set(hear)
+            print 'new_payload', new_payload.GetXML()
+            h.request('POST', '/Echo', new_payload.GetXML())
+            r = h.getresponse()
+            response = r.read()
+            print response
+            resp = arc.XMLNode(response)
+            hear = str(resp.Child().Get('echoResponse').Get('hear'))
         elif request_name == 'wait':
             print 'Start waiting 10 sec...'
             time.sleep(10)
@@ -56,6 +69,7 @@ class EchoService:
         # we create a node at '/echo:echoResponse/echo:hear' and put the string in it
         outpayload.NewChild('echo:echoResponse').NewChild('echo:hear').Set(hear)
         outmsg.Payload(outpayload)
+        print "outpayload", outpayload.GetXML()
         # return with STATUS_OK
         return arc.MCC_Status(arc.STATUS_OK)
 
