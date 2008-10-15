@@ -7,23 +7,6 @@
 #include <fstream>
 #include <signal.h>
 
-#include <xmlsec/base64.h>
-#include <xmlsec/errors.h>
-#include <xmlsec/xmltree.h>
-#include <xmlsec/xmldsig.h>
-#include <xmlsec/xmlenc.h>
-#include <xmlsec/templates.h>
-#include <xmlsec/crypto.h>
-#include <xmlsec/openssl/app.h>
-
-#include <openssl/bio.h>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <openssl/rand.h>
-#ifdef CHARSET_EBCDIC
-#include <openssl/ebcdic.h>
-#endif
-
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>

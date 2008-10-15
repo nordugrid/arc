@@ -7,23 +7,6 @@
 #include <fstream>
 #include <signal.h>
 
-#include <xmlsec/base64.h>
-#include <xmlsec/errors.h>
-#include <xmlsec/xmltree.h>
-#include <xmlsec/xmldsig.h>
-#include <xmlsec/xmlenc.h>
-#include <xmlsec/templates.h>
-#include <xmlsec/crypto.h>
-#include <xmlsec/openssl/app.h>
-
-#include <openssl/bio.h>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <openssl/rand.h>
-#ifdef CHARSET_EBCDIC
-#include <openssl/ebcdic.h>
-#endif
-
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -64,8 +47,31 @@ typedef enum {
   HTTP_METHOD_ARTIFACT_POST
 } HttpMethod;
 
-///A example about how to compose a SAML <AttributeQuery> and call the Service_AA service, by
-///using xmlsec library to compose <AttributeQuery> and process the <Response>.
+///A example about how to mimic the process of Shibboleth SAML2SSO and SAML2AttributeQuery profile.
+///The intention is to use the Shibboleth IdP for authentication and attribute query in order to 
+///demostrate the saml2 standard compatibility and utilize the Shib IdP to get the authentication 
+///result and attributes for protecting the web services.
+/**Some idea about how to integrate shibboleth functionality into HED.
+ * The use case about intergrating Shib IdP is the same as the use case in Shibboleth (SAML2SSO and 
+ * SAML2AttributeQuery), except that we are protecting normal web service instead of web 
+ * application in Shib SP, and we are using some specific code in the client to 
+ * interact with service instead of the Web browser in Shibboleth client.
+ * 1. Client access service. A security handler in service will interact with the security handler in 
+ * client to do something like: Where are you from? Composing AuthnRequest, and then return the AuthnRequest 
+ * to client. 
+ * 2. Client authencate with Shib IdP by using whatever mechanism. 
+ * 3. Client get the AuthnRequest and POST it to Shib IdP by http protocol, and get back b64 encoded Saml 
+ * response which included the encrypted Authentication assertion from Shib IdP. 
+ * 4. Client (the above security handler in client side) POST the above saml response to service; then 
+ * the above security handler in service side will decode, verify this saml response, and decrypt the 
+ * saml assertion and saml NameID in this saml assertion. 
+ * 5.The security handler in service side use this NameID to compose a saml Attribute Query, and send it 
+ * directly to Shib IdP, and finally get back the attributes which will be used for authorization. 
+ *
+ * So the basic idea is to mimic the client-agent and Shib SP in the typical Shibboleth scenario, but 
+ * keep the Shib IdP. The benifit it that we can utilize the widely-deployed Shib IdP for protecting 
+ * web/grid service.
+ */
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
@@ -74,18 +80,19 @@ int main(void) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
 
+  Arc::NS saml_ns;
+  saml_ns["saml"] = SAML_NAMESPACE;
+  saml_ns["samlp"] = SAMLP_NAMESPACE;
+
   //----------------------------------
   //Client-Agent and SP: Compose AuthnRequest
   //Client-Agent access SP, SP generate AuthnRequest and respond it to Client-Agent
   //----------------------------------
-  Arc::NS req_ns;
-  req_ns["saml"] = SAML_NAMESPACE;
-  req_ns["samlp"] = SAMLP_NAMESPACE;
 
   //Compose <samlp:AuthnRequest/>
-  Arc::XMLNode authn_request(req_ns, "samlp:AuthnRequest");
-  //std::string sp_name1("https://sp.testshib.org/shibboleth-sp"); //TODO
-  std::string sp_name1("https://squark.uio.no/shibboleth-sp");
+  Arc::XMLNode authn_request(saml_ns, "samlp:AuthnRequest");
+  //std::string sp_name("https://sp.testshib.org/shibboleth-sp"); //TODO
+  std::string sp_name("https://squark.uio.no/shibboleth-sp");
   std::string req_id = Arc::UUID();
   authn_request.NewAttribute("ID") = req_id;
   Arc::Time t1;
@@ -100,13 +107,13 @@ int main(void) {
   authn_request.NewAttribute("Destination") = destination;
   authn_request.NewAttribute("ProtocolBinding") = std::string("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
    
-  authn_request.NewChild("saml:Issuer") = sp_name1;
+  authn_request.NewChild("saml:Issuer") = sp_name;
   
   Arc::XMLNode nameid_policy = authn_request.NewChild("samlp:NameIDPolicy");
   nameid_policy.NewAttribute("AllowCreate") = std::string("1");
 
   //nameid_policy.NewAttribute("Format") = std::string("urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
-  //nameid_policy.NewAttribute("SPNameQualifier") = sp_name1;
+  //nameid_policy.NewAttribute("SPNameQualifier") = sp_name;
 
   //authn_request.NewAttribute("IsPassive") = std::string("false");
   //authn_request.NewAttribute() =  
@@ -156,8 +163,6 @@ int main(void) {
   pos = url_str.find(":", pos+1);
   pos = url_str.find("/", pos+1);
   std::string path = url_str.substr(pos);
-
-  std::cout<<path<<std::endl;
 
   Arc::ClientHTTP client(cfg, url.Host(), url.Port(), url.Protocol() == "https" ? 1:0, path);
 
@@ -248,8 +253,73 @@ int main(void) {
   //-----------------------
   //SP: AttributeQuery
   //-----------------------
+  //Compose <samlp:AttributeQuery/>
+  std::string cert = "testcert.pem";
+  std::string key = "testkey-nopass.pem";
+  std::string cafile = "cacert.pem";
+
+  ArcLib::Credential cred(cert, key, "", cafile);
+  std::string local_dn = cred.GetDN();
+
+  Arc::XMLNode attr_query(saml_ns, "samlp:AttributeQuery");
+  std::string query_id = Arc::UUID();
+  attr_query.NewAttribute("ID") = query_id;
+  Arc::Time t;
+  std::string current_time = t.str(Arc::UTCTime);
+  attr_query.NewAttribute("IssueInstant") = current_time;
+  attr_query.NewAttribute("Version") = std::string("2.0");
+
+  Arc::XMLNode issuer = attr_query.NewChild("saml:Issuer");
+  issuer = sp_name;
+
+  Arc::XMLNode subject = attr_query.NewChild("saml:Subject");
+  Arc::XMLNode name_id = subject.NewChild("saml:NameID");
+  name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
+  name_id = (std::string)decrypted_nameid_nd;
+
+  std::string str;
+  attr_query.GetXML(str);
+  std::cout<<"Attribute Query: "<<str<<std::endl;
+
+  Arc::NS soap_ns;
+  Arc::SOAPEnvelope envelope(soap_ns);
+  envelope.NewChild(attr_query);
+  Arc::PayloadSOAP attrqry_request(envelope);
+ 
+  // Send request
+  Arc::MCCConfig attrqry_cfg;
+  if (!cert.empty())
+    attrqry_cfg.AddCertificate(cert);
+  if (!key.empty())
+    attrqry_cfg.AddPrivateKey(key);
+  if (!cafile.empty())
+    attrqry_cfg.AddCAFile(cafile);
+
+  std::string attrqry_path("/idp/profile/SAML2/SOAP/AttributeQuery");
+  std::string service_url_str("https://squark.uio.no:8443");
+
+  Arc::URL service_url(service_url_str);
+  Arc::ClientSOAP attrqry_client(attrqry_cfg, service_url.Host(), service_url.Port(), service_url.Protocol() == "https" ? 1:0, attrqry_path);
+
+  Arc::PayloadSOAP *attrqry_response = NULL;
+  Arc::MCC_Status attrqry_status = attrqry_client.process(&attrqry_request,&attrqry_response);
+  if (!attrqry_response) {
+    logger.msg(Arc::ERROR, "Request failed: No response");
+    return -1;
+  }
+  if (!attrqry_status) {
+    std::string tmp;
+    attrqry_response->GetXML(tmp);
+    std::cout<<"Response: "<<tmp<<std::endl;
+    logger.msg(Arc::ERROR, "Request failed: Error");
+    return -1;
+  }
+  attrqry_response->GetXML(str);
+  std::cout<<"Response for Attribute Query: "<<str<<std::endl;
 
   delete response;
+  delete attrqry_response;
+
   Arc::final_xmlsec();
   return 0;
 }
