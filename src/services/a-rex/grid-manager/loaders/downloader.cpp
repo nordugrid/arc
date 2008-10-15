@@ -248,7 +248,7 @@ int main(int argc,char** argv) {
   // process optional arguments
   for(;;) {
     opterr=0;
-    int optc=getopt(argc,argv,"+hclpZn:t:n:u:U:s:S:a:i:d:");
+    int optc=getopt(argc,argv,"+hclpZfn:t:n:u:U:s:S:a:i:d:");
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
@@ -624,7 +624,7 @@ exit:
     cache->Release();
   };
   remove_proxy();
-  if(res != 0) {
+  if(res != 0 && res != 4) {
     job_failed_mark_add(desc,user,failure_reason);
   };
   return res;
