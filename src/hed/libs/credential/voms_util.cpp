@@ -1180,7 +1180,10 @@ err:
   bool parseVOMSAC(Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file,
          const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output) {
     X509* holder = holder_cred.GetCert();
-    return(parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output));
+    if(!holder) return false;
+    bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output);
+    X509_free(holder);
+    return res;
   }
 
 } // namespace Arc
