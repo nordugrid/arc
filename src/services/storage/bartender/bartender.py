@@ -501,9 +501,10 @@ class Bartender:
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
             log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
-            owner_identity = auth['identity']
-            owner_policy = create_owner_policy(owner_identity).get_policy()
-            child_metadata[('policies', owner_identity)] = owner_policy
+            owner_identity = auth.get('identity', None)
+            if owner_identity:
+                owner_policy = create_owner_policy(owner_identity).get_policy()
+                child_metadata[('policies', owner_identity)] = owner_policy
             child_metadata[('entry','type')] = 'collection'
             if wasComplete: # this means the LN exists
                 success = 'LN exists'

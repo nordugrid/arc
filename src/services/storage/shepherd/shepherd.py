@@ -119,7 +119,10 @@ class Shepherd:
         # get the local data of this file
         localData = self.store.get(referenceID)
         # ask the backend to create the checksum of the file 
-        current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
+        try:
+            current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
+        except:
+            current_checksum = None
         # get the original checksum
         # TODO: maybe we should use the checksum from the Librarian and not the locally stored one?
         #     what if this shepherd was offline for a long time, and when it goes online again
