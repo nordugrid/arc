@@ -786,7 +786,7 @@ class Client:
             print XMLTree(out).pretty_xml(indent = '    ', prefix = '')
             print
         # call the service and get back the response, and the HTTP status
-        resp, status, reason = self.call_raw(out)
+        resp = self.call_raw(out)
         if self.print_xml:
             print 'Response:'
             try:
@@ -798,7 +798,7 @@ class Client:
             # wrap the response into an XMLTree and return only the tree
             return XMLTree(from_string = resp, forget_namespace = True).get_trees('///')[0]
         else:
-            return resp, status, reason
+            return resp
 
     def call_raw(self, outpayload):
         """ Send a POST request with the SOAP XML message.
@@ -825,7 +825,7 @@ class Client:
         if 'text/xml' not in r.getheader('content-type'):
             raise socket.error, (-1, 'Server did not return SOAP answer. Maybe wrong URL: "%s:%s/%s"?' % (self.host, self.port, self.path))
         # return the data and the status
-        return resp, r.status, r.reason
+        return resp
 
 # This part is copied from client.py
 
@@ -879,7 +879,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, status, reason = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         elements = parse_node(get_data_node(xml),
             ['requestID', 'metadataList'], single = True, string = False)
@@ -919,7 +919,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
     
@@ -959,7 +959,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
@@ -989,7 +989,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -1027,7 +1027,7 @@ class BartenderClient(Client):
                 ('bar:protocol', protocol) for protocol in protocols
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
@@ -1043,7 +1043,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -1071,7 +1071,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -1116,7 +1116,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         elements = parse_node(get_data_node(xml),
             ['requestID', 'entries', 'status'], string = False)
@@ -1155,7 +1155,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'status'], single = False)
 
@@ -1174,7 +1174,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        response, _, _ = self.call(tree)
+        response = self.call(tree)
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 

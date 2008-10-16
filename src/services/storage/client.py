@@ -27,9 +27,6 @@ class Client:
         print_xml is for debugging, prints all the SOAP messages to the screen
         """
         proto, host, port, path = parse_url(url)
-        self.ssl_config = {}
-        if proto == 'https':
-            self.ssl_config = ssl_config
         self.host = host
         self.port = port
         self.path = path
@@ -38,6 +35,16 @@ class Client:
         self.print_xml = print_xml
         self.xmlnode_class = xmlnode_class
         self.connection = None
+        self.ssl_config = {}
+        self.cfg = arc.MCCConfig()
+        if proto == 'https':
+            self.ssl_config = ssl_config
+            self.cfg.AddCertificate(self.ssl_config.get('cert_file', None))
+            self.cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
+            if ssl_config.has_key('ca_file'):
+                self.cfg.AddCAFile(self.ssl_config.get('ca_file', None))
+            else:
+                self.cfg.AddCADir(self.ssl_config.get('ca_dir', None))
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.
@@ -57,7 +64,7 @@ class Client:
             print XMLTree(out).pretty_xml(indent = '    ', prefix = '        #   ')
             print
         # call the service and get back the response, and the HTTP status
-        resp, status, reason = self.call_raw(out)
+        resp = self.call_raw(out)
         if self.print_xml:
             print 'Response:'
             try:
@@ -69,7 +76,7 @@ class Client:
             # wrap the response into an XMLTree and return only the tree
             return XMLTree(from_string = resp, forget_namespace = True).get_trees('///')[0]
         else:
-            return resp, status, reason
+            return resp
 
     def call_raw(self, outpayload):
         """ Send a POST request with the SOAP XML message.
@@ -78,46 +85,14 @@ class Client:
         
         outpayload is an XMLNode with the SOAP message
         """
-        # TODO: use the client-side libs of ARCHED
-        import httplib
-        while True:
-            try:
-                if self.connection:
-                    h = self.connection
-                    self.connection = None
-                else:
-                    if self.ssl_config:
-                        h = httplib.HTTPSConnection(self.host, self.port, key_file = self.ssl_config.get('key_file', None), cert_file = self.ssl_config.get('cert_file', None))
-                    else:
-                        # create an HTTP connection
-                        h = httplib.HTTPConnection(self.host, self.port)
-                    # print 'new', h, self.host, self.port, self.path, self.ssl_config
-                # get the XML from outpayload, and send it as POST
-                h.request('POST', self.path, outpayload.GetXML())
-                # get the response object
-                r = h.getresponse()
-                # read the response data
-                resp = r.read()
-                self.connection = h
-                # TODO: it seems that if we don't close the connection here, then the first SIGKILL
-                # or ctrl-c won't stop arched, somehow these connections keep it running
-                # after the second signal, arched is stopped, but the connection's don't get closed properly
-                # but if we close the connection here with:
-                h.close()
-                # then the connection reusing mechanism above can't do anything useful
-                # maybe with ClientSOAP or ClientHTTP it will be better
-                
-                # return the data and the status
-                return resp, r.status, r.reason
-            except socket.error, e:
-                if e[0] == 61: 
-                    raise Exception, "Connection refused to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path) 
-                else:
-                    print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
-                    raise
-            except:
-                print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
-                raise
+        try:
+            s = arc.ClientSOAP(self.cfg, self.host, self.port, self.ssl_config, self.path)          
+            resp, status = s.process(outpayload)
+            resp = resp.GetXML()
+            return resp
+        except:
+            print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
+            raise
 
 class AHashClient(Client):
 
@@ -139,7 +114,7 @@ class AHashClient(Client):
                 ])
             ])
         )
-        msg, status, reason = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         ahash_prefix = xml.NamespacePrefix(ahash_uri)
         rewrite = {
@@ -168,7 +143,7 @@ class AHashClient(Client):
                 ])
             ])
         )
-        msg, status, reason = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         objects = parse_node(get_data_node(xml), ['ID', 'metadataList'], single = True, string = False)
         return dict([(str(ID), parse_metadata(metadataList)) for ID, metadataList in objects.items()])
@@ -205,7 +180,7 @@ class AHashClient(Client):
                 ])
             ])
         )
-        msg, status, reason = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['changeID', 'success', 'conditionID'])
 
@@ -231,7 +206,7 @@ class LibrarianClient(Client):
                 ])
             ])
         )
-        msg, status, reason = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         elements = parse_node(get_data_node(xml),
             ['GUID', 'metadataList'], single = True, string = False)
@@ -249,7 +224,7 @@ class LibrarianClient(Client):
                 ])
             ])
         )
-        msg, status, reason = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         list_node = get_data_node(xml)
         list_number = list_node.Size()
@@ -283,7 +258,7 @@ class LibrarianClient(Client):
                 ])
             ])
         )
-        response, _, _ = self.call(tree)
+        response = self.call(tree)
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['requestID', 'GUID', 'success'])
 
@@ -302,7 +277,7 @@ class LibrarianClient(Client):
                 ])
             ])
         )
-        response, _, _ = self.call(tree)
+        response = self.call(tree)
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
@@ -317,7 +292,7 @@ class LibrarianClient(Client):
                 ])
             ])
         )
-        response, _, _ = self.call(tree)
+        response = self.call(tree)
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['requestID', 'success'], True)
 
@@ -334,7 +309,7 @@ class LibrarianClient(Client):
                 ])
             ])
         )
-        response, _, _ = self.call(tree)
+        response = self.call(tree)
         node = self.xmlnode_class(response)
         try:
             return int(str(node.Child().Child().Get('nextReportTime')))
@@ -391,7 +366,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, status, reason = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         elements = parse_node(get_data_node(xml),
             ['requestID', 'metadataList'], single = True, string = False)
@@ -431,7 +406,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
     
@@ -471,7 +446,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
@@ -501,7 +476,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -539,7 +514,7 @@ class BartenderClient(Client):
                 ('bar:protocol', protocol) for protocol in protocols
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
@@ -555,7 +530,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -583,7 +558,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -628,7 +603,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         elements = parse_node(get_data_node(xml),
             ['requestID', 'entries', 'status'], string = False)
@@ -667,7 +642,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'status'], single = False)
 
@@ -686,7 +661,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
-        response, _, _ = self.call(tree)
+        response = self.call(tree)
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
@@ -712,7 +687,7 @@ class ShepherdClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         try:
             response = dict([
@@ -741,7 +716,7 @@ class ShepherdClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'status'])
         
@@ -757,7 +732,7 @@ class ShepherdClient(Client):
                 ])
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_to_dict(get_data_node(xml),
             ['requestID', 'referenceID', 'state', 'checksumType', 'checksum', 'acl', 'size', 'GUID', 'localID'])
@@ -783,7 +758,7 @@ class NotifyClient(Client):
                 ('she:state', state)
             ])
         )
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         return msg
 
 class ByteIOClient(Client):
@@ -803,7 +778,7 @@ class ByteIOClient(Client):
         if stride is not None:
             request.append(('rb:stride', stride))
         tree = XMLTree(from_tree = ('rb:read', request))
-        msg, _, _ = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         data_encoded = str(xml.Child().Child().Get('transfer-information'))
         if file:
@@ -827,7 +802,7 @@ class ByteIOClient(Client):
         transfer_node.NewAttribute('transfer-mechanism').Set(byteio_simple_uri)
         encoded_data = base64.b64encode(data)
         transfer_node.Set(encoded_data)
-        resp, _, _ = self.call_raw(out)
+        resp = self.call_raw(out)
         return resp
 
 
@@ -860,7 +835,7 @@ class GatewayClient(Client):
 								])
                                                         ]))
                 #print tree
-                msg, _, _ = self.call(tree)
+                msg = self.call(tree)
                 xml = arc.XMLNode(msg)
                 elements = parse_to_dict(get_data_node(xml),
                         ['host', 'status','output','protocol','port','path'])
@@ -905,7 +880,7 @@ class GatewayClient(Client):
                                                                 ])
                                                         ]))
                 #print tree
-                msg, _, _ = self.call(tree)
+                msg = self.call(tree)
                 xml = arc.XMLNode(msg)
                 elements = parse_to_dict(get_data_node(xml),
                         ['host', 'protocol','port'])
@@ -967,7 +942,7 @@ class GatewayClient(Client):
                                                         ('gateway:flags', flags)
                                                                 ])
                                                          ]))
-                msg, _, _ = self.call(tree)
+                msg = self.call(tree)
                 xml = arc.XMLNode(msg)
                 elements = parse_to_dict(get_data_node(xml),
                         ['requestID', 'status','output'])
@@ -1079,7 +1054,7 @@ class TransferClient(Client):
 								        ])for res in request.keys()
                                                                 ]))
 
-                msg, _, _ = self.call(tree)
+                msg = self.call(tree)
                 xml = arc.XMLNode(msg)
                 elements = parse_node(xml.Child().Child().Child(),                
 			['host', 'status','output'], string = True)
