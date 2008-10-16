@@ -5,7 +5,10 @@
 #include <fstream>
 #include <glibmm/fileutils.h>
 #include <unistd.h>
+
+#ifndef HAVE_GETDOMAINNAME
 #include <sys/systeminfo.h>
+#endif
 
 #include <arc/ArcRegex.h>
 
