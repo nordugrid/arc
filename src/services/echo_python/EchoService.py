@@ -1,24 +1,29 @@
 import arc
 import time
+from storage.common import parse_ssl_config
+from storage.logger import Logger
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py'))
 
 class EchoService:
 
     def __init__(self, cfg):
-        print "EchoService (python) constructor called"
+        log.msg("EchoService (python) constructor called")
         # get the response-prefix from the config XML
         self.prefix = str(cfg.Get('prefix'))
         # get the response-suffix from the config XML
         self.suffix = str(cfg.Get('suffix'))
-        print "EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix)
+        log.msg("EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix))
+        self.ssl_config = parse_ssl_config(cfg)
+        
 
     def process(self, inmsg, outmsg):
-        print "EchoService (python) 'Process' called"
+        log.msg("EchoService (python) 'Process' called")
         # time.sleep(10)
         # get the payload from the message
         inpayload = inmsg.Payload()
         attributes = inmsg.Attributes()
-        print attributes.getAll()
-        print "EchoService (python) got:", inpayload.GetXML()
+        log.msg(attributes.getAll())
+        log.msg("EchoService (python) got:", inpayload.GetXML())
         # the first child of the payload should be the name of the request
         request_node = inpayload.Child()
         # we want to use members of the 'urn:echo' namespace
@@ -27,7 +32,7 @@ class EchoService:
         echo_ns = request_node.NamespacePrefix('urn:echo')
         # get the qualified name of the request
         request_name = request_node.FullName()
-        print "EchoService (python) request_name:",  request_name
+        log.msg("EchoService (python) request_name:",  request_name)
         if not request_name.startswith(echo_ns + ':'):
             raise Exception, 'wrong namespace. expected: %s' % ('urn:echo')
         # get the name of the request without the namespace prefix
@@ -44,14 +49,23 @@ class EchoService:
         if request_name == 'double':
             # if the name of the request is 'double'
             # we create a new echo message which we send to http://localhost:60000/Echo using the ClientSOAP object
-            print 'Calling http://localhost:60000/Echo using ClientSOAP'
+            log.msg('Calling https://localhost:60000/Echo using ClientSOAP')
             cfg = arc.MCCConfig()
+            ssl = False
+            if self.ssl_config:
+                cfg.AddCertificate(self.ssl_config.get('cert_file', None))
+                cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
+                if self.ssl_config.has_key('ca_file'):
+                    cfg.AddCAFile(self.ssl_config.get('ca_file', None))
+                else:
+                    cfg.AddCADir(self.ssl_config.get('ca_dir', None))
+                ssl = True
             # creating the ClientSOAP object
-            s = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Echo')
+            s = arc.ClientSOAP(cfg, 'localhost', 60000, ssl, '/Echo')
             new_payload = arc.PayloadSOAP(ns)
             # creating the message
             new_payload.NewChild('echo:echo').NewChild('echo:say').Set(hear)
-            print 'new_payload', new_payload.GetXML()
+            log.msg('new_payload', new_payload.GetXML())
             # sending the message
             resp, status = s.process(new_payload)
             # get the response
@@ -60,29 +74,29 @@ class EchoService:
             # if the name of the request is 'httplib'
             # we create a new echo message which we send to http://localhost:60000/echo using python's built-in http client
             import httplib
-            print 'Calling http://localhost:60000/Echo using httplib'
+            log.msg('Calling http://localhost:60000/Echo using httplib')
             # create the connection
             h = httplib.HTTPConnection('localhost', 60000)
             new_payload = arc.PayloadSOAP(ns)
             # create the message
             new_payload.NewChild('echo:echo').NewChild('echo:say').Set(hear)
-            print 'new_payload', new_payload.GetXML()
+            log.msg('new_payload', new_payload.GetXML())
             # send the message
             h.request('POST', '/Echo', new_payload.GetXML())
             r = h.getresponse()
             response = r.read()
-            print response
+            log.msg(response)
             resp = arc.XMLNode(response)
             # get the response
             hear = str(resp.Child().Get('echoResponse').Get('hear'))
         elif request_name == 'wait':
-            print 'Start waiting 10 sec...'
+            log.msg('Start waiting 10 sec...')
             time.sleep(10)
-            print 'Waiting ends.'
+            log.msg('Waiting ends.')
         # we create a node at '/echo:echoResponse/echo:hear' and put the string in it
         outpayload.NewChild('echo:echoResponse').NewChild('echo:hear').Set(hear)
         outmsg.Payload(outpayload)
-        print "outpayload", outpayload.GetXML()
+        log.msg("outpayload", outpayload.GetXML())
         # return with STATUS_OK
         return arc.MCC_Status(arc.STATUS_OK)
 
