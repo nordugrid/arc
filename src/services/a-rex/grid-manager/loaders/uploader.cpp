@@ -172,7 +172,7 @@ int main(int argc,char** argv) {
   // process optional arguments
   for(;;) {
     opterr=0;
-    int optc=getopt(argc,argv,"+hclpZn:t:u:U:s:S:a:i:d:");
+    int optc=getopt(argc,argv,"+hclpZfn:t:u:U:s:S:a:i:d:");
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
