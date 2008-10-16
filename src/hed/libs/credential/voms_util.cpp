@@ -5,6 +5,7 @@
 #include <fstream>
 #include <glibmm/fileutils.h>
 #include <unistd.h>
+#include <sys/systeminfo.h>
 
 #include <arc/ArcRegex.h>
 
@@ -627,7 +628,7 @@ err:
       bool success = false;
       bool final = false;
 
-      int k = 0;
+      unsigned int k=0;
       do {
         success = true;
         for (int i = 0; i < sk_X509_num(certstack); i++) {
@@ -848,6 +849,27 @@ err:
 
     return true;
   }
+
+#ifndef HAVE_GETDOMAINNAME
+  static int getdomainname(char *name, int length) {
+    char	szBuffer[256];
+    long	nBufSize = sizeof(szBuffer);
+    char	*pBuffer = szBuffer;      
+
+    long result_len = sysinfo( SI_SRPC_DOMAIN, pBuffer, nBufSize );		
+
+    if (result_len > length) {
+      return -1;
+    }
+
+    memcpy (name, pBuffer, result_len);
+    if (result_len < length)
+      name[result_len] = '\0';
+    //strcpy(name, pBuffer);
+   
+    return 0;
+  }
+#endif
 
   static std::string getfqdn(void) {
     std::string name;
@@ -1091,12 +1113,18 @@ err:
     if (ac->acinfo->serial->length > 20) {
       std::cerr<<"The serial number of ACINFO is too long"<<std::endl; return false;
     }
-   
+  
+    bool ret = false;
+ 
     //Check AC's extension
-    checkExtensions(ac->acinfo->exts, issuer, output); 
-
+    ret = checkExtensions(ac->acinfo->exts, issuer, output);
+    if(!ret)return false;
+ 
     //Check AC's attribute    
     checkAttributes(ac->acinfo->attrib, output);
+    if(!ret)return false;
+
+    return true;
   }
 
   bool verifyVOMSAC(AC* ac, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
