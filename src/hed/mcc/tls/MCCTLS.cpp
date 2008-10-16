@@ -559,7 +559,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
    globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
    proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
-   //get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
+   get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
    if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
    if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
    if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";

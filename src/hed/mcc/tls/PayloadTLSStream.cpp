@@ -33,7 +33,7 @@ void PayloadTLSStream::HandleError(Logger& logger,int code) {
   unsigned long e = code;
   while(e != 0) {
     if(e == SSL_ERROR_SYSCALL) {
-      logger.msg(ERROR, "SSL error: %d - system call failed",e); 
+      //logger.msg(ERROR, "SSL error: %d - system call failed",e); 
     } else {
       const char* lib = ERR_lib_error_string(e);
       const char* func = ERR_func_error_string(e);
