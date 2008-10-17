@@ -162,6 +162,9 @@ sub _collect($$) {
                            'FINISHING' => 'EXECUTED',
                            'SUBMIT'    => 'PREPARED');
 
+    # We're running ARC1: Always assume GM is up
+    $host_info->{processes}{'grid-manager'} = 1;
+
     for my $job (values %$gmjobs_info) {
 
         if ( grep ( /^$job->{status}$/, keys %map_always ) ) {
@@ -229,7 +232,6 @@ sub _collect($$) {
     $c->{'nc0:cache-free'} = [ $host_info->{cache_free} ];
     $c->{'nc0:cache-total'} = [ $host_info->{cache_total} ];
     $c->{'nc0:runtimeenvironment'} = $host_info->{runtimeenvironments};
-    push @{$c->{'nc0:middleware'}}, "nordugrid-arc-$host_info->{ngversion}" if $host_info->{ngversion};
     push @{$c->{'nc0:middleware'}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
     push @{$c->{'nc0:middleware'}}, grep {! /nordugrid/i and $host_info->{ngversion} }
         split /\[separator\]/, $config->{middleware}

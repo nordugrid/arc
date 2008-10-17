@@ -282,7 +282,7 @@ sub test {
           'x509_user_key' => '/etc/grid-security/hostkey.pem',
           'x509_cert_dir' => '/scratch/adrianta/arc1/etc/grid-security/certificates',
 
-          'processes' => [ 'gridftpd', 'grid-manager', 'arched' ],
+          'processes' => [ 'gridftpd', 'arched' ],
           'nodeaccess' => 'inbound[separator]outbound',
           'homogeneity' => 'TRUE',
           'gm_mount_point' => '/jobs',

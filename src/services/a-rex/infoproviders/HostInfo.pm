@@ -31,7 +31,6 @@ our $host_info_schema = {
         session_total => '', # unit: MB
         cache_free    => '', # unit: MB
         cache_total   => '', # unit: MB
-        ngversion     => '*',
         globusversion => '*',
         runtimeenvironments => [ '' ],
         processes  => { '*' => '' },
@@ -289,17 +288,8 @@ sub get_host_info {
     $host_info->{cache_free} = $cachespace->{megsfree} || 0;
     $host_info->{cache_total} = $cachespace->{megstotal} || 0;
     
-    #NorduGrid middleware
-    #nordugridlocation/bin/grid-manager -v
-    $ENV{"LD_LIBRARY_PATH"}="$globus_location/lib:$options->{ng_location}/lib";
-    my ($ngversion) = `$options->{ng_location}/sbin/grid-manager -v 2>/dev/null`;
-    if ($?) {
-        $log->warning("Failed running $options->{ng_location}/sbin/grid-manager");
-    } else {
-        $ngversion =~ s/grid-manager: version\s*(.+)$/$1/;
-        $host_info->{ngversion} = $ngversion;
-        chomp $host_info->{ngversion};
-    }
+    #NorduGrid middleware version
+    #Skipped...
     
     #Globus Toolkit version
     #globuslocation/share/doc/VERSION
