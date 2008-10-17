@@ -610,12 +610,7 @@ bool FileCache::Release() {
       }
     }
     closedir(dirp);
-    
-    if (errno != 0) {
-      logger.msg(ERROR, "Error listing dir %s: %s", job_dir, strerror(errno));
-      return false;
-    }
-    
+ 
     // remove now-empty dir
     logger.msg(DEBUG, "Removing %s", job_dir);
     if (rmdir(job_dir.c_str()) != 0) {
