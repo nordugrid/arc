@@ -346,7 +346,7 @@ namespace Arc {
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
     ClientHTTP client(cfg, url.Host(), url.Port(),
-                      url.Protocol() == "https", url.str());
+                      url.Protocol() == "https", url.FullPath());
 
     PayloadRaw request;
     PayloadRawInterface *response = NULL;
@@ -412,14 +412,14 @@ namespace Arc {
 	  title.substr(0, 5) == "ARex:")
 	html2list (result.c_str(), url, files);
       else {
-	std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
+	std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
 	f->SetType(FileInfo::file_type_file);
 	f->SetSize(info.size);
 	f->SetCreated(info.lastModified);
       }
     }
     else {
-      std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
+      std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
       f->SetType(FileInfo::file_type_file);
       f->SetSize(info.size);
       f->SetCreated(info.lastModified);
@@ -450,7 +450,7 @@ namespace Arc {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
       info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
-                                    url.Protocol() == "https", url.str());
+                                    url.Protocol() == "https", url.FullPath());
       if (!CreateThreadFunction(&read_thread, info))
         delete info;
       else
@@ -519,7 +519,7 @@ namespace Arc {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
       info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
-                                    url.Protocol() == "https", url.str());
+                                    url.Protocol() == "https", url.FullPath());
       if (!CreateThreadFunction(&write_thread, info))
         delete info;
       else
@@ -598,7 +598,7 @@ namespace Arc {
       HTTPClientInfo transfer_info;
       PayloadRaw request;
       PayloadRawInterface *inbuf;
-      std::string path = point.CurrentLocation().Path();
+      std::string path = point.CurrentLocation().FullPath();
       path = "/" + path;
       MCC_Status r = client->process("GET", path, transfer_offset, transfer_end, &request, &transfer_info, &inbuf);
       if (!r) {
@@ -623,7 +623,7 @@ namespace Arc {
           cfg.AddPrivateKey(point.keyPath);
         if (!point.caCertificatesDir.empty())
           cfg.AddCADir(point.caCertificatesDir);
-        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
+        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.FullPath());
         continue;
       }
       if (transfer_info.code == 416) { // EOF
@@ -733,7 +733,7 @@ namespace Arc {
       PayloadMemConst request((*point.buffer)[transfer_handle], transfer_offset, transfer_size,
                               point.CheckSize() ? point.GetSize() : 0);
       PayloadRawInterface *response;
-      std::string path = point.CurrentLocation().Path();
+      std::string path = point.CurrentLocation().FullPath();
       path = "/" + path;
       MCC_Status r = client->process("PUT", path, &request, &transfer_info, &response);
       if (response)
@@ -757,7 +757,7 @@ namespace Arc {
           cfg.AddPrivateKey(point.keyPath);
         if (!point.caCertificatesDir.empty())
           cfg.AddCADir(point.caCertificatesDir);
-        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
+        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.FullPath());
         continue;
       }
       if( (transfer_info.code != 201) &&
