@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+  xmlns:vsrv="http://www.nordugrid.org/schemas/ArcMCCMSGVALIDATOR/2008"
+>
+  <Server>
+    <!--Foreground/-->
+    <Pidfile>./arcserver.pid</Pidfile>
+    <Logger level="VERBOSE">./arcserver.log</Logger>
+  </Server>
+  <ModuleManager>
+    <Path>/usr/local/lib/arc/</Path>
+    <Path>/usr/local/lib/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>mccmsgvalidator</Name></Plugins>
+  <Plugins><Name>arex</Name></Plugins>
+ <Chain>
+    <Component name="tcp.service" id="tcp">
+      <next id="http"/>
+      <tcp:Listen><tcp:Port>50000</tcp:Port><tcp:Version>4</tcp:Version></tcp:Listen>
+    </Component>
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+      <next id="plexer">GET</next>
+    </Component>
+    <Component name="soap.service" id="soap">
+      <next id="validator"/>
+    </Component>
+    <Component name="msg.validator.service" id="validator">
+      <next id="plexer"/>
+      <vsrv:ValidatedService><vsrv:ServicePath>/PythonServiceDemo</vsrv:ServicePath><vsrv:SchemaPath>/usr/share/doc/arc/schemas/PythonServiceDemo.xsd</vsrv:SchemaPath></vsrv:ValidatedService>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+      <next id="a-rex">^/arex$</next>
+      <next id="count">^/count$</next>
+      <next id="pythonservicedemo">^/PythonServiceDemo$</next>
+    </Plexer>
+    <Service name="count" id="count">
+    </Service>
+    <Service name="pythonservice" id="pythonservicedemo">
+      <ClassName>PythonServiceDemo.pythonservicedemo.PythonServiceDemo</ClassName>
+    </Service>
+    <Service name="a-rex" id="a-rex">
+      <arex:endpoint>http://localhost:50000/arex</arex:endpoint>
+      <arex:usermap><arex:defaultLocalName>niif</arex:defaultLocalName></arex:usermap>
+      <arex:gmconfig>/etc/arc_arex.conf</arex:gmconfig>
+    </Service>
+  </Chain>
+</ArcConfig>
+

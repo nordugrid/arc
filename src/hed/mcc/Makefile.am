@@ -1,2 +1,2 @@
-SUBDIRS=tcp http soap tls
+SUBDIRS=tcp http soap tls msgvalidator
 DIST_SUBDIRS = $(SUBDIRS) 
