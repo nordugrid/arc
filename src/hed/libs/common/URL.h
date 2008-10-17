@@ -71,6 +71,9 @@ namespace Arc {
     /** Returns the path of the URL. */
     const std::string& Path() const;
 
+    /** Returns the path of the URL with all options attached. */
+    std::string FullPath() const;
+
     /** Changes the path of the URL. */
     void ChangePath(const std::string& newpath);
 

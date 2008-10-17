@@ -343,6 +343,38 @@ namespace Arc {
     return path;
   }
 
+  std::string URL::FullPath() const {
+    std::string fullpath;
+
+    if(!path.empty())
+      fullpath += path;
+
+    if(!httpoptions.empty())
+      fullpath += '?' + OptionString(httpoptions, '&');
+
+    if(!ldapattributes.empty() || (ldapscope != base) || !ldapfilter.empty())
+      fullpath += '?' + AttributeString(ldapattributes, ',');
+
+    if((ldapscope != base) || !ldapfilter.empty()) {
+      switch(ldapscope) {
+      case base:
+            fullpath += "?base";
+            break;
+      case onelevel:
+            fullpath += "?one";
+            break;
+      case subtree:
+            fullpath += "?sub";
+            break;
+      }
+    }
+
+    if(!ldapfilter.empty())
+      fullpath += '?' + ldapfilter;
+
+    return fullpath;
+  }
+
   void URL::ChangePath(const std::string& newpath) {
     path = newpath;
 
