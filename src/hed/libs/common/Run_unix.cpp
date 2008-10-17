@@ -14,6 +14,7 @@
 #include <sys/wait.h>
 
 #include <unistd.h>
+#include <fcntl.h>
 #include "Run.h"
 
 
@@ -215,6 +216,7 @@ bool Run::Start(void) {
                              stdout_keep_?NULL:&stdout_,
                              stderr_keep_?NULL:&stderr_);
     };
+    if(!stdin_keep_) fcntl(stdin_,F_SETFL,fcntl(stdin_,F_GETFL) | O_NONBLOCK);
     started_=true;
   } catch (Glib::Exception& e) { 
     running_=false;
