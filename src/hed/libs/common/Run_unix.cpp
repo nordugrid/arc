@@ -19,6 +19,14 @@
 
 namespace Arc {
 
+#define SAFE_DISCONNECT(CONNECTOR) { \
+  try { \
+    (CONNECTOR).disconnect(); \
+  } catch (Glib::Exception& e) { \
+  } catch (std::exception& e) { \
+  }; \
+}
+
 class RunPump {
  friend class Run;
  private:
@@ -103,12 +111,13 @@ void RunPump::Pump(void) {
     //context_->acquire();
     for(;;) {
       list_lock_.lock();
-      sleep(1);
+//      sleep(1);
       list_lock_.unlock();
       pump_lock_.lock();
-      context_->iteration(true);
+      bool dispatched = context_->iteration(true);
       pump_lock_.unlock();
       thread_->yield();
+      if(!dispatched) sleep(1);
     };
   } catch (Glib::Exception& e) { 
   } catch (std::exception& e) {
@@ -156,15 +165,11 @@ void RunPump::Remove(Run* r) {
     if(pump_lock_.trylock()) break;
     sleep(1);
   };
-  try {
-    // Disconnect sources from context
-    r->stdout_conn_.disconnect();
-    r->stderr_conn_.disconnect();
-    r->stdin_conn_.disconnect();
-    r->child_conn_.disconnect();
-  } catch (Glib::Exception& e) { 
-  } catch (std::exception& e) {
-  };
+  // Disconnect sources from context
+  SAFE_DISCONNECT(r->stdout_conn_);
+  SAFE_DISCONNECT(r->stderr_conn_);
+  SAFE_DISCONNECT(r->stdin_conn_);
+  SAFE_DISCONNECT(r->child_conn_);
   pump_lock_.unlock();
   list_lock_.unlock();
 }
@@ -309,14 +314,17 @@ void Run::child_handler(Glib::Pid,int result) {
 
 void Run::CloseStdout(void) {
   if(stdout_ != -1) ::close(stdout_); stdout_=-1;
+  SAFE_DISCONNECT(stdout_conn_);
 }
 
 void Run::CloseStderr(void) {
   if(stderr_ != -1) ::close(stderr_); stderr_=-1;
+  SAFE_DISCONNECT(stderr_conn_);
 }
 
 void Run::CloseStdin(void) {
   if(stdin_ != -1) ::close(stdin_); stdin_=-1;
+  SAFE_DISCONNECT(stdin_conn_);
 }
 
 int Run::ReadStdout(int /*timeout*/,char* buf,int size) {
