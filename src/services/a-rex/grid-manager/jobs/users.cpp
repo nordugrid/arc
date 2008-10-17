@@ -380,7 +380,7 @@ bool JobUserHelper::run(JobUser &user) {
       args[n]=strdup(arg_s.c_str());
     };
     args[n]=NULL;
-    logger.msg(Arc::ERROR,"Starting helper process (%s): %s",
+    logger.msg(Arc::INFO,"Starting helper process (%s): %s",
                user.UnixName().c_str(),command.c_str());
     std::string helper_id="helper."+user.UnixName();
     bool started=RunParallel::run(user,helper_id.c_str(),args,&proc);
