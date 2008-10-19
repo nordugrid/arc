@@ -3,7 +3,7 @@ lib_LTLIBRARIES=libarcdata2.la
 SUBDIRS = . $(TEST_DIR)
 DIST_SUBDIRS = test
 
-pkglibexec_SCRIPTS = cache-clean cache-list
+dist_pkglibexec_SCRIPTS = cache-clean cache-list
 
 libarcdata2_ladir = $(pkgincludedir)/data
 libarcdata2_la_HEADERS  = DMC.h DataPoint.h DataPointDirect.h DataPointIndex.h DataBufferPar.h \
