@@ -255,7 +255,7 @@ sub count_array_spec($) {
             unless ($hdr[0] eq 'queuename');
         
         $line = <$fh>;
-        while ($line =~ /^--------------/) {
+        while (defined $line and $line =~ /^--------------/) {
             handle_queue($fh);
             handle_running_jobs($fh);
         }
@@ -291,7 +291,7 @@ sub count_array_spec($) {
             } else {
                 $currentqueue = $qname;
                 # parse complexes to extract hostname
-                while ($line =~ /$complex_regex/) {
+                while (defined $line and $line =~ /$complex_regex/) {
                     $currentnode = $2 if $1 eq 'qf:hostname';
                     $line = <$fh>;
                 }
