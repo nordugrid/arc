@@ -787,6 +787,8 @@ def make_decision(policies, request):
 def parse_ssl_config(cfg):
     try:
         client_ssl_node = cfg.Get(('ClientSSLConfig'))
+        if client_ssl_node.Size() == 0:
+            return {}
         ssl_config = {}
         ssl_config['key_file'] = str(client_ssl_node.Get('KeyPath'))
         ssl_config['cert_file'] = str(client_ssl_node.Get('CertificatePath'))

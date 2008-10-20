@@ -49,7 +49,6 @@ class EchoService:
         if request_name == 'double':
             # if the name of the request is 'double'
             # we create a new echo message which we send to http://localhost:60000/Echo using the ClientSOAP object
-            log.msg('Calling https://localhost:60000/Echo using ClientSOAP')
             cfg = arc.MCCConfig()
             ssl = False
             if self.ssl_config:
@@ -60,6 +59,10 @@ class EchoService:
                 else:
                     cfg.AddCADir(self.ssl_config.get('ca_dir', None))
                 ssl = True
+            if ssl: 	    
+               log.msg('Calling https://localhost:60000/Echo using ClientSOAP')
+            else: 	    
+               log.msg('Calling http://localhost:60000/Echo using ClientSOAP')
             # creating the ClientSOAP object
             s = arc.ClientSOAP(cfg, 'localhost', 60000, ssl, '/Echo')
             new_payload = arc.PayloadSOAP(ns)
