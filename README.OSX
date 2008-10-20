@@ -11,20 +11,18 @@ MacOS X platform. The compilation capability have been tested on Mac OS X
 
 Use macports: http://www.macports.org/
 
-e.g.
-
+e.g.:
   sudo port install pkgconfig
   sudo port install glibmm
   sudo port install libxml2
   sudo port install swig 
-  sudo port install python25
+  sudo port install python24
   sudo port install openssl
   sudo port install xmlsec
   sudo port install cppunit
   sudo port install gtime
   sudo port install p5-xml-simple
-  sudo port install py25-hashlib
-
+  (if you have python 2.5 you may need to install 'py25-hashlib' as well for md5)
 
 2. Installing Globus Toolkit:
 
