@@ -126,15 +126,16 @@ template <typename T> class AutoPointer {
   bool operator!(void) const { return (object==NULL); };
 };
 
-bool ARexJob::is_allowed(void) {
+bool ARexJob::is_allowed(bool fast) {
   allowed_to_see_=false;
   allowed_to_maintain_=false;
-  // Temporarily checking only user's grid name against owner
+  // Checking user's grid name against owner
   if(config_.GridName() == job_.DN) {
     allowed_to_see_=true;
     allowed_to_maintain_=true;
     return true;
   };
+  if(fast) return false;
   // Do fine-grained authorization requested by job's owner
   // Currently using only ARC Policy
   if(config_.beginAuth() == config_.endAuth()) return true;
@@ -192,13 +193,13 @@ bool ARexJob::is_allowed(void) {
   return true;
 }
 
-ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):id_(id),config_(config) {
+ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,bool fast_auth_check):id_(id),config_(config) {
   if(id_.empty()) return;
   if(!config_) { id_.clear(); return; };
   // Reading essential information about job
   if(!job_local_read_file(id_,*config_.User(),job_)) { id_.clear(); return; };
   // Checking if user is allowed to do anything with that job
-  if(!is_allowed()) { id_.clear(); return; };
+  if(!is_allowed(fast_auth_check)) { id_.clear(); return; };
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
