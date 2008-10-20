@@ -26,7 +26,7 @@ class ModuleManager
            It is supposed to process correponding configuration subtree and tune
           module loading parameters accordingly. 
            Currently it only sets modulr directory to current one. */
-        ModuleManager(Arc::Config *cfg);
+        ModuleManager(const Arc::Config *cfg);
         ~ModuleManager();
         /** Finds module 'name' in cache or loads corresponding shared library */
         Glib::Module *load(const std::string& name,bool load_local = true,bool reload = false);

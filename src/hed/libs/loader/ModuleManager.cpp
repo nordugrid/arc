@@ -6,7 +6,7 @@
 #include "Loader.h"
 
 namespace Arc {
-ModuleManager::ModuleManager(Arc::Config *cfg)
+ModuleManager::ModuleManager(const Arc::Config *cfg)
 { 
   if(cfg==NULL) return;
   if(!(*cfg)) return;
