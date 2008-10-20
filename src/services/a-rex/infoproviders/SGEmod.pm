@@ -277,8 +277,9 @@ sub count_array_spec($) {
     sub handle_queue {
         my $fh = shift;
         $line = <$fh>;
-        return unless defined $line;
-        if ($line =~ /$queue_regex/) {
+
+        if (defined $line and $line =~ /$queue_regex/) {
+
             my ($qname,$used,$total,$load,$flags) = ($1,$2,$3,$4,$5||'');
             $line = <$fh>;
 
@@ -311,7 +312,8 @@ sub count_array_spec($) {
         my $fh = shift;
 
         my $regex = $compat_mode ? $running_regex5 : $running_regex6;
-        while ($line =~ /$regex/) {
+
+        while (defined $line and $line =~ /$regex/) {
 
             if (not $compat_mode) { ### SGE v 6.x ###
 
@@ -384,7 +386,7 @@ sub count_array_spec($) {
         my $rank = 0;
         my $regex = $compat_mode ? $waiting_regex5 : $waiting_regex6;
 
-        while ($line =~ /$regex/) {
+        while (defined $line and $line =~ /$regex/) {
 
             if (not $compat_mode) { ### SGE v 6.x ###
 
