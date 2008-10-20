@@ -33,6 +33,8 @@ timeout in seconds (default 20)
 configuration file (default ~/.arc/client.xml)
 .IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-b\fR, \fB--broker\fR"
+selected broker (default  Random)
 .IP "\fB-v\fR, \fB--version\fR"
 print version information
 .IP "\fB-?\fR, \fB--help\fR"

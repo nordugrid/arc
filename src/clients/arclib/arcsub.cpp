@@ -109,6 +109,12 @@ int main(int argc, char **argv) {
 		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
 		    istring("debuglevel"), debug);
 
+  std::string req_broker;
+  options.AddOption('b', "broker",
+		    istring("select broker method, ex.: Random, QueueBalance"),
+		    istring("selected broker"),
+		    req_broker);
+
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
 		    version);
@@ -242,15 +248,31 @@ int main(int argc, char **argv) {
        it++, jobnr++) {
 
     // perform brokering
-    //You can use the RandomBroker  or the QueueBalanceBroker.
-    Arc::RandomBroker broker(targen, *it);
-    //Arc::QueueBalanceBroker broker(targen, *it);
+    Arc::Broker *broker;
+
+    if ( req_broker == "Random" ) {  
+  	          broker = new Arc::RandomBroker(targen, *it);
+	          logger.msg(Arc::DEBUG, "The arcsub use the RandomBroker." );
+    }
+    else if ( req_broker == "QueueBalance" ) {  
+ 	          broker = new Arc::QueueBalanceBroker(targen, *it);
+	          logger.msg(Arc::DEBUG, "The arcsub use the QueueBalanceBroker." );
+    }
+    else if (  req_broker == "") {
+	          broker = new Arc::RandomBroker(targen, *it);
+	          logger.msg(Arc::DEBUG, "The arcsub use the default broker, that it is now the RandomBroker." );                      
+    }
+    else{
+	          logger.msg(Arc::ERROR, "The added  borker ( "+ req_broker  + " ) is not prefered." ); 
+	          return 1;                     
+    }
+
     Arc::ExecutionTarget target;
 
     while ( true ) {
       try {
                 // for now use execution targets in the order found...
-                target = broker.get_Target();
+                target = broker->get_Target();
       }
        catch (char* e) {
     	logger.msg(Arc::ERROR, "Job submission failed because:  " + (std::string)e );
