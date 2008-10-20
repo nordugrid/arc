@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(istring("[job ...]"),
-			    istring("The arckillcommand is used to kill "
+			    istring("The arckill command is used to kill "
 				    "running jobs."),
 			    istring("Argument to -c has the format "
 				    "Flavour:URL e.g.\n"
