@@ -5,6 +5,7 @@
 // This define is needed to have maximal values for types with fixed size
 #define __STDC_LIMIT_MACROS
 #include <stdlib.h>
+#include <map>
 
 #include <arc/StringConv.h>
 #include <arc/client/ClientInterface.h>
@@ -186,7 +187,16 @@ namespace Arc {
 				 PayloadRawInterface *request,
 				 HTTPClientInfo *info,
 				 PayloadRawInterface **response) {
-    return process(method, "", 0, UINT64_MAX, request, info, response);
+    std::map<std::string, std::string> attributes;
+    return process(method, "", attributes, 0, UINT64_MAX, request, info, response);
+  }
+
+  MCC_Status ClientHTTP::process(const std::string& method,
+                                 std::map<std::string, std::string>& attributes,
+                                 PayloadRawInterface *request,
+                                 HTTPClientInfo *info,
+                                 PayloadRawInterface **response) {
+    return process(method, "", attributes, 0, UINT64_MAX, request, info, response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
@@ -194,11 +204,32 @@ namespace Arc {
 				 PayloadRawInterface *request,
 				 HTTPClientInfo *info,
 				 PayloadRawInterface **response) {
-    return process(method, path, 0, UINT64_MAX, request, info, response);
+    std::map<std::string, std::string> attributes;
+    return process(method, path, attributes, 0, UINT64_MAX, request, info, response);
+  }
+
+  MCC_Status ClientHTTP::process(const std::string& method,
+                                 const std::string& path,
+                                 std::map<std::string, std::string>& attributes,
+                                 PayloadRawInterface *request,
+                                 HTTPClientInfo *info,
+                                 PayloadRawInterface **response) {
+    return process(method, path, attributes, 0, UINT64_MAX, request, info, response);
+  }
+
+  MCC_Status ClientHTTP::process(const std::string& method,
+                                 const std::string& path,
+                                 uint64_t range_start, uint64_t range_end,
+                                 PayloadRawInterface *request,
+                                 HTTPClientInfo *info,
+                                 PayloadRawInterface **response) {
+    std::map<std::string, std::string> attributes;
+    return process(method, path, attributes, range_start, range_end, request, info, response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
 				 const std::string& path,
+                                 std::map<std::string, std::string>& attributes,
 				 uint64_t range_start, uint64_t range_end,
 				 PayloadRawInterface *request,
 				 HTTPClientInfo *info,
@@ -233,6 +264,11 @@ namespace Arc {
     else if (range_start != 0)
       reqmsg.Attributes()->set("HTTP:Range", "bytes=" +
 			       tostring(range_start) + "-");
+    std::map<std::string, std::string>::iterator it;
+    for(it=attributes.begin();it!=attributes.end();it++) {
+      std::string key("HTTP:"); key.append((*it).first);
+      reqmsg.Attributes()->set(key, (*it).second);
+    }
     MCC_Status r = http_entry->process(reqmsg, repmsg);
     info->code = stringtoi(repmsg.Attributes()->get("HTTP:CODE"));
     info->reason = repmsg.Attributes()->get("HTTP:REASON");
@@ -242,6 +278,8 @@ namespace Arc {
     if (lm.size() > 11)
       info->lastModified = lm;
     info->type = repmsg.Attributes()->get("HTTP:content-type");
+    info->cookie = repmsg.Attributes()->get("HTTP:set-cookie");
+    info->location = repmsg.Attributes()->get("HTTP:location");
     if (repmsg.Payload() != NULL)
       try {
 	*response = dynamic_cast<Arc::PayloadRawInterface*>(repmsg.Payload());

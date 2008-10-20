@@ -70,6 +70,8 @@ namespace Arc {
     uint64_t size;
     Arc::Time lastModified;
     std::string type;
+    std::string cookie;
+    std::string location;
   };
 
   class ClientHTTP
@@ -80,12 +82,21 @@ namespace Arc {
     ClientHTTP(const BaseConfig& cfg, const std::string& host, int port,
 	       bool tls, const std::string& path);
     virtual ~ClientHTTP();
-    MCC_Status process(const std::string& method, PayloadRawInterface *request,
-		       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, PayloadRawInterface *request, 
+                       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, std::map<std::string, std::string>& attributes,
+                       PayloadRawInterface *request, HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, const std::string& path, 
+                       PayloadRawInterface *request, HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, const std::string& path, 
+                       std::map<std::string, std::string>& attributes,
+                       PayloadRawInterface *request, HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-		       PayloadRawInterface *request,
-		       HTTPClientInfo *info, PayloadRawInterface **response);
-    MCC_Status process(const std::string& method, const std::string& path,
+                       uint64_t range_start, uint64_t range_end,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, const std::string& path, 
+                       std::map<std::string, std::string>& attributes,
 		       uint64_t range_start, uint64_t range_end,
 		       PayloadRawInterface *request,
 		       HTTPClientInfo *info, PayloadRawInterface **response);
