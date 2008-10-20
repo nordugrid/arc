@@ -26,7 +26,6 @@
 
 #include "../../hed/libs/common/XmlSecUtils.h"
 #include "../../hed/libs/common/XMLSecNode.h"
-
 #include "../../hed/libs/credential/saml_util.h"
 
 #define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
@@ -103,7 +102,9 @@ int main(void) {
   authn_request.NewAttribute("AssertionConsumerServiceURL") = std::string("https://squark.uio.no/Shibboleth.sso/SAML2/POST");
 
 
-  std::string destination("https://squark.uio.no:8443/idp/profile/SAML2/Redirect/SSO");
+  //std::string destination("https://squark.uio.no:8443/idp/profile/SAML2/Redirect/SSO");
+  std::string destination("https://idp.testshib.org/idp/profile/SAML2/Redirect/SSO");
+
   authn_request.NewAttribute("Destination") = destination;
   authn_request.NewAttribute("ProtocolBinding") = std::string("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
    
@@ -128,7 +129,7 @@ int main(void) {
 
   std::string cert_file = "testcert.pem";
   std::string privkey_file = "testkey-nopass.pem";
-  std::string ca_file = "cacert.pem";
+  std::string ca_file = "cacert_testshib.pem";
 
   std::string authnRequestQuery;
   if(httpmethod == HTTP_METHOD_REDIRECT) {
@@ -146,9 +147,14 @@ int main(void) {
   std::cout<<"autnRequestUrl: "<<authnRequestUrl<<std::endl;
 
   // -------------------------------------------
-  // Client-Agent: Send the AuthnRequest to IdP, get back b64 encoded saml response, and 
+  // Client-Agent: Send the AuthnRequest to IdP, 
+  // (IP-based authentication, and Username/Password authentication) 
+  // get back b64 encoded saml response, and 
   // send this saml response to SP
   // -------------------------------------------
+  //
+  //
+
   Arc::MCCConfig cfg;
   if (!cert_file.empty())
     cfg.AddCertificate(cert_file);
@@ -165,9 +171,6 @@ int main(void) {
   std::string path = url_str.substr(pos);
 
   Arc::ClientHTTP client(cfg, url.Host(), url.Port(), url.Protocol() == "https" ? 1:0, path);
-
-  std::cout<<"URL: "<<url.str()<<std::endl<<"Host: "<<url.Host()<<std::endl<<"Port: "<<url.Port()<<std::endl<<"Protocol: "<<url.Protocol()<<std::endl;
-
   Arc::PayloadRaw request;
   Arc::PayloadRawInterface *response = NULL;
   Arc::HTTPClientInfo info;
@@ -181,25 +184,92 @@ int main(void) {
     return -1;
   }
 
-  std::cout<<"Response content: "<<response->Content()<<std::endl;
+  //The following code is for authentication (username/password)
+  std::string resp_html;
+  Arc::HTTPClientInfo redirect_info = info;
+  do {
+    std::cout<<"Code: "<<redirect_info.code<<"Reason: "<<redirect_info.reason<<"Size: "<<
+    redirect_info.size<<"Type: "<<redirect_info.type<<"Set-Cookie: "<<redirect_info.cookie<<
+    "Location: "<<redirect_info.location<<std::endl;
+    if(redirect_info.code != 302) break;
+    
+    Arc::URL redirect_url(redirect_info.location);
+    Arc::ClientHTTP redirect_client(cfg, redirect_url.Host(), redirect_url.Port(), 
+                    redirect_url.Protocol() == "https" ? 1:0, redirect_url.Path());
 
-  std::string type = info.type;
+    Arc::PayloadRaw redirect_request;
+    Arc::PayloadRawInterface *redirect_response = NULL;
+
+    std::map<std::string, std::string> http_attributes;
+    if(!(redirect_info.cookie.empty())) http_attributes["Cookie"]=redirect_info.cookie;
+
+    Arc::MCC_Status redirect_status = redirect_client.process("GET", http_attributes, 
+                              &redirect_request, &redirect_info, &redirect_response);
+    if (!redirect_response) {
+      logger.msg(Arc::ERROR, "Request failed: No response");
+      return -1;
+    }
+    if (!redirect_status) {
+      logger.msg(Arc::ERROR, "Request failed: Error");
+      return -1;
+    }
+    char* content = redirect_response->Content();
+    if(content!=NULL) {
+      resp_html.assign(redirect_response->Content());
+      size_t pos = resp_html.find("j_username"); 
+      if(pos!=std::string::npos) break;
+    }
+  } while(1);
+
+  Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
+  Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final.Host(), redirect_url_final.Port(), 
+              redirect_url_final.Protocol() == "https" ? 1:0, redirect_url_final.Path());
+  Arc::PayloadRaw redirect_request_final;
+  std::string login_html("j_username=myself&j_password=myself");
+  redirect_request_final.Insert(login_html.c_str(),0,login_html.size());
+  std::map<std::string, std::string> http_attributes;
+  http_attributes["Content-Type"] = "application/x-www-form-urlencoded";
+  //Use the first cookie
+  if(!(info.cookie.empty()))            
+    http_attributes["Cookie"]=info.cookie; 
+  Arc::PayloadRawInterface *redirect_response_final = NULL;
+  Arc::HTTPClientInfo redirect_info_final;
+  Arc::MCC_Status redirect_status_final = redirect_client_final.process("POST", http_attributes, 
+        &redirect_request_final, &redirect_info_final, &redirect_response_final);
+  if (!redirect_response_final) {
+    logger.msg(Arc::ERROR, "Request failed: No response");
+    return -1;
+  }
+  if (!redirect_status_final) {
+    logger.msg(Arc::ERROR, "Request failed: Error");
+    return -1;
+  }
+
+  std::string html_body;
+  for(int i = 0;;i++) {
+    char* buf = redirect_response_final->Buffer(i);
+    if(buf == NULL) break;
+    html_body.append(redirect_response_final->Buffer(i), redirect_response_final->BufferSize(i));
+    std::cout<<"Buffer: "<<buf<<std::endl;
+  }
+
+  std::string type = redirect_info_final.type;
   size_t pos1 = type.find(';');
   if (pos1 != std::string::npos)
     type = type.substr(0, pos1);
-
   if(type != "text/html")
-    std::cerr<<"The html from IdP is with wrong format"<<std::endl;
+    std::cerr<<"The html response from IdP is with wrong format"<<std::endl;
+
+  //The authentication is finished and the html response with saml response is returned
  
   //--------------------------------------
   //SP: Get the b64 encoded saml response from Client-Agent, and decode/verify/decrypt it
   //-------------------------------------
-  Arc::XMLNode html_node(response->Content());
+  Arc::XMLNode html_node(html_body);
   std::string saml_resp = html_node["body"]["form"]["div"]["input"].Attribute("value");
   std::cout<<"SAML Response: "<<saml_resp<<std::endl;
 
   Arc::XMLNode node;
-
   //Decode the saml response (b64 format)
   Arc::BuildNodefromMsg(saml_resp, node);  
   std::string decoded_saml_resp;
@@ -207,12 +277,10 @@ int main(void) {
   std::cout<<"Decoded SAML Response: "<<decoded_saml_resp<<std::endl;
 
   Arc::init_xmlsec();
-
   //Verify the signature of saml response
   std::string idname = "ID";
-  std::string ca_path = "";
   Arc::XMLSecNode sec_samlresp_nd(node);
-  if(sec_samlresp_nd.VerifyNode(idname, ca_file, ca_path)) {
+  if(sec_samlresp_nd.VerifyNode(idname, ca_file, "")) {
     logger.msg(Arc::INFO, "Succeed to verify the signature under <samlp:Response/>");
   }
   else {
@@ -256,7 +324,7 @@ int main(void) {
   //Compose <samlp:AttributeQuery/>
   std::string cert = "testcert.pem";
   std::string key = "testkey-nopass.pem";
-  std::string cafile = "cacert.pem";
+  std::string cafile = "cacert_testshib.pem";
 
   ArcLib::Credential cred(cert, key, "", cafile);
   std::string local_dn = cred.GetDN();
@@ -284,7 +352,6 @@ int main(void) {
   attribute.NewAttribute("NameFormat")=std::string("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
   attribute.NewAttribute("FriendlyName")=std::string("eduPersonAffiliation");
 
-
   std::string str;
   attr_query.GetXML(str);
   std::cout<<"Attribute Query: "<<str<<std::endl;
@@ -304,7 +371,8 @@ int main(void) {
     attrqry_cfg.AddCAFile(cafile);
 
   std::string attrqry_path("/idp/profile/SAML2/SOAP/AttributeQuery");
-  std::string service_url_str("https://squark.uio.no:8443");
+  //std::string service_url_str("https://squark.uio.no:8443");
+  std::string service_url_str("https://idp.testshib.org:8443");
 
   Arc::URL service_url(service_url_str);
   Arc::ClientSOAP attrqry_client(attrqry_cfg, service_url.Host(), service_url.Port(), service_url.Protocol() == "https" ? 1:0, attrqry_path);

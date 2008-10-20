@@ -5,3 +5,7 @@ Libraries from lasso are used for generating and consuming SAML assertion.
 
 TODO: attribute database on service side; conveninet client interface for client 
 developer.
+
+
+curl -d "j_username=myself&j_password=myself" https://idp.testshib.org:443/idp/Authn/UserPassword --cert testcert.pem --key testkey-nopass.pem --cacert cacert_testshib.pem
+
