@@ -45,11 +45,14 @@ class XMLSecNode: public XMLNode {
                       <KeyInfo/> part of <Signature/> 
     *@param ca_path   The CA directory; either ca_file or ca_path should be set.
     */
-   bool VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path);
+   bool VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, 
+      bool verify_trusted = true);
    /** Encrypt this node, after encryption, this node will be replaced by the encrypted node
     *@param cert_file   The certificate file, the public key parsed from this certificate is used to 
                         encrypted the symmetric key, and then the symmetric key is used to encrypted the node
     *@param encrpt_type The encryption type when encrypting the node, four option in SymEncryptionType
+    *@param verify_trusted Verify trusted certificates or not. If set to false, then only the signature will be 
+    *                      checked (by using the public key from KeyInfo).
     */
    bool EncryptNode(const std::string& cert_file, const SymEncryptionType encrpt_type);
    /** Decrypt the <xenc:EncryptedData/> under this node, the decrypted node will be output in the second

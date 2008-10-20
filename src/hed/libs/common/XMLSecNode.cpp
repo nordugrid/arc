@@ -11,6 +11,8 @@
 #include <xmlsec/xmlenc.h>
 #include <xmlsec/templates.h>
 #include <xmlsec/crypto.h>
+#include <xmlsec/keys.h>
+#include <xmlsec/keyinfo.h>
 
 #include <xmlsec/openssl/app.h>
 #include <openssl/bio.h>
@@ -102,7 +104,7 @@ bool XMLSecNode::SignNode(const std::string& privkey_file, const std::string& ce
   return true;
 }
 
-bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path) {
+bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, bool verify_trusted) {
   xmlNodePtr node = this->node_;
   xmlDocPtr docPtr = node->doc;
   xmlChar* id = xmlGetProp(node, (xmlChar *)(id_name.c_str()));
@@ -113,21 +115,55 @@ bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_fi
   Arc::XMLNode signature = (*this)["Signature"];
   if(!signature) { std::cerr<<"No signature node under this node"<<std::endl; return false; }
   xmlNodePtr signatureptr = ((XMLSecNode*)(&signature))->node_;
+  Arc::XMLNode keyinfo = signature["KeyInfo"];
   Arc::XMLNode x509data = signature["KeyInfo"]["X509Data"];
 
   xmlSecKeysMngr* keys_manager = NULL;
   xmlSecDSigCtx *dsigCtx;
-
-  //Verify the signature under the signature node (this node) 
-  if((bool)x509data && (!ca_file.empty() || !ca_path.empty())) {
-    keys_manager = load_trusted_certs(&keys_manager, ca_file.c_str(), ca_path.c_str());
-    if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; }
-  } 
-  else if((bool)x509data)
-    { std::cerr<<"No trusted certificates exists"<<std::endl; return false;}
-  if(keys_manager == NULL){ std::cerr<<"No <X509Data/> exists, or no trusted certificates configured"<<std::endl; return false;}
+  
+  if(verify_trusted) {
+    //Verify the signature under the signature node (this node) 
+    if((bool)x509data && (!ca_file.empty() || !ca_path.empty())) {
+      keys_manager = load_trusted_certs(&keys_manager, ca_file.c_str(), ca_path.c_str());
+      if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; }
+    } 
+    else if((bool)x509data)
+      { std::cerr<<"No trusted certificates exists"<<std::endl; return false;}
+    if(keys_manager == NULL){ std::cerr<<"No <X509Data/> exists, or no trusted certificates configured"<<std::endl; return false;}
+    dsigCtx = xmlSecDSigCtxCreate(keys_manager);
+  }
+  else {
+    dsigCtx = xmlSecDSigCtxCreate(NULL);
+    if((bool)x509data) {
+      //Since xmlsec automatically needs to check trusted certificates
+      //if the KeyInfo is composed by X509Data, here we manualy extract 
+      //the public key from X509Data
+      Arc::XMLNode x509cert = x509data["X509Certificate"];
+      std::string certstr = (std::string)x509cert;
+      xmlSecKey* pubkey = get_key_from_certstr(certstr);
+      if (pubkey == NULL){
+        xmlSecDSigCtxDestroy(dsigCtx);
+        std::cerr<<"Can not load public key"<<std::endl; return false;
+      }
+      dsigCtx->signKey = pubkey;
+    }
+    else {
+      //Use xmlSecKeyInfoNodeRead to extract public key
+      dsigCtx->flags |= XMLSEC_DSIG_FLAGS_STORE_SIGNEDINFO_REFERENCES;
+      dsigCtx->signKey = xmlSecKeyCreate();
+      if(!keyinfo) {  
+        std::cerr<<"No KeyInfo node exists"<<std::endl;         
+        xmlSecDSigCtxDestroy(dsigCtx); return false;
+      }
+      xmlNodePtr keyinfoptr = ((XMLSecNode*)(&keyinfo))->node_;
+      xmlSecKeyInfoCtxPtr keyInfo;
+      keyInfo = xmlSecKeyInfoCtxCreate(NULL);
+      if(!keyInfo) { xmlSecDSigCtxDestroy(dsigCtx); return false; }
+      xmlSecKeyInfoNodeRead(keyinfoptr, dsigCtx->signKey,keyInfo);
+      xmlSecKeyInfoCtxDestroy(keyInfo);
+    }
+  }
     
-  dsigCtx = xmlSecDSigCtxCreate(keys_manager);
   if (xmlSecDSigCtxVerify(dsigCtx, signatureptr) < 0) {
     xmlSecDSigCtxDestroy(dsigCtx);
     if (keys_manager) xmlSecKeysMngrDestroy(keys_manager);
