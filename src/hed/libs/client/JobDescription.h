@@ -64,6 +64,7 @@ namespace Arc {
         public:
             virtual bool parse( Arc::XMLNode& jobTree, const std::string source ) = 0;
             virtual bool getProduct( const Arc::XMLNode& jobTree, std::string& product ) = 0;
+            virtual ~JobDescriptionParser(){};
     };
 
     class JSDLParser : public JobDescriptionParser {
