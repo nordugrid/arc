@@ -189,7 +189,7 @@ Policy* EvaluatorLoader::getPolicy(const Source& policysource) {
 
   Arc::XMLNode cfg("\
     <ArcConfig\
-     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\">\
      <ModuleManager/>\
     </ArcConfig>");
   for(std::list<std::string>::iterator plugin = plugins.begin();plugin!=plugins.end();++plugin) {
@@ -230,7 +230,7 @@ Request* EvaluatorLoader::getRequest(const Source& requestsource) {
 
   Arc::XMLNode cfg("\
     <ArcConfig\
-     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\">\
      <ModuleManager/>\
     </ArcConfig>");
   for(std::list<std::string>::iterator plugin = plugins.begin();plugin!=plugins.end();++plugin) {
