@@ -20,10 +20,6 @@ namespace Arc {
 
   ACC::~ACC() {}
 
-  const std::string& ACC::Flavour() {
-    return flavour;
-  }
-
   XMLNode ACCConfig::MakeConfig(XMLNode cfg) const {
     XMLNode mm = BaseConfig::MakeConfig(cfg);
     std::list<std::string> accs;

@@ -4,13 +4,15 @@
 #include <arc/client/Broker.h>
 
 namespace Arc {
-
+  
   class RandomBroker: public Broker {
-       public:
-			RandomBroker(Arc::TargetGenerator& targen,  Arc::JobDescription jobd): Broker(targen, jobd) {}
-
-       protected:
-			virtual void sort_Targets();
+  public:
+    RandomBroker(Config *cfg);
+    ~RandomBroker();
+    static ACC* Instance(Config *cfg, ChainContext *ctx);
+    
+  protected:
+    virtual void SortTargets();
   };
 
 } // namespace Arc

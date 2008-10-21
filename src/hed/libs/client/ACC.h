@@ -7,10 +7,10 @@ namespace Arc {
 
   class ACC {
   protected:
-    ACC(Config *cfg, const std::string& flavour);
+    ACC(Config *cfg, const std::string& flavour = "");
   public:
     virtual ~ACC();
-    const std::string& Flavour();
+    const std::string& Flavour(){return flavour;}
   protected:
     std::string flavour;
     std::string proxyPath;

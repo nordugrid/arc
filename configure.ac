@@ -956,6 +956,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/ARC0/Makefile
                  src/hed/acc/ARC1/Makefile
                  src/hed/acc/CREAM/Makefile
+                 src/hed/acc/Broker/Makefile
                  src/hed/dmc/Makefile
                  src/hed/dmc/file/Makefile
                  src/hed/dmc/gridftp/Makefile

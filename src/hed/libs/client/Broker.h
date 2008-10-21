@@ -9,22 +9,25 @@
 #include <arc/client/ExecutionTarget.h>
 
 namespace Arc {
-
-  class Broker {
-
-       public:
-			ExecutionTarget& get_Target();
-
-       protected:
-			Broker(Arc::TargetGenerator& targen, Arc::JobDescription jd);
-			virtual ~Broker();
-			virtual void sort_Targets() = 0;
-			std::vector<Arc::ExecutionTarget> found_Targets;
-
-       private:	
-			//current Target for a Job 
-			std::vector<Arc::ExecutionTarget>::iterator current;
-
+  
+  class Broker : public ACC {
+    
+  public:
+    ExecutionTarget& GetBestTarget(bool &EndOfList);
+    
+  protected:
+    Broker(Config *cfg);
+    virtual ~Broker();
+    void PreFilterTargets(Arc::TargetGenerator& targen, 
+			  Arc::JobDescription jd);
+    virtual void SortTargets() = 0;
+    std::vector<Arc::ExecutionTarget> PossibleTargets;
+    
+  private:	
+    std::vector<Arc::ExecutionTarget>::iterator current;
+    bool PreFilteringDone;
+    bool TargetSortingDone;
+    
   };
   
 } // namespace Arc

@@ -1,0 +1,14 @@
+pkglib_LTLIBRARIES = libaccBroker.la
+
+libaccBroker_la_SOURCES  = QueueBalanceBroker.cpp QueueBalanceBroker.h \
+                         RandomBroker.cpp RandomBroker.h \
+                         DescriptorsBroker.cpp
+libaccBroker_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
+                         $(GLOBUS_FTP_CONTROL_CFLAGS) \
+                         -I$(top_srcdir)/include
+libaccBroker_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \
+                         $(GLOBUS_FTP_CONTROL_LIBS) \
+                         $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+                         $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                         $(top_srcdir)/src/hed/libs/client/libarcclient.la
+libaccBroker_la_LDFLAGS  = -no-undefined -avoid-version -module

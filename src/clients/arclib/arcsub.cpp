@@ -22,8 +22,6 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/UserConfig.h>
-#include <arc/client/RandomBroker.h>
-#include <arc/client/QueueBalanceBroker.h>
 
 int main(int argc, char **argv) {
 
@@ -109,11 +107,10 @@ int main(int argc, char **argv) {
 		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
 		    istring("debuglevel"), debug);
 
-  std::string req_broker;
+  std::string broker;
   options.AddOption('b', "broker",
-		    istring("select broker method, ex.: Random, QueueBalance"),
-		    istring("selected broker"),
-		    req_broker);
+		    istring("select broker method (Random (default), QueueBalance, or custom)"),
+		    istring("broker"), broker);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
@@ -243,78 +240,69 @@ int main(int argc, char **argv) {
   Arc::NS ns;
   Arc::Config jobstorage(ns);
 
+  //prepare loader
+  if(broker.empty())
+    broker = "random";
+  /*
+  ACCConfig acccfg;
+  NS ns;
+  Config cfg(ns);
+  acccfg.MakeConfig(cfg);
+  
+  XMLNode retriever = cfg.NewChild("ArcClientComponent");
+  retriever.NewAttribute("name") = "TargetRetriever"
+    retriever.NewAttribute("id") = "broker";
+  usercfg.ApplySecurity(retriever); // check return value ?
+  XMLNode url = retriever.NewChild("URL") = it2->str();
+  url.NewAttribute("ServiceType") = "computing";
+  */
+
   for (std::list<Arc::JobDescription>::iterator it =
 	 jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
 
-    // perform brokering
-    Arc::Broker *broker;
+    bool JobSubmitted = false;
+    bool EndOfList = false;
 
-    if ( req_broker == "Random" ) {  
-  	          broker = new Arc::RandomBroker(targen, *it);
-	          logger.msg(Arc::DEBUG, "The arcsub use the RandomBroker." );
-    }
-    else if ( req_broker == "QueueBalance" ) {  
- 	          broker = new Arc::QueueBalanceBroker(targen, *it);
-	          logger.msg(Arc::DEBUG, "The arcsub use the QueueBalanceBroker." );
-    }
-    else if (  req_broker == "") {
-	          broker = new Arc::RandomBroker(targen, *it);
-	          logger.msg(Arc::DEBUG, "The arcsub use the default broker, that it is now the RandomBroker." );                      
-    }
-    else{
-	          logger.msg(Arc::ERROR, "The added  borker ( "+ req_broker  + " ) is not prefered." ); 
-	          return 1;                     
-    }
-
-    Arc::ExecutionTarget target;
-
-    while ( true ) {
-      try {
-                // for now use execution targets in the order found...
-                target = broker->get_Target();
-      }
-       catch (char* e) {
-    	logger.msg(Arc::ERROR, "Job submission failed because:  " + (std::string)e );
-                std::cout << "Job submission failed because:  " + (std::string)e << std::endl;
- 	break;
-      }
-      catch (const char* e) {
-    	logger.msg(Arc::ERROR, "Job submission failed because:  " + (std::string)e );
-                std::cout << "Job submission failed because:  " + (std::string)e << std::endl;
+    while(!JobSubmitted){
+      
+      /*
+      Arc::ExecutionTarget target = broker->GetBestTarget();
+      if(EndOfList){
+	std::cout << Arc::IString("Job submission failed, no more possible targets")<< std::endl;
 	break;
       }
-      catch (...) {
-    	logger.msg(Arc::ERROR, "Job submission failed!  Unknown error." );
-                std::cout << "Job submission failed!  Unknown error." << std::endl;
-	break;
-      }
-
+      
       Arc::Submitter *submitter = target.GetSubmitter(usercfg);
-
+      
       Arc::NS ns;
       Arc::XMLNode info(ns, "Job");
       if (!submitter->Submit(*it, info)) {
-	logger.msg(Arc::ERROR, "Submission to %s failed", target.url.str());
+	std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str())<< std::endl;
 	continue;
       }
-
+      
       if (it->getXML()["JobDescription"]["JobIdentification"]["JobName"])
 	info.NewChild("Name") = (std::string)
 	  it->getXML()["JobDescription"]["JobIdentification"]["JobName"];
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-
+      
       jobstorage.NewChild("Job").Replace(info);
-
+      
       std::cout << Arc::IString("Job submitted with jobid: %s",
 				(std::string) info["JobID"]) << std::endl;
+      JobSubmitted = true;
       break;
-    }
-  }
+      /*
 
-  {
+    } //end loop over all possible targets
+  } //end loop over all job descriptions
+
+
+  //now add info about all submitted jobs to the local xml file
+  {//start of file lock
     Arc::FileLock lock(joblist);
     Arc::Config jobs;
     jobs.ReadFromFile(joblist);
@@ -322,7 +310,7 @@ int main(int argc, char **argv) {
       jobs.NewChild(j);
     }
     jobs.SaveToFile(joblist);
-  }
+  }//end of file lock
 
   if (jobdescriptionlist.size() > 1) {
     std::cout << std::endl << Arc::IString("Job submission summary:")
