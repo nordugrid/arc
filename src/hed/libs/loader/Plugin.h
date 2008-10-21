@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <stdint.h>
 
 #include <arc/loader/ModuleManager.h>
 
