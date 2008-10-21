@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include "MCCMSGVALIDATOR.h"
+#include "MCCMsgValidator.h"
 
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/SOAPEnvelope.h>
