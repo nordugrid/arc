@@ -17,10 +17,10 @@
 #include <libxml/xmlschemas.h>
 #include <libxml/xmlstring.h>
 
-Arc::Logger Arc::MCC_MSGVALIDATOR::logger(Arc::MCC::logger,"MSGVALIDATOR");
+Arc::Logger Arc::MCC_MsgValidator::logger(Arc::MCC::logger,"MsgValidator");
 
 
-Arc::MCC_MSGVALIDATOR::MCC_MSGVALIDATOR(Arc::Config *cfg) : MCC(cfg) {
+Arc::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : MCC(cfg) {
     // Collect services to be validated
     for(int i = 0;;++i) {
         XMLNode n = (*cfg)["ValidatedService"][i];
@@ -44,11 +44,11 @@ Arc::MCC_MSGVALIDATOR::MCC_MSGVALIDATOR(Arc::Config *cfg) : MCC(cfg) {
 }
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_MSGVALIDATOR_Service(cfg);
+    return new Arc::MCC_MsgValidator_Service(cfg);
 }
 
 static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_MSGVALIDATOR_Client(cfg);
+    return new Arc::MCC_MsgValidator_Client(cfg);
 }
 
 mcc_descriptors ARC_MCC_LOADER = {
@@ -59,19 +59,19 @@ mcc_descriptors ARC_MCC_LOADER = {
 
 namespace Arc {
 
-MCC_MSGVALIDATOR_Service::MCC_MSGVALIDATOR_Service(Arc::Config *cfg):MCC_MSGVALIDATOR(cfg) {
+MCC_MsgValidator_Service::MCC_MsgValidator_Service(Arc::Config *cfg):MCC_MsgValidator(cfg) {
 }
 
-MCC_MSGVALIDATOR_Service::~MCC_MSGVALIDATOR_Service(void) {
+MCC_MsgValidator_Service::~MCC_MsgValidator_Service(void) {
 }
 
-MCC_MSGVALIDATOR_Client::MCC_MSGVALIDATOR_Client(Arc::Config *cfg):MCC_MSGVALIDATOR(cfg) {
+MCC_MsgValidator_Client::MCC_MsgValidator_Client(Arc::Config *cfg):MCC_MsgValidator(cfg) {
 }
 
-MCC_MSGVALIDATOR_Client::~MCC_MSGVALIDATOR_Client(void) {
+MCC_MsgValidator_Client::~MCC_MsgValidator_Client(void) {
 }
 
-std::string MCC_MSGVALIDATOR::getSchemaPath(std::string servicePath) {
+std::string MCC_MsgValidator::getSchemaPath(std::string servicePath) {
     // Look for servicePath in the map.
     // Using a const_iterator since we are not going to change the values.
     for(std::map<std::string,std::string>::const_iterator iter = schemas.begin(); iter != schemas.end(); ++iter)
@@ -85,7 +85,7 @@ std::string MCC_MSGVALIDATOR::getSchemaPath(std::string servicePath) {
     return "";
 }
 
-bool MCC_MSGVALIDATOR::validateMessage(Message& msg, std::string schemaPath){
+bool MCC_MsgValidator::validateMessage(Message& msg, std::string schemaPath){
     // create parser ctxt for schema accessible on schemaPath
     xmlSchemaParserCtxtPtr schemaParserP = xmlSchemaNewParserCtxt(schemaPath.c_str());
 
@@ -209,7 +209,7 @@ static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* de
   return make_soap_fault(outmsg,desc);
 }
 
-MCC_Status MCC_MSGVALIDATOR_Service::process(Message& inmsg,Message& outmsg) {
+MCC_Status MCC_MsgValidator_Service::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
   if(!inpayload) {
@@ -293,7 +293,7 @@ MCC_Status MCC_MSGVALIDATOR_Service::process(Message& inmsg,Message& outmsg) {
   return MCC_Status(Arc::STATUS_OK);
 }
 
-std::string MCC_MSGVALIDATOR_Service::getPath(std::string url){
+std::string MCC_MsgValidator_Service::getPath(std::string url){
     std::string::size_type ds, ps;
     ds=url.find("//");
     if (ds==std::string::npos)
@@ -306,7 +306,7 @@ std::string MCC_MSGVALIDATOR_Service::getPath(std::string url){
         return url.substr(ps);
 }
 
-MCC_Status MCC_MSGVALIDATOR_Client::process(Message& inmsg,Message& outmsg) {
+MCC_Status MCC_MsgValidator_Client::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
   if(!inmsg.Payload()) return make_soap_fault(outmsg);
   PayloadSOAP* inpayload = NULL;

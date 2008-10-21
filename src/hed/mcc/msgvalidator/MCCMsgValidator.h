@@ -7,9 +7,9 @@ namespace Arc {
 
   // This is a base class for Message Validator client and service MCCs. 
 
-  class MCC_MSGVALIDATOR : public MCC {
+  class MCC_MsgValidator : public MCC {
   public:
-    MCC_MSGVALIDATOR(Arc::Config *cfg);
+    MCC_MsgValidator(Arc::Config *cfg);
   protected:
     static Arc::Logger logger;
     std::map<std::string,std::string> schemas;
@@ -18,28 +18,31 @@ namespace Arc {
     std::string getSchemaPath(std::string serviceName);
   };
 
-// This MCC validates messages against XML schemas.
-class MCC_MSGVALIDATOR_Service: public MCC_MSGVALIDATOR
+/* This MCC validates messages against XML schemas. 
+   It accepts and produces (i.e. inmsg/outmsg) PayloadSOAP 
+   kind of payloads in it's process() method. */
+class MCC_MsgValidator_Service: public MCC_MsgValidator
 {
     public:
         /* Constructor takes configuration of MCC. */
-        MCC_MSGVALIDATOR_Service(Arc::Config *cfg);
-        virtual ~MCC_MSGVALIDATOR_Service(void);
+        MCC_MsgValidator_Service(Arc::Config *cfg);
+        virtual ~MCC_MsgValidator_Service(void);
         virtual MCC_Status process(Message&,Message&);
     private:
         static std::string getPath(std::string url);
 };
 
-/* This is client side of MSGVALIDATOR processing MCC.
+/* This is client side of MsgValidator processing MCC.
    It accepts and produces PayloadSOAP kind of payloads in it's
-   process() method. Communication to next MCC is done over payloads
-   implementing PayloadRawInterface. */
-class MCC_MSGVALIDATOR_Client: public MCC_MSGVALIDATOR
+   process() method. (i.e. inmsg/outmsg)
+   Communication to next MCC is done over payloads
+   implementing PayloadRawInterface. (i.e. nextinmsg) */
+class MCC_MsgValidator_Client: public MCC_MsgValidator
 {
     public:
         /* Constructor takes configuration of MCC. */
-        MCC_MSGVALIDATOR_Client(Arc::Config *cfg);
-        virtual ~MCC_MSGVALIDATOR_Client(void);
+        MCC_MsgValidator_Client(Arc::Config *cfg);
+        virtual ~MCC_MsgValidator_Client(void);
         virtual MCC_Status process(Message&,Message&);
 };
 
