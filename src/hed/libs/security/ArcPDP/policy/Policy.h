@@ -46,7 +46,7 @@ public:
   virtual ~Policy(){};
 
   /// Returns true is object is valid.
-  virtual operator bool(void) = 0;
+  virtual operator bool(void) const = 0;
   
   ///Evaluate whether the two targets to be evaluated match to each other
   virtual MatchResult match(EvaluationCtx*) = 0;
@@ -70,13 +70,16 @@ public:
   virtual void make_policy() {};
 
   /**Get the "Effect" attribute*/
-  virtual std::string getEffect() = 0;
+  virtual std::string getEffect() const = 0;
   
   /**Get eveluation result*/
   virtual EvalResult& getEvalResult() = 0;
 
   /**Set eveluation result*/
   virtual void setEvalResult(EvalResult& res) = 0;
+
+  /**Get the name of Evaluator which can evaluate this policy*/
+  virtual std::string getEvalName() const = 0;
 };
 
 } // namespace ArcSec

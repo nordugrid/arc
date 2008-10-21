@@ -20,8 +20,14 @@ class EvaluatorLoader {
   EvaluatorLoader();
   /**Get evaluator object according to the class name*/
   Evaluator* getEvaluator(const std::string& classname);
+  /**Get evaluator object suitable for presented policy*/
+  Evaluator* getEvaluator(const Policy* policy);
+  /**Get evaluator object suitable for presented request*/
+  Evaluator* getEvaluator(const Request* request);
   /**Get request object according to the class name, based on the request source*/
   Request* getRequest(const std::string& classname, const Source& requestsource);
+  /**Get request object according to the request source*/
+  Request* getRequest(const Source& requestsource);
   /**Get policy object according to the class name, based on the policy source*/
   Policy* getPolicy(const std::string& classname, const Source& policysource);
   /**Get proper policy object according to the policy source*/
