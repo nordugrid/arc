@@ -334,6 +334,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libidentitymap.so
 %{_libdir}/%{pkgdir}/libaccARC1.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
+%{_libdir}/%{pkgdir}/libaccBroker.so
 
 %files plugins-globus
 %defattr(-,root,root,-)
