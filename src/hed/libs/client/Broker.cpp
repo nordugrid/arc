@@ -12,31 +12,8 @@ namespace Arc {
     Arc::LogStream logcerr(std::cerr);
     //Arc::Logger::getRootLogger().addDestination(logcerr);
     //Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
- 	    
+
     Broker::Broker(Arc::TargetGenerator& targen,  Arc::JobDescription jd) {
-	//for get_Targets test
-              ExecutionTarget eTarget;
-              eTarget.MaxCPUTime = 1; 
-              eTarget.RunningJobs = 1; 
-              eTarget.MaxRunningJobs = 1; 
-              eTarget.WaitingJobs = 3;
-              eTarget.MaxDiskSpace = 10;
-              found_Targets.push_back(eTarget);
-
-              eTarget.MinCPUTime = 1; 
-              eTarget.MaxRunningJobs = 22;
-              eTarget.WaitingJobs = 1; 
-              found_Targets.push_back(eTarget);
-
-              ExecutionTarget eTarget2;
-              eTarget2.DefaultCPUTime = 1; 
-              eTarget2.RunningJobs = 3; 
-              eTarget2.MaxRunningJobs = 31;
-              eTarget2.WaitingJobs = 20; 
-              found_Targets.push_back(eTarget2);
-	//end of "for get_Targets test"
- 		      
-              targen.GetTargets(0, 1);
 
               Arc::XMLNode jobd;
               bool empty_Jd = false;
@@ -183,6 +160,27 @@ namespace Arc {
 
         if (current == found_Targets.begin()) {
         	sort_Targets();
+            int counter = 1;
+            std::vector<Arc::ExecutionTarget>::iterator pointer;
+            for (pointer = found_Targets.begin();
+                pointer < found_Targets.end() && pointer < found_Targets.begin() + 10; pointer ++) {
+                std::stringstream log_message;
+                log_message <<  counter++;
+                log_message <<  ": ";
+                log_message << (*pointer).DomainName;
+                log_message << " (";
+                log_message << (*pointer).GridFlavour;
+                log_message << ")";
+                logger.msg(Arc::DEBUG, log_message.str());
+            std::cout << "broker list items: " << log_message.str() << std::endl;
+            }
+            if ( pointer != found_Targets.end() ) {
+                std::stringstream  log_message;
+                log_message << ( (int) found_Targets.size() - 10);
+                log_message << " element(s) more";
+                logger.msg(Arc::DEBUG, log_message.str());
+            std::cout << "broker more items: " << log_message.str() << std::endl;
+            }
         }       
        
         std::vector<Arc::ExecutionTarget>::iterator ret_pointer;
