@@ -15,19 +15,21 @@ public:
 
   virtual ~GACLPolicy();  
 
-  virtual operator bool(void) { return (bool)policynode; };
+  virtual operator bool(void) const { return (bool)policynode; };
 
   virtual Result eval(EvaluationCtx* ctx);
 
   virtual MatchResult match(EvaluationCtx* ctx) { };
 
-  virtual std::string getEffect() { return ""; };
+  virtual std::string getEffect() const { return ""; };
 
   virtual EvalResult& getEvalResult();
 
   virtual void setEvalResult(EvalResult& res);
 
   Arc::XMLNode getXML(void) { return policynode; };
+
+  std::string getEvalName() const { return "gacl.evaluator"; };
 
 private:
 

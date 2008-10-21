@@ -69,7 +69,7 @@ class ArcRule : public Policy {
 public:
   ArcRule(const Arc::XMLNode node, EvaluatorContext* ctx);  
 
-  virtual std::string getEffect();
+  virtual std::string getEffect() const;
 
   virtual Result eval(EvaluationCtx* ctx);
 
@@ -77,11 +77,13 @@ public:
 
   virtual ~ArcRule();
 
-  virtual operator bool(void);
+  virtual operator bool(void) const ;
 
   virtual EvalResult& getEvalResult();
 
   virtual void setEvalResult(EvalResult& res);
+
+  std::string getEvalName() const;
 
 private:
   /**Parse the <Subjects> <Resources> <Actions> <Conditions> inside one <Rule>

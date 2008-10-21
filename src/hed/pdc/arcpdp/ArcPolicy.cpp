@@ -137,12 +137,16 @@ Result ArcPolicy::eval(EvaluationCtx* ctx){
   return result;
 }
 
-EvalResult& ArcPolicy::getEvalResult(){
+EvalResult& ArcPolicy::getEvalResult() {
   return evalres;
 }
 
 void ArcPolicy::setEvalResult(EvalResult& res){
   evalres = res;
+}
+
+std::string ArcPolicy::getEvalName() const{
+  return "arc.evaluator";
 }
 
 ArcPolicy::~ArcPolicy(){

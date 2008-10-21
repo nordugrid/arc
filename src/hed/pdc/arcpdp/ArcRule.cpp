@@ -308,11 +308,11 @@ Result ArcRule::eval(EvaluationCtx* ctx){
   }
 }
 
-std::string ArcRule::getEffect(){
+std::string ArcRule::getEffect() const {
   return effect;
 }
 
-EvalResult& ArcRule::getEvalResult(){
+EvalResult& ArcRule::getEvalResult() {
   return evalres;
 }
 
@@ -320,9 +320,12 @@ void ArcRule::setEvalResult(EvalResult& res){
   evalres = res;
 }
 
-
-ArcRule::operator bool(void) {
+ArcRule::operator bool(void) const {
   return true;
+}
+
+std::string ArcRule::getEvalName() const{
+  return "arc.evaluator";
 }
 
 ArcRule::~ArcRule(){

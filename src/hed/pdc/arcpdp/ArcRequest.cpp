@@ -138,6 +138,10 @@ void ArcRequest::make_request(){
     }
 }
 
+std::string ArcRequest::getEvalName() const{
+  return "arc.evaluator";
+}
+
 ArcRequest::ArcRequest (const Source& req) : Request(req) {
   req.Get().New(reqnode);
   NS ns;

@@ -24,7 +24,7 @@ public:
 
   virtual ~ArcPolicy();  
 
-  virtual operator bool(void) { return (bool)policynode; };
+  virtual operator bool(void) const { return (bool)policynode; };
 
   virtual Result eval(EvaluationCtx* ctx);
 
@@ -35,11 +35,13 @@ public:
 
   virtual MatchResult match(EvaluationCtx* ctx);
 
-  virtual std::string getEffect(){ return "Not_applicable";};
+  virtual std::string getEffect() const { return "Not_applicable";};
 
   virtual EvalResult& getEvalResult();
 
   virtual void setEvalResult(EvalResult& res);
+
+  virtual std::string getEvalName() const;
 
 private:
   //std::list<Arc::Policy*> rules;

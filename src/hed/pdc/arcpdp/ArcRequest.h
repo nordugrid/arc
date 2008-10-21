@@ -40,6 +40,8 @@ public:
   //**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request();
 
+  virtual std::string getEvalName() const;
+
 private:
   //**AttributeFactory which is in charge of producing Attribute*/
   AttributeFactory * attrfactory;

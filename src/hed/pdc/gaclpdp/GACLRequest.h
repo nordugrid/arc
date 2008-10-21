@@ -28,6 +28,8 @@ public:
 
   Arc::XMLNode getXML(void) { return reqnode; };
 
+  std::string getEvalName() const { return "gacl.evaluator"; };
+
 private:
   Arc::XMLNode reqnode;
 
