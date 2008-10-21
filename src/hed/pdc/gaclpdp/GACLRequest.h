@@ -30,6 +30,8 @@ public:
 
   std::string getEvalName() const { return "gacl.evaluator"; };
 
+  static Arc::LoadableClass* get_request(void* arg);
+
 private:
   Arc::XMLNode reqnode;
 

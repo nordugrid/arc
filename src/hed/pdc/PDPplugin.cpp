@@ -4,6 +4,7 @@
 
 #include <arc/loader/PDPLoader.h>
 #include <arc/loader/SecHandlerLoader.h>
+
 #include "simplelistpdp/SimpleListPDP.h"
 #include "arcpdp/ArcPDP.h"
 #include "pdpserviceinvoker/ArcPDPServiceInvoker.h"
@@ -11,9 +12,19 @@
 #include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
 #include "denypdp/DenyPDP.h"
+
 #include "arcauthzsh/ArcAuthZ.h"
 #include "usernametokensh/UsernameTokenSH.h"
 #include "x509tokensh/X509TokenSH.h"
+
+#include "arcpdp/ArcPolicy.h"
+#include "gaclpdp/GACLPolicy.h"
+
+#include "arcpdp/ArcEvaluator.h"
+#include "gaclpdp/GACLEvaluator.h"
+
+#include "arcpdp/ArcRequest.h"
+#include "gaclpdp/GACLRequest.h"
 
 using namespace ArcSec;
 
@@ -34,6 +45,24 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 #ifdef HAVE_XMLSEC
     { "x509token.handler", 0, &ArcSec::X509TokenSH::get_sechandler},
 #endif
+    { NULL, 0, NULL }
+};
+
+loader_descriptors __arc_policy_modules__  = {
+    { "arc.policy", 0, &ArcSec::ArcPolicy::get_policy },
+    { "gacl.policy", 0, &ArcSec::GACLPolicy::get_policy },
+    { NULL, 0, NULL }
+};
+
+loader_descriptors __arc_evaluator_modules__  = {
+    { "arc.evaluator", 0, &ArcSec::ArcEvaluator::get_evaluator },
+    { "gacl.evaluator", 0, &ArcSec::GACLEvaluator::get_evaluator },
+    { NULL, 0, NULL }
+};
+
+loader_descriptors __arc_request_modules__  = {
+    { "arc.request", 0, &ArcSec::ArcRequest::get_request },
+    { "gacl.request", 0, &ArcSec::GACLRequest::get_request },
     { NULL, 0, NULL }
 };
 

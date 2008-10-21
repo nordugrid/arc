@@ -43,6 +43,8 @@ public:
 
   virtual std::string getEvalName() const;
 
+  static Arc::LoadableClass* get_policy(void* arg);
+
 private:
   //std::list<Arc::Policy*> rules;
   std::string id;

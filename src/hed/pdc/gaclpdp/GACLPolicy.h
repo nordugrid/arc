@@ -31,6 +31,8 @@ public:
 
   std::string getEvalName() const { return "gacl.evaluator"; };
 
+  static Arc::LoadableClass* get_policy(void* arg);
+
 private:
 
   EvalResult evalres;

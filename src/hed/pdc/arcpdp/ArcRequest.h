@@ -42,6 +42,8 @@ public:
 
   virtual std::string getEvalName() const;
 
+  static Arc::LoadableClass* get_request(void* arg);
+
 private:
   //**AttributeFactory which is in charge of producing Attribute*/
   AttributeFactory * attrfactory;

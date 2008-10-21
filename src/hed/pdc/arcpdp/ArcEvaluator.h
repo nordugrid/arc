@@ -67,6 +67,8 @@ public:
 
   virtual void setCombiningAlg(CombiningAlg* alg);
 
+  static Arc::LoadableClass* get_evaluator(void* arg);
+
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx);
 

@@ -9,14 +9,14 @@
 
 #include "GACLEvaluator.h"
 
-static Arc::LoadableClass* get_evaluator(void* arg) {
+Arc::LoadableClass* ArcSec::GACLEvaluator::get_evaluator(void* arg) {
     return new ArcSec::GACLEvaluator((Arc::XMLNode*) arg);
 }
 
-loader_descriptors __arc_evaluator_modules__  = {
-    { "gacl.evaluator", 0, &get_evaluator },
-    { NULL, 0, NULL }
-};
+//loader_descriptors __arc_evaluator_modules__  = {
+//    { "gacl.evaluator", 0, &ArcSec::GACLEvaluator::get_evaluator },
+//    { NULL, 0, NULL }
+//};
 
 using namespace Arc;
 using namespace ArcSec;

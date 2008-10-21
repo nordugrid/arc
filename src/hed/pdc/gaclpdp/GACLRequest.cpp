@@ -11,7 +11,7 @@
 //#include "ArcRequestItem.h"
 
 /** get_request (in charge of class-loading of ArcRequest) can only accept two types of argument: NULL, XMLNode*/
-static Arc::LoadableClass* get_request(void* arg) {
+Arc::LoadableClass* ArcSec::GACLRequest::get_request(void* arg) {
   if(arg==NULL) {
     return new ArcSec::GACLRequest();
   } else {
@@ -20,10 +20,10 @@ static Arc::LoadableClass* get_request(void* arg) {
   }
 }
 
-loader_descriptors __arc_request_modules__  = {
-    { "gacl.request", 0, &get_request },
-    { NULL, 0, NULL }
-};
+//loader_descriptors __arc_request_modules__  = {
+//    { "gacl.request", 0, &ArcSec::GACLRequest::get_request },
+//    { NULL, 0, NULL }
+//};
 
 
 using namespace Arc;

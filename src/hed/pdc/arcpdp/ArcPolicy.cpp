@@ -15,7 +15,7 @@ static Arc::NS policyns("policy", "http://www.nordugrid.org/schemas/policy-arc")
 
 /** get_policy (in charge of class-loading of ArcPolicy) can only 
 accept one type of argument--XMLNode */
-static Arc::LoadableClass* get_policy(void* arg) {
+Arc::LoadableClass* ArcSec::ArcPolicy::get_policy(void* arg) {
     //std::cout<<"Argument type of ArcPolicy:"<<typeid(arg).name()<<std::endl;
     // Check for NULL
     if(arg==NULL) { 
@@ -24,19 +24,20 @@ static Arc::LoadableClass* get_policy(void* arg) {
     }
     // Check if empty or valid policy is supplied
     Arc::XMLNode& doc = *((Arc::XMLNode*)arg);
+    // NOTE: Following line is not good for autodetection. Should it be removed?
     if(!doc) return new ArcSec::ArcPolicy;
     ArcSec::ArcPolicy* policy = new ArcSec::ArcPolicy(doc);
-    if(!policy) {
+    if((!policy) || (!(*policy))) {
       delete policy;
       return NULL;
     };
     return policy;
 }
 
-loader_descriptors __arc_policy_modules__  = {
-    { "arc.policy", 0, &get_policy },
-    { NULL, 0, NULL }
-};
+//loader_descriptors __arc_policy_modules__  = {
+//    { "arc.policy", 0, &ArcSec::ArcPolicy::get_policy },
+//    { NULL, 0, NULL }
+//};
 
 using namespace Arc;
 using namespace ArcSec;

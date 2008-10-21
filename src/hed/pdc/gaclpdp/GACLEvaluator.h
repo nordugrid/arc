@@ -54,6 +54,8 @@ public:
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg) { combining_alg = alg; } ;
   virtual void setCombiningAlg(CombiningAlg* alg) { } ;
 
+  static Arc::LoadableClass* get_evaluator(void* arg);
+
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx) { };
 

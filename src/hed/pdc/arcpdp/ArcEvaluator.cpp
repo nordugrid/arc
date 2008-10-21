@@ -12,14 +12,14 @@
 
 #include "ArcEvaluator.h"
 
-static Arc::LoadableClass* get_evaluator(void* arg) {
+Arc::LoadableClass* ArcSec::ArcEvaluator::get_evaluator(void* arg) {
     return new ArcSec::ArcEvaluator((Arc::XMLNode*) arg);
 }
 
-loader_descriptors __arc_evaluator_modules__  = {
-    { "arc.evaluator", 0, &get_evaluator },
-    { NULL, 0, NULL }
-};
+//loader_descriptors __arc_evaluator_modules__  = {
+//    { "arc.evaluator", 0, &ArcSec::ArcEvaluator::get_evaluator },
+//    { NULL, 0, NULL }
+//};
 
 using namespace Arc;
 using namespace ArcSec;
