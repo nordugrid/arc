@@ -6,6 +6,11 @@ usr/lib/arc/uploader
 usr/lib/arc/smtp-send
 usr/lib/arc/smtp-send.sh
 
+usr/lib/arc/cache-clean
+usr/lib/arc/cache-list
+usr/share/man/man1/cache-clean.1
+usr/share/man/man1/cache-list.1
+
 usr/lib/arc/ARC0mod.pm
 usr/lib/arc/FORKmod.pm
 usr/lib/arc/SGEmod.pm
