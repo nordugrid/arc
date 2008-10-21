@@ -344,18 +344,18 @@ int main(void) {
   issuer = sp_name;
 
   //<saml:Subject/>
-/*
   Arc::XMLNode subject = attr_query.NewChild("saml:Subject");
   Arc::XMLNode name_id = subject.NewChild("saml:NameID");
   name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
   name_id = (std::string)decrypted_nameid_nd;
-*/
 
   //Add one or more <Attribute>s into AttributeQuery
+/*
   Arc::XMLNode attribute = attr_query.NewChild("saml:Attribute");
   attribute.NewAttribute("Name")=std::string("urn:oid:1.3.6.1.4.1.5923.1.1.1.1");
   attribute.NewAttribute("NameFormat")=std::string("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
   attribute.NewAttribute("FriendlyName")=std::string("eduPersonAffiliation");
+*/
 
   std::string str;
   attr_query.GetXML(str);
