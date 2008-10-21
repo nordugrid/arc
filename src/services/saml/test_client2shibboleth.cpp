@@ -129,6 +129,7 @@ int main(void) {
 
   std::string cert_file = "testcert.pem";
   std::string privkey_file = "testkey-nopass.pem";
+  //TestShib use the certificate for SAML2 SSO
   std::string ca_file = "cacert_testshib.pem";
 
   std::string authnRequestQuery;
@@ -280,7 +281,9 @@ int main(void) {
   //Verify the signature of saml response
   std::string idname = "ID";
   Arc::XMLSecNode sec_samlresp_nd(node);
-  if(sec_samlresp_nd.VerifyNode(idname, ca_file, "")) {
+  //Since the certificate from idp.testshib.org which signs the saml response is self-signed 
+  //certificate, only check the signature here.
+  if(sec_samlresp_nd.VerifyNode(idname,"", "", false)) {
     logger.msg(Arc::INFO, "Succeed to verify the signature under <samlp:Response/>");
   }
   else {
@@ -324,7 +327,7 @@ int main(void) {
   //Compose <samlp:AttributeQuery/>
   std::string cert = "testcert.pem";
   std::string key = "testkey-nopass.pem";
-  std::string cafile = "cacert_testshib.pem";
+  std::string cafile = "cacert.pem";
 
   ArcLib::Credential cred(cert, key, "", cafile);
   std::string local_dn = cred.GetDN();
@@ -341,10 +344,12 @@ int main(void) {
   issuer = sp_name;
 
   //<saml:Subject/>
+/*
   Arc::XMLNode subject = attr_query.NewChild("saml:Subject");
   Arc::XMLNode name_id = subject.NewChild("saml:NameID");
   name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
   name_id = (std::string)decrypted_nameid_nd;
+*/
 
   //Add one or more <Attribute>s into AttributeQuery
   Arc::XMLNode attribute = attr_query.NewChild("saml:Attribute");
@@ -363,12 +368,14 @@ int main(void) {
  
   // Send request
   Arc::MCCConfig attrqry_cfg;
-  if (!cert.empty())
-    attrqry_cfg.AddCertificate(cert);
-  if (!key.empty())
-    attrqry_cfg.AddPrivateKey(key);
-  if (!cafile.empty())
-    attrqry_cfg.AddCAFile(cafile);
+  if (!cert_file.empty())
+    attrqry_cfg.AddCertificate(cert_file);
+  if (!privkey_file.empty())
+    attrqry_cfg.AddPrivateKey(privkey_file);
+  //TestShib use another certificate for AttributeQuery
+  std::string ca_file1 = "cacert_testshib_idp.pem"; 
+  if (!ca_file1.empty())
+    attrqry_cfg.AddCAFile(ca_file1);
 
   std::string attrqry_path("/idp/profile/SAML2/SOAP/AttributeQuery");
   //std::string service_url_str("https://squark.uio.no:8443");
