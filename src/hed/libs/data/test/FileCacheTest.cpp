@@ -77,8 +77,6 @@ void FileCacheTest::setUp() {
   _session_dir = "/tmp/"+_intToString(getpid())+"_session";
   
   // remove directories that may have been created
-  rmdir(std::string(_cache_dir+"/69/59/db").c_str());
-  rmdir(std::string(_cache_dir+"/69/59").c_str());
   rmdir(std::string(_cache_dir+"/69").c_str());
   rmdir(std::string(_session_dir+"/"+_jobid).c_str());
   rmdir(std::string(_session_dir).c_str());
@@ -90,7 +88,7 @@ void FileCacheTest::setUp() {
   _uid = getuid();
   _gid = getgid();
   _jobid = "1";
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid, 2, 3);
+  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid);
 }
 
 void FileCacheTest::tearDown() {
@@ -101,8 +99,6 @@ void FileCacheTest::tearDown() {
   _files.clear();
 
   // remove directories that have been created
-  rmdir(std::string(_cache_dir+"/69/59/db").c_str());
-  rmdir(std::string(_cache_dir+"/69/59").c_str());
   rmdir(std::string(_cache_dir+"/69").c_str());
   rmdir(std::string(_session_dir+"/"+_jobid).c_str());
   rmdir(std::string(_session_dir).c_str());
@@ -406,7 +402,7 @@ void FileCacheTest::testLinkFileLinkCache() {
   
   // new cache with link path set
   std::string cache_link_dir = "/tmp/"+_intToString(getpid())+"_link";
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, cache_link_dir, _jobid, _uid, _gid, 2, 3);
+  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, cache_link_dir, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(symlink(_cache_job_dir.c_str(), cache_link_dir.c_str()) == 0);
   _files.push_back(cache_link_dir);
   _files.push_back(_fc1->File(_url)+".lock");
@@ -488,20 +484,8 @@ void FileCacheTest::testCopyFile() {
 
 void FileCacheTest::testFile() {
   // test hash returned
-  CPPUNIT_ASSERT_EQUAL( std::string(_cache_dir+"/69/59/db/aef4f0a0d9aa84368e01a35a78abf267ac"), _fc1->File(_url));
-  // test no extra slash
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", "1", _uid, _gid, 2, 3);
-  CPPUNIT_ASSERT_EQUAL( std::string(_cache_dir+"/69/59/db/aef4f0a0d9aa84368e01a35a78abf267ac"), _fc1->File(_url));
-  // different dir structure
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", "1", _uid, _gid, 1, 2);
-  CPPUNIT_ASSERT_EQUAL( std::string(_cache_dir+"/6/9/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), _fc1->File(_url));
-  // different dir structure
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", "1", _uid, _gid, 10, 3);
-  CPPUNIT_ASSERT_EQUAL( std::string(_cache_dir+"/6959dbaef4/f0a0d9aa84/368e01a35a/78abf267ac"), _fc1->File(_url));
-  // different dir structure
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", "1", _uid, _gid, 2, 19);
-  CPPUNIT_ASSERT_EQUAL( std::string(_cache_dir+"/69/59/db/ae/f4/f0/a0/d9/aa/84/36/8e/01/a3/5a/78/ab/f2/67/ac"), _fc1->File(_url));
-  
+  CPPUNIT_ASSERT_EQUAL( std::string(_cache_dir+"/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), _fc1->File(_url));
+
   // set up two caches
   std::vector<struct Arc::CacheParameters> caches;
   struct Arc::CacheParameters params;
@@ -519,11 +503,11 @@ void FileCacheTest::testFile() {
   _files.push_back(params2.cache_job_dir_path+"/1");
   _files.push_back(params2.cache_job_dir_path);
   
-  Arc::FileCache * fc2 = new Arc::FileCache(caches, "1", _uid, _gid, 2, 3);
+  Arc::FileCache * fc2 = new Arc::FileCache(caches, "1", _uid, _gid);
   // _url should go to the first cache
-  CPPUNIT_ASSERT_EQUAL( std::string(params.cache_path+"/69/59/db/aef4f0a0d9aa84368e01a35a78abf267ac"), fc2->File(_url));
+  CPPUNIT_ASSERT_EQUAL( std::string(params.cache_path+"/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), fc2->File(_url));
   // this url goes to the second cache
-  CPPUNIT_ASSERT_EQUAL( std::string(params2.cache_path+"/11/8f/1a/a74364c6546cfe2c536c8979bfd1609a7b"), fc2->File("rls://rls1.ndgf.org/file2"));
+  CPPUNIT_ASSERT_EQUAL( std::string(params2.cache_path+"/11/8f1aa74364c6546cfe2c536c8979bfd1609a7b"), fc2->File("rls://rls1.ndgf.org/file2"));
   delete fc2;
 }
 
@@ -590,7 +574,7 @@ void FileCacheTest::testTwoCaches() {
   caches.push_back(params2);
   std::string url2 = "rls://rls1.ndgf.org/file2";
   
-  Arc::FileCache * fc2 = new Arc::FileCache(caches, "1", _uid, _gid, 2, 3);
+  Arc::FileCache * fc2 = new Arc::FileCache(caches, "1", _uid, _gid);
   // create cache
   bool available = false;
   bool is_locked = false;
@@ -629,8 +613,6 @@ void FileCacheTest::testTwoCaches() {
   _files.push_back(hard_link2);
   _files.push_back(soft_link);
   _files.push_back(soft_link2);
-  _files.push_back(params2.cache_path+"/11/8f/1a");
-  _files.push_back(params2.cache_path+"/11/8f");
   _files.push_back(params2.cache_path+"/11");
   _files.push_back(params2.cache_path);
   _files.push_back(params2.cache_job_dir_path+"/1");
@@ -772,17 +754,13 @@ void FileCacheTest::testConstructor() {
   CPPUNIT_ASSERT( stat(_cache_job_dir.c_str(), &fileStat) == 0);
   CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
   // create constructor with same parameters
-  Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid, 2, 3);
+  Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid);
   CPPUNIT_ASSERT( *_fc1 == *fc2 );
   delete fc2;
   // test copy constructor
   Arc::FileCache *fc3 = new Arc::FileCache(*_fc1);
   CPPUNIT_ASSERT( *_fc1 == *fc3 );
   delete fc3;
-  // create with different parameters
-  Arc::FileCache *fc4 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid, 2, 4);
-  CPPUNIT_ASSERT( !(*_fc1 == *fc4) );
-  delete fc4;
   // test invalid cache constructor, and that cache is not available
   Arc::FileCache *fc5 = new Arc::FileCache();
   CPPUNIT_ASSERT( !(*_fc1 == *fc5) );
@@ -814,7 +792,7 @@ void FileCacheTest::testConstructor() {
   caches.push_back(params);
   caches.push_back(params2);
   
-  Arc::FileCache *fc6 = new Arc::FileCache(caches, _jobid, _uid, _gid, 2, 3);
+  Arc::FileCache *fc6 = new Arc::FileCache(caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(*fc6);
   CPPUNIT_ASSERT( !(*_fc1 == *fc6) );
   
@@ -822,7 +800,7 @@ void FileCacheTest::testConstructor() {
   caches.empty();
   caches.push_back(params);
   caches.push_back(params3);
-  Arc::FileCache *fc7 = new Arc::FileCache(caches, _jobid, _uid, _gid, 2, 3);
+  Arc::FileCache *fc7 = new Arc::FileCache(caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(*fc7);
   CPPUNIT_ASSERT( !(*fc6 == *fc7) );
   
@@ -832,27 +810,19 @@ void FileCacheTest::testConstructor() {
 
 void FileCacheTest::testBadConstructor() {
   delete _fc1;
-  // dir length too long
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid, 20, 3);
-  CPPUNIT_ASSERT( !(*_fc1) );
-  delete _fc1;
-  // too many dirs
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid, 3, 20);
-  CPPUNIT_ASSERT( !(*_fc1) );
-  delete _fc1;
   // job cache inside cache
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_dir+"/jobcache", "", _jobid, _uid, _gid, 3, 2);
+  _fc1 = new Arc::FileCache(_cache_dir, _cache_dir+"/jobcache", "", _jobid, _uid, _gid);
   CPPUNIT_ASSERT( !(*_fc1) );
   delete _fc1;
   // permission denied
   struct stat fileStat;
   if (_uid != 0 && stat("/lost+found/cache", &fileStat) != 0 &&  errno == EACCES) {
-    _fc1 = new Arc::FileCache("/lost+found/cache", _cache_job_dir, "", _jobid, _uid, _gid, 3, 2);
+    _fc1 = new Arc::FileCache("/lost+found/cache", _cache_job_dir, "", _jobid, _uid, _gid);
     CPPUNIT_ASSERT( !(*_fc1) );
     delete _fc1;
   }
   // no cache dir
-  _fc1 = new Arc::FileCache("", _cache_job_dir, "", _jobid, _uid, _gid, 2, 3);
+  _fc1 = new Arc::FileCache("", _cache_job_dir, "", _jobid, _uid, _gid);
   CPPUNIT_ASSERT( !(*_fc1) );
   delete _fc1;
   // two caches, one of which is bad
@@ -867,7 +837,7 @@ void FileCacheTest::testBadConstructor() {
   params2.cache_link_path = "";
   caches.push_back(params);
   caches.push_back(params2);
-  _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid, 2, 3);
+  _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT( !(*_fc1) );
   // call some methods
   bool available = false;
