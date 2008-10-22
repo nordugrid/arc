@@ -22,7 +22,7 @@ else
 HOPI_SERVICE = 
 endif 
 
-if SAML_ENABLED
+if XMLSEC_ENABLED
 SAML = saml
 else
 SAML =
