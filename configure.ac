@@ -390,41 +390,44 @@ XMLSEC_CONFIG="xmlsec1-config"
 XMLSEC_CFLAGS=""
 XMLSEC_LIBS=""
 XMLSEC_INSTALLED=no
-AC_ARG_WITH(xmlsec1, [  --with-xmlsec=(PATH)  xmlsec1 location])
-if test "x$with_xmlsec1" = "xno" ; then 
-    AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION) 
-    AC_MSG_ERROR(xmlsec1 >= $XMLSEC_MIN_VERSION is required for arc1)
-elif test "x$with_xmlsec1" = "x" -a "x$PKG_CONFIG" = "xyes" ; then
-    PKG_CHECK_MODULES(XMLSEC, xmlsec1 >= $XMLSEC_MIN_VERSION,
-	[XMLSEC_INSTALLED=yes],
-	[XMLSEC_INSTALLED=no])
+dnl Check if xmlsec1 is explicitly disabled, default is enable.
+AC_ARG_ENABLE(xmlsec1, AC_HELP_STRING([--disable-xmlsec1], [disable the xmlsec1 library, default is enable]),[disable_xmlsec1="yes"],[disable_xmlsec1="no"])
+
+if test "x$disable_xmlsec1" = "xno"; then
+  AC_ARG_WITH(xmlsec1, [  --with-xmlsec1=(PATH)  xmlsec1 location])
+  if test "x$with_xmlsec1" = "xno" ; then 
+      AC_MSG_CHECKING(for xmlsec1 libraries yyy >= $XMLSEC_MIN_VERSION) 
+      AC_MSG_ERROR(xmlsec1 >= $XMLSEC_MIN_VERSION is required for arc1)
+  elif test "x$with_xmlsec1" = "x" -a "x$PKG_CONFIG" = "xyes" ; then
+      PKG_CHECK_MODULES(XMLSEC, xmlsec1 >= $XMLSEC_MIN_VERSION,
+    	  [XMLSEC_INSTALLED=yes],
+	  [XMLSEC_INSTALLED=no])
+  fi
+
+  if test "x$XMLSEC_INSTALLED" = "xno" ; then
+      AC_MSG_CHECKING(for xmlsec1 libraries xxx >= $XMLSEC_MIN_VERSION) 
+      if test "x$with_xmlsec1" != "x" ; then 
+   	  XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
+      fi
+      if ! $XMLSEC_CONFIG --version > /dev/null 2>&1 ; then
+	  AC_MSG_ERROR(Could not find xmlsec1 anywhere (see config.log for details).)
+      fi
+      vers=`$XMLSEC_CONFIG --version | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+      minvers=`echo $XMLSEC_MIN_VERSION | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+      if test "$vers" -ge "$minvers" ; then
+          XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
+          XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
+	  XMLSEC_INSTALLED="yes"
+          AC_MSG_RESULT(yes ('$XMLSEC_VERSION'))
+      else
+          AC_MSG_ERROR(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
+      fi
+  fi
+  AC_SUBST(XMLSEC_CFLAGS)
+  AC_SUBST(XMLSEC_LIBS)
+  AC_SUBST(XMLSEC_CONFIG)
+  AC_SUBST(XMLSEC_MIN_VERSION)
 fi
-
-if test "x$XMLSEC_INSTALLED" = "xno" ; then
-    AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION) 
-    if test "x$with_xmlsec1" != "x" ; then 
-	XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
-    fi
-    if ! $XMLSEC_CONFIG --version > /dev/null 2>&1 ; then
-	AC_MSG_ERROR(Could not find xmlsec1 anywhere (see config.log for details).)
-    fi
-    vers=`$XMLSEC_CONFIG --version | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
-    minvers=`echo $XMLSEC_MIN_VERSION | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
-    if test "$vers" -ge "$minvers" ; then
-        XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
-        XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
-	XMLSEC_INSTALLED="yes"
-        AC_MSG_RESULT(yes ('$XMLSEC_VERSION'))
-    else
-        AC_MSG_ERROR(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
-    fi
-fi
-
-AC_SUBST(XMLSEC_CFLAGS)
-AC_SUBST(XMLSEC_LIBS)
-AC_SUBST(XMLSEC_CONFIG)
-AC_SUBST(XMLSEC_MIN_VERSION)
-
 
 # check libmysqlclient
 dnl Check if libmysqlclient is explicitly enabled, default is disable.
