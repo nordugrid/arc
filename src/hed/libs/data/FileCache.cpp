@@ -287,7 +287,11 @@ bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
       logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, strerror(errno));
       return false;
     }
-    fgets (lock_info, 100, pFile);
+    if (fgets (lock_info, 100, pFile) == NULL) {
+      logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, strerror(errno));
+      fclose (pFile);
+      return false;
+    }
     fclose (pFile);
     
     std::string lock_info_s(lock_info);
@@ -348,7 +352,11 @@ bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
       remove(lock_file.c_str());
       return false;
     }
-    fgets (mystring, sizeof(mystring), pFile);
+    if (fgets (mystring, sizeof(mystring), pFile) == NULL) {
+      logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, strerror(errno));
+      fclose (pFile);
+      return false;
+    }
     fclose (pFile);
     
     std::string meta_str(mystring);
@@ -547,15 +555,19 @@ bool FileCache::Copy(std::string dest_path, std::string url) {
   if(fdest == -1) {
     logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
     return false;
-  };
-  fchown(fdest, _uid, _gid);
+  }
+  if (fchown(fdest, _uid, _gid) == -1) {
+    logger.msg(ERROR, "Failed change ownership of destination file %s: %s", dest_path, strerror(errno));
+    close(fdest);
+    return false;
+  }
   
   int fsource = open(cache_file.c_str(), O_RDONLY);
   if(fsource == -1) {
     close(fdest);
     logger.msg(ERROR, "Failed to open file %s for reading: %s", cache_file, strerror(errno));
     return false;
-  };
+  }
   
   // source and dest opened ok - copy in chunks
   for(;;) {
@@ -564,7 +576,7 @@ bool FileCache::Copy(std::string dest_path, std::string url) {
       close(fdest); close(fsource);
       logger.msg(ERROR, "Failed to read file %s: %s", cache_file, strerror(errno));
       return false;
-    };
+    }
     if(lin == 0) break; // eof
     
     for(ssize_t lout = 0; lout < lin;) {
@@ -573,10 +585,10 @@ bool FileCache::Copy(std::string dest_path, std::string url) {
         close(fdest); close(fsource);
         logger.msg(ERROR, "Failed to write file %s: %s", dest_path, strerror(errno));
         return false;
-      };
+      }
       lout += lwritten;
-    };
-  };
+    }
+  }
   close(fdest); close(fsource);
   return true;
 }
@@ -660,7 +672,11 @@ Time FileCache::GetValid(std::string url) {
     logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), strerror(errno));
     return Time(0);
   }
-  fgets (mystring, sizeof(mystring), pFile);
+  if (fgets (mystring, sizeof(mystring), pFile) == NULL) {
+    logger.msg(ERROR, "Error reading meta file %s: %s", _getMetaFileName(url), strerror(errno));
+    fclose (pFile);
+    return Time(0);
+  }
   fclose (pFile);
   
   std::string meta_str(mystring);
@@ -749,7 +765,11 @@ bool FileCache::_checkLock(std::string url) {
     logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, strerror(errno));
     return false;
   }
-  fgets (lock_info, 100, pFile);
+  if (fgets (lock_info, 100, pFile) == NULL) {
+    logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, strerror(errno));
+    fclose (pFile);
+    return false;
+  }
   fclose (pFile);
 
   std::string lock_info_s(lock_info);
