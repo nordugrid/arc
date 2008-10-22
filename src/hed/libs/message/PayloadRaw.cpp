@@ -58,12 +58,12 @@ char PayloadRaw::operator[](int pos) const {
 }
 
 int PayloadRaw::Size(void) const {
-  //return size_;
-  int cpos = 0;
-  for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
-    cpos+=buf_[bufnum].length;
-  };
-  return cpos;
+  return size_;
+  //int cpos = 0;
+  //for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
+  //  cpos+=buf_[bufnum].length;
+  //};
+  //return cpos;
 }
 
 char* PayloadRaw::Insert(int pos,int size) {
