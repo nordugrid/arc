@@ -22,6 +22,9 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/UserConfig.h>
+#include <arc/client/ACC.h>
+#include <arc/client/Broker.h>
+#include <arc/loader/Loader.h>
 
 int main(int argc, char **argv) {
 
@@ -242,32 +245,30 @@ int main(int argc, char **argv) {
 
   //prepare loader
   if(broker.empty())
-    broker = "random";
-  /*
-  ACCConfig acccfg;
-  NS ns;
-  Config cfg(ns);
+    broker = "RandomBroker";
+  
+  Arc::ACCConfig acccfg;
+  Arc::Config cfg(ns);
   acccfg.MakeConfig(cfg);
   
-  XMLNode retriever = cfg.NewChild("ArcClientComponent");
-  retriever.NewAttribute("name") = "TargetRetriever"
-    retriever.NewAttribute("id") = "broker";
-  usercfg.ApplySecurity(retriever); // check return value ?
-  XMLNode url = retriever.NewChild("URL") = it2->str();
-  url.NewAttribute("ServiceType") = "computing";
-  */
+  Arc::XMLNode Broker = cfg.NewChild("ArcClientComponent");
+  Broker.NewAttribute("name") = broker;
+  Broker.NewAttribute("id") = "broker";
+
+  Arc::Loader loader(&cfg);
+  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
 
   for (std::list<Arc::JobDescription>::iterator it =
 	 jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
 
+    ChosenBroker->PreFilterTargets(targen, *it);
     bool JobSubmitted = false;
     bool EndOfList = false;
 
     while(!JobSubmitted){
       
-      /*
-      Arc::ExecutionTarget target = broker->GetBestTarget();
+      Arc::ExecutionTarget target = ChosenBroker->GetBestTarget(EndOfList);
       if(EndOfList){
 	std::cout << Arc::IString("Job submission failed, no more possible targets")<< std::endl;
 	break;
@@ -295,7 +296,6 @@ int main(int argc, char **argv) {
 				(std::string) info["JobID"]) << std::endl;
       JobSubmitted = true;
       break;
-      /*
 
     } //end loop over all possible targets
   } //end loop over all job descriptions

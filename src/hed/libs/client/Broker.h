@@ -14,12 +14,12 @@ namespace Arc {
     
   public:
     ExecutionTarget& GetBestTarget(bool &EndOfList);
+    void PreFilterTargets(Arc::TargetGenerator& targen, 
+			  Arc::JobDescription jd);
     
   protected:
     Broker(Config *cfg);
     virtual ~Broker();
-    void PreFilterTargets(Arc::TargetGenerator& targen, 
-			  Arc::JobDescription jd);
     virtual void SortTargets() = 0;
     std::vector<Arc::ExecutionTarget> PossibleTargets;
     

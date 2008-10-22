@@ -22,6 +22,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Prefiltering targets according to input jobdescription");
     
     //for testing purposes
+    /*
     ExecutionTarget eTarget;
     eTarget.MaxCPUTime = 1; 
     eTarget.RunningJobs = 1; 
@@ -41,6 +42,7 @@ namespace Arc {
     eTarget2.MaxRunningJobs = 31;
     eTarget2.WaitingJobs = 20; 
     PossibleTargets.push_back(eTarget2);
+    */
 
     //Perform pre filtering of targets found according to the input jobdescription
 
@@ -158,6 +160,7 @@ namespace Arc {
     
     } //end loop over all found targets
     
+    logger.msg(VERBOSE, "Number of possible targets : %d",PossibleTargets.size());
     current = PossibleTargets.begin();    
     PreFilteringDone = true;
     TargetSortingDone = false;
