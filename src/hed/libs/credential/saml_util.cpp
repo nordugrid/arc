@@ -21,6 +21,7 @@
 #include <xmlsec/templates.h>
 #include <xmlsec/crypto.h>
 #include <xmlsec/openssl/app.h>
+#include <xmlsec/openssl/crypto.h>
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>

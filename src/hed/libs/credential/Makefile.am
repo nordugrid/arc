@@ -23,7 +23,7 @@ libarccredential_la_SOURCES  = Proxycertinfo.cpp Proxycertinfo.h cert_util.cpp c
                                Credential.cpp listfunc.c listfunc.h \
                                VOMSAttribute.cpp VOMSAttribute.h $(VOMS_SOURCE) $(SAML_UTIL_SOURCE)
 libarccredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(XMLSEC_LIBS) $(OPENSSL_LIBS)
+libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(XMLSEC_LIBS) $(XMLSEC1_OPENSSL_LIBS) $(OPENSSL_LIBS)
 
 testproxy_SOURCES  = testproxy.cpp
 testproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
