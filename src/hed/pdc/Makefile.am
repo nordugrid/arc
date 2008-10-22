@@ -1,9 +1,9 @@
 if XMLSEC_ENABLED
 SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp x509tokensh
-XMLSEC_LIBS =  x509tokensh/libx509tokensh.la
+LIBS_WITH_XMLSEC =  x509tokensh/libx509tokensh.la
 else
 SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp
-XMLSEC_LIBS = 
+LIBS_WITH_XMLSEC = 
 endif
 DIST_SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp x509tokensh
 noinst_PROGRAMS = test testinterface
@@ -16,7 +16,7 @@ libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/l
                         simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la gaclpdp/libgaclpdp.la \
                         pdpserviceinvoker/libarcpdpserviceinvoker.la delegationsh/libdelegationsh.la \
                         arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
-                        $(XMLSEC_LIBS) \
+                        $(LIBS_WITH_XMLSEC) \
                         $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                         $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                         $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
