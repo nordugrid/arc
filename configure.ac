@@ -386,6 +386,7 @@ AC_SUBST(TEST_DIR)
 #
 #############################
 XMLSEC_MIN_VERSION="1.2.4"
+XMLSEC_OPENSSL_MIN_VERSION="1.2.4"
 XMLSEC_CONFIG="xmlsec1-config"
 XMLSEC_CFLAGS=""
 XMLSEC_LIBS=""
@@ -395,17 +396,14 @@ AC_ARG_ENABLE(xmlsec1, AC_HELP_STRING([--disable-xmlsec1], [disable the xmlsec1 
 
 if test "x$disable_xmlsec1" = "xno"; then
   AC_ARG_WITH(xmlsec1, [  --with-xmlsec1=(PATH)  xmlsec1 location])
-  if test "x$with_xmlsec1" = "xno" ; then 
-      AC_MSG_CHECKING(for xmlsec1 libraries yyy >= $XMLSEC_MIN_VERSION) 
-      AC_MSG_ERROR(xmlsec1 >= $XMLSEC_MIN_VERSION is required for arc1)
-  elif test "x$with_xmlsec1" = "x" -a "x$PKG_CONFIG" = "xyes" ; then
-      PKG_CHECK_MODULES(XMLSEC, xmlsec1 >= $XMLSEC_MIN_VERSION,
-    	  [XMLSEC_INSTALLED=yes],
-	  [XMLSEC_INSTALLED=no])
+  if test "x$with_xmlsec1" = "x" ; then
+    PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION xmlsec1-openssl >= XMLSEC_OPENSSL_MIN_VERSION],
+        [XMLSEC_INSTALLED=yes],
+	[XMLSEC_INSTALLED=no])
   fi
 
   if test "x$XMLSEC_INSTALLED" = "xno" ; then
-      AC_MSG_CHECKING(for xmlsec1 libraries xxx >= $XMLSEC_MIN_VERSION) 
+      AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION) 
       if test "x$with_xmlsec1" != "x" ; then 
    	  XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
       fi
@@ -423,31 +421,44 @@ if test "x$disable_xmlsec1" = "xno"; then
           AC_MSG_ERROR(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
       fi
   fi
+
   AC_SUBST(XMLSEC_CFLAGS)
   AC_SUBST(XMLSEC_LIBS)
-  AC_SUBST(XMLSEC_CONFIG)
-  AC_SUBST(XMLSEC_MIN_VERSION)
+  #AC_SUBST(XMLSEC_CONFIG)
+  #AC_SUBST(XMLSEC_MIN_VERSION)
 fi
 
-# check libmysqlclient
+#########################
+#
+# Check libmysqlclient
+#
+#########################
+MYSQL_CONFIG="mysql_config"
+MYSQL_CFLAGS=""
+MYSQL_LIBS=""
+MYSQL_INSTALLED=no
 dnl Check if libmysqlclient is explicitly enabled, default is disable.
-AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [disable the MySQL client library]),[enable_mysql="yes"],[enable_mysql="no"])
+AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [enable the MySQL client library]),[enable_mysql="yes"],[enable_mysql="no"])
 # Ask user for path to libmysqlclient
 if test "x$enable_mysql" = "xyes"; then
-  AC_ARG_WITH(mysql,
-      [  --with-mysql=(PATH) prefix of MySQL installation. e.g. /usr/local or /usr],
-      [MYSQL_PREFIX=$with_mysql],
-      AC_MSG_ERROR([You must call configure with the --with-mysql option to tell configure 
-      where to find the MySql C library and headers. e.g. --with-mysql=/usr/local or --with-mysql=/usr])
-  )
-  AC_SUBST(MYSQL_PREFIX)
-  MYSQL_LIBS="`mysql_config --libs`"
-  MYSQL_CFLAGS="`mysql_config --cflags`"
+  AC_ARG_WITH(mysql, [  --with-mysql=(PATH) prefix of MySQL installation. e.g. /usr/local or /usr])
+  AC_MSG_CHECKING(for mysql client library)
+  if test "x$with_mysql" != "x" ; then
+      MYSQL_CONFIG=$with_mysql/bin/$MYSQL_CONFIG
+  fi
+  if ! $MYSQL_CONFIG --version > /dev/null 2>&1 ; then
+      AC_MSG_ERROR(Could not find mysql C library anywhere (see config.log for details).)
+  fi
+  MYSQL_LIBS="`$MYSQL_CONFIG --libs`"
+  MYSQL_CFLAGS="`$MYSQL_CONFIG --cflags`"
+  MYSQL_INSTALLED="yes"
+
   AC_SUBST(MYSQL_LIBS)
   AC_SUBST(MYSQL_CFLAGS)
 fi
-AC_MSG_NOTICE([MySQL client library enabled: $enable_mysql])
-AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$enable_mysql" = "xyes"])
+AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
+AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
+
 
 # check zlib 
 AC_ARG_WITH(zlib,
