@@ -257,7 +257,7 @@ namespace Arc {
       if (CheckSize())
         lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
       else
-        lfc_setfsizeg(guid.c_str(), -1, ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
+        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
     }
     else if (CheckSize())
       lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
@@ -305,7 +305,7 @@ namespace Arc {
       if (CheckSize())
         lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
       else
-        lfc_setfsizeg(guid.c_str(), -1, ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
+        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
     }
     else if (CheckSize())
       lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
