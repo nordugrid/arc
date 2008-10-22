@@ -373,7 +373,7 @@ AC_SUBST(CPPUNIT_LIBS)
 AC_SUBST(TEST_DIR)
 
 #check lasso
-LASSO_INSTALLED=no
+#LASSO_INSTALLED=no
 #PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
 #[AC_SUBST(LASSO_CFLAGS) 
 # AC_SUBST(LASSO_LIBS)
@@ -382,11 +382,11 @@ LASSO_INSTALLED=no
 
 #check xmlsec
 XMLSEC_INSTALLED=no
-#PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.9  xmlsec1-openssl >= 1.2.9],
-#[AC_SUBST(XMLSEC_CFLAGS)
-# AC_SUBST(XMLSEC_LIBS)
-# XMLSEC_INSTALLED=yes],
-#[XMLSEC_INSTALLED=no])
+PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.4  xmlsec1-openssl >= 1.2.4],
+[AC_SUBST(XMLSEC_CFLAGS)
+ AC_SUBST(XMLSEC_LIBS)
+ XMLSEC_INSTALLED=yes],
+[XMLSEC_INSTALLED=no])
 
 # check libmysqlclient
 dnl Check if libmysqlclient is explicitly enabled, default is disable.
@@ -584,7 +584,6 @@ AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
-AM_CONDITIONAL([SAML_ENABLED], test x$LASSO_INSTALLED = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
 
 # Setup defines
@@ -646,7 +645,7 @@ if test x$LFC = xyes ; then enable_lfc=yes; fi
 enable_rsl=no
 if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
 enable_saml=no
-if test x$LASSO_INSTALLED = xyes ; then enable_saml=yes; fi
+if test x$XMLSEC_INSTALLED = xyes ; then enable_saml=yes; fi
 
 # Check for LDAP
 AC_CHECK_HEADER(ldap.h, [LDAP=yes], [LDAP=no])
