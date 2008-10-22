@@ -12,7 +12,7 @@ libarcpdc_la_SOURCES  = PDPplugin.cpp
 libarcpdc_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 if XMLSEC_ENABLED
 libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/libcountpdp.la \
-                        simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la \
+                        simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la gaclpdp/libgaclpdp.la \
                         pdpserviceinvoker/libarcpdpserviceinvoker.la delegationsh/libdelegationsh.la \
                         arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
                         x509tokensh/libx509tokensh.la \
@@ -23,7 +23,7 @@ libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/l
                         $(top_srcdir)/src/hed/libs/client/libarcclient.la $(LIBXML2_LIBS)
 else
 libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/libcountpdp.la \
-                        simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la \
+                        simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la gaclpdp/libgaclpdp.la \
                         pdpserviceinvoker/libarcpdpserviceinvoker.la delegationsh/libdelegationsh.la \
                         arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
                         $(top_srcdir)/src/hed/libs/common/libarccommon.la \
