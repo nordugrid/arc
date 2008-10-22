@@ -1,5 +1,6 @@
 pkglib_LTLIBRARIES = libaa.la
-noinst_PROGRAMS = login_tests saml_tests test_service test_client test_client2shibboleth test_client2voms_saml_service #test
+noinst_PROGRAMS = test_service test_client test_client2shibboleth test_client2voms_saml_service 
+#test login_tests saml_tests
 
 libaa_la_SOURCES  = aaservice.cpp aaservice.h
 libaa_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
@@ -10,13 +11,13 @@ libaa_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                     $(GLIBMM_LIBS) $(XMLSEC_LIBS) $(MYSQL_LIBS)
 libaa_la_LDFLAGS  = -no-undefined -avoid-version -module
 
-login_tests_SOURCES = login_tests.cc
-login_tests_CXXFLAGS = $(LASSO_CFLAGS) -DTESTSDATADIR=\"$(srcdir)/data/\"
-login_tests_LDADD = $(LASSO_LIBS) 
+#login_tests_SOURCES = login_tests.cc
+#login_tests_CXXFLAGS = $(LASSO_CFLAGS) -DTESTSDATADIR=\"$(srcdir)/data/\"
+#login_tests_LDADD = $(LASSO_LIBS) 
 
-saml_tests_SOURCES = saml_tests.cc
-saml_tests_CXXFLAGS = $(LASSO_CFLAGS) -DTESTSDATADIR=\"$(srcdir)/data/\"
-saml_tests_LDADD = $(LASSO_LIBS)
+#saml_tests_SOURCES = saml_tests.cc
+#saml_tests_CXXFLAGS = $(LASSO_CFLAGS) -DTESTSDATADIR=\"$(srcdir)/data/\"
+#saml_tests_LDADD = $(LASSO_LIBS)
 
 #test_SOURCES  = test.cpp
 #test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(LASSO_CFLAGS) -I$(top_srcdir)/include -DTESTSDATADIR=\"$(srcdir)/data/\"
