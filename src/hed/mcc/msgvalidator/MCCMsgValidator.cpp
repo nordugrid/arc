@@ -47,13 +47,9 @@ static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new Arc::MCC_MsgValidator_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_MsgValidator_Client(cfg);
-}
-
 mcc_descriptors ARC_MCC_LOADER = {
     { "msg.validator.service", 0, &get_mcc_service },
-    { "msg.validator.client", 0, &get_mcc_client },
+    { NULL, 0, NULL },
     { NULL, 0, NULL }
 };
 
@@ -63,12 +59,6 @@ MCC_MsgValidator_Service::MCC_MsgValidator_Service(Arc::Config *cfg):MCC_MsgVali
 }
 
 MCC_MsgValidator_Service::~MCC_MsgValidator_Service(void) {
-}
-
-MCC_MsgValidator_Client::MCC_MsgValidator_Client(Arc::Config *cfg):MCC_MsgValidator(cfg) {
-}
-
-MCC_MsgValidator_Client::~MCC_MsgValidator_Client(void) {
 }
 
 std::string MCC_MsgValidator::getSchemaPath(std::string servicePath) {
@@ -304,45 +294,6 @@ std::string MCC_MsgValidator_Service::getPath(std::string url){
         return "";
     else
         return url.substr(ps);
-}
-
-MCC_Status MCC_MsgValidator_Client::process(Message& inmsg,Message& outmsg) {
-  // Extracting payload
-  if(!inmsg.Payload()) return make_soap_fault(outmsg);
-  PayloadSOAP* inpayload = NULL;
-  try {
-    inpayload = dynamic_cast<PayloadSOAP*>(inmsg.Payload());
-  } catch(std::exception& e) { };
-  if(!inpayload) return make_soap_fault(outmsg);
-
-  // Converting payload to Raw
-  PayloadRaw nextpayload;
-  std::string xml; inpayload->GetXML(xml);
-  nextpayload.Insert(xml.c_str());
-  // Creating message to pass to next MCC and setting new payload.. 
-  Message nextinmsg = inmsg;
-  nextinmsg.Payload(&nextpayload);
-
-  // Call next MCC 
-  MCCInterface* next = Next();
-  if(!next) return make_soap_fault(outmsg);
-  Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
-  MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
-  // Do checks and create SOAP response
-  if(!ret) return make_soap_fault(outmsg,nextoutmsg);
-  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg,nextoutmsg);
-  MessagePayload* retpayload = nextoutmsg.Payload();
-  if(!retpayload) return make_soap_fault(outmsg,nextoutmsg);
-  PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
-  if(!outpayload) return make_soap_fault(outmsg,nextoutmsg);
-  if(!(*outpayload)) {
-    delete outpayload; return make_soap_fault(outmsg,nextoutmsg);
-  };
-  outmsg = nextoutmsg;
-  outmsg.Payload(outpayload);
-  delete retpayload;
-
-  return MCC_Status(Arc::STATUS_OK);
 }
 
 } // namespace Arc

@@ -32,20 +32,6 @@ class MCC_MsgValidator_Service: public MCC_MsgValidator
         static std::string getPath(std::string url);
 };
 
-/* This is client side of MsgValidator processing MCC.
-   It accepts and produces PayloadSOAP kind of payloads in it's
-   process() method. (i.e. inmsg/outmsg)
-   Communication to next MCC is done over payloads
-   implementing PayloadRawInterface. (i.e. nextinmsg) */
-class MCC_MsgValidator_Client: public MCC_MsgValidator
-{
-    public:
-        /* Constructor takes configuration of MCC. */
-        MCC_MsgValidator_Client(Arc::Config *cfg);
-        virtual ~MCC_MsgValidator_Client(void);
-        virtual MCC_Status process(Message&,Message&);
-};
-
 } // namespace Arc
 
 #endif /* __ARC_MCCMSGVALIDATOR_H__ */
