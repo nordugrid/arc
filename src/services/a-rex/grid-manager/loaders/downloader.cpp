@@ -79,8 +79,8 @@ bool is_checksum(std::string str) {
   const char *s = str.c_str();
   if((n=str.find('.')) == std::string::npos) return false;
   if(str.find('.',n+1) != std::string::npos) return false;
-  for(int i=0;i<n;i++) { if(!isdigit(s[i])) return false; };
-  for(int i=n+1;s[i];i++) { if(!isdigit(s[i])) return false; };
+  for(unsigned int i=0;i<n;i++) { if(!isdigit(s[i])) return false; };
+  for(unsigned int i=n+1;s[i];i++) { if(!isdigit(s[i])) return false; };
   return true;
 }
 
