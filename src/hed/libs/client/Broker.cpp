@@ -8,6 +8,35 @@
 
 namespace Arc {
   
+   std::string UpToLow(std::string str) {
+        for (int i=0;i<strlen(str.c_str());i++)
+             if (str[i] >= 0x41 && str[i] <= 0x5A)
+                   str[i] = str[i] + 0x20;
+        return str;
+  }
+
+  bool Value_Matching(int value, Arc::XMLNode node){
+     if ( node["LowerBoundedRange"] ) {
+           return ( ( !node["LowerBoundedRange"].Attribute("exclusiveBound") && ( value >= (int)node["LowerBoundedRange"] ) ) ||
+                        (  node["LowerBoundedRange"].Attribute("exclusiveBound") && ( value >    (int)node["LowerBoundedRange"] )) );
+     }
+     else if ( node["UpperBoundedRange"] ) {
+           return ( ( !node["UpperBoundedRange"].Attribute("exclusiveBound") && ( value <= (int)node["UpperBoundedRange"] ) ) ||
+                        (  node["UpperBoundedRange"].Attribute("exclusiveBound") && ( value <    (int)node["UpperBoundedRange"] )) );
+     }
+     else if ( node["Exact"] ) {
+           return ( ( ((double)node["Exact"] - node["Exact"].Attribute("epsilon") ) <= (double)value ) &&
+                        ( (double)value <= ((double)node["Exact"] - node["Exact"].Attribute("epsilon") ) ) );
+     }
+     else if ( node["Range"] ) {
+           return ( ( !node["Range"]["LowerBound"].Attribute("exclusiveBound") && ( value >= (int)node["Range"]["LowerBound"] ) ) ||
+                        (  node["Range"]["LowerBound"].Attribute("exclusiveBound") && ( value >    (int)node["Range"]["LowerBound"] )) ) &&
+                      ( ( !node["Range"]["UpperBound"].Attribute("exclusiveBound") && ( value <= (int)node["Range"]["UpperBound"] ) ) ||
+                        (  node["Range"]["UpperBound"].Attribute("exclusiveBound") && ( value <    (int)node["Range"]["UpperBound"] )) );
+     }
+     return true;
+  }
+
   Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
   Arc::LogStream logcerr(std::cerr);
   
@@ -54,28 +83,56 @@ namespace Arc {
       
       //This argoments are dependence from the Resource item.
       if ( jobd["JobDescription"]["Resources"] ) {
+
+                //JSDL Operating System Types: Unknow, MACOS, LINUX, Solaris, SunOS, Windows_XP, FreeBSD, etc
+	//GLUE2 OSFamily_t: linux, macosx, windows, solaris
+                //TODO: check this clever then now
+	if ( (*target).OSFamily != "" ) {
+	  if ( Arc::UpToLow((*target).OSFamily) != Arc::UpToLow(jobd["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]) )
+	    continue;
+	}
+
+	//GLUE2 OSName_t: scientificlinux, scientificlinuxcern, ubuntu, debian, centos, fedora, rhes, mandrake, suse, leopard, windowsxp, windowsvista
+                //TODO: check this clever then now
+	if ( (*target).OSName != "" ) {
+	  if ( Arc::UpToLow((*target).OSName) != Arc::UpToLow(jobd["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]) )	
+	    continue;
+	}
+
+	if ( (*target).CPUModel!= "" ) {
+	  if ( Arc::UpToLow((*target).CPUModel) != Arc::UpToLow(jobd["JobDescription"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]) )
+	    continue;
+	}
 	
+                //TODO: check this clever then now
+	if ( (*target).Reservation ) {
+	  if ( (*target).Reservation != jobd["JobDescription"]["Resources"]["ExclusiveExecution"] )
+	    continue;
+	}
+
+
+//TODO: check the Candidates element (HostName, Queue)
 	if ( (*target).MaxDiskSpace != -1 ) {
-	  if ( (*target).MaxDiskSpace < jobd["JobDescription"]["Resources"]["DiskSpace"] || 
-	       (*target).MaxDiskSpace < jobd["JobDescription"]["Resources"]["IndividualDiskSpace"] || 
-	       (*target).MaxDiskSpace < jobd["JobDescription"]["Resources"]["TotalDiskSpace"])
+	  if ( !Arc::Value_Matching ( (*target).MaxDiskSpace, jobd["JobDescription"]["Resources"]["FileSystem"]["DiskSpace"] ) || 
+	       !Arc::Value_Matching ( (*target).MaxDiskSpace,  jobd["JobDescription"]["Resources"]["IndividualDiskSpace"] ) || 
+	       !Arc::Value_Matching ( (*target).MaxDiskSpace,  jobd["JobDescription"]["Resources"]["TotalDiskSpace"]) )
 	    continue;
 	}
 	
 	if ( (*target).TotalPhysicalCPUs != -1 ) {
-	  if ( (*target).TotalPhysicalCPUs < jobd["JobDescription"]["Resources"]["IndividualCPUCount"] ||
-	       (*target).TotalPhysicalCPUs < jobd["JobDescription"]["Resources"]["TotalCPUCount"])
+	  if ( !Arc::Value_Matching ( (*target).TotalPhysicalCPUs, jobd["JobDescription"]["Resources"]["IndividualCPUCount"] )||
+	       !Arc::Value_Matching ( (*target).TotalPhysicalCPUs, jobd["JobDescription"]["Resources"]["TotalCPUCount"]) )
 	    continue;
 	}
 	
 	if ( (*target).TotalLogicalCPUs != -1 ) {
-	  if ( (*target).TotalLogicalCPUs < jobd["JobDescription"]["Resources"]["IndividualCPUCount"] ||
-	       (*target).TotalLogicalCPUs < jobd["JobDescription"]["Resources"]["TotalCPUCount"])
+	  if ( !Arc::Value_Matching ( (*target).TotalLogicalCPUs, jobd["JobDescription"]["Resources"]["IndividualCPUCount"] )||
+	       !Arc::Value_Matching ( (*target).TotalLogicalCPUs, jobd["JobDescription"]["Resources"]["TotalCPUCount"]) )
 	    continue;
 	}
 	
 	if ( (*target).CPUClockSpeed != -1 ) {
-	  if ( (*target).CPUClockSpeed < jobd["JobDescription"]["Resources"]["IndividualCPUSpeed"])
+	  if ( !Arc::Value_Matching ( (*target).CPUClockSpeed, jobd["JobDescription"]["Resources"]["IndividualCPUSpeed"]) )
 	    continue;
 	}
       }
@@ -107,50 +164,50 @@ namespace Arc {
       
       //This argoments are dependence from the Application and the Resource items.
       if ( (int)(*target).MinCPUTime.GetPeriod() != -1 ) {
-	if ( (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
-	     (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Resources"]["TotalCPUTime"] || 
+	if ( !Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
+	     !Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )|| 
 	     (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
       
       if ( (int)(*target).MaxCPUTime.GetPeriod() != -1 ) {
-	if ( (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
-	     (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["TotalCPUTime"] ||
+	if ( !Arc::Value_Matching( (int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
+	     !Arc::Value_Matching( (int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
 	     (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
       
       if ( (int)(*target).MaxTotalCPUTime.GetPeriod() != -1 ) {
-	if ( (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
-	     (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["TotalCPUTime"] ||
+	if ( !Arc::Value_Matching ( (int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
+	     !Arc::Value_Matching ( (int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
 	     (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
       
       if ( (int)(*target).DefaultCPUTime.GetPeriod() != -1 ) {
-	if ( (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ||
-	     (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Resources"]["TotalCPUTime"] ||
+	if ( !Arc::Value_Matching ( (int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
+	     !Arc::Value_Matching ( (int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
 	     (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
       
       if ( (*target).MaxMemory != -1 ) {
-	if ((*target).MaxMemory < jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ||
-	    (*target).MaxMemory < jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ||
+	if (!Arc::Value_Matching ( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] )||
+	    !Arc::Value_Matching ( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] )||
 	    (*target).MaxMemory < jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"])
 	  continue;
       }
       
       if ( (*target).NodeMemory != -1 ) {
-	if ((*target).NodeMemory < jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ||
-	    (*target).NodeMemory < jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ||
+	if (!Arc::Value_Matching ( (*target).NodeMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] )||
+	    !Arc::Value_Matching ( (*target).NodeMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] )||
 	    (*target).NodeMemory < jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"])
 	  continue;
       }
       
       if ( (*target).MainMemorySize != -1 ) {
-	if ((*target).MainMemorySize < jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ||
-	    (*target).MainMemorySize < jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ||
+	if (!Arc::Value_Matching ( (*target).MainMemorySize, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] )||
+	    !Arc::Value_Matching ( (*target).MainMemorySize, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] )||
 	    (*target).MainMemorySize < jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"])
 	  continue;
       }
