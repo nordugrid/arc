@@ -349,7 +349,7 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
     destination.SetAdditionalChecks(do_checks);
     /* take suggestion from DataHandle about buffer, etc. */
     bool cacheable = false;
-    long int bufsize;
+    unsigned long int bufsize;
     int bufnum;
     if (source.Cache() && destination.Local() && cache) cacheable = true;
     /* tune buffers */
