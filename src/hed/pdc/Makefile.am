@@ -1,7 +1,9 @@
 if XMLSEC_ENABLED
 SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp x509tokensh
+XMLSEC_LIBS =  x509tokensh/libx509tokensh.la
 else
 SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp
+XMLSEC_LIBS = 
 endif
 DIST_SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp x509tokensh
 noinst_PROGRAMS = test testinterface
@@ -10,28 +12,16 @@ noinst_PROGRAMS = test testinterface
 pkglib_LTLIBRARIES = libarcpdc.la
 libarcpdc_la_SOURCES  = PDPplugin.cpp 
 libarcpdc_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-if XMLSEC_ENABLED
 libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/libcountpdp.la \
                         simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la gaclpdp/libgaclpdp.la \
                         pdpserviceinvoker/libarcpdpserviceinvoker.la delegationsh/libdelegationsh.la \
                         arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
-                        x509tokensh/libx509tokensh.la \
+                        $(XMLSEC_LIBS) \
                         $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                         $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                         $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                         $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
                         $(top_srcdir)/src/hed/libs/client/libarcclient.la $(LIBXML2_LIBS)
-else
-libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/libcountpdp.la \
-                        simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la gaclpdp/libgaclpdp.la \
-                        pdpserviceinvoker/libarcpdpserviceinvoker.la delegationsh/libdelegationsh.la \
-                        arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
-                        $(top_srcdir)/src/hed/libs/common/libarccommon.la \
-                        $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-                        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-                        $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-                        $(top_srcdir)/src/hed/libs/client/libarcclient.la $(LIBXML2_LIBS)
-endif
 libarcpdc_la_LDFLAGS  = -no-undefined -avoid-version -module
 
 test_SOURCES  = test.cpp
