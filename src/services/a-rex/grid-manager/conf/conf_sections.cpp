@@ -71,7 +71,7 @@ bool ConfigSections::ReadNext(std::string& line) {
       int s_n = -1;
       for(std::list<std::string>::iterator sec = section_names.begin();
                                        sec!=section_names.end();++sec) {
-        int len = sec->length();
+        std::string::size_type len = sec->length();
         s_n++;
         if(strncasecmp(sec->c_str(),current_section.c_str(),len) != 0) continue;
         if(len != current_section.length()) {
@@ -95,7 +95,7 @@ bool ConfigSections::ReadNext(std::string& name,std::string& value) {
   if(n == std::string::npos) { value=""; return true; };
   value=name.c_str()+n+1;
   name.erase(n);
-  int l = value.length();
+  std::string::size_type l = value.length();
   for(n = 0;n<l;n++) if((value[n] != ' ') && (value[n] != '\t')) break;
   if(n>=l) { value=""; return true; };
   if(n) value.erase(0,n);
