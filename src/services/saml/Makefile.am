@@ -1,7 +1,5 @@
+if MYSQL_LIBRARY_ENABLED
 pkglib_LTLIBRARIES = libaa.la
-noinst_PROGRAMS = test_service test_client test_client2shibboleth test_client2voms_saml_service 
-#test login_tests saml_tests
-
 libaa_la_SOURCES  = aaservice.cpp aaservice.h
 libaa_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
 libaa_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
@@ -10,6 +8,10 @@ libaa_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                     $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
                     $(GLIBMM_LIBS) $(XMLSEC_LIBS) $(MYSQL_LIBS)
 libaa_la_LDFLAGS  = -no-undefined -avoid-version -module
+endif
+
+noinst_PROGRAMS = test_service test_client test_client2shibboleth test_client2voms_saml_service
+#test login_tests saml_tests
 
 #login_tests_SOURCES = login_tests.cc
 #login_tests_CXXFLAGS = $(LASSO_CFLAGS) -DTESTSDATADIR=\"$(srcdir)/data/\"
