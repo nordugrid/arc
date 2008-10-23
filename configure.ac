@@ -1014,6 +1014,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/ws/Makefile
                  src/hed/libs/dbxml/Makefile
+                 src/hed/libs/xmlsec/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/unix/Makefile
