@@ -35,7 +35,7 @@ else
 PLATFORM_SPECIFIC=Run_unix.cpp
 endif
 
-libarccommon_la_SOURCES  = Logger.cpp ArcConfig.cpp ArcLocation.cpp XMLNode.cpp Thread.cpp Base64.cpp DateTime.cpp URL.cpp StringConv.cpp ArcRegex.cpp GUID.cpp User.cpp IString.cpp DBranch.cpp DBranch.h ByteArray.cpp OptionParser.cpp FileLock.cpp Utils.cpp Counter.cpp IntraProcessCounter.cpp $(PLATFORM_SPECIFIC) $(MYSQL_WRAPPER_CPP) $(XMLSEC_UTILS_CPP) $(XMLSECNODE_CPP)
+libarccommon_la_SOURCES  = Logger.cpp ArcConfig.cpp ArcLocation.cpp XMLNode.cpp Base64.cpp DateTime.cpp URL.cpp StringConv.cpp ArcRegex.cpp GUID.cpp User.cpp IString.cpp DBranch.cpp DBranch.h ByteArray.cpp OptionParser.cpp FileLock.cpp Utils.cpp Counter.cpp IntraProcessCounter.cpp $(PLATFORM_SPECIFIC) $(MYSQL_WRAPPER_CPP) $(XMLSEC_UTILS_CPP) $(XMLSECNODE_CPP) Thread.cpp
 libarccommon_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(MYSQL_CFLAGS) $(XMLSEC1_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
 libarccommon_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) $(MYSQL_LIBS) $(XMLSEC1_OPENSSL_LIBS) $(XMLSEC_LIBS) $(LIBINTL)
 
