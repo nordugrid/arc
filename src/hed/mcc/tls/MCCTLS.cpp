@@ -480,6 +480,8 @@ bool MCC_TLS::do_ssl_init(void) {
          ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
        };
      };
+   } else {
+     ++ssl_initialized_;
    };
    lock_.unlock();
    return (ssl_initialized_ != 0);
