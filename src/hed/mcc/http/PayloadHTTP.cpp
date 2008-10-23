@@ -142,12 +142,16 @@ bool PayloadHTTP::parse_header(void) {
       keep_alive_=false;
     };
   };
+  // In case of keep_alive (HTTP1.1) there must be length specified
   if(keep_alive_ && (length_ == -1)) length_=0;
-  if(size_ == 0) size_=offset_+length_;
+  // If size of object was not reported then try to deduce it.
+  if((size_ == 0) && (length_ != -1)) size_=offset_+length_;
   return true;
 }
 
 bool PayloadHTTP::read(char* buf,int& size) {
+char* buff = buf;
+memset(buf,0,size);
   if(tbuflen_ >= size) {
     memcpy(buf,tbuf_,size);
     memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
@@ -212,6 +216,8 @@ bool PayloadHTTP::get_body(void) {
   PayloadRawBuf b;
   b.data=result; b.size=result_size; b.length=result_size; b.allocated=true;
   buf_.push_back(b);
+  // If size of object was not reported then try to deduce it.
+  if(size_ == 0) size_=offset_+result_size;
   return true;
 }
 
