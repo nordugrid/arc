@@ -400,12 +400,12 @@ if test "x$disable_xmlsec1" = "xno"; then
     PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION],
         [XMLSEC_INSTALLED=yes], [XMLSEC_INSTALLED=no])
     if test "x$XMLSEC_INSTALLED" = "xyes" ; then
-      PKG_CHECK_MODULES(XMLSEC1_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
+      PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
           [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
     fi
   fi
 
-  if test "x$XMLSEC_INSTALLED" = "xno" ; then
+  if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "yes"; then
       AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION) 
       if test "x$with_xmlsec1" != "x" ; then 
    	  XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
@@ -418,17 +418,29 @@ if test "x$disable_xmlsec1" = "xno"; then
       if test "$vers" -ge "$minvers" ; then
           XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
           XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
-	  XMLSEC_INSTALLED="yes"
+          #check the xmlsec1-openssl here
+          PKG_CONFIG_PATH = $with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH
+          PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],      
+              [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
           AC_MSG_RESULT(yes ('$XMLSEC_VERSION'))
       else
           AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
       fi
+  elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" = "yes"; then
+    #MACOS has no "ldd" which is needed by xmlsec1-config, so here simply we use PKG_CHECK_MODULES
+    PKG_CONFIG_PATH = $with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH
+    PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION],
+        [XMLSEC_INSTALLED=yes], [XMLSEC_INSTALLED=no])
+    if test "x$XMLSEC_INSTALLED" = "xyes" ; then
+      PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
+          [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
+    fi 
   fi
 
   AC_SUBST(XMLSEC_CFLAGS)
   AC_SUBST(XMLSEC_LIBS)
-  AC_SUBST(XMLSEC1_OPENSSL_CFLAGS)
-  AC_SUBST(XMLSEC1_OPENSSL_LIBS)
+  AC_SUBST(XMLSEC_OPENSSL_CFLAGS)
+  AC_SUBST(XMLSEC_OPENSSL_LIBS)
 
   #AC_SUBST(XMLSEC_CONFIG)
   #AC_SUBST(XMLSEC_MIN_VERSION)
@@ -800,6 +812,7 @@ EXTRA_LIBS=""
 REGEX_LIBS=""
 SOCKET_LIBS=""
 WIN32=""
+MACOS=""
 case "${host}" in
   *-*-mingw32)
     WIN32="yes"
@@ -816,6 +829,7 @@ case "${host}" in
     cp ${SYSTEMROOT}/system32/ws2_32.dll ${PWD}/mingwlib/libws2_32.dll
     ;;
   *solaris*)
+    MACOS="yes"
     SOCKET_LIBS="-lsocket"
     CFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS"
     CXXFLAGS="$CXXFLAGS -D_POSIX_PTHREAD_SEMANTICS"
