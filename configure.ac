@@ -398,7 +398,8 @@ if test "x$disable_xmlsec1" = "xno"; then
   AC_ARG_WITH(xmlsec1, [  --with-xmlsec1=(PATH)  xmlsec1 location])
   if test "x$with_xmlsec1" = "x" ; then
     PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION xmlsec1-openssl >= XMLSEC_OPENSSL_MIN_VERSION],
-        [XMLSEC_INSTALLED=yes],
+        [(PKG_CHECK_MODULES(XMLSEC1_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION], 
+          [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no]))],
 	[XMLSEC_INSTALLED=no])
   fi
 
@@ -408,7 +409,7 @@ if test "x$disable_xmlsec1" = "xno"; then
    	  XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
       fi
       if ! $XMLSEC_CONFIG --version > /dev/null 2>&1 ; then
-	  AC_MSG_ERROR(Could not find xmlsec1 anywhere (see config.log for details).)
+	  AC_MSG_NOTICE(Could not find xmlsec1 anywhere; The xml security related functionality will not be compiled)
       fi
       vers=`$XMLSEC_CONFIG --version | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
       minvers=`echo $XMLSEC_MIN_VERSION | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
@@ -418,18 +419,19 @@ if test "x$disable_xmlsec1" = "xno"; then
 	  XMLSEC_INSTALLED="yes"
           AC_MSG_RESULT(yes ('$XMLSEC_VERSION'))
       else
-          AC_MSG_ERROR(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
+          AC_MSG_NOTICE(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
       fi
   fi
 
   AC_SUBST(XMLSEC_CFLAGS)
   AC_SUBST(XMLSEC_LIBS)
+  AC_SUBST(XMLSEC1_OPENSSL_CFLAGS)
+  AC_SUBST(XMLSEC1_OPENSSL_LIBS)
+
   #AC_SUBST(XMLSEC_CONFIG)
   #AC_SUBST(XMLSEC_MIN_VERSION)
 fi
-PKG_CHECK_MODULES(XMLSEC1_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION])
-AC_SUBST(XMLSEC1_OPENSSL_CFLAGS)
-AC_SUBST(XMLSEC1_OPENSSL_LIBS)
+
 
 #########################
 #
