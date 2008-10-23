@@ -21,7 +21,8 @@ libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/l
                         $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                         $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                         $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-                        $(top_srcdir)/src/hed/libs/client/libarcclient.la $(LIBXML2_LIBS)
+                        $(top_srcdir)/src/hed/libs/client/libarcclient.la \
+                        $(LIBXML2_LIBS)
 libarcpdc_la_LDFLAGS  = -no-undefined -avoid-version -module
 
 test_SOURCES  = test.cpp
