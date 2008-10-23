@@ -17,7 +17,7 @@ static void freeClassLoader() {
 }
 
 ClassLoader::ClassLoader(Config * cfg) : ModuleManager(cfg){
-  if(cfg!=NULL)
+  if(cfg!=NULL) 
     load_all_instances(cfg); 
 }
 
@@ -47,6 +47,7 @@ ClassLoader* ClassLoader::getClassLoader(Config* cfg) {
 void ClassLoader::load_all_instances(Config *cfg){
   XMLNode root = (*cfg).GetRoot();
 
+  if(!root) return;
   if(!MatchXMLName(root,"ArcConfig")) return;
   for (int i = 0;;++i) {
     XMLNode plugins = root["Plugins"][i];
