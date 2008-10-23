@@ -10,15 +10,19 @@ libarcwssecurity_ladir = $(pkgincludedir)/ws-security
 if XMLSEC_ENABLED
 libarcwssecurity_la_HEADERS  = UsernameToken.h X509Token.h SAMLToken.h 
 libarcwssecurity_la_SOURCES  = UsernameToken.cpp X509Token.cpp SAMLToken.cpp
-else
-libarcwssecurity_la_HEADERS  = UsernameToken.h
-libarcwssecurity_la_SOURCES  = UsernameToken.cpp
-endif
-libarcwssecurity_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
+libarcwssecurity_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) -I$(top_srcdir)/include
 libarcwssecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                                $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                                $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
-                            $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) $(XMLSEC_LIBS)
+                            $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) $(XMLSEC_LIBS) $(XMLSEC_OPENSSL_LIBS)
+else
+libarcwssecurity_la_HEADERS  = UsernameToken.h
+libarcwssecurity_la_SOURCES  = UsernameToken.cpp
+libarcwssecurity_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
+libarcwssecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                               $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                            $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
+endif
 #libarcwssecurity_la_LDFLAGS  = $(LIBXML2_LIBS)
 
 test_SOURCES  = test.cpp 
