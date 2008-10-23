@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include "XMLNode.h"
+#include <arc/XMLNode.h>
 #include "XMLSecNode.h"
 #include "XmlSecUtils.h"
 #include <iostream>

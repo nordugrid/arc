@@ -24,9 +24,9 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
 
-#include "../../hed/libs/common/XmlSecUtils.h"
-#include "../../hed/libs/common/XMLSecNode.h"
-#include "../../hed/libs/credential/saml_util.h"
+#include "../../hed/libs/xmlsec/XmlSecUtils.h"
+#include "../../hed/libs/xmlsec/XMLSecNode.h"
+#include "../../hed/libs/xmlsec/saml_util.h"
 
 #define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
 #define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"

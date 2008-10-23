@@ -1,6 +1,5 @@
-noinst_PROGRAMS = test
-
 lib_LTLIBRARIES = libarcmessage.la
+noinst_PROGRAMS = test
 
 libarcmessage_ladir = $(pkgincludedir)/message
 libarcmessage_la_HEADERS  = SOAPEnvelope.h   PayloadRaw.h   PayloadSOAP.h   PayloadStream.h   MCC_Status.h MCC.h     Service.h   MessageAttributes.h   Message.h   SOAPMessage.h   MessageAuth.h   SecAttr.h
@@ -10,5 +9,5 @@ libarcmessage_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDADD    = libarcmessage.la
+test_LDADD    = ./libarcmessage.la
 

@@ -15,7 +15,9 @@ libarcwssecurity_la_HEADERS  = UsernameToken.h
 libarcwssecurity_la_SOURCES  = UsernameToken.cpp
 endif
 libarcwssecurity_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
-libarcwssecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+libarcwssecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                               $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                               $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
                             $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) $(XMLSEC_LIBS)
 #libarcwssecurity_la_LDFLAGS  = $(LIBXML2_LIBS)
 
@@ -28,11 +30,11 @@ if XMLSEC_ENABLED
 test_x509token_SOURCES  = test_x509token.cpp
 test_x509token_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_x509token_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS)
-test_x509token_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
+test_x509token_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la 
 
 test_samltoken_SOURCES  = test_samltoken.cpp
 test_samltoken_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_samltoken_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS)
-test_samltoken_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
+test_samltoken_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la 
 else
 endif

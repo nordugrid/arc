@@ -39,7 +39,7 @@
 #include <arc/StringConv.h>
 #include <arc/GUID.h>
 
-#include "../common/XmlSecUtils.h"
+#include "../xmlsec/XmlSecUtils.h"
 #include "SAMLToken.h"
 
 namespace Arc {

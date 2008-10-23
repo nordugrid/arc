@@ -35,6 +35,7 @@ test_client_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                        $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+                       $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
                        $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_LIBS)
 
 test_client2shibboleth_SOURCES  = test_client2shibboleth.cpp
@@ -43,6 +44,7 @@ test_client2shibboleth_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon
                        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                        $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+                       $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
                        $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                        $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_LIBS)
 
@@ -52,6 +54,7 @@ test_client2voms_saml_service_LDADD    = $(top_srcdir)/src/hed/libs/common/libar
                        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                        $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+                       $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
                        $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                        $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_LIBS)
 

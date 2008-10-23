@@ -36,8 +36,8 @@
 #include <arc/GUID.h>
 #include <arc/credential/Credential.h>
 
-#include "../../hed/libs/common/XmlSecUtils.h"
-#include "../../hed/libs/common/XMLSecNode.h"
+#include "../../hed/libs/xmlsec/XmlSecUtils.h"
+#include "../../hed/libs/xmlsec/XMLSecNode.h"
 
 #define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
 #define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
