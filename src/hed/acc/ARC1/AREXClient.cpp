@@ -235,21 +235,21 @@ namespace Arc {
       logger.msg(ERROR, "There is no connection chain configured.");
       return false;
     }
-    XMLNode id, fs;
-    (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
-    (*resp)["Fault"]["faultstring"].New(fs);
-    id.GetDoc(jobid);
-    faultstring = (std::string)fs;
-    if (faultstring == "") {
+    XMLNode id;
+    SOAPFault fs(*resp);
+    if (!fs) {
+      (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
+      id.GetDoc(jobid);
       delete resp;
       return true;
     }
     else {
+      faultstring = fs.Reason();
       std::string s;
       resp->GetXML(s);
       delete resp;
       logger.msg(VERBOSE, "Submission returned failure: %s", s);
-      logger.msg(ERROR, "Submission failed: %s", faultstring);
+      logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
       return false;
     }
   }

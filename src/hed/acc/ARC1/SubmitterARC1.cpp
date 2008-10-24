@@ -44,6 +44,10 @@ namespace Arc {
       logger.msg(ERROR, "Failed submitting job");
       return false;
     }
+    if (jobid.empty()) {
+      logger.msg(ERROR, "Service returned no job identifier");
+      return false;
+    }
 
     XMLNode jobidx(jobid);
     URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
