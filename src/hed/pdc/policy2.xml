@@ -1,0 +1,8 @@
+<gacl>
+  <entry>
+    <person>
+       <dn>/O=Grid/O=NorduGrid/OU=quark.lu.se/CN=User Name</dn>
+    </person>
+    <allow><read/><list/><write/><admin/></allow>
+  </entry>
+</gacl> 

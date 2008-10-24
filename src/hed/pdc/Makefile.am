@@ -6,7 +6,7 @@ SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcau
 LIBS_WITH_XMLSEC = 
 endif
 DIST_SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp x509tokensh
-noinst_PROGRAMS = test testinterface
+bin_PROGRAMS = test testinterface
 # classload_test 
 
 pkglib_LTLIBRARIES = libarcpdc.la

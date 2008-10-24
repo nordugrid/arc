@@ -28,9 +28,59 @@ int main(void){
   Arc::Logger::rootLogger.addDestination(logcerr);
 
   logger.msg(Arc::INFO, "Start test");
+  // NOTE: ClassLoader can't distiguish between object of different kinds of classes
+  // As result if constructor of some kind of object is not clever enough to distinguish
+  // that it is supplied with configuration of different type method Instance() may return
+  // unexpected object type. Because of that we need separate loaders for different types
+  // of classes.
+  ArcSec::EvaluatorLoader eval_loader;
+  ArcSec::Evaluator* eval = NULL;
+  ArcSec::Policy* policy = NULL;
+
+  // Load policy dinamically detecting it's type
+  // Load evaluator by policy type
+  {
+    ArcSec::SourceFile source1("policy1.xml");
+    if(!source1) {
+      std::cerr<<"policy1.xml failed to load"<<std::endl;
+    } else {
+      policy=eval_loader.getPolicy(ArcSec::SourceFile("policy1.xml"));
+      if(policy == NULL) {
+        std::cerr<<"policy1.xml failed to parse"<<std::endl;
+      } else {
+        std::cout<<"Evaluator for policy1.xml is "<<policy->getEvalName()<<std::endl;
+        eval=eval_loader.getEvaluator(policy);
+        if(eval == NULL) {
+          std::cerr<<"policy1.xml failed to instantiate evaluator"<<std::endl;
+        } else {
+          std::cerr<<"policy1.xml test passed"<<std::endl;
+          delete eval;
+        };
+        delete policy;
+      };
+    };
+    ArcSec::SourceFile source2("policy2.xml");
+    if(!source2) {
+      std::cerr<<"policy2.xml failed to load"<<std::endl;
+    } else {
+      policy=eval_loader.getPolicy(ArcSec::SourceFile("policy2.xml"));
+      if(policy == NULL) {
+        std::cerr<<"policy2.xml failed to parse"<<std::endl;
+      } else {
+        std::cout<<"Evaluator for policy2.xml is "<<policy->getEvalName()<<std::endl;
+        eval=eval_loader.getEvaluator(policy);
+        if(eval == NULL) {
+          std::cerr<<"policy2.xml failed to instantiate evaluator"<<std::endl;
+        } else {
+          std::cerr<<"policy2.xml test passed"<<std::endl;
+          delete eval;
+        };
+        delete policy;
+      };
+    };
+  };
 
   //Load the Evaluator
-  ArcSec::Evaluator* eval = NULL;
 
 #if 0
   Arc::Config modulecfg("EvaluatorCfg.xml");
@@ -41,7 +91,6 @@ int main(void){
 #endif
 
   std::string evaluator = "arc.evaluator";
-  ArcSec::EvaluatorLoader eval_loader;
   eval = eval_loader.getEvaluator(evaluator);  
   if(eval == NULL) {
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
