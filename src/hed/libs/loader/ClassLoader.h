@@ -34,10 +34,8 @@ class ClassLoader : public ModuleManager{
   public:
     static ClassLoader* getClassLoader(Config* cfg = NULL); 
 
-    //virtual LoadableClass *Instance(const std::string& className);
-    //LoadableClass *Instance(std::string& classId, Config* cfg); 
-    LoadableClass *Instance(const std::string& classId, void* arg = NULL);
-    LoadableClass *Instance(void* arg = NULL);
+    LoadableClass *Instance(const std::string& classId, void* arg = NULL, const std::string& className = "");
+    LoadableClass *Instance(void* arg = NULL, const std::string& className = "");
 
     //template <class LC>
     //void Instance(const std::string className, LC *&p, Config* cfg);

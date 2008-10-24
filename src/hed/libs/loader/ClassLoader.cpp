@@ -8,6 +8,10 @@
 
 namespace Arc {
 
+
+// TODO (IMPORTANT): protect it against multi-threaded access
+// Or even better redesign this class to distinguish between
+// different types of classes properly.
 static identifier_map_t id_map;
 
 ClassLoader* ClassLoader::_instance = NULL;
@@ -87,10 +91,11 @@ void ClassLoader::load_all_instances(Config *cfg){
 
 }
 
-LoadableClass* ClassLoader::Instance(const std::string& classId, void* arg){
+LoadableClass* ClassLoader::Instance(const std::string& classId, void* arg, const std::string& className){
   identifier_map_t::iterator it;
   void* ptr;
   for(it=id_map.begin(); it!=id_map.end(); ++it){
+    if((!className.empty()) && (className != (*it).first)) continue;
     ptr =(*it).second;
     for(loader_descriptor* desc = (loader_descriptor*)ptr; !((desc->name)==NULL); ++desc) {
       //std::cout<<"size:"<<id_map.size()<<" name:"<<desc->name<<"------classid:"<<classId<<std::endl;
@@ -105,10 +110,11 @@ LoadableClass* ClassLoader::Instance(const std::string& classId, void* arg){
   return NULL;
 }
 
-LoadableClass* ClassLoader::Instance(void* arg){
+LoadableClass* ClassLoader::Instance(void* arg, const std::string& className){
   identifier_map_t::iterator it;
   void* ptr;
   for(it=id_map.begin(); it!=id_map.end(); ++it){
+    if((!className.empty()) && (className != (*it).first)) continue;
     ptr =(*it).second;
     for(loader_descriptor* desc = (loader_descriptor*)ptr; !((desc->name)==NULL); ++desc) {
       loader_descriptor &descriptor =*desc; 
