@@ -3,6 +3,8 @@
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
+#include <arc/DateTime.h>
+#include <arc/URL.h>
 %}
 %include <typemaps.i>
 
@@ -48,6 +50,8 @@
 %include "../src/hed/libs/common/IString.h"
 %rename(LogStream_ostream) LogStream;
 %include "../src/hed/libs/common/Logger.h"
+%include "../src/hed/libs/common/DateTime.h"
+%include "../src/hed/libs/common/URL.h"
 
 #ifdef SWIGPYTHON
 
