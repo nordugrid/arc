@@ -73,7 +73,6 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
       if(!has_covered)
         node["ModuleManager"].NewChild("Path")=*p;
     }
-std::cerr<<"***** Using found configuration"<<std::endl;
   } else {
     // Loading unknown evaluator
     Arc::XMLNode cfg("\
@@ -82,7 +81,6 @@ std::cerr<<"***** Using found configuration"<<std::endl;
        <ModuleManager/>\
       </ArcConfig>");
     for(std::list<std::string>::iterator plugin = plugins.begin();plugin!=plugins.end();++plugin) {
-std::cerr<<"********* plugins path: "<<*plugin<<std::endl;
       cfg["ModuleManager"].NewChild("Path")=*plugin;
       try {
         Glib::Dir dir(*plugin);
@@ -97,9 +95,7 @@ std::cerr<<"********* plugins path: "<<*plugin<<std::endl;
       } catch (Glib::FileError) {};
     }
     cfg.New(node);
-std::cerr<<"***** Using created configuration"<<std::endl;
   }
-std::string str; node.GetXML(str); std::cerr<<"******\n"<<str<<"\n******"<<std::endl;
   Arc::Config modulecfg(node);
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   //Dynamically load Evaluator object according to configure information. 
