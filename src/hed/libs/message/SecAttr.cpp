@@ -7,6 +7,7 @@ SecAttr::Format SecAttr::UNDEFINED;
 SecAttr::Format SecAttr::ARCAuth("arc");
 SecAttr::Format SecAttr::XACML("xacml");
 SecAttr::Format SecAttr::SAML("saml");
+SecAttr::Format SecAttr::GACL("gacl");
 
 bool SecAttr::equal(const SecAttr&) const {
   return false;

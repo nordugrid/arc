@@ -43,6 +43,7 @@ namespace Arc {
     static Format ARCAuth;   /// representation for ARC authorization policy
     static Format XACML;     /// represenation for XACML policy
     static Format SAML;      /// suitable for inclusion into SAML structures
+    static Format GACL;      /// representation for GACL policy
 
     SecAttr() {};
     virtual ~SecAttr() {};
