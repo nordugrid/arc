@@ -29,6 +29,20 @@
     </Component>
     <Component name='soap.client' id='soap' entry='soap'>
       <next id='http'/>
+      <!--SecHandler name="usernametoken.handler" id="usernametoken" event="outgoing">
+        <Process>generate</Process>
+        <PasswordEncoding>digest</PasswordEncoding>
+        <!--Specify the Username-->
+        <Username>user</Username>
+        <!--Specify the password-->
+        <Password>passwd</Password>
+      </SecHandler-->
+      <!--SecHandler name="x509token.handler" id="x509token" event="outgoing">
+        <Process>generate</Process>
+        <!--Specify the key and certificate path which will be used for generate x509token for soap-->
+        <KeyPath>/home/USER/userkey.pem</KeyPath>
+        <CertificatePath>/home/USER/usercert.pem</CertificatePath>
+      </SecHandler-->
     </Component>
   </Chain>
 </ArcConfig>

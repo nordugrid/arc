@@ -2,7 +2,7 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
   <ModuleManager>
-    <Path>/mn/tid/epf-a1/weizhonq/susy_backup/new-arc-install/lib/arc/</Path>
+    <Path>/path/to/arc-install/lib/arc/</Path>
     <!--Path>/usr/local/lib/arc/</Path-->
   </ModuleManager>
   <Plugins><Name>mcctcp</Name></Plugins>
