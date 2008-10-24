@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/URL.h>
 
 #include "DataPointLDAP.h"
@@ -79,7 +79,7 @@ namespace Arc {
       point.entry.NewChild(attr) = value;
   }
 
-  DataStatus DataPointLDAP::StartReading(DataBufferPar& buf) {
+  DataStatus DataPointLDAP::StartReading(DataBuffer& buf) {
     buffer = &buf;
     LDAPQuery q(url.Host(), url.Port());
     if (!q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
@@ -100,7 +100,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointLDAP::StartWriting(DataBufferPar&, DataCallback *) {
+  DataStatus DataPointLDAP::StartWriting(DataBuffer&, DataCallback *) {
     return DataStatus::UnimplementedError;
   }
 

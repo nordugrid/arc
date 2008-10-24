@@ -11,13 +11,13 @@
 
 namespace Arc {
 
-  class DataBufferPar;
+  class DataBuffer;
   class DataCallback;
 
   /// This is a kind of generalized file handle.
   /** Differently from file handle it does not support operations
       read() and write(). Instead it initiates operation and uses
-      object of class DataBufferPar to pass actual data. It also
+      object of class DataBuffer to pass actual data. It also
       provides other operations like querying parameters of remote
       object. It is used by higher-level classes DataMove and
       DataMovePar to provide data transfer service for application. */
@@ -70,7 +70,7 @@ namespace Arc {
     virtual DataStatus RemoveLocations(const DataPoint& p);
 
   protected:
-    DataBufferPar *buffer;
+    DataBuffer *buffer;
     unsigned long long int bufsize;
     int bufnum;
     bool cache;

@@ -15,7 +15,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
 #include <arc/data/MkDirRecursive.h>
 
@@ -188,7 +188,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointFile::StartReading(DataBufferPar& buf) {
+  DataStatus DataPointFile::StartReading(DataBuffer& buf) {
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -253,7 +253,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointFile::StartWriting(DataBufferPar& buf,
+  DataStatus DataPointFile::StartWriting(DataBuffer& buf,
 					 DataCallback *space_cb) {
     if (reading)
       return DataStatus::IsReadingError;

@@ -29,8 +29,8 @@ namespace Arc {
     DataStatus Check();
     DataStatus Remove();
     DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false);
-    DataStatus StartReading(DataBufferPar& buffer);
-    DataStatus StartWriting(DataBufferPar& buffer,
+    DataStatus StartReading(DataBuffer& buffer);
+    DataStatus StartWriting(DataBuffer& buffer,
                             DataCallback *space_cb = NULL);
     DataStatus StopReading();
     DataStatus StopWriting();

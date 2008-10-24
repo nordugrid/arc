@@ -9,7 +9,7 @@
 namespace Arc {
 
   /// Defines interface for variuos checksum manipulations
-  /** This class is used during data transfers through DataBufferPar class */
+  /** This class is used during data transfers through DataBuffer class */
   class CheckSum {
   public:
     CheckSum(void) {}

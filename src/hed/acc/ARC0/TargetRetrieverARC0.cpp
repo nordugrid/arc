@@ -10,7 +10,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 
 #include "TargetRetrieverARC0.h"
@@ -94,7 +94,7 @@ namespace Arc {
     url.ChangeLDAPScope(URL::base);
     url.AddLDAPAttribute("giisregistrationstatus");
     DataHandle handler(url);
-    DataBufferPar buffer;
+    DataBuffer buffer;
 
     if (!handler->StartReading(buffer)) {
       delete thrarg;
@@ -188,7 +188,7 @@ namespace Arc {
     url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
 			 "(objectclass=nordugrid-queue))");
     DataHandle handler(url);
-    DataBufferPar buffer;
+    DataBuffer buffer;
 
     if (!handler->StartReading(buffer)) {
       delete thrarg;

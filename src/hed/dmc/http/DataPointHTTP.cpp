@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #include <arc/Logger.h>
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
@@ -365,7 +365,7 @@ namespace Arc {
 
     if (type.empty() || (strcasecmp(type.c_str(), "text/html") == 0)) {
 
-      DataBufferPar buffer;
+      DataBuffer buffer;
 
       if (!StartReading(buffer))
 	return DataStatus::ListError;
@@ -428,7 +428,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointHTTP::StartReading(DataBufferPar& buffer) {
+  DataStatus DataPointHTTP::StartReading(DataBuffer& buffer) {
     if (transfers_started != 0)
       return DataStatus::ReadStartError;
     int transfer_streams = 1;
@@ -496,7 +496,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointHTTP::StartWriting(DataBufferPar& buffer,
+  DataStatus DataPointHTTP::StartWriting(DataBuffer& buffer,
                                          DataCallback *) {
     if (transfers_started != 0)
       return DataStatus::WriteStartError;

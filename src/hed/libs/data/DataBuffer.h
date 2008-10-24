@@ -1,5 +1,5 @@
-#ifndef __ARC_DATABUFFERPAR_H__
-#define __ARC_DATABUFFERPAR_H__
+#ifndef __ARC_DATABUFFER_H__
+#define __ARC_DATABUFFER_H__
 
 #include <glibmm/thread.h>
 
@@ -11,7 +11,7 @@ namespace Arc {
 
   /// Represents set of buffers
   /** This class is used used during data transfer using DataPoint classes. */
-  class DataBufferPar {
+  class DataBuffer {
   private:
     /* used to check if configuration changed */
     int set_counter;
@@ -50,7 +50,7 @@ namespace Arc {
     bool error_read_flag;
     /* same for writing part */
     bool error_write_flag;
-    /* error was originated in DataBufferPar itself */
+    /* error was originated in DataBuffer itself */
     bool error_transfer_flag;
     /* wait for any change of buffers' status */
     bool cond_wait();
@@ -62,27 +62,27 @@ namespace Arc {
   public:
     /// This object controls transfer speed
     DataSpeed speed;
-    /// Check if DataBufferPar object is initialized
+    /// Check if DataBuffer object is initialized
     operator bool() {
       return (bufs != 0);
     }
     /// Contructor
     /// \param size size of every buffer in bytes.
     /// \param blocks number of buffers.
-    DataBufferPar(unsigned int size = 65536, int blocks = 3);
+    DataBuffer(unsigned int size = 65536, int blocks = 3);
     /// Contructor
     /// \param size size of every buffer in bytes.
     /// \param blocks number of buffers.
     /// \param cksum object which will compute checksum. Should not be
-    /// destroyed till DataBufferPar itself.
-    DataBufferPar(CheckSum *cksum, unsigned int size = 65536, int blocks = 3);
+    /// destroyed till DataBuffer itself.
+    DataBuffer(CheckSum *cksum, unsigned int size = 65536, int blocks = 3);
     /// Destructor.
-    ~DataBufferPar();
+    ~DataBuffer();
     /// Reinitialize buffers with different parameters.
     /// \param size size of every buffer in bytes.
     /// \param blocks number of buffers.
     /// \param cksum object which will compute checksum. Should not be
-    /// destroyed till DataBufferPar itself.
+    /// destroyed till DataBuffer itself.
     bool set(CheckSum *cksum = NULL, unsigned int size = 65536,
 	     int blocks = 3);
     /// Direct access to buffer by number.
@@ -192,4 +192,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_DATABUFFERPAR_H__
+#endif // __ARC_DATABUFFER_H__

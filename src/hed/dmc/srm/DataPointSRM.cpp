@@ -7,7 +7,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
 
 #include "DataPointSRM.h"
@@ -25,11 +25,11 @@ namespace Arc {
 
   DataStatus DataPointSRM::Remove() {}
 
-  DataStatus DataPointSRM::StartReading(DataBufferPar& buf) {}
+  DataStatus DataPointSRM::StartReading(DataBuffer& buf) {}
 
   DataStatus DataPointSRM::StopReading() {}
 
-  DataStatus DataPointSRM::StartWriting(DataBufferPar& buf,
+  DataStatus DataPointSRM::StartWriting(DataBuffer& buf,
 					DataCallback *space_cb) {}
 
   DataStatus DataPointSRM::StopWriting() {}

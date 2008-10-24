@@ -10,7 +10,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 #include <arc/loader/ACCLoader.h>
 
@@ -96,7 +96,7 @@ namespace Arc {
     url.ChangeLDAPFilter("(|(GlueServiceType=bdii_site)"
 			 "(GlueServiceType=bdii_top))");
     DataHandle handler(url);
-    DataBufferPar buffer;
+    DataBuffer buffer;
 
     if (!handler->StartReading(buffer)) {
       delete thrarg;
@@ -176,7 +176,7 @@ namespace Arc {
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
     DataHandle handler(url);
-    DataBufferPar buffer;
+    DataBuffer buffer;
 
     if (!handler->StartReading(buffer)) {
       delete thrarg;

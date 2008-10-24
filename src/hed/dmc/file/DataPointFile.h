@@ -13,8 +13,8 @@ namespace Arc {
   public:
     DataPointFile(const URL& url);
     virtual ~DataPointFile();
-    virtual DataStatus StartReading(DataBufferPar& buffer);
-    virtual DataStatus StartWriting(DataBufferPar& buffer,
+    virtual DataStatus StartReading(DataBuffer& buffer);
+    virtual DataStatus StartWriting(DataBuffer& buffer,
 				    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();

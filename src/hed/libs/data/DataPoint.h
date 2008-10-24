@@ -13,7 +13,7 @@
 namespace Arc {
 
   class Logger;
-  class DataBufferPar;
+  class DataBuffer;
   class DataCallback;
   class XMLNode;
 
@@ -50,7 +50,7 @@ namespace Arc {
      \param buffer operation will use this buffer to put
        information into. Should not be destroyed before stop_reading
        was called and returned. */
-    virtual DataStatus StartReading(DataBufferPar& buffer) = 0;
+    virtual DataStatus StartReading(DataBuffer& buffer) = 0;
 
     /// Start writing data to URL.
     /** Separate thread to transfer data will be created. No other
@@ -61,7 +61,7 @@ namespace Arc {
      \param space_cb callback which is called if there is not
        enough space to store data. May not implemented for all
        protocols. */
-    virtual DataStatus StartWriting(DataBufferPar& buffer,
+    virtual DataStatus StartWriting(DataBuffer& buffer,
 				    DataCallback *space_cb = NULL) = 0;
 
     /// Stop reading.

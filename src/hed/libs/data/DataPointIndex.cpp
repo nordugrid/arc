@@ -137,13 +137,13 @@ namespace Arc {
     return registered;
   }
 
-  DataStatus DataPointIndex::StartReading(DataBufferPar& buffer) {
+  DataStatus DataPointIndex::StartReading(DataBuffer& buffer) {
     if (!h)
       return DataStatus::NoLocationError;
     return h->StartReading(buffer);
   }
 
-  DataStatus DataPointIndex::StartWriting(DataBufferPar& buffer,
+  DataStatus DataPointIndex::StartWriting(DataBuffer& buffer,
 					  DataCallback *cb) {
     if (!h)
       return DataStatus::NoLocationError;

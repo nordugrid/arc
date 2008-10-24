@@ -4,7 +4,7 @@
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 
 #include "DataPointGridFTP.h"
 #include "GlobusErrorUtils.h"
@@ -232,7 +232,7 @@ namespace Arc {
     return result;
   }
 
-  DataStatus DataPointGridFTP::StartReading(DataBufferPar& buf) {
+  DataStatus DataPointGridFTP::StartReading(DataBuffer& buf) {
     if (!ftp_active)
       return DataStatus::NotInitializedError;
     if (reading)
@@ -483,7 +483,7 @@ namespace Arc {
     return;
   }
 
-  DataStatus DataPointGridFTP::StartWriting(DataBufferPar& buf,
+  DataStatus DataPointGridFTP::StartWriting(DataBuffer& buf,
 					    DataCallback*) {
     if (!ftp_active)
       return DataStatus::NotInitializedError;

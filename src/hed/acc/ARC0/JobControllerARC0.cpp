@@ -4,7 +4,7 @@
 
 #include <map>
 
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
@@ -48,7 +48,7 @@ namespace Arc {
       infourl.ChangeLDAPFilter(filter);
 
       DataHandle handler(infourl);
-      DataBufferPar buffer;
+      DataBuffer buffer;
 
       if (!handler->StartReading(buffer))
 	return;

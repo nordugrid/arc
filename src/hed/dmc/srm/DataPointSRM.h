@@ -13,8 +13,8 @@ namespace Arc {
   public:
     DataPointSRM(const URL& url);
     virtual ~DataPointSRM();
-    virtual DataStatus StartReading(DataBufferPar& buffer);
-    virtual DataStatus StartWriting(DataBufferPar& buffer,
+    virtual DataStatus StartReading(DataBuffer& buffer);
+    virtual DataStatus StartWriting(DataBuffer& buffer,
 				    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();

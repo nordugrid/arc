@@ -16,7 +16,7 @@
 #include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
-#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataBuffer.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataPoint.h>
@@ -335,11 +335,11 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
       /* out of tries */
       return res;
     }
-    // By putting DataBufferPar here, one makes sure it will be always
+    // By putting DataBuffer here, one makes sure it will be always
     // destroyed AFTER all DataHandle. This allows for not bothering
     // to call stop_reading/stop_writing because they are called in
     // destructor of DataHandle.
-    DataBufferPar buffer;
+    DataBuffer buffer;
     logger.msg(INFO, "Real transfer from %s to %s", source.CurrentLocation().str(), destination.CurrentLocation().str());
     /* creating handler for transfer */
     source.SetSecure(force_secure);
