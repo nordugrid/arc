@@ -83,7 +83,9 @@ public:
 
   virtual void setEvalResult(EvalResult& res);
 
-  std::string getEvalName() const;
+  const char* getEvalName() const;
+
+  const char* getName() const;
 
 private:
   /**Parse the <Subjects> <Resources> <Actions> <Conditions> inside one <Rule>

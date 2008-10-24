@@ -41,7 +41,9 @@ public:
 
   virtual void setEvalResult(EvalResult& res);
 
-  virtual std::string getEvalName() const;
+  virtual const char* getEvalName() const;
+
+  virtual const char* getName() const;
 
   static Arc::LoadableClass* get_policy(void* arg);
 

@@ -138,8 +138,12 @@ void ArcRequest::make_request(){
     }
 }
 
-std::string ArcRequest::getEvalName() const{
+const char* ArcRequest::getEvalName() const{
   return "arc.evaluator";
+}
+
+const char* ArcRequest::getName() const{
+  return "arc.request";
 }
 
 ArcRequest::ArcRequest (const Source& req) : Request(req) {

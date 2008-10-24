@@ -146,8 +146,12 @@ void ArcPolicy::setEvalResult(EvalResult& res){
   evalres = res;
 }
 
-std::string ArcPolicy::getEvalName() const{
+const char* ArcPolicy::getEvalName() const{
   return "arc.evaluator";
+}
+
+const char* ArcPolicy::getName() const{
+  return "arc.policy";
 }
 
 ArcPolicy::~ArcPolicy(){

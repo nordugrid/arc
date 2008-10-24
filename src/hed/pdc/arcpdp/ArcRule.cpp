@@ -324,8 +324,12 @@ ArcRule::operator bool(void) const {
   return true;
 }
 
-std::string ArcRule::getEvalName() const{
+const char* ArcRule::getEvalName() const{
   return "arc.evaluator";
+}
+
+const char* ArcRule::getName() const{
+  return "arc.rule";
 }
 
 ArcRule::~ArcRule(){

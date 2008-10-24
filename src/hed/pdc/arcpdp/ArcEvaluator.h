@@ -67,6 +67,8 @@ public:
 
   virtual void setCombiningAlg(CombiningAlg* alg);
 
+  virtual const char* getName(void) const;
+
   static Arc::LoadableClass* get_evaluator(void* arg);
 
 protected:

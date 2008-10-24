@@ -29,7 +29,9 @@ public:
 
   Arc::XMLNode getXML(void) { return policynode; };
 
-  std::string getEvalName() const { return "gacl.evaluator"; };
+  virtual const char* getEvalName() const { return "gacl.evaluator"; };
+
+  virtual const char* getName() const { return "gacl.policy"; };
 
   static Arc::LoadableClass* get_policy(void* arg);
 

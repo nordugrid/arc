@@ -71,8 +71,11 @@ public:
   /**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request() = 0;
 
+  /**Get the name of corresponding evaulator*/
+  virtual const char* getEvalName() const = 0;
 
-  virtual std::string getEvalName() const = 0;
+  /**Get the name of this request*/
+  virtual const char* getName() const = 0;
 
   /**Default constructor*/
   Request () {};

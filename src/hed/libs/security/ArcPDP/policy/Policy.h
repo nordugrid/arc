@@ -79,7 +79,10 @@ public:
   virtual void setEvalResult(EvalResult& res) = 0;
 
   /**Get the name of Evaluator which can evaluate this policy*/
-  virtual std::string getEvalName() const = 0;
+  virtual const char* getEvalName() const = 0;
+
+  /**Get the name of this policy*/
+  virtual const char* getName() const = 0;
 };
 
 } // namespace ArcSec

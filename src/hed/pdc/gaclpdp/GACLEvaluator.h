@@ -54,6 +54,8 @@ public:
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg) { combining_alg = alg; } ;
   virtual void setCombiningAlg(CombiningAlg* alg) { } ;
 
+  virtual const char* getName() const { return "gacl.evaluator"; };
+
   static Arc::LoadableClass* get_evaluator(void* arg);
 
 protected:

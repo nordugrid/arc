@@ -406,6 +406,10 @@ Response* ArcEvaluator::evaluate(const Source& request, Policy* policyobj) {
   return (evaluate(request));
 }
 
+const char* ArcEvaluator::getName(void) const {
+  return "arc.evaluator";
+}
+
 ArcEvaluator::~ArcEvaluator(){
   //TODO delete all the object
   if(plstore)

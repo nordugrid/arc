@@ -40,7 +40,9 @@ public:
   //**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request();
 
-  virtual std::string getEvalName() const;
+  virtual const char* getEvalName() const;
+
+  virtual const char* getName() const;
 
   static Arc::LoadableClass* get_request(void* arg);
 

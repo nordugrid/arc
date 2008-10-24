@@ -82,6 +82,8 @@ public:
   /**Specifies loadable combining algorithms. In case of multiple policies their results will be combined using this algorithm. To switch to simple algorithm specify NULL argument. */
   virtual void setCombiningAlg(CombiningAlg* alg = NULL) = 0;
 
+  /**Get the name of this evaluator*/
+  virtual const char* getName(void) const = 0;
 protected:
   /**Evaluate the request by using the EvaluationCtx object (which includes the information about request)*/
   virtual Response* evaluate(EvaluationCtx* ctx) = 0;

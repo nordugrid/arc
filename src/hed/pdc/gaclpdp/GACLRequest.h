@@ -28,7 +28,9 @@ public:
 
   Arc::XMLNode getXML(void) { return reqnode; };
 
-  std::string getEvalName() const { return "gacl.evaluator"; };
+  virtual const char* getEvalName() const { return "gacl.evaluator"; };
+
+  virtual const char* getName() const { return "gacl.request"; };
 
   static Arc::LoadableClass* get_request(void* arg);
 
