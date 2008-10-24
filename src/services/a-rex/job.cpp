@@ -124,6 +124,7 @@ template <typename T> class AutoPointer {
   T* operator->(void) const { return object; };
   operator bool(void) const { return (object!=NULL); };
   bool operator!(void) const { return (object==NULL); };
+  operator T*(void) const { return object; };
 };
 
 bool ARexJob::is_allowed(bool fast) {
@@ -135,43 +136,53 @@ bool ARexJob::is_allowed(bool fast) {
     allowed_to_maintain_=true;
     return true;
   };
-  if(fast) return false;
+  if(fast) return true;
   // Do fine-grained authorization requested by job's owner
-  // Currently using only ARC Policy
   if(config_.beginAuth() == config_.endAuth()) return true;
   std::string acl;
   if(!job_acl_read_file(id_,*config_.User(),acl)) return true; // safe to ignore
   if(acl.empty()) return true; // No policy defiled - only owner allowed
-  AutoPointer<ArcSec::Evaluator> eval(ArcSec::EvaluatorLoader().getEvaluator("arc.evaluator"));
+  // Identify and parse policy
+  ArcSec::EvaluatorLoader eval_loader;
+  AutoPointer<ArcSec::Policy> policy(eval_loader.getPolicy(ArcSec::Source(acl)));
+  if(!policy) {
+    return true; // Ignore so far. TODO: report error
+  };
+  AutoPointer<ArcSec::Evaluator> eval(eval_loader.getEvaluator(policy));
   if(!eval) {
     return true; // Ignore so far. TODO: report error
   };
-  eval->addPolicy(ArcSec::Source(acl));
-  // Creating request - directly with XML
-  // Get all user identities
-  Arc::NS ns;
-  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
-  Arc::XMLNode request(ns,"ra:Request");
-  for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
-    if(*a) (*a)->Export(Arc::SecAttr::ARCAuth,request);
+  eval->addPolicy(policy);
+  ArcSec::Response *resp = NULL;
+  if(policy->getName() == "arc") {
+    // Creating request - directly with XML
+    // Get all user identities
+    Arc::NS ns;
+    ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+    Arc::XMLNode request(ns,"ra:Request");
+    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+      if(*a) (*a)->Export(Arc::SecAttr::ARCAuth,request);
+    };
+    for(Arc::XMLNode item = request["RequestItem"];(bool)item;++item) {
+      for(Arc::XMLNode a = item["Action"];(bool)a;a=item["Action"]) a.Destroy();
+      for(Arc::XMLNode r = item["Resource"];(bool)r;r=item["Resource"]) r.Destroy();
+    };
+    request.Namespaces(ns);
+    Arc::XMLNode item = request["ra:RequestItem"];
+    if(!item) item=request.NewChild("ra:RequestItem");
+    // Possible operations are Modify and Read
+    Arc::XMLNode action;
+    action=item.NewChild("ra:Action");
+    action="Read"; action.NewAttribute("Type")="string";
+    action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
+    action=item.NewChild("ra:Action");
+    action="Modify"; action.NewAttribute("Type")="string";
+    action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
+    // Evaluating policy
+    resp=eval->evaluate(request);
+  } else {
+    return true; // Ignore so far. TODO: report error
   };
-  for(Arc::XMLNode item = request["RequestItem"];(bool)item;++item) {
-    for(Arc::XMLNode a = item["Action"];(bool)a;a=item["Action"]) a.Destroy();
-    for(Arc::XMLNode r = item["Resource"];(bool)r;r=item["Resource"]) r.Destroy();
-  };
-  request.Namespaces(ns);
-  Arc::XMLNode item = request["ra:RequestItem"];
-  if(!item) item=request.NewChild("ra:RequestItem");
-  // Possible operations are Modify and Read
-  Arc::XMLNode action;
-  action=item.NewChild("ra:Action");
-  action="Read"; action.NewAttribute("Type")="string";
-  action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
-  action=item.NewChild("ra:Action");
-  action="Modify"; action.NewAttribute("Type")="string";
-  action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
-  // Evaluating policy
-  ArcSec::Response *resp = eval->evaluate(request);
   // Analyzing response in order to understand which operations are allowed
   if(!resp) return true; // Not authorized
   // Following should be somehow made easier
