@@ -100,7 +100,7 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   //Dynamically load Evaluator object according to configure information. 
   //It should be the caller to free the object
-  eval = (Evaluator*)(classloader->Instance(classname, (void*)&node), "__arc_evaluator_modules__");
+  eval = (Evaluator*)(classloader->Instance(classname, (void*)&node, "__arc_evaluator_modules__"));
 
   if(!eval) logger.msg(Arc::ERROR, "Can not load arc evaluator object: %s",classname); 
   return eval;
@@ -150,7 +150,7 @@ Request* EvaluatorLoader::getRequest(const std::string& classname, const Source&
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Request object according to configure information. 
     //It should be the caller to free the object
-    req = (Request*)(classloader->Instance(classname, (void*)&reqnode), "__arc_request_modules__");
+    req = (Request*)(classloader->Instance(classname, (void*)&reqnode, "__arc_request_modules__"));
   }
   
   if(!req) logger.msg(Arc::ERROR, "Can not load arc request object: %s",classname); 
@@ -274,7 +274,7 @@ Request* EvaluatorLoader::getRequest(const Source& requestsource) {
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   //Dynamically load Request object according to configure information. 
   //It should be the caller to free the object
-  request = (Request*)(classloader->Instance((void*)&requestnode), "__arc_request_modules__");
+  request = (Request*)(classloader->Instance((void*)&requestnode, "__arc_request_modules__"));
 
   if(!request) logger.msg(Arc::ERROR, "Can not load request object"); 
   return request;
