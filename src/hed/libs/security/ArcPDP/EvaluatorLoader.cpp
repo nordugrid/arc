@@ -73,13 +73,38 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
       if(!has_covered)
         node["ModuleManager"].NewChild("Path")=*p;
     }
- 
-    Arc::Config modulecfg(node);
-    classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-    //Dynamically load Evaluator object according to configure information. 
-    //It should be the caller to free the object
-    eval = (Evaluator*)(classloader->Instance(classname, (void*)&node));
+std::cerr<<"***** Using found configuration"<<std::endl;
+  } else {
+    // Loading unknown evaluator
+    Arc::XMLNode cfg("\
+      <ArcConfig\
+       xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\">\
+       <ModuleManager/>\
+      </ArcConfig>");
+    for(std::list<std::string>::iterator plugin = plugins.begin();plugin!=plugins.end();++plugin) {
+std::cerr<<"********* plugins path: "<<*plugin<<std::endl;
+      cfg["ModuleManager"].NewChild("Path")=*plugin;
+      try {
+        Glib::Dir dir(*plugin);
+        for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
+          if((*file).substr(0, 3) == "lib") {
+            std::string name = (*file).substr(3,(*file).find('.')-3);
+            Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
+            plugcfg.NewAttribute("Name")=name;
+            plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_evaluator_modules__";
+          };
+        };
+      } catch (Glib::FileError) {};
+    }
+    cfg.New(node);
+std::cerr<<"***** Using created configuration"<<std::endl;
   }
+std::string str; node.GetXML(str); std::cerr<<"******\n"<<str<<"\n******"<<std::endl;
+  Arc::Config modulecfg(node);
+  classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
+  //Dynamically load Evaluator object according to configure information. 
+  //It should be the caller to free the object
+  eval = (Evaluator*)(classloader->Instance(classname, (void*)&node), "__arc_evaluator_modules__");
 
   if(!eval) logger.msg(Arc::ERROR, "Can not load arc evaluator object: %s",classname); 
   return eval;
@@ -129,7 +154,7 @@ Request* EvaluatorLoader::getRequest(const std::string& classname, const Source&
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Request object according to configure information. 
     //It should be the caller to free the object
-    req = (Request*)(classloader->Instance(classname, (void*)&reqnode));
+    req = (Request*)(classloader->Instance(classname, (void*)&reqnode), "__arc_request_modules__");
   }
   
   if(!req) logger.msg(Arc::ERROR, "Can not load arc request object: %s",classname); 
@@ -170,7 +195,7 @@ Policy* EvaluatorLoader::getPolicy(const std::string& classname, const Source& p
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Policy object according to configure information. 
     //It should be the caller to free the object
-    policy = (Policy*)(classloader->Instance(classname, (void*)&policynode));
+    policy = (Policy*)(classloader->Instance(classname, (void*)&policynode, "__arc_policy_modules__"));
   }
 
   if(!policy) logger.msg(Arc::ERROR, "Can not load policy object: %s",classname); 
@@ -212,7 +237,7 @@ Policy* EvaluatorLoader::getPolicy(const Source& policysource) {
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   //Dynamically load Policy object according to configure information. 
   //It should be the caller to free the object
-  policy = (Policy*)(classloader->Instance((void*)&policynode));
+  policy = (Policy*)(classloader->Instance((void*)&policynode, "__arc_policy_modules__"));
 
   if(!policy) logger.msg(Arc::ERROR, "Can not load policy object"); 
   return policy;
@@ -253,7 +278,7 @@ Request* EvaluatorLoader::getRequest(const Source& requestsource) {
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   //Dynamically load Request object according to configure information. 
   //It should be the caller to free the object
-  request = (Request*)(classloader->Instance((void*)&requestnode));
+  request = (Request*)(classloader->Instance((void*)&requestnode), "__arc_request_modules__");
 
   if(!request) logger.msg(Arc::ERROR, "Can not load request object"); 
   return request;

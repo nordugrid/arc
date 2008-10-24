@@ -4,6 +4,7 @@
 #include <list>
 
 #include <arc/Logger.h>
+#include <arc/loader/ClassLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/security/ArcPDP/Evaluator.h>
