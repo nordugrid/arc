@@ -4,9 +4,9 @@
 namespace Arc {
 
 SecAttr::Format SecAttr::UNDEFINED;
-SecAttr::Format SecAttr::ARCAuth("format:arc");
-SecAttr::Format SecAttr::XACML("format:xacml");
-SecAttr::Format SecAttr::SAML("format:saml");
+SecAttr::Format SecAttr::ARCAuth("arc");
+SecAttr::Format SecAttr::XACML("xacml");
+SecAttr::Format SecAttr::SAML("saml");
 
 bool SecAttr::equal(const SecAttr&) const {
   return false;
