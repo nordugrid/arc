@@ -122,7 +122,7 @@ bool JSDLJob::get_jobname(std::string& jobname) {
   if ( (bool)n ) {
     jobname = (std::string) n;
     return true;
-  } else return false;
+  } else return true;
 
 }
 
@@ -276,6 +276,7 @@ bool JSDLJob::get_acl(std::string& acl) {
     }
     if( str_content != "" ) acl=str_content;
   } else {
+    logger.msg(Arc::ERROR, "JSDL: unsupported ACL type specified: %s", (std::string) typeNode);
     return false;
   };
   return true;
@@ -613,7 +614,7 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   if(!get_fullaccess(job_desc.fullaccess)) return false;
   if(acl) if(!get_acl(*acl)) return false;
   if(!get_arguments(l)) return false;
-  if(l.size() == 0) return false;
+  if(l.size() == 0) return false; // Normally this should not happen
   c=l.begin()->c_str()[0];
   if((c != '/') && (c != '$')) {
     add_non_cache(l.begin()->c_str(),job_desc.inputdata);
