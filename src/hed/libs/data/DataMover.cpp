@@ -683,7 +683,7 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
     }
     logger.msg(DEBUG, "Waiting for buffer");
     for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();)
-      buffer.wait();
+      buffer.wait_any();
     logger.msg(INFO, "buffer: read eof : %i", (int)buffer.eof_read());
     logger.msg(INFO, "buffer: write eof: %i", (int)buffer.eof_write());
     logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());

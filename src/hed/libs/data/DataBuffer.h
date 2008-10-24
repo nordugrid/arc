@@ -164,7 +164,7 @@ namespace Arc {
     bool error();
     /// Wait (max 60 sec.) till any action happens in object.
     /// Returns true if action is eof on any side.
-    bool wait();
+    bool wait_any();
     /// Wait till there are no more used buffers left in object.
     bool wait_used();
     /// Returns true if checksum was successfully computed.

@@ -526,7 +526,7 @@ namespace Arc {
     return tmp;
   }
 
-  bool DataBuffer::wait() {
+  bool DataBuffer::wait_any() {
     lock.lock();
     bool res = cond_wait();
     lock.unlock();
