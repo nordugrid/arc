@@ -39,7 +39,7 @@
 #include <arc/StringConv.h>
 #include <arc/GUID.h>
 
-#include "../xmlsec/XmlSecUtils.h"
+#include <arc/xmlsec/XmlSecUtils.h>
 #include "SAMLToken.h"
 
 namespace Arc {
@@ -84,7 +84,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap) : SOAPEnvelope(soap){
     return;
   }
 
-  if(!init_xmlsec()) return;
+  //if(!init_xmlsec()) return;
   assertion_signature_nd = NULL;
   wsse_signature_nd = NULL; 
 
@@ -211,7 +211,7 @@ bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capat
 
 
 SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, SAMLVersion saml_version) : SOAPEnvelope (soap), samlversion(saml_version) {
-  if(!init_xmlsec()) return;
+  //if(!init_xmlsec()) return;
   if(samlversion == SAML2) {
     // Apply predefined namespace prefix
     Arc::NS ns, header_ns, assertion_ns;
@@ -386,7 +386,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
 }
 
 SAMLToken::~SAMLToken(void) {
-  final_xmlsec();
+  //final_xmlsec();
 }
 
 } // namespace Arc

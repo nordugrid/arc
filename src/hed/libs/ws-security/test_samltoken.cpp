@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <fstream>
+
+#include <arc/xmlsec/XmlSecUtils.h>
 #include "SAMLToken.h"
 
 int main(void) {
@@ -20,6 +22,7 @@ int main(void) {
   </S:Body>\
 </S:Envelope>\
 ");
+  Arc::init_xmlsec();
 
   std::string cert = "cert.pem";
   std::string key = "key.pem";  
@@ -40,7 +43,8 @@ int main(void) {
   } else if(!(st2.Authenticate("ca.pem", ""))) {
     std::cout<<"Failed to authenticate to previously generated SAMLToken"<<std::endl<<std::endl;
   }
- 
+
+  Arc::final_xmlsec(); 
   return 0;
 }
 

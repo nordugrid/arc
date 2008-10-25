@@ -10,6 +10,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>
 #include <arc/ws-security/X509Token.h>
+#include <arc/xmlsec/XmlSecUtils.h>
 
 #include "X509TokenSH.h"
 
@@ -30,6 +31,7 @@ namespace ArcSec {
 using namespace Arc;
 
 X509TokenSH::X509TokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
+  if(!init_xmlsec()) return;
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);
   if(process_type == "generate") { 
@@ -62,6 +64,7 @@ X509TokenSH::X509TokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
 }
 
 X509TokenSH::~X509TokenSH() {
+  final_xmlsec();
 }
 
 bool X509TokenSH::Handle(Arc::Message* msg){

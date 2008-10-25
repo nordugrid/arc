@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <fstream>
+
+#include <arc/xmlsec/XmlSecUtils.h>
 #include "X509Token.h"
 
 int main(void) {
@@ -20,6 +22,8 @@ int main(void) {
   </S:Body>\
 </S:Envelope>\
 ");
+
+  Arc::init_xmlsec();
 
   std::string cert = "cert.pem";
   std::string key = "key.pem";  
@@ -58,6 +62,7 @@ int main(void) {
   xt4.GetXML(str);
   std::cout<<"SOAP message with decrypted body"<<str<<std::endl<<std::endl;
  
+  Arc::final_xmlsec();
   return 0;
 }
 

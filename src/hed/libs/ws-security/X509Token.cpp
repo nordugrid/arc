@@ -39,7 +39,7 @@
 #include <arc/Base64.h>
 #include <arc/StringConv.h>
 
-#include "../xmlsec/XmlSecUtils.h"
+#include <arc/xmlsec/XmlSecUtils.h>
 #include "X509Token.h"
 
 namespace Arc {
@@ -91,7 +91,7 @@ X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
     return;    
   }
 
-  if(!init_xmlsec()) return; 
+  //if(!init_xmlsec()) return; 
  
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
@@ -262,7 +262,7 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
 
 X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType token_type) : SOAPEnvelope (soap), tokentype(token_type) {
 
-  if(!init_xmlsec()) return;
+  //if(!init_xmlsec()) return;
 
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
@@ -553,7 +553,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 }
 
 X509Token::~X509Token(void) {
-  final_xmlsec();
+  //final_xmlsec();
 }
 } // namespace Arc
 

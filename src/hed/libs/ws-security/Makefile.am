@@ -32,13 +32,13 @@ test_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccomm
 
 if XMLSEC_ENABLED
 test_x509token_SOURCES  = test_x509token.cpp
-test_x509token_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_x509token_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+test_x509token_CXXFLAGS = $(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
+test_x509token_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 test_x509token_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la 
 
 test_samltoken_SOURCES  = test_samltoken.cpp
-test_samltoken_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_samltoken_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+test_samltoken_CXXFLAGS = $(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
+test_samltoken_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 test_samltoken_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la 
 else
 endif
