@@ -405,7 +405,7 @@ if test "x$disable_xmlsec1" = "xno"; then
     fi
   fi
 
-  if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "yes"; then
+  if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "xyes"; then
       AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION) 
       if test "x$with_xmlsec1" != "x" ; then 
    	  XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
@@ -426,7 +426,7 @@ if test "x$disable_xmlsec1" = "xno"; then
       else
           AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
       fi
-  elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" = "yes"; then
+  elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" = "xyes"; then
     #MACOS has no "ldd" which is needed by xmlsec1-config, so here simply we use PKG_CHECK_MODULES
     PKG_CONFIG_PATH = $with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH
     PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION],
