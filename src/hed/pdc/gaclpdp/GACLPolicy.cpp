@@ -79,7 +79,7 @@ static bool CompareIdentity(XMLNode pid,XMLNode rid) {
   return (((std::string)pid) == ((std::string)rid));
 }
 
-static void CollectActions(XMLNode actions,std::list<std::string> actions_list) {
+static void CollectActions(XMLNode actions,std::list<std::string>& actions_list) {
   for(int n = 0;;++n) {
     XMLNode action = actions.Child(n);
     if(!action) break;
@@ -87,7 +87,7 @@ static void CollectActions(XMLNode actions,std::list<std::string> actions_list) 
   };
 }
 
-static bool FindAction(const std::string& action,const std::list<std::string> actions) {
+static bool FindAction(const std::string& action,const std::list<std::string>& actions) {
   for(std::list<std::string>::const_iterator act = actions.begin();act!=actions.end();++act) {
     if((*act) == action) return true;
   };
@@ -103,47 +103,53 @@ Result GACLPolicy::eval(EvaluationCtx* ctx){
   // Although it is possible to split GACL request and policy to 
   // attributes current implementation simply evaluates XMLs directly.
   // Doing it "right way" is TODO.
-  Result result = DECISION_DENY;
+  //Result result = DECISION_DENY;
   XMLNode requestentry = greq->getXML();
-  XMLNode policyentry = policynode["entry"];  
-  std::list<std::string> allow;
-  std::list<std::string> deny;
-  for(;(bool)policyentry;++policyentry) {
-    bool matched = false;
-    for(int n = 0;;++n) {
-      XMLNode pid = policyentry.Child(n);
-      if(!pid) break;
-      if(pid.Name() == "allow") continue;
-      if(pid.Name() == "deny") continue;
-      if(pid.Name() == "any-user") break;
-      // TODO: somehow check if user really authenticated
-      if(pid.Name() == "auth-user") break;
-      XMLNode rid = requestentry[pid.Name()];
-      for(;(bool)rid;++rid) {
-        if(CompareIdentity(pid,rid)) break;
+  if(requestentry.Name() == "gacl") requestentry=requestentry["entry"];
+  if(requestentry.Name() != "entry") return DECISION_INDETERMINATE;
+  for(;(bool)requestentry;++requestentry) {
+    XMLNode policyentry = policynode["entry"];  
+    std::list<std::string> allow;
+    std::list<std::string> deny;
+    for(;(bool)policyentry;++policyentry) {
+      bool matched = false;
+      for(int n = 0;;++n) {
+        XMLNode pid = policyentry.Child(n);
+        if(!pid) break;
+        if(pid.Name() == "allow") continue;
+        if(pid.Name() == "deny") continue;
+        if(pid.Name() == "any-user") { matched=true; break; };
+        // TODO: somehow check if user really authenticated
+        if(pid.Name() == "auth-user") { matched=true; break; };
+        XMLNode rid = requestentry[pid.Name()];
+        for(;(bool)rid;++rid) {
+          if(CompareIdentity(pid,rid)) break;
+        };
+        if((bool)rid) { matched=true; break; };
       };
-      if((bool)rid) { matched=true; break; };
+      if(matched) {
+        XMLNode pallow = policyentry["allow"];
+        XMLNode pdeny  = policyentry["deny"];
+        CollectActions(pallow,allow);
+        CollectActions(pdeny,deny);
+      };
     };
-    if(matched) {
-      XMLNode pallow = policyentry["allow"];
-      XMLNode pdeny  = policyentry["deny"];
-      CollectActions(pallow,allow);
-      CollectActions(pdeny,deny);
+    allow.sort(); allow.unique();
+    deny.sort();  deny.unique();
+    if(allow.empty()) return DECISION_DENY;
+    std::list<std::string> rallow;
+    CollectActions(requestentry["allow"],rallow);
+    if(rallow.empty()) return DECISION_DENY; // Unlikely to happen 
+    std::list<std::string>::iterator act = rallow.begin();
+    for(;act!=rallow.end();++act) {
+      if(!FindAction(*act,allow)) break;
+      if(FindAction(*act,deny)) break;
     };
+    if(act != rallow.end()) return DECISION_DENY;
+    //if(act == rallow.end()) result=DECISION_PERMIT;
   };
-  allow.sort(); allow.unique();
-  deny.sort();  deny.unique();
-  if(allow.empty()) return DECISION_DENY;
-  std::list<std::string> rallow;
-  CollectActions(requestentry["allow"],rallow);
-  if(rallow.empty()) return DECISION_DENY; // Unlikely to happen 
-  std::list<std::string>::iterator act = rallow.begin();
-  for(;act!=rallow.end();++act) {
-    if(!FindAction(*act,allow)) break;
-    if(FindAction(*act,deny)) break;
-  };
-  if(act == rallow.end()) result=DECISION_PERMIT;
-  return result;
+  return DECISION_PERMIT;
+  //return result;
 }
 
 EvalResult& GACLPolicy::getEvalResult(){

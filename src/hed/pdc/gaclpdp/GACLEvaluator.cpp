@@ -37,42 +37,59 @@ GACLEvaluator::GACLEvaluator(const char * cfgfile) : Evaluator(cfgfile){
 }
 
 Response* GACLEvaluator::evaluate(Request* request, Policy* policyobj) {
+std::cerr<<"------- evaluate(Request*,Policy*)"<<std::endl;
   GACLPolicy* gpol = dynamic_cast<GACLPolicy*>(policyobj);
+std::cerr<<"evaluate: 1"<<std::endl;
   if(!gpol) return NULL;
+std::cerr<<"evaluate: 2"<<std::endl;
   GACLRequest* greq = dynamic_cast<GACLRequest*>(request);
+std::cerr<<"evaluate: 3"<<std::endl;
   if(!greq) return NULL;
+std::cerr<<"evaluate: 4"<<std::endl;
   EvaluationCtx ctx(greq);
+std::cerr<<"evaluate: 5"<<std::endl;
   ResponseItem* ritem = new ResponseItem;
+std::cerr<<"evaluate: 6"<<std::endl;
   if(!ritem) return NULL;
+std::cerr<<"evaluate: 7"<<std::endl;
   Response* resp = new Response();
+std::cerr<<"evaluate: 8"<<std::endl;
   if(!resp) { delete ritem; return NULL; };
+std::cerr<<"evaluate: 9"<<std::endl;
   resp->setRequestSize(0);
   ritem->reqtp = NULL;
   ritem->res = gpol->eval(&ctx);
+std::cerr<<"evaluate: 10"<<std::endl;
   //greq->getXML().New(ritem->reqxml);
   //ritem->plsxml.push_back(gpol->getXML());
   //ritem->pls.push_back(gpol);
+std::cerr<<"evaluate: 11"<<std::endl;
   resp->addResponseItem(ritem);
+std::cerr<<"evaluate: 12"<<std::endl;
   return resp;
 }
 
 Response* GACLEvaluator::evaluate(const Source& request, const Source& policy) {
+std::cerr<<"------- evaluate(const Source&,const Source&)"<<std::endl;
   GACLRequest greq(request);
   GACLPolicy gpol(policy);
   return evaluate(&greq,&gpol);
 }
 
 Response* GACLEvaluator::evaluate(Request* request, const Source& policy) {
+std::cerr<<"------- evaluate(Request*,const Source&)"<<std::endl;
   GACLPolicy gpol(policy);
   return evaluate(request,&gpol);
 }
 
 Response* GACLEvaluator::evaluate(const Source& request, Policy* policyobj) {
+std::cerr<<"------- evaluate(const Source&, Policy*)"<<std::endl;
   GACLRequest greq(request);
   return evaluate(&greq,policyobj);
 }
 
 Response* GACLEvaluator::evaluate(Request* request) {
+std::cerr<<"------- evaluate(Request*)"<<std::endl;
   if(!plstore) return NULL;
   GACLRequest* greq = dynamic_cast<GACLRequest*>(request);
   if(!greq) return NULL;
@@ -118,6 +135,7 @@ Response* GACLEvaluator::evaluate(Request* request) {
 }
 
 Response* GACLEvaluator::evaluate(const Source& request) {
+std::cerr<<"------- evaluate(const Source&)"<<std::endl;
   GACLRequest greq(request);
   return evaluate(&greq);
 }
