@@ -46,7 +46,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
       continue;
     };
     // Look for obtained ID
-    ARexJob job(jobid,config);
+    ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - %s", jobid, job.Failure());

@@ -146,28 +146,38 @@ bool ARexJob::is_allowed(bool fast) {
   ArcSec::EvaluatorLoader eval_loader;
   AutoPointer<ArcSec::Policy> policy(eval_loader.getPolicy(ArcSec::Source(acl)));
   if(!policy) {
-    return true; // Ignore so far. TODO: report error
+    logger_.msg(Arc::DEBUG, "Failed to parse user policy for job %s", id_);
+    return true;
   };
   AutoPointer<ArcSec::Evaluator> eval(eval_loader.getEvaluator(policy));
   if(!eval) {
-    return true; // Ignore so far. TODO: report error
+    logger_.msg(Arc::DEBUG, "Failed to load evaluator for user policy for job %s", id_);
+    return true;
   };
-  eval->addPolicy(policy);
-  ArcSec::Response *resp = NULL;
-  if(policy->getName() == "arc") {
+  std::string policyname = policy->getName();
+  if((policyname.length() > 7) && 
+     (policyname.substr(policyname.length()-7) == ".policy")) {
+    policyname.resize(policyname.length()-7);
+  };
+  if(policyname == "arc") {
     // Creating request - directly with XML
-    // Get all user identities
+    // Creating top of request document
     Arc::NS ns;
     ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
     Arc::XMLNode request(ns,"ra:Request");
+    // Collect all security attributes
     for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
       if(*a) (*a)->Export(Arc::SecAttr::ARCAuth,request);
     };
+    // Leave only client identities
     for(Arc::XMLNode item = request["RequestItem"];(bool)item;++item) {
       for(Arc::XMLNode a = item["Action"];(bool)a;a=item["Action"]) a.Destroy();
       for(Arc::XMLNode r = item["Resource"];(bool)r;r=item["Resource"]) r.Destroy();
     };
+    // Fix namespace
     request.Namespaces(ns);
+    // Create A-Rex specific action
+    // TODO: make helper classes for such operations
     Arc::XMLNode item = request["ra:RequestItem"];
     if(!item) item=request.NewChild("ra:RequestItem");
     // Possible operations are Modify and Read
@@ -179,32 +189,79 @@ bool ARexJob::is_allowed(bool fast) {
     action="Modify"; action.NewAttribute("Type")="string";
     action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
     // Evaluating policy
-    resp=eval->evaluate(request);
-  } else {
-    return true; // Ignore so far. TODO: report error
-  };
-  // Analyzing response in order to understand which operations are allowed
-  if(!resp) return true; // Not authorized
-  // Following should be somehow made easier
-  ArcSec::ResponseList& rlist = resp->getResponseItems();
-  for(int n = 0; n<rlist.size(); ++n) {
-    ArcSec::ResponseItem* ritem = rlist[n];
-    if(!ritem) continue;
-    if(!(ritem->reqtp)) continue;
-    for(ArcSec::Action::iterator a = ritem->reqtp->act.begin();a!=ritem->reqtp->act.end();++a) {
-      ArcSec::RequestAttribute* attr = *a;
-      if(!attr) continue;
-      ArcSec::AttributeValue* value = attr->getAttributeValue();
-      if(!value) continue;
-      std::string action = value->encode();
-      if(action == "Read") allowed_to_see_=true;
-      if(action == "Modify") allowed_to_maintain_=true;
+    ArcSec::Response *resp = eval->evaluate(request,policy);
+    // Analyzing response in order to understand which operations are allowed
+    if(!resp) return true; // Not authorized
+    // Following should be somehow made easier
+    ArcSec::ResponseList& rlist = resp->getResponseItems();
+    for(int n = 0; n<rlist.size(); ++n) {
+      ArcSec::ResponseItem* ritem = rlist[n];
+      if(!ritem) continue;
+      if(ritem->res != ArcSec::DECISION_PERMIT) continue;
+      if(!(ritem->reqtp)) continue;
+      for(ArcSec::Action::iterator a = ritem->reqtp->act.begin();a!=ritem->reqtp->act.end();++a) {
+        ArcSec::RequestAttribute* attr = *a;
+        if(!attr) continue;
+        ArcSec::AttributeValue* value = attr->getAttributeValue();
+        if(!value) continue;
+        std::string action = value->encode();
+        if(action == "Read") allowed_to_see_=true;
+        if(action == "Modify") allowed_to_maintain_=true;
+      };
     };
+  } else if(policyname == "gacl") {
+    // Creating request - directly with XML
+    Arc::NS ns;
+    Arc::XMLNode request(ns,"gacl");
+    // Collect all security attributes
+    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+      if(*a) (*a)->Export(Arc::SecAttr::GACL,request);
+    };
+    // Leave only client identities
+    int entries = 0;
+    for(Arc::XMLNode entry = request["entry"];(bool)entry;++entry) {
+      for(Arc::XMLNode a = entry["allow"];(bool)a;a=entry["allow"]) a.Destroy();
+      for(Arc::XMLNode a = entry["deny"];(bool)a;a=entry["deny"]) a.Destroy();
+      ++entries;
+    };
+    if(!entries) request.NewChild("entry");
+    // Evaluate every action separately
+    for(Arc::XMLNode entry = request["entry"];(bool)entry;++entry) {
+      entry.NewChild("allow").NewChild("read");
+    };
+    ArcSec::Response *resp;
+    resp=eval->evaluate(request,policy);
+    if(resp) {
+      ArcSec::ResponseList& rlist = resp->getResponseItems();
+      for(int n = 0; n<rlist.size(); ++n) {
+        ArcSec::ResponseItem* ritem = rlist[n];
+        if(!ritem) continue;
+        if(ritem->res != ArcSec::DECISION_PERMIT) continue;
+        allowed_to_see_=true; break;
+      };
+    };
+    for(Arc::XMLNode entry = request["entry"];(bool)entry;++entry) {
+      entry["allow"].Destroy();
+      entry.NewChild("allow").NewChild("write");
+    };
+    resp=eval->evaluate(request,policy);
+    if(resp) {
+      ArcSec::ResponseList& rlist = resp->getResponseItems();
+      for(int n = 0; n<rlist.size(); ++n) {
+        ArcSec::ResponseItem* ritem = rlist[n];
+        if(!ritem) continue;
+        if(ritem->res != ArcSec::DECISION_PERMIT) continue;
+        allowed_to_maintain_=true; break;
+      };
+    };
+    // TODO: <list/>, <admin/>
+  } else {
+    logger_.msg(Arc::DEBUG, "Unknown user policy '%s' for job %s", policyname, id_);
   };
   return true;
 }
 
-ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,bool fast_auth_check):id_(id),config_(config) {
+ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check):id_(id),config_(config),logger_(logger) {
   if(id_.empty()) return;
   if(!config_) { id_.clear(); return; };
   // Reading essential information about job
@@ -214,7 +271,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,bool fast_auth_check
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid):id_(""),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid,Arc::Logger& logger):id_(""),config_(config),logger_(logger) {
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
@@ -513,22 +570,21 @@ bool ARexJob::delete_job_id(void) {
   return true;
 }
 
-int ARexJob::TotalJobs(ARexGMConfig& config) {
+int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& logger) {
   ContinuationPlugins plugins;
   JobsList jobs(*config.User(),plugins);
   jobs.ScanNewJobs();
   return jobs.size();
 }
 
-std::list<std::string> ARexJob::Jobs(ARexGMConfig& config) {
+std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
   ContinuationPlugins plugins;
   JobsList jobs(*config.User(),plugins);
   jobs.ScanNewJobs();
   JobsList::iterator i = jobs.begin();
   for(;i!=jobs.end();++i) {
-    // Check users's DN ?!?!?!?!
-    ARexJob job(i->get_id(),config);
+    ARexJob job(i->get_id(),config,logger,true);
     if(job) jlist.push_back(i->get_id());
   };
   return jlist;

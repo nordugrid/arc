@@ -41,7 +41,7 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   doc.NewChild("bes-factory:IsAcceptingNewActivities")="true";
   //doc.NewChild("bes-factory:CommonName")=common_name_;
   //doc.NewChild("bes-factory:LongDescription")=long_description_;
-  std::list<std::string> jobs = ARexJob::Jobs(config);
+  std::list<std::string> jobs = ARexJob::Jobs(config,logger_);
   doc.NewChild("bes-factory:TotalNumberOfActivities")=Arc::tostring(jobs.size());
   for(std::list<std::string>::iterator j = jobs.begin();j!=jobs.end();++j) {
     Arc::WSAEndpointReference identifier(doc.NewChild("bes-factory:ActivityReference"));

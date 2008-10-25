@@ -50,7 +50,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
       return Arc::MCC_Status();
     };
   };
-  ARexJob job(jsdl,config,delegation,clientid);
+  ARexJob job(jsdl,config,delegation,clientid,logger_);
   if(!job) {
     std::string failure = job.Failure();
     logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure);

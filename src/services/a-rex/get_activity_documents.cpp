@@ -43,7 +43,7 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
       continue;
     };
     // Look for obtained ID
-    ARexJob job(jobid,config);
+    ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "GetActivityDocuments: job %s - %s", jobid, job.Failure());

@@ -25,7 +25,7 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::
 
 Arc::MCC_Status ARexService::Put(Arc::Message& /*inmsg*/,Arc::Message& /*outmsg*/,ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
   if(id.empty()) return Arc::MCC_Status();
-  ARexJob job(id,config);
+  ARexJob job(id,config,logger_);
   if(!job) {
     // There is no such job
     logger_.msg(Arc::ERROR, "Put: there is no job: %s - %s", id, job.Failure());

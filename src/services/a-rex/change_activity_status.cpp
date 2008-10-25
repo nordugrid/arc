@@ -52,7 +52,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     out.Destroy();
     return Arc::MCC_Status();
   };
-  ARexJob job(jobid,config);
+  ARexJob job(jobid,config,logger_);
   if(!job) {
     // There is no such job
     std::string failure = job.Failure();

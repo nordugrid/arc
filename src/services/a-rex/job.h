@@ -46,6 +46,7 @@ class ARexJob {
   std::string failure_;
   bool allowed_to_see_;
   bool allowed_to_maintain_;
+  Arc::Logger& logger_;
   /** Returns true if job exists and authorization was checked 
     without errors. Fills information about authorization in 
     this instance. */ 
@@ -56,9 +57,9 @@ class ARexJob {
   bool delete_job_id(void);
  public:
   /** Create instance which is an interface to existing job */
-  ARexJob(const std::string& id,ARexGMConfig& config,bool fast_auth_check = false);
+  ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check = false);
   /** Create new job with provided JSDL description */
-  ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid);
+  ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid,Arc::Logger& logger);
   operator bool(void) { return !id_.empty(); };
   bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */
@@ -84,9 +85,9 @@ class ARexJob {
   std::string SessionDir(void);
   /** Return number of jobs associated with this configuration.
       TODO: total for all user configurations. */
-  static int TotalJobs(ARexGMConfig& config);
+  static int TotalJobs(ARexGMConfig& config,Arc::Logger& logger);
   /** Returns list of user's jobs. Fine-grained ACL is ignored. */
-  static std::list<std::string> Jobs(ARexGMConfig& config);
+  static std::list<std::string> Jobs(ARexGMConfig& config,Arc::Logger& logger);
   /** Creates file in job's session directory and returns handler */
   int CreateFile(const std::string& filename);
 };

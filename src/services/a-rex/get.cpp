@@ -47,7 +47,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     // Make list of jobs
     std::string html;
     html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Jobs list</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
-    std::list<std::string> jobs = ARexJob::Jobs(config);
+    std::list<std::string> jobs = ARexJob::Jobs(config,logger_);
     for(std::list<std::string>::iterator job = jobs.begin();job!=jobs.end();++job) {
       std::string line = "<LI><I>job</I> <A HREF=\"";
       line+=config.Endpoint()+"/"+(*job);
@@ -64,7 +64,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     outmsg.Attributes()->set("HTTP:content-type","text/html");
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
-  ARexJob job(id,config);
+  ARexJob job(id,config,logger_);
   if(!job) {
     // There is no such job
     logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id, job.Failure());
