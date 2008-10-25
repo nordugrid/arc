@@ -993,7 +993,7 @@ class ExternalStorageInformationClient(Client):
                                                                 ('externalStorageInformation:name', request)
                                                                         ])
                                                                 ]))
-                msg, _, _  = self.call(tree)
+                msg = self.call(tree)
                 xml = arc.XMLNode(msg)
                 elements = parse_to_dict(get_data_node(xml),
                         ['hostname', 'protocol','port'])
