@@ -419,7 +419,7 @@ if test "x$disable_xmlsec1" = "xno"; then
           XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
           XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
           #check the xmlsec1-openssl here
-          PKG_CONFIG_PATH="`$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH`"
+          PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH"
           PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],      
               [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
       else
@@ -427,7 +427,7 @@ if test "x$disable_xmlsec1" = "xno"; then
       fi
   elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" = "xyes"; then
     #MACOS has no "ldd" which is needed by xmlsec1-config, so here simply we use PKG_CHECK_MODULES
-    PKG_CONFIG_PATH="`$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH`"
+    PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH"
     PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION],
         [XMLSEC_INSTALLED=yes], [XMLSEC_INSTALLED=no])
     if test "x$XMLSEC_INSTALLED" = "xyes" ; then
