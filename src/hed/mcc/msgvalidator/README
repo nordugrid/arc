@@ -1,0 +1,61 @@
+##############################
+#       MCCMsgValidator      #
+#  a Message Chain Component #
+# for validation of incoming #
+#    SOAP service requests   #
+##############################
+
+This MCC validates incoming SOAP requests on service side,
+i.e. it checks wheter the content of SOAP Body is valid
+(according to the XML schema of the service).
+
+This MCC accepts payloads that could be converted into PayloadSOAP.
+Next MCC is called with a Message containing this PayloadSOAP.
+
+Payload of the next MCC's response Message is converted to PayloadSOAP.
+Finally, an outgoing Message is created with this PayloadSOAP.
+
+Steps taken:
+ - extract SOAP payload
+ - validate request (found in SOAP Body) against schema
+ - call next MCC
+ - extract SOAP response and then return it
+
+###################
+#  Configuration  #
+#       of        #
+# MCCMsgValidator #
+###################
+
+<ArcConfig> --> 
+    new namespace added
+    xmlns:vsrv="http://www.nordugrid.org/schemas/ArcMCCMSGVALIDATOR/2008"
+
+new Plugin --> 
+    <Plugins><Name>mccmsgvalidator</Name></Plugins>
+
+MCCMsgValidator should be placed after MCCSOAP:
+    <Component name="soap.service" id="soap">
+        <next id="validator"/>
+    </Component>
+
+new Component -->
+    <Component name="msg.validator.service" id="validator">
+        <next id="plexer"/>
+        <vsrv:ValidatedService>
+            <vsrv:ServicePath>/PythonServiceDemo</vsrv:ServicePath>
+            <vsrv:SchemaPath>/usr/share/doc/arc/schemas/PythonServiceDemo.xsd</vsrv:SchemaPath>
+        </vsrv:ValidatedService>
+    </Component>
+
+    MCCMsgValidator should be placed right before Plexer --> <next id="plexer"/>
+
+    ValidatedService --> node for a Service to be validated
+
+    ServicePath --> relative path of the service to be validated
+    e.g.: "http://example.org:50000/PythonServiceDemo" --> "/PythonServiceDemo"
+    if omitted, validation of this Service will be skipped
+
+    SchemaPath --> path of the schema to validate with
+    if omitted, validation of this Service will be skipped
+
