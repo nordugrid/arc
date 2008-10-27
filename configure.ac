@@ -405,6 +405,14 @@ if test "x$disable_xmlsec1" = "xno"; then
     fi
   fi
 
+MACOS=""
+case "${host}" in
+  *darwin*)
+    MACOS="yes"
+    ;;
+esac
+
+
   if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "xyes"; then
       AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION) 
       if test "x$with_xmlsec1" != "x" ; then 
