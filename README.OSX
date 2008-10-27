@@ -18,13 +18,23 @@ e.g.:
   sudo port install swig 
   sudo port install python24
   sudo port install openssl
-  sudo port install xmlsec
   sudo port install cppunit
   sudo port install gtime
   sudo port install p5-xml-simple
   (if you have python 2.5 you may need to install 'py25-hashlib' as well for md5)
 
-2. Installing Globus Toolkit:
+2. Installing xmlsec1:
+
+Source code:
+  http://www.aleksey.com/xmlsec/download.html
+
+Performing configuration and installation:
+
+  ./configure --prefix=/Users/<user>/xmlsec1
+  make
+  make install
+
+3. Installing Globus Toolkit:
 
 a)
 
@@ -56,7 +66,7 @@ Building the Globus Toolkit from a source distribution:
 
   http://wiki.nordugrid.org/index.php/Globus_Libraries
 
-3. Recommended environment variable settings and configuration options
+4. Recommended environment variable settings and configuration options
 before the compilation:
 
   export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:"\
@@ -69,10 +79,10 @@ before the compilation:
   export GPT_LOCATION="/opt/globus"
   export ARC_BARTENDER_URL="http://localhost:50000/Bartender"
 
-  ./configure --with-dbcxx-include="/opt/local/include/db44" LDFLAGS="-L/opt/local/lib/db44"
+  ./configure --with-xmlsec1=/Users/<user>/xmlsec1 --with-dbcxx-include="/opt/local/include/db44" LDFLAGS="-L/opt/local/lib/db44"
 
 
-4. Building the software:
+5. Building the software:
 
 To complete building and installation follow the instructions in the generic
 README file.
