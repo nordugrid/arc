@@ -385,6 +385,13 @@ AC_SUBST(TEST_DIR)
 # Check xmlsec1
 #
 #############################
+MACOS=""
+case "${host}" in
+  *darwin*)
+    MACOS="yes"
+    ;;
+esac
+
 XMLSEC_MIN_VERSION="1.2.4"
 XMLSEC_OPENSSL_MIN_VERSION="1.2.4"
 XMLSEC_CONFIG="xmlsec1-config"
@@ -811,7 +818,6 @@ EXTRA_LIBS=""
 REGEX_LIBS=""
 SOCKET_LIBS=""
 WIN32=""
-MACOS=""
 case "${host}" in
   *-*-mingw32)
     WIN32="yes"
@@ -831,9 +837,6 @@ case "${host}" in
     SOCKET_LIBS="-lsocket"
     CFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS"
     CXXFLAGS="$CXXFLAGS -D_POSIX_PTHREAD_SEMANTICS"
-    ;;
-  *darwin*)
-    MACOS="yes"
     ;;
 esac
 AC_SUBST(EXTRA_LIBS)
