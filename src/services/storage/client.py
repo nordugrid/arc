@@ -813,254 +813,236 @@ import commands
 class GatewayClient(Client):
 
         def __init__(self, url):
-
-                ns = arc.NS('gateway', gateway_uri)
-                # calls the superclass' constructor
-                Client.__init__(self, url, ns)
+            ns = arc.NS('gateway', gateway_uri)
+            # calls the superclass' constructor
+            Client.__init__(self, url, ns)
 
         def getFile(self, request,flags=''):
-
-
-                """request will come with the source and the destination URLS of the file. 
-		request is the python list. 
-		Example:
-		['sourceURL', 'destinationURL']
-		['/mycollection/dCache/pnfs/uppmax.uu.se/data/file1', '/tmp/file1']"""
-		
-                tree = XMLTree(from_tree = ('gateway:getFile', [
-                                                ('gateway:URLs',[
-                                                        ('gateway:sourceURL',request[0]),
-                                                        ('gateway:destinationURL',request[1]),
-                                                         ('gateway:flags',flags)       
-								])
-                                                        ]))
-                #print tree
-                msg = self.call(tree)
-                xml = arc.XMLNode(msg)
-                elements = parse_to_dict(get_data_node(xml),
-                        ['host', 'status','output','protocol','port','path'])
-		#print elements
-		if len(elements) > 1:
-		
-			print "\n The source file/directory found in the following external store(s):\n "
-			index = 1 
-			for host in elements.keys():
-				print str(index)+") --> "+host 
-				index=index+1 
-		
-		elif len(elements) == 1:
-			
-			if elements[elements.keys()[0]]['protocol'] == 'gridftp':
-				command = 'arccp gsiftp://'+elements.keys()[0]+':'+elements[elements.keys()[0]]['port']+'/'+elements[elements.keys()[0]]['path']+'  file:///'+request[1]
-				
-				status, output = commands.getstatusoutput(command) 
-                if status == 0:
-					print "File transfered successfully"
-                else:
-
-                    print "file or directory not found in external store.", status, output	
-			
-		#return elements
+            """request will come with the source and the destination URLS of the file. 
+            
+            request is the python list. 
+            
+            Example:
+            ['sourceURL', 'destinationURL']
+            ['/mycollection/dCache/pnfs/uppmax.uu.se/data/file1', '/tmp/file1']"""        
+            tree = XMLTree(from_tree = 
+                ('gateway:getFile', [
+                    ('gateway:URLs', [
+                        ('gateway:sourceURL', request[0]),
+                        ('gateway:destinationURL', request[1]),
+                        ('gateway:flags', flags)       
+                    ])
+                ])
+            )
+            #print tree
+            msg = self.call(tree)
+            xml = arc.XMLNode(msg)
+            elements = parse_to_dict(get_data_node(xml), ['host', 'status','output','protocol','port','path'])
+            #print elements
+            if len(elements) > 1:
+                print "\n The source file/directory found in the following external store(s):\n "
+                index = 1 
+                for host in elements.keys():
+                    print str(index)+") --> "+host 
+                    index=index+1 
+            elif len(elements) == 1:
+                if elements[elements.keys()[0]]['protocol'] == 'gridftp':
+                    command = 'arccp gsiftp://'+elements.keys()[0]+':'+elements[elements.keys()[0]]['port']+'/'+elements[elements.keys()[0]]['path']+'  file:///'+request[1]
+                    status, output = commands.getstatusoutput(command) 
+                    if status == 0:
+                        print "File transfered successfully"
+                    else:
+                        print "file or directory not found in external store.", status, output  
+            #return elements
 
         def putFile(self, request, flags=''):
-
-
-		"""request will come with the source and the destination URLS of the file. 
-                request is the python list. 
+            """request will come with the source and the destination URLS of the file. 
+            request is the python list. 
                 
-		Example:
+            Example:
                 ['sourceURL', 'destinationURL']
                 ['/tmp/file1', '/mycollection/dCache/pnfs/uppmax.uu.se/data/file1']"""
-                
-                tree = XMLTree(from_tree = ('gateway:putFile', [
-                                                ('gateway:URLs',[
-                                                        ('gateway:sourceURL',request[0]),
-                                                        ('gateway:destinationURL',request[1]),
-                                                         ('gateway:flags',flags)
-                                                                ])
-                                                        ]))
-                #print tree
-                msg = self.call(tree)
-                xml = arc.XMLNode(msg)
-                elements = parse_to_dict(get_data_node(xml),
-                        ['host', 'protocol','port'])
-                #print elements
-                if len(elements) > 1:
-
-                        print "\n The source file/directory found in the following external store(s):\n "
-                        index = 1
-                        for host in elements.keys():
-                                print str(index)+") --> "+host
-                                index=index+1
-			
-                elif len(elements) == 1:
-
-                        if elements[elements.keys()[0]]['protocol'] == 'gridftp':
-				command = 'arccp file:///'+request[0]+' gsiftp://'+elements.keys()[0]+':'+elements[elements.keys()[0]]['port']+'/'+request[1].split('dCache')[1]
-                                #print command
-				status, output = commands.getstatusoutput(command)
-                print status, output
-                              	
-                if status == 0:
-                    print output
-                    print "File transfered successfully"
-
-                else:
+            
+            tree = XMLTree(from_tree = 
+                ('gateway:putFile', [
+                    ('gateway:URLs',[
+                        ('gateway:sourceURL',request[0]),
+                        ('gateway:destinationURL',request[1]),
+                        ('gateway:flags',flags)
+                    ])
+                ])
+            )
+            #print tree
+            msg = self.call(tree)
+            xml = arc.XMLNode(msg)
+            elements = parse_to_dict(get_data_node(xml), ['host', 'protocol','port'])
+            #print elements
+            if len(elements) > 1:
+                print "\n The source file/directory found in the following external store(s):\n "
+                index = 1
+                for host in elements.keys():
+                        print str(index)+") --> "+host
+                        index=index+1
+            elif len(elements) == 1:
+                if elements[elements.keys()[0]]['protocol'] == 'gridftp':
+                    command = 'arccp file:///'+request[0]+' gsiftp://'+elements.keys()[0]+':'+elements[elements.keys()[0]]['port']+'/'+request[1].split('dCache')[1]
+                    #print command
+                    status, output = commands.getstatusoutput(command)
+                    print status, output
+                    if status == 0:
+                        print output
+                        print "File transfered successfully"
+                    else:
                         print "file or directory not found in external store.", status, output
 
         def list(self, requests, flags = '' ):
+            """requests: contain the path of the file or directory.
+            flags: optional parameter contain different flags of the 
+                arcls command for example whether user needs long listing 
+                or debuging info ect.
 
-                """requests: contain the path of the file or directory.
-                flags: optional parameter contain different flags of the 
-		arcls command for example whether user needs long listing 
-		or debuging info ect.
-
-		This method forwards the request to list method of Gateway Service. 
-		The request will be in XML formate: 
-		
-		Example of the message:
-		<soap-env:Envelope xmlns:gateway="urn:storagegateway" 
-		xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" 
-		xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-			<soap-env:Body>
-				<gateway:list>
-					<gateway:URLs>
-						<gateway:externalURL>/dCache/pnfs/uppmax.uu.se/data</gateway:externalURL>
-						<gateway:flags>-l -d=DEBUG</gateway:flags>
-					</gateway:URLs>
-				</gateway:list>
-			</soap-env:Body>
-		</soap-env:Envelope>
-
-		"""
-		
-                tree = XMLTree(from_tree = ('gateway:list', [
-                                                ('gateway:URLs',[
-                                                        ('gateway:externalURL', requests),
-                                                        ('gateway:flags', flags)
-                                                                ])
-                                                         ]))
-                msg = self.call(tree)
-                xml = arc.XMLNode(msg)
-                elements = parse_to_dict(get_data_node(xml),
-                        ['requestID', 'status','output'])
-
-		for ele in elements:
-			print "\n "
-			print "External URL: "+ele
-			print "Output >>>>>>>>>"
-			print "---------------"
-			print elements[ele]['output']
-			print "---------------"
-			print "Status: "+str(elements[ele]['status'])
-			print "---------------"
-
-		#return elements
+            This method forwards the request to list method of Gateway Service. 
+            The request will be in XML formate: 
+        
+            Example of the message:
+                <soap-env:Envelope xmlns:gateway="urn:storagegateway" 
+                xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" 
+                xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <soap-env:Body>
+                        <gateway:list>
+                            <gateway:URLs>
+                                <gateway:externalURL>/dCache/pnfs/uppmax.uu.se/data</gateway:externalURL>
+                                <gateway:flags>-l -d=DEBUG</gateway:flags>
+                            </gateway:URLs>
+                        </gateway:list>
+                    </soap-env:Body>
+                </soap-env:Envelope>
+            """
+            tree = XMLTree(from_tree = 
+                ('gateway:list', [
+                    ('gateway:URLs',[
+                        ('gateway:externalURL', requests),
+                        ('gateway:flags', flags)
+                    ])
+                ])
+            )
+            msg = self.call(tree)
+            xml = arc.XMLNode(msg)
+            elements = parse_to_dict(get_data_node(xml), ['requestID', 'status','output'])
+            for ele in elements:
+                print "\n "
+                print "External URL: "+ele
+                print "Output >>>>>>>>>"
+                print "---------------"
+                print elements[ele]['output']
+                print "---------------"
+                print "Status: "+str(elements[ele]['status'])
+                print "---------------"
+            #return elements
+            
+            
+            
 class ExternalStorageInformationClient(Client):
 
         def __init__(self, url):
-
-                ns = arc.NS('externalStorageInformation', externalInfo_uri)
-                # calls the superclass' constructor
-                Client.__init__(self, url, ns)
+            ns = arc.NS('externalStorageInformation', externalInfo_uri)
+            # calls the superclass' constructor
+            Client.__init__(self, url, ns)
 
         def getInfo(self, request):
+            """request: contains type of the store that user want to access.
+            This method returns the available external storage sytem's 
+            hostname, available protocols and the port numbers  
 
-                """request: contains type of the store that user want to access.
-		This method returns the available external storage sytem's 
-		hostname, available protocols and the port numbers	
-
-		Example of the message:
-		<soap-env:Envelope xmlns:externalStorageInformation="urn:externalinfo" 
-		xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" 
-		xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-			<soap-env:Body>
-				<externalStorageInformation:getInfo>
-					<externalStorageInformation:store>
-						<externalStorageInformation:name>dCache</externalStorageInformation:name>
-					</externalStorageInformation:store>
-				</externalStorageInformation:getInfo>
-			</soap-env:Body>
-		</soap-env:Envelope>	  """
-
-		print "External Storage getInfo function"
-                tree = XMLTree(from_tree = ('externalStorageInformation:getInfo', [
-                                                        ('externalStorageInformation:store',[
-                                                                ('externalStorageInformation:name', request)
-                                                                        ])
-                                                                ]))
-                msg = self.call(tree)
-                xml = arc.XMLNode(msg)
-                elements = parse_to_dict(get_data_node(xml),
-                        ['hostname', 'protocol','port'])
-                return elements
+            Example of the message:
+                <soap-env:Envelope xmlns:externalStorageInformation="urn:externalinfo" 
+                xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" 
+                xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <soap-env:Body>
+                        <externalStorageInformation:getInfo>
+                            <externalStorageInformation:store>
+                                <externalStorageInformation:name>dCache</externalStorageInformation:name>
+                            </externalStorageInformation:store>
+                        </externalStorageInformation:getInfo>
+                    </soap-env:Body>
+                </soap-env:Envelope>
+            """
+            print "External Storage getInfo function"
+            tree = XMLTree(from_tree = 
+                ('externalStorageInformation:getInfo', [
+                    ('externalStorageInformation:store',[
+                        ('externalStorageInformation:name', request)
+                    ])
+                ])
+            )
+            msg = self.call(tree)
+            xml = arc.XMLNode(msg)
+            elements = parse_to_dict(get_data_node(xml), ['hostname', 'protocol','port'])
+            return elements
 
 class TransferClient(Client):
 
         def __init__(self, url):
-
-                ns = arc.NS('transfer', transfer_uri)
-                # calls the superclass' constructor
-                Client.__init__(self, url, ns)
+            ns = arc.NS('transfer', transfer_uri)
+            # calls the superclass' constructor
+            Client.__init__(self, url, ns)
 
         def transferData(self,request):
-
-		
-		""" request contains following parameters:
-		hostname -- hostname of the external store
-		flags    -- flags used in the arc commands. For example 
-				-l for long listing
-				-v for version 
-				-d for debuging
-				etc
-		protocal  -- Available protocols for that host
-		port      -- For example 2811 for gridftp and 8443 for SRM
-		path      -- path of the file/directory in the external store
-		The method returns the requestID, status of the tansfer and the 
-		output while sending the request to the external store 
-		  	
-		Example of the message:
-		<soap-env:Envelope xmlns:transfer="urn:transfer" 
-		xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/"
-		xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-			<soap-env:Body>
-				<transfer:transferData>
-					<transfer:URLs>
-						<transfer:hostname>sal1.uppmax.uu.se</transfer:hostname>
-						<transfer:flags>-l -d=DEBUG</transfer:flags>
-						<transfer:protocol>gridftp</transfer:protocol>
-						<transfer:port>2811</transfer:port>
-						<transfer:path>/pnfs/uppmax.uu.se/data</transfer:path>
-					</transfer:URLs>
-				</transfer:transferData>
-			</soap-env:Body>
-		</soap-env:Envelope>
-		"""
-                print "Transfer test function"
-                #print request
-                tree = XMLTree(from_tree = ('transfer:transferData', [
-                                                        ('transfer:URLs',[
-                                                                ('transfer:hostname', res),
-                                                                ('transfer:flags', request[res]['flags']),
-								('transfer:protocol',request[res]['protocol']),
-								('transfer:port',request[res]['port']),
-                                                                ('transfer:path',request[res]['path'])
-								        ])for res in request.keys()
-                                                                ]))
-
-                msg = self.call(tree)
-                xml = arc.XMLNode(msg)
-                elements = parse_node(xml.Child().Child().Child(),                
-			['host', 'status','output'], string = True)
-		#elements = parse_to_dict(get_data_node(xml),
-                #        ['host', 'status','output'])
-                return elements
+            """ request contains following parameters:
+            hostname -- hostname of the external store
+            flags    -- flags used in the arc commands. For example 
+                    -l for long listing
+                    -v for version 
+                    -d for debuging
+                    etc
+            protocal  -- Available protocols for that host
+            port      -- For example 2811 for gridftp and 8443 for SRM
+            path      -- path of the file/directory in the external store
+            The method returns the requestID, status of the tansfer and the 
+            output while sending the request to the external store 
+            
+            Example of the message:
+            <soap-env:Envelope xmlns:transfer="urn:transfer" 
+            xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/"
+            xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <soap-env:Body>
+                    <transfer:transferData>
+                        <transfer:URLs>
+                            <transfer:hostname>sal1.uppmax.uu.se</transfer:hostname>
+                            <transfer:flags>-l -d=DEBUG</transfer:flags>
+                            <transfer:protocol>gridftp</transfer:protocol>
+                            <transfer:port>2811</transfer:port>
+                            <transfer:path>/pnfs/uppmax.uu.se/data</transfer:path>
+                        </transfer:URLs>
+                    </transfer:transferData>
+                </soap-env:Body>
+            </soap-env:Envelope>
+            """
+            print "Transfer test function"
+            #print request
+            tree = XMLTree(from_tree = 
+                ('transfer:transferData', [
+                    ('transfer:URLs',[
+                        ('transfer:hostname', res),
+                        ('transfer:flags', request[res]['flags']),
+                        ('transfer:protocol',request[res]['protocol']),
+                        ('transfer:port',request[res]['port']),
+                        ('transfer:path',request[res]['path'])
+                    ]) for res in request.keys()
+                ])
+            )
+            msg = self.call(tree)
+            xml = arc.XMLNode(msg)
+            elements = parse_node(xml.Child().Child().Child(), ['host', 'status','output'], string = True)
+            #elements = parse_to_dict(get_data_node(xml),
+            #        ['host', 'status','output'])
+            return elements
 
 ####################################################
 
