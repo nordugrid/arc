@@ -129,6 +129,18 @@ namespace ArcLib {
     return (verify_ctx_.proxy_policy);
   }
 
+  Arc::Period Credential::GetLifeTime(void) {
+    return lifetime_;
+  }
+
+  Arc::Time Credential::GetStartTime() {
+    return start_;
+  }
+
+  Arc::Time Credential::GetEndTime() {
+    return start_+lifetime_;
+  }
+
   void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
     //Parse the certificate
     Credformat format;

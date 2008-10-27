@@ -159,6 +159,15 @@ class Credential {
     /**Output the certificate chain into string*/
     bool OutputCertificateChain(std::string &content);
 
+    /**Returns lifetime of certificate or proxy*/
+    Arc::Period GetLifeTime(void);
+
+    /**Returns validity start time of certificate or proxy*/
+    Arc::Time GetStartTime();
+
+    /**Returns validity end time of certificate or proxy*/
+    Arc::Time GetEndTime();
+
 
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,
