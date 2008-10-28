@@ -8,33 +8,126 @@
 
 namespace Arc {
   
-   std::string UpToLow(std::string str) {
-        for (int i=0;i<strlen(str.c_str());i++)
-             if (str[i] >= 0x41 && str[i] <= 0x5A)
-                   str[i] = str[i] + 0x20;
-        return str;
-  }
-
-  bool Value_Matching(int value, Arc::XMLNode node){
-     if ( node["LowerBoundedRange"] ) {
-           return ( ( !node["LowerBoundedRange"].Attribute("exclusiveBound") && ( value >= (int)node["LowerBoundedRange"] ) ) ||
-                        (  node["LowerBoundedRange"].Attribute("exclusiveBound") && ( value >    (int)node["LowerBoundedRange"] )) );
+  bool Value_Matching(double value, Arc::XMLNode node) {
+     if (node["LowerBoundedRange"]) {
+           return ((!node["LowerBoundedRange"].Attribute("exclusiveBound") && (value >= (double)node["LowerBoundedRange"])) || (node["LowerBoundedRange"].Attribute("exclusiveBound") && (value > (double)node["LowerBoundedRange"])));
      }
-     else if ( node["UpperBoundedRange"] ) {
-           return ( ( !node["UpperBoundedRange"].Attribute("exclusiveBound") && ( value <= (int)node["UpperBoundedRange"] ) ) ||
-                        (  node["UpperBoundedRange"].Attribute("exclusiveBound") && ( value <    (int)node["UpperBoundedRange"] )) );
+     else if (node["UpperBoundedRange"]) {
+           return ((!node["UpperBoundedRange"].Attribute("exclusiveBound") && (value <= (double)node["UpperBoundedRange"])) || (node["UpperBoundedRange"].Attribute("exclusiveBound") && (value < (double)node["UpperBoundedRange"])));
      }
-     else if ( node["Exact"] ) {
-           return ( ( ((double)node["Exact"] - node["Exact"].Attribute("epsilon") ) <= (double)value ) &&
-                        ( (double)value <= ((double)node["Exact"] - node["Exact"].Attribute("epsilon") ) ) );
+     else if (node["Exact"]) {
+           return ((((double)node["Exact"] - node["Exact"].Attribute("epsilon")) <= value) && (value <= ((double)node["Exact"] + node["Exact"].Attribute("epsilon"))));
      }
-     else if ( node["Range"] ) {
-           return ( ( !node["Range"]["LowerBound"].Attribute("exclusiveBound") && ( value >= (int)node["Range"]["LowerBound"] ) ) ||
-                        (  node["Range"]["LowerBound"].Attribute("exclusiveBound") && ( value >    (int)node["Range"]["LowerBound"] )) ) &&
-                      ( ( !node["Range"]["UpperBound"].Attribute("exclusiveBound") && ( value <= (int)node["Range"]["UpperBound"] ) ) ||
-                        (  node["Range"]["UpperBound"].Attribute("exclusiveBound") && ( value <    (int)node["Range"]["UpperBound"] )) );
+     else if (node["Range"]) {
+           return ((!node["Range"]["LowerBound"].Attribute("exclusiveBound") && (value >= (double)node["Range"]["LowerBound"])) || (node["Range"]["LowerBound"].Attribute("exclusiveBound") && (value > (double)node["Range"]["LowerBound"]))) && ((!node["Range"]["UpperBound"].Attribute("exclusiveBound") && (value <= (double)node["Range"]["UpperBound"])) || (node["Range"]["UpperBound"].Attribute("exclusiveBound") && (value < (double)node["Range"]["UpperBound"])));
      }
      return true;
+  }
+
+  bool OSCheck(std::string ostype, Arc::XMLNode node) {
+
+	// INFO: if you would like to add a new operating system type than you must add it to these two arrays and increase the OS_ARRAY_SIZE constant value
+   // You must use lower case characters in the arrays for correct working
+
+	 const int OS_ARRAY_SIZE = 5;
+
+	 std::string JSDLOSTypes[] = {"macos", "linux", "solaris", "sunos", "windows_xp"};  
+
+     std::string GLUE2OSTypes[] = {"macosx", "linux", "solaris", "solaris", "windows"};
+
+	 StringManipulator sm;
+
+	 std::string job_jsdl_os_type_tmp;
+	 std::string exec_tar_glue2_os_type_tmp;
+
+	 for (int i = 0; OS_ARRAY_SIZE - 1; i++) {
+		job_jsdl_os_type_tmp = sm.trim((std::string)node);
+		job_jsdl_os_type_tmp = sm.toLowerCase(job_jsdl_os_type_tmp);
+		exec_tar_glue2_os_type_tmp = sm.trim(ostype);
+		exec_tar_glue2_os_type_tmp = sm.toLowerCase(exec_tar_glue2_os_type_tmp);
+
+		if (JSDLOSTypes[i] == job_jsdl_os_type_tmp && GLUE2OSTypes[i] == exec_tar_glue2_os_type_tmp)
+			return true;
+		else if ( i  == OS_ARRAY_SIZE - 1)
+			return false;
+     }
+
+     /*
+
+       GLUE2 OSFamily_t open enumeration:
+
+               Value                        Description
+
+              linux          Family of operating systems based on Linux kernel
+              macosx         Family of operating systems based on MacOS X
+              windows        Family of operating systems based on Windows
+              solaris        Family of operating systems based on Solaris
+
+     */
+
+  }
+
+  bool ArchCheck(std::string archtype, Arc::XMLNode node) {
+
+	// INFO: if you would like to add a new architecture than you must add it to these two arrays and increase the ARCH_ARRAY_SIZE constant value
+   // You must use lower case characters in the arrays for correct working
+
+	 const int ARCH_ARRAY_SIZE = 9;
+	
+     std::string JSDLArchTypes[] = {"sparc", "powerpc", "x86", "x86_32", "x86_64", "parisc", "mips", "ia64", "arm"};
+
+     std::string GLUE2ArchTypes[] = {"sparc", "powerpc", "i386", "i386", "itanium", "other", "other", "itanium", "other"};
+
+	 StringManipulator sm;
+
+	 std::string job_jsdl_arch_type_tmp;
+	 std::string exec_tar_glue2_arch_type_tmp;
+
+	 for (int i = 0; ARCH_ARRAY_SIZE - 1; i++) {
+		job_jsdl_arch_type_tmp = sm.trim((std::string)node);
+		job_jsdl_arch_type_tmp = sm.toLowerCase(job_jsdl_arch_type_tmp);
+		exec_tar_glue2_arch_type_tmp = sm.trim(archtype);
+		exec_tar_glue2_arch_type_tmp = sm.toLowerCase(exec_tar_glue2_arch_type_tmp);
+
+		if (JSDLArchTypes[i] == job_jsdl_arch_type_tmp && GLUE2ArchTypes[i] == exec_tar_glue2_arch_type_tmp)
+			return true;
+		else if ( i  == ARCH_ARRAY_SIZE - 1)
+			return false;
+     }
+
+   /*
+
+			JSDL Architecture types:
+
+             Normative JSDL             Name Definition
+
+              sparc           A SPARC architecture processor
+              powerpc         A PowerPC architecture processor
+              x86             An Intel Architecture processor derived from the 8086 chip set
+              x86_32 		  An x86 processor capable of 32-bit processing mode
+              x86_64          An x86 processor capable of 64-bit processing mode
+              parisc          A PARISC architecture processor
+			  mips 			  A MIPS architecture processor
+			  ia64 			  An Intel Architecture 64-bit processor
+			  arm             An ARM processor
+              other           A value not defined by this enumeration
+
+
+              GLUE2 Platform_t open enumeration:
+
+			  Value 			Description
+
+              i386 		Intel 386 architecture
+			  amd64 	AMD 64bit architecture
+              itanium   Intel 64-bit architecture
+              powerpc   PowerPC architecture
+              sparc     SPARC architecture
+
+              GLUE2 extension (Created by Gabor Roczei):
+              other     A value not defined by this enumeration
+
+   */
+
   }
 
   Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
@@ -81,37 +174,83 @@ namespace Arc {
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
 	 target++) {  
       
-      //This argoments are dependence from the Resource item.
+      // These arguments are dependence of the Resource item.
+
       if ( jobd["JobDescription"]["Resources"] ) {
 
-                //JSDL Operating System Types: Unknow, MACOS, LINUX, Solaris, SunOS, Windows_XP, FreeBSD, etc
-	//GLUE2 OSFamily_t: linux, macosx, windows, solaris
-                //TODO: check this clever then now
-	if ( (*target).OSFamily != "" ) {
-	  if ( Arc::UpToLow((*target).OSFamily) != Arc::UpToLow(jobd["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]) )
-	    continue;
-	}
+		// TODO: we need a better ExclusiveExecution filtering
 
-	//GLUE2 OSName_t: scientificlinux, scientificlinuxcern, ubuntu, debian, centos, fedora, rhes, mandrake, suse, leopard, windowsxp, windowsvista
-                //TODO: check this clever then now
-	if ( (*target).OSName != "" ) {
-	  if ( Arc::UpToLow((*target).OSName) != Arc::UpToLow(jobd["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]) )	
-	    continue;
-	}
+	    if (jobd["JobDescription"]["Resources"]["ExclusiveExecution"]) {
+	        StringManipulator sm;
+	        std::string reservation_tmp;
 
-	if ( (*target).CPUModel!= "" ) {
-	  if ( Arc::UpToLow((*target).CPUModel) != Arc::UpToLow(jobd["JobDescription"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]) )
-	    continue;
-	}
+	        reservation_tmp = sm.trim((std::string)jobd["JobDescription"]["Resources"]["ExclusiveExecution"]);
+	        reservation_tmp = sm.toLowerCase(reservation_tmp);
+	  
+	        if ((*target).Reservation && reservation_tmp == "true") {
+		       // this target is good for us
+            }
+	        else
+	           continue;
+	     }
+
+      if (jobd["JobDescription"]["Resources"]["CandidateHosts"]) {
+
+	        StringManipulator sm;
+   			bool good = false;
+
+	        for( int i = 0; (bool)(jobd["JobDescription"]["Resources"]["CandidateHosts"]["HostName"][i]) ; i++ ) {
+              std::string value = (std::string)jobd["JobDescription"]["Resources"]["CandidateHosts"]["HostName"][i];
+			  value = sm.trim(value);
+	        if ((*target).DomainName == value) {
+			   good = true;
+            }
+          } 
+		  if (!good) continue;
+	  } 
+      else if (jobd["JobDescription"]["Resources"]["CandidateTarget"]) {
+
+		 // TODO: jsdl-arc namespace check
+
+	        StringManipulator sm;
+   			bool good = false;
+
+	        for (int i=0; (bool)(jobd["JobDescription"]["Resources"]["CandidateTarget"]["HostName"][i]) ; i++ ) {
+              std::string value = (std::string)jobd["JobDescription"]["Resources"]["CandidateTarget"]["HostName"][i];
+			  value = sm.trim(value);
+	        if ((*target).DomainName == value) {
+			   good = true;
+            }
+          }
+ 
+		  if (!good) continue;
+
+		  good = false;
+ 
+		 // TODO: jsdl-arc namespace check
+
+	      for (int i = 0; (bool)(jobd["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"][i]) ; i++ ) {
+              std::string value = (std::string)jobd["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"][i];
+			  value = sm.trim(value);
+	         if ((*target).MappingQueue == value) {
+			   good = true;
+            }
+          } 
+		  if (!good) continue;
+	  }
+
+	  if ( (*target).OSFamily != "" && jobd["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]) {
+		      if (!OSCheck((*target).OSFamily, jobd["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"])) {
+				  continue;
+              }    	
+        }    	
+
+	  if ( (*target).CPUModel != "" && jobd["JobDescription"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]) {
+		      if (!ArchCheck((*target).CPUModel, jobd["JobDescription"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"])) {
+				  continue;
+              }    	
+	  }
 	
-                //TODO: check this clever then now
-	if ( (*target).Reservation ) {
-	  if ( (*target).Reservation != jobd["JobDescription"]["Resources"]["ExclusiveExecution"] )
-	    continue;
-	}
-
-
-//TODO: check the Candidates element (HostName, Queue)
 	if ( (*target).MaxDiskSpace != -1 ) {
 	  if ( !Arc::Value_Matching ( (*target).MaxDiskSpace, jobd["JobDescription"]["Resources"]["FileSystem"]["DiskSpace"] ) || 
 	       !Arc::Value_Matching ( (*target).MaxDiskSpace,  jobd["JobDescription"]["Resources"]["IndividualDiskSpace"] ) || 
@@ -135,58 +274,61 @@ namespace Arc {
 	  if ( !Arc::Value_Matching ( (*target).CPUClockSpeed, jobd["JobDescription"]["Resources"]["IndividualCPUSpeed"]) )
 	    continue;
 	}
+      
+   } // End of the Resource elements check
+      
+      //These arguments are dependence of the Application item.
+
+      if (jobd["JobDescription"]["Application"]) {
+	
+	if ((int)(*target).MinWallTime.GetPeriod() != -1) {
+	  if ((int)(*target).MinWallTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
+	    continue;
+	}
+	
+	if ((int)(*target).MaxWallTime.GetPeriod() != -1) {
+	  if ((int)(*target).MaxWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
+	    continue;
+	}
+	
+	if ((int)(*target).MaxTotalWallTime.GetPeriod() != -1) {
+	  if ((int)(*target).MaxTotalWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
+	    continue;
+	}
+	
+	if ((int)(*target).DefaultWallTime.GetPeriod() != -1) {
+	  if ((int)(*target).DefaultWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
+	    continue;
+	}
+	
       }
       
-      //This argoments are dependence from the Application item.
-      if ( jobd["JobDescription"]["Application"] ) {
-	
-	if ( (int)(*target).MinWallTime.GetPeriod() != -1 ) {
-	  if ( (int)(*target).MinWallTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
-	    continue;
-	}
-	
-	if ( (int)(*target).MaxWallTime.GetPeriod() != -1 ) {
-	  if ( (int)(*target).MaxWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
-	    continue;
-	}
-	
-	if ( (int)(*target).MaxTotalWallTime.GetPeriod() != -1 ) {
-	  if ( (int)(*target).MaxTotalWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
-	    continue;
-	}
-	
-	if ( (int)(*target).DefaultWallTime.GetPeriod() != -1 ) {
-	  if ( (int)(*target).DefaultWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
-	    continue;
-	}
-	
-      }
-      
-      //This argoments are dependence from the Application and the Resource items.
-      if ( (int)(*target).MinCPUTime.GetPeriod() != -1 ) {
+      //These arguments are dependence of the Application and the Resource items.
+
+      if ((int)(*target).MinCPUTime.GetPeriod() != -1 ) {
 	if ( !Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
 	     !Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )|| 
 	     (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
       
-      if ( (int)(*target).MaxCPUTime.GetPeriod() != -1 ) {
-	if ( !Arc::Value_Matching( (int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
-	     !Arc::Value_Matching( (int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
+      if ((int)(*target).MaxCPUTime.GetPeriod() != -1) {
+	if (!Arc::Value_Matching((int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"]) ||
+	     !Arc::Value_Matching((int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] ) ||
 	     (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
       
-      if ( (int)(*target).MaxTotalCPUTime.GetPeriod() != -1 ) {
-	if ( !Arc::Value_Matching ( (int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
-	     !Arc::Value_Matching ( (int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
+      if ((int)(*target).MaxTotalCPUTime.GetPeriod() != -1 ) {
+	if (!Arc::Value_Matching ((int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ) ||
+	     !Arc::Value_Matching ((int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"]) ||
 	     (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
       
       if ( (int)(*target).DefaultCPUTime.GetPeriod() != -1 ) {
-	if ( !Arc::Value_Matching ( (int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
-	     !Arc::Value_Matching ( (int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
+	if ( !Arc::Value_Matching ((int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
+	     !Arc::Value_Matching ((int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
 	     (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
 	  continue;
       }
