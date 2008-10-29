@@ -116,8 +116,6 @@ logger.msg(Arc::INFO, "JSDL: HPCPA: %s",s);
 
 bool JSDLJob::get_jobname(std::string& jobname) {
 
-  //jobname.resize(0);
-
   Arc::XMLNode n = jsdl_document["JobDescription"]["JobIdentification"]["JobName"];
   if ( (bool)n ) {
     jobname = (std::string) n;
@@ -127,7 +125,6 @@ bool JSDLJob::get_jobname(std::string& jobname) {
 }
 
 bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
-  //arguments.clear();
 
   Arc::XMLNode n;
   if( (bool)(n = jsdl_hpcpa["Executable"]) ) {
@@ -175,8 +172,6 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
 
 bool JSDLJob::get_execs(std::list<std::string>& execs) {
 
-  //execs.clear();
-
   Arc::XMLNode n = jsdl_document["JobDescription"];
   for( int i=0; (bool)(n["DataStaging"][i]); i++ ) {
     Arc::XMLNode childNode = n["DataStaging"][i]["Source"];
@@ -192,7 +187,6 @@ bool JSDLJob::get_execs(std::list<std::string>& execs) {
 }
 
 bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
-  //rtes.clear();
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resources"];
   if( !resources ) return true;
   for( int i=0; (bool)(resources["RunTimeEnvironment"][i]); i++ ) {
@@ -216,26 +210,43 @@ bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
 }
 
 bool JSDLJob::get_environments(std::list<std::pair<std::string,std::string> >& envs) {
-  //environments.clear();
+
+  // TODO: we need to test this environment part
+
   Arc::XMLNode app = jsdl_document["JobDescription"]["Application"]["POSIXApplication"];
-  if( !app ) return true;
-  for( int i=0; (bool)(app["Environment"][i]); i++ ) {
-      Arc::XMLNode env = app["Environment"][i];
-      Arc::XMLNode name = env.Attribute("name");
-      std::string value = (std::string)env;
-      if( !name ) {
-          logger.msg(Arc::ERROR, "JSDL: POSIX: POSIXApplication without name attribute");
-          return false;
-      }
-      envs.push_back(std::make_pair(name,value));
-      logger.msg(Arc::DEBUG, "ENV: "+(std::string)name+"="+value);
+  if(app) {
+    for( int i=0; (bool)(app["Environment"][i]); i++ ) {
+       Arc::XMLNode env = app["Environment"][i];
+       Arc::XMLNode name = env.Attribute("name");
+       std::string value = (std::string)env;
+       if( !name ) {
+           logger.msg(Arc::ERROR, "JSDL: POSIX: POSIXApplication without name attribute");
+           return false;
+       }
+       envs.push_back(std::make_pair(name,value));
+       logger.msg(Arc::DEBUG, "ENV: "+(std::string)name+"="+value);
+    }
   }
-  return true;
+  else {
+     app = jsdl_document["JobDescription"]["Application"]["HPCProfileApplication"];
+     if( app ) {
+       for( int i=0; (bool)(app["Environment"][i]); i++ ) {
+         Arc::XMLNode env = app["Environment"][i];
+         Arc::XMLNode name = env.Attribute("name");
+         std::string value = (std::string)env;
+         if( !name ) {
+             logger.msg(Arc::ERROR, "JSDL: HPC: HPCProfileApplication without name attribute");
+             return false;
+         }
+         envs.push_back(std::make_pair(name,value));
+         logger.msg(Arc::DEBUG, "ENV: "+(std::string)name+"="+value);
+      }
+    }
+  }
 }
 
-
 bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
-  //mws.clear();
+
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resources"];
   if( !resources ) return true;
   for( int i=0; (bool)(resources["Middleware"][i]); i++ ) {
@@ -259,7 +270,7 @@ bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
 }
 
 bool JSDLJob::get_acl(std::string& acl) {
-  //acl.resize(0);
+
   Arc::XMLNode aclNode = jsdl_document["JobDescription"]["AccessControl"];
   if( !aclNode ) return true;
   Arc::XMLNode typeNode = aclNode["Type"];
@@ -283,7 +294,7 @@ bool JSDLJob::get_acl(std::string& acl) {
 }
 
 bool JSDLJob::get_notification(std::string& s) {
-  //s.resize(0);
+
   for( int i=0; (bool)(jsdl_document["JobDescription"]["Notify"][i]); i++ ) {
     Arc::XMLNode notifyNode = jsdl_document["JobDescription"]["Notify"][i];
     Arc::XMLNode typeNode = notifyNode["Type"];
@@ -340,7 +351,7 @@ bool JSDLJob::get_fullaccess(bool& b) {
 }
 
 bool JSDLJob::get_gmlog(std::string& s) {
-  //s.resize(0);
+
   Arc::XMLNode logNodes = jsdl_document["JobDescription"]["LocalLogging"];
   if( !logNodes ) return true;
   s = (std::string) logNodes["Directory"];
@@ -348,7 +359,7 @@ bool JSDLJob::get_gmlog(std::string& s) {
 }
 
 bool JSDLJob::get_loggers(std::list<std::string>& urls) {
-  //urls.clear();
+
   Arc::XMLNode logNodes = jsdl_document["JobDescription"]["RemoteLogging"];
   for( int i=0; (bool)(jsdl_document["JobDescription"]["RemoteLogging"][i]); i++ ) {
     urls.push_back( (std::string) jsdl_document["JobDescription"]["RemoteLogging"][i]["URL"]);
@@ -357,7 +368,7 @@ bool JSDLJob::get_loggers(std::list<std::string>& urls) {
 }
 
 bool JSDLJob::get_credentialserver(std::string& url) {
-  //url.resize(0);
+
   Arc::XMLNode credNodes = jsdl_document["jsdl:JobDescription"]["CredentialServer"];
   if( (bool)credNodes ) {
     url= (std::string) credNodes["URL"];
@@ -366,7 +377,7 @@ bool JSDLJob::get_credentialserver(std::string& url) {
 }
 
 bool JSDLJob::get_queue(std::string& s) {
-  //s.resize(0);
+
   Arc::XMLNode queuename = jsdl_document["JobDescription"]["Resource"]["CandidateTarget"]["QueueName"];
   if( !queuename ) return true;
   s = (std::string) queuename;
@@ -387,7 +398,7 @@ bool JSDLJob::get_stdin(std::string& s) {
     std::string value = (std::string) inputNode;
     strip_spaces(value);
     s = value;
-  } // else { s.resize(0); };
+  } 
   return true;
 }
 
@@ -405,7 +416,7 @@ bool JSDLJob::get_stdout(std::string& s) {
     std::string value = (std::string) outputNode;
     strip_spaces(value);
     s = value;
-  } //else { s.resize(0); };
+  } 
   return true;
 }
 
@@ -423,7 +434,7 @@ bool JSDLJob::get_stderr(std::string& s) {
     std::string value = (std::string) errorNode;
     strip_spaces(value);
     s = value;
-  } //else { s.resize(0); };
+  }
   return true;
 }
 
@@ -497,7 +508,7 @@ double JSDLJob::get_limit(Arc::XMLNode range)
 } 
 
 bool JSDLJob::get_memory(int& memory) {
-  //memory=0;
+
   Arc::XMLNode memoryLimitNode = jsdl_posix["MemoryLimit"];
   if( (bool)memoryLimitNode ) {
     char * pEnd;
@@ -520,7 +531,7 @@ bool JSDLJob::get_memory(int& memory) {
 }
 
 bool JSDLJob::get_cputime(int& t) {
-  //t=0;
+
   Arc::XMLNode CPUTimeLimitNode = jsdl_posix["CPUTimeLimit"];
   if( (bool)CPUTimeLimitNode ) {
     char * pEnd;
@@ -543,7 +554,7 @@ bool JSDLJob::get_cputime(int& t) {
 }
 
 bool JSDLJob::get_walltime(int& t) {
-  //t=0;
+
   Arc::XMLNode wallTimeLimitNode = jsdl_posix["WallTimeLimit"];
   if( (bool)wallTimeLimitNode ) {
     char * pEnd;
@@ -555,7 +566,7 @@ bool JSDLJob::get_walltime(int& t) {
 
 bool JSDLJob::get_count(int& n) {
   Arc::XMLNode resourceNode = jsdl_document["JobDescription"]["Resources"];
-  //n=1;
+
   if( !resourceNode ) return true;
   Arc::XMLNode totalCPUCountNode = resourceNode["TotalCPUCount"];
   Arc::XMLNode individualCPUCountNode = resourceNode["IndividualCPUCount"];
@@ -731,21 +742,39 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   } else {
     f<<"joboption_starttime="<<std::endl;
   };
-/*
-  GLOBUS_RSL_PARAM_GET(rsl_tree,GLOBUS_RSL_PARAM_SEQUENCE,
-                           NG_RSL_ENVIRONMENT_PARAM,tmp_param);
-  {
-    int i;
-    for(i=0;tmp_param[i]!=NULL;i++) { 
+
+    std::list<std::pair<std::string,std::string> > envs;
+    std::string env_name;
+    std::string env_value;
+    JSDLJob::get_environments(envs);    
+
+    std::list<std::pair<std::string,std::string> >::const_iterator env_iter;
+
+    // TODO: we need to test this code part because I am not sure that
+    //       it is working by correct way
+
+    int env_size= envs.size();
+
+    for (int k = 0; k < env_size; env_iter++, k++) { 
+
+       env_name = env_iter->first;
+       env_value = env_iter->second;
+
+       f<<"joboption_env_"<<(k/2)<<"='"<<value_for_shell(env_name,false)<<"=";
+ 
+     //  if(tmp_param[i]==NULL) { f<<"'"<<std::endl; break; };
+
+       f<<value_for_shell(env_value,false)<<"'"<<std::endl;
+
+   }
+
+  /*  for(i=0;tmp_param[i]!=NULL;i++) { 
       f<<"joboption_env_"<<(i/2)<<"='"<<value_for_shell(tmp_param[i],false)<<"=";
       i++; if(tmp_param[i]==NULL) { f<<"'"<<std::endl; break; };
       f<<value_for_shell(tmp_param[i],false)<<"'"<<std::endl;
     };
-  };
 
-
-*/
-
+   */
 
   std::list<std::string> rtes;
   if(!get_RTEs(rtes)) return false;
