@@ -359,7 +359,12 @@ namespace Arc {
     bool JSDLParser::getProduct( const Arc::XMLNode& jobTree, std::string& product ) {
         Arc::XMLNode jobDescription = jobTree["JobDescription"];
         if ( bool( jobDescription ) ) {
+            Arc::NS jsdl_namespaces;
+            jsdl_namespaces[""] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+            jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+            jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
             Arc::XMLNode outputTree( "<JobDefinition />" );
+            outputTree.Namespaces( jsdl_namespaces );
             outputTree.NewChild( jobDescription );
             outputTree.GetDoc( product );
             return true;

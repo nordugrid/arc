@@ -137,7 +137,8 @@ static void SetNamespaces(const NS& namespaces,xmlNodePtr node_) {
     };
     if(!ns_) {
       // New namespace needed
-      ns_=xmlNewNs(node_,(const xmlChar*)(ns->second.c_str()),(const xmlChar*)(ns->first.c_str()));
+      // If the namespace's name is defined then pass it to the libxml function else set the value as default namespace
+      ns_=xmlNewNs(node_,(const xmlChar*)(ns->second.c_str()), ns->first.empty()?NULL:(const xmlChar*)(ns->first.c_str()));
       if(ns_ == NULL) {
         // There is already namespace with same prefix (or some other error)
         // TODO: optional change of prefix
