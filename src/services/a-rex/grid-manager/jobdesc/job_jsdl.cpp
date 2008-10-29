@@ -112,7 +112,7 @@ bool JobRequestJSDL::set(Arc::XMLNode jsdl_description_) throw(JobRequestError) 
         if( ( bool(versionNode["Exclusive"]) == true ) && !( ( (std::string) versionNode["Exclusive"] ) == "true"  ) ) continue; // not supported
         if( bool(versionNode["Exact"][1]) == true ) continue; // not supported
         if( bool(versionNode["Exact"]) == true ) {
-          s+="="; s+=(std::string) versionNode["Exact"];
+          s+="-"; s+=(std::string) versionNode["Exact"];
         };
       };
       runtime_environments.push_back(RuntimeEnvironment(s));
