@@ -217,7 +217,7 @@ bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
       if( ( (bool)(versionNode["Exclusive"]) ) && (!( ( (std::string) versionNode["Exclusive"] ) == "true") ) ) continue; // not supported
       if( (bool)(versionNode["Exact"][1]) ) continue; // not supported (More than one)
       if( (bool)(versionNode["Exact"]) ) {
-        s+="="; s+= (std::string) versionNode["Exact"];
+        s+="-"; s+= (std::string) versionNode["Exact"];
       };
     };
     if(!s.empty()) rtes.push_back(s);
