@@ -124,6 +124,22 @@ bool JSDLJob::get_jobname(std::string& jobname) {
 
 }
 
+bool JSDLJob::get_jobprojects(std::list<std::string>& jobprojects) {
+  Arc::XMLNode n = jsdl_document["JobDescription"]["JobIdentification"];
+
+  if( (bool)(n) ) {
+
+    jobprojects.clear();
+
+    for(int i=0; (bool)(n["JobProject"][i]) ; i++ ) {
+      std::string value = (std::string) n["JobProject"][i];
+      strip_spaces(value);
+      jobprojects.push_back(value);
+    }
+  }
+  return true;
+}
+
 bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
 
   Arc::XMLNode n;
@@ -243,6 +259,7 @@ bool JSDLJob::get_environments(std::list<std::pair<std::string,std::string> >& e
       }
     }
   }
+  return true;
 }
 
 bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
@@ -781,7 +798,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   n=0;
   for(std::list<std::string>::iterator i = rtes.begin();i!=rtes.end();++i) {
     std::string tmp_s = *i;
-    for(int ii=0;ii<tmp_s.length();++ii) tmp_s[ii]=toupper(tmp_s[ii]);
+    for(unsigned int ii=0;ii<tmp_s.length();++ii) tmp_s[ii]=toupper(tmp_s[ii]);
     if(canonical_dir(tmp_s) != 0) {
       logger.msg(Arc::WARNING, "Bad name for runtime environment: %s", (*i));
       return false;

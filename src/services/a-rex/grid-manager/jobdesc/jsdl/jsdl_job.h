@@ -20,6 +20,7 @@ class JSDLJob {
   void set(std::istream& f);
   void set_posix(void);
   bool get_jobname(std::string& jobname);
+  bool get_jobprojects(std::list<std::string>& jobprojects);
   bool get_arguments(std::list<std::string>& arguments);
   bool get_execs(std::list<std::string>& execs);
   bool get_RTEs(std::list<std::string>& rtes);
