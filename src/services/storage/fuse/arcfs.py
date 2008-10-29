@@ -47,7 +47,7 @@ try:
     needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
 except:
     needed_replicas = 1
-print 'flupp',BartenderURL
+
 ssl_config = {}
 if BartenderURL.startswith('https'):
     try:
