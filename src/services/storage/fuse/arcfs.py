@@ -44,7 +44,7 @@ except:
     BartenderURL = 'http://localhost:60000/Bartender'
     print '- ARC_BARTENDER_URL environment variable not found, using', BartenderURL
 try:
-    needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
+    needed_replicas = int(os.environ['ARC_NEEDED_REPLICAS'])
 except:
     needed_replicas = 1
 
