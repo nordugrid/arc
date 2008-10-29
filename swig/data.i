@@ -40,8 +40,6 @@ and the second member is the original return value, the DataStatus. */
 
 
 } 
-#endif
-
 %include "../src/hed/libs/data/DataStatus.h"
 %include "../src/hed/libs/data/FileInfo.h"
 %include "../src/hed/libs/data/DataPoint.h"
@@ -50,3 +48,5 @@ and the second member is the original return value, the DataStatus. */
 %include "../src/hed/libs/data/DataBuffer.h"
 %include "../src/hed/libs/data/FileCache.h"
 %include "../src/hed/libs/data/DataMover.h"
+#endif
+
