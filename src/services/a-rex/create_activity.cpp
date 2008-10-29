@@ -37,6 +37,52 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
     out.Destroy();
     return Arc::MCC_Status();
   };
+
+  // HPC Basic Profile 1.0 comply (these fault handlings are defined in the KnowARC standards 
+  // conformance roadmap 2nd release)
+
+  Arc::XMLNode check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["WorkingDirectory"];
+
+  if (check) {
+    logger_.msg(Arc::ERROR, "jsdl-posix:WorkingDirectory: we do not support this element");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-posix:WorkingDirectory is part of the JSDL document");
+    InvalidRequestMessageFault(fault,"jsdl-posix:WorkingDirectory","We do not support this element");
+    out.Destroy();
+    return Arc::MCC_Status();
+  };
+
+  check = in["ActivityDocument"]["JobDefinition"]["Application"]["HPCProfileApplication"]["WorkingDirectory"];
+
+  if (check) {
+    logger_.msg(Arc::ERROR, "jsdl-hpcpa:WorkingDirectory: we do not support this element");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-hpcpa:WorkingDirectory is part of the JSDL document");
+    InvalidRequestMessageFault(fault,"jsdl-hpcpa:WorkingDirectory","We do not support this element");
+    out.Destroy();
+    return Arc::MCC_Status();
+  };
+
+  check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["UserName"];
+
+  if (check) {
+    logger_.msg(Arc::ERROR, "jsdl-posix:UserName: we do not support this element");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-posix:UserName is part of the JSDL document");
+    InvalidRequestMessageFault(fault,"jsdl-posix:UserName","We do not support this element");
+    out.Destroy();
+    return Arc::MCC_Status();
+  };
+
+  check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["GroupName"];
+
+  if (check) {
+    logger_.msg(Arc::ERROR, "jsdl-posix:GroupName: we do not support this element");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-posix:GroupName is part of the JSDL document");
+    InvalidRequestMessageFault(fault,"jsdl-posix:GroupName","We do not support this element");
+    out.Destroy();
+    return Arc::MCC_Status();
+  };
+
+ // End of the HPC BP 1.0 fault handling part
+
   std::string delegation;
   Arc::XMLNode delegated_token = in["deleg:DelegatedToken"];
   if(delegated_token) {
