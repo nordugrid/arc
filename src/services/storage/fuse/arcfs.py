@@ -24,26 +24,51 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 #fuse.feature_assert('stateful_files', 'has_init')
 
 # arc storage stuff
-from storage.client import BartenderClient, ByteIOClient
+from storage.client import BartenderClient
 from storage.common import create_checksum, mkuid
 from storage.common import false, true
 from storage.common import upload_to_turl, download_from_turl
 
 import time
 
-MNT=sys.argv[1]
 try:
-    MOUNT=sys.argv[2]
-    del(sys.argv[2])
+    # MNT is not really used, but needs to be in sys.argv[1] for
+    # initializing FUSE
+    MNT = sys.argv[1]
 except:
-    MOUNT="http://localhost:60000/Bartender"
+    raise RuntimeError, 'Usage: ./arcfs.py LOCAL_MOUNTPOINT'
+try:
+    BartenderURL = os.environ['ARC_BARTENDER_URL']
+    print '- The URL of the Bartender:', BartenderURL
+except:
+    BartenderURL = 'http://localhost:60000/Bartender'
+    print '- ARC_BARTENDER_URL environment variable not found, using', BartenderURL
+try:
+    needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
+except:
+    needed_replicas = 1
+print 'flupp',BartenderURL
+ssl_config = {}
+if BartenderURL.startswith('https'):
+    try:
+        ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
+        ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
+        print '- The key file:', ssl_config['key_file']
+        print '- The cert file:', ssl_config['cert_file']
+        if os.environ.has_key('ARC_CA_FILE'):
+            ssl_config['ca_file'] = os.environ['ARC_CA_FILE']
+            print '- The ca file:', ssl_config['ca_file']
+        else:
+            ssl_config['ca_dir'] = os.environ['ARC_CA_DIR']
+            print '- The ca dir:', ssl_config['ca_dir']
+    except:
+        ssl_config = {}
+        raise RuntimeError, '- ARC_KEY_FILE, ARC_CERT_FILE , ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
+    
 
-bartender = BartenderClient(MOUNT, False)
+bartender = BartenderClient(BartenderURL, False, ssl_config)
 
-#PROTOCOL = 'byteio'
 PROTOCOL = 'http'
-
-needed_replicas = 2
 
 FUSETRANSFER = os.path.join(os.getcwd(),'fuse_transfer')
 if not os.path.isdir(FUSETRANSFER):
@@ -59,7 +84,7 @@ def debug_msg(msg, msg2=''):
     Function to get readable debug output to file
     """
     if DEBUG:
-        print >> debugfile, MOUNT+":", msg, msg2
+        print >> debugfile, BartenderURL+":", msg, msg2
         debugfile.flush()
     
 debug_msg(sys.argv)
@@ -173,7 +198,7 @@ class ARCFS(Fuse):
 
     def __init__(self, *args, **kw):
         """
-        init Fuse, bartender is BartenderClient(MOUNT, False)
+        init Fuse, bartender is BartenderClient(BartenderURL, False)
         """
         Fuse.__init__(self, *args, **kw)
         debug_msg('fuse initiated')
@@ -414,7 +439,7 @@ class ARCFS(Fuse):
                 return -EISDIR
             if success != 'done':
                 return -ENOENT
-            download_from_turl(turl, PROTOCOL, self.file)
+            download_from_turl(turl, PROTOCOL, self.file, ssl_config = ssl_config)
             self.file.seek(offset)
 
             return self.file.read(size)
@@ -457,7 +482,7 @@ class ARCFS(Fuse):
                     response = self.bartender.addReplica({'release': GUID}, [PROTOCOL])
                     success, turl, protocol = response['release']
                     if success == 'done':
-                        upload_to_turl(turl, PROTOCOL, f)
+                        upload_to_turl(turl, PROTOCOL, f, ssl_config = ssl_config)
 
                 f.close()
             os.remove(self.tmp_path)
@@ -590,7 +615,7 @@ def main():
                   dash_s_do='setsingle')
 
     server.parser.add_option(mountopt="root", metavar="PATH",
-                             default=MOUNT,
+                             default=BartenderURL,
                              help="mirror arc filesystem from under PATH [default: %default]")
 
     server.parse(values=server, errex=1)
