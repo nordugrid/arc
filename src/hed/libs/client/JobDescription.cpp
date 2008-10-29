@@ -571,12 +571,6 @@ namespace Arc {
             jobTree["JobDescription"]["Resources"]["SessionLifeTime"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "cputime" ) {
-            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-            if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("TotalCPUTime");
-            jobTree["JobDescription"]["Resources"]["TotalCPUTime"] = simpleXRSLvalue( attributeValue );
-            jobTree["JobDescription"]["Resources"].NewChild("IndividualCPUTime");
-            jobTree["JobDescription"]["Resources"]["IndividualCPUTime"] = simpleXRSLvalue( attributeValue );
             if ( !bool( jobTree["JobDescription"]["Application"] ) ) jobTree["JobDescription"].NewChild("Application");
             if ( !bool( jobTree["JobDescription"]["Application"]["POSIXApplication"] ) ) jobTree["JobDescription"]["Application"].NewChild("POSIXApplication");
             jobTree["JobDescription"]["Application"]["POSIXApplication"].NewChild("CPUTimeLimit");
@@ -601,12 +595,6 @@ namespace Arc {
             jobTree["XRSLDescription"]["Benchmarks"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "memory" ) {
-            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-            if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("TotalPhysicalMemory");
-            jobTree["JobDescription"]["Resources"]["TotalPhysicalMemory"] = simpleXRSLvalue( attributeValue );
-            jobTree["JobDescription"]["Resources"].NewChild("IndividualPhysicalMemory");
-            jobTree["JobDescription"]["Resources"]["IndividualPhysicalMemory"] = simpleXRSLvalue( attributeValue );
             if ( !bool( jobTree["JobDescription"]["Application"] ) ) jobTree["JobDescription"].NewChild("Application");
             if ( !bool( jobTree["JobDescription"]["Application"]["POSIXApplication"] ) ) jobTree["JobDescription"]["Application"].NewChild("POSIXApplication");
             jobTree["JobDescription"]["Application"]["POSIXApplication"].NewChild("MemoryLimit");
@@ -615,10 +603,9 @@ namespace Arc {
         } else if ( attributeName == "disk" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
             if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("TotalDiskSpace");
-            jobTree["JobDescription"]["Resources"]["TotalDiskSpace"] = simpleXRSLvalue( attributeValue );
-            jobTree["JobDescription"]["Resources"].NewChild("IndividualDiskSpace");
-            jobTree["JobDescription"]["Resources"]["IndividualDiskSpace"] = simpleXRSLvalue( attributeValue );
+            jobTree["JobDescription"]["Resources"].NewChild("DiskSpace");
+            jobTree["JobDescription"]["Resources"]["DiskSpace"].NewChild("LowerBoundedRange");
+            jobTree["JobDescription"]["Resources"]["DiskSpace"]["LowerBoundedRange"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "runtimeenvironment" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
@@ -633,9 +620,12 @@ namespace Arc {
             jobTree["JobDescription"]["Resources"]["Middleware"] = simpleXRSLvalue( attributeValue );
             return true;    
         } else if ( attributeName == "opsys" ) {
-            if ( !bool( jobTree["XRSLDescription"] ) ) jobTree.NewChild("XRSLDescription");
-            jobTree["XRSLDescription"].NewChild("OPSys");
-            jobTree["XRSLDescription"]["OPSys"] = simpleXRSLvalue( attributeValue );
+            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+            if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
+            if ( !bool( jobTree["JobDescription"]["Resources"]["OperatingSystem"] ) ) jobTree["JobDescription"]["Resources"].NewChild("OperatingSystem");
+            jobTree["JobDescription"]["Resources"]["OperatingSystem"].NewChild("OperatingSystemType");
+            jobTree["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"].NewChild("OperatingSystemName");
+            jobTree["JobDescription"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "join" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
@@ -729,9 +719,8 @@ namespace Arc {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
             if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
             jobTree["JobDescription"]["Resources"].NewChild("TotalCPUCount");
-            jobTree["JobDescription"]["Resources"]["TotalCPUCount"] = simpleXRSLvalue( attributeValue );
-            jobTree["JobDescription"]["Resources"].NewChild("IndividualCPUCount");
-            jobTree["JobDescription"]["Resources"]["IndividualCPUCount"] = simpleXRSLvalue( attributeValue );
+            jobTree["JobDescription"]["Resources"]["TotalCPUCount"].NewChild("LowerBoundedRange");
+            jobTree["JobDescription"]["Resources"]["TotalCPUCount"]["LowerBoundedRange"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "jobreport" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
