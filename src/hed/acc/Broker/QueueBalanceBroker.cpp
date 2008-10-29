@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include <arc/client/QueueBalanceBroker.h>
+#include "QueueBalanceBroker.h"
 
 namespace Arc {
     
