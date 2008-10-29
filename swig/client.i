@@ -34,7 +34,6 @@ the first member will be the '*response' and the second member is the original r
 }
 
 }
-#endif
 %include "../src/hed/libs/client/ClientInterface.h"
 %include "../src/hed/libs/client/Submitter.h"
 %include "../src/hed/libs/client/ExecutionTarget.h"
@@ -45,3 +44,4 @@ the first member will be the '*response' and the second member is the original r
 %include "../src/hed/libs/client/TargetGenerator.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
 %include "../src/hed/libs/client/UserConfig.h"
+#endif
