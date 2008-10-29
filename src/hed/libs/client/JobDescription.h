@@ -12,8 +12,8 @@
 
 namespace Arc {
 
-    #define VERBOSEX 1
-    #define DEBUGX 1
+    #define VERBOSEX 0
+    #define DEBUGX 0
 
     // Define variables for the jobDescriptionOrderer
     #define DEFAULT_PRIORITY 0
