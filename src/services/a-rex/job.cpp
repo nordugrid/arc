@@ -16,6 +16,7 @@
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/message/SecAttr.h>
+#include <arc/credential/Credential.h>
 
 #include "grid-manager/conf/environment.h"
 #include "grid-manager/conf/conf_pre.h"
@@ -358,7 +359,10 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       return;
     };
     ::close(h);
-    //@ try {
+    try {
+    //////Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& c
+afile);
+
     //@   Certificate ci(PROXY,fname);
     //@   job_desc.expiretime = ci.Expires().GetTime();
     //@ } catch (std::exception) {
@@ -547,7 +551,7 @@ bool ARexJob::make_job_id(void) {
     int err = errno;
     if(h == -1) {
       if(err == EEXIST) continue;
-      //@ olog << "Failed to create file in " << user->ControlDir()<< std::endl;
+      logger_.msg(Arc::ERROR, "Failed to create file in %s", user->ControlDir());
       id_="";
       return false;
     };
@@ -555,7 +559,7 @@ bool ARexJob::make_job_id(void) {
     close(h);
     return true;
   };
-  //@ olog << "Out of tries while allocating new job id in " << user->ControlDir() << std:endl;
+  logger_.msg(Arc::ERROR, "Out of tries while allocating new job id in %s", user->ControlDir());
   id_="";
   return false;
 }
