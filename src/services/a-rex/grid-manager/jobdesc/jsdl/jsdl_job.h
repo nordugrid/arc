@@ -15,6 +15,7 @@ class JSDLJob {
   Arc::XMLNode jsdl_document;
   Arc::XMLNode jsdl_posix;
   Arc::XMLNode jsdl_hpcpa;
+  std::string failure;
 
   bool check(void);
   void set(std::istream& f);
@@ -58,6 +59,7 @@ class JSDLJob {
   bool parse(JobLocalDescription &job_desc, std::string* acl = NULL);
   bool set_execs(const std::string &session_dir);
   bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add = NULL);
+  std::string get_failure(void);
 };
 
 #endif

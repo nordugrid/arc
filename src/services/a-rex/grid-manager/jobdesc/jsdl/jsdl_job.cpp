@@ -101,14 +101,6 @@ void JSDLJob::set_posix(void) {
   n = jsdl_document["JobDescription"]["Application"]["HPCProfileApplication"];
   if ( (bool)n ) jsdl_hpcpa = n;
 
-std::string s;
-jsdl_document.GetXML(s);
-logger.msg(Arc::INFO, "JSDL: %s",s);
-jsdl_posix.GetXML(s);
-logger.msg(Arc::INFO, "JSDL: POSIX: %s",s);
-jsdl_hpcpa.GetXML(s);
-logger.msg(Arc::INFO, "JSDL: HPCPA: %s",s);
-
 }
 
 
@@ -181,7 +173,8 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
 
   }
 
-  logger.msg(Arc::ERROR, "job description contains no recognisable executable");
+  failure="job description contains no recognisable executable";
+  logger.msg(Arc::ERROR, failure);
   return false;
 
 }
@@ -236,7 +229,8 @@ bool JSDLJob::get_environments(std::list<std::pair<std::string,std::string> >& e
        Arc::XMLNode name = env.Attribute("name");
        std::string value = (std::string)env;
        if( !name ) {
-           logger.msg(Arc::ERROR, "JSDL: POSIX: POSIXApplication without name attribute");
+           failure="JSDL: POSIX: POSIXApplication without name attribute";
+           logger.msg(Arc::ERROR, failure);
            return false;
        }
        envs.push_back(std::make_pair(name,value));
@@ -251,7 +245,8 @@ bool JSDLJob::get_environments(std::list<std::pair<std::string,std::string> >& e
          Arc::XMLNode name = env.Attribute("name");
          std::string value = (std::string)env;
          if( !name ) {
-             logger.msg(Arc::ERROR, "JSDL: HPC: HPCProfileApplication without name attribute");
+             failure="JSDL: HPC: HPCProfileApplication without name attribute";
+             logger.msg(Arc::ERROR, failure);
              return false;
          }
          envs.push_back(std::make_pair(name,value));
@@ -292,7 +287,10 @@ bool JSDLJob::get_acl(std::string& acl) {
   if( !aclNode ) return true;
   Arc::XMLNode typeNode = aclNode["Type"];
   Arc::XMLNode contentNode = aclNode["Content"];
-  if( !contentNode ) return false;
+  if( !contentNode ) {
+    failure="JSDL: acl element wrongly formated - miissng Content element";
+    return false;
+  };
   if( (!typeNode) || ( ( (std::string) typeNode ) == "GACL" ) || ( ( (std::string) typeNode ) == "ARC" ) ) {
     std::string str_content;
     if(contentNode.Size() > 0) {
@@ -304,7 +302,8 @@ bool JSDLJob::get_acl(std::string& acl) {
     }
     if( str_content != "" ) acl=str_content;
   } else {
-    logger.msg(Arc::ERROR, "JSDL: unsupported ACL type specified: %s", (std::string) typeNode);
+    failure="JSDL: unsupported ACL type specified: "+((std::string)typeNode);
+    logger.msg(Arc::ERROR, failure);
     return false;
   };
   return true;
@@ -463,7 +462,8 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
     Arc::XMLNode ds = jsdl_document["JobDescription"]["DataStaging"][i];
     Arc::XMLNode fileSystemNameNode = ds["FilesystemName"];
     if( (bool)fileSystemNameNode ) {
-      logger.msg(Arc::ERROR, "FilesystemName defined in job description - all files must be relative to session directory[jsdl:FilesystemName]");
+      failure="FilesystemName defined in job description - all files must be relative to session directory[jsdl:FilesystemName]";
+      logger.msg(Arc::ERROR, failure);
       return false;
     };
     Arc::XMLNode sourceNode = ds["Source"];
@@ -610,16 +610,19 @@ bool JSDLJob::get_reruns(int& n) {
 
 bool JSDLJob::check(void) {
   if(!jsdl_document) {
-    logger.msg(Arc::ERROR, "job description is missing");
+    failure="job description is missing";
+    logger.msg(Arc::ERROR, failure);
     return false;
   };
 
   if( !(jsdl_document["JobDescription"]) ) {
-    logger.msg(Arc::ERROR, "job description is missing [JobDescription] element");
+    failure="job description is missing [JobDescription] element";
+    logger.msg(Arc::ERROR, failure);
     return false;
   };
   if((!jsdl_posix) && (!jsdl_hpcpa)) {
-    logger.msg(Arc::ERROR, "job description is missing POSIX and HPCP application elements");
+    failure="job description is missing POSIX and HPCP application elements";
+    logger.msg(Arc::ERROR, failure);
     return false;
   };
   return true;
@@ -670,7 +673,8 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   char c = arguments.begin()->c_str()[0];
   if((c != '/') && (c != '$')){
     if(canonical_dir(*(arguments.begin())) != 0) {
-      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*(arguments.begin())));
+      failure="Bad name for executable: "+(*(arguments.begin()));
+      logger.msg(Arc::ERROR, failure);
       return false;
     };
     fix_file_permissions(session_dir+"/"+(*(arguments.begin())),true);
@@ -679,7 +683,8 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   if(!get_execs(execs)) return false;
   for(std::list<std::string>::iterator i = execs.begin();i!=execs.end();++i) {
     if(canonical_dir(*i) != 0) {
-      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*i)); 
+      failure="Bad name for executable: "+(*i);
+      logger.msg(Arc::ERROR, failure); 
       return false;
     };
     fix_file_permissions(session_dir+"/"+(*i));
@@ -721,7 +726,8 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.empty()) { s=NG_RSL_DEFAULT_STDOUT; }
   else {
     if(canonical_dir(s) != 0) {
-      logger.msg(Arc::WARNING, "Bad name for stdout: %s", s);
+      failure="Bad name for stdout: "+s;
+      logger.msg(Arc::ERROR, failure);
       return false;
     };
     s=session_dir+s;
@@ -731,7 +737,8 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDERR; }
   else {
     if(canonical_dir(s) != 0) {
-      logger.msg(Arc::WARNING, "Bad name for stderr: %s", s);
+      failure="Bad name for stderr: "+s;
+      logger.msg(Arc::ERROR, failure);
       return false;
     };
     s=session_dir+s;
@@ -800,7 +807,8 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     std::string tmp_s = *i;
     for(unsigned int ii=0;ii<tmp_s.length();++ii) tmp_s[ii]=toupper(tmp_s[ii]);
     if(canonical_dir(tmp_s) != 0) {
-      logger.msg(Arc::WARNING, "Bad name for runtime environment: %s", (*i));
+      failure="Bad name for runtime environment: "+(*i);
+      logger.msg(Arc::WARNING, failure);
       return false;
     };
     f<<"joboption_runtime_"<<n<<"="<<value_for_shell(i->c_str(),true)<<std::endl;
@@ -810,6 +818,10 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   print_to_grami(f);
   if(opt_add) f<<opt_add<<std::endl;
   return true;
+}
+
+std::string JSDLJob::get_failure(void) {
+  return failure;
 }
 
 void JSDLJob::print_to_grami(std::ostream&) {
