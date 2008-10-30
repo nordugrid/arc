@@ -29,19 +29,14 @@ and the second member is the original return value, the DataStatus. */
     o = PyList_New(0);
     std::list<Arc::FileInfo>::iterator it;
     for (it = (*$1).begin(); it != (*$1).end(); ++it) {
-        PyList_Append(o, SWIG_NewPointerObj(&(*it), SWIGTYPE_p_Arc__FileInfo, SWIG_POINTER_OWN | 0 ));
+        PyList_Append(o, SWIG_NewPointerObj(new Arc::FileInfo(*it), SWIGTYPE_p_Arc__FileInfo, SWIG_POINTER_OWN | 0 ));
     }
-    //o = SWIG_NewPointerObj($1, SWIGTYPE_p_std__listT_Arc__FileInfo_std__allocatorT_Arc__FileInfo_t_t, SWIG_POINTER_OWN | 0 );
     tuple = PyTuple_New(2);
     PyTuple_SetItem(tuple,0,o);
     PyTuple_SetItem(tuple,1,$result);
     $result = tuple;
 }
 
-}
-
-%typemap(out) const std::string& {
-    $result = PyString_FromString($1->c_str());
 }
 
 #endif
