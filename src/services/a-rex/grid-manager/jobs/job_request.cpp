@@ -95,7 +95,7 @@ bool parse_job_req_for_action(const char* fname,
                std::string &lrms,std::string &queue) {
   JobLocalDescription job_desc;
   std::string filename(fname);
-  if(parse_job_req(filename,job_desc)) {
+  if(parse_job_req(filename,job_desc) == JobReqSuccess) {
     action=job_desc.action;
     jobid=job_desc.jobid;
     lrms=job_desc.lrms;
@@ -121,7 +121,7 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   job_desc.lifetime=Arc::tostring(user.KeepFinished());
   std::string filename;
   filename = user.ControlDir() + "/job." + desc.get_id() + ".description";
-  if(!parse_job_req(filename,job_desc)) return false;
+  if(parse_job_req(filename,job_desc) != JobReqSuccess) return false;
   if(job_desc.reruns>user.Reruns()) job_desc.reruns=user.Reruns();
   if((job_desc.diskspace>user.DiskSpace()) || (job_desc.diskspace==0)) {
     job_desc.diskspace=user.DiskSpace();
@@ -175,25 +175,26 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
 }
 
 /* parse job request, fill job description (local) */
-bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl,std::string* failure) {
+JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl,std::string* failure) {
   switch(detect_job_req_type(fname.c_str())) {
 #ifdef HAVE_GLOBUS_RSL
     case job_req_rsl: {
-      return parse_rsl(fname,job_desc,acl,failure);
+      return parse_rsl(fname,job_desc,acl,failure)?JobReqSuccess:JobReqInternalFailure;
     }; break;
 #endif
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
-      if(!f.is_open()) return false;
+      if(!f.is_open()) return JobReqInternalFailure;
       JSDLJob j(f);
-      if(!j) return false;
+      if(!j) return JobReqInternalFailure;
       bool res = j.parse(job_desc,acl);
       if((!res) && (failure)) *failure=j.get_failure();
-      return res;
+      return res?JobReqSuccess:JobReqInternalFailure;
     }; break;
     default: break;
   };
-  return false;
+  if(failure) *failure="Job description format is not supported";
+  return JobReqSyntaxFailure;
 }
 
 /* do rsl substitution and nordugrid specific stuff */

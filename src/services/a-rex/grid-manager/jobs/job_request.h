@@ -5,7 +5,15 @@
 
 #include "../files/info_types.h"
 
-bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL,std::string* failure = NULL);
+typedef enum {
+  JobReqSuccess,
+  JobReqInternalFailure,
+  JobReqSyntaxFailure,
+  JobReqUnsupportedFailure,
+  JobReqLogicalFailure
+} JobReqResult;
+
+JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL,std::string* failure = NULL);
 bool process_job_req(JobUser &user,const JobDescription &desc);
 bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescription &job_desc);
 bool preprocess_job_req(const std::string &fname,const std::string &session_dir,const std::string &jobid);

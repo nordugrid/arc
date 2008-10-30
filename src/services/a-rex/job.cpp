@@ -128,6 +128,17 @@ template <typename T> class AutoPointer {
   operator T*(void) const { return object; };
 };
 
+static ARexJobFailure setfail(JobReqResult res) {
+  switch(res) {
+    case JobReqSuccess: return ARexJobNoError;
+    case JobReqInternalFailure: return ARexJobInternalError;
+    case JobReqSyntaxFailure: return ARexJobDescriptionSyntaxError;
+    case JobReqUnsupportedFailure: return ARexJobDescriptionUnsupportedError;
+    case JobReqLogicalFailure: return ARexJobDescriptionLogicalError;
+  };
+  return ARexJobInternalError;
+}
+
 bool ARexJob::is_allowed(bool fast) {
   allowed_to_see_=false;
   allowed_to_maintain_=false;
@@ -295,9 +306,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Analyze JSDL (checking, substituting, etc)
   std::string acl("");
-  if(!parse_job_req(fname.c_str(),job_,&acl,&failure_)) {
+  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl,&failure_))) != ARexJobNoError) {
     if(failure_.empty()) failure_="Failed to parse job/action description.";
-    failure_type_=ARexJobDescriptionError;
     delete_job_id();
     return;
   };
@@ -307,7 +317,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   if((!job_.lrms.empty()) && (!config_.User()->DefaultLRMS().empty())) {
     if(job_.lrms != config_.User()->DefaultLRMS()) {
       failure_="-------------------------";
-      failure_type_=ARexJobDescriptionError;
+      failure_type_=ARexJobDescriptionLogicalError;
       delete_job_id();
       return;
     };
@@ -317,7 +327,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   if(job_.queue.empty()) job_.queue=config_.User()->DefaultQueue();
   if(job_.queue.empty()) {
     failure_="Request has no queue defined.";
-    failure_type_=ARexJobDescriptionError;
+    failure_type_=ARexJobDescriptionLogicalError;
     delete_job_id();
     return;
   };
@@ -325,7 +335,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     for(std::list<std::string>::const_iterator q = config_.Queues().begin();;++q) {
       if(q == config_.Queues().end()) {
         failure_="Requested queue "+job_.queue+" does not match any of available queues.";
-        failure_type_=ARexJobDescriptionError;
+        failure_type_=ARexJobDescriptionLogicalError;
         delete_job_id();
         return;
       };
@@ -334,7 +344,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   if(!preprocess_job_req(fname,config_.User()->SessionRoot()+"/"+id_,id_)) {
     failure_="Failed to preprocess job description.";
-    failure_type_=ARexJobDescriptionError;
+    failure_type_=ARexJobInternalError;
     delete_job_id();
     return;
   };

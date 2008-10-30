@@ -39,9 +39,11 @@ class ARexGMConfig {
 
 typedef enum {
   ARexJobNoError,
-  ARexJobInternalError,
-  ARexJobConfigurationError,
-  ARexJobDescriptionError
+  ARexJobInternalError, // Failed during some internal operation - like writing some file
+  ARexJobConfigurationError, // Problem detected which can be fixed by adjusting configuration of service
+  ARexJobDescriptionUnsupportedError, // Job asks for feature or combination not supported by service
+  ARexJobDescriptionSyntaxError, // Job description is malformed - missing elements, wrong names, etc.
+  ARexJobDescriptionLogicalError // Job request otherwise corect has some values out of scope of service
 } ARexJobFailure;
 
 /** This class represents convenience interface to manage jobs 

@@ -10,13 +10,20 @@ class JobLocalDescription;
 class FileData;
 
 class JSDLJob {
+ public:
+  typedef enum {
+    Success,
+    InternalFailure,
+    SyntaxFailure,
+    UnsupportedFailure,
+    LogicalFailure
+  } Failure;
  private:
-
   Arc::XMLNode jsdl_document;
   Arc::XMLNode jsdl_posix;
   Arc::XMLNode jsdl_hpcpa;
   std::string failure;
-
+  Failure failure_type;
   bool check(void);
   void set(std::istream& f);
   void set_posix(void);
@@ -60,6 +67,7 @@ class JSDLJob {
   bool set_execs(const std::string &session_dir);
   bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add = NULL);
   std::string get_failure(void);
+  Failure get_failure_type(void);
 };
 
 #endif

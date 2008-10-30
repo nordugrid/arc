@@ -824,5 +824,9 @@ std::string JSDLJob::get_failure(void) {
   return failure;
 }
 
+JSDLJob::Failure JSDLJob::get_failure_type(void) {
+  return failure_type;
+}
+
 void JSDLJob::print_to_grami(std::ostream&) {
 }
