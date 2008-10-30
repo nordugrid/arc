@@ -155,7 +155,7 @@ namespace Arc {
     virtual DataStatus PreRegister(bool replication, bool force = false) = 0;
 
     /// Index Service postregistration.
-    /** Used for same purpose as meta_preregister. Should be called
+    /** Used for same purpose as PreRegister. Should be called
        after actual transfer of file successfully finished.
      \param replication if true, the file is being replicated
        between two locations registered in Indexing Service under
