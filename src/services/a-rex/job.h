@@ -37,6 +37,13 @@ class ARexGMConfig {
 };
 
 
+typedef enum {
+  ARexJobNoError,
+  ARexJobInternalError,
+  ARexJobConfigurationError,
+  ARexJobDescriptionError
+} ARexJobFailure;
+
 /** This class represents convenience interface to manage jobs 
   handled by Grid Manager. It works mostly through corresponding
   classes and functions of Grid Manager. */
@@ -44,6 +51,7 @@ class ARexJob {
  private:
   std::string id_;
   std::string failure_;
+  ARexJobFailure failure_type_;
   bool allowed_to_see_;
   bool allowed_to_maintain_;
   Arc::Logger& logger_;
@@ -63,7 +71,8 @@ class ARexJob {
   operator bool(void) { return !id_.empty(); };
   bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */
-  std::string Failure(void) { std::string r=failure_; failure_=""; return r; };
+  std::string Failure(void) { std::string r=failure_; failure_=""; failure_type_=ARexJobNoError; return r; };
+  operator ARexJobFailure(void) { return failure_type_; };
   /** Return ID assigned to job */
   std::string ID(void) { return id_; };
   /** Fills provided jsdl with job description */
