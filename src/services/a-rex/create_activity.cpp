@@ -41,17 +41,14 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   // HPC Basic Profile 1.0 comply (these fault handlings are defined in the KnowARC standards 
   // conformance roadmap 2nd release)
 
-  Arc::XMLNode check;
   Arc::NS jsdl_namespaces;
-
   jsdl_namespaces[""] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
   jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
   jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
   jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
 
+  Arc::XMLNode check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["WorkingDirectory"];
   check.Namespaces(jsdl_namespaces);
-
-  check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["WorkingDirectory"];
 
   if (check) {
     logger_.msg(Arc::ERROR, "jsdl-posix:WorkingDirectory: we do not support this element");
