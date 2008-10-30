@@ -608,9 +608,10 @@ namespace Arc {
         } else if ( attributeName == "disk" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
             if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("DiskSpace");
-            jobTree["JobDescription"]["Resources"]["DiskSpace"].NewChild("LowerBoundedRange");
-            jobTree["JobDescription"]["Resources"]["DiskSpace"]["LowerBoundedRange"] = simpleXRSLvalue( attributeValue );
+            jobTree["JobDescription"]["Resources"].NewChild("FileSystem");
+            jobTree["JobDescription"]["Resources"]["FileSystem"].NewChild("DiskSpace");
+            jobTree["JobDescription"]["Resources"]["FileSystem"]["DiskSpace"].NewChild("LowerBoundedRange");
+            jobTree["JobDescription"]["Resources"]["FileSystem"]["DiskSpace"]["LowerBoundedRange"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "runtimeenvironment" ) {
             if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
@@ -738,6 +739,12 @@ namespace Arc {
             if ( !bool( jobTree["JobDescription"]["CredentialServer"] ) ) jobTree["JobDescription"].NewChild("CredentialServer");
             jobTree["JobDescription"]["CredentialServer"].NewChild("URL");
             jobTree["JobDescription"]["CredentialServer"]["URL"] = simpleXRSLvalue( attributeValue );
+            return true;
+        } else if ( attributeName == "gridTime" ) {
+            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+            if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
+            jobTree["JobDescription"]["Resources"].NewChild("GridTimeLimit");
+            jobTree["JobDescription"]["Resources"]["GridTimeLimit"] = simpleXRSLvalue( attributeValue );
             return true;
         }
         if ( DEBUGX ) std::cerr << "[XRSLParser] Unknown XRSL attribute: " << attributeName << std::endl;
