@@ -39,6 +39,11 @@ and the second member is the original return value, the DataStatus. */
 }
 
 }
+
+%typemap(out) const std::string& {
+    $result = PyString_FromString($1->c_str());
+}
+
 #endif
 
 %include "../src/hed/libs/data/DataStatus.h"
@@ -49,3 +54,5 @@ and the second member is the original return value, the DataStatus. */
 %include "../src/hed/libs/data/DataBuffer.h"
 %include "../src/hed/libs/data/FileCache.h"
 %include "../src/hed/libs/data/DataMover.h"
+
+
