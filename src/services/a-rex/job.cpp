@@ -360,8 +360,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     };
     ::close(h);
     try {
-    //////Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& c
-afile);
+    //////Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
 
     //@   Certificate ci(PROXY,fname);
     //@   job_desc.expiretime = ci.Expires().GetTime();
