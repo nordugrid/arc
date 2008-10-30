@@ -518,21 +518,22 @@ bool write_rsl(const std::string &fname,globus_rsl_t *rsl) {
 }
 
 /* parse rsl, fill job description (local) */
-bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::string* acl) {
+bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::string* acl,std::string* failure) {
   char** tmp_param;
   globus_rsl_t *rsl_tree = NULL;
   bool use_executable=true;
+  std::string fail;
 
   bool res = false;
 
   /* read RSL */
   rsl_tree=read_rsl(fname);
   if (!rsl_tree) {
-    logger.msg(Arc::ERROR,"Failed parsing RSL"); goto exit;
+    logger.msg(Arc::ERROR,fail="Failed parsing RSL"); goto exit;
   };
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_SOFTWARE_PARAM,&tmp_param) != 0) {
-   logger.msg(Arc::ERROR,"Broken RSL in clientsoftware"); goto exit;
+   logger.msg(Arc::ERROR,fail="Broken RSL in clientsoftware"); goto exit;
   };
   if(tmp_param[0] != NULL) {
     job_desc.clientsoftware=tmp_param[0];
@@ -541,20 +542,20 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_JOB_ID_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in jobid"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in jobid"); goto exit;
   };
   if(tmp_param[0]) job_desc.jobid=tmp_param[0];
   if(job_desc.jobid.find('/') != std::string::npos) {
     globus_free(tmp_param);
-    logger.msg(Arc::ERROR,"slashes are not allowed in jobid"); goto exit;
+    logger.msg(Arc::ERROR,fail="slashes are not allowed in jobid"); goto exit;
   };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_ACTION_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in action"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in action"); goto exit;
   };
   if(tmp_param[0] == NULL) {
-    logger.msg(Arc::ERROR,"Missing action in RSL - using default");
+    logger.msg(Arc::INFO,"Missing action in RSL - using default");
     job_desc.action="request";
   } else {
     job_desc.action=tmp_param[0];
@@ -568,74 +569,74 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
 /*
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_LRMS_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in lrmstype"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in lrmstype"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.lrms=tmp_param[0]; };
   globus_free(tmp_param);
 */
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_QUEUE_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in queue"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in queue"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.queue=tmp_param[0]; }
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_REPLICA_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in replicacollection"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in replicacollection"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.rc=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_LIFETIME_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in lifetime"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in lifetime"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.lifetime=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_STARTTIME_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in starttime"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in starttime"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.processtime=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_JOBNAME_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in jobname"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in jobname"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.jobname=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_JOBREPORT_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in jobreport"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in jobreport"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.jobreport=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_RERUN_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in rerun"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in rerun"); goto exit;
   };
   if(tmp_param[0] != NULL) {
     if(!stringtoint(std::string(tmp_param[0]),job_desc.reruns)) {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"Bad integer in rerun"); goto exit;
+      logger.msg(Arc::ERROR,fail="Bad integer in rerun"); goto exit;
     };
   };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_DISKSPACE_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in disk"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in disk"); goto exit;
   };
   if(tmp_param[0] != NULL) {
     double ds = 0.0;
     if((sscanf(tmp_param[0],"%lf",&ds) != 1) || (ds < 0)) {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"disk value is bad"); goto exit;
+      logger.msg(Arc::ERROR,fail="disk value is bad"); goto exit;
     };
     job_desc.diskspace=(unsigned long long int)(ds*1024*1024*1024); /* unit - GB */
   };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_NOTIFY_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in notify"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in notify"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.notify=tmp_param[0]; };
   globus_free(tmp_param);
@@ -643,22 +644,22 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   if(use_executable) {
     if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_EXECUTABLE_PARAM,&tmp_param) != 0) {
-      logger.msg(Arc::ERROR,"Broken RSL in executable"); goto exit;
+      logger.msg(Arc::ERROR,fail="Broken RSL in executable"); goto exit;
     };
     if(tmp_param[0] == NULL) {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"Missing executable in RSL"); goto exit;
+      logger.msg(Arc::ERROR,fail="Missing executable in RSL"); goto exit;
     };
     job_desc.arguments.push_back(std::string(tmp_param[0]));
     globus_free(tmp_param);
   };
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_MULTI_LITERAL,
                             NG_RSL_ARGUMENTS_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in arguments"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in arguments"); goto exit;
   };
   if((!use_executable) && (tmp_param[0] == NULL)) {
     globus_free(tmp_param);
-    logger.msg(Arc::ERROR,"Missing arguments in RSL"); goto exit;
+    logger.msg(Arc::ERROR,fail="Missing arguments in RSL"); goto exit;
   };
   for(int i=0;tmp_param[i]!=NULL;i++) {
     job_desc.arguments.push_back(std::string(tmp_param[i]));
@@ -666,7 +667,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SEQUENCE,
                             NG_RSL_INPUT_DATA_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in inputdata"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in inputdata"); goto exit;
   };
   job_desc.inputdata.clear();
   job_desc.downloads=0;
@@ -679,7 +680,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SEQUENCE,
                             NG_RSL_OUTPUT_DATA_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in outputdata"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in outputdata"); goto exit;
   };
   job_desc.outputdata.clear();
   job_desc.uploads=0;
@@ -692,37 +693,37 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_STDLOG_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in gmlog"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in gmlog"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.stdlog=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_STDOUT_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in stdout"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in stdout"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.stdout_=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_STDERR_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in stderr"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in stderr"); goto exit;
   };
   if(tmp_param[0] != NULL) { job_desc.stderr_=tmp_param[0]; };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_STDIN_PARAM3,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in stdin"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in stdin"); goto exit;
   };
   if(tmp_param[0] == NULL) {
     globus_free(tmp_param);
     if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_STDIN_PARAM,&tmp_param) != 0) {
-      logger.msg(Arc::ERROR,"Broken RSL"); goto exit;
+      logger.msg(Arc::ERROR,fail="Broken RSL"); goto exit;
     };
     if(tmp_param[0] == NULL) {
       globus_free(tmp_param);
       if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                NG_RSL_STDIN_PARAM2,&tmp_param) != 0) {
-        logger.msg(Arc::ERROR,"Broken RSL"); goto exit;
+        logger.msg(Arc::ERROR,fail="Broken RSL"); goto exit;
       };
     };
   };
@@ -730,30 +731,30 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_FTPTHREADS_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in ftpthreads"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in ftpthreads"); goto exit;
   };
   if(tmp_param[0] != NULL) { 
     if(!stringtoint(std::string(tmp_param[0]),job_desc.gsiftpthreads)) {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"Bad integer in ftpthreads"); goto exit;
+      logger.msg(Arc::ERROR,fail="Bad integer in ftpthreads"); goto exit;
     };
   };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_CACHE_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in cache"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in cache"); goto exit;
   };
   if(tmp_param[0] != NULL) { 
     if( strcmp(tmp_param[0],"yes") && strcmp(tmp_param[0],"no") ) {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"Bad value in cache"); goto exit;
+      logger.msg(Arc::ERROR,fail="Bad value in cache"); goto exit;
     };
     job_desc.cache = std::string(tmp_param[0]);
   };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_HOSTNAME_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in hostname"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in hostname"); goto exit;
   };
   if(tmp_param[0] != NULL) {
     if(job_desc.clientname.length()!=0) { /* keep predefined value */
@@ -768,7 +769,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_DRY_RUN_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in dryrun"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in dryrun"); goto exit;
   };
   if(tmp_param[0] != NULL) { 
     if(!strcasecmp(tmp_param[0],"yes")) job_desc.dryrun=true;
@@ -776,7 +777,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_SESSION_TYPE_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in sessiondirectorytype"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in sessiondirectorytype"); goto exit;
   };
   if(tmp_param[0] != NULL) {
     if(!strcasecmp(tmp_param[0],"full")) { job_desc.fullaccess=true; }
@@ -786,13 +787,13 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
       job_desc.fullaccess=false;
     } else {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"session_directory_type value is bad"); goto exit;
+      logger.msg(Arc::ERROR,fail="session_directory_type value is bad"); goto exit;
     };
   };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_CRED_SERVER_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL in credentialserver"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL in credentialserver"); goto exit;
   };
   if(tmp_param[0] != NULL) {
     job_desc.credentialserver=tmp_param[0];
@@ -807,7 +808,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   };
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_MULTI_LITERAL,
                             NG_RSL_EXECUTABLES_PARAM,&tmp_param) != 0) {
-    logger.msg(Arc::ERROR,"Broken RSL"); goto exit;
+    logger.msg(Arc::ERROR,fail="Broken RSL"); goto exit;
   };
   for(int i=0;tmp_param[i]!=NULL;i++) {
     add_non_cache(tmp_param[i],job_desc.inputdata);
@@ -816,7 +817,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   if(acl) {
     if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                NG_RSL_ACL_PARAM,&tmp_param) != 0) {
-      logger.msg(Arc::ERROR,"Broken RSL in acl"); goto exit;
+      logger.msg(Arc::ERROR,fail="Broken RSL in acl"); goto exit;
     };
     if(tmp_param[0] != NULL) {
       (*acl)=tmp_param[0];
@@ -826,6 +827,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   res=true;
 exit:
   if(rsl_tree) globus_rsl_free_recursive(rsl_tree);
+  if((!res) && (!fail.empty()) && (failure)) *failure=fail;
   return res;
 }
 

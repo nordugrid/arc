@@ -10,7 +10,7 @@
 #include "../../files/info_types.h"
 
 bool parse_rsl_for_action(const char* fname,std::string &action_s,std::string &jobid_s,std::string &lrms,std::string &queue);
-bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL);
+bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL,std::string* failure = NULL);
 bool preprocess_rsl(const std::string &fname,const std::string &session_dir,const std::string &jobid);
 bool process_rsl(JobUser &user,const JobDescription &desc);
 bool process_rsl(JobUser &user,const JobDescription &desc,JobLocalDescription &job_desc);
