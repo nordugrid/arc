@@ -295,8 +295,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Analyze JSDL (checking, substituting, etc)
   std::string acl("");
-  if(!parse_job_req(fname.c_str(),job_,&acl)) {
-    failure_="Failed to parse job/action description.";
+  if(!parse_job_req(fname.c_str(),job_,&acl,&failure_)) {
+    if(failure_.empty()) failure_="Failed to parse job/action description.";
     failure_type_=ARexJobDescriptionError;
     delete_job_id();
     return;
@@ -306,7 +306,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // accepts any LRMS in request.
   if((!job_.lrms.empty()) && (!config_.User()->DefaultLRMS().empty())) {
     if(job_.lrms != config_.User()->DefaultLRMS()) {
-      failure_="Request for LRMS "+job_.lrms+" is not allowed.";
+      failure_="-------------------------";
       failure_type_=ARexJobDescriptionError;
       delete_job_id();
       return;

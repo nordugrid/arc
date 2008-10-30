@@ -175,11 +175,11 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
 }
 
 /* parse job request, fill job description (local) */
-bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl) {
+bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl,std::string* failure) {
   switch(detect_job_req_type(fname.c_str())) {
 #ifdef HAVE_GLOBUS_RSL
     case job_req_rsl: {
-      return parse_rsl(fname,job_desc,acl);
+      return parse_rsl(fname,job_desc,acl,failure);
     }; break;
 #endif
     case job_req_jsdl: {
@@ -187,7 +187,9 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
       if(!f.is_open()) return false;
       JSDLJob j(f);
       if(!j) return false;
-      return j.parse(job_desc,acl);
+      bool res = j.parse(job_desc,acl);
+      if((!res) && (failure)) *failure=j.get_failure();
+      return res;
     }; break;
     default: break;
   };
