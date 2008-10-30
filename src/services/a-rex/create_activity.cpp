@@ -41,7 +41,17 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   // HPC Basic Profile 1.0 comply (these fault handlings are defined in the KnowARC standards 
   // conformance roadmap 2nd release)
 
-  Arc::XMLNode check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["WorkingDirectory"];
+  Arc::XMLNode check;
+  Arc::NS jsdl_namespaces;
+
+  jsdl_namespaces[""] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+
+  check.Namespaces(jsdl_namespaces);
+
+  check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["WorkingDirectory"];
 
   if (check) {
     logger_.msg(Arc::ERROR, "jsdl-posix:WorkingDirectory: we do not support this element");
@@ -67,6 +77,16 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
     logger_.msg(Arc::ERROR, "jsdl-posix:UserName: we do not support this element");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-posix:UserName is part of the JSDL document");
     InvalidRequestMessageFault(fault,"jsdl-posix:UserName","We do not support this element");
+    out.Destroy();
+    return Arc::MCC_Status();
+  };
+
+  check = in["ActivityDocument"]["JobDefinition"]["Application"]["HPCProfileApplication"]["UserName"];
+
+  if (check) {
+    logger_.msg(Arc::ERROR, "jsdl-hpcpa:UserName: we do not support this element");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-hpcpa:UserName is part of the JSDL document");
+    InvalidRequestMessageFault(fault,"jsdl-hpcpa:UserName","We do not support this element");
     out.Destroy();
     return Arc::MCC_Status();
   };
