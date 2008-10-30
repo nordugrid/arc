@@ -400,6 +400,57 @@ int main(void) {
   attrqry_response->GetXML(str);
   std::cout<<"Response for Attribute Query: "<<str<<std::endl;
 
+
+  // -------------------------------------------------------
+  //   Comsume the saml response
+  // -------------------------------------------------------
+  //Consume the response from AA
+  Arc::XMLNode saml_response;
+  saml_response = (*attrqry_response).Body().Child(0);
+
+  std::string resp_time = saml_response.Attribute("IssueInstant");
+
+  //<samlp:Status/>
+  std::string statuscode_value = saml_response["samlp:Status"]["samlp:StatusCode"];
+  if(statuscode_value == "urn:oasis:names:tc:SAML:2.0:status:Success")
+    logger.msg(Arc::INFO, "The StatusCode is Success");
+  
+  //<saml:Assertion/>
+  Arc::XMLNode assertion = saml_response["saml:Assertion"];
+
+  //We don't need to verify the saml signature, because the idp.testshib.org does not return 
+  //saml response with signature
+ 
+  //<saml:Condition/>, TODO: Condition checking
+  Arc::XMLNode cond_nd = assertion["saml:Conditions"];
+
+  //<saml:AttributeStatement/>
+  Arc::XMLNode attr_statement = assertion["saml:AttributeStatement"];
+
+  //<saml:Attribue/>
+  Arc::XMLNode attr_nd;
+  std::vector<std::string> attributes_value;
+  for(int i=0;;i++) {
+    attr_nd = attr_statement["saml:Attribute"][i];
+    if(!attr_nd) break;
+
+    std::string name = attr_nd.Attribute("Name");
+    std::string nameformat = attr_nd.Attribute("NameFormat");
+
+    for(int j=0;;j++) {
+      Arc::XMLNode attr_value = attr_nd["saml:AttributeValue"][j];
+      if(!attr_value) break;
+      std::string str;
+      str.append("Name=").append(name).append(" Value=").append(attr_value);
+      attributes_value.push_back(str);
+    }
+  }
+
+  for(int i=0; i<attributes_value.size(); i++) {
+    std::cout<<"Attribute Value: "<<attributes_value[i]<<std::endl;
+  }
+
+
   delete response;
   delete attrqry_response;
 
