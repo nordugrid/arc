@@ -96,8 +96,11 @@ sub main {
     %config = (%config, $parser->get_section('grid-manager'));
     %config = (%config, $parser->get_section('infosys'));
 
+    my @qnames = $parser->list_subsections('queue');
+    $log->error("No queues defined") unless @qnames;
+
     $config{queues} = {};
-    for my $qname ($parser->list_subsections('queue')) {
+    for my $qname (@qnames) {
         my %queue_config = $parser->get_section("queue/$qname");
         $config{queues}{$qname} = \%queue_config;
     
@@ -111,7 +114,7 @@ sub main {
             $config{pbs_scheduler} = 'maui';
         }
     }
-    
+
     # throw away default queue string following lrms
     ($config{lrms}, $config{defaultqueue}) = split " ", $config{lrms};
 

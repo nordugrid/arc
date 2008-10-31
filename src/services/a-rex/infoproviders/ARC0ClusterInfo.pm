@@ -87,14 +87,20 @@ sub _collect($$) {
     for my $jobid (keys %{$gmjobs_info}) {
         my $job = $gmjobs_info->{$jobid};
         my $qname = $job->{queue};
+
         unless ($qname) {
             my $msg = "Queue not defined for job $jobid";
             if ($config->{defaultqueue}) {
-                $log->warning($msg.". Assuming default: ".$config->{defaultqueue});
+                $log->info($msg.". Assuming default: ".$config->{defaultqueue});
                 $qname = $job->{queue} = $config->{defaultqueue};
             } else {
-                $log->warning($msg.". No default queue defined");
-                die;
+                my @qnames = keys %{$config->{queues}};
+                if (@qnames == 1) {
+                    $log->info($msg.". Assuming: ".$qnames[0]);
+                } else {
+                    $log->warning($msg." and no default queue is defined. Picked random queue: ".$qnames[0]);
+                }
+                $qname = $job->{queue} = $qnames[0];
             }
         }
         if ($job->{status} eq 'INLRMS') {
