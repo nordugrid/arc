@@ -26,11 +26,11 @@ namespace Arc {
     virtual ~Broker();
     virtual void SortTargets() = 0;
     std::vector<Arc::ExecutionTarget> PossibleTargets;
+    bool TargetSortingDone;
     
   private:	
     std::vector<Arc::ExecutionTarget>::iterator current;
     bool PreFilteringDone;
-    bool TargetSortingDone;
     
   };
   
