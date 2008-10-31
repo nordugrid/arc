@@ -13,7 +13,7 @@
             <xsd:element name="Peers">
                 <xsd:sequence>
                     <!-- URL specifies contact endpoint of Information Registration service. -->
-                    xsd:element name="URL" type="xsd:string"/>
+                    <xsd:element name="URL" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:elememnt>
         </xsd:sequence>
