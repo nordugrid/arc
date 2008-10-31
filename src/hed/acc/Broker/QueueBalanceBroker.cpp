@@ -22,7 +22,7 @@ namespace Arc {
 
   void QueueBalanceBroker::SortTargets() {
   	std::sort( PossibleTargets.begin(), PossibleTargets.end(), CompareExecutionTarget);
-
+	TargetSortingDone = true;
   }
 } // namespace Arc
 

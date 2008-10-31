@@ -27,6 +27,7 @@ namespace Arc {
       j = rand() % PossibleTargets.size();
       std::iter_swap(PossibleTargets.begin() + i, PossibleTargets.begin() + j);
     }      
+    TargetSortingDone = true;
   }
 
 } // namespace Arc
