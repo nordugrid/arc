@@ -24,11 +24,14 @@ namespace ARex {
 
 static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
 static const std::string BES_FACTORY_NPREFIX("bes-factory");
+static const std::string BES_FACTORY_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-factory");
 
 static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
 static const std::string BES_MANAGEMENT_NPREFIX("bes-factory");
+static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-management");
 
 static const std::string BES_ARC_NPREFIX("a-rex");
+
 
 static Arc::XMLNode BESFactoryResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(BES_FACTORY_NPREFIX + ":" + opname + "Response");
@@ -361,8 +364,8 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]="http://www.nordugrid.org/schemas/a-rex";
-  ns_[BES_FACTORY_NPREFIX]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-  ns_[BES_MANAGEMENT_NPREFIX]="http://schemas.ggf.org/bes/2006/08/bes-management";
+  ns_[BES_FACTORY_NPREFIX]=BES_FACTORY_NAMESPACE;
+  ns_[BES_MANAGEMENT_NPREFIX]=BES_MANAGEMENT_NAMESPACE;
   ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
   ns_["wsa"]="http://www.w3.org/2005/08/addressing";
   ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";

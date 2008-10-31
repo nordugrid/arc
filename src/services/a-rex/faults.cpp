@@ -28,9 +28,26 @@
 
 namespace ARex {
 
+static const std::string BES_FACTORY_FAULT_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault");
+
+static void SetFaultResponse(Arc::SOAPFault& fault) {
+  // Fetch top element of SOAP message - should be better way
+  Arc::SOAPEnvelope res(((Arc::XMLNode)fault).Parent().Parent()); // Fault->Body->Envelope
+  Arc::WSAHeader(res).Action(BES_FACTORY_FAULT_URL);
+}
+
+void ARexService::GenericFault(Arc::SOAPFault& fault) {
+  Arc::SOAPEnvelope res(((Arc::XMLNode)fault).Parent().Parent()); // Fault->Body->Envelope
+  Arc::WSAHeader(res).Action("");
+}
+
 void ARexService::NotAuthorizedFault(Arc::XMLNode fault) {
   fault.Name("bes-factory:NotAuthorizedFault");
-  return;
+}
+
+void ARexService::NotAuthorizedFault(Arc::SOAPFault& fault) {
+  NotAuthorizedFault(fault.Detail(true).NewChild("dummy"));
+  SetFaultResponse(fault);
 }
 
 void ARexService::NotAcceptingNewActivitiesFault(Arc::XMLNode fault) {
@@ -40,6 +57,7 @@ void ARexService::NotAcceptingNewActivitiesFault(Arc::XMLNode fault) {
 
 void ARexService::NotAcceptingNewActivitiesFault(Arc::SOAPFault& fault) {
   NotAcceptingNewActivitiesFault(fault.Detail(true).NewChild("dummy"));
+  SetFaultResponse(fault);
 }
 
 void ARexService::UnsupportedFeatureFault(Arc::XMLNode fault,const std::string& feature) {
@@ -50,6 +68,7 @@ void ARexService::UnsupportedFeatureFault(Arc::XMLNode fault,const std::string& 
 
 void ARexService::UnsupportedFeatureFault(Arc::SOAPFault& fault,const std::string& feature) {
   UnsupportedFeatureFault(fault.Detail(true).NewChild("dummy"),feature);
+  SetFaultResponse(fault);
 }
 
 void ARexService::CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
@@ -61,6 +80,7 @@ void ARexService::CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const
 
 void ARexService::CantApplyOperationToCurrentStateFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message) {
   CantApplyOperationToCurrentStateFault(fault.Detail(true).NewChild("dummy"),gm_state,failed,message);
+  SetFaultResponse(fault);
 }
 
 void ARexService::OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
@@ -72,6 +92,7 @@ void ARexService::OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const
 
 void ARexService::OperationWillBeAppliedEventuallyFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message) {
   OperationWillBeAppliedEventuallyFault(fault.Detail(true).NewChild("dummy"),gm_state,failed,message);
+  SetFaultResponse(fault);
 }
 
 void ARexService::UnknownActivityIdentifierFault(Arc::XMLNode fault,const std::string& message) {
@@ -82,6 +103,7 @@ void ARexService::UnknownActivityIdentifierFault(Arc::XMLNode fault,const std::s
 
 void ARexService::UnknownActivityIdentifierFault(Arc::SOAPFault& fault,const std::string& message) {
   UnknownActivityIdentifierFault(fault.Detail(true).NewChild("dummy"),message);
+  SetFaultResponse(fault);
 }
 
 void ARexService::InvalidRequestMessageFault(Arc::XMLNode fault,const std::string& element,const std::string& message) {
@@ -93,7 +115,9 @@ void ARexService::InvalidRequestMessageFault(Arc::XMLNode fault,const std::strin
 
 void ARexService::InvalidRequestMessageFault(Arc::SOAPFault& fault,const std::string& element,const std::string& message) {
   InvalidRequestMessageFault(fault.Detail(true).NewChild("dummy"),element,message);
+  SetFaultResponse(fault);
 }
+
 
 }
 

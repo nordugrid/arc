@@ -43,6 +43,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
   Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath);
   Arc::MCC_Status Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf);
+  void GenericFault(Arc::SOAPFault& fault);
   void NotAuthorizedFault(Arc::XMLNode fault);
   void NotAuthorizedFault(Arc::SOAPFault& fault);
   void NotAcceptingNewActivitiesFault(Arc::XMLNode fault);

@@ -84,6 +84,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
         // Failed to create new job (no corresponding BES fault defined - using generic SOAP error)
         logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job");
         Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,("Failed to create new activity: "+failure).c_str());
+        GenericFault(fault);
       };
     };
     out.Destroy();
