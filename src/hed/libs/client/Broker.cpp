@@ -368,6 +368,11 @@ namespace Arc {
     
   ExecutionTarget& Broker::GetBestTarget(bool &EndOfList) {
 
+   if(PossibleTargets.size() <= 0) {
+     EndOfList = true;
+     return *PossibleTargets.end();
+   }
+
     if (!TargetSortingDone){
       logger.msg(VERBOSE, "Target sorting not done, sorting them now");
       SortTargets();
