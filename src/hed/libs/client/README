@@ -1,4 +1,4 @@
-Arclib - library for writing command line interface (client)
+libarcclient - library for writing command line interface (client)
 
 This folder contains the framework for building command line interfaces. 
 The following classes/files are present:
@@ -10,20 +10,23 @@ o ExecutionTarget - Generic execution target (flattened glue2 structure)
 o JobController - Base class for specialization (see src/hed/acc)
 o Job - Generic representation of a job
 o JobSupervisor - Responsible for loading JobControllers
-o RandomBroker - Random Broker
-o SmartBroker - Smart Broker
 o Submitter - Base class for specialization (see src/hed/acc)
 o TargeGenerator - Loads TargetRetrievers and performs resource discovery
 o TargetRetriever - Base class for specialization (see src/hed/acc)
 o UserConfig - Class for handling client configuration
 
-See also the technical documentation and user guide:
+Several of the above listed classes are base classes for ARC Client 
+Components (ACCs) which are available in:
 
-doc/client
+src/hed/acc
 
 For command line interfaces built upon functionality contained within 
 this library see
 
 src/clients/arclib/
+
+See also the technical documentation and user guide:
+
+src/doc/client
 
 
