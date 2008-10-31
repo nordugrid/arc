@@ -1,5 +1,4 @@
 lib_LTLIBRARIES = libarcclient.la
-#noinst_PROGRAMS = test_broker
 noinst_PROGRAMS = test_jobdescription
 
 libarcclient_ladir = $(pkgincludedir)/client
@@ -23,7 +22,3 @@ test_jobdescription_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir
 test_jobdescription_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_jobdescription_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la libarcclient.la
 
-#test_broker_SOURCES  = test_broker.cpp
-#test_broker_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-#test_broker_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-#test_broker_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la
