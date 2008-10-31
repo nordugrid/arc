@@ -1,0 +1,9 @@
+Broker plugins (ACC) for performing resource brokering
+
+Specialized brokers:
+
+o QueueBalanceBroker
+o RandomBroker
+
+See src/clients/arclib/arcsub.cpp for implementation examples and 
+src/doc/clients for documentation.
