@@ -174,6 +174,7 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
   }
 
   failure="job description contains no recognisable executable";
+  failure_type=MissingFailure;
   logger.msg(Arc::ERROR, failure);
   return false;
 
@@ -229,7 +230,8 @@ bool JSDLJob::get_environments(std::list<std::pair<std::string,std::string> >& e
        Arc::XMLNode name = env.Attribute("name");
        std::string value = (std::string)env;
        if( !name ) {
-           failure="JSDL: POSIX: POSIXApplication without name attribute";
+           failure="JSDL: POSIXApplication: Environment without name attribute";
+           failure_type=SyntaxFailure;
            logger.msg(Arc::ERROR, failure);
            return false;
        }
@@ -245,7 +247,8 @@ bool JSDLJob::get_environments(std::list<std::pair<std::string,std::string> >& e
          Arc::XMLNode name = env.Attribute("name");
          std::string value = (std::string)env;
          if( !name ) {
-             failure="JSDL: HPC: HPCProfileApplication without name attribute";
+             failure="JSDL: HPCProfileApplication: Environment without name attribute";
+             failure_type=SyntaxFailure;
              logger.msg(Arc::ERROR, failure);
              return false;
          }
@@ -288,7 +291,8 @@ bool JSDLJob::get_acl(std::string& acl) {
   Arc::XMLNode typeNode = aclNode["Type"];
   Arc::XMLNode contentNode = aclNode["Content"];
   if( !contentNode ) {
-    failure="JSDL: acl element wrongly formated - miissng Content element";
+    failure="JSDL: ARC: acl element wrongly formated - miissng Content element";
+    failure_type=SyntaxFailure;
     return false;
   };
   if( (!typeNode) || ( ( (std::string) typeNode ) == "GACL" ) || ( ( (std::string) typeNode ) == "ARC" ) ) {
@@ -302,7 +306,8 @@ bool JSDLJob::get_acl(std::string& acl) {
     }
     if( str_content != "" ) acl=str_content;
   } else {
-    failure="JSDL: unsupported ACL type specified: "+((std::string)typeNode);
+    failure="JSDL: ARC: unsupported ACL type specified: "+((std::string)typeNode);
+    failure_type=UnsupportedFailure;
     logger.msg(Arc::ERROR, failure);
     return false;
   };
@@ -462,7 +467,8 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
     Arc::XMLNode ds = jsdl_document["JobDescription"]["DataStaging"][i];
     Arc::XMLNode fileSystemNameNode = ds["FilesystemName"];
     if( (bool)fileSystemNameNode ) {
-      failure="FilesystemName defined in job description - all files must be relative to session directory[jsdl:FilesystemName]";
+      failure="JSDL: DataStaging: FilesystemName in job description is not supported - all files must be relative to session directory";
+      failure_type=UnsupportedFailure;
       logger.msg(Arc::ERROR, failure);
       return false;
     };
@@ -610,21 +616,66 @@ bool JSDLJob::get_reruns(int& n) {
 
 bool JSDLJob::check(void) {
   if(!jsdl_document) {
-    failure="job description is missing";
+    failure="JSDL: document is missing";
+    failure_type=SyntaxFailure;
     logger.msg(Arc::ERROR, failure);
     return false;
   };
 
   if( !(jsdl_document["JobDescription"]) ) {
-    failure="job description is missing [JobDescription] element";
+    failure="JSDL: JobDescription is missing";
+    failure_type=SyntaxFailure;
     logger.msg(Arc::ERROR, failure);
     return false;
   };
+
+  // HPC Basic Profile 1.0 comply (these fault handlings are defined in the KnowARC standards
+  // conformance roadmap 2nd release)
+
   if((!jsdl_posix) && (!jsdl_hpcpa)) {
-    failure="job description is missing POSIX and HPCP application elements";
+    failure="JSDL: JobDescription is missing at least one of POSIX or HPCP application elements";
+    failure_type=MissingFailure;
     logger.msg(Arc::ERROR, failure);
     return false;
   };
+
+  if(((bool)jsdl_posix) && ((bool)jsdl_posix["WorkingDirectory"])) {
+    failure="JSDL: POSIX: WorkingDirectory is not supported by this service";
+    failure_type=UnsupportedFailure;
+    logger.msg(Arc::ERROR, failure);
+    return false;
+  };
+
+  if(((bool)jsdl_hpcpa) && ((bool)jsdl_hpcpa["WorkingDirectory"])) {
+    failure="JSDL: HPCPApplication: WorkingDirectory is not supported by this service";
+    failure_type=UnsupportedFailure;
+    logger.msg(Arc::ERROR, failure);
+    return false;
+  };
+
+  if(((bool)jsdl_posix) && ((bool)jsdl_posix["UserName"])) {
+    failure="JSDL: POSIX: UserName is not supported by this service";
+    failure_type=UnsupportedFailure;
+    logger.msg(Arc::ERROR, failure);
+    return false;
+  };
+
+  if(((bool)jsdl_posix) && ((bool)jsdl_posix["GroupName"])) {
+    failure="JSDL: POSIX: GroupName is not supported by this service";
+    failure_type=UnsupportedFailure;
+    logger.msg(Arc::ERROR, failure);
+    return false;
+  };
+
+  if(((bool)jsdl_hpcpa) && ((bool)jsdl_hpcpa["UserName"])) {
+    failure="JSDL: HPCPApplication: UserName is not supported by this service";
+    failure_type=UnsupportedFailure;
+    logger.msg(Arc::ERROR, failure);
+    return false;
+  };
+
+  // End of the HPC BP 1.0 fault handling part
+
   return true;
 }
 

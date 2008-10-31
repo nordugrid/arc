@@ -134,6 +134,7 @@ static ARexJobFailure setfail(JobReqResult res) {
     case JobReqInternalFailure: return ARexJobInternalError;
     case JobReqSyntaxFailure: return ARexJobDescriptionSyntaxError;
     case JobReqUnsupportedFailure: return ARexJobDescriptionUnsupportedError;
+    case JobReqMissingFailure: return ARexJobDescriptionMissingError;
     case JobReqLogicalFailure: return ARexJobDescriptionLogicalError;
   };
   return ARexJobInternalError;
@@ -307,7 +308,10 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Analyze JSDL (checking, substituting, etc)
   std::string acl("");
   if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl,&failure_))) != ARexJobNoError) {
-    if(failure_.empty()) failure_="Failed to parse job/action description.";
+    if(failure_.empty()) {
+      failure_="Failed to parse job/action description.";
+      failure_type_=ARexJobInternalError;
+    };
     delete_job_id();
     return;
   };
@@ -316,8 +320,9 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // accepts any LRMS in request.
   if((!job_.lrms.empty()) && (!config_.User()->DefaultLRMS().empty())) {
     if(job_.lrms != config_.User()->DefaultLRMS()) {
-      failure_="-------------------------";
-      failure_type_=ARexJobDescriptionLogicalError;
+      failure_="Requested LRMS is not supported by this service";
+      failure_type_=ARexJobInternalError;
+      //failure_type_=ARexJobDescriptionLogicalError;
       delete_job_id();
       return;
     };
@@ -327,7 +332,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   if(job_.queue.empty()) job_.queue=config_.User()->DefaultQueue();
   if(job_.queue.empty()) {
     failure_="Request has no queue defined.";
-    failure_type_=ARexJobDescriptionLogicalError;
+    failure_type_=ARexJobDescriptionMissingError;
     delete_job_id();
     return;
   };
@@ -335,7 +340,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     for(std::list<std::string>::const_iterator q = config_.Queues().begin();;++q) {
       if(q == config_.Queues().end()) {
         failure_="Requested queue "+job_.queue+" does not match any of available queues.";
-        failure_type_=ARexJobDescriptionLogicalError;
+        //failure_type_=ARexJobDescriptionLogicalError;
+        failure_type_=ARexJobInternalError;
         delete_job_id();
         return;
       };

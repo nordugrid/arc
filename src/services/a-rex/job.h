@@ -42,6 +42,7 @@ typedef enum {
   ARexJobInternalError, // Failed during some internal operation - like writing some file
   ARexJobConfigurationError, // Problem detected which can be fixed by adjusting configuration of service
   ARexJobDescriptionUnsupportedError, // Job asks for feature or combination not supported by service
+  ARexJobDescriptionMissingError, // Job is missing optional but needed for this service element
   ARexJobDescriptionSyntaxError, // Job description is malformed - missing elements, wrong names, etc.
   ARexJobDescriptionLogicalError // Job request otherwise corect has some values out of scope of service
 } ARexJobFailure;

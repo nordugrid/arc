@@ -41,63 +41,6 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   // HPC Basic Profile 1.0 comply (these fault handlings are defined in the KnowARC standards 
   // conformance roadmap 2nd release)
 
-  Arc::NS jsdl_namespaces;
-  jsdl_namespaces[""] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
-  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-
-  Arc::XMLNode check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["WorkingDirectory"];
-  check.Namespaces(jsdl_namespaces);
-
-  if (check) {
-    logger_.msg(Arc::ERROR, "jsdl-posix:WorkingDirectory: we do not support this element");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-posix:WorkingDirectory is part of the JSDL document");
-    InvalidRequestMessageFault(fault,"jsdl-posix:WorkingDirectory","We do not support this element");
-    out.Destroy();
-    return Arc::MCC_Status();
-  };
-
-  check = in["ActivityDocument"]["JobDefinition"]["Application"]["HPCProfileApplication"]["WorkingDirectory"];
-
-  if (check) {
-    logger_.msg(Arc::ERROR, "jsdl-hpcpa:WorkingDirectory: we do not support this element");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-hpcpa:WorkingDirectory is part of the JSDL document");
-    InvalidRequestMessageFault(fault,"jsdl-hpcpa:WorkingDirectory","We do not support this element");
-    out.Destroy();
-    return Arc::MCC_Status();
-  };
-
-  check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["UserName"];
-
-  if (check) {
-    logger_.msg(Arc::ERROR, "jsdl-posix:UserName: we do not support this element");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-posix:UserName is part of the JSDL document");
-    InvalidRequestMessageFault(fault,"jsdl-posix:UserName","We do not support this element");
-    out.Destroy();
-    return Arc::MCC_Status();
-  };
-
-  check = in["ActivityDocument"]["JobDefinition"]["Application"]["HPCProfileApplication"]["UserName"];
-
-  if (check) {
-    logger_.msg(Arc::ERROR, "jsdl-hpcpa:UserName: we do not support this element");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-hpcpa:UserName is part of the JSDL document");
-    InvalidRequestMessageFault(fault,"jsdl-hpcpa:UserName","We do not support this element");
-    out.Destroy();
-    return Arc::MCC_Status();
-  };
-
-  check = in["ActivityDocument"]["JobDefinition"]["Application"]["POSIXApplication"]["GroupName"];
-
-  if (check) {
-    logger_.msg(Arc::ERROR, "jsdl-posix:GroupName: we do not support this element");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"The jsdl-posix:GroupName is part of the JSDL document");
-    InvalidRequestMessageFault(fault,"jsdl-posix:GroupName","We do not support this element");
-    out.Destroy();
-    return Arc::MCC_Status();
-  };
-
  // End of the HPC BP 1.0 fault handling part
 
   std::string delegation;
@@ -115,11 +58,34 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   };
   ARexJob job(jsdl,config,delegation,clientid,logger_);
   if(!job) {
+    ARexJobFailure failure_type = job;
     std::string failure = job.Failure();
-    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure);
-    // Failed to create new job (no corresponding BES fault defined - using generic SOAP error)
-    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,("Failed to create new activity: "+failure).c_str());
+    switch(failure_type) {
+      case ARexJobDescriptionUnsupportedError: {
+        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Unsupported feature in job description");
+        UnsupportedFeatureFault(fault,failure);
+      }; break;
+      case ARexJobDescriptionMissingError: {
+        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Missing needed element in job description");
+        UnsupportedFeatureFault(fault,failure);
+      }; break;
+      case ARexJobDescriptionLogicalError: {
+        std::string element;
+        std::string::size_type pos = failure.find(' ');
+        if(pos != std::string::npos) {
+          element=failure.substr(0,pos);
+          failure=failure.substr(pos+1);
+        };
+        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Logical error in job description");
+        InvalidRequestMessageFault(fault,element,failure);
+      }; break;
+      default: {
+        logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure);
+        // Failed to create new job (no corresponding BES fault defined - using generic SOAP error)
+        logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job");
+        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,("Failed to create new activity: "+failure).c_str());
+      };
+    };
     out.Destroy();
     return Arc::MCC_Status();
   };

@@ -9,6 +9,7 @@ typedef enum {
   JobReqSuccess,
   JobReqInternalFailure,
   JobReqSyntaxFailure,
+  JobReqMissingFailure,
   JobReqUnsupportedFailure,
   JobReqLogicalFailure
 } JobReqResult;

@@ -16,6 +16,7 @@ class JSDLJob {
     InternalFailure,
     SyntaxFailure,
     UnsupportedFailure,
+    MissingFailure,
     LogicalFailure
   } Failure;
  private:
