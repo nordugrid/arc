@@ -44,6 +44,9 @@ class SOAPFault {
   SOAPFault(const XMLNode& body,SOAPFaultCode code,const char* reason,bool ver12);
   /** Returns true if instance refers to SOAP Fault */
   operator bool(void) { return (bool)fault; };
+  /** Returns top level Fault element.
+     This element is not automatically created. */
+  operator XMLNode(void) { return fault; };
   /** Returns Fault Code element */
   SOAPFaultCode Code(void);
   /** Set Fault Code element */
