@@ -91,10 +91,11 @@ sub main {
     my $parser = ConfigParser->new($configfile)
         or $log->error("Cannot open $configfile");
     %config = (%config, $parser->get_section('common'));
+    LogUtils->getLogger()->level($config{debug}) if defined $config{debug};
     %config = (%config, $parser->get_section('cluster'));
     %config = (%config, $parser->get_section('grid-manager'));
     %config = (%config, $parser->get_section('infosys'));
-    
+
     $config{queues} = {};
     for my $qname ($parser->list_subsections('queue')) {
         my %queue_config = $parser->get_section("queue/$qname");

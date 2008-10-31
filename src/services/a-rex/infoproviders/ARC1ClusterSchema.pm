@@ -123,12 +123,12 @@ sub arc1_info_schema {
             'RequestedSlots'        => [ '' ],
             'ReservationPolicy'     => [ '*' ],
             'Tag'                   => [ '*' ],
-            'MappingPolicy' => [ $mapping_pol_t ],
-            'Associations' => {
-                'ComputingEndpointID'         => [ '' ],
-                'ExecutionEnvironmentLocalID' => [ '' ],
-                'ComputingActivityID'         => [ '' ],
-             },
+            #'MappingPolicy' => [ $mapping_pol_t ],
+            #'Associations' => {
+            #    'ComputingEndpointID'         => [ '' ],
+            #    'ExecutionEnvironmentLocalID' => [ '' ],
+            #    'ComputingActivityID'         => [ '' ],
+            #},
     };
 
     my $comp_manager_t = {
@@ -282,8 +282,8 @@ my $comp_activity_t = {
             'StatusPage'         => [ '*' ],
             'Complexity'         => [ '' ],
             'Otherinfo'          => [ '*' ],
-            'Location'           => $location_t,
-            'Contact'            => $contact_t,
+            #'Location'           => $location_t,
+            #'Contact'            => $contact_t,
             'TotalJobs'          => [ '' ],
             'RunningJobs'        => [ '' ],
             'WaitingJobs'        => [ '' ],
@@ -294,10 +294,10 @@ my $comp_activity_t = {
             'ComputingShares' => {
                 'ComputingShare' => [ $comp_share_t ]
             },
-            'ComputingResource' => [ $comp_manager_t ],
-            'Associations' => {
-                'ServiceID' => [ '*' ],
-            }
+            #'ComputingResource' => [ $comp_manager_t ],
+            #'Associations' => {
+            #    'ServiceID' => [ '*' ],
+            #}
     };
 
 
