@@ -13,6 +13,10 @@ namespace Arc {
   class Broker : public ACC {
     
   public:
+    /// Returns next target from Broker's list of Targets
+    /** If there are no more targets then EndOfList is set to false and 
+       reference points to invalid object - do not use it.
+       If valid object is returned then EndOfList is set to true. */
     ExecutionTarget& GetBestTarget(bool &EndOfList);
     void PreFilterTargets(Arc::TargetGenerator& targen, 
 			  Arc::JobDescription jd);
