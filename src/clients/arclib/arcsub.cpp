@@ -268,7 +268,7 @@ int main(int argc, char **argv) {
 
     while(!JobSubmitted){
       
-      Arc::ExecutionTarget target = ChosenBroker->GetBestTarget(EndOfList);
+      Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
       if(EndOfList){
 	std::cout << Arc::IString("Job submission failed, no more possible targets")<< std::endl;
 	break;
