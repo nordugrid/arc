@@ -87,5 +87,17 @@ void ARexService::InformationCollector(void) {
   };
 }
 
+bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
+  Arc::XMLNode root = infodoc_.Acquire();
+  logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
+  // TODO: filter information here.
+  root.New(doc);
+  infodoc_.Release();
+}
+
+std::string ARexService::getID() {
+  return "ARC:AREX";
+}
+
 }
 

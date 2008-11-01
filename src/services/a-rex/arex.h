@@ -63,6 +63,8 @@ class ARexService: public Arc::Service {
   virtual ~ARexService(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
   void InformationCollector(void);
+  virtual bool RegistrationCollector(Arc::XMLNode &doc);
+  virtual std::string getID();
 };
 
 } // namespace ARex
