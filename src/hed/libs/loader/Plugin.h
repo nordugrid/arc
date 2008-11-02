@@ -3,7 +3,9 @@
 
 #include <string>
 #include <map>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 
 #include <arc/loader/ModuleManager.h>
 
