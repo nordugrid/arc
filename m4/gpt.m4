@@ -4,7 +4,7 @@
 AC_DEFUN([GPT_PROG_GPT_FLAVOR_CONFIGURATION], [
 AC_ARG_VAR([GPT_FLAVOR_CONFIGURATION], [path to gpt-flavor-configuration])
 if test "x$ac_cv_env_GPT_FLAVOR_CONFIGURATION_set" != "xset"; then
-   AC_PATH_TOOL([GPT_FLAVOR_CONFIGURATION], [gpt-flavor-configuration], [], $PATH:/opt/gpt/sbin)
+   AC_PATH_TOOL([GPT_FLAVOR_CONFIGURATION], [gpt-flavor-configuration], [], $PATH:/usr/sbin:/opt/gpt/sbin)
 fi
 if test -f "$GPT_FLAVOR_CONFIGURATION" && test "x$GPT_LOCATION" = "x"; then
    GPT_LOCATION=`dirname $GPT_FLAVOR_CONFIGURATION`
@@ -16,7 +16,7 @@ fi
 AC_DEFUN([GPT_PROG_GPT_QUERY], [
 AC_ARG_VAR([GPT_QUERY], [path to gpt-query])
 if test "x$ac_cv_env_GPT_QUERY_set" != "xset"; then
-   AC_PATH_TOOL([GPT_QUERY], [gpt-query], [], $PATH:/opt/gpt/sbin)
+   AC_PATH_TOOL([GPT_QUERY], [gpt-query], [], $PATH:/usr/sbin:/opt/gpt/sbin)
 fi
 if test -f "$GPT_QUERY" && test "x$GPT_LOCATION" = "x"; then
    GPT_LOCATION=`dirname $GPT_QUERY`
