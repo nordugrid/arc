@@ -589,10 +589,9 @@ namespace Arc {
             jobTree["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "gridtime" ) {
-            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-            if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("GridTime");
-            jobTree["JobDescription"]["Resources"]["GridTime"] = simpleXRSLvalue( attributeValue );
+            if ( !bool( jobTree["XRSLDescription"] ) ) jobTree.NewChild("XRSLDescription");
+            if ( !bool( jobTree["XRSLDescription"]["GridTime"] ) ) jobTree["XRSLDescription"].NewChild("GridTime");
+            jobTree["XRSLDescription"]["GridTime"] = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "benchmarks" ) {
             if ( !bool( jobTree["XRSLDescription"] ) ) jobTree.NewChild("XRSLDescription");
@@ -739,12 +738,6 @@ namespace Arc {
             if ( !bool( jobTree["JobDescription"]["CredentialServer"] ) ) jobTree["JobDescription"].NewChild("CredentialServer");
             jobTree["JobDescription"]["CredentialServer"].NewChild("URL");
             jobTree["JobDescription"]["CredentialServer"]["URL"] = simpleXRSLvalue( attributeValue );
-            return true;
-        } else if ( attributeName == "gridTime" ) {
-            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-            if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
-            jobTree["JobDescription"]["Resources"].NewChild("GridTimeLimit");
-            jobTree["JobDescription"]["Resources"]["GridTimeLimit"] = simpleXRSLvalue( attributeValue );
             return true;
         }
         if ( DEBUGX ) std::cerr << "[XRSLParser] Unknown XRSL attribute: " << attributeName << std::endl;
@@ -949,7 +942,7 @@ namespace Arc {
             nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
             nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
             nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
-            Arc::XMLNodeList sources = jobTree.XPathLookup( (std::string) "//DataStaging/Source/URI", nsList);
+            Arc::XMLNodeList sources = jobTree.XPathLookup( (std::string) "//DataStaging/FileName/Source/URI", nsList);
 
             for (std::list<Arc::XMLNode>::iterator it = sources.begin(); it != sources.end(); it++) {
                 (*it).Set( value + "/" + (std::string) (*it) );
@@ -973,7 +966,7 @@ namespace Arc {
             nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
             nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
             nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
-            Arc::XMLNodeList targets = jobTree.XPathLookup( (std::string) "//DataStaging/Target", nsList);
+            Arc::XMLNodeList targets = jobTree.XPathLookup( (std::string) "//DataStaging/FileName/Target", nsList);
             Arc::XMLNodeList::iterator xml_it = targets.begin();
             for (std::vector< std::string >::const_iterator it = value.begin(); it != value.end(); it++ ) {
                 (*xml_it)["URI"].Set((std::string)(*it));
@@ -986,7 +979,7 @@ namespace Arc {
             nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
             nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
             nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
-            Arc::XMLNodeList targets = jobTree.XPathLookup( (std::string) "//DataStaging/Target/URI", nsList);
+            Arc::XMLNodeList targets = jobTree.XPathLookup( (std::string) "//DataStaging/FileName/Target/URI", nsList);
             
             for (std::list<Arc::XMLNode>::iterator it = targets.begin(); it != targets.end(); it++) {
                 (*it).Set( value + "/" + (std::string) (*it) );
