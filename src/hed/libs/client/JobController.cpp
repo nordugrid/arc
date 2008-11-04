@@ -160,7 +160,7 @@ namespace Arc {
       }
     }
 
-    logger.msg(DEBUG, "FillJobStore has finished succesfully");
+    logger.msg(DEBUG, "FillJobStore has finished successfully");
     logger.msg(DEBUG, "Job store for %s contains %ld jobs",
 	       flavour, jobstore.size());
   }
@@ -452,7 +452,7 @@ namespace Arc {
 	Time now;
 	if (now - it->LocalSubmissionTime < 90)
 	  logger.msg(WARNING, "This job was very recently "
-		     "submitted and might not yet"
+		     "submitted and might not yet "
 		     "have reached the information-system");
 	continue;
       }
@@ -503,7 +503,7 @@ namespace Arc {
     mover.verbose(false);
 
     logger.msg(DEBUG, "Now copying (from -> to)");
-    logger.msg(DEBUG, " %s -> %s)", src.str(), dst.str());
+    logger.msg(DEBUG, " %s -> %s", src.str(), dst.str());
 
     DataHandle source(src);
     if (!source) {

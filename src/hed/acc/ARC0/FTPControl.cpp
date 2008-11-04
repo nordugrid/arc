@@ -152,7 +152,7 @@ namespace Arc {
 	globus_gsi_cred_read_cert(handle,
 				  const_cast<char*>(certificatePath.c_str()));
       if (!result) {
-	logger.msg(ERROR, "Connect: Failed read certificate file: %s",
+	logger.msg(ERROR, "Connect: Failed to read certificate file: %s",
 		   result.str());
 	globus_gsi_cred_handle_destroy(handle);
 	return false;

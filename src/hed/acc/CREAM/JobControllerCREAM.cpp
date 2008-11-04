@@ -104,7 +104,7 @@ namespace Arc {
     url2.ChangePath(*pi2);
     CREAMClient gLiteClient2(url2, cfg);
     if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
-      logger.msg(ERROR, "Destroy delegation failed");
+      logger.msg(ERROR, "Destroying delegation failed");
       return false;
     }
     return true;

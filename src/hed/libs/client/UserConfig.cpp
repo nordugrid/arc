@@ -330,7 +330,7 @@ namespace Arc {
 	return false;
       }
       if (!S_ISDIR(st.st_mode)) {
-	logger.msg(ERROR, "CA Certifcate directory is not a directory: %s",
+	logger.msg(ERROR, "CA certificate directory is not a directory: %s",
 		   path);
 	return false;
       }

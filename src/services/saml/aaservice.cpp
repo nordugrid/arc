@@ -120,7 +120,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string capath = "";
   Arc::XMLSecNode attrqry_secnode(attrqry);
   if(attrqry_secnode.VerifyNode(query_idname, cafile, capath)) {
-    logger.msg(Arc::INFO, "Succeed to verify the signature under <AttributeQuery/>");
+    logger.msg(Arc::INFO, "Succeeded to verify the signature under <AttributeQuery/>");
   }
   else {     
     logger.msg(Arc::ERROR, "Failed to verify the signature under <AttributeQuery/>");

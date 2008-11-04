@@ -45,7 +45,7 @@ InfoRegister::InfoRegister(Arc::XMLNode &cfg, Arc::Service *service):logger_(Log
          peers_.push_back(url);
     }
     
-    // Start Registartion thread
+    // Start Registration thread
     if (reg_period_ > 0) {
         Arc::CreateThreadFunction(&reg_thread, this);
     }
@@ -60,7 +60,7 @@ InfoRegister::~InfoRegister(void)
 
 void InfoRegister::registration(void)
 {
-    logger_.msg(Arc::DEBUG, "Registartion Start");
+    logger_.msg(Arc::DEBUG, "Registration Start");
     if (service_ == NULL) {
         logger_.msg(Arc::ERROR, "Invalid service");
         return;
@@ -71,11 +71,11 @@ void InfoRegister::registration(void)
     Arc::XMLNode reg_doc(reg_ns, "isis:Advertisements");
     Arc::XMLNode services_doc(reg_ns, "Services");
     service_->RegistrationCollector(services_doc);
-    // Look for service registartion information
+    // Look for service registration information
     // TODO: use more efficient way to find <Service> entries than XPath. 
     std::list<Arc::XMLNode> services = services_doc.XPathLookup("//*[normalize-space(@BaseType)='Service']", reg_ns);
     if (services.size() == 0) {
-        logger_.msg(Arc::WARNING, "Service provided no registartion entries");
+        logger_.msg(Arc::WARNING, "Service provided no registration entries");
         return;
     }
     // create advertisement

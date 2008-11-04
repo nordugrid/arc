@@ -37,7 +37,7 @@ bool Service::ProcessSecHandlers(Arc::Message& message,const std::string& label)
 
 bool Service::RegistrationCollector(Arc::XMLNode &doc)
 {
-    logger.msg(Arc::WARNING, "Empty registartion collector");
+    logger.msg(Arc::WARNING, "Empty registration collector");
 }
 
 } // namespace Arc

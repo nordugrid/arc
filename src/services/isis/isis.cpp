@@ -74,7 +74,7 @@ ISIService::Register(Arc::XMLNode &in, Arc::XMLNode &out)
             (*it).New(service);
             std::string id = (std::string)service["ID"];
             if (!id.empty()) {
-                logger_.msg(Arc::DEBUG, "Registartion for Service: %s", id);
+                logger_.msg(Arc::DEBUG, "Registration for Service: %s", id);
                 // some filtering may come here
                 db_->put(id, service);
                 // Forward to peers

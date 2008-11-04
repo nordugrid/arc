@@ -219,7 +219,7 @@ MCC_Status MCC_MsgValidator_Service::process(Message& inmsg,Message& outmsg) {
   PayloadSOAP nextpayload(*plsp);
   
   if(!nextpayload) {
-    logger.msg(ERROR, "Could not create payloadSOAP!");
+    logger.msg(ERROR, "Could not create PayloadSOAP!");
     return make_raw_fault(outmsg);
   }
 

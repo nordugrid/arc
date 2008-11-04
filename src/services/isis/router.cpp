@@ -124,7 +124,7 @@ Router::do_route()
             Arc::PayloadSOAP *response;
             Arc::MCC_Status status = cli_->process(&request, &response);
             if ((!status) || (!response)) {
-                logger_.msg(Arc::ERROR, "Error during routeing to %s", 
+                logger_.msg(Arc::ERROR, "Error during routing to %s", 
                                         isis_name);
             } else {
                 Arc::XMLNode fault = (*response)["Fault"];

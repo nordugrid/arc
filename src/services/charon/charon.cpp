@@ -166,7 +166,7 @@ Charon::Charon(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, 
   if(eval == NULL) {
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
   }
-  else logger.msg(Arc::INFO, "Succeed to produce Evaluator");
+  else logger.msg(Arc::INFO, "Succeeded to produce Evaluator");
 
   //Get the policy location, and put it into evaluator
   Arc::XMLNode policyfile;

@@ -392,7 +392,7 @@ namespace Arc {
       getProxyReqReturnValue =
 	(std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"];
     else {
-      logger.msg(ERROR, "Delegation creating failed");
+      logger.msg(ERROR, "Creating delegation failed");
       return false;
     }
     delete resp;
@@ -434,7 +434,7 @@ namespace Arc {
     }
 
     if (!(bool)(*resp) || !(bool)((*resp)["putProxyResponse"])) {
-      logger.msg(ERROR, "Delegation creating failed");
+      logger.msg(ERROR, "Creating delegation failed");
       return false;
     }
     delete resp;
@@ -473,7 +473,7 @@ namespace Arc {
     std::string getProxyReqReturnValue;
 
     if (!(bool)(*resp) || !(bool)((*resp)["destroyResponse"])) {
-      logger.msg(ERROR, "Delegation destroying failed");
+      logger.msg(ERROR, "Destroying delegation failed");
       return false;
     }
     delete resp;

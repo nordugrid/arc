@@ -323,7 +323,7 @@ GridSchedulerService::doReschedule(void)
         }
         logger_.msg(Arc::DEBUG, "check: %s (%s - %s > %s (%s))", j->getID(), (std::string)now, (std::string)m->getLastChecked(), (std::string)(m->getLastUpdated() + p), (std::string)m->getLastUpdated());
         if (m->getLastChecked() > (m->getLastUpdated() + p)) {
-            logger_.msg(Arc::DEBUG, "Rescheduler job: %s", j->getID());
+            logger_.msg(Arc::DEBUG, "Rescheduled job: %s", j->getID());
             j->setStatus(Arc::JOB_STATUS_SCHED_RESCHEDULED);
             m->setResourceID("");
         }

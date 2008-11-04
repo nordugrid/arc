@@ -35,7 +35,7 @@ namespace Arc {
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
     CREAMClient gLiteClientDelegation(delegationurl, cfg);
     if (!gLiteClientDelegation.createDelegation(delegationid, proxyPath)) {
-      logger.msg(ERROR, "Create delegation failed");
+      logger.msg(ERROR, "Creating delegation failed");
       return false;
     }
     URL submissionurl(submissionEndpoint);

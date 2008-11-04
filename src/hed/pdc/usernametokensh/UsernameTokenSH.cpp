@@ -80,7 +80,7 @@ bool UsernameTokenSH::Handle(Arc::Message* msg){
         logger.msg(ERROR, "Failed to authenticate Username Token inside the incoming SOAP");
         stream.close(); return false;
       };
-      logger.msg(INFO, "Succeed to authenticate UsernameToken");
+      logger.msg(INFO, "Succeeded to authenticate UsernameToken");
       stream.close();
     } catch(std::exception) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
@@ -92,7 +92,7 @@ bool UsernameTokenSH::Handle(Arc::Message* msg){
       UsernameToken ut(*soap,username_,password_,std::string(""),
          (password_type_==password_digest)?(UsernameToken::PasswordDigest):(UsernameToken::PasswordText));
       if(!ut) {
-        logger.msg(ERROR,"Failed to generate Username Token for outgoin SOAP");
+        logger.msg(ERROR,"Failed to generate Username Token for outgoing SOAP");
         return false;
       };
     } catch(std::exception) {

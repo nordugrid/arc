@@ -114,7 +114,7 @@ int main(void) {
   std::string attr_query_idname("ID");
   attr_query_secnd.AddSignatureTemplate(attr_query_idname, Arc::XMLSecNode::RSA_SHA1);
   if(attr_query_secnd.SignNode(key,cert)) {
-    std::cout<<"Succeed to sign the signature under <samlp:AttributeQuery/>"<<std::endl;
+    std::cout<<"Succeeded to sign the signature under <samlp:AttributeQuery/>"<<std::endl;
   }
 */
 
@@ -209,7 +209,7 @@ int main(void) {
   std::string capath1 = "";
   Arc::XMLSecNode attr_resp_secnode(attr_resp);
   if(attr_resp_secnode.VerifyNode(resp_idname, cafile1, capath1)) {
-    logger.msg(Arc::INFO, "Succeed to verify the signature under <samlp:Response/>");
+    logger.msg(Arc::INFO, "Succeeded to verify the signature under <samlp:Response/>");
   }
   else {
     logger.msg(Arc::ERROR, "Failed to verify the signature under <samlp:Response/>");
@@ -249,7 +249,7 @@ int main(void) {
   std::string capath2 = "";
   Arc::XMLSecNode assertion_secnode(assertion);
   if(assertion_secnode.VerifyNode(assertion_idname, cafile2, capath2)) {
-    logger.msg(Arc::INFO, "Succeed to verify the signature under <saml:Assertion/>");
+    logger.msg(Arc::INFO, "Succeeded to verify the signature under <saml:Assertion/>");
   }
   else {
     logger.msg(Arc::ERROR, "Failed to verify the signature under <saml:Assertion/>");

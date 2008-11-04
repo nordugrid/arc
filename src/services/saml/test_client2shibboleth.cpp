@@ -284,7 +284,7 @@ int main(void) {
   //Since the certificate from idp.testshib.org which signs the saml response is self-signed 
   //certificate, only check the signature here.
   if(sec_samlresp_nd.VerifyNode(idname,"", "", false)) {
-    logger.msg(Arc::INFO, "Succeed to verify the signature under <samlp:Response/>");
+    logger.msg(Arc::INFO, "Succeeded to verify the signature under <samlp:Response/>");
   }
   else {
     logger.msg(Arc::ERROR, "Failed to verify the signature under <samlp:Response/>");

@@ -364,7 +364,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     // Convert in message to SOAP message
     Arc::SOAPMessageP inmsg_ptr(inmsg);
     if(!inmsg_ptr) {
-        logger.msg(Arc::ERROR, "failed to create input SOAP container");
+        logger.msg(Arc::ERROR, "Failed to create input SOAP container");
         return make_fault(outmsg);
     }
     if(!inmsg_ptr->Payload()) {
@@ -393,7 +393,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
 
     Arc::SOAPMessageP outmsg_ptr(outmsg);
     if(!outmsg_ptr) {
-        logger.msg(Arc::ERROR, "failed to create SOAP containers");
+        logger.msg(Arc::ERROR, "Failed to create SOAP containers");
         return make_fault(outmsg);
     }
     // Convert incomming and outcoming messages to python objects

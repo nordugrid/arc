@@ -60,7 +60,7 @@ namespace Arc {
       client(NULL),
       client_entry(NULL) {
 
-    logger.msg(INFO, "Creating an A-REX client.");
+    logger.msg(INFO, "Creating an A-REX client");
     client = new ClientSOAP(cfg, url.Host(), url.Port(),
 			    url.Protocol() == "https", url.Path());
     set_arex_namespaces(arex_ns);
@@ -80,7 +80,7 @@ namespace Arc {
 
     std::string faultstring;
 
-    logger.msg(INFO, "Creating and sending request.");
+    logger.msg(INFO, "Creating and sending request");
 
     // Create job request
     /*
@@ -159,7 +159,7 @@ namespace Arc {
       }
       if (deleg_cert.empty() || deleg_key.empty()) {
 	logger.msg(ERROR, "Failed to find delegation credentials in "
-		   "client configuration.");
+		   "client configuration");
 	return false;
       }
     }
@@ -170,7 +170,7 @@ namespace Arc {
 	logger.msg(INFO, "Initiating delegation procedure");
 	if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
 					   &(client->GetContext()))) {
-	  logger.msg(ERROR, "Failed to initiate delegation.");
+	  logger.msg(ERROR, "Failed to initiate delegation");
 	  return false;
 	}
 	deleg.DelegatedToken(op);
@@ -179,11 +179,11 @@ namespace Arc {
 	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
 			"BESFactoryPortType/CreateActivity", &req, &resp);
       if (!status) {
-	logger.msg(ERROR, "Submission request failed.");
+	logger.msg(ERROR, "Submission request failed");
 	return false;
       }
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response.");
+	logger.msg(ERROR, "There was no SOAP response");
 	return false;
       }
     }
@@ -217,7 +217,7 @@ namespace Arc {
       }
       logger.msg(INFO, "Submission request succeed");
       if (repmsg.Payload() == NULL) {
-	logger.msg(ERROR, "There were no response to a submission request");
+	logger.msg(ERROR, "There was no response to a submission request");
 	return false;
       }
       try {
@@ -232,7 +232,7 @@ namespace Arc {
       }
     }
     else {
-      logger.msg(ERROR, "There is no connection chain configured.");
+      logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
     XMLNode id;
@@ -257,7 +257,7 @@ namespace Arc {
   bool AREXClient::stat(const std::string& jobid, std::string& status) {
 
     std::string state, substate, faultstring;
-    logger.msg(INFO, "Creating and sending a status request.");
+    logger.msg(INFO, "Creating and sending a status request");
 
     PayloadSOAP req(arex_ns);
     XMLNode jobref =
@@ -274,7 +274,7 @@ namespace Arc {
 	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
 			"BESFactoryPortType/GetActivityStatuses", &req, &resp);
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response.");
+	logger.msg(ERROR, "There was no SOAP response");
 	return false;
       }
     }
@@ -293,12 +293,12 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A status request failed.");
+	logger.msg(ERROR, "A status request failed");
 	return false;
       }
-      logger.msg(INFO, "A status request succeed.");
+      logger.msg(INFO, "A status request succeed");
       if (repmsg.Payload() == NULL) {
-	logger.msg(ERROR, "There were no response to a status request.");
+	logger.msg(ERROR, "There was no response to a status request");
 	return false;
       }
       try {
@@ -307,13 +307,13 @@ namespace Arc {
       catch (std::exception&) {}
       if (resp == NULL) {
 	logger.msg(ERROR,
-		   "The response of a status request was not a SOAP message.");
+		   "The response of a status request was not a SOAP message");
 	delete repmsg.Payload();
 	return false;
       }
     }
     else {
-      logger.msg(ERROR, "There is no connection chain configured.");
+      logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
     XMLNode st, fs;
@@ -332,7 +332,7 @@ namespace Arc {
       return false;
     }
     else if (state == "") {
-      logger.msg(ERROR, "The job status could not be retrieved.");
+      logger.msg(ERROR, "The job status could not be retrieved");
       return false;
     }
     else {
@@ -344,7 +344,7 @@ namespace Arc {
   bool AREXClient::sstat(std::string& status) {
 
     std::string state, faultstring;
-    logger.msg(INFO, "Creating and sending a service status request.");
+    logger.msg(INFO, "Creating and sending a service status request");
 
     PayloadSOAP req(arex_ns);
     XMLNode jobref =
@@ -380,13 +380,13 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A service status request failed.");
+	logger.msg(ERROR, "A service status request failed");
 	return false;
       }
-      logger.msg(INFO, "A service status request succeed.");
+      logger.msg(INFO, "A service status request succeed");
       if (repmsg.Payload() == NULL) {
 	logger.msg(ERROR,
-		   "There were no response to a service status request");
+		   "There was no response to a service status request");
 	return false;
       }
       try {
@@ -395,13 +395,13 @@ namespace Arc {
       catch (std::exception&) {}
       if (resp == NULL) {
 	logger.msg(ERROR, "The response of a service status request was "
-		   "not a SOAP message.");
+		   "not a SOAP message");
 	delete repmsg.Payload();
 	return false;
       }
     }
     else {
-      logger.msg(ERROR, "There is no connection chain configured.");
+      logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
     XMLNode st;
@@ -410,7 +410,7 @@ namespace Arc {
     st.GetDoc(state);
     delete resp;
     if (state == "") {
-      logger.msg(ERROR, "The service status could not be retrieved.");
+      logger.msg(ERROR, "The service status could not be retrieved");
       return false;
     }
     else {
@@ -422,7 +422,7 @@ namespace Arc {
   bool AREXClient::kill(const std::string& jobid) {
 
     std::string result, faultstring;
-    logger.msg(INFO, "Creating and sending request to terminate a job.");
+    logger.msg(INFO, "Creating and sending request to terminate a job");
 
     PayloadSOAP req(arex_ns);
     XMLNode jobref =
@@ -457,10 +457,10 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A job termination request failed.");
+	logger.msg(ERROR, "A job termination request failed");
 	return false;
       }
-      logger.msg(INFO, "A job termination request succeed.");
+      logger.msg(INFO, "A job termination request succeed");
       if (repmsg.Payload() == NULL) {
 	logger.msg(ERROR,
 		   "There was no response to a job termination request");
@@ -494,7 +494,7 @@ namespace Arc {
       return false;
     }
     if (result != "true") {
-      logger.msg(ERROR, "Job termination failed.");
+      logger.msg(ERROR, "Job termination failed");
       return false;
     }
     return true;
@@ -503,7 +503,7 @@ namespace Arc {
   bool AREXClient::clean(const std::string& jobid) {
 
     std::string result, faultstring;
-    logger.msg(INFO, "Creating and sending request to terminate a job.");
+    logger.msg(INFO, "Creating and sending request to terminate a job");
 
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("a-rex:ChangeActivityStatus");
@@ -516,7 +516,7 @@ namespace Arc {
     if (client) {
       MCC_Status status = client->process("", &req, &resp);
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response.");
+	logger.msg(ERROR, "There was no SOAP response");
 	return false;
       }
     }
@@ -533,13 +533,13 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A job cleaning request failed.");
+	logger.msg(ERROR, "A job cleaning request failed");
 	return false;
       }
-      logger.msg(INFO, "A job cleaning request succeed.");
+      logger.msg(INFO, "A job cleaning request succeed");
       if (repmsg.Payload() == NULL) {
 	logger.msg(ERROR,
-		   "There was no response to a job cleaning request.");
+		   "There was no response to a job cleaning request");
 	return false;
       }
       try {
