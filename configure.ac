@@ -26,7 +26,7 @@ AM_PROG_LIBTOOL
 # gettext
 gettext_available="yes"
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.11.3])
+AM_GNU_GETTEXT_VERSION([0.11.4])
 [[ -e po/POTFILES.in ]] || touch po/POTFILES.in
 AM_CONDITIONAL([GETTEXT_ENABLED],[test "x$gettext_available" = "xyes"])
 
