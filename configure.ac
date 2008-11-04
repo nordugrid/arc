@@ -603,19 +603,38 @@ fi
 AC_LANG_RESTORE
 
 # globus/gpt packages
+PKG_CHECK_MODULES(GLOBUS_RLS_CLIENT, [globus-rls-client], [
+GLOBUS_RLS_CLIENT_VERSION=`$PKG_CONFIG --modversion globus-rls-client`], [
 GPT_PKG(globus_rls_client)
+])
 AC_SUBST(GLOBUS_RLS_CLIENT_CFLAGS)
 AC_SUBST(GLOBUS_RLS_CLIENT_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_FTP_CLIENT, [globus-ftp-client], [
+GLOBUS_FTP_CLIENT_VERSION=`$PKG_CONFIG --modversion globus-ftp-client`], [
 GPT_PKG(globus_ftp_client)
+])
 AC_SUBST(GLOBUS_FTP_CLIENT_CFLAGS)
 AC_SUBST(GLOBUS_FTP_CLIENT_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_FTP_CONTROL, [globus-ftp-control], [
+GLOBUS_FTP_CONTROL_VERSION=`$PKG_CONFIG --modversion globus-ftp-control`], [
 GPT_PKG(globus_ftp_control)
+])
 AC_SUBST(GLOBUS_FTP_CONTROL_CFLAGS)
 AC_SUBST(GLOBUS_FTP_CONTROL_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_RSL, [globus-rsl], [
+GLOBUS_RSL_VERSION=`$PKG_CONFIG --modversion globus-rsl`], [
 GPT_PKG(globus_rsl)
+])
 AC_SUBST(GLOBUS_RSL_CFLAGS)
 AC_SUBST(GLOBUS_RSL_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_IO, [globus-io], [
+GLOBUS_IO_VERSION=`$PKG_CONFIG --modversion globus-io`], [
 GPT_PKG(globus_io)
+])
 AC_SUBST(GLOBUS_IO_CFLAGS)
 AC_SUBST(GLOBUS_IO_LIBS)
 
