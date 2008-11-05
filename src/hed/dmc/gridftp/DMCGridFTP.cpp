@@ -2,7 +2,8 @@
 #include <config.h>
 #endif
 
-#include "globus_ftp_client.h"
+#include <globus_ftp_client.h>
+#include <openssl/ssl.h>
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
@@ -12,6 +13,9 @@
 #include "DMCGridFTP.h"
 
 namespace Arc {
+
+  static Glib::Mutex openssl_lock;
+  static bool openssl_initialized = false;
 
   Logger DMCGridFTP::logger(DMC::logger, "GridFTP");
 
@@ -27,6 +31,16 @@ namespace Arc {
   }
 
   DMC* DMCGridFTP::Instance(Config *cfg, ChainContext*) {
+    openssl_lock.lock();
+    if(!openssl_initialized) {
+      SSL_load_error_strings();
+      if(!SSL_library_init()){
+        logger.msg(ERROR, "SSL_library_init failed");
+      } else {
+        openssl_initialized = true;
+      };
+    };
+    openssl_lock.unlock();
     return new DMCGridFTP(cfg);
   }
 
