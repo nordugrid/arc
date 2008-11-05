@@ -10,6 +10,7 @@
 #include <arc/DateTime.h>
 #include <arc/GUID.h>
 #include <arc/StringConv.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "isis.h"
 
@@ -173,6 +174,14 @@ ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg)
     } else if (MatchXMLName(op, "Query")) {
         Arc::XMLNode r = res.NewChild("isis:QueryResponse");
         ret = Query(op, r);
+
+    } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+         // TODO: do not copy out_ to outpayload.
+         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
+         if(out_) {
+           *outpayload=*out_;
+           delete out_;
+         }
     } else {
         logger_.msg(Arc::ERROR, "SOAP operation not supported: %s", op.Name());
         return make_soap_fault(outmsg);
