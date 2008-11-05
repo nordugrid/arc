@@ -1,4 +1,4 @@
-#!/bin/sh
+#!@posix_shell@
 # set -xv
 #
 #  Submits job to LSF

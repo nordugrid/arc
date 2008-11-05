@@ -1,4 +1,4 @@
-#!/bin/sh -f
+#!@posix_shell@ -f
 # 
 #  Cancel job running in Condor
 #

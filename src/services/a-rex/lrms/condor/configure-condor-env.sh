@@ -1,4 +1,3 @@
-#!/bin/bash
 
 if [ -z "$pkglibdir" ]; then echo 'pkglibdir must be set' 1>&2; exit 1; fi
 
