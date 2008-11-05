@@ -264,6 +264,7 @@ exit 0
 %files arex
 %defattr(-,root,root,-)
 %doc src/services/a-rex/arex_service.xml.example
+%doc src/services/a-rex/arex_minimalistic.xml.example
 %doc src/services/a-rex/arex_service-secure.xml.example
 %doc src/services/a-rex/arc_arex.conf
 %doc %{_mandir}/man1/cache-clean.1*
