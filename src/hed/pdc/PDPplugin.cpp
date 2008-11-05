@@ -16,6 +16,8 @@
 #include "arcauthzsh/ArcAuthZ.h"
 #include "usernametokensh/UsernameTokenSH.h"
 #include "x509tokensh/X509TokenSH.h"
+#include "saml2sso_serviceprovidersh/SAML2SSO_ServiceProviderSH.h"
+#include "saml2sso_useragentsh/SAML2SSO_UserAgentSH.h"
 
 #include "arcpdp/ArcPolicy.h"
 #include "gaclpdp/GACLPolicy.h"
@@ -44,6 +46,8 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
     { "usernametoken.handler", 0, &ArcSec::UsernameTokenSH::get_sechandler},
 #ifdef HAVE_XMLSEC
     { "x509token.handler", 0, &ArcSec::X509TokenSH::get_sechandler},
+    { "saml2ssouseragent.handler", 0, &ArcSec::SAML2SSO_UserAgentSH::get_sechandler},
+    { "saml2ssoserviceprovider.handler", 0, &ArcSec::SAML2SSO_ServiceProviderSH::get_sechandler},
 #endif
     { NULL, 0, NULL }
 };
