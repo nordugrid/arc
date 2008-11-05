@@ -8,6 +8,13 @@
 
 #include <arc/XMLNode.h>
 
+
+#define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
+#define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
+
+#define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
+#define DSIG_NAMESPACE   "http://www.w3.org/2000/09/xmldsig#"
+
 namespace Arc {
 
   typedef enum {
