@@ -25,7 +25,7 @@ class ISIService: public Arc::Service
         Arc::Logger logger_;
         std::vector<Arc::URL> peers_;
         Router router_;
-		Arc::InformationContainer infodoc_;
+        Arc::InformationContainer infodoc_;
         Arc::InfoRegister *reg_;
         Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
         bool loop_detection(Arc::XMLNode &in);

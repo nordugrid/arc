@@ -182,7 +182,7 @@ ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg)
            *outpayload=*out_;
            delete out_;
          }
-    } else {
+  } else {
         logger_.msg(Arc::ERROR, "SOAP operation not supported: %s", op.Name());
         return make_soap_fault(outmsg);
     } 
