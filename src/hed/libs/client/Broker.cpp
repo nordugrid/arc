@@ -7,21 +7,103 @@
 #include <arc/client/Broker.h>
 
 namespace Arc {
-  
-  bool Value_Matching(double value, Arc::XMLNode node) {
+
+  bool Value_Matching(int value, Arc::XMLNode node) {
+	 StringManipulator sm;
      if (node["LowerBoundedRange"]) {
-           return ((!node["LowerBoundedRange"].Attribute("exclusiveBound") && (value >= (double)node["LowerBoundedRange"])) || (node["LowerBoundedRange"].Attribute("exclusiveBound") && (value > (double)node["LowerBoundedRange"])));
-     }
+		   if (node["LowerBoundedRange"].Attribute("exclusiveBound")) {
+            if ((sm.toLowerCase((std::string)(node["LowerBoundedRange"].Attribute("exclusiveBound")))) == "true") {
+				if (value > (int)node["LowerBoundedRange"])
+					return true;
+				else
+					return false;
+			}
+            else if ((sm.toLowerCase((std::string)(node["LowerBoundedRange"].Attribute("exclusiveBound")))) == "false") {
+				if (value >= (int)node["LowerBoundedRange"])
+					return true;
+				else
+					return false;
+			}
+
+			// there are no exclusiveBound attribute or this attribute value is 
+			// not equal with true or false
+
+			else if (value >= (int)node["LowerBoundedRange"]) 
+					return true;
+				else
+					return false;
+     } // end of LowerBoundedRange
      else if (node["UpperBoundedRange"]) {
-           return ((!node["UpperBoundedRange"].Attribute("exclusiveBound") && (value <= (double)node["UpperBoundedRange"])) || (node["UpperBoundedRange"].Attribute("exclusiveBound") && (value < (double)node["UpperBoundedRange"])));
+		   if (node["UpperBoundedRange"].Attribute("exclusiveBound")) {
+            if ((sm.toLowerCase((std::string)(node["UpperBoundedRange"].Attribute("exclusiveBound")))) == "true") {
+				if (value < (int)node["UpperBoundedRange"])
+					return true;
+				else
+					return false;
+			}
+            else if ((sm.toLowerCase((std::string)(node["UpperBoundedRange"].Attribute("exclusiveBound")))) == "false") {
+				if (value <= (int)node["UpperBoundedRange"])
+					return true;
+				else
+					return false;
+			}
+
+			// there are no exclusiveBound attribute or this attribute value is 
+			// not equal with true or false
+
+			else if (value <= (int)node["UpperBoundedRange"]) 
+					return true;
+				else
+					return false;
      }
+  }  // end of UpperBoundedRange
      else if (node["Exact"]) {
-           return ((((double)node["Exact"] - node["Exact"].Attribute("epsilon")) <= value) && (value <= ((double)node["Exact"] + node["Exact"].Attribute("epsilon"))));
+		   if (node["Exact"].Attribute("epsilon"))
+              return ((((int)node["Exact"] - (int)node["Exact"].Attribute("epsilon")) <= value) && (value <= ((int)node["Exact"] + (int)node["Exact"].Attribute("epsilon"))));
+		   else if (value == (int)node["Exact"])
+			  return true;
+		   else 
+			  return false; 
      }
      else if (node["Range"]) {
-           return ((!node["Range"]["LowerBound"].Attribute("exclusiveBound") && (value >= (double)node["Range"]["LowerBound"])) || (node["Range"]["LowerBound"].Attribute("exclusiveBound") && (value > (double)node["Range"]["LowerBound"]))) && ((!node["Range"]["UpperBound"].Attribute("exclusiveBound") && (value <= (double)node["Range"]["UpperBound"])) || (node["Range"]["UpperBound"].Attribute("exclusiveBound") && (value < (double)node["Range"]["UpperBound"])));
+		if (node["Range"]["UpperBound"] && node["Range"]["LowerBound"]) {
+
+		   if (node["Range"]["LowerBound"].Attribute("exclusiveBound") && node["Range"]["UpperBound"].Attribute("exclusiveBound")) {
+            if ((sm.toLowerCase((std::string)(node["Range"]["LowerBound"].Attribute("exclusiveBound")))) == "true" && (sm.toLowerCase((std::string)(node["Range"]["UpperBound"].Attribute("exclusiveBound")))) == "true") {
+              return ((((int)(node["Range"]["LowerBound"]) < value) && (value < ((int)node["Range"]["UpperBound"] ))));
+    }
+    else if ((sm.toLowerCase((std::string)(node["Range"]["LowerBound"].Attribute("exclusiveBound")))) == "false" && (sm.toLowerCase((std::string)(node["Range"]["UpperBound"].Attribute("exclusiveBound")))) == "true") {
+              return ((((int)(node["Range"]["LowerBound"]) <= value) && (value < ((int)node["Range"]["UpperBound"] ))));
+    }
+    else if ((sm.toLowerCase((std::string)(node["Range"]["LowerBound"].Attribute("exclusiveBound")))) == "false" && (sm.toLowerCase((std::string)(node["Range"]["UpperBound"].Attribute("exclusiveBound")))) == "false") {
+              return ((((int)(node["Range"]["LowerBound"]) <= value) && (value <= ((int)node["Range"]["UpperBound"] ))));
+    }
+    else if ((sm.toLowerCase((std::string)(node["Range"]["LowerBound"].Attribute("exclusiveBound")))) == "true" && (sm.toLowerCase((std::string)(node["Range"]["UpperBound"].Attribute("exclusiveBound")))) == "false") {
+              return ((((int)(node["Range"]["LowerBound"]) < value) && (value <= ((int)node["Range"]["UpperBound"] ))));
+    }
+ }
+		   else if (!node["Range"]["LowerBound"].Attribute("exclusiveBound") && node["Range"]["UpperBound"].Attribute("exclusiveBound")) {
+            if ((sm.toLowerCase((std::string)(node["Range"]["UpperBound"].Attribute("exclusiveBound")))) == "true") {
+              return (value < ((int)node["Range"]["UpperBound"] ));
+         }
+            if ((sm.toLowerCase((std::string)(node["Range"]["UpperBound"].Attribute("exclusiveBound")))) == "false") {
+              return (value <= ((int)node["Range"]["UpperBound"] ));
+         }
+}
+		   else if (node["Range"]["LowerBound"].Attribute("exclusiveBound") && !node["Range"]["UpperBound"].Attribute("exclusiveBound")) {
+            if ((sm.toLowerCase((std::string)(node["Range"]["LowerBound"].Attribute("exclusiveBound")))) == "true") {
+              return (((int)node["Range"]["LowerBound"]) < value);
+         }
+            if ((sm.toLowerCase((std::string)(node["Range"]["LowerBound"].Attribute("exclusiveBound")))) == "false") {
+              return ((int)node["Range"]["LowerBound"] <= value);
+         }
+}
+		   else if (!node["Range"]["LowerBound"].Attribute("exclusiveBound") && !node["Range"]["UpperBound"].Attribute("exclusiveBound"))
+              return ((((int)node["Range"]["LowerBound"] <= value) && (value <= ((int)node["Range"]["UpperBound"]))));
      }
-     return true;
+     }
+     }
+     return false; // Unknown element or attribute 
   }
 
   bool OSCheck(std::string ostype, Arc::XMLNode node) {
@@ -168,7 +250,16 @@ namespace Arc {
 
     //Perform pre filtering of targets found according to the input jobdescription
 
-    Arc::XMLNode jobd = jd.getXML();
+    Arc::XMLNode jobd;
+
+    Arc::NS jsdl_namespaces;
+    jsdl_namespaces[""] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+    jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+    jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+    jobd.Namespaces(jsdl_namespaces);
+
+    jobd = jd.getXML();
 
     for (std::list<Arc::ExecutionTarget>::const_iterator target =	\
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
@@ -210,8 +301,6 @@ namespace Arc {
 	  } 
       else if (jobd["JobDescription"]["Resources"]["CandidateTarget"]) {
 
-		 // TODO: jsdl-arc namespace check
-
 	        StringManipulator sm;
    			bool good = false;
 
@@ -227,8 +316,6 @@ namespace Arc {
 
 		  good = false;
  
-		 // TODO: jsdl-arc namespace check
-
 	      for (int i = 0; (bool)(jobd["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"][i]) ; i++ ) {
               std::string value = (std::string)jobd["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"][i];
 			  value = sm.trim(value);
