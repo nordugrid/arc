@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+>
+  <Server>
+    <Pidfile>/var/run/arched.pid</Pidfile>
+    <Logger level="VERBOSE">/var/log/arched.log</Logger>
+  </Server>
+  <ModuleManager>
+    <Path>@prefix@/lib/arc/</Path>
+  </ModuleManager>
+  <Plugins><Name>arex</Name></Plugins>
+  <Chain>
+    <Service name="a-rex" id="a-rex">
+      <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
+    </Service>
+  </Chain>
+</ArcConfig>
+
+
+

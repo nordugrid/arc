@@ -4,7 +4,7 @@ pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
 
 docdir = @docdir@
-doc_DATA = arex_service.xml.example arc_arex.conf arex_service-secure.xml.example
+doc_DATA = arex_service.xml.example arc_arex.conf arex_service-secure.xml.example arex_minimalistic.xml.example
 
 #GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
 #                   grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la \
