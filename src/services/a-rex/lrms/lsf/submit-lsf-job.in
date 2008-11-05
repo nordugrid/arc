@@ -10,7 +10,10 @@
 echo "----- starting submit_lsf_job -----" 1>&2
 
 basedir=`dirname $0`
-basedir=`cd $basedir; pwd`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 arg_file=$1
 
@@ -32,12 +35,12 @@ fi
 # Set LSF specific environment. # relies on $joboption_queue #
 ##############################################################
 
-if [ ! -f "${basedir}/configure-lsf-env.sh" ] ; then
-    echo "${basedir}/configure-lsf-env.sh not found." 1>&2
+if [ ! -f "${pkglibdir}/configure-lsf-env.sh" ] ; then
+    echo "${pkglibdir}/configure-lsf-env.sh not found." 1>&2
     exit 1
 fi
 
-. ${basedir}/configure-lsf-env.sh
+. ${pkglibdir}/configure-lsf-env.sh
 
 
 # configuration options
@@ -575,8 +578,8 @@ cd "$joboption_directory"
 #chmod 0755 $LRMS_JOB_SCRIPT
 
 # We make the assumption that $joboption_directory is locally available according to the requirements of any arc installation
-echo "copying  ${basedir}/change-lsf-mode.sh to ${joboption_directory}/change-lsf-mode.sh"  1>&2
-cp -pR $basedir/change-lsf-mode.sh $joboption_directory/change-lsf-mode.sh
+echo "copying  ${pkglibdir}/change-lsf-mode.sh to ${joboption_directory}/change-lsf-mode.sh"  1>&2
+cp -pR $pkglibdir/change-lsf-mode.sh $joboption_directory/change-lsf-mode.sh
 
 echo "----------------- BEGIN job script -----" 1>&2
 cat $LRMS_JOB_SCRIPT 1>&2

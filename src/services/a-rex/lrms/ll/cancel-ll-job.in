@@ -9,9 +9,12 @@ echo "----- starting $progname -----" 1>&2
 joboption_lrms=ll
 
 basedir=`dirname $0`
-basedir=`cd $basedir; pwd`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
-. ${basedir}/cancel_common.sh $1
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
+
+. ${pkglibdir}/cancel_common.sh $1
 
 LL_DEL='llcancel'
 if [ ! -z "$LL_BIN_PATH" ] ; then

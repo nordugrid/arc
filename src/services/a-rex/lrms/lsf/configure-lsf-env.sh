@@ -1,4 +1,3 @@
-#!/bin/sh -f
 #
 # set environment variables:
 #   LSF_BIN_PATH
@@ -9,15 +8,14 @@
 # Reading configuration from $ARC_CONFIG
 ##############################################################
 
-basedir=`dirname $0`
-basedir=`cd $basedir; pwd`
+if [ -z "$pkglibdir" ]; then echo 'pkglibdir must be set' 1>&2; exit 1; fi
 
-if [ ! -f "$basedir/config_parser.sh" ] ; then
-    echo "$basedir/config_parser.sh not found." 1>&2
+if [ ! -f "$pkglibdir/config_parser.sh" ] ; then
+    echo "$pkglibdir/config_parser.sh not found." 1>&2
     exit 1
 fi
 
-. "$basedir/config_parser.sh"
+. "$pkglibdir/config_parser.sh"
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG 1>&2 || exit $?

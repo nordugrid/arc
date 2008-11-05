@@ -5,14 +5,21 @@ use File::Basename;
 use Cwd;
 
 BEGIN {
-    if ($ENV{ARC_LOCATION}) {
-        my $libdir = $ENV{ARC_LOCATION} . '/@pkglibsubdir@';
-        unshift @INC, $libdir;
-    } else {
-        my $libdir = dirname($0) . '/@pkglibdir_rel_to_pkglibexecdir@';
-        unshift @INC, $libdir;
-    }
+    my $oldcwd = getcwd();
+
+    my $basedir = dirname($0);
+    chdir $basedir or die "$basedir: $!";
+    $basedir = getcwd();
+
+    my $pkglibdir = $basedir.'/@pkglibdir_rel_to_pkglibexecdir@';
+    chdir $pkglibdir or die "$pkglibdir: $!";
+    $pkglibdir = getcwd();
+
+    chdir $oldcwd or die "$oldcwd: $!";
+
+    unshift @INC, $pkglibdir;
 }
+
 use ConfigParser;
 use condor_env;
 

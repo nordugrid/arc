@@ -13,14 +13,17 @@ echo "----- starting submit_sge_job -----" 1>&2
 joboption_lrms=SGE
 
 basedir=`dirname $0`
-basedir=`cd $basedir; pwd`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
-if [ ! -f "${basedir}/submit_common.sh" ] ; then
-    echo "${basedir}/submit_common.sh not found." 1>&2
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
+
+if [ ! -f "${pkglibdir}/submit_common.sh" ] ; then
+    echo "${pkglibdir}/submit_common.sh not found." 1>&2
     exit 1
 fi
 
-. ${basedir}/submit_common.sh
+. ${pkglibdir}/submit_common.sh
 
 joboption_localtransfer='no'
 
@@ -55,12 +58,12 @@ cat $1 1>&2
 # Set SGE specific environment # needs to know $joboption_queue #
 #################################################################
 
-if [ ! -f "${basedir}/configure-sge-env.sh" ] ; then
-    echo "${basedir}/configure-sge-env.sh not found." 1>&2
+if [ ! -f "${pkglibdir}/configure-sge-env.sh" ] ; then
+    echo "${pkglibdir}/configure-sge-env.sh not found." 1>&2
     exit 1
 fi
 
-. ${basedir}/configure-sge-env.sh 1>&2 || exit $?
+. ${pkglibdir}/configure-sge-env.sh 1>&2 || exit $?
 
 ##############################################################
 # Zero stage of runtime environments

@@ -1,4 +1,3 @@
-#!/bin/sh -f
 #
 # set environment variables:
 #   PBS_BIN_PATH

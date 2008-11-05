@@ -1106,8 +1106,12 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/fork/cancel-fork-job
                  src/services/a-rex/lrms/ll/Makefile
                  src/services/a-rex/lrms/ll/submit-ll-job
+                 src/services/a-rex/lrms/ll/cancel-ll-job
+                 src/services/a-rex/lrms/ll/scan-ll-job
                  src/services/a-rex/lrms/lsf/Makefile
                  src/services/a-rex/lrms/lsf/submit-lsf-job
+                 src/services/a-rex/lrms/lsf/cancel-lsf-job
+                 src/services/a-rex/lrms/lsf/scan-lsf-job
                  src/services/a-rex/lrms/pbs/Makefile
                  src/services/a-rex/lrms/pbs/submit-pbs-job
                  src/services/a-rex/lrms/pbs/cancel-pbs-job

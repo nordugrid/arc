@@ -10,7 +10,7 @@
 if [ -z "$1" ] ; then exit 1 ; fi
 
 basedir=`dirname $0`
-basedir=`cd $basedir; pwd`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 # Assume that gm-kick is installed in the same directory
 GMKICK=${basedir}/gm-kick
