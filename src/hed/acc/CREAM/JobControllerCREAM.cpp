@@ -38,7 +38,7 @@ namespace Arc {
       URL url(iter->JobID);
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg);
-      if (!gLiteClient.stat(pi.Rest(), iter->State))
+      if (!gLiteClient.stat(pi.Rest(), (*iter)))
 	logger.msg(ERROR, "Could not retrieve job information");
     }
   }

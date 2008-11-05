@@ -4,6 +4,7 @@
 #include <string>
 
 #include <arc/XMLNode.h>
+#include <arc/client/Job.h>
 
 namespace Arc {
 
@@ -31,7 +32,7 @@ namespace Arc {
     bool destroyDelegation(const std::string& delegation_id);
     bool registerJob(const std::string& jdl_text, creamJobInfo& info);
     bool startJob(const std::string& jobid);
-    bool stat(const std::string& jobid, std::string& status);
+    bool stat(const std::string& jobid, Job& job);
     bool cancel(const std::string& jobid);
     bool purge(const std::string& jobid);
 

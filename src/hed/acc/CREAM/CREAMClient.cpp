@@ -39,13 +39,13 @@ namespace Arc {
       delete client;
   }
 
-  bool CREAMClient::stat(const std::string& jobid, std::string& status) {
+  bool CREAMClient::stat(const std::string& jobid, Job& job) {
     logger.msg(INFO, "Creating and sending a status request");
 
     PayloadSOAP req(cream_ns);
     NS ns2;
     ns2["ns2"] = "http://glite.org/2007/11/ce/cream/types";
-    XMLNode jobStatusRequest = req.NewChild("ns2:JobStatusRequest", ns2);
+    XMLNode jobStatusRequest = req.NewChild("ns2:JobInfo", ns2);
     XMLNode jobId = jobStatusRequest.NewChild("ns2:jobId", ns2);
     XMLNode id = jobId.NewChild("ns2:id", ns2);
     id.Set(jobid);
@@ -59,8 +59,8 @@ namespace Arc {
     PayloadSOAP *resp = NULL;
 
     if (client) {
-      MCC_Status status =
-	client->process("http://glite.org/2007/11/ce/cream/JobStatus",
+      MCC_Status MCC_status =
+	client->process("http://glite.org/2007/11/ce/cream/JobInfo",
 			&req, &resp);
       if (resp == NULL) {
 	logger.msg(ERROR, "There was no SOAP response");
@@ -72,32 +72,37 @@ namespace Arc {
       return false;
     }
 
-    XMLNode name, failureReason, fault;
-    (*resp)["JobStatusResponse"]["result"]["jobStatus"]["name"].New(name);
-    if ((*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"])
-      (*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"].New(failureReason);
-    status = (std::string)name;
+    XMLNode failureReason, fault;
+    if ((*resp)["JobInfoResponse"]["result"]["jobInfo"]["failureReason"])
+      (*resp)["JobInfoResponse"]["result"]["jobInfo"]["failureReason"].New(failureReason);
     std::string faultstring = (std::string)failureReason;
 
-    std::string result = (std::string)name;
-    if ((*resp)["JobStatusResponse"]["result"]["JobUnknownFault"])
-      (*resp)["JobStatusResponse"]["result"]["JobUnknownFault"].New(fault);
-    if ((*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"])
-      (*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"].New(fault);
-    if ((*resp)["JobStatusResponse"]["result"]["DelegationIdMismatchFault"])
-      (*resp)["JobStatusResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
-    if ((*resp)["JobStatusResponse"]["result"]["DateMismatchFault"])
-      (*resp)["JobStatusResponse"]["result"]["DateMismatchFault"].New(fault);
-    if ((*resp)["JobStatusResponse"]["result"]["LeaseIdMismatchFault"])
-      (*resp)["JobStatusResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
-    if ((*resp)["JobStatusResponse"]["result"]["GenericFault"])
-      (*resp)["JobStatusResponse"]["result"]["GenericFault"].New(fault);
+    int last_status_id = 0;
+    while (true) {
+      if ((*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id] == 0) break;
+      last_status_id++;
+    }
+
+    job.State = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["name"];
+
+    if ((*resp)["JobInfoResponse"]["result"]["JobUnknownFault"])
+      (*resp)["JobInfoResponse"]["result"]["JobUnknownFault"].New(fault);
+    if ((*resp)["JobInfoResponse"]["result"]["JobStatusInvalidFault"])
+      (*resp)["JobInfoResponse"]["result"]["JobStatusInvalidFault"].New(fault);
+    if ((*resp)["JobInfoResponse"]["result"]["DelegationIdMismatchFault"])
+      (*resp)["JobInfoResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
+    if ((*resp)["JobInfoResponse"]["result"]["DateMismatchFault"])
+      (*resp)["JobInfoResponse"]["result"]["DateMismatchFault"].New(fault);
+    if ((*resp)["JobInfoResponse"]["result"]["LeaseIdMismatchFault"])
+      (*resp)["JobInfoResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
+    if ((*resp)["JobInfoResponse"]["result"]["GenericFault"])
+      (*resp)["JobInfoResponse"]["result"]["GenericFault"].New(fault);
     delete resp;
     if ((bool)fault) {
       logger.msg(ERROR, (std::string)(fault["Description"]));
       return false;
     }
-    if (status == "") {
+    if (job.State == "") {
       logger.msg(ERROR, "The job status could not be retrieved");
       return false;
     }
