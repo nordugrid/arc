@@ -342,7 +342,7 @@ namespace Arc {
 	}
     }
 
-    delete longoptions;
+    delete[] longoptions;
     argv[0] = argv0save;
 
     std::list<std::string> params;
