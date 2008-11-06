@@ -31,6 +31,7 @@ namespace Arc {
     static unsigned int ssl_initialized_;
     static Glib::Mutex lock_;
     static Glib::Mutex* ssl_locks_;
+    static int ssl_locks_num_;
     static Logger logger;
     static void ssl_locking_cb(int mode, int n, const char *file, int line);
     static unsigned long ssl_id_cb(void);
@@ -66,7 +67,7 @@ namespace Arc {
 class MCC_TLS_Service: public MCC_TLS
 {
     private:
-        SSL_CTX* sslctx_;
+        //SSL_CTX* sslctx_;
     public:
         MCC_TLS_Service(Arc::Config *cfg);
         virtual ~MCC_TLS_Service(void);
@@ -80,7 +81,7 @@ class PayloadTLSMCC;
 class MCC_TLS_Client: public MCC_TLS
 {
     private:
-        SSL_CTX* sslctx_;
+        //SSL_CTX* sslctx_;
         PayloadTLSMCC* stream_;
     public:
         MCC_TLS_Client(Arc::Config *cfg);
