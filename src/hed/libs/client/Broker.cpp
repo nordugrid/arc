@@ -103,7 +103,7 @@ namespace Arc {
      }
      }
      }
-     return false; // Unknown element or attribute 
+     return true; // Default return value
   }
 
   bool OSCheck(std::string ostype, Arc::XMLNode node) {
@@ -338,26 +338,26 @@ namespace Arc {
               }    	
 	  }
 	
-	if ( (*target).MaxDiskSpace != -1 ) {
+	if ( (*target).MaxDiskSpace != -1 && jobd["JobDescription"]["Resources"]["FileSystem"]["DiskSpace"]) {
 	  if ( !Arc::Value_Matching ( (*target).MaxDiskSpace, jobd["JobDescription"]["Resources"]["FileSystem"]["DiskSpace"] ) || 
 	       !Arc::Value_Matching ( (*target).MaxDiskSpace,  jobd["JobDescription"]["Resources"]["IndividualDiskSpace"] ) || 
 	       !Arc::Value_Matching ( (*target).MaxDiskSpace,  jobd["JobDescription"]["Resources"]["TotalDiskSpace"]) )
 	    continue;
 	}
 	
-	if ( (*target).TotalPhysicalCPUs != -1 ) {
+	if ( (*target).TotalPhysicalCPUs != -1 && jobd["JobDescription"]["Resources"]["IndividualCPUCount"]) {
 	  if ( !Arc::Value_Matching ( (*target).TotalPhysicalCPUs, jobd["JobDescription"]["Resources"]["IndividualCPUCount"] )||
 	       !Arc::Value_Matching ( (*target).TotalPhysicalCPUs, jobd["JobDescription"]["Resources"]["TotalCPUCount"]) )
 	    continue;
 	}
 	
-	if ( (*target).TotalLogicalCPUs != -1 ) {
+	if ( (*target).TotalLogicalCPUs != -1 && jobd["JobDescription"]["Resources"]["IndividualCPUCount"]) {
 	  if ( !Arc::Value_Matching ( (*target).TotalLogicalCPUs, jobd["JobDescription"]["Resources"]["IndividualCPUCount"] )||
 	       !Arc::Value_Matching ( (*target).TotalLogicalCPUs, jobd["JobDescription"]["Resources"]["TotalCPUCount"]) )
 	    continue;
 	}
 	
-	if ( (*target).CPUClockSpeed != -1 ) {
+	if ( (*target).CPUClockSpeed != -1 && jobd["JobDescription"]["Resources"]["IndividualCPUSpeed"]) {
 	  if ( !Arc::Value_Matching ( (*target).CPUClockSpeed, jobd["JobDescription"]["Resources"]["IndividualCPUSpeed"]) )
 	    continue;
 	}
@@ -368,22 +368,22 @@ namespace Arc {
 
       if (jobd["JobDescription"]["Application"]) {
 	
-	if ((int)(*target).MinWallTime.GetPeriod() != -1) {
+	if ((int)(*target).MinWallTime.GetPeriod() != -1 && jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"]) {
 	  if ((int)(*target).MinWallTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 	    continue;
 	}
 	
-	if ((int)(*target).MaxWallTime.GetPeriod() != -1) {
+	if ((int)(*target).MaxWallTime.GetPeriod() != -1 && jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"]) {
 	  if ((int)(*target).MaxWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 	    continue;
 	}
 	
-	if ((int)(*target).MaxTotalWallTime.GetPeriod() != -1) {
+	if ((int)(*target).MaxTotalWallTime.GetPeriod() != -1 && jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"]) {
 	  if ((int)(*target).MaxTotalWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 	    continue;
 	}
 	
-	if ((int)(*target).DefaultWallTime.GetPeriod() != -1) {
+	if ((int)(*target).DefaultWallTime.GetPeriod() != -1 && jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"]) {
 	  if ((int)(*target).DefaultWallTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["WallTimeLimit"])
 	    continue;
 	}
@@ -393,61 +393,123 @@ namespace Arc {
       //These arguments are dependence of the Application and the Resource items.
 
       if ((int)(*target).MinCPUTime.GetPeriod() != -1 ) {
-	if ( !Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
-	     !Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )|| 
-	     (int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
-	  continue;
+
+	  	if (jobd["JobDescription"]["Resources"]["IndividualCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ))
+		      continue;
+	    }
+	  	else if (jobd["JobDescription"]["Resources"]["TotalCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).MinCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] ))
+		      continue;
+	    }
+		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]) { 
+		   if (!((int)(*target).MinCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]));
+	        continue;
+	     }
       }
-      
-      if ((int)(*target).MaxCPUTime.GetPeriod() != -1) {
-	if (!Arc::Value_Matching((int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"]) ||
-	     !Arc::Value_Matching((int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] ) ||
-	     (int)(*target).MaxCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
-	  continue;
+
+      if ((int)(*target).MaxCPUTime.GetPeriod() != -1 ) {
+
+	  	if (jobd["JobDescription"]["Resources"]["IndividualCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ))
+		      continue;
+	    }
+	  	else if (jobd["JobDescription"]["Resources"]["TotalCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).MaxCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] ))
+		      continue;
+	    }
+		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]) { 
+		   if (!((int)(*target).MaxCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]));
+	        continue;
+	    }
       }
       
       if ((int)(*target).MaxTotalCPUTime.GetPeriod() != -1 ) {
-	if (!Arc::Value_Matching ((int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ) ||
-	     !Arc::Value_Matching ((int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"]) ||
-	     (int)(*target).MaxTotalCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
-	  continue;
-      }
-      
-      if ( (int)(*target).DefaultCPUTime.GetPeriod() != -1 ) {
-	if ( !Arc::Value_Matching ((int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] )||
-	     !Arc::Value_Matching ((int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] )||
-	     (int)(*target).DefaultCPUTime.GetPeriod() < jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"])
-	  continue;
-      }
-      
-      if ( (*target).MaxMemory != -1 ) {
-	if (!Arc::Value_Matching ( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] )||
-	    !Arc::Value_Matching ( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] )||
-	    (*target).MaxMemory < jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"])
-	  continue;
-      }
-      
-      if ( (*target).NodeMemory != -1 ) {
-	if (!Arc::Value_Matching ( (*target).NodeMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] )||
-	    !Arc::Value_Matching ( (*target).NodeMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] )||
-	    (*target).NodeMemory < jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"])
-	  continue;
-      }
-      
-      if ( (*target).MainMemorySize != -1 ) {
-	if (!Arc::Value_Matching ( (*target).MainMemorySize, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] )||
-	    !Arc::Value_Matching ( (*target).MainMemorySize, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] )||
-	    (*target).MainMemorySize < jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"])
-	  continue;
+
+	  	if (jobd["JobDescription"]["Resources"]["IndividualCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ))
+		      continue;
+	    }
+	  	else if (jobd["JobDescription"]["Resources"]["TotalCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).MaxTotalCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] ))
+		      continue;
+	    }
+		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]) { 
+		   if (!((int)(*target).MaxTotalCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]));
+	        continue;
+	    }
       }
 
+      if ((int)(*target).DefaultCPUTime.GetPeriod() != -1 ) {
+
+	  	if (jobd["JobDescription"]["Resources"]["IndividualCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["IndividualCPUTime"] ))
+		      continue;
+	    }
+	  	else if (jobd["JobDescription"]["Resources"]["TotalCPUTime"]) {
+	       if (!Arc::Value_Matching( (int)(*target).DefaultCPUTime.GetPeriod(), jobd["JobDescription"]["Resources"]["TotalCPUTime"] ))
+		      continue;
+	    }
+		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]) { 
+		   if (!((int)(*target).DefaultCPUTime.GetPeriod() > jobd["JobDescription"]["Application"]["POSIXApplication"]["CPUTimeLimit"]));
+	        continue;
+	    }
+      }
+
+      if ((*target).MaxMemory != -1 ) {
+
+	  	if (jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"]) {
+	       if (!Arc::Value_Matching( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ))
+		      continue;
+	    }
+	  	else if (jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"]) {
+	       if (!Arc::Value_Matching( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ))
+		      continue;
+	    }
+		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]) { 
+		   if (!((*target).MaxMemory > jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]));
+	        continue;
+	    }
+      }
+      
+      if ((*target).NodeMemory != -1 ) {
+
+	  	if (jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"]) {
+	       if (!Arc::Value_Matching( (*target).NodeMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ))
+		      continue;
+	    }
+	  	else if (jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"]) {
+	       if (!Arc::Value_Matching( (*target).NodeMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ))
+		      continue;
+	    }
+		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]) { 
+		   if (!((*target).NodeMemory > jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]));
+	        continue;
+	    }
+      }
+
+      if ((*target).MainMemorySize != -1 ) {
+
+	  	if (jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"]) {
+	       if (!Arc::Value_Matching( (*target).MainMemorySize, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ))
+		      continue;
+	    }
+	  	else if (jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"]) {
+	       if (!Arc::Value_Matching( (*target).MainMemorySize, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ))
+		      continue;
+	    }
+		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]) { 
+		   if (!((*target).MainMemorySize > jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]));
+	        continue;
+	    }
+      }
+      
       //if the target made it down here, then insert into list of possible targets
       PossibleTargets.push_back(*target);	     
     
     } //end loop over all found targets
     
     logger.msg(VERBOSE, "Number of possible targets : %d",PossibleTargets.size());
-    current = PossibleTargets.begin();    
     PreFilteringDone = true;
     TargetSortingDone = false;
 
@@ -455,14 +517,15 @@ namespace Arc {
     
   ExecutionTarget& Broker::GetBestTarget(bool &EndOfList) {
 
-   if(PossibleTargets.size() <= 0) {
-     EndOfList = true;
-     return *PossibleTargets.end();
-   }
+    if(PossibleTargets.size() <= 0) {
+      EndOfList = true;
+      return *PossibleTargets.end();
+    }
 
     if (!TargetSortingDone){
       logger.msg(VERBOSE, "Target sorting not done, sorting them now");
       SortTargets();
+      current = PossibleTargets.begin();    
     }
     
     std::vector<Arc::ExecutionTarget>::iterator ret_pointer;
