@@ -3,15 +3,10 @@
 # must be called with the grami file as argument
 # remember to set $joboption_lrms
 
-if [ -z ${basedir} ] ; then
-    echo "basedir not set."  1>&2
-    exit 1
-fi
-if [ ! -f "${basedir}/configure-${joboption_lrms}-env.sh" ] ; then
-    echo "${basedir}/configure-${joboption_lrms}-env.sh not found." 1>&2
-    exit 1
-fi
-. ${basedir}/configure-${joboption_lrms}-env.sh
+if [ -z "$joboption_lrms" ]; then echo 'joboption_lrms must be set' 1>&2; exit 1; fi
+if [ -z "$pkglibdir" ]; then echo 'pkglibdir must be set' 1>&2; exit 1; fi
+
+. ${pkglibdir}/configure-${joboption_lrms}-env.sh || exit $?
 
 arg_file=$1
 ##############################################################
