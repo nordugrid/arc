@@ -823,33 +823,20 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     std::string env_value;
     JSDLJob::get_environments(envs);    
 
-    std::list<std::pair<std::string,std::string> >::const_iterator env_iter;
+    std::list<std::pair<std::string,std::string> >::const_iterator env_iter = envs.begin();
 
-    // TODO: we need to test this code part because I am not sure that
-    //       it is working by correct way
-
-    int env_size= envs.size();
+    int env_size = envs.size();
 
     for (int k = 0; k < env_size; env_iter++, k++) { 
 
        env_name = env_iter->first;
        env_value = env_iter->second;
 
-       f<<"joboption_env_"<<(k/2)<<"='"<<value_for_shell(env_name,false)<<"=";
+       f<<"joboption_env_"<<k<<"='"<<value_for_shell(env_name,false)<<"=";
  
-     //  if(tmp_param[i]==NULL) { f<<"'"<<std::endl; break; };
-
        f<<value_for_shell(env_value,false)<<"'"<<std::endl;
 
    }
-
-  /*  for(i=0;tmp_param[i]!=NULL;i++) { 
-      f<<"joboption_env_"<<(i/2)<<"='"<<value_for_shell(tmp_param[i],false)<<"=";
-      i++; if(tmp_param[i]==NULL) { f<<"'"<<std::endl; break; };
-      f<<value_for_shell(tmp_param[i],false)<<"'"<<std::endl;
-    };
-
-   */
 
   std::list<std::string> rtes;
   if(!get_RTEs(rtes)) return false;
