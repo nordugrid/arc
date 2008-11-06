@@ -18,14 +18,7 @@ control_dir="$1"
 test -d "$control_dir" || exit 1
 
 # Get LoadLeveler environment
-if test -f "${pkglibdir}/configure-ll-env.sh"
-then
-  :
-else
-  echo "${pkglibdir}/configure-ll-env.sh not found." 1>&2
-  exit 1
-fi
-. "${pkglibdir}/configure-ll-env.sh"
+. "${pkglibdir}/configure-ll-env.sh" || exit $?
 
 #for i in "$control_dir"/job.*.local
 find $control_dir -maxdepth 1 -type f -name job\*.local | while read i

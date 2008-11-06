@@ -20,7 +20,7 @@ condorid=${lrmsid%% *}
 lrmsid=${lrmsid%%.*}.condor
 
 # Initialize environment for Condor commands!
-. $pkglibdir/configure-condor-env.sh || exit 1
+. $pkglibdir/configure-condor-env.sh || exit $?
 
 # Set variable "controldir" from GM config.
 controldir=$CONFIG_controldir

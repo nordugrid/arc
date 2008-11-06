@@ -14,7 +14,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-. ${pkglibdir}/cancel_common.sh $1
+. ${pkglibdir}/cancel_common.sh $1 || exit $?
 
 echo executing $SGE_BIN_PATH/qdel with job id $joboption_jobid 1>&2
 $SGE_BIN_PATH/qdel "${joboption_jobid}"

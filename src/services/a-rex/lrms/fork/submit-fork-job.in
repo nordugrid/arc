@@ -13,7 +13,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-. ${pkglibdir}/submit_common.sh
+. ${pkglibdir}/submit_common.sh || exit $?
 
 init
 

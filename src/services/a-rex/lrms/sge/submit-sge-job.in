@@ -18,12 +18,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-if [ ! -f "${pkglibdir}/submit_common.sh" ] ; then
-    echo "${pkglibdir}/submit_common.sh not found." 1>&2
-    exit 1
-fi
-
-. ${pkglibdir}/submit_common.sh
+. ${pkglibdir}/submit_common.sh || exit $?
 
 joboption_localtransfer='no'
 

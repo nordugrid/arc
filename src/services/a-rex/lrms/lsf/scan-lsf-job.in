@@ -17,12 +17,8 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 # Assume that gm-kick is installed in the same directory
 GMKICK=${basedir}/gm-kick
 
-if [ ! -f "${pkglibdir}/configure-lsf-env.sh" ] ; then
-    echo "${pkglibdir}/configure-lsf-env.sh not found." 1>&2
-    exit 1
-fi
+. ${pkglibdir}/configure-lsf-env.sh || exit $?
 
-. ${pkglibdir}/configure-lsf-env.sh
 umask 022
 
 STAT_USERNAME='stat -c %U'

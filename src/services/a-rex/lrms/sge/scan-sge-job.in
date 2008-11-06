@@ -21,10 +21,6 @@ GMKICK=${basedir}/gm-kick
 ##############################################################
 # Set SGE specific environment.
 ##############################################################
-if [ ! -f "${pkglibdir}/configure-sge-env.sh" ] ; then
-    echo "${pkglibdir}/configure-sge-env.sh not found." 1>&2
-    exit 1
-fi
 . "${pkglibdir}/configure-sge-env.sh" 1>&2 || exit $?
 
 ##############################################################

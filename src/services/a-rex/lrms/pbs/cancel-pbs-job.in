@@ -14,7 +14,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-. ${pkglibdir}/cancel_common.sh $1
+. ${pkglibdir}/cancel_common.sh $1 || exit $?
 
 ##############################################################
 # These should be set automatically

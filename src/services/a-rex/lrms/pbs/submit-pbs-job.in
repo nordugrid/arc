@@ -19,7 +19,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-. ${pkglibdir}/submit_common.sh
+. ${pkglibdir}/submit_common.sh || exit $?
 
 init
 
@@ -55,13 +55,8 @@ parse_arg_file $1
 # Read queue_node_string from ARC config file
 ##############################################################
 
-if [ ! -f "$pkglibdir/config_parser.sh" ] ; then
-    echo "$pkglibdir/config_parser.sh not found." 1>&2
-    exit 1
-fi
-
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-. $pkglibdir/config_parser.sh
+. $pkglibdir/config_parser.sh || exit $?
 
 config_parse_file $ARC_CONFIG 1>&2 || exit $?
 config_import_section "common"
