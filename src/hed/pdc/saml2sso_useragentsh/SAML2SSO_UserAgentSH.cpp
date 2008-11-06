@@ -8,6 +8,8 @@
 #include <arc/loader/SecHandlerLoader.h>
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/Message.h>
+
 #include <arc/client/ClientInterface.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
@@ -78,7 +80,9 @@ bool SAML2SSO_UserAgentSH::Handle(Arc::Message* msg){
   Arc::PayloadRaw requestSP;
   Arc::PayloadRawInterface *responseSP = NULL;
   Arc::HTTPClientInfo infoSP;
-  Arc::MCC_Status statusSP = clientSP.process("GET", &requestSP, &infoSP, &responseSP);
+  std::string idp_name("https://idp.testshib.org/idp/shibboleth"); //TODO
+  requestSP.Insert(idp_name.c_str(),0, idp_name.size());
+  Arc::MCC_Status statusSP = clientSP.process("POST", &requestSP, &infoSP, &responseSP);
   if (!responseSP) {
     logger.msg(Arc::ERROR, "Request failed: No response");
     return -1;

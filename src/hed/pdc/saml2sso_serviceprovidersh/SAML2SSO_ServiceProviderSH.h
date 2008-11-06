@@ -9,7 +9,16 @@
 
 namespace ArcSec {
 
-/// Implement the funcionality of the user agent in SAML2 SSO profile
+/// Implement the funcionality of the Service Provider in SAML2 SSO profile
+//1.Launch a service (called SP Service) which will compose AuthnRequest according 
+//to the IdP information sent from client side/user agent. So the SAML2SSO_ServiceProviderSH
+//handler and SP Service together composes the functionality if Service Provider in 
+//SAML2 SSO profile
+//2.Consume the saml assertion from client side/user agent (Push model): 
+//a. assertion inside soap message as WS-Security SAML token;
+//b. assertion inside x509 certificate as exention. we need to parse the peer 
+//x509 certificate from transport level and take out the saml assertion.
+//Or contact the IdP and get back the saml assertion related to the client(Pull model)
 
 class SAML2SSO_ServiceProviderSH : public SecHandler {
  private:

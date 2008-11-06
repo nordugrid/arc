@@ -37,7 +37,7 @@ Service_SP::Service_SP(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLo
   metadata_node_.ReadFromFile(metadata_file);
   std::string str;
   metadata_node_.GetXML(str);
-  std::cout<<"Metadata: "<<str<<std::endl;
+  //std::cout<<"Metadata: "<<str<<std::endl;
 }
 
 Service_SP::~Service_SP(void) {
@@ -52,14 +52,20 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   };
   // Both input and output are supposed to be HTTP 
   // Extracting payload
-  Arc::MessagePayload* inpayload = inmsg.Payload();
+  Arc::PayloadRawInterface* inpayload = (Arc::PayloadRawInterface*)(inmsg.Payload());
   if(!inpayload) {
     logger.msg(Arc::WARNING, "empty input payload");
   };
 
   //Analyzing http request from user agent
-  //std::string content(inpayload->Content());
-  //std::cout<<"Content of the input message: "<<content<<std::endl;
+  //for(Arc::AttributeIterator i = inmsg.Attributes()->getAll();i.hasMore();++i) {
+  //  std::cout<<"Attribute: "<<i.key()<<"=="<<*i<<std::endl;
+  //}
+  //Get the IdP name from the request
+  //Here we require the user agent to provide the idp name instead of the 
+  //WRYF(where are you from) or Discovery Service in some other implementation
+  //like Shibboleth
+  std::string idp_name(inpayload->Content());
 
   //Compose <samlp:AuthnRequest/>
   Arc::NS saml_ns;
@@ -67,7 +73,6 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   saml_ns["samlp"] = SAMLP_NAMESPACE;
   Arc::XMLNode authn_request(saml_ns, "samlp:AuthnRequest");
   std::string sp_name("https://squark.uio.no/shibboleth-sp"); //TODO
-  std::string idp_name("https://idp.testshib.org/idp/shibboleth"); //TODO: get from request
   std::string req_id = Arc::UUID();
   authn_request.NewAttribute("ID") = req_id;
   Arc::Time t1;
@@ -139,24 +144,23 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   std::string authnRequestQuery;
   std::string query = BuildDeflatedQuery(authn_request);
-  std::cout<<"AuthnRequest after deflation: "<<query<<std::endl;
+  //std::cout<<"AuthnRequest after deflation: "<<query<<std::endl;
   if(must_signed) {
     authnRequestQuery = SignQuery(query, Arc::RSA_SHA1, privkey_file);
-    std::cout<<"After signature: "<<authnRequestQuery<<std::endl;
+    //std::cout<<"After signature: "<<authnRequestQuery<<std::endl;
   }
   else authnRequestQuery = query;
 
   std::string authnRequestUrl;
   authnRequestUrl = sso_url + "?SAMLRequest=" + authnRequestQuery;
-  std::cout<<"autnRequestUrl: "<<authnRequestUrl<<std::endl;
 
   //Return the composed url back to user agent through http
   Arc::PayloadRaw* outpayload = NULL;
   outpayload = new Arc::PayloadRaw;
   outpayload->Insert(authnRequestUrl.c_str(),0, authnRequestUrl.size());
   outmsg.Attributes()->set("HTTP:CODE","302");
+  outmsg.Attributes()->set("HTTP:REASON","Moved Temporarily");
   std::string outcontent(outpayload->Content());
-  std::cout<<"Output message: "<<outcontent<<std::endl;
   delete outmsg.Payload(outpayload);
 
   return Arc::MCC_Status(Arc::STATUS_OK);

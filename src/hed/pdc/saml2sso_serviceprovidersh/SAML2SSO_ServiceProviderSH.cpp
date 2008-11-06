@@ -58,7 +58,7 @@ SAML2SSO_ServiceProviderSH::SAML2SSO_ServiceProviderSH(Config *cfg,ChainContext*
         <tls:CACertificatesDir>./certificates</tls:CACertificatesDir>\
       </Component>\
       <Component name='http.service' id='http'>\
-        <next id='samlsp'>GET</next>\
+        <next id='samlsp'>POST</next>\
       </Component>\
       <Service name='saml.sp' id='samlsp'/>\
      </Chain>\
@@ -80,6 +80,9 @@ SAML2SSO_ServiceProviderSH::~SAML2SSO_ServiceProviderSH() {
 }
 
 bool SAML2SSO_ServiceProviderSH::Handle(Arc::Message* msg){
+  //TODO: Consume the saml assertion from client side (Push model): assertion inside soap message, 
+  //assertion inside x509 certificate as exention;
+  //Or contact the IdP and get back the saml assertion related to the client(Pull model)
 
   return true;
 }
