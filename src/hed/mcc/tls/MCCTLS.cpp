@@ -453,16 +453,13 @@ void MCC_TLS::ssl_locking_cb(int mode, int n, const char * s_, int n_) {
     _exit(-1);
   };
   if(mode & CRYPTO_LOCK) {
-//std::cerr<<"SSL LOCK: "<<n<<": "<<n_<<" - "<<s_<<std::endl;
     ssl_locks_[n].lock();
   } else {
-//std::cerr<<"SSL UNLOCK: "<<n<<": "<<n_<<" - "<<s_<<std::endl;
     ssl_locks_[n].unlock();
   };
 }
 
 unsigned long MCC_TLS::ssl_id_cb(void) {
-//std::cerr<<"SSL ID: "<<(unsigned long)(Glib::Thread::self())<<std::endl;
   return (unsigned long)(Glib::Thread::self());
 }
 
@@ -481,7 +478,6 @@ bool MCC_TLS::do_ssl_init(void) {
      } else {
        int num_locks = CRYPTO_num_locks();
        if(num_locks) {
-//std::cerr<<"SSL LOCKS NUM: "<<num_locks<<std::endl;
          ssl_locks_=new Glib::Mutex[num_locks];
          if(ssl_locks_) {
            ssl_locks_num_=num_locks;
@@ -489,7 +485,6 @@ bool MCC_TLS::do_ssl_init(void) {
            CRYPTO_set_id_callback(&ssl_id_cb);
            //CRYPTO_set_idptr_callback(&ssl_idptr_cb);
            ++ssl_initialized_;
-//std::cerr<<"SSL LOCKS: set"<<std::endl;
            ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
          } else {
            logger.msg(ERROR, "Failed to allocate SSL locks");
@@ -516,7 +511,6 @@ void MCC_TLS::do_ssl_deinit(void) {
      logger.msg(VERBOSE, "MCC_TLS::do_ssl_deinit");     
      --ssl_initialized_;
      if(!ssl_initialized_) {
-//std::cerr<<"SSL LOCKS: unset"<<std::endl;
        CRYPTO_set_locking_callback(NULL);
        CRYPTO_set_id_callback(NULL);
        //CRYPTO_set_idptr_callback(NULL);
@@ -810,7 +804,6 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
       PayloadTLSStream::HandleError(logger);
       return;
    }
-//std::cerr<<"___SSL___: Client: Contructort: sslctx created: "<<(unsigned long)sslctx_<<std::endl;
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
@@ -885,12 +878,9 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
 
 void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
    if(label.empty()) {
-//std::cerr<<"___SSL___: Client: Next: sslctx = "<<(unsigned long)sslctx_<<std::endl;
-//std::cerr<<"___SSL___: Client: Next: stream = "<<(unsigned long)stream_<<std::endl;
       if(stream_) delete stream_;
       stream_=NULL;
       stream_=new PayloadTLSMCC(next,sslctx_,cert_file_,key_file_,logger);
-//std::cerr<<"___SSL___: Client: Next: stream created: "<<(unsigned long)stream_<<std::endl;
    };
    MCC::Next(next,label);
 }

@@ -67,7 +67,7 @@ namespace Arc {
 class MCC_TLS_Service: public MCC_TLS
 {
     private:
-        //SSL_CTX* sslctx_;
+        SSL_CTX* sslctx_;
     public:
         MCC_TLS_Service(Arc::Config *cfg);
         virtual ~MCC_TLS_Service(void);
@@ -81,7 +81,7 @@ class PayloadTLSMCC;
 class MCC_TLS_Client: public MCC_TLS
 {
     private:
-        //SSL_CTX* sslctx_;
+        SSL_CTX* sslctx_;
         PayloadTLSMCC* stream_;
     public:
         MCC_TLS_Client(Arc::Config *cfg);
