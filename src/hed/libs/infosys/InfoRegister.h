@@ -24,7 +24,22 @@ namespace Arc
 class InfoRegister
 {
     private:
-        std::list<Arc::URL> peers_;
+        class Peer {
+            public:  
+                Arc::URL url;
+                std::string key;
+                std::string cert;
+                std::string proxy;
+                std::string cadir;
+                Peer(const Arc::URL& url_,
+                     const std::string& key_,
+                     const std::string& cert_,
+                     const std::string& proxy_,
+                     const std::string& cadir_):
+                url(url_), key(key_), cert(cert_), proxy(proxy_), cadir(cadir_)
+                { };
+        };
+        std::list<Peer> peers_;
         Arc::NS ns_;
         Arc::MCCConfig mcc_cfg_;
         Arc::Logger logger_;
@@ -37,7 +52,7 @@ class InfoRegister
         void registration(void);
 };
 
-/// Hadling multiple registrations to ISISes
+/// Handling multiple registrations to ISISes
 class InfoRegisters
 {
     private:

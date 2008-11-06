@@ -10,12 +10,18 @@
         <xsd:sequence>
             <!-- Period specifies how often registration to be done in seconds. -->
             <xsd:element name="Period" type="xsd:string"/>
-            <xsd:element name="Peers">
+            <xsd:element name="Peers" maxOccurs="unbounded">
                 <xsd:sequence>
                     <!-- URL specifies contact endpoint of Information Registration service. -->
                     <xsd:element name="URL" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
-            </xsd:elememnt>
+                <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
+                     paths to files storing X509 credentials used for establishing connections. -->
+                <xsd:element name="KeyPath" type="xsd:string" minOccurs="0">
+                <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0">
+                <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0">
+                <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0">
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="icc:InfoRegister_Type"/>
