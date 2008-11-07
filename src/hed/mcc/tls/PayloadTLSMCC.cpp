@@ -206,6 +206,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx,Logger& logger) {
       return false;
     };
   };
+  if((!key_file_.empty()) && (!cert_file.empty())) {
   if(!(SSL_CTX_check_private_key(sslctx))) {
     logger.msg(ERROR, "Private key %s does not match certificate %s",key_file_,cert_file_);
     PayloadTLSStream::HandleError(logger);
