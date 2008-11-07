@@ -46,8 +46,8 @@ InfoRegister::InfoRegister(Arc::XMLNode &cfg, Arc::Service *service):logger_(Log
         std::string cadir = peers["CACertificatesDir"];
         for (int i = 0; (n = peers["URL"][i]) != false; i++) {
             std::string url_str = (std::string)n;
-            Peer peer(Arc::URL(url_str),key,cert,proxy,cadir);
-            if(!peer.url) {
+            Peer* peer = new Peer(Arc::URL(url_str),key,cert,proxy,cadir);
+            if(!(peer->url)) {
                 logger_.msg(Arc::ERROR, "Can't recognize URL: %s",url_str);
             } else {
                 peers_.push_back(peer);
@@ -63,6 +63,8 @@ InfoRegister::InfoRegister(Arc::XMLNode &cfg, Arc::Service *service):logger_(Log
 
 InfoRegister::~InfoRegister(void)
 {
+    // Delete Peer object
+    while(!peers_.empty()) { delete(peers_.back()); peers_.pop_back(); };
     // Service should not be deleted here!
     // Nope
     // TODO: stop registration threads created by this object
@@ -98,13 +100,13 @@ void InfoRegister::registration(void)
     }
     
     // send to all peers
-    std::list<Peer>::iterator it;
+    std::list<Peer*>::iterator it;
     for (it = peers_.begin(); it != peers_.end(); it++) {
-        std::string isis_name = it->url.fullstr();
+        std::string isis_name = (*it)->url.fullstr();
         bool tls;
-        if (it->url.Protocol() == "http") {
+        if ((*it)->url.Protocol() == "http") {
             tls = false;
-        } else if (it->url.Protocol() == "https") {
+        } else if ((*it)->url.Protocol() == "https") {
             tls = true;
         } else {
             logger_.msg(Arc::WARNING, "unsupported protocol: %s", isis_name);
@@ -122,11 +124,11 @@ void InfoRegister::registration(void)
         
         // send
         Arc::PayloadSOAP *response;
-        mcc_cfg_.AddPrivateKey(it->key);
-        mcc_cfg_.AddCertificate(it->cert);
-        mcc_cfg_.AddProxy(it->proxy);
-        mcc_cfg_.AddCADir(it->cadir);
-        Arc::ClientSOAP cli(mcc_cfg_, it->url.Host(), it->url.Port(), tls, it->url.Path());
+        mcc_cfg_.AddPrivateKey((*it)->key);
+        mcc_cfg_.AddCertificate((*it)->cert);
+        mcc_cfg_.AddProxy((*it)->proxy);
+        mcc_cfg_.AddCADir((*it)->cadir);
+        Arc::ClientSOAP cli(mcc_cfg_, (*it)->url.Host(), (*it)->url.Port(), tls, (*it)->url.Path());
         Arc::MCC_Status status = cli.process(&request, &response);
         if ((!status) || (!response)) {
             logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
