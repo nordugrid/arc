@@ -13,7 +13,9 @@
 
 #include <glibmm.h>
 #include <unistd.h>
+#include <signal.h>
 
+/*
 Arc::Run *executer = NULL;
 
 void start_thread(void *)
@@ -90,4 +92,24 @@ std::cout << "Main: " << i << std::endl;
 }
 std::cout << "main end" << std::endl;
     return 0;
+}
+*/
+
+int main(void) {
+  signal(SIGTTOU,SIG_IGN);
+  std::string out;
+  Arc::Run run("/bin/cat /tmp/*");
+  run.AssignStdout(out);
+  run.KeepStderr(true);
+  run.KeepStdin(true);
+sleep(10);
+  run.Start();
+  if(run.Wait()) {
+    std::cerr<<"Success"<<std::endl;
+    std::cout<<out<<std::endl;
+  } else {
+    std::cerr<<"Timeout"<<std::endl;
+  };
+sleep(600);
+  return 0;
 }
