@@ -572,6 +572,12 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    key_file_ = (std::string)((*cfg)["KeyPath"]);
    ca_file_ = (std::string)((*cfg)["CACertificatePath"]);
    ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
+   bool client_authn = true;
+   //If ClientAuthn is explicitly set to be "false" in configuration, then client 
+   //authentication is not required, which means client side does not need to provide 
+   //certificate and key in its configuration. The default value of ClientAuthn is "true"
+   if (((std::string)((*cfg)["ClientAuthn"])) == "false")
+     client_authn = false; 
    globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
    proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
    get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
@@ -591,24 +597,30 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
-   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
-   if((!ca_file_.empty()) || (!ca_dir_.empty())){
-      r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
-      if(!r){
+   if(client_authn) {
+     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
+     if((!ca_file_.empty()) || (!ca_dir_.empty())){
+       r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
+       if(!r){
          PayloadTLSStream::HandleError(logger);
          SSL_CTX_free(sslctx_); sslctx_=NULL;
          return;
-      }   
-      /*
-      SSL_CTX_set_client_CA_list(sslctx_,SSL_load_client_CA_file(ca_file.c_str())); //Scan all certificates in CAfile and list them as acceptable CAs
-      if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
+       }   
+       /*
+       SSL_CTX_set_client_CA_list(sslctx_,SSL_load_client_CA_file(ca_file.c_str())); //Scan all certificates in CAfile and list them as acceptable CAs
+       if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
          logger.msg(ERROR, "Can not set client CA list from the specified file");
          PayloadTLSStream::HandleError(logger);
          SSL_CTX_free(sslctx_); sslctx_=NULL;
          return;
-      }
-      */
+       }
+       */
+     }
    }
+   else {
+     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+   }
+
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
    if(sslctx_->param == NULL) {
      logger.msg(ERROR,"Can't set OpenSSL verify flags");
@@ -772,6 +784,14 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    // if(key_file_.empty()) key_file_="key.pem";
    if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
    if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
+
+   bool client_authn = true;
+   //If both CertificatePath and ProxyPath have not beed configured, client side can
+   //not provide certificate for server side. Then server side should not require
+   //client authentication
+   if(cert_file_.empty() && proxy_file_.empty())
+     client_authn = false;
+
    int r;
    if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
@@ -783,7 +803,9 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
-   tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
+   if(client_authn) {
+     tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
+   }
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
    if((!ca_file_.empty()) || (!ca_dir_.empty())) {
       r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
