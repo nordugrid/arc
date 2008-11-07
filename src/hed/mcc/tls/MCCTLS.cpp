@@ -39,7 +39,7 @@ class TLSSecAttr: public Arc::SecAttr {
  friend class MCC_TLS_Service;
  friend class MCC_TLS_Client;
  public:
-  TLSSecAttr(PayloadTLSStream&, ConfigTLSMCC& config, const std::vector<std::string>& vomscert_trust_dn);
+  TLSSecAttr(PayloadTLSStream&, ConfigTLSMCC& config);
   virtual ~TLSSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(Format format,XMLNode &val) const;
@@ -61,7 +61,7 @@ Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 int Arc::MCC_TLS::ssl_locks_num_ = 0;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
-Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg) : MCC(&cfg), config_(cfg) {
+Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : MCC(&cfg), config_(cfg,logger,client) {
 }
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
@@ -84,7 +84,7 @@ mcc_descriptors ARC_MCC_LOADER = {
 using namespace Arc;
 
 
-TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, const std::vector<std::string>& vomscert_trust_dn) {
+TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config) {
    char buf[100];
    std::string subject;
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
@@ -122,7 +122,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, const st
       };
 #endif
       // Parse VOMS attributes from peer certificate
-      bool res = ArcLib::parseVOMSAC(peercert, config.CADir(), config.CAFile(), vomscert_trust_dn, attributes_);
+      bool res = ArcLib::parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), attributes_);
 
       X509_free(peercert);
    };
@@ -299,50 +299,9 @@ class MCC_TLS_Context:public MessageContextElement {
   virtual ~MCC_TLS_Context(void) { if(stream) delete stream; };
 };
 
-static void get_vomscert_trustDN(Arc::Config* cfg, Logger& logger, std::vector<std::string>& vomscert_trust_dn) {
-  Arc::XMLNode nd, cnd;
-  //If the voms trust DN about server certificate is configured in service.xml
-  for(int i=0;; i++) {
-    nd = (*cfg)["VOMSCertTrustDNChain"][i];
-    if(!nd) break;
-    for(int j=0;;j++) {
-      cnd = nd["VOMSCertTrustDN"][j];
-      if(!cnd) break;
-      vomscert_trust_dn.push_back((std::string)cnd);
-    }
-    vomscert_trust_dn.push_back("----NEXT CHAIN----");
-  }
-
-  //If it is configured by indexing to some seperated file
-  Arc::XMLNode locnd = (*cfg)["VOMSCertTrustDNChainsLocation"];
-  if((bool)locnd) {
-    std::string filename = (std::string)locnd;
-    std::ifstream file(filename.c_str());
-    if (!file) {
-      logger.msg(ERROR, "Can not find the file %s including trusted voms cert DN", filename);
-      file.close(); return;
-    }
-    Arc::XMLNode node;
-    file >> node;
-
-    for(int i=0;; i++) {
-      nd = node["VOMSCertTrustDNChain"][i];
-      if(!nd) break;
-      for(int j=0;;j++) {
-        cnd = nd["VOMSCertTrustDN"][j];
-        if(!cnd) break;
-        vomscert_trust_dn.push_back((std::string)cnd);
-      }
-      vomscert_trust_dn.push_back("----NEXT CHAIN----");
-    }
-    file.close();
-  }
-  return;
-}
-
 /* The main functionality of the constructor method is to 
    initialize SSL layer. */
-MCC_TLS_Service::MCC_TLS_Service(Arc::Config& cfg):MCC_TLS(cfg) {
+MCC_TLS_Service::MCC_TLS_Service(Arc::Config& cfg):MCC_TLS(cfg,false) {
    if(!do_ssl_init()) return;
 }
 
@@ -395,7 +354,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream);
    // Filling security attributes
    if(tstream) {
-      TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, vomscert_trust_dn_);
+      TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_);
       nextinmsg.Auth()->set("TLS",sattr);
       // TODO: Remove following code, use SecAttr instead
       //Getting the subject name of peer(client) certificate
@@ -455,7 +414,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    return MCC_Status(Arc::STATUS_OK);
 }
 
-MCC_TLS_Client::MCC_TLS_Client(Arc::Config& cfg):MCC_TLS(cfg){
+MCC_TLS_Client::MCC_TLS_Client(Arc::Config& cfg):MCC_TLS(cfg,true){
    stream_=NULL;
    if(!do_ssl_init()) return;
    /* Get DN from certificate, and put it into message's attribute */

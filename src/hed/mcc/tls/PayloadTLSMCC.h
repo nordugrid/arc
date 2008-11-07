@@ -21,15 +21,17 @@ class ConfigTLSMCC {
   std::string key_file_;
   bool client_authn_;
   bool globus_policy_;
+  std::vector<std::string> vomscert_trust_dn_;
   ConfigTLSMCC(void);
  public:
-  ConfigTLSMCC(XMLNode cfg,bool client = false);
+  ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client = false);
   const std::string& CADir(void) const { return ca_dir_; };
   const std::string& CAFile(void) const { return ca_file_; };
   const std::string& ProxyFile(void) const { return proxy_file_; };
   const std::string& CertFile(void) const { return cert_file_; };
   const std::string& KeyFile(void) const { return key_file_; };
   bool GlobusPolicy(void) const { return globus_policy_; };
+  const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };
   bool Set(SSL_CTX* sslctx,Logger& logger);
   bool IfClientAuthn(void) const { return client_authn_; };
 };

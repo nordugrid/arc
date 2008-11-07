@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <fstream>
+
 #include "GlobusSigningPolicy.h"
 
 #include "PayloadTLSMCC.h"
@@ -122,9 +124,21 @@ static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
 }
 
-// This class is collactsion of configuration information
+static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust_dn) {
+  XMLNode nd = cfg["VOMSCertTrustDNChain"];
+  for(;(bool)nd;++nd) {
+    XMLNode cnd = nd["VOMSCertTrustDN"];
+    for(;(bool)cnd;++cnd) {
+      vomscert_trust_dn.push_back((std::string)cnd);
+    }
+    vomscert_trust_dn.push_back("----NEXT CHAIN----");
+  }
+}
 
-ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) : client_authn_(true) {
+// This class is collection of configuration information
+
+ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
+  client_authn_ = true;
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
   ca_file_ = (std::string)(cfg["CACertificatePath"]);
@@ -132,23 +146,35 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) : client_authn_(true) {
   globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   if(!client) {
-    //get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
     if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
     if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
-
-   //If ClientAuthn is explicitly set to be "false" in configuration, then client
-   //authentication is not required, which means client side does not need to provide
-   //certificate and key in its configuration. The default value of ClientAuthn is "true"
-   if (((std::string)((cfg)["ClientAuthn"])) == "false")
-     client_authn_ = false;
-  }
-  else {
-   //If both CertificatePath and ProxyPath have not beed configured, client side can
-   //not provide certificate for server side. Then server side should not require
-   //client authentication
-   if(cert_file_.empty() && proxy_file_.empty())
-     client_authn_ = false;
-  }
+    // Use VOMS trust DN of server certificates specified in configuration
+    config_VOMS_add(cfg,vomscert_trust_dn_);
+    // Look for those configured in separate files
+    // TODO: should those file be reread on every connection
+    XMLNode locnd = cfg["VOMSCertTrustDNChainsLocation"];
+    for(;(bool)locnd;++locnd) {
+      std::string filename = (std::string)locnd;
+      std::ifstream file(filename.c_str());
+      if (!file) {
+        logger.msg(ERROR, "Can not read file %s with list of trusted VOMS DNs", filename);
+        continue;
+      };
+      Arc::XMLNode node;
+      file >> node;
+      config_VOMS_add(node,vomscert_trust_dn_);
+    };
+    //If ClientAuthn is explicitly set to be "false" in configuration,
+    //then client/authentication is not required, which means client 
+    //side does not need to provide certificate and key in its configuration.
+    //The default value of ClientAuthn is "true"
+    if (((std::string)((cfg)["ClientAuthn"])) == "false") client_authn_ = false;
+  } else {
+    //If both CertificatePath and ProxyPath have not beed configured, 
+    //client side can not provide certificate for server side. Then server 
+    //side should not require client authentication
+    if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
+  };
   if(ca_dir_.empty() && ca_file_.empty()) ca_dir_="/etc/grid-security/certificates";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
