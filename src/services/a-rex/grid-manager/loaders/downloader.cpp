@@ -222,7 +222,7 @@ class PointPair {
 };
 
 int main(int argc,char** argv) {
-  Arc::LogStream logcerr(std::cerr, "AREXClient");
+  Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   int res=0;
   bool not_uploaded;

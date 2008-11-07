@@ -149,7 +149,7 @@ void expand_files(std::list<FileData> &job_files,char* session_dir) {
 }
 
 int main(int argc,char** argv) {
-  Arc::LogStream logcerr(std::cerr, "AREXClient");
+  Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   int res=0;
   int n_threads = 1;

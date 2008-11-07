@@ -11,7 +11,7 @@
 
 int main(int argc, char **argv)
 {
-    Arc::LogStream logcerr(std::cerr, "ISISClient");
+    Arc::LogStream logcerr(std::cerr);
     Arc::Logger::getRootLogger().addDestination(logcerr);
     if (argc < 4) {
         std::cerr << "Invalid arguments!" << std::endl;
