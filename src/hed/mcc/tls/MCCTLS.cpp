@@ -39,7 +39,7 @@ class TLSSecAttr: public Arc::SecAttr {
  friend class MCC_TLS_Service;
  friend class MCC_TLS_Client;
  public:
-  TLSSecAttr(PayloadTLSStream&, const std::string& ca_dir, const std::string& ca_file, const std::vector<std::string>& vomscert_trust_dn);
+  TLSSecAttr(PayloadTLSStream&, ConfigTLSMCC& config, const std::vector<std::string>& vomscert_trust_dn);
   virtual ~TLSSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(Format format,XMLNode &val) const;
@@ -61,145 +61,17 @@ Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 int Arc::MCC_TLS::ssl_locks_num_ = 0;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
-static int ex_data_index_ = -1;
-#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-static int ex_flag_index_ = -1;
-#define FLAG_CRL_DISABLED (0x1)
-#endif
-
-static void store_MCC_TLS(SSL_CTX* container,Arc::MCC_TLS* it) {
-  if(ex_data_index_ != -1) {
-    SSL_CTX_set_ex_data(container,ex_data_index_,it);
-    return;
-  };
-  Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to store application data into OpenSSL");
-}
-
-static Arc::MCC_TLS* retrieve_MCC_TLS(X509_STORE_CTX* container) {
-  Arc::MCC_TLS* it = NULL;
-  if(ex_data_index_ != -1) {
-    SSL* ssl = (SSL*)X509_STORE_CTX_get_ex_data(container,SSL_get_ex_data_X509_STORE_CTX_idx());
-    if(ssl != NULL) {
-      SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
-      if(ssl_ctx != NULL) {
-        it = (Arc::MCC_TLS*)SSL_CTX_get_ex_data(ssl_ctx,ex_data_index_);
-      }
-    };
-  };
-  if(it == NULL) {
-    Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to retrieve application data from OpenSSL");
-  };
-  return it;
-}
-
-#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-static unsigned long get_flag_STORE_CTX(X509_STORE_CTX* container) {
-  if(ex_flag_index_ == -1) return 0;
-  return (unsigned long)X509_STORE_CTX_get_ex_data(container,ex_flag_index_);
-}
-
-static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
-  if(ex_flag_index_ == -1) {
-     ex_flag_index_=X509_STORE_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
-  };
-  if(ex_flag_index_ == -1) return;
-  X509_STORE_CTX_set_ex_data(container,ex_flag_index_,(void*)flags);
-}
-#endif
-
-static int verify_callback(int ok,X509_STORE_CTX *sctx) {
-#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-  unsigned long flag = get_flag_STORE_CTX(sctx);
-  if(!(flag & FLAG_CRL_DISABLED)) {
-     // Not sure if this will work
-     if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
-       sctx->flags |= X509_V_FLAG_CRL_CHECK;
-       ok=X509_verify_cert(sctx);
-       return ok;
-     };
-  };
-#endif
-  if (ok != 1) {
-    int err = X509_STORE_CTX_get_error(sctx);
-    switch(err) {
-#ifdef HAVE_OPENSSL_PROXY
-      case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
-        // This shouldn't happen here because flags are already set
-        // to allow proxy. But one can never know because used flag 
-        // setting method is undocumented.
-        X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
-        // Calling X509_verify_cert will cause a recursive call to verify_callback.
-        // But there should be no loop because PROXY_CERTIFICATES_NOT_ALLOWED error 
-        // can't happen anymore.
-        ok=X509_verify_cert(sctx);
-        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-      }; break;
-#endif
-      case X509_V_ERR_UNABLE_TO_GET_CRL: {
-        // Missing CRL is not an error (TODO: make it configurable)
-        // Consider that to be a policy of site like Globus does
-        // Not sure of there is need for recursive X509_verify_cert() here.
-        // It looks like openssl runs tests sequentially for whole chain.
-        // But not sure if behavior is same in all versions.
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-        if(sctx->param) {
-          X509_VERIFY_PARAM_clear_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-          ok=X509_verify_cert(sctx);
-          X509_VERIFY_PARAM_set_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-          if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-        };
-#else
-        sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
-        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) | FLAG_CRL_DISABLED);
-        ok=X509_verify_cert(sctx);
-        sctx->flags |= X509_V_FLAG_CRL_CHECK;
-        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) & (~FLAG_CRL_DISABLED));
-        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-#endif
-      }; break;
-    };
-  };
-  if(ok == 1) {
-    // Do additional verification here.
-    Arc::MCC_TLS* it = retrieve_MCC_TLS(sctx);
-    if(it != NULL) {
-      // Globus signing policy
-      // Do not apply to proxies and self-signed CAs.
-      if((it->GlobusPolicy()) && (!(it->CADir().empty()))) {
-        X509* cert = X509_STORE_CTX_get_current_cert(sctx);
-#ifdef HAVE_OPENSSL_PROXY
-        int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-        if(pos < 0) {
-#else
-        {
-#endif
-          std::istream* in = Arc::open_globus_policy(X509_get_issuer_name(cert),it->CADir());
-          if(in) {
-            if(!Arc::match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
-              char* s = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
-              Arc::Logger::getRootLogger().msg(Arc::ERROR,"Certificate %s failed Globus signing policy",s);
-              OPENSSL_free(s);
-              ok=0;
-              X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
-            };
-            delete in;
-          };
-        };
-      };
-    };
-  };
-  return ok;
-}
-
-Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg), globus_policy_(false) {
+Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg) : MCC(&cfg), config_(cfg) {
 }
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_TLS_Service(cfg);
+    if(cfg == NULL) return NULL;
+    return new Arc::MCC_TLS_Service(*cfg);
 }
 
 static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_TLS_Client(cfg);
+    if(cfg == NULL) return NULL;
+    return new Arc::MCC_TLS_Client(*cfg);
 }
 
 
@@ -212,7 +84,7 @@ mcc_descriptors ARC_MCC_LOADER = {
 using namespace Arc;
 
 
-TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, const std::string& ca_dir, const std::string& ca_file, const std::vector<std::string>& vomscert_trust_dn) {
+TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, const std::vector<std::string>& vomscert_trust_dn) {
    char buf[100];
    std::string subject;
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
@@ -250,7 +122,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, const std::string& ca_dir, con
       };
 #endif
       // Parse VOMS attributes from peer certificate
-      bool res = ArcLib::parseVOMSAC(peercert, ca_dir, ca_file, vomscert_trust_dn, attributes_);
+      bool res = ArcLib::parseVOMSAC(peercert, config.CADir(), config.CAFile(), vomscert_trust_dn, attributes_);
 
       X509_free(peercert);
    };
@@ -331,112 +203,6 @@ bool TLSSecAttr::Export(Format format,XMLNode &val) const {
   return false;
 }
 
-static int no_passphrase_callback(char*, int, int, void*) {
-   return -1;
-}
-
-/**Input the passphrase for key file
-static int passphrase_callback(char* buf, int size, int rwflag, void *) {
-   int len;
-   std::cout<<"Enter passphrase for your key file:"<<std::endl;
-   if(!(fgets(buf, size, stdin))) {
-     std::cerr<< "Failed to read passphrase from stdin"<<std::endl;
-     return -1;
-   }
-   len = strlen(buf);
-   if(buf[len-1] == '\n') {
-     buf[len-1] = '\0';
-     len--;
-   }
-   return len;
-}
-*/
-
-static int tls_rand_seeded_p = 0;
-#define my_MIN_SEED_BYTES 256 
-static bool tls_random_seed(Logger& logger, std::string filename, long n)
-{
-   int r;
-   r = RAND_load_file(filename.c_str(), (n > 0 && n < LONG_MAX) ? n : LONG_MAX);
-   if (n == 0)
-  n = my_MIN_SEED_BYTES;
-    if (r < n) {
-        logger.msg(ERROR, "tls_random_seed from file: could not read files");
-     PayloadTLSStream::HandleError(logger);
-  return false;
-    } else {
-  tls_rand_seeded_p = 1;
-  return true;
-    }
-}
-
-static DH *tls_dhe1024 = NULL; /* generating these takes a while, so do it just once */
-static void tls_set_dhe1024(Logger& logger)
-{
-   int i;
-   RAND_bytes((unsigned char *) &i, sizeof i);
-   if (i < 0) i = -i;
-   DSA *dsaparams;
-   DH *dhparams;
-   const char *seed[] = { "2007-10-12: KnowARC ",
-                          "makes available the ",
-                          "first technology pre",
-                          "view of the next gen",
-                          "eration ARC1 middlew",
-   };
-   unsigned char seedbuf[20];
-   if (i >= 0) {
-  i %= sizeof seed / sizeof seed[0];
-  memcpy(seedbuf, seed[i], 20);
-  dsaparams = DSA_generate_parameters(1024, seedbuf, 20, NULL, NULL, 0, NULL);
-    } else {
-  /* random parameters (may take a while) */
-  dsaparams = DSA_generate_parameters(1024, NULL, 0, NULL, NULL, 0, NULL);
-    }
-    if (dsaparams == NULL) {
-     PayloadTLSStream::HandleError(logger);
-  return;
-    }
-    dhparams = DSA_dup_DH(dsaparams);
-    DSA_free(dsaparams);
-    if (dhparams == NULL) {
-     PayloadTLSStream::HandleError(logger);
-  return;
-    }
-    if (tls_dhe1024 != NULL) DH_free(tls_dhe1024);
-    tls_dhe1024 = dhparams;
-}
-
-bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string&, const std::string& random_file)
-{
-   SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);
-
-   // Certificates are loaded here mostly for checking.
-   if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) && 
-      (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) && 
-      (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-        logger.msg(ERROR, "Can not load certificate file - %s",cert_file);
-     PayloadTLSStream::HandleError(logger);
-        return false;
-   }
-   if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_PEM) != 1) &&
-      (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-        logger.msg(ERROR, "Can not load key file - %s",key_file);
-     PayloadTLSStream::HandleError(logger);
-        return false;
-   }
-   if(!(SSL_CTX_check_private_key(sslctx))) {
-        logger.msg(ERROR, "Private key does not match certificate");
-     PayloadTLSStream::HandleError(logger);
-        return false;
-   }
-
-   if(tls_random_seed(logger, random_file, 0)) {
-     return false;
-   }
-   return true;
-}
-
 void MCC_TLS::ssl_locking_cb(int mode, int n, const char * s_, int n_) {
   if(!ssl_locks_) {
     std::cerr<<"FATAL ERROR: SSL locks not initialized"<<std::endl;
@@ -470,6 +236,16 @@ bool MCC_TLS::do_ssl_init(void) {
        logger.msg(ERROR, "SSL_library_init failed");
        PayloadTLSStream::HandleError(logger);
      } else {
+       // We could RAND_seed() here. But since 0.9.7 OpenSSL
+       // knows how to make use of OS specific source of random
+       // data. I think it's better to let OpenSSL do a job.
+       // Here we could also generate ephemeral DH key to avoid 
+       // time consuming genaration during connection handshake.
+       // But is not clear if it is needed for curently used
+       // connections types at all. Needs further investigation.
+       // Using RSA key violates TLS (according to OpenSSL 
+       // documentation) hence we do not use it.
+       //  A.K.
        int num_locks = CRYPTO_num_locks();
        if(num_locks) {
          ssl_locks_=new Glib::Mutex[num_locks];
@@ -479,13 +255,11 @@ bool MCC_TLS::do_ssl_init(void) {
            CRYPTO_set_id_callback(&ssl_id_cb);
            //CRYPTO_set_idptr_callback(&ssl_idptr_cb);
            ++ssl_initialized_;
-           ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
          } else {
            logger.msg(ERROR, "Failed to allocate SSL locks");
          };
        } else {
          ++ssl_initialized_;
-         ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
        };
      };
    } else {
@@ -566,103 +340,13 @@ static void get_vomscert_trustDN(Arc::Config* cfg, Logger& logger, std::vector<s
   return;
 }
 
-/*The main functionality of the constructor method is creat SSL context object*/
-MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
-   cert_file_ = (std::string)((*cfg)["CertificatePath"]);
-   key_file_ = (std::string)((*cfg)["KeyPath"]);
-   ca_file_ = (std::string)((*cfg)["CACertificatePath"]);
-   ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
-   bool client_authn = true;
-   //If ClientAuthn is explicitly set to be "false" in configuration, then client 
-   //authentication is not required, which means client side does not need to provide 
-   //certificate and key in its configuration. The default value of ClientAuthn is "true"
-   if (((std::string)((*cfg)["ClientAuthn"])) == "false")
-     client_authn = false; 
-   globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
-   proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
-   get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
-   if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
-   if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
-   if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
-   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
-   int r;
+/* The main functionality of the constructor method is to 
+   initialize SSL layer. */
+MCC_TLS_Service::MCC_TLS_Service(Arc::Config& cfg):MCC_TLS(cfg) {
    if(!do_ssl_init()) return;
-   /*Initialize the SSL Context object*/
-   sslctx_=SSL_CTX_new(SSLv23_server_method());
-   if(sslctx_==NULL){
-      logger.msg(ERROR, "Can not create the SSL Context object");
-      PayloadTLSStream::HandleError(logger);
-      return;
-   }
-   SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
-   SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
-   tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
-   if(client_authn) {
-     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
-     if((!ca_file_.empty()) || (!ca_dir_.empty())){
-       r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
-       if(!r){
-         PayloadTLSStream::HandleError(logger);
-         SSL_CTX_free(sslctx_); sslctx_=NULL;
-         return;
-       }   
-       /*
-       SSL_CTX_set_client_CA_list(sslctx_,SSL_load_client_CA_file(ca_file.c_str())); //Scan all certificates in CAfile and list them as acceptable CAs
-       if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
-         logger.msg(ERROR, "Can not set client CA list from the specified file");
-         PayloadTLSStream::HandleError(logger);
-         SSL_CTX_free(sslctx_); sslctx_=NULL;
-         return;
-       }
-       */
-     }
-   }
-   else {
-     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
-   }
-
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-   if(sslctx_->param == NULL) {
-     logger.msg(ERROR,"Can't set OpenSSL verify flags");
-     SSL_CTX_free(sslctx_); sslctx_=NULL;
-     return;
-   } else {
-#ifdef HAVE_OPENSSL_PROXY
-     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
-#else
-     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
-#endif
-   };
-#endif
-   store_MCC_TLS(sslctx_,this);
-   if(tls_dhe1024 == NULL) { // TODO: Is it needed?
-     tls_set_dhe1024(logger);
-     if(tls_dhe1024 == NULL) return;
-   }
-   if (!SSL_CTX_set_tmp_dh(sslctx_, tls_dhe1024)) { // TODO: Is it needed?
-     logger.msg(ERROR, "DH set error");
-     PayloadTLSStream::HandleError(logger);
-     SSL_CTX_free(sslctx_); sslctx_=NULL;
-     return;
-   }
-   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2);
-#ifndef NO_RSA
-   RSA *tmpkey;
-   tmpkey = RSA_generate_key(512, RSA_F4, 0, NULL); // TODO: Is it needed?
-   if (tmpkey == NULL) PayloadTLSStream::HandleError(logger);
-   if (!SSL_CTX_set_tmp_rsa(sslctx_, tmpkey)) {
-     RSA_free(tmpkey);
-     PayloadTLSStream::HandleError(logger);
-     SSL_CTX_free(sslctx_); sslctx_=NULL;
-     return;
-   }
-   RSA_free(tmpkey);
-#endif
 }
 
-
 MCC_TLS_Service::~MCC_TLS_Service(void) {
-   if(sslctx_!=NULL)SSL_CTX_free(sslctx_);
    do_ssl_deinit();
 }
 
@@ -670,7 +354,8 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    // Accepted payload is StreamInterface 
    // Returned payload is undefined - currently holds no information
 
-   if(!sslctx_) return MCC_Status();
+   // TODO: probably some other credentials check is needed
+   //if(!sslctx_) return MCC_Status();
 
    // Obtaining underlying stream
    if(!inmsg.Payload()) return MCC_Status();
@@ -697,7 +382,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    } else {
       // Creating new SSL object bound to stream of previous MCC
       // TODO: renew stream because it may be recreated by TCP MCC
-      stream = new PayloadTLSMCC(inpayload,sslctx_,cert_file_,key_file_,logger);
+      stream = new PayloadTLSMCC(inpayload,config_,logger);
       context=new MCC_TLS_Context(stream);
       inmsg.Context()->Add("tls.service",context);
    };
@@ -707,11 +392,10 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    nextinmsg.Payload(stream);
    Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
 
-//* @@@@@@ 
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream);
    // Filling security attributes
    if(tstream) {
-      TLSSecAttr* sattr = new TLSSecAttr(*tstream, ca_dir_, ca_file_, vomscert_trust_dn_);
+      TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, vomscert_trust_dn_);
       nextinmsg.Auth()->set("TLS",sattr);
       // TODO: Remove following code, use SecAttr instead
       //Getting the subject name of peer(client) certificate
@@ -754,7 +438,6 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
       return MCC_Status();
    };
-//*@@@@@
    
    // Call next MCC 
    MCCInterface* next = Next();
@@ -772,69 +455,14 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    return MCC_Status(Arc::STATUS_OK);
 }
 
-MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
+MCC_TLS_Client::MCC_TLS_Client(Arc::Config& cfg):MCC_TLS(cfg){
    stream_=NULL;
-   cert_file_ = (std::string)((*cfg)["CertificatePath"]);
-   key_file_ = (std::string)((*cfg)["KeyPath"]);
-   ca_file_ = (std::string)((*cfg)["CACertificatePath"]);
-   ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
-   globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
-   proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
-   // if(cert_file_.empty()) cert_file_="cert.pem";
-   // if(key_file_.empty()) key_file_="key.pem";
-   if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
-   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
-
-   bool client_authn = true;
-   //If both CertificatePath and ProxyPath have not beed configured, client side can
-   //not provide certificate for server side. Then server side should not require
-   //client authentication
-   if(cert_file_.empty() && proxy_file_.empty())
-     client_authn = false;
-
-   int r;
    if(!do_ssl_init()) return;
-   /*Initialize the SSL Context object*/
-   sslctx_=SSL_CTX_new(SSLv23_client_method());
-   if(sslctx_==NULL){
-      logger.msg(ERROR, "Can not create the SSL Context object");
-      PayloadTLSStream::HandleError(logger);
-      return;
-   }
-   SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
-   SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
-   if(client_authn) {
-     tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
-   }
-   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
-   if((!ca_file_.empty()) || (!ca_dir_.empty())) {
-      r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
-      if(!r){
-         PayloadTLSStream::HandleError(logger);
-         return;
-      }
-   }
-   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-   if(sslctx_->param == NULL) {
-      logger.msg(ERROR,"Can't set OpenSSL verify flags");
-      SSL_CTX_free(sslctx_); sslctx_=NULL;
-      return;
-   } else {
-#ifdef HAVE_OPENSSL_PROXY
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
-#else
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
-#endif
-   };
-#endif
-   store_MCC_TLS(sslctx_,this);
-  /**Get DN from certificate, and put it into message's attribute */
+   /* Get DN from certificate, and put it into message's attribute */
 }
 
 MCC_TLS_Client::~MCC_TLS_Client(void) {
    if(stream_) delete stream_;
-   if(sslctx_) SSL_CTX_free(sslctx_);
    do_ssl_deinit();
 }
 
@@ -879,7 +507,7 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
    if(label.empty()) {
       if(stream_) delete stream_;
       stream_=NULL;
-      stream_=new PayloadTLSMCC(next,sslctx_,cert_file_,key_file_,logger);
+      stream_=new PayloadTLSMCC(next,config_,logger);
    };
    MCC::Next(next,label);
 }

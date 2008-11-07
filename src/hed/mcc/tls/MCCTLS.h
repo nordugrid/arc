@@ -12,20 +12,9 @@ namespace Arc {
    */
   class MCC_TLS : public MCC {
   public:
-    MCC_TLS(Arc::Config *cfg);
-    const std::string& CADir(void) const { return ca_dir_; };
-    const std::string& CAFile(void) const { return ca_file_; };
-    const std::string& ProxyFile(void) const { return proxy_file_; };
-    const std::string& CertFile(void) const { return cert_file_; };
-    const std::string& KeyFile(void) const { return key_file_; };
-    bool GlobusPolicy(void) const { return globus_policy_; };
+    MCC_TLS(Arc::Config& cfg);
   protected:
     //bool tls_random_seed(std::string filename, long n);
-    bool tls_load_certificate(SSL_CTX* sslctx,
-			      const std::string& cert_file,
-			      const std::string& key_file,
-			      const std::string& password,
-			      const std::string& random_file);
     bool do_ssl_init(void);
     void do_ssl_deinit(void);
     static unsigned int ssl_initialized_;
@@ -36,12 +25,13 @@ namespace Arc {
     static void ssl_locking_cb(int mode, int n, const char *file, int line);
     static unsigned long ssl_id_cb(void);
     //static void* ssl_idptr_cb(void);
-    std::string ca_dir_;
-    std::string ca_file_;
-    std::string proxy_file_;
-    std::string cert_file_;
-    std::string key_file_;
-    bool globus_policy_;
+//    std::string ca_dir_;
+//    std::string ca_file_;
+//    std::string proxy_file_;
+//    std::string cert_file_;
+//    std::string key_file_;
+//    bool globus_policy_;
+    ConfigTLSMCC config_;
     std::vector<std::string> vomscert_trust_dn_;
   };
 
@@ -67,9 +57,9 @@ namespace Arc {
 class MCC_TLS_Service: public MCC_TLS
 {
     private:
-        SSL_CTX* sslctx_;
+        //SSL_CTX* sslctx_;
     public:
-        MCC_TLS_Service(Arc::Config *cfg);
+        MCC_TLS_Service(Arc::Config& cfg);
         virtual ~MCC_TLS_Service(void);
         virtual MCC_Status process(Message&,Message&);
 };
@@ -81,10 +71,10 @@ class PayloadTLSMCC;
 class MCC_TLS_Client: public MCC_TLS
 {
     private:
-        SSL_CTX* sslctx_;
+        //SSL_CTX* sslctx_;
         PayloadTLSMCC* stream_;
     public:
-        MCC_TLS_Client(Arc::Config *cfg);
+        MCC_TLS_Client(Arc::Config& cfg);
         virtual ~MCC_TLS_Client(void);
         virtual MCC_Status process(Message&,Message&);
         virtual void Next(MCCInterface* next,const std::string& label = "");
