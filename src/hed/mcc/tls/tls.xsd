@@ -38,4 +38,7 @@
     <!-- Directory containing certificates of accepted CAs.
       Default is /etc/grid-security/ . -->
     <xsd:element name="CACertificatesDir" type="xsd:string"/>
+    <!-- Whether checking client certificate. Only needed for service side.
+      Default is "true" . -->
+    <xsd:element name="ClientAuthn" type="xsd:string"/>
 </xsd:schema>
