@@ -206,12 +206,12 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx,Logger& logger) {
       return false;
     };
   };
-  if((!key_file_.empty()) && (!cert_file.empty())) {
-  if(!(SSL_CTX_check_private_key(sslctx))) {
-    logger.msg(ERROR, "Private key %s does not match certificate %s",key_file_,cert_file_);
-    PayloadTLSStream::HandleError(logger);
-    return false;
-  };
+  if((!key_file_.empty()) && (!cert_file_.empty()))
+    if(!(SSL_CTX_check_private_key(sslctx))) {
+      logger.msg(ERROR, "Private key %s does not match certificate %s",key_file_,cert_file_);
+      PayloadTLSStream::HandleError(logger);
+      return false;
+    };
   return true;
 }
 
@@ -323,11 +323,11 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    if(config_.IfClientAuthn()) {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
-     if(!config_.Set(sslctx_,logger_)) goto error;
    }
    else if((config_.IfClientAuthn()) == false) {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
    }
+   if(!config_.Set(sslctx_,logger_)) goto error;
 
    // Allow proxies, request CRL check
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
