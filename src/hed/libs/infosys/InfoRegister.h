@@ -36,7 +36,12 @@ class InfoRegister
                      const std::string& cert_,
                      const std::string& proxy_,
                      const std::string& cadir_):
-                url(url_), key(key_), cert(cert_), proxy(proxy_), cadir(cadir_)
+                url(url_), key(key_), cert(cert_),
+                proxy(proxy_), cadir(cadir_)
+                { };
+                Peer(const Peer& peer):
+                url(peer.url), key(peer.key), cert(peer.cert), 
+                proxy(peer.proxy), cadir(peer.cadir)
                 { };
         };
         std::list<Peer> peers_;
