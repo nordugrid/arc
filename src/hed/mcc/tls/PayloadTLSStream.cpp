@@ -27,12 +27,10 @@ void PayloadTLSStream::HandleError(int code) {
 }
 
 void PayloadTLSStream::HandleError(Logger& logger,int code) {
-  //if(code != SSL_ERROR_NONE) 
-  //   logger.msg(DEBUG, "SSL error Code: %d", code);
-  //unsigned long e = ERR_get_error();
-  unsigned long e = code;
-  while(e != 0) {
+  unsigned long e = (code==SSL_ERROR_NONE)?ERR_get_error():code;
+  while(e != SSL_ERROR_NONE) {
     if(e == SSL_ERROR_SYSCALL) {
+      // Hiding system errors
       //logger.msg(ERROR, "SSL error: %d - system call failed",e); 
     } else {
       const char* lib = ERR_lib_error_string(e);
