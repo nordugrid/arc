@@ -261,9 +261,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    };
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
-   if(config_.IfClientAuthn()) {
-     if(!config_.Set(sslctx_,logger_)) goto error;
-   }
+   if(!config_.Set(sslctx_,logger_)) goto error;
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
 
    // Allow proxies, request CRL check
