@@ -324,7 +324,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    if(config_.IfClientAuthn()) {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    }
-   else if((config_.IfClientAuthn()) == false) {
+   else {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
    }
    if(!config_.Set(sslctx_,logger_)) goto error;
