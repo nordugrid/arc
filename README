@@ -188,6 +188,7 @@ the certificates. These are obtainable by running the command
 The corresponding file name for the certificate should be <hash_value>.0 . 
 The value for the pre-generated CA certificate is 4457e417. 
 
+1. Configuration for mutual authentication
 Please make sure the chosen location of certificates is correctly
 configured in the service configuration file. The configuration for the
 certificate for TLS MCC should look like this:  
@@ -200,12 +201,41 @@ or
 
       <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
 
-The key file has to be without passphrase for the server side.
+The key file has to be without passphrase for the server side. You can also 
+configure proxy certificate instead of normal certificate (See part:
+Proxy certificate Generation & Usage).
 
 The same requirements are valid for the client tools of ARC1. You may use
 the pregenerated user certificate and key located at the same
 place. Locations of the credentials are provided to the client tools
 from the command line.
+
+2.Configuration for no client-authentication
+You can also configure only server-authentication instead of mutual 
+authentication. In this case, the server will not send a client certificate 
+request to the client, so the client will not send a certificate to the 
+server, which means only the server's certificate is checked.
+
+For the server side, the configuration for the certificate for TLS MCC 
+should look like this:
+      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+      <ClientAuthn>false</ClientAuthn>
+Note: here either <CACertificatePath/> or <<CACertificatesDir>/> are not needed,
+because the client's certificate will not checked by server; But <ClientAuthn/>
+is required here, which explicitly specify that client's certificate will not 
+be checke, the default value of <ClientAuthn/> is "true" and it does not need 
+to be explicitly specified.
+
+For the client side, the configuration for the certificate for TLS MCC 
+should look like this:
+      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+or
+      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
+Note: here only the ca information needs to be specified.
+
+
+
 
 The set of pre-generated keys and certificates also includes a user
 certificate in PKCS12 format which you can import into your browser
@@ -247,6 +277,12 @@ should look like this:
 Because normally a proxy certificate file includes the proxy certificate
 and private key corresponding to the proxy certificate, <KeyPath/> and 
 <CertificatePath/> are configured the same.
+
+Alternatively, you can directly configure <ProxyPath/> instead of <KeyPath/>
+and <CertificatePath/>:
+      <ProxyPath>./proxy.pem</ProxyPath>
+      <CACertificatePath>./ca.pem</CACertificatePath>
+
 
 Proxy policy can be spefified as constraint. Proxy policy is for constraining 
 identity delegation. Currently, the supported policy is Arc specific policy.
