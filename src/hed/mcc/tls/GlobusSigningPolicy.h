@@ -2,6 +2,8 @@
 #include <string>
 #include <list>
 
+#include <openssl/ssl.h>
+
 namespace Arc {
 
 std::istream* open_globus_policy(const X509_NAME* issuer_subject,const std::string& ca_path);
