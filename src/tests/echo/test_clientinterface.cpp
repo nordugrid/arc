@@ -53,6 +53,9 @@ int main(void) {
   Arc::PayloadSOAP* resp = NULL;
 
   if(client) {
+    std::string str;
+    req.GetXML(str);
+    std::cout<<"request: "<<str<<std::endl;
     Arc::MCC_Status status = client->process(&req,&resp);
     if(!status) {
       logger.msg(Arc::ERROR, "SOAP invokation failed");

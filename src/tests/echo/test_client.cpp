@@ -32,21 +32,29 @@ int main(void) {
         <Path>../../hed/mcc/soap/.libs/</Path>\
         <Path>../../hed/mcc/tls/.libs/</Path>\
         <Path>../../hed/mcc/tcp/.libs/</Path>\
+        <Path>../../hed/pdc/.libs/</Path>\
      </ModuleManager>\
      <Plugins><Name>mcctcp</Name></Plugins>\
      <Plugins><Name>mcctls</Name></Plugins>\
      <Plugins><Name>mcchttp</Name></Plugins>\
      <Plugins><Name>mccsoap</Name></Plugins>\
+     <Plugins><Name>arcpdc</Name></Plugins>\
      <Chain>\
       <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
       <Component name='tls.client' id='tls'><next id='tcp'/>\
         <!--For proxy certificate, KeyPath and CertificatePath are supposed to be the same-->\
-        <KeyPath>./key.pem</KeyPath>\
-        <CertificatePath>./cert.pem</CertificatePath>\
-        <CACertificatePath>./ca.pem</CACertificatePath>\
+        <KeyPath>./testkey-nopass.pem</KeyPath>\
+        <CertificatePath>./testcert.pem</CertificatePath>\
+        <CACertificatePath>./cacert.pem</CACertificatePath>\
       </Component>\
-      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/Echo</Endpoint></Component>\
-      <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
+      <Component name='http.client' id='http'><next id='tls'/>\
+        <Method>POST</Method>\
+        <Endpoint>/Echo</Endpoint>\
+      </Component>\
+      <Component name='soap.client' id='soap' entry='soap'>\
+        <next id='http'/>\
+        <!--SecHandler name='saml2ssouseragent.handler' id='saml2ssoua' event='outgoing'/-->\
+      </Component>\
      </Chain>\
     </ArcConfig>");
   Arc::Config client_config(client_doc);

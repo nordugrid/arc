@@ -29,9 +29,10 @@
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
-	    <tls:KeyPath>./key.pem</tls:KeyPath>
-	    <tls:CertificatePath>./cert.pem</tls:CertificatePath>
-	    <tls:CACertificatePath>./ca.pem</tls:CACertificatePath>
+	    <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
+	    <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
+	    <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+            <!--tls:ClientAuthn>false</tls:ClientAuthn-->
             <tls:VOMSCertTrustDNChain>
               <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang</tls:VOMSCertTrustDN>
               <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
@@ -57,16 +58,17 @@
                 <Process>extract</Process>
                 <CACertificatePath>ca.pem</CACertificatePath>
             </SecHandler-->
+            <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
         <Service name="echo" id="echo">
-            <SecHandler name="arc.authz" id="authz" event="incoming">
-              <PDP name="simplelist.pdp" location="simplelist"/>
-              <PDP name="arc.pdp">
+            <!--SecHandler name="arc.authz" id="authz" event="incoming"-->
+              <!--PDP name="simplelist.pdp" location="simplelist"/-->
+              <!--PDP name="arc.pdp">
                 <PolicyStore>
-                  <Location type="file">Policy_Example.xml</Location>
+                  <Location type="file">Policy_Example.xml</Location-->
                   <!-- other policy location-->
-                </PolicyStore>
-              </PDP>
+                <!--/PolicyStore>
+              </PDP-->
               <!--Remote pdp service invoking-->
               <!--PDP name="pdpservice.invoker">
                 <ServiceEndpoint>https://127.0.0.1:60001/pdp.service</ServiceEndpoint>
@@ -75,7 +77,7 @@
                 <CACertificatePath>./ca.pem</CACertificatePath>
               </PDP-->
               <!--PDP name="delegation.pdp"/-->
-            </SecHandler>
+            <!--/SecHandler-->
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
 	    <echo:suffix> ]</echo:suffix>
