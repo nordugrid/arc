@@ -124,7 +124,7 @@ static int no_passphrase_callback(char*, int, int, void*) {
 
 // This class is collactsion of configuration information
 
-ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
+ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) : client_authn_(true) {
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
   ca_file_ = (std::string)(cfg["CACertificatePath"]);
@@ -135,7 +135,20 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     //get_vomscert_trustDN(cfg, logger,vomscert_trust_dn_);
     if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
     if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
-  };
+
+   //If ClientAuthn is explicitly set to be "false" in configuration, then client
+   //authentication is not required, which means client side does not need to provide
+   //certificate and key in its configuration. The default value of ClientAuthn is "true"
+   if (((std::string)((cfg)["ClientAuthn"])) == "false")
+     client_authn_ = false;
+  }
+  else {
+   //If both CertificatePath and ProxyPath have not beed configured, client side can
+   //not provide certificate for server side. Then server side should not require
+   //client authentication
+   if(cert_file_.empty() && proxy_file_.empty())
+     client_authn_ = false;
+  }
   if(ca_dir_.empty() && ca_file_.empty()) ca_dir_="/etc/grid-security/certificates";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
@@ -221,8 +234,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    };
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
+   if(config_.IfClientAuthn()) {
+     if(!config_.Set(sslctx_,logger_)) goto error;
+   }
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
-   if(!config_.Set(sslctx_,logger_)) goto error;
+
    // Allow proxies, request CRL check
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
    if(sslctx_->param == NULL) {
@@ -280,8 +296,14 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    };
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
-   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
-   if(!config_.Set(sslctx_,logger_)) goto error;
+   if(config_.IfClientAuthn()) {
+     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
+     if(!config_.Set(sslctx_,logger_)) goto error;
+   }
+   else if((config_.IfClientAuthn()) == false) {
+     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+   }
+
    // Allow proxies, request CRL check
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
    if(sslctx_->param == NULL) {

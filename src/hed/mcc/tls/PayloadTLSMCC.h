@@ -19,6 +19,7 @@ class ConfigTLSMCC {
   std::string proxy_file_;
   std::string cert_file_;
   std::string key_file_;
+  bool client_authn_;
   bool globus_policy_;
   ConfigTLSMCC(void);
  public:
@@ -30,6 +31,7 @@ class ConfigTLSMCC {
   const std::string& KeyFile(void) const { return key_file_; };
   bool GlobusPolicy(void) const { return globus_policy_; };
   bool Set(SSL_CTX* sslctx,Logger& logger);
+  bool IfClientAuthn(void) const { return client_authn_; };
 };
 
 // This class extends PayloadTLSStream with initialization procedure to 
