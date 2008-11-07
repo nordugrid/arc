@@ -39,7 +39,7 @@ class InfoRegister
                 url(url_), key(key_), cert(cert_), proxy(proxy_), cadir(cadir_)
                 { };
         };
-        std::list<Peer*> peers_;
+        std::list<Peer> peers_;
         Arc::NS ns_;
         Arc::MCCConfig mcc_cfg_;
         Arc::Logger logger_;
