@@ -118,8 +118,10 @@ namespace Arc {
             JobDescription();
             JobDescription(const JobDescription& desc);
 
-            // Returns true if the source has been setted up and wasn't any syntax error in it or false otherwise
-            bool isValid() const {return (sourceFormat.length() != 0);};
+            // Returns true if the source has been setted up and wasn't any syntax error in it and there
+	    // is a mandatory (Executable) element setted correctly or false otherwise
+            bool isValid() const {return (sourceFormat.length() != 0) && 
+	                            jobTree["JobDescription"]["Application"]["POSIXApplication"]["Executable"];};
 
             // Try to parse the source string and store it in an inner job description representation.
             // If there is some syntax error then it throws an exception.
