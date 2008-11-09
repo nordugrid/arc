@@ -121,7 +121,8 @@ namespace Arc {
 
   void LogStream::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
-    char* loc = setlocale(LC_ALL, locale.c_str());
+    char* loc = setlocale(LC_ALL, NULL);
+    setlocale(LC_ALL, locale.c_str());
     destination << message << std::endl;
     setlocale(LC_ALL, loc);
   }
