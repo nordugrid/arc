@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
 		    istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "certifcate", istring("path to certificate file"),
+  options.AddOption('C', "certificate", istring("path to certificate file"),
 		    istring("path"), cert_path);
 
   std::string key_path;
