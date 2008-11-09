@@ -13,7 +13,7 @@ namespace Arc {
   memory-resident or memory-mapped content made of optionally multiple chunks/buffers.
   Every buffer has own size and offset.
   This class is purely virtual. */
-class PayloadRawInterface: public MessagePayload {
+class PayloadRawInterface: virtual public MessagePayload {
  public:
   PayloadRawInterface(void) { };
   virtual ~PayloadRawInterface(void) { };
@@ -56,7 +56,7 @@ typedef struct {
 /// Raw byte multi-buffer. 
 /** This is implementation of PayloadRawInterface. Buffers are memory 
   blocks logically placed one after another. */ 
-class PayloadRaw: public PayloadRawInterface {
+class PayloadRaw: virtual public PayloadRawInterface {
  protected:
   int offset_;
   int size_;

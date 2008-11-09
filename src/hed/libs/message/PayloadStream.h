@@ -12,7 +12,7 @@ namespace Arc {
  and destination.  It's supposed to be passed through MCC chain as payload 
  of Message.  It must be treated by MCCs and Services as dynamic payload. 
  This class is purely virtual. */
-class PayloadStreamInterface: public MessagePayload {
+class PayloadStreamInterface: virtual public MessagePayload {
  public:
   PayloadStreamInterface(void) { };
   virtual ~PayloadStreamInterface(void) { };
@@ -45,7 +45,7 @@ class PayloadStreamInterface: public MessagePayload {
 
 /// POSIX handle as Payload
 /** Thsi is an implemetation of PayloadStreamInterface for generic POSIX handle. */
-class PayloadStream: public PayloadStreamInterface {
+class PayloadStream: virtual public PayloadStreamInterface {
  protected:
   int timeout_;   /** Timeout for read/write operations */
   int handle_;    /** Handle for operations */

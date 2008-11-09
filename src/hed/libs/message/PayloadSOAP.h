@@ -9,7 +9,7 @@ namespace Arc {
 /// Payload of Message with SOAP content.
 /** This class combines MessagePayload with SOAPEnvelope to make 
   it possible to pass SOAP messages through MCC chain. */
-class PayloadSOAP: public Arc::SOAPEnvelope, public Arc::MessagePayload {
+class PayloadSOAP: public Arc::SOAPEnvelope, virtual public Arc::MessagePayload {
  public:
   /** Constructor - creates new Message payload */
   PayloadSOAP(const Arc::NS& ns,bool fault = false);
