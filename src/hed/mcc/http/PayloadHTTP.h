@@ -18,11 +18,16 @@ namespace Arc {
 /** This class implements parsing and generation of HTTP messages.
   It implements only subset of HTTP/1.1 and also provides an PayloadRawInterface 
   for including as payload into Message passed through MCC chains. */
-class PayloadHTTP: public PayloadRaw {
+class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterface {
  protected:
   bool valid_;
+  bool fetched_;                   /** true if whole content of HTTP body 
+                                       was fetched and stored in buffers. 
+                                       Otherwise only header was fetched and
+                                       part of body in tbuf_ and  rest is to
+                                       be read through stream_. */
   PayloadStreamInterface& stream_; /** stream used to comminicate to outside */
-  PayloadRawInterface* body_;      /** associated HTTP Body if any */
+  PayloadRawInterface* body_;      /** associated HTTP Body if any (to avoid copying to own buffer) */
   bool body_own_;                  /** if true body_ is owned by this */
   std::string uri_;                /** URI being contacted */
   int version_major_;              /** major number of HTTP version - must be 1 */
@@ -38,6 +43,7 @@ class PayloadHTTP: public PayloadRaw {
   std::map<std::string,std::string> attributes_; /* All HTTP attributes */
   char tbuf_[1024];
   int tbuflen_;
+  uint64_t stream_offset_;
   /** Read from stream till \r\n */
   bool readline(std::string& line);
   /** Read up to 'size' bytes from stream_ */
@@ -90,6 +96,7 @@ class PayloadHTTP: public PayloadRaw {
     is treated as being owned by this instance and destroyed in destructor. */
   virtual void Body(PayloadRawInterface& body,bool ownership = true);
 
+  // PayloadRawInterface reimplemented methods
   virtual char operator[](int pos) const;
   virtual char* Content(int pos = -1);
   virtual int Size(void) const;
@@ -99,6 +106,17 @@ class PayloadHTTP: public PayloadRaw {
   virtual int BufferSize(unsigned int num = 0) const;
   virtual int BufferPos(unsigned int num = 0) const;
   virtual bool Truncate(unsigned int size);
+
+  // PayloadStreamInterface implemented methods
+  virtual bool Get(char* buf,int& size);
+  virtual bool Get(std::string& buf);
+  virtual std::string Get(void);
+  virtual bool Put(const char* buf,int size);
+  virtual bool Put(const std::string& buf);
+  virtual bool Put(const char* buf);
+  virtual int Timeout(void) const;
+  virtual void Timeout(int to);
+
 };
 
 } // namespace Arc

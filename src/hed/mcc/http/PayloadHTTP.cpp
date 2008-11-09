@@ -171,6 +171,8 @@ memset(buf,0,size);
 }
 
 bool PayloadHTTP::get_body(void) {
+  if(fetched_) return true; // Already fetched body
+  fetched_=true; // Even attempt counts
   // TODO: Check for methods and responses which can't have body
   char* result = NULL;
   int result_size = 0;
@@ -235,29 +237,29 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }
 
-PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(stream),body_(NULL),body_own_(false) {
+PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(stream),fetched_(false),stream_offset_(0),body_(NULL),body_own_(false) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   if(!get_body()) return;
   valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),body_own_(false),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),stream_(stream),body_(NULL),body_own_(false),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),body_own_(false),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),stream_(stream),body_(NULL),body_own_(false),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),fetched_(true),stream_offset_(0),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),fetched_(true),stream_offset_(0),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
@@ -343,6 +345,7 @@ void PayloadHTTP::Body(PayloadRawInterface& body,bool ownership) {
 }
 
 char PayloadHTTP::operator[](int pos) const {
+  ((PayloadHTTP*)this)->get_body();
   if(pos < PayloadRaw::Size()) {
     return PayloadRaw::operator[](pos);
   };
@@ -353,6 +356,7 @@ char PayloadHTTP::operator[](int pos) const {
 }
 
 char* PayloadHTTP::Content(int pos) {
+  get_body();
   if(pos < PayloadRaw::Size()) {
     return PayloadRaw::Content(pos);
   };
@@ -363,6 +367,7 @@ char* PayloadHTTP::Content(int pos) {
 }
 
 int PayloadHTTP::Size(void) const {
+  ((PayloadHTTP*)this)->get_body();
   if(body_) {
     return PayloadRaw::Size() + (body_->Size());
   };
@@ -370,14 +375,17 @@ int PayloadHTTP::Size(void) const {
 }
 
 char* PayloadHTTP::Insert(int pos,int size) {
+  get_body();
   return PayloadRaw::Insert(pos,size);
 }
 
 char* PayloadHTTP::Insert(const char* s,int pos,int size) {
+  get_body();
   return PayloadRaw::Insert(s,pos,size);
 }
 
 char* PayloadHTTP::Buffer(unsigned int num) {
+  get_body();
   if(num < buf_.size()) {
     return PayloadRaw::Buffer(num);
   };
@@ -388,6 +396,7 @@ char* PayloadHTTP::Buffer(unsigned int num) {
 }
 
 int PayloadHTTP::BufferSize(unsigned int num) const {
+  ((PayloadHTTP*)this)->get_body();
   if(num < buf_.size()) {
     return PayloadRaw::BufferSize(num);
   };
@@ -398,6 +407,7 @@ int PayloadHTTP::BufferSize(unsigned int num) const {
 }
 
 int PayloadHTTP::BufferPos(unsigned int num) const {
+  ((PayloadHTTP*)this)->get_body();
   if(num < buf_.size()) {
     return PayloadRaw::BufferPos(num);
   };
@@ -408,6 +418,7 @@ int PayloadHTTP::BufferPos(unsigned int num) const {
 }
 
 bool PayloadHTTP::Truncate(unsigned int size) {
+  get_body();
   if(size < PayloadRaw::Size()) {
     body_=NULL;
     return PayloadRaw::Truncate(size);
@@ -417,6 +428,84 @@ bool PayloadHTTP::Truncate(unsigned int size) {
   };
   return false;
 }
+
+bool PayloadHTTP::Get(char* buf,int& size) {
+  if(fetched_) {
+    // Read from buffers
+    uint64_t bo = 0;
+    for(int num = 0;num<buf_.size();++num) {
+      int bs = PayloadRaw::BufferSize(num);
+      if((bo+bs) > stream_offset_) {
+        char* p = PayloadRaw::Buffer(num);
+        p+=(stream_offset_-bo);
+        bs-=(stream_offset_-bo);
+        if(bs>size) bs=size;
+        memcpy(buf,p,bs);
+        size=bs; stream_offset_+=bs;
+        return true;
+      };
+      bo+=bs;
+    };
+    if(body_) {
+      for(int num = 0;;++num) {
+        char* p = PayloadRaw::Buffer(num);
+        if(!p) break;
+        int bs = PayloadRaw::BufferSize(num);
+        if((bo+bs) > stream_offset_) {
+          p+=(stream_offset_-bo);
+          bs-=(stream_offset_-bo);
+          if(bs>size) bs=size;
+          memcpy(buf,p,bs);
+          size=bs; stream_offset_+=bs;
+          return true;
+        };
+        bo+=bs;
+      };
+    };
+    return false;
+  } else {
+    bool r = read(buf,size);
+    // TODO: adjust logical parameters of buffers
+    return r;
+  };
+}
+
+bool PayloadHTTP::Get(std::string& buf) {
+  char tbuf[1024];
+  int l = sizeof(tbuf);
+  bool result = Get(tbuf,l);
+  buf.assign(tbuf,l);
+  return result;
+}
+
+std::string PayloadHTTP::Get(void) {
+  std::string s;
+  Get(s);
+  return s;
+}
+
+// Stream interface is meant to be used only
+// for reading HTTP body.
+bool PayloadHTTP::Put(const char* buf,int size) {
+  return false;
+}
+
+bool PayloadHTTP::Put(const std::string& buf) {
+  return false;
+}
+
+bool PayloadHTTP::Put(const char* buf) {
+  return false;
+}
+
+int PayloadHTTP::Timeout(void) const {
+  return stream_.Timeout();
+}
+
+void PayloadHTTP::Timeout(int to) {
+  stream_.Timeout(to);
+}
+
 
 } // namespace Arc
 
