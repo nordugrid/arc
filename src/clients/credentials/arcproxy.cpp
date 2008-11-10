@@ -20,6 +20,16 @@
 #include <arc/Logger.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
+#include <arc/User.h>
+#include <arc/client/UserConfig.h>
+
+#ifdef HAVE_GLIBMM_GETENV
+#include <glibmm/miscutils.h>
+#define GetEnv(NAME) Glib::getenv(NAME)
+#else
+#define GetEnv(NAME) (getenv(NAME) ? getenv(NAME) : "")
+#endif
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 
@@ -70,6 +80,11 @@ int main(int argc, char* argv[]){
   options.AddOption('c', "constraint", istring("proxy constraints"),
 		    istring("string"), constraintlist);
 
+  std::string conffile;
+  options.AddOption('z', "conffile",
+		    istring("configuration file (default ~/.arc/client.xml)"),
+		    istring("filename"), conffile);
+
   std::string debug;
   options.AddOption('d', "debug",
 		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
@@ -83,6 +98,17 @@ int main(int argc, char* argv[]){
 
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  Arc::UserConfig usercfg(conffile);
+  if (!usercfg) {
+    logger.msg(Arc::ERROR, "Failed configuration initialization");
+    return 1;
+  }
+
+  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+    debug = (std::string)usercfg.ConfTree()["Debug"];
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  }
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
@@ -105,27 +131,32 @@ int main(int argc, char* argv[]){
   try{
     if (params.size()!=0)
       throw std::invalid_argument("Wrong number of arguments!");
-    if(key_path.empty()) {
-      char* s = getenv("X509_USER_KEY");
-      if((s == NULL) || (s[0] == 0)) {
-        throw std::runtime_error("Missing path to private key");
-      };
-      key_path=s;
-    };
-    if(cert_path.empty()) {
-      char* s = getenv("X509_USER_CERT");
-      if((s == NULL) || (s[0] == 0)) {
-        throw std::runtime_error("Missing path to certificate");
-      };
-      cert_path=s;
-    };
-    if(proxy_path.empty()) {
-      char* s = getenv("X509_USER_PROXY");
-      if((s == NULL) || (s[0] == 0)) {
-        throw std::runtime_error("Missing path to proxy");
-      };
-      proxy_path=s;
-    };
+
+    Arc::User user;
+
+    if (key_path.empty())
+      key_path = GetEnv("X509_USER_KEY");
+    if (key_path.empty())
+      key_path = (std::string)usercfg.ConfTree()["KeyPath"];
+    if (key_path.empty())
+      key_path = user.get_uid() == 0 ? "/etc/grid-security/hostkey.pem" :
+	user.Home() + "/.globus/userkey.pem";
+
+    if (cert_path.empty())
+      cert_path = GetEnv("X509_USER_CERT");
+    if (cert_path.empty())
+      cert_path = (std::string)usercfg.ConfTree()["CertificatePath"];
+    if (cert_path.empty())
+      cert_path = user.get_uid() == 0 ? "/etc/grid-security/hostcert.pem" :
+	user.Home() + "/.globus/usercert.pem";
+
+    if (proxy_path.empty())
+      proxy_path = GetEnv("X509_USER_PROXY");
+    if (proxy_path.empty())
+      proxy_path = (std::string)usercfg.ConfTree()["ProxyPath"];
+    if (proxy_path.empty())
+      proxy_path = "/tmp/x509up_u" + Arc::tostring(user.get_uid());
+
 #ifndef WIN32
     struct termios to;
     tcgetattr(STDIN_FILENO,&to);
