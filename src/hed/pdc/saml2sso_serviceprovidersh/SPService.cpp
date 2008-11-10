@@ -52,7 +52,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   };
   // Both input and output are supposed to be HTTP 
   // Extracting payload
-  Arc::PayloadRawInterface* inpayload = (Arc::PayloadRawInterface*)(inmsg.Payload());
+  Arc::PayloadRawInterface* inpayload = dynamic_cast<Arc::PayloadRawInterface*>(inmsg.Payload());
   if(!inpayload) {
     logger.msg(Arc::WARNING, "empty input payload");
   };
