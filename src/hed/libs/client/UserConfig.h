@@ -6,6 +6,7 @@
 #include <string>
 
 #include <arc/ArcConfig.h>
+#include <arc/URL.h>
 #include <arc/User.h>
 
 namespace Arc {
