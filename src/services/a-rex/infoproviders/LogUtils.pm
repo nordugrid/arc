@@ -2,6 +2,7 @@ package LogUtils;
 
 use POSIX;
 use FileHandle;
+use File::Basename;
 
 use Exporter;
 @ISA = ('Exporter');     # Inherit from Exporter
@@ -17,7 +18,7 @@ our %opts = (
     levels   => { '' => $WARNING }  # default level is WARNING
 );
 
-our $default_logger = LogUtils->getLogger();
+our $default_logger = LogUtils->getLogger(basename($0));
 
 # constructor
 
