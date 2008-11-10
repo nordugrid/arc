@@ -8,7 +8,7 @@ void convertActivityStatus(const std::string& gm_state,std::string& bes_state,st
     } else if(gm_state == "PREPARING") {
       bes_state="Running"; arex_state=(!pending)?"Preparing":"Prepared";
     } else if(gm_state == "SUBMIT") {
-      bes_state="Running"; arex_state="Submiting";
+      bes_state="Running"; arex_state="Submitting";
     } else if(gm_state == "INLRMS") {
       bes_state="Running"; arex_state=(!pending)?"Executing":"Executed";
     } else if(gm_state == "FINISHING") {

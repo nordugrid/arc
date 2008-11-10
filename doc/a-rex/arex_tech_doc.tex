@@ -230,12 +230,12 @@ limit is exceeded, jobs ready to enter the \textbf{Preparing} state
  will stay in the \textbf{Accepted} state, but prefixed with the PENDING:
 mark. Exceptions are jobs which have no files to be downloaded. These
 are processed out of limits.
-\item \textbf{Submiting} -- The job is being passed for execution to the
+\item \textbf{Submitting} -- The job is being passed for execution to the
 \emph{Local Resource Management System} (LRMS). The corresponding
 backends for many LRMSs are provided with the default installation.
 If the local job submission is successful the job moves to the \textbf{Executing}
 state. Otherwise it moves to \textbf{Finishing}. It is possible to
-limit the aggregate number of jobs in \textbf{Submiting} and \textbf{Executing}
+limit the aggregate number of jobs in \textbf{Submitting} and \textbf{Executing}
 states.
 \item \textbf{Executing} -- The job is queued or being executed in the LRMS.
 The A-REX takes no actions except waiting until the job finishes.
@@ -558,7 +558,7 @@ by the A-REX yet. \emph{Accepted} is first reported state\\ \cline{2-4}
 &Accepted& ACCEPTED& Job was submitted\\ \hline 
 \multirow{8}{*}{Running}& Preparing& PREPARING& Stage-in process is going on\\ \cline{2-4} 
 &Prepared& PREPARING + PENDING& Stage-in process has finished\\ \cline{2-4} 
-&Submiting& SUBMIT& Communication with local batch system is in process\\ \cline{2-4} 
+&Submitting& SUBMIT& Communication with local batch system is in process\\ \cline{2-4} 
 &Queued& INLRMS&
 Job entered local batch system but is not runnning now. This state
 is not recognised by the A-REX yet. \emph{Executing} is reported instead\\ \cline{2-4} 
@@ -1651,7 +1651,7 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
           <xsd:enumeration value=\char`\"{}Accepted\char`\"{}/>
           <xsd:enumeration value=\char`\"{}Preparing\char`\"{}/>
           <xsd:enumeration value=\char`\"{}Prepared\char`\"{}/>
-          <xsd:enumeration value=\char`\"{}Submiting\char`\"{}/>
+          <xsd:enumeration value=\char`\"{}Submitting\char`\"{}/>
           <xsd:enumeration value=\char`\"{}Executing\char`\"{}/>
           <xsd:enumeration value=\char`\"{}Killing\char`\"{}/>
           <xsd:enumeration value=\char`\"{}Executed\char`\"{}/>

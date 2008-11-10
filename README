@@ -481,7 +481,7 @@ If everything goes properly somewhere in it's output there should be a message
 in id.xml file. It may then be used to query job state with 'arcstat' utility.
 
  $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
- Job status: Running/Submiting
+ Job status: Running/Submitting
 
  $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
  Job status: Running/Finishing

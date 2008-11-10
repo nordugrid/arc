@@ -194,7 +194,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   };
   logger.msg(Arc::INFO,"%s: This job may be still running - canceling",i->job_id);
   bool state_changed = false;
-  if(!state_submiting(i,state_changed,true)) {
+  if(!state_submitting(i,state_changed,true)) {
     logger.msg(Arc::WARNING,"%s: Cancelation failed (probably job finished) - cleaning anyway",i->job_id);
     job_clean_final(*i,*user);
     if(i->local) { delete i->local; }; i=jobs.erase(i);
@@ -246,7 +246,7 @@ bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
   return true;
 }
 
-bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,bool cancel) {
+bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,bool cancel) {
   if(i->child == NULL) {
     /* no child was running yet, or recovering from fault */
     /* write grami file for globus-script-X-submit */
@@ -317,7 +317,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
     if(i->child->Result() != 0) { 
       if(!cancel) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed.",i->job_id);
-        JobFailStateRemember(i,JOB_STATE_SUBMITING);
+        JobFailStateRemember(i,JOB_STATE_SUBMITTING);
       } else {
         logger.msg(Arc::ERROR,"%s: Failed to cancel running job.",i->job_id);
       };
@@ -332,7 +332,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       if(local_id.length() == 0) {
         logger.msg(Arc::ERROR,"%s: Failed obtaining lrms id.",i->job_id);
         i->AddFailure("Failed extracting LRMS ID due to some internal error");
-        JobFailStateRemember(i,JOB_STATE_SUBMITING);
+        JobFailStateRemember(i,JOB_STATE_SUBMITTING);
         return false;
       };
       /* put id into local information file */
@@ -769,7 +769,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         if(i->job_pending || state_loading(i,state_changed,false)) {
           if(i->job_pending || state_changed) {
             if((JOB_NUM_RUNNING<max_jobs_running) || (max_jobs_running==-1)) {
-              i->job_state = JOB_STATE_SUBMITING;
+              i->job_state = JOB_STATE_SUBMITTING;
               state_changed=true; once_more=true;
             } else {
               state_changed=false;
@@ -785,13 +785,13 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         return;
 }
 
-void JobsList::ActJobSubmiting(JobsList::iterator &i,bool /*hard_job*/,
-                               bool& once_more,bool& /*delete_job*/,
-                               bool& job_error,bool& state_changed) {
+void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
+                                bool& once_more,bool& /*delete_job*/,
+                                bool& job_error,bool& state_changed) {
         /* state submitting - everything is ready for submission - 
            so run submission */
         logger.msg(Arc::INFO,"%s: State: SUBMITTING",i->job_id);
-        if(state_submiting(i,state_changed)) {
+        if(state_submitting(i,state_changed)) {
           if(state_changed) {
             i->job_state = JOB_STATE_INLRMS;
             once_more=true;
@@ -808,7 +808,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
                                bool& job_error,bool& state_changed) {
         /* This state is like submitting, only -rm instead of -submit */
         logger.msg(Arc::INFO,"%s: State: CANCELING",i->job_id);
-        if(state_submiting(i,state_changed,true)) {
+        if(state_submitting(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHING;
             once_more=true;
@@ -843,7 +843,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
                 job_local_write_file(*i,*user,*job_desc);
                 job_lrms_mark_remove(i->job_id,*user);
                 logger.msg(Arc::INFO,"%s: State: INLRMS: job restarted",i->job_id);
-                i->job_state = JOB_STATE_SUBMITING; 
+                i->job_state = JOB_STATE_SUBMITTING; 
                 // INLRMS slot is already taken by this job, so resubmission
                 // can be done without any checks
               } else {
@@ -932,7 +932,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
                 JobPending(i); // make it go to end of state immediately
                 return;
               };
-            } else if((state_ == JOB_STATE_SUBMITING) ||
+            } else if((state_ == JOB_STATE_SUBMITTING) ||
                       (state_ == JOB_STATE_INLRMS)) {
               if(RecreateTransferLists(i)) {
                 job_failed_mark_remove(i->job_id,*user);
@@ -1065,8 +1065,8 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
       case JOB_STATE_PREPARING: {
        ActJobPreparing(i,hard_job,once_more,delete_job,job_error,state_changed);
       }; break;
-      case JOB_STATE_SUBMITING: {
-       ActJobSubmiting(i,hard_job,once_more,delete_job,job_error,state_changed);
+      case JOB_STATE_SUBMITTING: {
+       ActJobSubmitting(i,hard_job,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_CANCELING: {
        ActJobCanceling(i,hard_job,once_more,delete_job,job_error,state_changed);

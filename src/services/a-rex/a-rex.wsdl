@@ -33,7 +33,7 @@
           <xsd:enumeration value="Accepted"/>
           <xsd:enumeration value="Preparing"/>
           <xsd:enumeration value="Prepared"/>
-          <xsd:enumeration value="Submiting"/>
+          <xsd:enumeration value="Submitting"/>
           <xsd:enumeration value="Executing"/>
           <xsd:enumeration value="Killing"/>
           <xsd:enumeration value="Executed"/>

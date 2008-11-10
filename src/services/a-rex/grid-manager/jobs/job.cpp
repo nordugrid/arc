@@ -31,15 +31,15 @@ const char* state_names[JOB_STATE_NUM] = {
 };
 
 job_state_rec_t states_all[JOB_STATE_UNDEFINED+1] = {
- { JOB_STATE_ACCEPTED,  state_names[JOB_STATE_ACCEPTED],   ' ' },
- { JOB_STATE_PREPARING, state_names[JOB_STATE_PREPARING],  'b' },
- { JOB_STATE_SUBMITING, state_names[JOB_STATE_SUBMITING],     ' ' },
- { JOB_STATE_INLRMS,    state_names[JOB_STATE_INLRMS],     'q' },
- { JOB_STATE_FINISHING, state_names[JOB_STATE_FINISHING],  'f' },
- { JOB_STATE_FINISHED,  state_names[JOB_STATE_FINISHED],   'e' },
- { JOB_STATE_DELETED,   state_names[JOB_STATE_DELETED],    'd' },
- { JOB_STATE_CANCELING, state_names[JOB_STATE_CANCELING],  'c' },
- { JOB_STATE_UNDEFINED, NULL, ' '}
+ { JOB_STATE_ACCEPTED,   state_names[JOB_STATE_ACCEPTED],   ' ' },
+ { JOB_STATE_PREPARING,  state_names[JOB_STATE_PREPARING],  'b' },
+ { JOB_STATE_SUBMITTING, state_names[JOB_STATE_SUBMITTING], ' ' },
+ { JOB_STATE_INLRMS,     state_names[JOB_STATE_INLRMS],     'q' },
+ { JOB_STATE_FINISHING,  state_names[JOB_STATE_FINISHING],  'f' },
+ { JOB_STATE_FINISHED,   state_names[JOB_STATE_FINISHED],   'e' },
+ { JOB_STATE_DELETED,    state_names[JOB_STATE_DELETED],    'd' },
+ { JOB_STATE_CANCELING,  state_names[JOB_STATE_CANCELING],  'c' },
+ { JOB_STATE_UNDEFINED,  NULL,                              ' '}
 };
 
 

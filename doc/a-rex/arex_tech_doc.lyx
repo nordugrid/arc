@@ -1089,7 +1089,7 @@ Accepted
 \begin_layout Itemize
 
 \series bold
-Submiting
+Submitting
 \series default
  -- The job is being passed for execution to the 
 \emph on
@@ -1110,7 +1110,7 @@ Finishing
 .
  It is possible to limit the aggregate number of jobs in 
 \series bold
-Submiting
+Submitting
 \series default
  and 
 \series bold
@@ -2493,7 +2493,7 @@ Stage-in process has finished
 \begin_inset Text
 
 \begin_layout Standard
-Submiting
+Submitting
 \end_layout
 
 \end_inset
@@ -11419,7 +11419,7 @@ char`
 \backslash
 char`
 \backslash
-"{}Submiting
+"{}Submitting
 \backslash
 char`
 \backslash

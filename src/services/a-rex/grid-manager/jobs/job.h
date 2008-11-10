@@ -11,15 +11,15 @@ class JobLocalDescription;
 class JobUser;
 
 typedef enum {
-  JOB_STATE_ACCEPTED  = 0,
-  JOB_STATE_PREPARING = 1,
-  JOB_STATE_SUBMITING = 2,
-  JOB_STATE_INLRMS    = 3,
-  JOB_STATE_FINISHING = 4,
-  JOB_STATE_FINISHED  = 5,
-  JOB_STATE_DELETED   = 6,
-  JOB_STATE_CANCELING = 7,
-  JOB_STATE_UNDEFINED = 8
+  JOB_STATE_ACCEPTED   = 0,
+  JOB_STATE_PREPARING  = 1,
+  JOB_STATE_SUBMITTING = 2,
+  JOB_STATE_INLRMS     = 3,
+  JOB_STATE_FINISHING  = 4,
+  JOB_STATE_FINISHED   = 5,
+  JOB_STATE_DELETED    = 6,
+  JOB_STATE_CANCELING  = 7,
+  JOB_STATE_UNDEFINED  = 8
 } job_state_t;
 
 typedef struct {
@@ -36,7 +36,7 @@ extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
 #define JOB_NUM_ACCEPTED (\
   jobs_num[JOB_STATE_ACCEPTED] + \
   jobs_num[JOB_STATE_PREPARING] + \
-  jobs_num[JOB_STATE_SUBMITING] + \
+  jobs_num[JOB_STATE_SUBMITTING] + \
   jobs_num[JOB_STATE_INLRMS] + \
   jobs_num[JOB_STATE_FINISHING] \
 )
@@ -57,7 +57,7 @@ extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
 
 /* states doing their job mostly on computing nodes */
 #define JOB_NUM_RUNNING (\
-  jobs_num[JOB_STATE_SUBMITING] + \
+  jobs_num[JOB_STATE_SUBMITTING] + \
   jobs_num[JOB_STATE_INLRMS] \
 )
 

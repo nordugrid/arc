@@ -76,7 +76,7 @@ class JobsList {
   bool DestroyJob(iterator &i,bool finished=true,bool active=true);
   /* Perform actions necessary in case job goes to/is in
      SUBMITTING/CANCELING state */
-  bool state_submiting(const iterator &i,bool &state_changed,bool cancel=false);
+  bool state_submitting(const iterator &i,bool &state_changed,bool cancel=false);
   /* Same for PREPARING/FINISHING */
   bool state_loading(const iterator &i,bool &state_changed,bool up);
   bool JobPending(JobsList::iterator &i);
@@ -152,7 +152,7 @@ class JobsList {
   void ActJobUndefined(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
   void ActJobAccepted(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
   void ActJobPreparing(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobSubmiting(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobSubmitting(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
   void ActJobCanceling(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
   void ActJobInlrms(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
   void ActJobFinishing(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);

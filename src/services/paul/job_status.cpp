@@ -85,7 +85,7 @@ SchedStatus SchedStatusFactory::getFromARexStatus(const std::string &arex_state)
         return get(STARTING);
     } else if(arex_state == "PREPARING") {
         return get(STARTING);
-    } else if(arex_state == "SUBMITING") {
+    } else if(arex_state == "SUBMITTING") {
         return get(STARTING);
     } else if(arex_state == "EXECUTING") {
         return get(RUNNING);
