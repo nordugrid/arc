@@ -279,7 +279,7 @@ static void grid_manager(void* arg) {
     for(;;) { 
       bool cleaned_all=true;
       for(JobUsers::iterator user = users.begin();user != users.end();++user) {
-        int njobs = user->get_jobs()->size();
+        size_t njobs = user->get_jobs()->size();
         user->get_jobs()->ScanNewJobs(false);
         if(user->get_jobs()->size() == njobs) break;
         cleaned_all=false;

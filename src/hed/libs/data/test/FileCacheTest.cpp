@@ -890,7 +890,7 @@ std::string FileCacheTest::_readFile(std::string filename) {
   char mystring [1024]; // should be long enough for a pid or url...
   pFile = fopen ((char*)filename.c_str(), "r");
   if (pFile == NULL) return "";
-  fgets (mystring, sizeof(mystring), pFile);
+  if (fgets (mystring, sizeof(mystring), pFile) == NULL) return "";
   fclose (pFile);
   
   return std::string(mystring);  

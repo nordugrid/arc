@@ -448,7 +448,7 @@ int main(int argc,char** argv) {
   if(!caches.empty()) {
     cache = new Arc::FileCache(caches,std::string(id),uid,gid);
     if (!(*cache)) {
-      olog << "Error creating cache: " << std::endl;
+      olog << "Error creating cache" << std::endl;
       exit(1);
     }
   }
