@@ -56,22 +56,21 @@ bool SAML2SSO_UserAgentSH::Handle(Arc::Message* msg){
   // send this saml response to IdP
   // -------------------------------------------
 
-  std::string cert_file = "testcert.pem";  //TODO: get from configuration
-  std::string privkey_file = "testkey-nopass.pem";
+  cert_file_ = "testcert.pem";  //TODO: get from configuration
+  privkey_file_ = "testkey-nopass.pem";
   //TestShib use the certificate for SAML2 SSO
-  //std::string ca_file = "cacert_testshib.pem";
-  //std::string ca_file = "cacert.pem";
-  std::string ca_dir = "./certificates";
+  //ca_file_ = "cacert_testshib.pem";
+  ca_dir_ = "./certificates";
 
   Arc::MCCConfig cfg;
-  if (!cert_file.empty())
-    cfg.AddCertificate(cert_file);
-  if (!privkey_file.empty())
-    cfg.AddPrivateKey(privkey_file);
-  //if (!ca_file.empty())
-  //  cfg.AddCAFile(ca_file);
-  if (!ca_dir.empty())
-    cfg.AddCADir(ca_dir);
+  if (!cert_file_.empty())
+    cfg.AddCertificate(cert_file_);
+  if (!privkey_file_.empty())
+    cfg.AddPrivateKey(privkey_file_);
+  if (!ca_file_.empty())
+    cfg.AddCAFile(ca_file_);
+  if (!ca_dir_.empty())
+    cfg.AddCADir(ca_dir_);
 
   std::string service_url_str("https://127.0.0.1:8443");
   Arc::URL service_url(service_url_str);
@@ -233,6 +232,10 @@ bool SAML2SSO_UserAgentSH::Handle(Arc::Message* msg){
     logger.msg(Arc::ERROR, "Failed to verify the signature under <samlp:Response/>");
   }
 
+  //Send the encrypted saml assertion to service side through this main message chain
+    
+
+
   //Decrypte the encrypted saml assertion in this saml response
   Arc::XMLNode assertion_nd = node["saml:EncryptedAssertion"];
   std::string saml_assertion;
@@ -241,7 +244,7 @@ bool SAML2SSO_UserAgentSH::Handle(Arc::Message* msg){
 
   Arc::XMLSecNode sec_assertion_nd(assertion_nd);
   Arc::XMLNode decrypted_assertion_nd;
-  bool r = sec_assertion_nd.DecryptNode(privkey_file, decrypted_assertion_nd);
+  bool r = sec_assertion_nd.DecryptNode(privkey_file_, decrypted_assertion_nd);
   if(!r) { std::cout<<"Can not decrypted the EncryptedAssertion from saml response"<<std::endl; return 0; }
 
   std::string decrypted_saml_assertion;
@@ -256,7 +259,7 @@ bool SAML2SSO_UserAgentSH::Handle(Arc::Message* msg){
 
   Arc::XMLSecNode sec_nameid_nd(nameid_nd);
   Arc::XMLNode decrypted_nameid_nd;
-  r = sec_nameid_nd.DecryptNode(privkey_file, decrypted_nameid_nd);
+  r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
   if(!r) { std::cout<<"Can not decrypted the EncryptedID from saml assertion"<<std::endl; return 0; }
 
   std::string decrypted_nameid;

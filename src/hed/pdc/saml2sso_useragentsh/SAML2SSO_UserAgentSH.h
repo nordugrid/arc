@@ -23,7 +23,7 @@ namespace ArcSec {
 class SAML2SSO_UserAgentSH : public SecHandler {
  private:
   std::string cert_file_;
-  std::string key_file_;
+  std::string privkey_file_;
   std::string ca_file_;
   std::string ca_dir_;
 

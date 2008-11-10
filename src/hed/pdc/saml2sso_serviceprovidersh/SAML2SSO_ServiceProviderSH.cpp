@@ -8,8 +8,13 @@
 #include <arc/loader/SecHandlerLoader.h>
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/URL.h>
+#include <arc/DateTime.h>
+#include <arc/GUID.h>
 #include <arc/XMLNode.h>
 #include <arc/xmlsec/XmlSecUtils.h>
+#include <arc/xmlsec/saml_util.h>
 
 #include "SAML2SSO_ServiceProviderSH.h"
 
@@ -31,6 +36,7 @@ using namespace Arc;
 
 SAML2SSO_ServiceProviderSH::SAML2SSO_ServiceProviderSH(Config *cfg,ChainContext*):SecHandler(cfg), SP_service_loader(NULL){
   if(!init_xmlsec()) return;
+#if 0
   //Initialize an embeded http service for accepting saml request from client side
   //Load service chain
   logger.msg(Arc::INFO, "Creating http service side chain");
@@ -72,6 +78,8 @@ SAML2SSO_ServiceProviderSH::SAML2SSO_ServiceProviderSH(Config *cfg,ChainContext*
   SP_service_loader = new Arc::Loader(&service_config);
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
   logger.msg(Arc::INFO, "Service is waiting for requests");
+#endif
+
 }
 
 SAML2SSO_ServiceProviderSH::~SAML2SSO_ServiceProviderSH() {
