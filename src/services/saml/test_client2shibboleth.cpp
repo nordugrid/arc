@@ -28,12 +28,6 @@
 #include "../../hed/libs/xmlsec/XMLSecNode.h"
 #include "../../hed/libs/xmlsec/saml_util.h"
 
-#define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
-#define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
-
-#define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
-#define DSIG_NAMESPACE   "http://www.w3.org/2000/09/xmldsig#"
-
 typedef enum {
   HTTP_METHOD_NONE = -1,
   HTTP_METHOD_ANY,
@@ -119,7 +113,7 @@ int main(void) {
   //authn_request.NewAttribute("IsPassive") = std::string("false");
   //authn_request.NewAttribute() =  
 
-  bool must_signed = false; //TODO: get the information from metadata
+  bool must_signed = true; //TODO: get the information from metadata
   
   HttpMethod httpmethod = HTTP_METHOD_REDIRECT; //TODO
 
@@ -245,6 +239,8 @@ int main(void) {
     logger.msg(Arc::ERROR, "Request failed: Error");
     return -1;
   }
+
+  std::cout<<"http code: "<<redirect_info_final.code<<std::endl;
 
   std::string html_body;
   for(int i = 0;;i++) {
