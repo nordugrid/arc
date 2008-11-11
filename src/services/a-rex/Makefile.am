@@ -3,6 +3,9 @@ DIST_SUBDIRS = grid-manager ldif config infoproviders lrms
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
 
+initddir=@initddir@
+initd_SCRIPTS=a-rex
+
 docdir = @docdir@
 doc_DATA = arex_service.xml.example arc_arex.conf arex_service-secure.xml.example arex_minimalistic.xml.example
 

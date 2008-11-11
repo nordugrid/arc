@@ -1077,6 +1077,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
+                 src/services/a-rex/a-rex
                  src/services/a-rex/arex_service.xml.example
                  src/services/a-rex/arex_minimalistic.xml.example
                  src/services/a-rex/arex_service-secure.xml.example		 

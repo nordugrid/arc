@@ -1,0 +1,270 @@
+#!/bin/bash
+#
+# Init file for the NorduGrid grid-manager
+#
+# chkconfig: - 55 25
+# description: NorduGrid grid-manager
+#
+# config: /etc/sysconfig/globus
+# config: /etc/sysconfig/nordugrid
+# config: @arc_location@/etc/arc.conf
+# config: /etc/arc.conf
+
+set -x
+
+# source function library
+if [ -f @initddir@/functions ]; then
+  . @initddir@/functions
+else
+  success() { echo -n "OK"
+  }
+  failure() { echo -n "FAILURE"
+  }
+  status() {
+    pid=`pidof -o $$ -o $PPID -o %PPID -x $1`
+    if test "x$pid" != "x"; then
+      echo "$1 (pid $pid) is running..."
+      return 0
+    fi
+
+    if test -f "$PID_FILE"; then
+      read pid < "$PID_FILE"
+      if test "$pid" != ""; then
+        echo "$1 stopped but pid file exists"
+        return 1
+      fi
+    fi
+    if test -f $LOCKFILE; then
+      echo "$1 stopped but lockfile exist"
+      return 2
+    fi
+    echo "$1 is stopped"
+    return 3
+  }
+fi
+
+# sysconfig files
+if [ -f /etc/sysconfig/globus ]; then
+    . /etc/sysconfig/globus
+fi
+if [ -f /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+fi
+
+prog=arched
+
+# GLOBUS_LOCATION
+GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
+if [ ! -d "$GLOBUS_LOCATION" ]; then
+  echo "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
+  exit 1
+fi
+export GLOBUS_LOCATION
+
+# ARC_LOCATION
+ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
+if [ ! -d "$ARC_LOCATION" ]; then
+  echo "ARC_LOCATION ($ARC_LOCATION) not found"
+  exit 1
+fi
+export ARC_LOCATION
+
+if [ `id -u` = 0 ] ; then
+  # Debian does not have /var/lock/subsys
+  if test -d /var/lock/subsys; then
+    LOCKFILE=/var/lock/subsys/$prog
+  else
+    LOCKFILE=/var/lock/$prog
+  fi
+  PID_FILE=/var/run/$prog.pid
+else
+  LOCKFILE=$HOME/$prog.lock
+  PID_FILE=$HOME/$prog.pid
+fi 
+
+
+readconfigvar()
+{
+  fname=$1
+  bname="[$2]"
+  vname=$3
+  value=
+  cat "$fname" | {
+    while true; do
+      read line
+      if [ ! $? = 0 ] ; then
+        return
+      fi
+      if [ "$line" = "$bname" ] ; then
+        while true ; do
+          read line
+          if [ ! $? = 0 ] ; then
+            return
+          fi
+          if [ `echo "$line" | head -c 1` = '[' ] ; then
+            return
+          fi
+          vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+          if [ "$vlname" = "$vname" ] ; then
+            echo "$line" | sed 's/[^=]*=//'
+            return
+          fi
+        done
+      fi
+    done
+  }
+}
+
+prepare() 
+{
+
+CMD="$ARC_LOCATION/sbin/$prog"
+if ! test -x "$CMD"; then
+    failure "Missing executable"
+    echo
+    exit 1
+fi
+
+# ARC_CONFIG
+if test "x$ARC_CONFIG" = "x"; then
+  if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+    ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+  elif [ -r /etc/arc.conf ]; then
+    ARC_CONFIG=/etc/arc.conf
+  fi
+fi
+if [ ! -r "$ARC_CONFIG" ]; then
+  echo "NorduGrid configuration not found (usually /etc/arc.conf)"
+  exit 1
+fi
+
+# Creating configuration file of arched
+# Reading following information from config file:
+#  Log file
+#  Debug level
+#  User name
+
+gmlogfile=`readconfigvar $ARC_CONFIG grid-manager logfile`
+gmloglevel=`readconfigvar $ARC_CONFIG grid-manager debug`
+username=`readconfigvar $ARC_CONFIG grid-manager user`
+
+
+AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
+if [ -z "$AREX_CONFIG" ] ; then
+  echo "Failed to create temporary file"
+  exit 1
+fi
+
+CMD="$CMD -c '$AREX_CONFIG'"
+
+# VOMS_LOCATION
+VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
+
+# GRIDSITE_LOCATION
+GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-@DEFAULT_GRIDSITE_LOCATION@}
+
+LD_LIBRARY_PATH=$NORDUGRID_LOCATION/lib:$GLOBUS_LOCATION/lib:$VOMS_LOCATION/lib:$GRIDSITE_LOCATION/lib:$LD_LIBRARY_PATH
+SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
+export LD_LIBRARY_PATH SASL_PATH
+
+LOGLEVEL=VERBOSE
+LOGFILE=/var/log/grid-manager.log
+AREXCFG="\
+<?xml version=\"1.0\"?>\
+<ArcConfig\
+  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
+  <Server>\
+    <Pidfile>$PID_FILE</Pidfile>\
+    <Logger level=\"$LOGLEVEL\">$LOGFILE</Logger>\
+  </Server>\
+  <ModuleManager>\
+    <Path>$ARC_LOCATION/lib/arc/</Path>\
+  </ModuleManager>\
+  <Plugins><Name>arex</Name></Plugins>\
+  <Chain>\
+    <Service name=\"a-rex\" id=\"a-rex\">\
+      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>\
+    </Service>\
+  </Chain>\
+</ArcConfig>\
+"
+echo "$AREXCFG" > "$AREX_CONFIG"
+
+}
+
+
+start()
+{
+    echo -n "Starting $prog: "
+
+    # Check if we are already running
+    if test -f $PID_FILE; then
+      read pid < $PID_FILE
+      if test "x$pid" != "x"; then
+        ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+        if [ "$?" == '0' ] ; then
+          failure "Error: already running ($pid)"
+          echo
+          return 1
+        fi
+      fi
+      rm -f "$PID_FILE" "$LOCKFILE"
+    fi
+
+    prepare
+
+    eval "$CMD"
+    RETVAL=$?
+    rm -f "$AREX_CONFIG"
+
+    if [ $RETVAL -ne 0 ]; then
+        failure "$prog startup"
+    else
+       touch $LOCKFILE
+       success "$prog startup"
+    fi
+    echo
+    return $RETVAL
+}
+
+stop()
+{
+    echo -n "Stopping $prog: "
+
+    if test -f "$PID_FILE"; then
+      kill `cat "$PID_FILE"` && success "$prog shutdown" || failure "$prog shutdown"
+      RETVAL=$?
+      sleep 1
+      kill -9 `cat "$PID_FILE"` 1>/dev/null 2>&1
+      rm -f "$PID_FILE" "$LOCKFILE"
+    else
+      failure "$prog shutdown - pidfile missing"
+    fi
+    echo
+    return $RETVAL
+}
+
+case "$1" in
+  start)
+        start "$1"
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+	status $prog
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  condrestart)
+        test -f $LOCKFILE && restart || :
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
+        exit 1
+esac
+
+exit $?
