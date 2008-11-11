@@ -8,6 +8,8 @@
 #include <arc/message/MessageAuth.h>
 #include "grid-manager/jobs/users.h"
 #include "grid-manager/files/info_types.h"
+#include "grid-manager/jobs/job.h"
+#include "grid-manager/jobs/plugins.h"
 
 namespace ARex {
 
@@ -19,6 +21,7 @@ class ARexGMConfig {
   std::string grid_name_; // temporary solution
   std::string service_endpoint_; // temporary solution
   std::list<Arc::MessageAuth*> auths_;
+  ContinuationPlugins cont_plugins_;
  public:
   ARexGMConfig(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
   ~ARexGMConfig(void);
@@ -34,6 +37,7 @@ class ARexGMConfig {
   void ClearAuths(void) { auths_.clear(); };
   std::list<Arc::MessageAuth*>::iterator beginAuth(void) { return auths_.begin(); };
   std::list<Arc::MessageAuth*>::iterator endAuth(void) { return auths_.end(); };
+  ContinuationPlugins& Plugins(void) { return cont_plugins_; };
 };
 
 

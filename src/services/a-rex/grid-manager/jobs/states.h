@@ -84,7 +84,7 @@ class JobsList {
   bool JobFailStateRemember(const iterator &i,job_state_t state);
   bool RecreateTransferLists(const JobsList::iterator &i);
  public:
-  /* Constructor. 'user' conatins associated user */ 
+  /* Constructor. 'user' contains associated user */ 
   JobsList(JobUser &user,ContinuationPlugins &plugins);
   ~JobsList(void);
   iterator FindJob(const JobId &id);

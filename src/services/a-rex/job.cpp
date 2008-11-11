@@ -63,13 +63,12 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
   std::string control_dir;
   std::string default_lrms;
   std::string default_queue;
-  ContinuationPlugins* cont_plugins = NULL;
   RunPlugin* cred_plugin = new RunPlugin;
   std::string allowsubmit;
   bool strict_session;
   if(!configure_user_dirs(uname,control_dir,session_root,
                           default_lrms,default_queue,queues_,
-                          *cont_plugins,*cred_plugin,
+                          cont_plugins_,*cred_plugin,
                           allowsubmit,strict_session)) {
     // olog<<"Failed processing grid-manager configuration"<<std::endl;
     delete user_; user_=NULL; delete cred_plugin; return;
@@ -408,35 +407,32 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       return;
     };
   };
-/*
   // Call authentication/authorization plugin/exec
-  int result;
-  std::string response;
-  // talk to external plugin to ask if we can proceed
-  ContinuationPlugins::action_t act =
-                 cont_plugins->run(job,*user,result,response);
-  // analyze result
-  if(act == ContinuationPlugins::act_fail) {
-    olog<<"Failed to run external plugin: "<<response<<std::endl;
-    delete_job_id();
-    error_description="Job is not allowed by external plugin: "+response;
-    failure_type_=ARexJobInternalError;
-    return 1;
-  } else if(act == ContinuationPlugins::act_log) {
-    // Scream but go ahead
-    olog<<"Failed to run external plugin: "<<response<<std::endl;
-    failure_type_=ARexJobInternalError;
-  } else if(act == ContinuationPlugins::act_pass) {
-    // Just continue
-    if(response.length()) olog<<"Plugin response: "<<response<<std::endl;
-  } else {
-    olog<<"Failed to run external plugin"<<std::endl;
-    delete_job_id();
-    error_description="Failed to pass external plugin.";
-    failure_type_=ARexJobInternalError;
-    return 1;
+  {
+    int result;
+    std::string response;
+    // talk to external plugin to ask if we can proceed
+    ContinuationPlugins::action_t act =
+                 config_.Plugins().run(job,*config_.User(),result,response);
+    // analyze result
+    if(act == ContinuationPlugins::act_fail) {
+      delete_job_id();
+      failure_="Job is not allowed by external plugin: "+response;
+      failure_type_=ARexJobInternalError;
+      return;
+    } else if(act == ContinuationPlugins::act_log) {
+      // Scream but go ahead
+      logger_.msg(Arc::WARNING, "Failed to run external plugin: %s", response);
+    } else if(act == ContinuationPlugins::act_pass) {
+      // Just continue
+      if(response.length()) logger_.msg(Arc::INFO, "Plugin response: %s", response);
+    } else {
+      delete_job_id();
+      failure_="Failed to pass external plugin: "+response;
+      failure_type_=ARexJobInternalError;
+      return;
+    };
   };
-*/ 
 /*@
   // Make access to filesystem on behalf of local user
   if(cred_plugin && (*cred_plugin)) {
