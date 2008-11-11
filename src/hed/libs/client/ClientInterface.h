@@ -44,7 +44,7 @@ namespace Arc {
 
   // Also supports TLS
   class ClientTCP
-    : public ClientInterface {
+    : public virtual ClientInterface {
   public:
     ClientTCP()
       : tcp_entry(NULL),
@@ -75,7 +75,7 @@ namespace Arc {
   };
 
   class ClientHTTP
-    : public ClientTCP {
+    : public virtual ClientTCP {
   public:
     ClientHTTP()
       : http_entry(NULL) {}
@@ -115,7 +115,7 @@ namespace Arc {
       over HTTP(S).
       It takes care of configuring MCC chain and making an entry point. */
   class ClientSOAP
-    : public ClientHTTP {
+    : public virtual ClientHTTP {
   public:
     /** Constructor creates MCC chain and connects to server.
 	cfg - common configuration,
