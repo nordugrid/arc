@@ -1,28 +1,53 @@
 .\" -*- nroff -*-
 .TH APECHO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
 .SH NAME
+
 arcecho \- ARC echo client
-.SH SYNOPSIS
-.B arcecho message
+
 .SH DESCRIPTION
-.PP
-arcecho is a simple service test tool, we can send a message to the echo service and it will response this message a bit else
+
+The
+.B arcecho
+command is a client for the ARC echo service.
+
+.SH SYNOPSIS
+
+.B arcecho [options] service message
+
 .SH OPTIONS
+
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBservice\fR"
+A URL to an ARC echo service
+.IP "\fBmessage\fR"
+The message the service should return
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+.B arcecho
+is a simple test tool: we can send a message to the echo service and
+it will respond with the same message.
+
+.SH ENVIRONMENT VARIABLES
+
 .TP
-\fB\ message\fR
-This message will come back from the echo service by this form: [ message ]
-.TP
-.SH "CONFIGURATION
-Which echo service to use is specified in a configuration file. The
-configuration file also specifies how to set up the communication
-chain for the client. The location of the configuration file is
-specified by the environment variable ARC_ECHO_CONFIG. If there is
-no such environment variable, the configuration file is assumed to
-be "echo_client.xml" in the current working directory.
-.PP
-.SH "REPORTING BUGS"
-Report bugs to http://bugzilla.nordugrid.org/
-.SH COPYRIGHT
-We need to have this
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
 .SH AUTHOR
-Written by developers
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>

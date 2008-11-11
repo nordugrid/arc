@@ -205,7 +205,6 @@ exit 0
 %files client
 %defattr(-,root,root,-)
 %doc src/clients/arclib/client.xml.example
-%doc src/clients/echo/echo_client.xml.example
 %doc src/clients/charon/charon_client.xml.example
 %doc src/clients/charon/charon_request.xml.example
 %doc src/tests/echo/echo.wsdl

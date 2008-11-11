@@ -1155,7 +1155,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcrm.1
                  src/clients/echo/Makefile
                  src/clients/echo/arcecho.1
-                 src/clients/echo/echo_client.xml.example
                  src/clients/charon/Makefile
                  src/clients/charon/arcdecision.1
                  src/clients/isis/Makefile
