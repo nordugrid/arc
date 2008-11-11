@@ -10,8 +10,6 @@
 # config: @arc_location@/etc/arc.conf
 # config: /etc/arc.conf
 
-set -x
-
 # source function library
 if [ -f @initddir@/functions ]; then
   . @initddir@/functions
@@ -106,7 +104,8 @@ readconfigvar()
           fi
           vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
           if [ "$vlname" = "$vname" ] ; then
-            echo "$line" | sed 's/[^=]*=//'
+            val=`echo "$line" | sed 's/[^=]*=//'`
+            eval "echo $val"
             return
           fi
         done
@@ -177,11 +176,15 @@ case "$LOGLEVEL" in
   *) LOGLEVEL="WARNING" ;;
 esac
 
-if [ "$USERNAME" = "root" ; then
+if [ "$USERNAME" = "root" ] ; then
   USERNAME=""
 fi
 
 LOGFILE=${LOGFILE:-/var/log/grid-manager.log}
+
+if [ ! -z "$USERNAME" ] ; then
+  CMD="su '$USERNAME' $CMD"
+fi
 
 AREXCFG="\
 <?xml version=\"1.0\"?>\
@@ -247,11 +250,16 @@ stop()
     echo -n "Stopping $prog: "
 
     if test -f "$PID_FILE"; then
-      kill `cat "$PID_FILE"` && success "$prog shutdown" || failure "$prog shutdown"
-      RETVAL=$?
-      sleep 1
-      kill -9 `cat "$PID_FILE"` 1>/dev/null 2>&1
-      rm -f "$PID_FILE" "$LOCKFILE"
+      PID=`cat "$PID_FILE"`
+      if [ ! -z "$PID" ] ; then
+        kill "$PID" && success "$prog shutdown" || failure "$prog shutdown"
+        RETVAL=$?
+        sleep 1
+        kill -9 "$PID" 1>/dev/null 2>&1
+        rm -f "$PID_FILE" "$LOCKFILE"
+      else
+        failure "$prog shutdown - pidfile is empty"     
+      fi
     else
       failure "$prog shutdown - pidfile missing"
     fi
