@@ -44,7 +44,7 @@ namespace Arc {
 
   // Also supports TLS
   class ClientTCP
-    : public virtual ClientInterface {
+    : public ClientInterface {
   public:
     ClientTCP()
       : tcp_entry(NULL),
@@ -75,7 +75,7 @@ namespace Arc {
   };
 
   class ClientHTTP
-    : public virtual ClientTCP {
+    : public ClientTCP {
   public:
     ClientHTTP()
       : http_entry(NULL) {}
