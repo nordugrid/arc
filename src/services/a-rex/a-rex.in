@@ -144,9 +144,9 @@ fi
 #  Debug level
 #  User name
 
-gmlogfile=`readconfigvar $ARC_CONFIG grid-manager logfile`
-gmloglevel=`readconfigvar $ARC_CONFIG grid-manager debug`
-username=`readconfigvar $ARC_CONFIG grid-manager user`
+LOGFILE=`readconfigvar $ARC_CONFIG grid-manager logfile`
+LOGLEVEL=`readconfigvar $ARC_CONFIG grid-manager debug`
+USERNAME=`readconfigvar $ARC_CONFIG grid-manager user`
 
 
 AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
@@ -167,15 +167,29 @@ LD_LIBRARY_PATH=$NORDUGRID_LOCATION/lib:$GLOBUS_LOCATION/lib:$VOMS_LOCATION/lib:
 SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
 export LD_LIBRARY_PATH SASL_PATH
 
-LOGLEVEL=VERBOSE
-LOGFILE=/var/log/grid-manager.log
+case "$LOGLEVEL" in 
+  0) LOGLEVEL="FATAL" ;;
+  1) LOGLEVEL="ERROR" ;;
+  2) LOGLEVEL="WARNING" ;;
+  3) LOGLEVEL="INFO" ;;
+  4) LOGLEVEL="DEBUG" ;;
+  5) LOGLEVEL="VERBOSE" ;;
+  *) LOGLEVEL="WARNING" ;;
+esac
+
+if [ "$USERNAME" = "root" ; then
+  USERNAME=""
+fi
+
+LOGFILE=${LOGFILE:-/var/log/grid-manager.log}
+
 AREXCFG="\
 <?xml version=\"1.0\"?>\
 <ArcConfig\
   xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
   xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
   <Server>\
-    <Pidfile>$PID_FILE</Pidfile>\
+    <PidFile>$PID_FILE</PidFile>\
     <Logger level=\"$LOGLEVEL\">$LOGFILE</Logger>\
   </Server>\
   <ModuleManager>\
