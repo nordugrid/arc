@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <fstream>
 
 #include <arc/DateTime.h>
 #include <arc/GUID.h>
@@ -38,9 +39,13 @@ Service_SP::Service_SP(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLo
   std::string str;
   metadata_node_.GetXML(str);
   //std::cout<<"Metadata: "<<str<<std::endl;
+  if(!(Arc::init_xmlsec())) return;
 }
 
 Service_SP::~Service_SP(void) {
+  Arc::final_xmlsec();
+  std::ofstream file_authn_record("auth_record", std::ios_base::trunc);
+  file_authn_record.close();
 }
 
 Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
@@ -61,12 +66,18 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //for(Arc::AttributeIterator i = inmsg.Attributes()->getAll();i.hasMore();++i) {
   //  std::cout<<"Attribute: "<<i.key()<<"=="<<*i<<std::endl;
   //}
+
+  std::string msg_content(inpayload->Content());
+  //SP service is supposed to get two types of http content from user agent:
+  //1. The IdP name, which SP uses to generate AuthnRequest
+  //2. The saml assertion, which user agent gets from IdP 
+  
+  if(msg_content.substr(0,4) == "http") {
   //Get the IdP name from the request
   //Here we require the user agent to provide the idp name instead of the 
   //WRYF(where are you from) or Discovery Service in some other implementation
   //like Shibboleth
-  std::string idp_name(inpayload->Content());
-
+  std::string idp_name(msg_content);
   //Compose <samlp:AuthnRequest/>
   Arc::NS saml_ns;
   saml_ns["saml"] = SAML_NAMESPACE;
@@ -160,8 +171,78 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   outpayload->Insert(authnRequestUrl.c_str(),0, authnRequestUrl.size());
   outmsg.Attributes()->set("HTTP:CODE","302");
   outmsg.Attributes()->set("HTTP:REASON","Moved Temporarily");
-  std::string outcontent(outpayload->Content());
   delete outmsg.Payload(outpayload);
+  }
+  else {  
+    //The http content should be <saml:EncryptedAssertion/> or <saml:Assertion/>
+    //Decrypted the assertion (if it is encrypted) by using SP's key (the key is the 
+    //same as the one for the main message chain)
+    //std::cout<<"saml assertion from peer side: "<<msg_content<<std::endl;
+    Arc::XMLNode assertion_nd(msg_content);
+    if(MatchXMLName(assertion_nd, "EncryptedAssertion")) {
+      //Decrypte the encrypted saml assertion
+      std::string saml_assertion;
+      assertion_nd.GetXML(saml_assertion);
+      //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
+
+      Arc::XMLSecNode sec_assertion_nd(assertion_nd);
+      Arc::XMLNode decrypted_assertion_nd;
+
+      std::string privkey_file_ = "testkey-nopass.pem";
+
+      bool r = sec_assertion_nd.DecryptNode(privkey_file_, decrypted_assertion_nd);
+      if(!r) { 
+        logger.msg(Arc::ERROR,"Can not decrypted the EncryptedAssertion from saml response"); 
+        return Arc::MCC_Status(); 
+      }
+
+      std::string decrypted_saml_assertion;
+      decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
+      //std::cout<<"Decrypted SAML Assertion: "<<decrypted_saml_assertion<<std::endl;
+     
+      //Decrypted the <saml:EncryptedID/> if it exists in the above saml assertion
+      Arc::XMLNode nameid_nd = decrypted_assertion_nd["saml:Subject"]["saml:EncryptedID"];
+      std::string nameid;
+      nameid_nd.GetXML(nameid);
+      //std::cout<<"Encrypted name id: "<<nameid<<std::endl;
+
+      Arc::XMLSecNode sec_nameid_nd(nameid_nd);
+      Arc::XMLNode decrypted_nameid_nd;
+      r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
+      if(!r) { logger.msg(Arc::ERROR,"Can not decrypted the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
+
+      std::string decrypted_nameid;
+      decrypted_nameid_nd.GetXML(decrypted_nameid);
+      //std::cout<<"Decrypted SAML NameID: "<<decrypted_nameid<<std::endl;
+
+      //TODO: Check the authentication part of saml assertion
+
+      //Record the authentication, this information will be checked by 
+      //saml2sso_serviceprovider handler later to decide whether pass
+      //the incoming message which is from the same session as the saml2sso
+      //process
+      std::string authn_record;
+      authn_record.append(inmsg.Attributes()->get("TCP:REMOTEHOST")).append(":")
+                  .append(inmsg.Attributes()->get("TCP:REMOTEPORT")).append("\n");
+      std::ofstream file_authn_record("auth_record", std::ios_base::app);
+      file_authn_record.write(authn_record.c_str(),authn_record.size());
+      file_authn_record.close();
+
+      Arc::PayloadRaw* outpayload = NULL;
+      outpayload = new Arc::PayloadRaw;
+      //outpayload->Insert(authnRequestUrl.c_str(),0, authnRequestUrl.size());
+      //outmsg.Attributes()->set("HTTP:CODE","302");
+      //outmsg.Attributes()->set("HTTP:REASON","Moved Temporarily");
+      delete outmsg.Payload(outpayload);
+    }
+    else if(MatchXMLName(assertion_nd, "Assertion")) {
+
+    }
+    else {
+
+    }
+
+  }
 
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
