@@ -670,6 +670,7 @@ def splitLN(LN):
 auth_mapping = {'identity' : ('Subject', 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'),
             'LN' : ('Resource', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/logicalname'),
             'method' : ('Action', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/method')}
+            # TODO: rename this 'method' to 'action'
 
 storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
 
