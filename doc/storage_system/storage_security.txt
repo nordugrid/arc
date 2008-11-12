@@ -4,40 +4,52 @@ Security in the ARC1 storage system
 Policies
 --------
 
-The ARC1 storage system has a component called Catalog, which is storing all the metadata about files and collections in the system. One of these metadata is an XML document containing the "policy", which is in the native ARC policy language, or later it could be in some other languages supported by the ARC1 HED security framework. Because it's an XML document, we could use namespaces to specify which language we use in a policy. Here we will use now the native ARC policy language, but the following statements could be applied to other policy languages as well.
+The ARC storage system has a component called Librarian, which is storing all the metadata about files and collections in the system (and uses the A-Hash service as a database, so "stored in the A-Hash" and "stored at the Librarian" means the same). The access policies are stored among these metadata (currently in native ARC policy format as XML documents - later other policy languages could be supported as well.)
 
-A policy has a couple of rules, where each rule contains Subjects, Resources, Actions and Conditions parts, and each rule has an effect of permitting or denying the request when it is applied. 'Subjects' contains a list of identities, where an identity could refer to a user, or some group (e.g. a VO) usually via a DN. 'Resources' must contain only the resource which has this policy as its metadata. The 'Actions' part could contain one or more of the valid actions, e.g. 'read' for a file, or 'list' for collection. The Condition part could contain any other arbitrary condition allowed by the policy language.
-Besides the policy, each file and collection has an 'owner', which is a user who could always modify the policy.
+A policy has a couple of rules, where each rule contains Subjects, Resources, Actions and Conditions parts, and each rule has an effect of permitting or denying the request when it is applied. 'Subjects' contains a list of identities, where an identity could refer to a user, or some group (e.g. a VO) usually via a DN. The 'Resource' here is the file or collection the policy is attached to, so in this case the policy itself does not contain the Resource, or if it contains any Resource it will be ignored and replaced. The 'Actions' part could contain one or more of the valid actions, e.g. 'read' for a file, or 'list' for collection. The Condition part could contain any other arbitrary condition allowed by the policy language.
+Besides these policies, each file and collection has an 'owner', which is a user who could always modify the policies, even if the policies would deny it.
 
-For example we have a file with a Logical Name of '/home/steve/results.txt'.
-This file has a policy like this:
+There are two kinds of policies:
+- Basic policy: a basic policy contains rules for one single user or one single group (or VO), and it has no Conditions. So a basic policy could state that User1 has rights to read the content of the collection and to add an entry to it, but has no rights to remove an entry. An other basic policy could say that all members of a VO has rights to modify the metadata of the file. These policies could be easily created and modified automatically, and these policies could be easily transformed to a human-readable form. The system will support fine-grained modification of these policies, so e.g. if you want to give read rights to a user, then the system will check wether a basic policy does already exist for this user, or not. If it does, then it will modify that policy to give read rights to the user. If it does not, then it will create a new basic policy for this user.
+- Complex policy: a complex policy could contain anything, multiple subjects and conditions (but still no resources - they well be removed and replaced by the file or collection the policy is attached to). The fine-grained modification of these policies are not supported by the system, you can add a complex policy to a file or collection, or remove a complex policy, and you can overwrite and existing one, but you cannot ask the system to just change a part of it.
 
- <Policy CombiningAlg="Permit-Overrides">
+
+For example we have a collection with a Logical Name of '/niif/projects/jupiter'.
+If this file has one single basic policy, e.g.:
+
+ <Policy>
     <Rule Effect="Permit"> 
        <Subjects>
           <Subject>	
              <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
           </Subject>
        </Subjects>
-       <Resources/>
        <Actions>
           <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">read</Action>
        </Actions>
-       <Conditions/>
+    </Rule>
+    <Rule Effect="Deny"> 
+       <Subjects>
+          <Subject>	
+             <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
+          </Subject>
+       </Subjects>
+       <Actions>
+          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">removeEntry</Action>
+       </Actions>
     </Rule>
  </Policy>
 
-Which means that a user who has the identity '/C=HU/O=NIIF/CN=zsombor@niif.hu' is allowed to read this file.
-So when this user is contacting the Storage Manager to download the file '/home/steve/results.txt', the Manager get the metadata of the file from the Catalog, and now the Manager has this policy.
-There is an implicit default policy which says that the owner can change the policy.
+Which means that a user who has the identity '/C=HU/O=NIIF/CN=zsombor@niif.hu' is allowed to read the contents of this file and not allowed to removeEntry. (In case if this user is part of a VO, and if there is an other policy which says that the VO has rights to removeEntry, then we need to somehow decide that the vo-level policy is stronger or the user-level, or the denial is stronger)
+So when this user is contacting a Bartender to get the content of the collection of '/niif/projects/jupiter', then the Bartender gets the metadata of the collection from the Librarian, and now the Bartender has all the policies which are effective to this collection.
 
 Requests
 --------
 
-Now the Manager has to create a 'request' which is also an XML document containing the information who wants to do what.
+Now the Bartender has to create a 'request' which is also an XML document containing the information who wants to do what.
 Something like this:
 
- <Request xmlns="http://www.nordugrid.org/schemas/request-arc">
+ <Request>
    <RequestItem>
     <Subject>
        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
@@ -46,9 +58,14 @@ Something like this:
    </RequestItem>
  </Request>
 
-The Security Handlers in the Message Chain Components should extract some Security Attributes from the message and the secure channel, so parts of this request could be automatically generated by the HED security framework. The action part could be filled by the specific method of the Manager which was called (e.g. the 'getFile' method will put 'read' there).
+The <Subject> part should be automatically generated by the security framework, it should contain everything we know about the user, the DN, any attributes from the certificate of the user, VO membership, etc.
 
-Now the Storage Manager calls an Evaluator with the two XML documents (the request, the policy from the Catalog and the default policy with the owner). The Evaluator is an object which is capable of evaluating requests and policies, it is part of the security framework of ARC1 HED. The Evaluator returns with the answer which tells the Manager to permit or deny the request.
+QUESTION: how can we extract all these information using the security framework? what methods do we need to call? do we need security handlers for this?
+
+The <Action> part is filled by the Bartender, e.g. the 'list' method needs a 'read' permission, so it will put that action into the request. 
+
+Now the Bartender has a request, and several policies (basic policies and maybe complex policies as well), and it needs to make a decision. The Bartender creates an Evaluator, adds all the policies to it, and then call the 'evaluate' method with the request. Then the Evaluator returns the decision.
+
 
 Actions
 -------
@@ -58,50 +75,26 @@ These are the actions for the storage system:
 - addEntry: user can add a new entry to the collection;
 - removeEntry: user can remove any entry from the collection 
 - delete: user can delete the collection if it is empty; user can delete a file
-	(if you want to remove a file/collection, then you need to remove the entry from the parent collection, and then delete the file/collection itself, so you need to have both permissions)
 - modifyPolicy: user can modify the policy of the file/collection
 - modifyStates: user can modify some special metadata of the file/collection (close the collection, number of needed replica of the file)
 - modifyMetadata: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
 
-Assertions
+
+Trust among services
+--------------------
+
+The A-Hash service should answer all the requests of the Librarian services, but should not answer to anyone else.
+The Librarian services should do whatever a Bartender service asks, and it should accept hearthbeat reports from the Shepherd services. But we don't one anyone else to have access to the Librarian.
+The Sheperd services should initate transfers only if a Bartender service requests it.
+So when we deploy the ARC storage system, and we have several trusted sites with running e.g. Librarian and Bartender services, we need to configure our Librarian services to trust only our Bartender services and no one else.
+
+QUESTION: What would be the best way to configure this? Listing DNs in the config file of the services? Or using policies for this?
+
+
+
+Delegation
 ----------
 
-When a user has permission in the Catalog to download a file then the user should have permission to access at least one of the file's replica, so there should be a storage element which allows the user the get the file.
-If the storage manager has permission to access the storage element, then the storage manager could create some kind of assertion which allows the user to access the file. 
+After the Bartender initiated a transfer with a Shepherd service, then a transfer URL is created, which is a direct URL to the transfer service at the storage node, e.g. a Hopi service. This Hopi service should only allow the file transfer for this user. I think the simplest way to do this is to configure Hopi to only allow file transfer for the Bartender services. Then if the Bartender service could generate a proxy certificate for the user, which says that "I am this and this Bartender service, and I delegate my rights to access this URL to this user.", then this proxy certificate could be returned to the user along with the TURL, and then the user can connect directly to the transfer service (e.g. the Hopi) using this proxy certificate, and be able to get the file.
 
-"I suggest Storage Manager issue signed token similar to those issued by VOMS. That token can contain ARC Policy defining access to particular file. For compatibility reasons it can be even wrapped into SAML assertion. Then that token would be presented to Storage
-Element (SE) as part of request. For storage elements with non-WS protocol this token could be embedded by client into it's own temporary proxy as Attribute Certificate (AC - also similar to VOMS) and used to establish connection to SE (like GridFTP) or passed as part of protocol specific extension (like HTTP attribute in header)."
-
-This could contain a policy like this:
-
- <Policy CombiningAlg="Permit-Overrides">
-    <Rule Effect="Permit"> 
-       <Subjects>
-          <Subject>	
-             <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
-          </Subject>
-       </Subjects>
-       <Resources>
-          <Resource>storage.niif.hu/15346abcf</Resource>
-       </Resources>
-       <Actions>
-          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">read</Action>
-       </Actions>
-       <Conditions/>
-    </Rule>
- </Policy>
-
-Which says that this user is allowed to read that resource. Now the user can connect the Storage Element with this assertion, and if the Storage Element trusts that Storage Manager then it will permit downloading the file.
-
-"To enhance security I suggest those tokens to be single use. That could be achieved for example by adding some automatically generated random ID to generated token (either in some special element of it or as part of contained Policy, for example in Condition element of Policy. Maybe SAML already has some way to do that). This ID should be communicated to SE by SM so that SE check it's presence in the token and forgets about it as soon as operation is complete. But that feature may be for future."
-
-Trust between services
-----------------------
-
-In this scenario a Storage Element should trust all the Storage Managers in the system because the Storage Manager will create assertions to users who want to access files in the Storage Element, and a Storage Element should trust at least one Catalog service, because the Storage Elements do periodic reports to a Catalog service.
-
-A Storage Manager will constantly change the data within the Catalog through one or more Catalog service, so the Catalog services should trust all the Storage Managers to allow them to make changes.
-
-The main reason to have more than one Storage Manager in the system is load-balancing and high-avaliability. The system could perfectly work with one Storage Manager, but if we have more, than the clients could random choose any of them for each reqeust, and if one is down, thay can use the others.
-
-I think that we need only 3-5 Storage Managers which we could deploy at some very secure locations.
+QUESTION: how can the Bartender generate this kind of proxy certificate? how can we configure the Hopi to check these delegated proxy certificates? do we need to change the code of the Hopi?
