@@ -197,6 +197,7 @@ AREXCFG="\
   </Server>\
   <ModuleManager>\
     <Path>$ARC_LOCATION/lib/arc/</Path>\
+    <Path>$ARC_LOCATION/lib64/arc/</Path>\
   </ModuleManager>\
   <Plugins><Name>arex</Name></Plugins>\
   <Chain>\
