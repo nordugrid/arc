@@ -33,6 +33,66 @@ service_descriptors ARC_SERVICE_LOADER = {
 
 namespace SPService {
 
+using namespace Arc;
+
+class SAMLAssertionSecAttr: public Arc::SecAttr {
+ public:
+  SAMLAssertionSecAttr(XMLNode& node);
+  SAMLAssertionSecAttr(std::string& str);
+  virtual ~SAMLAssertionSecAttr(void);
+  virtual operator bool(void) const;
+  virtual bool Export(Format format,XMLNode &val) const;
+  virtual bool Import(Format format, const XMLNode& val);
+ protected:
+  virtual bool equal(const SecAttr &b) const;
+ private:
+  XMLNode saml_assertion_node_;
+};
+
+SAMLAssertionSecAttr::SAMLAssertionSecAttr(XMLNode& node) {
+  Import(SAML, node);
+}
+
+SAMLAssertionSecAttr::SAMLAssertionSecAttr(std::string& node_str) {
+  Import(SAML, node_str);
+}
+
+SAMLAssertionSecAttr::~SAMLAssertionSecAttr(){}
+
+bool SAMLAssertionSecAttr::equal(const SecAttr& b) const {
+  try {
+    const SAMLAssertionSecAttr& a = dynamic_cast<const SAMLAssertionSecAttr&>(b);
+    if (!a) return false;
+    // ...
+    return false;
+  } catch(std::exception&) { };
+  return false;
+}
+
+SAMLAssertionSecAttr::operator bool() const {
+  return true;
+}
+
+bool SAMLAssertionSecAttr::Export(Format format, XMLNode& val) const {
+  if(format == UNDEFINED) {
+  } else if(format == SAML) {
+    saml_assertion_node_.New(val);
+    return true;
+  }
+  else {};
+  return false;
+}
+
+bool SAMLAssertionSecAttr::Import(Format format, const XMLNode& val) {
+  if(format == UNDEFINED) {
+  } else if(format == SAML) {
+    val.New(saml_assertion_node_);
+    return true;
+  }
+  else {};
+  return false;
+}
+
 Service_SP::Service_SP(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "SAML2SP") {
   std::string metadata_file = "test_metadata.xml";
   metadata_node_.ReadFromFile(metadata_file);
@@ -181,8 +241,8 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     Arc::XMLNode assertion_nd(msg_content);
     if(MatchXMLName(assertion_nd, "EncryptedAssertion")) {
       //Decrypte the encrypted saml assertion
-      std::string saml_assertion;
-      assertion_nd.GetXML(saml_assertion);
+      //std::string saml_assertion;
+      //assertion_nd.GetXML(saml_assertion);
       //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
 
       Arc::XMLSecNode sec_assertion_nd(assertion_nd);
@@ -196,14 +256,14 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         return Arc::MCC_Status(); 
       }
 
-      std::string decrypted_saml_assertion;
-      decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
+      //std::string decrypted_saml_assertion;
+      //decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
       //std::cout<<"Decrypted SAML Assertion: "<<decrypted_saml_assertion<<std::endl;
      
       //Decrypted the <saml:EncryptedID/> if it exists in the above saml assertion
       Arc::XMLNode nameid_nd = decrypted_assertion_nd["saml:Subject"]["saml:EncryptedID"];
-      std::string nameid;
-      nameid_nd.GetXML(nameid);
+      //std::string nameid;
+      //nameid_nd.GetXML(nameid);
       //std::cout<<"Encrypted name id: "<<nameid<<std::endl;
 
       Arc::XMLSecNode sec_nameid_nd(nameid_nd);
@@ -211,8 +271,8 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
       if(!r) { logger.msg(Arc::ERROR,"Can not decrypted the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
 
-      std::string decrypted_nameid;
-      decrypted_nameid_nd.GetXML(decrypted_nameid);
+      //std::string decrypted_nameid;
+      //decrypted_nameid_nd.GetXML(decrypted_nameid);
       //std::cout<<"Decrypted SAML NameID: "<<decrypted_nameid<<std::endl;
 
       //TODO: Check the authentication part of saml assertion
@@ -221,12 +281,18 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       //saml2sso_serviceprovider handler later to decide whether pass
       //the incoming message which is from the same session as the saml2sso
       //process
+#if 0
       std::string authn_record;
       authn_record.append(inmsg.Attributes()->get("TCP:REMOTEHOST")).append(":")
-                  .append(inmsg.Attributes()->get("TCP:REMOTEPORT")).append("\n");
-      std::ofstream file_authn_record("auth_record", std::ios_base::app);
+                  .append(inmsg.Attributes()->get("TCP:REMOTEPORT")).append(":")
+                  .append(inmsg.Attributes()->get("TCP:SESSIONID")).append("\n");
+      std::ofstream file_authn_record("authn_record", std::ios_base::app);
       file_authn_record.write(authn_record.c_str(),authn_record.size());
       file_authn_record.close();
+#endif
+   
+      SAMLAssertionSecAttr* sattr = new SAMLAssertionSecAttr(decrypted_assertion_nd);
+      inmsg.Auth()->set("SAMLAssertion", sattr);
 
       Arc::PayloadRaw* outpayload = NULL;
       outpayload = new Arc::PayloadRaw;
