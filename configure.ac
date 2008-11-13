@@ -30,6 +30,26 @@ AC_SUBST(pkglibexecdir)
 
 ARC_RELATIVE_PATHS
 
+
+AC_ARG_WITH(sysv-scripts-location,
+  [  --with-sysv-scripts-location=<PATH>  Location of the SYSV init scripts. [[autodetect]]],
+  [ initddir="$withval" ],
+  [
+    initddir=
+    for i in /etc/init.d /etc/rc.d/init.d; do
+      if test -d "$i" ; then
+        initddir="$i"
+        break
+      fi
+    done
+  ]
+) 
+if test ! -d "$initddir"; then
+  AC_MSG_ERROR(could not find a suitable location for the SYSV init scripts)
+fi
+AC_MSG_RESULT($initddir)
+AC_SUBST(initddir)
+
 # gettext
 gettext_available="yes"
 AM_GNU_GETTEXT([external])
