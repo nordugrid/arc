@@ -106,16 +106,30 @@ bool SAML2SSO_ServiceProviderSH::Handle(Arc::Message* msg){
   std::string http_endpoint = msg->Attributes()->get("HTTP:ENDPOINT");
   std::size_t pos = http_endpoint.find("saml2sp");
   if(pos == std::string::npos) {  
+#if 0
     std::string authn_record;
     authn_record.append(msg->Attributes()->get("TCP:REMOTEHOST")).append(":")
-                .append(msg->Attributes()->get("TCP:REMOTEPORT"));
+                .append(msg->Attributes()->get("TCP:REMOTEPORT")).append(":")
+                .append(msg->Attributes()->get("TCP:SESSIONID"));
 
     std::string str;
     std::ifstream file_authn_record("authn_record",std::ios::in);
     while(std::getline<char>(file_authn_record,str)) {
-      if(authn_record == str) { file_authn_record.close(); return true; }
+      //logger.msg(Arc::INFO, "Incoming entity and authenticated entity: %s, %s", str.c_str(), authn_record.c_str());
+      if(authn_record == str) { 
+        logger.msg(Arc::INFO, "Incoming entity and authenticated entity: %s, %s", str.c_str(), authn_record.c_str());
+        file_authn_record.close(); return true; }
     };
     file_authn_record.close();
+#endif
+
+    SecAttr* sattr = msg->Auth()->get("SAMLAssertion");
+    XMLNode saml_assertion_nd;
+    if(!(sattr->Export(SecAttr::SAML, saml_assertion_nd))) return false;
+    std::string str;
+    saml_assertion_nd.GetXML(str);
+    std::cout<<"SAML Assertion parsed by SP service: "<<str<<std::endl;
+    return true;
   }
   else { return true; }
 
