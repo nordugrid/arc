@@ -12,7 +12,10 @@ namespace Arc {
   std::string GetEnv(const std::string& var);
 
   /// Portable function for setting environment variables
-  void SetEnv(const std::string& var, const std::string& value);
+  bool SetEnv(const std::string& var, const std::string& value);
+
+  /// Portable function for unsetting environment variables
+  void UnsetEnv(const std::string& var);
 
   /// Portable function for obtaining description of last system error
   std::string StrError(int errnum = errno);

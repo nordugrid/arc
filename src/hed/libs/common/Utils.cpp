@@ -14,6 +14,12 @@
 #include <stdlib.h>
 #endif
 
+#ifdef HAVE_GLIBMM_UNSETENV
+#include <glibmm/miscutils.h>
+#else
+#include <stdlib.h>
+#endif
+
 #include <string.h>
 
 #include <arc/StringConv.h>
@@ -33,14 +39,26 @@ namespace Arc {
 #endif
   }
 
-  void SetEnv(const std::string& var, const std::string& value) {
+  bool SetEnv(const std::string& var, const std::string& value) {
 #ifdef HAVE_GLIBMM_SETENV
-    Glib::setenv(var, value);
+    return Glib::setenv(var, value);
 #else
 #ifdef HAVE_SETENV
-    setenv(var.c_str(), value.c_str(), 1);
+    return (setenv(var.c_str(), value.c_str(), 1) == 0);
 #else
-    putenv(strdup((var + "=" + value).c_str()));
+    return (putenv(strdup((var + "=" + value).c_str())) == 0);
+#endif
+#endif
+  }
+
+  void UnsetEnv(const std::string& var) {
+#ifdef HAVE_GLIBMM_UNSETENV
+    Glib::unsetenv(var);
+#else
+#ifdef HAVE_UNSETENV
+    unsetenv(var.c_str());
+#else
+    putenv(strdup(var.c_str()));
 #endif
 #endif
   }

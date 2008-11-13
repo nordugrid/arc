@@ -22,14 +22,8 @@
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/User.h>
+#include <arc/Utils.h>
 #include <arc/client/UserConfig.h>
-
-#ifdef HAVE_GLIBMM_GETENV
-#include <glibmm/miscutils.h>
-#define GetEnv(NAME) Glib::getenv(NAME)
-#else
-#define GetEnv(NAME) (getenv(NAME) ? getenv(NAME) : "")
-#endif
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 
@@ -135,7 +129,7 @@ int main(int argc, char* argv[]){
     Arc::User user;
 
     if (key_path.empty())
-      key_path = GetEnv("X509_USER_KEY");
+      key_path = Arc::GetEnv("X509_USER_KEY");
     if (key_path.empty())
       key_path = (std::string)usercfg.ConfTree()["KeyPath"];
     if (key_path.empty())
@@ -143,7 +137,7 @@ int main(int argc, char* argv[]){
 	user.Home() + "/.globus/userkey.pem";
 
     if (cert_path.empty())
-      cert_path = GetEnv("X509_USER_CERT");
+      cert_path = Arc::GetEnv("X509_USER_CERT");
     if (cert_path.empty())
       cert_path = (std::string)usercfg.ConfTree()["CertificatePath"];
     if (cert_path.empty())
@@ -151,7 +145,7 @@ int main(int argc, char* argv[]){
 	user.Home() + "/.globus/usercert.pem";
 
     if (proxy_path.empty())
-      proxy_path = GetEnv("X509_USER_PROXY");
+      proxy_path = Arc::GetEnv("X509_USER_PROXY");
     if (proxy_path.empty())
       proxy_path = (std::string)usercfg.ConfTree()["ProxyPath"];
     if (proxy_path.empty())

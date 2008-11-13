@@ -8,38 +8,10 @@
 #include <fcntl.h>
 
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 #include "../conf/environment.h"
 #include "run_parallel.h"
-
-#ifdef HAVE_GLIBMM_GETENV
-#include <glibmm/miscutils.h>
-#define GetEnv(NAME) Glib::getenv(NAME)
-#else
-#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
-#endif
-
-#ifdef HAVE_GLIBMM_SETENV
-#include <glibmm/miscutils.h>
-#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
-#else
-#ifdef HAVE_SETENV
-#define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
-#else
-#define SetEnv(NAME,VALUE) { char* __s = strdup((std::string(NAME)+"="+VALUE).c_str()); putenv(__s);  }
-#endif
-#endif
-
-#ifdef HAVE_GLIBMM_UNSETENV
-#include <glibmm/miscutils.h>
-#define UnsetEnv(NAME) Glib::unsetenv(NAME)
-#else
-#ifdef HAVE_UNSETENV
-#define UnsetEnv(NAME) unsetenv(NAME)
-#else
-#define UnsetEnv(NAME) { char* __s = strdup(NAME); putenv(__s);  }
-#endif
-#endif
 
 typedef struct {
   const JobUser* user;
@@ -164,24 +136,24 @@ void RunParallel::initializer(void* arg) {
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
   // setting environment  - TODO - better environment 
   if(it->job_proxy_) {
-    SetEnv("GLOBUS_LOCATION",globus_loc);
-    UnsetEnv("X509_USER_KEY");
-    UnsetEnv("X509_USER_CERT");
-    UnsetEnv("X509_USER_PROXY");
-    UnsetEnv("X509_RUN_AS_SERVER");
+    Arc::SetEnv("GLOBUS_LOCATION",globus_loc);
+    Arc::UnsetEnv("X509_USER_KEY");
+    Arc::UnsetEnv("X509_USER_CERT");
+    Arc::UnsetEnv("X509_USER_PROXY");
+    Arc::UnsetEnv("X509_RUN_AS_SERVER");
     if(!(it->jobid_.empty())) {
       std::string proxy = it->user_.ControlDir() + "/job." + it->jobid_ + ".proxy";
-      SetEnv("X509_USER_PROXY",proxy);
+      Arc::SetEnv("X509_USER_PROXY",proxy);
       // for Globus 2.2 set fake cert and key, or else it takes 
       // those from host in case of root user.
       // 2.4 needs names and 2.2 will work too.
       // 3.x requires fake ones again.
 #if GLOBUS_IO_VERSION>=5
-      SetEnv("X509_USER_KEY",(std::string("fake")));
-      SetEnv("X509_USER_CERT",(std::string("fake")));
+      Arc::SetEnv("X509_USER_KEY",(std::string("fake")));
+      Arc::SetEnv("X509_USER_CERT",(std::string("fake")));
 #else
-      SetEnv("X509_USER_KEY",proxy);
-      SetEnv("X509_USER_CERT",proxy);
+      Arc::SetEnv("X509_USER_KEY",proxy);
+      Arc::SetEnv("X509_USER_CERT",proxy);
 #endif
     };
   };

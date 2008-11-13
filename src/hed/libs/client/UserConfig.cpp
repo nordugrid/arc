@@ -14,13 +14,6 @@
 #include <arc/Utils.h>
 #include <arc/client/UserConfig.h>
 
-#ifdef HAVE_GLIBMM_GETENV
-#include <glibmm/miscutils.h>
-#define GetEnv(NAME) Glib::getenv(NAME)
-#else
-#define GetEnv(NAME) (getenv(NAME) ? getenv(NAME) : "")
-#endif
-
 #ifdef WIN32
 #include <arc/win32.h>
 #endif

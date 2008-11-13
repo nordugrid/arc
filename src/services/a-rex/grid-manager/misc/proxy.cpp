@@ -12,23 +12,7 @@
 
 #include "proxy.h"
 
-#ifdef HAVE_GLIBMM_GETENV
-#include <glibmm/miscutils.h>
-#define GetEnv(NAME) Glib::getenv(NAME)
-#else
-#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
-#endif
-
-#ifdef HAVE_GLIBMM_SETENV
-#include <glibmm/miscutils.h>
-#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
-#else
-#ifdef HAVE_SETENV
-#define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
-#else
-#define SetEnv(NAME,VALUE) { char* __s = strdup((std::string(NAME)+"="+VALUE).c_str()); putenv(__s);  }
-#endif
-#endif
+#include <arc/Utils.h>
 
 int prepare_proxy(void) {
   int h = -1;
@@ -38,7 +22,7 @@ int prepare_proxy(void) {
   int res=-1;
 
   if(getuid() == 0) { /* create temporary proxy */
-    std::string proxy_file=GetEnv("X509_USER_PROXY");
+    std::string proxy_file=Arc::GetEnv("X509_USER_PROXY");
     if(proxy_file.empty()) goto exit;
     h=open(proxy_file.c_str(),O_RDONLY);
     if(h==-1) goto exit;
@@ -64,7 +48,7 @@ int prepare_proxy(void) {
       l+=ll;
     };
     close(h); h=-1; 
-    SetEnv("X509_USER_PROXY",proxy_file_tmp);
+    Arc::SetEnv("X509_USER_PROXY",proxy_file_tmp);
   };
   res=0;
  exit:
@@ -75,7 +59,7 @@ int prepare_proxy(void) {
 
 int remove_proxy(void) {
   if(getuid() == 0) {
-    std::string proxy_file=GetEnv("X509_USER_PROXY");
+    std::string proxy_file=Arc::GetEnv("X509_USER_PROXY");
     if(proxy_file.empty()) return 0;
     remove(proxy_file.c_str());
   };

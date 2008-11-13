@@ -13,27 +13,10 @@
 #include <pwd.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 #include <string>
 #include <list>
-
-#ifdef HAVE_GLIBMM_GETENV
-#include <glibmm/miscutils.h>
-#define GetEnv(NAME) Glib::getenv(NAME)
-#else
-#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
-#endif
-
-#ifdef HAVE_GLIBMM_SETENV
-#include <glibmm/miscutils.h>
-#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
-#else
-#ifdef HAVE_SETENV
-#define SetEnv(NAME,VALUE) (setenv(NAME,VALUE.c_str(),1) == 0)
-#else
-#define SetEnv(NAME,VALUE) (putenv(strdup((std::string(NAME)+"="+VALUE).c_str())) == 0)
-#endif
-#endif
 
 #include "../conf/conf.h"
 #include "../run/run_parallel.h"
@@ -310,8 +293,8 @@ std::string JobUsers::ControlDir(const std::string user) {
 /* change effective user - real switch is done only if running as root */
 bool JobUser::SwitchUser(bool su) const {
   std::string uid_s = Arc::tostring(uid);
-  if(!SetEnv("USER_ID",uid_s)) if(!su) return false;
-  if(!SetEnv("USER_NAME",unix_name)) if(!su) return false;
+  if(!Arc::SetEnv("USER_ID",uid_s)) if(!su) return false;
+  if(!Arc::SetEnv("USER_NAME",unix_name)) if(!su) return false;
   /* set proper umask */
   umask(0177);
   if(!su) return true;

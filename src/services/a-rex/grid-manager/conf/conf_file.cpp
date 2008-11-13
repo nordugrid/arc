@@ -6,6 +6,7 @@
 #include <pwd.h>
 
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 #include "../jobs/users.h"
 #include "../jobs/states.h"
 #include "../jobs/plugins.h"
@@ -16,24 +17,6 @@
 #include "../run/run_plugin.h"
 #include "conf_cache.h"
 #include "conf_file.h"
-
-#ifdef HAVE_GLIBMM_GETENV
-#include <glibmm/miscutils.h>
-#define GetEnv(NAME) Glib::getenv(NAME)
-#else
-#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
-#endif
-
-#ifdef HAVE_GLIBMM_SETENV
-#include <glibmm/miscutils.h>
-#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
-#else
-#ifdef HAVE_SETENV
-#define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
-#else
-#define SetEnv(NAME,VALUE) { char* __s = strdup((std::string(NAME)+"="+VALUE).c_str()); putenv(__s);  }
-#endif
-#endif
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -117,24 +100,24 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     };
     // pbs,gnu_time,etc. it is ugly hack here
     if(central_configuration && (command == "pbs_bin_path")) {
-      SetEnv("PBS_BIN_PATH",rest);
+      Arc::SetEnv("PBS_BIN_PATH",rest);
     } else if(central_configuration && (command == "pbs_log_path")) {
-      SetEnv("PBS_LOG_PATH",rest);
+      Arc::SetEnv("PBS_LOG_PATH",rest);
     } else if(central_configuration && (command == "gnu_time")) {
-      SetEnv("GNU_TIME",rest);
+      Arc::SetEnv("GNU_TIME",rest);
     } else if(central_configuration && (command == "tmpdir")) {
-      SetEnv("TMP_DIR",rest);
+      Arc::SetEnv("TMP_DIR",rest);
     } else if(central_configuration && (command == "runtimedir")) {
-      SetEnv("RUNTIME_CONFIG_DIR",rest);
+      Arc::SetEnv("RUNTIME_CONFIG_DIR",rest);
     } else if(central_configuration && (command == "shared_filesystem")) {
       if(rest == "NO") rest="no";
-      SetEnv("RUNTIME_NODE_SEES_FRONTEND",rest);
+      Arc::SetEnv("RUNTIME_NODE_SEES_FRONTEND",rest);
     } else if(central_configuration && (command == "scratchdir")) {
-      SetEnv("RUNTIME_LOCAL_SCRATCH_DIR",rest);
+      Arc::SetEnv("RUNTIME_LOCAL_SCRATCH_DIR",rest);
     } else if(central_configuration && (command == "shared_scratch")) {
-      SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
+      Arc::SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
     } else if(central_configuration && (command == "nodename")) {
-      SetEnv("NODENAME",rest);
+      Arc::SetEnv("NODENAME",rest);
     }
     else if(command == "joblog") { /* where to write job inforamtion */ 
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
