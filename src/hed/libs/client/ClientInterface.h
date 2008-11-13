@@ -115,7 +115,7 @@ namespace Arc {
       over HTTP(S).
       It takes care of configuring MCC chain and making an entry point. */
   class ClientSOAP
-    : public virtual ClientHTTP {
+    : public ClientHTTP {
   public:
     /** Constructor creates MCC chain and connects to server.
 	cfg - common configuration,

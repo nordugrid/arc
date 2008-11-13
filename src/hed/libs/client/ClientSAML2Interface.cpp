@@ -15,19 +15,24 @@
 #include <arc/xmlsec/XMLSecNode.h>
 #include <arc/xmlsec/saml_util.h>
 
-#include <./ClientSAML2Interface.h>
+#include "ClientSAML2Interface.h"
 
 namespace Arc {
+  Logger ClientHTTPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientHTTPwithSAML2SSO");
+  Logger ClientSOAPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientSOAPwithSAML2SSO");
 
   ClientHTTPwithSAML2SSO::ClientHTTPwithSAML2SSO(const BaseConfig& cfg, const std::string& host,
-			 int port, bool tls, const std::string& path)
-    : ClientHTTP(cfg, host, port, tls, path) {
-    if(!(Arc::init_xmlsec())) return;    
+			 int port, bool tls, const std::string& path) : http_client_(NULL) {
+    if(!(Arc::init_xmlsec())) return;   
+    http_client_ = new ClientHTTP(cfg, host, port, tls, path); 
   }
 
-  ClientHTTPwithSAML2SSO::~ClientHTTPwithSAML2SSO() { Arc::final_xmlsec(); }
+  ClientHTTPwithSAML2SSO::~ClientHTTPwithSAML2SSO() { 
+    Arc::final_xmlsec(); 
+    if(http_client_) delete http_client_;
+  }
 
-  MCC_Status ClientHTTPwithSAML2SSO::process_saml2sso(const std::string& idp_name) {
+  static MCC_Status process_saml2sso(const std::string& idp_name, ClientHTTP* http_client, Logger& logger) {
 
   // -------------------------------------------
   // User-Agent: Send an empty http request to SP, the destination url
@@ -48,9 +53,9 @@ namespace Arc {
     requestSP.Insert(idp_name.c_str(),0, idp_name.size());
     //Call the peer http endpoint with path "saml2sp", which
     //is the endpoint of saml SP service
-    Arc::MCC_Status statusSP = ClientHTTP::process("POST", "saml2sp",&requestSP, &infoSP, &responseSP);
+    Arc::MCC_Status statusSP = http_client->process("POST", "saml2sp",&requestSP, &infoSP, &responseSP);
     if (!responseSP) {
-      logger.msg(Arc::ERROR, "Request failed: No response");
+      logger.msg(Arc::ERROR, "Request failed: No response from SPService");
       return MCC_Status();
     }
     if (!statusSP) {
@@ -70,6 +75,13 @@ namespace Arc {
     logger.msg(Arc::VERBOSE, "Authentication Request URL: %s", authnRequestUrl.c_str());
 
     if(responseSP) delete responseSP;
+
+    // -------------------------------------------
+    //User-Agent: Send the AuthnRequest to IdP,
+    //(IP-based authentication, and Username/Password authentication)
+    //get back b64 encoded saml response, and
+    //send this saml response to SP
+    //-------------------------------------------
 
     Arc::URL url(authnRequestUrl);
     std::string url_str = url.str();
@@ -95,7 +107,7 @@ namespace Arc {
     Arc::HTTPClientInfo infoIdP;
     Arc::MCC_Status statusIdP = clientIdP.process("GET", &requestIdP, &infoIdP, &responseIdP);
     if (!responseIdP) {
-      logger.msg(Arc::ERROR, "Request failed: No response");
+      logger.msg(Arc::ERROR, "Request failed: No response from IdP");
       return MCC_Status();
     }
     if (!statusIdP) {
@@ -127,7 +139,7 @@ namespace Arc {
       Arc::MCC_Status redirect_status = redirect_client.process("GET", http_attributes,
                               &redirect_request, &redirect_info, &redirect_response);
       if (!redirect_response) {
-        logger.msg(Arc::ERROR, "Request failed: No response");
+        logger.msg(Arc::ERROR, "Request failed: No response from IdP when doing redirecting");
         return MCC_Status();
       }
       if (!redirect_status) {
@@ -162,7 +174,7 @@ namespace Arc {
     Arc::MCC_Status redirect_status_final = redirect_client_final.process("POST", http_attributes,
         &redirect_request_final, &redirect_info_final, &redirect_response_final);
     if (!redirect_response_final) {
-      logger.msg(Arc::ERROR, "Request failed: No response");
+      logger.msg(Arc::ERROR, "Request failed: No response from IdP when doing authentication");
       return MCC_Status();
     }
     if (!redirect_status_final) {
@@ -210,16 +222,16 @@ namespace Arc {
     }
 
     //Send the encrypted saml assertion to service side through this main message chain
-    //Getthe encrypted saml assertion in this saml response
+    //Get the encrypted saml assertion in this saml response
     Arc::XMLNode assertion_nd = samlresp_nd["saml:EncryptedAssertion"];
     std::string saml_assertion;
     assertion_nd.GetXML(saml_assertion);
     //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
     requestSP.Truncate(0);
     requestSP.Insert(saml_assertion.c_str(),0, saml_assertion.size());
-    statusSP = ClientHTTP::process("POST", "saml2sp", &requestSP, &infoSP, &responseSP);
+    statusSP = http_client->process("POST", "saml2sp", &requestSP, &infoSP, &responseSP);
     if (!responseSP) {
-      logger.msg(Arc::ERROR, "Request failed: No response");
+      logger.msg(Arc::ERROR, "Request failed: No response from SP Service when sending saml assertion to SP");
       return MCC_Status();
     }
     if (!statusSP) {
@@ -250,24 +262,25 @@ namespace Arc {
                                  PayloadRawInterface **response) {
     //Do the saml2sso
     std::string idp_name("https://idp.testshib.org/idp/shibboleth");
-    Arc::MCC_Status status = process_saml2sso(idp_name);
+    Arc::MCC_Status status = process_saml2sso(idp_name, http_client_, logger);
     if(!status) {
       logger.msg(Arc::ERROR, "SAML2SSO process failed");
       return MCC_Status();
     }
     //Send the real message
-    status = ClientHTTP::process(method, path , request, info, response);             
+    status = http_client_->process(method, path , request, info, response);             
     return status;
   }
 
   ClientSOAPwithSAML2SSO::ClientSOAPwithSAML2SSO(const BaseConfig& cfg, const std::string& host, int port,
-               bool tls, const std::string& path)
-    : ClientHTTPwithSAML2SSO(cfg, host, port, tls, path), ClientSOAP(cfg, host, port, tls, path) {
-
+               bool tls, const std::string& path) : soap_client_(NULL) {
+    if(!(Arc::init_xmlsec())) return;
+    soap_client_ = new ClientSOAP(cfg, host, port, tls, path);
   }
   
   ClientSOAPwithSAML2SSO::~ClientSOAPwithSAML2SSO() {
-
+    Arc::final_xmlsec();
+    if(soap_client_) delete soap_client_;
   }
   
   MCC_Status ClientSOAPwithSAML2SSO::process(PayloadSOAP *request, PayloadSOAP **response) {
@@ -276,19 +289,16 @@ namespace Arc {
   
   MCC_Status ClientSOAPwithSAML2SSO::process(const std::string& action, PayloadSOAP *request,
                        PayloadSOAP **response) {
-    Arc::PayloadRaw req_http;
-    Arc::HTTPClientInfo info;
-    Arc::PayloadRawInterface* rep_http = NULL;
-
     //Do the saml2sso
+    ClientHTTP* http_client = dynamic_cast<ClientHTTP*>(soap_client_);
     std::string idp_name("https://idp.testshib.org/idp/shibboleth");
-    Arc::MCC_Status status = ClientHTTPwithSAML2SSO::process_saml2sso(idp_name);
+    Arc::MCC_Status status = process_saml2sso(idp_name, http_client, logger);
     if(!status) {
       logger.msg(Arc::ERROR, "SAML2SSO process failed");
       return MCC_Status();
     }
     //Send the real message
-    status = ClientSOAP::process(action, request, response);
+    status = soap_client_->process(action, request, response);
     return status;
   }
 
