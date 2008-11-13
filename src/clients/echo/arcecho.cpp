@@ -92,9 +92,14 @@ int main(int argc, char** argv) {
   Arc::ClientSOAP client(cfg, service.Host(), service.Port(),
 			 service.Protocol() == "https", service.Path());
 
+  std::string xml;
+
   Arc::NS ns("echo", "urn:echo");
   Arc::PayloadSOAP request(ns);
-  request.NewChild("echo").NewChild("say") = message;
+  request.NewChild("echo:echo").NewChild("echo:say") = message;
+
+  request.GetXML(xml, true);
+  logger.msg(Arc::INFO, "Request:\n%s", xml);
 
   Arc::PayloadSOAP *response = NULL;
 
@@ -111,6 +116,9 @@ int main(int argc, char** argv) {
     logger.msg(Arc::ERROR, "No SOAP response");
     return 1;
   }
+
+  response->GetXML(xml, true);
+  logger.msg(Arc::INFO, "Response:\n%s", xml);
 
   std::string answer = (std::string)((*response)["echoResponse"]["hear"]);
 
