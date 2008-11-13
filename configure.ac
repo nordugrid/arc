@@ -23,6 +23,13 @@ AC_DISABLE_STATIC
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
+docdir='${datadir}/doc/${PACKAGE}'
+pkglibexecdir='${libexecdir}/${PACKAGE}'
+AC_SUBST(docdir)
+AC_SUBST(pkglibexecdir)
+
+ARC_RELATIVE_PATHS
+
 # gettext
 gettext_available="yes"
 AM_GNU_GETTEXT([external])
@@ -224,8 +231,6 @@ else
         pkgconfigdir=${libdir}/pkgconfig
         AC_SUBST(pkgconfigdir)
 fi
-docdir='${datadir}/doc/${PACKAGE}'
-AC_SUBST(docdir)
 
 # using pkgconfig
 # check gthread
@@ -701,35 +706,6 @@ fi
 if test x"$XMLSEC_INSTALLED" = xyes; then
     AC_DEFINE(HAVE_XMLSEC,,[define if XMLSEC package is available])
 fi
-
-# The macro is used to set exec_prefix to it's expected
-# value at the end of the configure script
-AC_LIB_WITH_FINAL_PREFIX([
-    eval instprefix="\"${exec_prefix}\""
-    eval pkglibdir="\"${libdir}/${PACKAGE}\""
-    eval pkglibexecdir="\"${libexecdir}/${PACKAGE}\""
-])
-
-instprefix=`echo "${instprefix}" | sed 's#/$##'`
-pkglibsubdir=`echo "${pkglibdir}" | sed "s#^${instprefix}/##" \
-    | sed -e 's#/$##' -e 's#^/##'`
-pkglibexecsubdir=`echo "${pkglibexecdir}" | sed "s#^${instprefix}/##" \
-    | sed -e 's#/$##' -e 's#^/##'`
-inverse_pkglibexecsubdir=`echo "/${pkglibexecsubdir}/" \
-    | perl -pwe 's#/.(?=/)##g; s#/+#/#g; s#/[^/]+(?=/)#/..#g' \
-    | sed -e 's#/$##' -e 's#^/##'`
-pkglibdir_rel_to_pkglibexecdir=`echo "${inverse_pkglibexecsubdir}/${pkglibsubdir}" \
-    | sed -e 's#/$##' -e 's#^/##'`
-
-AC_SUBST(instprefix)
-AC_SUBST(pkglibsubdir)
-AC_SUBST(pkglibexecdir)
-AC_SUBST(pkglibexecsubdir)
-AC_SUBST(pkglibdir_rel_to_pkglibexecdir)
-
-AC_DEFINE_UNQUOTED(INSTPREFIX, ["${instprefix}"], [installation prefix])
-AC_DEFINE_UNQUOTED(PKGLIBSUBDIR, ["${pkglibsubdir}"], [plugin installation subpath])
-AC_DEFINE_UNQUOTED(PKGLIBEXECSUBDIR, ["${pkglibexecsubdir}"], [helper programs installation subpath])
 
 # Setup messages for reporting
 enable_rls=no
