@@ -41,6 +41,8 @@ class PayloadStreamInterface: virtual public MessagePayload {
   virtual int Timeout(void) const = 0;
   /** Set current timeout for Get() and Put() operations. */
   virtual void Timeout(int to) = 0;
+  /** Returns current position in stream if supported. */
+  virtual int Pos(void) const = 0;
 };
 
 /// POSIX handle as Payload
@@ -70,6 +72,7 @@ class PayloadStream: virtual public PayloadStreamInterface {
     This method is deprecated and will be removed soon. Currently it is
    only used by Transport Layer Security MCC. */
   virtual int GetHandle(void) { return handle_; };
+  virtual int Pos(void) const { return 0; };
 };
 }
 #endif /* __ARC_PAYLOADSTREAM_H__ */
