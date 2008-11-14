@@ -967,6 +967,7 @@ namespace Arc {
             nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
             nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
             Arc::XMLNodeList targets = jobTree.XPathLookup( (std::string) "//DataStaging/FileName/Target", nsList);
+            if (targets.empty()) return true;
             Arc::XMLNodeList::iterator xml_it = targets.begin();
             for (std::vector< std::string >::const_iterator it = value.begin(); it != value.end(); it++ ) {
                 (*xml_it)["URI"].Set((std::string)(*it));
