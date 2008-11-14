@@ -20,6 +20,9 @@ class Service_SP: public Arc::Service
         Arc::NS ns_;
         Arc::Logger logger;
         Arc::XMLNode metadata_node_;
+        std::string sp_name_;
+        std::string cert_file_;
+        std::string privkey_file_;
     public:
         /** Constructor*/
         Service_SP(Arc::Config *cfg);
