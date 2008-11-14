@@ -357,7 +357,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
 
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream);
    // Filling security attributes
-   if(tstream) {
+   if(tstream && (config_.IfClientAuthn())) {
       TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_);
       nextinmsg.Auth()->set("TLS",sattr);
       // TODO: Remove following code, use SecAttr instead
