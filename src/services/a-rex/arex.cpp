@@ -27,7 +27,7 @@ static const std::string BES_FACTORY_NPREFIX("bes-factory");
 static const std::string BES_FACTORY_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-factory");
 
 static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
-static const std::string BES_MANAGEMENT_NPREFIX("bes-factory");
+static const std::string BES_MANAGEMENT_NPREFIX("bes-management");
 static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-management");
 
 static const std::string BES_ARC_NPREFIX("a-rex");
