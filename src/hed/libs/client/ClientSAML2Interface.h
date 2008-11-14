@@ -30,11 +30,17 @@ namespace Arc {
 
     /** Send HTTP request and receive response. */
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
-                       HTTPClientInfo *info, PayloadRawInterface **response);
+                       HTTPClientInfo *info, PayloadRawInterface **response, std::string& idp_name);
     MCC_Status process(const std::string& method, const std::string& path, PayloadRawInterface *request,
-                       HTTPClientInfo *info, PayloadRawInterface **response);
-  protected:
+                       HTTPClientInfo *info, PayloadRawInterface **response, std::string& idp_name);
+  private:
     ClientHTTP* http_client_;
+    bool authn_;
+    //Credential and trusted certificates used to contact IdP 
+    std::string cert_file_;
+    std::string privkey_file_;
+    std::string ca_file_;
+    std::string ca_dir_;
     static Logger logger;
   };
 
@@ -46,12 +52,18 @@ namespace Arc {
                bool tls, const std::string& path);
     virtual ~ClientSOAPwithSAML2SSO();
     /** Send SOAP request and receive response. */
-    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
+    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response, std::string& idp_name);
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action, PayloadSOAP *request,
-                       PayloadSOAP **response);
-  protected:
+                       PayloadSOAP **response, std::string& idp_name);
+  private:
     ClientSOAP* soap_client_;
+    bool authn_;
+    //Credential and trusted certificates used to contact IdP
+    std::string cert_file_;
+    std::string privkey_file_;
+    std::string ca_file_;
+    std::string ca_dir_;
     static Logger logger;
   };
 

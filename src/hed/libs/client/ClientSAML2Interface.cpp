@@ -22,9 +22,15 @@ namespace Arc {
   Logger ClientSOAPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientSOAPwithSAML2SSO");
 
   ClientHTTPwithSAML2SSO::ClientHTTPwithSAML2SSO(const BaseConfig& cfg, const std::string& host,
-			 int port, bool tls, const std::string& path) : http_client_(NULL) {
+			 int port, bool tls, const std::string& path) : http_client_(NULL), authn_(false) {
     if(!(Arc::init_xmlsec())) return;   
-    http_client_ = new ClientHTTP(cfg, host, port, tls, path); 
+    http_client_ = new ClientHTTP(cfg, host, port, tls, path);
+    //Use the credential and trusted certificates from client's main chain to 
+    //contact IdP
+    cert_file_ = cfg.cert;
+    privkey_file_ = cfg.key;
+    ca_file_ = cfg.cafile;
+    ca_dir_ = cfg.cadir;
   }
 
   ClientHTTPwithSAML2SSO::~ClientHTTPwithSAML2SSO() { 
@@ -32,24 +38,30 @@ namespace Arc {
     if(http_client_) delete http_client_;
   }
 
-  static MCC_Status process_saml2sso(const std::string& idp_name, ClientHTTP* http_client, Logger& logger) {
+  static MCC_Status process_saml2sso(const std::string& idp_name, ClientHTTP* http_client, 
+     std::string& cert_file, std::string& privkey_file, std::string& ca_file, std::string& ca_dir, Logger& logger) {
 
   // -------------------------------------------
-  // User-Agent: Send an empty http request to SP, the destination url
-  // is got from the url of the main chain (but using 8443 as the port
-  // instead of the port used in main chain); here we suppose together
-  // with the service to which this client tries to access, there is
-  // a http service (on port 8443) on the peer which is specifically
-  // in charge of the funtionality of Service Provider of SAML2 SSO profile.
-  // then get back <AuthnRequest/>, and
-  // send this saml response to IdP
+  // User-Agent: Send an empty http request to SP, the saml2sso process
+  // share the same tcp/tls connection (on the service side, SP service and 
+  // the functional/real service are at the same service chain) with the 
+  // main client chain. And because of this connection sharing, if the 
+  // saml2sso process (interaction between user-agent/SP service/extenal IdP 
+  // service, see SAML2 SSO profile) is succeeded we can suppose that the 
+  // later real client/real service interaction is authorized.
+  // User-Agent then get back <AuthnRequest/>, and send it response to IdP
+  //
+  // SP Service: a service based on http service on the service side, which is 
+  // specifically in charge of the funtionality of Service Provider of SAML2 
+  // SSO profile.
+  // User-Agent: Since the SAML2 SSO profile is web-browser based, so here we 
+  // implement the code which is with the same functionality as browser's user agent.
   // -------------------------------------------
   //
 
     Arc::PayloadRaw requestSP;
     Arc::PayloadRawInterface *responseSP = NULL;
     Arc::HTTPClientInfo infoSP;
-    //std::string idp_name("https://idp.testshib.org/idp/shibboleth"); //TODO
     requestSP.Insert(idp_name.c_str(),0, idp_name.size());
     //Call the peer http endpoint with path "saml2sp", which
     //is the endpoint of saml SP service
@@ -63,12 +75,6 @@ namespace Arc {
       if(responseSP) delete responseSP;
       return MCC_Status();
     }
-
-    std::string cert_file_ = "testcert.pem";  //TODO: get from configuration
-    std::string privkey_file_ = "testkey-nopass.pem";
-    //TestShib use the certificate for SAML2 SSO
-    std::string ca_file_ = "cacert_testshib.pem";
-    std::string ca_dir_ = "./certificates";
 
     //Parse the authenRequestUrl from response
     std::string authnRequestUrl(responseSP->Content());
@@ -91,14 +97,14 @@ namespace Arc {
     std::string idp_path(url_str.substr(pos));
  
     Arc::MCCConfig cfg;
-    if (!cert_file_.empty())
-      cfg.AddCertificate(cert_file_);
-    if (!privkey_file_.empty())
-      cfg.AddPrivateKey(privkey_file_);
-    if (!ca_file_.empty())
-      cfg.AddCAFile(ca_file_);
-    if (!ca_dir_.empty())
-      cfg.AddCADir(ca_dir_);
+    if (!cert_file.empty())
+      cfg.AddCertificate(cert_file);
+    if (!privkey_file.empty())
+      cfg.AddPrivateKey(privkey_file);
+    if (!ca_file.empty())
+      cfg.AddCAFile(ca_file);
+    if (!ca_dir.empty())
+      cfg.AddCADir(ca_dir);
 
     ClientHTTP clientIdP(cfg, url.Host(), url.Port(), url.Protocol() == "https" ? 1:0, idp_path);
 
@@ -251,31 +257,39 @@ namespace Arc {
   MCC_Status ClientHTTPwithSAML2SSO::process(const std::string& method,
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
-    return(process(method, "", request, info, response));
+                                 PayloadRawInterface **response, std::string& idp_name) {
+    return(process(method, "", request, info, response, idp_name));
   }
 
   MCC_Status ClientHTTPwithSAML2SSO::process(const std::string& method,
                                  const std::string& path,
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
-    //Do the saml2sso
-    std::string idp_name("https://idp.testshib.org/idp/shibboleth");
-    Arc::MCC_Status status = process_saml2sso(idp_name, http_client_, logger);
-    if(!status) {
-      logger.msg(Arc::ERROR, "SAML2SSO process failed");
-      return MCC_Status();
+                                 PayloadRawInterface **response, std::string& idp_name) {
+    if(!authn_) { //If has not yet passed the saml2sso process
+      //Do the saml2sso
+      Arc::MCC_Status status = process_saml2sso(idp_name, http_client_, cert_file_, privkey_file_, ca_file_,ca_dir_, logger);
+      if(!status) {
+        logger.msg(Arc::ERROR, "SAML2SSO process failed");
+        return MCC_Status();
+      }
+      authn_ = true;
     }
     //Send the real message
-    status = http_client_->process(method, path , request, info, response);             
+    Arc::MCC_Status status = http_client_->process(method, path , request, info, response);             
     return status;
   }
 
   ClientSOAPwithSAML2SSO::ClientSOAPwithSAML2SSO(const BaseConfig& cfg, const std::string& host, int port,
-               bool tls, const std::string& path) : soap_client_(NULL) {
+               bool tls, const std::string& path) : soap_client_(NULL), authn_(false) {
     if(!(Arc::init_xmlsec())) return;
     soap_client_ = new ClientSOAP(cfg, host, port, tls, path);
+    //Use the credential and trusted certificates from client's main chain to
+    //contact IdP
+    cert_file_ = cfg.cert;
+    privkey_file_ = cfg.key;
+    ca_file_ = cfg.cafile;
+    ca_dir_ = cfg.cadir;
   }
   
   ClientSOAPwithSAML2SSO::~ClientSOAPwithSAML2SSO() {
@@ -283,22 +297,24 @@ namespace Arc {
     if(soap_client_) delete soap_client_;
   }
   
-  MCC_Status ClientSOAPwithSAML2SSO::process(PayloadSOAP *request, PayloadSOAP **response) {
-    return process("", request, response); 
+  MCC_Status ClientSOAPwithSAML2SSO::process(PayloadSOAP *request, PayloadSOAP **response, std::string& idp_name) {
+    return process("", request, response, idp_name); 
   }
   
   MCC_Status ClientSOAPwithSAML2SSO::process(const std::string& action, PayloadSOAP *request,
-                       PayloadSOAP **response) {
+                       PayloadSOAP **response, std::string& idp_name) {
     //Do the saml2sso
-    ClientHTTP* http_client = dynamic_cast<ClientHTTP*>(soap_client_);
-    std::string idp_name("https://idp.testshib.org/idp/shibboleth");
-    Arc::MCC_Status status = process_saml2sso(idp_name, http_client, logger);
-    if(!status) {
-      logger.msg(Arc::ERROR, "SAML2SSO process failed");
-      return MCC_Status();
+    if(!authn_) { //If has not yet passed the saml2sso process
+      ClientHTTP* http_client = dynamic_cast<ClientHTTP*>(soap_client_);
+      Arc::MCC_Status status = process_saml2sso(idp_name, http_client, cert_file_, privkey_file_, ca_file_,ca_dir_, logger);
+      if(!status) {
+        logger.msg(Arc::ERROR, "SAML2SSO process failed");
+        return MCC_Status();
+      }
+      authn_ = true;
     }
     //Send the real message
-    status = soap_client_->process(action, request, response);
+    Arc::MCC_Status status = soap_client_->process(action, request, response);
     return status;
   }
 
