@@ -176,8 +176,9 @@ MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o)
     std::list<mcc_tcp_exec_t>::iterator e = o->executers_.insert(o->executers_.end(),*this); 
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,&(*e))) {
         logger.msg(Arc::ERROR, "Failed to start thread for communication");
+        ::shutdown(handle,2);
 #ifdef WIN32
-	    ::closesocket(handle); handle=-1; o->executers_.erase(e);
+        ::closesocket(handle); handle=-1; o->executers_.erase(e);
 #else
         ::close(handle);  handle=-1; o->executers_.erase(e);
 #endif
@@ -423,6 +424,7 @@ void MCC_TCP_Service::executer(void* arg) {
             break;
         };
     };
+    ::shutdown(s,2);
     ::close(s);
     it.lock_.unlock();
     return;
