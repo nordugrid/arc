@@ -15,12 +15,14 @@
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
 	<Path>../../hed/pdc/.libs/</Path>
+        <!--Path>../../services/saml/.libs/</Path-->
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Plugins><Name>arcpdc</Name></Plugins>
+    <!--Plugins><Name>saml2sp</Name></Plugins-->
 
     <Chain>
         <Component name="tcp.service" id="tcp">
@@ -46,8 +48,13 @@
             <!--SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler-->
 	</Component>
         <Component name="http.service" id="http">
-            <next id="soap">POST</next>
+            <next id="plexer">POST</next>
+            <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <!--next id="samlsp">/saml2sp</next-->
+            <next id="soap">/echo</next>
+        </Plexer>
         <Component name="soap.service" id="soap">
 	    <next id="echo"/>
             <!--SecHandler name="usernametoken.handler" id="usernametoken" event="incoming">
@@ -56,10 +63,11 @@
             </SecHandler-->
             <!--SecHandler name="x509token.handler" id="x509token" event="incoming">
                 <Process>extract</Process>
-                <CACertificatePath>ca.pem</CACertificatePath>
+                <CACertificatePath>cacert.pem</CACertificatePath>
             </SecHandler-->
             <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
+        <!--Service name='saml.sp' id='samlsp'/-->
         <Service name="echo" id="echo">
             <!--SecHandler name="arc.authz" id="authz" event="incoming"-->
               <!--PDP name="simplelist.pdp" location="simplelist"/-->
@@ -72,9 +80,9 @@
               <!--Remote pdp service invoking-->
               <!--PDP name="pdpservice.invoker">
                 <ServiceEndpoint>https://127.0.0.1:60001/pdp.service</ServiceEndpoint>
-                <KeyPath>./key.pem</KeyPath>
-                <CertificatePath>./cert.pem</CertificatePath>
-                <CACertificatePath>./ca.pem</CACertificatePath>
+                <KeyPath>./testkey-nopass.pem</KeyPath>
+                <CertificatePath>./testcert.pem</CertificatePath>
+                <CACertificatePath>./cacert.pem</CACertificatePath>
               </PDP-->
               <!--PDP name="delegation.pdp"/-->
             <!--/SecHandler-->
