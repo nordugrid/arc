@@ -137,7 +137,7 @@ STACK_OF(X509)* PayloadTLSStream::GetPeerChain(void){
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peerchain=SSL_get_peer_cert_chain (ssl_);
     if(peerchain!=NULL) return peerchain;
-    logger_.msg(ERROR,"Peer cert cannot be extracted");
+    logger_.msg(ERROR,"Peer certificate chain cannot be extracted");
     HandleError();
   }
   else{

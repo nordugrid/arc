@@ -41,4 +41,20 @@
     <!-- Whether checking client certificate. Only needed for service side.
       Default is "true" . -->
     <xsd:element name="ClientAuthn" type="xsd:string"/>
+    <!-- The DN list of the trusted voms server credential; in the AC part of voms 
+    proxy certificate, voms proxy certificate comes with the server certificate which 
+    is used to sign the AC. So when verifying the AC on the AC-consuming side (in ARC1,
+    it is the MCCTLS which will consumes the AC), the server certificate will be checked
+    against a trusted DN list. Only if the DN and issuer's DN of server certificate 
+    exactly matches the DN list in the configuration under TLS component, the AC can be 
+    trusted -->
+    <xsd:element name="VOMSCertTrustDNChain" type="VOMSCertTrustDNChain_Type"/>
+    <xsd:complexType name="VOMSCertTrustDNChain_Type">
+        <xsd:sequence>
+          <xsd:element name="VOMSCertTrustDN" type="xsd:string"/>
+          <xsd:element name="VOMSCertTrustRegex" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- DN list in an external file, which is in the same format as VOMSCertTrustDNChain -->
+    <xsd:element name="VOMSCertTrustDNChainsLocation" type="xsd:string"/>
 </xsd:schema>
