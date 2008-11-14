@@ -311,7 +311,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and process response - supported response so far is stream
-  // Generated result is HTTP payload with Raw interface
+  // Generated result is HTTP payload with Raw and Stream interfaces
   if(!ret) return make_raw_fault(outmsg);
   if(!nextoutmsg.Payload()) return make_raw_fault(outmsg);
   PayloadStreamInterface* retpayload = NULL;
@@ -319,13 +319,18 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
     retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
   if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg); };
-  PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload);
+  // Stream retpayload becomes owned by outpayload. This is needed because
+  // HTTP payload may postpone extracting information from stream till demanded. 
+  PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload,true);
   if(!outpayload) { delete retpayload; return make_raw_fault(outmsg); };
-  if(!(*outpayload)) { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
+  if(!(*outpayload)) { /*delete retpayload;*/ delete outpayload; return make_raw_fault(outmsg); };
   // Check for closed connection during response - not suitable in client mode
   if(outpayload->Method() == "END") { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
   outmsg = nextoutmsg;
-  delete outmsg.Payload(outpayload);
+  // Payload returned by next.process is not destroyed here because
+  // it is now owned outpayload.
+  //delete outmsg.Payload(outpayload);
+  outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",tostring(outpayload->Code()));
   outmsg.Attributes()->set("HTTP:REASON",outpayload->Reason());
   for(std::map<std::string,std::string>::const_iterator i =

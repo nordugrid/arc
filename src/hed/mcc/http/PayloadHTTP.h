@@ -26,7 +26,8 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
                                        Otherwise only header was fetched and
                                        part of body in tbuf_ and  rest is to
                                        be read through stream_. */
-  PayloadStreamInterface& stream_; /** stream used to comminicate to outside */
+  PayloadStreamInterface* stream_; /** stream used to comminicate to outside */
+  bool stream_own_;                /** if true stream_ is owned by this */
   PayloadRawInterface* body_;      /** associated HTTP Body if any (to avoid copying to own buffer) */
   bool body_own_;                  /** if true body_ is owned by this */
   std::string uri_;                /** URI being contacted */
@@ -44,6 +45,8 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   char tbuf_[1024];
   int tbuflen_;
   uint64_t stream_offset_;
+  int chunked_size_;
+  int chunked_offset_;
   /** Read from stream till \r\n */
   bool readline(std::string& line);
   /** Read up to 'size' bytes from stream_ */
@@ -54,8 +57,11 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   bool get_body(void);
  public:
   /** Constructor - creates object by parsing HTTP request or response from stream.
-    Supplied stream is associated with object for later use. */
-  PayloadHTTP(PayloadStreamInterface& stream);
+    Supplied stream is associated with object for later use. If own is set to true
+    then stream will be deleted in destructor. Because stream can be used by this
+    object during whole lifetime it is important not to destroy stream till this 
+    object is deleted. */
+  PayloadHTTP(PayloadStreamInterface& stream,bool own = false);
 
   /** Constructor - creates HTTP request to be sent through stream.
     HTTP message is not sent yet. */
@@ -116,6 +122,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   virtual bool Put(const char* buf);
   virtual int Timeout(void) const;
   virtual void Timeout(int to);
+  virtual int Pos(void) const;
 
 };
 

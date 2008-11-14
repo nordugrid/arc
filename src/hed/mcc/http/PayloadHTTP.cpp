@@ -40,7 +40,7 @@ bool PayloadHTTP::readline(std::string& line) {
     };
     line+=tbuf_;
     tbuflen_=sizeof(tbuf_)-1;
-    if(!stream_.Get(tbuf_,tbuflen_)) if(tbuflen_ == 0) break;
+    if(!stream_->Get(tbuf_,tbuflen_)) break;
     tbuf_[tbuflen_]=0;
   }; 
   tbuf_[tbuflen_]=0;
@@ -163,7 +163,7 @@ memset(buf,0,size);
     size=tbuflen_; tbuflen_=0; tbuf_[0]=0; 
     for(;l;) {
       int l_ = l;
-      if(!stream_.Get(buf,l_)) return (size>0);
+      if(!stream_->Get(buf,l_)) return (size>0);
       size+=l_; buf+=l_; l-=l_;
     };
   };
@@ -173,6 +173,7 @@ memset(buf,0,size);
 bool PayloadHTTP::get_body(void) {
   if(fetched_) return true; // Already fetched body
   fetched_=true; // Even attempt counts
+  valid_=false; // But object is invalid till whole body is available
   // TODO: Check for methods and responses which can't have body
   char* result = NULL;
   int result_size = 0;
@@ -194,6 +195,7 @@ bool PayloadHTTP::get_body(void) {
       if(!line.empty()) return false;
     };
   } else if(length_ == 0) {
+    valid_=true;
     return true;
   } else if(length_ > 0) {
     result=(char*)malloc(length_+1);
@@ -220,6 +222,7 @@ bool PayloadHTTP::get_body(void) {
   buf_.push_back(b);
   // If size of object was not reported then try to deduce it.
   if(size_ == 0) size_=offset_+result_size;
+  valid_=true;
   return true;
 }
 
@@ -237,40 +240,42 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }
 
-PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(stream),fetched_(false),stream_offset_(0),body_(NULL),body_own_(false) {
+PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):valid_(false),stream_(&stream),stream_own_(own),fetched_(false),stream_offset_(0),chunked_size_(0),chunked_offset_(0),body_(NULL),body_own_(false) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
-  if(!get_body()) return;
+  // If stream_ is owned then body can be fetched later
+  // if(!stream_own_) if(!get_body()) return;
   valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),stream_(stream),body_(NULL),body_own_(false),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(&stream),stream_own_(false),body_(NULL),body_own_(false),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),stream_(stream),body_(NULL),body_own_(false),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(&stream),stream_own_(false),body_(NULL),body_own_(false),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),fetched_(true),stream_offset_(0),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(NULL),stream_own_(false),body_(NULL),body_own_(false),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),fetched_(true),stream_offset_(0),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(NULL),stream_own_(false),body_(NULL),body_own_(false),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
 PayloadHTTP::~PayloadHTTP(void) {
   if(body_ && body_own_) delete body_;
+  if(stream_ && stream_own_) delete stream_;
 }
 
 bool PayloadHTTP::Flush(void) {
   std::string header;
-  bool to_stream = ((&stream_) != NULL);
+  bool to_stream = (stream_ != NULL);
   if(!method_.empty()) {
     header=method_+" "+uri_+
            " HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+"\r\n";
@@ -323,16 +328,16 @@ bool PayloadHTTP::Flush(void) {
   };
   header+="\r\n";
   if(to_stream) {
-    if(!stream_.Put(header)) return false;
+    if(!stream_->Put(header)) return false;
     if(length_ > 0) {
       for(int n=0;;++n) {
         char* tbuf = Buffer(n);
         if(tbuf == NULL) break;
         int lbuf = BufferSize(n);
-        if(lbuf > 0) if(!stream_.Put(tbuf,lbuf)) return false;
+        if(lbuf > 0) if(!stream_->Put(tbuf,lbuf)) return false;
       };
     };
-    //if(!keep_alive) stream_.Close();
+    //if(!keep_alive) stream_->Close();
   } else {
     Insert(header.c_str(),0,header.length());
   };
@@ -345,7 +350,7 @@ void PayloadHTTP::Body(PayloadRawInterface& body,bool ownership) {
 }
 
 char PayloadHTTP::operator[](int pos) const {
-  ((PayloadHTTP*)this)->get_body();
+  if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(pos < PayloadRaw::Size()) {
     return PayloadRaw::operator[](pos);
   };
@@ -356,7 +361,7 @@ char PayloadHTTP::operator[](int pos) const {
 }
 
 char* PayloadHTTP::Content(int pos) {
-  get_body();
+  if(!get_body()) return NULL;
   if(pos < PayloadRaw::Size()) {
     return PayloadRaw::Content(pos);
   };
@@ -367,7 +372,7 @@ char* PayloadHTTP::Content(int pos) {
 }
 
 int PayloadHTTP::Size(void) const {
-  ((PayloadHTTP*)this)->get_body();
+  if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(body_) {
     return PayloadRaw::Size() + (body_->Size());
   };
@@ -375,17 +380,17 @@ int PayloadHTTP::Size(void) const {
 }
 
 char* PayloadHTTP::Insert(int pos,int size) {
-  get_body();
+  if(!get_body()) return NULL;
   return PayloadRaw::Insert(pos,size);
 }
 
 char* PayloadHTTP::Insert(const char* s,int pos,int size) {
-  get_body();
+  if(!get_body()) return NULL;
   return PayloadRaw::Insert(s,pos,size);
 }
 
 char* PayloadHTTP::Buffer(unsigned int num) {
-  get_body();
+  if(!get_body()) return NULL;
   if(num < buf_.size()) {
     return PayloadRaw::Buffer(num);
   };
@@ -396,7 +401,7 @@ char* PayloadHTTP::Buffer(unsigned int num) {
 }
 
 int PayloadHTTP::BufferSize(unsigned int num) const {
-  ((PayloadHTTP*)this)->get_body();
+  if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(num < buf_.size()) {
     return PayloadRaw::BufferSize(num);
   };
@@ -407,7 +412,7 @@ int PayloadHTTP::BufferSize(unsigned int num) const {
 }
 
 int PayloadHTTP::BufferPos(unsigned int num) const {
-  ((PayloadHTTP*)this)->get_body();
+  if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(num < buf_.size()) {
     return PayloadRaw::BufferPos(num);
   };
@@ -418,7 +423,7 @@ int PayloadHTTP::BufferPos(unsigned int num) const {
 }
 
 bool PayloadHTTP::Truncate(unsigned int size) {
-  get_body();
+  if(!get_body()) return false;
   if(size < PayloadRaw::Size()) {
     body_=NULL;
     return PayloadRaw::Truncate(size);
@@ -463,11 +468,61 @@ bool PayloadHTTP::Get(char* buf,int& size) {
       };
     };
     return false;
-  } else {
-    bool r = read(buf,size);
-    // TODO: adjust logical parameters of buffers
-    return r;
   };
+    // TODO: Check for methods and responses which can't have body
+  if(chunked_) {
+    if(chunked_size_ == -1) { // chunked stream is over
+      size=0;
+      return false;
+    };
+    if(chunked_size_ == chunked_offset_) {
+      // read chunk size
+      std::string line;
+      if(!readline(line)) return false;
+      char* e;
+      chunked_size_ = strtol(line.c_str(),&e,16);
+      if(((*e != ';') && (*e != 0)) || (e == line.c_str())) {
+        chunked_size_=-1; // No more stream
+        valid_=false; // Object becomes invalid
+        size=0;
+        return false;
+      };
+      chunked_offset_=0;
+      if(chunked_size_ == 0) {
+        // end of stream
+        chunked_size_=-1; size=0;
+        return false;
+      };
+    };
+    // read chunk content
+    int bs = chunked_size_-chunked_offset_;
+    if(bs > size) bs=size;
+    if(!read(buf,bs)) { size=bs; return false; };
+    chunked_offset_+=bs;
+    size=bs; stream_offset_+=bs;
+    return true;
+  };
+  if(length_ == 0) {
+    // No body
+    size=0;
+    return false;
+  };
+  if(length_ > 0) {
+    // Ordinary stream with known length
+    int bs = length_-stream_offset_;
+    if(bs > size) bs=size;
+    if(!read(buf,bs)) {
+      valid_=false; // This is not expected, hence invalidate object
+      size=bs; return false;
+    };
+    size=bs; stream_offset_+=bs;
+    return true;
+  };
+  // Ordinary stream with no length known
+  bool r = read(buf,size);
+  if(r) stream_offset_+=size;
+  // TODO: adjust logical parameters of buffers
+  return r;
 }
 
 bool PayloadHTTP::Get(std::string& buf) {
@@ -499,11 +554,17 @@ bool PayloadHTTP::Put(const char* buf) {
 }
 
 int PayloadHTTP::Timeout(void) const {
-  return stream_.Timeout();
+  if(!stream_) return 0;
+  return stream_->Timeout();
 }
 
 void PayloadHTTP::Timeout(int to) {
-  stream_.Timeout(to);
+  if(stream_) stream_->Timeout(to);
+}
+
+int PayloadHTTP::Pos(void) const {
+  if(!stream_) return 0;
+  return offset_+stream_offset_;
 }
 
 
