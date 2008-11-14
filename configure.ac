@@ -31,6 +31,7 @@ AC_SUBST(pkglibexecdir)
 ARC_RELATIVE_PATHS
 
 
+# TODO: where to put init scripts on OS X?
 AC_ARG_WITH(sysv-scripts-location,
   [  --with-sysv-scripts-location=<PATH>  Location of the SYSV init scripts. [[autodetect]]],
   [ initddir="$withval" ],
@@ -45,7 +46,7 @@ AC_ARG_WITH(sysv-scripts-location,
   ]
 ) 
 if test ! -d "$initddir"; then
-  AC_MSG_ERROR(could not find a suitable location for the SYSV init scripts)
+  AC_MSG_WARN(could not find a suitable location for the SYSV init scripts)
 fi
 AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
