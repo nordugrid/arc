@@ -40,6 +40,7 @@ public:
   virtual bool operator!(void) { return (ssl_ == NULL); };
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
+  virtual int Pos(void) const { return 0; };
 
   /**Get peer certificate from the established ssl.
     Obtained X509 object is owned by this instance and becomes invalid
