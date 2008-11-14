@@ -316,10 +316,6 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    // TODO: probably some other credentials check is needed
    //if(!sslctx_) return MCC_Status();
 
-   //Clear SSL error, make sure some openssl error from 
-   //other sources will not polute this part.
-   ERR_clear_error();
-
    // Obtaining underlying stream
    if(!inmsg.Payload()) return MCC_Status();
    PayloadStreamInterface* inpayload = NULL;
