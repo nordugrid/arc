@@ -248,7 +248,7 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
 
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):PayloadTLSStream(logger),sslctx_(NULL),config_(cfg) { 
    // Client mode
-   int err;
+   int err = SSL_ERROR_NONE;
    master_=true;
    // Creating BIO for communication through stream which it will
    // extract from provided MCC
@@ -300,7 +300,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    // }
    return;
 error:
-   HandleError();
+   HandleError(err);
    if(bio) BIO_free(bio);
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -309,7 +309,7 @@ error:
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC& cfg, Logger& logger):PayloadTLSStream(logger),sslctx_(NULL),config_(cfg) {
    // Server mode
-   int err;
+   int err = SSL_ERROR_NONE;
    master_=true;
    // Creating BIO for communication through provided stream
    BIO* bio = BIO_new_MCC(stream);
@@ -364,7 +364,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    // }
    return;
 error:
-   HandleError();
+   HandleError(err);
    if(bio) BIO_free(bio);
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
