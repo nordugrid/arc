@@ -510,6 +510,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
   if(length_ > 0) {
     // Ordinary stream with known length
     int bs = length_-stream_offset_;
+    if(bs == 0) { size=0; return false; }; // End of content
     if(bs > size) bs=size;
     if(!read(buf,bs)) {
       valid_=false; // This is not expected, hence invalidate object

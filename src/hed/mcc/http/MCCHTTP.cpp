@@ -323,13 +323,12 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // HTTP payload may postpone extracting information from stream till demanded. 
   PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload,true);
   if(!outpayload) { delete retpayload; return make_raw_fault(outmsg); };
-  if(!(*outpayload)) { /*delete retpayload;*/ delete outpayload; return make_raw_fault(outmsg); };
+  if(!(*outpayload)) { delete outpayload; return make_raw_fault(outmsg); };
   // Check for closed connection during response - not suitable in client mode
-  if(outpayload->Method() == "END") { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
+  if(outpayload->Method() == "END") { delete outpayload; return make_raw_fault(outmsg); };
   outmsg = nextoutmsg;
   // Payload returned by next.process is not destroyed here because
-  // it is now owned outpayload.
-  //delete outmsg.Payload(outpayload);
+  // it is now owned by outpayload.
   outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",tostring(outpayload->Code()));
   outmsg.Attributes()->set("HTTP:REASON",outpayload->Reason());
