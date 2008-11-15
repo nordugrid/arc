@@ -117,6 +117,8 @@ namespace Arc {
 
     std::string::size_type pos, pos2, pos3;
 
+    if(url[0] == '\0') return;
+
     if(url[0] == '#') {
       URLLogger.msg(ERROR, "URL is not valid: %s", url);
       return;

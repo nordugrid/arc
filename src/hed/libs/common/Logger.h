@@ -454,4 +454,6 @@ namespace Arc {
 
 #define rootLogger getRootLogger()
 
+#define LOG(LGR,THR,FSTR,...) { if((LGR).getThreshold() >= (THR) (LGR).msg((THR),(FSTR),...); }
+
 #endif // __ARC_LOGGER__

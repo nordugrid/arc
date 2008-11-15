@@ -27,7 +27,12 @@ namespace Arc {
 
 
   /// Class to hold general URL's.
-  /** The URL is split into protocol, hostname, port and path. */
+  /** The URL is split into protocol, hostname, port and path.
+     It also accepts file paths which are converted to file://path.
+     Usual system dependant file paths are supported.
+     File path can't start from # symbol (why?).
+     If string representation of URL starts from '@' then it is
+     treated as path to file containing list of URLs.*/
   class URL {
 
    public:
