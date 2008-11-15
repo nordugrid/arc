@@ -301,56 +301,37 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return Arc::MCC_Status();
     };
     return Arc::MCC_Status(Arc::STATUS_OK);
-  } else {
+  } else if(method == "GET") {
     // HTTP plugin either provides buffer or stream
-    Arc::PayloadRawInterface* inbufpayload = NULL;
-    Arc::PayloadStreamInterface* instreampayload = NULL;
-    try {
-      inbufpayload = dynamic_cast<Arc::PayloadRawInterface*>(inmsg.Payload());
-    } catch(std::exception& e) { };
-    if(!inbufpayload) try {
-      instreampayload = dynamic_cast<Arc::PayloadStreamInterface*>(inmsg.Payload());
-    } catch(std::exception& e) { };
-    if(method == "GET") {
-      logger_.msg(Arc::DEBUG, "process: GET");
-      // TODO: in case of error generate some content
-      Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
-      if(ret) {
-        if(!ProcessSecHandlers(outmsg,"outgoing")) {
-          logger_.msg(Arc::ERROR, "Security Handlers processing failed");
-          delete outmsg.Payload(NULL);
-          return Arc::MCC_Status();
-        };
+    logger_.msg(Arc::DEBUG, "process: GET");
+    // TODO: in case of error generate some content
+    Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
+    if(ret) {
+      if(!ProcessSecHandlers(outmsg,"outgoing")) {
+        logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+        delete outmsg.Payload(NULL);
+        return Arc::MCC_Status();
       };
-      return ret;
-    } else if(method == "PUT") {
-      logger_.msg(Arc::DEBUG, "process: PUT");
-      if(inbufpayload) {
-        Arc::MCC_Status ret = Put(inmsg,outmsg,*config,id,subpath,*inbufpayload);
-        if(!ret) return make_fault(outmsg);
-      } else if(instreampayload) {
-        // Not implemented yet
-        logger_.msg(Arc::ERROR, "PUT: input stream not implemented yet");
-        return make_fault(outmsg);
-      } else {
-        // Method PUT requres input
-        logger_.msg(Arc::ERROR, "PUT: input is neither stream nor buffer");
-        return make_fault(outmsg);
-      };
-      Arc::MCC_Status ret = make_response(outmsg);
-      if(ret) {
-        if(!ProcessSecHandlers(outmsg,"outgoing")) {
-          logger_.msg(Arc::ERROR, "Security Handlers processing failed");
-          delete outmsg.Payload(NULL);
-          return Arc::MCC_Status();
-        };
-      };
-      return ret;
-    } else {
-      delete inmsg.Payload();
-      logger_.msg(Arc::DEBUG, "process: %s: not supported",method);
-      return Arc::MCC_Status();
     };
+    return ret;
+  } else if(method == "PUT") {
+    logger_.msg(Arc::DEBUG, "process: PUT");
+    Arc::MCC_Status ret = Put(inmsg,outmsg,*config,id,subpath);
+    if(!ret) return make_fault(outmsg);
+    // Put() does not generate response yet
+    ret=make_response(outmsg);
+    if(ret) {
+      if(!ProcessSecHandlers(outmsg,"outgoing")) {
+        logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+        delete outmsg.Payload(NULL);
+        return Arc::MCC_Status();
+      };
+    };
+    return ret;
+  } else {
+    logger_.msg(Arc::DEBUG, "process: method %s is not supported",method);
+    // TODO: make useful response
+    return Arc::MCC_Status();
   };
   return Arc::MCC_Status();
 }
