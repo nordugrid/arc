@@ -12,6 +12,9 @@
 #include <arc/loader/Loader.h>
 #include <arc/loader/ServiceLoader.h>
 #include <arc/message/MessageAttributes.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/message/PayloadStream.h>
+#include <arc/Utils.h>
 
 
 #include "hopi.h"
@@ -75,7 +78,7 @@ Arc::PayloadRawInterface *Hopi::Get(const std::string &path, const std::string &
     return NULL;
 }
 
-Arc::MCC_Status Hopi::Put(const std::string &path, Arc::PayloadRawInterface &buf)
+Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
 {
     // XXX eliminate relativ paths first
     logger.msg(Arc::DEBUG, "PUT called");
@@ -86,25 +89,28 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::PayloadRawInterface &buf
     }
     int fd = open(full_path.c_str(), O_CREAT|O_WRONLY|O_TRUNC, 0600);
     if (fd == -1) {
-        logger.msg(Arc::ERROR, strerror(errno));        
+        logger.msg(Arc::ERROR, Arc::StrError(errno));        
         return Arc::MCC_Status();
     }
-    for(int n = 0;;++n) {
-        char* sbuf = buf.Buffer(n);
-        if(sbuf == NULL) break;
-        off_t offset = buf.BufferPos(n);
-        size_t size = buf.BufferSize(n);
-        if(size > 0) {
-            off_t o = lseek(fd, offset, SEEK_SET);
-            if(o != offset) {
-                close(fd);
-                unlink(full_path.c_str());
-                logger.msg(Arc::DEBUG, "error on seek");
-                return Arc::MCC_Status();
+    try {
+        Arc::PayloadStreamInterface& stream = dynamic_cast<Arc::PayloadStreamInterface&>(payload);
+        const int bufsize = 1024*1024;
+        char* sbuf = new char[bufsize];
+        for(;;) {
+            int size = bufsize;
+            if(!stream.Get(sbuf,size)) {
+                if(!stream) {
+                    delete[] sbuf;
+                    close(fd);
+                    unlink(full_path.c_str());
+                    logger.msg(Arc::DEBUG, "error reading from HTTP stream");
+                    return Arc::MCC_Status();
+                }
             }
             for(;size>0;) {
                 ssize_t l = write(fd, sbuf, size);
                 if(l == -1) {
+                    delete[] sbuf;
                     close(fd);
                     unlink(full_path.c_str());
                     logger.msg(Arc::DEBUG, "error on write");
@@ -112,6 +118,40 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::PayloadRawInterface &buf
                 }
                 size-=l; sbuf+=l;
             }
+        }
+        delete[] sbuf;
+    } catch (std::exception &e) {
+        try {
+            Arc::PayloadRawInterface& buf = dynamic_cast<Arc::PayloadRawInterface&>(payload);
+            for(int n = 0;;++n) {
+                char* sbuf = buf.Buffer(n);
+                if(sbuf == NULL) break;
+                off_t offset = buf.BufferPos(n);
+                size_t size = buf.BufferSize(n);
+                if(size > 0) {
+                    off_t o = lseek(fd, offset, SEEK_SET);
+                    if(o != offset) {
+                        close(fd);
+                        unlink(full_path.c_str());
+                        logger.msg(Arc::DEBUG, "error on seek");
+                        return Arc::MCC_Status();
+                    }
+                    for(;size>0;) {
+                        ssize_t l = write(fd, sbuf, size);
+                        if(l == -1) {
+                            close(fd);
+                            unlink(full_path.c_str());
+                            logger.msg(Arc::DEBUG, "error on write");
+                            return Arc::MCC_Status();
+                        }
+                        size-=l; sbuf+=l;
+                    }
+                }
+            }
+        } catch (std::exception &e) {
+            close(fd);
+            logger.msg(Arc::ERROR, "Input for PUT operation is neither stream nor buffer");
+            return Arc::MCC_Status();
         }
     }
     close(fd);
@@ -144,29 +184,25 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
         outmsg.Payload(buf);
         return Arc::MCC_Status(Arc::STATUS_OK);
     } else if (method == "PUT") {
-        Arc::PayloadRawInterface *inbufpayload = NULL;
-        try {
-            inbufpayload = dynamic_cast<Arc::PayloadRawInterface *>(inmsg.Payload());
-        } catch (std::exception &e) {
-            logger.msg(Arc::ERROR, "Error while processing input: %s", e.what());
+        Arc::MessagePayload *inpayload = inmsg.Payload();
+        if(!inpayload) {
+            logger.msg(Arc::WARNING, "No content provided for PUT operation");
             return Arc::MCC_Status();
         }
-        if (inbufpayload) {
-            Arc::MCC_Status ret = Put(path, *inbufpayload);
-            if (!ret) {
-                // XXX: HTTP error
-                return Arc::MCC_Status();
-            }
-            Arc::PayloadRaw *buf = new Arc::PayloadRaw();
-            outmsg.Payload(buf);
-            return ret;
+        Arc::MCC_Status ret = Put(path, *inpayload);
+        if (!ret) {
+            // XXX: HTTP error
+            return Arc::MCC_Status();
         }
+        Arc::PayloadRaw *buf = new Arc::PayloadRaw();
+        outmsg.Payload(buf);
+        return ret;
     } 
     logger.msg(Arc::WARNING, "Not supported operation");
     return Arc::MCC_Status();
 }
 
-} // namesapce Hopi
+} // namespace Hopi
 
 service_descriptors ARC_SERVICE_LOADER = {
     { "hopi", 0, &Hopi::get_service },

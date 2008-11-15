@@ -2,7 +2,7 @@
 #define __ARC_Hopi_H__
 
 #include <arc/message/Service.h>
-#include <arc/message/PayloadRaw.h>
+#include <arc/message/Message.h>
 #include <arc/Logger.h>
 #include <string>
 
@@ -14,7 +14,7 @@ class Hopi: public Arc::Service {
         std::string doc_root;
         std::string slave_mode;
         Arc::PayloadRawInterface* Get(const std::string &path, const std::string &base_url);
-        Arc::MCC_Status Put(const std::string &path, Arc::PayloadRawInterface &buf);
+        Arc::MCC_Status Put(const std::string &path, Arc::MessagePayload &buf);
     public:
         Hopi(Arc::Config *cfg);
         virtual ~Hopi(void);
