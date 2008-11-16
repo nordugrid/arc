@@ -629,6 +629,13 @@ fi
 AC_LANG_RESTORE
 
 # globus/gpt packages
+PKG_CHECK_MODULES(GLOBUS_COMMON, [globus-common], [
+GLOBUS_COMMON_VERSION=`$PKG_CONFIG --modversion globus-common`], [
+GPT_PKG(globus_common)
+])
+AC_SUBST(GLOBUS_COMMON_CFLAGS)
+AC_SUBST(GLOBUS_COMMON_LIBS)
+
 PKG_CHECK_MODULES(GLOBUS_RLS_CLIENT, [globus-rls-client], [
 GLOBUS_RLS_CLIENT_VERSION=`$PKG_CONFIG --modversion globus-rls-client`], [
 GPT_PKG(globus_rls_client)
@@ -709,6 +716,7 @@ AC_MSG_NOTICE([Documentation enabled: $enable_doc])
 AM_CONDITIONAL([DOC_ENABLED],[test "x$enable_doc" = "xyes"])
 
 # Setup conditionals
+AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
@@ -1044,6 +1052,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws/Makefile
                  src/hed/libs/dbxml/Makefile
                  src/hed/libs/xmlsec/Makefile
+                 src/hed/libs/globusutils/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/unix/Makefile

@@ -5,10 +5,10 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
+#include <arc/globusutils/GlobusErrorUtils.h>
+#include <arc/globusutils/GSSCredential.h>
 
 #include "DataPointGridFTP.h"
-#include "GlobusErrorUtils.h"
-#include "GSSCredential.h"
 #include "Lister.h"
 
 namespace Arc {

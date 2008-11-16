@@ -4,18 +4,15 @@
 #include <list>
 #include <string>
 
-#include <globus_ftp_control.h>
-
-#include <arc/DateTime.h>
 #include <arc/data/FileInfo.h>
 
-#include "GSSCredential.h"
+#include <globus_ftp_control.h>
 
 #define LISTER_MAX_RESPONSES 3
 
 namespace Arc {
 
-  class Time;
+  class GSSCredential;
   class URL;
 
   class Lister {

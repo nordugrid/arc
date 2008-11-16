@@ -14,9 +14,9 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/data/FileInfo.h>
+#include <arc/globusutils/GlobusErrorUtils.h>
+#include <arc/globusutils/GSSCredential.h>
 
-#include "GlobusErrorUtils.h"
-#include "GSSCredential.h"
 #include "Lister.h"
 
 
