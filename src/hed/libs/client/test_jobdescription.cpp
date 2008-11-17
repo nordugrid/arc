@@ -14,7 +14,7 @@ Arc::OptionParser options(istring("[job description ...]"),
 
 std::string requested_format = "";
   options.AddOption('f', "format",
-    istring("define the requested format (JSDL, XRSL)"),
+    istring("define the requested format (JSDL, JDL, XRSL)"),
     istring("format"),
     requested_format);
 
@@ -87,8 +87,15 @@ for (std::list< std::string >::iterator it = descriptions.begin(); it != descrip
         std::cout << std::endl << " " << jde.what() << std::endl;
       }
     }
-    //jd.getProduct( test, "XRSL" );
-    //std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
+
+    if (requested_format == "XRSL" || requested_format == "") {
+      try {
+    jd.getProduct( test, "XRSL" );
+    std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
+      } catch (Arc::JobDescriptionError jde) {
+        std::cout << std::endl << " " << jde.what() << std::endl;
+      }
+    }
   }
 }
   return 0;
