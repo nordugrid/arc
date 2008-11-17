@@ -376,6 +376,9 @@ namespace ArcLib {
         cert_type_ = CERT_TYPE_RFC_ANYLANGUAGE_PROXY;  //Defined in openssl version>098
       }
     }
+    else if (proxyversion_.compare("EEC") == 0 || proxyversion_.compare("eec") == 0) {
+      cert_type_ = CERT_TYPE_EEC;
+    }
     else {
       if(policylang_.compare("LIMITED") == 0 || policylang_.compare("limited") == 0) {
         cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY;
@@ -390,6 +393,9 @@ namespace ArcLib {
         cert_type_ = CERT_TYPE_GSI_3_IMPERSONATION_PROXY;
       }
     }
+
+    if(cert_type_ != CERT_TYPE_EEC) {
+
 
     if(!policyfile_.empty() && policylang_.empty()) {
       std::cerr<<"If you specify a policy file you also need to specify a policy language.\n" <<std::endl;
@@ -480,6 +486,8 @@ namespace ArcLib {
     else 
       PROXYCERTINFO_set_version(proxy_cert_info_, 3);
 
+
+    }
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cadir, 
@@ -662,6 +670,8 @@ namespace ArcLib {
               X509_NAME_free(name); name = NULL;
               if(entry) { X509_NAME_ENTRY_free(entry); entry = NULL; }
 
+              if(cert_type_ != CERT_TYPE_EEC) {
+
               // set the default PROXYCERTINFO extension
               std::string certinfo_sn;
               X509_EXTENSION* ext = NULL;
@@ -702,7 +712,9 @@ namespace ArcLib {
                 X509_REQ_add_extensions(req, extensions);
                 sk_X509_EXTENSION_pop_free(extensions, X509_EXTENSION_free);
               }
-
+             
+              }
+ 
               if(X509_REQ_set_pubkey(req,pkey)) {
                 if(X509_REQ_sign(req,pkey,digest)) {
                   if(!(PEM_write_bio_X509_REQ(reqbio,req))){ 
@@ -827,7 +839,7 @@ namespace ArcLib {
   }
 
   //Inquire the input request bio to get PROXYCERTINFO, certType
-  bool Credential::InquireRequest(BIO* &reqbio){
+  bool Credential::InquireRequest(BIO* &reqbio, bool if_eec){
     bool res = false;
     if(reqbio == NULL) { credentialLogger.msg(ERROR, "NULL BIO passed to InquireRequest"); return false; }
     if(req_) {X509_REQ_free(req_); req_ = NULL; }
@@ -895,7 +907,9 @@ namespace ArcLib {
         else { cert_type_ = CERT_TYPE_RFC_RESTRICTED_PROXY; }
       }
     }
-    else { cert_type_ = CERT_TYPE_GSI_2_PROXY;}
+    //If can not find proxy_cert_info, depend on the parameters to distinguish the type
+    else if(if_eec == false) { cert_type_ = CERT_TYPE_GSI_2_PROXY; }
+    else { cert_type_ = CERT_TYPE_EEC; }
 
     res = true;
 
@@ -905,7 +919,7 @@ err:
     return res;
   }
 
-  bool Credential::InquireRequest(std::string &content) {
+  bool Credential::InquireRequest(std::string &content, bool if_eec) {
     BIO *in;
     if(!(in = BIO_new_mem_buf((void*)(content.c_str()), content.length()))) { 
       credentialLogger.msg(ERROR, "Can not create BIO for parsing request"); 
@@ -921,7 +935,7 @@ err:
     return true;
   }
 
-  bool Credential::InquireRequest(const char* filename) {
+  bool Credential::InquireRequest(const char* filename, bool if_eec) {
     BIO *in = BIO_new(BIO_s_file());
     if(!in) { credentialLogger.msg(ERROR, "Can not create BIO for parsing request"); LogError(); return false;}
     if (!(BIO_read_filename(in, (char*)filename))) {
@@ -1363,6 +1377,232 @@ err:
     BIO_free_all(out);
     return true;
   }
+
+ //The following is the methods about how to use a CA credential to sign an EEC
+ 
+  Credential::Credential(const std::string& CAfile, const std::string& CAkey, const std::string& CAserial, bool CAcreateserial, const std::string& extfile, const std::string& extsect) : certfile_(CAfile), keyfile_(CAkey), CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect) {
+    OpenSSL_add_all_algorithms();
+    extensions_ = sk_X509_EXTENSION_new_null();
+
+    BIO* certbio = NULL, *keybio = NULL;
+    certbio = BIO_new_file(CAfile.c_str(), "r");
+    if(!certbio){
+      credentialLogger.msg(ERROR,"Can not read CA certificate file: %s", CAfile); LogError();
+      throw CredentialError("Can not read CA certificate file");
+    }
+    keybio = BIO_new_file(CAkey.c_str(), "r");
+    if(!keybio){
+      credentialLogger.msg(ERROR,"Can not read CA key file: %s", CAkey); LogError();
+      throw CredentialError("Can not read CA key file");
+    }
+
+    loadCertificate(certbio, cert_, &cert_chain_);
+    loadKey(keybio, pkey_);
+  }
+
+#undef POSTFIX
+#define POSTFIX ".srl"
+  static ASN1_INTEGER *x509_load_serial(char *CAfile, char *serialfile, int create) {
+    char *buf = NULL, *p;
+    ASN1_INTEGER *bs = NULL;
+    BIGNUM *serial = NULL;
+    size_t len;
+
+    len = ((serialfile == NULL)
+            ?(strlen(CAfile)+strlen(POSTFIX)+1)
+            :(strlen(serialfile)))+1;
+    buf=(char*)(OPENSSL_malloc(len));
+    if (buf == NULL) { std::cerr<<"out of mem"<<std::endl; goto end; }
+    if (serialfile == NULL) {
+      BUF_strlcpy(buf,CAfile,len);
+      for (p=buf; *p; p++)
+        if (*p == '.') {
+          *p='\0';
+          break;
+        }
+      BUF_strlcat(buf,POSTFIX,len);
+    }
+    else
+      BUF_strlcpy(buf,serialfile,len);
+
+    //serial = load_serial(buf, create, NULL);
+    if (serial == NULL) goto end;
+
+    if (!BN_add_word(serial,1)) { 
+      std::cerr<<"add_word failure"<<std::endl; goto end; 
+    }
+
+    //if (!save_serial(buf, NULL, serial, &bs)) goto end;
+
+ end:
+    if (buf) OPENSSL_free(buf);
+    BN_free(serial);
+    return bs;
+  }
+
+  static int x509_certify(X509_STORE *ctx, char *CAfile, const EVP_MD *digest,
+             X509 *x, X509 *xca, EVP_PKEY *pkey, char *serialfile, int create,
+             long lifetime, int clrext, CONF *conf, char *section, ASN1_INTEGER *sno) {
+    int ret=0;
+    ASN1_INTEGER *bs=NULL;
+    X509_STORE_CTX xsc;
+    EVP_PKEY *upkey;
+
+    upkey = X509_get_pubkey(xca);
+    EVP_PKEY_copy_parameters(upkey,pkey);
+    EVP_PKEY_free(upkey);
+
+    if(!X509_STORE_CTX_init(&xsc,ctx,x,NULL)) {
+      std::cerr<<"Error initialising X509 store"<<std::endl;
+      goto end;
+    }
+    if (sno) bs = sno;
+    else if (!(bs = x509_load_serial(CAfile, serialfile, create)))
+      goto end;
+
+    X509_STORE_CTX_set_cert(&xsc,x);
+    if (!X509_verify_cert(&xsc))
+      goto end;
+
+    if (!X509_check_private_key(xca,pkey)) {
+      std::cerr<<"CA certificate and CA private key do not match"<<std::endl;
+      goto end;
+    }
+
+    if (!X509_set_issuer_name(x,X509_get_subject_name(xca))) goto end;
+    if (!X509_set_serialNumber(x,bs)) goto end;
+
+    if (X509_gmtime_adj(X509_get_notBefore(x),0L) == NULL)
+      goto end;
+
+    /* hardwired expired */
+    if (X509_gmtime_adj(X509_get_notAfter(x), lifetime) == NULL)
+      goto end;
+
+    if (clrext) {
+      while (X509_get_ext_count(x) > 0) X509_delete_ext(x, 0);
+    }
+
+    if (conf) {
+      X509V3_CTX ctx2;
+      X509_set_version(x,2); /* version 3 certificate */
+      X509V3_set_ctx(&ctx2, xca, x, NULL, NULL, 0);
+      X509V3_set_nconf(&ctx2, conf);
+      if (!X509V3_EXT_add_nconf(conf, &ctx2, section, x)) goto end;
+    }
+
+    if (!X509_sign(x,pkey,digest)) goto end;
+      ret=1;
+end:
+    X509_STORE_CTX_cleanup(&xsc);
+    if (!ret)
+      ERR_clear_error();
+    if (!sno) ASN1_INTEGER_free(bs);
+
+    return ret;
+  }
+
+  bool Credential::SignEECRequest(Credential* eec, BIO* outputbio) {
+    bool res = false;
+    if(eec == NULL) {credentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
+    if(outputbio == NULL) { credentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
+
+    X509*  eec_cert = NULL;
+    EVP_PKEY* req_pubkey = NULL;
+    req_pubkey = X509_REQ_get_pubkey(eec->req_);
+    if(!req_pubkey) { credentialLogger.msg(ERROR, "Error when extracting public key from request"); 
+      LogError(); throw CredentialError("Error when extracting public key from request");
+    }
+    if(!X509_REQ_verify(eec->req_, req_pubkey)){
+      credentialLogger.msg(ERROR,"Failed to verify the request"); 
+      LogError(); throw CredentialError("Failed to verify the request"); 
+    }
+    eec_cert = X509_new();
+    X509_set_pubkey(eec_cert, req_pubkey);
+    EVP_PKEY_free(req_pubkey);
+
+    X509_set_issuer_name(eec_cert,eec->req_->req_info->subject);
+    X509_set_subject_name(eec_cert,eec->req_->req_info->subject);
+
+    const EVP_MD *digest=EVP_sha1();
+#ifndef OPENSSL_NO_DSA
+    if (pkey_->type == EVP_PKEY_DSA)
+      digest=EVP_dss1();
+#endif
+#ifndef OPENSSL_NO_ECDSA
+    if (pkey_->type == EVP_PKEY_EC)
+      digest = EVP_ecdsa();
+#endif
+
+    X509_STORE *ctx=NULL;   
+    ctx=X509_STORE_new();
+    //X509_STORE_set_verify_cb_func(ctx,callb);
+    if (!X509_STORE_set_default_paths(ctx)) {
+      LogError();
+    }
+
+    CONF *extconf = NULL;
+    if (!extfile_.empty()) {
+      long errorline = -1;
+      X509V3_CTX ctx2;
+      extconf = NCONF_new(NULL);
+      //configuration file with X509V3 extensions to add
+      if (!NCONF_load(extconf, extfile_.c_str(),&errorline)) {
+        if (errorline <= 0) {
+          credentialLogger.msg(ERROR,"Error when loading the extenstion config file: %s", extfile_.c_str());
+          throw CredentialError("Error when loading the extenstion config file");
+        }
+        else {
+          credentialLogger.msg(ERROR,"Error when loading the extenstion config file: %s on line: %d", extfile_.c_str(), errorline);
+          throw CredentialError("Error when loading the extenstion config file");
+        }
+      }
+      //section from config file with X509V3 extensions to add
+      if (extsect_.empty()) {
+        extsect_.append(NCONF_get_string(extconf, "default", "extensions"));
+        if (extsect_.empty()) {
+          ERR_clear_error();
+          extsect_ = "default";
+        }
+      }
+      X509V3_set_ctx_test(&ctx2);
+      X509V3_set_nconf(&ctx2, extconf);
+      if (!X509V3_EXT_add_nconf(extconf, &ctx2, (char*)(extsect_.c_str()), NULL)) {
+        credentialLogger.msg(ERROR,"Error when loading the extenstion section: %s", extsect_.c_str()); LogError();
+        throw CredentialError("Error when loading the extenstion config file");
+      }
+    }
+
+    long lifetime = 12*60*60;
+    if (!x509_certify(ctx,(char*)(certfile_.c_str()), digest, eec_cert, cert_,
+                      pkey_, (char*)(CAserial_.c_str()), CAcreateserial_, lifetime, 0,
+                      extconf, (char*)(extsect_.c_str()), NULL)) {
+      credentialLogger.msg(ERROR,"Can not sign a EEC"); LogError();
+      throw CredentialError("Can not sign a EEC");
+    }
+
+    if(PEM_write_bio_X509(outputbio, eec_cert)) {
+      credentialLogger.msg(INFO, "Output EEC certificate"); res = true;
+    }
+    else { credentialLogger.msg(ERROR, "Can not convert signed EEC cert into DER format"); 
+      LogError(); throw CredentialError("Can not convert signed EEC cert into DER format");
+    }
+
+    NCONF_free(extconf);
+    X509_free(eec_cert);
+
+    return res;
+  }
+
+  bool Credential::SignEECRequest(Credential* eec, std::string &content) {
+
+  }
+
+  bool Credential::SignEECRequest(Credential* eec, const char* filename) {
+
+  }
+
+  Credential::~Credential() {}
 
 }
 

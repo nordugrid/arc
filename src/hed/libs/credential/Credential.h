@@ -55,6 +55,13 @@ class Credential {
     */
     Credential();
 
+    ~Credential();
+
+    /**Constructor, specific constructor for CA certificate
+    *is meaningless for any other use.
+    */
+    Credential(const std::string& CAfile, const std::string& CAkey, const std::string& CAserial, bool CAcreateserial, const std::string& extfile, const std::string& extsect);
+
     /**Constructor, specific constructor for proxy certificate, only acts as a container for generating certificate request,
     *is meaningless for any other use.
     *The proxyversion and policylang is for specifying the proxy certificate type and the policy language inside proxy.
@@ -206,13 +213,13 @@ class Credential {
     /**Inquire the certificate request from BIO, and put the request information to X509_REQ inside this object,
     *and parse the certificate type from the PROXYCERTINFO of request' extension
     */
-    bool InquireRequest(BIO* &reqbio);
+    bool InquireRequest(BIO* &reqbio, bool if_eec = false);
    
     /**Inquire the certificate request from a string*/
-    bool InquireRequest(std::string &content);
+    bool InquireRequest(std::string &content, bool if_eec = false);
 
     /**Inquire the certificate request from a file*/
-    bool InquireRequest(const char* filename);
+    bool InquireRequest(const char* filename, bool if_eec = false);
 
     /**Sign request based on the information inside proxy, and output the signed certificate to output BIO*/
     bool SignRequest(Credential* proxy, BIO* outputbio);
@@ -223,6 +230,16 @@ class Credential {
     /**Sign request and output the signed certificate to a file*/
     bool SignRequest(Credential* proxy, const char* filename);
 
+    //The following three methods is about signing an EEC certificate by implementing the same 
+    //functionality as a normal CA
+    /**Sign eec request, and output the signed certificate to output BIO*/
+    bool SignEECRequest(Credential* eec, BIO* outputbio);
+
+    /**Sign request and output the signed certificate to a string*/
+    bool SignEECRequest(Credential* eec, std::string &content);
+
+    /**Sign request and output the signed certificate to a file*/
+    bool SignEECRequest(Credential* eec, const char* filename);
 
   private:
     // PKI files
@@ -260,6 +277,11 @@ class Credential {
     //Extensions for certificate, such as certificate policy, attributes, etc.
     STACK_OF(X509_EXTENSION)* extensions_;
 
+    //CA functionality related information
+    std::string CAserial_;
+    bool CAcreateserial_;
+    std::string extfile_;
+    std::string extsect_;
 };
 
 }// namespace ArcLib
