@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarccredential.la
-noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms
+noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms testeec
 
 if WIN32
 VOMS_HEADER =
@@ -36,4 +36,9 @@ testvoms_SOURCES  = testvoms.cpp
 testvoms_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testvoms_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
 testvoms_LDADD    = ./libarccredential.la
+
+testeec_SOURCES  = testeec.cpp
+testeec_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
+testeec_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+testeec_LDADD    = ./libarccredential.la
 

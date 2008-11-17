@@ -22,13 +22,17 @@ extern "C" {
 }
 
 
-/**Credential class covers the functionality about general processing to certificate/key files, 
- *including cerficate/key parsing, information extracting (such as subject name, issuer name, lifetime, etc.), chain verifying,
- *extension processing about proxy certinfo, extension processing about other general certificate extension
- * (such as voms attributes, it should be the extension-specific code itself (for voms, it is some code about writing and parsing
- * voms-implementing Attibute Certificate/ RFC3281, the voms-attibute is then be looked as a binary part and embeded into extension 
- * of X509 certificate/proxy certificate) to create, parse and verify the extension, not the Credential class. 
- * The voms api can still be used if need to process the voms extension).
+/**Credential class covers the functionality about general processing about certificate/key 
+ * files, including: 
+ * 1. cerficate/key parsing, information extracting (such as subject name, 
+ * issuer name, lifetime, etc.), chain verifying, extension processing about proxy certinfo, 
+ * extension processing about other general certificate extension (such as voms attributes, 
+ * it should be the extension-specific code itself to create, parse and verify the extension, 
+ * not the Credential class. For voms, it is some code about writing and parsing voms-implementing 
+ * Attibute Certificate/ RFC3281, the voms-attibute is then be looked as a binary part and 
+ * embeded into extension of X509 certificate/proxy certificate);
+ * 2. certificate request, extension emeding and certificate signing, for both proxy certificate
+ * and EEC (end entity certificate) certificate 
  * The Crendential class support PEM, DER PKCS12 credential.
  */
   
@@ -60,31 +64,39 @@ class Credential {
     /**Constructor, specific constructor for CA certificate
     *is meaningless for any other use.
     */
-    Credential(const std::string& CAfile, const std::string& CAkey, const std::string& CAserial, bool CAcreateserial, const std::string& extfile, const std::string& extsect);
+    Credential(const std::string& CAfile, const std::string& CAkey, 
+               const std::string& CAserial, bool CAcreateserial, 
+               const std::string& extfile, const std::string& extsect);
 
-    /**Constructor, specific constructor for proxy certificate, only acts as a container for generating certificate request,
-    *is meaningless for any other use.
-    *The proxyversion and policylang is for specifying the proxy certificate type and the policy language inside proxy.
-    *The definition of proxyversion and policy language is based on http://dev.globus.org/wiki/Security/ProxyCertTypes#RFC_3820_Proxy_Certificates
-    *The code is supposed to support proxy version: GSI2(legacy proxy), GSI3(Proxy draft) and RFC(RFC3820 proxy), and correspoding 
-    *policy language. GSI2(GSI2, GSI2_LIMITED) GSI3 and RFC (IMPERSONATION_PROXY--1.3.6.1.5.5.7.21.1, INDEPENDENT_PROXY--1.3.6.1.5.5.7.21.2, 
-    *LIMITED_PROXY--1.3.6.1.4.1.3536.1.1.1.9, RESTRICTED_PROXY--policy language undefined)
-    *In openssl>=098, there are three types of policy languages: id-ppl-inheritAll--1.3.6.1.5.5.7.21.1,
-    *id-ppl-independent--1.3.6.1.5.5.7.21.2, and id-ppl-anyLanguage-1.3.6.1.5.5.7.21.0 
+    /**Constructor, specific constructor for proxy certificate, only acts as a 
+    * container for generating certificate request, is meaningless for any other use.
+    * The proxyversion and policylang is for specifying the proxy certificate type and 
+    * the policy language inside proxy.
+    * The definition of proxyversion and policy language is based on 
+    * http://dev.globus.org/wiki/Security/ProxyCertTypes#RFC_3820_Proxy_Certificates
+    * The code is supposed to support proxy version: GSI2(legacy proxy), GSI3(Proxy draft) 
+    * and RFC(RFC3820 proxy), and correspoding policy language. GSI2(GSI2, GSI2_LIMITED) 
+    * GSI3 and RFC (IMPERSONATION_PROXY--1.3.6.1.5.5.7.21.1, INDEPENDENT_PROXY--1.3.6.1.5.5.7.21.2, 
+    * LIMITED_PROXY--1.3.6.1.4.1.3536.1.1.1.9, RESTRICTED_PROXY--policy language undefined)
+    * In openssl>=098, there are three types of policy languages: id-ppl-inheritAll--1.3.6.1.5.5.7.21.1,
+    * id-ppl-independent--1.3.6.1.5.5.7.21.2, and id-ppl-anyLanguage-1.3.6.1.5.5.7.21.0 
+    *
     *@param start, start time of proxy certificate
     *@param lifetime, lifetime of proxy certificate
     *@param keybits, modulus size for RSA key generation, it should be greater than 1024
     */ 
-   Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024, 
-             std::string proxyversion = "", std::string policylang = "independent",
-             std::string policyfile = "", int pathlength = 0);
+   Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), 
+              int keybits = 1024, std::string proxyversion = "", 
+              std::string policylang = "independent", std::string policyfile = "", 
+              int pathlength = 0);
 
-    /**Constructor, specific constructor for usual certificate, constructing from credential files.
-    *only acts as a container for parsing the certificate and key files, is meaningless for any other use.
-    *this constructor will parse the credential information,
-    *and put them into "this" object
+    /**Constructor, specific constructor for usual certificate, constructing from 
+    * credential files. only acts as a container for parsing the certificate and key 
+    * files, is meaningless for any other use. this constructor will parse the credential 
+    * information, and put them into "this" object
     */
-    Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
+    Credential(const std::string& cert, const std::string& key, const std::string& cadir, 
+               const std::string& cafile);
 
     /**Initiate nid for proxy certificate extension*/
     void static InitProxyCertInfo(void);
@@ -98,7 +110,9 @@ class Credential {
     /**load key from argument keybio, and put key information into argument pkey */
     void loadKey(BIO* &keybio, EVP_PKEY* &pkey);
 
-    /**load certificate from argument certbio, and put certificate information into argument cert and certchain */
+    /**load certificate from argument certbio, and put certificate information into 
+    * argument cert and certchain 
+    */
     void loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)** certchain);
 
     /**Initiate cert_verify_context which will be used for certificate verification*/

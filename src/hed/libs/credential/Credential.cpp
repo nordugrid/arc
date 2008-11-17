@@ -1,3 +1,4 @@
+/**Some of the following code is compliant to OpenSSL license*/
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -1400,6 +1401,136 @@ err:
     loadKey(keybio, pkey_);
   }
 
+  static void print_ssl_errors() {
+    unsigned long err;
+    while(err = ERR_get_error()) {
+      std::cerr<<"SSL error: "<<ERR_error_string(err, NULL)<<"lib: "<<ERR_lib_error_string(err)
+                              <<"func: "<<ERR_func_error_string(err)
+                              <<"reason: "<<ERR_reason_error_string(err)<<std::endl;
+    }
+  }
+
+#define SERIAL_RAND_BITS        64
+  int rand_serial(BIGNUM *b, ASN1_INTEGER *ai) {
+    BIGNUM *btmp;
+    int ret = 0;
+    if (b)
+      btmp = b;
+    else
+      btmp = BN_new();
+    if (!btmp)
+      return 0;
+    if (!BN_pseudo_rand(btmp, SERIAL_RAND_BITS, 0, 0))
+      goto error;
+    if (ai && !BN_to_ASN1_INTEGER(btmp, ai))
+      goto error;
+    ret = 1;
+error:
+    if (!b)
+      BN_free(btmp);
+    return ret;
+  }
+
+#undef BSIZE
+#define BSIZE 256
+  BIGNUM *load_serial(char *serialfile, int create, ASN1_INTEGER **retai) {
+    BIO *in=NULL;
+    BIGNUM *ret=NULL;
+    char buf[1024];
+    ASN1_INTEGER *ai=NULL;
+
+    ai=ASN1_INTEGER_new();
+    if (ai == NULL) goto err;
+
+    if ((in=BIO_new(BIO_s_file())) == NULL) {
+      print_ssl_errors();
+      goto err;
+    }
+
+    if (BIO_read_filename(in,serialfile) <= 0) {
+      if (!create) {
+        perror(serialfile);
+        goto err;
+      }
+      else {
+        ret=BN_new();
+        if (ret == NULL || !rand_serial(ret, ai))
+          std::cerr<<"Out of memory"<<std::endl;
+      }
+    }
+    else {
+      if (!a2i_ASN1_INTEGER(in,ai,buf,1024)) {
+        std::cerr<<"unable to load number from: "<<serialfile<<std::endl;
+        goto err;
+      }
+      ret=ASN1_INTEGER_to_BN(ai,NULL);
+      if (ret == NULL) {
+        std::cerr<<"error converting number from bin to BIGNUM"<<std::endl;
+        goto err;
+      }
+    }
+
+    if (ret && retai) {
+      *retai = ai;
+      ai = NULL;
+    }
+err:
+    if (in != NULL) BIO_free(in);
+    if (ai != NULL) ASN1_INTEGER_free(ai);
+      return(ret);
+  }
+
+  int save_serial(char *serialfile, char *suffix, BIGNUM *serial, ASN1_INTEGER **retai) {
+    char buf[1][BSIZE];
+    BIO *out = NULL;
+    int ret=0; 
+    ASN1_INTEGER *ai=NULL;
+    int j;
+
+    if (suffix == NULL)
+      j = strlen(serialfile);
+    else
+      j = strlen(serialfile) + strlen(suffix) + 1;
+    if (j >= BSIZE) {
+      std::cerr<<"file name too long"<<std::endl;
+      goto err;
+    }
+
+    if (suffix == NULL)
+      BUF_strlcpy(buf[0], serialfile, BSIZE);
+    else {
+#ifndef OPENSSL_SYS_VMS
+      j = BIO_snprintf(buf[0], sizeof buf[0], "%s.%s", serialfile, suffix);
+#else
+      j = BIO_snprintf(buf[0], sizeof buf[0], "%s-%s", serialfile, suffix);
+#endif
+    }
+    out=BIO_new(BIO_s_file());
+    if (out == NULL) {
+      print_ssl_errors();
+      goto err;
+    }
+    if (BIO_write_filename(out,buf[0]) <= 0) {
+      perror(serialfile);
+      goto err;
+    }
+    if ((ai=BN_to_ASN1_INTEGER(serial,NULL)) == NULL) {
+      std::cerr<<"error converting serial to ASN.1 format"<<std::endl;
+      goto err;
+    }
+    i2a_ASN1_INTEGER(out,ai);
+    BIO_puts(out,"\n");
+    ret=1;
+    if (retai) {
+      *retai = ai;
+      ai = NULL;
+    }
+err:
+    if (out != NULL) BIO_free_all(out);
+    if (ai != NULL) ASN1_INTEGER_free(ai);
+    return(ret);
+  }
+
 #undef POSTFIX
 #define POSTFIX ".srl"
   static ASN1_INTEGER *x509_load_serial(char *CAfile, char *serialfile, int create) {
@@ -1425,14 +1556,14 @@ err:
     else
       BUF_strlcpy(buf,serialfile,len);
 
-    //serial = load_serial(buf, create, NULL);
+    serial = load_serial(buf, create, NULL);
     if (serial == NULL) goto end;
 
     if (!BN_add_word(serial,1)) { 
       std::cerr<<"add_word failure"<<std::endl; goto end; 
     }
 
-    //if (!save_serial(buf, NULL, serial, &bs)) goto end;
+    if (!save_serial(buf, NULL, serial, &bs)) goto end;
 
  end:
     if (buf) OPENSSL_free(buf);
@@ -1595,14 +1726,39 @@ end:
   }
 
   bool Credential::SignEECRequest(Credential* eec, std::string &content) {
+    BIO *out = BIO_new(BIO_s_mem());
+    if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); LogError(); return false;}
 
+    if(SignEECRequest(eec, out)) {
+      for(;;) {
+        char s[256];
+        int l = BIO_read(out,s,sizeof(s));
+        if(l <= 0) break;
+        content.append(s,l);
+      }
+    }
+    BIO_free_all(out);
+    return true;
   }
 
   bool Credential::SignEECRequest(Credential* eec, const char* filename) {
+    BIO *out = BIO_new(BIO_s_file());
+    if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); LogError(); return false;}
+    if (!(BIO_write_filename(out, (char*)filename))) {
+      credentialLogger.msg(ERROR, "Can not set writable file for signed EEC certificate BIO"); LogError(); BIO_free_all(out); return false;
+    }
 
+    if(SignEECRequest(eec, out)) {
+      credentialLogger.msg(INFO, "Wrote signed eec certificate into a file");
+    }
+    else {credentialLogger.msg(ERROR, "Failed to write signed EEC certificate into a file"); BIO_free_all(out); return false;    }
+    BIO_free_all(out);
+    return true;
   }
 
-  Credential::~Credential() {}
+  Credential::~Credential() { 
+  //TODO 
+  }
 
 }
 
