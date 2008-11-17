@@ -473,11 +473,16 @@ namespace Arc {
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
 	 i != outputfiles.end(); i++) {
+
+	  if ((std::string)i->GetName() == ".." || (std::string)i->GetName() == "." )
+	  	continue;
+
       if (i->GetType() == FileInfo::file_type_unknown ||
 	  i->GetType() == FileInfo::file_type_file)
 	files.push_back(i->GetName());
       else if (i->GetType() == FileInfo::file_type_dir) {
-	std::string path = dir.Path();
+
+    std::string path = dir.Path();
 	if (path[path.size() - 1] != '/')
 	  path += "/";
 	URL tmpdir(dir);
