@@ -26,7 +26,7 @@ lrmsid=${lrmsid%%.*}.condor
 controldir=$CONFIG_controldir
 
 # Find the proper GRAMI file.
-grami=$(find $controldir -name "job.[0-9]*.grami" \
+grami=$(find $controldir -name "job.[0-9][0-9]*.grami" \
           | xargs grep -l "^joboption_jobid=$lrmsid$")
 
 if [ ! -f $grami ]; then

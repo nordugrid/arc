@@ -33,7 +33,7 @@ fi
 SGE_ROOT=${CONFIG_sge_root:-$SGE_ROOT}
 
 if [ -z "$SGE_ROOT" ]; then
-    echo 'SGE_ROOT not set'
+    echo 'SGE_ROOT not set' 1>&2
     return 1
 fi
 
@@ -66,7 +66,7 @@ if [ -z "$SGE_BIN_PATH" ]; then
 fi
 
 if [ ! -x "$SGE_BIN_PATH/qsub" ]; then
-    echo 'SGE executables not found! Check that sge_bin_path is defined'
+    echo 'SGE executables not found! Check that sge_bin_path is defined' 1>&2
     return 1
 fi
 

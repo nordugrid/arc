@@ -7,7 +7,7 @@
 #
 # Synopsis:
 #
-#   . $pkglibdir/config_parser.sh
+#   . config_parser
 #
 #   config_parse_file /etc/arc.conf || exit 1
 #   config_import_section common

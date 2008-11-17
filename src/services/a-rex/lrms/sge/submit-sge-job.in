@@ -53,11 +53,6 @@ cat $1 1>&2
 # Set SGE specific environment # needs to know $joboption_queue #
 #################################################################
 
-if [ ! -f "${pkglibdir}/configure-sge-env.sh" ] ; then
-    echo "${pkglibdir}/configure-sge-env.sh not found." 1>&2
-    exit 1
-fi
-
 . ${pkglibdir}/configure-sge-env.sh 1>&2 || exit $?
 
 ##############################################################
@@ -350,7 +345,7 @@ move_files_to_frontend
 
   # Remove temporary job script file
   rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
-  echo "----- exiting submit_sge_job -----"
+  echo "----- exiting submit_sge_job -----";
 ) 1>&2
 
 exit $exitcode
