@@ -232,7 +232,7 @@ namespace Arc {
     }
 
     // Set the sourceString variable of the JobDescription instance and parse it with the right parser
-    void JobDescription::setSource( const std::string source ) throw(JobDescriptionError) {
+    bool JobDescription::setSource( const std::string source ) {
         sourceFormat = "";
         sourceString = source;
         
@@ -242,7 +242,10 @@ namespace Arc {
         // Parsing the source string depending on the Orderer's decision
         //
         // Get the candidate list of formats in the proper order
-        if ( sourceString.empty() || sourceString.length() == 0 ) throw JobDescriptionError("There is nothing in the source. Cannot generate any product.");
+        if ( sourceString.empty() || sourceString.length() == 0 ){ 
+	   std::cerr << "There is nothing in the source. Cannot generate any product." << std::endl;
+	   return false;
+	}
 
         jdOrderer.setSource( sourceString );
         std::vector<Candidate> candidates = jdOrderer.getCandidateList();
@@ -279,7 +282,11 @@ namespace Arc {
                 resetJobTree();
             }
         }
-        if (sourceFormat.length() == 0) throw JobDescriptionError("The parsing of the source string was unsuccessful.");
+        if (sourceFormat.length() == 0){
+	   std::cerr << "The parsing of the source string was unsuccessful." << std::endl;
+	   return false;
+	}
+	return true;
     }
 
     // Create a new Arc::XMLNode with a single root element and out it into the JobDescription's jobTree variable
