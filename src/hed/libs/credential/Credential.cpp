@@ -21,10 +21,10 @@ namespace ArcLib {
     int j, r;
     char prompt[128];
     for(;;) {
-      snprintf(prompt, sizeof(prompt), "Enter password for Username Token: ");
+      snprintf(prompt, sizeof(prompt), "Enter passphrase for the encrypted key file: ");
       r = EVP_read_pw_string(pwd, len, prompt, 0);
       if(r != 0) {
-        std::cerr<<"Failed to read read input password"<<std::endl;
+        std::cerr<<"Failed to read read input passphrase"<<std::endl;
         memset(pwd,0,(unsigned int)len);
         return(-1);
       }
@@ -32,7 +32,7 @@ namespace ArcLib {
       if(j < PASS_MIN_LENGTH) {
         std::cerr<<"Input phrase is too short (at least "<<PASS_MIN_LENGTH<<" chars)"<<std::endl;
       }
-      else { return (0); }
+      else { return j; }
     }
   }
 
@@ -232,7 +232,7 @@ namespace ArcLib {
     format = getFormat(keybio);
     switch(format){
       case PEM:
-        if(!(PEM_read_bio_PrivateKey(keybio, &pkey, passwordcb, NULL))) {  
+        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, NULL))) {  
           credentialLogger.msg(ERROR,"Can not read credential key from PEM key BIO"); LogError();
           throw CredentialError("Can not read credential key");
         }
@@ -1381,7 +1381,9 @@ err:
 
  //The following is the methods about how to use a CA credential to sign an EEC
  
-  Credential::Credential(const std::string& CAfile, const std::string& CAkey, const std::string& CAserial, bool CAcreateserial, const std::string& extfile, const std::string& extsect) : certfile_(CAfile), keyfile_(CAkey), CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect) {
+  Credential::Credential(const std::string& CAfile, const std::string& CAkey, const std::string& CAserial, bool CAcreateserial, const std::string& extfile, const std::string& extsect) : certfile_(CAfile), keyfile_(CAkey), CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect),
+        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
     OpenSSL_add_all_algorithms();
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -1592,8 +1594,8 @@ err:
       goto end;
 
     X509_STORE_CTX_set_cert(&xsc,x);
-    if (!X509_verify_cert(&xsc))
-      goto end;
+    //if (!X509_verify_cert(&xsc))
+    //  goto end;
 
     if (!X509_check_private_key(xca,pkey)) {
       std::cerr<<"CA certificate and CA private key do not match"<<std::endl;
