@@ -1,0 +1,11 @@
+# This file contains ever changing list of features to be included into 
+# testing framework. It's format is similar to changelog - date folowed 
+# by name and description of feature. Description is either broad enough
+# or contains references to information needed to perform tests.
+# After feature is moved to testing framework it is removed from this file.
+
+2008-11-17 Aleksandr Konstantinov
+HTTP MCC now supports streaming. As result HTTP services based on MCC
+like A-REX and HOPI should handle upload of big files efficiently enough.
+It should be possible to stage in big input files to A-REX direcly from
+client.
