@@ -83,7 +83,10 @@ namespace Arc {
       else if (((value - name - 1) == 6) &&
 	       (strncasecmp(name, "modify", 6) == 0)) {
 	std::string tmp_s(value, (int)(p - value));
-	fi.SetCreated(stringtoi(tmp_s));
+	if (tmp_s.size() < 14)
+	 fi.SetCreated(stringtoi(tmp_s)); // UNIX time
+	 else
+	  fi.SetCreated(tmp_s); // ISO time
       }
     }
     return true;

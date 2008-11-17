@@ -474,7 +474,7 @@ namespace Arc {
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
 	 i != outputfiles.end(); i++) {
 
-	  if ((std::string)i->GetName() == ".." || (std::string)i->GetName() == "." )
+	  if (i->GetName() == ".." || i->GetName() == ".")
 	  	continue;
 
       if (i->GetType() == FileInfo::file_type_unknown ||
