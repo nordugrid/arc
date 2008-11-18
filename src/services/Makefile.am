@@ -52,5 +52,5 @@ else
 PYTHON_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(CHARON_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE)
-DIST_SUBDIRS = echo_java echo_python a-rex isis charon hopi paul sched storage arex2 wrappers saml
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(CHARON_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) slcs
+DIST_SUBDIRS = echo_java echo_python a-rex isis charon hopi paul sched storage arex2 wrappers saml slcs
