@@ -263,10 +263,18 @@ ARC_LOCATION/bin/arcproxy -P proxy.pem -C cert.pem -K key.pem
 -c validityEnd=2008-06-29T10:20:30Z
 -c proxyPolicyFile=delegation_policy.xml
 By using argument "-c", some constraints can be specified for proxy 
-certificate. Currently, the life time can be specified by using 
+certificate. 
+Currently, the life time can be specified by using 
 "-c validityStart=..." and "-c validityEnd=...", or "-c validityStart=..."
-and "-c validityPeriod=..."; the proxy policy can be specified by 
-using "-c proxyPolicyFile=..." or "-c proxyPolicy=...".
+and "-c validityPeriod=..."; 
+and the proxy policy can be specified by using "-c proxyPolicyFile=..." 
+or "-c proxyPolicy=...".
+Note: If the "validityStart" has not been set, the current time will 
+be used as start time for proxy. 
+If both "validityEnd" and "validityPeriod" have not been set, the default
+validity period will be set to 12 hours.
+If the "validityStart" is set, it should not be before current time.
+The time unit for "validityPeriod" is second, e.g. "-c validityPeriod=86400"
 
 If proxy certificate is used, in the configuration file for service
 side or client side, the configuration for the certificate for TLS MCC 
