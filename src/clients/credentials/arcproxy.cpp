@@ -119,6 +119,12 @@ int main(int argc, char* argv[]){
       constraints[*it] = "";
   }
 
+  //Set the default proxy validity lifetime to 12 hours if there is 
+  //no validity lifetime provided by command caller
+  if((constraints["validityEnd"].empty()) && 
+     (constraints["validityPeriod"].empty()))
+    constraints["validityPeriod"] = "43200";
+
   SSL_load_error_strings();
   SSL_library_init();
 
