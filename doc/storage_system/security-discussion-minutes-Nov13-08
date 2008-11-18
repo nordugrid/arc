@@ -1,0 +1,28 @@
+/============/
+Two question from Weizhong to Zsombor, and conclusion:
+
+1. The Bartender is the only one which faces users, and the only one needs to enforce policy? So only enforce access control policy on Bartender?
+Each file(Logic Name file) will be attached a policy?and policy will be stored on Bartender?
+
+Conclusion:
+The storage system is centralized management system (policy is centrally enforced).
+The Bartender service and Hopi service (storage backend) are two service which will face the user/client, and enforce the access control policy. Bartender could also change (manage) the policy, but Hopi can only enforce/execute the policy.
+
+Bartender also needs to contact Librarian Service and Shepherd Service. But since the policy about users is only managed by Bartender, Librarian and Shepherd don't not need to manage policy and hence don't need to know the user, therefore there is no directly trust relationship between these two service and users.
+Librarian and Shepherd only need to define some policy about Bartender, so the access control can be accomplished by using some simple list file which includes the permitted Bartender's DN.
+
+
+The use case (See : doc/storage/arc1-storage-documentation.pdf):
+Some user uploads some file: User (file owner) upload the file together with some policy; The policy is then stored somewhere where only  specified Bartenders can access; Also Bartender can change the policy (?); Physically uploading to Hopi service is included in the process, and Hopi service will make decision according to the policy (policy is signed by Bartender, the user gets the policy from Bartender in another process, and put it into proxy certificate which means the proxy needs to be regenerated each time the user needs to upload a file/not efficient here) in the extension part of the proxy certificate provided by Client/User.
+Then some other user (could also be the same user as above) download/remove/.... the above file: Bartender will enforce the policy related to this file; Afterwards, in the Physically downloading/.... process, the same as above, getting policy from Bartender and putting it into proxy is needed for User.
+
+
+2. Shepherd is also a service which faces users? Some delegation solution could be used: Firstly, Bartender issues some assertion (signed by its private key) which gives some priviledge to users, formated in ARC policy (so here it is policy with signature) for instance; When client/user generate proxy, it picks the assertion and put it as proxy extension; When Shepherd consumes the proxy, it will enforce the policy inside.
+
+Conclusion: It is Hopi instead of Shepherd which will face users.
+Putting policy into proxy is a proposed solution, but I can see that it has some efficiency problem, because each time the user gives a request, it needs to regenerate the proxy.
+
+
+/============/
+There are also some conclusion and questions from Zsombor:  http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/storage_system/storage_security.txt
+weizhong gave some answers to his question. Some code need to be added to support the presented delegation scenario.
