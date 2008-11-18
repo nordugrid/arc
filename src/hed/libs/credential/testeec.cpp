@@ -40,7 +40,8 @@ int main(void) {
   }
 
   ArcLib::Credential signer(CAcert, CAkey, CAserial, 0, "", "");
-  signer.SignEECRequest(&eec, out_certfile.c_str());
+  std::string dn("/O=KnowARC/OU=UIO/CN=Test001");
+  signer.SignEECRequest(&eec, dn, out_certfile.c_str());
 
   //Request side, output private key
   std::string private_key;

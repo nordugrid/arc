@@ -247,13 +247,13 @@ class Credential {
     //The following three methods is about signing an EEC certificate by implementing the same 
     //functionality as a normal CA
     /**Sign eec request, and output the signed certificate to output BIO*/
-    bool SignEECRequest(Credential* eec, BIO* outputbio);
+    bool SignEECRequest(Credential* eec, const std::string& DN, BIO* outputbio);
 
     /**Sign request and output the signed certificate to a string*/
-    bool SignEECRequest(Credential* eec, std::string &content);
+    bool SignEECRequest(Credential* eec, const std::string& DN, std::string &content);
 
     /**Sign request and output the signed certificate to a file*/
-    bool SignEECRequest(Credential* eec, const char* filename);
+    bool SignEECRequest(Credential* eec, const std::string& DN, const char* filename);
 
   private:
     // PKI files

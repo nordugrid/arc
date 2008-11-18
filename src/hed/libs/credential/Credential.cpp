@@ -1641,7 +1641,123 @@ end:
     return ret;
   }
 
-  bool Credential::SignEECRequest(Credential* eec, BIO* outputbio) {
+
+ /*subject is expected to be in the format /type0=value0/type1=value1/type2=...
+ * where characters may be escaped by \
+ */
+  X509_NAME *parse_name(char *subject, long chtype, int multirdn) { 
+    size_t buflen = strlen(subject)+1; /* to copy the types and values into. due to escaping, the copy can only become shorter */
+    char *buf = (char*)(OPENSSL_malloc(buflen));
+    size_t max_ne = buflen / 2 + 1; /* maximum number of name elements */
+    char **ne_types =  (char **)(OPENSSL_malloc(max_ne * sizeof (char *)));
+    char **ne_values = (char **)(OPENSSL_malloc(max_ne * sizeof (char *)));
+    int *mval = (int*)(OPENSSL_malloc (max_ne * sizeof (int)));
+
+    char *sp = subject, *bp = buf;
+    int i, ne_num = 0;
+
+    X509_NAME *n = NULL;
+    int nid;
+
+    if (!buf || !ne_types || !ne_values) {
+      std::cerr<<"malloc error"<<std::endl;
+      goto error;
+    }       
+    if (*subject != '/') {
+      std::cerr<<"Subject does not start with '/'"<<std::endl;
+      goto error;
+    }
+    sp++; /* skip leading / */
+
+    /* no multivalued RDN by default */
+    mval[ne_num] = 0;
+    while (*sp) {
+      /* collect type */
+      ne_types[ne_num] = bp;
+      while (*sp) {
+        if (*sp == '\\') /* is there anything to escape in the type...? */
+        {
+          if (*++sp)
+          *bp++ = *sp++;
+          else {
+            std::cerr<<"escape character at end of string"<<std::endl;
+            goto error;
+          }
+        }
+        else if (*sp == '=') {
+          sp++;
+          *bp++ = '\0';
+          break;
+        }
+        else  *bp++ = *sp++;
+      }
+      if (!*sp) {
+        std::cerr<<"end of string encountered while processing type of subject name element #"<<ne_num<<std::endl;
+        goto error;
+      }
+      ne_values[ne_num] = bp;
+      while (*sp) {
+        if (*sp == '\\') {
+          if (*++sp)
+            *bp++ = *sp++;
+          else {
+            std::cerr<<"escape character at end of string"<<std::endl;
+            goto error;
+          }
+        }
+        else if (*sp == '/') {
+          sp++;
+          /* no multivalued RDN by default */
+          mval[ne_num+1] = 0;
+          break;
+        }
+        else if (*sp == '+' && multirdn) {
+          /* a not escaped + signals a mutlivalued RDN */
+          sp++;
+          mval[ne_num+1] = -1;
+          break;
+        }
+        else
+          *bp++ = *sp++;
+      }
+      *bp++ = '\0';
+      ne_num++;
+    }
+
+    if (!(n = X509_NAME_new()))
+      goto error;
+
+    for (i = 0; i < ne_num; i++) {
+      if ((nid=OBJ_txt2nid(ne_types[i])) == NID_undef) {
+        std::cerr<<"Subject Attribute "<<ne_types[i]<<" has no known NID, skipped"<<std::endl;
+        continue;
+      }
+      if (!*ne_values[i]) {
+        std::cerr<<"No value provided for Subject Attribute" <<ne_types[i]<<" skipped"<<std::endl;
+        continue;
+      }
+
+      if (!X509_NAME_add_entry_by_NID(n, nid, chtype, (unsigned char*)ne_values[i], -1,-1,mval[i]))
+        goto error;
+    }
+
+    OPENSSL_free(ne_values);
+    OPENSSL_free(ne_types);
+    OPENSSL_free(buf);
+    return n;
+
+error:
+    X509_NAME_free(n);
+    if (ne_values)
+      OPENSSL_free(ne_values);
+    if (ne_types)
+      OPENSSL_free(ne_types);
+    if (buf)
+      OPENSSL_free(buf);
+    return NULL;
+  }
+
+  bool Credential::SignEECRequest(Credential* eec, const std::string& dn, BIO* outputbio) {
     bool res = false;
     if(eec == NULL) {credentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
     if(outputbio == NULL) { credentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
@@ -1661,7 +1777,13 @@ end:
     EVP_PKEY_free(req_pubkey);
 
     X509_set_issuer_name(eec_cert,eec->req_->req_info->subject);
-    X509_set_subject_name(eec_cert,eec->req_->req_info->subject);
+    //X509_set_subject_name(eec_cert,eec->req_->req_info->subject);
+
+    X509_NAME *subject = NULL;
+    unsigned long chtype = MBSTRING_ASC;  //TODO 
+    subject = parse_name((char*)(dn.c_str()), chtype, 0);  
+    X509_set_subject_name(eec_cert, subject);
+    X509_NAME_free(subject);
 
     const EVP_MD *digest=EVP_sha1();
 #ifndef OPENSSL_NO_DSA
@@ -1758,11 +1880,11 @@ end:
     return res;
   }
 
-  bool Credential::SignEECRequest(Credential* eec, std::string &content) {
+  bool Credential::SignEECRequest(Credential* eec, const std::string& dn, std::string &content) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); LogError(); return false;}
 
-    if(SignEECRequest(eec, out)) {
+    if(SignEECRequest(eec, dn, out)) {
       for(;;) {
         char s[256];
         int l = BIO_read(out,s,sizeof(s));
@@ -1774,14 +1896,14 @@ end:
     return true;
   }
 
-  bool Credential::SignEECRequest(Credential* eec, const char* filename) {
+  bool Credential::SignEECRequest(Credential* eec, const std::string& dn, const char* filename) {
     BIO *out = BIO_new(BIO_s_file());
     if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); LogError(); return false;}
     if (!(BIO_write_filename(out, (char*)filename))) {
       credentialLogger.msg(ERROR, "Can not set writable file for signed EEC certificate BIO"); LogError(); BIO_free_all(out); return false;
     }
 
-    if(SignEECRequest(eec, out)) {
+    if(SignEECRequest(eec, dn, out)) {
       credentialLogger.msg(INFO, "Wrote signed eec certificate into a file");
     }
     else {credentialLogger.msg(ERROR, "Failed to write signed EEC certificate into a file"); BIO_free_all(out); return false;    }
