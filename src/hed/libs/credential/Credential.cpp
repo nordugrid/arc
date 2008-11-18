@@ -327,13 +327,13 @@ namespace ArcLib {
 
   }
 
-  Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion, std::string policylang, 
-      std::string policyfile, int pathlength) : 
-         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-         start_(start), lifetime_(lifetime), 
-         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits),
-         proxyversion_(proxyversion), policyfile_(policyfile), policylang_(policylang), pathlength_(pathlength),
-         extensions_(NULL) {
+  Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion, 
+        std::string policylang, std::string policyfile, int pathlength) : 
+        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+        start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL), 
+        signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), proxyversion_(proxyversion), 
+        policyfile_(policyfile), policylang_(policylang), pathlength_(pathlength),
+        extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_md5());
@@ -491,8 +491,9 @@ namespace ArcLib {
     }
   }
 
-  Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cadir, 
-        const std::string& cafile) : cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
+  Credential::Credential(const std::string& certfile, const std::string& keyfile, 
+        const std::string& cadir, const std::string& cafile) : 
+        cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
 
@@ -563,13 +564,15 @@ namespace ArcLib {
     ASN1_OBJECT*      ext_obj = NULL;
     ASN1_OCTET_STRING*  ext_oct = NULL;
 
-    if(!(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)(name.c_str()))))) {
+    //if(!(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)(name.c_str()))))) {
+    if(!(ext_obj = OBJ_txt2obj(name.c_str(), 1))) {  //only numerical format is accept for "name"
       credentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
       LogError(); return NULL;
     }
   
     ext_oct = ASN1_OCTET_STRING_new();
-  
+ 
+    //ASN1_OCTET_STRING_set(ext_oct, data.c_str(), data.size()); 
     ext_oct->data = (unsigned char*) malloc(data.size());
     memcpy(ext_oct->data, data.c_str(), data.size());
     ext_oct->length = data.size();
@@ -1201,7 +1204,7 @@ err:
       if(ext == NULL) { credentialLogger.msg(ERROR, "Can not copy extended KeyUsage extension"); LogError(); goto err; }
 
       //if(!X509_add_ext(*tosign, ext, 0)) {
-      if(!sk_X509_EXTENSION_push(proxy->extensions_, certinfo_ext)) {
+      if(!sk_X509_EXTENSION_push(proxy->extensions_, ext)) {
         credentialLogger.msg(ERROR, "Can not add X509 extended KeyUsage extension to new proxy certificate"); LogError();
         X509_EXTENSION_free(ext); ext = NULL; goto err;
       }
@@ -1267,7 +1270,7 @@ err:
     EVP_PKEY* issuer_priv = NULL;
     EVP_PKEY* issuer_pub = NULL;
     X509*  proxy_cert = NULL;
-    X509_CINF*  proxy_cert_info = NULL;
+    X509_CINF*  cert_info = NULL;
     X509_EXTENSION* ext = NULL;
     EVP_PKEY* req_pubkey = NULL;
     req_pubkey = X509_REQ_get_pubkey(proxy->req_);
@@ -1287,13 +1290,13 @@ err:
      * it also could be the request who add the extension and put it inside X509 request' extension, but here the situation
      * has not been considered for now
      */
-    proxy_cert_info = proxy_cert->cert_info;
-    if (proxy_cert_info->extensions != NULL) {
-      sk_X509_EXTENSION_pop_free(proxy_cert_info->extensions, X509_EXTENSION_free);
+    cert_info = proxy_cert->cert_info;
+    if (cert_info->extensions != NULL) {
+      sk_X509_EXTENSION_pop_free(cert_info->extensions, X509_EXTENSION_free);
     }
 
     if(sk_X509_EXTENSION_num(proxy->extensions_)) {
-      proxy_cert_info->extensions = sk_X509_EXTENSION_new_null();
+      cert_info->extensions = sk_X509_EXTENSION_new_null();
     }    
 
     for (int i=0; i<sk_X509_EXTENSION_num(proxy->extensions_); i++) {
@@ -1302,7 +1305,7 @@ err:
         credentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); goto err;
       }
          
-      if (!sk_X509_EXTENSION_push(proxy_cert_info->extensions, ext)) {
+      if (!sk_X509_EXTENSION_push(cert_info->extensions, ext)) {
         credentialLogger.msg(ERROR,"Failed to add extension into proxy"); LogError(); goto err;
       }
     }
@@ -1381,9 +1384,12 @@ err:
 
  //The following is the methods about how to use a CA credential to sign an EEC
  
-  Credential::Credential(const std::string& CAfile, const std::string& CAkey, const std::string& CAserial, bool CAcreateserial, const std::string& extfile, const std::string& extsect) : certfile_(CAfile), keyfile_(CAkey), CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect),
-        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
+  Credential::Credential(const std::string& CAfile, const std::string& CAkey, 
+       const std::string& CAserial, bool CAcreateserial, const std::string& extfile, 
+       const std::string& extsect) : certfile_(CAfile), keyfile_(CAkey), 
+       CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect),
+       cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
     OpenSSL_add_all_algorithms();
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -1705,8 +1711,32 @@ end:
         throw CredentialError("Error when loading the extenstion config file");
       }
     }
+    
+    //Add extensions to certificate object
+    X509_EXTENSION* ext = NULL;
+    X509_CINF*  cert_info = NULL;
+    cert_info = eec_cert->cert_info;
+    if (cert_info->extensions != NULL) {
+      sk_X509_EXTENSION_pop_free(cert_info->extensions, X509_EXTENSION_free);
+    }
+    if(sk_X509_EXTENSION_num(eec->extensions_)) {
+      cert_info->extensions = sk_X509_EXTENSION_new_null();
+    }
+    for (int i=0; i<sk_X509_EXTENSION_num(eec->extensions_); i++) {
+      ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(eec->extensions_, i));
+      if (ext == NULL) {
+        credentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError();
+        throw CredentialError("Failed to duplicate extension");
+      }
 
-    long lifetime = 12*60*60;
+      if (!sk_X509_EXTENSION_push(cert_info->extensions, ext)) {
+        credentialLogger.msg(ERROR,"Failed to add extension into EEC certificate"); LogError();
+        throw CredentialError("Failed to add extension into EEC certificate");
+      }
+    }
+
+
+    long lifetime = 12*60*60; //Default lifetime 12 hours
     if (!x509_certify(ctx,(char*)(certfile_.c_str()), digest, eec_cert, cert_,
                       pkey_, (char*)(CAserial_.c_str()), CAcreateserial_, lifetime, 0,
                       extconf, (char*)(extsect_.c_str()), NULL)) {
@@ -1723,6 +1753,7 @@ end:
 
     NCONF_free(extconf);
     X509_free(eec_cert);
+    X509_STORE_free(ctx);
 
     return res;
   }
@@ -1759,7 +1790,13 @@ end:
   }
 
   Credential::~Credential() { 
-  //TODO 
+    if(cert_) X509_free(cert_);
+    if(pkey_) EVP_PKEY_free(pkey_);
+    if(cert_chain_) sk_X509_pop_free(cert_chain_, X509_free);
+    if(proxy_cert_info_) PROXYCERTINFO_free(proxy_cert_info_);
+    if(req_) X509_REQ_free(req_);
+    if(rsa_key_) RSA_free(rsa_key_);
+    if(extensions_) sk_X509_EXTENSION_pop_free(extensions_, X509_EXTENSION_free);
   }
 
 }
