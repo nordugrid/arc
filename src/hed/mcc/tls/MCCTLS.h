@@ -5,10 +5,9 @@
 
 namespace Arc {
 
-  //! A base class for SOAP client and service MCCs.
-  /*! This is a base class for SOAP client and service MCCs. It
-    provides some common functionality for them, i.e. so far only a
-    logger.
+  //! A base class for TLS client and service MCCs.
+  /*! This is a base class for TLS client and service MCCs. It
+    provides some common functionality for them.
    */
   class MCC_TLS : public MCC {
   public:
