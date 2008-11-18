@@ -199,7 +199,7 @@ sub _collect($$) {
                            'FINISHING' => 'EXECUTED',
                            'SUBMIT'    => 'PREPARED');
 
-    # We're running ARC1: Always assume GM is up
+    # We're running A-REX: Always assume GM is up
     $host_info->{processes}{'grid-manager'} = 1;
 
     for my $job (values %$gmjobs_info) {

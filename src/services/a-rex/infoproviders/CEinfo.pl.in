@@ -121,7 +121,6 @@ sub main {
         }
     }
 
-    # throw away default queue string following lrms
     ($config{lrms}, $config{defaultqueue}) = split " ", $config{lrms};
 
     ##################################################

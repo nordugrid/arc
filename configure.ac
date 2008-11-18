@@ -33,7 +33,7 @@ ARC_RELATIVE_PATHS
 
 # TODO: where to put init scripts on OS X?
 AC_ARG_WITH(sysv-scripts-location,
-  [  --with-sysv-scripts-location=<PATH>  Location of the SYSV init scripts. [[autodetect]]],
+  AC_HELP_STRING([--with-sysv-scripts-location=<PATH>], [Location of the SYSV init scripts. [[autodetect]]]),
   [ initddir="$withval" ],
   [
     initddir=
