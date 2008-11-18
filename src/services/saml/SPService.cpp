@@ -234,8 +234,8 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   Arc::PayloadRaw* outpayload = NULL;
   outpayload = new Arc::PayloadRaw;
   outpayload->Insert(authnRequestUrl.c_str(),0, authnRequestUrl.size());
-  outmsg.Attributes()->set("HTTP:CODE","302");
-  outmsg.Attributes()->set("HTTP:REASON","Moved Temporarily");
+  //outmsg.Attributes()->set("HTTP:CODE","302");
+  //outmsg.Attributes()->set("HTTP:REASON","Moved Temporarily");
   delete outmsg.Payload(outpayload);
   }
   else {  
@@ -308,8 +308,8 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
       Arc::PayloadRaw* outpayload = NULL;
       outpayload = new Arc::PayloadRaw;
-      std::string authorization_info("SAML2SSO process succeeded");
-      outpayload->Insert(authorization_info.c_str(), 0, authorization_info.size());
+      //std::string authorization_info("SAML2SSO process succeeded");
+      //outpayload->Insert(authorization_info.c_str(), 0, authorization_info.size());
       delete outmsg.Payload(outpayload);
     }
     else if(MatchXMLName(assertion_nd, "Assertion")) {

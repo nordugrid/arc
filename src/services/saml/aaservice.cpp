@@ -38,8 +38,8 @@
 #include <openssl/ebcdic.h>
 #endif
 
-#include "../../hed/libs/common/XmlSecUtils.h"
-#include "../../hed/libs/common/XMLSecNode.h"
+#include <arc/xmlsec/XmlSecUtils.h>
+#include <arc/xmlsec/XMLSecNode.h>
 #include "../../hed/libs/common/MysqlWrapper.h"
 
 #include "aaservice.h"
