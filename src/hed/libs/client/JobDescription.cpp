@@ -1106,9 +1106,13 @@ namespace Arc {
             jobTree["JDLDescription"]["VirtualOrganisation"] = simpleJDLvalue( attributeValue );
             return true;
         } else if ( attributeName == "queuename" ) {
-            if ( !bool( jobTree["JDLDescription"] ) ) jobTree.NewChild("JDLDescription");
-            if ( !bool( jobTree["JDLDescription"]["QueueName"] ) ) jobTree["JDLDescription"].NewChild("QueueName");
-            jobTree["JDLDescription"]["QueueName"] = simpleJDLvalue( attributeValue );
+            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+            if ( !bool( jobTree["JobDescription"]["Resources"] ) ) jobTree["JobDescription"].NewChild("Resources");
+            if ( !bool( jobTree["JobDescription"]["Resources"]["CandidateTarget"] ) )
+                jobTree["JobDescription"]["Resources"].NewChild("CandidateTarget");
+            if ( !bool( jobTree["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"] ) )
+                jobTree["JobDescription"]["Resources"]["CandidateTarget"].NewChild("QueueName");
+            jobTree["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"] = simpleJDLvalue( attributeValue );
             return true;
         } else if ( attributeName == "retrycount" ) {
             int count = atoi( simpleJDLvalue( attributeValue ).c_str() );
