@@ -30,9 +30,13 @@ namespace Arc {
 
     /** Send HTTP request and receive response. */
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
-                       HTTPClientInfo *info, PayloadRawInterface **response, std::string& idp_name);
+                       HTTPClientInfo *info, PayloadRawInterface **response, 
+                       const std::string& idp_name, const std::string& username, 
+                       const std::string& password);
     MCC_Status process(const std::string& method, const std::string& path, PayloadRawInterface *request,
-                       HTTPClientInfo *info, PayloadRawInterface **response, std::string& idp_name);
+                       HTTPClientInfo *info, PayloadRawInterface **response, 
+                       const std::string& idp_name, const std::string& username, 
+                       const std::string& password);
   private:
     ClientHTTP* http_client_;
     bool authn_;
@@ -52,10 +56,13 @@ namespace Arc {
                bool tls, const std::string& path);
     virtual ~ClientSOAPwithSAML2SSO();
     /** Send SOAP request and receive response. */
-    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response, std::string& idp_name);
+    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response, 
+                       const std::string& idp_name, const std::string& username, 
+                       const std::string& password);
     /** Send SOAP request with specified SOAP action and receive response. */
-    MCC_Status process(const std::string& action, PayloadSOAP *request,
-                       PayloadSOAP **response, std::string& idp_name);
+    MCC_Status process(const std::string& action, PayloadSOAP *request, PayloadSOAP **response, 
+                       const std::string& idp_name, const std::string& username, 
+                       const std::string& password);
   private:
     ClientSOAP* soap_client_;
     bool authn_;

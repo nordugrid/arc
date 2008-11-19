@@ -38,8 +38,9 @@ namespace Arc {
     if(http_client_) delete http_client_;
   }
 
-  static MCC_Status process_saml2sso(const std::string& idp_name, ClientHTTP* http_client, 
-     std::string& cert_file, std::string& privkey_file, std::string& ca_file, std::string& ca_dir, Logger& logger) {
+  static MCC_Status process_saml2sso(const std::string& idp_name, const std::string& username, 
+          const std::string& password, ClientHTTP* http_client, std::string& cert_file, 
+          std::string& privkey_file, std::string& ca_file, std::string& ca_dir, Logger& logger) {
 
   // -------------------------------------------
   // User-Agent: Send an empty http request to SP, the saml2sso process
@@ -167,7 +168,9 @@ namespace Arc {
               redirect_url_final.Protocol() == "https" ? 1:0, redirect_url_final.Path());
     Arc::PayloadRaw redirect_request_final;
 
-    std::string login_html("j_username=myself&j_password=myself");
+    //std::string login_html("j_username=myself&j_password=myself");
+    std::string login_html;
+    login_html.append("j_username=").append(username).append("&j_password=").append(password);
     redirect_request_final.Insert(login_html.c_str(),0,login_html.size());
     std::map<std::string, std::string> http_attributes;
     http_attributes["Content-Type"] = "application/x-www-form-urlencoded";
@@ -257,18 +260,21 @@ namespace Arc {
   MCC_Status ClientHTTPwithSAML2SSO::process(const std::string& method,
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info,
-                                 PayloadRawInterface **response, std::string& idp_name) {
-    return(process(method, "", request, info, response, idp_name));
+                                 PayloadRawInterface **response, const std::string& idp_name,
+                                 const std::string& username, const std::string& password) {
+    return(process(method, "", request, info, response, idp_name, username, password));
   }
 
   MCC_Status ClientHTTPwithSAML2SSO::process(const std::string& method,
                                  const std::string& path,
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info,
-                                 PayloadRawInterface **response, std::string& idp_name) {
+                                 PayloadRawInterface **response, const std::string& idp_name,
+                                 const std::string& username, const std::string& password) {
     if(!authn_) { //If has not yet passed the saml2sso process
       //Do the saml2sso
-      Arc::MCC_Status status = process_saml2sso(idp_name, http_client_, cert_file_, privkey_file_, ca_file_,ca_dir_, logger);
+      Arc::MCC_Status status = process_saml2sso(idp_name, username, password, 
+              http_client_, cert_file_, privkey_file_, ca_file_,ca_dir_, logger);
       if(!status) {
         logger.msg(Arc::ERROR, "SAML2SSO process failed");
         return MCC_Status();
@@ -297,16 +303,19 @@ namespace Arc {
     if(soap_client_) delete soap_client_;
   }
   
-  MCC_Status ClientSOAPwithSAML2SSO::process(PayloadSOAP *request, PayloadSOAP **response, std::string& idp_name) {
-    return process("", request, response, idp_name); 
+  MCC_Status ClientSOAPwithSAML2SSO::process(PayloadSOAP *request, PayloadSOAP **response, 
+                  const std::string& idp_name, const std::string& username, const std::string& password) {
+    return process("", request, response, idp_name, username, password); 
   }
   
   MCC_Status ClientSOAPwithSAML2SSO::process(const std::string& action, PayloadSOAP *request,
-                       PayloadSOAP **response, std::string& idp_name) {
+                  PayloadSOAP **response, const std::string& idp_name, 
+                  const std::string& username, const std::string& password) {
     //Do the saml2sso
     if(!authn_) { //If has not yet passed the saml2sso process
       ClientHTTP* http_client = dynamic_cast<ClientHTTP*>(soap_client_);
-      Arc::MCC_Status status = process_saml2sso(idp_name, http_client, cert_file_, privkey_file_, ca_file_,ca_dir_, logger);
+      Arc::MCC_Status status = process_saml2sso(idp_name, username, password, 
+              http_client, cert_file_, privkey_file_, ca_file_,ca_dir_, logger);
       if(!status) {
         logger.msg(Arc::ERROR, "SAML2SSO process failed");
         return MCC_Status();
