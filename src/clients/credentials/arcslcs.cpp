@@ -62,31 +62,31 @@ int main(int argc, char* argv[]){
 
   std::string idp_name;
   options.AddOption('I', "idp", istring("IdP name"),
-		    istring("name"), idp_name);
+		    istring("string"), idp_name);
 
-  std::string user;
+  std::string username;
   options.AddOption('U', "user", istring("User account to IdP"),
-		    istring("username"), user);
+		    istring("string"), username);
 
   std::string password;
   options.AddOption('P', "password", istring("Password for user account to IdP"),
-		    istring("password"), password);
+		    istring("string"), password);
 
-  int keysize;
+  int keysize = 1024;
   options.AddOption('Z', "keysize", istring("Key size of the private key (512, 1024, 2048)"),
-		    istring("size"), keysize);
+		    istring("number"), keysize);
 
   std::string keypass;
   options.AddOption('K', "keypass", istring("Private key passphrase"),
                     istring("passphrase"), keysize);
 
-  int lifetime;
+  int lifetime = 12;
   options.AddOption('L', "lifetime", istring("Lifetime of the certificate, start with current time, hour as unit"),
-                    istring("time"), lifetime);
+                    istring("period"), lifetime);
 
   std::string storedir;
   options.AddOption('D', "storedir", istring("Store directory for key and signed certificate"),
-                    istring("path"), storedir);
+                    istring("directory"), storedir);
 
   std::string conffile;
   options.AddOption('c', "conffile",
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]){
     out_cert_req.write(cert_req_str.c_str(), cert_req_str.size());
     out_cert_req.close();
     std::string private_key;
-    request.OutputPrivatekey(private_key);
+    request.OutputPrivatekey(private_key, true);
     std::ofstream out_key(key_path.c_str(), std::ofstream::in);
     out_key.write(private_key.c_str(), private_key.size());
     out_key.close();
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]){
 
     Arc::PayloadSOAP* resp_soap = NULL;
     if(client_soap) {
-      Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap, idp_name);
+      Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap, idp_name, username, password);
       if(!status) {
         logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
         throw std::runtime_error("SOAP with SAML2SSO invokation failed");
