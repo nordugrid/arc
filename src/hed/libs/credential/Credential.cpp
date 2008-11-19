@@ -17,14 +17,17 @@ namespace ArcLib {
     Logger Credential::credentialLogger(Logger::rootLogger, "Credential");
 
 #define PASS_MIN_LENGTH 4
-  static int passwordcb(char* pwd, int len, int, void*) {
+  static int passwordcb(char* pwd, int len, int verify, void*) {
     int j, r;
     char prompt[128];
     for(;;) {
-      snprintf(prompt, sizeof(prompt), "Enter passphrase for the encrypted key file: ");
-      r = EVP_read_pw_string(pwd, len, prompt, 0);
+      if(!verify)
+        snprintf(prompt, sizeof(prompt), "Enter passphrase to decrypte the key file: ");
+      else
+        snprintf(prompt, sizeof(prompt), "Enter passphrase to encrypte the key file: ");
+      r = EVP_read_pw_string(pwd, len, prompt, verify);
       if(r != 0) {
-        std::cerr<<"Failed to read read input passphrase"<<std::endl;
+        std::cerr<<"Failed to read input passphrase"<<std::endl;
         memset(pwd,0,(unsigned int)len);
         return(-1);
       }
@@ -778,11 +781,17 @@ namespace ArcLib {
     return true;
   }
 
-  bool Credential::OutputPrivatekey(std::string &content) {
+  bool Credential::OutputPrivatekey(std::string &content, bool encryption) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     EVP_CIPHER *enc = NULL;
-    if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,NULL,NULL)) { BIO_free_all(out); return false; };
+    if(!encryption) {
+      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,NULL,NULL)) { BIO_free_all(out); return false; };
+    }
+    else {
+      enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
+      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,NULL)) { BIO_free_all(out); return false; };
+    }
     for(;;) {
       char s[256];
       int l = BIO_read(out,s,sizeof(s));

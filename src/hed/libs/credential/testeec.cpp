@@ -45,8 +45,8 @@ int main(void) {
 
   //Request side, output private key
   std::string private_key;
-  request.OutputPrivatekey(private_key);
-  std::ofstream out_f(out_keyfile.c_str(), std::ofstream::app);
+  request.OutputPrivatekey(private_key, true);
+  std::ofstream out_f(out_keyfile.c_str());
   out_f.write(private_key.c_str(), private_key.size());
   out_f.close();
 

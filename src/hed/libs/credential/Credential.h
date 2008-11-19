@@ -168,8 +168,10 @@ class Credential {
     /**Get the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
     std::string GetProxyPolicy(void);
 
-    /**Output the private key into string*/
-    bool OutputPrivatekey(std::string &content);
+    /**Output the private key into string
+    *@param encryption, whether encrypt the output private key or not
+    */
+    bool OutputPrivatekey(std::string &content,  bool encryption = false);
 
     /**Output the public key into string*/
     bool OutputPublickey(std::string &content);
