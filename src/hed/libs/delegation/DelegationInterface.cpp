@@ -574,7 +574,6 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   if(!(restrictions_["validityStart"].empty())) {
     validity_start=Time(restrictions_["validityStart"]).GetTime();
   };
-  if(validity_start < time(NULL)) validity_start = time(NULL);//Start time should not be before current time
   if(!(restrictions_["validityEnd"].empty())) {
     validity_end=Arc::Time(restrictions_["validityEnd"]).GetTime();
   } else if(!(restrictions_["validityPeriod"].empty())) {
