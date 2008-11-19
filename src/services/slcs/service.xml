@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
+  xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
+  xmlns:slcs="http://www.nordugrid.org/schemas/ArcConfig/2007/slcs"
+>
+
+    <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+        <Path>../../services/saml/.libs/</Path>
+        <Path>../../services/slcs/.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arcpdc</Name></Plugins>
+    <Plugins><Name>saml2sp</Name></Plugins>
+    <Plugins><Name>slcs</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	    <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
+	    <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
+	    <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+            <!--tls:ClientAuthn>false</tls:ClientAuthn-->
+	</Component>
+        <Component name="http.service" id="http">
+            <next id="plexer">POST</next>
+            <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="samlsp">/saml2sp</next>
+            <next id="soap">/slcs</next>
+        </Plexer>
+        <Component name="soap.service" id="soap">
+	    <next id="slcs"/>
+            <SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/>
+        </Component>
+        <Service name='saml.sp' id='samlsp'>
+            <MetaDataLocation>./test_metadata.xml</MetaDataLocation>
+            <ServiceProviderName>https://squark.uio.no/shibboleth-sp</ServiceProviderName>
+        </Service>
+        <Service name="slcs" id="slcs">
+            <next id="slcs"/>
+            <slcs:CACertificate>./CAcert.pem</slcs:CACertificate>
+            <slcs:CAKey>./CAkey.pem</slcs:CACertificate>
+            <slcs:CASerial>./CAserial</slcs:CASerial>
+        </Service>
+    </Chain>
+</ArcConfig>

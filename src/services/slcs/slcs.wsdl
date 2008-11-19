@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://www.nordugrid.org/schemas/slcs"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+ xmlns:slcs="http://www.nordugrid.org/schemas/slcs">
+
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/slcs">
+
+      <xsd:complexType name="X509RequestType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+      </xsd:complexType>
+
+      <xsd:complexType name="X509ResponseType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+      </xsd:complexType>
+
+      <xsd:complexType name="GetSLCSCertificateRequestType">
+        <xsd:sequence>
+          <xsd:element name="X509Request" type="slcs:X509RequestType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="GetSLCSCertificateRequest" type="slcs:GetSLCSCertificateRequestType"/>
+		
+      <xsd:complexType name="GetSLCSCertificateResponseType">
+        <xsd:sequence>
+          <xsd:element name="X509Response" type="slcs:X509ResponseType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="GetSLCSCertificateResponse" type="slcs:GetSLCSCertificateResponseType"/>
+		
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="GetSLCSCertificateRequest">
+    <wsdl:part name="GetSLCSCertificateRequest" element="slcs:GetSLCSCertificateRequest"/>
+  </wsdl:message>
+
+  <wsdl:message name="GetSLCSCertificateResponse">
+    <wsdl:part name="GetSLCSCertificateResponse" element="slcs:GetSLCSCertificateResponse"/>
+  </wsdl:message>
+
+  <wsdl:portType name="slcs">
+    <wsdl:operation name="GetSLCSCertificate">
+      <wsdl:input name="GetSLCSCertificateRequest"
+        message="slcs:GetSLCSCertificateRequest"/>
+      <wsdl:output name="GetSLCSCertificateResponse"
+        message="slcs:GetSLCSCertificateResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="slcs" type="slcs:slcs">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GetSLCSCertificate">
+      <soap:operation soapAction="GetSLCSCertificate"/>
+      <wsdl:input name="GetSLCSCertificateRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="GetSLCSCertificateResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="slcs">
+    <wsdl:port name="slcs" binding="slcs:slcs">
+      <soap:address location="http://localhost:80"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/slcs"
+  elementFormDefault="qualified">
+
+    <!-- CACertificate, this element defines the location of CA certificate, which 
+         together with CAKey will be used for signing the SLCS certificate 
+    -->
+    <xsd:element name="CACertificate" type="CACertificateType"/>
+    <xsd:complexType name="CACertificateType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <!-- CAKey, this element defines the location of CA key 
+    -->
+    <xsd:element name="CAKey" type="CAKeyType"/>
+    <xsd:complexType name="CAKeyType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <!-- CASerial, this element defines the location of serial number of signed 
+         certificate, which will be used for accounting the certificates that has 
+         already be signed.
+    -->
+    <xsd:element name="CASerial" type="CASerialType"/>
+    <xsd:complexType name="CASerialType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+</xsd:schema>
+
