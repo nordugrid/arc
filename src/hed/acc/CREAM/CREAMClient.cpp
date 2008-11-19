@@ -3,11 +3,17 @@
 #endif
 
 #include <glibmm/miscutils.h>
+#include <vector>
+#include <string>
+
 
 #include <arc/client/ClientInterface.h>
 #include <arc/message/MCC.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
+#include <arc/DateTime.h>
+#include <arc/client/JobDescription.h>
+#include <arc/StringConv.h>
 
 #include "CREAMClient.h"
 #include "OpenSSLFunctions.h"
@@ -15,6 +21,117 @@
 namespace Arc {
 
   Logger CREAMClient::logger(Logger::rootLogger, "CREAM-Client");
+  Logger local_logger(Logger::rootLogger, "CREAM-Client");
+
+  bool Setting_Checker(const XMLNode node) {
+    if ( node == 0 || (std::string)node == "N/A" || (std::string)node == "[reserved]")
+       return false;
+    return true;
+  }
+
+  //This is splits the string str by any char appears in delim and put it into the results vector.  
+  void StringSplit(std::string str, std::string delim, std::vector<std::string>& results, bool rem_wsp=true){
+    if (rem_wsp){
+       //replace the whitespace characters (\n) with " "
+       size_t found;
+       std::string whitespaces("\n");
+    
+       found=str.find_first_of( whitespaces );
+       while (found!=std::string::npos){
+ 	   str[found]=' ';
+	   found=str.find_first_of( whitespaces ,found+1);
+       }
+    }
+		    
+    //split the string   
+    int cutAt;
+    while( (cutAt = str.find_first_of(delim)) != (int)str.npos ){
+       if(cutAt > 0)
+         results.push_back(str.substr(0,cutAt));
+
+       str = str.substr(cutAt+1);
+    }
+
+    if (str.length() > 0)
+       results.push_back(str);
+  }
+
+  //This funtion is convert from the Proxy time to valid Time string.
+  std::string Str_to_TimeStr( std::string timestring ){
+    if ( timestring == "" || timestring.length() < 16 )
+       return "";
+
+    //The conversion for example:
+    //before: 11/5/08 11:52 PM
+    //after:  2008-11-05T23:52:00.000Z
+    
+    int year;
+    int month;
+    int day;
+    int hour;
+    int min;
+    std::string AMorPM;
+    std::string::size_type pos = 0;
+    if(sscanf(timestring.substr(pos, 8).c_str(),
+              "%2d/%2d/%2d",
+	      &month,
+	      &day,
+	      &year) == 3)
+       pos += 8;
+    else if(sscanf(timestring.substr(pos, 7).c_str(),
+              "%2d/%d/%2d",
+	      &month,
+    	      &day,
+	      &year) == 3)
+       pos += 7;
+    else if(sscanf(timestring.substr(pos, 7).c_str(),
+              "%d/%2d/%2d",
+	      &month,
+    	      &day,
+	      &year) == 3)
+       pos += 7;
+    else if(sscanf(timestring.substr(pos, 6).c_str(),
+              "%d/%d/%2d",
+	      &month,
+    	      &day,
+	      &year) == 3)
+       pos += 6;
+    else {
+       Arc::local_logger.msg(ERROR, "Can not parse date: " + timestring);
+       return "";
+    }									    
+  
+    if(timestring[pos] == 'T' || timestring[pos] == ' ') pos++;
+     
+    if(sscanf(timestring.substr(pos, 5).c_str(),
+ 	     "%2d:%2d",
+	     &hour,
+	     &min) == 2)
+       pos += 5;
+    else {
+       Arc::local_logger.msg(ERROR, "Can not parse time: " + timestring);
+       return "";
+    }
+
+    // skip the space characters
+    if(timestring[pos] == ' ') {
+	pos++;
+	while(timestring[pos] == ' ') pos++;
+    }
+
+    AMorPM = timestring.substr(pos,pos+2);										    
+  
+    year += 2000;
+    
+    if ( AMorPM == "PM")
+       hour += 12;
+
+    std::ostringstream oss;
+    oss << year << "-" << month << "-" << day << "T" << hour << ":" << min << ":00.000Z";
+    std::string result(oss.str());
+    
+    return result;
+  }
 
   static void set_cream_namespaces(NS& ns) {
     ns["SOAP-ENV"] = "http://schemas.xmlsoap.org/soap/envelope/";
@@ -83,7 +200,169 @@ namespace Arc {
       last_status_id++;
     }
 
-    job.State = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["name"];
+    //Set the job's attributes
+    if (last_status_id > 0)
+       job.State = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["name"];
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"]) &&
+        Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"]) ){
+       Arc::URL url_obj( (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"] + "/" + (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"] );
+       job.JobID = url_obj;
+    }
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["type"]))
+       job.Type = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["type"];
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"]) ){
+       Arc::URL url_obj( (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"] );
+       job.IDFromEndpoint = url_obj;
+    }
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"]) )
+       job.LocalIdFromManager = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"];
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["JDL"])){
+       job.JobDescription = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["JDL"];
+       
+       Arc::JobDescription jd;
+       if (jd.setSource(job.JobDescription) && jd.isValid()){
+          Arc::XMLNode jd_xml;
+          jd_xml = jd.getXML();
+           
+          if ( jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"] != 0 &&
+              (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"] != "" )        
+             job.StdIn = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"];
+
+          if ( jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"] != 0 &&
+              (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"] != "" )        
+             job.StdOut = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"];
+
+          if ( jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"] != 0 &&
+              (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"] != "" )        
+             job.StdErr = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"];
+
+          if ( jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"] != 0 &&
+              (std::string)jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"] != "" )        
+             job.Queue = (std::string)jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"];
+
+/*           job.RequestedWallTime =
+             job.RequestedTotalCPUTime =
+             job.RequestedMainMemory =
+             job.RequestedSlots =
+*/
+       }
+    }
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["exitCode"]))
+       job.ExitCode = stringtoi((*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["exitCode"]);
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["name"]) &&
+        (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["name"] == "DONE-FAILED")
+       job.Error.push_back((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["failureReason"]);
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["delegationProxyInfo"])){
+       std::string delegationProxy = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["delegationProxyInfo"];
+       std::vector<std::string> splited_proxy;
+       Arc::StringSplit(delegationProxy, "\n", splited_proxy, false);
+       std::vector<std::string>::iterator it;
+       for ( it=splited_proxy.begin(); it < splited_proxy.end(); it++ ){
+           if ( (*it).find("Holder Subject") < (*it).find(":") ) {
+              job.Owner = (*it).substr( (*it).find_first_of(":")+1 ); 
+	   }
+           if ( (*it).find("Valid To") < (*it).find(":") ) {
+              Arc::Time time( Arc::Str_to_TimeStr( (*it).substr( (*it).find_first_of(":")+2 ) ) );
+	      if (time.GetTime() != -1)
+	         job.ProxyExpirationTime = time;
+	   }
+       }
+    }
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["localUser"]))
+       job.LocalOwner = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["localUser"];
+       
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"]) ){
+       job.ExecutionCE = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"];
+       job.JobManagementEndpoint = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"];
+    }
+
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"]) ){
+       int job_register_id_first = -1;
+       int job_register_id_last = -1;
+       int job_start_id_first = -1;
+       int job_start_id_last = -1;
+       int local_id = 0;
+       while (true) {
+         if ((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][local_id] == 0 ) break;
+	 if ((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][local_id]["name"] == "JOB_REGISTER"){
+	    if ( job_register_id_first == -1 && job_register_id_last == -1 ){
+	       job_register_id_first = local_id;
+	       job_register_id_last = local_id;
+	    }
+	    else if ( job_register_id_last > -1 ){
+	       job_register_id_last = local_id;
+	    }
+	 } //end of the JOB_REGISTER      
+
+	 if ((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][local_id]["name"] == "JOB_START"){
+	    if ( job_start_id_first == -1 && job_start_id_last == -1 ){
+	       job_start_id_first = local_id;
+	       job_start_id_last = local_id;
+	    }
+	    else if ( job_start_id_last > -1 ){
+	       job_start_id_last = local_id;
+	    }
+	 } //end of the JOB_START     
+         local_id++;
+       }
+       	 
+       //dependent from the JOB_REGISTER
+       if ( job_register_id_first > -1 ){      
+          if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_register_id_first]["creationTime"])){
+              Arc::Time time((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_register_id_first]["creationTime"]);
+	      if (time.GetTime() != -1)
+                 job.SubmissionTime = time;
+          }
+       }
+
+       if ( job_register_id_last > -1 ){      
+          if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_register_id_last]["creationTime"])){
+              Arc::Time time((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_register_id_last]["creationTime"]);
+	      if (time.GetTime() != -1)
+                 job.CreationTime = time;
+          }
+       }//end of the JOB_REGISTER
+       
+       //dependent from the JOB_START
+       if ( job_start_id_first > -1 ){                   
+          if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_start_id_first]["startSchedulingTime"])){
+              Arc::Time time((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_start_id_first]["startSchedulingTime"]);
+	      if (time.GetTime() != -1)
+                 job.ComputingManagerSubmissionTime = time;
+          }
+
+          if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_start_id_first]["startProcessingTime"])){
+              Arc::Time time((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_start_id_first]["startProcessingTime"]);
+	      if (time.GetTime() != -1)
+                 job.StartTime = time;
+          }
+       }
+
+       if ( job_start_id_last > -1 ){            
+          if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_start_id_last]["executionCompletedTime"])){
+              Arc::Time time((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][job_start_id_last]["executionCompletedTime"]);
+	      if (time.GetTime() != -1)
+                 job.ComputingManagerEndTime = time;
+          }
+       }//end of the JOB_START     
+    } //end of the LastCommand
+    
+    if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["timestamp"]) &&
+        ((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["name"] == "DONE-OK" ||
+	 (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["name"] == "DONE-FAILED") ){
+       Arc::Time time((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id-1]["timestamp"]);
+       if (time.GetTime() != -1)
+          job.EndTime = time;
+    }
 
     if ((*resp)["JobInfoResponse"]["result"]["JobUnknownFault"])
       (*resp)["JobInfoResponse"]["result"]["JobUnknownFault"].New(fault);
