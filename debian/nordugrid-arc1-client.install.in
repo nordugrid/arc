@@ -1,5 +1,6 @@
 usr/bin/arcinfo
 usr/bin/arcproxy
+usr/bin/arcslcs
 usr/bin/arcecho
 usr/bin/perftest
 usr/bin/arccat
@@ -16,6 +17,7 @@ usr/bin/arcdecision
 usr/share/man/man1/arcecho.1
 usr/share/man/man1/arcinfo.1
 usr/share/man/man1/arcproxy.1
+#usr/share/man/man1/arcslcs.1
 usr/share/man/man1/arccat.1
 usr/share/man/man1/arcstat.1
 usr/share/man/man1/arcsub.1
