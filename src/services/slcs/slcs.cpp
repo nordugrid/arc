@@ -40,6 +40,43 @@ Arc::MCC_Status Service_SLCS::make_soap_fault(Arc::Message& outmsg) {
 Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
 
+  if(!ProcessSecHandlers(inmsg,"incoming")) {
+    logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+    return Arc::MCC_Status();
+  };
+
+  //Get identity-related information from saml assertion which has been put 
+  //as MessageAuthContext by SPService on the same connection as this slcs service
+  std::string identity;
+  std::string ou, cn;
+  std::string saml_assertion_str; 
+  {
+    Arc::SecAttr* sattr = inmsg.Auth()->get("SAMLAssertion");
+    Arc::XMLNode saml_assertion_nd;
+    if(sattr->Export(Arc::SecAttr::SAML, saml_assertion_nd)) {
+      saml_assertion_nd.GetXML(saml_assertion_str);
+      //The following code is IdP implementation specific. So for
+      //different types of saml assertion got from IdP, different 
+      //ways should be implemented here to get the identity-related
+      //information. 
+      //Probably, a specific sec handler is needed here for the identity parsing.
+      Arc::XMLNode attr_statement = saml_assertion_nd["AttributeStatement"];
+      for(int i=0;; i++) {
+        Arc::XMLNode cnd = attr_statement.Child(i);
+        if(!cnd) break;
+        if((std::string)(cnd.Attribute("FriendlyName")) == "eduPersonPrincipalName") {
+          identity = (std::string)(cnd["AttributeValue"]);
+          std::size_t pos;
+          pos = identity.find("@");
+          if(pos != std::string::npos) {
+            cn = identity.substr(0, pos);
+            ou = identity.substr(pos+1);
+          };
+        };
+      };
+    };
+  };
+
   // Identify which of served endpoints request is for.
   // SLCS can only accept POST method
   if(method == "POST") {
@@ -82,15 +119,24 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     ArcLib::Credential eec;
     eec.InquireRequest(x509_req, true);
 
-    /* TODO: add extensions, e.g. saml extension parsed from SPService
+    // TODO: add extensions, e.g. saml extension parsed from SPService
+    /*
     std::string ext_data("test extension data");
     if(!(eec.AddExtension("1.2.3.4", ext_data))) {
       std::cout<<"Failed to add an extension to certificate"<<std::endl;
     }
     */
-    std::string dn("/O=KnowARC/OU=UIO/CN=Test001"); 
+    if(!(eec.AddExtension("1.3.6.1.4.1.3536.1.1.1.10", saml_assertion_str))) { //Need to investigate the OID 
+      std::cout<<"Failed to add saml extension to certificate"<<std::endl;
+    }
+
+    //std::string dn("/O=KnowARC/OU=UIO/CN=Test001"); 
     //TODO: compose the base name from configuration and name from saml assertion?
- 
+    std::string dn("/O=KnowARC/OU=");
+    dn.append(ou).append("/CN=").append(cn);
+    logger_.msg(Arc::INFO, "Composed DN: %s",dn.c_str());
+
+
     //Sign the certificate
     std::string x509_cert;
     ca_credential_->SignEECRequest(&eec, dn, x509_cert);
@@ -102,6 +148,13 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     x509_res_nd = x509_cert;
 
     outmsg.Payload(outpayload);
+
+    if(!ProcessSecHandlers(outmsg,"outgoing")) {
+      logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+      delete outmsg.Payload(NULL);
+      return Arc::MCC_Status();
+    };
+
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
   else {
