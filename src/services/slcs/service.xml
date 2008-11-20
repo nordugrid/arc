@@ -13,6 +13,7 @@
         <Path>../../hed/mcc/tls/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
+        <Path>../../hed/pdc/.libs/</Path>
         <Path>../../services/saml/.libs/</Path>
         <Path>../../services/slcs/.libs/</Path>
     </ModuleManager>
@@ -51,10 +52,10 @@
             <MetaDataLocation>./test_metadata.xml</MetaDataLocation>
             <ServiceProviderName>https://squark.uio.no/shibboleth-sp</ServiceProviderName>
         </Service>
-        <Service name="slcs" id="slcs">
+        <Service name="slcs.service" id="slcs">
             <next id="slcs"/>
             <slcs:CACertificate>./CAcert.pem</slcs:CACertificate>
-            <slcs:CAKey>./CAkey.pem</slcs:CACertificate>
+            <slcs:CAKey>./CAkey.pem</slcs:CAKey>
             <slcs:CASerial>./CAserial</slcs:CASerial>
         </Service>
     </Chain>
