@@ -66,7 +66,8 @@ class Credential {
     */
     Credential(const std::string& CAfile, const std::string& CAkey, 
                const std::string& CAserial, bool CAcreateserial, 
-               const std::string& extfile, const std::string& extsect);
+               const std::string& extfile, const std::string& extsect,
+               const std::string& passphrase4key = "");
 
     /**Constructor, specific constructor for proxy certificate, only acts as a 
     * container for generating certificate request, is meaningless for any other use.
@@ -96,7 +97,7 @@ class Credential {
     * information, and put them into "this" object
     */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir, 
-               const std::string& cafile);
+               const std::string& cafile, const std::string& passphrase4key = "");
 
     /**Initiate nid for proxy certificate extension*/
     void static InitProxyCertInfo(void);
@@ -108,7 +109,7 @@ class Credential {
     static Arc::Logger credentialLogger;
 
     /**load key from argument keybio, and put key information into argument pkey */
-    void loadKey(BIO* &keybio, EVP_PKEY* &pkey);
+    void loadKey(BIO* &keybio, EVP_PKEY* &pkey, const std::string& passphrase = "");
 
     /**load certificate from argument certbio, and put certificate information into 
     * argument cert and certchain 
@@ -170,8 +171,9 @@ class Credential {
 
     /**Output the private key into string
     *@param encryption, whether encrypt the output private key or not
+    *@param passphrase, the passphrase to encrypt the output private key
     */
-    bool OutputPrivatekey(std::string &content,  bool encryption = false);
+    bool OutputPrivatekey(std::string &content,  bool encryption = false, const std::string& passphrase ="");
 
     /**Output the public key into string*/
     bool OutputPublickey(std::string &content);

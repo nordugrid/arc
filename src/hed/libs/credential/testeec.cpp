@@ -38,14 +38,16 @@ int main(void) {
   if(!(eec.AddExtension("1.2.3.4", ext_data))) {
     std::cout<<"Failed to add an extension to certificate"<<std::endl;
   }
-
-  ArcLib::Credential signer(CAcert, CAkey, CAserial, 0, "", "");
+  
+  std::string ca_passphrase = "aa1122";
+  ArcLib::Credential signer(CAcert, CAkey, CAserial, 0, "", "", ca_passphrase);
   std::string dn("/O=KnowARC/OU=UIO/CN=Test001");
   signer.SignEECRequest(&eec, dn, out_certfile.c_str());
 
   //Request side, output private key
   std::string private_key;
-  request.OutputPrivatekey(private_key, true);
+  std::string passphrase("12345");
+  request.OutputPrivatekey(private_key, true, passphrase);
   std::ofstream out_f(out_keyfile.c_str());
   out_f.write(private_key.c_str(), private_key.size());
   out_f.close();

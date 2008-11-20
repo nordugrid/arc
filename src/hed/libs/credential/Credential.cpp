@@ -17,14 +17,25 @@ namespace ArcLib {
     Logger Credential::credentialLogger(Logger::rootLogger, "Credential");
 
 #define PASS_MIN_LENGTH 4
-  static int passwordcb(char* pwd, int len, int verify, void*) {
+  static int passwordcb(char* pwd, int len, int verify, void* passphrase) {
     int j, r;
-    char prompt[128];
+    //char prompt[128];
+    const char* prompt;
+    if(passphrase) {
+      j=strlen((const char*)passphrase);
+      j=(j > len)?len:j;
+      memcpy(pwd,passphrase,j);
+      return(j);
+    }
+    prompt=EVP_get_pw_prompt();
+    if (prompt == NULL)
+      prompt="Enter PEM pass phrase:";
+
     for(;;) {
-      if(!verify)
-        snprintf(prompt, sizeof(prompt), "Enter passphrase to decrypte the key file: ");
-      else
-        snprintf(prompt, sizeof(prompt), "Enter passphrase to encrypte the key file: ");
+      //if(!verify)
+      //  snprintf(prompt, sizeof(prompt), "Enter passphrase to decrypte the key file: ");
+      //else
+      //  snprintf(prompt, sizeof(prompt), "Enter passphrase to encrypte the key file: ");
       r = EVP_read_pw_string(pwd, len, prompt, verify);
       if(r != 0) {
         std::cerr<<"Failed to read input passphrase"<<std::endl;
@@ -32,7 +43,7 @@ namespace ArcLib {
         return(-1);
       }
       j = strlen(pwd);
-      if(j < PASS_MIN_LENGTH) {
+      if(verify && (j < PASS_MIN_LENGTH)) {
         std::cerr<<"Input phrase is too short (at least "<<PASS_MIN_LENGTH<<" chars)"<<std::endl;
       }
       else { return j; }
@@ -228,14 +239,17 @@ namespace ArcLib {
 
   }
 
-  void Credential::loadKey(BIO* &keybio, EVP_PKEY* &pkey) {
+  void Credential::loadKey(BIO* &keybio, EVP_PKEY* &pkey, const std::string& passphrase) {
     //Read key
     Credformat format;
     PKCS12* pkcs12 = NULL;
     format = getFormat(keybio);
+    std::string prompt;
     switch(format){
       case PEM:
-        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, NULL))) {  
+        prompt = "Enter passphrase to decrypt the PEM key file: ";
+        EVP_set_pw_prompt(prompt.c_str());
+        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, (passphrase.empty())?NULL:(void*)(passphrase.c_str())))) {  
           credentialLogger.msg(ERROR,"Can not read credential key from PEM key BIO"); LogError();
           throw CredentialError("Can not read credential key");
         }
@@ -495,7 +509,7 @@ namespace ArcLib {
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile, 
-        const std::string& cadir, const std::string& cafile) : 
+        const std::string& cadir, const std::string& cafile, const std::string& passphrase4key) : 
         cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
@@ -522,11 +536,11 @@ namespace ArcLib {
 
     loadCertificate(certbio, cert_, &cert_chain_);
 
-    if(keybio!=NULL) loadKey(keybio, pkey_);
+    if(keybio!=NULL) loadKey(keybio, pkey_, passphrase4key);
     else {
       //the private key could be in the certificate file, if the certificate is a proxy.
       keybio = BIO_new_file(certfile.c_str(), "r");
-      loadKey(keybio, pkey_);
+      loadKey(keybio, pkey_, passphrase4key);
     }
     
     //Get the lifetime of the credential
@@ -781,7 +795,7 @@ namespace ArcLib {
     return true;
   }
 
-  bool Credential::OutputPrivatekey(std::string &content, bool encryption) {
+  bool Credential::OutputPrivatekey(std::string &content, bool encryption, const std::string& passphrase) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     EVP_CIPHER *enc = NULL;
@@ -790,7 +804,9 @@ namespace ArcLib {
     }
     else {
       enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
-      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,NULL)) { BIO_free_all(out); return false; };
+      std::string prompt;
+      prompt = "Enter passphrase to encrypt the PEM key file: ";
+      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,(passphrase.empty())?NULL:(void*)(passphrase.c_str()))) { BIO_free_all(out); return false; };
     }
     for(;;) {
       char s[256];
@@ -1395,7 +1411,7 @@ err:
  
   Credential::Credential(const std::string& CAfile, const std::string& CAkey, 
        const std::string& CAserial, bool CAcreateserial, const std::string& extfile, 
-       const std::string& extsect) : certfile_(CAfile), keyfile_(CAkey), 
+       const std::string& extsect, const std::string& passphrase4key) : certfile_(CAfile), keyfile_(CAkey), 
        CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
@@ -1415,7 +1431,7 @@ err:
     }
 
     loadCertificate(certbio, cert_, &cert_chain_);
-    loadKey(keybio, pkey_);
+    loadKey(keybio, pkey_, passphrase4key);
   }
 
   static void print_ssl_errors() {
