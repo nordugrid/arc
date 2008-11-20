@@ -8,6 +8,22 @@
 #include <arc/XMLNode.h>
 
 namespace Arc {
+  /// Export/import format.
+  /** Format is identified by textual identity string. Class description
+     includes basic formats only. That list may be extended. */
+  class SecAttrFormat {
+   private:
+    const char* format_;
+   public:
+    inline SecAttrFormat(const SecAttrFormat& format):format_(format.format_) {};
+    inline SecAttrFormat(const char* format = ""):format_(format) {};
+    inline SecAttrFormat operator=(SecAttrFormat format) { format_=format.format_; return *this; };
+    inline SecAttrFormat operator=(const char* format) { format_=format; return *this; };
+    inline bool operator==(SecAttrFormat format) { return (strcmp(format_,format.format_) == 0); };
+    inline bool operator==(const char* format) { return (strcmp(format_,format) == 0); };
+    inline bool operator!=(SecAttrFormat format) { return (strcmp(format_,format.format_) != 0); };
+    inline bool operator!=(const char* format) { return (strcmp(format_,format) != 0); };
+  };
   /// This is an abstract interface to a security attribute
   /** This class is meant to be inherited to implement security attributes. 
      Depending on what data it needs to store inheriting classes may need to 
@@ -20,31 +36,11 @@ namespace Arc {
      applicable to the particular type. */
   class SecAttr {
    public:
-
-    class Format;
-    /// Export/import format.
-    /** Format is identified by textual identity string. Class description
-       includes basic formats only. That list may be extended. */
-    class Format {
-     private:
-      const char* format_;
-     public:
-      inline Format(const Format& format):format_(format.format_) {};
-      inline Format(const char* format = ""):format_(format) {};
-      inline Format operator=(Format format) { format_=format.format_; return *this; };
-      inline Format operator=(const char* format) { format_=format; return *this; };
-      inline bool operator==(Format format) { return (strcmp(format_,format.format_) == 0); };
-      inline bool operator==(const char* format) { return (strcmp(format_,format) == 0); };
-      inline bool operator!=(Format format) { return (strcmp(format_,format.format_) != 0); };
-      inline bool operator!=(const char* format) { return (strcmp(format_,format) != 0); };
-    };
-    //typedef const char* Format;
-    static Format UNDEFINED; /// own serialization/deserialization format
-    static Format ARCAuth;   /// representation for ARC authorization policy
-    static Format XACML;     /// represenation for XACML policy
-    static Format SAML;      /// suitable for inclusion into SAML structures
-    static Format GACL;      /// representation for GACL policy
-
+    static SecAttrFormat UNDEFINED; /// own serialization/deserialization format
+    static SecAttrFormat ARCAuth;   /// representation for ARC authorization policy
+    static SecAttrFormat XACML;     /// represenation for XACML policy
+    static SecAttrFormat SAML;      /// suitable for inclusion into SAML structures
+    static SecAttrFormat GACL;      /// representation for GACL policy
     SecAttr() {};
     virtual ~SecAttr() {};
     /** This function should (in inheriting classes) return true if this and b 
@@ -65,20 +61,20 @@ namespace Arc {
     /** Convert internal structure into specified format.
       Returns false if format is not supported/suitable for 
       this attribute.  */
-    virtual bool Export(Format format,std::string &val) const;
+    virtual bool Export(SecAttrFormat format,std::string &val) const;
     /** Convert internal structure into specified format.
       Returns false if format is not supported/suitable for 
       this attribute. XML node referenced by @val is turned 
       into top level element of specified format. */
-    virtual bool Export(Format format,XMLNode &val) const;
+    virtual bool Export(SecAttrFormat format,XMLNode &val) const;
 
     /** Fills internal structure from external object of 
        specified format. Retrns false if failed to do. 
        The usage pattern for this method is not defined and
        it is provided only to make class symmetric. Hence
        it's implementation is not required yet. */
-    virtual bool Import(Format format,const std::string &val);
-    virtual bool Import(Format format,const XMLNode &val);
+    virtual bool Import(SecAttrFormat format,const std::string &val);
+    virtual bool Import(SecAttrFormat format,const XMLNode &val);
 
    protected:
     virtual bool equal(const SecAttr &b) const;
@@ -96,12 +92,12 @@ namespace Arc {
     MultiSecAttr() {};
     virtual ~MultiSecAttr() {};
     virtual operator bool() const;
-    virtual bool Export(Format format,XMLNode &val) const;
-    virtual bool Import(Format format,const XMLNode &val);
+    virtual bool Export(SecAttrFormat format,XMLNode &val) const;
+    virtual bool Import(SecAttrFormat format,const XMLNode &val);
    protected:
     std::list<SecAttr*> attrs_;
     virtual bool equal(const SecAttr &b) const;
-    virtual bool Add(Format format,XMLNode &val);
+    virtual bool Add(SecAttrFormat format,XMLNode &val);
   };
 
   

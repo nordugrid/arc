@@ -43,7 +43,7 @@ class SOAPSecAttr: public SecAttr {
   SOAPSecAttr(PayloadSOAP& payload);
   virtual ~SOAPSecAttr(void);
   virtual operator bool(void) const;
-  virtual bool Export(Format format,XMLNode &val) const;
+  virtual bool Export(SecAttrFormat format,XMLNode &val) const;
  protected:
   std::string action_;
   std::string object_;
@@ -72,7 +72,7 @@ bool SOAPSecAttr::equal(const SecAttr &b) const {
   return false;
 }
 
-bool SOAPSecAttr::Export(Format format,XMLNode &val) const {
+bool SOAPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     NS ns;

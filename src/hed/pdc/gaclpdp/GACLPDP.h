@@ -18,7 +18,7 @@ namespace ArcSec {
 
 class GACLPDP: public PDP {
  public:
-  static Arc::SecAttr::Format GACL;
+  static Arc::SecAttrFormat GACL;
   static PDP* get_gacl_pdp(Arc::Config *cfg, Arc::ChainContext *ctx);
   GACLPDP(Arc::Config* cfg);
   virtual ~GACLPDP();

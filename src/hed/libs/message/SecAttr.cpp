@@ -3,11 +3,11 @@
 
 namespace Arc {
 
-SecAttr::Format SecAttr::UNDEFINED;
-SecAttr::Format SecAttr::ARCAuth("arc");
-SecAttr::Format SecAttr::XACML("xacml");
-SecAttr::Format SecAttr::SAML("saml");
-SecAttr::Format SecAttr::GACL("gacl");
+SecAttrFormat SecAttr::UNDEFINED;
+SecAttrFormat SecAttr::ARCAuth("arc");
+SecAttrFormat SecAttr::XACML("xacml");
+SecAttrFormat SecAttr::SAML("saml");
+SecAttrFormat SecAttr::GACL("gacl");
 
 bool SecAttr::equal(const SecAttr&) const {
   return false;
@@ -17,24 +17,24 @@ SecAttr::operator bool() const {
   return false;
 }
 
-bool SecAttr::Export(SecAttr::Format format,std::string &val) const {
+bool SecAttr::Export(SecAttrFormat format,std::string &val) const {
   XMLNode x;
   if(!Export(format,x)) return false;
   x.GetXML(val);
   return true;
 }
 
-bool SecAttr::Export(SecAttr::Format, XMLNode&) const {
+bool SecAttr::Export(SecAttrFormat, XMLNode&) const {
   return false;
 }
 
-bool SecAttr::Import(SecAttr::Format format,const std::string &val) {
+bool SecAttr::Import(SecAttrFormat format,const std::string &val) {
   XMLNode x(val);
   if(!x) return false;
   return Import(format,x);
 }
 
-bool SecAttr::Import(SecAttr::Format, const XMLNode&) {
+bool SecAttr::Import(SecAttrFormat, const XMLNode&) {
   return false;
 }
 
@@ -42,7 +42,7 @@ MultiSecAttr::operator bool() const {
   return !attrs_.empty();
 }
 
-bool MultiSecAttr::Export(Format format,XMLNode &val) const {
+bool MultiSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   // Name of created node to be replaced by inheriting class
   if(!val) {
     NS ns;
@@ -59,7 +59,7 @@ bool MultiSecAttr::Export(Format format,XMLNode &val) const {
   return true;
 }
 
-bool MultiSecAttr::Import(Format format,const XMLNode &val) {
+bool MultiSecAttr::Import(SecAttrFormat format,const XMLNode &val) {
   XMLNode x = val.Child(0);
   for(;(bool)x;x=x[1]) {
     if(!Add(format,x)) return false;
@@ -70,7 +70,7 @@ bool MultiSecAttr::Import(Format format,const XMLNode &val) {
 // This method to be implemented in inheriting classes
 // or there must be an automatic detection of registered
 // object types implemented.
-bool MultiSecAttr::Add(Format, XMLNode&) {
+bool MultiSecAttr::Add(SecAttrFormat, XMLNode&) {
   return false;
 }
 

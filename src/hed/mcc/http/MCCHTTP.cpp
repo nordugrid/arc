@@ -41,7 +41,7 @@ class HTTPSecAttr: public SecAttr {
   HTTPSecAttr(PayloadHTTP& payload);
   virtual ~HTTPSecAttr(void);
   virtual operator bool(void) const;
-  virtual bool Export(Format format,XMLNode &val) const;
+  virtual bool Export(SecAttrFormat format,XMLNode &val) const;
  protected:
   std::string action_;
   std::string object_;
@@ -78,7 +78,7 @@ bool HTTPSecAttr::equal(const SecAttr &b) const {
   return false;
 }
 
-bool HTTPSecAttr::Export(Format format,XMLNode &val) const {
+bool HTTPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     NS ns;

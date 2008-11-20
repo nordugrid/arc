@@ -74,6 +74,8 @@ namespace Arc {
     if (!loader) {
       if (overlay)
 	Overlay(overlay);
+std::string s; xmlcfg.GetXML(s);
+std::cerr<<"Load: cfg: "<<s<<std::endl;
       loader = new Loader(&xmlcfg);
     }
   }
@@ -87,6 +89,7 @@ namespace Arc {
     : ClientInterface(cfg),
       tcp_entry(NULL),
       tls_entry(NULL) {
+std::cerr<<"ClientTCP: "<<host<<":"<<port<<" ("<<tls<<") "<<cfg.proxy<<" "<<cfg.cafile<<" "<<cfg.cadir<<std::endl;
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "tcp.client", "tcp");
     comp.NewAttribute("entry") = "tcp";
     comp = comp.NewChild("Connect");
@@ -161,6 +164,7 @@ namespace Arc {
       host(host),
       port(port),
       tls(tls) {
+std::cerr<<"ClientHTTP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "<<cfg.cadir<<std::endl;
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
 				       tls ? "tls" : "tcp");
     std::string url(tls ? "https" : "http");
@@ -294,6 +298,7 @@ namespace Arc {
 			 int port, bool tls, const std::string& path)
     : ClientHTTP(cfg, host, port, tls, path),
       soap_entry(NULL) {
+std::cerr<<"ClientSOAP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "<<cfg.cadir<<std::endl;
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";

@@ -43,7 +43,7 @@ bool DelegationSecAttr::equal(const SecAttr &b) const {
   return false;
 }
 
-bool DelegationSecAttr::Export(SecAttr::Format format,XMLNode &val) const {
+bool DelegationSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     policy_doc_.New(val);
@@ -67,7 +67,7 @@ bool DelegationMultiSecAttr::Add(const char* policy_str,int policy_size) {
   return true;
 }
 
-bool DelegationMultiSecAttr::Export(Format format,XMLNode &val) const {
+bool DelegationMultiSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(attrs_.size() == 0) return true;
   if(attrs_.size() == 1) return (*attrs_.begin())->Export(format,val);
   if(!MultiSecAttr::Export(format,val)) return false;

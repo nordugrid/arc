@@ -42,7 +42,7 @@ class TLSSecAttr: public Arc::SecAttr {
   TLSSecAttr(PayloadTLSStream&, ConfigTLSMCC& config);
   virtual ~TLSSecAttr(void);
   virtual operator bool(void) const;
-  virtual bool Export(Format format,XMLNode &val) const;
+  virtual bool Export(SecAttrFormat format,XMLNode &val) const;
  protected:
   std::string identity_; // Subject of last non-proxy certificate
   std::list<std::string> subjects_; // Subjects of all certificates in chain
@@ -160,7 +160,7 @@ static void add_subject_attribute(XMLNode item,const std::string& subject,const 
    attr.NewAttribute("AttributeId")=id;
 }
 
-bool TLSSecAttr::Export(Format format,XMLNode &val) const {
+bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     NS ns;

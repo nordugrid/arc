@@ -31,7 +31,7 @@ class MessageAuth {
        if XML tree is empty. If tree at @val is not empty then Export() tries 
        to merge generated information to already existing like everything would 
        be generated inside same Export() method. */
-    bool Export(SecAttr::Format format,XMLNode &val) const;
+    bool Export(SecAttrFormat format,XMLNode &val) const;
     /// Creates new instance of MessageAuth with attributes filtered
     /** In new instance all attributes with keys listed in @rejected_keys are 
       removed. If @selected_keys is not empty only corresponding attributes

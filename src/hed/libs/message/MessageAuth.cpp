@@ -62,7 +62,7 @@ void copy_xml_elements(XMLNode item,XMLNode elements) {
 // as corresponding Subject, Resource or Action.
 // All generated content is merged to existing content in val variable.
 // TODO: Avoid duplicate Context attributes
-bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
+bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
   // Currently only ARCAuth is supported
   if(format != SecAttr::ARCAuth) return false;
   // Making XML document top level Request element
@@ -192,7 +192,7 @@ static void add_new_elements(XMLNode item,XMLNode element) {
 // The Subject from all of the SecAttr goes into every output <RequestItem>,
 // because there is only one request entity (with a few SubjectAttribute)
 //for the incoming  message chain
-bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
+bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
   // Currently only ARCAuth is supported
   if(format != SecAttr::ARCAuth) return false;
   NS ns;

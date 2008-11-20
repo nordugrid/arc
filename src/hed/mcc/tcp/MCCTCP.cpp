@@ -247,7 +247,7 @@ class TCPSecAttr: public SecAttr {
   TCPSecAttr(const std::string& remote_ip, const std::string &remote_port, const std::string& local_ip, const std::string& local_port);
   virtual ~TCPSecAttr(void);
   virtual operator bool(void);
-  virtual bool Export(Format format,XMLNode &val) const;
+  virtual bool Export(SecAttrFormat format,XMLNode &val) const;
  protected:
   std::string local_ip_;
   std::string local_port_;
@@ -285,7 +285,7 @@ static void fill_string_attribute(XMLNode object,std::string value,const char* i
   object.NewAttribute("AttributeId")=id;
 }
 
-bool TCPSecAttr::Export(Format format,XMLNode &val) const {
+bool TCPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     NS ns;
