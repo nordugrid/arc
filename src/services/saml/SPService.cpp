@@ -41,8 +41,8 @@ class SAMLAssertionSecAttr: public Arc::SecAttr {
   SAMLAssertionSecAttr(std::string& str);
   virtual ~SAMLAssertionSecAttr(void);
   virtual operator bool(void) const;
-  virtual bool Export(Format format,XMLNode &val) const;
-  virtual bool Import(Format format, const XMLNode& val);
+  virtual bool Export(SecAttrFormat format,XMLNode &val) const;
+  virtual bool Import(SecAttrFormat format, const XMLNode& val);
  protected:
   virtual bool equal(const SecAttr &b) const;
  private:
@@ -73,7 +73,7 @@ SAMLAssertionSecAttr::operator bool() const {
   return true;
 }
 
-bool SAMLAssertionSecAttr::Export(Format format, XMLNode& val) const {
+bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const {
   if(format == UNDEFINED) {
   } else if(format == SAML) {
     saml_assertion_node_.New(val);
@@ -83,7 +83,7 @@ bool SAMLAssertionSecAttr::Export(Format format, XMLNode& val) const {
   return false;
 }
 
-bool SAMLAssertionSecAttr::Import(Format format, const XMLNode& val) {
+bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val) {
   if(format == UNDEFINED) {
   } else if(format == SAML) {
     val.New(saml_assertion_node_);

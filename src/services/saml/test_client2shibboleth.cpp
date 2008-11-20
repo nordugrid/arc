@@ -363,6 +363,7 @@ int main(void) {
   Arc::PayloadSOAP attrqry_request(envelope);
  
   // Send request
+std::cout<<"---------------------------------------------------------------------------"<<std::endl;
   Arc::MCCConfig attrqry_cfg;
   if (!cert_file.empty())
     attrqry_cfg.AddCertificate(cert_file);
@@ -395,6 +396,7 @@ int main(void) {
   }
   attrqry_response->GetXML(str);
   std::cout<<"Response for Attribute Query: "<<str<<std::endl;
+std::cout<<"---------------------------------------------------------------------------"<<std::endl;
 
 
   // -------------------------------------------------------
