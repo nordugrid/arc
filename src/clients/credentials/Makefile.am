@@ -12,8 +12,6 @@ arcproxy_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                   $(top_srcdir)/src/hed/libs/delegation/libdelegation.la
 
-man_MANS = arcproxy.1
-
 if XMLSEC_ENABLED
 arcslcs_SOURCES  = arcslcs.cpp
 arcslcs_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
@@ -22,3 +20,5 @@ arcslcs_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                   $(top_srcdir)/src/hed/libs/credential/libarccredential.la
 endif
+
+man_MANS = arcproxy.1 arcslcs.1

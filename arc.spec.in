@@ -230,7 +230,7 @@ exit 0
 %{_bindir}/arcproxy
 %doc %{_mandir}/man1/arcproxy.1*
 %{_bindir}/arcslcs
-#%doc %{_mandir}/man1/arcslcs.1*
+%doc %{_mandir}/man1/arcslcs.1*
 %{_bindir}/arccat
 %doc %{_mandir}/man1/arccat.1*
 %{_bindir}/arccp
