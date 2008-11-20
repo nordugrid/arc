@@ -10,6 +10,7 @@
 #include <arc/loader/ServiceLoader.h>
 #include <arc/message/SOAPMessage.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/Thread.h>
 #include "pythonwrapper.h"
 
 #ifndef WIN32
@@ -71,6 +72,8 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
 // Thread state of main python interpreter thread
 static PyThreadState *tstate = NULL;
 static int python_service_counter = 0;
+static Glib::Mutex service_lock;
+Arc::Logger Arc::Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
 
@@ -78,14 +81,31 @@ static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     // ((Arc::ServiceFactory*)(*ctx))->load("pythonservice",false,true); // doesn't work, why?
     ::dlopen(((Arc::ServiceFactory*)(*ctx))->findLocation("pythonservice").c_str(),RTLD_NOW | RTLD_GLOBAL);
 #endif
-    
+
+    service_lock.lock();    
     // Initialize the Python Interpreter
     if (!Py_IsInitialized()) {
-        Py_InitializeEx(0); // python do not handle signals
-        PyEval_InitThreads();
+        Py_InitializeEx(0); // python does not handle signals
+        PyEval_InitThreads(); // Main thread created and lock acquired
+        tstate = PyThreadState_Get(); // Get current thread
+        if(tstate == NULL) {
+            Arc::Logger::getRootLogger().msg(Arc::ERROR, "Failed to initialize main Python thread");
+            return NULL;
+        }
+    } else {
+        if(tstate == NULL) {
+            Arc::Logger::getRootLogger().msg(Arc::ERROR, "Main Python thread was not initialized");
+            return NULL;
+        }
+        PyEval_AcquireThread(tstate);
     }
     python_service_counter++;
-    return new Arc::Service_PythonWrapper(cfg);
+    Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Loading %u-th Python service", python_service_counter);
+    service_lock.unlock();    
+    Arc::Service* service = new Arc::Service_PythonWrapper(cfg);
+    PyEval_ReleaseThread(tstate); // Release current thread
+    Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Initialized %u-th Python service", python_service_counter);
+    return service;
 }
 
 service_descriptors ARC_SERVICE_LOADER = {
@@ -94,8 +114,6 @@ service_descriptors ARC_SERVICE_LOADER = {
 };
 
 namespace Arc {
-
-Arc::Logger Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 
 Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg) 
 {
@@ -107,9 +125,12 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *arg = NULL;
     PyObject *py_cfg = NULL;
  
-    if (tstate != NULL) {
-        PyEval_AcquireThread(tstate);
+    if (tstate == NULL) {
+        logger.msg(Arc::ERROR, "Main python thread is not initialized");
+        return;
     }
+    //PyEval_AcquireThread(tstate);
+
     std::string path = (std::string)(*cfg)["ClassName"];    
     std::size_t p = path.rfind(".");
     if (p == std::string::npos) {
@@ -271,8 +292,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         logger.msg(Arc::ERROR, "Message klass is not an object");
         return;
     }
-    tstate = PyGILState_GetThisThreadState();
-    PyEval_ReleaseThread(tstate);
+    //tstate = PyGILState_GetThisThreadState();
+    //PyEval_ReleaseThread(tstate);
 
     logger.msg(Arc::DEBUG, "Python Wrapper constructor called");
 }
