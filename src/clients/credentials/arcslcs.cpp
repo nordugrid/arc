@@ -78,7 +78,7 @@ int main(int argc, char* argv[]){
 
   std::string keypass;
   options.AddOption('K', "keypass", istring("Private key passphrase"),
-                    istring("passphrase"), keysize);
+                    istring("passphrase"), keypass);
 
   int lifetime = 12;
   options.AddOption('L', "lifetime", istring("Lifetime of the certificate, start with current time, hour as unit"),
@@ -153,8 +153,7 @@ int main(int argc, char* argv[]){
     else {
       cert_path = storedir + "/usercert.pem";
     }
-
-    std::string cert_req_path = cert_path.substr(0, (cert_path.size()-13)) + "usercert_request.pem";
+    std::string cert_req_path = cert_path.substr(0, (cert_path.size()-13)) + "/usercert_request.pem";
 
     //Generate certificate request
     Arc::Time t;
@@ -163,12 +162,16 @@ int main(int argc, char* argv[]){
     if(!request.GenerateRequest(cert_req_str)) {
       throw std::runtime_error("Failed to generate certificate request");
     }
-    std::ofstream out_cert_req(cert_req_path.c_str(), std::ofstream::in);
+    std::ofstream out_cert_req(cert_req_path.c_str(), std::ofstream::out);
     out_cert_req.write(cert_req_str.c_str(), cert_req_str.size());
     out_cert_req.close();
     std::string private_key;
-    request.OutputPrivatekey(private_key, true);
-    std::ofstream out_key(key_path.c_str(), std::ofstream::in);
+    //If the passphrase for protecting private key has not been set, 
+    //use the password (password to IdP) as the passphrase for 
+    //protecting private key
+    if(keypass.empty()) keypass = password; 
+    request.OutputPrivatekey(private_key, true, keypass);
+    std::ofstream out_key(key_path.c_str(), std::ofstream::out);
     out_key.write(private_key.c_str(), private_key.size());
     out_key.close();
 
@@ -214,7 +217,7 @@ int main(int argc, char* argv[]){
     if(client_soap) delete client_soap;
 
     //Output the responded certificate
-    std::ofstream out_cert(cert_path.c_str(), std::ofstream::in);
+    std::ofstream out_cert(cert_path.c_str(), std::ofstream::out);
     out_cert.write(cert_str.c_str(), cert_str.size());
     out_cert.close();
 
