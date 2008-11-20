@@ -1,0 +1,151 @@
+# compiler script
+#
+# parameters:
+#
+#   [-t] make [-m Makefile_name] sources
+#  or
+#   [-t] gcc [-cpu cpu number] [-opt gcc_parameters] source_sequence_file sources
+#
+#
+
+
+
+mkdir outputs
+mkdir uncompressed
+#cat $0
+echo "Parameters: $*"
+ls -l
+######################
+#   parameter check  #
+######################
+parameter_count=`echo $*|wc -w`
+if [ $parameter_count = "0" -o $parameter_count = "1" -o $parameter_count = "2" ]
+then
+     echo "The $parameter_count parameter(s) is/are not enough!"
+     echo "compile [-t] make [-m Makefile_name] sources
+     echo "compile [-t] gcc [-cpu cpu number] [-opt gcc_parameters] source_sequence_file sources
+     exit 1
+fi	
+
+compressed=false;
+
+if [ $1 = "-t" ]
+then echo "compressed file"
+      compressed=true;
+      source=$3;
+      if [ $2 = "gcc" ]
+      then
+         cpu_nr=$3;
+         source=$4;
+      fi
+      if [ $2 = "make" -a $3 = "-m" ]
+      then
+         makefile=$4;
+         source=$5;
+      fi
+      echo "file name: " $source;
+      #mkdir uncompressed
+      path=uncompressed
+      tar -xvvf $source
+      cp * ./$path
+      cd $path
+      rm $source $0 out.txt err.txt 
+      shift	      
+else 
+      echo "source list"
+      cp * ./uncompressed
+      cd uncompressed
+      rm out.txt err.txt
+      chmod 600 * 
+fi
+
+
+
+# now the parameters
+#   make [-m Makefile_name] sources
+#or
+#   gcc [-cpu cpu number] [-opt gcc_parameters] source_sequence_file sources
+
+case $1 in 
+         make)
+              #############################
+              #  compiler type is 'make'  #
+              #############################
+	      #make [-m Makefile_name] sources
+              
+	      echo "Make compile start";
+	      #cd $path
+	      
+	      if [ $2 = "-m" ]
+	      then
+	           make_option="-f $3";
+		   echo $make_option;
+	      fi
+	      make $make_option;
+	      echo compile_end;;
+         gcc)
+              #############################
+              #   compiler type is 'gcc'  #
+              #############################
+              # gcc [-cpu cpu number] [-opt gcc_parameters] source_sequence_file sources
+	      
+	      echo "gcc compile start";
+              echo "Not working yet!";
+	      cpu_nr="";
+	      if [ $2 = "-cpu" ]
+	      then
+	          cpu_nr= $3
+		  shift
+		  shift
+	      fi
+	      
+	      gcc_par="-Wall";
+	      if [ $2 = "-opt" ]
+	      then
+	          gcc_par= $3
+		  shift
+		  shift
+	      fi
+	      
+	      source_list=$2
+	      
+	      echo "Symbolic analysis"
+	      for j in `cat $source_list`
+	      do
+	    	  echo $j
+	          gcc -c $gcc_par $j
+	      done
+	      
+	      echo "Linking"
+	      echo `cat $source_list|sed 's/.cpp/.o/g'|tr '\n' ' '`
+	      gcc -std=c++98 -lstdc++ `cat $source_list|sed 's/.cpp/.o/g'|tr '\n' ' '` -o output   #sed: .cpp -> .o
+	                   #-O2 -march=pentium2
+															      
+	      echo "compile end";;
+	      
+         *) echo "Wrong compiler type!"; 
+	    exit 1;;
+esac
+
+echo copying
+cd
+cd uncompressed
+
+for i in `find * -type d`
+do	
+   if [ -d $i ]
+   then mkdir ../outputs/$i
+        echo "create directory: outputs/$i"
+   fi
+done
+
+for i in `find * -type f`
+do	
+   if [ -x $i -a -f $i ]
+   then echo $i 
+        cp $i ../outputs/$i    #TODO: architecture added to the path
+        echo $i >> ../outputs/binary_outputs_list
+   fi
+done 
+
+echo end

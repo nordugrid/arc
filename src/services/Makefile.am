@@ -16,6 +16,12 @@ else
 CHARON_SERVICE = 
 endif 
 
+if COMPILER_SERVICE_ENABLED
+COMPILER_SERVICE = compiler 
+else 
+COMPILER_SERVICE = 
+endif 
+
 if HOPI_SERVICE_ENABLED
 HOPI_SERVICE = hopi
 else 
@@ -52,5 +58,5 @@ else
 PYTHON_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(CHARON_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) slcs
-DIST_SUBDIRS = echo_java echo_python a-rex isis charon hopi paul sched storage arex2 wrappers saml slcs
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(CHARON_SERVICE) $(COMPILER_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) slcs
+DIST_SUBDIRS = echo_java echo_python a-rex isis charon compiler hopi paul sched storage arex2 wrappers saml slcs

@@ -934,6 +934,17 @@ AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disabl
 AC_MSG_NOTICE([Charon Service enabled: $enable_charon_service])
 AM_CONDITIONAL([CHARON_SERVICE_ENABLED],[test "x$enable_charon_service" = "xyes"])
 
+# Compiler service
+AC_ARG_ENABLE(compiler_service, AC_HELP_STRING([--disable-compiler-service], [disable building Compiler Service]),[],[
+  if test ! "x$WIN32" = "xyes" ; then
+    enable_compiler_service="yes"
+  else
+    enable_compiler_service="no"
+  fi
+])
+AC_MSG_NOTICE([Compiler Service enabled: $enable_compiler_service])
+AM_CONDITIONAL([COMPILER_SERVICE_ENABLED],[test "x$enable_compiler_service" = "xyes"])
+
 # Hopi service
 AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),[],[
   if test ! "x$WIN32" = "xyes" ; then
@@ -1139,6 +1150,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/cancel-sge-job
                  src/services/charon/Makefile
                  src/services/charon/charon_service.xml.example
+                 src/services/compiler/Makefile
                  src/services/hopi/Makefile
                  src/services/hopi/hopi_service.xml.example
                  src/services/arex2/Makefile

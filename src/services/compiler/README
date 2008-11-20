@@ -1,0 +1,104 @@
+The purpose of this service is to provide compilation capability on the remote site
+utilizing its porential CPU capacity for parallel compilation tasks. The service presumes
+that the compilation task is described in a usual make file. In the current
+implementation GNU compilers are supported.
+
+The compilation jobs can be built up as properly composed SOAP messages. In the SOAP
+message the following attributes should be provided:
+- the name of the service,
+- the type of compilation,
+- the name of the makefile,
+- the local cache directory,
+...
+
+
+This service need in the server config a "compiler:scriptfile_url" element.
+It is the scriptfile place, wherefrom it will be download the JSDL.
+
+How can use the Compiler service?
+
+For example, when the compilation type is make:
+	The SOAP message:
+	  <soap-env:Header/>
+	  <soap-env:Body>
+	    <compiler>
+	      <make>
+	        <name>name of the job</name>
+	        <compiler_type>make</compiler_type>	
+	      * <makefile>Makefile</makefile>	
+	      * <cpu_architecture>x86_32</cpu_architecture>		
+	        <download_place>/home/user/place/</download_place>
+	        <compressed>no</compressed>
+	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/Makefile</sourcefile>	
+	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/lib.cpp</sourcefile>
+	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/lib.h</sourcefile>
+	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/project.cpp</sourcefile>
+	      </make>
+	    </compiler>
+	  </soap-env:Body>
+	</soap-env:Envelope>
+
+,or when the compilation type is gcc:
+	The SOAP message:
+	  <soap-env:Header/>
+	  <soap-env:Body>
+	    <compiler>
+	      <make>
+	        <name>name of the job</name>
+	        <compiler_type>gcc</compiler_type>
+	        <download_place>/home/user/place/</download_place>
+	      * <gcc_parameters>-Wall</gcc_parameters>
+	        <gcc_sequence>http://knowarc1.grid.niif.hu/storage/lista</gcc_sequence>
+	        <compressed>yes</compressed>
+	      * <cpu_architecture>sparc</cpu_architecture>		
+	        <sourcefile>http://.../Source.tar</sourcefile>
+	      </make>
+	    </compiler>
+	  </soap-env:Body>
+	</soap-env:Envelope>
+	
+*: optional value
+
+1. <name>...</name>
+        Name of the job in the grid.
+
+2. <compiler_type>gcc</compiler_type>
+        Now it is only 'make' or 'gcc'.
+
+3. <makefile>Makefile</makefile>
+	When the compiler_type is 'make' and you can't be use the default Makefile, then it is the other makefile's name.
+        
+4. <download_place>/home/user/place/</download_place>
+	It is place of the results on the clients side.
+	Note: this path will be valid path 
+        
+5. <gcc_parameters>...</gcc_parameters>
+        When the compiler_type is 'gcc' and you can be add some parameters to the gcc.
+	for example: empty or "-Wall -O2"
+
+6. <gcc_sequence>http://knowarc1.grid.niif.hu/storage/lista</gcc_sequence>
+	When the compiler_type is 'gcc', than it can be use! It is a file, wherein is the compiler sequence. 
+	In the file the first item (xx.cpp) can be compile at first time, the second... and the last can be compile at last  time.
+        for example: container.cpp main.cpp        
+
+7. <compressed>yes</compressed>
+	The source was compressed (with tar) or source file list.
+        'yes' or others. 
+        for example: 'yes', 'YES', 'y', 'Y', '1'  =>  compressed file
+                     'yess', 'no', '', ...        =>  source file list
+
+8. <cpu_architecture>sparc</cpu_architecture>		
+	Where would you like compile the sources. When the cpu_architecture is empty, then compile it all architecture in the Grid, otherwise compile it on the added architecture.
+	kind of architecture: all JSDL cpu architecture
+        
+9. <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/Makefile</sourcefile>
+ 	It is the source file's place. 
+	The valid protocol: http, ftp, gsiftp, etc.
+
+
+There is a test client written for testing this service. The parameters above are
+hardwired in the test program. It can be used as:
+        test_compile
+
+        
+
