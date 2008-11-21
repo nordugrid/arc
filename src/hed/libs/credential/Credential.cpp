@@ -248,7 +248,7 @@ namespace ArcLib {
     switch(format){
       case PEM:
         prompt = "Enter passphrase to decrypt the PEM key file: ";
-        EVP_set_pw_prompt(prompt.c_str());
+        EVP_set_pw_prompt((char*)(prompt.c_str()));
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, (passphrase.empty())?NULL:(void*)(passphrase.c_str())))) {  
           credentialLogger.msg(ERROR,"Can not read credential key from PEM key BIO"); LogError();
           throw CredentialError("Can not read credential key");
@@ -1815,11 +1815,12 @@ error:
     if (pkey_->type == EVP_PKEY_DSA)
       digest=EVP_dss1();
 #endif
+/*
 #ifndef OPENSSL_NO_ECDSA
     if (pkey_->type == EVP_PKEY_EC)
       digest = EVP_ecdsa();
 #endif
-
+*/
     X509_STORE *ctx=NULL;   
     ctx=X509_STORE_new();
     //X509_STORE_set_verify_cb_func(ctx,callb);
