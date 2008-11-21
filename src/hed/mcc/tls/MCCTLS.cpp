@@ -107,6 +107,12 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config) {
             identity_=subject;
          };
 #endif
+      // Parse VOMS attributes from each certificate of the peer chain, since here 
+      // the SSL_get_peer_cert_chain(ssl) (called inside class PayloadTLSStream) 
+      // is called on the ssl sever side, the returned stack of peer certificate 
+      // chain will not include the peer's certificate here.
+      bool res = ArcLib::parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), attributes_);
+
       };
    };
    X509* peercert = payload.GetPeerCert();
