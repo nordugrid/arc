@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/x509.h>
+#include <openssl/bio.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -208,18 +210,30 @@ int main(int argc, char* argv[]){
       std::string xml_soap;
       resp_soap->GetXML(xml_soap);
       std::cout << "XML: "<< xml_soap << std::endl;
-      std::cout << "SLCS Service Response: "<< 
-        (std::string)((*resp_soap)["GetSLCSCertificateResponse"]["X509Response"]) << std::endl;
     }
 
-    std::string cert_str = (std::string)((*resp_soap)["GetSLCSCertificateResponse"]["X509Response"]);
+    std::string cert_str = (std::string)((*resp_soap)["GetSLCSCertificateResponse"]["X509Certificate"]);
+    std::string ca_str = (std::string)((*resp_soap)["GetSLCSCertificateResponse"]["CACertificate"]);
     if(resp_soap) delete resp_soap;
     if(client_soap) delete client_soap;
 
-    //Output the responded certificate
+    //Output the responded slcs certificate and CA certificate
     std::ofstream out_cert(cert_path.c_str(), std::ofstream::out);
     out_cert.write(cert_str.c_str(), cert_str.size());
     out_cert.close();
+
+    char ca_name[20];
+    if(!ca_str.empty()) {
+      BIO* ca_bio = BIO_new_mem_buf((void*)(ca_str.c_str()), ca_str.length());
+      X509* ca_cert = PEM_read_bio_X509(ca_bio, NULL, NULL, NULL);
+      unsigned long ca_hash;
+      ca_hash = X509_subject_name_hash(ca_cert);
+      snprintf(ca_name, 20, "%08lx.0", ca_hash);
+    }
+    std::string ca_path = cert_path.substr(0, (cert_path.size()-13)) + "/certificates/" + ca_name;
+    std::ofstream out_ca(ca_path.c_str(), std::ofstream::out);
+    out_ca.write(ca_str.c_str(), ca_str.size());
+    out_ca.close();
 
     return EXIT_SUCCESS;
   }
