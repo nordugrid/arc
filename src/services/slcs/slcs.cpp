@@ -144,8 +144,12 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     //Compose response message
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
     Arc::XMLNode response = outpayload->NewChild("slcs:GetSLCSCertificateResponse");
-    Arc::XMLNode x509_res_nd = response.NewChild("slcs:X509Response");
+    Arc::XMLNode x509_res_nd = response.NewChild("slcs:X509Certificate");
     x509_res_nd = x509_cert;
+    Arc::XMLNode ca_res_nd = response.NewChild("slcs:CACertificate");
+    std::string ca_str;
+    ca_credential_->OutputCertificate(ca_str);
+    ca_res_nd = ca_str;
 
     outmsg.Payload(outpayload);
 

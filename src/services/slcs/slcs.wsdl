@@ -18,7 +18,14 @@
         </xsd:simpleContent>
       </xsd:complexType>
 
-      <xsd:complexType name="X509ResponseType">
+      <xsd:complexType name="X509CertificateType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+      </xsd:complexType>
+
+      <xsd:complexType name="CACertificateType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
             </xsd:extension>
@@ -34,7 +41,8 @@
 		
       <xsd:complexType name="GetSLCSCertificateResponseType">
         <xsd:sequence>
-          <xsd:element name="X509Response" type="slcs:X509ResponseType" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="X509Certificate" type="slcs:X509CertificateType" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="CACertificate" type="slcs:CACertificateType" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="GetSLCSCertificateResponse" type="slcs:GetSLCSCertificateResponseType"/>
