@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "QueueBalanceBroker.h"
+#include "FastestQueueBroker.h"
 
 namespace Arc {
     
@@ -12,15 +12,15 @@ namespace Arc {
     return T1.WaitingJobs < T2.WaitingJobs;
   }
 
-  QueueBalanceBroker::QueueBalanceBroker(Config *cfg) : Broker(cfg){}
+  FastestQueueBroker::FastestQueueBroker(Config *cfg) : Broker(cfg){}
 
-  QueueBalanceBroker::~QueueBalanceBroker(){}
+  FastestQueueBroker::~FastestQueueBroker(){}
 
-  ACC* QueueBalanceBroker::Instance(Config *cfg, ChainContext*) {
-    return new QueueBalanceBroker(cfg);
+  ACC* FastestQueueBroker::Instance(Config *cfg, ChainContext*) {
+    return new FastestQueueBroker(cfg);
   }
 
-  void QueueBalanceBroker::SortTargets() {
+  void FastestQueueBroker::SortTargets() {
   	std::sort( PossibleTargets.begin(), PossibleTargets.end(), CompareExecutionTarget);
 	TargetSortingDone = true;
   }
