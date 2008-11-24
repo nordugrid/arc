@@ -1,0 +1,75 @@
+
+* Clasification of information
+
+ 1. From acccessibility point of view information can be devided 
+into 3 groups:
+ a. public
+ b. available to trusted clients (like broker or scheduler service)
+ c. private - available to owner of information object and entities 
+trusted by owner.
+Distinction between 2 and 3 is not clear. One may accept that 2 is
+imposed by architecture/deployment of system and 3 is controlled by
+entities which are users of the system.
+
+ 2. From storage/access location point of view information is divided
+into:
+ a. local - stored at endpoint representing resource which is 
+described by information. This information is obtainable through
+ALIS interface.
+ b. propagated to dedicated services (ISIS) which collect information 
+needed for pre-selection and initial lookup of services 
+representing resources.
+
+NOTE: Definition of propagation of information does not exactly belong 
+to security architectire of information system. But it affects it significantly
+and hence at least minimal set of definitions is needed.
+
+OUT OF BAND NOTE: Those services could provide pre-selection capability.
+
+ Sets 1 and 2 may intersect in any way. In first approach to simplify
+implementation 2b may be considered to always belong to 1a.  
+
+
+* Implementaion guidelines
+
+ To implement set 1 information objects need to have Access Control 
+Rules (ACR) assigned (usually used term Access Control List seems to 
+be inadequate due to meaning of word List).
+
+ To implement set 2 in similar way information objects have Propagation
+Control Rules (PCR) assigned. Because curently information system is made
+of one layer of ISIS PCRs may consist of one boolean property.
+
+ Information is structured in tree-like fashion - XML document.
+Access control is defined at node and follows all branches - similar
+to file systems. Propagation control is similar to access control (if
+needed at all). Children nodes can't widen access defined at parent
+nodes. This should decrease amount of ACR to be evaluated.
+
+EXAMPLE: if parent node A allows access only to VO_1 then children
+node B can narrow access to Adminsitrator of VO_1 and can't open 
+access for VO_2.
+
+ By default all nodes are public and are propagatable. Properties 
+assigned to clildren nodes limit access and propagation. Access 
+permission to particular information node is evaluated by traversing 
+all nodes prom parent to child. At first node which gives negative
+result evaluation is stopped. 
+
+ Because evaluation of permission may be costly (CPU intensive,
+causing big latency if access to external service is needed, etc.)
+other tricks to reduce cost are needed.
+
+ To reduce access control evaluation cost ACRs may/should/must(?)
+be assigned to information nodes in one to many way - one ACR per 
+multiple information nodes. This grouping may be initiated either
+interactively (by clients explicitely specifying that same ACR is
+applicable to multiple nodes) or automatically (by comapring new 
+ACR to already existing).
+
+ If information nodes containing ACRs are propagated to ISIS (second
+implementation step) propagation algorithm must take ACR into account.
+For informtion propagation between ISISes this rule also applies.
+EXAMPLE: Information with access open vo VO_1 must not be propagated 
+to ISIS belonging to VO_2. 
+
