@@ -5,13 +5,13 @@
             <ComputingService type="Service"> 
                 <ID></ID> 
                 <Type>org.nordugrid.arex</Type> 
-                <QualityLevel>production</QualtyLevel> 
+                <QualityLevel>production</QualityLevel> 
                 <ComputingEndpoint type="Endpoint">
                     <ID></ID> 
                     <URL>https://129.12.231:60000/arex</URL>
                     <Type>?</Type> 
                     <Specification>OGSA-BES</Specification> 
-                    <QualtyLevel>almostready</QualityLevel> 
+                    <QualityLevel>almostready</QualityLevel> 
                 </ComputingEndpoint>
                 <Policy>
                      <ID></ID>
@@ -32,10 +32,10 @@
 		            <ApplicationEnvironment>
 		                <Name>Bioc</Name>
 		            </ApplicationEnvironment>
-                <ComputingResource>
+                </ComputingResource>
             </ComputingService>
         </ServiceAdvertisement>
-        <ServiceAdverisementMetadata>
+        <ServiceAdvertisementMetadata>
             <DurationTime></DurationTime>
             <CreationTime></CreationTime>
             <SourceHostID>[DN hash]</SourceHostID>

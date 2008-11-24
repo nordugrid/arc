@@ -1,5 +1,4 @@
-<xmlns="urn:glue">
-<Grid>
+<Grid xmlns="urn:glue">
     <AdminDomain>
         <ID>[URI]</ID>
         <Name>HospitalGrid</Name> <!-- string -->
@@ -18,7 +17,7 @@
             <Service type="Service">
                 <ID></ID>
                 <Type>org.nordugrid.isis</Type>
-                <QualityLevel>test</QualtyLevel>
+                <QualityLevel>test</QualityLevel>
                 <Complexity>endpoint=1,share=0,resource=0</Complexity>
                 <Endpoint type="Endpoint">
                     <ID></ID>
@@ -26,17 +25,17 @@
                     <Type>?</Type> 
                     <Specification>NORDUGRID-ISIS?</Specification>
                     <Implementor>Nordugrid</Implementor>
-                    <ImplementationName>CentralISIS</ImplementatioName>
+                    <ImplementationName>CentralISIS</ImplementationName>
                     <ImplementationVersion>0.1</ImplementationVersion>
-                    <QualtyLevel>test</QualityLevel>
+                    <QualityLevel>test</QualityLevel>
                     <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
                     <HealthState>OK</HealthState>
-                    <ServingState>open</ServingSate>
+                    <ServingState>open</ServingState>
                     <StartTime>now</StartTime>
                     <Downtime>
                         <DowntimeStart></DowntimeStart>
                         <DowntimeEnd></DowntimeEnd>
-                    </Dowtime>
+                    </Downtime>
                     <Policy>
                         <ID></ID>
                         <Scheme>BASIC</Scheme>
@@ -58,7 +57,7 @@
             <Service type="Service">
                 <ID></ID> <!-- R -->
                 <Type>org.glite.voms</Type> <!-- R -->
-                <QualityLevel>pre-production</QualtyLevel> <!-- R -->
+                <QualityLevel>pre-production</QualityLevel> <!-- R -->
                 <Complexity>endpoint=1,share=0,resource=0</Complexity>
                 <Endpoint type="Endpoint">
                     <ID></ID> <!-- R -->
@@ -66,16 +65,16 @@
                     <Type>?</Type> 
                     <Specification>VOMS</Specification> <!-- R -->
                     <Implementor>INFN</Implementor>
-                    <ImplementationName>OpenVOMS</ImplementatioName>
+                    <ImplementationName>OpenVOMS</ImplementationName>
                     <ImplementationVersion>0.1</ImplementationVersion>
-                    <QualtyLevel>almostready</QualityLevel> <!-- R -->
+                    <QualityLevel>almostready</QualityLevel> <!-- R -->
                     <HealthState>OK</HealthState>
-                    <ServingState>open</ServingSate>
+                    <ServingState>open</ServingState>
                     <StartTime>now</StartTime>
                     <Downtime>
                         <DowntimeStart></DowntimeStart>
                         <DowntimeEnd></DowntimeEnd>
-                    </Dowtime>
+                    </Downtime>
                     <Policy> <!-- R -->
                         <ID></ID>
                         <Scheme>BASIC</Scheme>

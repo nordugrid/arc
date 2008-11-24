@@ -1,6 +1,7 @@
+<!--
 This example gives an initial draft rendering of the ARC1 storage gateway, a 
 component used to hook up 3rd party storage solutions [1]. The rendering is based on the draft 28 of glue2 [2]. 
-
+-->
 
 <StorageService>
   <StorageCapability>This is a Storage Gateway service which makes it possible to integrate third-party storage solutions into the ARC Storage System by mounting the third-party namespace into the global namespace of the ARC Storage</StorageCapability>

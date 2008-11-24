@@ -1,10 +1,11 @@
+<!--
 This example gives an initial draft rendering of the ARC1 storage element, a
 basic building block of the complete storage system[1] The rendering is based on the draft 28 of glue2 [2]. 
 
 
 [1] http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/storage_system/arc-storage-design.pdf
 [2] http://forge.gridforum.org/sf/docman/do/downloadDocument/projects.glue-wg/docman.root.drafts/doc15023
-
+-->
 
 <StorageService>
   <StorageCapability>This is one single Storage Element which provides some free space for storing files accessible through a set of transfer protocols.</StorageCapability>

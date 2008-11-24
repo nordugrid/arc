@@ -1,5 +1,4 @@
-<xmlns="urn:glue">
-<Grid>
+<Grid xmlns="urn:glue">
     <AdminDomain>
         <ID>[URI]</ID>
         <Name>HospitalGrid</Name> <!-- string -->
@@ -18,31 +17,31 @@
             <ComputingService type="Service"> 
                 <ID></ID> <!-- R -->
                 <Type>org.nordugrid.arex</Type> <!-- R -->
-                <QualityLevel>production</QualtyLevel> <!-- R -->
+                <QualityLevel>production</QualityLevel> <!-- R -->
                 <Complexity>endpoint=1,share=1,resource=1</Complexity>
                 <!-- Computing service specific attributes -->
                 <TotalJobs></TotalJobs> <!-- int -->
                 <RunningJobs></RunningJobs> 
                 <WaitingJobs></WaitingJobs>
                 <StagingJobs></StagingJobs>
-                <PreLRMSWaitingJobs></preLRMSWaitingJobs>
+                <PreLRMSWaitingJobs></PreLRMSWaitingJobs>
                 <ComputingEndpoint type="Endpoint">
                     <ID></ID>
                     <URL>https://129.12.231:60000/arex</URL>
                     <Type>?</Type> 
                     <Specification>OGSA-BES?</Specification>
                     <Implementor>Nordugrid</Implementor>
-                    <ImplementationName>AREX</ImplementatioName>
+                    <ImplementationName>AREX</ImplementationName>
                     <ImplementationVersion>0.1</ImplementationVersion>
-                    <QualtyLevel>production</QualityLevel>
+                    <QualityLevel>production</QualityLevel>
                     <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
                     <HealthState>OK</HealthState>
-                    <ServingState>open</ServingSate>
+                    <ServingState>open</ServingState>
                     <StartTime>now</StartTime>
                     <Downtime>
                         <DowntimeStart></DowntimeStart>
                         <DowntimeEnd></DowntimeEnd>
-                    </Dowtime>
+                    </Downtime>
                     <!-- ComputingEndpoint specific attributes -->
                     <StagingCapabilites>Yes</StagingCapabilites> <!-- van downloader es uploader! -->
                     <SuspensionCapabilities>No</SuspensionCapabilities>
@@ -55,42 +54,42 @@
                     </Policy>
                     <Activities>    
                         <ComputingActivity type="Computing">
-                            <ID>1</ID> <! EZ NEM A JOB ID ->
+                            <ID>1</ID> <!-- EZ NEM A JOB ID -->
                             <Type>Computing</Type>
                             <!-- Computing Activity specific attributes -->
-                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <EPR></EPR> <!-- EZ A JOB ID EndpointReferenc job strukurat tartalmazza -->
                             <Name></Name>
                             <State></State>
                             <Owner></Owner>
-                            <....>
+                            <!-- .... -->
                             <CreationTime></CreationTime>
                             <Validity></Validity>
                         </ComputingActivity>
                         <ComputingActivity type="Computing">
-                            <ID>2</ID> <! EZ NEM A JOB ID ->
+                            <ID>2</ID> <!-- EZ NEM A JOB ID -->
                             <Type>Computing</Type>
                             <!-- Computing Activity specific attributes -->
-                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <EPR></EPR> <!-- EZ A JOB ID EndpointReferenc job strukurat tartalmazza -->
                             <Name></Name>
                             <State></State>
                             <Owner></Owner>
                             <!-- ... --> 
                         </ComputingActivity>
-                    </Activites>
+                    </Activities>
                     <CreationTime></CreationTime>
                     <Validity></Validity>
                 </ComputingEndpoint>
                 <ComputingResource type="Resource">
                     <ID></ID>
                     <Name>DesktopPC</Name>
-                    <!-- Comuting Resource specific attributes -->
+                    <!-- Computing Resource specific attributes -->
                     <LRMSType>Fork</LRMSType>
                     <LRMSVersion>0.1</LRMSVersion>
                     <Total>1</Total> <!-- # of exec env -->
                     <Used></Used>
                     <PhysicalCPUs>1</PhysicalCPUs>
                     <LogicalCPUs>2</LogicalCPUs>
-                    <Homogenetiy>True</Homogenety>
+                    <Homogenity>True</Homogenity>
                     <SessionDirTotal>1000M</SessionDirTotal>
                     <SessionDirFree>10M</SessionDirFree>
                     <SessionDirLifetime>100</SessionDirLifetime>
@@ -142,7 +141,7 @@
                         <TotalJobs></TotalJobs>
                         <RunningJobs></RunningJobs>
                         <LocalRunningJobs></LocalRunningJobs>
-                        <WaintingJobs></WaitingJobs>
+                        <WaitingJobs></WaitingJobs>
                         <LocalWaitingJobs></LocalWaitingJobs>
                         <FreeJobSlots>!</FreeJobSlots>
                         <State>?</State>
@@ -158,7 +157,7 @@
                     </Policy>
                     <CreationTime></CreationTime>
                     <Validity></Validity>
-                <ComputingShare>
+                </ComputingShare>
                 <Relations>
                     <ComputingEndpoint_ComputingShare>
                         <ComputingEndpointID></ComputingEndpointID>
@@ -168,7 +167,7 @@
                         <ComputingShareID></ComputingShareID>
                         <ExecutionEnvironmentID></ExecutionEnvironmentID>
                     </ComputingShare_ExecutionEnvironment>
-                <Relations>
+                </Relations>
                 <CreationTime></CreationTime>
                 <Validity></Validity>
             </ComputingService>

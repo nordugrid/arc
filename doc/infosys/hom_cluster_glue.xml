@@ -1,5 +1,4 @@
-<xmlns="urn:glue">
-<Grid>
+<Grid xmlns="urn:glue">
     <AdminDomain>
         <ID>[URI]</ID>
         <Name>NIIF</Name> <!-- string -->
@@ -18,31 +17,31 @@
             <ComputingService type="Service">
                 <ID></ID>
                 <Type>org.nordugrid.arex</Type>
-                <QualityLevel>production</QualtyLevel>
-                <Complexity>endpoint=1,share=2,resource=n/Complexity>
+                <QualityLevel>production</QualityLevel>
+                <Complexity>endpoint=1,share=2,resource=n</Complexity>
                 <!-- Computing service specific attributes -->
                 <TotalJobs></TotalJobs> <!-- int -->
                 <RunningJobs></RunningJobs> 
                 <WaitingJobs></WaitingJobs>
                 <StagingJobs></StagingJobs>
-                <PreLRMSWaitingJobs></preLRMSWaitingJobs>
+                <PreLRMSWaitingJobs></PreLRMSWaitingJobs>
                 <ComputingEndpoint type="Endpoint">
                     <ID>urn:endpoint:1</ID>
                     <URL>https://129.12.231:60000/arex</URL>
                     <Type>?</Type> 
                     <Specification>OGSA-BES?</Specification>
                     <Implementor>Nordugrid</Implementor>
-                    <ImplementationName>AREX</ImplementatioName>
+                    <ImplementationName>AREX</ImplementationName>
                     <ImplementationVersion>0.1</ImplementationVersion>
-                    <QualtyLevel>production</QualityLevel>
+                    <QualityLevel>production</QualityLevel>
                     <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
                     <HealthState>OK</HealthState>
-                    <ServingState>open</ServingSate>
+                    <ServingState>open</ServingState>
                     <StartTime>now</StartTime>
                     <Downtime>
                         <DowntimeStart></DowntimeStart>
                         <DowntimeEnd></DowntimeEnd>
-                    </Dowtime>
+                    </Downtime>
                     <!-- ComputingEndpoint specific attributes -->
                     <StagingCapabilites>Yes</StagingCapabilites> <!-- van downloader es uploader! -->
                     <SuspensionCapabilities>No</SuspensionCapabilities>
@@ -55,26 +54,26 @@
                     </Policy>
                     <Activities>    
                         <ComputingActivity type="Computing">
-                            <ID>1</ID> <! EZ NEM A JOB ID ->
+                            <ID>1</ID> <!-- EZ NEM A JOB ID -->
                             <Type>Computing</Type>
                             <!-- Computing Activity specific attributes -->
-                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <EPR></EPR> <!-- EZ A JOB ID EndpointReferenc job strukurat tartalmazza -->
                             <Name></Name>
                             <State></State>
                             <Owner></Owner>
-                            <....>
+                            <!-- .... -->
                         </ComputingActivity>
                         <ComputingActivity type="Computing">
-                            <ID>2</ID> <! EZ NEM A JOB ID ->
+                            <ID>2</ID> <!-- EZ NEM A JOB ID -->
                             <Type>Computing</Type>
                             <!-- Computing Activity specific attributes -->
-                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <EPR></EPR> <!-- EZ A JOB ID EndpointReferenc job strukurat tartalmazza -->
                             <Name></Name>
                             <State></State>
                             <Owner></Owner>
                             <!-- ... --> 
                         </ComputingActivity>
-                    </Activites>
+                    </Activities>
                 </ComputingEndpoint>
                 <ComputingResource type="Resource">
                     <ID></ID>
@@ -86,7 +85,7 @@
                     <Used></Used>
                     <PhysicalCPUs>20</PhysicalCPUs>
                     <LogicalCPUs>40</LogicalCPUs>
-                    <Homogenetiy>True</Homogenety>
+                    <Homogenity>True</Homogenity>
                     <SessionDirTotal>1000M</SessionDirTotal>
                     <SessionDirFree>10M</SessionDirFree>
                     <SessionDirLifetime>100</SessionDirLifetime>
@@ -134,7 +133,7 @@
                         <TotalJobs></TotalJobs>
                         <RunningJobs></RunningJobs>
                         <LocalRunningJobs></LocalRunningJobs>
-                        <WaintingJobs></WaitingJobs>
+                        <WaitingJobs></WaitingJobs>
                         <LocalWaitingJobs></LocalWaitingJobs>
                         <FreeJobSlots>30</FreeJobSlots>
                         <State>?</State>
@@ -148,7 +147,7 @@
                         <Rule>VO:B</Rule>
                         <TrustedCA>NIIF_CA</TrustedCA>
                     </Policy>
-                <ComputingShare>
+                </ComputingShare>
                 <ComputingShare type="Share">
                     <ID>urn:share:2</ID>
                     <Name>Test</Name>
@@ -165,7 +164,7 @@
                         <TotalJobs></TotalJobs>
                         <RunningJobs></RunningJobs>
                         <LocalRunningJobs></LocalRunningJobs>
-                        <WaintingJobs></WaitingJobs>
+                        <WaitingJobs></WaitingJobs>
                         <LocalWaitingJobs></LocalWaitingJobs>
                         <FreeJobSlots>8</FreeJobSlots>
                         <State>?</State>
@@ -178,7 +177,7 @@
                         <Rule>VO:B</Rule>
                         <TrustedCA>NIIF_CA</TrustedCA>
                     </Policy>
-                <ComputingShare>
+                </ComputingShare>
                 <Relations>
                     <ComputingEndpoint_ComputingShare>
                         <ComputingEndpointID>urn:endpoint:1</ComputingEndpointID>
@@ -193,7 +192,7 @@
                         <ComputingShareID>urn:share:2</ComputingShareID>
                         <ExecutionEnvironmentID>urn:exec:1</ExecutionEnvironmentID>
                     </ComputingShare_ExecutionEnvironment>
-                <Relations>
+                </Relations>
             </ComputingService>
         </Services>
     </AdminDomain>
