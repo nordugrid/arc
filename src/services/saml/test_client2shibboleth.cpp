@@ -96,8 +96,8 @@ int main(void) {
   authn_request.NewAttribute("AssertionConsumerServiceURL") = std::string("https://squark.uio.no/Shibboleth.sso/SAML2/POST");
 
 
-  //std::string destination("https://squark.uio.no:8443/idp/profile/SAML2/Redirect/SSO");
-  std::string destination("https://idp.testshib.org/idp/profile/SAML2/Redirect/SSO");
+  std::string destination("https://squark.uio.no:8443/idp/profile/SAML2/Redirect/SSO");
+  //std::string destination("https://idp.testshib.org/idp/profile/SAML2/Redirect/SSO");
 
   authn_request.NewAttribute("Destination") = destination;
   authn_request.NewAttribute("ProtocolBinding") = std::string("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
@@ -113,7 +113,7 @@ int main(void) {
   //authn_request.NewAttribute("IsPassive") = std::string("false");
   //authn_request.NewAttribute() =  
 
-  bool must_signed = true; //TODO: get the information from metadata
+  bool must_signed = false; //TODO: get the information from metadata
   
   HttpMethod httpmethod = HTTP_METHOD_REDIRECT; //TODO
 
@@ -121,10 +121,10 @@ int main(void) {
   authn_request.GetXML(str1);
   std::cout<<"AuthnRequest:  "<<str1<<std::endl;
 
-  std::string cert_file = "testcert.pem";
+  std::string cert_file;// = "testcert.pem";
   std::string privkey_file = "testkey-nopass.pem";
   //TestShib use the certificate for SAML2 SSO
-  std::string ca_file = "cacert_testshib.pem";
+  std::string ca_file = "cacert.pem"; // = "cacert_testshib.pem";
 
   std::string authnRequestQuery;
   if(httpmethod == HTTP_METHOD_REDIRECT) {
@@ -151,10 +151,10 @@ int main(void) {
   //
 
   Arc::MCCConfig cfg;
-  if (!cert_file.empty())
-    cfg.AddCertificate(cert_file);
-  if (!privkey_file.empty())
-    cfg.AddPrivateKey(privkey_file);
+  //if (!cert_file.empty())
+  //  cfg.AddCertificate(cert_file);
+  //if (!privkey_file.empty())
+  //  cfg.AddPrivateKey(privkey_file);
   if (!ca_file.empty())
     cfg.AddCAFile(ca_file);
 
@@ -216,11 +216,13 @@ int main(void) {
     }
   } while(1);
 
-  Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
+  //Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
+  Arc::URL redirect_url_final(info.location);
   Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final.Host(), redirect_url_final.Port(), 
               redirect_url_final.Protocol() == "https" ? 1:0, redirect_url_final.Path());
   Arc::PayloadRaw redirect_request_final;
-  std::string login_html("j_username=myself&j_password=myself");
+  //std::string login_html("j_username=myself&j_password=myself");
+  std::string login_html("j_username=root&j_password=aa1122");
   redirect_request_final.Insert(login_html.c_str(),0,login_html.size());
   std::map<std::string, std::string> http_attributes;
   http_attributes["Content-Type"] = "application/x-www-form-urlencoded";
@@ -316,7 +318,7 @@ int main(void) {
   decrypted_nameid_nd.GetXML(decrypted_nameid);
   std::cout<<"Decrypted SAML NameID: "<<decrypted_nameid<<std::endl;
 
-
+#if 0
   //-----------------------
   //SP: AttributeQuery
   //-----------------------
@@ -448,10 +450,11 @@ std::cout<<"--------------------------------------------------------------------
     std::cout<<"Attribute Value: "<<attributes_value[i]<<std::endl;
   }
 
-
-  delete response;
   delete attrqry_response;
 
+#endif
+
+  delete response;
   Arc::final_xmlsec();
   return 0;
 }
