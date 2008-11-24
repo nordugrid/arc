@@ -99,7 +99,8 @@ readconfigvar()
           if [ ! $? = 0 ] ; then
             return
           fi
-          if [ `echo "$line" | head -c 1` = '[' ] ; then
+          lstart=`echo "$line" | head -c 1`
+          if [ "$lstart" = '[' ] ; then
             return
           fi
           vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
@@ -143,10 +144,39 @@ fi
 #  Debug level
 #  User name
 
-LOGFILE=`readconfigvar $ARC_CONFIG grid-manager logfile`
-LOGLEVEL=`readconfigvar $ARC_CONFIG grid-manager debug`
-USERNAME=`readconfigvar $ARC_CONFIG grid-manager user`
-
+LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
+LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
+USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
+X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
+X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
+X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
+GRIDMAP=`readconfigvar "$ARC_CONFIG" grid-manager gridmap`
+GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
+GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
+if [ -z "$X509_USER_CERT" ] ; then
+ X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+fi
+if [ -z "$X509_USER_KEY" ] ; then
+ X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+fi
+if [ -z "$X509_CERT_DIR" ] ; then
+ X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
+fi
+if [ -z "$GRIDMAP" ] ; then
+ GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
+fi
+if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then
+ GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_tcp_port_range`
+fi
+if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
+ GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
+fi
+if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
+if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
+if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
+if [ -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
+if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
+if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
 
 AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
 if [ -z "$AREX_CONFIG" ] ; then
@@ -207,6 +237,7 @@ AREXCFG="\
 </ArcConfig>\
 "
 echo "$AREXCFG" > "$AREX_CONFIG"
+#cat "$AREX_CONFIG"
 
 }
 
