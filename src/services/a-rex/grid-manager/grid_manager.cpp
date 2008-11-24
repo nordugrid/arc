@@ -186,7 +186,7 @@ static void grid_manager(void* arg) {
   uid_t my_uid=getuid();
   JobUser *my_user = NULL;
   if(!read_env_vars()) {
-    logger.msg(Arc::FATAL,"Can't initialize runtime environment - EXITING."); return;
+    logger.msg(Arc::FATAL,"Can't initialize runtime environment - EXITING"); return;
   };
   
   /* recognize itself */
@@ -198,15 +198,15 @@ static void grid_manager(void* arg) {
     if(pw != NULL) { my_username=pw->pw_name; };
   };
   if(my_username.length() == 0) {
-    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING."); return;
+    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING"); return;
   };
   my_user = new JobUser(my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user,&daemon)) {
     logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc);
-    logger.msg(Arc::FATAL,"Error processing configuration - EXITING."); return;
+    logger.msg(Arc::FATAL,"Error processing configuration - EXITING"); return;
   };
   if(users.size() == 0) {
-    logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING."); return;
+    logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING"); return;
   };
 
   //daemon.logfile(DEFAULT_LOG_FILE);
@@ -304,7 +304,7 @@ static void grid_manager(void* arg) {
         break;
       };
     };
-    logger.msg(Arc::INFO,"Jobs cleaned.");
+    logger.msg(Arc::INFO,"Jobs cleaned");
   };
   // check if cleaning is enabled for any user, if so activate cleaning thread
   for (JobUsers::const_iterator cacheuser = users.begin(); cacheuser != users.end(); ++cacheuser) {
@@ -320,7 +320,7 @@ static void grid_manager(void* arg) {
     user->CreateDirectories();
   };
   /* main loop - forewer */
-  logger.msg(Arc::INFO,"Starting jobs' monitoring.");
+  logger.msg(Arc::INFO,"Starting jobs' monitoring");
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   for(;;) { 
     users.run_helpers();
@@ -340,7 +340,7 @@ static void grid_manager(void* arg) {
 //#    if(run.was_hup()) {
 //#      logger.msg(Arc::INFO,"SIGHUP detected");
 //#//      if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
-//#//        std::cout<<"Error processing configuration."<<std::endl; goto exit;
+//#//        std::cout<<"Error processing configuration"<<std::endl; goto exit;
 //#//      };
 //#    }
 //#    else {

@@ -58,7 +58,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
 
   /* read configuration and add users and other things */
   if(!config_open(cfile)) {
-    logger.msg(Arc::ERROR,"Can't read configuration file."); return false;
+    logger.msg(Arc::ERROR,"Can't read configuration file"); return false;
   };
   if(central_configuration) {
     cf=new ConfigSections(cfile);

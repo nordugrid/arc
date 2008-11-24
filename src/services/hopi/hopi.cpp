@@ -84,7 +84,7 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
     logger.msg(Arc::DEBUG, "PUT called");
     std::string full_path = Glib::build_filename(doc_root, path);
     if ((slave_mode == "1") && (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == false)) {
-        logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files.");        
+        logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files");        
         return Arc::MCC_Status();
     }
     int fd = open(full_path.c_str(), O_CREAT|O_WRONLY|O_TRUNC, 0600);

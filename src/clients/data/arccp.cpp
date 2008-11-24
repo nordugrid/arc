@@ -343,7 +343,7 @@ void arccp(const Arc::URL& source_url_,
 	  if (!failure.empty())
 	    logger.msg(Arc::INFO, "Current transfer FAILED: %s", failure);
 	  else
-	    logger.msg(Arc::INFO, "Current transfer FAILED.");
+	    logger.msg(Arc::INFO, "Current transfer FAILED");
 	  destination->SetTries(1);
 	  // It is not clear how to clear half-registered file. So remove it
 	  // only in case of explicit destination.
@@ -352,7 +352,7 @@ void arccp(const Arc::URL& source_url_,
 	  failures = true;
 	}
 	else
-	  logger.msg(Arc::INFO, "Current transfer complete.");
+	  logger.msg(Arc::INFO, "Current transfer complete");
       }
       if (failures) {
 	logger.msg(Arc::ERROR, "Some transfers failed");
@@ -414,7 +414,7 @@ void arccp(const Arc::URL& source_url_,
       return;
     }
     else {
-      logger.msg(Arc::ERROR, "Transfer FAILED.");
+      logger.msg(Arc::ERROR, "Transfer FAILED");
       return;
     }
     destination->SetTries(1);
@@ -423,7 +423,7 @@ void arccp(const Arc::URL& source_url_,
     if (!(destination->IsIndex()))
       mover.Delete(*destination);
   }
-  logger.msg(Arc::INFO, "Transfer complete.");
+  logger.msg(Arc::INFO, "Transfer complete");
   return;
 }
 

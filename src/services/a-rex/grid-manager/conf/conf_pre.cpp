@@ -36,7 +36,7 @@ bool configure_user_dirs(const std::string &my_username,
 
   strict_session = false;
   if(!config_open(cfile)) {
-    logger.msg(Arc::ERROR,"Can't open configuration file."); return false;
+    logger.msg(Arc::ERROR,"Can't open configuration file"); return false;
   };
   if(central_configuration) {
     cf=new ConfigSections(cfile);

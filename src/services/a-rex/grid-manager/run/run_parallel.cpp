@@ -71,7 +71,7 @@ bool RunParallel::run(JobUser& user,const char* jobid,const char *const args[],A
   Arc::Run* re = new Arc::Run(args_);
   if((!re) || (!(*re))) {
     if(re) delete re;
-    logger.msg(Arc::ERROR,"%s: Failure creating slot for child process.",jobid?jobid:"");
+    logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",jobid?jobid:"");
     return false;
   };
   if(kicker_func_) re->AssignKicker(kicker_func_,kicker_arg_);
@@ -79,14 +79,14 @@ bool RunParallel::run(JobUser& user,const char* jobid,const char *const args[],A
   if((!rp) || (!(*rp))) {
     if(rp) delete rp;
     delete re;
-    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process.",jobid?jobid:"");
+    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",jobid?jobid:"");
     return false;
   };
   re->AssignInitializer(&initializer,rp);
   if(!re->Start()) {
     delete rp;
     delete re;
-    logger.msg(Arc::ERROR,"%s: Failure starting child process.",jobid?jobid:"");
+    logger.msg(Arc::ERROR,"%s: Failure starting child process",jobid?jobid:"");
     return false;
   };
   delete rp;

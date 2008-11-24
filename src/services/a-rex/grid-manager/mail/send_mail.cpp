@@ -23,7 +23,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
   if(job_desc == NULL) {
     job_desc = new JobLocalDescription;
     if(!job_local_read_file(desc.get_id(),user,*job_desc)) {
-      logger.msg(Arc::ERROR,"Failed reading local information.");
+      logger.msg(Arc::ERROR,"Failed reading local information");
       delete job_desc; job_desc=NULL;
     };
   };
@@ -86,7 +86,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     args[7+mail_n]=(char*)(mails[mail_n].c_str());
   };
   if(!RunParallel::run(user,desc,args,&child)) {
-    logger.msg(Arc::ERROR,"Failed running mailer.");
+    logger.msg(Arc::ERROR,"Failed running mailer");
     return false;
   };
   delete child;

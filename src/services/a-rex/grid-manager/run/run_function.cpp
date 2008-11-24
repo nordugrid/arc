@@ -17,12 +17,12 @@ int RunFunction::run(const JobUser& user,const char* cmdname,int (*func)(void*),
   std::string fake_cmd("/bin/true");
   Arc::Run re(fake_cmd);
   if(!re) {
-    logger.msg(Arc::ERROR,"%s: Failure creating slot for child process.",cmdname?cmdname:"");
+    logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",cmdname?cmdname:"");
     return -1;
   };
   RunFunction* rf = new RunFunction(user,cmdname,func,arg);
   if(!rf) {
-    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process.",cmdname?cmdname:"");
+    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",cmdname?cmdname:"");
     return -1;
   };
   re.AssignInitializer(&initializer,rf);
@@ -31,12 +31,12 @@ int RunFunction::run(const JobUser& user,const char* cmdname,int (*func)(void*),
   re.KeepStderr(true);
   if(!re.Start()) {
     delete rf;
-    logger.msg(Arc::ERROR,"%s: Failure starting child process.",cmdname?cmdname:"");
+    logger.msg(Arc::ERROR,"%s: Failure starting child process",cmdname?cmdname:"");
     return -1;
   };
   delete rf;
   if(!re.Wait(timeout)) {
-    logger.msg(Arc::ERROR,"%s: Failure waiting for child process to finish.",cmdname?cmdname:"");
+    logger.msg(Arc::ERROR,"%s: Failure waiting for child process to finish",cmdname?cmdname:"");
     return -1;
   };
   return re.Result();

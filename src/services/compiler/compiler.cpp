@@ -530,7 +530,7 @@ bool Job_Status_Finished(std::string jobid){
       urlstr=(std::string)(jobxml["Address"]); // TODO: clever service address extraction
       
       if(urlstr.empty())
-      throw std::invalid_argument("Missing service URL.");
+      throw std::invalid_argument("Missing service URL");
       Arc::URL url(urlstr);
       if(!url)
                 throw std::invalid_argument("Can't parse service URL " + urlstr);
@@ -687,7 +687,7 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
 	     logger.msg(Arc::DEBUG, "Download path:  " + local_dir);
 	   
 	     if(urlstr.empty())
-		throw std::invalid_argument("Missing service URL.");
+		throw std::invalid_argument("Missing service URL");
 	     Arc::URL download_url(urlstr);
 	     if(!download_url)
 		throw std::invalid_argument(std::string("Can't parse service URL ")+urlstr);
@@ -728,7 +728,7 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
    //the response
    outpayload_node.NewChild("compiler:response")=hear;
    outmsg.Payload(outpayload);
-   logger.msg(Arc::DEBUG, "               The SOAP message send and return.");
+   logger.msg(Arc::DEBUG, "               The SOAP message send and return");
 
    Arc::MCC_Status return_Status(Arc::STATUS_OK, "compiler" , "this is the explanation" );
    return return_Status;

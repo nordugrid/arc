@@ -20,7 +20,7 @@ UrlMapConfig::UrlMapConfig(void) {
   ConfigSections* cf = NULL;
   if(nordugrid_config_loc.length() == 0) read_env_vars(true);
   if(!config_open(cfile)) {
-    glogger.msg(Arc::ERROR,"Can't open configuration file.");
+    glogger.msg(Arc::ERROR,"Can't open configuration file");
     return;
   };
   if(central_configuration) {
