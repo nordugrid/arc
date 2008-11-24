@@ -127,6 +127,7 @@ namespace Arc {
     //The following code is for authentication (username/password)
     std::string resp_html;
     Arc::HTTPClientInfo redirect_info = infoIdP;
+    int count = 0;
     do {
       /*std::cout<<"Code: "<<redirect_info.code<<"Reason: "<<redirect_info.reason<<"Size: "<<
       redirect_info.size<<"Type: "<<redirect_info.type<<"Set-Cookie: "<<redirect_info.cookie<<
@@ -161,9 +162,13 @@ namespace Arc {
         if(pos!=std::string::npos) { if(redirect_response) delete redirect_response; break; }
       }
       if(redirect_response) delete redirect_response;
+      count++;
+      if(count > 5) break; //At most loop 5 times
     } while(1);
 
-    Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
+    
+    //Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
+    Arc::URL redirect_url_final(infoIdP.location);
     Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final.Host(), redirect_url_final.Port(),
               redirect_url_final.Protocol() == "https" ? 1:0, redirect_url_final.Path());
     Arc::PayloadRaw redirect_request_final;
