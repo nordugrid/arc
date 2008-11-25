@@ -652,6 +652,404 @@ overlay={\textquotedbl}add{\textquotedbl}{\textgreater}}
 {\selectlanguage{english}\ttfamily\color{black}
 \ {\textless}/Chain{\textgreater}{\textless}/ArcConfig{\textgreater}}
 
+\subsubsection[SLCS service and client]{SLCS service and client}
+{\selectlanguage{english}\color{black}
+Short-lived credential service (SLCS) is for signing short-lived x509
+credential for user based user{\textquotesingle}s username/password
+credential. Then the user can use the short-lived x509 credential to
+access grid services/resources where x509 credential is required by
+default. \ SLCS service should depend on the SP (Service provider)
+service which is one of the participants of SAML2 SSO profile (SAML2
+SSO profile is used for authenticating based on username/password
+credential and getting SAML authentication assertion; and SAML
+authentication assertion is then used as basis for signing short-lived
+x509 credential).}
+
+{\selectlanguage{english}\color{black}
+a. \textbf{SLCS Service} }
+
+{\selectlanguage{english}\color{black}
+On the SLCS service side, a typical configuration should be like the
+following.}
+
+{\selectlanguage{english}\ttfamily\color{black}
+{\textless}?xml
+version={\textquotedbl}1.0{\textquotedbl}?{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+{\textless}ArcConfig}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ xmlns={\textquotedbl}http://www.nordugrid.org/schemas/ArcConfig/2007{\textquotedbl}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ xmlns:tcp={\textquotedbl}http://www.nordugrid.org/schemas/ArcMCCTCP/2007{\textquotedbl}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ xmlns:tls={\textquotedbl}http://www.nordugrid.org/schemas/ArcMCCTLS/2007{\textquotedbl}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ xmlns:arcpdp={\textquotedbl}http://www.nordugrid.org/schemas/ArcPDP{\textquotedbl}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ xmlns:slcs={\textquotedbl}http://www.nordugrid.org/schemas/ArcConfig/2007/slcs{\textquotedbl}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+ \ \ \ {\textless}ModuleManager{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}../../hed/mcc/http/.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}../../hed/mcc/tls/.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}../../hed/mcc/soap/.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}../../hed/mcc/tcp/.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}../../hed/pdc/.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}../../services/saml/.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Path{\textgreater}../../services/slcs/.libs/{\textless}/Path{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}/ModuleManager{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Plugins{\textgreater}{\textless}Name{\textgreater}mcctcp{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Plugins{\textgreater}{\textless}Name{\textgreater}mcctls{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Plugins{\textgreater}{\textless}Name{\textgreater}mcchttp{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Plugins{\textgreater}{\textless}Name{\textgreater}mccsoap{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Plugins{\textgreater}{\textless}Name{\textgreater}arcpdc{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Plugins{\textgreater}{\textless}Name{\textgreater}saml2sp{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Plugins{\textgreater}{\textless}Name{\textgreater}slcs{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}Chain{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}tcp.service{\textquotedbl}
+id={\textquotedbl}tcp{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}tls{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tcp:Listen{\textgreater}{\textless}tcp:Port{\textgreater}60000{\textless}/tcp:Port{\textgreater}{\textless}/tcp:Listen{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}tls.service{\textquotedbl}
+id={\textquotedbl}tls{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}http{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:KeyPath{\textgreater}./testkey-nopass.pem{\textless}/tls:KeyPath{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CertificatePath{\textgreater}./testcert.pem{\textless}/tls:CertificatePath{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}-tls:CACertificatePath{\textgreater}./cacert.pem{\textless}/tls:CACertificatePath-{}-{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:ClientAuthn{\textgreater}false{\textless}/tls:ClientAuthn{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}http.service{\textquotedbl}
+id={\textquotedbl}http{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}plexer{\textquotedbl}{\textgreater}POST{\textless}/next{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Plexer
+name={\textquotedbl}plexer.service{\textquotedbl}
+id={\textquotedbl}plexer{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}samlsp{\textquotedbl}{\textgreater}/saml2sp{\textless}/next{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}soap{\textquotedbl}{\textgreater}/slcs{\textless}/next{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Plexer{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}soap.service{\textquotedbl}
+id={\textquotedbl}soap{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}slcs{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Service
+name={\textquotesingle}saml.sp{\textquotesingle}
+id={\textquotesingle}samlsp{\textquotesingle}{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}MetaDataLocation{\textgreater}./test\_metadata.xml{\textless}/MetaDataLocation{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}ServiceProviderName{\textgreater}https://squark.uio.no/shibboleth-sp{\textless}/ServiceProviderName{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Service
+name={\textquotedbl}slcs.service{\textquotedbl}
+id={\textquotedbl}slcs{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}slcs{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CACertificate{\textgreater}./CAcert.pem{\textless}/slcs:CACertificate{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CAKey{\textgreater}./CAkey.pem{\textless}/slcs:CAKey{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CASerial{\textgreater}./CAserial{\textless}/slcs:CASerial{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}/Chain{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+{\textless}/ArcConfig{\textgreater}}
+
+{\selectlanguage{english}\color{black}
+SLCS service and SP service should together be configured by using the
+Plexer. SP service is directly based on http and SLCS is directly based
+on soap. }
+
+{\selectlanguage{english}\color{black}
+SLCS service should specifically include the CA credential (certificate
+and key file) and the serial number file (which includes the serial
+number of each signed certificate).}
+
+{\selectlanguage{english}\color{black}
+\textbf{Note}: When deploying the SLCS service, service administrator
+should deploy a dedicated IdP (Identity Provider) which can be assigned
+as authentication/attribute authority, or the users should have already
+had his own IdP. And the IdP information (authentication URL and
+attribute authority URL) should have already been included into the
+metadata of above configuration (e.g. test\_metadata.xml). On the other
+hand, the SP (SP service) information (assertion consuming URL) should
+also have been included into the metadata of the IdP.}
+
+{\selectlanguage{english}\color{black}
+After the whole process, user only needs to authentication with his
+existing IdP and can get back the x509 credential.}
+
+{\selectlanguage{english}\color{black}
+Shibboleth IdP (http://shibboleth.internet2.edu) is used for the current
+solution of IdP, since it is widely deployed for other AAI
+(Authentication and Authority Infrastructure). There is a test IdP
+deployed in
+\href{https://squark.uio.no:8443/}{https://squark.uio.no:8443}
+(idpname: https://squark.uio.no/idp/shibboleth), you can use the SP
+from \url{https://sp.testshib.org/} to test the validity of the test
+IdP. And also you can installed your own IdP which is supposed to
+authenticates the users from your own organization.}
+
+{\selectlanguage{english}\color{black}
+b. \textbf{SLCS client}}
+
+{\selectlanguage{english}\color{black}
+On the SLCS client side, there is a client utility called
+{\textquotedblleft}arcslcs{\textquotedblright}. \ The command option
+for arcslcs is as following:}
+
+{\selectlanguage{english}\color{black}
+Application Options:}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-S, -{}-url=url \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ URL of SLCS service}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-I, -{}-idp=string \ \ \ \ \ \ \ \ \ \ \ \ IdP name}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-U, -{}-user=string \ \ \ \ \ \ \ \ \ \ \ User account to IdP}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-P, -{}-password=string \ \ \ \ \ \ \ Password for user account to
+IdP}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-Z, -{}-keysize=number \ \ \ \ \ \ \ \ Key size of the private key
+(512, 1024, 2048)}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-K, -{}-keypass=passphrase \ \ \ \ Private key passphrase}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-L, -{}-lifetime=period \ \ \ \ \ \ \ Lifetime of the certificate,
+start with current time, hour as unit}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-D, -{}-storedir=directory \ \ \ \ Store directory for key and
+signed certificate}
+
+{\selectlanguage{english}\color{black}
+\ \ {}-c, -{}-conffile=filename \ \ \ \ \ configuration file (default
+\~{}/.arc/client.xml)}
+
+{\selectlanguage{english}\color{black}
+An example is:}
+
+{\selectlanguage{english}\color{black}
+./arcslcs -S https://127.0.0.1:60000/slcs -I
+https://squark.uio.no/idp/shibboleth -U root -P aa1122 -D
+/home/wzqiang/arc-0.9/src/clients/credentials -c client.xml}
+
+{\selectlanguage{english}\color{black}
+Note user should input the {\textquotedblleft}IdP
+name{\textquotedblright} is the corresponding Identity Provider (one of
+the participants of SAML2 SSO profile) name to which the user would
+authentication against by using its username/password credential. And
+the name is stored inside the metadata on both SP service and IdP
+provider, and it is used by SP service to get the authentication URL
+for username/password based authentication.}
+
+{\selectlanguage{english}\color{black}
+And the {\textquotedblleft}user{\textquotedblright} and
+{\textquotedblleft}password{\textquotedblright} is the credential which
+will be used to authentication against IdP.}
+
+{\selectlanguage{english}\color{black}
+The {\textquotedblleft}conffile{\textquotedblright} can be another
+option for all of the above options, see the following as an example:}
+
+{\selectlanguage{english}\ttfamily\color{black}
+{\textless}ArcConfig{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}!-{}- change the paths below to the location of your user
+certs -{}-{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}!-{}- here only trusted certificates are set. Because this
+arcslcs is}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ not supposed to have x509 credential before the samlsso profile has
+been}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ (by using client{\textquotesingle}s username/password credential)
+passed and the SLCS}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ service succeeded to repond this client with the signed x509
+credential.}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ On the SLCS service{\textquotesingle}s configuration: ClientAuthn
+should be off.-{}-{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}!-{}-KeyPath{\textgreater}./testkey-nopass.pem{\textless}/KeyPath-{}-{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}!-{}-CertificatePath{\textgreater}./testcert.pem{\textless}/CertificatePath-{}-{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}CACertificatesDir{\textgreater}./certificates{\textless}/CACertificatesDir{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}SLCSURL{\textgreater}https://127.0.0.1:60000/slcs{\textless}/SLCSURL{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}IdPname{\textgreater}https://squark.uio.no/idp/shibboleth{\textless}/IdPname{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}Username{\textgreater}root{\textless}/Username{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}Password{\textgreater}aa1122{\textless}/Password{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}Keysize{\textgreater}1024{\textless}/Keysize{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}Keypass{\textgreater}123456{\textless}/Keypass{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}CertLifetime{\textgreater}24{\textless}/CertLifetime{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}StoreDir{\textgreater}./{\textless}/StoreDir{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\ {\textless}Debug{\textgreater}INFO{\textless}/Debug{\textgreater}}
+
+{\selectlanguage{english}\ttfamily\color{black}
+{\textless}/ArcConfig{\textgreater}}
+
+
+\bigskip
+
+
+\bigskip
+
+
+\bigskip
+
 \clearpage{\centering\selectlanguage{english}\bfseries\scshape\color{black}
 References
 \par}
