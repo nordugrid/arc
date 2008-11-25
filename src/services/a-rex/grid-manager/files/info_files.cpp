@@ -249,6 +249,12 @@ static int job_mark_remove_callback(void* arg) {
   return -1;
 }
 
+static int job_dir_create_callback(void* arg) {
+  std::string& dname = *((std::string*)arg);
+  if(job_dir_create(dname) & fix_file_permissions(dname,true)) return 0;
+  return -1;
+}
+
 typedef struct {
   const std::string* fname;
   const std::string* content;
@@ -281,6 +287,15 @@ bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user) {
     return (RunFunction::run(tmp_user,"job_diagnostics_mark_put",&job_mark_put_callback,&fname,10) == 0);
   };
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+}
+
+bool job_session_create(const JobDescription &desc,JobUser &user) {
+  std::string dname = desc.SessionDir();
+  if(user.StrictSession()) {
+    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    return (RunFunction::run(tmp_user,"job_session_create",&job_dir_create_callback,&dname,10) == 0);
+  };
+  return job_dir_create(dname) & fix_file_owner(dname,desc,user) & fix_file_permissions(dname,true);
 }
 
 bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char const * const args[]) {
@@ -396,6 +411,11 @@ bool job_stdlog_move(const JobDescription& /*desc*/,JobUser& /*user*/,const std:
 
 */
   return true;
+}
+
+bool job_dir_create(const std::string &dname) {
+  int err=mkdir(dname.c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
+  return (err==0);
 }
 
 bool job_mark_put(const std::string &fname) {

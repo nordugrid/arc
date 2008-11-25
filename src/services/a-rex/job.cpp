@@ -86,7 +86,7 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
   //  if(group.length()) readonly=true;
   //  if(user_a.check_group(group)) { readonly=false; break; };
   //};
-  //if(readonly) olog<<"This user is denied to submit new jobs."<<std::endl;
+  //if(readonly) olog<<"This user is denied to submit new jobs"<<std::endl;
   /*
           * link to the class for direct file access *
           std::string direct_config = "mount "+session_root+"\n";
@@ -158,12 +158,12 @@ bool ARexJob::is_allowed(bool fast) {
   ArcSec::EvaluatorLoader eval_loader;
   AutoPointer<ArcSec::Policy> policy(eval_loader.getPolicy(ArcSec::Source(acl)));
   if(!policy) {
-    logger_.msg(Arc::DEBUG, "Failed to parse user policy for job %s", id_);
+    logger_.msg(Arc::DEBUG, "%s: Failed to parse user policy", id_);
     return true;
   };
   AutoPointer<ArcSec::Evaluator> eval(eval_loader.getEvaluator(policy));
   if(!eval) {
-    logger_.msg(Arc::DEBUG, "Failed to load evaluator for user policy for job %s", id_);
+    logger_.msg(Arc::DEBUG, "%s: Failed to load evaluator for user policy ", id_);
     return true;
   };
   std::string policyname = policy->getName();
@@ -268,7 +268,7 @@ bool ARexJob::is_allowed(bool fast) {
     };
     // TODO: <list/>, <admin/>
   } else {
-    logger_.msg(Arc::DEBUG, "Unknown user policy '%s' for job %s", policyname, id_);
+    logger_.msg(Arc::DEBUG, "%s: Unknown user policy '%s'", id_, policyname);
   };
   return true;
 }
@@ -300,7 +300,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   std::string fname = config_.User()->ControlDir() + "/job." + id_ + ".description";
   if(!job_description_write_file(fname,job_desc_str)) {
     delete_job_id();
-    failure_="Failed to store job RSL description.";
+    failure_="Failed to store job RSL description";
     failure_type_=ARexJobInternalError;
     return;
   };
@@ -308,7 +308,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   std::string acl("");
   if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl,&failure_))) != ARexJobNoError) {
     if(failure_.empty()) {
-      failure_="Failed to parse job/action description.";
+      failure_="Failed to parse job/action description";
       failure_type_=ARexJobInternalError;
     };
     delete_job_id();
@@ -330,7 +330,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Check for proper queue in request.
   if(job_.queue.empty()) job_.queue=config_.User()->DefaultQueue();
   if(job_.queue.empty()) {
-    failure_="Request has no queue defined.";
+    failure_="Request has no queue defined";
     failure_type_=ARexJobDescriptionMissingError;
     delete_job_id();
     return;
@@ -338,7 +338,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   if(config_.Queues().size() > 0) { // If no queues configured - service takes any
     for(std::list<std::string>::const_iterator q = config_.Queues().begin();;++q) {
       if(q == config_.Queues().end()) {
-        failure_="Requested queue "+job_.queue+" does not match any of available queues.";
+        failure_="Requested queue "+job_.queue+" does not match any of available queues";
         //failure_type_=ARexJobDescriptionLogicalError;
         failure_type_=ARexJobInternalError;
         delete_job_id();
@@ -348,7 +348,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     };
   };
   if(!preprocess_job_req(fname,config_.User()->SessionRoot()+"/"+id_,id_)) {
-    failure_="Failed to preprocess job description.";
+    failure_="Failed to preprocess job description";
     failure_type_=ARexJobInternalError;
     delete_job_id();
     return;
@@ -364,7 +364,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     std::string fname=config.User()->ControlDir()+"/job."+id_+".proxy";
     int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
     if(h == -1) {
-      failure_="Failed to store credentials.";
+      failure_="Failed to store credentials";
       failure_type_=ARexJobInternalError;
       delete_job_id();
       return;
@@ -376,7 +376,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     for(;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
     if(l==-1) {
       ::close(h);
-      failure_="Failed to store credentials.";
+      failure_="Failed to store credentials";
       failure_type_=ARexJobInternalError;
       delete_job_id();
       return;
@@ -391,10 +391,10 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     //@ };
   };
   // Write local file
-  JobDescription job(id_,"",JOB_STATE_ACCEPTED);
+  JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,*config_.User(),job_)) {
     delete_job_id();
-    failure_="Failed to create job description.";
+    failure_="Failed to create job description";
     failure_type_=ARexJobInternalError;
     return;
   };
@@ -402,7 +402,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   if(!acl.empty()) {
     if(!job_acl_write_file(id_,*config.User(),acl)) {
       delete_job_id();
-      failure_="Failed to process/store job ACL.";
+      failure_="Failed to process/store job ACL";
       failure_type_=ARexJobInternalError;
       return;
     };
@@ -445,46 +445,29 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       olog << "Failed to run plugin" << std::endl;
       delete_job_id();
       failure_type_=ARexJobInternalError;
-      error_description="Failed to obtain external credentials.";
+      error_description="Failed to obtain external credentials";
       return 1;
     };
     if(cred_plugin->result() != 0) {
       olog << "Plugin failed: " << cred_plugin->result() << std::endl;
       delete_job_id();
-      error_description="Failed to obtain external credentials.";
+      error_description="Failed to obtain external credentials";
       failure_type_=ARexJobInternalError;
       return 1;
     };
   };
 */
   // Create session directory
-  std::string dir=config_.User()->SessionRoot()+"/"+id_;
-/*@
-  if((getuid()==0) && (user) && (user->StrictSession())) {
-    SET_USER_UID;
-  };
-*/
-  if(mkdir(dir.c_str(),0700) != 0) {
-/*@
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      RESET_USER_UID;
-    };
-*/
+  if(!job_session_create(job,*config_.User())) {
     delete_job_id();
-    failure_="Failed to create session directory.";
+    failure_="Failed to create session directory";
     failure_type_=ARexJobInternalError;
     return;
   };
-/*@
-  if((getuid()==0) && (user) && (user->StrictSession())) {
-    RESET_USER_UID;
-  };
-*/
-  fix_file_owner(dir,*config_.User());
   // Create status file (do it last so GM picks job up here)
   if(!job_state_write_file(job,*config_.User(),JOB_STATE_ACCEPTED)) {
     delete_job_id();
-    failure_="Failed registering job in grid-manager.";
+    failure_="Failed registering job in grid-manager";
     failure_type_=ARexJobInternalError;
     return;
   };

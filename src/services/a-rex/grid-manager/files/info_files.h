@@ -115,6 +115,11 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user);
 bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user);
 
 /*
+  Create session directory for job
+*/
+bool job_session_create(const JobDescription &desc,JobUser &user);
+
+/*
   Same (except add) for file containing messages from LRMS, which
   could give additional information about reason of job failure.
 */
@@ -138,6 +143,7 @@ bool job_mark_check(const std::string &fname);
 bool job_mark_remove(const std::string &fname);
 time_t job_mark_time(const std::string &fname);
 long int job_mark_size(const std::string &fname);
+bool job_dir_create(const std::string &dname);
 
 /*
   Create file to store stderr of external utilities used to stage-in/out
