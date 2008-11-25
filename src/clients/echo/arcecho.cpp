@@ -79,15 +79,19 @@ int main(int argc, char** argv) {
   Arc::URL service = *it++;
   std::string message = *it++;
 
+  Arc::NS uns;
+  Arc::Config ucfg(uns);
+  usercfg.ApplySecurity(ucfg);
+
   Arc::MCCConfig cfg;
-  if (usercfg.ConfTree()["ProxyPath"])
-    cfg.AddProxy((std::string)usercfg.ConfTree()["ProxyPath"]);
-  if (usercfg.ConfTree()["CertificatePath"])
-    cfg.AddCertificate((std::string)usercfg.ConfTree()["CertificatePath"]);
-  if (usercfg.ConfTree()["KeyPath"])
-    cfg.AddPrivateKey((std::string)usercfg.ConfTree()["KeyPath"]);
-  if (usercfg.ConfTree()["CACertificatesDir"])
-    cfg.AddCADir((std::string)usercfg.ConfTree()["CACertificatesDir"]);
+  if (ucfg["ProxyPath"])
+    cfg.AddProxy((std::string)ucfg["ProxyPath"]);
+  if (ucfg["CertificatePath"])
+    cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
+  if (ucfg["KeyPath"])
+    cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
+  if (ucfg["CACertificatesDir"])
+    cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
 
   Arc::ClientSOAP client(cfg, service);
 
