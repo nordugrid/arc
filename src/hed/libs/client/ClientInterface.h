@@ -8,6 +8,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/DateTime.h>
+#include <arc/URL.h>
 #include <arc/message/Message.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
@@ -54,7 +55,6 @@ namespace Arc {
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
 		       PayloadStreamInterface **response, bool tls);
-    // PayloadStreamInterface *stream();
     MCC* GetEntry() {
       return tls_entry ? tls_entry : tcp_entry;
     }
@@ -68,7 +68,7 @@ namespace Arc {
     int code;
     std::string reason;
     uint64_t size;
-    Arc::Time lastModified;
+    Time lastModified;
     std::string type;
     std::string cookie;
     std::string location;
@@ -79,24 +79,27 @@ namespace Arc {
   public:
     ClientHTTP()
       : http_entry(NULL) {}
-    ClientHTTP(const BaseConfig& cfg, const std::string& host, int port,
-	       bool tls, const std::string& path);
+    ClientHTTP(const BaseConfig& cfg, const URL& url);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request, 
-                       HTTPClientInfo *info, PayloadRawInterface **response);
-    MCC_Status process(const std::string& method, std::map<std::string, std::string>& attributes,
-                       PayloadRawInterface *request, HTTPClientInfo *info, PayloadRawInterface **response);
+		       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method,
+		       std::map<std::string, std::string>& attributes,
+		       PayloadRawInterface *request,
+		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path, 
-                       PayloadRawInterface *request, HTTPClientInfo *info, PayloadRawInterface **response);
+		       PayloadRawInterface *request,
+		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path, 
-                       std::map<std::string, std::string>& attributes,
-                       PayloadRawInterface *request, HTTPClientInfo *info, PayloadRawInterface **response);
+		       std::map<std::string, std::string>& attributes,
+		       PayloadRawInterface *request,
+		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       uint64_t range_start, uint64_t range_end,
-                       PayloadRawInterface *request,
-                       HTTPClientInfo *info, PayloadRawInterface **response);
+		       uint64_t range_start, uint64_t range_end,
+		       PayloadRawInterface *request,
+		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path, 
-                       std::map<std::string, std::string>& attributes,
+		       std::map<std::string, std::string>& attributes,
 		       uint64_t range_start, uint64_t range_end,
 		       PayloadRawInterface *request,
 		       HTTPClientInfo *info, PayloadRawInterface **response);
@@ -117,18 +120,10 @@ namespace Arc {
   class ClientSOAP
     : public ClientHTTP {
   public:
-    /** Constructor creates MCC chain and connects to server.
-	cfg - common configuration,
-	host - hostname of remote server,
-	port - TCP port of remote server,
-	tls - true if connection to use HTTPS, false for HTTP,
-	path - internal path of service to be contacted.
-	TODO: use URL.
-     */
+    /** Constructor creates MCC chain and connects to server. */
     ClientSOAP()
       : soap_entry(NULL) {}
-    ClientSOAP(const BaseConfig& cfg, const std::string& host, int port,
-	       bool tls, const std::string& path);
+    ClientSOAP(const BaseConfig& cfg, const URL& url);
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);

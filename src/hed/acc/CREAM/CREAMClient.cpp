@@ -146,8 +146,7 @@ namespace Arc {
   CREAMClient::CREAMClient(const URL& url, const MCCConfig& cfg)
     : client(NULL) {
     logger.msg(INFO, "Creating a CREAM client");
-    client = new ClientSOAP(cfg, url.Host(), url.Port(),
-			    url.Protocol() == "https", url.Path());
+    client = new ClientSOAP(cfg, url);
     set_cream_namespaces(cream_ns);
   }
 

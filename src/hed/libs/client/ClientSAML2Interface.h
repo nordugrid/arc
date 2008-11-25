@@ -7,6 +7,7 @@
 #include <inttypes.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/URL.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadSOAP.h>
@@ -16,26 +17,20 @@ namespace Arc {
 
   class ClientHTTPwithSAML2SSO {
   public:
-    /** Constructor creates MCC chain and connects to server.
-        cfg - common configuration,
-        host - hostname of remote server,
-        port - TCP port of remote server,
-        tls - true if connection to use HTTPS, false for HTTP,
-        path - internal path of service to be contacted.
-    */
+    /** Constructor creates MCC chain and connects to server. */
     ClientHTTPwithSAML2SSO() {}
-    ClientHTTPwithSAML2SSO(const BaseConfig& cfg, const std::string& host, int port,
-               bool tls, const std::string& path);
+    ClientHTTPwithSAML2SSO(const BaseConfig& cfg, const URL& url);
     virtual ~ClientHTTPwithSAML2SSO();
 
     /** Send HTTP request and receive response. */
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
-                       HTTPClientInfo *info, PayloadRawInterface **response, 
-                       const std::string& idp_name, const std::string& username, 
+                       HTTPClientInfo *info, PayloadRawInterface **response,
+                       const std::string& idp_name, const std::string& username,
                        const std::string& password);
-    MCC_Status process(const std::string& method, const std::string& path, PayloadRawInterface *request,
-                       HTTPClientInfo *info, PayloadRawInterface **response, 
-                       const std::string& idp_name, const std::string& username, 
+    MCC_Status process(const std::string& method, const std::string& path,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response,
+                       const std::string& idp_name, const std::string& username,
                        const std::string& password);
   private:
     ClientHTTP* http_client_;
@@ -52,16 +47,16 @@ namespace Arc {
   public:
     /** Constructor creates MCC chain and connects to server.*/
     ClientSOAPwithSAML2SSO() {}
-    ClientSOAPwithSAML2SSO(const BaseConfig& cfg, const std::string& host, int port,
-               bool tls, const std::string& path);
+    ClientSOAPwithSAML2SSO(const BaseConfig& cfg, const URL& url);
     virtual ~ClientSOAPwithSAML2SSO();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response, 
-                       const std::string& idp_name, const std::string& username, 
+                       const std::string& idp_name, const std::string& username,
                        const std::string& password);
     /** Send SOAP request with specified SOAP action and receive response. */
-    MCC_Status process(const std::string& action, PayloadSOAP *request, PayloadSOAP **response, 
-                       const std::string& idp_name, const std::string& username, 
+    MCC_Status process(const std::string& action,
+                       PayloadSOAP *request, PayloadSOAP **response,
+                       const std::string& idp_name, const std::string& username,
                        const std::string& password);
   private:
     ClientSOAP* soap_client_;
@@ -77,4 +72,3 @@ namespace Arc {
 } // namespace Arc
 
 #endif // __ARC_CLIENTSAML2INTERFACE_H__
-

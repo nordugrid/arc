@@ -345,8 +345,7 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    ClientHTTP client(cfg, url.Host(), url.Port(),
-                      url.Protocol() == "https", url.FullPath());
+    ClientHTTP client(cfg, url);
 
     PayloadRaw request;
     PayloadRawInterface *response = NULL;
@@ -449,8 +448,7 @@ namespace Arc {
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
-                                    url.Protocol() == "https", url.FullPath());
+      info->client = new ClientHTTP(cfg, url);
       if (!CreateThreadFunction(&read_thread, info))
         delete info;
       else
@@ -518,8 +516,7 @@ namespace Arc {
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
-                                    url.Protocol() == "https", url.FullPath());
+      info->client = new ClientHTTP(cfg, url);
       if (!CreateThreadFunction(&write_thread, info))
         delete info;
       else
@@ -623,7 +620,7 @@ namespace Arc {
           cfg.AddPrivateKey(point.keyPath);
         if (!point.caCertificatesDir.empty())
           cfg.AddCADir(point.caCertificatesDir);
-        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.FullPath());
+        client = new ClientHTTP(cfg, point.url);
         continue;
       }
       if (transfer_info.code == 416) { // EOF
@@ -757,7 +754,7 @@ namespace Arc {
           cfg.AddPrivateKey(point.keyPath);
         if (!point.caCertificatesDir.empty())
           cfg.AddCADir(point.caCertificatesDir);
-        client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.FullPath());
+        client = new ClientHTTP(cfg, point.url);
         continue;
       }
       if( (transfer_info.code != 201) &&

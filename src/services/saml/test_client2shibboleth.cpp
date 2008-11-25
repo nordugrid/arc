@@ -159,13 +159,7 @@ int main(void) {
     cfg.AddCAFile(ca_file);
 
   Arc::URL url(authnRequestUrl);
-  std::string url_str = url.str();
-  size_t pos = url_str.find(":");
-  pos = url_str.find(":", pos+1);
-  pos = url_str.find("/", pos+1);
-  std::string path = url_str.substr(pos);
-
-  Arc::ClientHTTP client(cfg, url.Host(), url.Port(), url.Protocol() == "https" ? 1:0, path);
+  Arc::ClientHTTP client(cfg, url);
   Arc::PayloadRaw request;
   Arc::PayloadRawInterface *response = NULL;
   Arc::HTTPClientInfo info;
@@ -189,8 +183,7 @@ int main(void) {
     if(redirect_info.code != 302) break;
     
     Arc::URL redirect_url(redirect_info.location);
-    Arc::ClientHTTP redirect_client(cfg, redirect_url.Host(), redirect_url.Port(), 
-                    redirect_url.Protocol() == "https" ? 1:0, redirect_url.Path());
+    Arc::ClientHTTP redirect_client(cfg, redirect_url);
 
     Arc::PayloadRaw redirect_request;
     Arc::PayloadRawInterface *redirect_response = NULL;
@@ -218,8 +211,7 @@ int main(void) {
 
   //Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
   Arc::URL redirect_url_final(info.location);
-  Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final.Host(), redirect_url_final.Port(), 
-              redirect_url_final.Protocol() == "https" ? 1:0, redirect_url_final.Path());
+  Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final);
   Arc::PayloadRaw redirect_request_final;
   //std::string login_html("j_username=myself&j_password=myself");
   std::string login_html("j_username=root&j_password=aa1122");
@@ -380,8 +372,8 @@ std::cout<<"--------------------------------------------------------------------
   //std::string service_url_str("https://squark.uio.no:8443");
   std::string service_url_str("https://idp.testshib.org:8443");
 
-  Arc::URL service_url(service_url_str);
-  Arc::ClientSOAP attrqry_client(attrqry_cfg, service_url.Host(), service_url.Port(), service_url.Protocol() == "https" ? 1:0, attrqry_path);
+  Arc::URL service_url(service_url_str + attrqry_path);
+  Arc::ClientSOAP attrqry_client(attrqry_cfg, service_url);
 
   Arc::PayloadSOAP *attrqry_response = NULL;
   Arc::MCC_Status attrqry_status = attrqry_client.process(&attrqry_request,&attrqry_response);

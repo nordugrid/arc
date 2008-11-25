@@ -74,8 +74,6 @@ namespace Arc {
     if (!loader) {
       if (overlay)
 	Overlay(overlay);
-std::string s; xmlcfg.GetXML(s);
-std::cerr<<"Load: cfg: "<<s<<std::endl;
       loader = new Loader(&xmlcfg);
     }
   }
@@ -89,7 +87,6 @@ std::cerr<<"Load: cfg: "<<s<<std::endl;
     : ClientInterface(cfg),
       tcp_entry(NULL),
       tls_entry(NULL) {
-std::cerr<<"ClientTCP: "<<host<<":"<<port<<" ("<<tls<<") "<<cfg.proxy<<" "<<cfg.cafile<<" "<<cfg.cadir<<std::endl;
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "tcp.client", "tcp");
     comp.NewAttribute("entry") = "tcp";
     comp = comp.NewChild("Connect");
@@ -126,14 +123,14 @@ std::cerr<<"ClientTCP: "<<host<<":"<<port<<" ("<<tls<<") "<<cfg.proxy<<" "<<cfg.
 				PayloadStreamInterface **response, bool tls) {
     Load();
     *response = NULL;
-    if (tls && (!tls_entry))
+    if (tls && !tls_entry)
       return MCC_Status();
-    if ((!tls) && (!tcp_entry))
+    if (!tls && !tcp_entry)
       return MCC_Status();
-    Arc::MessageAttributes attributes_req;
-    Arc::MessageAttributes attributes_rep;
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
+    MessageAttributes attributes_req;
+    MessageAttributes attributes_rep;
+    Message reqmsg;
+    Message repmsg;
     reqmsg.Attributes(&attributes_req);
     reqmsg.Context(&context);
     reqmsg.Payload(request);
@@ -149,7 +146,7 @@ std::cerr<<"ClientTCP: "<<host<<":"<<port<<" ("<<tls<<") "<<cfg.proxy<<" "<<cfg.
     if (repmsg.Payload() != NULL)
       try {
 	*response =
-	  dynamic_cast<Arc::PayloadStreamInterface*>(repmsg.Payload());
+	  dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
       }
       catch (std::exception&) {
 	delete repmsg.Payload();
@@ -157,26 +154,17 @@ std::cerr<<"ClientTCP: "<<host<<":"<<port<<" ("<<tls<<") "<<cfg.proxy<<" "<<cfg.
     return r;
   }
 
-  ClientHTTP::ClientHTTP(const BaseConfig& cfg, const std::string& host,
-			 int port, bool tls, const std::string& path)
-    : ClientTCP(cfg, host, port, tls),
+  ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url)
+    : ClientTCP(cfg, url.Host(), url.Port(), url.Protocol() == "https"),
       http_entry(NULL),
-      host(host),
-      port(port),
-      tls(tls) {
-std::cerr<<"ClientHTTP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "<<cfg.cadir<<std::endl;
+      host(url.Host()),
+      port(url.Port()),
+      tls(url.Protocol() == "https") {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
 				       tls ? "tls" : "tcp");
-    std::string url(tls ? "https" : "http");
-    url += "://" + host;
-    if (port > 0)
-      url += ":" + tostring(port);
-    if (path[0] != '/')
-      url += "/";
-    url += path;
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
-    comp.NewChild("Endpoint") = url;
+    comp.NewChild("Endpoint") = url.str();
   }
 
   ClientHTTP::~ClientHTTP() {}
@@ -286,7 +274,7 @@ std::cerr<<"ClientHTTP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "
     info->location = repmsg.Attributes()->get("HTTP:location");
     if (repmsg.Payload() != NULL)
       try {
-	*response = dynamic_cast<Arc::PayloadRawInterface*>(repmsg.Payload());
+	*response = dynamic_cast<PayloadRawInterface*>(repmsg.Payload());
       }
       catch (std::exception&) {
 	delete repmsg.Payload();
@@ -294,17 +282,15 @@ std::cerr<<"ClientHTTP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "
     return r;
   }
 
-  ClientSOAP::ClientSOAP(const BaseConfig& cfg, const std::string& host,
-			 int port, bool tls, const std::string& path)
-    : ClientHTTP(cfg, host, port, tls, path),
+  ClientSOAP::ClientSOAP(const BaseConfig& cfg, const URL& url)
+    : ClientHTTP(cfg, url),
       soap_entry(NULL) {
-std::cerr<<"ClientSOAP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "<<cfg.cadir<<std::endl;
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
     // Add the ws-security configuration for the soap client
     // Currently only usernametoken is supported
-    if ((cfg.wsstype == Arc::USERNAMETOKEN) &&
+    if ((cfg.wsstype == USERNAMETOKEN) &&
 	(!(cfg.wssinfo.password_encoding).empty()) &&
 	(!(cfg.wssinfo.username).empty()) &&
 	(!(cfg.wssinfo.password).empty())) {
@@ -340,10 +326,10 @@ std::cerr<<"ClientSOAP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "
     *response = NULL;
     if (!soap_entry)
       return MCC_Status();
-    Arc::MessageAttributes attributes_req;
-    Arc::MessageAttributes attributes_rep;
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
+    MessageAttributes attributes_req;
+    MessageAttributes attributes_rep;
+    Message reqmsg;
+    Message repmsg;
     reqmsg.Attributes(&attributes_req);
     reqmsg.Context(&context);
     reqmsg.Payload(request);
@@ -354,7 +340,7 @@ std::cerr<<"ClientSOAP: "<<host<<":"<<port<<" "<<cfg.proxy<<" "<<cfg.cafile<<" "
     MCC_Status r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL)
       try {
-	*response = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+	*response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
       }
       catch (std::exception&) {
 	delete repmsg.Payload();

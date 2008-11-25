@@ -38,7 +38,7 @@ Resource::Resource(const std::string &url_str, std::map<std::string, std::string
         cfg.AddCAFile(cli_config["CACertificatePath"]);
     }
     
-    client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
+    client = new Arc::ClientSOAP(cfg, url);
 }
 
 
@@ -54,7 +54,7 @@ bool Resource::refresh(void)
 
     if (client) delete client;
     Arc::URL u(url);
-    client = new Arc::ClientSOAP(cfg, u.Host(), u.Port(), u.Protocol() == "https", u.Path());
+    client = new Arc::ClientSOAP(cfg, u);
     std::cout << "Resource refreshed: " << url << std::endl;
 
     return true;

@@ -61,7 +61,7 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
         cfg.AddCertificate(configurator.getPki()["CertificatePath"]);
         cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
     }
-    client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
+    client = new Arc::ClientSOAP(cfg, url);
     // invoke GetActivity SOAP call
     Arc::PayloadSOAP request(ns_);
     request.NewChild("ibes:GetActivities").NewChild(glue2);
@@ -256,7 +256,7 @@ void PaulService::do_report(void)
             cfg.AddCertificate(configurator.getPki()["CertificatePath"]);
             cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
         }
-        client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
+        client = new Arc::ClientSOAP(cfg, url);
 
         Arc::PayloadSOAP *response;
         Arc::MCC_Status status = client->process(request, &response);
@@ -354,7 +354,7 @@ void PaulService::do_action(void)
             cfg.AddCertificate(configurator.getPki()["CertificatePath"]);
             cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
         }
-        client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
+        client = new Arc::ClientSOAP(cfg, url);
         Arc::PayloadSOAP *response;
         Arc::MCC_Status status = client->process(request, &response);
         if (!status) {

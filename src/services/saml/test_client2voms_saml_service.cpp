@@ -152,8 +152,8 @@ int main(void) {
 //  std::string path("/voms/saml/omiieurope/services/AttributeAuthorityPortType");
 //  std::string service_url_str("https://omii002.cnaf.infn.it:8443");
 
-  Arc::URL service_url(service_url_str);
-  Arc::ClientSOAP client(cfg, service_url.Host(), service_url.Port(), service_url.Protocol() == "https" ? 1:0, path);
+  Arc::URL service_url(service_url_str + path);
+  Arc::ClientSOAP client(cfg, service_url);
 
   Arc::PayloadSOAP *response = NULL;
   Arc::MCC_Status status = client.process(&request,&response);

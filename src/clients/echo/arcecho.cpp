@@ -89,8 +89,7 @@ int main(int argc, char** argv) {
   if (usercfg.ConfTree()["CACertificatesDir"])
     cfg.AddCADir((std::string)usercfg.ConfTree()["CACertificatesDir"]);
 
-  Arc::ClientSOAP client(cfg, service.Host(), service.Port(),
-			 service.Protocol() == "https", service.Path());
+  Arc::ClientSOAP client(cfg, service);
 
   std::string xml;
 

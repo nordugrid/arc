@@ -50,7 +50,7 @@ ArcPDPServiceInvoker::ArcPDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL) {
   mcc_cfg.AddCAFile((std::string)((*cfg)["CACertificatePath"]));
   mcc_cfg.AddCADir((std::string)((*cfg)["CACertificatesDir"]));
 
-  client = new Arc::ClientSOAP(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+  client = new Arc::ClientSOAP(mcc_cfg,url);
 }
 
 bool ArcPDPServiceInvoker::isPermitted(Message *msg){

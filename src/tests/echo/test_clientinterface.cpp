@@ -45,7 +45,7 @@ int main(void) {
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
 
   Arc::ClientSOAP *client;
-  client = new Arc::ClientSOAP(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+  client = new Arc::ClientSOAP(mcc_cfg,url);
 
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
@@ -104,7 +104,7 @@ int main(void) {
 
 
   Arc::ClientSOAPwithSAML2SSO *client_soap;
-  client_soap = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+  client_soap = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url);
   logger.msg(Arc::INFO, "Creating and sending request");
   Arc::PayloadSOAP req_soap(echo_ns);
   req_soap.NewChild("echo").NewChild("say")="HELLO";

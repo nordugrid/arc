@@ -21,10 +21,12 @@ namespace Arc {
   Logger ClientHTTPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientHTTPwithSAML2SSO");
   Logger ClientSOAPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientSOAPwithSAML2SSO");
 
-  ClientHTTPwithSAML2SSO::ClientHTTPwithSAML2SSO(const BaseConfig& cfg, const std::string& host,
-			 int port, bool tls, const std::string& path) : http_client_(NULL), authn_(false) {
+  ClientHTTPwithSAML2SSO::ClientHTTPwithSAML2SSO(const BaseConfig& cfg,
+                                                 const URL& url)
+    : http_client_(NULL),
+      authn_(false) {
     if(!(Arc::init_xmlsec())) return;   
-    http_client_ = new ClientHTTP(cfg, host, port, tls, path);
+    http_client_ = new ClientHTTP(cfg, url);
     //Use the credential and trusted certificates from client's main chain to 
     //contact IdP
     cert_file_ = cfg.cert;
@@ -79,7 +81,7 @@ namespace Arc {
 
     //Parse the authenRequestUrl from response
     std::string authnRequestUrl(responseSP->Content());
-    logger.msg(Arc::VERBOSE, "Authentication Request URL: %s", authnRequestUrl.c_str());
+    logger.msg(VERBOSE, "Authentication Request URL: %s", authnRequestUrl);
 
     if(responseSP) delete responseSP;
 
@@ -91,12 +93,7 @@ namespace Arc {
     //-------------------------------------------
 
     Arc::URL url(authnRequestUrl);
-    std::string url_str = url.str();
-    size_t pos = url_str.find(":");
-    pos = url_str.find(":", pos+1);
-    pos = url_str.find("/", pos+1);
-    std::string idp_path(url_str.substr(pos));
- 
+
     Arc::MCCConfig cfg;
     if (!cert_file.empty())
       cfg.AddCertificate(cert_file);
@@ -107,7 +104,7 @@ namespace Arc {
     if (!ca_dir.empty())
       cfg.AddCADir(ca_dir);
 
-    ClientHTTP clientIdP(cfg, url.Host(), url.Port(), url.Protocol() == "https" ? 1:0, idp_path);
+    ClientHTTP clientIdP(cfg, url);
 
     Arc::PayloadRaw requestIdP;
     Arc::PayloadRawInterface *responseIdP = NULL;
@@ -135,8 +132,7 @@ namespace Arc {
       if(redirect_info.code != 302) break;
 
       Arc::URL redirect_url(redirect_info.location);
-      Arc::ClientHTTP redirect_client(cfg, redirect_url.Host(), redirect_url.Port(),
-                    redirect_url.Protocol() == "https" ? 1:0, redirect_url.Path());
+      Arc::ClientHTTP redirect_client(cfg, redirect_url);
 
       Arc::PayloadRaw redirect_request;
       Arc::PayloadRawInterface *redirect_response = NULL;
@@ -169,8 +165,7 @@ namespace Arc {
     
     //Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
     Arc::URL redirect_url_final(infoIdP.location);
-    Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final.Host(), redirect_url_final.Port(),
-              redirect_url_final.Protocol() == "https" ? 1:0, redirect_url_final.Path());
+    Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final);
     Arc::PayloadRaw redirect_request_final;
 
     //std::string login_html("j_username=myself&j_password=myself");
@@ -291,10 +286,12 @@ namespace Arc {
     return status;
   }
 
-  ClientSOAPwithSAML2SSO::ClientSOAPwithSAML2SSO(const BaseConfig& cfg, const std::string& host, int port,
-               bool tls, const std::string& path) : soap_client_(NULL), authn_(false) {
+  ClientSOAPwithSAML2SSO::ClientSOAPwithSAML2SSO(const BaseConfig& cfg,
+                                                 const URL& url)
+    : soap_client_(NULL),
+      authn_(false) {
     if(!(Arc::init_xmlsec())) return;
-    soap_client_ = new ClientSOAP(cfg, host, port, tls, path);
+    soap_client_ = new ClientSOAP(cfg, url);
     //Use the credential and trusted certificates from client's main chain to
     //contact IdP
     cert_file_ = cfg.cert;

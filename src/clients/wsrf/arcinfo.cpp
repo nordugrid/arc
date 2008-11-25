@@ -85,17 +85,13 @@ int main(int argc, char* argv[]){
     Arc::URL url(*it);
     if(!url)
       throw std::invalid_argument("Can't parse specified URL");
-    bool tls;
-    if(url.Protocol() == "http") { tls=false; }
-    else if(url.Protocol() == "https") { tls=true; }
-    else throw std::invalid_argument("URL contains unsupported protocol");
     Arc::MCCConfig cfg;
     if(!proxy_path.empty()) cfg.AddProxy(proxy_path);
     if(!key_path.empty()) cfg.AddPrivateKey(key_path);
     if(!cert_path.empty()) cfg.AddCertificate(cert_path);
     if(!ca_dir.empty()) cfg.AddCADir(ca_dir);
     cfg.GetOverlay(config_path);
-    Arc::ClientSOAP client(cfg,url.Host(),url.Port(),tls,url.Path());
+    Arc::ClientSOAP client(cfg,url);
     Arc::InformationRequest inforequest;
     Arc::PayloadSOAP request(*(inforequest.SOAP()));
     Arc::PayloadSOAP* response;

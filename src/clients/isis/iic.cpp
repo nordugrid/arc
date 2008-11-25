@@ -18,16 +18,7 @@ IIClient::IIClient(std::string &url_str):logger(Arc::Logger::rootLogger, "IIClie
     ns["glue2"] = GLUE2_D42_NAMESPACE;
 
     Arc::URL url(url_str);
-    bool tls;
-    if(url.Protocol() == "http") { 
-        tls=false; 
-    } else if(url.Protocol() == "https") {
-        tls=true; 
-    }
-    else {
-        throw(std::invalid_argument(std::string("URL contains unsupported protocol")));
-    }
-    cli = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), tls, url.Path());
+    cli = new Arc::ClientSOAP(cfg, url);
 }
 
 IIClient::~IIClient(void)

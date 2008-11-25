@@ -199,7 +199,7 @@ int main(int argc, char* argv[]){
     Arc::URL url(slcs_url);
 
     Arc::ClientSOAPwithSAML2SSO* client_soap = NULL; 
-    client_soap = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+    client_soap = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url);
     logger.msg(Arc::INFO, "Creating and sending soap request");
     
     Arc::NS slcs_ns; slcs_ns["slcs"]="http://www.nordugrid.org/schemas/slcs";

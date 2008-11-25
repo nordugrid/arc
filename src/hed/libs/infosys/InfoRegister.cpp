@@ -101,15 +101,6 @@ void InfoRegister::registration(void)
     std::list<Peer>::iterator it;
     for (it = peers_.begin(); it != peers_.end(); it++) {
         std::string isis_name = it->url.fullstr();
-        bool tls;
-        if (it->url.Protocol() == "http") {
-            tls = false;
-        } else if (it->url.Protocol() == "https") {
-            tls = true;
-        } else {
-            logger_.msg(Arc::WARNING, "unsupported protocol: %s", isis_name);
-            continue;
-        }
         logger_.msg(DEBUG, "Registering to %s ISIS", isis_name);
         Arc::PayloadSOAP request(ns_);
         Arc::XMLNode op = request.NewChild("isis:Register");
@@ -126,7 +117,7 @@ void InfoRegister::registration(void)
         mcc_cfg_.AddCertificate(it->cert);
         mcc_cfg_.AddProxy(it->proxy);
         mcc_cfg_.AddCADir(it->cadir);
-        Arc::ClientSOAP cli(mcc_cfg_, it->url.Host(), it->url.Port(), tls, it->url.Path());
+        Arc::ClientSOAP cli(mcc_cfg_, it->url);
         Arc::MCC_Status status = cli.process(&request, &response);
         if ((!status) || (!response)) {
             logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);

@@ -61,8 +61,7 @@ namespace Arc {
       client_entry(NULL) {
 
     logger.msg(INFO, "Creating an A-REX client");
-    client = new ClientSOAP(cfg, url.Host(), url.Port(),
-			    url.Protocol() == "https", url.Path());
+    client = new ClientSOAP(cfg, url);
     set_arex_namespaces(arex_ns);
   }
 

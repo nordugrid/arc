@@ -97,19 +97,8 @@ Router::do_route()
             std::string isis_name = url.fullstr();
             logger_.msg(Arc::DEBUG, "Routing to %s", isis_name);
             // send
-            bool tls = false;
-            if (url.Protocol() == "http") {
-                tls = false;
-            } else if (url.Protocol() == "https") {
-                tls = true;
-            } else {
-                logger_.msg(Arc::WARNING, "unsupported protocol: %s", isis_name);
-                continue;
-            }
             Arc::MCCConfig mcc_cfg_;
-            Arc::ClientSOAP *cli_ = new Arc::ClientSOAP(mcc_cfg_, 
-                                            url.Host(), url.Port(), tls, 
-                                            url.Path());
+            Arc::ClientSOAP *cli_ = new Arc::ClientSOAP(mcc_cfg_, url);
             if (cli_ == NULL) {
                 logger_.msg(Arc::WARNING, "Cannot create soap client");
                 continue;

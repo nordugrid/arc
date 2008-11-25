@@ -68,7 +68,7 @@ int main(int argc, char* argv[]){
         Arc::MCCConfig cfg;
         if(config_path != "") cfg.GetOverlay(config_path);
 
-        Arc::ClientSOAP client(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+        Arc::ClientSOAP client(cfg,url);
 
         // Read the request from file to string
         std::ifstream requestfile(requestfilestr.c_str());

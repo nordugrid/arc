@@ -70,7 +70,7 @@ namespace Arc {
     :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL) {
 
     logger.msg(Arc::INFO, "Creating an A-REX client");
-    client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+    client = new Arc::ClientSOAP(cfg,url);
     set_arex_namespaces(arex_ns);
   }
   
