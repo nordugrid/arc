@@ -24,7 +24,6 @@
 \newcommand\arraybslash{\let\\\@arraycr}
 \makeatother
 % List styles
-\newcounter{saveenum}
 \newcommand\liststyleWWviiiNumii{%
 \renewcommand\labelitemi{[F0B7?]}
 \renewcommand\labelitemii{[F0B7?]}
@@ -169,52 +168,6 @@
 \renewcommand\labelenumiii{\theenumiii.}
 \renewcommand\labelenumiv{\theenumiv.}
 }
-\newcommand\liststyleWWviiiNumxi{%
-\renewcommand\theenumi{\arabic{enumi}}
-\renewcommand\theenumii{\arabic{enumii}}
-\renewcommand\theenumiii{\arabic{enumiii}}
-\renewcommand\theenumiv{\arabic{enumiv}}
-\renewcommand\labelenumi{\theenumi.}
-\renewcommand\labelenumii{\theenumii.}
-\renewcommand\labelenumiii{\theenumiii.}
-\renewcommand\labelenumiv{\theenumiv.}
-}
-\newcommand\liststyleWWviiiNumxii{%
-\renewcommand\labelitemi{[F0B7?]}
-\renewcommand\labelitemii{[F0B7?]}
-\renewcommand\labelitemiii{[F0B7?]}
-\renewcommand\labelitemiv{[F0B7?]}
-}
-\newcommand\liststyleWWviiiNumxv{%
-\renewcommand\theenumi{\arabic{enumi}}
-\renewcommand\theenumii{\arabic{enumii}}
-\renewcommand\theenumiii{\arabic{enumiii}}
-\renewcommand\theenumiv{\arabic{enumiv}}
-\renewcommand\labelenumi{\theenumi.}
-\renewcommand\labelenumii{\theenumii.}
-\renewcommand\labelenumiii{\theenumiii.}
-\renewcommand\labelenumiv{\theenumiv.}
-}
-\newcommand\liststyleWWviiiNumxvi{%
-\renewcommand\theenumi{\arabic{enumi}}
-\renewcommand\theenumii{\arabic{enumii}}
-\renewcommand\theenumiii{\arabic{enumiii}}
-\renewcommand\theenumiv{\arabic{enumiv}}
-\renewcommand\labelenumi{\theenumi.}
-\renewcommand\labelenumii{\theenumii.}
-\renewcommand\labelenumiii{\theenumiii.}
-\renewcommand\labelenumiv{\theenumiv.}
-}
-\newcommand\liststyleWWviiiNumxxiv{%
-\renewcommand\theenumi{\arabic{enumi}}
-\renewcommand\theenumii{\arabic{enumii}}
-\renewcommand\theenumiii{\arabic{enumiii}}
-\renewcommand\theenumiv{\arabic{enumiv}}
-\renewcommand\labelenumi{\theenumi.}
-\renewcommand\labelenumii{\theenumii.}
-\renewcommand\labelenumiii{\theenumiii.}
-\renewcommand\labelenumiv{\theenumiv.}
-}
 % Page layout (geometry)
 \setlength\paperwidth{8.2673in}
 \setlength\paperheight{11.6925in}
@@ -232,7 +185,7 @@
 \renewcommand\footnoterule{\vspace*{-0.0071in}\setlength\leftskip{0pt}\setlength\rightskip{0pt plus 1fil}\noindent\textcolor{black}{\rule{0.25\columnwidth}{0.0071in}}\vspace*{0.0398in}}
 % Pages styles
 \makeatletter
-\newcommand\ps@Convertiv{
+\newcommand\ps@Convertv{
   \renewcommand\@oddhead{}
   \renewcommand\@evenhead{}
   \renewcommand\@oddfoot{}
@@ -259,7 +212,7 @@
 \begin{flushleft}
 \tablehead{}\begin{supertabular}{m{1.3809599in}m{2.0976598in}}
 \begin{center}
-\includegraphics[width=1.4228in,height=0.9098in]{SecurityFrameworkofARC1-img1.jpg}
+\includegraphics[width=1.422in,height=0.9091in]{SecurityFrameworkofARC1-img1.jpg}
 \end{center}
  &
 \selectlanguage{english}\scshape\color{black} \newline
@@ -308,7 +261,9 @@ Table of Contents
 \bigskip
 
 \bigskip
-\clearpage\clearpage\setcounter{page}{1}\pagestyle{Convertiv}
+
+\bigskip
+\clearpage\clearpage\setcounter{page}{1}\pagestyle{Convertv}
 
 \bigskip
 
@@ -466,7 +421,7 @@ put into the payload itself.
 \par}
 
 \begin{center}
-\begin{minipage}{3.3756in}
+\begin{minipage}{3.3752in}
 {\selectlanguage{english}\color{black}
 \ \ class SecHandler \{}
 
@@ -559,7 +514,7 @@ put into the payload itself.
 \par}
 
 \begin{center}
-\begin{minipage}{3.8756in}
+\begin{minipage}{3.8752in}
 {\selectlanguage{english}\color{black}
 \ \ class PDP \{}
 
@@ -697,7 +652,7 @@ based policy languages.}
 
 \includegraphics[width=0in,height=0.0161in]{SecurityFrameworkofARC1-img5.png}
 
-\includegraphics[width=5.7043in,height=5.6354in]{SecurityFrameworkofARC1-img6.png}
+\includegraphics[width=5.9709in,height=6.3957in]{SecurityFrameworkofARC1-img6.png}
 
 
 {\centering\selectlanguage{english}\itshape\color{black}
@@ -1995,7 +1950,7 @@ Element &
 AttributeId &
 \centering\arraybslash
 \selectlanguage{english}\bfseries\itshape\color{black}
-Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7684599in}|}
+Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7698599in}|}
 \selectlanguage{english}\color{black} Resource &
 \selectlanguage{english}\color{black}
 http://www.nordugrid.org/schemas/policy-arc/types/localendpoint &
@@ -2025,7 +1980,7 @@ Element &
 AttributeId &
 \centering\arraybslash
 \selectlanguage{english}\bfseries\itshape\color{black}
-Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7684599in}|}
+Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7698599in}|}
 \selectlanguage{english}\color{black} SubjectAttribute &
 \selectlanguage{english}\color{black}
 http://www.nordugrid.org/schemas/policy-arc/types/tls/ca &
@@ -2063,7 +2018,7 @@ Element &
 AttributeId &
 \centering\arraybslash
 \selectlanguage{english}\bfseries\itshape\color{black}
-Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7684599in}|}
+Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7698599in}|}
 \selectlanguage{english}\color{black} Resource &
 \selectlanguage{english}\color{black}
 http://www.nordugrid.org/schemas/policy-arc/types/http/path &
@@ -2090,7 +2045,7 @@ Element &
 AttributeId &
 \centering\arraybslash
 \selectlanguage{english}\bfseries\itshape\color{black}
-Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7684599in}|}
+Content\\\hline}\begin{supertabular}{|m{1.2330599in}|m{2.5476599in}|m{1.7698599in}|}
 \selectlanguage{english}\color{black} Resource &
 \selectlanguage{english}\color{black}
 http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint &
@@ -2205,8 +2160,7 @@ Service responds with empty UpdateCredentialsResponse message.}
 \end{itemize}
 \subsection[Schemas, descriptions and examples]{Schemas, descriptions
 and examples}
-\label{bkm:Ref204010074}\subsubsection[Authorization
-Policy]{Authorization Policy}
+\subsubsection[Authorization Policy]{Authorization Policy}
 \label{bkm:Ref204009564}{\selectlanguage{english}\upshape\color{black}
 XML schema with comments available at
 \url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/arcpdp/Policy.xsd}
@@ -2299,7 +2253,7 @@ See Section 7.7for the explanation of ARC Policy.}
 \subsubsection{SimpleList PDP configuration and Policy Example}
 {\selectlanguage{english}\upshape\color{black}
 XML schema with comments available at
-\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/simplelistpdp/SimpleListPDP.xsd}
+\href{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/simplelistpdp/SimpleListPDP.xsd}{\textstyleInternetlink{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/simplelistpdp/SimpleListPDP.}}\href{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/simplelistpdp/SimpleListPDP.xsd}{\textstyleInternetlink{xsd}}
 .}
 
 {\selectlanguage{english}\upshape\color{black}
@@ -2360,7 +2314,7 @@ For example content of \textit{simplelist} file may look like this:}
 
 \subsubsection[Arc PDP configuration and Policy Example]{Arc PDP
 configuration and Policy Example}
-\label{bkm:Ref204009974}\label{bkm:RefSecarcpdpconfigandpolicy}{\selectlanguage{english}\upshape\color{black}
+\label{bkm:Ref204009974}{\selectlanguage{english}\upshape\color{black}
 XML schema with comments available at
 \url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/arcpdp/ArcPDP.xsd}
 .}
@@ -2657,7 +2611,7 @@ name={\textquotedbl}delegation.pdp{\textquotedbl}/{\textgreater} under
 
 \subsubsection[Delegation SecHandler Configuration]{Delegation
 SecHandler Configuration}
-\label{bkm:RefSecdelegsechandleconfig}{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\upshape\color{black}
 Below is an example of configuration of Delegation SecHandler inside TLS
 MCC component.}
 
@@ -2697,9 +2651,9 @@ attached to TLS MCC. }
 
 \subsubsection[UsernameToken SecHandler configuration]{UsernameToken
 SecHandler configuration}
-\label{bkm:RefSecuserametokenconfig}{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\upshape\color{black}
 Configuration XML schema with comments available at
-\href{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/usernametokensh/UsernameTokenSH.xsd}{\textstyleInternetlink{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/usernametokensh/UsernameTo}}\href{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/usernametokensh/UsernameTokenSH.xsd}{\textstyleInternetlink{kenSH.xsd}}
+\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/usernametokensh/UsernameTokenSH.xsd}
 .}
 
 {\selectlanguage{english}\upshape\color{black}
@@ -2785,496 +2739,11 @@ event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}}
 {\selectlanguage{english}\upshape\color{black}
 \texttt{\ \ \ \ \ \ \ {\textless}/Component{\textgreater}}}
 
-{\selectlanguage{english}\color{black}
+{\selectlanguage{english}\upshape\color{black}
 X509Token SecHandler must be configured under SOAP MCC.}
 
 
 \bigskip
-
-\subsection{User Manual}
-{\selectlanguage{english}\color{black}
-This section describes how to configure and use SecHandler and PDP
-elements included in the ARC1 and provides few examples of the ARC
-Policy documents. The target readers are those users who will use the
-ARC1 middleware. Currently this section is very short on details. It is
-going to be continuously extended. Especially taking user feedback into
-account.}
-
-\subsubsection[Authorization SecHandler and PDPs]{Authorization
-SecHandler and PDPs}
-{\selectlanguage{english}\color{black}
-There is a specific Authorization SecHandler (arc.authz) which is
-implemented for calling the Policy Decision Points (PDP) and serves as
-their container. }
-
-{\selectlanguage{english}\color{black}
-Usually the Authorization SecHandler and included PDPs are used on the
-service side of communication channel. Although it is also possible to
-use them on the client side. All possibilities are achieved by
-modifying the configuration file (hereafter mentioned as service.xml)
-and possibly providing the authorization policy in a separate file.}
-
-{\selectlanguage{english}\color{black}
-Here the {\textquotedblleft}echo{\textquotedblright} test service is
-used to explaining the usage, but the explanation applies to other
-services as well.}
-
-{\selectlanguage{english}\color{black}
-The procedure for configuring Authorization SecHandler in service.xml is
-following:}
-
-\liststyleWWviiiNumxi
-\begin{enumerate}
-\item {\selectlanguage{english}\color{black}
-Add the Authorization SecHandler as child element
-{\textless}SecHandler/{\textgreater} of
-{\textless}Service/{\textgreater} element. }
-\end{enumerate}
-{\selectlanguage{english}\color{black}
-The {\textquotedblleft}name{\textquotedblright} and
-{\textquotedblleft}event{\textquotedblright} attribute of
-{\textless}SecHandler/{\textgreater} element are both important. The
-{\textquotedblleft}name{\textquotedblright} attribute is used for
-distinguishing betwenn loaded SecHandler objects. The
-{\textquotedblleft}event{\textquotedblright} attribute defines for
-which message authorization would be enforced. Usually and reasonably
-it is done for {\textquotedblleft}incoming{\textquotedblright}
-messages. But some services and other Message Chain components may
-define other internal types of messages. For possible values please
-refer to documentation of particular Service or MCC. In our particular
-case {\textquotedblleft}echo{\textquotedblright} service only supports
-{\textquotedblleft}incoming{\textquotedblright} messages for this
-purpose.}
-
-\liststyleWWviiiNumxi
-\setcounter{saveenum}{\value{enumi}}
-\begin{enumerate}
-\setcounter{enumi}{\value{saveenum}}
-\item {\selectlanguage{english}\color{black}
-Add the PDP configuration as \ child element
-{\textless}PDP/{\textgreater} under
-{\textless}SecHandler/{\textgreater}. Currently there are four usable
-PDPs distributed as part of the ARC1 middleware:}
-\end{enumerate}
-\liststyleWWviiiNumxii
-\begin{itemize}
-\item {\selectlanguage{english}\color{black}
-simplelist.pdp -- compares Subject of user{\textquotesingle}s X509
-certificate to those stored in a file.}
-\item {\selectlanguage{english}\color{black}
-arc.pdp -- compares authorization related information parsed from
-message at various processing steps \ to Policy document specified in
-configuration of this PDP.}
-\item {\selectlanguage{english}\color{black}
-pdpservice.invoker - composes the ARC Request, puts request into SOAP
-message, and invokes the remote PDP service to get the response SOAP
-which includes authorization decision. The PDP service functionality is
-similar to arc.pdp.}
-\item {\selectlanguage{english}\color{black}
-delegation.pdp -- compares authorization related information parsed from
-message at various processing steps and Policy document embedded in
-proxy certificate used by remote side.}
-\end{itemize}
-{\selectlanguage{english}\color{black}
-Default behavior of Authorization SecHandler is to execute all
-configured PDPs sequentially till eithe r one of them fails or all
-produced positive results. This behavior may be modified by attribute
-{\textquotedblleft}action{\textquotedblright} of
-{\textless}PDP/{\textgreater} element.}
-
-{\selectlanguage{english}\upshape\color{black}
-The description of PDP configuration and ARC Policy example are
-available in Section 7}
-
-\subsubsection[Delegation SecHandler, Delegation PDP and Proxy
-Certificate Generation]{Delegation SecHandler, Delegation PDP and Proxy
-Certificate Generation}
-{\selectlanguage{english}\upshape\color{black}
-Delegation SecHandler and Delegation PDP in their current state provide
-an infrastructure for limiting capabilities of delegated credentials.
-Their collect and process policies attached to X509 Proxy Certificates
-respectively. Hence to have delegation restriction working both must be
-enabled in configuration of service. Configuration of Delegation
-SecHandler is described in section 7.10. }
-
-{\selectlanguage{english}\color{black}
-The possible location for Delegation PDP is inside Authorization
-SecHandler (arc.authz). Depending on how fine grained policy of
-delegated credentials is supposed to be corresponding Authrorization
-SecHandler may be attached to different MCCs or directly to Service
-component. However, the precondition for using Delegation PDP is that
-there must be Delegation SecHandler instantiated earlier in chain.}
-
-{\selectlanguage{english}\color{black}
-On the client side, command line utility
-{\textquotedblleft}approxy{\textquotedblright} utility can be used to
-generate Proxy Certificate with Delegation Policy embedded.}
-
-{\selectlanguage{english}\color{black}
-Normally approxy appears in \$ARC\_LOCATION/bin. The usage of approxy is
-like:}
-
-{\selectlanguage{english}\color{black}
-approxy -P proxy.pem -C cert.pem -K key.pem -c constraints}
-
-{\selectlanguage{english}\color{black}
-By using argument {\textquotedbl}-c{\textquotedbl}, some constraints can
-be specified for proxy certificate. Currently, the life time can be
-limited by using {\textquotedbl}-c validityStart=...{\textquotedbl} and
-{\textquotedbl}-c validityEnd=...{\textquotedbl}, {\textquotedbl}-c
-validityStart=...{\textquotedbl} and {\textquotedbl}-c
-validityPeriod=...{\textquotedbl}. Like for example }
-
-{\selectlanguage{english}\color{black}
-{}-c validityStart=2008-05-29T10:20:30Z}
-
-{\selectlanguage{english}\color{black}
-{}-c validityEnd=2008-06-29T10:20:30Z}
-
-{\selectlanguage{english}\color{black}
-The Delegation Policy can be specified by using {\textquotedbl}-c
-proxyPolicyFile=...{\textquotedbl} or {\textquotedbl}-c
-proxyPolicy=...{\textquotedbl}. Like }
-
-{\selectlanguage{english}\color{black}
-{}-c proxyPolicyFile=delegation\_policy.xml}
-
-{\selectlanguage{english}\upshape\color{black}
-The Delegation Policy is the same as the ARC Policy explained in section
-7.7. Simple example below renders delegated credentials usable only for
-contacting service attached to HTTP communication channel under path
-/arex (line 6) \ and allows HTTP operation POST (line 9) on it. }
-
-\liststyleWWviiiNumxv
-\begin{enumerate}
-\item {\selectlanguage{english}\ttfamily\color{black}
-{\textless}?xml version={\textquotedbl}1.0{\textquotedbl}
-encoding={\textquotedbl}UTF-8{\textquotedbl}?{\textgreater}}
-\item {\selectlanguage{english}\color{black}
-\texttt{{\textless}Policy
-xmlns={\textquotedbl}}\url{http://www.nordugrid.org/schemas/policy-arc}\texttt{{\textquotedbl}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ PolicyId={\textquotedbl}sm-example:policy1{\textquotedbl}
-CombiningAlg={\textquotedbl}Deny-Overrides{\textquotedbl}{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ {\textless}Rule RuleId={\textquotedbl}rule1{\textquotedbl}
-Effect={\textquotedbl}Permit{\textquotedbl}{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Resources{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Resource
-Type={\textquotedbl}string{\textquotedbl}
-AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/http/path{\textquotedbl}{\textgreater}/arex{\textless}/Resource{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Resources{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Actions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Action
-Type={\textquotedbl}string{\textquotedbl}
-AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/http/method{\textquotedbl}{\textgreater}POST{\textless}/Action{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Actions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ {\textless}/Rule{\textgreater}}}
-\item {\selectlanguage{english}\ttfamily\color{black}
-{\textless}/Policy{\textgreater}}
-\end{enumerate}
-{\selectlanguage{english}\color{black}
-Another example of delegation policy is presented below. This policy
-restricts usage of delegated credentials to SOAP operation
-CreateActivity (line 5) of Basic Execution Service (BES) [4] namespace
-(line 9). Such policy could be embedded into credentials delegated to
-high level Brokering service performing Grid job submission to low
-level BES on behalf of user.}
-
-\liststyleWWviiiNumxvi
-\begin{enumerate}
-\item {\selectlanguage{english}\ttfamily\color{black}
-{\textless}?xml version={\textquotedbl}1.0{\textquotedbl}
-encoding={\textquotedbl}UTF-8{\textquotedbl}?{\textgreater}}
-\item {\selectlanguage{english}\ttfamily\color{black}
-{\textless}Policy
-xmlns={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc{\textquotedbl}
-PolicyId={\textquotedbl}sm-example:policy1{\textquotedbl}
-CombiningAlg={\textquotedbl}Deny-Overrides{\textquotedbl}{\textgreater}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ {\textless}Rule RuleId={\textquotedbl}rule1{\textquotedbl}
-Effect={\textquotedbl}Permit{\textquotedbl}{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Actions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Action
-Type={\textquotedbl}string{\textquotedbl}
-AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/soap/operation{\textquotedbl}{\textgreater}CreateActivity{\textless}/Action{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Actions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Conditions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}Condition{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ {\textless}Attribute
-Type={\textquotedbl}string{\textquotedbl}
-AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace{\textquotedbl}{\textgreater}http://schemas.ggf.org/bes/2006/08/bes-factory{\textless}/Attribute{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}/Condition{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Conditions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ {\textless}/Rule{\textgreater}}}
-\item {\selectlanguage{english}\ttfamily\color{black}
-{\textless}/Policy{\textgreater}}
-\end{enumerate}
-\subsubsection{VOMS Proxy Certificate}
-{\selectlanguage{english}\color{black}
-The commonly used voms proxy certificate can be used in ARC1 for
-authentication as normal proxy certificate, and attribute acquiring in
-order to make authorization decision based on attributes.}
-
-{\selectlanguage{english}\color{black}
-1.How to create voms proxy certificate}
-
-{\selectlanguage{english}\color{black}
-Currently the proxy creation utility in ARC1---arcproxy can not be used
-for creating voms proxy certificate because the GSI-based communication
-requirement from voms server side has not been supported in ARC1 (ARC1
-uses standard SSL/TLS communication). So the way to create voms proxy
-certificate is still to use the
-{\textquotedblleft}voms-proxy-init{\textquotedblright} utility.}
-
-{\selectlanguage{english}\color{black}
-2.How to use voms proxy certificate in ARC1}
-
-{\selectlanguage{english}\color{black}
-The attribute certificate (AC, which is created by voms server and then
-embedded in voms proxy certificate \ as one of the certificate
-extension by {\textquotedblleft}voms-proxy-init{\textquotedblright}
-client) \ will be parsed by TLS handling plugin (called MCCTLS) of
-ARC1, and saved in the message context in the format
-{\textquotedblleft}grantor=knowarc://testvoms.knowarc.eu:50000/knowarc:role=guest{\textquotedblright}.}
-
-{\selectlanguage{english}\color{black}
-Service administrator needs to configure the trusted DN chain for
-verifying the AC under tls MCC{\textquotesingle}s configurationwith the
-following format. You should specify one node
-({\textless}tls:VOMSCertTrustDNChain/{\textgreater}) for each vo which
-you trust. The reason why using trusted DN chain is for service to
-restrict which vo server is trusted. }
-
-{\selectlanguage{english}\color{black}
-In the following table, the first
-{\textless}tls:VOMSCertTrustDNChain{\textgreater} in the following
-table defines two items: the first one is the DN of voms server, the
-second line is the DN of the corresponding CA. The second
-{\textless}tls:VOMSCertTrustDNChain{\textgreater} defines regular
-expression for matching, the DN of voms server and DN of the
-corresponding CA should both match it. The third one defines the
-external file which includes the
-{\textless}tls:VOMSCertTrustDNChain{\textgreater}.}
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDNChain{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDN{\textgreater}/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=ABCDE{\textless}/tls:VOMSCertTrustDN{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDN{\textgreater}/O=Grid/O=NorduGrid/CN=NorduGrid
-Certification Authority{\textless}/tls:VOMSCertTrustDN{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}/tls:VOMSCertTrustDNChain{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDNChain{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustRegex{\textgreater}\^{}/O=Grid/O=NorduGrid{\textless}/tls:VOMSCertTrustRegex{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}/tls:VOMSCertTrustDNChain{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDNChainsLocation{\textgreater}./pathto/external/file{\textless}/tls:VOMSCertTrustDNChainsLocation{\textgreater}}
-
-
-\bigskip
-
-{\selectlanguage{english}\color{black}
-Service administrator can then use the attribute into access control
-policy:}
-
-\liststyleWWviiiNumxxiv
-\begin{enumerate}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Subjects{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Subject{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ {\textless}Attribute
-AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}grantor=knowarc://testvoms.knowarc.eu:50000/knowarc:role=guest{\textless}/Attribute{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Attribute
-AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/tls/ca{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}/C=NO/ST=Oslo/O=UiO/CN=CA{\textless}/Attribute{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}Attribute
-AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/tls/identity{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}/C=NO/ST=Oslo/O=UiO/CN=test{\textless}/Attribute{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}/Subject{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Subjects{\textgreater}}}
-\end{enumerate}
-
-\bigskip
-
-\subsubsection[UsernameToken SecHandler]{UsernameToken SecHandler}
-{\selectlanguage{english}\color{black}
-The UsernameToken SecHandler is meant for processing - generating and
-extracting - WS-Security [5] UsernameToken from SOAP header. Hence it
-must be attached to SOAP MCC of service or/and client communication
-channel. }
-
-{\selectlanguage{english}\upshape\color{black}
-On the service side, the functionality of extracting UsernameToken may
-be configured as described in section 7.11. }
-
-{\selectlanguage{english}\color{black}
-On the client side, the UsernameToken SecHandler may be configured
-either by using client specific methods (for example see
-test\_clientinterface.cpp src/tests/echo directory of source tree) or
-through generic client configuration file as shown in example below
-(also can see share/doc/arc/echo\_client.xml.example under the
-installation directory). This example will generate token with username
-{\textquotedblleft}user{\textquotedblright} and password
-{\textquotedblleft}pass{\textquotedblright} inside any SOAP message
-sent by client tools of the ARC1.}
-
-{\selectlanguage{english}\ttfamily\color{black}
-{\textless}ArcConfig{\textgreater}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ {\textless}Plugins
-overlay={\textquotedbl}add{\textquotedbl}{\textgreater}{\textless}Name{\textgreater}arcpdc{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ {\textless}Chain{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ {\textless}Component
-name={\textquotedbl}soap.client{\textquotedbl}{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ {\textless}SecHandler
-name={\textquotedbl}usernametoken.handler{\textquotedbl}
-event={\textquotedbl}outgoing{\textquotedbl}
-overlay={\textquotedbl}add{\textquotedbl}{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}Process{\textgreater}generate{\textless}/Process{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}Username{\textgreater}user{\textless}/Username{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}Password{\textgreater}pass{\textless}/Password{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}PasswordEncoding{\textgreater}digest{\textless}/PasswordEncoding{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ {\textless}/SecHandler{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ {\textless}/Component{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ {\textless}/Chain{\textgreater}}}
-
-{\selectlanguage{english}\ttfamily\color{black}
-{\textless}/ArcConfig{\textgreater}}
-
-\subsubsection[X509Token SecHandler]{X509Token SecHandler}
-{\selectlanguage{english}\color{black}
-The X509Token SecHandler is meant for processing - generating and
-extracting - WS-Security [5] X509Token from SOAP header. Hence it must
-be attached to SOAP MCC of service or/and client communication channel.
-}
-
-{\selectlanguage{english}\color{black}
-On the service side, the functionality of extracting X509Token may be
-configured as described in section 7.12. }
-
-{\selectlanguage{english}\color{black}
-On the client side, the X509Token SecHandler may be configured either by
-using client specific methods (for example see
-test\_clientinterface.cpp src/tests/echo directory of source tree) or
-through generic client configuration file as shown in example below.
-This example will generate x509 token (by using the specified
-certificate and key file) inside any SOAP message sent by client tools
-of the ARC1.}
-
-{\selectlanguage{english}\ttfamily\color{black}
-{\textless}ArcConfig{\textgreater}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ {\textless}Plugins
-overlay={\textquotedbl}add{\textquotedbl}{\textgreater}{\textless}Name{\textgreater}arcpdc{\textless}/Name{\textgreater}{\textless}/Plugins{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ {\textless}Chain{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ {\textless}Component
-name={\textquotedbl}soap.client{\textquotedbl}{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ {\textless}SecHandler
-name={\textquotedbl}x509token.handler{\textquotedbl}
-event={\textquotedbl}outgoing{\textquotedbl}
-overlay={\textquotedbl}add{\textquotedbl}{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}Process{\textgreater}generate{\textless}/Process{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}KeyPath{\textgreater}/path/to/key.pem{\textless}/KeyPath{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}CertificatePath{\textgreater}/path/to/cert.pem{\textless}/CertificatePath{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ {\textless}/SecHandler{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ {\textless}/Component{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ {\textless}/Chain{\textgreater}{\textless}/ArcConfig{\textgreater}}}
 
 \clearpage{\centering\selectlanguage{english}\bfseries\scshape\color{black}
 References
