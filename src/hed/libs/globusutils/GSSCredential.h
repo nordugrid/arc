@@ -1,6 +1,8 @@
 #ifndef __ARC_GLOBUSGSS_H__
 #define __ARC_GLOBUSGSS_H__
 
+#include <string>
+
 #include <gssapi.h>
 
 namespace Arc {
@@ -14,6 +16,7 @@ namespace Arc {
 		  const std::string& keyPath);
     ~GSSCredential();
     operator gss_cred_id_t&();
+    operator gss_cred_id_t*();
   private:
     gss_cred_id_t credential;
     static Logger logger;

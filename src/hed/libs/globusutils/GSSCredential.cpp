@@ -9,10 +9,6 @@
 #include "GlobusErrorUtils.h"
 #include "GSSCredential.h"
 
-static int pwck(char*, int, int) {
-  return -1;
-}
-
 namespace Arc {
 
   Logger GSSCredential::logger(Logger::getRootLogger(), "GSSCredential");
@@ -82,6 +78,10 @@ namespace Arc {
 
   GSSCredential::operator gss_cred_id_t&() {
     return credential;
+  }
+
+  GSSCredential::operator gss_cred_id_t*() {
+    return &credential;
   }
 
 } // namespace Arc
