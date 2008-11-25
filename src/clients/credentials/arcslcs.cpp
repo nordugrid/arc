@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -74,7 +75,7 @@ int main(int argc, char* argv[]){
   options.AddOption('P', "password", istring("Password for user account to IdP"),
 		    istring("string"), password);
 
-  int keysize = 1024;
+  int keysize = 0;
   options.AddOption('Z', "keysize", istring("Key size of the private key (512, 1024, 2048)"),
 		    istring("number"), keysize);
 
@@ -82,7 +83,7 @@ int main(int argc, char* argv[]){
   options.AddOption('K', "keypass", istring("Private key passphrase"),
                     istring("passphrase"), keypass);
 
-  int lifetime = 12;
+  int lifetime = 0;
   options.AddOption('L', "lifetime", istring("Lifetime of the certificate, start with current time, hour as unit"),
                     istring("period"), lifetime);
 
@@ -106,15 +107,50 @@ int main(int argc, char* argv[]){
 
   std::list<std::string> params = options.Parse(argc, argv);
 
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-
   Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
 
+  if (slcs_url.empty() && usercfg.ConfTree()["SLCSURL"]) {
+    slcs_url = (std::string)usercfg.ConfTree()["SLCSURL"];
+  }
+
+  if (idp_name.empty() && usercfg.ConfTree()["IdPname"]) {
+    idp_name = (std::string)usercfg.ConfTree()["IdPname"];
+  }
+
+  if (username.empty() && usercfg.ConfTree()["Username"]) {
+    username = (std::string)usercfg.ConfTree()["Username"];
+  }
+
+  if (password.empty() && usercfg.ConfTree()["Password"]) {
+    password = (std::string)usercfg.ConfTree()["Password"];
+  }
+
+  if (keysize == 0 && usercfg.ConfTree()["Keysize"]) {
+    std::string keysize_str = (std::string)usercfg.ConfTree()["Keysize"];
+    keysize = strtol(keysize_str.c_str(), NULL, 0);
+  }
+  if(keysize ==0) keysize = 1024;
+
+  if (keypass.empty() && usercfg.ConfTree()["Keypass"]) {
+    keypass = (std::string)usercfg.ConfTree()["Keypass"];
+  }
+
+  if (lifetime == 0 && usercfg.ConfTree()["CertLifetime"]) {
+    std::string lifetime_str = (std::string)usercfg.ConfTree()["CertLifetime"];
+    lifetime = strtol(lifetime_str.c_str(), NULL, 0);
+  }
+  if(lifetime ==0) lifetime = 12;
+
+  if (storedir.empty() && usercfg.ConfTree()["StoreDir"]) {
+    storedir = (std::string)usercfg.ConfTree()["StoreDir"];
+  }
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
   if (debug.empty() && usercfg.ConfTree()["Debug"]) {
     debug = (std::string)usercfg.ConfTree()["Debug"];
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
