@@ -34,5 +34,5 @@ libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 test_jobdescription_SOURCES  = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_jobdescription_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-test_jobdescription_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/credential/libarccredential.la libarcclient.la
+test_jobdescription_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la libarcclient.la
 
