@@ -136,8 +136,10 @@ namespace ArcLib {
     X509_NAME *subject = NULL;
     subject = X509_get_subject_name(cert_);
     std::string str;
+    char buf[256];
     if(subject!=NULL)
-      str.append(X509_NAME_oneline(subject,0,0));
+      X509_NAME_oneline(subject,buf,sizeof(buf));
+    str.append(buf);
     return str;
   }
 
@@ -581,7 +583,17 @@ namespace ArcLib {
     X509_EXTENSION*   ext = NULL;
     ASN1_OBJECT*      ext_obj = NULL;
     ASN1_OCTET_STRING*  ext_oct = NULL;
-
+#if 0
+    bool numberic = false;
+    size_t pos1 = 0, pos2;
+    do {
+      pos2 = name.find(".", pos1);
+      if(pos2 != std::string::npos) 
+      std::string str = name.substr(pos1, pos2 - pos1);
+      long int number = stdtol(str.c_str(), NULL, 0);
+      pos1 = pos2 + 1;
+    }
+#endif
     //if(!(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)(name.c_str()))))) {
     if(!(ext_obj = OBJ_txt2obj(name.c_str(), 1))) {  //only numerical format is accept for "name"
       credentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
