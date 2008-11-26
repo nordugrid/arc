@@ -583,19 +583,32 @@ namespace ArcLib {
     X509_EXTENSION*   ext = NULL;
     ASN1_OBJECT*      ext_obj = NULL;
     ASN1_OCTET_STRING*  ext_oct = NULL;
-#if 0
-    bool numberic = false;
+
+    bool numberic = true;
     size_t pos1 = 0, pos2;
     do {
       pos2 = name.find(".", pos1);
-      if(pos2 != std::string::npos) 
-      std::string str = name.substr(pos1, pos2 - pos1);
-      long int number = stdtol(str.c_str(), NULL, 0);
+      if(pos2 != std::string::npos) { //OID: 1.2.3.4.5
+        std::string str = name.substr(pos1, pos2 - pos1);
+        long int number = strtol(str.c_str(), NULL, 0);
+        if(number == 0) { numberic = false; break; }
+      }
+      else { //The only one (without '.' as sperator, then the name is a single number or a string) or the last number
+        std::string str = name.substr(pos1);
+        long int number = strtol(str.c_str(), NULL, 0);
+        if(number == 0) { numberic = false; break; }
+        else break;
+      }
       pos1 = pos2 + 1;
+    } while(true);
+
+    if(!numberic && !(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)(name.c_str()))))) { 
+      //string format, the OID should have been registered before calling OBJ_nid2obj
+      credentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
+      LogError(); return NULL;
     }
-#endif
-    //if(!(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)(name.c_str()))))) {
-    if(!(ext_obj = OBJ_txt2obj(name.c_str(), 1))) {  //only numerical format is accept for "name"
+    else if(numberic && !(ext_obj = OBJ_txt2obj(name.c_str(), 1))) {  
+      //numerical format, the OID will be registered here if it has not been registered before
       credentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
       LogError(); return NULL;
     }
