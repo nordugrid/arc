@@ -89,7 +89,7 @@ int main(int argc, char* argv[]){
         std::string cafile = (std::string)(cfg.overlay["Chain"]["Component"]["CACertificatePath"]);
         std::string cadir = (std::string)(cfg.overlay["Chain"]["Component"]["CACertificatesDir"]);
 
-        ArcLib::Credential cred(cert, key, cadir, cafile);
+        Arc::Credential cred(cert, key, cadir, cafile);
         std::string local_dn_str = cred.GetDN();
         std::string local_dn;
         size_t pos1 = std::string::npos;

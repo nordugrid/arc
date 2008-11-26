@@ -193,7 +193,7 @@ int main(int argc, char* argv[]){
 
     //Generate certificate request
     Arc::Time t;
-    ArcLib::Credential request(t, Arc::Period(lifetime*3600), keysize, "EEC");
+    Arc::Credential request(t, Arc::Period(lifetime*3600), keysize, "EEC");
     std::string cert_req_str;
     if(!request.GenerateRequest(cert_req_str)) {
       throw std::runtime_error("Failed to generate certificate request");
