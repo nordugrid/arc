@@ -1,8 +1,40 @@
 Security in the ARC1 storage system
 ===================================
 
-Policies
---------
+Architecture
+------------
+
+The ARC storage system consists of several services. Most of the services (A-Hash, Librarian, Shepherd) are 'internal' services in a way that the end-user of the storage system never communicate with them directly. But these internal services are communicating with eachother, so they have to know who to trust. This is the 'inter-service authorization' part of the security archiecture. The end-users always connects to one of the Bartender services, which will decide if the user has permissions to do something or not. This is the 'high-level authorization' part. None of these services is capable of actually storing files, we need additional services for this: the transfer services. These can be native ARC services (such as the Hopi service) or third-party data transfer services (such as the apache http server). A Shepherd service and a transfer service together form a Storage Element in the ARC storage system. For each supported transfer service we need a Shepherd-backend (currently we have one for Hopi and one for apache), when the Bartender asks the Shepherd to initiate a file transfer (upload or download) the Shepherd uses these backends to set up the transfer service for the transfer, and to create the transfer URL. Then the user will connects directly to the transfer service. This means that for each supported transfer service we have to figure out how to make that service aware of the identity and rights of our users. We call this part 'transfer-level authorization'.
+
+Inter-service authorization
+---------------------------
+
+In a deployment of the ARC storage system, we could have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communciate with the Librarians, the Librarians talk with the A-Hashes. If any of these services get compromised or a new rouge service gets inserted in the system, we loose security completely. That's why it is vital for each service to authorize the services before sending or accepting requests.
+
+e.g. when a user connects to a Bartender and wants to download a file, the Bartender asks the Librarian about the metadata of the file which contains the access policies, and the Bartender makes decision based on the response from the Librarian. If this Librarian is compromised and e.g. always returns that everybody has access to every file and collection, then the Bartender will make wrong decisions. Or if somebody can somehow insert a rouge Bartender into the system, then he can do anything, because a Bartender has rights to access and modify all metadata and to initiate file transfers, etc.
+
+The services commincates via HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and they can examine the other service's certificates. This also means that we have to configure these services to know where their X.509 certificates are. The current method for this is to write the path of the certificate into the configuration of each services.
+
+Let's examine the situation from the Librarian's point of view. The Librarian will get requests from Bartenders and Shepherds, and it needs an A-Hash to get the information which needed to reply these requests. The Librarian has to be sure that it can trust the information which it gets from the A-Hash. A very simple but inflexible solution: write the DN of the A-Hash into the configuration of the Librarian service. When the Librarian establishes the connection to the A-Hash it can check that the DN of the A-Hash is the same which is configured, and the Librarian must of course trust the CA which signed the certicate of A-Hash. So if you want to insert your rouge A-Hash into the system, you need to obtain a certificate from a trusted CA with that DN, or get the actual private key from the server - both seems very unlikely.
+If we will have multiple A-Hashes (all are part of the same logical database) then if we just write one of them into the Librarian's config, then if that particular A-Hash is down, the Librarian cannot fulfil the requests even though the other A-Hashes could reply. So we could write the DNs of all the A-Hashes into the config of the Librarian. This makes the process of adding a new A-Hash a bit difficult, we have to include the DN of the new A-Hash into the config of each Librarian. Now the Librarian gets a request from a Bartender. It has to be sure that this Bartender is one of the trusted Bartenders before acting as requested or returning any information. This also can be achieved with putting the DNs of all the trusted Bartenders into the config of each Librarian. This solution is only suitable if we have a fixed set of services and if we don't frequently add or remove services from the system.
+
+An other option could be using a private CA for a deployment of the ARC storage system. We could issue certificates for all the services and all could be signed by this CA, and then we only have to put the DN of the CA into the configuration of the services. Then all the storage services will automatically trust every other service whose certificate is signed by this ARC storage CA. This CA would be private in a sense that we only use it for the storage services and nothing else.
+
+It is possible to use the A-Hash to store the identity of the trusted services. Then each service could retreive a list of DNs from the A-Hash when starting. For this we have to include one or more trusted A-Hash nodes in the configuration of each service, and when the service initializes it can get the corresponding object from the A-Hash which contains the list of trusted services. (The detailed way of doing this is not designed yet.) This and the other solutions could be used at the same time which could provide both flexibility and simplicity.
+
+Transfer-level authorization
+----------------------------
+
+When the Bartender decides that a user indeed has permission to download a file, then it chooses a location (a Storage Element), and initiate the transfer by the Shepherd. The Shepherd communicates with the transfer service on the Storage Element, prepares the transfer, and creates a transfer URL (TURL), which is a direct URL to the transfer service (Hopi, apache, etc.). Then this TURL is returned to the user, then the user connects directly to the transfer service. The simplest architecture would this: the transfer service could be configured in a way that it serves everybody. First it seems very insecure, but if new TURLs are generated for each request, and if this TURLs are long enough to be unguessable (and the TURLs are returned to the user via secure channel), then this could be taken as a one-time password solution. Currently the Hopi service is implemented in a way, that it only accepts the first HTTP connection to an URL, so if the user starts downloading the file, nobody else can do it, and before the user starts downloading the file nobody can guess the TURL.
+
+To achieve a more sophisticated solution, we need the transfer services to trust the Bartender services. One possible option would be that the Bartender creates a proxy certificate which delegates the rights of the Bartender to the client, but with some restricitions, e.g. a policy document which says that a user only allowed to access that one single file. Then we need a transfer service which is capable of handling embedded policy documents, so it will first accept the certificate because it trusts the Bartender, and in this case the user acts on behalf of the Bartender, then the transfer service will extract the policy document from the certificate which contains which file can be downloaded by the user. But if the transfer service cannot understand policy documents, then this method cannot be used, or even is a security risk. With the Hopi service we can implement this behaviour.
+
+Other option is to use SAML assertions, where the transfer service is the service provider, and the Bartender is the identity provider. The Bartender knows which user has permisson to a file, so it could create a SAML assertion and provide it to the transfer service.
+
+
+
+High-level authorization
+------------------------
 
 The ARC storage system has a component called Librarian, which is storing all the metadata about files and collections in the system (and uses the A-Hash service as a database, so "stored in the A-Hash" and "stored at the Librarian" means the same). The access policies are stored among these metadata (currently in native ARC policy format as XML documents - later other policy languages could be supported as well.)
 
@@ -43,9 +75,6 @@ If this file has one single basic policy, e.g.:
 Which means that a user who has the identity '/C=HU/O=NIIF/CN=zsombor@niif.hu' is allowed to read the contents of this file and not allowed to removeEntry. (In case if this user is part of a VO, and if there is an other policy which says that the VO has rights to removeEntry, then we need to somehow decide that the vo-level policy is stronger or the user-level, or the denial is stronger)
 So when this user is contacting a Bartender to get the content of the collection of '/niif/projects/jupiter', then the Bartender gets the metadata of the collection from the Librarian, and now the Bartender has all the policies which are effective to this collection.
 
-Requests
---------
-
 Now the Bartender has to create a 'request' which is also an XML document containing the information who wants to do what.
 Something like this:
 
@@ -58,17 +87,11 @@ Something like this:
    </RequestItem>
  </Request>
 
-The <Subject> part should be automatically generated by the security framework, it should contain everything we know about the user, the DN, any attributes from the certificate of the user, VO membership, etc.
-
-QUESTION: how can we extract all these information using the security framework? what methods do we need to call? do we need security handlers for this?
+The <Subject> part should be automatically generated by the security framework, it should contain everything we know about the user, the DN, any attributes from the certificate of the user, VO membership, etc. These information are extracted by the MCCs and/or Security Handlers, and can be accessed using the Security Attributes.
 
 The <Action> part is filled by the Bartender, e.g. the 'list' method needs a 'read' permission, so it will put that action into the request. 
 
 Now the Bartender has a request, and several policies (basic policies and maybe complex policies as well), and it needs to make a decision. The Bartender creates an Evaluator, adds all the policies to it, and then call the 'evaluate' method with the request. Then the Evaluator returns the decision.
-
-
-Actions
--------
 
 These are the actions for the storage system:
 - read: user can get the list of entries in the collection; user can download the file
@@ -78,23 +101,3 @@ These are the actions for the storage system:
 - modifyPolicy: user can modify the policy of the file/collection
 - modifyStates: user can modify some special metadata of the file/collection (close the collection, number of needed replica of the file)
 - modifyMetadata: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
-
-
-Trust among services
---------------------
-
-The A-Hash service should answer all the requests of the Librarian services, but should not answer to anyone else.
-The Librarian services should do whatever a Bartender service asks, and it should accept hearthbeat reports from the Shepherd services. But we don't one anyone else to have access to the Librarian.
-The Sheperd services should initate transfers only if a Bartender service requests it.
-So when we deploy the ARC storage system, and we have several trusted sites with running e.g. Librarian and Bartender services, we need to configure our Librarian services to trust only our Bartender services and no one else.
-
-QUESTION: What would be the best way to configure this? Listing DNs in the config file of the services? Or using policies for this?
-
-
-
-Delegation
-----------
-
-After the Bartender initiated a transfer with a Shepherd service, then a transfer URL is created, which is a direct URL to the transfer service at the storage node, e.g. a Hopi service. This Hopi service should only allow the file transfer for this user. I think the simplest way to do this is to configure Hopi to only allow file transfer for the Bartender services. Then if the Bartender service could generate a proxy certificate for the user, which says that "I am this and this Bartender service, and I delegate my rights to access this URL to this user.", then this proxy certificate could be returned to the user along with the TURL, and then the user can connect directly to the transfer service (e.g. the Hopi) using this proxy certificate, and be able to get the file.
-
-QUESTION: how can the Bartender generate this kind of proxy certificate? how can we configure the Hopi to check these delegated proxy certificates? do we need to change the code of the Hopi?
