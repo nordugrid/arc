@@ -54,10 +54,21 @@ bool SimpleListPDP::isPermitted(Message *msg){
       };
     };
     if(!line.empty()) {
+/*
       if(!(line.compare(subject))) {
          fs.close();
          logger.msg(INFO, "Authorized from simplelist.pdp");
          return true;
+      }
+*/
+      //deal with situation when subject includes the proxy CN, like "/CN=1234566"
+      size_t pos;
+      if(line.size() <= subject.size()) {
+        if(!(subject.compare(0, line.size(),line))) {
+           fs.close();
+           logger.msg(INFO, "Authorized from simplelist.pdp");
+           return true;
+        }
       }
     }
   }
