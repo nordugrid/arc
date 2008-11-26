@@ -56,14 +56,14 @@ int main(void) {
   //Request side
   Arc::Time t;
   std::string req_string;
-  ArcLib::Credential request(t, Arc::Period(24*3600), 1024, "rfc");
+  Arc::Credential request(t, Arc::Period(24*3600), 1024, "rfc");
   request.GenerateRequest(req_string);
   std::cout<<"Certificate request: "<<req_string<<std::endl;
 
   //Signing side
   std::string out_string;
-  ArcLib::Credential proxy;
-  ArcLib::Credential signer(cert, key, "", cafile);
+  Arc::Credential proxy;
+  Arc::Credential signer(cert, key, "", cafile);
   proxy.InquireRequest(req_string);
   //Put an example Arc policy as the extension of proxy certificate
   std::string oid("1.3.6.1.5.5.7.1.21");
@@ -92,14 +92,14 @@ int main(void) {
   //Request side
   Arc::Time t1;
   std::string req_string1;
-  ArcLib::Credential request1(t1, Arc::Period(24*3600), 1024, "rfc");
+  Arc::Credential request1(t1, Arc::Period(24*3600), 1024, "rfc");
   request1.GenerateRequest(req_string1);
   std::cout<<"Certificate request: "<<req_string1<<std::endl;
 
   //Signing side
   std::string out_string1;
-  ArcLib::Credential proxy1;
-  ArcLib::Credential signer1(proxy_file, "", "", cafile); //use the existing proxy as the signer
+  Arc::Credential proxy1;
+  Arc::Credential signer1(proxy_file, "", "", cafile); //use the existing proxy as the signer
   proxy1.InquireRequest(req_string1);
   std::string oid1("1.3.6.1.5.5.7.1.21");
   std::string sn1("arcpolicy");
