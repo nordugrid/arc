@@ -56,7 +56,7 @@ int main(void) {
   std::string key("./key.pem");
   std::string cafile("./ca.pem");
 
-  ArcLib::Credential cred(cert, key, "", cafile);
+  Arc::Credential cred(cert, key, "", cafile);
   std::string local_dn_str = cred.GetDN();
   std::string local_dn;
   size_t pos1 = std::string::npos;

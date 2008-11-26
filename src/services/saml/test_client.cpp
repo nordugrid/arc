@@ -81,7 +81,7 @@ int main(void) {
   std::string cert("./cert.pem");
   std::string key("./key.pem");
   std::string cafile("./ca.pem");
-  ArcLib::Credential cred(cert, key, "", cafile);
+  Arc::Credential cred(cert, key, "", cafile);
   std::string local_dn = cred.GetDN();
 
   //Compose <samlp:AttributeQuery/>

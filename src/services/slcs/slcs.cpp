@@ -116,7 +116,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     if((bool)lifetime_nd) lifetime = (std::string)lifetime_nd;
 
     //Inquire the x509 request 
-    ArcLib::Credential eec;
+    Arc::Credential eec;
     eec.InquireRequest(x509_req, true);
 
     // TODO: add extensions, e.g. saml extension parsed from SPService
@@ -179,7 +179,7 @@ Service_SLCS::Service_SLCS(Arc::Config *cfg):Service(cfg),
   CAcert = (std::string)((*cfg)["CACertificate"]);
   CAkey = (std::string)((*cfg)["CAKey"]);
   CAserial = (std::string)((*cfg)["CASerial"]);
-  ca_credential_ = new ArcLib::Credential(CAcert, CAkey, CAserial, 0, "", "");
+  ca_credential_ = new Arc::Credential(CAcert, CAkey, CAserial, 0, "", "");
 }
 
 Service_SLCS::~Service_SLCS(void) {

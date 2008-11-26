@@ -25,7 +25,7 @@ class Service_SLCS: public Arc::Service {
   virtual ~Service_SLCS(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
  private:
-  ArcLib::Credential* ca_credential_;
+  Arc::Credential* ca_credential_;
 };
 
 } // namespace ArcSec

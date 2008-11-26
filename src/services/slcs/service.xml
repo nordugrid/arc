@@ -33,7 +33,7 @@
             <next id="http"/>
 	    <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
 	    <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
-	    <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+	    <!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath-->
             <tls:ClientAuthn>false</tls:ClientAuthn>
 	</Component>
         <Component name="http.service" id="http">
