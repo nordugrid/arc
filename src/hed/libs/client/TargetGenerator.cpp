@@ -142,6 +142,12 @@ namespace Arc {
     foundTargets.push_back(target);
   }
 
+
+  void TargetGenerator::AddJob(const Job& job) {
+    Glib::Mutex::Lock jobLock(jobMutex);
+    foundJobs.push_back(job);
+  }
+
   void TargetGenerator::RetrieverDone() {
     Glib::Mutex::Lock threadLock(threadMutex);
     threadCounter--;

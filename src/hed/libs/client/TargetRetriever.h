@@ -20,6 +20,7 @@ namespace Arc {
     virtual ~TargetRetriever();
     virtual void GetTargets(TargetGenerator& mom, int targetType,
 			    int detailLevel) = 0;
+
   protected:
     URL url;
     std::string serviceType;

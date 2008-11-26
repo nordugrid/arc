@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <iostream>
 #include <algorithm>
 
 #include <glibmm/fileutils.h>
@@ -16,6 +17,16 @@ namespace Arc {
     certificatePath = (std::string)(*cfg)["CertificatePath"];
     keyPath = (std::string)(*cfg)["KeyPath"];
     caCertificatesDir = (std::string)(*cfg)["CACertificatesDir"];
+
+    if(certificatePath.empty()){
+      credential = ArcLib::Credential(proxyPath, "", caCertificatesDir, "");
+    } else {
+      credential = ArcLib::Credential(certificatePath, keyPath, caCertificatesDir, "");
+    }
+
+    std::cout<<"Now trying to output the DN"<<std::endl;
+    std::cout<<"Got the DN: "<<credential.GetDN()<<std::endl;
+
   }
 
   ACC::~ACC() {}

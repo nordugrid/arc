@@ -181,12 +181,20 @@ namespace Arc {
   void TargetRetrieverARC0::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    int targetType = thrarg->targetType;
 
     //Query GRIS for all relevant information
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
+
+    if(targetType==0){ //ExecutionTarget
     url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
 			 "(objectclass=nordugrid-queue))");
+    } else if(targetType==1){
+    url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
+			 "(objectclass=nordugrid-queue))");
+    }
+
     DataHandle handler(url);
     DataBuffer buffer;
 

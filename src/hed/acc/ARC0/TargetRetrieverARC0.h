@@ -20,6 +20,7 @@ namespace Arc {
   public:
     ~TargetRetrieverARC0();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
+
     static ACC* Instance(Config *cfg, ChainContext *ctx);
 
   private:

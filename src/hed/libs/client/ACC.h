@@ -2,6 +2,7 @@
 #define __ARC_ACC_H__
 
 #include <arc/ArcConfig.h>
+#include <arc/credential/Credential.h>
 
 namespace Arc {
 
@@ -17,6 +18,7 @@ namespace Arc {
     std::string certificatePath;
     std::string keyPath;
     std::string caCertificatesDir;
+    ArcLib::Credential credential;
   };
 
   class ACCConfig
