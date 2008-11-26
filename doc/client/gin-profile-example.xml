@@ -25,9 +25,7 @@
        <Epilogue>/bin/true</Epilogue>
        <SessionLifeTime>32</SessionLifeTime>
        <AccessControl>
-       		<OwnerAlwaysAllowed>true</OwnerAlwaysAllowed>
-       		<Type>GACL</Type>
-       		<Content><gacl><entry><any-user/><allow><read/><write/><list/><admin/></allow></entry></gacl></Content>
+       		<gacl><entry><any-user/><allow><read/><write/><list/><admin/></allow></entry></gacl>
        </AccessControl>
        <ProcessingStartTime>2009-06-25 21:30</ProcessingStartTime>
        <CredentialService>myproxy://myproxy.nordugrid.org;username=knowarc</CredentialService>

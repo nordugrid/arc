@@ -57,24 +57,9 @@
 
 	<xsd:element name="JobIdentification" type="JobIdentification_Type"/>
 
-    <xsd:simpleType name="AccessControlType_Type">
-       <xsd:restriction base="xsd:string">
-       <xsd:enumeration value="GACL"/>
-         </xsd:restriction>
-   </xsd:simpleType>
-
-  	<xsd:complexType name="Content_Type">
-		<xsd:sequence>
-			<xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-		</xsd:sequence>
-		<xsd:anyAttribute namespace="##other" processContents="lax"/>
-	</xsd:complexType>
-
    <xsd:complexType name="AccessControl_Type">
        <xsd:sequence>
-         <xsd:element name="OwnerAlwaysAllowed" type="xsd:boolean" minOccurs="0"/>
-         <xsd:element name="Type" type="AccessControlType_Type" minOccurs="0"/>
-         <xsd:element name="Content" minOccurs="0" type="Content_Type"/>
+			<xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
        </xsd:sequence>
   </xsd:complexType>
 
@@ -119,7 +104,7 @@
 			<xsd:element name="ProcessingStartTime" type="xsd:dateTime" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="CredentialService" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="Notification" type="Notify_Type" minOccurs="0" maxOccurs="1"/>	
-	        <xsd:element name="Join" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>	
+	        <xsd:element name="Join" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>	
 		</xsd:sequence>
 	</xsd:complexType>
 
