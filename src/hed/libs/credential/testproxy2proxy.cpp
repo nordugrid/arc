@@ -36,6 +36,11 @@ int main(void) {
   proxy1.InquireRequest(req_file1.c_str());
   signer1.SignRequest(&proxy1, out_file1.c_str());
 
+  std::string id_name = signer1.GetIdentityName();
+  std::string dn_name = signer1.GetDN();
+  std::cout<<"Identity name: "<<id_name<<std::endl;
+  std::cout<<"DN name: "<<dn_name<<std::endl;
+
   //Get the proxy information
   std::string policy = signer1.GetProxyPolicy();
   std::cout<<"Policy information: "<<policy<<std::endl;
@@ -64,6 +69,11 @@ int main(void) {
   Arc::Credential signer2(signer_cert2, "", "", cafile);
   proxy2.InquireRequest(req_file2.c_str());
   signer2.SignRequest(&proxy2, out_file2.c_str());
+
+  id_name = signer2.GetIdentityName();
+  dn_name = signer2.GetDN();
+  std::cout<<"Identity name: "<<id_name<<std::endl;
+  std::cout<<"DN name: "<<dn_name<<std::endl;
 
   //Back to request side, compose the signed proxy certificate, local private key,
   //and signing certificate into one file.

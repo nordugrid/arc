@@ -166,6 +166,11 @@ class Credential {
     /**Get the DN of the certificate attached to this object*/
     std::string GetDN(void);
 
+    /**Get the Identity name of the certificate attached to this object,
+     * the result will not include proxy CN
+     */
+    std::string GetIdentityName(void);
+
     /**Get the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
     std::string GetProxyPolicy(void);
 

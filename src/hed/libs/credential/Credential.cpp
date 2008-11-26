@@ -143,6 +143,27 @@ namespace Arc {
     return str;
   }
 
+  std::string Credential::GetIdentityName(void) {
+    //std::cout<<"proxy depth: +++"<<verify_ctx_.proxy_depth<<std::endl;
+    int proxy_depth = verify_ctx_.proxy_depth;
+    X509_NAME *subject = NULL;
+    X509_NAME_ENTRY *ne = NULL;
+    subject = X509_NAME_dup(X509_get_subject_name(cert_));
+    for(int i=0; i<proxy_depth; i++) {
+      ne = X509_NAME_delete_entry(subject, X509_NAME_entry_count(subject)-1);
+      if(ne)
+        X509_NAME_ENTRY_free(ne);
+    }
+    std::string str;
+    char buf[256];
+    if(subject!=NULL) {
+      X509_NAME_oneline(subject,buf,sizeof(buf));
+      X509_NAME_free(subject);
+    }
+    str.append(buf);
+    return str;
+  }
+
   std::string Credential::GetProxyPolicy(void) {
     return (verify_ctx_.proxy_policy);
   }
