@@ -27,11 +27,11 @@ int main(void) {
   std::string req_file("./eec_request.pem");
   std::string out_certfile("./eec_cert.pem");
   std::string out_keyfile("./eec_key.pem");
-  ArcLib::Credential request(t, Arc::Period(168*3600), keybits, "EEC");
+  Arc::Credential request(t, Arc::Period(168*3600), keybits, "EEC");
   request.GenerateRequest(req_file.c_str());
 
   //Signing side
-  ArcLib::Credential eec;
+  Arc::Credential eec;
   eec.InquireRequest(req_file.c_str(), true);
   //Add extension: a simple string
   std::string ext_data("test extension data");
@@ -40,7 +40,7 @@ int main(void) {
   }
   
   std::string ca_passphrase = "aa1122";
-  ArcLib::Credential signer(CAcert, CAkey, CAserial, 0, "", "", ca_passphrase);
+  Arc::Credential signer(CAcert, CAkey, CAserial, 0, "", "", ca_passphrase);
   std::string dn("/O=KnowARC/OU=UIO/CN=Test001");
   signer.SignEECRequest(&eec, dn, out_certfile.c_str());
 

@@ -35,13 +35,13 @@ int main(void) {
   /**1.Create VOMS AC (attribute certificate), and put it into extension part of proxy certificate*/
   //Get information from a credential which acts as AC issuer.
 
-  ArcLib::Credential issuer_cred(cert, key, cadir, "");
+  Arc::Credential issuer_cred(cert, key, cadir, "");
 
   //Get information from credential which acts as AC holder
   //Here we use the same credential for holder and issuer
   std::string cert1("./out.pem");
   std::string key1("./out.pem");
-  ArcLib::Credential holder_cred(cert1, key1, cadir, "");
+  Arc::Credential holder_cred(cert1, key1, cadir, "");
 
 
   /** a.Below is voms-specific processing*/
@@ -93,11 +93,11 @@ int main(void) {
 
   //The voms server is not supposed to generate rfc proxy?
   //The current voms code is not supposed to parsing proxy with "CN=336628850"?
-  ArcLib::Credential request(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);
+  Arc::Credential request(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);
   request.GenerateRequest(req_file_ac.c_str());
 
   //Signing side
-  ArcLib::Credential proxy;
+  Arc::Credential proxy;
   proxy.InquireRequest(req_file_ac.c_str());
   //Add AC extension to proxy certificat before signing it
   proxy.AddExtension("acseq", (char**) aclist);
@@ -107,7 +107,7 @@ int main(void) {
 
   std::string cert2("./cert.pem");
   std::string key2("./key.pem");
-  ArcLib::Credential signer(cert2, key2, cadir, "");
+  Arc::Credential signer(cert2, key2, cadir, "");
   signer.SignRequest(&proxy, out_file_ac.c_str());
 
   //Back to request side, compose the signed proxy certificate, local private key,
@@ -140,7 +140,7 @@ int main(void) {
   vomscert_trust_dn.push_back("NEXT CHAIN");
   vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
   vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
-  ArcLib::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
+  Arc::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
   std::vector<std::string> attributes;
   ArcLib::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
 

@@ -18,6 +18,8 @@ extern "C" {
 #include "listfunc.h"
 } 
 
+using namespace Arc;
+
 namespace ArcLib{
 
   void InitVOMSAttribute(void) {

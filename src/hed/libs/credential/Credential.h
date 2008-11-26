@@ -36,7 +36,7 @@ extern "C" {
  * The Crendential class support PEM, DER PKCS12 credential.
  */
   
-namespace ArcLib {
+namespace Arc {
   // An exception class for the Credential class.
   /** This is an exception class that is used to handle runtime errors
    * discovered in the Credential class.
@@ -267,15 +267,15 @@ class Credential {
     std::string keyfile_;
 
     // Verification context 
-    cert_verify_context verify_ctx_;
+    ArcLib::cert_verify_context verify_ctx_;
 
     //Certificate structures
     X509 *           cert_;    //cert
-    certType         cert_type_;
+    ArcLib::certType         cert_type_;
     EVP_PKEY *       pkey_;    //private key
     STACK_OF(X509) * cert_chain_;  //cert chain which is parsed from the certificate, 
                                    //after verification, the ca certificate will be included
-    PROXYCERTINFO* proxy_cert_info_;
+    ArcLib::PROXYCERTINFO* proxy_cert_info_;
     Credformat       format;
     Arc::Time        start_;
     Arc::Period      lifetime_;
@@ -303,7 +303,7 @@ class Credential {
     std::string extsect_;
 };
 
-}// namespace ArcLib
+}// namespace Arc
 
 #endif /* __ARC_CREDENTIAL_H__ */
 

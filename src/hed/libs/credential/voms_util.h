@@ -24,7 +24,7 @@ namespace ArcLib {
    * @param holer_cred   The holder credential, the holder certificate is the one which carries AC
    * @param fqan          
    */
-  bool createVOMSAC(std::string& codedac, Credential& issuer_cred, Credential& holder_cred,
+  bool createVOMSAC(std::string& codedac, Arc::Credential& issuer_cred, Arc::Credential& holder_cred,
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes, 
              std::string &voname, std::string &uri, int lifetime);
 
@@ -56,7 +56,7 @@ namespace ArcLib {
              const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output);
 
   /**Parse the certificate. The same as the above one */
-  bool parseVOMSAC(Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+  bool parseVOMSAC(Arc::Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
              const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output);
 
 }// namespace ArcLib

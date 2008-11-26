@@ -26,13 +26,13 @@ int main(void) {
   //Request side
   std::string req_file1("./request1.pem");
   std::string out_file1("./proxy1.pem");
-  ArcLib::Credential request1(t, Arc::Period(168*3600), keybits, "rfc", "independent", "", proxydepth);
+  Arc::Credential request1(t, Arc::Period(168*3600), keybits, "rfc", "independent", "", proxydepth);
   request1.GenerateRequest(req_file1.c_str());
 
   //Signing side
-  ArcLib::Credential proxy1;
+  Arc::Credential proxy1;
   std::string signer_cert1("./out.pem");
-  ArcLib::Credential signer1(signer_cert1, "", "", cafile);
+  Arc::Credential signer1(signer_cert1, "", "", cafile);
   proxy1.InquireRequest(req_file1.c_str());
   signer1.SignRequest(&proxy1, out_file1.c_str());
 
@@ -55,13 +55,13 @@ int main(void) {
   //Generate one more proxy based on the proxy which just has been generated
   std::string req_file2("./request2.pem");
   std::string out_file2("./proxy2.pem");
-  ArcLib::Credential request2(t, Arc::Period(168*3600), keybits,  "rfc", "independent", "", proxydepth);
+  Arc::Credential request2(t, Arc::Period(168*3600), keybits,  "rfc", "independent", "", proxydepth);
   request2.GenerateRequest(req_file2.c_str());
 
   //Signing side
-  ArcLib::Credential proxy2;
+  Arc::Credential proxy2;
   std::string signer_cert2("./proxy1.pem");
-  ArcLib::Credential signer2(signer_cert2, "", "", cafile);
+  Arc::Credential signer2(signer_cert2, "", "", cafile);
   proxy2.InquireRequest(req_file2.c_str());
   signer2.SignRequest(&proxy2, out_file2.c_str());
 

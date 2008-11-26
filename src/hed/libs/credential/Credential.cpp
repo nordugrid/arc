@@ -8,9 +8,9 @@
 #include "cert_util.h"
 #include "Credential.h"
 
-using namespace Arc;
+using namespace ArcLib;
 
-namespace ArcLib {
+namespace Arc {
   CredentialError::CredentialError(const std::string& what) : std::runtime_error(what) { }
 
   //Logger Credential::credentialLogger(Logger::getRootLogger(), "Credential");

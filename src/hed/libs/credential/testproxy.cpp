@@ -31,15 +31,15 @@ int main(void) {
   //Request side
   BIO* req;
   req = BIO_new(BIO_s_mem());
-  ArcLib::Credential request(t, Arc::Period(24*3600), keybits,  "rfc", "independent");
+  Arc::Credential request(t, Arc::Period(24*3600), keybits,  "rfc", "independent");
   request.GenerateRequest(req);
 
   //Signing side
   BIO* out; 
   out = BIO_new(BIO_s_mem());
-  ArcLib::Credential proxy;
+  Arc::Credential proxy;
 
-  ArcLib::Credential signer(cert, key, "", cafile); 
+  Arc::Credential signer(cert, key, "", cafile); 
   std::string dn_name = signer.GetDN();
   std::cout<<"DN:--"<<dn_name<<std::endl;
 
@@ -54,12 +54,12 @@ int main(void) {
   //Request side
   std::string req_string;
   std::string out_string;
-  ArcLib::Credential request1(t, Arc::Period(12*3600));//, keybits, "rfc", "independent");
+  Arc::Credential request1(t, Arc::Period(12*3600));//, keybits, "rfc", "independent");
   request1.GenerateRequest(req_string);
   std::cout<<"Certificate request: "<<req_string<<std::endl;
 
   //Signing side
-  ArcLib::Credential proxy1;
+  Arc::Credential proxy1;
   proxy1.InquireRequest(req_string);
 
   signer.SignRequest(&proxy1, out_string);
@@ -80,12 +80,12 @@ int main(void) {
   //Request side
   std::string req_file("./request.pem");
   std::string out_file("./out.pem");
-  //ArcLib::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "inheritall", "policy.txt", proxydepth);
-  ArcLib::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "independent", "", proxydepth);
+  //Arc::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "inheritall", "policy.txt", proxydepth);
+  Arc::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "independent", "", proxydepth);
   request2.GenerateRequest(req_file.c_str());
 
   //Signing side
-  ArcLib::Credential proxy2;
+  Arc::Credential proxy2;
   proxy2.InquireRequest(req_file.c_str());
 
   signer.SignRequest(&proxy2, out_file.c_str());

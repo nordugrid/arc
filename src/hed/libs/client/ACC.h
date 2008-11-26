@@ -18,7 +18,7 @@ namespace Arc {
     std::string certificatePath;
     std::string keyPath;
     std::string caCertificatesDir;
-    ArcLib::Credential credential;
+    Arc::Credential* credential;
   };
 
   class ACCConfig

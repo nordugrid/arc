@@ -58,7 +58,7 @@ int main(void) {
     //  LogError(); return false;
     //}
 
-   ArcLib::Credential::InitProxyCertInfo();
+   Arc::Credential::InitProxyCertInfo();
 
    X509_EXTENSION* ext = NULL;
    int certinfo_v3_NID, certinfo_v4_NID;
