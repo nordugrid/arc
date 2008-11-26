@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<JobDefinition  xmlns:jsdl-gin="http://schemas.ogf.org/gin-profile/2008/11/jsdl" targetNamespace="http://schemas.ogf.org/gin-profile/2008/11/jsdl" elementFormDefault="qualified">
+ <JobDescription>
+   <JobIdentification>
+       <JobName>Foo test job</JobName>
+       <JobType>single</JobType>
+       <JobProject>knowarc.eu</JobProject>
+       <JobCategory>matlab</JobCategory>
+       <UserTag>Example job</UserTag>
+   </JobIdentification>
+   <Application>     
+       <Executable>foo</Executable>
+       <Argument>30</Argument>
+       <Argument>45</Argument>
+       <Input>in.txt</Input>
+       <Output>out.txt</Output>
+       <Error>err.txt</Error>
+       <LogDir>/var/job/log/234234234324234</LogDir>
+       <RemoteLogging><URL>https://charged.uio.no:8001/logger</URL></RemoteLogging>
+       <Environment name="SVN_EDITOR">vim</Environment>
+       <Environment name="SHELL">/bin/bash</Environment>
+       <LRMSReRun>3</LRMSReRun>
+       <Prologue>/bin/hostname</Prologue>   
+       <Epilogue>/bin/true</Epilogue>
+       <SessionLifeTime>32</SessionLifeTime>
+       <AccessControl>
+       		<OwnerAlwaysAllowed>true</OwnerAlwaysAllowed>
+       		<Type>GACL</Type>
+       		<Content><gacl><entry><any-user/><allow><read/><write/><list/><admin/></allow></entry></gacl></Content>
+       </AccessControl>
+       <ProcessingStartTime>2009-06-25 21:30</ProcessingStartTime>
+       <CredentialService><URL>myproxy://myproxy.nordugrid.org;username=knowarc</URL></CredentialService>
+       <Notification>
+       	   <Type>Email</Type>
+       	   <Value>mark@domain.com</Value>
+       	   <Value>johan@domain.com</Value>
+           <State>ACCEPTED</State>
+           <State>INLRMS</State>       		
+       </Notification>
+       <JoinOutputs>no</JoinOutputs>
+    </Application>
+    <Resources>
+       <ExclusiveExecution>true</ExclusiveExecution>
+       <OSFamily>linux</OSFamily>
+       <OSName>ubuntu</OSName>
+       <OSVerson>3.4</OSVerson>
+       <Platform>powerpc</Platform>
+       <NetworkInfo>infiniband</NetworkInfo>
+       <IndividualPhysicalMemory>2343</IndividualPhysicalMemory>
+       <IndividualVirtualMemory>77</IndividualVirtualMemory>
+       <IndividualDiskSpace>333</IndividualDiskSpace>
+       <IndividualCPUTime>333</IndividualCPUTime>
+       <TotalCPUTime>555</TotalCPUTime> 
+       <TotalWallTime>324</TotalWallTime>
+       <IndividualWallTime>534</IndividualWallTime>
+       <ReferenceTime benchmark="frequency" value="2.8Ghz">454</ReferenceTime>
+       <Slots>
+          <NumberOfProcesses>32</NumberOfProcesses>
+          <ProcessPerHost>4</ProcessPerHost>
+          <ThreadsPerProcesses>53</ThreadsPerProcesses>
+          <SPMDVariation>http://www.ogf.org/jsdl/2007/02/jsdl-spmd/MPI</SPMDVariation>
+       </Slots>
+       <DiskSpace>
+       	  <CacheDiskSpace>400</CacheDiskSpace>
+          <SessionDiskSpace>200</SessionDiskSpace>
+       </DiskSpace>
+       <CandidateTarget>
+          <EndPointURL>https://knowarc1.grid.niif.hu:60000/arex</EndPointURL>
+          <QueueName>arc1</QueueName>
+       </CandidateTarget>             
+       <CEType>
+          <Name>ARC</Name>
+          <Value><Exact>0.906</Exact></Value>
+       </CEType>
+       <RuntimeEnvironment>
+          <Name>Atlas</Name>
+          <Value><Exact>1.1</Exact></Value>
+       </RuntimeEnvironment>   
+       <NodeAccess>
+         <InBound/>
+         <OutBound/>
+       </NodeAccess>   
+    </Resources>
+    <Meta>
+       <!-- OptionalElement>empty</OptionalElement -->
+       <Author>Gabor Roczei</Author>
+       <DocumentExpiration>2010-07-16T19:20:30.45+01:00</DocumentExpiration>
+       <!-- Rank>empty</Rank>
+       <FuzzyRank>empty</FuzzyRank -->
+    </Meta>    
+   <DataStaging>
+      <File>
+          <Name>go.sh</Name>
+          <Source>
+              <URI>http://knowarc2.grid.niif.hu/storage/go.sh</URI>
+              <Threads>4</Threads>          
+          </Source>
+          <IsExecutable>true</IsExecutable>
+          <DownloadToCache>true</DownloadToCache>
+          <DataIndexService>https://knowarc4.grid.niif.hu:60000/LFNResolver</DataIndexService>      
+          <KeepData>true</KeepData>
+      </File>
+      <File>
+          <Name>out.txt</Name>
+          <Target>
+              <URI>http://knowarc3.grid.niif.hu/storage/out.txt</URI>
+              <Threads>6</Threads>
+              <Mandatory>false</Mandatory>
+              <NeededReplica>3</NeededReplica>          
+          </Target>
+          <KeepData>true</KeepData>      
+      </File>  
+      <Directory>
+          <Name>./output_dir</Name>
+          <Target>
+              <URI>http://knowarc3.grid.niif.hu/storage/output</URI>
+              <Threads>10</Threads>
+              <Mandatory>true</Mandatory>
+              <NeededReplica>2</NeededReplica>          
+          </Target>      
+          <DownloadToCache>true</DownloadToCache>
+          <DataIndexService>https://knowarc4.grid.niif.hu:60000/LFNResolver</DataIndexService>      
+          <KeepData>true</KeepData>      
+      </Directory>
+      <Defaults>
+          <DefaultIndexingService>https://knowarc3.grid.niif.hu:60000/DIS</DefaultIndexingService>
+          <StagingInBaseURI>http://knowarc3.grid.niif.hu/in/</StagingInBaseURI>
+          <StagingOutBaseURI>http://knowarc3.grid.niif.hu/out/</StagingOutBaseURI>
+      </Defaults>     
+    </DataStaging>
+ </JobDescription>
+</JobDefinition>
