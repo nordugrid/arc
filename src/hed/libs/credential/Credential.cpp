@@ -112,6 +112,7 @@ namespace ArcLib {
     int position;
     if((position = BIO_tell(bio))<0 || BIO_read(bio, buf, 1)<=0 || BIO_seek(bio, position)<0) {
       LogError(); 
+      credentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
       throw CredentialError("Can't get the first byte of input BIO to get its format");
     }
     firstbyte = buf[0];

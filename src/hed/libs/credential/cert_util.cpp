@@ -141,7 +141,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * As OpenSSL does not recognize legacy proxies (pre-RFC, and older fasion proxies)
       */
     case X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION:
-      std::cout<<"X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"<<std::endl;
+      //std::cout<<"X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"<<std::endl;
       /*
       * Setting this for 098 or later versions avoid the invalid
       * CA error but would result in proxy path len exceeded which
