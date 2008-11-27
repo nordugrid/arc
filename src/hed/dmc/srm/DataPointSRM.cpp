@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <globus_io.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/thread.h>
 
@@ -10,6 +11,8 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
 
+#include "srmclient/SRMClient.h"
+
 #include "DataPointSRM.h"
 
 namespace Arc {
@@ -17,9 +20,15 @@ namespace Arc {
   Logger DataPointSRM::logger(DataPoint::logger, "SRM");
 
   DataPointSRM::DataPointSRM(const URL& url)
-    : DataPointDirect(url) {}
+    : DataPointDirect(url) {
+    globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
+    globus_module_activate(GLOBUS_IO_MODULE);
+  }
 
-  DataPointSRM::~DataPointSRM() {}
+  DataPointSRM::~DataPointSRM() {
+    globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
+    globus_module_deactivate(GLOBUS_IO_MODULE);
+  }
 
   DataStatus DataPointSRM::Check() {}
 
@@ -36,6 +45,11 @@ namespace Arc {
 
   DataStatus DataPointSRM::ListFiles(std::list<FileInfo>& files,
 				     bool long_list,
-				     bool resolve) {}
+				     bool resolve) {
+    
+    //SRMClient * client = SRMClient::getInstance(url.str());
+    //delete client;
+    return DataStatus::Success;
+  }
 
 } // namespace Arc

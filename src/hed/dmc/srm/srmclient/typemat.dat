@@ -1,0 +1,13 @@
+[
+// SRM
+]
+SRMv1     = http://srm.1.0.ns
+SRMv1Type = http://www.themindelectric.com/package/diskCacheV111.srm/
+SRMv1Meth = http://tempuri.org/diskCacheV111.srm.server.SRMServerV1
+TDwrap    = http://www.themindelectric.com/wrappers/
+TDpkgJava = http://www.themindelectric.com/package/java.lang/
+TDpkg     = http://www.themindelectric.com/package/
+// SRMv2     = urn://StorageResourceManagerV2.1.1
+SRMv2     = http://srm.lbl.gov/StorageResourceManager
+
+
