@@ -1024,7 +1024,9 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
 */
     if((i->job_state != JOB_STATE_CANCELING) &&
        (i->job_state != JOB_STATE_FINISHED) &&
-       (i->job_state != JOB_STATE_DELETED)) {
+       (i->job_state != JOB_STATE_DELETED) &&
+       (i->job_state != JOB_STATE_SUBMITING || i->child)) /* submission hasn't started yet */
+      {
       if(job_cancel_mark_check(i->job_id,*user)) {
         logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id,user->UnixName());
         /* kill running child */
