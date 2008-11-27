@@ -1084,6 +1084,9 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/gridftp/Makefile
                  src/hed/dmc/http/Makefile
                  src/hed/dmc/ldap/Makefile
+                 src/hed/dmc/srm/Makefile
+                 src/hed/dmc/srm/https/Makefile
+                 src/hed/dmc/srm/srmclient/Makefile                 
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile

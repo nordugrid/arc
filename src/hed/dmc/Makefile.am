@@ -11,5 +11,5 @@ if LDAP_ENABLED
 LDAP_SD = ldap
 endif
 
-SUBDIRS = http file $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD)
-DIST_SUBDIRS = http file ldap gridftp rls lfc
+SUBDIRS = http file srm $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD)
+DIST_SUBDIRS = http file ldap gridftp rls lfc srm
