@@ -14,6 +14,7 @@ namespace Arc {
     GSSCredential(const std::string& proxyPath,
 		  const std::string& certificatePath,
 		  const std::string& keyPath);
+    GSSCredential(): credential(GSS_C_NO_CREDENTIAL) {};
     ~GSSCredential();
     operator gss_cred_id_t&();
     operator gss_cred_id_t*();
