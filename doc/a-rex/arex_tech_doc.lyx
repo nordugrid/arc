@@ -9675,12 +9675,12 @@ joboption_stderr -- same for stderr.
 \end_layout
 
 \begin_layout Itemize
-joboption_maxcputime -- amount of CPU time requested (minutes).
+joboption_cputime -- amount of CPU time requested (minutes).
  
 \end_layout
 
 \begin_layout Itemize
-joboption_maxmemory -- amount of memory requested (megabytes).
+joboption_memory -- amount of memory requested (megabytes).
  
 \end_layout
 
