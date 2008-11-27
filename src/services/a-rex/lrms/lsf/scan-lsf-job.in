@@ -120,7 +120,7 @@ for ctr_dir in $control_dir ; do
 	if [ ! -f "$statusfile" ] ; then continue ; fi
 
 	status=`cat "$statusfile"`
-	if [ ! "$status" = "INLRMS" ] ; then continue ; fi
+	if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ] ; then continue ; fi
 
 	# get session directory of this job
 	session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`

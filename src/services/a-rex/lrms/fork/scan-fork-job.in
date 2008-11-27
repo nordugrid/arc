@@ -25,7 +25,7 @@ for control_dir in "$@" ; do
 
     # iterate over all jobs known in the control directory
     find ${control_dir} -name 'job.[0-9]*.status' \
-    | xargs grep -l INLRMS \
+    | xargs egrep -l "INLRMS|CANCELING" \
     | sed -e 's/.*job\.//' -e 's/\.status$//' \
     | while read job; do
         $debug "scanning job = $job"

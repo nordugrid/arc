@@ -311,9 +311,14 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMITTING: child exited with code %i",i->job_id,i->child->Result());
     } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
+      if(job_lrms_mark_check(i->job_id,*user)) {
+        logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i; job info collected",i->job_id,i->child->Result());
+        delete i->child; i->child=NULL;
+        job_diagnostics_mark_move(*i,*user);
+        state_changed=true;
+        return true;
+      }
     };
-    if(cancel) job_diagnostics_mark_move(*i,*user);
     if(i->child->Result() != 0) { 
       if(!cancel) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
@@ -325,8 +330,8 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       if(!cancel) i->AddFailure("Job submission to LRMS failed");
       return false;
     };
-    delete i->child; i->child=NULL;
     if(!cancel) {
+      delete i->child; i->child=NULL;
       /* success code - get LRMS job id */
       std::string local_id=read_grami(i->job_id,*user);
       if(local_id.length() == 0) {
@@ -359,9 +364,9 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         logger.msg(Arc::ERROR,"%s: Failed writing local information",i->job_id);
         return false;
       };
+      /* move to next state */
+      state_changed=true;
     };
-    /* move to next state */
-    state_changed=true;
     return true;
   };
 }
@@ -1025,7 +1030,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
     if((i->job_state != JOB_STATE_CANCELING) &&
        (i->job_state != JOB_STATE_FINISHED) &&
        (i->job_state != JOB_STATE_DELETED) &&
-       (i->job_state != JOB_STATE_SUBMITING || i->child)) /* submission hasn't started yet */
+       (i->job_state != JOB_STATE_SUBMITTING || i->child)) /* submission hasn't started yet */
       {
       if(job_cancel_mark_check(i->job_id,*user)) {
         logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id,user->UnixName());
