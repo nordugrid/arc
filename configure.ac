@@ -481,8 +481,6 @@ AC_SUBST(GSOAP_CFLAGS)
 AC_SUBST(GSOAP_LIBS)
 AM_CONDITIONAL(HAVE_GSOAP, test "x$gsoap" = "xyes")
 enable_gsoap="$gsoap"
-enable_srm_dmc="$gsoap"
-AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enable_srm_dmc" = "xyes"])
 
 # check cppunit
 PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
@@ -833,6 +831,13 @@ AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
+enable_srm_dmc=no
+if test "x$gsoap" = 'xyes'; then
+  if test ! "x$GLOBUS_IO_LIBS" = "x"; then
+    enable_srm_dmc=yes
+  fi
+fi
+AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enable_srm_dmc" = "xyes"])
 
 # Setup defines
 if test -n "$GLOBUS_RSL_VERSION"; then
