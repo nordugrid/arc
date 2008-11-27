@@ -77,7 +77,7 @@ void arcrm(const Arc::URL& file_url,
 	  removed_urls.push_back(url->CurrentLocation());
       }
       if (!url->IsIndex())
-	url->RemoveLocation();
+	break;
       else {
 	logger.msg(Arc::INFO, "Removing metadata in %s",
 		   url->CurrentLocationMetadata());
@@ -87,19 +87,20 @@ void arcrm(const Arc::URL& file_url,
 	}
       }
     }
-  if (url->HaveLocations()) {
-    logger.msg(Arc::ERROR, "Failed to remove all physical instances");
-    return;
-  }
-  if (url->IsIndex())
+  if (url->IsIndex()) {
+    if (url->HaveLocations()) {
+      logger.msg(Arc::ERROR, "Failed to remove all physical instances");
+      return;
+    }
     if (remove_lfn) {
-      logger.msg(Arc::ERROR, "Removing logical file from metadata %s",
+      logger.msg(Arc::INFO, "Removing logical file from metadata %s",
 		 url->str());
       if (!url->Unregister(true)) {
 	logger.msg(Arc::ERROR, "Failed to delete logical file");
 	return;
       }
     }
+  }
   return;
 }
 
