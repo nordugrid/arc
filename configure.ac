@@ -375,6 +375,115 @@ else
     fi
 fi
 
+# check gSOAP
+PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [gsoap=yes], [gsoap=no])
+AC_SUBST(GSOAP_CFLAGS)
+AC_SUBST(GSOAP_LIBS)
+SOAPCPP2=
+WSDL2H=
+if test "$gsoap" = 'yes'; then
+  AC_PATH_PROG(SOAPCPP2, soapcpp2, [])
+  AC_PATH_PROG(WSDL2H, wsdl2h, [])
+  if test "x$SOAPCPP2" = "x"; then
+    gsoap=no
+    AC_MSG_WARN([Missing soapcpp2 utility - maybe You have to add it's location to PATH])
+  elif test "x$WSDL2H" = "x"; then
+    gsoap=no
+    AC_MSG_WARN([Missing wsdl2h utility - maybe You have to add it's location to PATH])
+  else
+    # gSOAP package does not report third number of version. Hence we 
+    # have to extract it
+    AC_MSG_CHECKING(for gSOAP version)
+    gsoap_version=`${SOAPCPP2} -v 2>&1 | sed -e 's/.*version \([[^ ]]*\).*/\1/' -e 't new' -e 's/^.*Compiler for C and C++ *\([[^ ]]*\).*/\1/' -e 't matched' -e 's/.*//' -e ':matched' -e ':new' | grep '.'`
+    if test "x$gsoap_version" = "x"; then
+      gsoap=no
+      AC_MSG_WARN([Could not determine version.])
+    else
+      gsoap_version_major=`echo "$gsoap_version" | sed -e 's/^\([[^\.]]\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
+      gsoap_version_minor=`echo "$gsoap_version" | sed -e 's/^[[^\.]]*\.\([[^\.]]*\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
+      gsoap_version_subminor=`echo "$gsoap_version" | sed -e 's/^[[^\.]]*\.[[^\.]]*\.\([[0-9]]*\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
+      AC_MSG_RESULT($gsoap_version_major.$gsoap_version_minor.$gsoap_version_subminor)
+      if test "$gsoap_version_major" -lt "2"; then
+        gsoap=no
+        AC_MSG_WARN([gSOAP with version below 2.7.2 is not supported])
+      fi
+      if test "$gsoap_version_major" -eq "2"; then
+        if test "$gsoap_version_minor" -lt "7" ; then
+          gsoap=no
+          AC_MSG_WARN([gSOAP with version below 2.7.2 is not supported])
+        fi
+        if test "$gsoap_version_minor" -eq "7" && test "$gsoap_version_subminor" -lt "2" ; then
+          gsoap=no
+          AC_MSG_WARN([found gSOAP version $gsoap_version_major.$gsoap_version_minor.$gsoap_version_subminor - gSOAP with version below 2.7.2 is not supported anymore])
+        fi
+      fi
+    fi
+  fi
+fi
+
+if test "$gsoap" = 'yes'; then
+
+  AC_MSG_CHECKING(for gSOAP pecularities)
+
+cat > gsoaptest.xsd <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:complexType name="X">
+		<xsd:sequence>
+			<xsd:element ref="Y"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="Y" type="xsd:string"/>
+</xsd:schema>
+EOF
+
+  ${WSDL2H} -s gsoaptest.xsd
+
+  ${SOAPCPP2} -p gsoaptest gsoaptest.h
+
+  AC_LANG_SAVE
+  AC_LANG_CPLUSPLUS
+  CXXFLAGS_SAVE=$CXXFLAGS
+  CXXFLAGS="$CXXFLAGS $GSOAP_CFLAGS"
+  AC_TRY_COMPILE([#include "gsoaptestStub.h"],
+      [ns1__X x; x.Y = "";],
+      [use_namespaces="no"],
+      [AC_TRY_COMPILE([#include "gsoaptestStub.h"],
+                      [ns1__X x; x.ns1__Y = "";],
+                      [use_namespaces="yes"],
+                      [gsoap=no])
+      ]
+  )
+
+  CXXFLAGS=$CXXFLAGS_SAVE
+  AC_LANG_RESTORE
+
+  rm -rf gsoaptest*
+
+  if test "x$use_namespaces" = "xyes"; then
+    AC_DEFINE(GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES,,[define if gSOAP prepends names of class members with namespace])
+  fi
+
+  AC_MSG_RESULT(done)
+
+fi
+
+if test ! "$gsoap" = 'yes'; then
+  SOAPCPP2=
+  WSDL2H=
+  GSOAP_CFLAGS=
+  GSOAP_LIBS=
+fi
+
+AC_SUBST(SOAPCPP2)
+AC_SUBST(WSDL2H)
+AC_SUBST(GSOAP_CFLAGS)
+AC_SUBST(GSOAP_LIBS)
+AM_CONDITIONAL(HAVE_GSOAP, test "x$gsoap" = "xyes")
+enable_gsoap="$gsoap"
+enable_srm_dmc="$gsoap"
+AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enable_srm_dmc" = "xyes"])
+
 # check cppunit
 PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
 [AC_PATH_PROG(CPPUNIT_CONFIG, cppunit-config, no)
@@ -1244,6 +1353,7 @@ LFC:                ${enable_lfc}
 RSL:                ${enable_rsl}
 SAML:               ${enable_saml}
 MYSQL CLIENT LIB:   ${enable_mysql}
+gSOAP:              ${enable_gsoap}
 
 Included components:
 A-Rex service:      ${enable_a_rex_service}
@@ -1253,6 +1363,7 @@ HOPI service:       ${enable_hopi_service}
 SCHED service:      ${enable_sched_service}
 STORAGE service:    ${enable_storage_service}
 PAUL service:       ${enable_paul_service}
+SRM client (DMC):   ${enable_srm_dmc}
 ])
 
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then
