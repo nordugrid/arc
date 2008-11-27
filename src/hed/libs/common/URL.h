@@ -22,7 +22,6 @@
 
 namespace Arc {
 
-
   class URLLocation;
 
 
@@ -156,6 +155,10 @@ namespace Arc {
     /** Check if instance holds valid URL */
     operator bool() const;
     bool operator!() const;
+    
+    /** Returns a string representation of the options given in the options map */
+    static std::string OptionString(const std::map<std::string,
+                                      std::string>& options, char separator);
 
    protected:
     /** the url protocol. */

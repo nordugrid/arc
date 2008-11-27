@@ -51,24 +51,6 @@ namespace Arc {
     return options;
   }
 
-
-  static std::string OptionString(const std::map<std::string,
-                                  std::string>& options, char separator) {
-
-    std::string optstring;
-
-    if(options.empty()) return optstring;
-
-    for(std::map<std::string, std::string>::const_iterator
-        it = options.begin(); it != options.end(); it++) {
-      if(it != options.begin())
-        optstring += separator;
-      optstring += it->first + '=' + it->second;
-    }
-    return optstring;
-  }
-
-
   static std::list<std::string>
   ParseAttributes(const std::string& attrstring, char separator) {
 
@@ -659,6 +641,23 @@ namespace Arc {
   bool URL::operator!() const {
     return (protocol.empty());
   }
+
+  std::string URL::OptionString(const std::map<std::string,
+                                std::string>& options, char separator) {
+
+    std::string optstring;
+
+    if(options.empty()) return optstring;
+
+    for(std::map<std::string, std::string>::const_iterator
+        it = options.begin(); it != options.end(); it++) {
+      if(it != options.begin())
+        optstring += separator;
+      optstring += it->first + '=' + it->second;
+    }
+    return optstring;
+  }
+
 
   std::ostream& operator<<(std::ostream& out, const URL& url) {
     return (out << url.str());
