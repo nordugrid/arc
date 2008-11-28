@@ -26,18 +26,14 @@ class Client:
         ns contains the namespaces we want to use with each message
         print_xml is for debugging, prints all the SOAP messages to the screen
         """
-        proto, host, port, path = parse_url(url)
-        self.host = host
-        self.port = port
-        self.path = path
         self.ns = ns
-        self.url = url
+        self.url = arc.URL(url)
         self.print_xml = print_xml
         self.xmlnode_class = xmlnode_class
         self.connection = None
         self.ssl_config = {}
         self.cfg = arc.MCCConfig()
-        if proto == 'https':
+        if self.url.Protocol() == 'https':
             self.ssl_config = ssl_config
             self.cfg.AddCertificate(self.ssl_config.get('cert_file', None))
             self.cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
@@ -86,7 +82,7 @@ class Client:
         outpayload is an XMLNode with the SOAP message
         """
         try:
-            s = arc.ClientSOAP(self.cfg, self.host, self.port, self.ssl_config, self.path)          
+            s = arc.ClientSOAP(self.cfg, self.url)          
             resp, status = s.process(outpayload)
             resp = resp.GetXML()
             return resp
