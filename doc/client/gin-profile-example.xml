@@ -66,10 +66,7 @@
           <EndPointURL>https://knowarc1.grid.niif.hu:60000/arex</EndPointURL>
           <QueueName>arc1</QueueName>
        </CandidateTarget>             
-       <CEType>
-          <Name>ARC</Name>
-          <Version>0.906</Version>
-       </CEType>
+       <CEType>ARC</CEType>
        <RuntimeEnvironment>
           <Name>Atlas</Name>
           <Version>1.1</Version>

@@ -6,21 +6,21 @@
 
 	<xsd:complexType name="JobDescription_Type">
 		<xsd:sequence>
-			<xsd:element ref="JobIdentification" minOccurs="0"/>
-			<xsd:element ref="Application" minOccurs="0"/>
-			<xsd:element ref="Resources" minOccurs="0"/>
-			<xsd:element ref="DataStaging" minOccurs="0" />
+			<xsd:element ref="JobIdentification" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="Application" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="Resources" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="DataStaging" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="JobIdentification_Type">
 		<xsd:sequence>
-          	<xsd:element name="JobName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-	        <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-	        <xsd:element name="JobProject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-	        <xsd:element name="JobType" type="JobTypeEnumeration" minOccurs="0" maxOccurs="1"/>
-	        <xsd:element name="JobCategory" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-         	<xsd:element name="UserTag" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+          	        <xsd:element name="JobName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+	                <xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+	                <xsd:element name="JobProject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+	                <xsd:element name="JobType" type="JobTypeEnumeration" minOccurs="0" maxOccurs="1"/>
+	                <xsd:element name="JobCategory" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+         	        <xsd:element name="UserTag" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -44,8 +44,8 @@
 
 	<xsd:complexType name="JobDefinition_Type">
 		<xsd:sequence>
-			<xsd:element ref="JobDescription"/>
-			<xsd:element ref="Meta" minOccurs="0"/>
+			<xsd:element ref="JobDescription" minOccurs="1" maxOccurs="1"/>
+			<xsd:element ref="Meta" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -59,20 +59,20 @@
 
    <xsd:complexType name="AccessControl_Type">
        <xsd:sequence>
-			<xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+	       <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
        </xsd:sequence>
   </xsd:complexType>
 
    <xsd:simpleType name="State_Type">
      <xsd:restriction base="xsd:string">
-     <xsd:enumeration value="ACCEPTED"/>
-     <xsd:enumeration value="PREPARING"/>
-     <xsd:enumeration value="SUBMIT"/>
-     <xsd:enumeration value="INLRMS"/>
-     <xsd:enumeration value="FINISHING"/>
-     <xsd:enumeration value="FINISHED"/>
-     <xsd:enumeration value="DELETED"/>
-     <xsd:enumeration value="CANCELING"/>
+          <xsd:enumeration value="ACCEPTED"/>
+          <xsd:enumeration value="PREPARING"/>
+          <xsd:enumeration value="SUBMIT"/>
+          <xsd:enumeration value="INLRMS"/>
+          <xsd:enumeration value="FINISHING"/>
+          <xsd:enumeration value="FINISHED"/>
+          <xsd:enumeration value="DELETED"/>
+          <xsd:enumeration value="CANCELING"/>
      </xsd:restriction>
    </xsd:simpleType>
 
@@ -87,8 +87,8 @@
 	<xsd:element name="Application" type="Application_Type"/>
 
 	<xsd:complexType name="Application_Type">
-		<xsd:sequence>
-			<xsd:element name="Executable" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+	   <xsd:sequence>
+		<xsd:element name="Executable" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         	<xsd:element name="Argument" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
 	        <xsd:element name="Input" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="Output" type="xsd:string" minOccurs="0" maxOccurs="1"/>
@@ -99,57 +99,57 @@
 	        <xsd:element name="LRMSReRun" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="Prologue" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="Epilogue" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-		    <xsd:element name="SessionLifeTime" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
-		    <xsd:element name="AccessControl" type="AccessControl_Type" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="ProcessingStartTime" type="xsd:dateTime" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="SessionLifeTime" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="AccessControl" type="AccessControl_Type" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="ProcessingStartTime" type="xsd:dateTime" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="CredentialService" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="Notification" type="Notify_Type" minOccurs="0" maxOccurs="1"/>	
 	        <xsd:element name="Join" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>	
-		</xsd:sequence>
+	  </xsd:sequence>
 	</xsd:complexType>
 
    <xsd:simpleType name="OSFamilyEnumeration">
      <xsd:restriction base="xsd:string">
-     <xsd:enumeration value="linux"/>
-     <xsd:enumeration value="macosx"/>
-     <xsd:enumeration value="windows"/>
-     <xsd:enumeration value="solaris"/>
+          <xsd:enumeration value="linux"/>
+          <xsd:enumeration value="macosx"/>
+          <xsd:enumeration value="windows"/>
+          <xsd:enumeration value="solaris"/>
      </xsd:restriction>
    </xsd:simpleType>
 
    <xsd:simpleType name="OSNameEnumeration">
      <xsd:restriction base="xsd:string">
-     <xsd:enumeration value="scientificlinux"/>
-     <xsd:enumeration value="scientificlinuxcern"/>
-     <xsd:enumeration value="ubuntu"/>
-     <xsd:enumeration value="debian"/>
-     <xsd:enumeration value="centos"/>
-     <xsd:enumeration value="fedora"/>
-     <xsd:enumeration value="rhes"/>
-     <xsd:enumeration value="mandrake"/>
-     <xsd:enumeration value="suse"/>
-     <xsd:enumeration value="leopard"/>
-     <xsd:enumeration value="windowsxp"/>
-     <xsd:enumeration value="windowsvista"/>
+          <xsd:enumeration value="scientificlinux"/>
+          <xsd:enumeration value="scientificlinuxcern"/>
+          <xsd:enumeration value="ubuntu"/>
+          <xsd:enumeration value="debian"/>
+          <xsd:enumeration value="centos"/>
+          <xsd:enumeration value="fedora"/>
+          <xsd:enumeration value="rhes"/>
+          <xsd:enumeration value="mandrake"/>
+          <xsd:enumeration value="suse"/>
+          <xsd:enumeration value="leopard"/>
+          <xsd:enumeration value="windowsxp"/>
+          <xsd:enumeration value="windowsvista"/>
      </xsd:restriction>
    </xsd:simpleType>
    
    <xsd:simpleType name="PlatformEnumeration">
-    <xsd:restriction base="xsd:string">
-     <xsd:enumeration value="i386"/>
-     <xsd:enumeration value="amd64"/>
-     <xsd:enumeration value="itanium"/>
-     <xsd:enumeration value="powerpc"/>
-      <xsd:enumeration value="sparc"/>
+     <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="i386"/>
+          <xsd:enumeration value="amd64"/>
+          <xsd:enumeration value="itanium"/>
+          <xsd:enumeration value="powerpc"/>
+          <xsd:enumeration value="sparc"/>
      </xsd:restriction>
    </xsd:simpleType>
 
    <xsd:simpleType name="NetworkInfoEnumeration">
      <xsd:restriction base="xsd:string">
-     <xsd:enumeration value="100megabitethernet"/>
-     <xsd:enumeration value="gigabitethernet"/>
-     <xsd:enumeration value="myrinet"/>
-     <xsd:enumeration value="infiniband"/>
+          <xsd:enumeration value="100megabitethernet"/>
+          <xsd:enumeration value="gigabitethernet"/>
+          <xsd:enumeration value="myrinet"/>
+          <xsd:enumeration value="infiniband"/>
      </xsd:restriction>
    </xsd:simpleType>
 
@@ -172,41 +172,35 @@
      </xsd:sequence>
   </xsd:complexType>
   
- <xsd:complexType name="DiskSpace_Type">
+  <xsd:complexType name="DiskSpace_Type">
      <xsd:sequence>
         <xsd:element name="CacheDiskSpace" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
         <xsd:element name="SessionDiskSpace" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
      </xsd:sequence>
   </xsd:complexType>
  
- <xsd:complexType name="CandidateTarget_Type">
+  <xsd:complexType name="CandidateTarget_Type">
      <xsd:sequence>
-        <xsd:element name="EndPointURL" type="xsd:anyURI"  maxOccurs="1"/>
+        <xsd:element name="EndPointURL" type="xsd:anyURI" minOccurs="1" maxOccurs="1"/>
         <xsd:element name="QueueName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
      </xsd:sequence>
   </xsd:complexType>
  
-   <xsd:simpleType name="CETypeEnumeration">
+  <!-- TODO: what is in this enumaration? -->
+  <xsd:simpleType name="CETypeEnumeration">
      <xsd:restriction base="xsd:string">
-     <xsd:enumeration value="ARC"/>
-     <xsd:enumeration value="UNICORE"/>
-     <xsd:enumeration value="CREAM"/>
+        <xsd:enumeration value="ARC"/>
+        <xsd:enumeration value="UNICORE"/>
+        <xsd:enumeration value="CREAM"/>
      </xsd:restriction>
-   </xsd:simpleType>
+  </xsd:simpleType>
    
-   <xsd:complexType name="CEType_Type">
+  <xsd:complexType name="RuntimeEnvironment_Type">
      <xsd:sequence>
-         <xsd:element name="Name" type="CETypeEnumeration" maxOccurs="1"/>
-         <xsd:element name="Version" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="Name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="Version" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
      </xsd:sequence>
-   </xsd:complexType>
-
-   <xsd:complexType name="RuntimeEnvironment_Type">
-     <xsd:sequence>
-         <xsd:element name="Name" type="xsd:string" maxOccurs="1"/>
-         <xsd:element name="Version" type="xsd:string" minOccurs="0"/>
-     </xsd:sequence>
-   </xsd:complexType>
+  </xsd:complexType>
  
  
   <xsd:complexType name="NodeAccess_Type">
@@ -214,20 +208,20 @@
          <xsd:element name="InBound" type="xsd:string" nillable="true" minOccurs="0" maxOccurs="1"/>
          <xsd:element name="OutBound" type="xsd:string" nillable="true" minOccurs="0" maxOccurs="1"/>
      </xsd:sequence>
-   </xsd:complexType>
+  </xsd:complexType>
  
       
 	<xsd:complexType name="Resources_Type">
-		<xsd:sequence>
-		    <xsd:element name="ExclusiveExecution" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
-		    <xsd:element name="OSFamily" type="OSFamilyEnumeration" minOccurs="0" maxOccurs="1"/>
-		    <xsd:element name="OSName" type="OSNameEnumeration" minOccurs="0" maxOccurs="1"/>
-		    <xsd:element name="OSVersion" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+	    <xsd:sequence>
+		<xsd:element name="ExclusiveExecution" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="OSFamily" type="OSFamilyEnumeration" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="OSName" type="OSNameEnumeration" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="OSVersion" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="Platform" type="PlatformEnumeration" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="NetworkInfo" type="NetworkInfoEnumeration" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="IndividualPhysicalMemory" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="IndividualVirtualMemory" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="IndividualDiskSpace" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="IndividualPhysicalMemory" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="IndividualVirtualMemory" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+		<xsd:element name="IndividualDiskSpace" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 	     	<xsd:element name="IndividualCPUTime" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 	     	<xsd:element name="TotalCPUTime" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 	    	<xsd:element name="IndividualWallTime" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
@@ -236,13 +230,13 @@
 	        <xsd:element name="Slots" type="Slots_Type" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="DiskSpace" type="DiskSpace_Type" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="CandidateTarget" type="CandidateTarget_Type" minOccurs="0" maxOccurs="1"/>
-	        <xsd:element name="CEType" type="CEType_Type" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="RuntimeEnvironment" type="RuntimeEnvironment_Type" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="NodeAccess" type="NodeAccess_Type" minOccurs="0" maxOccurs="1"/>
-		</xsd:sequence>
+	        <xsd:element name="CEType" type="CETypeEnumeration" minOccurs="0" maxOccurs="1"/>
+                <xsd:element name="RuntimeEnvironment" type="RuntimeEnvironment_Type" minOccurs="0" maxOccurs="1"/>
+                <xsd:element name="NodeAccess" type="NodeAccess_Type" minOccurs="0" maxOccurs="1"/>
+	    </xsd:sequence>
 	</xsd:complexType>
 
-    <xsd:element name="Meta" type="Meta_Type" />
+        <xsd:element name="Meta" type="Meta_Type" />
 	<xsd:element name="DataStaging" type="DataStaging_Type" />
 
    	<xsd:complexType name="Meta_Type">
@@ -253,7 +247,7 @@
 			<xsd:element name="Rank" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="FuzzyRank" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-   </xsd:complexType>
+        </xsd:complexType>
 
   	<xsd:complexType name="DataStaging_Type">
 		<xsd:sequence>
@@ -261,55 +255,55 @@
 			<xsd:element name="Directory" type="Directory_Type" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="Defaults" type="Defaults_Type" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-   </xsd:complexType>
+        </xsd:complexType>
 
 
   	<xsd:complexType name="File_Type">
 		<xsd:sequence>
-			<xsd:element name="Name" type="File_Type" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="Source" type="Source_Type" minOccurs="0" maxOccurs="unbounded"/>
-		 	<xsd:element name="Target" type="Target_Type" minOccurs="0" maxOccurs="unbounded"/>
+		    <xsd:element name="Name" type="File_Type" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="Source" type="Source_Type" minOccurs="0" maxOccurs="unbounded"/>
+		    <xsd:element name="Target" type="Target_Type" minOccurs="0" maxOccurs="unbounded"/>
 		    <xsd:element name="KeepData" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="IsExecutable" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="DownloadToCache" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="DataIndexingService" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-   </xsd:complexType>
+        </xsd:complexType>
 
   	<xsd:complexType name="Directory_Type">
 		<xsd:sequence>
-			<xsd:element name="Name" type="File_Type" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="Source" type="Source_Type" minOccurs="0" maxOccurs="unbounded"/>
-			<xsd:element name="Target" type="Target_Type" minOccurs="0" maxOccurs="unbounded"/>
+		    <xsd:element name="Name" type="File_Type" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="Source" type="Source_Type" minOccurs="0" maxOccurs="unbounded"/>
+		    <xsd:element name="Target" type="Target_Type" minOccurs="0" maxOccurs="unbounded"/>
 		    <xsd:element name="KeepData" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="IsExecutable" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="DownloadToCache" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="DataIndexingService" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-   </xsd:complexType>
+        </xsd:complexType>
 
   	<xsd:complexType name="Source_Type">
 		<xsd:sequence>
-			<xsd:element name="URI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="Threads" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="URI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="Threads" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-   </xsd:complexType>
+        </xsd:complexType>
 
   	<xsd:complexType name="Target_Type">
 		<xsd:sequence>
-			<xsd:element name="URI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="Threads" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="Mandatory" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="NeededReplicas" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="URI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="Threads" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="Mandatory" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="NeededReplicas" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-   </xsd:complexType>
+        </xsd:complexType>
 
   	<xsd:complexType name="Defaults_Type">
 		<xsd:sequence>
-			<xsd:element name="DataIndexingService" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="StagingInBaseURI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="StagingOutBaseURI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="DataIndexingService" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="StagingInBaseURI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="StagingOutBaseURI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-   </xsd:complexType>
+        </xsd:complexType>
 
 </xsd:schema>
