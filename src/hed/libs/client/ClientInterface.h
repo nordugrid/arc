@@ -43,7 +43,9 @@ namespace Arc {
     static Logger logger;
   };
 
-  // Also supports TLS
+  enum SecurityLayer { NoSec, TLSSec, GSISec };
+
+  // Also supports TLS & GSI
   class ClientTCP
     : public ClientInterface {
   public:
@@ -51,7 +53,7 @@ namespace Arc {
       : tcp_entry(NULL),
 	tls_entry(NULL) {}
     ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
-	      bool tls);
+	      SecurityLayer sec);
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
 		       PayloadStreamInterface **response, bool tls);
@@ -111,11 +113,11 @@ namespace Arc {
     MCC *http_entry;
     std::string host;
     int port;
-    bool tls;
+    SecurityLayer sec;
   };
 
   /** Class with easy interface for sending/receiving SOAP messages
-      over HTTP(S).
+      over HTTP(S/G).
       It takes care of configuring MCC chain and making an entry point. */
   class ClientSOAP
     : public ClientHTTP {

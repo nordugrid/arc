@@ -35,19 +35,8 @@ ARC_RELATIVE_PATHS
 AC_ARG_WITH(sysv-scripts-location,
   AC_HELP_STRING([--with-sysv-scripts-location=<PATH>], [Location of the SYSV init scripts. [[autodetect]]]),
   [ initddir="$withval" ],
-  [
-    initddir=
-    for i in /etc/init.d /etc/rc.d/init.d; do
-      if test -d "$i" ; then
-        initddir="$i"
-        break
-      fi
-    done
-  ]
-) 
-if test ! -d "$initddir"; then
-  AC_MSG_WARN(could not find a suitable location for the SYSV init scripts)
-fi
+  [ initddir="$sysconfdir/init.d" ]
+)
 AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
 
@@ -743,6 +732,13 @@ GPT_PKG(globus_common)
 AC_SUBST(GLOBUS_COMMON_CFLAGS)
 AC_SUBST(GLOBUS_COMMON_LIBS)
 
+PKG_CHECK_MODULES(GLOBUS_GSSAPI_GSI, [globus-gssapi-gsi], [
+GLOBUS_GSSAPI_GSI_VERSION=`$PKG_CONFIG --modversion globus-gssapi-gsi`], [
+GPT_PKG(globus_gssapi_gsi)
+])
+AC_SUBST(GLOBUS_GSSAPI_GSI_CFLAGS)
+AC_SUBST(GLOBUS_GSSAPI_GSI_LIBS)
+
 PKG_CHECK_MODULES(GLOBUS_RLS_CLIENT, [globus-rls-client], [
 GLOBUS_RLS_CLIENT_VERSION=`$PKG_CONFIG --modversion globus-rls-client`], [
 GPT_PKG(globus_rls_client)
@@ -838,6 +834,7 @@ if test "x$gsoap" = 'xyes'; then
   fi
 fi
 AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enable_srm_dmc" = "xyes"])
+AM_CONDITIONAL([GSI_MCC_ENABLED],[test -n "$GLOBUS_GSSAPI_GSI_VERSION"])
 
 # Setup defines
 if test -n "$GLOBUS_RSL_VERSION"; then
@@ -1187,6 +1184,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/tcp/Makefile
                  src/hed/mcc/http/Makefile
                  src/hed/mcc/tls/Makefile
+                 src/hed/mcc/gsi/Makefile
                  src/hed/mcc/msgvalidator/Makefile
                  src/hed/acc/Makefile
                  src/hed/acc/ARC0/Makefile

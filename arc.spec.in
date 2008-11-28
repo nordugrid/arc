@@ -243,6 +243,8 @@ exit 0
 %doc %{_mandir}/man1/arcstat.1*
 %{_bindir}/arcsub
 %doc %{_mandir}/man1/arcsub.1*
+%{_bindir}/arcsync
+#%doc %{_mandir}/man1/arcsync.1*
 %{_bindir}/arcget
 %doc %{_mandir}/man1/arcget.1*
 %{_bindir}/arcclean
@@ -277,6 +279,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libgrid_sched.so
 %{_libdir}/%{pkgdir}/libpaul.so
 %{_libdir}/%{pkgdir}/libslcs.so
+%{_libdir}/%{pkgdir}/libcompiler.so
 
 %files arex
 %defattr(-,root,root,-)
@@ -345,7 +348,11 @@ exit 0
 
 %files plugins-base
 %defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libmcc*.so
+%{_libdir}/%{pkgdir}/libmcchttp.so
+%{_libdir}/%{pkgdir}/libmccmsgvalidator.so
+%{_libdir}/%{pkgdir}/libmccsoap.so
+%{_libdir}/%{pkgdir}/libmcctcp.so
+%{_libdir}/%{pkgdir}/libmcctls.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
 %{_libdir}/%{pkgdir}/libdmchttp.so
 %{_libdir}/%{pkgdir}/libdmcldap.so
@@ -357,9 +364,11 @@ exit 0
 
 %files plugins-globus
 %defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libdmclfc.so
 %{_libdir}/%{pkgdir}/libdmcrls.so
+%{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libaccARC0.so
 
 %files python

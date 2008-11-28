@@ -501,7 +501,27 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
             return MCC_Status();
         };
     };
+    std::string host_attr,port_attr;
+    std::string remotehost_attr,remoteport_attr;
+    std::string endpoint_attr;
+    // Extract useful attributes
+    {
+      struct sockaddr_storage addr;
+      socklen_t addrlen;
+      addrlen=sizeof(addr);
+      if (getsockname(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
+	get_host_port(&addr, host_attr, port_attr);
+      if (getpeername(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
+	if (get_host_port(&addr, remotehost_attr, remoteport_attr))
+	  endpoint_attr = "://"+remotehost_attr+":"+remoteport_attr;
+    }
     outmsg.Payload(new PayloadTCPSocket(*s_));
+    outmsg.Attributes()->set("TCP:HOST",host_attr);
+    outmsg.Attributes()->set("TCP:PORT",port_attr);
+    outmsg.Attributes()->set("TCP:REMOTEHOST",remotehost_attr);
+    outmsg.Attributes()->set("TCP:REMOTEPORT",remoteport_attr);
+    outmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
+    outmsg.Attributes()->set("ENDPOINT",endpoint_attr);
     if(!ProcessSecHandlers(outmsg,"incoming")) return MCC_Status(Arc::GENERIC_ERROR);
     return MCC_Status(Arc::STATUS_OK);
 }

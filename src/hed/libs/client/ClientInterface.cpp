@@ -83,7 +83,7 @@ namespace Arc {
   }
 
   ClientTCP::ClientTCP(const BaseConfig& cfg, const std::string& host,
-		       int port, bool tls)
+		       int port, SecurityLayer sec)
     : ClientInterface(cfg),
       tcp_entry(NULL),
       tls_entry(NULL) {
@@ -93,7 +93,7 @@ namespace Arc {
     comp.NewChild("Host") = host;
     comp.NewChild("Port") = tostring(port);
 
-    if (tls) {
+    if (sec == TLSSec) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
       if (!cfg.key.empty())
 	comp.NewChild("KeyPath") = cfg.key;
@@ -107,6 +107,21 @@ namespace Arc {
 	comp.NewChild("CACertificatesDir") = cfg.cadir;
       comp.NewAttribute("entry") = "tls";
     }
+
+    else if (sec == GSISec) {
+      comp = ConfigMakeComponent(xmlcfg["Chain"], "gsi.client", "gsi", "tcp");
+      if (!cfg.key.empty())
+	comp.NewChild("KeyPath") = cfg.key;
+      if (!cfg.cert.empty())
+	comp.NewChild("CertificatePath") = cfg.cert;
+      if (!cfg.proxy.empty())
+	comp.NewChild("ProxyPath") = cfg.proxy;
+      if (!cfg.cafile.empty())
+	comp.NewChild("CACertificatePath") = cfg.cafile;
+      if (!cfg.cadir.empty())
+	comp.NewChild("CACertificatesDir") = cfg.cadir;
+      comp.NewAttribute("entry") = "gsi";
+    }
   }
 
   ClientTCP::~ClientTCP() {}
@@ -115,6 +130,8 @@ namespace Arc {
     ClientInterface::Load();
     if (!tls_entry)
       tls_entry = (*loader)["tls"];
+    if (!tls_entry)
+      tls_entry = (*loader)["gsi"];
     if (!tcp_entry)
       tcp_entry = (*loader)["tcp"];
   }
@@ -155,13 +172,17 @@ namespace Arc {
   }
 
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url)
-    : ClientTCP(cfg, url.Host(), url.Port(), url.Protocol() == "https"),
+    : ClientTCP(cfg, url.Host(), url.Port(),
+		url.Protocol() == "https" ? TLSSec :
+		url.Protocol() == "httpg" ? GSISec : NoSec),
       http_entry(NULL),
       host(url.Host()),
       port(url.Port()),
-      tls(url.Protocol() == "https") {
+      sec(url.Protocol() == "https" ? TLSSec :
+	  url.Protocol() == "httpg" ? GSISec : NoSec) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
-				       tls ? "tls" : "tcp");
+				       sec == TLSSec ? "tls" :
+				       sec == GSISec ? "gsi" : "tcp");
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str();
@@ -184,10 +205,10 @@ namespace Arc {
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                                 std::map<std::string, std::string>& attributes,
-                                 PayloadRawInterface *request,
-                                 HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
+				 std::map<std::string, std::string>& attributes,
+				 PayloadRawInterface *request,
+				 HTTPClientInfo *info,
+				 PayloadRawInterface **response) {
     return process(method, "", attributes, 0, UINT64_MAX, request, info, response);
   }
 
@@ -201,27 +222,27 @@ namespace Arc {
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                                 const std::string& path,
-                                 std::map<std::string, std::string>& attributes,
-                                 PayloadRawInterface *request,
-                                 HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
+				 const std::string& path,
+				 std::map<std::string, std::string>& attributes,
+				 PayloadRawInterface *request,
+				 HTTPClientInfo *info,
+				 PayloadRawInterface **response) {
     return process(method, path, attributes, 0, UINT64_MAX, request, info, response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                                 const std::string& path,
-                                 uint64_t range_start, uint64_t range_end,
-                                 PayloadRawInterface *request,
-                                 HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
+				 const std::string& path,
+				 uint64_t range_start, uint64_t range_end,
+				 PayloadRawInterface *request,
+				 HTTPClientInfo *info,
+				 PayloadRawInterface **response) {
     std::map<std::string, std::string> attributes;
     return process(method, path, attributes, range_start, range_end, request, info, response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
 				 const std::string& path,
-                                 std::map<std::string, std::string>& attributes,
+				 std::map<std::string, std::string>& attributes,
 				 uint64_t range_start, uint64_t range_end,
 				 PayloadRawInterface *request,
 				 HTTPClientInfo *info,
@@ -241,7 +262,8 @@ namespace Arc {
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
     if (!path.empty()) {
-      std::string url(tls ? "https" : "http");
+      std::string url(sec == TLSSec ? "https" :
+		      sec == GSISec ? "httpg" : "http");
       url += "://" + host;
       if (port > 0)
 	url += ":" + tostring(port);
