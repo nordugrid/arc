@@ -1198,7 +1198,7 @@ err:
     if(aclist == NULL) {
       ERR_clear_error();
       //while(ERR_get_error() != 0);
-      std::cerr<<"No AC in the proxy certificate"<<std::endl; return false;
+      //std::cerr<<"No AC in the proxy certificate"<<std::endl; return false;
     }
 
     bool verified = false;
