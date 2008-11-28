@@ -1199,6 +1199,7 @@ err:
       ERR_clear_error();
       //while(ERR_get_error() != 0);
       //std::cerr<<"No AC in the proxy certificate"<<std::endl; return false;
+      return true;
     }
 
     bool verified = false;
