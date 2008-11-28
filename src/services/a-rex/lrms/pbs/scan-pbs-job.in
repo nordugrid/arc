@@ -126,7 +126,7 @@ sort -u | \
 	# check if job already reported
         if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
         # more protection - check if grid-manager thinks job is still running
-        egrep 'INLRMS|CANCELING' "${base_name}.status" 2>/dev/null 1>/dev/null
+        grep INLRMS "${base_name}.status" 2>/dev/null 1>/dev/null
         if [ ! $? = '0' ] ; then continue ; fi
 	# So far only PBS exit code is available
 	# It would be nice to have exit code of main executable
@@ -293,7 +293,7 @@ for ctr_dir in "$@" ; do
     statusfile="${ctr_dir}/job.${gridid}.status"
     if [ ! -f "$statusfile" ] ; then continue ; fi
     status=`cat "$statusfile"`
-    if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ]; then continue ; fi
+    if [ ! "$status" = "INLRMS" ] ; then continue ; fi
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
     if [ ! -z "$session" ] ; then
