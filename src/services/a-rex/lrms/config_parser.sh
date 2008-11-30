@@ -39,12 +39,13 @@ config_parse_file() {
     script='my ($nb,$bn)=(0,0,""); my %opts=(); while(<>) { chomp;
               if (/^\s*\[([\w\-\.\/]+)\]\s*$/) {
                 print_section() if $nb; $nb++; $bn=$1;
-              } elsif (/^(\w+)\s*=\s*([\"'\''])(.*)(\2)\s*$/) {
+              } elsif (/^(\w+)\s*=\s*([\"'\'']?)(.*)(\2)\s*$/) {
                 my ($opt,$val)=($1,$3); $val=~s/'\''/'\''\\'\'''\''/g;
                 $bn =~ s|^(.+?)(/[^/]*)?$|$1/$val| if $opt eq "name";
                 unshift @{$opts{$opt}}, $val;
               } elsif (/^\s*#/) { # skip comment line
               } elsif (/^\s*$/) { # skip empty line
+              } elsif (/^\s*all\s*$/) { # make an exception for "all" command
               } else { print "echo config_parser: Skipping malformed line in section \\\[$bn\\\] at line number $. 1>&2\n";
             } }
             print_section(); print "_CONFIG_NUM_BLOCKS='\''$nb'\'';\n";
@@ -129,7 +130,7 @@ config_reset() {
 }
 
 config_destroy() {
-    config_delete_all
+    config_reset
     unset config_parse_file
     unset config_import_section
     unset config_match_section

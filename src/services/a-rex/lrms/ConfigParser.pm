@@ -64,7 +64,7 @@ sub _parse($$) {
             $sname = $newsname;
             $sopts = {};
 
-        } elsif ($line =~ /^(\w+)\s*=\s*(["'])(.*)(\2)\s*$/) {
+        } elsif ($line =~ /^(\w+)\s*=\s*(["']?)(.*)(\2)\s*$/) {
 
             # Single or double quotes can be used. Quotes are removed from the values
     
