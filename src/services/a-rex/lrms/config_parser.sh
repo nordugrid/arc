@@ -85,9 +85,8 @@ config_import_section() {
     while [ $j -lt $num ]; do
       j=$(($j+1))
       eval name="\$_CONFIG_BLOCK${i}_OPT${j}_NAME"
-      eval value="\$_CONFIG_BLOCK${i}_OPT${j}_VALUE"
       if [ -z "$name" ]; then return 1; fi
-      eval "CONFIG_$name='$value'"
+      eval "CONFIG_$name=\$_CONFIG_BLOCK${i}_OPT${j}_VALUE"
     done
     return 0
   done
