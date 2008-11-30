@@ -7,14 +7,14 @@
 #
 # Synopsis:
 #
-#   . config_parser
+#   . config_parser.sh
 #
 #   config_parse_file /etc/arc.conf || exit 1
 #   config_import_section common
 #   config_import_section grid-manager
 #   config_import_section infosys
 #   
-#   env | grep CONFIG_
+#   set | grep CONFIG_
 #
 #   config_match_section queue/short || echo No such queue
 #
@@ -36,27 +36,34 @@ config_parse_file() {
         echo "config_parser: Cannot read config file: $arc_conf" 1>&2
         return 1
     fi
-    script='my ($nb,$no,$bn)=(0,0,""); while(<>) { chomp;
+    script='my ($nb,$bn)=(0,0,""); my %opts=(); while(<>) { chomp;
               if (/^\s*\[([\w\-\.\/]+)\]\s*$/) {
-                print "_CONFIG_BLOCK${nb}_NAME='\''$bn'\'';\n" if $nb;
-                print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n" if $nb;
-                $nb++; $no=0; $bn=$1;
-              } elsif (/^(\w+)\s*=\s*([\"'\''])(.*)(\2)\s*$/) { $no++;
+                print_section() if $nb; $nb++; $bn=$1;
+              } elsif (/^(\w+)\s*=\s*([\"'\''])(.*)(\2)\s*$/) {
                 my ($opt,$val)=($1,$3); $val=~s/'\''/'\''\\'\'''\''/g;
                 $bn =~ s|^(.+?)(/[^/]*)?$|$1/$val| if $opt eq "name";
-                print "_CONFIG_BLOCK${nb}_OPT${no}_NAME='\''$opt'\'';\n";
-                print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val'\'';\n";
+                unshift @{$opts{$opt}}, $val;
               } elsif (/^\s*#/) { # skip comment line
               } elsif (/^\s*$/) { # skip empty line
-              } else { print "echo config_parser: Skipping bad input at line number $. 1>&2\n";
+              } else { print "echo config_parser: Skipping malformed line in section \\\[$bn\\\] at line number $. 1>&2\n";
             } }
-            print "_CONFIG_BLOCK${nb}_NAME='\''$bn'\'';\n";
-            print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n";
-            print "_CONFIG_NUM_BLOCKS='\''$nb'\'';\n";
+            print_section(); print "_CONFIG_NUM_BLOCKS='\''$nb'\'';\n";
+            sub print_section { my $no=0; while (my ($opt,$val)=each %opts) { $no++;
+                print "_CONFIG_BLOCK${nb}_OPT${no}_NAME='\''$opt'\'';\n";
+                print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val->[@$val-1]'\'';\n";
+                if (@$val > 1) { for $i (1 .. @$val) { $no++; # multi-valued option
+                    print "_CONFIG_BLOCK${nb}_OPT${no}_NAME='\''${opt}_$i'\'';\n";
+                    print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val->[$i-1]'\'';\n";
+              } } }; %opts=();
+              print "_CONFIG_BLOCK${nb}_NAME='\''$bn'\'';\n";
+              print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n";
+            }
            '
     config=`cat $arc_conf | perl -w -e "$script"` || return $?
+    unset script
     eval "$config" || return $?
     unset config
+    return 0
 }
 
 #
@@ -79,7 +86,7 @@ config_import_section() {
       eval name="\$_CONFIG_BLOCK${i}_OPT${j}_NAME"
       eval value="\$_CONFIG_BLOCK${i}_OPT${j}_VALUE"
       if [ -z "$name" ]; then return 1; fi
-      eval export "CONFIG_$name='$value'"
+      eval "CONFIG_$name='$value'"
     done
     return 0
   done
@@ -102,19 +109,34 @@ config_subsections() {
   block=$1
   i=0
   if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
-  while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
-    i=$(($i+1))
-    eval name="\$_CONFIG_BLOCK${i}_NAME"
-    # skip the parent section itself
-    if [ "x$block" = "x$name" ]; then continue; fi
-    head=${name%%/*}
-    tail=${name#*/}
-    if [ "x$block" = "x$head" ]; then echo $tail; fi
-  done
+  {
+    while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
+      i=$(($i+1))
+      eval name="\$_CONFIG_BLOCK${i}_NAME"
+      tail=${name#$block/}
+      if [ "x$name" != "x$tail" ]; then echo ${tail%%/*}; fi
+    done
+  } | sort -u
 }
 
 config_hide_all() {
-    unset `set|grep ^CONFIG_|cut -f1 -d=`
+    unset `set|cut -f1 -d=|grep '^CONFIG_[A-Za-z0-9_]*$'`
+}
+
+config_reset() {
+    config_hide_all
+    unset `set|cut -f1 -d=|grep '^_CONFIG_[A-Za-z0-9_]*$'`
+}
+
+config_destroy() {
+    config_delete_all
+    unset config_parse_file
+    unset config_import_section
+    unset config_match_section
+    unset config_subsections
+    unset config_hide_all
+    unset config_reset
+    unset config_destroy
 }
 
 
