@@ -8,7 +8,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/loader/Loader.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
 
@@ -29,7 +29,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Failed to load service configuration");
     return -1;
   };
-  Arc::Loader service_loader(&service_config);
+  Arc::MCCLoader service_loader(service_config);
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
   logger.msg(Arc::INFO, "Service is waiting for requests");
   for(;;) {

@@ -27,7 +27,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/Loader.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/StringConv.h>
@@ -62,7 +62,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Failed to load client configuration");
     return -1;
   };
-  Arc::Loader client_loader(&client_config);
+  Arc::MCCLoader client_loader(client_config);
   logger.msg(Arc::INFO, "Client side MCCs are loaded");
   Arc::MCC* client_entry = client_loader["soap"];
   if(!client_entry) {

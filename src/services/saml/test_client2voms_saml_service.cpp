@@ -10,9 +10,9 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/MCC.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/DateTime.h>

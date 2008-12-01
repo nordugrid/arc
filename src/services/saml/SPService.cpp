@@ -9,8 +9,6 @@
 #include <arc/GUID.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/security/SecHandler.h>
 #include <arc/credential/Credential.h>
@@ -22,13 +20,16 @@
 
 #include "SPService.h"
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new SPService::Service_SP(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new SPService::Service_SP((Arc::Config*)(*mccarg));
 }
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "saml.sp", 0, &get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "saml.sp", "HED:SERVICE", 0, &get_service },
+    { NULL, NULL, 0, NULL }
 };
 
 namespace SPService {
