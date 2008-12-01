@@ -9,8 +9,8 @@
 #include <unistd.h>
 
 #include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
-#include <arc/loader/Plexer.h>
+#include <arc/message/MCCLoader.h>
+#include <arc/message/Plexer.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
@@ -52,8 +52,11 @@ static Arc::XMLNode BESARCResponse(Arc::PayloadSOAP& res,const char* opname) {
 
 //static Arc::LogStream logcerr(std::cerr);
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new ARexService(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new ARexService((Arc::Config*)(*mccarg));
 }
 
 class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
@@ -389,8 +392,8 @@ ARexService::~ARexService(void) {
 
 } // namespace ARex
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "a-rex", 0, &ARex::get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "a-rex", "HED:SERVICE", 0, &ARex::get_service },
+    { NULL, NULL, 0, NULL }
 };
 
