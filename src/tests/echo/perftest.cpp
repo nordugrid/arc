@@ -12,9 +12,10 @@
 #include <glibmm/timer.h>
 
 #include <arc/ArcConfig.h>
-#include <arc/loader/Loader.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/MCC.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 
@@ -88,7 +89,7 @@ void sendRequests(){
       std::cerr << "Failed to load client configuration." << std::endl;
       return;
     }
-    Arc::Loader client_loader(&client_config);
+    Arc::MCCLoader client_loader(client_config);
     Arc::MCC* client_entry = client_loader["soap"];
     if(!client_entry) {
       std::cerr << "Client chain have no entry point." << std::endl;

@@ -7,9 +7,10 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/MCC.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/client/ClientInterface.h>
 #ifdef WIN32
 #include <arc/win32.h>
@@ -30,7 +31,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Failed to load service configuration");
     return -1;
   };
-  Arc::Loader service_loader(&service_config);
+  Arc::MCCLoader service_loader(service_config);
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
 
   logger.msg(Arc::INFO, "Creating client interface");

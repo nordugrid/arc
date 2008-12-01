@@ -4,20 +4,23 @@
 
 #include <iostream>
 
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
+#include <arc/message/MCCLoader.h>
+#include <arc/message/Service.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/security/SecHandler.h>
 
 #include "echo.h"
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Echo::Service_Echo(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Echo::Service_Echo((Arc::Config*)(*mccarg));
 }
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "echo", 0, &get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "echo", "HED:SERVICE", 0, &get_service },
+    { NULL, NULL, 0, NULL }
 };
 
 namespace Echo {
