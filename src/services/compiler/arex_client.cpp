@@ -54,7 +54,7 @@ namespace Arc {
       throw AREXClientError("Failed to load client configuration");
     }
 
-    client_loader = new Arc::Loader(client_config);
+    client_loader = new Arc::MCCLoader(*client_config);
     logger.msg(Arc::INFO, "Client side MCCs are loaded");
     client_entry = (*client_loader)["soap"];
     if(!client_entry) {

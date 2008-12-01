@@ -21,8 +21,6 @@
 #include <time.h>
 #include <sstream>
 
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/security/SecHandler.h>
 #include <arc/URL.h>
@@ -35,13 +33,16 @@
 
 #include "compiler.h"
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Compiler::Service_Compiler(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Compiler::Service_Compiler((Arc::Config*)(*mccarg));
 }
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "compiler", 0, &get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "compiler", "HED:SERVICE", 0, &get_service },
+    { NULL, NULL, 0, NULL }
 };
 
 using namespace Compiler;

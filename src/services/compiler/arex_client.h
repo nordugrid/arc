@@ -11,7 +11,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/Loader.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/client/ClientInterface.h>
@@ -136,7 +136,7 @@ namespace Arc {
     /*! A loader object that loads and connects the appropriate
       components according to the configuration object.
      */
-    Arc::Loader* client_loader;
+    Arc::MCCLoader* client_loader;
 
     Arc::ClientSOAP* client;
 
