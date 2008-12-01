@@ -8,9 +8,6 @@
 #include <pwd.h>
 
 #include <arc/loader/Loader.h>
-#include <arc/loader/ClassLoader.h>
-#include <arc/loader/ServiceLoader.h>
-#include <arc/loader/Plexer.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
@@ -22,8 +19,11 @@ namespace ArcSec {
 
 static Arc::LogStream logcerr(std::cerr);
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Service_SLCS(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Service_SLCS((Arc::Config*)(*mccarg));
 }
 
 Arc::MCC_Status Service_SLCS::make_soap_fault(Arc::Message& outmsg) {
@@ -188,8 +188,8 @@ Service_SLCS::~Service_SLCS(void) {
 
 } // namespace ArcSec
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "slcs.service", 0, &ArcSec::get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "slcs.service", "HED:SERVICE", 0, &ArcSec::get_service },
+    { NULL, NULL, 0, NULL }
 };
 
