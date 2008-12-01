@@ -22,16 +22,18 @@ namespace Arc {
 
   Logger MCC_GSI_Client::logger(MCC::logger, "GSI Client");
 
-  static MCC* get_mcc_service(Config *cfg, ChainContext*) {
-    if (!cfg)
-      return NULL;
-    return new MCC_GSI_Service(*cfg);
+  static Plugin* get_mcc_service(PluginArgument* arg) {
+    MCCPluginArgument* mccarg =
+            arg?dynamic_cast<MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new MCC_GSI_Service(*(Arc::Config*)(*mccarg));
   }
 
-  static MCC* get_mcc_client(Config *cfg, ChainContext*) {
-    if (!cfg)
-      return NULL;
-    return new MCC_GSI_Client(*cfg);
+  static Plugin* get_mcc_client(PluginArgument* arg) {
+    MCCPluginArgument* mccarg =
+            arg?dynamic_cast<MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new MCC_GSI_Client(*(Arc::Config*)(*mccarg));
   }
 
   class MCC_GSI_Context
@@ -447,8 +449,8 @@ namespace Arc {
 
 } // namespace Arc
 
-mcc_descriptors ARC_MCC_LOADER = {
-  { "gsi.service", 0, &Arc::get_mcc_service },
-  { "gsi.client", 0, &Arc::get_mcc_client },
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "gsi.service", "HED:MCC", 0, &Arc::get_mcc_service },
+  { "gsi.client",  "HED:MCC", 0, &Arc::get_mcc_client },
   { NULL, 0, NULL }
 };
