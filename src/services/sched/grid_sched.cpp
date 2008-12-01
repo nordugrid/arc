@@ -12,8 +12,6 @@
 #include <arc/URL.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
@@ -51,10 +49,13 @@ GridSchedulerService::make_response(Arc::Message& outmsg)
 #endif
 
 // Static initializator
-static Arc::Service *
-get_service(Arc::Config *cfg,Arc::ChainContext*) 
+static Arc::Plugin *
+get_service(Arc::PluginArgument* arg) 
 {
-    return new GridSchedulerService(cfg);
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new GridSchedulerService((Arc::Config*)(*mccarg));
 }
 
 // Create Faults
@@ -400,7 +401,7 @@ GridSchedulerService::~GridSchedulerService(void)
 
 } // namespace GridScheduler
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "grid_sched", 0, &GridScheduler::get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "grid_sched", "HED:SERVICE", 0, &GridScheduler::get_service },
+    { NULL, NULL, 0, NULL }
 };
