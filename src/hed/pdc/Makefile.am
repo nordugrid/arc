@@ -1,9 +1,11 @@
-SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp
 if XMLSEC_ENABLED
-LIBS_WITH_XMLSEC =  x509tokensh/libx509tokensh.la saml2sso_serviceprovidersh/libsaml2ssoserviceprovidersh.la
+LIBS_WITH_XMLSEC = x509tokensh/libx509tokensh.la saml2sso_serviceprovidersh/libsaml2ssoserviceprovidersh.la
+SUBDIRS_XMLSEC= x509tokensh saml2sso_serviceprovidersh
 else
 LIBS_WITH_XMLSEC = 
+SUBDIRS_XMLSEC =
 endif
+SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp $(SUBDIRS_XMLSEC)
 DIST_SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh gaclpdp x509tokensh saml2sso_serviceprovidersh
 noinst_PROGRAMS = test testinterface
 # classload_test 
