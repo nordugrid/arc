@@ -7,9 +7,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
-#include <arc/loader/Plexer.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
@@ -23,8 +20,11 @@ namespace ARex2 {
 static Arc::LogStream logcerr(std::cerr);
 
 // Static initializator
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new ARex2Service(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new ARex2Service((Arc::Config*)(*mccarg));
 }
 
 Arc::MCC_Status ARex2Service::CreateActivity(Arc::XMLNode /*in*/,
@@ -214,8 +214,8 @@ ARex2Service::~ARex2Service(void)
 
 } // namespace ARex2
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "a-rex2", 0, &ARex2::get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "a-rex2", "HED:SERVICE", 0, &ARex2::get_service },
+    { NULL, NULL, 0, NULL }
 };
 
