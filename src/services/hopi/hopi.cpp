@@ -9,8 +9,6 @@
 #include <errno.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
 #include <arc/message/MessageAttributes.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
@@ -22,9 +20,12 @@
 
 namespace Hopi {
 
-static Arc::Service *get_service(Arc::Config *cfg, Arc::ChainContext*)
+static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 {
-    return new Hopi(cfg);
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Hopi((Arc::Config*)(*mccarg));
 }
 
 Hopi::Hopi(Arc::Config *cfg):Service(cfg), logger(Arc::Logger::rootLogger, "Hopi")
@@ -204,7 +205,7 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
 
 } // namespace Hopi
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "hopi", 0, &Hopi::get_service },
-    { NULL, 0, NULL}
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "hopi", "HED:SERVICE", 0, &Hopi::get_service },
+    { NULL, NULL, 0, NULL}
 };
