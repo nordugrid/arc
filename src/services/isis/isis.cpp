@@ -17,8 +17,11 @@
 namespace ISIS
 {
 
-static Arc::Service *get_service(Arc::Config *cfg, Arc::ChainContext *) { 
-    return new ISIService(cfg);
+static Arc::Plugin *get_service(Arc::PluginArgument* arg) { 
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new ISIService((Arc::Config*)(*mccarg));
 }
 
 Arc::MCC_Status
@@ -245,7 +248,7 @@ ISIService::RegistrationCollector(Arc::XMLNode &doc)
 
 } // namespace
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "isis", 0, &ISIS::get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "isis", "HED:SERVICE", 0, &ISIS::get_service },
+    { NULL, NULL, 0, NULL }
 };
