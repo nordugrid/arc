@@ -3,19 +3,20 @@
 #endif
 
 #include <iostream>
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
 #include <arc/message/SOAPMessage.h>
 #include <arc/message/PayloadSOAP.h>
 #include "javawrapper.h"
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::Service_JavaWrapper(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::Service_JavaWrapper((Arc::Config*)(*mccarg));
 }
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "arcservice_javawrapper", 0, &get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "arcservice_javawrapper", "HED:SERVICE", 0, &get_service },
+    { NULL, NULL, 0, NULL }
 };
 
 namespace Arc {

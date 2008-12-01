@@ -6,10 +6,9 @@
 #endif
 
 #include <iostream>
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
 #include <arc/message/SOAPMessage.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/Thread.h>
 #include "pythonwrapper.h"
 
@@ -75,11 +74,15 @@ static int python_service_counter = 0;
 static Glib::Mutex service_lock;
 Arc::Logger Arc::Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    Arc::ChainContext* ctx = (Arc::ChainContext*)(*mccarg);
 
 #ifndef WIN32
-    // ((Arc::ServiceFactory*)(*ctx))->load("pythonservice",false,true); // doesn't work, why?
-    ::dlopen(((Arc::ServiceFactory*)(*ctx))->findLocation("pythonservice").c_str(),RTLD_NOW | RTLD_GLOBAL);
+    // ((Arc::PluginsFactory*)(*ctx))->load("pythonservice",false,true); // doesn't work, why?
+    ::dlopen(((Arc::PluginsFactory*)(*ctx))->findLocation("pythonservice").c_str(),RTLD_NOW | RTLD_GLOBAL);
 #endif
 
     service_lock.lock();    
@@ -102,15 +105,15 @@ static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     python_service_counter++;
     Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Loading %u-th Python service", python_service_counter);
     service_lock.unlock();    
-    Arc::Service* service = new Arc::Service_PythonWrapper(cfg);
+    Arc::Service* service = new Arc::Service_PythonWrapper((Arc::Config*)(*mccarg));
     PyEval_ReleaseThread(tstate); // Release current thread
     Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Initialized %u-th Python service", python_service_counter);
     return service;
 }
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "pythonservice", 0, &get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "pythonservice", "HED:SERVICE", 0, &get_service },
+    { NULL, NULL, 0, NULL }
 };
 
 namespace Arc {
