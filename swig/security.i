@@ -1,5 +1,4 @@
 %{
-#include <arc/loader/LoadableClass.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluationCtx.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
