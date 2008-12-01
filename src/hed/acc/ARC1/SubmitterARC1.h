@@ -8,7 +8,6 @@
 
 namespace Arc {
 
-  class ChainContext;
   class Config;
 
   class SubmitterARC1
@@ -21,7 +20,7 @@ namespace Arc {
     ~SubmitterARC1();
 
   public:
-    static ACC* Instance(Config *cfg, ChainContext *cxt);
+    static Plugin* Instance(PluginArgument* arg);
     bool Submit(JobDescription& jobdesc, XMLNode& info);
   };
 

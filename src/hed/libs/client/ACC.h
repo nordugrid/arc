@@ -2,11 +2,13 @@
 #define __ARC_ACC_H__
 
 #include <arc/ArcConfig.h>
+#include <arc/loader/Plugin.h>
 #include <arc/credential/Credential.h>
 
 namespace Arc {
 
-  class ACC {
+  class ACC
+    : public Plugin {
   protected:
     ACC(Config *cfg, const std::string& flavour = "");
   public:
@@ -28,6 +30,17 @@ namespace Arc {
       : BaseConfig() {}
     virtual ~ACCConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+
+  #define ACCPluginKind ("HED:ACC")
+
+  class ACCPluginArgument: public PluginArgument {
+   private:
+    Config* config_;
+   public:
+    ACCPluginArgument(Config* config):config_(config) { };
+    virtual ~ACCPluginArgument(void) { };
+    operator Config* (void) { return config_; };
   };
 
 } // namespace Arc

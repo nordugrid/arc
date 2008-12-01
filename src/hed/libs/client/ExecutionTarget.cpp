@@ -6,7 +6,7 @@
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/loader/Loader.h>
+#include <arc/client/ACCLoader.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/UserConfig.h>
 
@@ -74,7 +74,7 @@ namespace Arc {
     SubmitterComp.NewChild("Queue") = MappingQueue;
     SubmitterComp.NewChild("SubmissionEndpoint") = url.str();
 
-    const_cast<ExecutionTarget*>(this)->loader = new Loader(&cfg);
+    const_cast<ExecutionTarget*>(this)->loader = new ACCLoader(cfg);
 
     return dynamic_cast<Submitter*>(loader->getACC("submitter"));
   }

@@ -14,11 +14,11 @@ SOURCE_WITH_XMLSEC =
 endif
 
 libarcclient_ladir = $(pkgincludedir)/client
-libarcclient_la_HEADERS  = ACC.h Broker.h ExecutionTarget.h \
+libarcclient_la_HEADERS  = ACC.h ACCLoader.h Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
 	Job.h JobController.h JobSupervisor.h JobDescription.h \
 	ClientInterface.h $(HEADER_WITH_XMLSEC) UserConfig.h
-libarcclient_la_SOURCES  = ACC.cpp Broker.cpp ExecutionTarget.cpp \
+libarcclient_la_SOURCES  = ACC.cpp ACCLoader.cpp Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
 	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp \
 	ClientInterface.cpp $(SOURCE_WITH_XMLSEC) UserConfig.cpp

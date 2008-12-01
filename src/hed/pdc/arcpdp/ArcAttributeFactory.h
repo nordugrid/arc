@@ -24,6 +24,8 @@ private:
   void initDatatypes();
 };
 
+Arc::Plugin* get_arcpdp_attr_factory (Arc::PluginArgument*);
+
 } // namespace ArcSec
 
 #endif /* __ARC_SEC_ARCATTRIBUTEFACTORY_H__ */

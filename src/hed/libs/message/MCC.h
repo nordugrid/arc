@@ -6,6 +6,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/security/SecHandler.h>
+#include <arc/loader/Plugin.h>
 #include "Message.h"
 #include "MCC_Status.h"
 
@@ -15,7 +16,7 @@ namespace Arc {
   /** The Interface consists of the method process() which is called by
       the previous MCC in the chain. For memory management policies please
       read the description of the Message class. */
-  class MCCInterface {
+  class MCCInterface: public Plugin {
   public:
     /** Method for processing of requests and responses.
        	This method is called by preceeding MCC in chain when a request
@@ -112,6 +113,21 @@ namespace Arc {
       : BaseConfig() {}
     virtual ~MCCConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+
+  #define MCCPluginKind ("HED:MCC")
+
+  class ChainContext;
+
+  class MCCPluginArgument: public PluginArgument {
+   private:
+    Config* config_;
+    ChainContext* context_;
+   public:
+    MCCPluginArgument(Config* config,ChainContext* context):config_(config),context_(context) { };
+    virtual ~MCCPluginArgument(void) { };
+    operator Config* (void) { return config_; };
+    operator ChainContext* (void) { return context_; };
   };
 
 } // namespace Arc

@@ -50,8 +50,11 @@ namespace Arc {
 
   TargetRetrieverARC0::~TargetRetrieverARC0() {}
 
-  ACC* TargetRetrieverARC0::Instance(Config *cfg, ChainContext*) {
-    return new TargetRetrieverARC0(cfg);
+  Plugin* TargetRetrieverARC0::Instance(Arc::PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new TargetRetrieverARC0((Arc::Config*)(*accarg));
   }
 
   void TargetRetrieverARC0::GetTargets(TargetGenerator& mom, int targetType,

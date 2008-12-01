@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 
 #include "ArcAttributeFactory.h"
 #include <arc/security/ArcPDP/attr/AttributeProxy.h>
@@ -14,17 +14,19 @@
 
 #include "ArcAttributeProxy.h"
 
-static Arc::LoadableClass* get_attr_factory (void*) {
-    return new ArcSec::ArcAttributeFactory();
-}
-
+/*
 loader_descriptors __arc_attrfactory_modules__  = {
     { "attr.factory", 0, &get_attr_factory },
     { NULL, 0, NULL }
 };
+*/
 
 using namespace Arc;
-using namespace ArcSec;
+namespace ArcSec {
+
+Arc::Plugin* get_arcpdp_attr_factory (Arc::PluginArgument*) {
+    return new ArcSec::ArcAttributeFactory();
+}
 
 void ArcAttributeFactory::initDatatypes(){
   //Some Arc specified attribute types
@@ -65,4 +67,6 @@ ArcAttributeFactory::~ArcAttributeFactory(){
     if(attrproxy) delete attrproxy;
   }
 }
+
+} // namespace ArcSec
 

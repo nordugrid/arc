@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 
 #include <arc/ArcConfig.h>
 #include "ArcAlgFactory.h"
@@ -10,18 +10,21 @@
 #include <arc/security/ArcPDP/alg/PermitOverridesAlg.h>
 #include <arc/security/ArcPDP/alg/OrderedAlg.h>
 
-static Arc::LoadableClass* get_alg_factory (void*) {
-    return new ArcSec::ArcAlgFactory();
-}
-
+/*
 loader_descriptors __arc_algfactory_modules__  = {
     { "alg.factory", 0, &get_alg_factory },
     { NULL, 0, NULL }
 };
-
+*/
 
 using namespace Arc;
-using namespace ArcSec;
+
+namespace ArcSec {
+
+Arc::Plugin* get_arcpdp_alg_factory (Arc::PluginArgument*) {
+    return new ArcSec::ArcAlgFactory();
+}
+
 
 void ArcAlgFactory::initCombiningAlg(CombiningAlg* alg) {
   if(alg) algmap[alg->getalgId()]=alg;
@@ -80,3 +83,6 @@ ArcAlgFactory::~ArcAlgFactory(){
     if(alg) delete alg;;
   }
 }
+
+} // namespace ArcSec
+

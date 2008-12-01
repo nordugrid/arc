@@ -56,7 +56,7 @@ public:
 
   virtual const char* getName() const { return "gacl.evaluator"; };
 
-  static Arc::LoadableClass* get_evaluator(void* arg);
+  static Arc::Plugin* get_evaluator(Arc::PluginArgument* arg);
 
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx) { };

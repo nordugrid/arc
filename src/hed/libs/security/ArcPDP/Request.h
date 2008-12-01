@@ -2,7 +2,7 @@
 #define __ARC_SEC_REQUEST_H__
 
 #include <list>
-#include <arc/loader/LoadableClass.h>
+#include <arc/security/ClassLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>

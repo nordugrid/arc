@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-#include <arc/loader/ClassLoader.h>
 #include <arc/ArcConfig.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
@@ -14,7 +13,7 @@ namespace ArcSec {
 /// provided as identity delegation policy.
 class DelegationPDP : public PDP {
  public:
-  static PDP* get_delegation_pdp(Arc::Config *cfg, Arc::ChainContext *ctx);
+  static Arc::Plugin* get_delegation_pdp(Arc::PluginArgument *arg);
   DelegationPDP(Arc::Config* cfg);
   virtual ~DelegationPDP();
   virtual bool isPermitted(Arc::Message *msg);

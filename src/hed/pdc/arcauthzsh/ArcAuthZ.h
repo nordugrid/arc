@@ -7,7 +7,7 @@
 #include <arc/message/Message.h>
 #include <arc/security/SecHandler.h>
 #include <arc/security/PDP.h>
-#include <arc/loader/PDPFactory.h>
+#include <arc/loader/Plugin.h>
 
 namespace ArcSec {
 
@@ -36,7 +36,7 @@ class ArcAuthZ : public SecHandler {
   typedef std::map<std::string,PDPDesc>  pdp_container_t;
 
   /** Link to Factory responsible for loading and creation of PDP objects */
-  Arc::PDPFactory *pdp_factory;
+  Arc::PluginsFactory *pdp_factory;
   /** One Handler can include few PDP */
   pdp_container_t pdps_;
 
@@ -47,7 +47,7 @@ class ArcAuthZ : public SecHandler {
  public:
   ArcAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~ArcAuthZ(void);
-  static SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx);  
+  static Plugin* get_sechandler(Arc::PluginArgument* arg);  
   /** Get authorization decision*/
   virtual bool Handle(Arc::Message* msg);  
 };

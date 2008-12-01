@@ -18,8 +18,11 @@ namespace Arc {
 
   JobControllerCREAM::~JobControllerCREAM() {}
 
-  ACC* JobControllerCREAM::Instance(Config *cfg, ChainContext*) {
-    return new JobControllerCREAM(cfg);
+  Plugin* JobControllerCREAM::Instance(PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new JobControllerCREAM((Arc::Config*)(*accarg));
   }
 
   void JobControllerCREAM::GetJobInformation() {

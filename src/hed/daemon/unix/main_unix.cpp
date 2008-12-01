@@ -15,14 +15,14 @@
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/Loader.h>
+#include <arc/message/MCCLoader.h>
 
 #include "daemon.h"
 #include "../options.h"
 
 Arc::Daemon *main_daemon;
 Arc::Config config;
-Arc::Loader *loader;
+Arc::MCCLoader *loader;
 Arc::Logger& logger=Arc::Logger::rootLogger;
 
 static void shutdown(int)
@@ -118,8 +118,7 @@ int main(int argc, char **argv)
             }
 
             // bootstrap
-            loader = new Arc::Loader(&config);
-            // Arc::Loader loader(&config);
+            loader = new Arc::MCCLoader(config);
             logger.msg(Arc::INFO, "Service side MCCs are loaded");
             // sleep forever
             for (;;) {

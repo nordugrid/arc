@@ -20,8 +20,8 @@
 
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/loader/Loader.h>
-#include <arc/loader/MCCLoader.h>
+#include <arc/loader/Plugin.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/message/SecAttr.h>
 #include <arc/credential/voms_util.h>
@@ -30,6 +30,8 @@
 
 #include "PayloadTLSStream.h"
 #include "PayloadTLSMCC.h"
+
+#include "DelegationSH.h"
 
 #include "MCCTLS.h"
 
@@ -64,21 +66,25 @@ Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : MCC(&cfg), config_(cfg,logger,client) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
-    if(cfg == NULL) return NULL;
-    return new Arc::MCC_TLS_Service(*cfg);
+static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_TLS_Service(*(Arc::Config*)(*mccarg));
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
-    if(cfg == NULL) return NULL;
-    return new Arc::MCC_TLS_Client(*cfg);
+static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_TLS_Client(*(Arc::Config*)(*mccarg));
 }
 
-
-mcc_descriptors ARC_MCC_LOADER = {
-    { "tls.service", 0, &get_mcc_service },
-    { "tls.client", 0, &get_mcc_client },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "tls.service", "HED:MCC", 0, &get_mcc_service },
+    { "tls.client",  "HED:MCC", 0, &get_mcc_client  },
+    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationSH::get_sechandler},
+    { NULL, NULL, 0, NULL }
 };
 
 using namespace Arc;

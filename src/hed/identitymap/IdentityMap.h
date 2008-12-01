@@ -5,7 +5,6 @@
 #include <arc/message/Message.h>
 #include <arc/security/SecHandler.h>
 #include <arc/security/PDP.h>
-#include <arc/loader/PDPFactory.h>
 
 namespace ArcSec {
 

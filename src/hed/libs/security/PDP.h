@@ -3,6 +3,7 @@
 
 #include <string>
 #include <arc/message/Message.h>
+#include <arc/loader/Plugin.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 
@@ -78,7 +79,7 @@ namespace ArcSec {
     decision - permit (true) or deny (false). 
     Configuration of PDP is consumed during creation of instance
     through XML subtree fed to constructor. */
-  class PDP {
+  class PDP: public Arc::Plugin {
    public:
     PDP(Arc::Config* cfg) { if(cfg) id_=(std::string)(cfg->Attribute("id")); };
     virtual ~PDP() {};
@@ -89,6 +90,17 @@ namespace ArcSec {
    protected:
     std::string id_;
     static Arc::Logger logger;
+  };
+
+  #define PDPPluginKind ("HED:PDP")
+
+  class PDPPluginArgument: public Arc::PluginArgument {
+   private:
+    Arc::Config* config_;
+   public:
+    PDPPluginArgument(Arc::Config* config):config_(config) { };
+    virtual ~PDPPluginArgument(void) { };
+    operator Arc::Config* (void) { return config_; };
   };
 
 } // namespace ArcSec

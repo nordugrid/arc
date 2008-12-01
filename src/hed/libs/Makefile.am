@@ -17,9 +17,9 @@ GLOBUSUTILS_DIR =
 endif
 
 # order is important!
-SUBDIRS = common message credential loader data delegation security \
+SUBDIRS = common loader message credential data delegation security \
 	ws-addressing $(XMLSEC_DIR) ws-security wsrf client $(DBXML_DIR) \
 	infosys ws $(GLOBUSUTILS_DIR)
-DIST_SUBDIRS = common message credential loader data delegation security \
+DIST_SUBDIRS = common loader message credential data delegation security \
 	ws-addressing xmlsec ws-security wsrf client dbxml \
 	infosys ws globusutils

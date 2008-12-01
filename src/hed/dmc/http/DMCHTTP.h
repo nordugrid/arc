@@ -9,9 +9,9 @@ namespace Arc {
     : public DMC {
   public:
     DMCHTTP(Config *cfg);
-    ~DMCHTTP();
-    static DMC *Instance(Config *cfg, ChainContext *ctx);
-    DataPoint *iGetDataPoint(const URL& url);
+    virtual ~DMCHTTP();
+    static Plugin *Instance(PluginArgument *arg);
+    virtual DataPoint *iGetDataPoint(const URL& url);
   protected:
     static Logger logger;
   };

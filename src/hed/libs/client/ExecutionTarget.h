@@ -11,7 +11,7 @@
 
 namespace Arc {
 
-  class Loader;
+  class ACCLoader;
   class UserConfig;
 
   struct Benchmark {
@@ -147,7 +147,7 @@ namespace Arc {
     void Print(bool longlist) const;
 
   private:
-    Loader *loader;
+    ACCLoader *loader;
   };
 
 } // namespace Arc

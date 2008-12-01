@@ -10,7 +10,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/Loader.h>
+#include <arc/client/ACCLoader.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/ClientInterface.h>
@@ -128,7 +128,7 @@ namespace Arc {
       ctrlnum++;
     }
 
-    loader = new Loader(&cfg);
+    loader = new ACCLoader(cfg);
 
     for (int i = 0; i < ctrlnum; i++) {
       JobController *jobctrl =

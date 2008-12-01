@@ -6,11 +6,11 @@ DIST_SUBDIRS = test
 dist_pkglibexec_SCRIPTS = cache-clean cache-list
 
 libarcdata2_ladir = $(pkgincludedir)/data
-libarcdata2_la_HEADERS  = DMC.h DataPoint.h DataPointDirect.h DataPointIndex.h DataBuffer.h \
+libarcdata2_la_HEADERS  = DMC.h DMCLoader.h DataPoint.h DataPointDirect.h DataPointIndex.h DataBuffer.h \
                           CheckSum.h DataSpeed.h DataMover.h URLMap.h \
                           DataCallback.h DataHandle.h FileInfo.h DataStatus.h \
                           MkDirRecursive.h FileCache.h FileCacheHash.h
-libarcdata2_la_SOURCES  = DMC.cpp DataPoint.cpp DataPointDirect.cpp \
+libarcdata2_la_SOURCES  = DMC.cpp DMCLoader.cpp DataPoint.cpp DataPointDirect.cpp \
                           DataPointIndex.cpp DataBuffer.cpp CheckSum.cpp DataSpeed.cpp \
                           DataMover.cpp URLMap.cpp DataStatus.cpp \
                           MkDirRecursive.cpp FileCache.cpp FileCacheHash.cpp

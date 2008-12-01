@@ -6,7 +6,7 @@
 #include <arc/StringConv.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/SecAttr.h>
-#include <arc/loader/MCCLoader.h>
+#include <arc/loader/Plugin.h>
 
 #include "PayloadHTTP.h"
 #include "MCCHTTP.h"
@@ -18,18 +18,24 @@ Arc::Logger Arc::MCC_HTTP::logger(Arc::MCC::logger,"HTTP");
 Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_HTTP_Service(cfg);
+static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_HTTP_Service((Arc::Config*)(*mccarg));
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_HTTP_Client(cfg);
+static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_HTTP_Client((Arc::Config*)(*mccarg));
 }
 
-mcc_descriptors ARC_MCC_LOADER = {
-    { "http.service", 0, &get_mcc_service },
-    { "http.client",  0, &get_mcc_client },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "http.service", "HED:MCC", 0, &get_mcc_service },
+    { "http.client",  "HED:MCC", 0, &get_mcc_client  },
+    { NULL, NULL, 0, NULL }
 };
 
 namespace Arc {

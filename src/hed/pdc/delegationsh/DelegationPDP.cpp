@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include <arc/loader/PDPLoader.h>
+#include <arc/loader/Plugin.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
@@ -29,8 +29,11 @@ using namespace Arc;
 
 namespace ArcSec {
 
-PDP* DelegationPDP::get_delegation_pdp(Config *cfg,ChainContext*) {
-    return new DelegationPDP(cfg);
+Plugin* DelegationPDP::get_delegation_pdp(PluginArgument* arg) {
+    PDPPluginArgument* pdparg =
+            arg?dynamic_cast<PDPPluginArgument*>(arg):NULL;
+    if(!pdparg) return NULL;
+    return new DelegationPDP((Config*)(*pdparg));
 }
 
 DelegationPDP::DelegationPDP(Config* cfg):PDP(cfg) {

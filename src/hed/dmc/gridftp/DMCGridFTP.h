@@ -9,9 +9,9 @@ namespace Arc {
     : public DMC {
   public:
     DMCGridFTP(Config *cfg);
-    ~DMCGridFTP();
-    static DMC* Instance(Config *cfg, ChainContext *ctx);
-    DataPoint* iGetDataPoint(const URL& url);
+    virtual ~DMCGridFTP();
+    static Plugin* Instance(PluginArgument* arg);
+    virtual DataPoint* iGetDataPoint(const URL& url);
   protected:
     static Logger logger;
   };

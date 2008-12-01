@@ -14,6 +14,7 @@
 #include <arc/client/TargetRetriever.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/UserConfig.h>
+#include <arc/client/ACCLoader.h>
 
 namespace Arc {
 
@@ -67,7 +68,7 @@ namespace Arc {
 	targetcnt++;
       }
 
-    loader = new Loader(&cfg);
+    loader = new ACCLoader(cfg);
   }
 
   TargetGenerator::~TargetGenerator() {}

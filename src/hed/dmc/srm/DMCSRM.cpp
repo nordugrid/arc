@@ -4,7 +4,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/loader/DMCLoader.h>
+#include <arc/data/DMCLoader.h>
 
 #include "DataPointSRM.h"
 #include "DMCSRM.h"
@@ -22,8 +22,11 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC *DMCSRM::Instance(Config *cfg, ChainContext *) {
-    return new DMCSRM(cfg);
+  Plugin *DMCSRM::Instance(PluginArgument* arg) {
+    Arc::DMCPluginArgument* dmcarg =
+            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
+    if(!dmcarg) return NULL;
+    return new DMCSRM((Arc::Config*)(*dmcarg));
   }
 
   DataPoint *DMCSRM::iGetDataPoint(const URL& url) {
@@ -34,7 +37,7 @@ namespace Arc {
 
 } // namespace Arc
 
-dmc_descriptors ARC_DMC_LOADER = {
-  {"srm", 0, &Arc::DMCSRM::Instance},
-  {NULL, 0, NULL}
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  {"srm", "HED:DMC", 0, &Arc::DMCSRM::Instance},
+  {NULL, NULL, 0, NULL}
 };

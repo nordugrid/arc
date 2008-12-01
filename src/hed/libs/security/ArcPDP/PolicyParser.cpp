@@ -10,7 +10,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 
 #include "PolicyParser.h"
 
@@ -115,7 +115,7 @@ Policy* PolicyParser::parsePolicy(const Source& source, std::string policyclassn
   Arc::XMLNode node = source.Get();  
   Arc::ClassLoader* classloader = NULL;
   classloader=Arc::ClassLoader::getClassLoader();
-  ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policyclassname, (void**)(void*)&node));
+  ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policyclassname, &node));
   if(policy == NULL) { logger.msg(ERROR, "Can not generate policy object"); return NULL; }
   policy->setEvaluatorContext(ctx);
   policy->make_policy();

@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 
 #include "ArcFnFactory.h"
 #include <arc/security/ArcPDP/fn/EqualFunction.h>
@@ -14,18 +14,21 @@
 #include <arc/security/ArcPDP/attr/AnyURIAttribute.h>
 
 
-static Arc::LoadableClass* get_fn_factory (void*) {
-    return new ArcSec::ArcFnFactory();
-}
-
+/*
 loader_descriptors __arc_fnfactory_modules__  = {
     { "fn.factory", 0, &get_fn_factory },
     { NULL, 0, NULL }
 };
+*/
 
 
 using namespace Arc;
-using namespace ArcSec;
+
+namespace ArcSec {
+
+Arc::Plugin* get_arcpdp_fn_factory (Arc::PluginArgument*) {
+    return new ArcSec::ArcFnFactory();
+}
 
 void ArcFnFactory::initFunctions(){
   /**Some Arc specified function types*/
@@ -108,3 +111,6 @@ ArcFnFactory::~ArcFnFactory(){
     if(fn) delete fn;
   }
 }
+
+} // namespace ArcSec
+

@@ -14,5 +14,6 @@ libaccARC1_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \
 			 $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 			 $(top_srcdir)/src/hed/libs/client/libarcclient.la \
 			 $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
+			 $(top_srcdir)/src/hed/libs/delegation/libdelegation.la \
 			 $(top_srcdir)/src/hed/libs/ws/libarcws.la
 libaccARC1_la_LDFLAGS  = -no-undefined -avoid-version -module

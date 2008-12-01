@@ -5,8 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <arc/loader/SecHandlerLoader.h>
-#include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>
 #include <arc/ws-security/X509Token.h>
@@ -16,8 +14,11 @@
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "X509TokenSH");
 
-ArcSec::SecHandler* ArcSec::X509TokenSH::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new ArcSec::X509TokenSH(cfg,ctx);
+Arc::Plugin* ArcSec::X509TokenSH::get_sechandler(Arc::PluginArgument* arg) {
+    ArcSec::SecHandlerPluginArgument* shcarg =
+            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+    if(!shcarg) return NULL;
+    return new ArcSec::X509TokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
 }
 
 /*

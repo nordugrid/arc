@@ -16,7 +16,7 @@ using namespace Arc;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"DelegationSH");
 
-DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
+DelegationSH::DelegationSH(Config *cfg):SecHandler(cfg) {
 }
 
 DelegationSH::~DelegationSH(void) {
@@ -108,14 +108,17 @@ bool DelegationSH::Handle(Arc::Message* msg){
 }
 
 
-SecHandler* DelegationSH::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new DelegationSH(cfg,ctx);
+Arc::Plugin* DelegationSH::get_sechandler(Arc::PluginArgument* arg) {
+    ArcSec::SecHandlerPluginArgument* shcarg =
+            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+    if(!shcarg) return NULL;
+    return new DelegationSH((Arc::Config*)(*shcarg));
 }
 
 }
 
-sechandler_descriptors ARC_SECHANDLER_LOADER = {
-    { "delegation.collector", 0, &ArcSec::DelegationSH::get_sechandler},
-    { NULL, 0, NULL }
-};
+//Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+//    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationSH::get_sechandler},
+//    { NULL, NULL, 0, NULL }
+//};
 

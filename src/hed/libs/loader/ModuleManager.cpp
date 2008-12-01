@@ -10,7 +10,7 @@ ModuleManager::ModuleManager(const Arc::Config *cfg)
 { 
   if(cfg==NULL) return;
   if(!(*cfg)) return;
-  Loader::logger.msg(DEBUG, "Module Manager Init");
+  Loader::logger.msg(VERBOSE, "Module Manager Init");
   if(!MatchXMLName(*cfg,"ArcConfig")) return;
   XMLNode mm = (*cfg)["ModuleManager"];
   for (int n = 0;;++n) {
@@ -53,6 +53,27 @@ std::string ModuleManager::findLocation(const std::string& name)
   return path;
 }
 
+void ModuleManager::unload(Glib::Module *module)
+{
+  for(plugin_cache_t::iterator p = plugin_cache.begin();
+                               p!=plugin_cache.end();++p) {
+    if(p->second == module) {
+      delete p->second;
+      plugin_cache.erase(p);
+      break;
+    }
+  }
+}
+
+void ModuleManager::unload(const std::string& name)
+{
+  plugin_cache_t::iterator p = plugin_cache.find(name);
+  if (p != plugin_cache.end()) {
+    delete p->second;
+    plugin_cache.erase(p);
+  }
+}
+
 Glib::Module *ModuleManager::load(const std::string& name,bool load_local,bool reload)
 {
   if (!Glib::Module::get_supported()) {
@@ -61,7 +82,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool load_local,bool r
   // find name in plugin_cache 
   if(!reload) {
     if (plugin_cache.find(name) != plugin_cache.end()) {
-      Loader::logger.msg(DEBUG, "Found %s in cache", name);
+      Loader::logger.msg(VERBOSE, "Found %s in cache", name);
       return plugin_cache[name];
     }
   }
@@ -80,7 +101,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool load_local,bool r
     if(module) delete module;
     return NULL;
   }
-  Loader::logger.msg(DEBUG, "Loaded %s", path);
+  Loader::logger.msg(VERBOSE, "Loaded %s", path);
   plugin_cache[name] = module;
   return module;
 }

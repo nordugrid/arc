@@ -44,7 +44,7 @@ public:
 
   virtual const char* getName() const;
 
-  static Arc::LoadableClass* get_request(void* arg);
+  static Arc::Plugin* get_request(Arc::PluginArgument* arg);
 
 private:
   //**AttributeFactory which is in charge of producing Attribute*/

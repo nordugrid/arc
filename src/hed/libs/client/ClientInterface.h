@@ -17,7 +17,7 @@
 
 namespace Arc {
 
-  class Loader;
+  class MCCLoader;
   class Logger;
   class MCC;
 
@@ -38,7 +38,7 @@ namespace Arc {
   protected:
     Config xmlcfg;
     XMLNode overlay;
-    Loader *loader;
+    MCCLoader *loader;
     MessageContext context;
     static Logger logger;
   };

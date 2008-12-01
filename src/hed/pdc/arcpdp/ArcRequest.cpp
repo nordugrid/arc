@@ -5,15 +5,15 @@
 #include <fstream>
 #include <iostream>
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 
 #include "ArcRequest.h"
 #include "ArcRequestItem.h"
 
 /** get_request (in charge of class-loading of ArcRequest) can only accept two types of argument: NULL, XMLNode*/
-Arc::LoadableClass* ArcSec::ArcRequest::get_request(void* arg) {
+Arc::Plugin* ArcSec::ArcRequest::get_request(Arc::PluginArgument* arg) {
   //std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
-  if(arg==NULL) { return new ArcSec::ArcRequest(); }
+  if(arg==NULL) return NULL;
   else {
     /*
     {
@@ -22,7 +22,12 @@ Arc::LoadableClass* ArcSec::ArcRequest::get_request(void* arg) {
       std::cout<<"node inside ArcRequest:"<<xml<<std::endl;
     };
     */
-    ArcSec::Source source(*(Arc::XMLNode*)arg);
+    Arc::ClassLoaderPluginArgument* clarg =
+            arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+    if(!clarg) return NULL;
+    Arc::XMLNode* xarg = (Arc::XMLNode*)(*clarg);
+    if(xarg==NULL) { return new ArcSec::ArcRequest(); } // ???
+    ArcSec::Source source(*xarg);
     return new ArcSec::ArcRequest(source);
   }
 }

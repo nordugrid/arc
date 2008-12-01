@@ -2,21 +2,23 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/SecHandlerLoader.h>
-#include <arc/loader/Loader.h>
 #include <arc/Logger.h>
+#include <arc/message/MCCLoader.h>
 
 #include "SimpleMap.h"
 
 #include "IdentityMap.h"
 
-static ArcSec::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new ArcSec::IdentityMap(cfg,ctx);
+static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
+    ArcSec::SecHandlerPluginArgument* shcarg =
+            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+    if(!shcarg) return NULL;
+    return new ArcSec::IdentityMap((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
 }
 
-sechandler_descriptors ARC_SECHANDLER_LOADER = {
-    { "identity.map", 0, &get_sechandler},
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "identity.map", "HED:SHC", 0, &get_sechandler},
+    { NULL, NULL, 0, NULL }
 };
 
 namespace ArcSec {
@@ -77,7 +79,7 @@ static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
 
 // --------------------------------------------------------------------------------------
 IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHandler(cfg){
-  Arc::PDPFactory* pdp_factory = (Arc::PDPFactory*)(*ctx);
+  Arc::PluginsFactory* pdp_factory = (Arc::PluginsFactory*)(*ctx);
   if(pdp_factory) {
     Arc::XMLNode plugins = (*cfg)["Plugins"];
     for(int n = 0;;++n) {
@@ -85,7 +87,7 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       if(!p) break;
       std::string name = p["Name"];
       if(name.empty()) continue; // Nameless plugin?
-      pdp_factory->load_all_instances(name);
+      pdp_factory->load(name,PDPPluginKind);
     };
     Arc::XMLNode pdps = (*cfg)["PDP"];
     for(int n = 0;;++n) {
@@ -96,7 +98,8 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       LocalMap* local_id = MakeLocalMap(p);
       if(!local_id) continue; // No mapping?
       Arc::Config cfg_(p);
-      ArcSec::PDP* pdp = pdp_factory->get_instance(name,&cfg_,NULL);
+      PDPPluginArgument arg(&cfg_);
+      ArcSec::PDP* pdp = pdp_factory->GetInstance<PDP>(PDPPluginKind,name,&arg);
       if(!pdp) {
         logger.msg(Arc::ERROR, "PDP: %s can not be loaded", name);
         continue;

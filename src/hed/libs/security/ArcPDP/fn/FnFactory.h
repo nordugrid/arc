@@ -1,7 +1,7 @@
 #ifndef __ARC_SEC_FUNCTIONFACTORY_H__
 #define __ARC_SEC_FUNCTIONFACTORY_H__
 
-#include <arc/loader/LoadableClass.h>
+#include <arc/security/ClassLoader.h>
 
 #include <map>
 #include "Function.h"

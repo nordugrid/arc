@@ -4,7 +4,7 @@
 
 #include <list>
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 
 #include "ArcPolicy.h"
 #include "ArcRule.h"
@@ -15,18 +15,21 @@ static Arc::NS policyns("policy", "http://www.nordugrid.org/schemas/policy-arc")
 
 /** get_policy (in charge of class-loading of ArcPolicy) can only 
 accept one type of argument--XMLNode */
-Arc::LoadableClass* ArcSec::ArcPolicy::get_policy(void* arg) {
+Arc::Plugin* ArcSec::ArcPolicy::get_policy(Arc::PluginArgument* arg) {
     //std::cout<<"Argument type of ArcPolicy:"<<typeid(arg).name()<<std::endl;
-    // Check for NULL
-    if(arg==NULL) { 
+    if(arg==NULL) return NULL;
+    Arc::ClassLoaderPluginArgument* clarg =
+            arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+    if(!clarg) return NULL;
+    // Check if empty or valid policy is supplied
+    Arc::XMLNode* doc = (Arc::XMLNode*)(*clarg);
+    if(doc==NULL) { 
         std::cerr<<"ArcPolicy creation requires XMLNode as argument"<<std::endl;
         return NULL;
     }
-    // Check if empty or valid policy is supplied
-    Arc::XMLNode& doc = *((Arc::XMLNode*)arg);
     // NOTE: Following line is not good for autodetection. Should it be removed?
-    if(!doc) return new ArcSec::ArcPolicy;
-    ArcSec::ArcPolicy* policy = new ArcSec::ArcPolicy(doc);
+    if(!(*doc)) return new ArcSec::ArcPolicy;
+    ArcSec::ArcPolicy* policy = new ArcSec::ArcPolicy(*doc);
     if((!policy) || (!(*policy))) {
       delete policy;
       return NULL;

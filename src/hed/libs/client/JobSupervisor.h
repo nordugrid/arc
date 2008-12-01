@@ -9,7 +9,7 @@
 namespace Arc {
 
   class JobController;
-  class Loader;
+  class ACCLoader;
   class Logger;
   class UserConfig;
 
@@ -28,7 +28,7 @@ namespace Arc {
 
   private:
     static Logger logger;
-    Loader *loader;
+    ACCLoader *loader;
     std::list<Arc::JobController*> jobcontrollers;
   };
 

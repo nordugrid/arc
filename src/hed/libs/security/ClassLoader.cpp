@@ -8,28 +8,35 @@
 
 namespace Arc {
 
+static Config cfg_empty;
 
 // TODO (IMPORTANT): protect it against multi-threaded access
 // Or even better redesign this class to distinguish between
 // different types of classes properly.
-static identifier_map_t id_map;
+
+//typedef std::map<std::string,void*> identifier_map_t;
+//static identifier_map_t id_map;
 
 ClassLoader* ClassLoader::_instance = NULL;
 
 static void freeClassLoader() {
-  delete ClassLoader::getClassLoader();
+  ClassLoader* cl = ClassLoader::getClassLoader();
+  if(cl) delete cl;
 }
 
-ClassLoader::ClassLoader(Config * cfg) : ModuleManager(cfg){
+ClassLoader::ClassLoader(Config * cfg) : PluginsFactory(*(cfg?cfg:(&cfg_empty))){
   if(cfg!=NULL) 
     load_all_instances(cfg); 
 }
 
 ClassLoader::~ClassLoader(){
-  //Delete the list (not delete the element), gurantee the caller will not need to delete the elements. If the list is automatically deleted by caller 
-  //(e.g. main function), there will be "double free or corruption (fasttop)", because ModuleManager also delete the same memory space of the element.
-  if(!id_map.empty())
-    id_map.clear();
+  // Delete the list (do not delete the element), gurantee the caller 
+  // will not need to delete the elements. If the list is automatically 
+  // deleted by caller (e.g. main function), there will be "double free 
+  // or corruption (fasttop)", because ModuleManager also deletes the 
+  // same memory space of the element.
+  //!!if(!id_map.empty())
+  //!!  id_map.clear();
 }
 
 ClassLoader* ClassLoader::getClassLoader(Config* cfg) {
@@ -60,6 +67,7 @@ void ClassLoader::load_all_instances(Config *cfg){
     }
     std::string share_lib_name = (std::string)(plugins.Attribute("Name"));
     
+    /*
     Glib::Module *module = NULL;
     if(!(share_lib_name.empty())){
       module = ModuleManager::load(share_lib_name);
@@ -82,16 +90,30 @@ void ClassLoader::load_all_instances(Config *cfg){
           //will be covered.
           id_map[plugin_name]=ptr;
         }
-        else 
-          std::cout<<"There is no " << plugin_name <<" type plugin"<<std::endl;
-           
+        //else {
+        //  std::cout<<"There is no " << plugin_name <<" type plugin"<<std::endl;
+        //}
+      }
+    }
+    */
+    for(int j = 0;;++j){
+      XMLNode plugin = plugins.Child(j);
+      if(!plugin){
+        break;
+      }
+      if (MatchXMLName(plugin, "Plugin")) {
+        std::string plugin_name = (std::string)(plugin.Attribute("Name"));
+        if(!load(share_lib_name,plugin_name)) {
+          //std::cout<<"There is no " << plugin_name <<" type plugin"<<std::endl;
+        }
       }
     }
   }
 
 }
 
-LoadableClass* ClassLoader::Instance(const std::string& classId, void* arg, const std::string& className){
+LoadableClass* ClassLoader::Instance(const std::string& classId, XMLNode* arg, const std::string& className){
+  /*
   identifier_map_t::iterator it;
   void* ptr;
   for(it=id_map.begin(); it!=id_map.end(); ++it){
@@ -108,9 +130,13 @@ LoadableClass* ClassLoader::Instance(const std::string& classId, void* arg, cons
     } 
   }
   return NULL;
+  */
+  ClassLoaderPluginArgument clarg(arg);
+  return get_instance(className,classId,&clarg);
 }
 
-LoadableClass* ClassLoader::Instance(void* arg, const std::string& className){
+LoadableClass* ClassLoader::Instance(XMLNode* arg, const std::string& className){
+  /*
   identifier_map_t::iterator it;
   void* ptr;
   for(it=id_map.begin(); it!=id_map.end(); ++it){
@@ -123,6 +149,9 @@ LoadableClass* ClassLoader::Instance(void* arg, const std::string& className){
     } 
   }
   return NULL;
+  */
+  ClassLoaderPluginArgument clarg(arg);
+  return get_instance(className,&clarg);
 }
 
 } // namespace Arc

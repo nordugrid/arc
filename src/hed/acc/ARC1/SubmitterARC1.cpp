@@ -5,6 +5,7 @@
 #include <string>
 
 #include <arc/client/JobDescription.h>
+#include <arc/message/MCC.h>
 
 #include "SubmitterARC1.h"
 #include "AREXClient.h"
@@ -18,8 +19,11 @@ namespace Arc {
 
   SubmitterARC1::~SubmitterARC1() {}
 
-  ACC* SubmitterARC1::Instance(Config *cfg, ChainContext*) {
-    return new SubmitterARC1(cfg);
+  Plugin* SubmitterARC1::Instance(Arc::PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new SubmitterARC1((Arc::Config*)(*accarg));
   }
 
   bool SubmitterARC1::Submit(JobDescription& jobdesc, XMLNode& info) {

@@ -5,7 +5,7 @@
 #include <fstream>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include <arc/loader/LoadableClass.h>
+#include <arc/security/ClassLoader.h>
 #include <arc/security/ArcPDP/Source.h>
 
 #include "fn/FnFactory.h"

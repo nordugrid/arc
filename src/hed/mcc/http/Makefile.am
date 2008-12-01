@@ -3,7 +3,7 @@ noinst_PROGRAMS = http_test http_test_withtls
 
 libmcchttp_la_SOURCES  = MCCHTTP.cpp PayloadHTTP.cpp MCCHTTP.h PayloadHTTP.h
 libmcchttp_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libmcchttp_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libmcchttp_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 libmcchttp_la_LDFLAGS  = $(LIBXML2_LIBS) -no-undefined -avoid-version -module
 
 http_test_SOURCES  = http_test.cpp

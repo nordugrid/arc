@@ -1,12 +1,12 @@
-#include <arc/loader/ACCLoader.h>
+#include <arc/client/ACCLoader.h>
 
 #include "TargetRetrieverARC1.h"
 #include "JobControllerARC1.h"
 #include "SubmitterARC1.h"
 
-acc_descriptors ARC_ACC_LOADER = {
-  { "TargetRetrieverARC1", 0, &Arc::TargetRetrieverARC1::Instance },
-  { "SubmitterARC1", 0, &Arc::SubmitterARC1::Instance },
-  { "JobControllerARC1", 0, &Arc::JobControllerARC1::Instance },
-  { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "TargetRetrieverARC1", "HED:ACC", 0, &Arc::TargetRetrieverARC1::Instance },
+  { "SubmitterARC1", "HED:ACC", 0, &Arc::SubmitterARC1::Instance },
+  { "JobControllerARC1", "HED:ACC", 0, &Arc::JobControllerARC1::Instance },
+  { NULL, NULL, 0, NULL }
 };

@@ -40,8 +40,11 @@ using namespace Arc;
 
 namespace ArcSec {
 
-PDP* GACLPDP::get_gacl_pdp(Config *cfg,ChainContext*) {
-    return new GACLPDP(cfg);
+Plugin* GACLPDP::get_gacl_pdp(PluginArgument* arg) {
+    PDPPluginArgument* pdparg =
+            arg?dynamic_cast<PDPPluginArgument*>(arg):NULL;
+    if(!pdparg) return NULL;
+    return new GACLPDP((Config*)(*pdparg));
 }
 
 class GACLPDPContext:public Arc::MessageContextElement {

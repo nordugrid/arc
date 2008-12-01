@@ -5,7 +5,6 @@
 
 namespace Arc {
 
-  class ChainContext;
   class Config;
 
   class SubmitterARC0
@@ -17,7 +16,7 @@ namespace Arc {
     static Logger logger;
 
   public:
-    static ACC* Instance(Config *cfg, ChainContext *cxt);
+    static Plugin* Instance(PluginArgument* arg);
     bool Submit(JobDescription& jobdesc, XMLNode& info);
   };
 

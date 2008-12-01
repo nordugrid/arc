@@ -5,20 +5,16 @@
 
 #include <arc/security/SecHandler.h>
 #include <arc/ArcConfig.h>
-#include <arc/loader/Loader.h>
-/*
-#include <arc/security/PDP.h>
-#include <arc/message/Message.h>
-*/
+#include <arc/loader/Plugin.h>
 
 namespace ArcSec {
 
 class DelegationSH : public SecHandler {
  public:
-  DelegationSH(Arc::Config *cfg, Arc::ChainContext* ctx);
+  DelegationSH(Arc::Config *cfg);
   virtual ~DelegationSH(void);
   virtual bool Handle(Arc::Message* msg);  
-  static SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx);
+  static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
 };
 
 } // namespace ArcSec

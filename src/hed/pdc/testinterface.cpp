@@ -12,7 +12,7 @@
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
-#include <arc/loader/ClassLoader.h>
+//#include <arc/loader/ClassLoader.h>
 #include <arc/Logger.h>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 #ifdef WIN32

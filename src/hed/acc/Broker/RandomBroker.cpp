@@ -13,8 +13,11 @@ namespace Arc {
 
   RandomBroker::~RandomBroker(){}
   
-  ACC* RandomBroker::Instance(Config *cfg, ChainContext*) {
-    return new RandomBroker(cfg);
+  Plugin* RandomBroker::Instance(PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new RandomBroker((Arc::Config*)(*accarg));
   }
 
   void RandomBroker::SortTargets() {

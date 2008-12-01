@@ -5,15 +5,18 @@
 #include <fstream>
 #include <iostream>
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/security/ArcPDP/EvaluationCtx.h>
 
 #include "ArcEvaluator.h"
 
-Arc::LoadableClass* ArcSec::ArcEvaluator::get_evaluator(void* arg) {
-    return new ArcSec::ArcEvaluator((Arc::XMLNode*) arg);
+Arc::Plugin* ArcSec::ArcEvaluator::get_evaluator(Arc::PluginArgument* arg) {
+    Arc::ClassLoaderPluginArgument* clarg =
+            arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+    if(!clarg) return NULL;
+    return new ArcSec::ArcEvaluator((Arc::XMLNode*)(*clarg));
 }
 
 //loader_descriptors __arc_evaluator_modules__  = {
@@ -168,7 +171,7 @@ Request* ArcEvaluator::make_reqobj(XMLNode& reqnode){
   classloader = ClassLoader::getClassLoader();
 
   //Load the Request object
-  request = (ArcSec::Request*)(classloader->Instance(request_classname, (void**)&reqnode));
+  request = (ArcSec::Request*)(classloader->Instance(request_classname,&reqnode));
   if(request == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Request");
 

@@ -5,7 +5,6 @@
 
 namespace Arc {
 
-  class ChainContext;
   class Logger;
   class TargetGenerator;
   class URL;
@@ -20,7 +19,7 @@ namespace Arc {
   public:
     ~TargetRetrieverARC1();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
-    static ACC *Instance(Config *cfg, ChainContext *ctx);
+    static Plugin *Instance(PluginArgument* arg);
 
   private:
     static void QueryIndex(void *arg);

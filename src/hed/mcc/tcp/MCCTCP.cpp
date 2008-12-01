@@ -47,8 +47,6 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/loader/Loader.h>
-#include <arc/loader/MCCLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/Logger.h>
@@ -61,19 +59,26 @@ Arc::Logger Arc::MCC_TCP::logger(Arc::MCC::logger,"TCP");
 Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_TCP_Service(cfg);
+static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_TCP_Service((Arc::Config*)(*mccarg));
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_TCP_Client(cfg);
+static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_TCP_Client((Arc::Config*)(*mccarg));
 }
 
-mcc_descriptors ARC_MCC_LOADER = {
-    { "tcp.service", 0, &get_mcc_service },
-    { "tcp.client", 0, &get_mcc_client },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "tcp.service", "HED:MCC", 0, &get_mcc_service },
+    { "tcp.client",  "HED:MCC", 0, &get_mcc_client  },
+    { NULL, NULL, 0, NULL }
 };
+
 
 namespace Arc {
 

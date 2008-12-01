@@ -4,7 +4,7 @@
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include <arc/loader/LoadableClass.h>
+#include <arc/security/ClassLoader.h>
 
 #include "../EvaluationCtx.h"
 #include "../Result.h"

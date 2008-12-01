@@ -3,8 +3,6 @@
 #endif
 
 #include <iostream>
-#include <arc/loader/PDPLoader.h>
-//#include <arc/loader/ClassLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
@@ -21,8 +19,11 @@ Arc::Logger ArcSec::CountPDP::logger(Arc::Logger::rootLogger, "CountPDP");
 using namespace Arc;
 using namespace ArcSec;
 
-PDP* CountPDP::get_count_pdp(Config *cfg,ChainContext*) {
-    return new CountPDP(cfg);
+Plugin* CountPDP::get_count_pdp(PluginArgument* arg) {
+    ArcSec::PDPPluginArgument* pdparg =
+            arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
+    if(!pdparg) return NULL;
+    return new CountPDP((Arc::Config*)(*pdparg));
 }
 
 CountPDP::CountPDP(Config* cfg):PDP(cfg), eval(NULL){
@@ -36,7 +37,7 @@ CountPDP::CountPDP(Config* cfg):PDP(cfg), eval(NULL){
   std::string evaluator = "arc.evaluator";
 
   //Dynamically load Evaluator object according to configure information
-  eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&topcfg));
+  eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator,&topcfg));
   if(eval == NULL)
     logger.msg(ERROR, "Can not dynamically produce Evaluator");
 

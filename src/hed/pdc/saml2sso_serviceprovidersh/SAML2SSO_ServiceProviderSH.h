@@ -5,6 +5,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/message/Message.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/security/SecHandler.h>
 
 namespace ArcSec {
@@ -26,12 +27,12 @@ class SAML2SSO_ServiceProviderSH : public SecHandler {
   std::string key_file_;
   std::string ca_file_;
   std::string ca_dir_;
-  Arc::Loader* SP_service_loader;
+  Arc::MCCLoader* SP_service_loader;
 
  public:
   SAML2SSO_ServiceProviderSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~SAML2SSO_ServiceProviderSH(void);
-  static SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx);
+  static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg);  
 };
 

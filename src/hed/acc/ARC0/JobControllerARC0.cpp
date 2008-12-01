@@ -21,8 +21,11 @@ namespace Arc {
 
   JobControllerARC0::~JobControllerARC0() {}
 
-  ACC* JobControllerARC0::Instance(Config *cfg, ChainContext*) {
-    return new JobControllerARC0(cfg);
+  Plugin* JobControllerARC0::Instance(PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new JobControllerARC0((Arc::Config*)(*accarg));
   }
 
   void JobControllerARC0::GetJobInformation() {

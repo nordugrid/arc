@@ -4,7 +4,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/loader/DMCLoader.h>
+#include <arc/data/DMCLoader.h>
 
 #include "DataPointLFC.h"
 #include "DMCLFC.h"
@@ -22,8 +22,11 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC *DMCLFC::Instance(Config *cfg, ChainContext *) {
-    return new DMCLFC(cfg);
+  Plugin *DMCLFC::Instance(PluginArgunent* arg) {
+    Arc::DMCPluginArgument* dmcarg =
+            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
+    if(!dmcarg) return NULL;
+    return new DMCLFC((Arc::Config*)(*dmcarg));
   }
 
   DataPoint *DMCLFC::iGetDataPoint(const URL& url) {
@@ -34,7 +37,7 @@ namespace Arc {
 
 } // namespace Arc
 
-dmc_descriptors ARC_DMC_LOADER = {
-  {"lfc", 0, &Arc::DMCLFC::Instance},
-  {NULL, 0, NULL}
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  {"lfc", "HED:DMC", 0, &Arc::DMCLFC::Instance},
+  {NULL, NULL, 0, NULL}
 };

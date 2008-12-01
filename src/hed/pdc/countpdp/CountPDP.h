@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 #include <arc/ArcConfig.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
@@ -13,7 +13,7 @@ namespace ArcSec {
 ///CountPDP - PDP which can handle the Arc specific request and policy schema
 class CountPDP : public PDP {
  public:
-  static PDP* get_count_pdp(Arc::Config *cfg, Arc::ChainContext *ctx);
+  static Arc::Plugin* get_count_pdp(Arc::PluginArgument* arg);
   CountPDP(Arc::Config* cfg);
   virtual ~CountPDP();
 

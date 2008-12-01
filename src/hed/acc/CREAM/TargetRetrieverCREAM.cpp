@@ -12,7 +12,7 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
-#include <arc/loader/ACCLoader.h>
+#include <arc/client/ACCLoader.h>
 
 #include "TargetRetrieverCREAM.h"
 
@@ -51,8 +51,11 @@ namespace Arc {
 
   TargetRetrieverCREAM::~TargetRetrieverCREAM() {}
 
-  ACC* TargetRetrieverCREAM::Instance(Config *cfg, ChainContext*) {
-    return new TargetRetrieverCREAM(cfg);
+  Plugin* TargetRetrieverCREAM::Instance(Arc::PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new TargetRetrieverCREAM((Arc::Config*)(*accarg));
   }
 
   void TargetRetrieverCREAM::GetTargets(TargetGenerator& mom, int targetType,

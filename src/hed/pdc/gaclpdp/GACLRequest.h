@@ -32,7 +32,7 @@ public:
 
   virtual const char* getName() const { return "gacl.request"; };
 
-  static Arc::LoadableClass* get_request(void* arg);
+  static Arc::Plugin* get_request(Arc::PluginArgument* arg);
 
 private:
   Arc::XMLNode reqnode;

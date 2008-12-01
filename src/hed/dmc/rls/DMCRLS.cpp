@@ -8,7 +8,7 @@ extern "C" {
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/loader/DMCLoader.h>
+#include <arc/data/DMCLoader.h>
 
 #include "DataPointRLS.h"
 #include "DMCRLS.h"
@@ -32,8 +32,11 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_COMMON_MODULE);
   }
 
-  DMC *DMCRLS::Instance(Config *cfg, ChainContext *) {
-    return new DMCRLS(cfg);
+  Plugin *DMCRLS::Instance(PluginArgument* arg) {
+    Arc::DMCPluginArgument* dmcarg =
+            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
+    if(!dmcarg) return NULL;
+    return new DMCRLS((Arc::Config*)(*dmcarg));
   }
 
   DataPoint *DMCRLS::iGetDataPoint(const URL& url) {
@@ -44,7 +47,7 @@ namespace Arc {
 
 } // namespace Arc
 
-dmc_descriptors ARC_DMC_LOADER = {
-  {"rls", 0, &Arc::DMCRLS::Instance},
-  {NULL, 0, NULL}
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  {"rls", "HED:DMC", 0, &Arc::DMCRLS::Instance},
+  {NULL, NULL, 0, NULL}
 };

@@ -8,7 +8,7 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/MCCLoader.h>
+#include <arc/loader/Plugin.h>
 #include <arc/ws-addressing/WSA.h>
 
 #include <libxml/tree.h>
@@ -43,14 +43,16 @@ Arc::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : MCC(cfg) {
     }
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_MsgValidator_Service(cfg);
+static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_MsgValidator_Service((Arc::Config*)(*mccarg));
 }
 
-mcc_descriptors ARC_MCC_LOADER = {
-    { "msg.validator.service", 0, &get_mcc_service },
-    { NULL, 0, NULL },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "msg.validator.service", "HED:MCC", 0, &get_mcc_service },
+    { NULL, NULL, 0, NULL }
 };
 
 namespace Arc {

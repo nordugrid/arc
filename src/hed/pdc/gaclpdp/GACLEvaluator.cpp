@@ -2,15 +2,18 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/ClassLoader.h>
+//#include <arc/loader/ClassLoader.h>
 
 #include "GACLPolicy.h"
 #include "GACLRequest.h"
 
 #include "GACLEvaluator.h"
 
-Arc::LoadableClass* ArcSec::GACLEvaluator::get_evaluator(void* arg) {
-    return new ArcSec::GACLEvaluator((Arc::XMLNode*) arg);
+Arc::Plugin* ArcSec::GACLEvaluator::get_evaluator(Arc::PluginArgument* arg) {
+    Arc::ClassLoaderPluginArgument* clarg =
+            arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+    if(!clarg) return NULL;
+    return new ArcSec::GACLEvaluator((Arc::XMLNode*)(*clarg));
 }
 
 //loader_descriptors __arc_evaluator_modules__  = {

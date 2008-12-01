@@ -77,7 +77,7 @@ void test1(void) {
   c.GetXML(cfgstr);
   std::cerr << cfgstr << std::endl;
 
-  Arc::Loader l(&c);
+  Arc::Loader l(c);
 
   Arc::Message request;
   Arc::PayloadRaw msg;
@@ -88,7 +88,7 @@ void test1(void) {
   request.Context(&context);
   Arc::Message response;
 
-  l["http"]->process(request,response);
+//!!  l["http"]->process(request,response);
 
   std::cout<<"*** RESPONSE ***"<<std::endl;
   Arc::PayloadRaw& payload =

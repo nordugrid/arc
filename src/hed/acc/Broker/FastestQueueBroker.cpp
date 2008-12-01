@@ -16,8 +16,11 @@ namespace Arc {
 
   FastestQueueBroker::~FastestQueueBroker(){}
 
-  ACC* FastestQueueBroker::Instance(Config *cfg, ChainContext*) {
-    return new FastestQueueBroker(cfg);
+  Plugin* FastestQueueBroker::Instance(PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new FastestQueueBroker((Arc::Config*)(*accarg));
   }
 
   void FastestQueueBroker::SortTargets() {

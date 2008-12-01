@@ -9,12 +9,11 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/UserConfig.h>
-#include <arc/loader/Loader.h>
 
 namespace Arc {
 
   class Config;
-  class Loader;
+  class ACCLoader;
   class Logger;
   class URL;
   class UserConfig;
@@ -38,7 +37,7 @@ namespace Arc {
     void PrintTargetInfo(bool longlist) const;
 
   private:
-    Loader *loader;
+    ACCLoader *loader;
 
     URLListMap clusterselect;
     URLListMap clusterreject;

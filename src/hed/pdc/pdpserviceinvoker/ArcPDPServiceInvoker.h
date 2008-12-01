@@ -13,7 +13,7 @@ namespace ArcSec {
 ///ArcPDPServiceInvoker - client which will invoke pdpservice
 class ArcPDPServiceInvoker : public PDP {
  public:
-  static PDP* get_pdpservice_invoker(Arc::Config *cfg, Arc::ChainContext *ctx);
+  static Arc::Plugin* get_pdpservice_invoker(Arc::PluginArgument* arg);
   ArcPDPServiceInvoker(Arc::Config* cfg);
   virtual ~ArcPDPServiceInvoker();
   virtual bool isPermitted(Arc::Message *msg);

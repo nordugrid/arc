@@ -4,21 +4,23 @@
 
 #include <list>
 
-#include <arc/loader/ClassLoader.h>
-
 #include "GACLPolicy.h"
 #include "GACLRequest.h"
 
 Arc::Logger ArcSec::GACLPolicy::logger(Arc::Logger::rootLogger, "GACLPolicy");
 
-Arc::LoadableClass* ArcSec::GACLPolicy::get_policy(void* arg) {
-  if(arg==NULL) {
+Arc::Plugin* ArcSec::GACLPolicy::get_policy(Arc::PluginArgument* arg) {
+  if(arg==NULL) return NULL;
+  Arc::ClassLoaderPluginArgument* clarg =
+          arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+  if(!clarg) return NULL;
+  Arc::XMLNode* doc = (Arc::XMLNode*)(*clarg);
+  if(doc==NULL) {
     std::cerr<<"GACLPolicy creation needs XMLNode as argument"<<std::endl;
     return NULL;
   };
-  Arc::XMLNode& doc = *((Arc::XMLNode*)arg);
-  if(!doc) return new ArcSec::GACLPolicy;
-  ArcSec::GACLPolicy* policy = new ArcSec::GACLPolicy(doc);
+  if(!(*doc)) return new ArcSec::GACLPolicy;
+  ArcSec::GACLPolicy* policy = new ArcSec::GACLPolicy(*doc);
   if(!(*policy)) {
     delete policy;
     return NULL;

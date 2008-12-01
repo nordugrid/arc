@@ -10,8 +10,11 @@
 using namespace Arc;
 using namespace ArcSec;
 
-PDP* DenyPDP::get_deny_pdp(Config *cfg,ChainContext*) {
-    return new DenyPDP(cfg);
+Plugin* DenyPDP::get_deny_pdp(PluginArgument* arg) {
+    ArcSec::PDPPluginArgument* pdparg =
+            arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
+    if(!pdparg) return NULL;
+    return new DenyPDP((Arc::Config*)(*pdparg));
 }
 
 DenyPDP::DenyPDP(Config* cfg):PDP(cfg){

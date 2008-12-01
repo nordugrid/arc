@@ -10,6 +10,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/message/MCC.h>
 
 #include "AREXClient.h"
 #include "TargetRetrieverARC1.h"
@@ -49,8 +50,11 @@ namespace Arc {
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
-  ACC* TargetRetrieverARC1::Instance(Config *cfg, ChainContext*) {
-    return new TargetRetrieverARC1(cfg);
+  Plugin* TargetRetrieverARC1::Instance(Arc::PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new TargetRetrieverARC1((Arc::Config*)(*accarg));
   }
 
   void TargetRetrieverARC1::GetTargets(TargetGenerator& mom, int targetType,

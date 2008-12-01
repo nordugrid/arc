@@ -20,8 +20,11 @@ Arc::Logger ArcSec::ArcPDPServiceInvoker::logger(ArcSec::PDP::logger,"ArcPDPServ
 using namespace Arc;
 
 namespace ArcSec {
-PDP* ArcPDPServiceInvoker::get_pdpservice_invoker(Config *cfg,ChainContext*) {
-    return new ArcPDPServiceInvoker(cfg);
+Plugin* ArcPDPServiceInvoker::get_pdpservice_invoker(PluginArgument* arg) {
+    PDPPluginArgument* pdparg =
+            arg?dynamic_cast<PDPPluginArgument*>(arg):NULL;
+    if(!pdparg) return NULL;
+    return new ArcPDPServiceInvoker((Config*)(*pdparg));
 }
 
 ArcPDPServiceInvoker::ArcPDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL) {

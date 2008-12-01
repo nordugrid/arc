@@ -9,7 +9,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/loader/Loader.h>
+#include <arc/message/MCCLoader.h>
 
 namespace Arc {
 
@@ -74,7 +74,7 @@ namespace Arc {
     if (!loader) {
       if (overlay)
 	Overlay(overlay);
-      loader = new Loader(&xmlcfg);
+      loader = new MCCLoader(xmlcfg);
     }
   }
 

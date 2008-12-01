@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <arc/loader/PDPLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
@@ -34,8 +33,11 @@ using namespace Arc;
 
 namespace ArcSec {
 
-PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
-    return new ArcPDP(cfg);
+Plugin* ArcPDP::get_arc_pdp(PluginArgument* arg) {
+    ArcSec::PDPPluginArgument* pdparg =
+            arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
+    if(!pdparg) return NULL;
+    return new ArcPDP((Arc::Config*)(*pdparg));
 }
 
 // This class is used to store Evaluator per connection

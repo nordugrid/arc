@@ -5,19 +5,18 @@
 #include <fstream>
 #include <iostream>
 
-#include <arc/loader/ClassLoader.h>
-
 #include "GACLRequest.h"
-//#include "ArcRequestItem.h"
 
 /** get_request (in charge of class-loading of ArcRequest) can only accept two types of argument: NULL, XMLNode*/
-Arc::LoadableClass* ArcSec::GACLRequest::get_request(void* arg) {
-  if(arg==NULL) {
-    return new ArcSec::GACLRequest();
-  } else {
-    ArcSec::Source source(*((Arc::XMLNode*)arg));
-    return new ArcSec::GACLRequest(source);
-  }
+Arc::Plugin* ArcSec::GACLRequest::get_request(Arc::PluginArgument* arg) {
+  if(arg==NULL) return NULL;
+  Arc::ClassLoaderPluginArgument* clarg =
+          arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+  if(!clarg) return NULL;
+  Arc::XMLNode* xarg = (Arc::XMLNode*)(*clarg);
+  if(xarg == NULL) return new ArcSec::GACLRequest();
+  ArcSec::Source source(*xarg);
+  return new ArcSec::GACLRequest(source);
 }
 
 //loader_descriptors __arc_request_modules__  = {

@@ -7,7 +7,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
 #include <arc/XMLNode.h>
-#include <arc/loader/MCCLoader.h>
+#include <arc/loader/Plugin.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/security/SecHandler.h>
 
@@ -20,18 +20,24 @@ Arc::Logger Arc::MCC_SOAP::logger(Arc::MCC::logger,"SOAP");
 Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_SOAP_Service(cfg);
+static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_SOAP_Service((Arc::Config*)(*mccarg));
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Arc::MCC_SOAP_Client(cfg);
+static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new Arc::MCC_SOAP_Client((Arc::Config*)(*mccarg));
 }
 
-mcc_descriptors ARC_MCC_LOADER = {
-    { "soap.service", 0, &get_mcc_service },
-    { "soap.client", 0, &get_mcc_client },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "soap.service", "HED:MCC", 0, &get_mcc_service },
+    { "soap.client",  "HED:MCC", 0, &get_mcc_client  },
+    { NULL, NULL, 0, NULL }
 };
 
 namespace Arc {

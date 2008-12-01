@@ -22,6 +22,8 @@ private:
   void initFunctions();
 };
 
+Arc::Plugin* get_arcpdp_fn_factory (Arc::PluginArgument*);
+
 } // namespace ArcSec
 
 #endif /* __ARC_SEC_ARCFUNCTIONFACTORY_H__ */

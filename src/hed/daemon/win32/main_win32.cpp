@@ -9,13 +9,13 @@
 #include <fstream>
 #include <signal.h>
 #include <arc/ArcConfig.h>
-#include <arc/loader/Loader.h>
+#include <arc/messge/MCCLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include "../options.h"
 
 Arc::Config config;
-Arc::Loader *loader;
+Arc::MCCLoader *loader;
 Arc::Logger& logger=Arc::Logger::rootLogger;
 
 static void shutdown(int)
@@ -102,8 +102,7 @@ int main(int argc, char **argv)
             signal(SIGINT, shutdown);
 
             // bootstrap
-            loader = new Arc::Loader(&config);
-            // Arc::Loader loader(&config);
+            loader = new Arc::MCCLoader(config);
             logger.msg(Arc::INFO, "Service side MCCs are loaded");
             // sleep forever
             for (;;) {

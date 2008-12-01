@@ -9,7 +9,7 @@ namespace Arc {
   public:
     RandomBroker(Config *cfg);
     ~RandomBroker();
-    static ACC* Instance(Config *cfg, ChainContext *ctx);
+    static Plugin* Instance(PluginArgument* arg);
     
   protected:
     virtual void SortTargets();

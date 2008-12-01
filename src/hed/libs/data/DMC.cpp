@@ -7,8 +7,8 @@
 #include <glibmm/fileutils.h>
 
 #include <arc/Logger.h>
+#include <arc/data/DMCLoader.h>
 #include <arc/data/DMC.h>
-#include <arc/loader/Loader.h>
 
 namespace Arc {
 
@@ -18,7 +18,7 @@ namespace Arc {
 
   Glib::StaticMutex DMC::mutex = GLIBMM_STATIC_MUTEX_INIT;
 
-  Loader *DMC::loader = NULL;
+  DMCLoader *DMC::loader = NULL;
 
   DataPoint *DMC::GetDataPoint(const URL& url) {
     if (!loader)
@@ -50,7 +50,7 @@ namespace Arc {
     NS ns;
     Config cfg(ns);
     dmcconf.MakeConfig(cfg);
-    loader = new Loader(&cfg);
+    loader = new DMCLoader(cfg);
   }
 
   XMLNode DMCConfig::MakeConfig(XMLNode cfg) const {

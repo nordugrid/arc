@@ -30,6 +30,8 @@ class ModuleManager
         ~ModuleManager();
         /** Finds module 'name' in cache or loads corresponding shared library */
         Glib::Module *load(const std::string& name,bool load_local = true,bool reload = false);
+        void unload(Glib::Module* module);
+        void unload(const std::string& name);
         /** Finds shared library corresponding to module 'name' and returns path to it */
         std::string findLocation(const std::string& name);
         /** Input the configuration subtree, and trigger the module loading (do almost the same as the Constructor); 

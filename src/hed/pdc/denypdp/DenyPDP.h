@@ -5,14 +5,13 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/security/PDP.h>
-#include <arc/loader/PDPLoader.h>
 
 namespace ArcSec {
 
 /// This PDP always returns false (deny)
 class DenyPDP : public PDP {
  public:
-  static PDP* get_deny_pdp(Arc::Config *cfg, Arc::ChainContext *ctx);
+  static Arc::Plugin* get_deny_pdp(Arc::PluginArgument* arg);
   DenyPDP(Arc::Config* cfg);
   virtual ~DenyPDP() {};
   virtual bool isPermitted(Arc::Message *msg);

@@ -4,7 +4,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/loader/DMCLoader.h>
+#include <arc/data/DMCLoader.h>
 
 #include "DataPointLDAP.h"
 #include "DMCLDAP.h"
@@ -22,8 +22,11 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC *DMCLDAP::Instance(Config *cfg, ChainContext *) {
-    return new DMCLDAP(cfg);
+  Plugin *DMCLDAP::Instance(PluginArgument* arg) {
+    Arc::DMCPluginArgument* dmcarg =
+            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
+    if(!dmcarg) return NULL;
+    return new DMCLDAP((Arc::Config*)(*dmcarg));
   }
 
   DataPoint *DMCLDAP::iGetDataPoint(const URL& url) {
@@ -34,7 +37,7 @@ namespace Arc {
 
 } // namespace Arc
 
-dmc_descriptors ARC_DMC_LOADER = {
-  {"ldap", 0, &Arc::DMCLDAP::Instance},
-  {NULL, 0, NULL}
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  {"ldap", "HED:DMC", 0, &Arc::DMCLDAP::Instance},
+  {NULL, NULL, 0, NULL}
 };

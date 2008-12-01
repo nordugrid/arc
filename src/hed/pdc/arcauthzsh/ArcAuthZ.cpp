@@ -3,14 +3,16 @@
 #endif
 #include <sys/types.h>
 
-#include <arc/loader/SecHandlerLoader.h>
-#include <arc/loader/Loader.h>
 #include <arc/XMLNode.h>
+#include <arc/message/MCCLoader.h>
 
 #include "ArcAuthZ.h"
 
-ArcSec::SecHandler* ArcSec::ArcAuthZ::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new ArcSec::ArcAuthZ(cfg,ctx);
+Arc::Plugin* ArcSec::ArcAuthZ::get_sechandler(Arc::PluginArgument* arg) {
+    ArcSec::SecHandlerPluginArgument* shcarg =
+            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+    if(!shcarg) return NULL;
+    return new ArcSec::ArcAuthZ((Arc::Config*)shcarg,(Arc::ChainContext*)(*shcarg));
 }
 
 /*
@@ -21,7 +23,7 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 */
 
 using namespace Arc;
-using namespace ArcSec;
+namespace ArcSec {
 
 ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):pdp(pdp_),action(breakOnDeny) {
   if(strcasecmp("breakOnAllow",action_.c_str()) == 0) { action=breakOnAllow; }
@@ -31,14 +33,14 @@ ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):pdp(pdp_),actio
 }
 
 ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
-  pdp_factory = (PDPFactory*)(*ctx);
+  pdp_factory = (PluginsFactory*)(*ctx);
   if(pdp_factory) {
     for(int n = 0;;++n) {
       XMLNode p = (*cfg)["Plugins"][n];
       if(!p) break;
       std::string name = (*cfg)["Plugins"][n]["Name"];
       if(name.empty()) continue; // Nameless plugin?
-      pdp_factory->load_all_instances(name);
+      pdp_factory->load(name,PDPPluginKind);
     };
   };
   if(!MakePDPs(cfg)) {
@@ -68,7 +70,8 @@ bool ArcAuthZ::MakePDPs(Config* cfg) {
         std::string name = can.Attribute("name");
         logger.msg(DEBUG, "PDP: %s (%d)", name, n);
         PDP* pdp = NULL;
-        pdp = pdp_factory->get_instance(name,&cfg_,NULL);
+        PDPPluginArgument arg(&cfg_);
+        pdp = pdp_factory->GetInstance<PDP>(PDPPluginKind,name,&arg);
         if(!pdp) { 
             logger.msg(ERROR, "PDP: %s can not be loaded", name); 
             return false; 
@@ -92,4 +95,6 @@ bool ArcAuthZ::Handle(Arc::Message* msg){
   }
   return r;
 }
+
+} // namespace ArcSec
 

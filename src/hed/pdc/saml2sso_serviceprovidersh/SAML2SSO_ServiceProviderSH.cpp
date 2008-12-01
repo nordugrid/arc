@@ -5,8 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <arc/loader/SecHandlerLoader.h>
-#include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/URL.h>
@@ -20,8 +18,11 @@
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "SAMLSSO_ServiceProviderSH");
 
-ArcSec::SecHandler* ArcSec::SAML2SSO_ServiceProviderSH::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new ArcSec::SAML2SSO_ServiceProviderSH(cfg,ctx);
+Arc::Plugin* ArcSec::SAML2SSO_ServiceProviderSH::get_sechandler(Arc::PluginArgument* arg) {
+    ArcSec::SecHandlerPluginArgument* shcarg =
+            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+    if(!shcarg) return NULL;
+    return new ArcSec::SAML2SSO_ServiceProviderSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
 }
 
 /*
@@ -75,7 +76,7 @@ SAML2SSO_ServiceProviderSH::SAML2SSO_ServiceProviderSH(Config *cfg,ChainContext*
     logger.msg(Arc::ERROR, "Failed to load service configuration");
     return;
   };
-  SP_service_loader = new Arc::Loader(&service_config);
+  SP_service_loader = new Arc::MCCLoader(&service_config);
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
   logger.msg(Arc::INFO, "Service is waiting for requests");
 #endif

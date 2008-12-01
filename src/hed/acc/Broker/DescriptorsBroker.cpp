@@ -1,10 +1,10 @@
-#include <arc/loader/ACCLoader.h>
+#include <arc/client/ACCLoader.h>
 
 #include "FastestQueueBroker.h"
 #include "RandomBroker.h"
 
-acc_descriptors ARC_ACC_LOADER = {
-  { "FastestQueueBroker", 0, &Arc::FastestQueueBroker::Instance },
-  { "RandomBroker", 0, &Arc::RandomBroker::Instance },
-  { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[]  = {
+  { "FastestQueueBroker", "HED:ACC", 0, &Arc::FastestQueueBroker::Instance },
+  { "RandomBroker", "HED:ACC", 0, &Arc::RandomBroker::Instance },
+  { NULL, NULL, 0, NULL }
 };

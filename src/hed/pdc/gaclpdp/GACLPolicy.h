@@ -33,7 +33,7 @@ public:
 
   virtual const char* getName() const { return "gacl.policy"; };
 
-  static Arc::LoadableClass* get_policy(void* arg);
+  static Arc::Plugin* get_policy(Arc::PluginArgument* arg);
 
 private:
 

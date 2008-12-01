@@ -6,17 +6,16 @@
 #include <glibmm/thread.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/loader/Plugin.h>
 
 namespace Arc {
 
-  class ChainContext;
-  class Config;
+  class DMCLoader;
   class DataPoint;
-  class Loader;
   class Logger;
   class URL;
 
-  class DMC {
+  class DMC: public Plugin {
   protected:
     DMC(Config *) {}
   public:
@@ -31,7 +30,7 @@ namespace Arc {
     static void Load();
     static std::list<DMC *> dmcs;
     static Glib::StaticMutex mutex;
-    static Loader *loader;
+    static DMCLoader *loader;
   };
 
   class DMCConfig
@@ -41,6 +40,17 @@ namespace Arc {
       : BaseConfig() {}
     virtual ~DMCConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+
+  #define DMCPluginKind ("HED:DMC")
+
+  class DMCPluginArgument: public PluginArgument {
+   private:
+    Config* config_;
+   public:
+    DMCPluginArgument(Config* config):config_(config) { };
+    virtual ~DMCPluginArgument(void) { };
+    operator Config* (void) { return config_; };
   };
 
 } // namespace Arc

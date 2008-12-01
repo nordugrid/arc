@@ -5,7 +5,6 @@
 #include <fstream>
 #include <sys/types.h>
 
-#include <arc/loader/PDPLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
@@ -18,8 +17,11 @@ Arc::Logger ArcSec::SimpleListPDP::logger(Arc::Logger::rootLogger, "SimpleListPD
 using namespace Arc;
 using namespace ArcSec;
 
-PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext*) {
-    return new SimpleListPDP(cfg);
+Plugin* SimpleListPDP::get_simplelist_pdp(PluginArgument* arg) {
+    ArcSec::PDPPluginArgument* pdparg =
+            arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
+    if(!pdparg) return NULL;
+    return new SimpleListPDP((Arc::Config*)(*pdparg));
 }
 
 SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){

@@ -4,6 +4,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/message/MCC.h>
+#include <arc/loader/Plugin.h>
 #include <arc/security/SecHandler.h>
 
 namespace Arc {
@@ -66,6 +67,19 @@ class Service: public MCCInterface
            This method return identifier of service which is used for registering
            it Information Services. */
         virtual std::string getID() { return ""; };
+};
+
+#define ServicePluginKind ("HED:SERVICE")
+
+class ServicePluginArgument: public PluginArgument {
+    private:
+        Config* config_;
+        ChainContext* context_;
+    public:
+        ServicePluginArgument(Arc::Config* config,Arc::ChainContext* context):config_(config),context_(context) { };
+        virtual ~ServicePluginArgument(void) { };
+        operator Config* (void) { return config_; };
+        operator ChainContext* (void) { return context_; };
 };
 
 } // namespace Arc

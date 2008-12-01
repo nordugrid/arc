@@ -10,7 +10,7 @@ namespace Arc {
   public:
     FastestQueueBroker(Config *cfg);
     ~FastestQueueBroker();
-    static ACC* Instance(Config *cfg, ChainContext *ctx);
+    static Plugin* Instance(PluginArgument* arg);
     
   protected:
     void SortTargets();

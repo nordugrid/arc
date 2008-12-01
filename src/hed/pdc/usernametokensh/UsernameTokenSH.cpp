@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <arc/loader/SecHandlerLoader.h>
+#include <arc/security/SecHandler.h>
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>
@@ -15,8 +15,11 @@
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "UsernameTokenSH");
 
-ArcSec::SecHandler* ArcSec::UsernameTokenSH::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new ArcSec::UsernameTokenSH(cfg,ctx);
+Arc::Plugin* ArcSec::UsernameTokenSH::get_sechandler(Arc::PluginArgument* arg) {
+    ArcSec::SecHandlerPluginArgument* shcarg =
+            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+    if(!shcarg) return NULL;
+    return new ArcSec::UsernameTokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
 }
 
 /*

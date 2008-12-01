@@ -7,7 +7,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/loader/DMCLoader.h>
+#include <arc/data/DMCLoader.h>
 
 #include "DataPointGridFTP.h"
 #include "DMCGridFTP.h"
@@ -30,7 +30,10 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
   }
 
-  DMC* DMCGridFTP::Instance(Config *cfg, ChainContext*) {
+  Plugin* DMCGridFTP::Instance(PluginArgument* arg) {
+    Arc::DMCPluginArgument* dmcarg =
+            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
+    if(!dmcarg) return NULL;
     openssl_lock.lock();
     if(!openssl_initialized) {
       SSL_load_error_strings();
@@ -41,7 +44,7 @@ namespace Arc {
       };
     };
     openssl_lock.unlock();
-    return new DMCGridFTP(cfg);
+    return new DMCGridFTP((Arc::Config*)(*dmcarg));
   }
 
   DataPoint* DMCGridFTP::iGetDataPoint(const URL& url) {
@@ -52,7 +55,7 @@ namespace Arc {
 
 } // namespace Arc
 
-dmc_descriptors ARC_DMC_LOADER = {
-  { "gridftp", 0, &Arc::DMCGridFTP::Instance },
-  { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "gridftp", "HED:DMC", 0, &Arc::DMCGridFTP::Instance },
+  { NULL, NULL, 0, NULL }
 };

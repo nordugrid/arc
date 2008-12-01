@@ -24,6 +24,8 @@ private:
   void initCombiningAlgs();
 };
 
+Arc::Plugin* get_arcpdp_alg_factory (Arc::PluginArgument*);
+
 } // namespace ArcSec
 
 #endif /* __ARC_SEC_ARCALGFACTORY_H__ */

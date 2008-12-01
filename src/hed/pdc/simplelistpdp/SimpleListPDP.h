@@ -16,7 +16,7 @@ namespace ArcSec {
   Returns true if subject is present in list, otherwise false. */
 class SimpleListPDP : public PDP {
  public:
-  static PDP* get_simplelist_pdp(Arc::Config *cfg, Arc::ChainContext *ctx);
+  static Arc::Plugin* get_simplelist_pdp(Arc::PluginArgument *arg);
   SimpleListPDP(Arc::Config* cfg);
   virtual ~SimpleListPDP() {};
   virtual bool isPermitted(Arc::Message *msg);
