@@ -12,9 +12,6 @@
 
 #include <arc/URL.h>
 #include <arc/Run.h>
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
-#include <arc/loader/Plexer.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
@@ -31,9 +28,12 @@
 namespace Paul {
 
 // Static initializator
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) 
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) 
 {
-    return new PaulService(cfg);
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new PaulService((Arc::Config*)(*mccarg));
 }
 
 void PaulService::GetActivities(const std::string &url_str, std::vector<std::string> &ret)
@@ -489,7 +489,7 @@ Arc::MCC_Status PaulService::process(Arc::Message &in, Arc::Message &out)
 
 } // namespace Paul
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "paul", 0, &Paul::get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "paul", "HED:SERVICE", 0, &Paul::get_service },
+    { NULL, NULL, 0, NULL }
 };
