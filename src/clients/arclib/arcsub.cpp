@@ -24,7 +24,7 @@
 #include <arc/client/UserConfig.h>
 #include <arc/client/ACC.h>
 #include <arc/client/Broker.h>
-#include <arc/loader/Loader.h>
+#include <arc/client/ACCLoader.h>
 
 int main(int argc, char **argv) {
 
@@ -255,7 +255,7 @@ int main(int argc, char **argv) {
   Broker.NewAttribute("name") = broker;
   Broker.NewAttribute("id") = "broker";
 
-  Arc::Loader loader(&cfg);
+  Arc::ACCLoader loader(cfg);
   Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
 
   for (std::list<Arc::JobDescription>::iterator it =

@@ -24,7 +24,6 @@
 #include <arc/client/UserConfig.h>
 #include <arc/client/ACC.h>
 #include <arc/client/Broker.h>
-#include <arc/loader/Loader.h>
 
 int main(int argc, char **argv) {
 
