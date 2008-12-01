@@ -58,26 +58,43 @@ authorization for ARC grid middleware
 
 \bigskip
 
-Abstract-{}-
+{\centering
+Abstract
+\par}
 
-
-\bigskip
-
-
-\bigskip
+\ In order to make the access to Grids as simple as possible, security
+including authentication and authorization is one of the most important
+challenges in production Grids, especially when the Grid applications
+are across multiple administration domains as well as across
+heterogeneous Grid middlewares, such as some widely scaled eScience
+applications which needs to coordinate resources sharing among
+collection of autonomous institutions with different Grid middlewares
+running on these resources. In this paper, we describe the security
+implementation and consideration in new version of Advanced Resource
+Connector (ARC) middleware, where the above issues have been exploited.
+The main goal of ARC implementation in terms of security is to let the
+middleware be capable to \ interoperate with other Grid middlewares by
+leveraging standard specifications. The key aspect of the work we have
+done is to enhance the current proxy certificate based delegation and
+authentication by utilizing the Security Assertion Markup Languages
+(\textit{SAML}) single sign-on (SSO) profile, WS-Security in order to
+achieve cross-domain authentication, as well as to enhance the
+Attribute Certificate (AC) based authorization by utilizing the SAML
+\ attribute query profile in order to achieve standardized
+attribute-based authorization. \ 
 
 
 \bigskip
 
 \liststyleLi
 \begin{enumerate}
-\item {\centering
-Introduction
+\item[] {\centering
+1. Introduction
 \par}
-
+\end{enumerate}
 
 \bigskip
-\end{enumerate}
+
 
 \bigskip
 
@@ -178,39 +195,61 @@ protocol.
 
 \bigskip
 
+HED contains a framework for implementing and enforcing authentication
+and authorization. Each Message Chain Component (MCC) or service has a
+common interface for implementing various authentication and
+authorization functionality. This functionality is implemented by using
+pluggable and configurable components (plug-ins) called
+\textit{SecHandler}. The \textit{SecHandler} components are C++ classes
+and provide method for processing messages traveling through Message
+Chains of the HED. Each MCC or Service \ usually implement two queues
+of SecHandlers -- one for incoming messages and one for outgoing called
+{\textquotedblleft}incoming{\textquotedblright} and
+{\textquotedblleft}outgoing{\textquotedblright} respectively. All
+\textit{SecHandler} components attached to the queue are executed
+sequentially. If any of them fails, message processing fails as well.
+In figure 1, the {\textquotedblleft}AuthZ{\textquotedblright} and
+{\textquotedblleft}AuthN{\textquotedblright} sub-module inside MCCs and
+Services are examples of \textit{SecHandler}.
+
 
 \bigskip
 
-
-\bigskip
-
+{\centering
 3. Cross-domain authentication and Single Sign-On
+\par}
 
 
 \bigskip
 
-\ \ Community based authentication: Utilizing Shibboleth IdP
+
+\bigskip
+
+\ \ 3.1 Community based authentication: Utilizing Shibboleth IdP
 
 
 \bigskip
 
-\ \ Short-lived certificate service
+\ \ 3.2 Short-lived certificate service
 
 
 \bigskip
 
-\ \ Certificate delegation service
+\ \ 3.3 Certificate delegation service
 
 
 \bigskip
 
-\ \ From transport level security to message level security: X.509 Token
-and SAML Token
+\ \ 3.4 From transport level security to message level security: X.509
+Token and SAML Token
 
 
 \bigskip
 
-\ \ Delegation between WS-Security tokens
+
+\bigskip
+
+\ \ 3.5 Delegation between WS-Security tokens
 
 
 \bigskip
@@ -220,7 +259,24 @@ and SAML Token
 
 \bigskip
 
+{\centering
 4. Standardized Attribute-based authorization 
+\par}
+
+
+\bigskip
+
+4.1 SAML Attribute Query profile
+
+
+\bigskip
+
+4.2 Client to VOMS Attribute authority Service
+
+
+\bigskip
+
+4.3 Attribute parsing and Policy decision point
 
 
 \bigskip
@@ -231,11 +287,34 @@ and SAML Token
 
 \bigskip
 
+{\centering
+5. Related work
+\par}
+
+VOMS AA Service
+
+Shibboleth
+
+GridShib
+
+gLite Delegation Service?
+
+SWITCH SLCS Service
+
+
+\bigskip
+
+{\centering
+6. Conclusion and Future work
+\par}
+
 
 \bigskip
 
 
 \bigskip
+
+Reference:
 
 
 \bigskip
