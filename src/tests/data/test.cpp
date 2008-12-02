@@ -40,7 +40,7 @@ int main () {
     logger.msg(Arc::ERROR, "Failed to load client configuration");
     return -1;
   }
-  Arc::Loader client_loader(&client_config);
+  Arc::Loader client_loader(client_config);
   logger.msg(Arc::INFO, "DMCs are loaded");
 
   Arc::DataHandle dp[5] = {
