@@ -22,7 +22,7 @@ namespace Arc {
     Unregister(this);
   }
 
-  Plugin *DMCLFC::Instance(PluginArgunent* arg) {
+  Plugin *DMCLFC::Instance(PluginArgument* arg) {
     Arc::DMCPluginArgument* dmcarg =
             arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
     if(!dmcarg) return NULL;
