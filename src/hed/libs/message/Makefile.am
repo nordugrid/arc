@@ -10,7 +10,7 @@ libarcmessage_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(
 
 libtestmcc_la_SOURCES  = TestMCC.cpp TestMCC.h
 libtestmcc_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-libtestmcc_la_LIBADD   = $(GLIBMM_LIBS) $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la 
+libtestmcc_la_LIBADD   = $(GLIBMM_LIBS) ./libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la 
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
