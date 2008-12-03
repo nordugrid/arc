@@ -1883,12 +1883,12 @@ error:
       //configuration file with X509V3 extensions to add
       if (!NCONF_load(extconf, extfile_.c_str(),&errorline)) {
         if (errorline <= 0) {
-          credentialLogger.msg(ERROR,"Error when loading the extenstion config file: %s", extfile_.c_str());
-          throw CredentialError("Error when loading the extenstion config file");
+          credentialLogger.msg(ERROR,"Error when loading the extension config file: %s", extfile_.c_str());
+          throw CredentialError("Error when loading the extension config file");
         }
         else {
-          credentialLogger.msg(ERROR,"Error when loading the extenstion config file: %s on line: %d", extfile_.c_str(), errorline);
-          throw CredentialError("Error when loading the extenstion config file");
+          credentialLogger.msg(ERROR,"Error when loading the extension config file: %s on line: %d", extfile_.c_str(), errorline);
+          throw CredentialError("Error when loading the extension config file");
         }
       }
       //section from config file with X509V3 extensions to add
@@ -1902,8 +1902,8 @@ error:
       X509V3_set_ctx_test(&ctx2);
       X509V3_set_nconf(&ctx2, extconf);
       if (!X509V3_EXT_add_nconf(extconf, &ctx2, (char*)(extsect_.c_str()), NULL)) {
-        credentialLogger.msg(ERROR,"Error when loading the extenstion section: %s", extsect_.c_str()); LogError();
-        throw CredentialError("Error when loading the extenstion config file");
+        credentialLogger.msg(ERROR,"Error when loading the extension section: %s", extsect_.c_str()); LogError();
+        throw CredentialError("Error when loading the extension config file");
       }
     }
     
@@ -1977,7 +1977,7 @@ error:
     }
 
     if(SignEECRequest(eec, dn, out)) {
-      credentialLogger.msg(INFO, "Wrote signed eec certificate into a file");
+      credentialLogger.msg(INFO, "Wrote signed EEC certificate into a file");
     }
     else {credentialLogger.msg(ERROR, "Failed to write signed EEC certificate into a file"); BIO_free_all(out); return false;    }
     BIO_free_all(out);

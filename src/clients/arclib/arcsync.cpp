@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   Arc::OptionParser options(istring("[filename ...]"),
 			    istring("The command is used for "
 				    "jobid synchronization"),
-			    istring("Argumentd to -i has the format "
+			    istring("Argument to -i has the format "
 				    "Flavour:URL e.g.\n"
 				    "ARC0:ldap://grid.tsl.uu.se:2135/"
 				    "mds-vo-name=sweden,O=grid\n"

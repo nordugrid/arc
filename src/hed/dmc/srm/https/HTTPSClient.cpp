@@ -486,7 +486,7 @@ namespace Arc {
       };
       bool isread,iswritten;
       if(!c->transfer(isread,iswritten,timeout)) {
-        logger.msg(ERROR, "Timeout while reading response content: ");
+        logger.msg(ERROR, "Timeout while reading response content");
         disconnect();
         if(in_buf) free(in_buf);
         return -1; // timeout
@@ -495,7 +495,7 @@ namespace Arc {
         if(c->eofread()) { // eof - ok if length not specified
           if(!have_length) { disconnect(); break; };
         };
-        logger.msg(ERROR, "Error while reading response content: ");
+        logger.msg(ERROR, "Error while reading response content");
         disconnect();
         if(in_buf) free(in_buf);
         return -1;

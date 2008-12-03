@@ -524,7 +524,7 @@ namespace Arc {
                               &conf_state,
                               &send_tok);
       if(major_status != GSS_S_COMPLETE) {
-        logger.msg(ERROR, "Failed wraping GSI token: %s", gss_error_string(major_status,minor_status));
+        logger.msg(ERROR, "Failed wrapping GSI token: %s", gss_error_string(major_status,minor_status));
         return false;
       };
       int to = timeout;
@@ -550,7 +550,7 @@ namespace Arc {
                                 NULL);
       free(recv_tok.value);
       if(major_status != GSS_S_COMPLETE) {
-        logger.msg(ERROR, "Failed unwraping GSI token: %s", gss_error_string(major_status,minor_status));
+        logger.msg(ERROR, "Failed unwrapping GSI token: %s", gss_error_string(major_status,minor_status));
         return false;
       };
       logger.msg(VERBOSE, "*** Server response: %s", (char*)(data_tok.value));

@@ -43,7 +43,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmPing(&soapobj, csoap->SOAP_URL(), "srmPing", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::DEBUG, "SOAP request failed (srmPing)");
+      logger.msg(Arc::DEBUG, "SOAP request failed (%s)", "srmPing");
       if(report_error) soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
       return SRM_ERROR_SOAP;
@@ -62,19 +62,19 @@
           if(strcmp((char*)extrainfo->key, "backend_type") != 0) continue;
           if(strcmp((char*)extrainfo->value, "dCache") == 0) {
             implementation = SRM_IMPLEMENTATION_DCACHE;
-            logger.msg(Arc::DEBUG, "Server implementation: dCache");
+            logger.msg(Arc::DEBUG, "Server implementation: %s", "dCache");
           }
           else if(strcmp((char*)extrainfo->value, "CASTOR") == 0) {
             implementation = SRM_IMPLEMENTATION_CASTOR;
-            logger.msg(Arc::DEBUG, "Server implementation: CASTOR");
+            logger.msg(Arc::DEBUG, "Server implementation: %s", "CASTOR");
           }
           else if(strcmp((char*)extrainfo->value, "DPM") == 0) {
             implementation = SRM_IMPLEMENTATION_DPM;
-            logger.msg(Arc::DEBUG, "Server implementation: DPM");
+            logger.msg(Arc::DEBUG, "Server implementation: %s", "DPM");
           }
           else if(strcmp((char*)extrainfo->value, "StoRM") == 0) {
             implementation = SRM_IMPLEMENTATION_STORM;
-            logger.msg(Arc::DEBUG, "Server implementation: StoRM");
+            logger.msg(Arc::DEBUG, "Server implementation: %s", "StoRM");
           };
         };
       };
@@ -97,7 +97,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmGetSpaceTokens(&soapobj, csoap->SOAP_URL(), "srmGetSpaceTokens", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmGetSpaceTokens)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmGetSpaceTokens");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
       return SRM_ERROR_SOAP;
@@ -136,7 +136,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmGetRequestTokens(&soapobj, csoap->SOAP_URL(), "srmGetRequestTokens", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmGetRequestTokens)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmGetRequestTokens");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
       return SRM_ERROR_SOAP;
@@ -201,7 +201,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmPrepareToGet(&soapobj, csoap->SOAP_URL(), "srmPrepareToGet", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmPrepareToGet)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToGet");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -243,7 +243,7 @@
   
         // call getRequestStatus
         if ((soap_err=soap_call_SRMv2__srmStatusOfGetRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfGetRequest", sog_request, sog_response_struct)) != SOAP_OK) {
-          logger.msg(Arc::INFO, "SOAP request failed (srmStatusOfGetRequest)");
+          logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfGetRequest");
           soap_print_fault(&soapobj, stderr);
           // TODO: add some retries for transient errors
           csoap->disconnect();
@@ -345,7 +345,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmBringOnline(&soapobj, csoap->SOAP_URL(), "srmBringOnline", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmBringOnline)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmBringOnline");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
       return SRM_ERROR_SOAP;
@@ -413,7 +413,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if ((soap_err=soap_call_SRMv2__srmStatusOfBringOnlineRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfBringOnlineRequest", sobo_request, sobo_response_struct)) != SOAP_OK) {
-      logger.msg(Arc::INFO, "SOAP request failed (srmStatusOfBringOnlineRequest)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfBringOnlineRequest");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -569,7 +569,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmPrepareToPut(&soapobj, csoap->SOAP_URL(), "srmPrepareToPut", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmPrepareToPut)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToPut");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -611,7 +611,7 @@
   
         // call putRequestStatus
         if ((soap_err=soap_call_SRMv2__srmStatusOfPutRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfPutRequest", sog_request, sog_response_struct)) != SOAP_OK) {
-          logger.msg(Arc::INFO, "SOAP request failed (srmStatusOfPutRequest)");
+          logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfPutRequest");
           soap_print_fault(&soapobj, stderr);
           // TODO: add some retries for transient errors
           csoap->disconnect();
@@ -711,7 +711,7 @@
    
     // do the srmLs call
     if((soap_err=soap_call_SRMv2__srmLs(&soapobj, csoap->SOAP_URL(), "srmLs", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmLs)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmLs");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -749,7 +749,7 @@
   
         // call statusOfLsResponse
         if ((soap_err=soap_call_SRMv2__srmStatusOfLsRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfLsRequest", sols_request, sols_response_struct)) != SOAP_OK) {
-          logger.msg(Arc::INFO, "SOAP request failed (srmStatusOfLsRequest)");
+          logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfLsRequest");
           soap_print_fault(&soapobj, stderr);
           // TODO: add some retries for transient errors
           csoap->disconnect();
@@ -766,7 +766,7 @@
             return_status != SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREINPROGRESS) {
           // error
           char * msg = sols_response_struct.srmStatusOfLsRequestResponse->returnStatus->explanation;
-          logger.msg(Arc::ERROR, "Error:%s ", msg);
+          logger.msg(Arc::ERROR, "Error: %s", msg);
           return false;
         };
       }; // while
@@ -943,7 +943,7 @@
    
     // do the srmReleaseFiles call
     if((soap_err=soap_call_SRMv2__srmReleaseFiles(&soapobj, csoap->SOAP_URL(), "srmReleaseFiles", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmReleaseFiles)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmReleaseFiles");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -981,7 +981,7 @@
    
     // do the srmPutDone call
     if((soap_err=soap_call_SRMv2__srmPutDone(&soapobj, csoap->SOAP_URL(), "srmPutDone", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmPutDone)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPutDone");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -1017,7 +1017,7 @@
    
     // do the srmAbortRequest call
     if((soap_err=soap_call_SRMv2__srmAbortRequest(&soapobj, csoap->SOAP_URL(), "srmAbortRequest", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmAbortRequest)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmAbortRequest");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -1084,7 +1084,7 @@
    
     // do the srmRm call
     if((soap_err=soap_call_SRMv2__srmRm(&soapobj, csoap->SOAP_URL(), "srmRm", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmRm)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmRm");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -1120,7 +1120,7 @@
    
     // do the srmRm call
     if((soap_err=soap_call_SRMv2__srmRmdir(&soapobj, csoap->SOAP_URL(), "srmRmdir", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmRmdir)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmRmdir");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -1165,7 +1165,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmCopy(&soapobj, csoap->SOAP_URL(), "srmCopy", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::INFO, "SOAP request failed (srmCopy)");
+      logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmCopy");
       soap_print_fault(&soapobj, stderr);
       // TODO: add some retries for transient errors
       csoap->disconnect();
@@ -1211,7 +1211,7 @@
   
         // call statusOfCopyRequest
         if ((soap_err=soap_call_SRMv2__srmStatusOfCopyRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfCopyRequest", soc_request, soc_response_struct)) != SOAP_OK) {
-          logger.msg(Arc::INFO, "SOAP request failed (srmStatusOfCopyRequest)");
+          logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfCopyRequest");
           soap_print_fault(&soapobj, stderr);
           // TODO: add some retries for transient errors
           csoap->disconnect();

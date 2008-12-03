@@ -97,7 +97,7 @@ namespace Arc {
 	      &year) == 3)
        pos += 6;
     else {
-       Arc::local_logger.msg(ERROR, "Can not parse date: " + timestring);
+       Arc::local_logger.msg(ERROR, "Can not parse date: %s", timestring);
        return "";
     }									    
   
@@ -109,7 +109,7 @@ namespace Arc {
 	     &min) == 2)
        pos += 5;
     else {
-       Arc::local_logger.msg(ERROR, "Can not parse time: " + timestring);
+       Arc::local_logger.msg(ERROR, "Can not parse time: %s", timestring);
        return "";
     }
 
