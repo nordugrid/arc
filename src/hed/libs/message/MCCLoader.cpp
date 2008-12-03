@@ -170,7 +170,8 @@ namespace Arc {
     // 1st stage - creating all elements.
     // Configuration is parsed recursively - going deeper at ArcConfig
     // and Chain elements
-    for(XMLNode cn = cfg.Child();(bool)cn; ++cn) {
+    XMLNode cn;
+    for(int n = 0; (cn = cfg.Child(n)); ++n) {
       Config cfg_(cn, cfg.getFileName());
 
       if(MatchXMLName(cn, "ArcConfig")) {
@@ -303,7 +304,7 @@ namespace Arc {
 
       // Configuration processing is split to multiple functions - hence
       // ignoring all unknown elements.
-      logger.msg(WARNING, "Unknown element \"%s\" - ignoring", cn.Name());
+      //logger.msg(WARNING, "Unknown element \"%s\" - ignoring", cn.Name());
     }
 
     if(level != 0) return;
