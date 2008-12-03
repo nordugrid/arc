@@ -1091,6 +1091,8 @@ if test "$enable_sched_service" = "yes"; then
     enable_sched_service="no"
     AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling SCHED Service])
   fi
+else
+  enable_sched_service="no"
 fi
 AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service])
 AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"])
