@@ -401,11 +401,7 @@ namespace Arc {
         request.Insert((const char*)send_tok.value, 0, send_tok.length);
       reqmsg.Payload(&request);
 
-      std::cout << "Sending req..." << std::endl;
-
       MCC_Status status = MCC::Next()->process(reqmsg, repmsg);
-
-      std::cout << "Getting rep..." << std::endl;
 
       if ((majstat & GSS_C_SUPPLEMENTARY_MASK) == GSS_S_CONTINUE_NEEDED) {
 
