@@ -8,7 +8,6 @@
 
 \begin{document}
 \pagestyle{headings} 
-%% \title{Service Oriented ARC Storage; \\An Overview and Design}
 \title{Service Oriented ARC Storage; \\An Overview and Design}
 %% \author{  Jon K. Nilsen$^{2,3}$ \and Salman Toor$^{1}$
 %%   \and Zsombor Nagy$^{5}$ \and Bjarte Mohn$^{4}$  \\ $^{1}$Scientific
@@ -53,8 +52,8 @@ the middleware to represent distributed resources in one simple
 framework. In this paper, we will present an overview of the ARC
 storage system, itself a set of services providing a self-healing,
 flexible Grid storage solution. We will also present some first
-proof-of-concept test results, deploying the storage system
-distributed between three different countries. 
+proof-of-concept test results, with a deployment of the storage system
+distributed across three different countries. 
 ~\\~\\~
 \end{abstract}
 %-----------------------------------------------------------
@@ -65,16 +64,17 @@ The challenge of building a reliable, self-healing, fault-tolerant,
 consistent data management system in a web scale is an interesting
 task. Making the system work in a heterogeneous, distributed
 environment like the Grid is even more interesting. An increasing
-amount of applications demands not only increased CPU power, but also
+number of applications demand not only increased CPU power, but also
 vast amounts of storage space. The required storage space is not only
 restricted to the duration in which the application runs; the data
 should often be available for years afterwards, in certain cases even
-for decades. Nowadays, we can easily find single Grid jobs, producing
+for decades. Nowadays, we can easily find single Grid jobs which produce
 gigabytes or even terabytes of data, ramping up the requirements of
-storage systems to the petabyte scale and beyond. Taking into account
-that hardware is inherently unstable\footnote{E.g., if one hard drive
-  has an uptime of 10,000 hours, one of 1,000 hard drives will fail
-  after 10 hours.}, the need for replicating, self-healing storage is evident. To
+storage systems to the petabyte scale and beyond. Hard drive capacity is
+still increasing and storage raids can handle failing hard drives through 
+data replication. However, even a designated storage site cannot guarantee 
+24/7 availability or long term security against catastrophic losses of data. 
+The need for a distributed, self-healing storage system is evident. To
 make the storage system useable to Grid users, the system must provide
 reliable and secure file transfer protocols, a cataloging system and
 secure storage of the data. Several projects and designs have emerged
@@ -85,7 +85,7 @@ Grid middleware \cite{NorduGridsite} (due during Fall 2009), we present
 the ARC storage system \cite{ARCStoragedesigndoc}. This distributed
 storage system is designed to provide an easy
 to use, flexible and scalable system that can offer native storage and
-at the same time provide access to third-party solutions like dCache by
+at the same time provide access to third-party solutions like dCache \cite{dCache,DSSWithdCache}  by
 using the same, uniform interface. Being part of ARC, the
 storage system is based on a service
 oriented architecture, in which each major component of the
@@ -97,7 +97,7 @@ possibility to introduce modifications in the future. %% The HED service contain
 %% the future modification/enhancement of the system.
 
 This paper is organized as follows. After describing
-related work in Section \ref{Related Work}, we give the bird's eye
+related work in Section \ref{Related Work}, we give a bird's eye
 view of the next generation Advanced Resource Connector (ARC) in
 Section \ref{The Advance Resource Connector}. An overview of the
 ARC Storage is given in Section \ref{The ARC Storage System}, while
@@ -108,11 +108,11 @@ concluding in Section \ref{Conclusion and Future Work}.
 
 \section{Related Work}
 \label{Related Work}
-\textbf{dCache:} dCache is a storage system \cite{dCache} \cite{DSSWithdCache} which combines heterogeneous storage
+\textbf{dCache:} dCache is a storage system which combines heterogeneous storage
 elements to collect several hundreds of terabytes in a single
 namespace. It additionally supports standard and native
 protocols like gridftp, srm, dcap and gsidcap. dCache is
-a joint effort between Desy  \cite{dCachesite}, Fermi National Laboratory \cite{FermiLab}, the  Nordic Data
+a joint effort between DESY \cite{dCachesite}, Fermi National Accelerator Laboratory \cite{FermiLab}, the  Nordic Data
 Grid Facility (NDGF) \cite{NDGF}  and several other collaborators. %% The services or
 %% components of dCache are known as cells. The standard deployment of
 %% dCache consist of  storage pools; used to store file, optionally be
@@ -123,14 +123,14 @@ Grid Facility (NDGF) \cite{NDGF}  and several other collaborators. %% The servic
 %% doors. One of the biggest deployment of dCache is the distributed
 %% infrastructure of  NDGF.\\ 
 dCache has proven to be a very stable and scalable solution. However,
-it has a relatively high threshold for understanding and
-deployment. The ARC Storage, being a light-weight and flexible
+it is relatively difficult to deploy and integrate with new applications. 
+The ARC Storage, being a light-weight and flexible
 storage solution, aims more towards new user groups less familiar with
 Grid solutions. 
 \newline
-\textbf{BigTable:} Bigtable is a distributed storage system managing structured data in
+\textbf{BigTable:} Bigtable is a distributed storage system managing structured data on
 the petabyte scale \cite{Bigtable}. It is currently used within
-Google, in projects like web indexing, Google Earth and Google
+Google in projects like web indexing, Google Earth and Google
 Financing. %% Bigtable is mainly built on top of three pieces of Google's
 %% infrastructure: The Google Filesystem \cite{GFS} a distributed,
 %% replicating file system, the Google SSTable, providing
@@ -150,7 +150,7 @@ Bigtable is neither free, open-source nor available to the public.
 \newline
 \textbf{Storage Resource Broker:}  Based on the client-server model,
 the Storage Resource Broker (SRB) \cite{earlySRB,SRB} provides a flexible data grid management
-system. It allows  uniform access for connecting to heterogeneous
+system. It allows  uniform access to heterogeneous
 storage resources over a wide area network. %% SRB also manages the
 %% namespaces used to identify files, storage resources, users, metadata,
 %% and access controls independently of the physical storage systems. It
@@ -173,12 +173,12 @@ server for building scalable xrootd clusters \cite{Scalla}. %% The xrootd
 %% used for setting up storage clusters in a B-64 tree with a
 %% redirector on top appointing one supervisor for every 64 data servers
 %% in the lower layers of the tree.
-Originally developed for use with the physics analysis tool root,
+Originally developed for use with the physics analysis tool root \cite{root},
 xrootd offers data access both through the specialized xroot protocol
 and through other third-party protocols. The combination of the xrootd
 and olbd components offers a cluster storage designed for low latency
-high bandwidth environments. In contrast, the ARC Storage is optimized
-for high latency, more suitable for the Grid environment.
+high bandwidth environments. In contrast, ARC Storage is optimized
+for high latency more suitable for the Grid environment.
 
 %% {\large Comparison:}    
 
@@ -202,24 +202,27 @@ for high latency, more suitable for the Grid environment.
 \section{The Advance Resource Connector}
 \label{The Advance Resource Connector}
 
-The next generation Advanced Resource Connector (ARC) Grid middleware \cite{NorduGridsite} \cite{KnowARCsite} consists of a set of pluggable components. These components are the
+The next generation Advanced Resource Connector (ARC) Grid middleware 
+\cite{NorduGridsite} \cite{KnowARCsite} consists of a set of pluggable 
+components. These components are the
 fundamental building blocks of the ARC services and clients. ARC
-services are running inside a container called the Hosting Environment
-Daemon (HED) and there are four kinds of pluggable components having well
+services run inside a container called the Hosting Environment
+Daemon (HED) and there are four kinds of pluggable components with well
 defined tasks: Data Management Components are used to transfer the
 data using various protocols, Message Chain Components are
 responsible for the communication within clients and services as well as
 between the clients and the services, ARC Client Components are
-plug-ins used by the clients to connect to different Grid flavors and
+plug-ins used by the clients to connect to different Grid flavors, and
 Policy Decision Components are responsible for the security model
 within the system.
 
 To deliver the non-trivial quality of services required by the Grid,
 there are a number of services running inside the HED. For example, Grid
-job execution and management is handled by the A-REX service \cite{AREXdesigndoc}, policy
-decision is the task for the Charon service, the ISIS service is
-responsible for the information indexing, batch jobs submission is
-handled by the Sched service etc. In the later sections our discussion
+job execution and management is handled by the A-REX service 
+\cite{AREXdesigndoc}, policy
+decisions are taken by the Charon service, the ISIS service is
+responsible for the information indexing, batch job submission is
+handled by the Sched service, etc. In the later sections our discussion
 will focus on the architecture and the design of another major set
 of services, i.e., the ARC storage. 
 
@@ -227,7 +230,7 @@ of services, i.e., the ARC storage.
 \label{The ARC Storage System}
 
 The ARC Storage consists of a set of SOAP based services residing
-within HED. Together the services provide a self-healing, reliable, robust,
+within HED. Together, the services provide a self-healing, reliable, robust,
 scalable, resilient and consistent data storage system. Data is
 managed in a hierarchical global namespace with files and
 subcollections grouped into collections\footnote{A concept very
@@ -241,28 +244,27 @@ in the same manner as in local filesystems.
     \includegraphics[width=0.8\columnwidth]{arc1-storage-services-with-gateway.pdf}
   \end{center}
   \caption{Schematic of the ARC Storage architecture. The figure shows
-    the main services of ARC Storage and how they communicate. See
-    text for further details.}
+    the main services of ARC Storage and the communication channels. The B stands for Bartender, the S Shepherd, the L Librarian, the G Gateway and the A-H stands for A-Hash. The straight lines denotes the communication between services.}
   \label{fig:arc1_storage_service}
 \end{figure}
 
-Being a service oriented architecture based system, the ARC
-Storage consists of a set of services as shown in figure
-\ref{fig:arc1_storage_service}. The services are as follows: The Bartender (B),
-providing the high-level interface to the user; the Librarian (L),
-handling the entire storage namespace, using the A-Hash (A-H) as a metadatabase; the
-Gateway (G) providing means to access third-party storage systems; and
-the Shepherd (S), the frontend for the physical storage node. 
+Being based on a service oriented architecture, the ARC
+Storage consists of a set of services as shown in Fig.
+\ref{fig:arc1_storage_service}. The services are as follows: The Bartender (B)
+provides the high-level interface to the user; the Librarian (L)
+handles the entire storage namespace, using the A-Hash (A-H) as a metadatabase; the
+Gateway (G) provides access to third-party storage systems; and
+the Shepherd (S) is the frontend for the physical storage node. 
 See Section \ref{Architecture of the ARC Storage} for a detailed
 discussion of the different services.   
-The services communicates with each other through the
-Message Chain Components in HED. The communication is
-depicted by straight lines in figure \ref{fig:arc1_storage_service}.
+The services communicate with each other through the
+Message Chain Components in HED. The communication channels are
+depicted by straight lines in Fig. \ref{fig:arc1_storage_service}.
 
 The system supports file transfer through several transfer protocols,
-with client side tools hiding technical
-details, such as specifying protocols, port numbers
-and so forth. To enable for fault-tolerance, the system implements
+with client side tools that hide various technical
+details such as protocol specification, port numbers
+and so on. To provide fault-tolerance, the system implements
 automatic file replication, where
 the replicas of a file\footnote{In this paper, a file
 denotes an entry in the global namespace, while replica denotes the
@@ -271,10 +273,10 @@ storage nodes\footnote{A
   storage node is a server with a Shepherd, a Shepherd backend
 and some storage service.}. To ensure a resilient, self-healing system, the Shepherd
 regularly sends heartbeats to one of the Librarians. If the Shepherd fails
-to send a heartbeat one of the Librarians will automatically initiate
+to send a heartbeat, one of the Librarians will automatically initiate
 re-replication of the replicas between the other Shepherds.
 
-In the default implementation the services will provide a
+In the default implementation, the services will provide a
 full-featured and consistent data storage system using files as an
 atomic unit. The scope of the ARC storage system in the foreseen
 future is restricted to provide support for file-based data services.
@@ -290,10 +292,10 @@ Storage, third-party storage elements can also be used as backends for the
 Shepherd service.
 
 External grid middleware components can
-access the ARC storage system by adapting and using ARC data service
-interfaces directly. ARC will provide interface
+access the ARC storage system by using ARC data service
+interfaces directly. ARC will also provide interface
 components that communicate via standard protocols like SRM, which
-will give a single access point to the whole system.
+will provide a single access point to the whole system.
 
 \section{Architecture of the ARC Storage}
 \label{Architecture of the ARC Storage}
@@ -302,35 +304,35 @@ In a service oriented architecture
 the role of each service is well defined. Available
 objects\footnote{Files, collections, mount points, etc.} in the
 system are identified by unique global IDs. These IDs are
-categorized in three different categories according to the object type.
+categorized according to the object type:
 
 \begin{itemize} 
 \item Each  file and collection have a unique ID called GUID.
-\item Services are uniquely identified by using a serviceID. 
-\item The Shepherds in the system identify their files using a referenceID.
+\item Services are uniquely identified by a serviceID. 
+\item The Shepherds in the system identify their files by a referenceID.
 \end{itemize} 
 
 Each object in the ARC Storage has a globally
 unique ID. A collection contains files and other collections,
 and each of these entries has a name unique within the collection very
 much like entries in a standard directory on a local filesystem. Besides
-files and collections the ARC Storage has a third type of entries
-called mount-points which are references to the third-party storages
+files and collections the ARC Storage has a third type of entry
+called mount-points, which are references to the third-party storages
 within the global namespace.
 
 Replicas in a distributed storage system can have different states;
 they can be broken, deleted, partially uploaded, etc. In the
-ARC Storage, all replicas has assigned a state, some of which are
+ARC Storage, all replicas have assigned a state, some of which are
 `\textbf{alive}' (if the replica passed the checksum test, and the
 Shepherd reports that the storage node is healthy), `\textbf{invalid}'
 (if the replica has wrong checksum, or the Shepherd claims it has no
 such replica), `\textbf{creating}' (if the replica is in
 the state of uploading).
 
-The details of the
-architecture are divided into two parts: First we will discuss the
+In the following the details of the
+architecture are presented in three parts: First we will discuss the
 details of the core components, second we will discuss some of the
-important features provided by the system.
+important features provided by the system, and third we will discuss the security model.
 
 \subsection{Core Components} 
 \subsubsection{Bartender}
@@ -339,7 +341,7 @@ The Bartender service provides a high-level interface for the storage
 system. Clients connect to the Bartender to create and remove
 files, collections and mount-points using their Logical Names. The
 Bartender communicates 
-with the Librarian and Shepherd services to accomplish the clients
+with the Librarian and Shepherd services to execute the clients'
 requests. However, the actual file data does not go through the
 Bartender, instead file
 transfers are directly performed between the storage nodes and the
@@ -353,7 +355,7 @@ files, collections and mount points, as well as the health information of the Sh
 services. In addition, the Librarian handles
 the information about registered Shepherd services. The Librarian receives
 heartbeat messages from the Shepherds and change replica states automatically
-if needed. The Librarian uses the A-Hash for consistent storing. This makes the
+if needed. The Librarian uses the A-Hash for consistently storing all metadata. This makes the
 Librarian a stateless service, thus enabling the system to have any
 number of independent
 Librarian services, again providing high-availability in the
@@ -365,7 +367,7 @@ system.
 The Shepherd services run as front-ends on storage nodes. A Shepherd
 service reports to a Librarian about the 
 node's health state in terms of replicas. While the Bartender initiates
-file transfers, the actual transfers goes directly between the Shepherd
+file transfers, the actual transfers go directly between the Shepherd
 and the clients.
  
 %% The file-names used by a Shepherd is completely independent from the
@@ -386,10 +388,10 @@ of the replica. %% The namespace of these Locations is independent from
 A-Hash is a hash table for consistently storing data in property-value
 pairs. All metadata about files, collections, mount point, Shepherd's
 health status, and so forth, is stored in the A-Hash. As the A-Hash is
-the service storing the entire state of the storage system, its
+the service storing the entire state of the storage system, it is
 absolutely crucial for the ARC Storage that the A-Hash is
 consistent. The distribution and replication of this service is
-therefore both challenging and needed.
+therefore both necessary and challenging.
 
 \begin{figure}
 \centering
@@ -402,7 +404,7 @@ therefore both challenging and needed.
 \subsection{Features}
 \subsubsection{Heartbeat monitoring}
 \label{Heartbeat and Replication}
-In the proposed architecture, each Shepherd periodically send
+In the proposed architecture, each Shepherd periodically sends
 heartbeats to a Librarian with information about replicas
 whose state changed since the last heartbeat, and the corresponding
 GUIDs. These heartbeats are then stored in the A-Hash, making them
@@ -413,7 +415,7 @@ all the replicas in that Shepherd.
 \subsubsection{Replication}
 \label{Replication}
 Shepherds periodically ask the Librarian if the file of the replica stored on
-its storage node have enough replicas. If the file does not have
+its storage node has enough replicas. If the file does not have
 enough replicas, the Shepherd informs the Bartender and the Bartender initiates
 a put request that returns a Transfer URL to the Shepherd. The
 Shepherd finally uploads the new replica. The Shepherds which gets the new replica notifies the
@@ -447,12 +449,12 @@ physical storage:
 immediately informs the Librarian and the Librarian changes the state of the given replica to
 `\textbf{invalid}'. To recover its replica, the Shepherd contacts a
 Bartender and asks for another replica of the file. The Bartender chooses a valid
-replica, initiate file transfer from a Shepherd having the replica,
+replica, initiates a file transfer from a Shepherd having the replica,
 and returns the TURL to the Shepherd with the invalid replica. When the
 Shepherd has recieved the replica and compared the checksum, it notifies the
 Librarian that the replica is alive again.  
-\item In the case of a Shepherd becoming offline, a Librarian will
-  as mentioned notice the lack of heartbeats and invalidate all the
+\item In the case of a Shepherd going offline, a Librarian will,
+  as mentioned earlier, notice the lack of heartbeats and invalidate all the
   replicas, initiating new replication for all the files stored in
   this storage node. However, if the Shepherd
   again comes online, there will evidently be more replicas than
@@ -468,7 +470,7 @@ Librarian that the replica is alive again.
 \label{Client extension using FUSE module}
 
 Being the only part a user will (and should) see from a storage
-system, the client tools is an important part of the ARC
+system, the client tools are an important part of the ARC
 Storage. Currently ARC supports two ways of accessing the
 storage solution:
 \begin{itemize}
@@ -477,17 +479,17 @@ storage solution:
   \texttt{unmakeCollection}, \texttt{putFile}, \texttt{getFile}, \texttt{delFile},
   \texttt{list} and \texttt{move}. Methods for modifying
   access and ownership will be available in the near future. The CLI
-  does assume a relatively high level of computer experience
+  assumes a relatively high level of computer competence
   from the user. However, the CLI, being a stand-alone tool, can be
-  used to access ARC Storage from any computer\footnote{Also including
-  Microsoft Windows PCs.} that has network access and
+  used to access ARC Storage from any computer (also including
+  Microsoft Windows PCs) that has network access and
   a Python installation.
 \item The \textbf{FUSE module} provides a high-level access to the
-  ARC Storage. Filesystem in Userspace (FUSE) provides a simple
+  ARC Storage. Filesystem in Userspace (FUSE) \cite{FUSE} provides a simple
   library and a kernel-userspace interface. Using FUSE and the ARC
   Storage Python interface, the FUSE module allows users to mount the
   ARC Storage namespace into the local namespace. This way, the user
-  can use his/her favorite file manager to access his/her files and
+  can use her/his favorite file manager to access her/his files and
   collections. The FUSE module provides most of the features provided
   by the CLI, with the exception of modifying some non-posix metadata.
 \end{itemize}
@@ -507,18 +509,18 @@ managers. While designing this service, care was taken to:
   storage managers which support a certain protocol should be handled
   using the corresponding gateway service.  
 \end{itemize}
-This approach provides the flexibility of  avoiding multiple Gateway
-services for different storage managers. Currently the available
+This approach provides flexibility while avoiding multiple Gateway
+services for different storage managers. Currently, the available
 Gateway service is based on the gridftp protocol.  
 
-When the user requests comes, the Librarian provides the metadata related
-with the request to the Bartender. Requests can be related to
+When the user request is made, the Librarian provides the metadata related
+to the request to the Bartender. Requests can be related to
 files, collections or external mount-points. In case of creating
 external mount-points, the Bartender contacts the Librarian to store
 the mount-point for later use. In the case where a request is related
 to the downloading of files from the external store, the Gateway service first checks the status of the file
-and then send the Transfer URL (TURL) to the client via the
-Bartender. Using this TURL client can directly get the file from
+and then sends the Transfer URL (TURL) to the client via the
+Bartender. Using this TURL, the client can directly get the file from
 external store. %% For the experiments we use dCache with gridftp
 %% protocol as an external storage system.   
 
@@ -531,12 +533,12 @@ architecture of the storage can be split into three parts; the
 inter-service authorization; the transfer-level authorization; and the
 high-level authorization.
 \begin{itemize}
-\item The \textbf{inter-service authorization} takes care of the
+\item The \textbf{inter-service authorization} maintains the integrity of the
   internal communication between services. There is a lot of
   communication between the services of the ARC Storage. The
   Bartenders send requests to the Librarians and the Shepherds, the
   Shepherds communicate with the Librarians and the Librarians talk with
-  the A-Hash. If any of these services get compromised or a new
+  the A-Hash. If any of these services is compromised or a new
   rogue service gets inserted in the system, the security of the
   entire system is compromised. To enable trust between the services,
   they need to know each other's Distinguished Names (DNs). This way,
@@ -544,20 +546,20 @@ high-level authorization.
   DN from some trusted Certificate Authority (CA).
 \item The \textbf{transfer-level authorization} handles the
   authorization in the cases of uploading and downloading files. When
-  a transfer is requested the Shepherd will provide a one-time
-  Transfer URL (TURL) which the client can connect to. In the most
+  a transfer is requested, the Shepherd will provide a one-time
+  Transfer URL (TURL) which the client can connect to. In the
   current architecture, this TURL is world-accessible. This may not seem
   very secure at first. However, provided that the TURL has a very long,
   unguessable name, that it is transfered to the user in a secure way
   and that it can only be accessed once before it is deleted, the
-  chance of compromitation is very low.
+  chance of being compromized is very low.
 \item The \textbf{high-level authorization} considers the access
   policies for the files and collections in the system. These policies
   are stored in A-Hash, in the metadata of the corresponding file or
-  collection, offering a fine-grained security in the system.
+  collection, providing a fine-grained security in the system.
 \end{itemize}
 The communication with and within the storage system is realized
-through HTTPS with regular X.509 authentication.
+through HTTPS with standard X.509 authentication.
 
 \section{Testing and Discussion}
 \label{Testing and Discussion}
@@ -577,7 +579,7 @@ University of Oslo, Norway,
 and one node from National Information Infrastructure Development Institute (NIIF)
 Hungary. %with a 2.00GHz Dual Core Intel(R) Pentium(R) 4 CPU with 4 GB RAM. 
 
-The services were distributed as shown in figure \ref{fig:map}:
+The services were distributed as shown in Fig. \ref{fig:map}:
 \begin{itemize}
 \item An A-Hash runs at UPPMAX.
 \item A Bartender runs at USIT.
@@ -607,7 +609,7 @@ The following test where carried out:
 All the tests were performed and worked as expected. However, some of
 the tests deserve extra attention.
 
-Figure \ref{fig:FileDistribution} illustrate two test results,
+Fig. \ref{fig:FileDistribution} illustrate two test results,
 corresponding to Test 2 and Test 3: The orange bars show the distribution after uploading 100 small files
 simultaneously, without replication. This gives an indication of how
 the system balances the load of many clients uploading at the same
@@ -621,7 +623,7 @@ already in the process of uploading the replica. Next, it draws a
 Shepherd from the list at random, using a uniform random number
 generator. When uploading without asking for replicas we would
 therefore expect a relatively flat distribution of the files, as can
-be seen in figure \ref{fig:FileDistribution}. 
+be seen in Fig. \ref{fig:FileDistribution}. 
 
 \begin{figure}
 \centering
@@ -782,6 +784,6 @@ providing resources for running the storage tests.
 %% \end{thebibliography}
 
 \bibliography{arcstorage_refs}
-\bibliographystyle{plain}
+\bibliographystyle{IEEEtran}
 
 \end{document}
