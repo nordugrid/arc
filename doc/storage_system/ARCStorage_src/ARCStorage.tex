@@ -8,6 +8,7 @@
 
 \begin{document}
 \pagestyle{headings} 
+%% \title{Service Oriented ARC Storage; \\An Overview and Design}
 \title{Service Oriented ARC Storage; \\An Overview and Design}
 %% \author{  Jon K. Nilsen$^{2,3}$ \and Salman Toor$^{1}$
 %%   \and Zsombor Nagy$^{5}$ \and Bjarte Mohn$^{4}$  \\ $^{1}$Scientific
@@ -108,7 +109,7 @@ concluding in Section \ref{Conclusion and Future Work}.
 \section{Related Work}
 \label{Related Work}
 \textbf{dCache:} dCache is a storage system \cite{dCache} \cite{DSSWithdCache} which combines heterogeneous storage
-elements in the order of several hundreds of terabytes in a single
+elements to collect several hundreds of terabytes in a single
 namespace. It additionally supports standard and native
 protocols like gridftp, srm, dcap and gsidcap. dCache is
 a joint effort between Desy  \cite{dCachesite}, Fermi National Laboratory \cite{FermiLab}, the  Nordic Data
@@ -142,13 +143,13 @@ Financing. %% Bigtable is mainly built on top of three pieces of Google's
 Bigtable has several interesting features, one of which is the
 distributed lock service, Chubby \cite{Chubby}. Chubby is a high-availability, distributed
 locking service sitting on top of the B$^+$-tree architecture of
-Bigtable. Chubby has several features similar to the distributed A-Hash service,
+Bigtable. Chubby has several features similar to our A-Hash service (see Section \ref{Hash Algorithm}),
 among which the use of the Paxos algorithm \cite{Paxos,PaxosLive}, is
 the most striking. A major caveat for the Grid community is that
-Bigtable is neither free, open-source, nor available to the public.
+Bigtable is neither free, open-source nor available to the public.
 \newline
 \textbf{Storage Resource Broker:}  Based on the client-server model,
-The Storage Resource Broker (SRB) \cite{earlySRB,SRB} provides a flexible data grid management
+the Storage Resource Broker (SRB) \cite{earlySRB,SRB} provides a flexible data grid management
 system. It allows  uniform access for connecting to heterogeneous
 storage resources over a wide area network. %% SRB also manages the
 %% namespaces used to identify files, storage resources, users, metadata,
@@ -158,7 +159,7 @@ storage resources over a wide area network. %% SRB also manages the
 %% storage systems like Castor and dCache.\\
 Its functionality, with a uniform namespace for several Data Grid
 Managers and file systems, is quite similar to the functionality
-offered by our Gateway service. However, being built as a middleware on top of
+offered by our Gateway service (see Section \ref{Gateways}). However, being built as a middleware on top of
 other major storage solutions, SRB does not offer its own storage solution.
 \newline
 \textbf{Scalla:} Scalla is a widely used software suite consisting of an
@@ -204,7 +205,7 @@ for high latency, more suitable for the Grid environment.
 The next generation Advanced Resource Connector (ARC) Grid middleware \cite{NorduGridsite} \cite{KnowARCsite} consists of a set of pluggable components. These components are the
 fundamental building blocks of the ARC services and clients. ARC
 services are running inside a container called the Hosting Environment
-Daemon (HED). There are four kinds of pluggable components having well
+Daemon (HED) and there are four kinds of pluggable components having well
 defined tasks: Data Management Components are used to transfer the
 data using various protocols, Message Chain Components are
 responsible for the communication within clients and services as well as
@@ -275,7 +276,7 @@ re-replication of the replicas between the other Shepherds.
 
 In the default implementation the services will provide a
 full-featured and consistent data storage system using files as an
-atomic unit. The scope of the ARC data management system in the foreseen
+atomic unit. The scope of the ARC storage system in the foreseen
 future is restricted to provide support for file-based data services.
 %% there are currently no plans for intrinsic support for database
 %% access.
@@ -534,7 +535,7 @@ high-level authorization.
   internal communication between services. There is a lot of
   communication between the services of the ARC Storage. The
   Bartenders send requests to the Librarians and the Shepherds, the
-  Shepherds communicate with the Librarians, the Librarians talk with
+  Shepherds communicate with the Librarians and the Librarians talk with
   the A-Hash. If any of these services get compromised or a new
   rogue service gets inserted in the system, the security of the
   entire system is compromised. To enable trust between the services,
@@ -581,7 +582,7 @@ The services were distributed as shown in figure \ref{fig:map}:
 \item An A-Hash runs at UPPMAX.
 \item A Bartender runs at USIT.
 \item A Librarian runs on UPPMAX.
-\item In total we are running five Shepherds: Three at USIT, having
+\item In total five Shepherds were used for the tests: Three at USIT, having
   100GB storage space each, one at UPPMAX, with 20GB, and one at NIIF, providing 16GB of storage space.
  \end{itemize}
 
@@ -592,26 +593,26 @@ The services were distributed as shown in figure \ref{fig:map}:
 \label{fig:map}
 \end{figure}  
 
-The following test where considered:
+The following test where carried out:
 
 \begin{itemize}
-\item Test 1: The distribution after uploading 10 large size (1 GB)
+\item Test 1: The distribution of data after uploading 10 large size (1 GB)
   files with one replica each.  
-\item Test 2: The distribution after uploading 100 small size (1 kB)
+\item Test 2: The distribution of files after uploading 100 small size (1 kB)
   files with one replica each, and with simultanious uploading
-\item Test 3: Distribution after repeating Tests 1 and 2 with three replicas.  
+\item Test 3: The distribution of data after repeating Tests 1 and 2 with three replicas.  
 \item Test 4: System behavior while some of the shepherd becomes offline.   
 \end{itemize}
 
 All the tests were performed and worked as expected. However, some of
 the tests deserve extra attention.
 
-Figure \ref{fig:FileDistribution} illustrate two different scenarios,
+Figure \ref{fig:FileDistribution} illustrate two test results,
 corresponding to Test 2 and Test 3: The orange bars show the distribution after uploading 100 small files
 simultaneously, without replication. This gives an indication of how
 the system balances the load of many clients uploading at the same
 time. The green bars show distribution with the same kind of
-uploading, but with the clients requesting three replicas each. The
+uploading, but with the clients requesting three replicas for each file. The
 difference here is that the system simultaneously has to handle both
 replication and the clients requesting uploads. When the Bartender chooses
 a location for which to put a replica, it generates a list of
@@ -684,7 +685,7 @@ relatively low storage load on the  NIIF storage node.
 \small{USIT-3}&7820&9774&8798\\
 \small{NIIF}&3320&2344&1367\\
 \hline
-\small{Sum}&30691&30693&30694\\
+\small{Sum}&30691&30695&30694\\
 \hline
 \end{tabular}
 \caption{Storage load before, during and after a Shepherd outage.}
@@ -699,12 +700,12 @@ states: Before interrupting a Shepherd, after the USIT-2
 Shepherd is interrupted and redistribution of replicas is finished; and
 alive, when the Shepherd is restarted and the system again has stabilized. We
 can see that all files are properly distributed between the remaining
-Shepherds when one of them is disrupted. Interestingly, the storage load
-automatically evens out when the Shepherd comes back online. When the
+Shepherds when one of them is disrupted and that the storage load evens out 
+again when the Shepherd comes back online. When the
 system discovers that there are more replicas than needed, the first
 Shepherd noticing will set mark its replica as obsolete. Since the failing Shepherd didn't lose any replicas while
 being down, redistribution of replicas is just a matter of deleting
-obsolete replicas. Interestingly, the NIIF node actually got fewer
+obsolete replicas. We also see that the NIIF node actually got fewer
 files when USIT-2 went offline. If two Shepherds simultaniously
 starts uploading replicating a missing replica, there will be too many
 replicas. Here, a big replica on the NIIF node has randomly been chosen as
@@ -771,7 +772,7 @@ providing resources for running the storage tests.
 %% \begin{thebibliography}{5}
 
 
-%% International Conference on Computing in High Energy and Nuclear Physics (CHEPê07) IOP Publishing 
+%% International Conference on Computing in High Energy and Nuclear Physics (CHEPï¿½07) IOP Publishing 
 %% Journal of Physics: Conference Series 119 (2008) 062014 doi:10.1088/1742-6596/119/6/062014 
 %% \newline
 %% A Simple Mass Storage System for the SRB Data Grid, Michael Wan, Arcot Rajasekar, Reagan Moore, Phil Andrew, 20th IEEE/ 11th NASA Goddard Conference on Mass Storage Systems \& Technologies (MSST2003) San Diego, California, April 7-10, 2003.
