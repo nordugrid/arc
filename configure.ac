@@ -1317,6 +1317,8 @@ AC_CONFIG_FILES([Makefile
                  src/clients/arclib/arcget.1
                  src/clients/arclib/arccat.1
                  src/clients/arclib/arcclient.xml.5
+                 src/clients/srm/Makefile
+                 src/clients/srm/arcsrmping.1
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile

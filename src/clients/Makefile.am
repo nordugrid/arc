@@ -4,5 +4,5 @@ else
 VOMS_SAML_CLIENT =
 endif
 
-SUBDIRS = data echo wsrf isis credentials arclib charon $(VOMS_SAML_CLIENT)
-DIST_SUBDIRS = data echo wsrf isis credentials arclib charon voms
+SUBDIRS = data echo wsrf isis credentials arclib charon $(VOMS_SAML_CLIENT) srm
+DIST_SUBDIRS = data echo wsrf isis credentials arclib charon voms srm

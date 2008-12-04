@@ -1,0 +1,50 @@
+.\" -*- nroff -*-
+.TH APECHO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcsrmping \- SRM ping client
+
+.SH DESCRIPTION
+
+The
+.B arcsrmping
+command is a ping client for the SRM service.
+
+.SH SYNOPSIS
+
+.B arcsrmping [options] service
+
+.SH OPTIONS
+
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBservice\fR"
+A URL to an SRM service
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+.B arcsrmping
+sends an SRM ping request to the SRM service and displays the result.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
