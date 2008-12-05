@@ -75,10 +75,10 @@ static Glib::Mutex service_lock;
 Arc::Logger Arc::Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    Arc::ChainContext* ctx = (Arc::ChainContext*)(*mccarg);
+    Arc::ServicePluginArgument* srvarg =
+            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+    if(!srvarg) return NULL;
+    Arc::ChainContext* ctx = (Arc::ChainContext*)(*srvarg);
 
 #ifndef WIN32
     // ((Arc::PluginsFactory*)(*ctx))->load("pythonservice",false,true); // doesn't work, why?
@@ -105,7 +105,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     python_service_counter++;
     Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Loading %u-th Python service", python_service_counter);
     service_lock.unlock();    
-    Arc::Service* service = new Arc::Service_PythonWrapper((Arc::Config*)(*mccarg));
+    Arc::Service* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg));
     PyEval_ReleaseThread(tstate); // Release current thread
     Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Initialized %u-th Python service", python_service_counter);
     return service;

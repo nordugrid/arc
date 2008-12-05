@@ -8,10 +8,10 @@
 #include "javawrapper.h"
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    return new Arc::Service_JavaWrapper((Arc::Config*)(*mccarg));
+    Arc::ServicePluginArgument* srvarg =
+            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+    if(!srvarg) return NULL;
+    return new Arc::Service_JavaWrapper((Arc::Config*)(*srvarg));
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

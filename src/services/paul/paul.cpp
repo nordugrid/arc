@@ -30,10 +30,10 @@ namespace Paul {
 // Static initializator
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) 
 {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    return new PaulService((Arc::Config*)(*mccarg));
+    Arc::ServicePluginArgument* srvarg =
+            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+    if(!srvarg) return NULL;
+    return new PaulService((Arc::Config*)(*srvarg));
 }
 
 void PaulService::GetActivities(const std::string &url_str, std::vector<std::string> &ret)

@@ -21,10 +21,10 @@ static Arc::LogStream logcerr(std::cerr);
 
 // Static initializator
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    return new ARex2Service((Arc::Config*)(*mccarg));
+    Arc::ServicePluginArgument* srvarg =
+            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+    if(!srvarg) return NULL;
+    return new ARex2Service((Arc::Config*)(*srvarg));
 }
 
 Arc::MCC_Status ARex2Service::CreateActivity(Arc::XMLNode /*in*/,

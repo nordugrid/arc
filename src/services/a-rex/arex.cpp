@@ -53,10 +53,10 @@ static Arc::XMLNode BESARCResponse(Arc::PayloadSOAP& res,const char* opname) {
 //static Arc::LogStream logcerr(std::cerr);
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    return new ARexService((Arc::Config*)(*mccarg));
+    Arc::ServicePluginArgument* srvarg =
+            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+    if(!srvarg) return NULL;
+    return new ARexService((Arc::Config*)(*srvarg));
 }
 
 class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {

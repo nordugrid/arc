@@ -18,10 +18,10 @@ namespace ISIS
 {
 
 static Arc::Plugin *get_service(Arc::PluginArgument* arg) { 
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    return new ISIService((Arc::Config*)(*mccarg));
+    Arc::ServicePluginArgument* srvarg =
+            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+    if(!srvarg) return NULL;
+    return new ISIService((Arc::Config*)(*srvarg));
 }
 
 Arc::MCC_Status
