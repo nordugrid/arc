@@ -17,8 +17,9 @@ namespace Arc {
 
   Loader::Loader(Config& cfg) {
     factory_    = new PluginsFactory(cfg);
-    XMLNode cn;
-    for(int n = 0; (cn = cfg.Child(n)); ++n) {
+    for(int n = 0;; ++n) {
+      XMLNode cn = cfg.Child(n);
+      if(!cn) break;
       Config cfg_(cn, cfg.getFileName());
 
       if(MatchXMLName(cn, "ModuleManager")) {
