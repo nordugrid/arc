@@ -34,6 +34,16 @@
 \renewcommand\labelitemiii{${\blacksquare}$}
 \renewcommand\labelitemiv{${\bullet}$}
 }
+\newcommand\liststyleLiv{%
+\renewcommand\theenumi{\arabic{enumi}}
+\renewcommand\theenumii{\arabic{enumii}}
+\renewcommand\theenumiii{\arabic{enumiii}}
+\renewcommand\theenumiv{\arabic{enumiv}}
+\renewcommand\labelenumi{\theenumi.}
+\renewcommand\labelenumii{\theenumii.}
+\renewcommand\labelenumiii{\theenumiii.}
+\renewcommand\labelenumiv{\theenumiv.}
+}
 \newcommand\liststyleLv{%
 \renewcommand\theenumi{\arabic{enumi}}
 \renewcommand\theenumii{\arabic{enumii}}
@@ -73,8 +83,8 @@
 \title{}
 \begin{document}
 {\centering
-Towards cross-domain authentication and standardized attribute-based
-authorization for ARC grid middleware
+Towards cross-middleware authentication and single sign-on for ARC grid
+middleware
 \par}
 
 
@@ -85,25 +95,21 @@ Abstract
 \par}
 
 \ In order to make the access to Grids as simple as possible, security
-including authentication and authorization is one of the most important
-challenges in production Grids, especially when the Grid applications
-are across multiple administration domains as well as across
-heterogeneous Grid middlewares, such as some widely scaled eScience
-applications which needs to coordinate resources sharing among
-collection of autonomous institutions with different Grid middlewares
-running on these resources. In this paper, we describe the security
-implementation and consideration in new version of Advanced Resource
-Connector (ARC) middleware, where the above issues have been exploited.
-The main goal of ARC implementation in terms of security is to let the
-middleware be capable to \ interoperate with other Grid middlewares by
-leveraging standard specifications. The key aspect of the work we have
-done is to enhance the current proxy certificate based delegation and
-authentication by utilizing the Security Assertion Markup Languages
-(\textit{SAML}) single sign-on (SSO) profile, WS-Security in order to
-achieve cross-domain authentication, as well as to enhance the
-Attribute Certificate (AC) based authorization by utilizing the SAML
-\ attribute query profile in order to achieve standardized
-attribute-based authorization. \ 
+is one of the most important challenges in production Grids, especially
+when the Grid applications are across multiple administration domains
+as well as across heterogeneous Grid middlewares, such as some widely
+scaled eScience applications which needs to coordinate resources
+sharing among collection of autonomous institutions with different Grid
+middlewares running on these resources. In this paper, we describe the
+security implementation and consideration in new version of Advanced
+Resource Connector (ARC) middleware, where the above issues have been
+exploited. The main goal of ARC implementation in terms of security is
+to let the middleware be capable to \ interoperate with other Grid
+middlewares by leveraging standard specifications. The key aspect of
+the work we have done is to enhance the current proxy certificate based
+delegation and authentication by utilizing the Security Assertion
+Markup Languages (\textit{SAML}) single sign-on (SSO) profile,
+WS-Security in order to achieve cross-domain authentication. \ 
 
 
 \bigskip
@@ -238,92 +244,8 @@ specific security protocols.
 ARC grid middleware, especially the architecture if the new version of
 ARC. Section 3 describes the solution about cross-domain authentication
 and single sign-on is presented, including a few solutions implemented
-for bridging the mismatch in terms of authentication. \ Section 4
-describes the implementation about standardized attribute querying for
-authorization. Section 5 discusses the related research, and Section 6
-concludes.
-
-
-\bigskip
-
-
-\bigskip
-
-
-\bigskip
-
-Based on OASIS WS-Trust 1.3 standard
-
-
-\bigskip
-
-
-\bigskip
-
-Allows us to bridge security domains in a scalable manner
-
-Allows the use of multiple token formats
-
-pick which is best/supported for your product
-
-Privacy can be protected across applications because:
-
-\ Each application can get a different, opaque, ID
-
-\ Each application receives only the attributes it needs
-
-\ \ \ \ Attributes may be retrieved from places like VOMS, GUMS, etc.
-
-\ \ \ \ When one application requests a token for use with another that
-token \ may be encrypted so that only the receiving app may view its
-data 
-
-The STS serves as a point where policy decisions, such as \ whether App1
-can talk to App2, can be made.
-
-Removes the need for proprietary token related protocols
-
-\ \ Supports a superset of current operations and works for more than
-\ one token format
-
-
-\bigskip
-
-
-\bigskip
-
-While we started our work on the STS in the grid space it \ became clear
-it had other uses:
-
-\ \ A portal wants to connect to a SOAP service to get information
-\ about you but needs a SAML assertion to do it
-
-\ \ A user wants to connect to an AFS server in a different domain
-\ using the credentials from their domain
-
-\ \ A user has a SAML assertion but needs a Kerberos ticket to
-\ communicate with SharePoint
-
-There are a number of token formats out there. \ Chances \ are high,
-amongst all the software you have, more than one \ format is supported.
-
-How will you prepare for the next greatest format to hit the \ street?
-
-
-\bigskip
-
-
-\bigskip
-
-
-\bigskip
-
-
-\bigskip
-
-In ARC1, besides that GSI is supported for talking with external grid
-services which are based on GSI, the standard TLS/SSL is also
-supported.
+for bridging the mismatch in terms of authentication. Section 4
+discusses the related research, and Section 5 concludes.
 
 
 \bigskip
@@ -392,7 +314,7 @@ later configuration is compatible to WSE (Web Services Enhancement for
 .NET) {\textquotesingle}s SOAP message mechanism (see
 WSE{\textquotesingle}s \textit{SoapSender} and \textit{SoapReceiver}).
 Another configuration could be SOAP over HTTPG (HTTP over GSI) which
-can be user to interoperate with some service based on HTTPG such as
+can be used to interoperate with some service based on HTTPG such as
 SRM (Storage Resource Manager) [ref] service. The easily configurable
 characteristics shows the flexibility of HED in terms of protocol
 supporting.
@@ -463,6 +385,13 @@ services.
 short lived X.509 certificate for user by using the community
 authentication, in order to interoperate with services that depends on
 PKI based mutual authentication.
+\item \textit{Credential delegation service} -{}-{}- to process the
+X.509 credential delegation as a normal Web Service, in order to
+provide single sign-on characteristic.
+\item \textit{Message level authentication} -{}-{}- to provide message
+level authentication by implementing WS-Security.
+\item 
+\bigskip
 \end{itemize}
 
 \bigskip
@@ -528,8 +457,11 @@ service.
 
 
 \begin{center}
-\includegraphics[width=3.398in,height=2.1555in]{Secpaper-img2.png}
+\includegraphics[width=3.4063in,height=2.1417in]{Secpaper-img2.png}
 \end{center}
+
+\bigskip
+
 
 \bigskip
 
@@ -539,7 +471,7 @@ Figure 2. SAML2.0 SSO profile in ARC
 
 The steps shows in Figure 2 are described as follows:
 
-\liststyleLv
+\liststyleLiv
 \begin{enumerate}
 \item The client use the user agent interface to launches a http request
 including the IdP name (to which the user belongs) to the service side.
@@ -598,6 +530,17 @@ that SP and IdP can authenticate themselves to the client. As required
 by SAML2.0 profile, the SP and IdP should have trust relationship to
 each other.
 
+One benefit of SAML2.0 SSO profile that is worth mentioning is that: the
+Identity Provider could cache the authentication result through session
+management once the user agent has succeeded to authenticate, then in a
+short period this authentication result is valid so that user agent
+don{\textquotesingle}t need to feed IdP with user{\textquotesingle}s
+username and password the next time (if the time is not out of the
+scope of valid period) it authenticates against IdP. So user (or the
+client on behalf of this user) can travel across multiple security
+domains with only inputing his name and password once, which is the
+characteristic of single sign-on.
+
 Since the Shibboleth implementation of SAML is standard-compliant and
 widely deployed, the solution implemented in ARC can easily
 interoperate with other SAML implementations with minimum changes, and
@@ -614,7 +557,19 @@ require server SSL authentication instead of mutual SSL authentication.
 
 \ \ 3.2 Short lived credential service
 
-However, the \ \ Based on the solution described in Section 3.1, 
+However, most of the widely used grid middlewares are based on GSI while
+GSI requires mutual authentication. Also for Web Service based grid
+solution, we can not prevent service side from requiring client X.509
+certificate. \ Based on the solution described in Section 3.1, we
+implemented a short lived credential service (SLCS) by which user can
+get a short-lived X.509 certificate without being bothered to contact
+any registration authority (RA) or certificate authority (CA).
+
+The SLCS service is actually a specific Web Service (standard web
+service implemented by using ARC service interface) in Figure 2, and
+the SLCS client is a specific ARC client which includes the user agent
+and WS client. The whole process from step 1 to step 8 is the same as
+in Figure 2.
 
 
 \bigskip
@@ -622,49 +577,238 @@ However, the \ \ Based on the solution described in Section 3.1,
 
 
 \begin{center}
-\includegraphics[width=4.2134in,height=3.8972in]{Secpaper-img3.png}
+\includegraphics[width=3.7689in,height=3.2055in]{Secpaper-img3.png}
 \end{center}
 {\centering
 Figure 3. Short lived credential service
 \par}
 
+\ \ \ SLCS client generates a X.509 certificate request, launches a Web
+Service request which includes the certificate request; SLCS service
+then gets the certificate request, composes a distinguished name (DN),
+issues a certificate (short lived, 12 hours by default) with the SAML
+attribute (from the SAML2.0 SSO profile) as the X.509 certificate
+extension, and puts the certificate in to the Web Service response;
+SLCS client get the response and stores the X.509 certificate into
+local repository.
+
+The command line interface for the SLCS client is like this:
+
+\$ ./arcslcs -S https://127.0.0.1:60000/slcs -I
+https://idp.testshib.org/idp/shibboleth -U myself -P myself
+
+\ \ \ Since the lifetime of the short lived credential is normally
+short, it is not a must to protect the private key by pass-phrase. As
+illustrated in step a and step b in Figure 3, if the private key is not
+protected, through Web Service client, the user can use the X.509
+certificate to access Grid Service or Web Service from any kind of
+middleware. If the private key is protected, the can use the X.509
+certificate to generate a proxy certificate (by using command line
+interface utility such as \textit{grid-proxy-init},
+\textit{voms-proxy-init}, or \textit{arcproxy}), and the use the proxy
+certificate to access Grid Service or Web Service. 
+
+\ \ \ It is worth mentioning that since ARC middleware can support GSI
+communication by configuring the GSI MCC, \ together with the X.509
+certificate, the Web Service client developed by ARC client interface
+can interoperate with Grid Service that requires GSI communication.
+
+\ \ \ It might be noticed that how to compose the distinguished name
+(DN) for the certificate is critical issue for SLCS service. Since the
+Shibboleth Identity Provider uses the eduPerson schema [ref] for the
+definition of {\textless}saml:Attribute{\textgreater} in
+{\textless}saml:AttributeStatement{\textgreater}, we pick the
+relatively distinguishable attribute
+{\textquotedblleft}eduPersonPrincipalName{\textquotedblright} for the
+DN. A typical \ eduPersonPrincipalName \ value could be
+\href{mailto:alice@example.org}{alice@example.org}, then the DN is
+{\textquotedblleft}/O=knowarc/OU=example.org/CN=alice{\textquotedblright}.
+
+The obvious benefit of SLCS service is that: If a user passes the
+authentication to his home Identity Provider, he can get the X.509
+credential at anywhere only by running the SLCS client command together
+with inputing his username and password to this home IdP, and then
+access the grid system conveniently; meanwhile, thanks to the single
+sign-on characteristic discussed in Section 3.1, this user
+\ doesn{\textquotesingle}t not need to input his username and password
+in a valid period after the first time he succeeds to authenticate
+against his home IdP by running the SLCS client command on the same
+node, even if this SLCS client command is supposed to run against a few
+SLCS services to get a few SLCS credentials.
+
 
 \bigskip
 
-how to compose the DN
+\ \ 3.3 X.509 Credential delegation service
+
+The delegation of credentials proposed in Grid Security Infrastructure
+(GSI) is a good solution for the supporting of single sign-on for
+users, except the coupling of the GSI communication which is not so
+widely accepted in Web Service applications. In the design of the new
+version ARC middleware, we keep the credential delegation idea, while
+utilizing the SOAP communication (and normal TCP or TLS for transport
+level communication) instead of the GSI communication for the
+credential delegation process.
+
+As shown in Figure 4, there is a specific WS client and Web Service as
+well for processing delegation: delegation client, and delegation
+service. The delegation service has two main wsdl operations, one for
+processing the delegation initiation; the other for processing/storing
+the signed proxy certificate. The delegation process is detailed in
+Figure 5. 
+
+For the service invocation process, the WS client functionality (inside
+each service or the initial client) which is included to access the
+target service (step a1 or a2 in Figure 4), should use the
+user{\textquotesingle}s X.509 certificate or proxy certificate (on
+behalf of the user) for authentication and secure communication. For
+the delegation process, the principle is the same.
+
+Since each WS client accesses the target service (delegation service or
+other functional service) on behalf of the user, the trust relationship
+between the user{\textquotesingle}s certificates (X.509 certificate and
+proxy certificate) and services is required, while the trust
+relationship between service and service is not required.
+
+ 
+
+\begin{center}
+\includegraphics[width=3.802in,height=3.0689in]{Secpaper-img4.png}
+\end{center}
+
+\bigskip
 
 
 \bigskip
 
-command line
+{\centering
+Figure 4. Credential delegation service
+\par}
+
+
+\bigskip
+
+
+
+\begin{center}
+\includegraphics[width=2.5319in,height=1.8571in]{Secpaper-img5.png}
+\end{center}
+{\centering
+Figure 5. Credential delegation process
+\par}
+
+
+\bigskip
+
+\ \ 3.4 Message level authentication
+
+Transport level security (TLS or SSL) is not sufficient for securing Web
+Services, because the secure channel created by SSL/TLS make it
+impossible to differentially protect the SOAP message, e.g. \ to
+encrypt and/or sign only particular components of the SOAP message,
+which is relevant when non-sensitive portions of the message need to be
+accessed or changed by intermediate actors. Additionally, SSL/TLS is
+incapable of providing end-to-end protection for SOAP message which
+might flow through multiple intermediate actors, because it only allows
+each hop to be protected with the resultant security gaps at
+intermediate actors. Web Services Security (WS-Security) specification
+(ref) provides means for applying security to Web Service.
+
+The WS-Security related specifications are implemented in ARC as
+\textit{SecHandler}. There are three kinds of WS-Security version 1.1
+specifications are completely or partly implemented: Username Token
+profile, X.509 Token profile, and SAML Token profile.
+
+For those WS clients on behalf of a user, at any step of service
+invocation, the WS client can augment the SOAP message with WS-Security
+token by simply configuring the WS-Security \textit{SecHandler} into
+container{\textquotesingle}s configuration, if the relying party
+(target service) requires. 
+
+If the WS client owns an X.509 certificate or proxy certificate, the
+process of generating an X.509 Token for a SOAP message is: the client
+puts the content of certificate into X.509 token as
+{\textless}wsse:BinarySecurityToken{\textgreater}, and uses the private
+key (corresponding to the certificate) to create XML signature for the
+SOAP message body. 
+
+However the process of generating a SAML Token is more complicated. In
+SAML Token profile, \textit{ConfirmationMethod} is the verifying method
+for establishing proof-of-possession for the subject. Two methods are
+proposed in SAML Token profile: \textit{holder-of-key},
+\textit{sender-vouches}. \ We rely on the \textit{holder-of-key
+}method. For the \textit{hold-of-key} subject confirmation method,
+there are three interaction parts: the attesting entity, the relying
+party and the issuing authority. Firstly the attesting entity
+authenticates to issuing authority by using some authentication scheme
+such as X.509 Token profile. So then issuing authority is able to make
+a definitive statement (sign a SAML assertion) about an act of
+authentication that has already taken place. The attesting entity gets
+the SAML assertion and then signs the SOAP message together with the
+assertion by using its private key (the relevant certificate has been
+authenticated by issuing authority, and its relevant public key has
+been put into \textit{SubjectConfirmation}
+
+element under SAML assertion by issuing authority. Only the actual owner
+of the SAML assertion can do this, as only the subject possesses the
+private key paired with the public key in the assertion. This
+establishes an irrefutable connection between the author of the SOAP
+message and the assertion describing an authentication event.)
+
+\ The relying party is supposed to trust the issuing authority. When it
+receives a message from the asserting entity, it will check the SAML
+assertion based on its predetermined trust relationship with the SAML
+issuing authority, and check the signature of the soap message based on
+the public key in the SAML assertion without directly trust
+relationship with attesting entity (subject owner).
+
+
+\bigskip
+
+\ \ 3.5 SAML Token delegation service
+
+\ There is also delegation requirement on the message level, some
+entities (client or user) often need to temporarily delegate itself to
+another entity to perform action on their behalf. We propose a
+delegation mechanism for SAML Token. 
+
+The delegation process is similar to the process for delegation proxy
+certificate, with the following differences:
+
+\liststyleLv
+\begin{enumerate}
+\item The communication between delegation client and service is based
+on mutual authentication between proxy certificate and service
+certificate, instead, it is based on mutual authentication between
+service certificate and service certificate.
+\item The delegation service will not generate any certificate request,
+instead, it picks the public key from its own service certificate, and
+sends back to delegation client.
+\end{enumerate}
+Figure 6 shows the token change due to delegation. On the left side, B
+is the identity of the attesting entity{\textquotesingle}s X509 token
+mentioned above, while A is the identity of issuing authority, and the
+SOAP message is signed by B{\textquotesingle}s private key. On the
+right side, C is the identity of the delegation service, ans now the
+SOAP message is signed by C{\textquotesingle}s private key.
+
+
+\bigskip
+
+
+
+\begin{center}
+\includegraphics[width=4.2571in,height=2.152in]{Secpaper-img6.png}
+\end{center}
+{\centering
+\ \ \ \ \ \ \ \ \ Figure 6. Token before and after delegation
+\par}
 
 
 \bigskip
 
 
 \bigskip
-
-
-\bigskip
-
-\ \ 3.3 Certificate delegation service
-
-
-\bigskip
-
-
-\bigskip
-
-\ \ 3.4 From transport level security to message level security: X.509
-Token and SAML Token
-
-
-\bigskip
-
-
-\bigskip
-
-\ \ 3.5 Delegation between WS-Security tokens
 
 
 \bigskip
@@ -673,38 +817,8 @@ Token and SAML Token
 \bigskip
 
 {\centering
-4. Standardized Attribute-based authorization 
+4. Related work
 \par}
-
-
-\bigskip
-
-4.1 SAML Attribute Query profile
-
-
-\bigskip
-
-4.2 Client to VOMS Attribute authority Service
-
-
-\bigskip
-
-4.3 Attribute parsing and Policy decision point
-
-
-\bigskip
-
-
-\bigskip
-
-
-\bigskip
-
-{\centering
-5. Related work
-\par}
-
-VOMS AA Service
 
 Shibboleth
 
@@ -717,6 +831,8 @@ SWITCH SLCS Service
 the CCGrid 06 paper: Shibboleth-Protected privilege management
 infrastructure
 
+Delegation service : gridsite
+
 
 \bigskip
 
@@ -724,7 +840,7 @@ infrastructure
 \bigskip
 
 {\centering
-6. Conclusion and Future work
+5. Conclusion and Future work
 \par}
 
 
@@ -744,6 +860,12 @@ Applications 2001; 15(3):200--222.
 
 The Shibboleth Project.
 \href{http://shibboleth.internet2.edu/}{Http://shibboleth.internet2.edu/}
+
+
+\bigskip
+
+eduPerson and eduOrg Object shema.
+\url{http://middleware.internet2.edu/eduperson/}
 
 
 \bigskip
