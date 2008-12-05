@@ -25,7 +25,8 @@ namespace Arc {
 	size((unsigned long long int)(-1)),
 	created((time_t)(-1)),
 	valid((time_t)(-1)),
-	type(file_type_unknown) {}
+	type(file_type_unknown),
+	latency("") {}
 
     ~FileInfo() {}
 
@@ -108,7 +109,19 @@ namespace Arc {
     void SetType(const Type t) {
       type = t;
     }
+    
+    bool CheckLatency() const {
+      return (!latency.empty());
+    }
 
+    std::string GetLatency() const {
+      return latency;
+    }
+    
+    void SetLatency(const std::string l) {
+      latency = l;
+    }
+    
   private:
 
     std::string name;
@@ -118,6 +131,7 @@ namespace Arc {
     Time created;                // Creation/modification time.
     Time valid;                  // Valid till time.
     Type type;                   // File type - usually file_type_file
+    std::string latency;         // Access latenct of file (applies to SRM only)
   };
 
 } // namespace Arc

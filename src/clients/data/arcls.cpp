@@ -85,6 +85,8 @@ void arcls(const Arc::URL& dir_url,
 	std::cout << " " << i->GetCheckSum();
       else
 	std::cout << " *";
+      if (i->CheckLatency())
+  std::cout << " " << i->GetLatency();
     }
     std::cout << std::endl;
     if (show_urls)
