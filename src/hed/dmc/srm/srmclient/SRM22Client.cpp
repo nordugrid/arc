@@ -2,7 +2,7 @@
 
 //namespace Arc {
   
-  Arc::Logger SRM22Client::logger(SRMClient::logger, "SRM22Client");
+  //Arc::Logger SRM22Client::logger(SRMClient::logger, "SRM22Client");
 
   SRM22Client::SRM22Client(std::string url) {
     version = "v2.2";
@@ -214,7 +214,7 @@
   
     // store the request token in the request object
     if (response_inst->requestToken) req.request_token(response_inst->requestToken);
-  
+
     // deal with response code
     if (return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREQUEUED ||
         return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREINPROGRESS) {
@@ -406,7 +406,7 @@
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
-    sobo_request->requestToken=req.request_token();
+    sobo_request->requestToken=(char*)req.request_token().c_str();
   
     struct SRMv2__srmStatusOfBringOnlineRequestResponse_ sobo_response_struct;
   
@@ -935,7 +935,7 @@
       logger.msg(Arc::ERROR, "No request token specified!");
       return false;
     };
-    request->requestToken=req.request_token();
+    request->requestToken=(char*)req.request_token().c_str();
   
     struct SRMv2__srmReleaseFilesResponse_ response_struct;
   
@@ -973,7 +973,7 @@
       logger.msg(Arc::ERROR, "No request token specified!");
       return false;
     };
-    request->requestToken=req.request_token();
+    request->requestToken=(char*)req.request_token().c_str();
   
     struct SRMv2__srmPutDoneResponse_ response_struct;
   
@@ -1009,7 +1009,7 @@
       logger.msg(Arc::ERROR, "No request token specified!");
       return false;
     };
-    request->requestToken=req.request_token();
+    request->requestToken=(char*)req.request_token().c_str();
   
     struct SRMv2__srmAbortRequestResponse_ response_struct;
   

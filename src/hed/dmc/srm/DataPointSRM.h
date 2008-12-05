@@ -5,6 +5,9 @@
 
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
+#include <arc/data/DataHandle.h>
+
+#include "srmclient/SRMClient.h"
 
 namespace Arc {
 
@@ -24,7 +27,11 @@ namespace Arc {
 				 bool long_list = false,
 				 bool resolve = false);
   private:
+    SRMClientRequest * srm_request;
     static Logger logger;
+    DataHandle * r_handle; /* handle used for redirected operations */
+    bool reading;
+    bool writing;
   };
 
 } // namespace Arc

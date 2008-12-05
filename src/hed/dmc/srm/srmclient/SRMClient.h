@@ -125,7 +125,7 @@
     /**
      * string request tokens (eg "-21249586") are used in SRM2.2
      */
-    char * _request_token;
+    std::string _request_token;
   
     /**
      * A list of file ids is kept in SRM1
@@ -198,7 +198,7 @@
      * set and get request token
      */
     void request_token(char* token) {_request_token = token;};
-    char* request_token() {return _request_token;};
+    std::string request_token() {return _request_token;};
     
     /**
      * set and get file id list

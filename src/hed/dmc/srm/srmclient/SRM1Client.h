@@ -35,7 +35,7 @@ const static SOAP_NMAC struct Namespace srm1_soap_namespaces[] =
    private:
     struct soap soapobj;
     bool acquire(SRMClientRequest& req,std::list<std::string>& urls);
-    static Arc::Logger logger;
+    //static Arc::Logger logger;
     
    public:
     SRM1Client(std::string url);

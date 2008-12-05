@@ -40,7 +40,7 @@ const static unsigned int max_files_list = 999;
   class SRM22Client: public SRMClient {
    private:
     struct soap soapobj;
-    static Arc::Logger logger;
+    //static Arc::Logger logger;
     
     /**
      * Internal version of info(), when repeated listing is needed to
