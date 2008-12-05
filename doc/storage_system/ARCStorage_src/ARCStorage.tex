@@ -602,7 +602,7 @@ The services were distributed as shown in Fig. \ref{fig:map}:
 \label{fig:map}
 \end{figure}  
 
-The following test where carried out:
+The following tests were carried out:
 
 \begin{itemize}
 \item Test 1: The distribution of data after uploading 10 large size (1 GB)
@@ -610,22 +610,25 @@ The following test where carried out:
 \item Test 2: The distribution of files after uploading 100 small size (1 kB)
   files with one replica each, and with simultanious uploading
 \item Test 3: The distribution of data after repeating Tests 1 and 2 with three replicas.  
-\item Test 4: System behavior while some of the shepherd becomes offline.   
+\item Test 4: System behavior while some of the shepherds are offline.   
 \end{itemize}
 
-All the tests were performed and worked as expected. However, some of
+In the tests we used two client machines: One ASUS eee 901 on a wireless network in Uppsala, 
+and one Dell PowerEdge 1425SC with 10Gb ethernet connection at USIT. All the tests were performed and worked as expected: All the files were both 
+uploaded and downloaded with correct checksums and they all got the requested 
+number of replicas within a reasonable time. However, some of
 the tests deserve extra attention.
 
-Fig. \ref{fig:FileDistribution} illustrate two test results,
-corresponding to Test 2 and Test 3: The orange bars show the distribution after uploading 100 small files
+Fig. \ref{fig:FileDistribution} illustrates two test results,
+corresponding to Test 2 and Test 3: The orange (light grey) bars show the distribution after uploading 100 small files
 simultaneously, without replication. This gives an indication of how
 the system balances the load of many clients uploading at the same
-time. The green bars show distribution with the same kind of
+time. The green (dark grey) bars show the distribution with the same kind of
 uploading, but with the clients requesting three replicas for each file. The
 difference here is that the system simultaneously has to handle both
 replication and the clients requesting uploads. When the Bartender chooses
 a location for which to put a replica, it generates a list of
-Shepherds that (a) do not have a replica of the file, and (b) is not
+Shepherds that (a) do not have a replica of the file, and (b) are not
 already in the process of uploading the replica. Next, it draws a
 Shepherd from the list at random, using a uniform random number
 generator. When uploading without asking for replicas we would
@@ -649,7 +652,7 @@ be seen in Fig. \ref{fig:FileDistribution}.
 \hline \hline
 &\small{UPPMAX}&\small{USIT-1}&\small{USIT-2}&\small{USIT-3}&\small{NIIF}\\
 \hline
-           \small{Load(MB)}&6683&7638&7650&4773&2289\\
+           \small{Load(GB)}&6.683&7.638&7.650&4.773&2.289\\
 \hline
 \end{tabular}
 \caption{Overall load distribution on the storage nodes after Tests 1,
@@ -658,9 +661,9 @@ be seen in Fig. \ref{fig:FileDistribution}.
 \end{table}
 
 Table \ref{table:load distribution} shows the disk usage after Tests
-1, 2 and 3. Worth noticing here is that the bandwidth NIIF was
+1, 2 and 3. It is worth noticing here that the bandwidth to NIIF was
 significantly lower than between UPPMAX and USIT. If the bandwith is
-saturated and the storage node is busy with, e.g., checksumming a
+saturated and the storage node is busy, e.g., checksumming a
 large file, the heartbeat from this Shepherd may be delayed, causing the
 Bartender not to choose this Shepherd for the next replica. This may explain the
 relatively low storage load on the  NIIF storage node.
@@ -672,9 +675,9 @@ relatively low storage load on the  NIIF storage node.
 %% \hline \hline
 %% &\small{UPPMAX}&\small{USIT-1}&\small{USIT-2}&\small{USIT-3}&\small{NIIF}\\
 %% \hline
-%%            \small{Before(MB)}&4888&7820&6843&7820&3320\\
-%%            \small{During(MB)}&8798&9776& - &9775&2344 \\
-%%            \small{After(MB)}&8798&6843&4888&8798&1367\\
+%%            \small{Before(GB)}&4.888&7.820&6.843&7.820&3.320\\
+%%            \small{During(GB)}&8.798&9.776& - &9.775&2.344 \\
+%%            \small{After(GB)}&8.798&6.843&4.888&8.798&1.367\\
 %% \hline
 %% \end{tabular}
 %% \caption{Storage load before, during and after a Shepherd outage.}
@@ -686,15 +689,15 @@ relatively low storage load on the  NIIF storage node.
 %% \begin{tabular}[width = \columnwidth]{p{11mm} p{12mm} p{11mm} p{11mm} p{11mm} p{5mm}}
 \begin{tabular}[width = \columnwidth]{llll}
 \hline \hline
-&\small{Before (MB)}&\small{During (MB)}&\small{After (MB)}\\
+&\small{Before (GB)}&\small{During (GB)}&\small{After (GB)}\\
 \hline
-\small{UPPMAX}&4888&8799&8798\\
-\small{USIT-1}&7820&9778&6843\\
-\small{USIT-2}&6843&-&4888\\
-\small{USIT-3}&7820&9774&8798\\
-\small{NIIF}&3320&2344&1367\\
+\small{UPPMAX}&4.888&8.798&8.798\\
+\small{USIT-1}&7.820&9.778&6.843\\
+\small{USIT-2}&6.843&-    &4.888\\
+\small{USIT-3}&7.820&9.774&8.798\\
+\small{NIIF}  &3.320&2.344&1.367\\
 \hline
-\small{Sum}&30691&30695&30694\\
+\small{Sum}&30.69&30.69&30.69\\
 \hline
 \end{tabular}
 \caption{Storage load before, during and after a Shepherd outage.}
@@ -703,7 +706,7 @@ relatively low storage load on the  NIIF storage node.
 
 A significant feature of the ARC Storage is its automatic self
 healing. Test 4 addresses this feature by studying the effect of
-taking out one Shepherd from the system, and later reinsert it. Table
+taking one Shepherd out of the system, and later reinserting it. Table
 \ref{table:self healing} shows the storage distribution in three
 states: Before interrupting a Shepherd, after the USIT-2
 Shepherd is interrupted and redistribution of replicas is finished; and
@@ -725,12 +728,12 @@ three cases.
 \label{Conclusion and Future Work}
 
 The proposed system is still in an early phase of development, but our test
-results depict that the architecture is strong enough to handle
+results demonstrate that the architecture is robust enough to handle
 the challenges for distributed large scale storage. Much
 effort is required to make the system production
 ready. However, we believe that continuing in the same direction
 will enable us to provide a persistent  and flexible storage system
-which can fulfill the needs of the scientific community. 
+which can fulfill the needs of even the most demanding scientific community. 
 
 Some key areas need special attention and effort to make the proposed
 storage system even more stable, reliable and consistent:
@@ -752,18 +755,23 @@ storage system even more stable, reliable and consistent:
   with its own ARC protocol.
 \end{itemize}
 
-Even though we have more work in front of us, we have shown that the
-ARC Storage already is in a state where initial real-life tests can be
-done. We have described a simple, yet strong architecture which we
-believe will benefit communities in need of a lightweight,
+%% Even though we have more work in front of us, we have shown that the
+%% ARC Storage already is in a state where initial real-life tests can be
+%% done. We have described a simple, yet robust architecture which we
+%% believe will benefit communities in need of a lightweight,
+%% yet distributed storage solution.
+While the work in the above mentioned areas is still in progress, we have 
+already shown that the ARC Storage already is in a state where initial 
+real-life tests can be done. We have described a simple, yet strong 
+architecture which we believe will benefit communities in need of a lightweight, 
 yet distributed storage solution.
-
 
 \section{Acknowledgements}
 \label{Acknowledgements}
 
 We wish to thank Mattias Ellert for helpful discussions and guidance
-on the ARC middleware. In addition, we like to thank UPPMAX, NIIF and USIT for
+on the ARC middleware, to Oxana Smirnova, Alex Read and David Cameron 
+for vital comments and proof reading. In addition, we like to thank UPPMAX, NIIF and USIT for
 providing resources for running the storage tests.
 
 The work has been supported by the European Commission through the KnowARC
