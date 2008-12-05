@@ -838,7 +838,7 @@ The ARC0 plugins enables support for the interfaces used by computing
 elements running ARC version 0.x.
 
 The ARC 0.x local information system uses the {\GT}~\cite{globus} GRIS
-with a propriety ARC schema. The information index server used is the
+with a purpose made ARC schema. The information index server used is the
 {\GT} GIIS. Both these servers are using the LDAP~\cite{ldap}
 protocol. The specialization of the {\TargetRetriever} class for ARC0
 is implemented using the ARC LDAP Data Management Component (DMC) (see
@@ -893,7 +893,7 @@ gLite resources are registered in top level and site BDIIs. The CREAM
 specialization of the {\TargetRetriever} therefore makes use of the
 LDAP DMC similarly to the ARC0 plugins.
 
-The CREAM interface is a propriety SOAP based interface. The CREAM
+CREAM has its own SOAP based interface. The CREAM
 specializations of the {\Submitter} and {\JobController} classes
 therefore use an MCC chain ending with the SOAP client MCC the same 
 way the ARC1 plugin does.
