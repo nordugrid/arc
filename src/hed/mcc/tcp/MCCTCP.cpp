@@ -417,8 +417,30 @@ void MCC_TCP_Service::executer(void* arg) {
         logger.msg(Arc::DEBUG, "next chain element called");
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(!it.ProcessSecHandlers(nextoutmsg,"outgoing")) break;
-        // TODO: if nextoutmsg contains some useful payload send it here.
-        if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
+        // If nextoutmsg contains some useful payload send it here.
+        // So far only buffer payload is supported
+        // Extracting payload
+        if(nextoutmsg.Payload()) {
+            PayloadRawInterface* outpayload = NULL;
+            try {
+                outpayload = dynamic_cast<PayloadRawInterface*>(nextoutmsg.Payload());
+            } catch(std::exception& e) { };
+            if(!outpayload) {
+                logger.msg(Arc::WARNING, "Only Raw Buffer payload is supported for output");
+            } else {
+                // Sending payload
+                for(int n=0;;++n) {
+                    char* buf = outpayload->Buffer(n);
+                    if(!buf) break;
+                    int bufsize = outpayload->BufferSize(n);
+                    if(!(stream.Put(buf,bufsize))) {
+                        logger.msg(Arc::ERROR, "Failed to send content of buffer");
+                        break;
+                    };
+                };
+            };
+            delete nextoutmsg.Payload();
+        };
         if(!ret) break;
     };
     it.lock_.lock();
