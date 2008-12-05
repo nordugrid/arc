@@ -279,12 +279,6 @@ namespace Arc {
         path = Glib::build_filename(cwd, path);
     }
 
-    // expand SRM short URLs
-    if(protocol == "srm" && httpoptions.find("SFN") == httpoptions.end()) {
-      httpoptions["SFN"] = path;
-      path = "srm/managerv1";
-    }
-
     if(host.empty() && protocol != "file" && protocol != "urllist")
       URLLogger.msg(ERROR, "Illegal URL - no hostname given");
   }
