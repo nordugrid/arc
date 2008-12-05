@@ -390,8 +390,9 @@ X.509 credential delegation as a normal Web Service, in order to
 provide single sign-on characteristic.
 \item \textit{Message level authentication} -{}-{}- to provide message
 level authentication by implementing WS-Security.
-\item 
-\bigskip
+\item \textit{SAML token delegation service} -{}-{}- to process the WS
+Security SAML token in order to provide single sign-on for SOAP message
+level authentication
 \end{itemize}
 
 \bigskip
@@ -747,20 +748,20 @@ authentication that has already taken place. The attesting entity gets
 the SAML assertion and then signs the SOAP message together with the
 assertion by using its private key (the relevant certificate has been
 authenticated by issuing authority, and its relevant public key has
-been put into \textit{SubjectConfirmation}
+been put into \textit{SubjectConfirmation} 
 
 element under SAML assertion by issuing authority. Only the actual owner
 of the SAML assertion can do this, as only the subject possesses the
 private key paired with the public key in the assertion. This
 establishes an irrefutable connection between the author of the SOAP
-message and the assertion describing an authentication event.)
+message and the assertion describing an authentication event.) 
 
 \ The relying party is supposed to trust the issuing authority. When it
 receives a message from the asserting entity, it will check the SAML
 assertion based on its predetermined trust relationship with the SAML
 issuing authority, and check the signature of the soap message based on
 the public key in the SAML assertion without directly trust
-relationship with attesting entity (subject owner).
+relationship with attesting entity (subject owner). 
 
 
 \bigskip
@@ -785,12 +786,14 @@ service certificate and service certificate.
 instead, it picks the public key from its own service certificate, and
 sends back to delegation client.
 \end{enumerate}
-Figure 6 shows the token change due to delegation. On the left side, B
-is the identity of the attesting entity{\textquotesingle}s X509 token
-mentioned above, while A is the identity of issuing authority, and the
-SOAP message is signed by B{\textquotesingle}s private key. On the
-right side, C is the identity of the delegation service, ans now the
-SOAP message is signed by C{\textquotesingle}s private key.
+Figure 6 shows the SOAP message header is changed due to delegation. On
+the left side, B is the identity of the attesting
+entity{\textquotesingle}s X509 token mentioned above, while A is the
+identity of issuing authority, and the SOAP message is signed by
+B{\textquotesingle}s private key. On the right side, C is the identity
+of the delegation service (also C is the identity of the target service
+\ to which the B will access), and now the SOAP message is signed by
+C{\textquotesingle}s private key.
 
 
 \bigskip
@@ -801,7 +804,8 @@ SOAP message is signed by C{\textquotesingle}s private key.
 \includegraphics[width=4.2571in,height=2.152in]{Secpaper-img6.png}
 \end{center}
 {\centering
-\ \ \ \ \ \ \ \ \ Figure 6. Token before and after delegation
+\ \ \ \ \ \ \ \ \ Figure 6. SOAP message header with SAML delegation
+token inside
 \par}
 
 
