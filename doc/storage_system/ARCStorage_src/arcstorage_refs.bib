@@ -1,3 +1,15 @@
+@Article{arc,
+  author =	 {M.~Ellert and others},
+  title =	 "{Advanced Resource Connector middleware for
+                  lightweight computational Grids}",
+  journal =	 {Future Gener. Comput. Syst.},
+  volume =	 {23},
+  number =	 {1},
+  year =	 {2007},
+  issn =	 {0167-739X},
+  pages =	 {219-240}
+}
+
 @inproceedings{Bigtable,
  author = {Fay Chang and Jeffrey Dean and Sanjay Ghemawat and Wilson C. Hsieh and Deborah A. Wallach and Mike Burrows and Tushar Chandra and Andrew Fikes and Robert E. Gruber},
  title = {Bigtable: a distributed storage system for structured data},
@@ -97,7 +109,7 @@
  }
 
 @MISC{FUSE,
-   note = "FUSE:http://fuse.sourceforge.net/",
+   note = "FUSE: http://fuse.sourceforge.net/",
  }
 
 
@@ -105,7 +117,8 @@
 
 %% for some previously done work in the field if storage systems
 @INPROCEEDINGS{Hoschek00datamanagement,
-    author = {Wolfgang Hoschek and Javier Jaen-martinez and Asad Samar and Heinz Stockinger and Kurt Stockinger},
+    author = {Wolfgang Hoschek and Javier Jaen-Martinez and Asad Samar and Heinz
+Stockinger and Kurt Stockinger},
     title = {Data management in an international data grid project},
     year = {2000},
     pages = {77--90},
@@ -130,31 +143,35 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%% Dcache referances %%%%%%%%%%%%%
-@UNPUBLISHED{dCache,
-   author = {Patrick Fuhrmann} ,
-   title = "{dCache, the commodity cache}",
-   note = "For dCache team",
-   month = "",
-   year = ""
+@Manual{dCache,
+   author = {M de~Riese and  P Fuhrmann and T Mkrtchyan and M Ernst and A
+Kulyavtsev and V Podstavkov and M Radicke and N Sharma and D Litvintsev and
+T Perelmutov and T Hesselroth},
+   title = "{dCache Book}",
+   url = "http://www.dcache.org/manuals/Book/Book-a4.pdf"
    }
 
 @article{ DSSWithdCache,
- author = {G Behrmann and P Fuhrmann and M Gr�nager and J Kleist},
+ author = {Gerd Behrmann and Patrick Fuhrmann and Michael Gr{\o}nager and
+Josva Kleist},
  title = {A Distributed Storage System with dCache},
  journal = {Journal of Physics: Conference Series 119 (2008) 062014},
  doi = {10.1088/1742-6596/119/6/062014},
  
  }
-@MISC{dCachesite,
-   note = "dCache:http://www.dcache.org",
+@misc{dCachesite,
+	note = "{dCache project}",
+   url = "http://www.dcache.org"
  }
 
-@MISC{FermiLab,
-   note = "FermiLab:http://www.fnal.gov",
+@misc{FermiLab,
+	note = "{Fermi National Acelerator Laboratory}",
+   url = "http://www.fnal.gov"
  }
  
- @MISC{NDGF,
-   note = "NDGF:http://www.ndgf.org/ndgfweb/home.html",
+ @misc{NDGF,
+	note = "{Nordic DataGrid Facility}",
+   url = "http://www.ndgf.org/"
  }
 
  
@@ -184,7 +201,8 @@
  } 
 
   @MISC{SRBsite,
-   note = "http://www.sdsc.edu/srb/index.php/Main_Page",
+	note = "{Storage Resource Broker}",
+   url = "http://www.sdsc.edu/srb/index.php/Main\_Page",
    key = SRBsite
  }
 
@@ -193,54 +211,41 @@
 %%%%%%%%%%% KnowARC related %%%%%%%%%%%%%
 
 @MISC{NorduGridsite,
-   note = "ARC: http//:www.nordugrid.org/",
+	note = "{NorduGrid Collaboration}",
+   url = "http//:www.nordugrid.org/"
  }
 
  @MISC{KnowARCsite,
-   note = "KnowARC :http://www.knowarc.eu/",
+	note = "{EU KnowARC project}",
+   url = "http://www.knowarc.eu/"
  }
 
-@TechReport{ARCStoragedesigndoc,
-  author = 	 {Z. Nagy and J.K. Nilsen and S. Toor},
+@Manual{ARCStoragedesigndoc,
+  author = 	 {Zs. Nagy and J.~K. Nilsen and S. Toor},
   title = 	 {Documentation of the ARC storage system},
-  institution =  {Nordugrid},
-  year = 	 {},
-  OPTkey = 	 {},
-  OPTtype = 	 {},
-  OPTnumber = 	 {},
-  OPTaddress = 	 {},
-  OPTmonth = 	 {},
-  OPTnote = 	 {http://www.nordugrid.org/documents/arc1-storage-documentation.pdf},
-  OPTannote = 	 {}
+  organization =  {NorduGrid},
+  note = 	 "{NORDUGRID-TECH-17}",
+  url = "{http://www.nordugrid.org/documents/arc1-storage-documentation.pdf}"
 }
 
-@TechReport{HEDdesigndoc,
-  author = 	 {D. Cameron and M. Ellert and J. J{\"{o}}nemo and A. Konstantinov and I. Marton and B. Mohn and  J. K. Nilsen and M. 
-N{\'{O}}rden and W. Qiang and G. Roczei and F. Szalai and A. W{\"{a}}{\"{a}}n{\"{a}}nen},
-  title = 	 {The Hosting Environment of the Advanced Resource Connector middleware},
-  institution =  {Nordugrid},
-  year = 	 {},
-  OPTkey = 	 {},
-  OPTtype = 	 {},
-  OPTnumber = 	 {},
-  OPTaddress = 	 {},
-  OPTmonth = 	 {},
-  OPTnote = 	 {http://www.nordugrid.org/documents/ARCHED_article.pdf},
-  OPTannote = 	 {}
+@Manual{HEDdesigndoc,
+  author = 	 {D. Cameron and M. Ellert and J. J{\"{o}}nemo and A.
+Konstantinov and I. Marton and B. Mohn and  J. K. Nilsen and M. 
+Nord\'en and W. Qiang and G. R\H{o}czei and F. Szalai and
+A. W{\"{a}}{\"{a}}n{\"{a}}nen},
+  title = 	 {The Hosting Environment of the Advanced Resource Connector
+middleware},
+  organization =  {NorduGrid},
+  note = 	 "{NORDUGRID-TECH-19}",
+  url = 	 "{http://www.nordugrid.org/documents/ARCHED\_article.pdf}"
 }
 
-@TechReport{AREXdesigndoc,
+@Manual{AREXdesigndoc,
   author = 	 {A. Konstantinov},
-  title = 	 {The Hosting Environment of the Advanced Resource Connector middleware },
-  institution =  {Nordugrid},
-  year = 	 {},
-  OPTkey = 	 {},
-  OPTtype = 	 {},
-  OPTnumber = 	 {},
-  OPTaddress = 	 {},
-  OPTmonth = 	 {},
-  OPTnote = 	 {},
-  OPTannote = 	 {http://www.nordugrid.org/documents/ARCHED_article.pdf}
+  title = 	 "{The ARC Computational Job Management Module - A-REX}",
+  organization =  {NorduGrid},
+  note = 	 "{NORDUGRID-TECH-14}",
+  url = 	 "{http://www.nordugrid.org/documents/arex\_tech\_doc.pdf}"
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -18,13 +18,18 @@
 %%   Sweden \\ $^{5}$National Information Infrastructure Development
 %%   Institute, Hungary}
 \author{  Jon K. Nilsen$^{\dagger,\ddagger}$ \and Salman Toor$^{*}$
-  \and Zsombor Nagy$^{\mathparagraph}$ \and Bjarte Mohn$^{\mathsection}$  \\ $^{*}$Scientific
-  Computing Division, IT Department, Uppsala University, Sweden
-  \\ $^{\dagger}$Center for Information Technology, University of Oslo, Norway
-  \\ $^{\ddagger}$Department of Physics,  University of Oslo, Norway
-  \\  $^{\mathsection}$Department of Physics and Astronomy, Uppsala University,
-  Sweden \\ $^{\mathparagraph}$National Information Infrastructure Development
-  Institute, Hungary\\ \\  j.k.nilsen@usit.uio.no \hspace{5 mm}
+  \and Zsombor Nagy$^{\mathparagraph}$ \and Bjarte Mohn$^{\mathsection}$ 
+\\$^{*}$Dept. of Information Technology, Div. of Scientific Computing, Uppsala
+University,\\ Box~337, SE-75105~Uppsala, Sweden
+ \\ $^{\dagger}$University of Oslo, Center for Information Technology,\\
+P.~O.~Box~1059, Blindern, N-0316~Oslo, Norway
+  \\ $^{\ddagger}$University of Oslo, Dept. of Physics, P.~O.~Box~1048,
+Blindern, N-0316~Oslo, Norway
+  \\  $^{\mathsection}$Dept. of Physics and Astronomy, Div. of Nuclear and
+Particle Physics,\\ Uppsala University, Box~535, SE-75121~Uppsala, Sweden \\
+$^{\mathparagraph}$Institute of National Information and Infrastructure
+Development\\ NIIF/HUNGARNET, Victor~Hugo~18-22, H-1132~Budapest, Hungary\\ \\ 
+j.k.nilsen@usit.uio.no \hspace{5 mm}
   salman.toor@it.uu.se \hspace{5 mm} zsombor@niif.hu \\  \hspace{7 mm}
   bjarte.mohn@fysast.uu.se}
   
@@ -78,19 +83,20 @@ The need for a distributed, self-healing storage system is evident. To
 make the storage system useable to Grid users, the system must provide
 reliable and secure file transfer protocols, a cataloging system and
 secure storage of the data. Several projects and designs have emerged
-to address such challenges \cite{Hoschek00datamanagement,DengWang}.
+to address such challenges~\cite{Hoschek00datamanagement,DengWang}.
 
-In the advent of the next generation Advanced Resource Connector (ARC)
-Grid middleware \cite{NorduGridsite} (due during Fall 2009), we present 
-the ARC storage system \cite{ARCStoragedesigndoc}. This distributed
+In the advent of the next generation of the Advanced Resource Connector (ARC)
+Grid middleware~\cite{arc} (new release due during fall 2009), we present 
+the ARC storage system~\cite{ARCStoragedesigndoc}. This distributed
 storage system is designed to provide an easy
 to use, flexible and scalable system that can offer native storage and
-at the same time provide access to third-party solutions like dCache \cite{dCache,DSSWithdCache}  by
+at the same time provide access to third-party solutions like
+dCache~\cite{dCache,DSSWithdCache}  by
 using the same, uniform interface. Being part of ARC, the
 storage system is based on a service
 oriented architecture, in which each major component of the
 system runs as a separate service within the ARC Hosting Environment
-Daemon (HED) \cite{HEDdesigndoc}. The HED service container gives the
+Daemon (HED)~\cite{HEDdesigndoc}. The HED service container gives the
 capability of flexible replacement of the components as well as the
 possibility to introduce modifications in the future. %% The HED service container gives
 %% the capability of flexible replacement of the components as well as
@@ -199,11 +205,12 @@ for high latency more suitable for the Grid environment.
 
 
 
-\section{The Advance Resource Connector}
+\section{The Advanced Resource Connector}
 \label{The Advance Resource Connector}
 
-The next generation Advanced Resource Connector (ARC) Grid middleware 
-\cite{NorduGridsite} \cite{KnowARCsite} consists of a set of pluggable 
+The next generation of Advanced Resource Connector (ARC) Grid middleware is
+developed by NorduGrid~\cite{NorduGridsite} and the EU KnowARC
+ project~\cite{KnowARCsite}. It consists of a set of pluggable 
 components. These components are the
 fundamental building blocks of the ARC services and clients. ARC
 services run inside a container called the Hosting Environment
@@ -307,7 +314,7 @@ system are identified by unique global IDs. These IDs are
 categorized according to the object type:
 
 \begin{itemize} 
-\item Each  file and collection have a unique ID called GUID.
+\item Each  file and collection has a unique ID (GUID).
 \item Services are uniquely identified by a serviceID. 
 \item The Shepherds in the system identify their files by a referenceID.
 \end{itemize} 
@@ -326,7 +333,7 @@ ARC Storage, all replicas have assigned a state, some of which are
 `\textbf{alive}' (if the replica passed the checksum test, and the
 Shepherd reports that the storage node is healthy), `\textbf{invalid}'
 (if the replica has wrong checksum, or the Shepherd claims it has no
-such replica), `\textbf{creating}' (if the replica is in
+such replica) and `\textbf{creating}' (if the replica is in
 the state of uploading).
 
 In the following the details of the
@@ -354,7 +361,7 @@ The Librarian manages the hierarchy and metadata of
 files, collections and mount points, as well as the health information of the Shepherd
 services. In addition, the Librarian handles
 the information about registered Shepherd services. The Librarian receives
-heartbeat messages from the Shepherds and change replica states automatically
+heartbeat messages from the Shepherds and changes replica states automatically
 if needed. The Librarian uses the A-Hash for consistently storing all metadata. This makes the
 Librarian a stateless service, thus enabling the system to have any
 number of independent
@@ -583,7 +590,7 @@ The services were distributed as shown in Fig. \ref{fig:map}:
 \begin{itemize}
 \item An A-Hash runs at UPPMAX.
 \item A Bartender runs at USIT.
-\item A Librarian runs on UPPMAX.
+\item A Librarian runs at UPPMAX.
 \item In total five Shepherds were used for the tests: Three at USIT, having
   100GB storage space each, one at UPPMAX, with 20GB, and one at NIIF, providing 16GB of storage space.
  \end{itemize}
@@ -731,7 +738,7 @@ storage system even more stable, reliable and consistent:
 \item \textbf{Security:} This is still under development. The design is more
   or less ready, but it still needs to be implemented and properly
   tested.
-\item \textbf{The A-Hash}: This is currently centralized. To avoid a singel
+\item \textbf{The A-Hash}: This is currently centralized. To avoid a single
   point of failure in the system, and to improve the system
   performance, the A-Hash needs to be distributed.
 \item \textbf{Performance optimization:} To make a storage system
@@ -758,6 +765,10 @@ yet distributed storage solution.
 We wish to thank Mattias Ellert for helpful discussions and guidance
 on the ARC middleware. In addition, we like to thank UPPMAX, NIIF and USIT for
 providing resources for running the storage tests.
+
+The work has been supported by the European Commission through the KnowARC
+project (contract nr. 032691) and by the Nordunet3 programme through the NGIn
+project.
 
 %% In the near future proposed solution will be the part of the ARC
 %% middleware production line. We have identified some key areas in which
