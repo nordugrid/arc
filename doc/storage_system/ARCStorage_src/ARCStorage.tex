@@ -8,7 +8,8 @@
 
 \begin{document}
 \pagestyle{headings} 
-\title{Service-Oriented ARC Storage; \\An Overview and Design}
+\title{NorduGrid Storage -- Overview and Design of a Service-Oriented Storage System}
+%% \title{Service-Oriented ARC Storage; \\An Overview and Design}
 %% \author{  Jon K. Nilsen$^{2,3}$ \and Salman Toor$^{1}$
 %%   \and Zsombor Nagy$^{5}$ \and Bjarte Mohn$^{4}$  \\ $^{1}$Scientific
 %%   Computing Division, IT Department, Uppsala University, Sweden
@@ -19,16 +20,16 @@
 %%   Institute, Hungary}
 \author{  Jon K. Nilsen$^{\dagger,\ddagger}$ \and Salman Toor$^{*}$
   \and Zsombor Nagy$^{\mathparagraph}$ \and Bjarte Mohn$^{\mathsection}$ 
-\\$^{*}$Dept. of Information Technology, Div. of Scientific Computing, Uppsala
-University,\\ Box~337, SE-75105~Uppsala, Sweden
  \\ $^{\dagger}$University of Oslo, Center for Information Technology,\\
 P.~O.~Box~1059, Blindern, N-0316~Oslo, Norway
   \\ $^{\ddagger}$University of Oslo, Dept. of Physics, P.~O.~Box~1048,
 Blindern, N-0316~Oslo, Norway
-  \\  $^{\mathsection}$Dept. of Physics and Astronomy, Div. of Nuclear and
-Particle Physics,\\ Uppsala University, Box~535, SE-75121~Uppsala, Sweden \\
+\\$^{*}$Dept. of Information Technology, Div. of Scientific Computing, Uppsala
+University,\\ Box~337, SE-75105~Uppsala, Sweden\\
 $^{\mathparagraph}$Institute of National Information and Infrastructure
-Development\\ NIIF/HUNGARNET, Victor~Hugo~18-22, H-1132~Budapest, Hungary\\ \\ 
+Development\\ NIIF/HUNGARNET, Victor~Hugo~18-22, H-1132~Budapest, Hungary 
+  \\  $^{\mathsection}$Dept. of Physics and Astronomy, Div. of Nuclear and
+Particle Physics,\\ Uppsala University, Box~535, SE-75121~Uppsala, Sweden \\ \\
 j.k.nilsen@usit.uio.no \hspace{5 mm}
   salman.toor@it.uu.se \hspace{5 mm} zsombor@niif.hu \\  \hspace{7 mm}
   bjarte.mohn@fysast.uu.se}
@@ -54,8 +55,7 @@ service-oriented architecture provides a natural framework for
 managing these resources. The next generation Advanced Resource
 Connector (ARC) is a service-oriented Grid solution that will provide
 the middleware to represent distributed resources in one simple
-framework. In this paper, we will present an overview of the ARC
-storage system, itself a set of services providing a self-healing,
+framework. In this paper, we will present an overview of ARC's novel storage system -- the NorduGrid storage -- itself a set of services providing a self-healing,
 flexible Grid storage solution. We will also present some first
 proof-of-concept test results from a deployment of the storage system
 distributed across three different countries. 
@@ -87,8 +87,7 @@ to address such challenges~\cite{Hoschek00datamanagement,DengWang}.
 
 In the advent of the next generation of the Advanced Resource
 Connector (ARC) Grid middleware~\cite{arc} (new release due during
-fall 2009), we present the ARC storage
-system~\cite{ARCStoragedesigndoc}. This distributed storage system is
+fall 2009), we present the new NorduGrid storage~\cite{ARCStoragedesigndoc}. This distributed storage system is
 designed to provide an easy to use, flexible and scalable system that
 can offer native storage and at the same time provide access to
 third-party solutions like dCache~\cite{dCache,DSSWithdCache} by using
@@ -105,10 +104,9 @@ the future. %% The HED service container gives
 This paper is organized as follows. After describing
 related work in Section \ref{Related Work}, we give a bird's eye
 view of the next-generation Advanced Resource Connector (ARC) in
-Section \ref{The Advance Resource Connector}. An overview of the
-ARC Storage is given in Section \ref{The ARC Storage System}, while
+Section \ref{The Advance Resource Connector}. An overview of the NorduGrid storage is given in Section \ref{The NorduGrid Storage}, while
 the architecture of the storage system is elaborated in Section
-\ref{Architecture of the ARC Storage}. In Section \ref{Testing and
+\ref{Architecture of the NorduGrid Storage}. In Section \ref{Testing and
   Discussion} we give some early, proof-of-concept results, before 
 concluding in Section \ref{Conclusion and Future Work}. 
 
@@ -118,7 +116,7 @@ concluding in Section \ref{Conclusion and Future Work}.
 elements to collect several hundreds of terabytes in a single
 namespace. It additionally supports standard and native
 protocols like gridftp, srm, dcap and gsidcap. dCache is
-a joint effort between DESY \cite{dCachesite}, Fermi National Accelerator Laboratory \cite{FermiLab}, the  Nordic Data
+a joint effort between Deutsches Elektronen Synchrotron (DESY) \cite{dCachesite}, Fermi National Accelerator Laboratory \cite{FermiLab}, the  Nordic Data
 Grid Facility (NDGF) \cite{NDGF}  and several other collaborators. %% The services or
 %% components of dCache are known as cells. The standard deployment of
 %% dCache consist of  storage pools; used to store file, optionally be
@@ -130,7 +128,7 @@ Grid Facility (NDGF) \cite{NDGF}  and several other collaborators. %% The servic
 %% infrastructure of  NDGF.\\ 
 dCache has proven to be a very stable and scalable solution. However,
 it is relatively difficult to deploy and integrate with new applications. 
-The ARC Storage, being a light-weight and flexible
+The NorduGrid storage, being a light-weight and flexible
 storage solution, aims more towards new user groups less familiar with
 Grid solutions. 
 \newline
@@ -183,7 +181,7 @@ Originally developed for use with the physics analysis tool root \cite{root},
 xrootd offers data access both through the specialized xroot protocol
 and through other third-party protocols. The combination of the xrootd
 and olbd components offers a cluster storage designed for low latency,
-high bandwidth environments. In contrast, ARC Storage is optimized
+high bandwidth environments. In contrast, the NorduGrid storage is optimized
 for high latency and is more suitable for the Grid environment.
 
 %% {\large Comparison:}    
@@ -231,12 +229,12 @@ decisions are taken by the Charon service, the ISIS service is
 responsible for information indexing, batch job submission is
 handled by the Sched service, etc. In the later sections our discussion
 will focus on the architecture and the design of another major set
-of services, i.e., the ARC storage. 
+of services, i.e., the NorduGrid storage. 
 
-\section{The ARC Storage System}
-\label{The ARC Storage System}
+\section{The NorduGrid Storage}
+\label{The NorduGrid Storage}
 
-The ARC Storage consists of a set of SOAP based services residing
+The NorduGrid storage consists of a set of SOAP based services residing
 within HED. Together, the services provide a self-healing, reliable, robust,
 scalable, resilient and consistent data storage system. Data is
 managed in a hierarchical global namespace with files and
@@ -250,20 +248,19 @@ in the same manner as in local filesystems.
   \begin{center}
     \includegraphics[width=0.8\columnwidth]{arc1-storage-services-with-gateway.pdf}
   \end{center}
-  \caption{Schematic of the ARC Storage architecture. The figure shows
-    the main services of ARC Storage and the communication channels. The B stands for Bartender, the S Shepherd, the L Librarian, the G Gateway and the A-H stands for A-Hash. The straight lines denote the communication between services.}
+  \caption{Schematic of the NorduGrid storage architecture. The figure shows
+    the main services of the NorduGrid storage and the communication channels. The B stands for Bartender, the S for Shepherd, the L for Librarian, the G for Gateway and the A-H stands for A-Hash. The straight lines denote the communication between services.}
   \label{fig:arc1_storage_service}
 \end{figure}
 
 
-Being based on a service-oriented architecture, the ARC
-Storage consists of a set of services as shown in Fig.
+Being based on a service-oriented architecture, the NorduGrid storage consists of a set of services as shown in Fig.
 \ref{fig:arc1_storage_service}. The services are as follows: The Bartender (B)
 provides the high-level interface to the user; the Librarian (L)
 handles the entire storage namespace, using the A-Hash (A-H) as a metadatabase; the
 Gateway (G) provides access to third-party storage systems; and
 the Shepherd (S) is the frontend for the physical storage node. 
-See Section \ref{Architecture of the ARC Storage} for a detailed
+See Section \ref{Architecture of the NorduGrid Storage} for a detailed
 discussion of the different services.   
 The services communicate with each other through the
 Message Chain Components in HED. The communication channels are
@@ -281,32 +278,30 @@ storage nodes\footnote{A
   storage node is a server with a Shepherd, a Shepherd backend
 and some storage service.}. To ensure a resilient, self-healing system, the Shepherd
 regularly sends heartbeats to one of the Librarians. If the Shepherd fails
-to send a heartbeat, one of the Librarians will automatically initiate
+to send a heartbeat, one of the Librarians will mark its replicas as offline, thus initiating
 re-replication of the replicas between the other Shepherds.
 
 In the default implementation, the services will provide a
 full-featured and consistent data storage system using files as an
-atomic unit. The scope of the ARC storage system in the forseeable
+atomic unit. The scope of the NorduGrid storage in the forseeable
 future is restricted to providing support for file-based data services.
 %% there are currently no plans for intrinsic support for database
 %% access.
 
-The ARC Storage supports third-party storage services in two
+The NorduGrid storage supports third-party storage services in two
 ways. Using the Gateway service, files already stored in some
-third-party storage can be accessed using the client tools provided by
-the ARC Storage. To make use of third-party services for storing new
-files, with the replication and fault-tolerance offered by the ARC
-Storage, third-party storage elements can also be used as backends for the
+third-party storage can be accessed using the provided client tools. To make use of third-party services for storing new
+files, with the replication and fault-tolerance offered by the NorduGrid storage, third-party storage elements can also be used as backends for the
 Shepherd service.
 
 External grid middleware components can
-access the ARC storage system using ARC data service
+access the storage system using ARC data service
 interfaces directly. ARC will also provide interface
 components that communicate via standard protocols such as SRM, which
 will provide a single access point to the whole system.
 
-\section{Architecture of the ARC Storage}
-\label{Architecture of the ARC Storage}
+\section{Architecture of the NorduGrid Storage}
+\label{Architecture of the NorduGrid Storage}
 
 In a service-oriented architecture
 the role of each service is well defined. Available
@@ -320,21 +315,21 @@ categorized according to the object type:
 \item The Shepherds in the system identify their files by a referenceID.
 \end{itemize} 
 
-Each object in the ARC Storage has a globally
+Each object in the NorduGrid storage has a globally
 unique ID. A collection contains files and other collections,
 and each of these entries has a name unique within the collection very
 much like entries in a standard directory on a local filesystem. Besides
-files and collections, the ARC Storage has a third type of entry
+files and collections, the storage system has a third type of entry
 called mount-points, which are references to the third-party storages
 within the global namespace.
 
 Replicas in a distributed storage system can have different states;
 they can be broken, deleted, partially uploaded, etc. In the
-ARC Storage, all replicas have assigned a state, some of which are
+NorduGrid storage, all replicas have assigned a state, some of which are
 `\textbf{alive}' (if the replica passed the checksum test, and the
 Shepherd reports that the storage node is healthy), `\textbf{invalid}'
 (if the replica has a wrong checksum, or the Shepherd claims it has no
-such replica) and `\textbf{creating}' (if the replica is in
+such replica), `\textbf{offline}' (if the Shepherd is down) and `\textbf{creating}' (if the replica is in
 the state of uploading).
 
 In the following, the details of the
@@ -375,7 +370,7 @@ system.
 The Shepherd services run as front-ends on storage nodes. A Shepherd
 service reports to a Librarian about the 
 node's health state in terms of replicas. While the Bartender initiates
-file transfers, the actual transfers go directly between the Shepherd
+file transfers, the actual transfers go directly between the storage node
 and the clients.
  
 %% The file-names used by a Shepherd is completely independent from the
@@ -397,14 +392,14 @@ A-Hash is a hash table for consistently storing data in property-value
 pairs. All metadata about files, collections, mount point, Shepherd's
 health status, and so forth, is stored in the A-Hash. As the A-Hash is
 the service storing the entire state of the storage system, it is
-absolutely crucial for the ARC Storage that the A-Hash is
+absolutely crucial for the sttorage system that the A-Hash is
 consistent. The distribution and replication of this service is
 therefore both necessary and challenging.
 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\columnwidth]{arc1-storage-downloading.pdf}
-\caption{Schematic showing the scenario of file download from the ARC Storage.}
+\caption{Schematic showing the scenario of file download from the NorduGrid storage.}
 \label{arc1-storage-downloading}
 \end{figure}  
 
@@ -417,8 +412,8 @@ heartbeats to a Librarian with information about replicas
 whose state changed since the last heartbeat, and the corresponding
 GUIDs. These heartbeats are then stored in the A-Hash, making them
 visible to all the Librarians in the system. If any of the Librarians
-notices that a Shepherd is late with its heartbeat, it will invalidate
-all the replicas in that Shepherd.  
+notices that a Shepherd is late with its heartbeat, it will mark
+all the replicas in that Shepherd as offline.  
 
 \subsubsection{Replication}
 \label{Replication}
@@ -435,7 +430,7 @@ the corresponding file.
 In a replicating storage system, there are several possible solutions
 for file deletion, since both the replicas and the metadata need to be
 removed. In our solution, we use the process of \textit{lazy
-  deletion}, \cite{LazyDeletion}. When a client requests that a file
+  deletion} \cite{LazyDeletion}. When a client requests that a file
 should be deleted (and the user has the proper permissions) the
 Bartender instructs the Librarian to remove the file's GUID from the
 A-Hash. When the Shepherd, periodically checking all its replicas,
@@ -459,7 +454,7 @@ immediately informs the Librarian and the Librarian changes the state of the giv
 Bartender and asks for another replica of the file. The Bartender chooses a valid
 replica, initiates a file transfer from a Shepherd having the replica,
 and returns the TURL to the Shepherd with the invalid replica. When the
-Shepherd has recieved the replica and compared the checksum, it notifies the
+Shepherd has received the replica and compared the checksum, it notifies the
 Librarian that the replica is alive again.  
 \item In the case of a Shepherd going offline, a Librarian will,
   as mentioned earlier, notice the lack of heartbeats and invalidate all the
@@ -478,8 +473,7 @@ Librarian that the replica is alive again.
 \label{Client extension using FUSE module}
 
 Being the only part a user will (and should) see from a storage
-system, the client tools are an important part of the ARC
-Storage. Currently ARC supports two ways of accessing the
+system, the client tools are an important part of the NorduGrid storage. Currently ARC supports two ways of accessing the
 storage solution:
 \begin{itemize}
 \item The \textbf{Command-line Interface} (CLI) provides
@@ -489,19 +483,19 @@ storage solution:
   access and ownership will be available in the near future. The CLI
   assumes a relatively high level of computer competence
   from the user. However, the CLI, being a stand-alone tool, can be
-  used to access ARC Storage from any computer (also including
+  used to access the storage system from any computer (also including
   Microsoft Windows PCs) that has network access and
   a Python installation.
 \item The \textbf{FUSE module} provides a high-level access to the
-  ARC Storage. Filesystem in Userspace (FUSE) \cite{FUSE} provides a simple
+  storage system. Filesystem in Userspace (FUSE) \cite{FUSE} provides a simple
   library and a kernel-userspace interface. Using FUSE and the ARC
-  Storage Python interface, the FUSE module allows users to mount the
-  ARC Storage namespace into the local namespace. This way, the user
+  Python interface, the FUSE module allows users to mount the
+  storage namespace into the local namespace. This way, the user
   can use her/his favorite file manager to access her/his files and
   collections. The FUSE module provides most of the features provided
   by the CLI, with the exception of modifying some non-posix metadata.
 \end{itemize}
-It is worth mentioning that the client tools access the storage system
+It is worth mentioning that the client tools queries the storage system
 through the Bartender only. Currently upload and download is realized
 through HTTP(S), but there are plans to add support for other
 protocols, such as SRM and GridFTP.
@@ -536,14 +530,14 @@ the external store. %% For the experiments we use dCache with gridftp
 \label{Security Model }
 
 As is the case for all openly accessible web services, the security
-model is of crucial importance for the ARC Storage. The security
+model is of crucial importance for the NorduGrid storage. The security
 architecture of the storage can be split into three parts; the
 inter-service authorization; the transfer-level authorization; and the
 high-level authorization.
 \begin{itemize}
 \item The \textbf{inter-service authorization} maintains the integrity of the
   internal communication between services. There is a lot of
-  communication between the services of the ARC Storage. The
+  communication between the services of the storage system. The
   Bartenders send requests to the Librarians and the Shepherds, the
   Shepherds communicate with the Librarians and the Librarians talk with
   the A-Hash. If any of these services is compromised or a new
@@ -572,7 +566,7 @@ through HTTPS with standard X.509 authentication.
 \section{Testing and Discussion}
 \label{Testing and Discussion}
 
-Even though the ARC Storage is in a pre-prototype state, it is already
+Even though the NorduGrid storage is in a pre-prototype state, it is already
 possible to deploy and use the system for testing purposes. To
 properly run a proof-of-concept test, the resources need to be
 geographically distributed. In our test scenarios we utilized
@@ -614,7 +608,7 @@ The following tests were carried out:
 \item Test 4: System behavior while some of the Shepherds are offline.   
 \end{itemize}
 
-In the tests we used two client machines: One ASUS eee 901 on a wireless network in Uppsala, 
+In the tests we used two client machines: One ASUS Eee 901 on a wireless network in Uppsala, 
 and one Dell PowerEdge 1425SC with 10Gb ethernet connection at USIT. All the tests were performed and worked as expected: All the files were both 
 uploaded and downloaded with correct checksums and they all got the requested 
 number of replicas within a reasonable time. However, some of
@@ -705,8 +699,7 @@ relatively low storage load on the  NIIF storage node.
 \label{table:self healing}  
 \end{table}      
 
-A significant feature of the ARC Storage is its automatic self
-healing. Test 4 addresses this feature by studying the effect of
+A significant feature of the NorduGrid storage is its automatic self-healing. Test 4 addresses this feature by studying the effect of
 taking one Shepherd out of the system, and later reinserting it. Table
 \ref{table:self healing} shows the storage distribution in three
 states: Before interrupting a Shepherd, after the USIT-2
@@ -762,7 +755,7 @@ storage system even more stable, reliable and consistent:
 %% believe will benefit communities in need of a lightweight,
 %% yet distributed storage solution.
 While the work in the above mentioned areas is still in progress, we have 
-already shown that the ARC Storage already is in a state where initial 
+already shown that the NorduGrid storage already is in a state where initial 
 real-life tests can be done. We have described a simple, yet strong 
 architecture which we believe will benefit communities in need of a lightweight, 
 yet distributed storage solution.
