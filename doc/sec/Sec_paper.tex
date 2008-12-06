@@ -303,8 +303,11 @@ implementation.
 
 
 \begin{center}
-\includegraphics[width=3.6362in,height=3.3339in]{Secpaper-img1.png}
+\includegraphics[width=3.7465in,height=3.3764in]{Secpaper-img1.png}
 \end{center}
+
+\bigskip
+
 {\centering
 Figure 1. The example of Host Environment Daemon deployed with A-REX and
 File services
@@ -858,51 +861,42 @@ token inside
 
 \bigskip
 
-
-\bigskip
-
-3.6 Discussion
-
-
-\bigskip
-
-
-\bigskip
-
 {\centering
 4. Related work
 \par}
 
+Similar work that integrates Shibboleth and Grid middleware does exist.
+GridShib[17][18] uses Shibboleth to get entity{\textquotesingle}s
+attribute for the authorization of services developed in Globus Tookit.
+Unlike the work of this paper, GridShib does not use
+Shibboleth{\textquotesingle}s native login handlers for authentication
+to Shibboleth IdP, instead, a new login handler specific for X.509
+based authentication is developed for Shibboleth IdP, and a credential
+service is developed for acting as an online-CA, authenticating the
+user, and issuing short-lived X.509 credential.
 
-\bigskip
+SWITCH short-lived credential service (SLCS) [19] provides a SLCS
+service and client. The benefit of our work comparing to the
+SWTCH{\textquotesingle}s solution is the SLCS service and client is
+based on Web Service, so that it can be implemented in any Web Service
+container while keeping interoperability.
 
-There is some effort to add GSI support to adapt to the strict security
-requirement including GSI from grid middlewares, such as GSI plug-in
-for gSOAP[17]. The GSI MCC implemented in ARC can also achieve the same
-functionality as gSOAP. Moreover, the ARC solution is flexible than the
-gSOAP solution, because both the GSI MCC of service and client sides
-are pluggable, which means service and client developer of ARC do not
-need to modify the service or client implementation in order to add or
-remove the GSI functionality.
+In terms of delegation, apart from the credential delegation mechanism
+from GSI [2][20], [21] proposes a delegation protocol based on the
+WS-Trust [22] in order to provide a standard and interoperable protocol
+for delegation in Grids. WS-Trust will also be adopted by ARC
+middleware to express the specifications required to define delegation
+protocol in a standard way. Gridsite implements a X.509 credential
+delegation solution [23] based on Web Service, with which ARC
+delegation client can easily interoperate. 
 
-
-\bigskip
-
-Shibboleth
-
-GridShib
-
-gLite Delegation Service?
-
-SWITCH SLCS Service
-
-the CCGrid 06 paper: Shibboleth-Protected privilege management
-infrastructure
-
-Delegation service : gridsite
-
-
-\bigskip
+GSI plug-in for gSOAP[24] adds GSI support for gSOAP Web Service tookit.
+The GSI MCC implemented in ARC can also achieve the same functionality
+as this plug-in. Moreover, the ARC solution is more flexible than it,
+because GSI MCC of both service and client sides are pluggable, which
+means service and client developer of ARC do not need to modify the
+service or client implementation in order to add or replace the GSI
+functionality.
 
 
 \bigskip
@@ -944,7 +938,7 @@ Authorization. \url{http://www.faqs.org/rfcs/rfc3281.html}
 \textstyleCitation{\textup{[7]Advanced Resource Connector.
 }}\url{http://www.nordugrid.org/middleware/}
 
-\textstyleCitation{\textup{[8]Web Services Security(WS-Security).
+\textstyleCitation{\textup{[8]OASIS Web Services Security.
 www.oasis-open.org/committees/wss/}}
 
 \textstyleCitation{\textup{[9]OASIS Security Assertion Markup Languages
@@ -958,7 +952,7 @@ grids. Future Generation computer systems, 23(2):219--240, 2007.
 
 [11]KnowARC project. \ https://www.knowarc.eu/
 
-\textstyleCitation{\textup{[12] Design document of new version ARC.
+\textstyleCitation{\textup{[12]Design document of new version ARC.
 }}\url{https://www.knowarc.eu/documents/Knowarc_D1.1-1_07.pdf}
 
 \textstyleCitation{\textup{[13]A. Shoshani, A. Sim, and J. Gu,
@@ -976,11 +970,37 @@ State of the Art and Future Trends, Kluwer Publishing, 2003.}}
 Infrastructure (PKI)}} Proxy Certificate Profile.
 \url{http://www.ietf.org/rfc/rfc3820.txt}
 
-\textstyleCitation{\textup{[17]}}\textstyleCitation{\textup{Giovanni
+[17]V. Welch, T. Barton, K. Keahey and F. Siebenlist. Attributes,
+Anonymity, and Access: Shibboleth and Globus Integration to Facilitate
+Grid Collaboration. 4th Annual PKI R\&D Workshop, 2005. 
+
+[18]T. Barton, J. Basney, T. Freeman, T. Scavo, F. Siebenlist, V. Welch,
+R. Ananthakrishnan, B. Baker, and K. Keahey. Identity Federation and
+Attribute-based Authorization through the Globus Toolkit, Shibboleth,
+Gridshib, and MyProxy. 5th Annual PKI R\&D Workshop, 2006. 
+
+[19]SWITCH Short Lived Credential Service.
+\url{http://www.switch.ch/grid/slcs/}
+
+[20]V. Welch, I. Foster, C. Kesselman, O. Mulmo, L. Pearlman, S. Teucke,
+J. Gawor, S. Meder and F. Siebenlist. X.509 proxy certificate for
+dynamic delegation, Proceeding of the 3rd Annual PKI R\&D Workshop,
+2004.
+
+[21]M. Ahsant, J. Basney, and O. Mulmo. Grid Delegation Protocol, UK
+Workshop on Grid Security Experiences, Oxford. 2004.
+
+[22]OASIS WS-Trust specification.
+\url{http://docs.oasis-open.org/ws-sx/ws-trust/200512}
+
+[23]gridsite elegation service.
+http://www.gridsite.org/wiki/Delegation\_protocol
+
+\textstyleCitation{\textup{[24]}}\textstyleCitation{\textup{Giovanni
 Aloisio, Massimo Cafaro, Italo Epicoco, Daniele Lezzi, and Robert van
-Engelen, }}\textstyleCitation{The GSI plug-in for gSOAP: Enhanced
-Security, Performance, and Reliability}\textstyleCitation{\textup{, in
-the ITCC conference 2005, IEEE Press, Volume I, pages 304-309.}}
+Engelen, The GSI plug-in for gSOAP: Enhanced Security, Performance, and
+Reliability, in the ITCC conference 2005, IEEE Press, Volume I, pages
+304-309.}}
 
 
 \bigskip
