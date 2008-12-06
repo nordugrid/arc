@@ -96,6 +96,20 @@ Towards cross-middleware authentication and single sign-on for ARC grid
 middleware
 \par}
 
+{\centering
+Weizhong Qiang 1, Aleksandr Konstantinov 1,2 
+\par}
+
+{\centering
+1University of Oslo, Department of Physics, P.O. Box 1048, Blindern,
+0316 Oslo, Norway
+\par}
+
+{\centering
+2Vilnius University, Institute of Material Science and Applied Research,
+Sauletekio al. 9, Vilnius 2040, Lithuania 
+\par}
+
 
 \bigskip
 
@@ -122,8 +136,7 @@ Service specifications such as Security Assertion Markup Languages
 (\textit{SAML}) single sign-on (SSO) profile, Web Services Security in
 order to achieve cross-middleware authentication and single sign-on.
 
-
-\bigskip
+Keyword: single sign-on, delegation, virtual organization, ARC
 
 \liststyleLi
 \begin{enumerate}
@@ -131,7 +144,7 @@ order to achieve cross-middleware authentication and single sign-on.
 1. Introduction
 \par}
 \end{enumerate}
-\ \ \ \ Grid provides the technology for wide-scale, cross domains
+\ \ \ \ Grid provides the technology for wide-scale, cross-domain
 collaboration where the users work on resources and sharing data which
 are distributed across domains. This kind of collaboration is called
 virtual organization (VO)[1]. The resources that contribute to the VO
@@ -169,7 +182,7 @@ constitute trust federation and guarantee two different X.509
 certificates from different CAs can accomplish authentication to each
 other. So in the GSI based Grid system, if a user would access Grid
 system, he/she should own a X.509 certificate which is issued by a CA
-that is trusted by other entity.
+that is trusted by other entities.
 
 \ \ \ \ In terms of the virtual organization issues mentioned earlier,
 GSI and some other related solutions like Virtual Organization
@@ -184,7 +197,7 @@ certificates by client, \ and attributes certificate includes the VO
 memberships which is associated with the proxy
 certificate{\textquotesingle}s identity. Eventually the resources can
 make access control decision based on parsing the VO membership
-attributes from the homogeneous attribute certificate. 
+attributes from the Attribute Certificate.
 
 \ \ \ \ The VO is essentially supposed to be able to provide resource
 sharing capability with resources running under heterogeneous
@@ -202,15 +215,15 @@ to the following reasons:
 
 \liststyleLiii
 \begin{itemize}
-\item The GSS API based confidential communication has also not been
-adopted by Web Service implementation.
+\item The GSS API based confidential communication has not been adopted
+by Web Service implementations.
 \item The Attribute Certificate has not been adopted by any Web Service
 implementation at all.
 \item Web Service implementations commonly use the Web Services
 Security(WS-Security)[8], Security Assertion Markup Languages
 (SAML)[9], and standard SSL/TLS as well as standard X.509 certificate
 when considering security, which make them impossible to interoperate
-with the GSI based grid middlewares.
+with the GSI based Grid middlewares.
 \item Finally, identity delegation is a good solution for user or
 user{\textquotesingle}s delegatee (on behalf of the user) to
 move/travel from one resource to another resource. But since the
@@ -231,7 +244,7 @@ specific command lines, such as \textit{grid-proxy-init}, and
 some local community/institutional credentials such as
 username/passwords to which users are more familiar. Enabling users to
 use their own community credential instead of the X.509 certificate to
-access grid is a promising solution to make the Grid more easily
+access Grids is a promising solution to make the Grids more easily
 accessible. 
 
 \ \ \ \ The above analysis shows that in order to achieve
@@ -257,9 +270,6 @@ implementations for bridging the mismatch in terms of authentication
 and single sign-on. Section 4 discusses the related research, and
 Section 5 presents conclusion and future work.
 
-
-\bigskip
-
 {\centering
 2. ARC Grid Middleware 
 \par}
@@ -267,8 +277,8 @@ Section 5 presents conclusion and future work.
 \ \ \ \ ARC(Advanced Resource Connector) is an open source Grid
 middleware solution released under Apache license. ARC middleware
 initially aimed at developing self-organized, fault-tolerant,
-non-intrusive, easy-manageable Grid middleware [10]. \ Now \ the
-classic version of ARC provides Grid services for job submission and
+non-intrusive, easy-manageable Grid middleware [10]. Now the classic
+version of ARC provides Grid services for job submission and
 management, resource characterization, resource aggregation and
 discovery, basic data management, integration of grid security
 solution, etc. Classic ARC has been deployed and used in production
@@ -277,11 +287,11 @@ Europe.
 
 \ \ \ \ The new generation of ARC is developed by KnowARC project [11],
 based on the functionality and capabilities of the classic ARC
-middleware. It aims at implementing a Web Service oriented middleware
-which will provide higher levels of resource and user abstraction
-through well-defined web service interface [12] in order to provide
-interoperability with other service-based Grid middlewares, as well as
-other Web Service compatible applications.
+middleware. It aims at implementing a Web Service oriented Grid
+middleware which will provide higher levels of resource and user
+abstraction through well-defined Web Service interface [12] in order to
+provide interoperability with other service-based Grid middlewares, as
+well as other Web Service compatible applications.
 
 \ \ \ \ As the key part of the implementation of new ARC middleware,
 there is a lightweight Web Service container called Hosting Environment
@@ -303,7 +313,7 @@ implementation.
 
 
 \begin{center}
-\includegraphics[width=3.7465in,height=3.3764in]{Secpaper-img1.png}
+\includegraphics[width=3.528in,height=3.098in]{Secpaper-img1.png}
 \end{center}
 
 \bigskip
@@ -319,7 +329,7 @@ general, there are few \ components called Message Chain Component
 For instance, as shown in the example message flow, HTTP MCC will
 process stream from TLS MCC to \ parse HTTP message and pass its body
 to SOAP MCC, and also process SOAP response from SOAP MCC to generate
-HTTP message for TLS MCC. 
+HTTP message for TLS MCC.
 
 \ \ \ \ Dotted lines at Figure 1 show alternative path information can
 propagate among MCCs. Service administrator can configure the MCCs
@@ -343,11 +353,11 @@ two queues of \textit{SecHandler} -- one for incoming message and one
 for outgoing message respectively. All \textit{SecHandler} components
 attached to the queue are executed sequentially. If any of them fails,
 message processing fails as well. In Figure 1, the
-{\textquotedblleft}AuthZ{\textquotedblright} and
-{\textquotedblleft}AuthN{\textquotedblright} sub-modules inside MCCs
-and Services are examples of \textit{SecHandler}.
+{\textquotedblleft}\textit{AuthZ}{\textquotedblright} and
+{\textquotedblleft}\textit{AuthN}{\textquotedblright} sub-modules
+inside MCCs and Services are examples of \textit{SecHandler}.
 
-As explained above, HED is supposed to act as a Web/Grid Service
+\ \ \ \ As explained above, HED is supposed to act as a Web/Grid Service
 container, but on the client side, from implementation perspective,
 there is similar architecture implemented for processing messages from
 different protocols and handling security functionality, also there is
@@ -378,12 +388,12 @@ authentication, in order to interoperate with services that depend on
 PKI based mutual authentication.
 \item \textit{Credential delegation service} -{}-{}- to process the
 X.509 credential delegation as a normal Web Service, in order to
-provide single sign-on characteristic.
+provide single sign-on ability.
 \item \textit{Message level authentication} -{}-{}- to provide message
 level authentication by implementing WS-Security.
-\item \textit{SAML token delegation service} -{}-{}- to process the WS
-Security SAML token in order to provide single sign-on for SOAP message
-level authentication.
+\item \textit{SAML token delegation service} -{}-{}- to process the
+delegation of WS Security SAML token in order to provide single sign-on
+for SOAP message level authentication.
 \end{itemize}
 3.1 Community based authentication for Grid by utilizing Shibboleth
 Identity Provider
@@ -412,12 +422,12 @@ Provider. The Identity Provider (IdP) is responsible for creating,
 maintaining, and managing user identity, while the Service Provider
 (SP) is responsible for controlling access to services and resources by
 using the SAML assertion produced and issued by IdP upon request. In
-order to discover which home community does a user from, Shibboleth
-specifies an optional third component called {\textquotedblleft}Where
-Are You From?{\textquotedblright} (WAYF) service to aid in the process
-of IdP discovery, and this IdP discovery process is also standardized
-and \ defined in SAML 2.0 specification and called as
-{\textquotedblleft}Identity Profile Discovery
+order to discover which home community does a user come from,
+Shibboleth specifies an optional third component called
+{\textquotedblleft}Where Are You From?{\textquotedblright} (WAYF)
+service to aid in the process of IdP discovery, and this IdP discovery
+process is also standardized and \ defined in SAML 2.0 specification
+and called as {\textquotedblleft}Identity Profile Discovery
 Profile{\textquotedblright}.
 
 \ \ \ \ We utilized the SAML2.0 web browser SSO profile for the
@@ -473,14 +483,15 @@ assertion consuming service (hosted in this SP itself) in order to
 compose the SAML {\textless}\textit{samlp:AuthnRequest}{\textgreater}
 message. Then SP Service issues this
 {\textless}\textit{samlp:AuthnRequest}{\textgreater} message by using
-its own X.509 certificate (Note in the SAML SSO profile, certificate is
-still needed by IdP and SP) and sends back to user agent.
+its own X.509 certificate (Note in the SAML SSO profile, X.509
+certificates are still needed for IdP and SP) and sends back to user
+agent.
 \item User agent sends the
 {\textless}\textit{samlp:AuthnRequest}{\textgreater} message to
 Identity Provider.
 \item Identity Provider requires an act of authentication. The
 authentication mechanism is outside of the SAML2.0 SSO profile.
-Shibboleth IdP implementation chooses some login handler for
+Shibboleth IdP implementation chooses some login handlers for
 authentication. The current user agent implementation is compatible to
 \textit{Username/Password} login handler of Shibboleth IdP. Through the
 http protocol, user agent will feed IdP with the username/password
@@ -489,8 +500,8 @@ which has been given by the caller of user agent interface.
 response including an encrypted (encrypted by destination
 SP{\textquotesingle}s public key) SAML assertion, and then this SAML
 response will be delivered by the user agent to the Service Provider. 
-\item The SP Service verifies and checks the SAML response, and decrypts
-and stores the SAML assertion into session/connection context. The SAML
+\item The SP Service verifies and checks the SAML response, decrypts and
+stores the SAML assertion into session/connection context. The SAML
 assertion includes the
 {\textless}\textit{saml:AuthnStatement}{\textgreater} and
 {\textless}\textit{saml:AttributeStatement}{\textgreater}.
@@ -535,7 +546,7 @@ widely deployed SAML implementation for authentication in grid systems
 by avoiding the usage of X.509 certificate.
 
 Moreover, even though the implementation is based on ARC middlerware,
-the idea can be adopted by other grid middlewares if they only require
+the idea can be adopted by other Grid middlewares if they only require
 server authentication instead of mutual authentication.
 
 
@@ -585,15 +596,15 @@ The CLI for the SLCS client is like this:
 https://idp.testshib.org/idp/shibboleth -U myself -P myself
 
 \ \ \ \ Since the lifetime of the short lived credential is normally
-short, it is not a must to protect the private key by pass-phrase. As
+short, it is not a must to protect the private key by pass phrase. As
 illustrated in step a and step b in Figure 3, if the private key is not
 protected, through Web Service client, the user can use the X.509
 certificate to access Grid Service or Web Service from any kind of
-middleware. If the private key is protected, the can use the X.509
+middleware. If the private key is protected, he can use the X.509
 certificate to generate a proxy certificate (by using command-line
 interface utility such as \textit{grid-proxy-init},
-\textit{voms-}\textit{proxy-init}, or \textit{arcproxy}), and then use
-the proxy certificate to access Grid Service or Web Service. 
+\textit{voms-}\textit{proxy-init}), and then use the proxy certificate
+to access Grid/Web Service. 
 
 \ \ \ \ It is worth mentioning that since ARC middleware can support GSI
 communication by configuring the GSI MCC, \ together with the X.509
@@ -617,13 +628,12 @@ the authentication to his home Identity Provider, he can get the X.509
 credential at anywhere only by running the SLCS client command together
 with inputing his username and password to this home IdP, and then
 access the grid system conveniently; meanwhile, thanks to the single
-sign-on characteristic of SAML2.0 SSO profile which is discussed in
-Section 3.1, this user doesn{\textquotesingle}t not need to input his
-username and password in a valid period after the first time he
-succeeds to authenticate against his home IdP by running the SLCS
-client command on the same node, even if this SLCS client command is
-supposed to run against a few SLCS services to get a few SLCS
-credentials.
+sign-on characteristic of SAML2.0 SSO profile, this user
+doesn{\textquotesingle}t not need to input his username and password in
+a valid period after the first time he succeeds to authenticate against
+his home IdP by running the SLCS client command on the same node, even
+if this SLCS client command is supposed to run against a few SLCS
+services to get a few SLCS credentials.
 
 
 \bigskip
@@ -635,8 +645,8 @@ Infrastructure (GSI) is a good solution for the supporting of single
 sign-on for users, except the coupling of the GSI communication which
 is not so widely accepted in Web Service applications. In the design of
 the new version ARC middleware, we keep the credential delegation idea,
-while utilizing the SOAP communication (and TCP or TLS for transport
-level communication) instead of the GSI communication for the
+while utilizing the SOAP communication (together with TCP or TLS for
+transport level communication) instead of the GSI communication for the
 credential delegation process.
 
 \ \ \ \ As shown in Figure 4, there is a specific WS client and Web
@@ -644,7 +654,7 @@ Service for processing delegation: delegation client, and delegation
 service. The \textit{WSDL}(Web Service Description Language) of
 delegation service has two main operations, one for processing the
 delegation initiation, and \ the other for storing the signed proxy
-certificate. The delegation process is detailed in Figure 5. 
+certificate. The delegation protocol is detailed in Figure 5.
 
 \ \ \ \ For the delegation process, the delegation WS client
 functionality (inside each delegation service or the initial client)
@@ -656,8 +666,7 @@ credential. For other general \ service invocation process, the WS
 client functionality (inside each service or the initial client) which
 is included to access the target service (step a1 or a2 in Figure 4),
 should also use the user{\textquotesingle}s X.509 credential or
-delegated credential (on behalf of the user) for authentication and
-secure communication. 
+delegated credential for authentication and secure communication. 
 
 \ \ \ \ \ Since each WS client accesses the target service (delegation
 service or other general services) on behalf of the user, the trust
@@ -700,7 +709,7 @@ Figure 4. Credential delegation service and client
 \includegraphics[width=3.0638in,height=1.7827in]{Secpaper-img5.png}
 \end{center}
 {\centering
-Figure 5. Credential delegation process
+Figure 5. Credential delegation protocol
 \par}
 
 
@@ -720,10 +729,10 @@ each hop to be protected with the resultant security gaps at
 intermediate actors. Web Services Security (WS-Security)[8]
 specification provides means for applying security to Web Service.
 
-\ \ \ \ WS-Security related specifications are implemented in ARC as
-\textit{SecHandler}. There are three kinds of WS-Security version 1.1
-specifications which are completely or partly implemented: Username
-Token profile, X.509 Token profile, and SAML Token profile.
+\ \ \ \ WS-Security related specifications are implemented as
+\textit{SecHandler} in ARC. There are three kinds of WS-Security
+version 1.1 specifications which are completely or partly implemented:
+Username Token profile, X.509 Token profile, and SAML Token profile.
 
 \ \ \ \ For those WS clients on behalf of a user, at any step of service
 invocation, the WS client can augment the SOAP message with WS-Security
@@ -795,9 +804,9 @@ and service certificate, instead, it is based on mutual authentication
 between service certificate and service certificate.
 \item Delegation service will not generate any certificate request,
 instead, the delegation client will pick the public key from peer
-certificate after successful SSL/TLS authentication. So \ step2 of the
-delegation protocol will only be some confirmation information which
-lets delegation client to proceed. 
+certificate after successful SSL/TLS authentication. So step2 of the
+delegation protocol is only be some confirmation information which
+informs delegation client to proceed. 
 \item For those multiple intermediate services through which a SOAP
 message flows, delegation service does not need to appear, instead, it
 only need to appear on the end of the SOAP message flow.
@@ -811,7 +820,7 @@ attribute information.
 message is changed due to delegation (we suppose X.509 token is used
 for attesting entity to authenticate against issuing authority). The
 SOAP message on the left side is the one which B sends to relying party
-(intermediate service), B is the identity of the attesting
+(intermediate service). B is the identity of the attesting
 entity{\textquotesingle}s X.509 token, while A is the identity of
 issuing authority, and the SOAP message is signed by
 B{\textquotesingle}s private key which is corresponding to the X.509
@@ -821,7 +830,7 @@ the target service to which B will access), and now the SOAP message is
 signed by C{\textquotesingle}s private key which is corresponding to
 the target service{\textquotesingle}s certificate.
 
-\ \ \ It is worth mentioning is: since the SLCS X.509 credential or
+\ \ \ What is worth mentioning is: since the SLCS X.509 credential or
 delegated credential can be used to issue X.509 token, \ the X.509
 credential delegation and SAML Token delegation are smoothly bridged,
 which benefits the single sign-on. 
@@ -841,7 +850,7 @@ which benefits the single sign-on.
 \includegraphics[width=6.9252in,height=0.0161in]{Secpaper-img8.png}
 \end{center}
 {\centering
-Figure 6. SAML Token delegation service
+Figure 6. SAML Token delegation service and client
 \par}
 
 
@@ -870,40 +879,41 @@ token inside
 4. Related work
 \par}
 
-Similar work that integrates Shibboleth and Grid middleware does exist.
-GridShib[17][18] uses Shibboleth to get entity{\textquotesingle}s
-attribute for the authorization of services developed in Globus Tookit.
-Unlike the work of this paper, GridShib does not use
-Shibboleth{\textquotesingle}s native login handlers for authentication
-to Shibboleth IdP, instead, a new login handler specific for X.509
-based authentication is developed for Shibboleth IdP, and a credential
-service is developed for acting as an online-CA, authenticating the
-user, and issuing short-lived X.509 credential. Moreover, this paper
-provides a single sign-on solution for user authenticating to Grid
-services by directly using SAML2.0 SSO profile (section 3.1).
+\ \ \ \ Similar work that integrates Shibboleth and Grid middleware does
+exist. GridShib[17][18] uses Shibboleth to get
+entity{\textquotesingle}s attribute for the authorization of services
+developed in Globus Tookit. Unlike the work of this paper, GridShib
+does not use Shibboleth{\textquotesingle}s native login handlers for
+authentication to Shibboleth IdP, instead, a new login handler specific
+for X.509 based authentication is developed for Shibboleth IdP, and a
+credential service is developed for acting as an online-CA,
+authenticating the user, and issuing short-lived X.509 credential.
+Moreover, this paper provides a single sign-on solution for user with
+community credential authenticating to Grid services by directly using
+SAML2.0 SSO profile.
 
-SWITCH short-lived credential service (SLCS) [19] provides a SLCS
-service and client. The benefit of our work comparing to the
+\ \ \ \ SWITCH short-lived credential service (SLCS) [19] provides a
+SLCS service and client. The benefit of our work comparing to the
 SWTCH{\textquotesingle}s solution is the SLCS service and client is
 based on Web Service, so that it can be implemented in any Web Service
 container while keeping interoperability.
 
-In terms of delegation, apart from the credential delegation mechanism
-from GSI [2][20], [21] proposes a delegation protocol based on the
-WS-Trust [22] in order to provide a standard and interoperable protocol
-for delegation in Grids. WS-Trust will also be adopted by ARC
+\ \ \ \ In terms of delegation, apart from the credential delegation
+mechanism from GSI [2][20], [21] proposes a delegation protocol based
+on the WS-Trust [22] in order to provide a standard and interoperable
+protocol for delegation in Grids. WS-Trust will also be adopted by ARC
 middleware to express the specifications required to define delegation
-protocol in a standard way. Gridsite implements a X.509 credential
-delegation solution [23] based on Web Service, with which ARC
-delegation client can easily interoperate. 
+protocol in a standard way. Gridsite project implements a X.509
+credential delegation solution [23] based on Web Service, with which
+ARC delegation client can easily interoperate.
 
-GSI plug-in for gSOAP[24] adds GSI support for gSOAP Web Service tookit.
-The GSI MCC implemented in ARC can also achieve the same functionality
-as this plug-in. Moreover, the ARC solution is more flexible than it,
-because GSI MCC of both service and client sides are pluggable, which
-means service and client developer of ARC do not need to modify the
-service or client implementation in order to add or replace the GSI
-functionality.
+\ \ \ \ GSI plug-in for gSOAP[24] adds GSI support for gSOAP Web Service
+tookit. The GSI MCC implemented in ARC can also achieve the same
+functionality as this plug-in. Moreover, the ARC solution is more
+flexible than it, because GSI MCC of both service and client sides are
+pluggable, which means service and client developer of ARC do not need
+to modify the service or client implementation in order to add or
+replace the GSI functionality.
 
 
 \bigskip
@@ -925,7 +935,7 @@ based Web Services (including SLCS service, X.509 credential delegation
 service, and SAML Token delegation service), as well as the user agent
 and Service Provider in context of SAML2 SSO profile.
 
-\ \ \ It must be noted that due to standard specifications utilized
+\ \ \ \ It must be noted that due to standard specifications utilized
 (SAML and WS-Security) which are independent from any particular
 middleware, though the WS clients and Web/Grid Services presented in
 this paper are mostly developed on ARC middleware, they can
@@ -934,9 +944,18 @@ other middlware in a standardized way. ARC also supports
 interoperability with Grid middlewares that require GSI based
 communication.
 
-\ \ \ \ Since authorization is also a key problem for VO, as the future
-work, we will implement a solution for cross-middleware authorization
-by using the standard specification such as SAML.
+\ \ \ \ Though only authentication issue is discussed in this paper, as
+the future work, we will implement a solution for cross-middleware
+attribute-based authorization by using the standard specification such
+as SAML.
+
+{\centering
+6. Acknowledgment
+\par}
+
+We would thank all of the ARC middleware developers for their
+intelligent work. The work has been supported by the European
+Commission through the KnowARC project (contract Nr. 032691). 
 
 
 \bigskip
