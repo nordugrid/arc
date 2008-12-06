@@ -255,7 +255,7 @@ new version of ARC. Section 3 describes the solution for
 cross-middleware authentication and single sign-on, including
 implementations for bridging the mismatch in terms of authentication
 and single sign-on. Section 4 discusses the related research, and
-Section 5 presents conclusion.
+Section 5 presents conclusion and future work.
 
 
 \bigskip
@@ -442,13 +442,13 @@ Provider, the Shibboleth IdP implementation is used.
 client and service.
 
 
-
-\begin{center}
-\includegraphics[width=3.4063in,height=2.1417in]{Secpaper-img2.png}
-\end{center}
-
 \bigskip
 
+
+
+\begin{center}
+\includegraphics[width=3.2256in,height=1.8472in]{Secpaper-img2.png}
+\end{center}
 {\centering
 Figure 2. SAML2.0 SSO profile in ARC
 \par}
@@ -507,8 +507,8 @@ requires that WS client is from the same connection as the one on which
 user agent contact SP service, in order to guarantee that the validity
 of SSO profile result effects the WS client/Web Service interaction.
 \end{enumerate}
-\ \ \ \ The SP service and functional service(s) are hosted by the same
-container, and they use the same X.509 credential. The client
+\ \ \ \ The SP service and other functional service(s) are hosted by the
+same container, and they use the same X.509 credential. The client
 authentication is switched off, so that client doesn{\textquotesingle}t
 need to use any X.509 credential. Only the trusted certificates (CA
 certificates for both SP and IdP) need to be configured for client side
@@ -821,13 +821,18 @@ the target service to which B will access), and now the SOAP message is
 signed by C{\textquotesingle}s private key which is corresponding to
 the target service{\textquotesingle}s certificate.
 
+\ \ \ It is worth mentioning is: since the SLCS X.509 credential or
+delegated credential can be used to issue X.509 token, \ the X.509
+credential delegation and SAML Token delegation are smoothly bridged,
+which benefits the single sign-on. 
+
 
 \bigskip
 
 
 
 \begin{center}
-\includegraphics[width=4.1866in,height=2.7874in]{Secpaper-img6.png}
+\includegraphics[width=4.0016in,height=2.639in]{Secpaper-img6.png}
 \end{center}
 \begin{center}
 \includegraphics[width=6.9252in,height=0.0161in]{Secpaper-img7.png}
@@ -846,13 +851,13 @@ Figure 6. SAML Token delegation service
 \bigskip
 
 
-
-\begin{center}
-\includegraphics[width=4.2957in,height=2.2575in]{Secpaper-img9.png}
-\end{center}
-
 \bigskip
 
+
+
+\begin{center}
+\includegraphics[width=3.8374in,height=1.9063in]{Secpaper-img9.png}
+\end{center}
 {\centering
 \ \ \ \ \ \ \ \ \ Figure 7. SOAP message header with SAML delegation
 token inside
@@ -873,7 +878,9 @@ Shibboleth{\textquotesingle}s native login handlers for authentication
 to Shibboleth IdP, instead, a new login handler specific for X.509
 based authentication is developed for Shibboleth IdP, and a credential
 service is developed for acting as an online-CA, authenticating the
-user, and issuing short-lived X.509 credential.
+user, and issuing short-lived X.509 credential. Moreover, this paper
+provides a single sign-on solution for user authenticating to Grid
+services by directly using SAML2.0 SSO profile (section 3.1).
 
 SWITCH short-lived credential service (SLCS) [19] provides a SLCS
 service and client. The benefit of our work comparing to the
@@ -905,8 +912,31 @@ functionality.
 5. Conclusion and Future work
 \par}
 
+\ \ \ \ Within this paper we presented the solution inside ARC Grid
+middleware towards the cross-middleware authentication and single
+sing-on. The goal of our work is to develop an interoperatable and
+accessible single sign-on solution to be used for VO scenario in
+production Grids, where users can easily authenticate against the Grids
+with any of his credentials (not only X.509 credential) from anywhere,
+and travel inside Grid middleware boundaries and even across
+heterogeneous Grids middleware boundaries, \ without re-authentication
+in a reasonable period. In order to do so, we implemented some standard
+based Web Services (including SLCS service, X.509 credential delegation
+service, and SAML Token delegation service), as well as the user agent
+and Service Provider in context of SAML2 SSO profile.
 
-\bigskip
+\ \ \ It must be noted that due to standard specifications utilized
+(SAML and WS-Security) which are independent from any particular
+middleware, though the WS clients and Web/Grid Services presented in
+this paper are mostly developed on ARC middleware, they can
+interoperate with WS clients and Web/Grid Services developed on any
+other middlware in a standardized way. ARC also supports
+interoperability with Grid middlewares that require GSI based
+communication.
+
+\ \ \ \ Since authorization is also a key problem for VO, as the future
+work, we will implement a solution for cross-middleware authorization
+by using the standard specification such as SAML.
 
 
 \bigskip
