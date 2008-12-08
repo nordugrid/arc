@@ -103,7 +103,7 @@
 		<xsd:element name="AccessControl" type="AccessControl_Type" minOccurs="0" maxOccurs="1"/>
 		<xsd:element name="ProcessingStartTime" type="xsd:dateTime" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="CredentialService" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
-	        <xsd:element name="Notification" type="Notify_Type" minOccurs="0" maxOccurs="1"/>	
+	        <xsd:element name="Notification" type="Notify_Type" minOccurs="0" maxOccurs="unbounded"/>	
 	        <xsd:element name="Join" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>	
 	  </xsd:sequence>
 	</xsd:complexType>
@@ -231,7 +231,7 @@
 	        <xsd:element name="DiskSpace" type="DiskSpace_Type" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="CandidateTarget" type="CandidateTarget_Type" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="CEType" type="CETypeEnumeration" minOccurs="0" maxOccurs="1"/>
-                <xsd:element name="RuntimeEnvironment" type="RuntimeEnvironment_Type" minOccurs="0" maxOccurs="1"/>
+                <xsd:element name="RuntimeEnvironment" type="RuntimeEnvironment_Type" minOccurs="0" maxOccurs="unbounded"/>
                 <xsd:element name="NodeAccess" type="NodeAccess_Type" minOccurs="0" maxOccurs="1"/>
 	    </xsd:sequence>
 	</xsd:complexType>
@@ -260,7 +260,7 @@
 
   	<xsd:complexType name="File_Type">
 		<xsd:sequence>
-		    <xsd:element name="Name" type="File_Type" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="Name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
 		    <xsd:element name="Source" type="Source_Type" minOccurs="0" maxOccurs="unbounded"/>
 		    <xsd:element name="Target" type="Target_Type" minOccurs="0" maxOccurs="unbounded"/>
 		    <xsd:element name="KeepData" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
@@ -272,7 +272,7 @@
 
   	<xsd:complexType name="Directory_Type">
 		<xsd:sequence>
-		    <xsd:element name="Name" type="File_Type" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="Name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
 		    <xsd:element name="Source" type="Source_Type" minOccurs="0" maxOccurs="unbounded"/>
 		    <xsd:element name="Target" type="Target_Type" minOccurs="0" maxOccurs="unbounded"/>
 		    <xsd:element name="KeepData" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
@@ -284,14 +284,14 @@
 
   	<xsd:complexType name="Source_Type">
 		<xsd:sequence>
-		    <xsd:element name="URI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="URI" type="xsd:anyURI" minOccurs="1" maxOccurs="1"/>
 		    <xsd:element name="Threads" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
         </xsd:complexType>
 
   	<xsd:complexType name="Target_Type">
 		<xsd:sequence>
-		    <xsd:element name="URI" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+		    <xsd:element name="URI" type="xsd:anyURI" minOccurs="1" maxOccurs="1"/>
 		    <xsd:element name="Threads" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="Mandatory" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 		    <xsd:element name="NeededReplicas" type="xsd:integer" minOccurs="0" maxOccurs="1"/>

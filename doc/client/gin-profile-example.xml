@@ -27,7 +27,7 @@
        <AccessControl>
        		<gacl><entry><any-user/><allow><read/><write/><list/><admin/></allow></entry></gacl>
        </AccessControl>
-       <ProcessingStartTime>2009-06-25 21:30</ProcessingStartTime>
+       <ProcessingStartTime>2009-06-25 21:30:00</ProcessingStartTime>
        <CredentialService>myproxy://myproxy.nordugrid.org;username=knowarc</CredentialService>
        <Notification>
        	   <Address>mark@domain.com</Address>
