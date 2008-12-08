@@ -28,6 +28,20 @@ GMKICK=${basedir}/gm-kick
 
 umask 022
 
+my_id=`id -u`
+
+STAT_USERNAME='stat -u'
+$STAT_USERNAME $0 2>/dev/null 1>&2
+if [ ! $? = '0' ] ; then
+  STAT_USERNAME='stat -c uid:%U'
+  $STAT_USERNAME $0 2>/dev/null 1>&2
+  if [ ! $? = '0' ] ; then
+    # OBS: Solaris 9 is missing stat (but Solaris 10 has it)
+    echo "Warning: Can't find useable stat utility" 1>&2
+    STAT_USERNAME='echo bogous'
+  fi
+fi
+
 if [ -z "$1" ] ; then exit 1 ; fi
 
 TMP_DIR=${TMPDIR:-@tmp_dir@}
@@ -73,6 +87,22 @@ for ctr_dir in $control_dirs ; do
     # find grid job corresponding to current local id
     jobfile=`find $ctr_dir -name 'job.*.local' 2>/dev/null | xargs grep -l "localid=$id\$" 2>/dev/null`
     if [ -z "$jobfile" ] ; then continue ; fi
+    # unless running as superuser, skip jobs not belonging to the current user
+    if [ "$my_id" != '0' ] ; then
+      if [ ! -O "$jobfile" ] ; then continue ; fi
+    fi
+    # Define a function for running commands as the user who owns this job.
+    as_owner() { ( $* ); }        # By default, it's a do-nothing function.
+    # find who runs this job
+    if [ "$my_id" = '0' ] ; then
+      username=`$STAT_USERNAME "${jobfile}" | sed -n 's/^uid:\([^ ]*\)$/\1/p'`
+      if [ $? = 0 ] && [ ! -z "$username" ]; then
+        # echo "Info: Will switch to user $id to access files belonging to SGE job $id" 1>&2
+        as_owner() { ( su "${username}" -c "$*" ); }
+      else
+        echo "Warning: cannot determine owner of $jobfile" 1>&2
+      fi
+    fi
     # extract grid id
     gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
     gramifile="${ctr_dir}/job.${gridid}.grami"
@@ -88,11 +118,13 @@ for ctr_dir in $control_dirs ; do
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
     if [  -d "$session" ] ; then
-      # try to obtain the exit code
       diagfile="${session}.diag"
+      # try to obtain the exit code
+      # $diagfile is owned by the user running the job. Switch user to access it.
+      exitcode=`as_owner "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//'`
+
       diagfile_tmp=`mktemp "$TMP_DIR/diag_tmp.XXXXXX"` || { sleep 60; exit 1; }
       diagfile_acct=`mktemp "$TMP_DIR/diag_acct.XXXXXX"` || { sleep 60; exit 1; }
-      exitcode=`grep '^exitcode=' "$diagfile" | sed 's/^exitcode=//'`
 
       # qacct can take quite long. Here is a workaround.
       # Find the accounting file, and copy the last 10000
@@ -145,7 +177,7 @@ for ctr_dir in $control_dirs ; do
 
           # Accouting info is present
           accountinginfo=1
-          cat "$diagfile" \
+          as_owner cat "$diagfile" \
                         | grep -v "^nodename=" \
                         | grep -v "^WallTime=" \
                         | grep -v "^KernelTime=" \
@@ -155,11 +187,11 @@ for ctr_dir in $control_dirs ; do
                         | grep -v "^AverageTotalMemory=" \
                         | grep -v "^exitcode=" \
           > "$diagfile_tmp"
-          cat "$diagfile_tmp"  >  "$diagfile"
-          cat "$diagfile_acct" >> "$diagfile"
+          as_owner "cat >  '$diagfile'" < "$diagfile_tmp"
+          as_owner "cat >> '$diagfile'" < "$diagfile_acct"
 
-          exitcode=`grep '^exitcode=' "$diagfile" | tail -n 1 | sed 's/^exitcode=//'`
-          failedreason=`grep '^failed=' "$diagfile" | tail -n 1 | sed 's/^failed=//'`
+          exitcode=`as_owner "grep '^exitcode=' '$diagfile'" | tail -n 1 | sed 's/^exitcode=//'`
+          failedreason=`as_owner "grep '^failed=' '$diagfile'" | tail -n 1 | sed 's/^failed=//'`
           failedcode=`echo $failedreason | awk '{print $1}'`
 
           # Check for exceeded resources limits
@@ -168,9 +200,9 @@ for ctr_dir in $control_dirs ; do
             req_cputime=`sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1`
             req_memory=`sed -n "s/^joboption_memory=//p" "$gramifile" | tail -n 1`
 
-            used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile" | tail -n 1`
-            used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile" | tail -n 1`
-            used_memory=`sed -n 's/^UsedMemory=\(.*\)kB/\1/p' "$diagfile" | tail -n 1`
+            used_walltime=`as_owner "sed -n 's/^WallTime=\(.*\).0s/\1/p' '$diagfile'" | tail -n 1`
+            used_cputime=`as_owner "sed -n 's/^CPUTime=\(.*\).0s/\1/p' '$diagfile'" | tail -n 1`
+            used_memory=`as_owner "sed -n 's/^UsedMemory=\(.*\)kB/\1/p' '$diagfile'" | tail -n 1`
 
             if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
             && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
@@ -245,10 +277,10 @@ for ctr_dir in $control_dirs ; do
             echo $exitcode $failedreason > "$donefile"
 
             # Change exit code in the diag file
-            cp "$diagfile" "$diagfile_tmp"
+            as_owner cat "$diagfile" > "$diagfile_tmp"
             if [ $? = 0 ]; then
-              cat "$diagfile_tmp" | grep -v "^exitcode=" > "$diagfile"
-              echo "exitcode=$exitcode"  >>  "$diagfile"
+              cat "$diagfile_tmp" | grep -v "^exitcode=" | as_owner "cat > '$diagfile'"
+              echo "exitcode=$exitcode" | as_owner "cat >>  '$diagfile'"
               rm -f "$diagfile_tmp"
             fi
 
