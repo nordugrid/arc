@@ -90,7 +90,7 @@ function merge_diag {
     src=$1
     dest=$2
     tmpfile=/tmp/tmpdiag.$$
-    exclude="WallTime\|KernelTime\|UserTime\|CPUUsage\|UsedMemory\|NodeName"
+    exclude="WallTime\|KernelTime\|UserTime\|CPUUsage\|AverageTotalMemory\|nodename"
     exclude="$exclude\|exitstatus\|jobstatus\|removereason\|exitsignal\|exitreason\|exitcode"
     cat "$dest" \
        | grep -v '^$' \
@@ -332,7 +332,7 @@ fi
     if [ ! -z "$KernelTime" ];   then echo "KernelTime=${KernelTime}.0s";  fi
     if [ ! -z "$UserTime" ];     then echo "UserTime=${UserTime}.0s";      fi
     if [ ! -z "$CPUUsage" ];     then echo "CPUUsage=${CPUUsage}%";        fi
-    if [ ! -z "$UsedMemory" ];   then echo "UsedMemory=${UsedMemory}kB";   fi
+    if [ ! -z "$UsedMemory" ];   then echo "AverageTotalMemory=${UsedMemory}kB";   fi
     if [ ! -z "$NodeName" ];     then echo "nodename=${NodeName}";         fi
     echo
     if [ ! -z "$ExitStatus" ];   then echo "ExitStatus=${ExitStatus}";     fi

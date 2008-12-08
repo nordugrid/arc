@@ -228,15 +228,15 @@ sub get_gmjobs_info($) {
                 while (my $line = <GMJOB_DIAG>) {
                     $line=~m/nodename=(\S+)/ and
                         push @{$gmjobs{$ID}{nodenames}}, $1;
-                    $line=~m/WallTime=(\d+)\./ and
+                    $line=~m/WallTime=(\d+)(\.\d*)?/ and
                         $gmjobs{$ID}{WallTime} = ceil($1/60);
                     $line=~m/exitcode=(\d+)/ and
                         $gmjobs{$ID}{exitcode} = $1;
-                    $line=~m/UsedMemory=(\d+)kB/ and
+                    $line=~m/AverageTotalMemory=(\d+)kB/ and
                         $gmjobs{$ID}{UsedMem} = ceil($1);
-                    $line=~m/KernelTime=(\d+)\./ and
+                    $line=~m/KernelTime=(\d+)(\.\d*)?/ and
                         $kerneltime=$1;
-                    $line=~m/UserTime=(\d+)\./ and
+                    $line=~m/UserTime=(\d+)(\.\d*)?/ and
                         $usertime=$1;
                 }
                 close GMJOB_DIAG;
