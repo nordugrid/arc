@@ -61,7 +61,7 @@ causing big latency if access to external service is needed, etc.)
 other tricks to reduce cost are needed.
 
  To reduce access control evaluation cost ACRs may/should/must(?)
-be assigned to information nodes in one to many way - one ACR per 
+be assigned to information nodes in one-to-many way - one ACR per 
 multiple information nodes. This grouping may be initiated either
 interactively (by clients explicitely specifying that same ACR is
 applicable to multiple nodes) or automatically (by comapring new 
@@ -70,6 +70,25 @@ ACR to already existing).
  If information nodes containing ACRs are propagated to ISIS (second
 implementation step) propagation algorithm must take ACR into account.
 For informtion propagation between ISISes this rule also applies.
-EXAMPLE: Information with access open vo VO_1 must not be propagated 
+EXAMPLE: Information with access open to VO_1 must not be propagated 
 to ISIS belonging to VO_2. 
 
+
+** Ideas for in-memory XML documents
+
+ Because informational documents are normally produced dynamically and
+have short lifetime there seems to be reasonable to keep them in memory.
+ Each node with assigned ACR contains attribute (even if that breaks schema)
+containing id of ACR. ACR is defined as XML element (even if that breaks 
+schema) located at higher, same or child level of considered node.
+ Because informational documents are produced dynamically there are few 
+ways for processing ACRs:
+ 1. Right after document is generated it is traversed and ACRs applied.
+Parts of document which do not pass ACR evaluation are cut off. ACRs are 
+cut off too.
+ 2. While calling document generation procedure identity of client is
+supplied and ACRs are applied immediately.
+ 3. While calling document generation procedure hooks/callbacks are supplied 
+which are used and implement ACR evaluation.
+ Combination of 1 and 3 looks most promising because it is flexible and 
+keeps information system and policy evaluation code separated.
