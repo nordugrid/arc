@@ -15,15 +15,19 @@
 #define ISIS_NAMESPACE "http://www.nordugrid.org/schemas/isis/2008/08"
 #define REGISTRATION_CONFIG_NAMESPACE "http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
 
-namespace Arc
-{
+namespace Arc {
+
+class InfoRegisterContainer;
+class InfoRegistrar;
 
 /// Registration to ISIS interface
-/** This class provides an interface for service to register
-  itself in Information Indexing Service. */
-class InfoRegister
-{
+/** This class represents service registering to Information Indexing Service.
+  Ir does not perform registration itself. It only collects configuration information. */
+class InfoRegister {
+    friend class InfoRegisterContainer;
+    friend class InfoRegistrar;
     private:
+        // This class describes one ISIS endpoint
         class Peer {
             public:  
                 Arc::URL url;
@@ -44,17 +48,18 @@ class InfoRegister
                 proxy(peer.proxy), cadir(peer.cadir)
                 { };
         };
-        std::list<Peer> peers_;
-        Arc::NS ns_;
-        Arc::MCCConfig mcc_cfg_;
-        Arc::Logger logger_;
-        Arc::Service *service_;
+        // Registration period
         long int reg_period_;
+        // List of ISISes associated with particular service
+        std::list<Peer> peers_;
+        // Associated service - it is used to fetch information document
+        Arc::Service *service_;
+        Arc::NS ns_;
+//        Arc::Logger logger_;
     public:
         InfoRegister(Arc::XMLNode &node, Arc::Service *service_);
         ~InfoRegister();
         long int getPeriod(void) { return reg_period_; };
-        void registration(void);
 };
 
 /// Handling multiple registrations to ISISes
@@ -71,5 +76,39 @@ class InfoRegisters
         ~InfoRegisters(void);
 };
 
-}
+
+/// Registration process associated with particular ISIS
+/** Currently this class is associated with particular InfoRegister.
+  Later it will be associated with particular ISIS. */
+class InfoRegistrar {
+    friend class InfoRegisterContainer;
+    private:
+        InfoRegister* reg_;
+        InfoRegistrar(InfoRegister* reg):reg_(reg) {};
+        InfoRegistrar(const InfoRegistrar&) {};
+    public:
+        ~InfoRegistrar(void) {};
+        long int getPeriod(void) { if(reg_) return reg_->reg_period_; return 0; };
+        void registration(void);
+};
+
+/// Singleton class for storing configuration information
+class InfoRegisterContainer {
+    private:
+        static InfoRegisterContainer instance_;
+        std::list<InfoRegister*> regs_;
+        std::list<InfoRegistrar*> regr_;
+        InfoRegisterContainer(void) {};
+        InfoRegisterContainer(const InfoRegisterContainer&) {};
+    public:
+        ~InfoRegisterContainer(void);
+        static InfoRegisterContainer& Instance(void) { return instance_; };
+        void Add(InfoRegister* reg);
+        void Remove(InfoRegister* reg);
+        //InfoRegister* Get(int num);
+};
+
+} // namespace Arc
+
 #endif
+
