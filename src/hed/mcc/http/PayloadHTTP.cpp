@@ -240,7 +240,7 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }
 
-PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):valid_(false),stream_(&stream),stream_own_(own),fetched_(false),stream_offset_(0),chunked_size_(0),chunked_offset_(0),body_(NULL),body_own_(false) {
+PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):valid_(false),stream_(&stream),stream_own_(own),fetched_(false),stream_offset_(0),chunked_size_(0),chunked_offset_(0),body_(NULL),body_own_(false),keep_alive_(true) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   // If stream_ is owned then body can be fetched later
@@ -248,22 +248,22 @@ PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):valid_(false),
   valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(&stream),stream_own_(false),body_(NULL),body_own_(false),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(&stream),stream_own_(false),body_(NULL),body_own_(false),uri_(url),method_(method),keep_alive_(true) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(&stream),stream_own_(false),body_(NULL),body_own_(false),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(&stream),stream_own_(false),body_(NULL),body_own_(false),code_(code),reason_(reason),keep_alive_(true) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(NULL),stream_own_(false),body_(NULL),body_own_(false),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(NULL),stream_own_(false),body_(NULL),body_own_(false),uri_(url),method_(method),keep_alive_(true) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(NULL),stream_own_(false),body_(NULL),body_own_(false),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),fetched_(true),stream_offset_(0),chunked_size_(0),chunked_offset_(0),stream_(NULL),stream_own_(false),body_(NULL),body_own_(false),code_(code),reason_(reason),keep_alive_(true) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
@@ -320,9 +320,12 @@ bool PayloadHTTP::Flush(void) {
     header+="Content-Length: "+tostring(length_)+"\r\n";
   };
   bool keep_alive = false;
-  if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=true;
-  // TODO: use keep-alive from request in response as well
-  if(keep_alive) header+="Connection: keep-alive\r\n";
+  if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=keep_alive_;
+  if(keep_alive) {
+    header+="Connection: keep-alive\r\n";
+  } else {
+    header+="Connection: close\r\n";
+  };
   for(std::map<std::string,std::string>::iterator a = attributes_.begin();a!=attributes_.end();++a) {
     header+=(a->first)+": "+(a->second)+"\r\n";
   };

@@ -177,6 +177,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if(nextpayload.Method() == "END") {
     return MCC_Status(SESSION_CLOSE);
   };
+  bool keep_alive = nextpayload.KeepAlive();
   // Creating message to pass to next MCC and setting new payload. 
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
@@ -255,6 +256,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
       outpayload->Attribute(std::string(key),*i);
     };
   };
+  outpayload->KeepAlive(keep_alive);
   outpayload->Body(*retpayload);
   if(!outpayload->Flush()) {
     logger.msg(WARNING, "Error to flush output payload");
@@ -265,6 +267,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Returning empty payload because response is already sent through Flush
   PayloadRaw* outpayload_e = new PayloadRaw;
   outmsg.Payload(outpayload_e);
+  if(!keep_alive) return MCC_Status(Arc::SESSION_CLOSE);
   return MCC_Status(Arc::STATUS_OK);
 }
 

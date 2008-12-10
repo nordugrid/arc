@@ -96,6 +96,8 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   virtual std::string Endpoint() { return uri_; };
   virtual std::string Reason() { return reason_; };
   virtual int Code() { return code_; };
+  virtual bool KeepAlive(void) { return keep_alive_; };
+  virtual void KeepAlive(bool keep_alive) { keep_alive_=keep_alive; };
   /** Assign HTTP body.
     Assigned object is not copied. Instead it is remembered and made available
     through Raw interface. If 'ownership' is true then passed object
