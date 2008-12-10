@@ -12,8 +12,8 @@
 #include "echo.h"
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    Arc::ServicePluginArgument* mccarg =
+            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
     return new Echo::Service_Echo((Arc::Config*)(*mccarg));
 }
