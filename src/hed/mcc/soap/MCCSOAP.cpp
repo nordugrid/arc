@@ -217,11 +217,16 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   outpayload->Insert(xml.c_str());
   outmsg = nextoutmsg;
   // Specifying attributes for binding to underlying protocols - HTTP so far
+  std::string soap_action = nextoutmsg.Attributes()->get("SOAP:ACTION");
+  if(soap_action.empty()) soap_action=WSAHeader(*retpayload).Action();
   if(retpayload->Version() == SOAPEnvelope::Version_1_2) {
     // TODO: For SOAP 1.2 Content-Type is not sent in case of error - probably harmless
-    outmsg.Attributes()->set("HTTP:Content-Type","application/soap+xml");
+    std::string mime_type("application/soap+xml");
+    if(!soap_action.empty()) mime_type+=" ;action=\""+soap_action+"\"";
+    outmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     outmsg.Attributes()->set("HTTP:Content-Type","text/xml");
+    outmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
   };
   if(retpayload->Fault() != NULL) {
     // Maybe MCC_Status should be used instead ?
