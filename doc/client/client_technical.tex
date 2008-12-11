@@ -232,11 +232,8 @@ is the job description read in order to enable bulk job submission of
 widely different jobs without having to reperform the resource
 discovery. In addition to the classes mentioned above the job
 submission makes use of the {\Broker}, {\JobDescription} and
-{\Submitter} classes. At the time of writing the {\Broker} is not
-implemented, but it's functionality and interface is well known, and
-thus we will include it in the overview given here. The {\Submitter}
-is base class for further grid middleware specific specialization
-(plugin) similarly to the {\TargetRetriever}.
+{\Submitter} classes.  The {\Submitter} is base class for further grid
+middleware specific specialization (plugin) similarly to the {\TargetRetriever}.
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.75}{\includegraphics{JobSubmission.png}}}
@@ -483,7 +480,7 @@ information needed by the {\Submitter}.
 
 \subsection{{\Broker}}
 
-The {\Broker} is not yet implemented and thus not described here.
+There are two usable broker type at the current state: \textbf{FastQueueBroker} and \textbf{RandomBroker}. These classes are inheritance of the "super \textbf{Broker}" class. This parent class has a prefiltering part and its task is to create a mapping between the \textbf{JobDescription} and the \textbf{ExecutionTarget}. The mapping is working but it will be change at the near future because the \textbf{JobDescription} class will be  recreate with \textbf{GIN Profile JSDL}. The mapping result is the \textbf{PossibleTargets} vector which content the "good" \textbf{ExecutionTargets}. The descendant broker classes task is to sort the \textbf{PossibleTargets} vector with its name type, for example: \textbf{RandomBroker} sort type is \textbf{Random}. The broker separated into a module therefore it is loadable.
 
 \subsection{{\JobDescription}}
 
