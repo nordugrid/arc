@@ -20,6 +20,9 @@ BuildRequires: glibmm24-devel
 BuildRequires: glib2-devel
 BuildRequires: libxml2-devel
 BuildRequires: openssl-devel
+BuildRequires: xmlsec1-devel >= 1.2.4
+BuildRequires: xmlsec1-openssl-devel >= 1.2.4
+BuildRequires: gsoap-devel >= 2.7.2
 %if %{_vendor} == "suse"
 BuildRequires: openldap2-devel
 BuildRequires: gettext-devel
@@ -255,6 +258,8 @@ exit 0
 %doc %{_mandir}/man1/arckill.1*
 %{_bindir}/arcdecision
 %doc %{_mandir}/man1/arcdecision.1*
+%{_bindir}/voms_assertion_init
+%doc %{_mandir}/man1/voms_assertion_init.1*
 %{_bindir}/perftest
 %doc %{_mandir}/man1/perftest.1.gz
 %{_bindir}/arc_storage_cli
@@ -282,6 +287,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libpaul.so
 %{_libdir}/%{pkgdir}/libslcs.so
 %{_libdir}/%{pkgdir}/libcompiler.so
+%{_libdir}/%{pkgdir}/libsaml2sp.so
 
 %files arex
 %defattr(-,root,root,-)

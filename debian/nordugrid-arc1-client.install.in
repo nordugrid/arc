@@ -14,6 +14,7 @@ usr/bin/arckill
 usr/bin/arcclean
 @STORAGE_SERVICE_ENABLED_TRUE@usr/bin/arc_storage_cli
 usr/bin/arcdecision
+usr/bin/voms_assertion_init
 usr/share/man/man1/arcecho.1
 usr/share/man/man1/arcinfo.1
 usr/share/man/man1/arcproxy.1
@@ -29,6 +30,7 @@ usr/share/man/man1/arccp.1
 usr/share/man/man1/arcls.1
 usr/share/man/man1/arcrm.1
 usr/share/man/man1/arcdecision.1
+usr/share/man/man1/voms_assertion_init.1
 @STORAGE_SERVICE_ENABLED_TRUE@usr/share/man/man1/arc_storage_cli.1
 etc/arcclient.xml
 usr/share/man/man5/arcclient.xml.5
