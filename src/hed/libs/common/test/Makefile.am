@@ -1,6 +1,10 @@
-TESTS = arccommontest
+TESTS = URLTest LoggerTest
 check_PROGRAMS = $(TESTS)
 
-arccommontest_SOURCES = Test.cpp URLTest.cpp LoggerTest.cpp
-arccommontest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-arccommontest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
+URLTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
+URLTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+LoggerTest_SOURCES = $(top_srcdir)/src/Test.cpp LoggerTest.cpp
+LoggerTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
+LoggerTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
