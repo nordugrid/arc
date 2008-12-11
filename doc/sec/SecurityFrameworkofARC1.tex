@@ -10,7 +10,7 @@
 \usepackage{supertabular}
 \usepackage{hhline}
 \usepackage{hyperref}
-\hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, pagecolor=blue, urlcolor=blue, pdftitle=, pdfauthor=name, pdfsubject=, pdfkeywords=}
+\hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, pagecolor=blue, urlcolor=blue, pdftitle=, pdfauthor=qiangwz, pdfsubject=, pdfkeywords=}
 \usepackage[pdftex]{graphicx}
 % Text styles
 \newcommand\textstyleInternetlink[1]{\textcolor[rgb]{0.0,0.0,0.5019608}{#1}}
@@ -159,6 +159,16 @@
 \renewcommand\labelitemiv{[F06C?]}
 }
 \newcommand\liststyleWWviiiNumxiv{%
+\renewcommand\theenumi{\arabic{enumi}}
+\renewcommand\theenumii{\arabic{enumii}}
+\renewcommand\theenumiii{\arabic{enumiii}}
+\renewcommand\theenumiv{\arabic{enumiv}}
+\renewcommand\labelenumi{\theenumi.}
+\renewcommand\labelenumii{\theenumii.}
+\renewcommand\labelenumiii{\theenumiii.}
+\renewcommand\labelenumiv{\theenumiv.}
+}
+\newcommand\liststyleLi{%
 \renewcommand\theenumi{\arabic{enumi}}
 \renewcommand\theenumii{\arabic{enumii}}
 \renewcommand\theenumiii{\arabic{enumiii}}
@@ -646,11 +656,11 @@ and CombingAlg} objects in this way supporting various types of XML
 based policy languages.}
 
 
-\includegraphics[width=0in,height=0.0161in]{SecurityFrameworkofARC1-img3.png}
+\includegraphics[width=0.0161in,height=0.0161in]{SecurityFrameworkofARC1-img3.png}
 
-\includegraphics[width=0in,height=0.0161in]{SecurityFrameworkofARC1-img4.png}
+\includegraphics[width=0.0161in,height=0.0161in]{SecurityFrameworkofARC1-img4.png}
 
-\includegraphics[width=0in,height=0.0161in]{SecurityFrameworkofARC1-img5.png}
+\includegraphics[width=0.0161in,height=0.0161in]{SecurityFrameworkofARC1-img5.png}
 
 \includegraphics[width=5.9709in,height=6.3957in]{SecurityFrameworkofARC1-img6.png}
 
@@ -2204,45 +2214,45 @@ id={\textquotedbl}pdp\_service{\textquotedbl}{\textgreater}}
 {\textless}Policy/{\textgreater} and {\textless}Request/{\textgreater}
 configuration}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ are supposed to be used to load object; element
-{\textless}PolicyStore/{\textgreater} is}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ are supposed to be used to load object; element
+{\textless}PolicyStore/{\textgreater} is}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ supposed to be used to get the location of
-policy-{}-{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ supposed to be used to get the location of
+policy-{}-{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ {\textless}pdp:PDPConfig{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ {\textless}pdp:PDPConfig{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}pdp:PolicyStore{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}pdp:PolicyStore{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ {\textless}Location
-Type={\textquotedbl}file{\textquotedbl}{\textgreater}Policy\_Example.xml{\textless}/Location{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ {\textless}Location
+Type={\textquotedbl}file{\textquotedbl}{\textgreater}Policy\_Example.xml{\textless}/Location{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}- other policy
-location-{}-{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}- other policy
+location-{}-{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}/pdp:PolicyStore{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}/pdp:PolicyStore{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}pdp:Evaluator
-name={\textquotedbl}arc.evaluator{\textquotedbl} /{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}pdp:Evaluator
+name={\textquotedbl}arc.evaluator{\textquotedbl} /{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}pdp:Policy
-name={\textquotedbl}arc.policy{\textquotedbl} /{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}pdp:Policy
+name={\textquotedbl}arc.policy{\textquotedbl} /{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}pdp:Request
-name={\textquotedbl}arc.request{\textquotedbl} /{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}pdp:Request
+name={\textquotedbl}arc.request{\textquotedbl} /{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ {\textless}/pdp:PDPConfig{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ {\textless}/pdp:PDPConfig{\textgreater}}
 
 {\selectlanguage{english}\ttfamily\color{black}
 {\textless}/Service{\textgreater}}
@@ -2333,26 +2343,25 @@ name={\textquotedbl}arc.authz{\textquotedbl}
 id={\textquotedbl}authz{\textquotedbl}
 event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}PDP
-name={\textquotedbl}arc.pdp{\textquotedbl}{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}PDP
+name={\textquotedbl}arc.pdp{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ {\textless}PolicyStore{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}PolicyStore{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}Location
-type={\textquotedbl}file{\textquotedbl}{\textgreater}Policy\_Example.xml{\textless}/Location{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}Location
+type={\textquotedbl}file{\textquotedbl}{\textgreater}Policy\_Example.xml{\textless}/Location{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}!-{}-other policy
-location-{}-{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}!-{}-other policy location-{}-{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/PolicyStore{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}/PolicyStore{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}/PDP{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}/PDP{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
 \texttt{\ \ }\foreignlanguage{spanish}{\texttt{{\textless}/SecHandler{\textgreater}}}}
@@ -2432,59 +2441,59 @@ encoding={\textquotedbl}UTF-8{\textquotedbl}?{\textgreater}}
 xmlns={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc{\textquotedbl}
 PolicyId={\textquotedbl}sm-example:arcpdppolicy{\textquotedbl}
 CombiningAlg={\textquotedbl}Deny-Overrides{\textquotedbl}{\textgreater}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ {\textless}Rule
-Effect={\textquotedbl}Permit{\textquotedbl}{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ {\textless}Description{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ Example policy for echo service}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ {\textless}/Description{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Subjects{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Subject{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}Attribute
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ {\textless}Rule
+Effect={\textquotedbl}Permit{\textquotedbl}{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ {\textless}Description{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ Example policy for echo service}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ {\textless}/Description{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}Subjects{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}Subject{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}Attribute
 AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/tls/ca{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}/C=NO/ST=Oslo/O=UiO/CN=CA{\textless}/Attribute{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}Attribute
+Type={\textquotedbl}string{\textquotedbl}{\textgreater}/C=NO/ST=Oslo/O=UiO/CN=CA{\textless}/Attribute{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}Attribute
 AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/tls/identity{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}/C=NO/ST=Oslo/O=UiO/CN=test{\textless}/Attribute{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}/Subject{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Subjects{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Resources{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Resource
+Type={\textquotedbl}string{\textquotedbl}{\textgreater}/C=NO/ST=Oslo/O=UiO/CN=test{\textless}/Attribute{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}/Subject{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}/Subjects{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}Resources{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}Resource
 AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/http/path{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}/Echo{\textless}/Resource{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Resources{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Actions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Action
+Type={\textquotedbl}string{\textquotedbl}{\textgreater}/Echo{\textless}/Resource{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}/Resources{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}Actions{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}Action
 AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/http/method{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}POST{\textless}/Action{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Action
+Type={\textquotedbl}string{\textquotedbl}{\textgreater}POST{\textless}/Action{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}Action
 AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/http/method{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}GET{\textless}/Action{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Action
+Type={\textquotedbl}string{\textquotedbl}{\textgreater}GET{\textless}/Action{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}Action
 AttributeId={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc/types/soap/operation{\textquotedbl}
-Type={\textquotedbl}string{\textquotedbl}{\textgreater}echo{\textless}/Action{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/Actions{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ \ \ \ {\textless}Conditions/{\textgreater}}}
-\item {\selectlanguage{english}\color{black}
-\texttt{\ \ \ {\textless}/Rule{\textgreater}}}
+Type={\textquotedbl}string{\textquotedbl}{\textgreater}echo{\textless}/Action{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}/Actions{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}Conditions/{\textgreater}}
+\item {\selectlanguage{english}\ttfamily\color{black}
+\ \ \ {\textless}/Rule{\textgreater}}
 \item {\selectlanguage{english}\ttfamily\color{black}
 {\textless}/Policy{\textgreater}}
 \end{enumerate}
@@ -2508,28 +2517,27 @@ name={\textquotedbl}arc.authz{\textquotedbl}
 id={\textquotedbl}authz{\textquotedbl}
 event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}!-{}-Remote pdp service
-invoking-{}-{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}!-{}-Remote pdp service invoking-{}-{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ {\textless}PDP
-name={\textquotedbl}pdpservice.invoker{\textquotedbl}{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}PDP
+name={\textquotedbl}pdpservice.invoker{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}ServiceEndpoint{\textgreater}https://127.0.0.1:60001/pdp.service{\textless}/ServiceEndpoint{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}ServiceEndpoint{\textgreater}https://127.0.0.1:60001/pdp.service{\textless}/ServiceEndpoint{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}KeyPath{\textgreater}./key.pem{\textless}/KeyPath{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}KeyPath{\textgreater}./key.pem{\textless}/KeyPath{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}CertificatePath{\textgreater}./cert.pem{\textless}/CertificatePath{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}CertificatePath{\textgreater}./cert.pem{\textless}/CertificatePath{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ {\textless}CACertificatePath{\textgreater}./ca.pem{\textless}/CACertificatePath{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ {\textless}CACertificatePath{\textgreater}./ca.pem{\textless}/CACertificatePath{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ {\textless}/PDP{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ {\textless}/PDP{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
 \texttt{\ \ }\foreignlanguage{spanish}{\texttt{{\textless}/SecHandler{\textgreater}}}}
@@ -2581,16 +2589,16 @@ name={\textquotedbl}arc.authz{\textquotedbl}
 id={\textquotedbl}authz{\textquotedbl}
 event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ {\textless}PDP
-name={\textquotedbl}delegation.pdp{\textquotedbl}/{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ {\textless}PDP
+name={\textquotedbl}delegation.pdp{\textquotedbl}/{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ {\textless}/SecHandler{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ {\textless}/SecHandler{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ {\textless}next
-id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ {\textless}next
+id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
 \texttt{\ \ }\foreignlanguage{spanish}{\texttt{{\textless}echo:prefix{\textgreater}[
@@ -2615,24 +2623,24 @@ SecHandler Configuration}
 Below is an example of configuration of Delegation SecHandler inside TLS
 MCC component.}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}Component
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}Component
 name={\textquotedbl}tls.service{\textquotedbl}
 id={\textquotedbl}tls{\textquotedbl}{\textgreater} {\textless}next
-id={\textquotedbl}http{\textquotedbl}/{\textgreater}}}
+id={\textquotedbl}http{\textquotedbl}/{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:KeyPath{\textgreater}./key.pem{\textless}/tls:KeyPath{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:KeyPath{\textgreater}./key.pem{\textless}/tls:KeyPath{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CertificatePath{\textgreater}./cert.pem{\textless}/tls:CertificatePath{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CertificatePath{\textgreater}./cert.pem{\textless}/tls:CertificatePath{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CACertificatePath{\textgreater}./ca.pem{\textless}/tls:CACertificatePath{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CACertificatePath{\textgreater}./ca.pem{\textless}/tls:CACertificatePath{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}-delegation.collector
-must be inside tls MCC-{}-{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}-delegation.collector must be
+inside tls MCC-{}-{\textgreater}}
 
 {\selectlanguage{english}\ttfamily\color{black}
 {\textless}SecHandler
@@ -2642,13 +2650,15 @@ name={\textquotedbl}delegation.collector{\textquotedbl} }
 id={\textquotedbl}delegation{\textquotedbl}
 event={\textquotedbl}incoming{\textquotedbl}{\textgreater}{\textless}/SecHandler{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
 Current implementation of Delegation\textbf{ }SecHandler must be
 attached to TLS MCC. }
 
+\subsection[Web Service Security Support]{\color{black} Web Service
+Security Support}
 \subsubsection[UsernameToken SecHandler configuration]{UsernameToken
 SecHandler configuration}
 {\selectlanguage{english}\upshape\color{black}
@@ -2660,32 +2670,32 @@ Configuration XML schema with comments available at
 Below is an example of configuration of UsernameToken SecHandler inside
 MCCSOAP component.}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}Component
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}Component
 name={\textquotedbl}soap.service{\textquotedbl}
-id={\textquotedbl}soap{\textquotedbl}{\textgreater}}}
+id={\textquotedbl}soap{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ {\textless}SecHandler
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ {\textless}SecHandler
 name={\textquotedbl}usernametoken.handler{\textquotedbl}
 id={\textquotedbl}usernametoken{\textquotedbl}
-event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}}
+event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}Process{\textgreater}extract{\textless}/Process{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}Process{\textgreater}extract{\textless}/Process{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}PasswordSource{\textgreater}password.txt{\textless}/PasswordSource{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}PasswordSource{\textgreater}password.txt{\textless}/PasswordSource{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ {\textless}/SecHandler{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ {\textless}/SecHandler{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}/Component{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
 
 {\selectlanguage{english}\color{black}
 UsernameToken SecHandler must be configured under SOAP MCC.}
@@ -2700,48 +2710,337 @@ Configuration XML schema with comments available at
 Below is an example of configuration of X509Token SecHandler inside
 MCCSOAP component.}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}Component
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}Component
 name={\textquotedbl}soap.service{\textquotedbl}
-id={\textquotedbl}soap{\textquotedbl}{\textgreater}}}
+id={\textquotedbl}soap{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}SecHandler
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}SecHandler
 name={\textquotedbl}x509token.handler{\textquotedbl}
 id={\textquotedbl}x509token{\textquotedbl}
-event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}}
+event={\textquotedbl}incoming{\textquotedbl}{\textgreater}}
 
 
 \bigskip
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}Process{\textgreater}extract{\textless}/Process{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}Process{\textgreater}extract{\textless}/Process{\textgreater}}
 
 
 \bigskip
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}CACertificatePath{\textgreater}ca.pem{\textless}/CACertificatePath{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}CACertificatePath{\textgreater}ca.pem{\textless}/CACertificatePath{\textgreater}}
 
 
 \bigskip
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ \ \ \ \ \ {\textless}/SecHandler{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}/SecHandler{\textgreater}}
 
 
 \bigskip
 
-{\selectlanguage{english}\upshape\color{black}
-\texttt{\ \ \ \ \ \ \ {\textless}/Component{\textgreater}}}
+{\selectlanguage{english}\ttfamily\color{black}
+\ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 X509Token SecHandler must be configured under SOAP MCC.}
 
+
+\bigskip
+
+\subsection[Using Shibboleth IdP for Authentication and Attribute-based
+Authorization]{Using \foreignlanguage{english}{Shibboleth} IdP for
+Authentication and Attribute-based Authorization}
+{\selectlanguage{english}\color{black}
+\ \ \ \ In grid community, GSI (grid security infrastructure) is the
+de-facto standard about transport level communication for the legacy
+grid solution, which implements some enhancement (such as delegation)
+based on standard SSL3.0/TLS1.0. In ARC1, besides that GSI is supported
+for talking with external grid services which are based on GSI, the
+standard TLS/SSL is also supported.}
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ No matter standard SSL/TLS or GSI is used, SSL/TLS based mutual
+authentication applies for both of them, and is the default
+configuration for grid deployment; and X.509 certificate is required
+for both of the client and service sides. X.509 certificates is issued
+by certificate authorities (CA), and then CAs constitute trust
+federation and guarantee two different X.509 certificates from
+different CAs can accomplish authentication to each other. So if a user
+would access grid system, he/she should own a X.509 certificate which
+is issued by a CA that is trusted by other{\textquotesingle}s entity in
+the grid system.}
+
+{\selectlanguage{english}\upshape\color{black}
+\ AAI (Authentication and Authorization Infrastructure) is a solution
+for the authentication and authorization in inter-organization resource
+sharing, such as electronic resource sharing between libraries, etc.
+AAI implicitly applies to community or institutional based
+authentication where users from different home communities need to get
+resources from other communities by using some federation mechanism.
+Unlike the X.509 based authentication solution in current Grid systems,
+AAI does not require users to provide X.509 certificate, instead, it
+can support different types of authentication, such as
+username/password authentication, IP address authentication, etc. There
+are several implementations of AAI, among which Shibboleth is one
+implementation which has been widely deployed.}
+
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ Shibboleth provides cross-domain single sign-on and
+attribute-based authorization while preserving user privacy. It is
+based on the OASIS Security Assertion Markup Language (SAML),
+specifically, the new version of Shibboleth supports SAML 2.0
+specification. For authentication, the main SAML profile that
+Shibboleth implements is the SAML2.0 web browser SSO profile, which
+defines two functional components, an Identity Provider and a Service
+Provider. The Identity Provider (IdP) is responsible for creating,
+maintaining, and managing user identity, while the Service Provider
+(SP) is responsible for controlling access to services and resources by
+using the SAML assertion produced and issued by IdP upon request. In
+order to discover which home community does a user come from,
+Shibboleth specifies an optional third component called
+{\textquotedblleft}Where Are You From?{\textquotedblright} (WAYF)
+service to \ aid in the process of IdP discovery, and this IdP
+discovery process is also standardized and defined in SAML 2.0
+specification and called as {\textquotedblleft}Identity Profile
+Discovery Profile{\textquotedblright}.}
+
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ The SAML2.0 web browser SSO profile is utilized for the
+authentication in ARC middleware. But since the SSO profile is
+primarily supposed to protect Web applications and provide
+authentication for Web users, some external code on the client and
+service side is implemented to integrate the SSO profile. On the client
+side, apart from the client interface for writing Web Service client,
+the user agent functionality of the Web browser is implemented in order
+to mimic its behavior, such as HTTP redirection and cookie processing.
+In fact, implementation of the user agent is also based on the client
+interface of ARC, specifically, the HTTPs client interface, since the
+client interface of ARC can support different protocols which are
+incarnated by different MCCs. The client developers who would use
+SAML2.0 SSO profile should call the user agent interface and then the
+Web Service client interface. On the service side, the Service Provider
+functionality (based on the HTTP MCC configured together with TLS MCC)
+is implemented, which is called SP Service. For Identity Provider, the
+Shibboleth IdP implementation is used. Figure 6 shows the process of
+SAML2.0 SSO integrated in ARC client and service.}
+
+
+
+\begin{center}
+\includegraphics[width=3.2256in,height=1.8472in]{SecurityFrameworkofARC1-img7.png}
+\end{center}
+
+\bigskip
+
+{\centering\selectlanguage{english}\itshape\color{black}
+Figure \stepcounter{Figure}{\theFigure}.\textbf{ }SAML2.0 SSO profile in
+ARC
+\par}
+
+{\selectlanguage{english}\color{black}
+\ The steps shows in Figure 6 are described as follows:}
+
+\liststyleLi
+\begin{enumerate}
+\item {\selectlanguage{english}\color{black}
+The client uses the user agent interface to launch a HTTP request
+including the IdP name (to which the user belongs) to the service side.
+The endpoint of the SP (Service Provider) service is the same as that
+of the other target services, except the last part of the endpoint is
+{\textquotedblleft}saml2sp{\textquotedblright} which is specific for
+pointing to the SP Service. Note that we use Identity Provider (IdP)
+name here to simplify the IdP discovery process in order to avoid the
+IdP discovery process, because we suppose that the user who would
+access the target services should better know where is he from
+initially.}
+\item {\selectlanguage{english}\color{black}
+The SP Service searches the metadata (we use the same metadata format as
+defined in Shibboleth) and gets the location of the single sign-on
+service (hosted in IdP) and also the location of assertion consuming
+service (hosted in this SP itself) in order to compose the SAML
+{\textless}samlp:AuthnRequest{\textgreater} message. Then SP Service
+issues this {\textless}samlp:AuthnRequest{\textgreater} message by
+using its own X.509 certificate (note that in the SAML SSO profile,
+X.509 certificates are still needed for IdP and SP) and sends back to
+user agent.}
+\item {\selectlanguage{english}\color{black}
+User agent sends the {\textless}samlp:AuthnRequest{\textgreater} message
+to the Identity Provider.}
+\item {\selectlanguage{english}\color{black}
+Identity Provider requires an act of authentication. The authentication
+mechanism is outside of the SAML2.0 SSO profile. Shibboleth IdP
+implementation chooses some login handlers for authentication. The
+current user agent implementation is compatible with the
+Username/Password login handler of Shibboleth IdP. Through the HTTP
+protocol, the user agent will feed IdP with the username/password which
+has been given by the caller of user agent interface.}
+\item {\selectlanguage{english}\color{black}
+Once the authentication has been succeeded, the IdP issues a SAML
+response including an encrypted (encrypted by destination
+SP{\textquoteright}s public key) SAML assertion, and then this SAML
+response will be delivered by the user agent to the Service Provider.}
+\item {\selectlanguage{english}\color{black}
+The SP Service verifies and checks the SAML response, decrypts and
+stores the SAML assertion into session/connection context. The SAML
+assertion includes the {\textless}saml:AuthnStatement{\textgreater} and
+{\textless}saml:AttributeStatement{\textgreater}.}
+\item {\selectlanguage{english}\color{black}
+The WS client launches the Grid/Web Service request via the same
+connection as the one which is used by user agent to contact SP
+Service.}
+\item {\selectlanguage{english}\color{black}
+The Grid/Web Service checks the
+{\textless}saml:AuthnStatement{\textgreater} from the session context
+to see if the session is still valid through the SecHandler called
+{\textquotedblleft}SAML SecHandler{\textquotedblright}. If valid,
+service handles the service processing and returns the response to WS
+client. Note that service requires that WS client is from the same
+connection as the one on which user agent contact SP service, in order
+to guarantee that the validity of SSO profile result effects the WS
+client/Web Service interaction.}
+\end{enumerate}
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ The SP service and other functional service(s) are hosted by the
+same container, and they use the same X.509 credential. The client
+authentication is switched off, so that client doesn{\textquoteright}t
+need to use any X.509 credential. Only the trusted certificates (CA
+certificates for both SP and IdP) need to be configured for the client
+side, so that SP and IdP can authenticate themselves to the client. As
+required by the SAML2.0 profile, the SP and IdP should have trust
+relationship to each other.}
+
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ One benefit of the SAML2.0 SSO profile that is worth mentioning
+is: the Identity Provider could cache the authentication result through
+session management once the user agent has succeeded to authenticate;
+then for a short period this authentication result is valid so that the
+user agent doesn{\textquoteright}t need to feed IdP with
+user{\textquoteright}s username and password the next time (if this
+point of time is not out of the scope of valid period) it authenticates
+against IdP. So user (or the client on behalf of this user) can travel
+across multiple security \ domains with only providing his name and
+password once, which is the characteristic of single sign-on.}
+
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ Since the Shibboleth implementation of SAML is
+standard-compliant and widely deployed, the solution implemented in ARC
+can easily interoperate with other SAML implementations with minimum
+change, and more importantly, this solution can succeed to utilize the
+widely deployed SAML implementation for authentication in Grid systems
+by avoiding the usage of X.509 certificate.}
+
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ Moreover, even though the implementation is based on the ARC
+middleware, the idea can be adopted by other Grid middlewares if they
+only require server authentication instead of mutual authentication.}
+
+
+\bigskip
+
+\subsection[\ Short-Lived Credential
+Service]{\foreignlanguage{english}{\ }Short-Lived Credential Service}
+{\selectlanguage{english}\color{black}
+\ \ \ \ However, most of the widely used Grid middlewares are based on
+GSI while GSI requires mutual authentication. Also for Web Service
+based Grid solution, we cannot prevent service side from requiring
+client X.509 certificate. Based on the solution described in Section 9,
+a short lived credential service (SLCS) is implemented by which user
+can get a short-lived X.509 certificate without being bothered to
+contact any registration authority (RA) or certificate authority (CA).}
+
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ The SLCS service is also a Web Service (standard Web Service
+implemented by using ARC service interface), and the SLCS client is a
+specific command-line interface (CLI) which includes the user agent and
+WS client. The whole process of SLCS invocation is showed in Figure 7
+(from step 1 to step 8), which is the same as in Figure 6, except that
+step 7 and step 8 are invoked for the SLCS certificate request and
+response.}
+
+
+
+\begin{center}
+\includegraphics[width=3.7689in,height=3.2055in]{SecurityFrameworkofARC1-img8.png}
+\end{center}
+{\centering\selectlanguage{english}\itshape\color{black}
+Figure \stepcounter{Figure}{\theFigure}.Short lived credential service
+\par}
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ SLCS client generates \ a X.509 certificate \ request, launches
+a Web Service request which includes the certificate request; SLCS
+service then gets the certificate request, composes a distinguished
+name (DN), issues a certificate (short lived, 12 hours by default) with
+the SAML attribute (from the SAML2.0 SSO profile) as the X.509
+certificate extension, and puts the certificate in to the Web Service
+response; SLCS client get the response and stores the X.509 certificate
+into local repository.}
+
+{\selectlanguage{english}\color{black}
+The CLI for the SLCS client is like this:}
+
+{\selectlanguage{english}\ttfamily\color{black}
+\$ ./arcslcs -S https://127.0.0.1:60000/slcs -I
+https://idp.testshib.org/idp/shibboleth -U myself -P myself}
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ Since the lifetime of the short lived credential is normally
+short, it is not a must to protect the private key by a pass phrase. As
+illustrated in steps (a) and (b) in Figure 7, if the private key is not
+protected through the Web Service client, the user can use the X.509
+certificate to access Grid Service or Web Service from any kind of
+middleware. If the private key is protected, she can use the X.509
+certificate to generate a proxy certificate (by using a command-line
+interface utility such as grid-proxy-init , voms-proxy-init, or
+arcproxy ), and then use the proxy certificate to access a Grid/Web
+Service.}
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ It is worth mentioning that since the ARC middleware can support
+GSI communication by configuring the GSI MCC, together with the X.509
+certificate, the Web Service client developed with the ARC Web Service
+client interface can interoperate with Grid Service that requires GSI
+communication.}
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ It should be noticed that the process of composing the
+distinguished name (DN) for the certificate is a critical issue for the
+SLCS service. Since the Shibboleth Identity Provider uses the eduPerson
+schema for the definition of {\textless}saml:Attribute{\textgreater} in
+{\textless}saml:AttributeStatement{\textgreater}, we pick the
+relatively distinguishable attribute
+{\textquotedblleft}eduPersonPrincipalName{\textquotedblright} for the
+DN. A typical eduPersonPrincipalName value could be alice@example.org,
+then the DN is
+{\textquotedblleft}/O=knowarc/OU=example.org/CN=alice{\textquotedblright}.}
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ The obvious benefit of the SLCS service is that: If a user
+passes the authentication to her home Identity Provider, she can get
+the X.509 credential anywhere simply by running the SLCS client command
+together with providing her username and password to this home IdP, and
+then access the Grid system conveniently. Thanks to the single sign-on
+characteristic of SAML2.0 SSO profile, this user
+doesn{\textquoteright}t not need to input her username and password in
+a valid period after the first time she succeeds to authenticate
+against her home IdP by running the SLCS client command on the same
+node, even if this SLCS client command is supposed to run against a few
+SLCS services to get a few SLCS credentials.}
+
+
+\bigskip
+
+\subsection[\ X.509 Credential Delegation
+Service]{\selectlanguage{english}\scshape\color{black} \ X.509
+Credential Delegation Service}
 
 \bigskip
 
