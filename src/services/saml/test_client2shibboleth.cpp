@@ -214,7 +214,8 @@ int main(void) {
   Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final);
   Arc::PayloadRaw redirect_request_final;
   //std::string login_html("j_username=myself&j_password=myself");
-  std::string login_html("j_username=root&j_password=aa1122");
+  //std::string login_html("j_username=root&j_password=aa1122");
+  std::string login_html("j_username=staff&j_password=123456");
   redirect_request_final.Insert(login_html.c_str(),0,login_html.size());
   std::map<std::string, std::string> http_attributes;
   http_attributes["Content-Type"] = "application/x-www-form-urlencoded";
