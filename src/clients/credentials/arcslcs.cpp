@@ -203,10 +203,11 @@ int main(int argc, char* argv[]){
     out_cert_req.close();
     std::string private_key;
     //If the passphrase for protecting private key has not been set, 
-    //use the password (password to IdP) as the passphrase for 
-    //protecting private key
-    if(keypass.empty()) keypass = password; 
-    request.OutputPrivatekey(private_key, true, keypass);
+    // the private key will not be protected by passphrase.
+    if(keypass.empty()) 
+      request.OutputPrivatekey(private_key);
+    else
+      request.OutputPrivatekey(private_key, true, keypass);
     std::ofstream out_key(key_path.c_str(), std::ofstream::out);
     out_key.write(private_key.c_str(), private_key.size());
     out_key.close();
