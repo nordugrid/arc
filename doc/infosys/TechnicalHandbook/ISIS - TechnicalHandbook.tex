@@ -11,9 +11,9 @@
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
-  pdfauthor = {Author Name},
-  pdftitle = {Paper title},
-  pdfsubject = {Paper subject},
+  pdfauthor = {Ivan Marton},
+  pdftitle = {ISIS Technical handbook},
+  pdfsubject = {ISIS Technical handbook},
   pdfkeywords = {Paper,keyword,comma-separated},
   pdfcreator = {PDFLaTeX with hyperref package},
   pdfproducer = {PDFLaTeX}
@@ -92,8 +92,8 @@ The Registrant is doing the message aggregation of every service belongs to it i
   Registrant - pseudo algorithm\\
   \\
   \verb#// Initialize phase#\\
-  \verb# Read the configuration and store the information about the services in a list#\\
-  \verb# do { // In a different Thread#\\
+  \verb#Read the configuration and store the information about the services in a list#\\
+  \verb#do { // Cyclic phase in a different Thread#\\
   \verb# wake_up_time = now();#\\
   \verb# messages = null;#\\
   \verb#  if ( 0 < count(service where service.next_run <= wake_up_time)) {#\\
@@ -184,7 +184,48 @@ This registration operation is done once during the start-up phase and cyclic la
 \subsection{Query data}
 \label{Query data}
 
+\subsection{Configuration}
+\label{Configuration}
+The configuration of the different modules can be done through the ARC Configuration file. The format of these entries is shown by the relevant XSD Schema files.
 
+\begin{framed}
+Registrant.xsd\\
+\\
+\verb#<?xml version="1.0" encoding="UTF-8"?>#\\
+\verb#<xsd:schema#\\
+\verb#  xmlns:xsd="http://www.w3.org/2001/XMLSchema"#\\
+\verb#  xmlns:registrant="http://www.nordugrid.org/schemas/RegistrantConfig/2008"#\\
+\verb#  xmlns:arcConfig="http://www.nordugrid.org/schemas/ArcConfig/2007"#\\
+\verb#  targetNamespace="http://www.nordugrid.org/schemas/RegistrantConfig/2008"#\\
+\verb#  elementFormDefault="qualified">#\\
+\verb# #\\
+\verb#    <xsd:complexType name="Registrant_Type">#\\
+\verb#        <!-- This element defines configuration of Information #\\
+\verb#            Registration interface. -->#\\
+\verb#        <xsd:sequence>#\\
+\verb#            <!-- Period specifies how often registration to be done in seconds.#\\
+\verb#                The missing or 0 value means a non period registration. -->#\\
+\verb#            <xsd:element name="Period" type="xsd:nonNegativeInteger"/>#\\
+\verb#            <!-- URL specifies contact endpoint of a bootstrap Information#\\
+\verb#                Registration service. Further ISIS's adresses will be queried#\\
+\verb#                from this service. -->#\\
+\verb#            <xsd:element name="ISIS_URL" type="xsd:string" />#\\
+\verb#            <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir#\\
+\verb#                are paths to files storing X509 credentials used for establishing#\\
+\verb#                connections. -->#\\
+\verb#            <xsd:element name="KeyPath" type="xsd:string" minOccurs="0" />#\\
+\verb#            <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0" />#\\
+\verb#            <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0" />#\\
+\verb#            <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0" />#\\
+\verb#        </xsd:sequence>#\\
+\verb#    </xsd:complexType>#\\
+\verb#    <xsd:element name="Registrant" type="registrant:Registrant_Type"/>#\\
+\verb# #\\
+\verb#    <!-- Optional element for Service element overriding the default Period length. -->#\\
+\verb#    <xsd:element name="Period" type="xsd:nonNegativeInteger"/>#\\
+\verb# #\\
+\verb#</xsd:schema>#\\
+\end{framed}
 
 %Advanced Resource Connector (ARC) was invented by
 %NorduGrid~\cite{nordugrid}. This \textit{middleware}\index{middleware}
