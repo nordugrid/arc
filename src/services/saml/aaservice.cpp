@@ -54,8 +54,9 @@ namespace ArcSec {
 
 static Arc::LogStream logcerr(std::cerr);
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new Service_AA(cfg);
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
+    Arc::ServicePluginArgument* servarg = arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+    return new Service_AA((Arc::Config*)(*servarg));
 }
 
 Arc::MCC_Status Service_AA::make_soap_fault(Arc::Message& outmsg) {
