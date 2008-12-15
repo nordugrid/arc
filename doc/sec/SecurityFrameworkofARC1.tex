@@ -2956,7 +2956,7 @@ a short lived credential service (SLCS) is implemented by which user
 can get a short-lived X.509 certificate without being bothered to
 contact any registration authority (RA) or certificate authority (CA).}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 \ \ \ \ The SLCS service is also a Web Service (standard Web Service
 implemented by using ARC service interface), and the SLCS client is a
 specific command-line interface (CLI) which includes the user agent and
@@ -2973,6 +2973,163 @@ response.}
 {\centering\selectlanguage{english}\itshape\color{black}
 Figure \stepcounter{Figure}{\theFigure}.Short lived credential service
 \par}
+
+
+\bigskip
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ SLCS service is supposed to run together with SP service for
+achieving the SAML2 SSO profile. A typical configuration for SLCS
+service is as follows:}
+
+\begin{center}
+\tablehead{}\begin{supertabular}{|m{5.6886597in}|}
+\hline
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Chain{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}tcp.service{\textquotedbl}
+id={\textquotedbl}tcp{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}tls{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tcp:Listen{\textgreater}{\textless}tcp:Port{\textgreater}60000{\textless}/tcp:Port{\textgreater}{\textless}/tcp:Listen{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}tls.service{\textquotedbl}
+id={\textquotedbl}tls{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}http{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:KeyPath{\textgreater}./testkey-nopass.pem{\textless}/tls:KeyPath{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CertificatePath{\textgreater}./testcert.pem{\textless}/tls:CertificatePath{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}-tls:CACertificatePath{\textgreater}./cacert.pem{\textless}/tls:CACertificatePath-{}-{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:ClientAuthn{\textgreater}false{\textless}/tls:ClientAuthn{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}http.service{\textquotedbl}
+id={\textquotedbl}http{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}plexer{\textquotedbl}{\textgreater}POST{\textless}/next{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}Plexer
+name={\textquotedbl}plexer.service{\textquotedbl}
+id={\textquotedbl}plexer{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}samlsp{\textquotedbl}{\textgreater}/saml2sp{\textless}/next{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}soap{\textquotedbl}{\textgreater}/slcs{\textless}/next{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Plexer{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}Component
+name={\textquotedbl}soap.service{\textquotedbl}
+id={\textquotedbl}soap{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}slcs{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}SecHandler
+name={\textquotedbl}saml2ssoserviceprovider.handler{\textquotedbl}
+id={\textquotedbl}saml2ssosp{\textquotedbl}
+event={\textquotedbl}incoming{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}Service
+name={\textquotesingle}saml.sp{\textquotesingle}
+id={\textquotesingle}samlsp{\textquotesingle}{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}MetaDataLocation{\textgreater}./test\_metadata.xml{\textless}/MetaDataLocation{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}ServiceProviderName{\textgreater}https://squark.uio.no/shibboleth-sp{\textless}/ServiceProviderName{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}Service
+name={\textquotedbl}slcs.service{\textquotedbl}
+id={\textquotedbl}slcs{\textquotedbl}{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
+id={\textquotedbl}slcs{\textquotedbl}/{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CACertificate{\textgreater}./CAcert.pem{\textless}/slcs:CACertificate{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CAKey{\textgreater}./CAkey.pem{\textless}/slcs:CAKey{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CASerial{\textgreater}./CAserial{\textless}/slcs:CASerial{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater}}
+
+\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Chain{\textgreater}\\\hline
+\end{supertabular}
+\end{center}
+{\selectlanguage{english}\color{black}
+\ \ \ \ As shown in the above table, a plexer dispatches the message
+flow (outgoing from \textit{http.service}) into two SP service
+(\textit{saml.sp}) and SOAP service (\textit{soap.service}). Since the
+client authentication is switched off, it is not necessary to configure
+{\textless}\textit{CACertificatePath}{\textgreater} or
+{\textless}\textit{CACertificateDir}{\textgreater} for TLS MCC.}
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ SP service needs to be configured with
+{\textless}\textit{MetaDataLocation}{\textgreater} and
+{\textless}\textit{ServiceProviderName}{\textgreater}. }
+
+{\selectlanguage{english}\color{black}
+\ \ \ \ SLCS service needs to be configured with
+{\textless}\textit{CACertificate}{\textgreater}
+{\textless}\textit{CAKey}{\textgreater} and
+{\textless}\textit{Caserial}{\textgreater}.}
 
 {\selectlanguage{english}\color{black}
 \ \ \ \ SLCS client generates \ a X.509 certificate \ request, launches
@@ -3034,6 +3191,9 @@ a valid period after the first time she succeeds to authenticate
 against her home IdP by running the SLCS client command on the same
 node, even if this SLCS client command is supposed to run against a few
 SLCS services to get a few SLCS credentials.}
+
+
+\bigskip
 
 
 \bigskip
