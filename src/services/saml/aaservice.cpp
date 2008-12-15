@@ -349,8 +349,7 @@ bool Service_AA::get_attributes(Arc::QueryArrayResult& attributes, std::string& 
 
 } // namespace ArcSec
 
-service_descriptors ARC_SERVICE_LOADER = {
-    { "aa.service", 0, &ArcSec::get_service },
-    { NULL, 0, NULL }
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "aa.service", "HED:SERVICE", 0, &ArcSec::get_service },
+    { NULL, NULL, 0, NULL }
 };
-
