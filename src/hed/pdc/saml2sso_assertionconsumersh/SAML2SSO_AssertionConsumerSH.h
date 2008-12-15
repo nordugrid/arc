@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_SAML2SSO_SERVICEPROVIDERSH_H__
-#define __ARC_SEC_SAML2SSO_SERVICEPROVIDERSH_H__
+#ifndef __ARC_SEC_SAML2SSO_ASSERTIONCONSUMERSH_H__
+#define __ARC_SEC_SAML2SSO_ASSERTIONCONSUMERSH_H__
 
 #include <stdlib.h>
 
@@ -21,7 +21,7 @@ namespace ArcSec {
 //x509 certificate from transport level and take out the saml assertion.
 //Or contact the IdP and get back the saml assertion related to the client(Pull model)
 
-class SAML2SSO_ServiceProviderSH : public SecHandler {
+class SAML2SSO_AssertionConsumerSH : public SecHandler {
  private:
   std::string cert_file_;
   std::string key_file_;
@@ -30,13 +30,13 @@ class SAML2SSO_ServiceProviderSH : public SecHandler {
   Arc::MCCLoader* SP_service_loader;
 
  public:
-  SAML2SSO_ServiceProviderSH(Arc::Config *cfg, Arc::ChainContext* ctx);
-  virtual ~SAML2SSO_ServiceProviderSH(void);
+  SAML2SSO_AssertionConsumerSH(Arc::Config *cfg, Arc::ChainContext* ctx);
+  virtual ~SAML2SSO_AssertionConsumerSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg);  
 };
 
 } // namespace ArcSec
 
-#endif /* __ARC_SEC_SAML2SSO_SERVICEPROVIDERSH_H__ */
+#endif /* __ARC_SEC_SAML2SSO_ASSERTIONCONSUMERSH_H__ */
 

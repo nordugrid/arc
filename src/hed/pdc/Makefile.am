@@ -1,5 +1,5 @@
 if XMLSEC_ENABLED
-LIBS_WITH_XMLSEC = x509tokensh/libx509tokensh.la saml2sso_assertionconsumersh/libsaml2sso_assertionconsumersh.la
+LIBS_WITH_XMLSEC = x509tokensh/libx509tokensh.la saml2sso_assertionconsumersh/libsaml2ssoassertionconsumersh.la
 SUBDIRS_XMLSEC= x509tokensh saml2sso_assertionconsumersh
 else
 LIBS_WITH_XMLSEC = 
