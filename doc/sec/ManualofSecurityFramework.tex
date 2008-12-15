@@ -12,8 +12,6 @@
 \usepackage{hyperref}
 \hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, pagecolor=blue, urlcolor=blue, pdftitle=, pdfauthor=qiangwz, pdfsubject=, pdfkeywords=}
 \usepackage[pdftex]{graphicx}
-% Text styles
-\newcommand\textstyleInternetlink[1]{\textcolor[rgb]{0.0,0.0,0.5019608}{#1}}
 % Outline numbering
 \setcounter{secnumdepth}{3}
 \renewcommand\thesection{\arabic{section}.}
@@ -105,8 +103,6 @@
 \pagestyle{Standard}
 \setlength\tabcolsep{1mm}
 \renewcommand\arraystretch{1.3}
-\newcounter{Bibitem}
-\renewcommand\theBibitem{\arabic{Bibitem}}
 \title{}
 \begin{document}
 \begin{flushleft}
@@ -652,52 +648,63 @@ overlay={\textquotedbl}add{\textquotedbl}{\textgreater}}
 {\selectlanguage{english}\ttfamily\color{black}
 \ {\textless}/Chain{\textgreater}{\textless}/ArcConfig{\textgreater}}
 
+
+\bigskip
+
 \subsubsection{SP Service and SAML2SSO Service Provider Handler}
 {\selectlanguage{english}\color{black}
-Service Provider servicer (SP service) implements the functionality of
-Service Provider in SAML2 Web SSO profile. }
+\ \ \ \ Service Provider servicer (SP service) implements the
+functionality of Service Provider in SAML2 Web SSO profile.}
 
 {\selectlanguage{english}\color{black}
-Normally SP service will not be deployed independently, instead, it
-should be deployed together with other services. The SLCS service is
+\ \ \ \ Normally SP service will not be deployed independently, instead,
+it should be deployed together with other services. The SLCS service is
 the typical deployment about SP service. On the client side, client
 developer should use the ClientSAML2Interface instead of
 ClientInterface to call the client functionality. The SLCS client
 (arcslcs) is the typical usage of \ ClientSAML2Interface.}
 
 {\selectlanguage{english}\color{black}
-Once the SP Service has cooperated with user agent and Identity Provider
-(external) and succeeded to accomplish the SAML2 SSO profile, \ the SP
-service will get the saml authentication assertion which asserts that
-the authentication has succeeded, and then SP service will store this
-assertion into session context.}
+\ \ \ \ Once the SP Service has cooperated with user agent and Identity
+Provider (external) and succeeded to accomplish the SAML2 SSO profile,
+\ the SP service will get the saml authentication assertion which
+asserts that the authentication has succeeded, and then SP service will
+store this assertion into session context.}
 
 {\selectlanguage{english}\color{black}
-SAML2 service provider handler (saml2ssoserviceprovider.handler) is the
-security handler which will understand the authentication assertion and
-make authorization decision according to this assertion.}
+\ \ \ \ SAML2 assertion consumer handler
+(saml2ssoassertionconsumer.handler) is the security handler which will
+understand the authentication assertion and attribute assertion from
+IdP, and make authorization decision according to the attribute values
+inside these assertions. Currently the SAML2 assertion consumer handler
+is an empty security handler and does not effect the services.}
 
 {\selectlanguage{english}\color{black}
-The example configuration about using SP service and SAML2SSO service
-provider handler can be seen in the configuration of SLCS service. }
+\ \ \ \ The example configuration about using SP service and SAML2SSO
+assertion consumer handler can be seen in the configuration of SLCS
+service. }
 
 {\selectlanguage{english}\color{black}
-SP service is not only supposed to work together with SLCS service. But
-if it is used to work together with other services, the client should
-be developed on \ ClientSAML2Interface instead of ClientInterface.}
+\ \ \ \ SP service is not only supposed to work together with SLCS
+service. If it is used to work together with other services, the client
+should be developed on ClientSAML2Interface instead of ClientInterface,
+which is the same as that in SLCS client (\textit{arcslcs}).}
+
+
+\bigskip
 
 \subsubsection{SLCS service and client}
 {\selectlanguage{english}\color{black}
-Short-lived credential service (SLCS) is for signing short-lived x509
-credential for user based user{\textquotesingle}s username/password
-credential. Then the user can use the short-lived x509 credential to
-access grid services/resources where x509 credential is required by
-default. \ SLCS service should depend on the SP (Service provider)
-service which is one of the participants of SAML2 SSO profile (SAML2
-SSO profile is used for authenticating based on username/password
-credential and getting SAML authentication assertion; and SAML
-authentication assertion is then used as basis for signing short-lived
-x509 credential).}
+\ \ \ \ Short-lived credential service (SLCS) is for signing short-lived
+x509 credential for user based user{\textquotesingle}s
+username/password credential. Then the user can use the short-lived
+x509 credential to access grid services/resources where x509 credential
+is required by default. \ SLCS service should depend on the SP (Service
+provider) service which is one of the participants of SAML2 SSO profile
+(SAML2 SSO profile is used for authenticating based on
+username/password credential and getting SAML authentication assertion;
+and SAML authentication assertion is then used as basis for signing
+short-lived x509 credential).}
 
 {\selectlanguage{english}\color{black}
 a. \textbf{SLCS Service} }
@@ -891,7 +898,7 @@ id={\textquotedbl}slcs{\textquotedbl}/{\textgreater} }
 
 {\selectlanguage{english}\ttfamily\color{black}
 \ \ \ \ {\textless}SecHandler
-name={\textquotedbl}\textcolor[rgb]{0.8627451,0.13725491,0.0}{saml2ssoserviceprovider.handler}{\textquotedbl}
+name={\textquotedbl}\textcolor[rgb]{0.8627451,0.13725491,0.0}{saml2ssoassertionconsumer.handler}{\textquotedbl}
 id={\textquotedbl}saml2ssosp{\textquotedbl}
 event={\textquotedbl}incoming{\textquotedbl}/{\textgreater}}
 
@@ -945,14 +952,17 @@ id={\textquotedbl}slcs{\textquotedbl}/{\textgreater} }
 {\textless}/ArcConfig{\textgreater} }
 
 {\selectlanguage{english}\color{black}
-SLCS service and SP service should together be configured by using the
-Plexer. SP service is directly based on http and SLCS is directly based
-on soap. }
+\ \ \ \ SLCS service and SP service should together be configured by
+using the Plexer. SP service is directly based on http and SLCS is
+directly based on soap. }
 
 {\selectlanguage{english}\color{black}
-SLCS service should specifically include the CA credential (certificate
-and key file) and the serial number file (which includes the serial
-number of each signed certificate).}
+\ \ \ \ SLCS service should specifically include the CA credential
+(certificate and key file) and the serial number file (which includes
+the serial number of each signed certificate). Therefore, the service
+administrator should firstly create a CA credential (note for
+interoperability purpose in the production grid deployment, the CA
+credential should be trusted by others). }
 
 {\selectlanguage{english}\color{black}
 \textbf{Note}: When deploying the SLCS service, service administrator
@@ -1017,7 +1027,7 @@ start with current time, hour as unit }
 
 {\selectlanguage{english}\color{black}
 \ \ {}-D, -{}-storedir=directory \ \ \ \ Store directory for key and
-signed certificate }
+signed certificate}
 
 {\selectlanguage{english}\color{black}
 \ \ {}-c, -{}-conffile=filename \ \ \ \ \ configuration file (default
@@ -1032,16 +1042,16 @@ https://squark.uio.no/idp/shibboleth -U root -P aa1122 -D
 /home/wzqiang/arc-0.9/src/clients/credentials -c client.xml }
 
 {\selectlanguage{english}\color{black}
-Note user should input the {\textquotedblleft}IdP
+\ \ \ \ Note user should input the {\textquotedblleft}IdP
 name{\textquotedblright} is the corresponding Identity Provider (one of
 the participants of SAML2 SSO profile) name to which the user would
-authentication against by using its username/password credential. And
-the name is stored inside the metadata on both SP service and IdP
-provider, and it is used by SP service to get the authentication URL
-for username/password based authentication.}
+authenticate against by using its username/password credential. And the
+name is stored inside the metadata on both SP service and IdP provider,
+and it is used by SP service to get the authentication URL for
+username/password based authentication.}
 
 {\selectlanguage{english}\color{black}
-And the {\textquotedblleft}user{\textquotedblright} and
+\ \ \ \ And the {\textquotedblleft}user{\textquotedblright} and
 {\textquotedblleft}password{\textquotedblright} is the credential which
 will be used to authentication against IdP.}
 
@@ -1126,40 +1136,19 @@ should be off.-{}-{\textgreater} }
 {\selectlanguage{english}\ttfamily\color{black}
 {\textless}/ArcConfig{\textgreater} }
 
-
-\bigskip
-
-
-\bigskip
-
-
-\bigskip
-
-\clearpage{\centering\selectlanguage{english}\bfseries\scshape\color{black}
-References
-\par}
+{\selectlanguage{english}\color{black}
+\ \ \ \ There is a temporary Identity Provider (IdP) deployed on
+\textit{squark.uio.no} for test with the following test username and
+password: staff, researcher, librarian, binduser; with the same
+password {\textquotedbl}123456{\textquotedbl}}
 
 {\selectlanguage{english}\color{black}
-\stepcounter{Bibitem}{\theBibitem}. RFC3820- Internet X.509 Public Key
-Infrastracture (PKI) Proxy, \url{http://rfc.net/rfc3820.html}}
+./arcslcs -S https://127.0.0.1:60000/slcs -I
+https://squark.uio.no/idp/shibboleth -U staff -P 123456 -D
+/home/wzqiang/arc-0.9/src/clients/credentials -c client.xml}
 
-{\selectlanguage{english}\color{black}
-\stepcounter{Bibitem}{\theBibitem}. D1.2-2 The ARC container (first
-prototype),
-\url{http://www.knowarc.eu/documents/Knowarc_D1.2-2_07.pdf}}
-
-{\selectlanguage{english}\color{black}
-\textstyleInternetlink{\textcolor{black}{\stepcounter{Bibitem}{\theBibitem}}}\textstyleInternetlink{\textcolor{black}{.}}\textstyleInternetlink{\foreignlanguage{english}{\textcolor{black}{Web
-Service Security Username Token Profile 1.1.
-}}}\url{http://www.oasis-open.org/committees/download.php/16782/wss-v1.1-spec-os-UsernameTokenProfile.pdf}}
-
-{\selectlanguage{english}\color{black}
-\stepcounter{Bibitem}{\theBibitem}. OGSA{\textregistered} Basic
-Execution Service Version 1.0,
-\ \url{http://www.ogf.org/documents/GFD.108.pdf} }
-
-{\selectlanguage{english}\color{black}
-\textstyleInternetlink{\textcolor{black}{\stepcounter{Bibitem}{\theBibitem}}}\textstyleInternetlink{\textcolor{black}{.
-OASIS Web Services Security (WSS) TC.
-}}\url{http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss}}
+{\selectlanguage{english}\upshape\color{black}
+\ \ \ \ The short-lived credential issued by SLCS service will include
+the SAML assertion as the extension of X.509 certificate as a proof of
+passing SAML2 SSO profile.}
 \end{document}
