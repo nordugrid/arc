@@ -38,7 +38,7 @@
 	</Component>
         <Component name="http.service" id="http">
             <next id="plexer">POST</next>
-            <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
+            <!--SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
         <Plexer name="plexer.service" id="plexer">
             <next id="samlsp">/saml2sp</next>
@@ -46,7 +46,7 @@
         </Plexer>
         <Component name="soap.service" id="soap">
 	    <next id="slcs"/>
-            <SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/>
+            <SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/>
         </Component>
         <Service name='saml.sp' id='samlsp'>
             <MetaDataLocation>./test_metadata.xml</MetaDataLocation>
