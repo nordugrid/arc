@@ -1203,19 +1203,19 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/srm/srmclient/Makefile                 
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
-                 src/hed/pdc/Makefile
-                 src/hed/pdc/arcpdp/Makefile
-                 src/hed/pdc/gaclpdp/Makefile
-                 src/hed/pdc/pdpserviceinvoker/Makefile
-                 src/hed/pdc/allowpdp/Makefile
-                 src/hed/pdc/denypdp/Makefile
-                 src/hed/pdc/countpdp/Makefile
-                 src/hed/pdc/simplelistpdp/Makefile
-                 src/hed/pdc/arcauthzsh/Makefile
-                 src/hed/pdc/delegationsh/Makefile
-                 src/hed/pdc/usernametokensh/Makefile
-                 src/hed/pdc/x509tokensh/Makefile
-                 src/hed/pdc/saml2sso_assertionconsumersh/Makefile
+                 src/hed/shc/Makefile
+                 src/hed/shc/arcpdp/Makefile
+                 src/hed/shc/gaclpdp/Makefile
+                 src/hed/shc/pdpserviceinvoker/Makefile
+                 src/hed/shc/allowpdp/Makefile
+                 src/hed/shc/denypdp/Makefile
+                 src/hed/shc/countpdp/Makefile
+                 src/hed/shc/simplelistpdp/Makefile
+                 src/hed/shc/arcauthzsh/Makefile
+                 src/hed/shc/delegationsh/Makefile
+                 src/hed/shc/usernametokensh/Makefile
+                 src/hed/shc/x509tokensh/Makefile
+                 src/hed/shc/saml2sso_assertionconsumersh/Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
