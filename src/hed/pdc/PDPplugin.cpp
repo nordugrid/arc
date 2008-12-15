@@ -55,7 +55,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "x509token.handler", "HED:SHC", 0,
                   &ArcSec::X509TokenSH::get_sechandler},
     { "saml2ssoassertionconsumer.handler", "HED:SHC", 0,
-                  &ArcSec::SAML2SSO_ServiceProviderSH::get_sechandler},
+                  &ArcSec::SAML2SSO_AssertionConsumerSH::get_sechandler},
 #endif
     { "arc.policy", "__arc_policy_modules__", 0,
                   &ArcSec::ArcPolicy::get_policy },
