@@ -18,7 +18,7 @@ libarex_la_SOURCES  = arex.cpp job.cpp PayloadFile.cpp create_activity.cpp get_a
                       change_activity_status.cpp get_factory_attributes_document.cpp get.cpp put.cpp information_collector.cpp faults.cpp arex.h job.h PayloadFile.h gacl.cpp gacl.h tools.cpp tools.h
 libarex_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 # Needs real cleaning in respect to dependencies
-libarex_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la ldif/libldif.la ./config/libconfig.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/delegation/libdelegation.la $(GRIDMANAGER_LIBS)
+libarex_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la ldif/libldif.la ./config/libconfig.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la $(GRIDMANAGER_LIBS)
 libarex_la_LDFLAGS=-no-undefined -avoid-version -module
 
 test_SOURCES  = test.cpp
@@ -28,7 +28,7 @@ test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                 $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                 $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                 $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-                $(top_srcdir)/src/hed/libs/delegation/libdelegation.la \
+                $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
                 $(top_srcdir)/src/hed/libs/infosys/libinfosys.la #$(top_srcdir)/src/hed/libs/ws/libarcws.la
 
 sysconf_DATA = arc_arex.conf

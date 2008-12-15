@@ -10,7 +10,7 @@ arcproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top
 arcproxy_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 arcproxy_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
-                  $(top_srcdir)/src/hed/libs/delegation/libdelegation.la
+                  $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la
 
 if XMLSEC_ENABLED
 arcslcs_SOURCES  = arcslcs.cpp

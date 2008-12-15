@@ -1,13 +1,13 @@
-noinst_LTLIBRARIES = libdelegation.la
+noinst_LTLIBRARIES = libarcdelegation.la
 noinst_PROGRAMS = test
 
-libdelegation_ladir = $(pkgincludedir)/delegation
-libdelegation_la_HEADERS  = DelegationInterface.h
-libdelegation_la_SOURCES  = DelegationInterface.cpp
-libdelegation_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libdelegation_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(OPENSSL_LIBS)
+libarcdelegation_ladir = $(pkgincludedir)/delegation
+libarcdelegation_la_HEADERS  = DelegationInterface.h
+libarcdelegation_la_SOURCES  = DelegationInterface.cpp
+libarcdelegation_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
+libarcdelegation_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(OPENSSL_LIBS)
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(EXTRA_LIBS)
-test_LDADD    = libdelegation.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(OPENSSL_LIBS)
+test_LDADD    = libarcdelegation.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(OPENSSL_LIBS)
