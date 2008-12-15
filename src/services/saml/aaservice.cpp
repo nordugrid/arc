@@ -8,9 +8,9 @@
 #include <pwd.h>
 
 #include <arc/loader/Loader.h>
-#include <arc/loader/ClassLoader.h>
-#include <arc/loader/ServiceLoader.h>
-#include <arc/loader/Plexer.h>
+#include <arc/security/ClassLoader.h>
+/* ##include <arc/loader/ServiceLoader.h> */
+#include <arc/message/Plexer.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
