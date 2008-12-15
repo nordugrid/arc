@@ -1274,6 +1274,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/isis/Makefile
                  src/services/saml/Makefile
                  src/services/slcs/Makefile
+                 src/services/delegation/Makefile
                  src/services/sched/Makefile
                  src/services/sched/manage_jobq.8
                  src/services/paul/Makefile
