@@ -44,10 +44,16 @@ class InfoFilter {
   MessageAuth& id_;
  public:
   /// Creates object and associates identity
+  /** Associated identity is not copied, hence passed argument must not be 
+     destroyed while this method is used. */
   InfoFilter(MessageAuth& id);
   /// Filter information document according to internal policies
+  /** In provided document all policies and nodes which have their policies
+     evaluated to negative result are removed. */
   bool Filter(XMLNode doc);
   /// Filter information document according to internal and external policies
+  /** In provided document all policies and nodes which have their policies
+     evaluated to negative result are removed. */
   bool Filter(XMLNode doc,const std::list< std::pair<std::string,XMLNode> >& policies,const Arc::NS& ns);
 };
 
