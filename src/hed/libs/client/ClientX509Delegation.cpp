@@ -25,7 +25,7 @@ namespace Arc {
     //Use the certificate and key in the main chain to delegate
     std::string cert_file = cfg.cert;
     std::string privkey_file = cfg.key;
-    delegator_ = new DelegationProviderSOAP(cert_file, privkey_file, &(std::cin));
+    delegator_ = new DelegationProviderSOAP(cert_file, privkey_file);
   }
 
   ClientX509Delegation::~ClientX509Delegation() { 
