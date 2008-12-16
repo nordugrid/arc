@@ -17,17 +17,18 @@ libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS  = ACC.h ACCLoader.h Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
 	Job.h JobController.h JobSupervisor.h JobDescription.h \
-	ClientInterface.h $(HEADER_WITH_XMLSEC) UserConfig.h
+	ClientInterface.h $(HEADER_WITH_XMLSEC) ClientX509Delegation.h UserConfig.h
 libarcclient_la_SOURCES  = ACC.cpp ACCLoader.cpp Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
 	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp \
-	ClientInterface.cpp $(SOURCE_WITH_XMLSEC) UserConfig.cpp
+	ClientInterface.cpp $(SOURCE_WITH_XMLSEC) ClientX509Delegation.cpp UserConfig.cpp
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+        $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
 	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS)
 

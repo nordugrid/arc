@@ -1,5 +1,5 @@
-#ifndef __ARC_CLIENTSAML2INTERFACE_H__
-#define __ARC_CLIENTSAML2INTERFACE_H__
+#ifndef __ARC_CLIENTSAML2SSO_H__
+#define __ARC_CLIENTSAML2SSO_H__
 
 #include <string>
 #include <list>
@@ -71,4 +71,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_CLIENTSAML2INTERFACE_H__
+#endif // __ARC_CLIENTSAML2SSO_H__
