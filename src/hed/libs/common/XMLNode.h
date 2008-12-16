@@ -105,6 +105,14 @@ class XMLNode {
   bool operator!=(const XMLNode& node) { return ((node_ != node.node_) || (node_ == NULL)); };
   /** Returns true if 'node' represents same XML element - for bindings */
   bool Same(const XMLNode& node) { return operator==(node); };
+  /** This operator is needed to avoid ambiguity */
+  bool operator==(bool val) { return ((bool)(*this) == val); };
+  /** This operator is needed to avoid ambiguity */
+  bool operator!=(bool val) { return ((bool)(*this) != val); };
+  /** This operator is needed to avoid ambiguity */
+  bool operator==(const std::string& str) { return ((std::string)(*this) == str); };
+  /** This operator is needed to avoid ambiguity */
+  bool operator!=(const std::string& str) { return ((std::string)(*this) != str); };
   /** Returns XMLNode instance representing n-th child of XML element.
     If such does not exist invalid XMLNode instance is returned */
   XMLNode Child(int n = 0) const;
