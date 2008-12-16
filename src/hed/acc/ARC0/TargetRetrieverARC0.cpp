@@ -186,16 +186,33 @@ namespace Arc {
     TargetGenerator& mom = *thrarg->mom;
     int targetType = thrarg->targetType;
 
+    //Create credential object in order to get the user DN
+    std::string proxyPath = thrarg->proxyPath;
+    std::string certificatePath = thrarg->certificatePath;
+    std::string keyPath = thrarg->keyPath;
+    std::string caCertificatesDir = thrarg->caCertificatesDir;
+
+    Credential* credential;
+    if(certificatePath.empty()){
+      credential = new Arc::Credential(proxyPath, "", caCertificatesDir, "");
+    } else {
+      credential = new Arc::Credential(certificatePath, keyPath, caCertificatesDir, "");
+    }
+
+    std::cout<<"Now trying to output the DN"<<std::endl;
+    std::cout<<"Got the DN: "<<credential->GetIdentityName()<<std::endl;
+
     //Query GRIS for all relevant information
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
 
     if(targetType==0){ //ExecutionTarget
-    url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
-			 "(objectclass=nordugrid-queue))");
+      url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
+			   "(objectclass=nordugrid-queue)"
+			   "(nordugrid-authuser-sn="+credential->GetIdentityName()+"))");
+      std::cout<<"Filter is: "<<url.LDAPFilter()<<std::endl;
     } else if(targetType==1){
-    url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
-			 "(objectclass=nordugrid-queue))");
+      url.ChangeLDAPFilter("(|(nordugrid-job-globalowner="+credential->GetIdentityName()+"))");
     }
 
     DataHandle handler(url);
@@ -225,6 +242,8 @@ namespace Arc {
     }
 
     XMLNode xmlresult(result);
+
+    if(targetType==0){
 
     // Process information and prepare ExecutionTargets
     // Map 1 queue == 1 ExecutionTarget
@@ -448,9 +467,51 @@ namespace Arc {
       //Register target in TargetGenerator list
       mom.AddTarget(target);
     }
+    } else if(targetType==1){
+      
+      xmlresult.SaveToStream(std::cout);
+      // Process information and find the jobs
+      
+      XMLNodeList jobs =
+	xmlresult.XPathLookup("//nordugrid-job-globalid"
+			      "[objectClass='nordugrid-job'", NS());
+      
+      for (XMLNodeList::iterator it = jobs.begin(); it != jobs.end(); it++) {
+	
+	Arc::NS ns;
+	Arc::XMLNode info(ns, "Job");
+	
+	if((*it)["nordugrid-job-globalid"]){
+	  info.NewChild("JobID") = (std::string) (*it)["nordugrid-job-globalid"];
+	}
+	if((*it)["nordugrid-job-jobname"]){
+	  info.NewChild("Name") = (std::string) (*it)["nordugrid-job-jobname"];
+	}
+	if((*it)["nordugrid-job-submissiontime"]){
+	  info.NewChild("LocalSubmissionTime") = (std::string) (*it)["nordugrid-job-submissiontime"];
+	}
+	
+	info.NewChild("Cluster") = url.str();
+	
+	URL infoEndpoint(url);
+	infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
+				      (std::string) (*it)["nordugrid-job-globalid"] + ")");
+	infoEndpoint.ChangeLDAPScope(URL::subtree);	
+	
+	info.NewChild("InfoEndpoint") = infoEndpoint.str();
+	
+	mom.AddJob(info);
 
+      }
+
+    } //end targetType ==1, i.e. jobs
+
+    
     delete thrarg;
     mom.RetrieverDone();
+    
+    delete credential;
+    
   }
-
+  
 } // namespace Arc

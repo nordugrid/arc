@@ -33,9 +33,9 @@ int main(int argc, char **argv) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
-
+  
   Arc::ArcLocation::Init(argv[0]);
-
+  
   Arc::OptionParser options(istring("[filename ...]"),
 			    istring("The command is used for "
 				    "jobid synchronization"),
@@ -51,50 +51,50 @@ int main(int argc, char **argv) {
 				    "ARC0:ldap://grid.tsl.uu.se:2135/"
 				    "nordugrid-cluster-name=grid.tsl.uu.se,"
 				    "Mds-Vo-name=local,o=grid"));
-
+  
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
 		    istring("explicity select or reject a specific cluster"),
 		    istring("[-]name"),
 		    clusters);
-
+  
   std::list<std::string> indexurls;
   options.AddOption('i', "index",
 		    istring("explicity select or reject an index server"),
 		    istring("[-]name"),
 		    indexurls);
-
+  
   std::string joblist;
   options.AddOption('j', "joblist",
 		    istring("file where the jobs will be stored"),
 		    istring("filename"),
 		    joblist);
-
+  
   bool force = false;
   options.AddOption('f', "force",
                     istring("do not ask for verification"),
                     force);
-
+  
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
-
+  
   std::string conffile;
   options.AddOption('z', "conffile",
 		    istring("configuration file (default ~/.arc/client.xml)"),
 		    istring("filename"), conffile);
-
+  
   std::string debug;
   options.AddOption('d', "debug",
 		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
 		    istring("debuglevel"), debug);
-
+  
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
 		    version);
-
+  
   std::list<std::string> params = options.Parse(argc, argv);
-
+  
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
     */
   }
   
-  //Preparing the joblist file (create a new one if not existing)
+  //Setting the joblist file (or creating a new one if not already existing)
   if (joblist.empty())
     joblist = usercfg.JobListFile();
   else {
@@ -158,9 +158,24 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
-
+  
+  //Find all jobs
   Arc::TargetGenerator targen(usercfg, clusters, indexurls);
-  //  targen.GetAllJobs(0, 1);
+  targen.GetTargets(1, 1);
+
+  //Some dummy output
+  std::cout << "Found number of jobs: " << targen.FoundJobs().size() << std::endl;
+
+  //Write extracted job info to joblist (overwrite the file)
+  {//start of file lock
+    Arc::FileLock lock(joblist);
+    Arc::Config jobs;
+    for (std::list<Arc::XMLNode>::const_iterator job = targen.FoundJobs().begin(); 
+	 job != targen.FoundJobs().end(); job++){
+      jobs.NewChild(*job);
+    }
+    jobs.SaveToFile(joblist);
+  }//end of file lock
 
   return 0;
 

@@ -12,24 +12,19 @@
 namespace Arc {
 
   ACC::ACC(Config *cfg, const std::string& flavour)
-    : flavour(flavour), credential(NULL) {
+    : flavour(flavour){
     proxyPath = (std::string)(*cfg)["ProxyPath"];
+    std::cout<<"proxypath = " << proxyPath << std::endl;
     certificatePath = (std::string)(*cfg)["CertificatePath"];
+    std::cout<<"certificatepath = " << certificatePath << std::endl;
     keyPath = (std::string)(*cfg)["KeyPath"];
+    std::cout<<"keypath = " << keyPath << std::endl;
     caCertificatesDir = (std::string)(*cfg)["CACertificatesDir"];
-
-    if(certificatePath.empty()){
-      credential = new Arc::Credential(proxyPath, "", caCertificatesDir, "");
-    } else {
-      credential = new Arc::Credential(certificatePath, keyPath, caCertificatesDir, "");
-    }
-
-    std::cout<<"Now trying to output the DN"<<std::endl;
-    std::cout<<"Got the DN: "<<credential->GetDN()<<std::endl;
+    std::cout<<"caCertificatesDir = " << caCertificatesDir << std::endl;
 
   }
 
-  ACC::~ACC() { if(credential) delete credential;}
+  ACC::~ACC() {}
 
   XMLNode ACCConfig::MakeConfig(XMLNode cfg) const {
     XMLNode mm = BaseConfig::MakeConfig(cfg);

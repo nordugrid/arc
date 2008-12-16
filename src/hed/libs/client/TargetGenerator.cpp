@@ -94,6 +94,10 @@ namespace Arc {
     return foundTargets;
   }
 
+  const std::list<XMLNode>& TargetGenerator::FoundJobs() const {
+    return foundJobs;
+  }
+
   bool TargetGenerator::AddService(const URL& url) {
 
     for (URLListMap::iterator it = clusterreject.begin();
@@ -144,7 +148,7 @@ namespace Arc {
   }
 
 
-  void TargetGenerator::AddJob(const Job& job) {
+  void TargetGenerator::AddJob(const XMLNode& job) {
     Glib::Mutex::Lock jobLock(jobMutex);
     foundJobs.push_back(job);
   }
