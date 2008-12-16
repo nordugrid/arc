@@ -11,7 +11,7 @@ noinst_PROGRAMS = test testinterface
 # classload_test 
 
 pkglib_LTLIBRARIES = libarcpdc.la
-libarcpdc_la_SOURCES  = PDPplugin.cpp 
+libarcpdc_la_SOURCES  = SecHandlerPlugin.cpp
 libarcpdc_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/libcountpdp.la \
                         simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la gaclpdp/libgaclpdp.la \
