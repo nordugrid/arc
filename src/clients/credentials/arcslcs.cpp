@@ -23,7 +23,7 @@
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/credential/Credential.h>
-#include <arc/client/ClientSAML2Interface.h>
+#include <arc/client/ClientSAML2SSO.h>
 #include <arc/message/MCC.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>

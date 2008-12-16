@@ -12,7 +12,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
-//#include "../../hed/libs/client/ClientSAML2Interface.h"
+#include "../../hed/libs/client/ClientSAML2SSO.h"
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
@@ -34,6 +34,7 @@ int main(void) {
   mcc_cfg.AddPrivateKey("testkey-nopass.pem");
   mcc_cfg.AddCertificate("testcert.pem");
   mcc_cfg.AddCAFile("cacert.pem");
+  mcc_cfg.AddCADir("certificates");
 
   //Arc::WSSInfo wssinfo;
   //wssinfo.username="user";
@@ -44,6 +45,9 @@ int main(void) {
 
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
 
+  std::string idp_name = "https://idp.testshib.org/idp/shibboleth";
+
+#if 0
   Arc::ClientSOAP *client;
   client = new Arc::ClientSOAP(mcc_cfg,url);
 
@@ -76,10 +80,13 @@ int main(void) {
 
   if(resp) delete resp;
   if(client) delete client;
+#endif
 
-#if 0
+  std::string username = "myself";
+  std::string password = "myself";
+
   Arc::ClientHTTPwithSAML2SSO *client_http;
-  client_http = new Arc::ClientHTTPwithSAML2SSO(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+  client_http = new Arc::ClientHTTPwithSAML2SSO(mcc_cfg,url);
   logger.msg(Arc::INFO, "Creating and sending request");
   Arc::PayloadRaw req_http;
   //req_http.Insert();
@@ -88,7 +95,7 @@ int main(void) {
   Arc::HTTPClientInfo info;
 
   if(client_http) {
-    Arc::MCC_Status status = client_http->process("GET", "echo", &req_http,&info,&resp_http);
+    Arc::MCC_Status status = client_http->process("GET", "echo", &req_http,&info,&resp_http, idp_name, username, password);
     if(!status) {
       logger.msg(Arc::ERROR, "HTTP with SAML2SSO invokation failed");
       throw std::runtime_error("HTTP with SAML2SSO invokation failed");
@@ -112,7 +119,7 @@ int main(void) {
   Arc::PayloadSOAP* resp_soap = NULL;
 
   if(client_soap) {
-    Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap);
+    Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap, idp_name, username, password);
     if(!status) {
       logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
       throw std::runtime_error("SOAP with SAML2SSO invokation failed");
@@ -129,7 +136,6 @@ int main(void) {
 
   if(resp_soap) delete resp_soap;
   if(client_soap) delete client_soap;
-#endif
 
   return 0;
 }

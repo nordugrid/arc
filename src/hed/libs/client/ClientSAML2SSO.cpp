@@ -15,7 +15,7 @@
 #include <arc/xmlsec/XMLSecNode.h>
 #include <arc/xmlsec/saml_util.h>
 
-#include "ClientSAML2Interface.h"
+#include "ClientSAML2SSO.h"
 
 namespace Arc {
   Logger ClientHTTPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientHTTPwithSAML2SSO");
