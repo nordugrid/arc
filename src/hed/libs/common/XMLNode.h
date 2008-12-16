@@ -99,6 +99,12 @@ class XMLNode {
   operator bool(void) const { return ((node_ != NULL) && (!is_temporary_)); };
   /** Returns true if instance does not point to XML element - invalid instance */
   bool operator!(void) const { return ((node_ == NULL) || is_temporary_); };
+  /** Returns true if 'node' represents same XML element */
+  bool operator==(const XMLNode& node) { return ((node_ == node.node_) && (node_ != NULL)); };
+  /** Returns false if 'node' represents same XML element */
+  bool operator!=(const XMLNode& node) { return ((node_ != node.node_) || (node_ == NULL)); };
+  /** Returns true if 'node' represents same XML element - for bindings */
+  bool Same(const XMLNode& node) { return operator==(node); };
   /** Returns XMLNode instance representing n-th child of XML element.
     If such does not exist invalid XMLNode instance is returned */
   XMLNode Child(int n = 0) const;
