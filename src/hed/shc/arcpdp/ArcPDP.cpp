@@ -191,15 +191,15 @@ bool ArcPDP::isPermitted(Message *msg){
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
 
-  //The current ArcPDP is supposed to be used as policy decision point for Arc1 HED components, and
-  //those services which are based on HED.
-  //Each message/session comes with one unique <Subject/> (with a number of <Attribute/>s), and different 
-  //<Resource/>:<Action/> (possibly plus <Context/>).
-  //The decision algorithm is: If one <Subject/>:<Resource/>:<Action/>(:<Context/>) gets "PERMIT", and the
-  //other tuples does not get "DENY" (in current situation, "INDETERMINATE" currently never happens, so 
-  //they could get "PERMIT", or "NOTAPPLICABLE"), ArcPDP gives "PERMIT"; If any tuple gets "DENY", 
-  //ArcPDP gives "DENY"; If no tuple gets either "PERMIT" or "DENY", that means whole suit of tuples 
-  //together get "NOT_APPLICABLE" or "INDETERMINATE" ("INDETERMINATE" currently never happens), ArcPDP gives "DENY".
+  //  The current ArcPDP is supposed to be used as policy decision point for Arc1 HED components, and
+  // those services which are based on HED.
+  //  Each message/session comes with one unique <Subject/> (with a number of <Attribute/>s),
+  // and different <Resource/> and <Action/> elements (possibly plus <Context/>).
+  //  The results from all tuples are combined using following decision algorithm: 
+  // 1. If any of tuples made of <Subject/>, <Resource/>, <Action/> and <Context/> gets "DENY"
+  //    then final result is negative (false).
+  // 2. Otherwise if any of tuples gets "PERMIT" then final result is positive (true).
+  // 3. Otherwise result is negative (false).
 
   bool atleast_onedeny = false;
   bool atleast_onepermit = false;
@@ -228,8 +228,8 @@ bool ArcPDP::isPermitted(Message *msg){
   
   bool result = false;
   if(atleast_onedeny) result = false;
-  else if(!atleast_onedeny && atleast_onepermit) result = true;
-  else if(!atleast_onedeny && !atleast_onepermit) result = false;
+  else if(atleast_onepermit) result = true;
+  else result = false;
 
   if(result) logger.msg(INFO, "Authorized from arc.pdp");
   else logger.msg(ERROR, "UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Policy");
