@@ -24,7 +24,7 @@ namespace Arc {
   Logger local_logger(Logger::rootLogger, "CREAM-Client");
 
   bool Setting_Checker(const XMLNode node) {
-    if ( node == 0 || (std::string)node == "N/A" || (std::string)node == "[reserved]")
+    if ( !node || (std::string)node == "N/A" || (std::string)node == "[reserved]")
        return false;
     return true;
   }
@@ -195,7 +195,7 @@ namespace Arc {
 
     int last_status_id = 0;
     while (true) {
-      if ((*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id] == 0) break;
+      if (!((*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id])) break;
       last_status_id++;
     }
 
@@ -228,19 +228,19 @@ namespace Arc {
           Arc::XMLNode jd_xml;
           jd_xml = jd.getXML();
            
-          if ( jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"] != 0 &&
+          if ( (bool)(jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"]) &&
               (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"] != "" )        
              job.StdIn = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"];
 
-          if ( jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"] != 0 &&
+          if ( (bool)(jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"]) &&
               (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"] != "" )        
              job.StdOut = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"];
 
-          if ( jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"] != 0 &&
+          if ( (bool)(jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"]) &&
               (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"] != "" )        
              job.StdErr = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"];
 
-          if ( jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"] != 0 &&
+          if ( (bool)(jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"]) &&
               (std::string)jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"] != "" )        
              job.Queue = (std::string)jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"];
 
@@ -291,7 +291,7 @@ namespace Arc {
        int job_start_id_last = -1;
        int local_id = 0;
        while (true) {
-         if ((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][local_id] == 0 ) break;
+         if (!((*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][local_id])) break;
 	 if ((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["lastCommand"][local_id]["name"] == "JOB_REGISTER"){
 	    if ( job_register_id_first == -1 && job_register_id_last == -1 ){
 	       job_register_id_first = local_id;
@@ -554,7 +554,7 @@ namespace Arc {
     if ((*resp)["JobRegisterResponse"]["result"]["jobId"]["creamURL"])
       info.creamURL = (std::string)((*resp)["JobRegisterResponse"]["result"]["jobId"]["creamURL"]);
     property = (*resp)["JobRegisterResponse"]["result"]["jobId"]["property"];
-    while (property != 0) {
+    while ((bool)property) {
       if ((std::string)(property["name"]) == "CREAMInputSandboxURI")
 	info.ISB_URI = (std::string)(property["value"]);
       else if ((std::string)(property["name"]) == "CREAMOutputSandboxURI")
