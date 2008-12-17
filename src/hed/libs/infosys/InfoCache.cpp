@@ -38,7 +38,7 @@ static void merge_xml(std::string& path_base, Arc::XMLNode &node)
             std::string xml_str = Glib::file_get_contents(path_fl1);
             Arc::XMLNode n(xml_str);
             Arc::XMLNode c;
-            for (int i = 0; (c = n.Child(i)) != false; i++) {
+            for (int i = 0; (bool)(c = n.Child(i)); i++) {
                     node.NewChild(c);
             }
         }

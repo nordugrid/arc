@@ -43,7 +43,7 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0) {
         std::string cert = peers["CertificatePath"];
         std::string proxy = peers["ProxyPath"];
         std::string cadir = peers["CACertificatesDir"];
-        for (int i = 0; (n = peers["URL"][i]) != false; i++) {
+        for (int i = 0; (bool)(n = peers["URL"][i]); i++) {
             std::string url_str = (std::string)n;
             Peer peer(URL(url_str),key,cert,proxy,cadir);
             if(!peer.url) {
