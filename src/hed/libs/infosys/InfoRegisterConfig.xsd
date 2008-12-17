@@ -5,25 +5,48 @@
   targetNamespace="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
   elementFormDefault="qualified">
 
-    <xsd:complexType name="InfoRegister_Type">
-        <!-- This element defines configuration of Information Registration interface. -->
+    <xsd:complexType name="InfoRegistrar_Type">
+        <!-- This element defines configuration of Information Registration 
+            active element. This element is located at top level configuration
+            document. Each instance if such element instatiates one instance
+            of Information Registrant active element. -->
         <xsd:sequence>
-            <!-- Period specifies how often registration to be done in seconds. -->
-            <xsd:element name="Period" type="xsd:string"/>
-            <xsd:element name="Peers" maxOccurs="unbounded">
-                <xsd:sequence>
-                    <!-- URL specifies contact endpoint of Information Registration service. -->
-                    <xsd:element name="URL" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                </xsd:sequence>
-                <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
-                     paths to files storing X509 credentials used for establishing connections. -->
-                <xsd:element name="KeyPath" type="xsd:string" minOccurs="0">
-                <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0">
-                <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0">
-                <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0">
-            </xsd:element>
+            <!-- Period specifies how often registration to be done in seconds.
+                The missing or 0 value means single registration. -->
+            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0"/>
+            <!-- URL specifies contact endpoint of Information Registration service. -->
+            <!-- URL specifies contact endpoint of a bootstrap Information 
+                Registration service. Further ISIS adresses will be queried 
+                from this service. -->
+            <xsd:element name="URL" type="xsd:string"/> <!-- maxOccurs="unbounded" -->
+            <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
+                paths to files storing X509 credentials used for establishing connections. -->
+            <xsd:element name="KeyPath" type="xsd:string" minOccurs="0">
+            <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0">
+            <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0">
+            <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0">
+        </xsd:sequence>
+        <!-- Attribute id may be used to refer to this element -->
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    <xsd:element name="InfoRegistrar" type="icc:InfoRegistrar_Type"/>
+
+    <xsd:complexType name="InfoRegistration_Type">
+    <!-- Element for Service element to link it to InfoRegistrar 
+        elements. It may also override some configuration parameters.
+        Presence of this element means that service will be registered
+        to ISISes. -->
+        <xsd:sequence>
+            <!-- This elements specify which registrars must be used
+                for registering services. If there is no such element
+                then registration is done using all registrars. -->
+            <xsd:element name="Registrar" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Period specifies how often registration to be done in seconds.
+                The 0 value means single registration. -->
+            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="InfoRegister" type="icc:InfoRegister_Type"/>
-  
+    <xsd:element name="InfoRegistration" type="icc:InfoRegistration_Type"/>
+
 </xsd:schema>
+
