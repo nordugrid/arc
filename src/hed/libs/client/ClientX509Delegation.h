@@ -13,6 +13,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
+#include <arc/credential/Credential.h>
 
 namespace Arc {
   //This class is supposed to be run against the generic ARC delegation service 
@@ -36,7 +37,7 @@ namespace Arc {
   //could be the Web Browser) uses the username/password to acquire the proxy credential
   //from MyProxy server.
 
-  enum DelegationType { DELEG_ARC, DELEG_GRIDSITE, DELEG_MYPROXY, DELEG_UNKNOWN };
+  enum DelegationType { DELEG_ARC, DELEG_GRIDSITE, DELEG_GT4, DELEG_MYPROXY, DELEG_UNKNOWN };
 
   class ClientX509Delegation {
   public:

@@ -11,7 +11,6 @@
 #include <arc/URL.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/MCC.h>
-#include <arc/credential/Credential.h>
 
 #include "ClientX509Delegation.h"
 
