@@ -27,20 +27,46 @@ namespace Arc {
   //This class will also be extended to interoperate with other delegation service
   //implementaion such as the gridsite implementation which is used by CREAM service.
   //
+  //Also, MyProxy could be looked as a delegation service, which will only used for
+  //the first-step delegation (user delegates its credential to client). In this case,
+  //ClientX509Delegation will only be used for the client utility, not for the inmediate
+  //services. 
+  //User firstly delegates its credential to MyProxy server (the proxy certificate and
+  //related private key will be stored on MyProxy server), then the client (normally it 
+  //could be the Web Browser) uses the username/password to acquire the proxy credential
+  //from MyProxy server.
+
+  enum DelegationType { DELEG_ARC, DELEG_GRIDSITE, DELEG_MYPROXY, DELEG_UNKNOWN };
+
   class ClientX509Delegation {
   public:
     /** Constructor creates MCC chain and connects to server.*/
     ClientX509Delegation() {}
     ClientX509Delegation(const BaseConfig& cfg, const URL& url);
     virtual ~ClientX509Delegation();
-    /** Send SOAP request and receive response. */
-    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
-    /** Send SOAP request with specified SOAP action and receive response. */
-    MCC_Status process(const std::string& action,
-                       PayloadSOAP *request, PayloadSOAP **response);
+    /** Process the delegation according to the different remote 
+     *  delegation service. 
+     *  @param deleg Delegation type
+     *  @param delegation_id   For gridsite delegation service, the delegation_id
+     *       is supposed to be created by client side, and sent to service side; 
+     *       for ARC delegation service, the delegation_id is supposed to be created 
+     *       by service side, and returned back. So for gridsite delegation service,
+     *       this parameter is treated as input, while for ARC delegation service,
+     *       it is treated as output.
+     */
+    bool createDelegation(DelegationType deleg, std::string& delegation_id);
+    //bool deleteDelegation(DelegationType deleg);
+    //bool acquireDelegation(DelegationType deleg, std::string& delegation_id, 
+    //        std::string username = "", std::string password = "");
+
   private:
     ClientSOAP* soap_client_;
-    DelegationProviderSOAP* delegator_;
+    std::string cert_file_; //if it is proxy certificate, the privkey_file_ should be empty
+    std::string privkey_file_;
+    std::string trusted_ca_dir_;
+    std::string trusted_ca_file_;
+    Arc::DelegationProviderSOAP* delegator_; //For usage against ARC delegation service
+    Arc::Credential* signer_; //For usage against CREAM/GridSite delegation service
     static Logger logger;
   };
 
