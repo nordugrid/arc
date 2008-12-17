@@ -112,6 +112,7 @@ class SOAPEnvelope: public XMLNode {
      xsd      http://www.w3.org/2001/XMLSchema
   */
   void Namespaces(const NS& namespaces);
+  NS Namespaces(void);
   // Setialize SOAP message into XML document
   void GetXML(std::string& out_xml_str,bool user_friendly = false) const;
   /** Get SOAP header as XML node */

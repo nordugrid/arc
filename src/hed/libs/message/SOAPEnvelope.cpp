@@ -137,6 +137,10 @@ void SOAPEnvelope::Namespaces(const NS& namespaces) {
   envelope.Namespaces(namespaces);
 }
 
+NS SOAPEnvelope::Namespaces(void) {
+  return (envelope.Namespaces());
+}
+
 void SOAPEnvelope::GetXML(std::string& out_xml_str,bool user_friendly) const {
   if(header.Size() == 0) {
     SOAPEnvelope& it = *(SOAPEnvelope*)this;
