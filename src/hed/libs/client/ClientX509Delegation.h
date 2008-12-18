@@ -63,6 +63,7 @@ namespace Arc {
     ClientSOAP* soap_client_;
     std::string cert_file_; //if it is proxy certificate, the privkey_file_ should be empty
     std::string privkey_file_;
+    std::string proxy_file_;
     std::string trusted_ca_dir_;
     std::string trusted_ca_file_;
     Arc::Credential* signer_; 

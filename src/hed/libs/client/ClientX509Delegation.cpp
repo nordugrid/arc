@@ -27,9 +27,13 @@ namespace Arc {
     //Use the certificate and key in the main chain to delegate
     cert_file_ = cfg.cert;
     privkey_file_ = cfg.key;
+    proxy_file_ = cfg.proxy;
     trusted_ca_dir_ = cfg.cadir;
     trusted_ca_file_ = cfg.cafile;
-    signer_ = new Arc::Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_);
+    if(!cert_file_.empty() && !privkey_file_.empty())
+      signer_ = new Arc::Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_);
+    else if(!proxy_file_.empty())
+      signer_ = new Arc::Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_);
   }
 
   ClientX509Delegation::~ClientX509Delegation() { 
@@ -83,7 +87,9 @@ namespace Arc {
           logger.msg(Arc::ERROR, "There is no Id or X509 request value in the response");
           return false;
         };
-    
+   
+        std::cout<<"X509 Request: \n"<<x509request<<std::endl;
+ 
         //Sign the proxy certificate
         Arc::Credential proxy;
         std::string signedcert;
@@ -169,6 +175,7 @@ namespace Arc {
       //Sign the proxy certificate
       Arc::Credential proxy;
       std::string signedcert;
+      std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
       if(!(signer_->SignRequest(&proxy, signedcert))) {
         logger.msg(ERROR, "DelegateProxy failed");

@@ -1171,7 +1171,7 @@ err:
       CN_name = const_cast<char*>("proxy");
       serial_number = X509_get_serialNumber(issuer);
     }
-    else { //(certinfo_NID != NID_undef) {
+    else if (certinfo_NID != NID_undef) {
       unsigned char   md[SHA_DIGEST_LENGTH];
       long  sub_hash;
       unsigned int   len;
@@ -1265,7 +1265,6 @@ err:
           X509_EXTENSION_free(ext); ext = NULL; goto err;
         }
       }
-      X509_EXTENSION_free(ext); ext = NULL; 
     }
 
     if((position = X509_get_ext_by_NID(issuer, NID_ext_key_usage, -1)) > -1) {
@@ -1282,7 +1281,6 @@ err:
         credentialLogger.msg(ERROR, "Can not add X509 extended KeyUsage extension to new proxy certificate"); LogError();
         X509_EXTENSION_free(ext); ext = NULL; goto err;
       }
-      //X509_EXTENSION_free(ext); ext = NULL;
     }
 
     /* Create proxy subject name */

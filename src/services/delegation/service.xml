@@ -29,9 +29,10 @@
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
-	    <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
-	    <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
-	    <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+	    <tls:KeyPath>testkey-nopass.pem</tls:KeyPath>
+	    <tls:CertificatePath>testcert.pem</tls:CertificatePath>
+            <tls:CACertificatesDir>certificates</tls:CACertificatesDir>
+	    <!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath-->
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
