@@ -18,94 +18,91 @@
 namespace Arc {
 
 class InfoRegisterContainer;
-class InfoRegistrar;
 
 /// Registration to ISIS interface
 /** This class represents service registering to Information Indexing Service.
-  Ir does not perform registration itself. It only collects configuration information. */
+  It does not perform registration itself. It only collects configuration information. */
 class InfoRegister {
     friend class InfoRegisterContainer;
-    friend class InfoRegistrar;
     private:
-        // This class describes one ISIS endpoint
-        class Peer {
-            public:  
-                Arc::URL url;
-                std::string key;
-                std::string cert;
-                std::string proxy;
-                std::string cadir;
-                Peer(const Arc::URL& url_,
-                     const std::string& key_,
-                     const std::string& cert_,
-                     const std::string& proxy_,
-                     const std::string& cadir_):
-                url(url_), key(key_), cert(cert_),
-                proxy(proxy_), cadir(cadir_)
-                { };
-                Peer(const Peer& peer):
-                url(peer.url), key(peer.key), cert(peer.cert), 
-                proxy(peer.proxy), cadir(peer.cadir)
-                { };
-        };
         // Registration period
         long int reg_period_;
-        // List of ISISes associated with particular service
-        std::list<Peer> peers_;
         // Associated service - it is used to fetch information document
-        Arc::Service *service_;
-        Arc::NS ns_;
-//        Arc::Logger logger_;
+        Service *service_;
+        NS ns_;
     public:
-        InfoRegister(Arc::XMLNode &node, Arc::Service *service_);
+        InfoRegister(XMLNode &node, Service *service_);
         ~InfoRegister();
-        long int getPeriod(void) { return reg_period_; };
+        operator bool(void) { return service_; };
+        bool operator!(void) { return !service_; };
+        long int getPeriod(void) const { return reg_period_; };
+        Service* getService(void) { return service_; };
 };
 
 /// Handling multiple registrations to ISISes
-class InfoRegisters
-{
+class InfoRegisters {
     private:
-        std::list<Arc::InfoRegister*> registers_;
+        std::list<InfoRegister*> registers_;
     public:
         /// Constructor creates InfoRegister objects according to configuration
         /** Inside cfg elements isis:InfoRegister are found and for each
            corresponding InfoRegister object is created. Those objects 
            are destroyed in destructor of this class. */
-        InfoRegisters(Arc::XMLNode &cfg, Arc::Service *service_);
+        InfoRegisters(XMLNode &cfg, Service *service_);
         ~InfoRegisters(void);
 };
 
 
 /// Registration process associated with particular ISIS
-/** Currently this class is associated with particular InfoRegister.
-  Later it will be associated with particular ISIS. */
 class InfoRegistrar {
     friend class InfoRegisterContainer;
     private:
-        InfoRegister* reg_;
-        InfoRegistrar(InfoRegister* reg):reg_(reg) {};
-        InfoRegistrar(const InfoRegistrar&) {};
+        InfoRegistrar(XMLNode cfg);
+        // Configuration parameters
+        URL url_;
+        std::string key_;
+        std::string cert_;
+        std::string proxy_;
+        std::string cadir_;
+        long int period_;
+        std::string id_;
+        // Associated services
+        std::list<InfoRegister*> reg_;
+        // Mutex protecting reg_ list
+        Glib::Mutex lock_;
+        // Condition signaled when thread has to exit
+        Glib::Cond cond_exit_;
+        // Condition signaled when thread exited
+        Glib::Cond cond_exited_;
     public:
-        ~InfoRegistrar(void) {};
-        long int getPeriod(void) { if(reg_) return reg_->reg_period_; return 0; };
+        ~InfoRegistrar(void);
+        operator bool(void) { return (bool)url_; };
+        bool operator!(void) { return !url_; };
         void registration(void);
+        bool addService(InfoRegister*);
+        bool removeService(InfoRegister*);
+        const std::string& id(void) { return id_; };
 };
 
-/// Singleton class for storing configuration information
+/// Singleton class for scanning configuration and storing
+/// refernces to registration elements.
+// TODO: Make it per chain
 class InfoRegisterContainer {
     private:
         static InfoRegisterContainer instance_;
-        std::list<InfoRegister*> regs_;
+        //std::list<InfoRegister*> regs_;
         std::list<InfoRegistrar*> regr_;
-        InfoRegisterContainer(void) {};
+        bool regr_done_;
+        // Mutex protecting regr_ list
+        Glib::Mutex lock_;
+        InfoRegisterContainer(void);
         InfoRegisterContainer(const InfoRegisterContainer&) {};
     public:
         ~InfoRegisterContainer(void);
         static InfoRegisterContainer& Instance(void) { return instance_; };
-        void Add(InfoRegister* reg);
-        void Remove(InfoRegister* reg);
-        //InfoRegister* Get(int num);
+        void addRegistrars(XMLNode doc);
+        void addService(InfoRegister* reg,const std::list<std::string>& ids,XMLNode cfg = XMLNode());
+        void removeService(InfoRegister* reg);
 };
 
 } // namespace Arc

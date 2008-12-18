@@ -8,6 +8,7 @@
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/StringConv.h>
 #include "InfoRegister.h"
 #ifdef WIN32
 #include <arc/win32.h>
@@ -19,123 +20,251 @@ namespace Arc {
 
 static void reg_thread(void *data) {
     InfoRegistrar *self = (InfoRegistrar *)data;
-    for (;;) {
-        sleep(self->getPeriod());
-        self->registration();
-    }
+    self->registration();
 }
 
-InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0) {
-    service_ = service;
+// -------------------------------------------------------------------
+
+InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),service_(service) {
     ns_["isis"] = ISIS_NAMESPACE;
     ns_["glue2"] = GLUE2_D42_NAMESPACE;
     ns_["register"] = REGISTRATION_NAMESPACE;
 
-    // parse config tree
+    // parse config
     std::string s_reg_period = (std::string)cfg["Period"];
     if (!s_reg_period.empty()) { 
         reg_period_ = strtol(s_reg_period.c_str(), NULL, 10);
+    } else {
+        reg_period_ = -1;
     }
-    XMLNode peers = cfg["Peers"];
-    for(;(bool)peers;++peers) {
-        XMLNode n;
-        std::string key = peers["KeyPath"];
-        std::string cert = peers["CertificatePath"];
-        std::string proxy = peers["ProxyPath"];
-        std::string cadir = peers["CACertificatesDir"];
-        for (int i = 0; (bool)(n = peers["URL"][i]); i++) {
-            std::string url_str = (std::string)n;
-            Peer peer(URL(url_str),key,cert,proxy,cadir);
-            if(!peer.url) {
-                logger_.msg(ERROR, "Can't recognize URL: %s",url_str);
-            } else {
-                peers_.push_back(peer);
-            }
-        }
-    }
-    InfoRegisterContainer::Instance().Add(this);
+    // Add service to registration list. Optionally only for 
+    // registration through specific registrants.
+    std::list<std::string> ids;
+    for(XMLNode r = cfg["Registrant"];(bool)r;++r) {
+      std::string id = r;
+      if(!id.empty()) ids.push_back(id);
+    };
+    InfoRegisterContainer::Instance().addService(this,ids,cfg);
 }
 
 InfoRegister::~InfoRegister(void) {
-    // Service should not be deleted here!
-    // Nope
-    // TODO: stop registration threads created by this object
+    // This element is supposed to be destroyed with service.
+    // Hence service should not be restered anymore.
+    // TODO: initiate un-register of service
+    InfoRegisterContainer::Instance().removeService(this);
 }
     
-void InfoRegistrar::registration(void) {
-    logger_.msg(DEBUG, "Registration Start");
-    if (reg_ == NULL) {
-        logger_.msg(ERROR, "Invalid registration configuration");
-        return;
-    }
-    if (reg_->service_ == NULL) {
-        logger_.msg(ERROR, "Invalid service");
-        return;
-    }
-    NS reg_ns;
-    reg_ns["glue2"] = GLUE2_D42_NAMESPACE;
-    reg_ns["isis"] = ISIS_NAMESPACE;
-    XMLNode reg_doc(reg_ns, "isis:Advertisements");
-    XMLNode services_doc(reg_ns, "Services");
-    reg_->service_->RegistrationCollector(services_doc);
-    // Look for service registration information
-    // TODO: use more efficient way to find <Service> entries than XPath. 
-    std::list<XMLNode> services = services_doc.XPathLookup("//*[normalize-space(@BaseType)='Service']", reg_ns);
-    if (services.size() == 0) {
-        logger_.msg(WARNING, "Service provided no registration entries");
-        return;
-    }
-    // create advertisement
-    std::list<XMLNode>::iterator sit;
-    for (sit = services.begin(); sit != services.end(); sit++) {
-        // filter may come here
-        XMLNode ad = reg_doc.NewChild("isis:Advertisement");
-        ad.NewChild((*sit));
-        // XXX metadata
-    }
-    
-    // send to all peers
-    std::list<InfoRegister::Peer>::iterator it;
-    for (it = reg_->peers_.begin(); it != reg_->peers_.end(); it++) {
-        std::string isis_name = it->url.fullstr();
-        logger_.msg(DEBUG, "Registering to %s ISIS", isis_name);
-        PayloadSOAP request(reg_ns);
-        XMLNode op = request.NewChild("isis:Register");
-        
-        // create header
-        op.NewChild("isis:Header").NewChild("isis:SourcePath").NewChild("isis:ID") = reg_->service_->getID();
-        
-        // create body
-        op.NewChild(reg_doc);   
-        
-        // send
-        PayloadSOAP *response;
-        MCCConfig mcc_cfg;
-        mcc_cfg.AddPrivateKey(it->key);
-        mcc_cfg.AddCertificate(it->cert);
-        mcc_cfg.AddProxy(it->proxy);
-        mcc_cfg.AddCADir(it->cadir);
-        ClientSOAP cli(mcc_cfg, it->url);
-        MCC_Status status = cli.process(&request, &response);
-        if ((!status) || (!response)) {
-            logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
-            continue;
-        } 
-        XMLNode fault = (*response)["Fault"];
-        if(!fault)  {
-            logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name); 
+// -------------------------------------------------------------------
+
+InfoRegisterContainer InfoRegisterContainer::instance_;
+
+InfoRegisterContainer::InfoRegisterContainer(void):regr_done_(false) {
+}
+
+InfoRegisterContainer::~InfoRegisterContainer(void) {
+    Glib::Mutex::Lock lock(lock_);
+    for(std::list<InfoRegistrar*>::iterator r = regr_.begin();
+                              r != regr_.end();++r) {
+        delete (*r);
+    };
+}
+
+void InfoRegisterContainer::addRegistrars(XMLNode doc) {
+    Glib::Mutex::Lock lock(lock_);
+    for(XMLNode node = doc["InfoRegistrar"];(bool)node;++node) {
+        InfoRegistrar* r = new InfoRegistrar(node);
+        if(!r) continue;
+        if(!(*r)) { delete r; continue; };
+        regr_.push_back(r);
+    };
+    // Start registration threads
+    for(std::list<InfoRegistrar*>::iterator r = regr_.begin();
+                              r != regr_.end();++r) {
+       CreateThreadFunction(&reg_thread,*r);
+    };
+    regr_done_=true;
+}
+
+void InfoRegisterContainer::addService(InfoRegister* reg,const std::list<std::string>& ids,XMLNode cfg) {
+    // Add element to list
+    //regs_.push_back(reg);
+    // If not yet done create registrars
+    if(!regr_done_) {
+        if((bool)cfg) {
+            addRegistrars(cfg.GetRoot());
         } else {
-            logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
-        }
-    }
+            // Bad situation
+        };
+    };
+
+    // Add to registrars
+    Glib::Mutex::Lock lock(lock_);
+    for(std::list<InfoRegistrar*>::iterator r = regr_.begin();
+                              r != regr_.end();++r) {
+        if(ids.size() > 0) {
+            for(std::list<std::string>::const_iterator i = ids.begin();
+                                            i != ids.end();++i) {
+                if((*i) == (*r)->id()) (*r)->addService(reg);
+            };
+        } else {
+            (*r)->addService(reg);
+        };
+    };
 }
+
+void InfoRegisterContainer::removeService(InfoRegister* reg) {
+    // If this method is called that means service is most probably
+    // being deleted.
+    Glib::Mutex::Lock lock(lock_);
+    for(std::list<InfoRegistrar*>::iterator r = regr_.begin();
+                              r != regr_.end();++r) {
+            (*r)->removeService(reg);
+    };
+}
+
+// -------------------------------------------------------------------
+
+InfoRegistrar::InfoRegistrar(XMLNode cfg) {
+    id_=(std::string)cfg.Attribute("id");
+    if(!stringto((std::string)cfg["Period"],period_)) {
+      period_=0; // Wrong number
+      logger_.msg(ERROR, "Can't recognize period: %s",(std::string)cfg["Period"]);
+    };
+    key_   = (std::string)cfg["KeyPath"];
+    cert_  = (std::string)cfg["CertificatePath"];
+    proxy_ = (std::string)cfg["ProxyPath"];
+    cadir_ = (std::string)cfg["CACertificatesDir"];
+    url_ = URL((std::string)cfg["URL"]);
+    if(!url_) {
+      logger_.msg(ERROR, "Can't recognize URL: %s",(std::string)cfg["URL"]);
+    };
+}
+  
+bool InfoRegistrar::addService(InfoRegister* reg) {
+    Glib::Mutex::Lock lock(lock_);
+    for(std::list<InfoRegister*>::iterator r = reg_.begin();
+                                           r!=reg_.end();++r) {
+        if(reg == *r) return false;
+    };
+    reg_.push_back(reg);
+    return true;
+}
+
+bool InfoRegistrar::removeService(InfoRegister* reg) {
+    Glib::Mutex::Lock lock(lock_);
+    for(std::list<InfoRegister*>::iterator r = reg_.begin();
+                                           r!=reg_.end();++r) {
+        if(reg == *r) {
+            reg_.erase(r);
+            return true;
+        };
+    };
+    return false;
+}
+
+InfoRegistrar::~InfoRegistrar(void) {
+    // Registering thread must be stopped before destructor succeeds
+    Glib::Mutex::Lock lock(lock_);
+    cond_exit_.signal();
+    cond_exited_.wait(lock_);
+}
+
+class CondExit {
+    private:
+        Glib::Cond& cond_;
+    public:
+        CondExit(Glib::Cond& cond):cond_(cond) { };
+        ~CondExit(void) { cond_.signal(); };
+};
+
+void InfoRegistrar::registration(void) {
+    Glib::Mutex::Lock lock(lock_);
+    CondExit cond(cond_exited_);
+    std::string isis_name = url_.fullstr();
+    while(true) {
+        logger_.msg(DEBUG, "Registration starts: %s",isis_name);
+        if(!url_) {
+            logger_.msg(WARNING, "Registrant has no proper URL specified");
+            return;
+        }
+        NS reg_ns;
+        reg_ns["glue2"] = GLUE2_D42_NAMESPACE;
+        reg_ns["isis"] = ISIS_NAMESPACE;
+        for(std::list<InfoRegister*>::iterator r = reg_.begin();
+                                               r!=reg_.end();++r) {
+            XMLNode reg_doc(reg_ns, "isis:Advertisements");
+            XMLNode services_doc(reg_ns, "Services");
+            if(!((*r)->getService())) continue;
+            (*r)->getService()->RegistrationCollector(services_doc);
+            // Look for service registration information
+            // TODO: use more efficient way to find <Service> entries than XPath. 
+            std::list<XMLNode> services = services_doc.XPathLookup("//*[normalize-space(@BaseType)='Service']", reg_ns);
+            if (services.size() == 0) {
+                logger_.msg(WARNING, "Service provided no registration entries");
+                continue;
+            }
+            // create advertisement
+            std::list<XMLNode>::iterator sit;
+            for (sit = services.begin(); sit != services.end(); sit++) {
+                // filter may come here
+                XMLNode ad = reg_doc.NewChild("isis:Advertisement");
+                ad.NewChild((*sit));
+                // XXX metadata
+            }
+
+            // prepare for sending to ISIS
+            logger_.msg(DEBUG, "Registering to %s ISIS", isis_name);
+            PayloadSOAP request(reg_ns);
+            XMLNode op = request.NewChild("isis:Register");
+
+            // create header
+            op.NewChild("isis:Header").NewChild("isis:SourcePath").NewChild("isis:ID") = (*r)->getService()->getID();
+        
+            // create body
+            op.NewChild(reg_doc);   
+        
+            // send
+            PayloadSOAP *response;
+            MCCConfig mcc_cfg;
+            mcc_cfg.AddPrivateKey(key_);
+            mcc_cfg.AddCertificate(cert_);
+            mcc_cfg.AddProxy(proxy_);
+            mcc_cfg.AddCADir(cadir_);
+            ClientSOAP cli(mcc_cfg,url_);
+            MCC_Status status = cli.process(&request, &response);
+            if ((!status) || 
+                (!response) || 
+                (response->Name() != "RegisterResponse")) {
+                logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
+            } else {
+                XMLNode fault = (*response)["Fault"];
+                if(!fault)  {
+                    logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name); 
+                } else {
+                    logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
+                }
+            }
+        }
+        logger_.msg(DEBUG, "Registration ends: %s",isis_name);
+        if(period_ <= 0) break; // One time registration
+        Glib::TimeVal etime;
+        etime.assign_current_time();
+        etime.add_milliseconds(period_*1000L);
+        // Sleep and exit if interrupted by request to exit
+        if(cond_exit_.timed_wait(lock_,etime)) break; 
+        //sleep(period_);
+    }
+    logger_.msg(DEBUG, "Registration exit: %s",isis_name);
+}
+
+// -------------------------------------------------------------------
 
 InfoRegisters::InfoRegisters(XMLNode &cfg, Service *service) {
     if(!service) return;
     NS ns;
     ns["iregc"]=REGISTRATION_CONFIG_NAMESPACE;
     cfg.Namespaces(ns);
-    for(XMLNode node = cfg["iregc:InfoRegister"];(bool)node;++node) {
+    for(XMLNode node = cfg["iregc:InfoRegistration"];(bool)node;++node) {
         registers_.push_back(new InfoRegister(node,service));
     }
 }
@@ -146,27 +275,8 @@ InfoRegisters::~InfoRegisters(void) {
     }
 }
 
+// -------------------------------------------------------------------
 
-InfoRegisterContainer InfoRegisterContainer::instance_;
-
-InfoRegisterContainer::~InfoRegisterContainer(void) {
-}
-
-void InfoRegisterContainer::Add(InfoRegister* reg) {
-  // Add element to list
-  regs_.push_back(reg);
-  // Create registrar
-  InfoRegistrar* r = new InfoRegistrar(reg);
-  regr_.push_back(r);
-  // Start registration thread
-  if (reg->reg_period_ > 0) {
-     CreateThreadFunction(&reg_thread,r);
-  }
-}
-
-void InfoRegisterContainer::Remove(InfoRegister* reg) {
-  // Not implemented yet till relationship between elements is not clear
-}
 
 } // namespace Arc
 
