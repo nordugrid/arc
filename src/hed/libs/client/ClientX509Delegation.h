@@ -12,7 +12,6 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/delegation/DelegationInterface.h>
 #include <arc/credential/Credential.h>
 
 namespace Arc {
@@ -66,8 +65,7 @@ namespace Arc {
     std::string privkey_file_;
     std::string trusted_ca_dir_;
     std::string trusted_ca_file_;
-    Arc::DelegationProviderSOAP* delegator_; //For usage against ARC delegation service
-    Arc::Credential* signer_; //For usage against CREAM/GridSite delegation service
+    Arc::Credential* signer_; 
     static Logger logger;
   };
 

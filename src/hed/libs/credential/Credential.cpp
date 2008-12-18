@@ -983,8 +983,9 @@ namespace Arc {
         else { cert_type_ = CERT_TYPE_RFC_RESTRICTED_PROXY; }
       }
     }
-    //If can not find proxy_cert_info, depend on the parameters to distinguish the type
-    else if(if_eec == false) { cert_type_ = CERT_TYPE_GSI_2_PROXY; }
+    //If can not find proxy_cert_info, depend on the parameters to distinguish the type: if
+    //it is not eec request, then treat it as RFC proxy request
+    else if(if_eec == false) { cert_type_ =  CERT_TYPE_RFC_INDEPENDENT_PROXY; } //CERT_TYPE_GSI_2_PROXY; }
     else { cert_type_ = CERT_TYPE_EEC; }
 
     res = true;
@@ -1161,7 +1162,16 @@ err:
     //TODO: VOMS 
     if(CERT_IS_GSI_3_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_sn2nid("PROXYCERTINFO_V3"); }
     else if(CERT_IS_RFC_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_sn2nid("PROXYCERTINFO_V4"); }
-    if(certinfo_NID != NID_undef) {
+
+    if(proxy->cert_type_ == CERT_TYPE_GSI_2_LIMITED_PROXY){
+      CN_name = const_cast<char*>("limited proxy");
+      serial_number = X509_get_serialNumber(issuer);
+    }
+    else if(proxy->cert_type_ == CERT_TYPE_GSI_2_PROXY) {
+      CN_name = const_cast<char*>("proxy");
+      serial_number = X509_get_serialNumber(issuer);
+    }
+    else { //(certinfo_NID != NID_undef) {
       unsigned char   md[SHA_DIGEST_LENGTH];
       long  sub_hash;
       unsigned int   len;
@@ -1205,14 +1215,6 @@ err:
           credentialLogger.msg(ERROR, "Can not add X509 extension to proxy cert"); LogError(); goto err; 
         }
       }
-    }
-    else if(proxy->cert_type_ == CERT_TYPE_GSI_2_LIMITED_PROXY){ 
-      CN_name = const_cast<char*>("limited proxy"); 
-      serial_number = X509_get_serialNumber(issuer);
-    }
-    else {
-      CN_name = const_cast<char*>("proxy");
-      serial_number = X509_get_serialNumber(issuer);
     }
 
     int position;

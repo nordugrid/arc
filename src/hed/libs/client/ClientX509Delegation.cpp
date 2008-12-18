@@ -21,7 +21,7 @@ namespace Arc {
 
   ClientX509Delegation::ClientX509Delegation(const BaseConfig& cfg,
                                                  const URL& url)
-    : soap_client_(NULL), delegator_(NULL), signer_(NULL) {
+    : soap_client_(NULL), signer_(NULL) {
     soap_client_ = new ClientSOAP(cfg, url);
 
     //Use the certificate and key in the main chain to delegate
@@ -29,13 +29,11 @@ namespace Arc {
     privkey_file_ = cfg.key;
     trusted_ca_dir_ = cfg.cadir;
     trusted_ca_file_ = cfg.cafile;
-    delegator_ = new Arc::DelegationProviderSOAP(cert_file_, privkey_file_, &(std::cin));
     signer_ = new Arc::Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_);
   }
 
   ClientX509Delegation::~ClientX509Delegation() { 
     if(soap_client_) delete soap_client_;
-    if(delegator_) delete delegator_;
     if(signer_) delete signer_;
   }
 
@@ -55,16 +53,70 @@ namespace Arc {
       //Use the DelegationInterface class for ARC delegation service
       logger.msg(INFO, "Creating delegation to ARC delegation service");
       if(soap_client_ != NULL) {
-        MCCInterface* soap_entry = soap_client_->GetEntry();
-        Arc::MessageContext context;
-        if(!delegator_->DelegateCredentialsInit(*soap_entry,&context)) {
-          logger.msg(Arc::ERROR, "DelegateCredentialsInit failed");
+        NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+        PayloadSOAP request(ns);
+        request.NewChild("deleg:DelegateCredentialsInit");
+        PayloadSOAP* response = NULL;
+        //Send DelegateCredentialsInit request
+        MCC_Status status = soap_client_->process(&request, &response);
+        if(status != Arc::STATUS_OK) { 
+          logger.msg(Arc::ERROR, "DelegateCredentialsInit failed"); 
+          return false;
+        }
+        if(!response) {
+          logger.msg(Arc::ERROR, "There is no SOAP response");
+          return false;
+        }
+        XMLNode token = (*response)["DelegateCredentialsInitResponse"]["TokenRequest"];
+        if(!token) { 
+          logger.msg(Arc::ERROR, "There is no X509 request in the response"); 
+          delete response; return false; 
+        };
+        if(((std::string)(token.Attribute("Format"))) != "x509") { 
+          logger.msg(Arc::ERROR, "There is no Format request in the response");
+          delete response; return false; 
+        };
+        delegation_id = (std::string)(token["Id"]);
+        std::string x509request = (std::string)(token["Value"]);
+        delete response;
+        if(delegation_id.empty() || x509request.empty()) {
+          logger.msg(Arc::ERROR, "There is no Id or X509 request value in the response");
           return false;
         };
-        if(!delegator_->UpdateCredentials(*soap_entry,&context)) {
+    
+        //Sign the proxy certificate
+        Arc::Credential proxy;
+        std::string signedcert;
+        proxy.InquireRequest(x509request);
+        if(!(signer_->SignRequest(&proxy, signedcert))) {
+          logger.msg(ERROR, "DelegateProxy failed");
+          return false;
+        }
+        std::string signerstr;
+        signer_->OutputCertificate(signerstr);
+        signedcert.append(signerstr);
+
+        PayloadSOAP request2(ns);
+        XMLNode token2 = request2.NewChild("deleg:UpdateCredentials").NewChild("deleg:DelegatedToken");
+        token2.NewAttribute("deleg:Format")="x509";
+        token2.NewChild("deleg:Id")=delegation_id;
+        token2.NewChild("deleg:Value")=signedcert;
+        //Send UpdateCredentials request
+        status = soap_client_->process(&request2, &response);
+        if(status != Arc::STATUS_OK) {
           logger.msg(Arc::ERROR, "UpdateCredentials failed");
           return false;
-        };
+        }
+        if(!response) {
+          logger.msg(Arc::ERROR, "There is no SOAP response");
+          return false;
+        }
+        if(!(*response)["UpdateCredentialsResponse"]) {
+          logger.msg(Arc::ERROR, "There is no UpdateCredentialsResponse in response");
+          delete response; return false;
+        }
+        delete response;
+        return true;
       }
       else {
         logger.msg(ERROR, "There is no SOAP connection chain configured");
@@ -122,6 +174,10 @@ namespace Arc {
         logger.msg(ERROR, "DelegateProxy failed");
         return false;
       } 
+
+      std::string signerstr;
+      signer_->OutputCertificate(signerstr);
+      signedcert.append(signerstr);
 
       PayloadSOAP request2(cream_ns);
       //XMLNode putProxyRequest = request2.NewChild("ns1:putProxy", ns1);

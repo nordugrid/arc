@@ -12,7 +12,8 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
-#include "../../hed/libs/client/ClientSAML2SSO.h"
+#include <arc/client/ClientSAML2SSO.h>
+#include <arc/client/ClientX509Delegation.h>
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
@@ -24,10 +25,9 @@ int main(void) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
 
-  //Create a SOAP client
-  logger.msg(Arc::INFO, "Creating a soap client");
+  /************************************************/
 
-  std::string url_str("https://127.0.0.1:60000:/echo");
+  std::string url_str("https://127.0.0.1:60000/echo");
   Arc::URL url(url_str);
 
   Arc::MCCConfig mcc_cfg;
@@ -45,9 +45,11 @@ int main(void) {
 
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
 
-  std::string idp_name = "https://idp.testshib.org/idp/shibboleth";
-
 #if 0
+  /******** Test to service **********/
+  //Create a SOAP client
+  logger.msg(Arc::INFO, "Creating a soap client");
+
   Arc::ClientSOAP *client;
   client = new Arc::ClientSOAP(mcc_cfg,url);
 
@@ -82,6 +84,13 @@ int main(void) {
   if(client) delete client;
 #endif
 
+#if 0
+  std::string idp_name = "https://idp.testshib.org/idp/shibboleth";
+
+  /******** Test to service with SAML2SSO **********/
+  //Create a HTTP client
+  logger.msg(Arc::INFO, "Creating a http client");
+  
   std::string username = "myself";
   std::string password = "myself";
 
@@ -110,6 +119,10 @@ int main(void) {
   if(client_http) delete client_http;
 
 
+
+  //Create a SOAP client
+  logger.msg(Arc::INFO, "Creating a soap client");
+ 
   Arc::ClientSOAPwithSAML2SSO *client_soap;
   client_soap = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url);
   logger.msg(Arc::INFO, "Creating and sending request");
@@ -136,6 +149,32 @@ int main(void) {
 
   if(resp_soap) delete resp_soap;
   if(client_soap) delete client_soap;
+#endif
+
+  /******** Test to delegation service **********/
+  std::string deleg_url_str("https://127.0.0.1:60000/delegation");
+  Arc::URL deleg_url(deleg_url_str);
+
+  Arc::MCCConfig deleg_mcc_cfg;
+  deleg_mcc_cfg.AddPrivateKey("testkey-nopass.pem");
+  deleg_mcc_cfg.AddCertificate("testcert.pem");
+  deleg_mcc_cfg.AddCAFile("cacert.pem");
+  deleg_mcc_cfg.AddCADir("certificates");
+  
+  //Create a delegation SOAP client 
+  logger.msg(Arc::INFO, "Creating a delegation soap client");
+
+  Arc::ClientX509Delegation *deleg_client = NULL;
+  deleg_client = new Arc::ClientX509Delegation(deleg_mcc_cfg,deleg_url);
+  std::string delegation_id;
+  if(deleg_client) {
+    if(!(deleg_client->createDelegation(Arc::DELEG_ARC, delegation_id))) {
+      logger.msg(Arc::ERROR, "Delegation to ARC delegation service failed");
+      throw std::runtime_error("Delegation to ARC delegation service failed");
+    }
+  }
+
+  if(deleg_client) delete deleg_client;  
 
   return 0;
 }

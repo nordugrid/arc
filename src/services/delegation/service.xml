@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
+  xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
+  xmlns:deleg="http://www.nordugrid.org/schemas/ArcConfig/2007/deleg"
+>
+
+    <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+        <Path>../../hed/pdc/.libs/</Path>
+        <Path>../../services/delegation/.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arcpdc</Name></Plugins>
+    <Plugins><Name>delegation</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	    <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
+	    <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
+	    <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+	</Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+	    <next id="delegation"/>
+        </Component>
+        <Service name="delegation.service" id="delegation">
+            <next id="delegation"/>
+        </Service>
+    </Chain>
+</ArcConfig>

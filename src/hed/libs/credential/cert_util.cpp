@@ -599,7 +599,6 @@ bool check_cert_type(X509* cert, certType& type) {
           goto err;
         } 
       }
-      //Do not need to release certinfo_ext?
     }
     else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
@@ -627,7 +626,6 @@ bool check_cert_type(X509* cert, certType& type) {
           goto err;
         }
       }
-      //Do not need to release certinfo_ext?
     }
     
     /*Duplicate the issuer, and add the CN=proxy, or CN=limitedproxy, etc. This should
