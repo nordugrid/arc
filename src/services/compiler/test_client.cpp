@@ -117,7 +117,7 @@ int main(void) {
   std::cout << "XML: "<< xml << std::endl;
   std::string response;
   int i=0;
-  while ( (*resp)["compilerResponse"]["response"][i] != 0 ){
+  while ( (*resp)["compilerResponse"]["response"][i] != false ){
               response += (std::string)((*resp)["compilerResponse"]["response"][i]);
               response +="\n";
               i++;	      

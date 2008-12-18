@@ -483,7 +483,7 @@ std::vector<CompileInfo> Info_from_ISIS(Arc::XMLNode soap_xml, Service_Compiler 
     bool march = false;	//TODO: not working yet
        
     int j= 0;	
-    while( soap_xml["make"]["sourcefile"][j] != 0 ){    	   
+    while( soap_xml["make"]["sourcefile"][j] != false ){    	   
 	std::stringstream tmp;
 	tmp << j;
 	sources.push_back( soap_xml["make"]["sourcefile"][j] );
