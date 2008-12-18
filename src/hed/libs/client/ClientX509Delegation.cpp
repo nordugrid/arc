@@ -17,7 +17,8 @@
 namespace Arc {
   Logger ClientX509Delegation::logger(Logger::getRootLogger(), "ClientX509Delegation");
 
-#define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
+#define ARC_DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
+#define GS_DELEGATION_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
 
   ClientX509Delegation::ClientX509Delegation(const BaseConfig& cfg,
                                                  const URL& url)
@@ -41,23 +42,13 @@ namespace Arc {
     if(signer_) delete signer_;
   }
 
-  static void set_cream_namespaces(NS& ns) {
-    ns["SOAP-ENV"] = "http://schemas.xmlsoap.org/soap/envelope/";
-    ns["SOAP-ENC"] = "http://schemas.xmlsoap.org/soap/encoding/";
-    ns["xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
-    ns["xsd"] = "http://www.w3.org/2001/XMLSchema";
-    ns["ns1"] = "http://www.gridsite.org/namespaces/delegation-2";
-    ns["ns2"] = "http://glite.org/2007/11/ce/cream/types";
-    ns["ns3"] = "http://glite.org/2007/11/ce/cream";
-  }
-
   bool ClientX509Delegation::createDelegation(DelegationType deleg, std::string& delegation_id) {
 
     if(deleg == DELEG_ARC) {
       //Use the DelegationInterface class for ARC delegation service
       logger.msg(INFO, "Creating delegation to ARC delegation service");
       if(soap_client_ != NULL) {
-        NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+        NS ns; ns["deleg"]=ARC_DELEGATION_NAMESPACE;
         PayloadSOAP request(ns);
         request.NewChild("deleg:DelegateCredentialsInit");
         PayloadSOAP* response = NULL;
@@ -132,16 +123,11 @@ namespace Arc {
     else if(deleg == DELEG_GRIDSITE) {
       //Move the current delegation related code in CREAMClient class to here 
       logger.msg(INFO, "Creating delegation to CREAM delegation service");
-      NS cream_ns;
-      set_cream_namespaces(cream_ns);
 
-      PayloadSOAP request(cream_ns);
-      //NS ns1;
-      //ns1["ns1"] = "http://www.gridsite.org/namespaces/delegation-2";
-      //XMLNode getProxyReqRequest = request.NewChild("ns1:getProxyReq", ns1);
-      //XMLNode delegid = getProxyReqRequest.NewChild("delegationID", ns1);
-      XMLNode getProxyReqRequest = request.NewChild("ns1:getProxyReq");
-      XMLNode delegid = getProxyReqRequest.NewChild("ns1:delegationID");
+      NS ns; ns["deleg"]=GS_DELEGATION_NAMESPACE;
+      PayloadSOAP request(ns);
+      XMLNode getProxyReqRequest = request.NewChild("deleg:getProxyReq");
+      XMLNode delegid = getProxyReqRequest.NewChild("deleg:delegationID");
       delegid.Set(delegation_id);
       PayloadSOAP *response = NULL;
       //Send the getProxyReq request
@@ -186,14 +172,11 @@ namespace Arc {
       signer_->OutputCertificate(signerstr);
       signedcert.append(signerstr);
 
-      PayloadSOAP request2(cream_ns);
-      //XMLNode putProxyRequest = request2.NewChild("ns1:putProxy", ns1);
-      //XMLNode delegid_node = putProxyRequest.NewChild("delegationID", ns1);
-      XMLNode putProxyRequest = request2.NewChild("ns1:putProxy");
-      XMLNode delegid_node = putProxyRequest.NewChild("delegationID");
+      PayloadSOAP request2(ns);
+      XMLNode putProxyRequest = request2.NewChild("deleg:putProxy");
+      XMLNode delegid_node = putProxyRequest.NewChild("deleg:delegationID");
       delegid_node.Set(delegation_id);
-      //XMLNode proxy_node = putProxyRequest.NewChild("proxy", ns1);
-      XMLNode proxy_node = putProxyRequest.NewChild("proxy");
+      XMLNode proxy_node = putProxyRequest.NewChild("deleg:proxy");
       proxy_node.Set(signedcert);
       response = NULL;
 
