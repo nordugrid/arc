@@ -13,7 +13,7 @@ libgrid_sched_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                             $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                             $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
                             $(top_srcdir)/src/hed/libs/ws/libarcws.la \
-                            $(top_srcdir)/src/hed/libs/delegation/libdelegation.la \
+                            $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
                             $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                             $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                             $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
