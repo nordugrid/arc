@@ -138,12 +138,10 @@ class DelegationProviderSOAP: public DelegationProvider {
      Element is created as child of provided XML element and contains structure
     described in delegation.wsdl. */
   bool DelegatedToken(XMLNode& parent);
-  /** Get the id which is created and returned by delegation service, this is useful
-    for destroying the proxy credential on the delegation service side; or could be
-    useful for later client operation to tell other services to get the corresponding 
-    proxy credential from delegation service (trusted by those services) in order to
-    act on behalf of the user */
-  std::string GetDelegationID(void) { return id_;};
+  /** Returns the identifier by service accepting delegated credentials.
+     This identifier may then be used to refer to credentials stored 
+     at service. */
+  const std::string& ID(void) { return id_;};
 };
 
 /** Manages multiple delegated credentials.
