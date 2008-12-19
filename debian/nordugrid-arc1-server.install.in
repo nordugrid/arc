@@ -8,5 +8,7 @@ usr/lib/arc/libisis.so
 usr/lib/arc/libpaul.so
 usr/lib/arc/libslcs.so
 usr/lib/arc/libsaml2sp.so
+usr/lib/arc/libcompiler.so
+usr/lib/arc/libdelegation.so
 usr/share/man/man8/arched.8*
 usr/share/man/man8/manage_jobq.8*
