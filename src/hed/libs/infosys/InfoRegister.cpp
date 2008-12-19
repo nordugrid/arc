@@ -190,6 +190,10 @@ void InfoRegistrar::registration(void) {
         NS reg_ns;
         reg_ns["glue2"] = GLUE2_D42_NAMESPACE;
         reg_ns["isis"] = ISIS_NAMESPACE;
+
+        // Registration algorithm is stupid and straightforward.
+        // This part has to be redone to fit P2P network od ISISes
+
         for(std::list<InfoRegister*>::iterator r = reg_.begin();
                                                r!=reg_.end();++r) {
             XMLNode reg_doc(reg_ns, "isis:Advertisements");
