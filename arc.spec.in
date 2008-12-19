@@ -288,6 +288,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libslcs.so
 %{_libdir}/%{pkgdir}/libcompiler.so
 %{_libdir}/%{pkgdir}/libsaml2sp.so
+%{_libdir}/%{pkgdir}/libdelegation.so
 
 %files arex
 %defattr(-,root,root,-)
