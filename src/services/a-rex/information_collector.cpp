@@ -91,7 +91,9 @@ bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
   Arc::XMLNode root = infodoc_.Acquire();
   logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
   // TODO: filter information here.
-  root.New(doc);
+  Arc::XMLNode regdoc("<Service/>");
+  regdoc.New(doc);
+  doc.NewChild(root);
   infodoc_.Release();
 }
 
