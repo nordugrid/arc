@@ -2,7 +2,9 @@ pkglib_LTLIBRARIES = libaccBroker.la
 
 libaccBroker_la_SOURCES  = FastestQueueBroker.cpp FastestQueueBroker.h \
                          RandomBroker.cpp RandomBroker.h \
-                         DescriptorsBroker.cpp
+                         DescriptorsBroker.cpp \
+                         FastestCPUBroker.cpp FastestCPUBroker.h \
+                         DataBroker.cpp DataBroker.h 
 libaccBroker_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
                          -I$(top_srcdir)/include 
 libaccBroker_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \
