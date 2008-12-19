@@ -127,30 +127,31 @@ struct DirectoryType {
     int IndividualVirtualMemory;
     int IndividualDiskSpace;
     int DiskSpace;
-    int CacheDiskSpace;  	//DiskSpace
-    int SessionDiskSpace;	//DiskSpace
-    URL EndPointURL;		//CandidateTarget
-    std::string QueueName;	//CandidateTarget
+    int CacheDiskSpace;         //DiskSpace
+    int SessionDiskSpace;       //DiskSpace
+    URL EndPointURL;            //CandidateTarget
+    std::string QueueName;      //CandidateTarget
     std::string CEType;
-    int NumberOfProcesses;	//Slots
-    int ProcessPerHost;		//Slots
-    int ThreadPerProcesses;	//Slots
+    int NumberOfProcesses;      //Slots
+    int ProcessPerHost;	        //Slots
+    int ThreadPerProcesses;     //Slots
     std::string SPMDVariation;  //Slots
     std::list<Arc::RunTimeEnvironmentType> RunTimeEnvironment;
-    std::string InBound;	//NodeAccess
-    std::string OutBound;	//NodeAccess
+    bool InBound;               //NodeAccess
+    bool OutBound;              //NodeAccess
 
 
     // DataStaging information
     std::list<Arc::FileType> File;
     std::list<Arc::DirectoryType> Directory;
-    URL DataIndexingService;	//Defaults
-    URL StagingInBaseURI;	//Defaults
-    URL StagingOutBaseURI;	//Defaults
+    URL DataIndexingService;    //Defaults
+    URL StagingInBaseURI;       //Defaults
+    URL StagingOutBaseURI;      //Defaults
 
 
     void Print(bool longlist) const;
     void Reset();
+    bool getXML( Arc::XMLNode& jobTree) const;
   };
 
 } // namespace Arc

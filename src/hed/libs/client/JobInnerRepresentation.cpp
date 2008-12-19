@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <sstream>
+
 #include <arc/IString.h>
 #include <arc/ArcConfig.h>
 #include <arc/client/JobInnerRepresentation.h>
@@ -67,7 +69,7 @@ namespace Arc {
 	  std::cout << Arc::IString(" Environment: %s", (*iter).value) << std::endl;
         }
       }
-      if (LRMSReRun > 0)
+      if (LRMSReRun > -1)
 	std::cout << Arc::IString(" LRMSReRun: %d", LRMSReRun) << std::endl;
       if (!Prologue.Name.empty())
 	std::cout << Arc::IString(" Prologue: %s", Prologue.Name) << std::endl;
@@ -125,7 +127,12 @@ namespace Arc {
       if (IndividualWallTime != -1)
 	std::cout << Arc::IString(" Individual Wall Time: %s",
 				  (std::string)IndividualWallTime) << std::endl;
-//ReferenceTime
+      if (!ReferenceTime.benchmark_attribute.empty())
+	std::cout << Arc::IString(" ReferenceTime.benchmark: %s", ReferenceTime.benchmark_attribute) << std::endl;
+      if (!ReferenceTime.value_attribute.empty())
+	std::cout << Arc::IString(" ReferenceTime.value: %s", ReferenceTime.value_attribute) << std::endl;
+      if (!ReferenceTime.value.empty())
+	std::cout << Arc::IString(" ReferenceTime: %s", ReferenceTime.value) << std::endl;
       if (ExclusiveExecution)
         std::cout << " ExclusiveExecution: true" << std::endl;
       if (!NetworkInfo.empty())
@@ -138,17 +145,17 @@ namespace Arc {
 	std::cout << Arc::IString(" OSVersion: %s", OSVersion) << std::endl;
       if (!Platform.empty())
 	std::cout << Arc::IString(" Platform: %s", Platform) << std::endl;
-      if (IndividualPhysicalMemory > 0)
+      if (IndividualPhysicalMemory > -1)
 	std::cout << Arc::IString(" IndividualPhysicalMemory: %d", IndividualPhysicalMemory) << std::endl;
-      if (IndividualVirtualMemory > 0)
+      if (IndividualVirtualMemory > -1)
 	std::cout << Arc::IString(" IndividualVirtualMemory: %d", IndividualVirtualMemory) << std::endl;
-      if (IndividualDiskSpace > 0)
+      if (IndividualDiskSpace > -1)
 	std::cout << Arc::IString(" IndividualDiskSpace: %d", IndividualDiskSpace) << std::endl;
-      if (DiskSpace > 0)
+      if (DiskSpace > -1)
 	std::cout << Arc::IString(" DiskSpace: %d", DiskSpace) << std::endl;
-      if (CacheDiskSpace > 0)
+      if (CacheDiskSpace > -1)
 	std::cout << Arc::IString(" CacheDiskSpace: %d", CacheDiskSpace) << std::endl;
-      if (SessionDiskSpace > 0)
+      if (SessionDiskSpace > -1)
 	std::cout << Arc::IString(" SessionDiskSpace: %d", SessionDiskSpace) << std::endl;
       if (bool(EndPointURL))
         std::cout << Arc::IString(" EndPointURL: %s", EndPointURL.str()) << std::endl;
@@ -156,11 +163,11 @@ namespace Arc {
 	std::cout << Arc::IString(" QueueName: %s", QueueName) << std::endl;
       if (!CEType.empty())
 	std::cout << Arc::IString(" CEType: %s", CEType) << std::endl;
-      if (NumberOfProcesses > 0)
+      if (NumberOfProcesses > -1)
 	std::cout << Arc::IString(" NumberOfProcesses: %d", NumberOfProcesses) << std::endl;
-      if (ProcessPerHost > 0)
+      if (ProcessPerHost > -1)
 	std::cout << Arc::IString(" ProcessPerHost: %d", ProcessPerHost) << std::endl;
-      if (ThreadPerProcesses > 0)
+      if (ThreadPerProcesses > -1)
 	std::cout << Arc::IString(" ThreadPerProcesses: %d", ThreadPerProcesses) << std::endl;
       if (!SPMDVariation.empty())
 	std::cout << Arc::IString(" SPMDVariation: %s", SPMDVariation) << std::endl;
@@ -174,10 +181,10 @@ namespace Arc {
             }
         }
       }
-      if (!InBound.empty())
-	std::cout << Arc::IString(" InBound: %s", InBound) << std::endl;
-      if (!OutBound.empty())
-	std::cout << Arc::IString(" OutBound: %s", OutBound) << std::endl;
+      if (InBound)
+	std::cout << Arc::IString(" InBound: true") << std::endl;
+      if (OutBound)
+	std::cout << Arc::IString(" OutBound: true") << std::endl;
       if (!File.empty()) {
         std::list<Arc::FileType>::const_iterator iter;
         for (iter = File.begin(); iter != File.end(); iter++){
@@ -186,17 +193,17 @@ namespace Arc {
            std::list<Arc::SourceType>::const_iterator it_source;
            for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
 	       std::cout << Arc::IString("     Source.URI: %s", (*it_source).URI.fullstr()) << std::endl;
-               if ((*it_source).Threads > 0)
+               if ((*it_source).Threads > -1)
 	          std::cout << Arc::IString("     Source.Threads: %d", (*it_source).Threads) << std::endl;
            }
            std::list<Arc::TargetType>::const_iterator it_target;
            for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++){
 	       std::cout << Arc::IString("     Target.URI: %s", (*it_target).URI.fullstr()) << std::endl;
-               if ((*it_target).Threads > 0)
+               if ((*it_target).Threads > -1)
 	          std::cout << Arc::IString("     Target.Threads: %d", (*it_target).Threads) << std::endl;
                if ((*it_target).Mandatory)
 	          std::cout << Arc::IString("     Target.Mandatory: true") << std::endl;
-               if ((*it_target).NeededReplicas > 0)
+               if ((*it_target).NeededReplicas > -1)
 	          std::cout << Arc::IString("     Target.NeededReplicas: %d", (*it_target).NeededReplicas) << std::endl;
            }
            if ((*iter).KeepData)
@@ -217,17 +224,17 @@ namespace Arc {
            std::list<Arc::SourceType>::const_iterator it_source;
            for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
 	       std::cout << Arc::IString("     Source.URI: %s", (*it_source).URI.fullstr()) << std::endl;
-               if ((*it_source).Threads > 0)
+               if ((*it_source).Threads > -1)
 	          std::cout << Arc::IString("     Source.Threads: %d", (*it_source).Threads) << std::endl;
            }
            std::list<Arc::TargetType>::const_iterator it_target;
            for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++){
 	       std::cout << Arc::IString("     Target.URI: %s", (*it_target).URI.fullstr()) << std::endl;
-               if ((*it_target).Threads > 0)
+               if ((*it_target).Threads > -1)
 	          std::cout << Arc::IString("     Target.Threads: %d", (*it_target).Threads) << std::endl;
                if ((*it_target).Mandatory)
 	          std::cout << Arc::IString("     Target.Mandatory: true") << std::endl;
-               if ((*it_target).NeededReplicas > 0)
+               if ((*it_target).NeededReplicas > -1)
 	          std::cout << Arc::IString("     Target.NeededReplicas: %d", (*it_target).NeededReplicas) << std::endl;
            }
            if ((*iter).KeepData)
@@ -248,7 +255,7 @@ namespace Arc {
     }
 
     std::cout << std::endl;
-  } // end Print
+  } // end of Print
 
   void JobInnerRepresentation::Reset(){
     Executable.clear();
@@ -294,8 +301,8 @@ namespace Arc {
     }*/
     if (!Environment.empty())
        Environment.clear();
-    if (LRMSReRun > 0)
-       LRMSReRun = 0;
+    if (LRMSReRun > -1)
+       LRMSReRun = -1;
     if (!Prologue.Name.empty())
        Prologue.Name.clear();
      if (!Prologue.Arguments.empty())
@@ -327,7 +334,12 @@ namespace Arc {
        TotalWallTime = -1;
     if (IndividualWallTime != -1)
        IndividualWallTime = -1;
-//ReferenceTime
+      if (!ReferenceTime.benchmark_attribute.empty())
+	ReferenceTime.benchmark_attribute.clear();
+      if (!ReferenceTime.value_attribute.empty())
+	ReferenceTime.value_attribute.clear();
+      if (!ReferenceTime.value.empty())
+	ReferenceTime.value.clear();
     if (ExclusiveExecution)
        ExclusiveExecution = false;
     if (!NetworkInfo.empty())
@@ -340,18 +352,18 @@ namespace Arc {
        OSVersion.clear();
     if (!Platform.empty())
        Platform.clear();
-    if (IndividualPhysicalMemory > 0)
-       IndividualPhysicalMemory = 0;
-    if (IndividualVirtualMemory > 0)
-       IndividualVirtualMemory = 0;
-    if (IndividualDiskSpace > 0)
-       IndividualDiskSpace = 0;
-    if (DiskSpace > 0)
-       DiskSpace = 0;
-    if (CacheDiskSpace > 0)
-       CacheDiskSpace = 0;
-    if (SessionDiskSpace > 0)
-       SessionDiskSpace = 0;
+    if (IndividualPhysicalMemory > -1)
+       IndividualPhysicalMemory = -1;
+    if (IndividualVirtualMemory > -1)
+       IndividualVirtualMemory = -1;
+    if (IndividualDiskSpace > -1)
+       IndividualDiskSpace = -1;
+    if (DiskSpace > -1)
+       DiskSpace = -1;
+    if (CacheDiskSpace > -1)
+       CacheDiskSpace = -1;
+    if (SessionDiskSpace > -1)
+       SessionDiskSpace = -1;
 /*    if (!bool(EndPointURL)){
        EndPointURL.ChangePort(-1);		//TODO: reset the URL is better
        EndPointURL.ChangeLDAPScope(URL::base);
@@ -360,20 +372,20 @@ namespace Arc {
        QueueName.clear();
     if (!CEType.empty())
        CEType.clear();
-    if (NumberOfProcesses > 0)
-       NumberOfProcesses = 0;
-    if (ProcessPerHost > 0)
-       ProcessPerHost = 0;
-    if (ThreadPerProcesses > 0)
-       ThreadPerProcesses = 0;
+    if (NumberOfProcesses > -1)
+       NumberOfProcesses = -1;
+    if (ProcessPerHost > -1)
+       ProcessPerHost = -1;
+    if (ThreadPerProcesses > -1)
+       ThreadPerProcesses = -1;
     if (!SPMDVariation.empty())
        SPMDVariation.clear();
     if (!RunTimeEnvironment.empty())
        RunTimeEnvironment.clear();
-    if (!InBound.empty())
-       InBound.clear();
-    if (!OutBound.empty())
-       OutBound.clear();
+    if (InBound)
+       InBound = false;
+    if (OutBound)
+       OutBound = false;
 
     if (!File.empty())
        File.clear();
@@ -391,6 +403,633 @@ namespace Arc {
        StagingOutBaseURI.ChangePort(-1);		//TODO: reset the URL is better
        StagingOutBaseURI.ChangeLDAPScope(URL::base);
     }*/
-  } // end Reset
+  } // end of Reset
+
+    //Inner representation export to JSDL-GIN XML
+    bool JobInnerRepresentation::getXML( Arc::XMLNode& jobTree) const {
+        //TODO: wath is the new GIN namespace
+        Arc::NS gin_namespaces;
+        gin_namespaces["jsdl-gin"] = "http://schemas.ogf.org/gin-profile/2008/11/jsdl";
+        gin_namespaces["targetNamespace"] = "http://schemas.ogf.org/gin-profile/2008/11/jsdl";
+        gin_namespaces["elementFormDefault"] = "qualified";
+        Arc::XMLNode outputTree( "<JobDefinition />" );
+        outputTree.Namespaces( gin_namespaces );
+        outputTree.New(jobTree);
+
+        //obligatory elements: Executable, LogDir
+        if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+        if ( !bool( jobTree["JobDescription"]["Application"] ) ) jobTree["JobDescription"].NewChild("Application");
+        if ( !bool( jobTree["JobDescription"]["Application"]["Executable"] ) ) 
+           jobTree["JobDescription"]["Application"].NewChild("Executable") = Executable;
+        if ( !bool( jobTree["JobDescription"]["Application"]["LogDir"] ) ) 
+           jobTree["JobDescription"]["Application"].NewChild("LogDir") = LogDir;
+
+        //optional elements
+        //JobIdentification
+        if (!JobName.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"] ) ) 
+              jobTree["JobDescription"].NewChild("JobIdentification");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"]["JobName"] ) ) 
+              jobTree["JobDescription"]["JobIdentification"].NewChild("JobName") = JobName;
+        }
+        if (!Description.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"] ) ) 
+              jobTree["JobDescription"].NewChild("JobIdentification");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"]["Description"] ) ) 
+              jobTree["JobDescription"]["JobIdentification"].NewChild("Description") = Description;
+        }
+        if (!JobProject.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"] ) ) 
+              jobTree["JobDescription"].NewChild("JobIdentification");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"]["JobProject"] ) ) 
+              jobTree["JobDescription"]["JobIdentification"].NewChild("JobProject") = JobProject;
+        }
+        if (!JobType.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"] ) ) 
+              jobTree["JobDescription"].NewChild("JobIdentification");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"]["JobType"] ) ) 
+              jobTree["JobDescription"]["JobIdentification"].NewChild("JobType") = JobType;
+        }
+        if (!JobCategory.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"] ) ) 
+              jobTree["JobDescription"].NewChild("JobIdentification");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"]["JobCategory"] ) ) 
+             jobTree["JobDescription"]["JobIdentification"].NewChild("JobCategory") = JobCategory;
+        }
+        if (!UserTag.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["JobIdentification"] ) ) 
+              jobTree["JobDescription"].NewChild("JobIdentification");
+           for (std::list<std::string>::const_iterator it=UserTag.begin();
+                            it!=UserTag.end(); it++) {
+              Arc::XMLNode attribute = jobTree["JobDescription"]["JobIdentification"].NewChild("UserTag");
+              attribute = (*it);
+           }
+        }
+
+        //Meta
+        if (!OptionalElement.empty()){
+           if ( !bool( jobTree["Meta"] ) ) jobTree.NewChild("Meta");
+           for (std::list<std::string>::const_iterator it=OptionalElement.begin();
+                            it!=OptionalElement.end(); it++) {
+              Arc::XMLNode attribute = jobTree["Meta"].NewChild("OptionalElement");
+              attribute = (*it);
+           }
+        }
+        if (!Author.empty()){
+           if ( !bool( jobTree["Meta"] ) ) jobTree.NewChild("Meta");
+           if ( !bool( jobTree["Meta"]["Author"] ) ) 
+              jobTree["Meta"].NewChild("Author") = Author;
+        }
+        if (DocumentExpiration != -1){
+           if ( !bool( jobTree["Meta"] ) ) jobTree.NewChild("Meta");
+           if ( !bool( jobTree["Meta"]["DocumentExpiration"] ) ) 
+              jobTree["Meta"].NewChild("DocumentExpiration") = (std::string)DocumentExpiration;
+        }
+        if (!Rank.empty()){
+           if ( !bool( jobTree["Meta"] ) ) jobTree.NewChild("Meta");
+           if ( !bool( jobTree["JobDescription"]["Meta"]["Rank"] ) ) 
+              jobTree["Meta"].NewChild("Rank") = Rank;
+        }
+        if (FuzzyRank){
+           if ( !bool( jobTree["Meta"] ) ) jobTree.NewChild("Meta");
+           if ( !bool( jobTree["Meta"]["FuzzyRank"] ) ) 
+              jobTree["Meta"].NewChild("FuzzyRank") = "true";
+        }
+
+        //Application
+        if (!Argument.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           for (std::list<std::string>::const_iterator it=Argument.begin();
+                            it!=Argument.end(); it++) {
+              Arc::XMLNode attribute = jobTree["JobDescription"]["Application"].NewChild("Argument");
+              attribute = (*it);
+           }
+        }
+        if (!Input.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["Input"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("Input") = Input;
+        }
+        if (!Output.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["Output"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("Output") = Output;
+        }
+        if (!Error.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["Error"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("Error") = Error;
+        }
+        if ( bool(RemoteLogging) ){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["RemoteLogging"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("RemoteLogging") =
+                                       RemoteLogging.fullstr();
+        }
+        if (!Environment.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           for (std::list<Arc::EnvironmentType>::const_iterator it=Environment.begin();
+                            it!=Environment.end(); it++) {
+              Arc::XMLNode attribute = jobTree["JobDescription"]["Application"].NewChild("Environment");
+              attribute = (*it).value;
+              attribute.NewAttribute("name") = (*it).name_attribute;
+           }
+        }
+        if (LRMSReRun > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["LRMSReRun"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("LRMSReRun");
+           std::ostringstream oss;
+           oss << LRMSReRun;
+           jobTree["JobDescription"]["Application"]["LRMSReRun"] = oss.str();
+        }
+        if (!Prologue.Name.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["Prologue"] ) ){
+              std::string prologue;
+              prologue += Prologue.Name;
+              std::list<std::string>::const_iterator iter;
+              for (iter = Prologue.Arguments.begin();
+                   iter != Prologue.Arguments.end(); iter++){
+                prologue += " ";
+                prologue += *iter;
+              }
+              jobTree["JobDescription"]["Application"].NewChild("Prologue") = prologue;
+           }
+        }
+        if (!Epilogue.Name.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["Epilogue"] ) ){
+              std::string epilogue;
+              epilogue += Epilogue.Name;
+              std::list<std::string>::const_iterator iter;
+              for (iter = Epilogue.Arguments.begin();
+                   iter != Epilogue.Arguments.end(); iter++){
+                epilogue += " ";
+                epilogue += *iter;
+              }
+              jobTree["JobDescription"]["Application"].NewChild("Epilogue") = epilogue;
+           }
+        }
+        if (SessionLifeTime != -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["SessionLifeTime"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("SessionLifeTime") = SessionLifeTime;
+        }
+        if ( bool(AccessControl) ){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["AccessControl"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("AccessControl");
+           jobTree["JobDescription"]["Application"]["AccessControl"].NewChild(AccessControl);
+        }
+        if (ProcessingStartTime != -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["ProcessingStartTime"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("ProcessingStartTime") =
+                                               ProcessingStartTime;
+        }
+        if (!Notification.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           for (std::list<Arc::NotificationType>::const_iterator it=Notification.begin();
+                            it!=Notification.end(); it++) {
+              Arc::XMLNode attribute = jobTree["JobDescription"]["Application"].NewChild("Notification");
+              for (std::list<std::string>::const_iterator iter=(*it).Address.begin();
+                            iter!=(*it).Address.end(); iter++) {
+                  attribute.NewChild("Address") = (*iter);
+              }
+              for (std::list<std::string>::const_iterator iter=(*it).State.begin();
+                            iter!=(*it).State.end(); iter++) {
+                  attribute.NewChild("State") = (*iter);
+              }
+           }
+        }
+        if ( bool(CredentialService) ){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["CredentialService"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("CredentialService") =
+                                               CredentialService.fullstr();
+        }
+        if (Join){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Application"] ) ) 
+              jobTree["JobDescription"].NewChild("Application");
+           if ( !bool( jobTree["JobDescription"]["Application"]["Join"] ) ) 
+              jobTree["JobDescription"]["Application"].NewChild("Join") = "true";
+        }
+
+        // Resource
+        if (TotalCPUTime != -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["TotalCPUTime"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("TotalCPUTime") = (std::string)TotalCPUTime;
+        }
+        if (IndividualCPUTime != -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["IndividualCPUTime"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("IndividualCPUTime") = (std::string)IndividualCPUTime;
+        }
+        if (TotalWallTime != -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["TotalWallTime"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("TotalWallTime") = (std::string)TotalWallTime;
+        }
+        if (IndividualWallTime != -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["IndividualWallTime"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("IndividualWallTime") = (std::string)IndividualWallTime;
+        }
+        if (!ReferenceTime.value.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           Arc::XMLNode attribute;
+           if ( !bool( jobTree["JobDescription"]["Resource"]["ReferenceTime"] ) ) 
+              attribute = jobTree["JobDescription"]["Resource"].NewChild("ReferenceTime");
+           attribute = ReferenceTime.value;
+           if (!ReferenceTime.benchmark_attribute.empty()){
+              attribute.NewAttribute("benchmark") = ReferenceTime.benchmark_attribute;
+           }
+           if (!ReferenceTime.value_attribute.empty()){
+              attribute.NewAttribute("value") = ReferenceTime.value_attribute;
+           }
+        }
+        if (ExclusiveExecution){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["ExclusiveExecution"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("ExclusiveExecution") = "true";
+        }
+        if (!NetworkInfo.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["NetworkInfo"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("NetworkInfo") = NetworkInfo;
+        }
+        if (!OSFamily.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["OSFamily"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("OSFamily") = OSFamily;
+        }
+        if (!OSName.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["OSName"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("OSName") = OSName;
+        }
+        if (!OSVersion.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["OSVersion"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("OSVersion") = OSVersion;
+        }
+        if (!Platform.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Platform"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Platform") = Platform;
+        }
+        if (IndividualPhysicalMemory > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["IndividualPhysicalMemory"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("IndividualPhysicalMemory");
+           std::ostringstream oss;
+           oss << IndividualPhysicalMemory;
+           jobTree["JobDescription"]["Resource"]["IndividualPhysicalMemory"] = oss.str();
+        }
+        if (IndividualVirtualMemory > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["IndividualVirtualMemory"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("IndividualVirtualMemory");
+           std::ostringstream oss;
+           oss << IndividualVirtualMemory;
+           jobTree["JobDescription"]["Resource"]["IndividualVirtualMemory"] = oss.str();
+        }
+        if (IndividualDiskSpace > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["IndividualDiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("IndividualDiskSpace");
+           std::ostringstream oss;
+           oss << IndividualDiskSpace;
+           jobTree["JobDescription"]["Resource"]["IndividualDiskSpace"] = oss.str();
+        }
+        if (DiskSpace > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["DiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("DiskSpace");
+           std::ostringstream oss;
+           oss << DiskSpace;
+           jobTree["JobDescription"]["Resource"]["DiskSpace"] = oss.str();
+        }
+        if (CacheDiskSpace > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["DiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("DiskSpace");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["DiskSpace"]["CacheDiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"]["DiskSpace"].NewChild("CacheDiskSpace");
+           std::ostringstream oss;
+           oss << CacheDiskSpace;
+           jobTree["JobDescription"]["Resource"]["DiskSpace"]["CacheDiskSpace"] = oss.str();
+        }
+        if (SessionDiskSpace > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["DiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("DiskSpace");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["DiskSpace"]["SessionDiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"]["DiskSpace"].NewChild("SessionDiskSpace");
+           std::ostringstream oss;
+           oss << SessionDiskSpace;
+           jobTree["JobDescription"]["Resource"]["DiskSpace"]["SessionDiskSpace"] = oss.str();
+        }
+        if (bool(EndPointURL)){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["CandidateTarget"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("CandidateTarget");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["CandidateTarget"]["EndPointURL"] ) ) 
+              jobTree["JobDescription"]["Resource"]["CandidateTarget"].NewChild("EndPointURL") =
+                                                     EndPointURL.str();
+        }
+        if (!QueueName.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["CandidateTarget"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("CandidateTarget");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["CandidateTarget"]["QueueName"] ) ) 
+              jobTree["JobDescription"]["Resource"]["CandidateTarget"].NewChild("QueueName") =
+                                                    QueueName;
+        }
+        if (!CEType.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["CEType"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("CEType") = CEType;
+        }
+        if (NumberOfProcesses > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Slots");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"]["NumberOfProcesses"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Slots"].NewChild("NumberOfProcesses");
+           std::ostringstream oss;
+           oss << NumberOfProcesses;
+           jobTree["JobDescription"]["Resource"]["Slots"]["NumberOfProcesses"] = oss.str();
+        }
+        if (ProcessPerHost > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Slots");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"]["ProcessPerHost"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Slots"].NewChild("ProcessPerHost");
+           std::ostringstream oss;
+           oss << ProcessPerHost;
+           jobTree["JobDescription"]["Resource"]["Slots"]["ProcessPerHost"] = oss.str();
+        }
+        if (ThreadPerProcesses > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Slots");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"]["ThreadPerProcesses"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Slots"].NewChild("ThreadPerProcesses");
+           std::ostringstream oss;
+           oss << ThreadPerProcesses;
+           jobTree["JobDescription"]["Resource"]["Slots"]["ThreadPerProcesses"] = oss.str();
+        }
+        if (!SPMDVariation.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Slots");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"]["SPMDVariation"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Slots"].NewChild("SPMDVariation") =
+                                                    SPMDVariation;
+        }
+        if (!RunTimeEnvironment.empty()) {
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           std::list<Arc::RunTimeEnvironmentType>::const_iterator iter;
+           for (iter = RunTimeEnvironment.begin(); 
+                        iter != RunTimeEnvironment.end(); iter++){
+                Arc::XMLNode attribute = jobTree["JobDescription"]["Resource"].NewChild("RunTimeEnvironment");
+                attribute.NewChild("Name") = (*iter).Name;
+                std::list<std::string>::const_iterator it;
+                for (it = (*iter).Version.begin(); it != (*iter).Version.end(); it++){
+                    attribute.NewChild("Version") = (*it);
+                }
+           }
+        }
+        if (InBound){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["NodeAccess"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("NodeAccess");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["NodeAccess"]["InBound"] ) ) 
+              jobTree["JobDescription"]["Resource"]["NodeAccess"].NewChild("InBound") = "true";
+        }
+        if (OutBound){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["NodeAccess"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("NodeAccess");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["NodeAccess"]["OutBound"] ) ) 
+              jobTree["JobDescription"]["Resource"]["NodeAccess"].NewChild("OutBound") = "true";
+        }
+     
+        //DataStaging
+        if (!File.empty()) {
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
+              jobTree["JobDescription"].NewChild("DataStaging");
+           std::list<Arc::FileType>::const_iterator iter;
+           for (iter = File.begin(); iter != File.end(); iter++){
+              Arc::XMLNode attribute = jobTree["JobDescription"]["DataStaging"].NewChild("File");
+	      attribute.NewChild("Name") = (*iter).Name;
+              std::list<Arc::SourceType>::const_iterator it_source;
+              for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
+	          XMLNode attribute_source = attribute.NewChild("Source");
+                  attribute_source.NewChild("URI") = (*it_source).URI.fullstr();
+                  if ((*it_source).Threads > -1){
+                     std::ostringstream oss;
+                     oss << (*it_source).Threads;
+                     attribute_source.NewChild("Threads") = oss.str();
+                  }
+              }
+              std::list<Arc::TargetType>::const_iterator it_target;
+              for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++){
+	          XMLNode attribute_target = attribute.NewChild("Target");
+                  attribute_target.NewChild("URI") = (*it_target).URI.fullstr();
+                  if ((*it_target).Threads > -1){
+                     std::ostringstream oss;
+                     oss << (*it_target).Threads;
+                     attribute_target.NewChild("Threads") = oss.str();
+                  }
+                  if ((*it_target).Mandatory)
+                     attribute_target.NewChild("Mandatory") = "true";
+                  if ((*it_target).NeededReplicas > -1){
+                     std::ostringstream oss;
+                     oss << (*it_target).NeededReplicas;
+                     attribute_target.NewChild("NeededReplicas") = oss.str();
+                  }
+              }
+              if ((*iter).KeepData)
+ 	         attribute.NewChild("KeepData") = "true";
+              if ((*iter).IsExecutable)
+ 	         attribute.NewChild("IsExecutable") = "true";
+              if (bool((*iter).DataIndexingService))
+ 	         attribute.NewChild("DataIndexingService") = (*iter).DataIndexingService.fullstr();
+              if ((*iter).DownloadToCache)
+ 	         attribute.NewChild("DownloadToCache") = "true";
+           }
+        }
+        if (!Directory.empty()) {
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
+              jobTree["JobDescription"].NewChild("DataStaging");
+           std::list<Arc::DirectoryType>::const_iterator iter;
+           for (iter = Directory.begin(); iter != Directory.end(); iter++){
+              Arc::XMLNode attribute = jobTree["JobDescription"]["DataStaging"].NewChild("Directory");
+	      attribute.NewChild("Name") = (*iter).Name;
+              std::list<Arc::SourceType>::const_iterator it_source;
+              for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
+	          XMLNode attribute_source = attribute.NewChild("Source");
+                  attribute_source.NewChild("URI") = (*it_source).URI.fullstr();
+                  if ((*it_source).Threads > -1){
+                     std::ostringstream oss;
+                     oss << (*it_source).Threads;
+                     attribute_source.NewChild("Threads") = oss.str();
+                  }
+              }
+              std::list<Arc::TargetType>::const_iterator it_target;
+              for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++){
+	          XMLNode attribute_target = attribute.NewChild("Target");
+                  attribute_target.NewChild("URI") = (*it_target).URI.fullstr();
+                  if ((*it_target).Threads > -1){
+                     std::ostringstream oss;
+                     oss << (*it_target).Threads;
+                     attribute_target.NewChild("Threads") = oss.str();
+                  }
+                  if ((*it_target).Mandatory)
+                     attribute_target.NewChild("Mandatory") = "true";
+                  if ((*it_target).NeededReplicas > -1){
+                     std::ostringstream oss;
+                     oss << (*it_target).NeededReplicas;
+                     attribute_target.NewChild("NeededReplicas") = oss.str();
+                  }
+              }
+              if ((*iter).KeepData)
+ 	         attribute.NewChild("KeepData") = "true";
+              if ((*iter).IsExecutable)
+ 	         attribute.NewChild("IsExecutable") = "true";
+              if (bool((*iter).DataIndexingService))
+ 	         attribute.NewChild("DataIndexingService") = (*iter).DataIndexingService.fullstr();
+              if ((*iter).DownloadToCache)
+ 	         attribute.NewChild("DownloadToCache") = "true";
+           }
+        }
+        if (bool(DataIndexingService)){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
+              jobTree["JobDescription"].NewChild("DataStaging");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"] ) ) 
+              jobTree["JobDescription"]["DataStaging"].NewChild("Defaults");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"]["DataIndexingService"] ) ) 
+              jobTree["JobDescription"]["DataStaging"]["Defaults"].NewChild("DataIndexingService") =
+                                         DataIndexingService.fullstr();
+        }
+        if (bool(StagingInBaseURI)){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
+              jobTree["JobDescription"].NewChild("DataStaging");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"] ) ) 
+              jobTree["JobDescription"]["DataStaging"].NewChild("Defaults");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"]["StagingInBaseURI"] ) ) 
+              jobTree["JobDescription"]["DataStaging"]["Defaults"].NewChild("StagingInBaseURI") =
+                                         StagingInBaseURI.fullstr();
+        }
+        if (bool(StagingOutBaseURI)){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
+              jobTree["JobDescription"].NewChild("DataStaging");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"] ) ) 
+              jobTree["JobDescription"]["DataStaging"].NewChild("Defaults");
+           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"]["StagingOutBaseURI"] ) ) 
+              jobTree["JobDescription"]["DataStaging"]["Defaults"].NewChild("StagingOutBaseURI") =
+                                         StagingOutBaseURI.fullstr();
+        }
+        return true;
+    } //end of getXML
 
 } // namespace Arc
