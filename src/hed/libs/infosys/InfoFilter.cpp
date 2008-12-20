@@ -87,6 +87,23 @@ static void RemovePolicies(std::list< std::pair<XMLNode,std::list<InfoPolicy>::i
   for(;(bool)cnode;++cnode) RemovePolicies(policies,cnode);
 }
 
+static void RemoveEmbeddedPolicies(XMLNode node) {
+  // Remove all children policies
+  while(true) {
+    XMLNode def = node["InfoFilterDefinition"];
+    if(!def) break;
+    def.Destroy();
+  };
+
+  // Remove tag
+  XMLNode tag = node.Attribute("InfoFilterTag");
+  tag.Destroy();
+
+  // Process children nodes
+  XMLNode cnode = node.Child();
+  for(;(bool)cnode;++cnode) RemoveEmbeddedPolicies(cnode);
+  return;
+}
 
 static bool FilterNode(MessageAuth& id,XMLNode node,std::list< std::pair<XMLNode,std::list<InfoPolicy>::iterator> >& policies,std::list<InfoPolicy>& epolicies,std::map<std::string,InfoPolicy>& ipolicies) {
   // Check if node has external policy
@@ -168,7 +185,10 @@ bool InfoFilter::Filter(XMLNode doc,const std::list< std::pair<std::string,XMLNo
   };
   // Go through nodes and check policies
   bool r = FilterNode(id_,doc,policies_,epolicies_,ipolicies_); 
-  return r;
+  if(!r) return false;
+  // Remove policies embedded into document
+  RemoveEmbeddedPolicies(doc);
+  return true;
 }
 
 
