@@ -12,7 +12,7 @@
 #include <openssl/x509v3.h>
 #include <string>
 
-namespace ArcLib {
+namespace ArcCredential {
 /* predefined policy language */
 #define ANYLANGUAGE_PROXY_OID         "1.3.6.1.5.5.7.21.0"
 #define ANYLANGUAGE_PROXY_SN          "ANYLANGUAGE_PROXY"      //"anyLanguage" in openssl >= 098
@@ -135,6 +135,6 @@ X509V3_EXT_METHOD * PROXYCERTINFO_v3_x509v3_ext_meth();
 
 X509V3_EXT_METHOD * PROXYCERTINFO_v4_x509v3_ext_meth();
 
-} //namespace ArcLib
+} //namespace ArcCredential
 
 #endif

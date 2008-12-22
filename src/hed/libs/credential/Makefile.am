@@ -5,13 +5,13 @@ if WIN32
 VOMS_HEADER =
 VOMS_SOURCE =
 else
-VOMS_HEADER = voms_util.h
-VOMS_SOURCE = voms_util.cpp
+VOMS_HEADER = VOMSUtil.h
+VOMS_SOURCE = VOMSUtil.cpp
 endif
 
 libarccredential_ladir = $(pkgincludedir)/arclib
 libarccredential_la_HEADERS  = Credential.h $(VOMS_HEADER)
-libarccredential_la_SOURCES  = Proxycertinfo.cpp Proxycertinfo.h cert_util.cpp cert_util.h \
+libarccredential_la_SOURCES  = Proxycertinfo.cpp Proxycertinfo.h CertUtil.cpp CertUtil.h \
                                Credential.cpp listfunc.c listfunc.h \
                                VOMSAttribute.cpp VOMSAttribute.h $(VOMS_SOURCE)
 libarccredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include

@@ -7,7 +7,7 @@
 #include <fstream>
 #include <arc/Logger.h>
 #include "Credential.h"
-#include "voms_util.h"
+#include "VOMSUtil.h"
 
 
 int main(void) {

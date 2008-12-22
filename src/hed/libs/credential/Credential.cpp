@@ -5,10 +5,9 @@
 
 #include <fstream>
 
-#include "cert_util.h"
 #include "Credential.h"
 
-using namespace ArcLib;
+using namespace ArcCredential;
 
 namespace Arc {
   CredentialError::CredentialError(const std::string& what) : std::runtime_error(what) { }

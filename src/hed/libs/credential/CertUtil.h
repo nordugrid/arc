@@ -6,9 +6,9 @@
 #include <openssl/x509.h>
 #include <openssl/stack.h>
 
-#include "Proxycertinfo.h"
+#include <arc/credential/Proxycertinfo.h>
 
-namespace ArcLib {
+namespace ArcCredential {
    
     /* Certificate Types */
     typedef enum {

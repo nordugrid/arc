@@ -6,7 +6,7 @@
 
 #include "VOMSAttribute.h"
 
-namespace ArcLib {
+namespace ArcCredential {
 
 #ifdef M_ASN1_D2I_get_imp_set
 #undef M_ASN1_D2I_get_imp_set
@@ -1324,4 +1324,4 @@ X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth() {
   return (&vomsattribute_attribs_x509v3_ext_meth);
 }
 
-} //namespace ArcLib
+} //namespace ArcCredential

@@ -9,7 +9,7 @@
 #include <openssl/pkcs12.h>
 #include <openssl/err.h>
 
-#include "cert_util.h"
+#include "CertUtil.h"
 #include "Credential.h"
 
   X509_EXTENSION* CreateExtension(std::string& name, std::string& data, bool crit) {
@@ -63,7 +63,7 @@ int main(void) {
    X509_EXTENSION* ext = NULL;
    int certinfo_v3_NID, certinfo_v4_NID;
 
-   ArcLib::PROXYCERTINFO * cert_info = NULL;
+   ArcCredential::PROXYCERTINFO * cert_info = NULL;
    //Get the PROXYCERTINFO from cert' extension
    certinfo_v3_NID = OBJ_sn2nid("PROXYCERTINFO_V3");
    certinfo_v4_NID = OBJ_sn2nid("PROXYCERTINFO_V4");
@@ -73,11 +73,11 @@ int main(void) {
 
    if (res != -1) ext = X509_get_ext(cert,res);
    
-   if (ext) cert_info = (ArcLib::PROXYCERTINFO*) X509V3_EXT_d2i(ext);
+   if (ext) cert_info = (ArcCredential::PROXYCERTINFO*) X509V3_EXT_d2i(ext);
 
    //X509V3_EXT_METHOD*  ext_method = X509V3_EXT_get_nid(certinfo_v3_NID);
    //unsigned char* data = ext->value->data;
-   //cert_info = (ArcLib::PROXYCERTINFO*)ext_method->d2i(NULL, (unsigned char **) &data, ext->value->length);
+   //cert_info = (ArcCredential::PROXYCERTINFO*)ext_method->d2i(NULL, (unsigned char **) &data, ext->value->length);
 
    if (cert_info == NULL) std::cerr<<"1. Can not convert DER encode PROXYCERTINFO extension to internal format"<<std::endl; 
 
@@ -114,15 +114,15 @@ int main(void) {
    //ASN1_OCTET_STRING_free(ext_data);
 
 
-   ArcLib::PROXYCERTINFO * cert_info2;
+   ArcCredential::PROXYCERTINFO * cert_info2;
    X509V3_EXT_METHOD*  ext_method2 = X509V3_EXT_get_nid(certinfo_v3_NID);
    unsigned char* data2 = ext2->value->data;
 #if(OPENSSL_VERSION_NUMBER >= 0x0090800fL)
-   cert_info2 = (ArcLib::PROXYCERTINFO*)ext_method2->d2i(NULL, (const unsigned char**) &data2, ext2->value->length);
+   cert_info2 = (ArcCredential::PROXYCERTINFO*)ext_method2->d2i(NULL, (const unsigned char**) &data2, ext2->value->length);
 #else 
-   cert_info2 = (ArcLib::PROXYCERTINFO*)ext_method2->d2i(NULL, (unsigned char**) &data2, ext2->value->length);
+   cert_info2 = (ArcCredential::PROXYCERTINFO*)ext_method2->d2i(NULL, (unsigned char**) &data2, ext2->value->length);
 #endif
-   //cert_info2 = (ArcLib::PROXYCERTINFO*)X509V3_EXT_d2i(ext2);
+   //cert_info2 = (ArcCredential::PROXYCERTINFO*)X509V3_EXT_d2i(ext2);
    
    if (cert_info2 == NULL) std::cerr<<"2. Can not convert DER encode PROXYCERTINFO extension to internal format"<<std::endl;
 

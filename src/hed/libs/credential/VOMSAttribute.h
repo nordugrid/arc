@@ -16,7 +16,7 @@
 #include <openssl/safestack.h>
 #include <openssl/err.h>
 
-namespace ArcLib {
+namespace ArcCredential {
 
 #define ASN1_F_D2I_AC_ATTR          5000
 #define AC_F_ATTR_New               5001
@@ -453,7 +453,7 @@ X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth();
 
-} //namespace ArcLib
+} //namespace ArcCredential
 
 #endif
 

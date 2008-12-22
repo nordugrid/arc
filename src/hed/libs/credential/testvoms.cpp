@@ -15,7 +15,7 @@ int main(void) {
 #include <fstream>
 #include <arc/Logger.h>
 #include "Credential.h"
-#include "voms_util.h"
+#include "VOMSUtil.h"
 
 
 int main(void) {
@@ -67,7 +67,7 @@ int main(void) {
   std::string uri = "testvoms.knowarc.eu:50000";
 
   std::string codedac;
-  ArcLib::createVOMSAC(codedac, issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
+  Arc::createVOMSAC(codedac, issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
 
 
   /* Parse the Attribute Certificate with string format
@@ -76,8 +76,8 @@ int main(void) {
   * (voms server, and voms server signs AC), then composes the ACs into a AC list, and puts the AC 
   * list as a proxy certificate's extension.
   */
-  ArcLib::AC** aclist = NULL;
-  ArcLib::addVOMSAC(aclist, codedac);
+  ArcCredential::AC** aclist = NULL;
+  Arc::addVOMSAC(aclist, codedac);
    
 
   /** b.Below is general proxy processing, which is the same as the 
@@ -142,7 +142,7 @@ int main(void) {
   vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
   Arc::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
   std::vector<std::string> attributes;
-  ArcLib::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
+  Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
 
   int i;
   for(i=0; i<attributes.size(); i++) {

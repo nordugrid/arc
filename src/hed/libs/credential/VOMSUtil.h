@@ -4,9 +4,10 @@
 #include <vector>
 #include <string>
 
-#include "Credential.h"
+#include <arc/credential/Credential.h>
+#include <arc/credential/VOMSAttribute.h>
 
-namespace ArcLib {
+namespace Arc {
 
   void InitVOMSAttribute(void);
 
@@ -16,7 +17,7 @@ namespace ArcLib {
    */
   int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes,
-             AC **ac, std::string voname, std::string uri, int lifetime);
+             ArcCredential::AC **ac, std::string voname, std::string uri, int lifetime);
 
   /**Create AC(Attribute Certificate) with voms specific format.
    * @param codedac  The coded AC as output of this method
@@ -28,7 +29,7 @@ namespace ArcLib {
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes, 
              std::string &voname, std::string &uri, int lifetime);
 
-  bool addVOMSAC(AC** &aclist, std::string &codedac);
+  bool addVOMSAC(ArcCredential::AC** &aclist, std::string &codedac);
 
   /**Parse the certificate, and output the attributes.
    * @param holder  The proxy certificate which includes the voms specific formated AC.
@@ -59,7 +60,7 @@ namespace ArcLib {
   bool parseVOMSAC(Arc::Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
              const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output);
 
-}// namespace ArcLib
+}// namespace Arc
 
 #endif /* __ARC_VOMSUTIL_H__ */
 

@@ -3,7 +3,7 @@
 
 #include <openssl/err.h>
 
-#include "cert_util.h"
+#include "CertUtil.h"
 
 #define X509_CERT_DIR  "X509_CERT_DIR"
 
@@ -14,7 +14,7 @@
 #endif
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 
-namespace ArcLib {
+namespace ArcCredential {
 
 int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx) {
   int i;

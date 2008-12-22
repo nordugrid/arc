@@ -12,15 +12,13 @@
 
 #include <arc/ArcRegex.h>
 
-#include "VOMSAttribute.h"
-#include "voms_util.h"
-extern "C" {
+#include <arc/credential/VOMSAttribute.h>
+#include <arc/credential/VOMSUtil.h>
 #include "listfunc.h"
-} 
 
-using namespace Arc;
+using namespace ArcCredential;
 
-namespace ArcLib{
+namespace Arc {
 
   void InitVOMSAttribute(void) {
     #define idpkix                "1.3.6.1.5.5.7"

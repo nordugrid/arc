@@ -10,7 +10,7 @@
 
 #include "Proxycertinfo.h"
 
-namespace ArcLib {
+namespace ArcCredential {
 
 /* PROXYPOLICY function */
 
@@ -680,4 +680,4 @@ X509V3_EXT_METHOD * PROXYCERTINFO_v3_x509v3_ext_meth() {
   return (&proxycertinfo_v3_x509v3_ext_meth);
 }
 
-} //namespace ArcLib
+} //namespace ArcCredential

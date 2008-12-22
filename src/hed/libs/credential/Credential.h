@@ -15,12 +15,7 @@
 #include <arc/Logger.h>
 #include <arc/DateTime.h>
 
-#include "cert_util.h"
-
-extern "C" {
-#include "VOMSAttribute.h"
-}
-
+#include <arc/credential/CertUtil.h>
 
 /**Credential class covers the functionality about general processing about certificate/key 
  * files, including: 
@@ -272,15 +267,17 @@ class Credential {
     std::string keyfile_;
 
     // Verification context 
-    ArcLib::cert_verify_context verify_ctx_;
+    ArcCredential::cert_verify_context verify_ctx_;
 
     //Certificate structures
-    X509 *           cert_;    //cert
-    ArcLib::certType         cert_type_;
+    X509 *           cert_;    //certificate
+    ArcCredential::certType cert_type_;
     EVP_PKEY *       pkey_;    //private key
-    STACK_OF(X509) * cert_chain_;  //cert chain which is parsed from the certificate, 
-                                   //after verification, the ca certificate will be included
-    ArcLib::PROXYCERTINFO* proxy_cert_info_;
+    STACK_OF(X509) * cert_chain_;  //certificates chain which is parsed
+                                   //from the certificate, after 
+                                   //verification, the ca certificate 
+                                   //will be included
+    ArcCredential::PROXYCERTINFO* proxy_cert_info_;
     Credformat       format;
     Arc::Time        start_;
     Arc::Period      lifetime_;
