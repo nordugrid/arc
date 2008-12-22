@@ -834,20 +834,25 @@ err:
     for (int i=0; i<sk_AC_IETFATTRVAL_num(values); i++) {
       capname = sk_AC_IETFATTRVAL_value(values, i);
 
-      if (!(capname->type == V_ASN1_OCTET_STRING)) {
+      if (capname->type != V_ASN1_OCTET_STRING) {
         std::cerr<<"The IETFATTRVAL is not V_ASN1_OCTET_STRING"<<std::endl; return false;
       }
 
       std::string fqan((const char*)(capname->data), capname->length);
-      std::string str("VO=");
-      std::size_t pos = fqan.find("/",1);
-      if(pos==std::string::npos) str.append(fqan.substr(1));
-      else { 
-        std::size_t pos1 = fqan.find("/Role=");
-        if(pos1==std::string::npos) str.append(fqan.substr(1,pos-1)).append("/Group=").append(fqan.substr(pos+1));
-        else str.append(fqan.substr(1,pos-1)).append("/Group=").append(fqan.substr(pos+1, pos1-pos-1)).append(fqan.substr(pos1));
+      if(fqan[0] == '/') fqan.erase(0,1);
+      std::size_t group_pos = fqan.find("/",0);
+      std::size_t role_pos = std::string::npos;
+      if(group_pos != std::string::npos) {
+        role_pos = fqan.find("/Role=",group_pos);
+        if(role_pos == group_pos) {
+          fqan.insert(group_pos,"/Group=NULL");
+        } else {
+          fqan.insert(group_pos+1,"Group=");
+        }
       }
-      attributes.push_back(str);      
+      fqan.insert(0,"VO=");
+
+      attributes.push_back(fqan);
     }
 
     return true;
@@ -1179,6 +1184,8 @@ err:
 
   bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output) {
+
+    InitVOMSAttribute();
 
     //Search the extension
     int nid = 0;
