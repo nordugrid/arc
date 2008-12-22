@@ -10,10 +10,10 @@ VOMS_SOURCE = VOMSUtil.cpp
 endif
 
 libarccredential_ladir = $(pkgincludedir)/arclib
-libarccredential_la_HEADERS  = Credential.h $(VOMS_HEADER)
-libarccredential_la_SOURCES  = Proxycertinfo.cpp Proxycertinfo.h CertUtil.cpp CertUtil.h \
+libarccredential_la_HEADERS  = Credential.h CertUtil.h Proxycertinfo.h VOMSAttribute.h $(VOMS_HEADER)
+libarccredential_la_SOURCES  = Proxycertinfo.cpp CertUtil.cpp \
                                Credential.cpp listfunc.c listfunc.h \
-                               VOMSAttribute.cpp VOMSAttribute.h $(VOMS_SOURCE)
+                               VOMSAttribute.cpp $(VOMS_SOURCE)
 libarccredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 
