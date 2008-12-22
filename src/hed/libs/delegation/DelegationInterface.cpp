@@ -326,10 +326,12 @@ bool DelegationConsumer::Request(std::string& content) {
   return res;
 }
 
-bool DelegationConsumer::Acquire(std::string& content) {
+bool DelegationConsumer::Acquire(std::string& content, std::string& identity) {
   X509 *cert = NULL;
   STACK_OF(X509) *cert_sk = NULL;
   bool res = false;
+  char buf[100];
+  std::string subject;
 
   if(!key_) return false;
 
@@ -337,14 +339,33 @@ bool DelegationConsumer::Acquire(std::string& content) {
 
   content.resize(0);
   if(!x509_to_string(cert,content)) goto err;
+
+  X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
+  subject=buf;
+#ifdef HAVE_OPENSSL_PROXY
+  if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
+    identity=subject;
+  };
+#endif
+
   if(!x509_to_string((RSA*)key_,content)) goto err;
   if(cert_sk) {
     for(int n=0;n<sk_X509_num((STACK_OF(X509) *)cert_sk);++n) {
       X509* v = sk_X509_value((STACK_OF(X509) *)cert_sk,n);
       if(!v) goto err;
       if(!x509_to_string(v,content)) goto err;
+      if(identity.empty()) {
+        memset(buf,0,100);
+        X509_NAME_oneline(X509_get_subject_name(v),buf,sizeof(buf));
+#ifdef HAVE_OPENSSL_PROXY
+        if(X509_get_ext_by_NID(v,NID_proxyCertInfo,-1) < 0) {
+          identity=buf;
+        };
+#endif
+      };
     };
   };
+  if(identity.empty()) identity = subject;
 
   res=true;
 err:
@@ -706,7 +727,8 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SO
     // TODO: Fault
     return false;
   };
-  if(!Acquire(credentials)) return false;
+  std::string identity;
+  if(!Acquire(credentials,identity)) return false;
   NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
   out.Namespaces(ns);
   out.NewChild("deleg:UpdateCredentialsResponse");
@@ -717,7 +739,8 @@ bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,const XMLNo
   credentials = (std::string)(token["Value"]);
   if(credentials.empty()) return false;
   if(((std::string)(token.Attribute("Format"))) != "x509") return false;
-  if(!Acquire(credentials)) return false;
+  std::string identity;
+  if(!Acquire(credentials,identity)) return false;
   return true;
 }
 

@@ -44,7 +44,7 @@ class DelegationConsumer {
   bool Request(std::string& content);
   /** Ads private key into certificates chain in 'content'
      On exit content contains complete delegated credentials.  */
-  bool Acquire(std::string& content);
+  bool Acquire(std::string& content,std::string& identity);
 };
 
 /** A provider of delegated credentials.
