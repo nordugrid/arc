@@ -44,6 +44,9 @@ class DelegationConsumer {
   bool Request(std::string& content);
   /** Ads private key into certificates chain in 'content'
      On exit content contains complete delegated credentials.  */
+  bool Acquire(std::string& content);
+  /** Includes the functionality in Acquire(content); pluse extracting the 
+  *credential identity*/  
   bool Acquire(std::string& content,std::string& identity);
 };
 
@@ -96,8 +99,12 @@ class DelegationConsumerSOAP: public DelegationConsumer {
      Process 'in' SOAP message and stores full proxy credentials in 'credentials'. 
     'out' message is genarated for sending to DelagationProviderSOAP. */
   bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+  /** Includes the functionality in above UpdateCredentials method; plus extracting the
+   credential identity*/
+  bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** Similar to UpdateCredentials but takes only DelegatedToken XML element */ 
   bool DelegatedToken(std::string& credentials,const XMLNode& token);
+  bool DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token);
 };
 
 /** Extension of DelegationProvider with SOAP exchange interface. 
@@ -180,8 +187,10 @@ class DelegationContainerSOAP {
   bool DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out);
   /** See DelegationConsumerSOAP::UpdateCredentials */
   bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** See DelegationConsumerSOAP::DelegatedToken */
   bool DelegatedToken(std::string& credentials,const XMLNode& token);
+  bool DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token);
 };
 
 } // namespace Arc

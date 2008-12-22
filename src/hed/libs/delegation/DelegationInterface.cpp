@@ -326,6 +326,11 @@ bool DelegationConsumer::Request(std::string& content) {
   return res;
 }
 
+bool DelegationConsumer::Acquire(std::string& content) {
+  std::string identity;
+  return Acquire(content,identity);
+}
+
 bool DelegationConsumer::Acquire(std::string& content, std::string& identity) {
   X509 *cert = NULL;
   STACK_OF(X509) *cert_sk = NULL;
@@ -707,6 +712,11 @@ bool DelegationConsumerSOAP::DelegateCredentialsInit(const std::string& id,const
 }
 
 bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out) {
+  std::string identity;
+  return UpdateCredentials(credentials,identity,in,out);
+}
+
+bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out) {
 /*
   UpdateCredentials
     DelegatedToken - Format (=x509)
@@ -727,7 +737,6 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SO
     // TODO: Fault
     return false;
   };
-  std::string identity;
   if(!Acquire(credentials,identity)) return false;
   NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
   out.Namespaces(ns);
@@ -736,10 +745,14 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SO
 }
 
 bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
+  std::string identity;
+  return DelegatedToken(credentials,identity,token);
+}
+
+bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token) {
   credentials = (std::string)(token["Value"]);
   if(credentials.empty()) return false;
   if(((std::string)(token.Attribute("Format"))) != "x509") return false;
-  std::string identity;
   if(!Acquire(credentials,identity)) return false;
   return true;
 }
@@ -957,6 +970,11 @@ bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOA
 }
 
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out) {
+  std::string identity;
+  return UpdateCredentials(credentials,identity,in,out);
+}
+
+bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out) {
   lock_.lock();
   std::string id = (std::string)(in["UpdateCredentials"]["DelegatedToken"]["Id"]);
   ConsumerIterator i = consumers_.find(id);
@@ -966,7 +984,7 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
 
 
   };
-  bool r = i->second.deleg->UpdateCredentials(credentials,in,out);
+  bool r = i->second.deleg->UpdateCredentials(credentials,identity,in,out);
   if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
     RemoveConsumer(i);
   } else {
@@ -976,14 +994,18 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
   return r;
 }
 
-
 bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
+  std::string identity;
+  return DelegatedToken(credentials,identity,token);
+}
+
+bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token) {
   lock_.lock();
   std::string id = (std::string)(token["Id"]);
   ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
   if(!(i->second.deleg)) { lock_.unlock(); return false; };
-  bool r = i->second.deleg->DelegatedToken(credentials,token);
+  bool r = i->second.deleg->DelegatedToken(credentials,identity,token);
   if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
     RemoveConsumer(i);
   } else {
