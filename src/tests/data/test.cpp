@@ -7,7 +7,7 @@
 #include <arc/URL.h>
 #include <arc/data/DMC.h>
 #include <arc/data/DataHandle.h>
-#include <arc/loader/Loader.h>
+#include <arc/data/DMCLoader.h>
 
 int main () {
 
@@ -40,7 +40,7 @@ int main () {
     logger.msg(Arc::ERROR, "Failed to load client configuration");
     return -1;
   }
-  Arc::Loader client_loader(client_config);
+  Arc::DMCLoader client_loader(client_config);
   logger.msg(Arc::INFO, "DMCs are loaded");
 
   Arc::DataHandle dp[5] = {
