@@ -830,6 +830,10 @@ err:
     if (data->type == GEN_URI) {
       std::string voname("/voname=");
       voname.append((const char*)(data->d.ia5->data), data->d.ia5->length);
+      std::string::size_type pos = voname.find("://");
+      if(pos != std::string::npos) {
+        voname.replace(pos,3,"/hostname=");
+      }
       attributes.push_back(voname);
     }
     else {
@@ -847,6 +851,7 @@ err:
       }
 
       std::string fqan((const char*)(capname->data), capname->length);
+std::cerr<<"fqan="<<fqan<<std::endl;
       if(fqan[0] == '/') fqan.erase(0,1);
       std::size_t group_pos = fqan.find("/",0);
       std::size_t role_pos = std::string::npos;
@@ -906,7 +911,7 @@ err:
   }
 
   static bool interpret_attributes(AC_FULL_ATTRIBUTES *full_attr, std::vector<std::string>& attributes) {
-    std::string name, value, qualifier, grantor;
+    std::string name, value, qualifier, grantor, voname, uri;
     GENERAL_NAME *gn = NULL;
     STACK_OF(AC_ATT_HOLDER) *providers = NULL;
     int i;
@@ -922,6 +927,13 @@ err:
       if(grantor.empty()) {
         CredentialLogger.msg(ERROR,"VOMS: the grantor attribute is empty");
         return false;
+      }
+      std::string::size_type pos = grantor.find("://");
+      if(pos == std::string::npos) {
+        voname = grantor; uri="NULL";
+      } else {
+        voname = grantor.substr(0,pos);
+        uri = grantor.substr(pos+3);
       }
 
       for (int j = 0; j < sk_AC_ATTRIBUTE_num(atts); j++) {
@@ -943,8 +955,13 @@ err:
           CredentialLogger.msg(ERROR,"VOMS: the attribute qualifier is empty");
           return false;
         }
+std::cerr<<"provider attribute:\ngrantor="<<grantor<<"\nvoname="<<voname<<"\nuri="<<uri<<"\nname="<<name<<"\nvalue="<<value<<"\nqualifier="<<qualifier<<std::endl;
 
-        attribute.append("/grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
+        //attribute.append("/grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
+        attribute.append("/voname=").append(voname).
+                  append("/hostname=").append(uri).
+                  append("/").append(qualifier).append(":").append(name).
+                  append("=").append(value);
         attributes.push_back(attribute);
       }
       grantor.clear();
