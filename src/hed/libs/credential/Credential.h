@@ -47,6 +47,9 @@ class CredentialError : public std::runtime_error {
 
 typedef enum {PEM, DER, PKCS, UNKNOWN} Credformat;
 
+/**Logger to be used by all modules of credentials library*/
+extern Logger CredentialLogger;
+
 class Credential {
   public:
     /**Default constructor, only acts as a container for inquiring certificate request,
@@ -99,9 +102,7 @@ class Credential {
 
     /**General method for adding a new nid into openssl's global const*/
     void AddCertExtObj(std::string& sn, std::string& oid);
-
   private:
-    static Arc::Logger credentialLogger;
 
     /**load key from argument keybio, and put key information into argument pkey */
     void loadKey(BIO* &keybio, EVP_PKEY* &pkey, const std::string& passphrase = "");

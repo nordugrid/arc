@@ -850,7 +850,7 @@ err:
           fqan.insert(group_pos+1,"Group=");
         }
       }
-      fqan.insert(0,"VO=");
+      fqan.insert(0,"/VO=");
 
       attributes.push_back(fqan);
     }
