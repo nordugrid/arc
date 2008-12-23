@@ -69,7 +69,7 @@ namespace Arc {
     }
   }
 
-  std::string RegularExpression::getPattern() {
+  std::string RegularExpression::getPattern() const {
     return pattern;
   }
 

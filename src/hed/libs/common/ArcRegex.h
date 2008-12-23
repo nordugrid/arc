@@ -44,7 +44,7 @@ namespace Arc {
     bool match(const std::string& str,std::list<std::string>& unmatched, std::list<std::string>& matched) const;
     
     //! Returns patter 
-    std::string getPattern();
+    std::string getPattern() const;
 
   private:
     std::string pattern;
