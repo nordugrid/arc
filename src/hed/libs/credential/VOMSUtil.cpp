@@ -851,7 +851,6 @@ err:
       }
 
       std::string fqan((const char*)(capname->data), capname->length);
-std::cerr<<"fqan="<<fqan<<std::endl;
       if(fqan[0] == '/') fqan.erase(0,1);
       std::size_t group_pos = fqan.find("/",0);
       std::size_t role_pos = std::string::npos;
@@ -955,8 +954,6 @@ std::cerr<<"fqan="<<fqan<<std::endl;
           CredentialLogger.msg(ERROR,"VOMS: the attribute qualifier is empty");
           return false;
         }
-std::cerr<<"provider attribute:\ngrantor="<<grantor<<"\nvoname="<<voname<<"\nuri="<<uri<<"\nname="<<name<<"\nvalue="<<value<<"\nqualifier="<<qualifier<<std::endl;
-
         //attribute.append("/grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
         attribute.append("/voname=").append(voname).
                   append("/hostname=").append(uri).
