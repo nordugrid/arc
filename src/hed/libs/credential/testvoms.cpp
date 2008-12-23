@@ -92,6 +92,7 @@ int main(void) {
   std::string out_file_ac("./out_withac.pem");
 
   //The voms server is not supposed to generate rfc proxy?
+  //no, voms server can only generate proxy with "CN=proxy", AFAIK
   //The current voms code is not supposed to parsing proxy with "CN=336628850"?
   Arc::Credential request(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);
   request.GenerateRequest(req_file_ac.c_str());
