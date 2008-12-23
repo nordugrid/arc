@@ -1,25 +1,26 @@
-% This file was converted to LaTeX by Writer2LaTeX ver. 0.5
+% This file was converted to LaTeX by Writer2LaTeX ver. 0.9.3
 % see http://www.hj-gym.dk/~hj/writer2latex for more info
-\documentclass{article}
+\documentclass[a4paper]{article}
 \usepackage[ascii]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish,english]{babel}
-\usepackage{amsmath,amssymb,amsfonts,textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb,amsfonts,textcomp}
 \usepackage{color}
 \usepackage{array}
 \usepackage{supertabular}
 \usepackage{hhline}
 \usepackage{hyperref}
-\hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, pagecolor=blue, urlcolor=blue, pdftitle=, pdfauthor=qiangwz, pdfsubject=, pdfkeywords=}
+\hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, urlcolor=blue, pdftitle=, pdfauthor=Aleksandr Konstantinov, pdfsubject=, pdfkeywords=}
 \usepackage[pdftex]{graphicx}
 % Text styles
 \newcommand\textstyleInternetlink[1]{\textcolor[rgb]{0.0,0.0,0.5019608}{#1}}
 % Outline numbering
 \setcounter{secnumdepth}{4}
-\renewcommand\thesection{\arabic{section}.}
-\renewcommand\thesubsection{\arabic{subsection}.}
-\renewcommand\thesubsubsection{\arabic{subsection}.\arabic{subsubsection}.}
-\renewcommand\theparagraph{\arabic{subsection}.\arabic{subsubsection}.\arabic{paragraph}.}
+\renewcommand\thesection{\arabic{section}}
+\renewcommand\thesubsection{\arabic{subsection}}
+\renewcommand\thesubsubsection{\arabic{subsection}.\arabic{subsubsection}}
+\renewcommand\theparagraph{\arabic{subsection}.\arabic{subsubsection}.\arabic{paragraph}}
 \makeatletter
 \newcommand\arraybslash{\let\\\@arraycr}
 \makeatother
@@ -168,7 +169,7 @@
 \renewcommand\labelenumiii{\theenumiii.}
 \renewcommand\labelenumiv{\theenumiv.}
 }
-\newcommand\liststyleLi{%
+\newcommand\liststyleLii{%
 \renewcommand\theenumi{\arabic{enumi}}
 \renewcommand\theenumii{\arabic{enumii}}
 \renewcommand\theenumiii{\arabic{enumiii}}
@@ -179,8 +180,6 @@
 \renewcommand\labelenumiv{\theenumiv.}
 }
 % Page layout (geometry)
-\setlength\paperwidth{8.2673in}
-\setlength\paperheight{11.6925in}
 \setlength\voffset{-1in}
 \setlength\hoffset{-1in}
 \setlength\topmargin{1in}
@@ -218,6 +217,8 @@
 \newcounter{Figure}
 \renewcommand\theFigure{\arabic{Figure}}
 \title{}
+\author{Aleksandr Konstantinov}
+\date{2008-12-23}
 \begin{document}
 \begin{flushleft}
 \tablehead{}\begin{supertabular}{m{1.3809599in}m{2.0976598in}}
@@ -273,7 +274,7 @@ Table of Contents
 \bigskip
 
 \bigskip
-\clearpage\clearpage\setcounter{page}{1}\pagestyle{Convertv}
+\clearpage\clearpage\pagestyle{Convertv}
 
 \bigskip
 
@@ -569,8 +570,9 @@ detail information about request schema and policy schema.}
 The Delegation PDP is basically similar to Arc PDP, except it uses the
 delegation policy parsed from remote proxy credential by
 \textit{delegation.collector}, and evaluates the request against
-delegation policy. See section 6for the design idea and use case of
-delegation policy in fine-grained identity delegation.}
+delegation policy. See section \ref{bkm:Ref204009393}for the design
+idea and use case of delegation policy in fine-grained identity
+delegation.}
 
 \liststyleWWviiiNumxiii
 \begin{itemize}
@@ -686,37 +688,37 @@ multiplicity of elements)}
 Policy (1)}
 
 {\selectlanguage{english}\itshape\color{black}
- Rule (1-)}
+\ \ Rule (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-  Subjects (1)}
+\ \ \ \ Subjects (1)}
 
 {\selectlanguage{english}\itshape\color{black}
-   Subject (1-)}
+\ \ \ \ \ \ Subject (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-    Attribute (1-)}
+\ \ \ \ \ \ \ \ Attribute (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-   Resources (0-1)}
+\ \ \ \ \ \ Resources (0-1)}
 
 {\selectlanguage{english}\itshape\color{black}
-   Resource (1-)}
+\ \ \ \ \ \ Resource (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-  Actions (0-1)}
+\ \ \ \ Actions (0-1)}
 
 {\selectlanguage{english}\itshape\color{black}
-   Action (1-)}
+\ \ \ \ \ \ Action (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-  Conditions (0-1)}
+\ \ \ \ Conditions (0-1)}
 
 {\selectlanguage{english}\itshape\color{black}
-   Condition (1-)}
+\ \ \ \ \ \ Condition (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-    Attribute (1-)}
+\ \ \ \ \ \ \ \ Attribute (1-)}
 
 {\selectlanguage{english}\upshape\color{black}
 The schema for ARC Request is available at \ }
@@ -733,25 +735,25 @@ multiplicity of elements)}
 Request (1)}
 
 {\selectlanguage{english}\itshape\color{black}
- RequestItem (1-)}
+\ \ RequestItem (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-  Subject (1-)}
+\ \ \ \ Subject (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-   SubjectAttribute (1-)}
+\ \ \ \ \ \ SubjectAttribute (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-  Resource (0-)}
+\ \ \ \ Resource (0-)}
 
 {\selectlanguage{english}\itshape\color{black}
-  Action (0-)}
+\ \ \ \ Action (0-)}
 
 {\selectlanguage{english}\itshape\color{black}
-  Context (0-)}
+\ \ \ \ Context (0-)}
 
 {\selectlanguage{english}\itshape\color{black}
-   ContextAttribute (1-)}
+\ \ \ \ \ \ ContextAttribute (1-)}
 
 {\selectlanguage{english}\upshape\color{black}
 The schema for ARC Response is available at}
@@ -765,79 +767,84 @@ The ARC Response is not used directly in code. It is in use by PDP
 Service which provides remote evaluation of policies. }
 
 \subsubsection{Basic Elements of Policy}
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 There are 2 basic objects - {\textquotedbl}policy{\textquotedbl} and
 {\textquotedbl}request{\textquotedbl}. There is 1 main actor -
 Evaluator. Curretly there are two types of elements in policy: Policy
 and Rule. Policy element is made of Rule elements.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Evaluator matches request to policy and produces one of 4 following
 results:}
 
 \liststyleWWviiiNumxxi
 \begin{itemize}
 \item {\selectlanguage{english}\color{black}
-\textbf{PERMIT} - policy explicitely permits activity specified in
-request because request matches some part of policy and corresponding
-effect specified in policy is PERMIT. }
+\foreignlanguage{english}{\textbf{PERMIT}}\foreignlanguage{english}{ -
+policy explicitely permits activity specified in request because
+request matches some part of policy and corresponding effect specified
+in policy is PERMIT. }}
 \end{itemize}
-{\bfseries\itshape\color{black}
+{\selectlanguage{english}\bfseries\itshape\color{black}
 Example: }
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{\ \ \ \ \ \ }}\textbf{\textit{Rule: }}\textit{PERMIT
-person ALICE to PLAY in place called WONDERLAND}}
+\foreignlanguage{english}{\textbf{\textit{\ \ \ \ \ \ Rule:
+}}}\foreignlanguage{english}{\textit{PERMIT person ALICE to PLAY in
+place called WONDERLAND}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{\ \ \ \ \ \ }}\textbf{\textit{Request: }}\textit{person
-ALICE wants to PLAY in place called WONDERLAND}}
+\foreignlanguage{english}{\textbf{\textit{\ \ \ \ \ \ Request:
+}}}\foreignlanguage{english}{\textit{person ALICE wants to PLAY in
+place called WONDERLAND}}}
 
 \liststyleWWviiiNumxxi
 \begin{itemize}
 \item {\selectlanguage{english}\color{black}
-\textbf{DENY} - policy explicitely denies activity specified in Request
-because Request matches some part of policy and corresponding effect
-specified in policy is DENY.}
+\foreignlanguage{english}{\textbf{DENY}}\foreignlanguage{english}{ -
+policy explicitely denies activity specified in Request because Request
+matches some part of policy and corresponding effect specified in
+policy is DENY.}}
 \end{itemize}
-{\bfseries\itshape\color{black}
+{\selectlanguage{english}\bfseries\itshape\color{black}
 Example:}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{\ \ \ \ \ \ }}\textbf{\textit{Rule: DENY }}\textit{fruit
-APPLE to GROW on PEACH tree}}
+\foreignlanguage{english}{\textbf{\textit{\ \ \ \ \ \ Rule: DENY
+}}}\foreignlanguage{english}{\textit{fruit APPLE to GROW on PEACH
+tree}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{\ \ \ \ \ \ }}\textbf{\textit{Request}}\textit{: fruit
-APPLE to be GROWN on PEACH tree}}
+\foreignlanguage{english}{\textbf{\textit{\ \ \ \ \ \ Request}}}\foreignlanguage{english}{\textit{:
+fruit APPLE to be GROWN on PEACH tree}}}
 
 \liststyleWWviiiNumxxi
 \begin{itemize}
 \item {\selectlanguage{english}\color{black}
-\textbf{INDETERMINATE} - request has some part which does not correspond
-to policy.}
+\foreignlanguage{english}{\textbf{INDETERMINATE}}\foreignlanguage{english}{
+- request has some part which does not correspond to policy.}}
 \end{itemize}
-{\bfseries\itshape\color{black}
+{\selectlanguage{english}\bfseries\itshape\color{black}
 Example: }
 
 {\selectlanguage{english}\upshape\color{black}
-\textit{\ \ \ \ \ \ }\textbf{\textit{Rule}}\textit{: DENY fruit APPLE to
-GROW on PEACH tree}}
+\foreignlanguage{english}{\textit{\ \ \ \ \ \ }}\foreignlanguage{english}{\textbf{\textit{Rule}}}\foreignlanguage{english}{\textit{:
+DENY fruit APPLE to GROW on PEACH tree}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textit{\ \ \ \ \ \ }\textbf{\textit{Request}}\textit{: fruit APPLE to
-be GROWN on WHEAT ground}}
+\foreignlanguage{english}{\textit{\ \ \ \ \ \ }}\foreignlanguage{english}{\textbf{\textit{Request}}}\foreignlanguage{english}{\textit{:
+fruit APPLE to be GROWN on WHEAT ground}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textit{\ \ \ \ \ \ }\textbf{\textit{Request}}\textit{: flower SUNFLOWER
-to be grown on PEACH tree}}
+\foreignlanguage{english}{\textit{\ \ \ \ \ \ }}\foreignlanguage{english}{\textbf{\textit{Request}}}\foreignlanguage{english}{\textit{:
+flower SUNFLOWER to be grown on PEACH tree}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{Explaination}}: Here, it is not possible to obtain any
-matching result - neither positive (DENY or PERMIT) nor negative
-(NOT\_APPLICABLE, see below)}
+\foreignlanguage{english}{\textbf{\textit{Explaination}}}\foreignlanguage{english}{:
+Here, it is not possible to obtain any matching result - neither
+positive (DENY or PERMIT) nor negative (NOT\_APPLICABLE, see below)}}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 In the request, the {\textquotedbl}ground{\textquotedbl} is completely
 uncomparable to the {\textquotedbl}tree{\textquotedbl} in policy. One
 can compare {\textquotedbl}PEACH tree{\textquotedbl} and
@@ -847,12 +854,12 @@ can compare {\textquotedbl}PEACH tree{\textquotedbl} and
 ground{\textquotedbl} becaue they of different kind (Policy is about
 tree and Request is about ground).}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 In a similar way one can{\textquotesingle}t compare {\textquotedbl}fruit
 APPLE{\textquotedbl} and {\textquotedbl}flower SUNFLOWER{\textquotedbl}
 (here policy is about fruits and Request is about flower).}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Any other situation which makes it impossibile to compare two attributes
 will also cause {\textquotedbl}INDETERMINATE{\textquotedbl}.}
 
@@ -862,51 +869,53 @@ will also cause {\textquotedbl}INDETERMINATE{\textquotedbl}.}
 \liststyleWWviiiNumxxi
 \begin{itemize}
 \item {\selectlanguage{english}\color{black}
-\textbf{NOT\_APPLICABLE} - all parts of the Request have corresponding
-parts in the Policy, but some value of those parts are not the same.
-Hence request does not match policy.}
+\foreignlanguage{english}{\textbf{NOT\_APPLICABLE}}\foreignlanguage{english}{
+- all parts of the Request have corresponding parts in the Policy, but
+some value of those parts are not the same. Hence request does not
+match policy.}}
 \end{itemize}
-{\bfseries\itshape\color{black}
+{\selectlanguage{english}\bfseries\itshape\color{black}
 Example:}
 
 {\selectlanguage{english}\upshape\color{black}
-\textit{\ \ \ \ \ \ }\textbf{\textit{Rule}}\textit{: DENY fruit APPLE to
-GROW on PEACH tree}}
+\foreignlanguage{english}{\textit{\ \ \ \ \ \ }}\foreignlanguage{english}{\textbf{\textit{Rule}}}\foreignlanguage{english}{\textit{:
+DENY fruit APPLE to GROW on PEACH tree}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textit{\ \ \ \ \ \ }\textbf{\textit{Request}}\textit{: fruit APPLE to
-be GROWN on APPLE tree }}
+\foreignlanguage{english}{\textit{\ \ \ \ \ \ }}\foreignlanguage{english}{\textbf{\textit{Request}}}\foreignlanguage{english}{\textit{:
+fruit APPLE to be GROWN on APPLE tree }}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textit{\ \ \ \ \ \ }\textbf{\textit{Request}}\textit{: fruit ORANGE to
-be GROWN on PEACH tree }}
+\foreignlanguage{english}{\textit{\ \ \ \ \ \ }}\foreignlanguage{english}{\textbf{\textit{Request}}}\foreignlanguage{english}{\textit{:
+fruit ORANGE to be GROWN on PEACH tree }}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textit{\ \ \ \ \ \ }\textbf{\textit{Request}}\textit{: fruit ORANGE to
-be GROWN on APPLE tree }}
+\foreignlanguage{english}{\textit{\ \ \ \ \ \ }}\foreignlanguage{english}{\textbf{\textit{Request}}}\foreignlanguage{english}{\textit{:
+fruit ORANGE to be GROWN on APPLE tree }}}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Explanation: for each part of the Request evaluator can find relevant
 part in the Policy - both Policy and Request are about fruit and tree.
 But the values do not match.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 If it is required to reduce evaluation results to boolean value PERMIT
 maps to TRUE and rest of results to FALSE.}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{Note}}\textit{: It would be useful to make it possible
-to specify secondary effect which would become }active in case Request
-is NOT\_APPLICABLE. For example:}
+\foreignlanguage{english}{\textbf{\textit{Note}}}\foreignlanguage{english}{\textit{:
+It would be useful to make it possible to specify secondary effect
+which would become }}\foreignlanguage{english}{active in case Request
+is NOT\_APPLICABLE. For example:}}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 But one should be careful because example above would allow fruit PLUMS
 to grow on APPLE trees :)}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 This kind of requirement can be supported by using the algorithm between
 policies. \ For example, in case of above scenario, we can use some
 algorithm like {\textquotedbl}Permit-if-notapplicable{\textquotedbl}.
@@ -914,7 +923,7 @@ See below the {\textquotedbl}Policy matching{\textquotedbl} part for
 more explaination. \ }
 
 \subsubsection{Policy MAtching}
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 Policy is made of Rule elements. Request is evaluated against each Rule.
 Each evaluation produces same results as policy evaluation described
 above. The results from all Rules are then combined in order to produce
@@ -924,72 +933,72 @@ in Policy. There are 26 algorithms currently:}
 \liststyleWWviiiNumxxi
 \begin{itemize}
 \item {\selectlanguage{english}\color{black}
-\textbf{\textit{Deny-Overrides}} - this is default if no algorithm
-specified.}
+\foreignlanguage{english}{\textbf{\textit{Deny-Overrides}}}\foreignlanguage{english}{
+- this is default if no algorithm specified.}}
 
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If there is at least one DENY in results final result is DENY.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one PERMIT, the final result is PERMIT.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one NOT\_APPLICABLE final result is
 NOT\_APPLICABLE.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise final result is INDETERMINATE.}
 \end{itemize}
 \end{itemize}
-{\selectlanguage{english}\upshape\color{black}
-\textbf{NOTE}\textbf{: CHECK if algorithm description is correct}}
+{\selectlanguage{english}\bfseries\color{black}
+NOTE: CHECK if algorithm description is correct}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Special case is Policy wih no rules. Probably such policy shoudl be
 treated as always producing DENY.}
 
-{\bfseries\color{black}
+{\selectlanguage{english}\bfseries\color{black}
 Discussion}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 If there is no Rule under Policy, it means no restriction from this
 Policy, what exactly shoud the Policy give? DENY or NOT\_APPLICABLE?}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 It seems to be more logical to produce INDETERMINATE because there is no
 rule with elements which could be compared to request.}
 
 \liststyleWWviiiNumxxi
 \begin{itemize}
-\item {\bfseries\itshape\color{black}
+\item {\selectlanguage{english}\bfseries\itshape\color{black}
 Permit-Overrides.}
 
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If there is at least one PERMIT in results final result is PERMIT.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one DENY the final result is DENY.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one NOT\_APPLICABLE final result is
 NOT\_APPLICABLE.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise final result is INDETERMINATE.}
 \end{itemize}
 \end{itemize}
-{\color{black}
+{\selectlanguage{english}\color{black}
 Special case is Policy wih no rules. Probably such policy should be
 treated as always producing DENY.}
 
-{\bfseries\color{black}
+{\selectlanguage{english}\bfseries\color{black}
 NOTE: CHECK if algorithm description is correct}
 
-{\bfseries\color{black}
+{\selectlanguage{english}\bfseries\color{black}
 Discussion}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 Question? The same as above.}
 
 \liststyleWWviiiNumxxi
 \begin{itemize}
-\item {\bfseries\itshape\color{black}
+\item {\selectlanguage{english}\bfseries\itshape\color{black}
 Ordered algorithms.}
 \end{itemize}
 {\selectlanguage{english}\color{black}
@@ -1001,25 +1010,25 @@ combined in following way:}
 \liststyleWWviiiNumxxi
 \begin{itemize}
 \item \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If there is at least one result of Result1 type then final result is
 Result1.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one result of Result2 type then final
 result is Result2.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one result of Result3 type then final
 result is Result3.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise final result is Result4.}
 \end{itemize}
 \end{itemize}
-{\color{black}
+{\selectlanguage{english}\color{black}
 There are 24 possible combinations of those algorithms.}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{Note:} It would be useful to have more combining algorithms. For
-example }
+\foreignlanguage{english}{\textbf{Note:}}\foreignlanguage{english}{ It
+would be useful to have more combining algorithms. For example }}
 
 \liststyleWWviiiNumxxi
 \begin{itemize}
@@ -1030,11 +1039,11 @@ this case there is only one Rule under Policy, and this Rule is with
 {\textquotedbl}Deny{\textquotedbl} effect. }
 
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If this Rule gives DENY in results, final result is DENY.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if this Rule gives NOT\_APPLICABLE, final result is PERMIT.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise final result is INDETERMINATE. }
 \end{itemize}
 \item {\selectlanguage{english}\color{black}
@@ -1044,70 +1053,70 @@ collecting different policies from a few sources, and we want the
 request to satisfy all of them.}
 
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If all of the Rule give PERMIT, the final result is PERMIT.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one DENY the final result is DENY.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is at least one NOT\_APPLICABLE final result is
 NOT\_APPLICABLE.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise final result is INDETERMINATE.}
 \end{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 OnlyOneApplicable}
 
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If there is one gives INDETERMINATE, final result INDETERMINATE is given
 immediately.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is exactly only one gives applicable result (DENY or
 PERMIT), final result is as this result.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if there is more than one gives applicable result, final
 result is INDTERMINATE.}
 \item {\selectlanguage{english}\color{black}
 Otherwise final result is NOT\_APPLICABLE.}
 \end{itemize}
 \end{itemize}
-{\color{black}
+{\selectlanguage{english}\color{black}
 This algorithm makes sure that only one Rule is selected when making
 decision.}
 
 \liststyleWWviiiNumxvii
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 FirstApplicable}
 
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If there is one give DENY, PERMIT or INDETERMINATE result, final result
 is given immediately as this result.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise final result is NOT\_APPLICABLE.}
 \end{itemize}
 \end{itemize}
 \subsubsection{Request Structure}
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 Request is made of RequestItem elements. Each RequestItem is evaluated
 against Policy Rule and for each evaluation separate result is
 generated as described above.RequestItem is made of 4 elements:}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Subject - represents entity requesting specified action}
 
 \liststyleWWviiiNumxix
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Resource - destination/object of the action}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Action - specifies what has to be done on resource}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Context - for additional information which does not fit anywhere else,
 like the current time.}
 \end{itemize}
-{\color{black}
+{\selectlanguage{english}\color{black}
 Effectively RequestItem may have only one Subject, one Resource, one
 Action and one Context. If there are more than one element of any kind
 of sub-elelemt, then in the evaluator this RequestItem is split into
@@ -1115,172 +1124,172 @@ several items containing all possible permutations and results are
 obtained for every item separately. How results are combined will be
 explained later.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Additionally Subject could contain sub-elements SubjectAttribute. Those
 are meant to represent different kinds of requesters{\textquotesingle}
 identities. Example:}
 
 \liststyleWWviiiNumxviii
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Subject}
 
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 SubjectAttribute: name is ALICE}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 SubjectAttribute: age is YOUNG}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 SubjectAttribute: gender is GIRL}
 \end{itemize}
 \end{itemize}
-{\color{black}
+{\selectlanguage{english}\color{black}
 Context could also be made of ContextAttribute elements in the same way
 as Subject.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 The following is an example of the Request:}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 {\textless}Request
 xmlns={\textquotedbl}http://www.nordugrid.org/schemas/request-arc{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}RequestItem{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}RequestItem{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}SubjectAttribute
-AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/SubjectAttribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}SubjectAttribute
+AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/SubjectAttribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}SubjectAttribute
-AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/SubjectAttribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}SubjectAttribute
+AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/SubjectAttribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}/Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Subject
-AttributeId={\textquotedbl}urn:knowarc:shibboleth:attribute{\textquotedbl}{\textgreater}member{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Subject
+AttributeId={\textquotedbl}urn:knowarc:shibboleth:attribute{\textquotedbl}{\textgreater}member{\textless}/Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Action
-AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Action
+AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Resource
-AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Resource
+AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Context
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Context
 AttributeId={\textquotedbl}urn:knowarc:time{\textquotedbl}
-Type={\textquotedbl}time{\textquotedbl}{\textgreater}2008-09-15T20:30:20{\textless}/Context{\textgreater}}}
+Type={\textquotedbl}time{\textquotedbl}{\textgreater}2008-09-15T20:30:20{\textless}/Context{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}/RequestItem{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}/RequestItem{\textgreater}}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 {\textless}/Request{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 While evaluating this RequestItem will be split into two RequestItems:}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 {\textless}Request
 xmlns={\textquotedbl}http://www.nordugrid.org/schemas/request-arc{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}RequestItem{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}RequestItem{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}SubjectAttribute
-AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/SubjectAttribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}SubjectAttribute
+AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/SubjectAttribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}SubjectAttribute
-AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/SubjectAttribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}SubjectAttribute
+AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/SubjectAttribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}/Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Action
-AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Action
+AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Resource
-AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Resource
+AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Context
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Context
 AttributeId={\textquotedbl}urn:knowarc:time{\textquotedbl}
-Type={\textquotedbl}time{\textquotedbl}{\textgreater}2008-09-15T20:30:20{\textless}/Context{\textgreater}}}
+Type={\textquotedbl}time{\textquotedbl}{\textgreater}2008-09-15T20:30:20{\textless}/Context{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}/RequestItem{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}/RequestItem{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}RequestItem{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}RequestItem{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Subject
-AttributeId={\textquotedbl}urn:knowarc:shibboleth:attribute{\textquotedbl}{\textgreater}member{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Subject
+AttributeId={\textquotedbl}urn:knowarc:shibboleth:attribute{\textquotedbl}{\textgreater}member{\textless}/Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Action
-AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Action
+AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Resource
-AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Resource
+AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Context
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Context
 AttributeId={\textquotedbl}urn:knowarc:time{\textquotedbl}
-Type={\textquotedbl}time{\textquotedbl}{\textgreater}2008-09-15T20:30:20{\textless}/Context{\textgreater}}}
+Type={\textquotedbl}time{\textquotedbl}{\textgreater}2008-09-15T20:30:20{\textless}/Context{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}/RequestItem{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}/RequestItem{\textgreater}}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 {\textless}/Request{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 The following means this Subject possesses both of these Attributes.}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Subject{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}SubjectAttribute
+AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/SubjectAttribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}SubjectAttribute
+AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/SubjectAttribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}/Subject{\textgreater}}
 
 {\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}SubjectAttribute
-AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/SubjectAttribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}SubjectAttribute
-AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/SubjectAttribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}/Subject{\textgreater}}}
-
-{\color{black}
 However, the following means two Subject each of which possesses one
 Attribute.}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Subject
-AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Subject
+AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Subject{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Subject
+AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Subject{\textgreater}}
 
 {\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Subject
-AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Subject{\textgreater}}}
-
-{\color{black}
 The {\textquotedbl}Type{\textquotedbl} xml-attribute is for
 distinguishing how to process the xml-node value, which is critical
 when evaluate two value from request side and policy side because
@@ -1292,42 +1301,42 @@ is {\textquotedbl}equal{\textquotedbl}, which will be explained later),
 each letters of these two values will be compared one by one when
 evaluating them.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 The {\textquotedbl}AttributeId{\textquotedbl} xml-attribute is for
 evaluator to find the Attribute with AttributeId from the request side
 which corresponds to the Attribute with the same AttributeId on the
 policy side. Only if two Attributes{\textquotesingle} AttributeId are
 equal, the evaluator will then compare the value.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Each RequestItem will be sequencialy and independently evaluated against
 policy/policies. So for one Request (including few RequestItems), some
 RequestItem could get positive evaluation result (PERMIT) from policy
 engine, others could get negative evaluation result (DENY,
 NOT\_APPLICABLE, INDETERMINATE).}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 It is up to policy decision point to make final decision according to
 the evaluation results returned by evaluator, and the evaluator itself
 can not give this kind of final decision.}
 
-{\selectlanguage{english}\upshape\color{black}
-\textbf{NOTE: This probably should be changed because evaluator is fed
-with complete policy and complete request. Hence it is illogical that
-it retu}\textbf{rns multiple decisions.}}
+{\selectlanguage{english}\bfseries\color{black}
+NOTE: This probably should be changed because evaluator is fed with
+complete policy and complete request. Hence it is illogical that it
+returns multiple decisions.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Basically the policy decision point will feed policy engine with
 request, get back evaluation results, }
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 and make final decision.}
 
 
 \bigskip
 
 \subsubsection{Rule Composition and Matching}
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 Policy rule is made of 4 elements - Subjects, Resources, Actions,
 Conditions (See the following example). Those are only used to group
 multiple elements Subject, Resource, Action, Condition. For instance,
@@ -1335,10 +1344,10 @@ you can merge two Rules with the same Resources, Actions, Conditions,
 and the same {\textquotedbl}Effect{\textquotedbl} but different
 Subjects into one Rule.}
 
-{\selectlanguage{english}\upshape\color{black}
-\textbf{NOTE: That is strange. Why do we need }\textbf{Rule at all?}}
+{\selectlanguage{english}\bfseries\color{black}
+NOTE: That is strange. Why do we need Rule at all?}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 There is no logical relationship between Subject, which means you can
 split one Rule into two Subject (under Subjects) into two Rule (each of
 which has one Subject (under Subjects)).From now only later ones
@@ -1353,233 +1362,245 @@ possible results are produced:}
 
 \liststyleWWviiiNumxx
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 MATCHED - element from RequestItem matched element in Policy Rule.
 Example:}
 \end{itemize}
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{RequestItem Resource}}\textit{: place called
-WONDERLAND}}
+\foreignlanguage{english}{\textbf{\textit{RequestItem
+Resource}}}\foreignlanguage{english}{\textit{: place called
+WONDERLAND}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{PolicyItem Resource}}\textit{: place called WONDERLAND}}
+\foreignlanguage{english}{\textbf{\textit{PolicyItem
+Resource}}}\foreignlanguage{english}{\textit{: place called
+WONDERLAND}}}
 
 \liststyleWWviiiNumxx
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 NOT MATCHED - element from RequestItem did not match element in Policy
 Rule. Example:}
 \end{itemize}
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{RequestItem Resource}}\textit{: place called
-WONDERLAND}}
+\foreignlanguage{english}{\textbf{\textit{RequestItem
+Resource}}}\foreignlanguage{english}{\textit{: place called
+WONDERLAND}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{PolicyItem Resource}}\textit{: place called PLAYGROUND}}
+\foreignlanguage{english}{\textbf{\textit{PolicyItem
+Resource}}}\foreignlanguage{english}{\textit{: place called
+PLAYGROUND}}}
 
 \liststyleWWviiiNumxx
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 INDETERMINATE- element from RequestItem could not be compared to element
 in Policy \ Rule because they are of incompatible ids/belong to
 different namespaces. Example:}
 \end{itemize}
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{RequestItem Resource}}\textit{: place called WONDERLAND
-(with namespace {\textquotedbl}place{\textquotedbl})}}
+\foreignlanguage{english}{\textbf{\textit{RequestItem
+Resource}}}\foreignlanguage{english}{\textit{: place called WONDERLAND
+(with namespace {\textquotedbl}place{\textquotedbl})}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{PolicyItem Resource}}\textit{: LEMON tree (with
-namespace {\textquotedbl}tree{\textquotedbl})}}
+\foreignlanguage{english}{\textbf{\textit{PolicyItem
+Resource}}}\foreignlanguage{english}{\textit{: LEMON tree (with
+namespace {\textquotedbl}tree{\textquotedbl})}}}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 The produced results then combined to produce final 4 types of results
 in following way:}
 
 \liststyleWWviiiNumxx
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 If for every element in RequestItem there is at least one MATCHED result
 then result for this Policy Rule is as specified in the corresponding
 Effect (Deny or Permit).}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise if for every element in RequestItem there is at least one gets
 INDETERMINATE result then result for Policy Rule is INDETERMINATE.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Otherwise result is NOT\_APPLICABLE.}
 \end{itemize}
-{\color{black}
+{\selectlanguage{english}\color{black}
 Special case is then RequestItem does not have the element(s) of some
 kind (Subject, Action, Resource or Context/Condition). If there are
 elements of corresponding kind in the Policy Rule then such situation
 should be considered as INDETERMINATE.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 The following is an example of the Policy:}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 {\textless}Policy
 xmlns={\textquotedbl}http://www.nordugrid.org/schemas/policy-arc{\textquotedbl}
 CombiningAlg={\textquotedbl}Permit-Overrides{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}Rule
-Effect={\textquotedbl}Permit{\textquotedbl}{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}Rule
+Effect={\textquotedbl}Permit{\textquotedbl}{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}Subjects{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}Subjects{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Attribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Attribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Attribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Attribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject
-AttributeId={\textquotedbl}urn:knowarc:shibboleth:attribute{\textquotedbl}{\textgreater}member{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject
+AttributeId={\textquotedbl}urn:knowarc:shibboleth:attribute{\textquotedbl}{\textgreater}member{\textless}/Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}/Subjects{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}/Subjects{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}Actions{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}Actions{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Action
-AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Action
+AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Read{\textless}/Action{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Action
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Action
 AttributeId={\textquotedbl}urn:knowarc:fileoperation{\textquotedbl}{\textgreater}Delete{\textless}/Action{\textgreater}
-\ \ }}
+\ \ }
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}/Actions{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}/Actions{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}Resources{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}Resources{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Resource
-AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textquotedbl}{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Resource
+AttributeId={\textquotedbl}urn:knowarc:fileidentity{\textquotedbl}{\textgreater}file:///home/test{\textless}/Resource{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}/Resources{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}/Resources{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}Conditions{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}Conditions{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ }\textit{{\textless}Condition
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ {\textless}Condition
 AttributeId={\textquotedbl}urn:knowarc:period{\textquotedbl}
 Type={\textquotedbl}period{\textquotedbl}
-Function={\textquotedbl}Inrange{\textquotedbl}{\textgreater}2008-09-10T20:30:20/P1Y1M{\textless}/Condition{\textgreater}}}
+Function={\textquotedbl}Inrange{\textquotedbl}{\textgreater}2008-09-10T20:30:20/P1Y1M{\textless}/Condition{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ }\textit{{\textless}/Conditions{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ {\textless}/Conditions{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}/Rule{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}/Rule{\textgreater}}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 {\textless}/Policy{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 For the Subject which includes two Attributes in this example:}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Subject{\textgreater}}
 
 {\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}/Subject{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
 These two attributes mean the Rule requires the request should possess
 both of these two attributes.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 However, if You put these above two Attribute into two Subject
 elements:}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject
-AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject
+AttributeId={\textquotedbl}urn:knowarc:x509:identity{\textquotedbl}{\textgreater}/O=KnowARC/OU=UiO/CN=Physicist{\textless}/Subject{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject
+AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Subject{\textgreater}}
 
 {\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject
-AttributeId={\textquotedbl}urn:knowarc:voms:attribute{\textgreater}knowarc:atlasuser{\textless}/Subject{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
 Then it means the Rule requires the request to possess at least one of
 these two attributes.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 For the xml-attribute {\textquotedbl}Type{\textquotedbl} and
 {\textquotedbl}AttributeId{\textquotedbl}, the explaination for Request
 example also applies here.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 The {\textquotedbl}Function{\textquotedbl} xml-attribute is for
 distinguishing different comparison algorithm when comparing these two
 xml-node value. If Function is absent,
 {\textquotedbl}equal{\textquotedbl} will be used as default.}
 
 \subsubsection{Rule Elements Matching}
-{\color{black}
+{\selectlanguage{english}\color{black}
 For elements without attributes those elements have:}
 
 \liststyleWWviiiNumxxii
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Kind specified by AttributeId XML attribute. There is no default.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Matching algorithm specified by Id XML attribute. By default
 string-equal matching is used.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Content}
 \end{itemize}
 {\selectlanguage{english}\upshape\color{black}
-Example: \textit{LEMON tree}}
+\foreignlanguage{english}{Example:
+}\foreignlanguage{english}{\textit{LEMON tree}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{Kind}}\textit{: tree}}
+\foreignlanguage{english}{\textbf{\textit{Kind}}}\foreignlanguage{english}{\textit{:
+tree}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{Matching algorithm}}\textit{: default}}
+\foreignlanguage{english}{\textbf{\textit{Matching
+algorithm}}}\foreignlanguage{english}{\textit{: default}}}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{Content}}\textit{: LEMON}}
+\foreignlanguage{english}{\textbf{\textit{Content}}}\foreignlanguage{english}{\textit{:
+LEMON}}}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Matching procedure consists of following steps:}
 
 \liststyleWWviiiNumxxiii
 \begin{itemize}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Kinds are compared using simple string equal matching. If those do not
 match then result is INDETERMINATE.}
-\item {\color{black}
+\item {\selectlanguage{english}\color{black}
 Matching algorithm is used to compare content of elements. Result is
 either MATCH or NO\_MATCH according to matching algorithm.}
 \end{itemize}
-{\color{black}
+{\selectlanguage{english}\color{black}
 Each element on the RequestItem must satisfy corresponding element in
 Rule.In detail, for Subjects element under Rule, if there is at least
 one Subject (with one Attribute or a few Attribute) which is matched by
@@ -1587,142 +1608,143 @@ a Subject on this RequestItem, we say this Subjects is matched by the
 RequestItem; and also the same for the other elements (Actions,
 Resources, Conditions).}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 For elements with multiple Attribute sub-elements the way to judging
 whether elements match is if and only if all of the Attribute under the
 Rule have matching Attributes at RequestItem side.}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 Example of the Subject with three Attributes:}
 
 {\selectlanguage{english}\upshape\color{black}
-\textbf{\textit{Subject}}\textit{:}}
+\foreignlanguage{english}{\textbf{\textit{Subject}}}\foreignlanguage{english}{\textit{:}}}
 
 {\selectlanguage{english}\color{black}
-\textbf{\textit{SubjectAttribute}}\textit{: name is ALICE}}
+\foreignlanguage{english}{\textbf{\textit{SubjectAttribute}}}\foreignlanguage{english}{\textit{:
+name is ALICE}}}
 
 {\selectlanguage{english}\color{black}
-\textbf{\textit{SubjectAttribute}}\textit{: age is YOUNG}}
+\foreignlanguage{english}{\textbf{\textit{SubjectAttribute}}}\foreignlanguage{english}{\textit{:
+age is YOUNG}}}
 
 {\selectlanguage{english}\color{black}
-\textbf{\textit{SubjectAttribute}}\textit{: gender is GIRL}}
+\foreignlanguage{english}{\textbf{\textit{SubjectAttribute}}}\foreignlanguage{english}{\textit{:
+gender is GIRL}}}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 In XML that is:}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Alice{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}age{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}gender{\textgreater}GIRL{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Subject{\textgreater}}
 
 {\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Alice{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}age{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}gender{\textgreater}GIRL{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}/Subject{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
 That requires the Subject in the RequestItem to possess at least these
 three Attributes.}
 
-{\selectlanguage{english}\color{black}
-\textit{\ }\textit{{\textless}RequestItem{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ {\textless}RequestItem{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Alice{\textless}/Attribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Alice{\textless}/Attribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}age{\textquotedbl}{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}age{\textquotedbl}{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}gender{\textquotedbl}{\textgreater}GIRL{\textless}/Attribute{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}gender{\textquotedbl}{\textgreater}GIRL{\textless}/Attribute{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}!-{}-Some other
-Attribute-{}-{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}!-{}-Some other Attribute-{}-{\textgreater}}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}/Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Subject{\textgreater}}
 
-{\itshape\color{black}
+{\selectlanguage{english}\itshape\color{black}
 {\textless}/RequestItem{\textgreater}}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 The above example shows that the Subject in the RequestItem
 {\textquotedbl}MATCH{\textquotedbl} one Subject on the Rule side.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 If the Subject in the RequestItem is like this:}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Alice{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}age{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}from{\textquotedbl}{\textgreater}OSLO{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}!-{}-Some other Attribute, buts not a
+{\textquotedbl}gender{\textquotedbl}-{}-{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Subject{\textgreater}}
 
 {\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Alice{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}age{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}from{\textquotedbl}{\textgreater}OSLO{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}!-{}-Some other Attribute, buts
-not a {\textquotedbl}gender{\textquotedbl}-{}-{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}/Subject{\textgreater}}}
-
-{\selectlanguage{english}\upshape\color{black}
 Then evaluator will produce INDETERMINATE as the match-making result of
 this Subject.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 If the Subject in the RequestItem is like this:}
 
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}Subject{\textgreater}}}
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}Subject{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Bob{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}age{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}Attribute
+AttributeId={\textquotedbl}gender{\textquotedbl}{\textgreater}BOY{\textless}/Attribute{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ {\textless}!-{}-Some other Attribute-{}-{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ {\textless}/Subject{\textgreater}}
 
 {\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}name{\textquotedbl}{\textgreater}Bob{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}age{\textgreater}YOUNG{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}Attribute
-AttributeId={\textquotedbl}gender{\textquotedbl}{\textgreater}BOY{\textless}/Attribute{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ \ \ }\textit{{\textless}!-{}-Some other
-Attribute-{}-{\textgreater}}}
-
-{\selectlanguage{english}\color{black}
-\textit{\ \ \ \ }\textit{{\textless}/Subject{\textgreater}}}
-
-{\color{black}
 Then evaluator will give NO\_MATCH as the match-making result of this
 Subject.}
 
-{\selectlanguage{english}\upshape\color{black}
+{\selectlanguage{english}\color{black}
 Finally if and only if all of the elemens (Subjects, Actions, Resources,
 Conditions) which are not empty under the Rule have been matched (gets
 MATCH) to the RequestItem, then the whole Rule is considered to be
@@ -1731,12 +1753,12 @@ evaluation result depending on the specified Effect. If Effect is set
 to Deny then DENY decision will be produced for this Rule; if Effect is
 Permit then PERMIT.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Otherwise if any of the element (Subjects, Actions, Resources,
 Conditions) of RequestItem got INDETERMINATE decision then the
 INDETERMINATE decision will be made for this Rule.}
 
-{\color{black}
+{\selectlanguage{english}\color{black}
 Otherwise the NOT\_APPLICABLE decision will be made for this Rule. In
 other words that means at least one of the elements of this Rule got
 NO\_MATCH and the other elements got MATCH.}
@@ -1904,7 +1926,8 @@ from parent SecAttr class
 stores it{\textquotesingle}s information in internal format and is
 capable to export it to one of predefined formats using Export()
 method. Currently only supported format is ARC Policy/Request XML
-document described in Section 7.1and 7.2}
+document described in Section \ref{bkm:Ref204009564}and
+\ref{bkm:Ref204009595}}
 
 {\selectlanguage{english}\upshape\color{black}
 Collectors of Security Attributes instantiate corresponding classes and
@@ -1915,8 +1938,8 @@ storing collected attributes per request and per session
 correspondingly. Each attribute is assigned a name. Current
 implementations of Security Attributes Collectors are either integrated
 into existing MCCs or implemented as separate SecHandler plugins. See
-Section 5.2for available Collectors and corresponding Security
-Attributes. }
+Section \ref{bkm:Ref204009636}for available Collectors and
+corresponding Security Attributes. }
 
 {\selectlanguage{english}\upshape\color{black}
 Note for service developers: Services may implement own authorization
@@ -1937,13 +1960,13 @@ selected set of attributes against specified Policy documents thus
 making it possible to enforce policies defined/selected by service
 providers. }
 \item {\selectlanguage{english}\color{black}
-Delegation PDP is described below in Section 6.3}
+Delegation PDP is described below in Section \ref{bkm:Ref204009695}}
 \end{itemize}
 \subsubsection[Available collectors]{Available collectors}
 \label{bkm:Ref204009636}{\selectlanguage{english}\upshape\color{black}
 Here Security Attribute collectors distributed as part of the ARC1 are
 described except those used for Delegation Restrictions. Those are
-described in Section 6.2}
+described in Section \ref{bkm:Ref204009734}}
 
 \paragraph{TCP}
 {\selectlanguage{english}\upshape\color{black}
@@ -2011,8 +2034,43 @@ client{\textquotesingle}s chain\\\hline
 http://www.nordugrid.org/schemas/policy-arc/types/tls/identity &
 \selectlanguage{english}\color{black} Subject of last non-proxy
 certificate in client{\textquotesingle}s chain\\\hline
+\selectlanguage{english}\color{black} SubjectAttribute &
+\selectlanguage{english}\color{black}
+\ http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute &
+\selectlanguage{english}\color{black} VOMS attributes extracted from
+whole client{\textquotesingle}s chain of certificates\\\hline
 \end{supertabular}
 \end{flushleft}
+{\selectlanguage{english}\upshape\color{black}
+The VOMS attributes are presented in format similar to VOMS FQAN with
+slight modifications. Differently from FQAN all values are prepended
+with their names like VO and Group. Missing elements are reported as
+having string value NULL. Example of VOMS attribute looks like }
+
+{\selectlanguage{english}\bfseries\color{black}
+/VO=knowarc.eu/Group=testers/Role=admin/Capability=NULL}
+
+{\selectlanguage{english}\color{black}
+Each set of attributes is acompanied by identifier of service which
+provided those attributes. It is made of \textit{voname} element with
+name of VO followed by optional element \textit{hostname} with hostname
+and port of service. Here is an example}
+
+{\selectlanguage{english}\bfseries\color{black}
+/voname=knowarc.eu/hostname=arthur.hep.lu.se:15001}
+
+{\selectlanguage{english}\color{black}
+If VOMS extensions contain user definable attributes those are presented
+together with the information of their grantor. They consist of
+\textit{voname} and \textit{hostname} elements presented above (if
+\textit{hostname} is missing it is assigned string value NULL) followed
+by user attribute. It{\textquotesingle}s pattern is
+\textit{qualifier:name=value}. Here qualifier acts as namespace and is
+usually same as VO name. Below is an example of such attribute}
+
+{\selectlanguage{english}\bfseries\color{black}
+/voname=knowarc.eu/hostname=arthur.hep.lu.se:15001/knowarc.eu:UniqueKnowarcAttribute=False}
+
 \paragraph{HTTP}
 {\selectlanguage{english}\upshape\color{black}
 Information is collected inside HTTP MCC. The Security Attribute is
@@ -2081,7 +2139,7 @@ In current implementation delegation is achieved through Identity
 Delegation implemented using X509 Proxy Certificates as defined in RFC
 3820. Client wishing to allow service to act on it{\textquotesingle}s
 behalf provides Proxy Certificate to the service using Web Service
-based Delegation interface described in Section 6.4}
+based Delegation interface described in Section \ref{bkm:Ref204009766}}
 
 {\selectlanguage{english}\upshape\color{black}
 For limiting the scope of delegated credentials along with usually used
@@ -2094,15 +2152,15 @@ of ARC Policy XML document.}
 
 {\selectlanguage{english}\upshape\color{black}
 Each deployment implementing Delegation Restrictions must use dedicated
-Security Handler plugin (see section 5.1) to collect all Policy
-documents from Proxy Certificates used for establishing secure
-connection. Then those documents must be processed by dedicated Policy
-Decision Point plugin (see section 2.3) to make a final decision based
-on collected Policies and various information about
-client{\textquotesingle}s identity and requested operation. Service or
-MCC chain supporting Delegation Restrictions must accept negative
-decision of this PDP as final and do not override it with any other
-decision based on other policies.}
+Security Handler plugin (see section \ref{bkm:Ref204009818}) to collect
+all Policy documents from Proxy Certificates used for establishing
+secure connection. Then those documents must be processed by dedicated
+Policy Decision Point plugin (see section \ref{bkm:Ref204009855}) to
+make a final decision based on collected Policies and various
+information about client{\textquotesingle}s identity and requested
+operation. Service or MCC chain supporting Delegation Restrictions must
+accept negative decision of this PDP as final and do not override it
+with any other decision based on other policies.}
 
 \subsubsection[Delegation Collector]{Delegation Collector}
 \label{bkm:Ref204009734}{\selectlanguage{english}\upshape\color{black}
@@ -2110,8 +2168,9 @@ This Security Attribute is collected by dedicated Security Handler
 plugin named {\textquotedbl}delegation.collector{\textquotedbl}
 avaialble as part of the ARC1 distribution. It extracts policy document
 stored inside X509 certificate proxy extension as defined in RFC3820
-and described in Section 6.1All proxy certificates in a chain provided
-by client are examined and all available policies are extracted. }
+and described in Section \ref{bkm:Ref204009914}All proxy certificates
+in a chain provided by client are examined and all available policies
+are extracted. }
 
 {\selectlanguage{english}\upshape\color{black}
 Extracted content is converted into XML document. Then document is
@@ -2258,7 +2317,7 @@ name={\textquotedbl}arc.request{\textquotedbl} /{\textgreater}}
 {\textless}/Service{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
-See Section 7.7for the explanation of ARC Policy.}
+See Section \ref{bkm:Ref204009974}for the explanation of ARC Policy.}
 
 \subsubsection{SimpleList PDP configuration and Policy Example}
 {\selectlanguage{english}\upshape\color{black}
@@ -2288,9 +2347,9 @@ location=}\texttt{{\textquotedbl}}\texttt{simplelist}\texttt{{\textquotedbl}}\te
 {\selectlanguage{english}\upshape\color{black}
 \texttt{\ \ }\foreignlanguage{spanish}{\texttt{{\textless}/SecHandler{\textgreater}}}}
 
-{\selectlanguage{english}\upshape\color{black}
-\foreignlanguage{spanish}{\texttt{\ \ }}\foreignlanguage{spanish}{\texttt{{\textless}echo:prefix{\textgreater}[
-{\textless}/echo:prefix{\textgreater}}}}
+{\selectlanguage{spanish}\ttfamily\color{black}
+\ \ {\textless}echo:prefix{\textgreater}[
+{\textless}/echo:prefix{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
 \foreignlanguage{spanish}{\texttt{\ \ }}\texttt{{\textless}echo:suffix{\textgreater}
@@ -2366,9 +2425,9 @@ type={\textquotedbl}file{\textquotedbl}{\textgreater}Policy\_Example.xml{\textle
 {\selectlanguage{english}\upshape\color{black}
 \texttt{\ \ }\foreignlanguage{spanish}{\texttt{{\textless}/SecHandler{\textgreater}}}}
 
-{\selectlanguage{english}\upshape\color{black}
-\foreignlanguage{spanish}{\texttt{\ \ }}\foreignlanguage{spanish}{\texttt{{\textless}echo:prefix{\textgreater}[
-{\textless}/echo:prefix{\textgreater}}}}
+{\selectlanguage{spanish}\ttfamily\color{black}
+\ \ {\textless}echo:prefix{\textgreater}[
+{\textless}/echo:prefix{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
 \foreignlanguage{spanish}{\texttt{\ \ }}\texttt{{\textless}echo:suffix{\textgreater}
@@ -2387,9 +2446,9 @@ There could be a few policy files under
 against all of the policies.}
 
 {\selectlanguage{english}\upshape\color{black}
-There is an example policy for echo service below. See Section 7.1for
-the policy schema. The example policy is \ made of following elements:
-}
+There is an example policy for echo service below. See Section
+\ref{bkm:Ref204009564}for the policy schema. The example policy is
+\ made of following elements: }
 
 {\selectlanguage{english}\color{black}
 1. Line 14 \ defines resource being protected. In this it is everything
@@ -2542,13 +2601,13 @@ name={\textquotedbl}pdpservice.invoker{\textquotedbl}{\textgreater}}
 {\selectlanguage{english}\upshape\color{black}
 \texttt{\ \ }\foreignlanguage{spanish}{\texttt{{\textless}/SecHandler{\textgreater}}}}
 
-{\selectlanguage{english}\upshape\color{black}
-\foreignlanguage{spanish}{\texttt{\ \ }}\foreignlanguage{spanish}{\texttt{{\textless}next
-id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}}}
+{\selectlanguage{spanish}\ttfamily\color{black}
+\ \ {\textless}next
+id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}
 
-{\selectlanguage{english}\upshape\color{black}
-\foreignlanguage{spanish}{\texttt{\ \ }}\foreignlanguage{spanish}{\texttt{{\textless}echo:prefix{\textgreater}[
-{\textless}/echo:prefix{\textgreater}}}}
+{\selectlanguage{spanish}\ttfamily\color{black}
+\ \ {\textless}echo:prefix{\textgreater}[
+{\textless}/echo:prefix{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
 \foreignlanguage{spanish}{\texttt{\ \ }}\texttt{{\textless}echo:suffix{\textgreater}
@@ -2604,9 +2663,9 @@ id={\textquotedbl}echo{\textquotedbl}/{\textgreater}}
 \texttt{\ \ }\foreignlanguage{spanish}{\texttt{{\textless}echo:prefix{\textgreater}[
 {\textless}/echo:prefix{\textgreater}}}}
 
-{\selectlanguage{english}\upshape\color{black}
-\foreignlanguage{spanish}{\texttt{\ \ }}\foreignlanguage{spanish}{\texttt{{\textless}echo:suffix{\textgreater}
-]{\textless}/echo:suffix{\textgreater}}}}
+{\selectlanguage{spanish}\ttfamily\color{black}
+\ \ {\textless}echo:suffix{\textgreater}
+]{\textless}/echo:suffix{\textgreater}}
 
 {\selectlanguage{english}\ttfamily\color{black}
 {\textless}/Service{\textgreater}}
@@ -2755,9 +2814,10 @@ X509Token SecHandler must be configured under SOAP MCC.}
 
 \bigskip
 
-\subsection[Using Shibboleth IdP for Authentication and Attribute-based
-Authorization]{Using \foreignlanguage{english}{Shibboleth} IdP for
-Authentication and Attribute-based Authorization}
+\subsection[Using Shibboleth IdP for Authentication and
+Attribute{}-based Authorization]{Using
+\foreignlanguage{english}{Shibboleth} IdP for Authentication and
+Attribute-based Authorization}
 {\selectlanguage{english}\color{black}
 \ \ \ \ In grid community, GSI (grid security infrastructure) is the
 de-facto standard about transport level communication for the legacy
@@ -2848,7 +2908,7 @@ ARC
 {\selectlanguage{english}\color{black}
 \ The steps shows in Figure 6 are described as follows:}
 
-\liststyleLi
+\liststyleLii
 \begin{enumerate}
 \item {\selectlanguage{english}\color{black}
 The client uses the user agent interface to launch a HTTP request
@@ -2945,7 +3005,7 @@ only require server authentication instead of mutual authentication.}
 
 \bigskip
 
-\subsection[\ Short-Lived Credential
+\subsection[\ Short{}-Lived Credential
 Service]{\foreignlanguage{english}{\ }Short-Lived Credential Service}
 {\selectlanguage{english}\color{black}
 \ \ \ \ However, most of the widely used Grid middlewares are based on
@@ -2991,125 +3051,138 @@ service is as follows:}
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ {\textless}Component
 name={\textquotedbl}tcp.service{\textquotedbl}
-id={\textquotedbl}tcp{\textquotedbl}{\textgreater}}
+id={\textquotedbl}tcp{\textquotedbl}{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}tls{\textquotedbl}/{\textgreater}}
+id={\textquotedbl}tls{\textquotedbl}/{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tcp:Listen{\textgreater}{\textless}tcp:Port{\textgreater}60000{\textless}/tcp:Port{\textgreater}{\textless}/tcp:Listen{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tcp:Listen{\textgreater}{\textless}tcp:Port{\textgreater}60000{\textless}/tcp:Port{\textgreater}{\textless}/tcp:Listen{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ {\textless}Component
 name={\textquotedbl}tls.service{\textquotedbl}
-id={\textquotedbl}tls{\textquotedbl}{\textgreater}}
+id={\textquotedbl}tls{\textquotedbl}{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}http{\textquotedbl}/{\textgreater}}
+id={\textquotedbl}http{\textquotedbl}/{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:KeyPath{\textgreater}./testkey-nopass.pem{\textless}/tls:KeyPath{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:KeyPath{\textgreater}./testkey-nopass.pem{\textless}/tls:KeyPath{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CertificatePath{\textgreater}./testcert.pem{\textless}/tls:CertificatePath{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:CertificatePath{\textgreater}./testcert.pem{\textless}/tls:CertificatePath{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}-tls:CACertificatePath{\textgreater}./cacert.pem{\textless}/tls:CACertificatePath-{}-{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}!-{}-tls:CACertificatePath{\textgreater}./cacert.pem{\textless}/tls:CACertificatePath-{}-{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:ClientAuthn{\textgreater}false{\textless}/tls:ClientAuthn{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:ClientAuthn{\textgreater}false{\textless}/tls:ClientAuthn{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ {\textless}Component
 name={\textquotedbl}http.service{\textquotedbl}
-id={\textquotedbl}http{\textquotedbl}{\textgreater}}
+id={\textquotedbl}http{\textquotedbl}{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}plexer{\textquotedbl}{\textgreater}POST{\textless}/next{\textgreater}}
+id={\textquotedbl}plexer{\textquotedbl}{\textgreater}POST{\textless}/next{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ {\textless}Plexer
 name={\textquotedbl}plexer.service{\textquotedbl}
-id={\textquotedbl}plexer{\textquotedbl}{\textgreater}}
+id={\textquotedbl}plexer{\textquotedbl}{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}samlsp{\textquotedbl}{\textgreater}/saml2sp{\textless}/next{\textgreater}}
+id={\textquotedbl}samlsp{\textquotedbl}{\textgreater}/saml2sp{\textless}/next{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}soap{\textquotedbl}{\textgreater}/slcs{\textless}/next{\textgreater}}
+id={\textquotedbl}soap{\textquotedbl}{\textgreater}/slcs{\textless}/next{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ {\textless}/Plexer{\textgreater}}
+\ \ \ \ \ \ \ \ {\textless}/Plexer{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ {\textless}Component
 name={\textquotedbl}soap.service{\textquotedbl}
-id={\textquotedbl}soap{\textquotedbl}{\textgreater}}
+id={\textquotedbl}soap{\textquotedbl}{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}slcs{\textquotedbl}/{\textgreater}}
+id={\textquotedbl}slcs{\textquotedbl}/{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}SecHandler
 name={\textquotedbl}saml2ssoassertionconsumer.handler{\textquotedbl}
 id={\textquotedbl}saml2ssosp{\textquotedbl}
-event={\textquotedbl}incoming{\textquotedbl}/{\textgreater}}
+event={\textquotedbl}incoming{\textquotedbl}/{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater}}
+\ \ \ \ \ \ \ \ {\textless}/Component{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ {\textless}Service
 name={\textquotesingle}saml.sp{\textquotesingle}
-id={\textquotesingle}samlsp{\textquotesingle}{\textgreater}}
+id={\textquotesingle}samlsp{\textquotesingle}{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}MetaDataLocation{\textgreater}./test\_metadata.xml{\textless}/MetaDataLocation{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}MetaDataLocation{\textgreater}./test\_metadata.xml{\textless}/MetaDataLocation{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}ServiceProviderName{\textgreater}https://squark.uio.no/shibboleth-sp{\textless}/ServiceProviderName{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}ServiceProviderName{\textgreater}https://squark.uio.no/shibboleth-sp{\textless}/ServiceProviderName{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater}}
+\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ {\textless}Service
 name={\textquotedbl}slcs.service{\textquotedbl}
-id={\textquotedbl}slcs{\textquotedbl}{\textgreater}}
+id={\textquotedbl}slcs{\textquotedbl}{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
 \ \ \ \ \ \ \ \ \ \ \ \ {\textless}next
-id={\textquotedbl}slcs{\textquotedbl}/{\textgreater}}
+id={\textquotedbl}slcs{\textquotedbl}/{\textgreater} }
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CACertificate{\textgreater}./CAcert.pem{\textless}/slcs:CACertificate{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CACertificate{\textgreater}./CAcert.pem{\textless}/slcs:CACertificate{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CAKey{\textgreater}./CAkey.pem{\textless}/slcs:CAKey{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CAKey{\textgreater}./CAkey.pem{\textless}/slcs:CAKey{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CASerial{\textgreater}./CAserial{\textless}/slcs:CASerial{\textgreater}}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}slcs:CASerial{\textgreater}./CAserial{\textless}/slcs:CASerial{\textgreater}
+}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater}}
+\ \ \ \ \ \ \ \ {\textless}/Service{\textgreater} }
 
 \selectlanguage{english}\itshape\color{black}
-\ \ \ \ {\textless}/Chain{\textgreater}\\\hline
+\ \ \ \ {\textless}/Chain{\textgreater} \\\hline
 \end{supertabular}
 \end{center}
 {\selectlanguage{english}\color{black}
@@ -3218,9 +3291,9 @@ prototype),
 \url{http://www.knowarc.eu/documents/Knowarc_D1.2-2_07.pdf}}
 
 {\selectlanguage{english}\color{black}
-\textstyleInternetlink{\textcolor{black}{\stepcounter{Bibitem}{\theBibitem}}}\textstyleInternetlink{\textcolor{black}{.}}\textstyleInternetlink{\foreignlanguage{english}{\textcolor{black}{Web
-Service Security Username Token Profile 1.1.
-}}}\url{http://www.oasis-open.org/committees/download.php/16782/wss-v1.1-spec-os-UsernameTokenProfile.pdf}}
+\stepcounter{Bibitem}{\theBibitem}.\foreignlanguage{english}{Web Service
+Security Username Token Profile 1.1.
+}\url{http://www.oasis-open.org/committees/download.php/16782/wss-v1.1-spec-os-UsernameTokenProfile.pdf}}
 
 {\selectlanguage{english}\color{black}
 \stepcounter{Bibitem}{\theBibitem}. OGSA{\textregistered} Basic
@@ -3228,7 +3301,7 @@ Execution Service Version 1.0,
 \ \url{http://www.ogf.org/documents/GFD.108.pdf} }
 
 {\selectlanguage{english}\color{black}
-\textstyleInternetlink{\textcolor{black}{\stepcounter{Bibitem}{\theBibitem}}}\textstyleInternetlink{\textcolor{black}{.
-OASIS Web Services Security (WSS) TC.
-}}\url{http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss}}
+\stepcounter{Bibitem}{\theBibitem}. OASIS Web Services Security (WSS)
+TC.
+\url{http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss}}
 \end{document}
