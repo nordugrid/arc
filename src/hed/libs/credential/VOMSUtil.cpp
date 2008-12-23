@@ -181,7 +181,7 @@ namespace Arc {
         ERROR(AC_ERR_MEMORY);
       }
 
-      std::cout<<"FQAN: "<<(*i)<<std::endl;
+      CredentialLogger.msg(VERBOSE,"VOMS: create FQAN: %s",*i);
 
 #ifdef HAVE_OPENSSL_OLDRSA
       ASN1_OCTET_STRING_set(tmpc, (unsigned char*)((*i).c_str()), (*i).length());
@@ -218,7 +218,7 @@ namespace Arc {
     for (std::vector<std::string>::iterator i = attrs.begin(); i != attrs.end(); i++) {
       std::string qual, name, value;
 
-      std::cout<<"Attribute: "<<(*i)<<std::endl; 
+      CredentialLogger.msg(VERBOSE,"VOMS: create attribute: %s",*i); 
  
       AC_ATTRIBUTE *ac_attr = AC_ATTRIBUTE_new();
       if (!ac_attr) {
@@ -304,16 +304,13 @@ namespace Arc {
 
     stk = sk_X509_new_null();
     
-    std::cout<<"++++++++ cert chain number: "<<sk_X509_num(issuerstack)<<std::endl;
-
     if (issuerstack) {
       for (int j =0; j < sk_X509_num(issuerstack); j++)
         sk_X509_push(stk, X509_dup(sk_X509_value(issuerstack, j)));
     }
 
-   int i;
-   for (i=0; i < sk_X509_num(stk); i++) 
-     fprintf(stderr, "stk[%i] = %s\n", i , X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); 
+   //for (int i=0; i < sk_X509_num(stk); i++) 
+   //  fprintf(stderr, "stk[%i] = %s\n", i , X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); 
 
 #ifdef HAVE_OPENSSL_OLDRSA
     sk_X509_push(stk, (X509 *)ASN1_dup((int (*)())i2d_X509,
@@ -323,8 +320,8 @@ namespace Arc {
           (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)issuer));
 #endif
 
-   for(i=0; i<sk_X509_num(stk); i++)
-     fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
+   //for(int i=0; i<sk_X509_num(stk); i++)
+   //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
 
     certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("certseq"), (char*)stk);
     sk_X509_pop_free(stk, X509_free);
@@ -461,7 +458,10 @@ err:
     int l = codedac.size();
 
     pp = (char *)malloc(codedac.size());
-    if(!pp) {std::cerr<<"Can not allocate memory for parsing ac"<<std::endl; return false; }
+    if(!pp) {
+      CredentialLogger.msg(ERROR,"VOMS: Can not allocate memory for parsing AC");
+      return false; 
+    }
 
     pp = (char *)memcpy(pp, codedac.data(), codedac.size());
     p = pp;
@@ -477,7 +477,7 @@ err:
       }
     }
     else {
-      std::cerr<<"Can not parse ac"<<std::endl;
+      CredentialLogger.msg(ERROR,"VOMS: Can not parse AC");
       free(pp); return false;
     }
   }
@@ -506,7 +506,7 @@ err:
     int i = 0;
 
     if(ca_cert_dir.empty() && ca_cert_file.empty()) {
-      std::cerr<<"CA dir or CA file should be setup"<<std::endl;
+      CredentialLogger.msg(ERROR,"VOMS: CA directory or CA file must be provided");
       return false;
     }
 
@@ -544,7 +544,7 @@ err:
     int index = 0;
 
     if(ca_cert_dir.empty() && ca_cert_file.empty()) {
-      std::cerr<<"CA dir or CA file should be setup"<<std::endl;
+      CredentialLogger.msg(ERROR,"VOMS: CA direcory or CA file must be provided");
       return false;
     }
 
@@ -597,7 +597,7 @@ err:
                         (char *)ac->acinfo, key);
 #endif
 
-    if (!res) std::cerr<<"Unable to verify AC signature"<<std::endl;
+    if (!res) CredentialLogger.msg(ERROR,"VOMS: unable to verify AC signature");
   
     EVP_PKEY_free(key);
     return (res == 1);
@@ -661,7 +661,8 @@ err:
           }
           //If "k" line is the last line, but it is not regular expression. 
           else {
-            std::cerr<<"Wrong definition in voms certificate DN"<<std::endl; return false;
+            CredentialLogger.msg(ERROR,"VOMS: wrong definition in VOMS certificate DN");
+            return false;
           }
 
           /*
@@ -674,9 +675,6 @@ err:
 
           std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
           std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
-
-          //std::cout<<"Subject: "<<subject_name<<" Real Subject: "<<realsubject<<std::endl
-          //<<"Issuer: "<<issuer_name<<" Real Issuer: "<<realissuer<<std::endl;
 
           bool sub_match=false, iss_match=false;
           bool sub_isregex=false, iss_isregex=false;
@@ -695,7 +693,6 @@ err:
           if(!sub_match || !iss_match) {
             do {
               subject_name = vomscert_trust_dn[++k];
-              //std::cout<<"++++++  "<<subject_name<<std::endl;
             } while (k < vomscert_trust_dn.size() && subject_name.find("NEXT CHAIN") != std::string::npos);
             success = false;
             break;
@@ -706,7 +703,7 @@ err:
 
       if (!success) {
         AC_CERTS_free(certs);
-        std::cerr<<"Unable to match certificate chain against voms trust DNs"<<std::endl;
+        CredentialLogger.msg(ERROR,"VOMS: unable to match certificate chain against VOMS trusted DNs");
         return false;
       }
                   
@@ -719,25 +716,25 @@ err:
                    (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)sk_X509_value(certstack, 0));
 #endif
 
-   for (int i=0; i <sk_X509_num(certstack); i ++)
-     fprintf(stderr, "+++ stk[%i] = %d  %s\n", i , sk_X509_value(certstack, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(certstack, i)), NULL, 0));
+   //for (int i=0; i <sk_X509_num(certstack); i ++)
+   //  fprintf(stderr, "+++ stk[%i] = %d  %s\n", i , sk_X509_value(certstack, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(certstack, i)), NULL, 0));
 
       bool found = false;
 
       if (check_sig_ac(cert, ac))
         found = true;
       else
-        std::cerr<<"Unable to verify signature!"<<std::endl;
+        CredentialLogger.msg(ERROR,"VOMS: unable to verify AC signature");
 
       if (found) {
         if (!check_cert(certstack, ca_cert_dir, ca_cert_file)) {
           X509_free(cert);
           cert = NULL;
-          std::cerr<<"Unable to verify certificate chain"<<std::endl;
+          CredentialLogger.msg(ERROR,"VOMS: unable to verify certificate chain");
         }
       }
       else
-        std::cerr<<"Cannot find certificate of AC issuer for vo: "<<voname<<std::endl;
+        CredentialLogger.msg(ERROR,"VOMS: cannot find certificate of AC issuer for VO %s",voname);
  
       AC_CERTS_free(certs);
      
@@ -755,7 +752,7 @@ err:
       X509 * x = NULL;
       for(int i = 0; (i < 2 && !found); ++i) {
         std::string directory = vomsdir + (i ? "" : "/" + voname);
-        std::cout<<"Directory to find trusted certificate: "<<directory<<std::endl;
+        CredentialLogger.msg(VERBOSE,"VOMS: directory for trusted service certificates: %s",directory);
         Glib::Dir dir(directory); 
         while(true){
           std::string filename = dir.read_name(); 
@@ -780,13 +777,17 @@ err:
       if (found) {
         if (!check_cert(x, ca_cert_dir, ca_cert_file)) { X509_free(x); x = NULL; }
       }
-      else std::cerr<<"Cannot find certificate of AC issuer for vo "<<voname<<std::endl;
+      else {
+        CredentialLogger.msg(ERROR,"VOMS: Cannot find certificate of AC issuer for VO %s",voname);
 
       issuer = x;
     }
 #endif
 
-    if(issuer == NULL) { std::cerr<<"Can not verify AC signature"<<std::endl; return false; } 
+    if(issuer == NULL) {
+      CredentialLogger.msg(ERROR,"VOMS: unable to verify AC signature");
+      return false;
+    } 
 
     *issuer_cert = issuer; return true; 
   }
@@ -802,12 +803,16 @@ err:
     /* find AC_ATTR with IETFATTR type */
     int  nid = OBJ_txt2nid("idatcap");
     int pos = X509at_get_attr_by_NID(atts, nid, -1);
-    if (!(pos >=0)) { std::cerr<<"Can not find AC_ATTR with IETFATTR type"<<std::endl; return false; }
+    if (!(pos >=0)) { 
+      CredentialLogger.msg(ERROR,"VOMS: Can not find AC_ATTR with IETFATTR type");
+      return false;
+    }
     caps = sk_AC_ATTR_value(atts, pos);
   
     /* check there's exactly one IETFATTR attribute */
     if (sk_AC_IETFATTR_num(caps->ietfattr) != 1) {
-      std::cerr<<"Check there's exactly one IETFATTR attribute"<<std::endl; return false; 
+      CredentialLogger.msg(ERROR,"VOMS: case of multiple IETFATTR attributes not supported");
+      return false; 
     }
 
     /* retrieve the only AC_IETFFATTR */
@@ -816,18 +821,20 @@ err:
   
     /* check it has exactly one policyAuthority */
     if (sk_GENERAL_NAME_num(capattr->names) != 1) {
-      std::cerr<<"Check there's exactly one policyAuthority"<<std::endl; return false;
+      CredentialLogger.msg(ERROR,"VOMS: case of multiple policyAuthority not supported");
+      return false;
     }
 
     /* store policyAuthority */
     data = sk_GENERAL_NAME_value(capattr->names, 0);
     if (data->type == GEN_URI) {
-      std::string voname;
-      voname.append("voname=").append((const char*)(data->d.ia5->data), data->d.ia5->length);
+      std::string voname("/voname=");
+      voname.append((const char*)(data->d.ia5->data), data->d.ia5->length);
       attributes.push_back(voname);
     }
     else {
-      std::cerr<<"The format of policyAuthority is wrong"<<std::endl; return false;
+      CredentialLogger.msg(ERROR,"VOMS: the format of policyAuthority is unsupported - expecting URI");
+      return false;
     }
 
     /* scan the stack of IETFATTRVAL to store attribute */
@@ -835,7 +842,8 @@ err:
       capname = sk_AC_IETFATTRVAL_value(values, i);
 
       if (capname->type != V_ASN1_OCTET_STRING) {
-        std::cerr<<"The IETFATTRVAL is not V_ASN1_OCTET_STRING"<<std::endl; return false;
+        CredentialLogger.msg(ERROR,"VOMS: the format of IETFATTRVAL is not supported - expecting OCTET STRING");
+        return false;
       }
 
       std::string fqan((const char*)(capname->data), capname->length);
@@ -899,7 +907,6 @@ err:
 
   static bool interpret_attributes(AC_FULL_ATTRIBUTES *full_attr, std::vector<std::string>& attributes) {
     std::string name, value, qualifier, grantor;
-    std::string attribute;
     GENERAL_NAME *gn = NULL;
     STACK_OF(AC_ATT_HOLDER) *providers = NULL;
     int i;
@@ -912,22 +919,33 @@ err:
 
       gn = sk_GENERAL_NAME_value(holder->grantor, 0);
       grantor.assign((const char*)(gn->d.ia5->data), gn->d.ia5->length);
-      if(grantor.empty()) { std::cerr<<"The attribute grantor is empty"<<std::endl; return false; }
+      if(grantor.empty()) {
+        CredentialLogger.msg(ERROR,"VOMS: the grantor attribute is empty");
+        return false;
+      }
 
       for (int j = 0; j < sk_AC_ATTRIBUTE_num(atts); j++) {
+        std::string attribute;
         AC_ATTRIBUTE *at = sk_AC_ATTRIBUTE_value(atts, j);
 
         name.assign((const char*)(at->name->data), at->name->length);
-        if(name.empty()) { std::cerr<<"The attribute name is empty"<<std::endl; return false; }
+        if(name.empty()) {
+          CredentialLogger.msg(ERROR,"VOMS: the attribute name is empty");
+          return false;
+        }
         value.assign((const char*)(at->value->data), at->value->length);
-        if(value.empty()) { std::cerr<<"The attribute value is empty"<<std::endl; return false; }
+        if(value.empty()) {
+          CredentialLogger.msg(ERROR,"VOMS: the attribute value is empty");
+          return false;
+        }
         qualifier.assign((const char*)(at->qualifier->data), at->qualifier->length);
-        if(qualifier.empty()) { std::cerr<<"The attribute qualifier is empty"<<std::endl; return false; }
+        if(qualifier.empty()) {
+          CredentialLogger.msg(ERROR,"VOMS: the attribute qualifier is empty");
+          return false;
+        }
 
-        //attribute.append("grantor=").append(grantor).append("/").append("qualifier=").append(qualifier).append(":").append(name).append("/").append("value=").append(value);
-        attribute.append("grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
+        attribute.append("/grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
         attributes.push_back(attribute);
-        attribute.clear(); 
       }
       grantor.clear();
     }
@@ -947,8 +965,9 @@ err:
     int pos5 = X509v3_get_ext_by_NID(exts, nid5, -1);
 
     /* noRevAvail, Authkeyid MUST be present */
-    if (pos1 < 0 || pos2 < 0) {
-      std::cerr<<"noRevAvail, Authkeyid MUST be present"<<std::endl; return false;
+    if ((pos1 < 0) || (pos2 < 0)) {
+      CredentialLogger.msg(ERROR,"VOMS: both idcenoRevAvail and authorityKeyIdentifier certificate extensions must be present");
+      return false;
     }
 
     /* The only critical extension allowed is idceTargets. */
@@ -977,9 +996,15 @@ err:
             }
           ASN1_STRING_free(fqdns);
         }
-        if (!ok) { std::cerr<<"The fqdn does not match that in AC"<<std::endl; } // return false; }
+        if (!ok) {
+          CredentialLogger.msg(ERROR,"VOMS: FQDN of this host does not match that in AC");
+          // return false;
+        }
       }
-      else { std::cerr<<"The critical part of the AC extension can only be idceTargets"<<std::endl;  return false; }
+      else {
+        CredentialLogger.msg(ERROR,"VOMS: the only supported critical extension of the AC is idceTargets");
+        return false;
+      }
       pos3 = X509v3_get_ext_by_critical(exts, 1, pos3);
     }
 
@@ -990,7 +1015,7 @@ err:
       full_attr = (AC_FULL_ATTRIBUTES *)X509V3_EXT_d2i(ex);
       if (full_attr) {
         if (!interpret_attributes(full_attr, output)) {
-          std::cerr<<"Failed to parsed attributes from AC"<<std::endl; 
+          CredentialLogger.msg(ERROR,"VOMS: failed to parse attributes from AC"); 
           AC_FULL_ATTRIBUTES_free(full_attr); return false; 
         }
       }
@@ -1029,7 +1054,10 @@ err:
         keyerr = true;
       }
 
-      if(keyerr) { std::cerr<<"authorityKey is wrong"<<std::endl;  return false; }
+      if(keyerr) {
+        CredentialLogger.msg(ERROR,"VOMS: authorityKey is wrong");
+        return false;
+      }
     }
 
     return true;
@@ -1053,14 +1081,19 @@ err:
     ctime += 300;
     dtime = ctime-600;
 
-    if ((end->type != V_ASN1_GENERALIZEDTIME) || (end->type != V_ASN1_GENERALIZEDTIME)) {
-      std::cerr<<"Time format in AC is wrong"<<std::endl; return false;
+    if ((start->type != V_ASN1_GENERALIZEDTIME) || (end->type != V_ASN1_GENERALIZEDTIME)) {
+      CredentialLogger.msg(ERROR,"VOMS: unsupported time format format in AC - expecting GENERALIZED TIME");
+      return false;
     }
-    if (((X509_cmp_current_time(start) >= 0) &&
-         (X509_cmp_time(start, &ctime) >= 0)) ||
-        ((X509_cmp_current_time(end) <= 0) &&
-         (X509_cmp_time(end, &dtime) <= 0))) {
-      std::cerr<<"Current time is out of the scope of valid period of the AC"<<std::endl; return false;
+    if ((X509_cmp_current_time(start) >= 0) &&
+        (X509_cmp_time(start, &ctime) >= 0)) {
+      CredentialLogger.msg(ERROR,"VOMS: AC is not yet valid");
+      return false;
+    }
+    if ((X509_cmp_current_time(end) <= 0) &&
+        (X509_cmp_time(end, &dtime) <= 0)) {
+      CredentialLogger.msg(ERROR,"VOMS: AC has expired");
+      return false;
     }
 
     STACK_OF(GENERAL_NAME) *names;
@@ -1069,35 +1102,42 @@ err:
     if (ac->acinfo->holder->baseid) {
       if(!(ac->acinfo->holder->baseid->serial) ||
          !(ac->acinfo->holder->baseid->issuer)) {
-        std::cerr<<"The AC_IS is not complete"<<std::endl; return false;
+        CredentialLogger.msg(ERROR,"VOMS: AC is not complete - missing Serial or Issuer information");
+        return false;
       }
 
       if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
-        std::cerr<<"The holder serial number: "<<ASN1_INTEGER_get(cert->cert_info->serialNumber)<<" is not the same as that in AC: "<<ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial)<<std::endl; //return false;
+        CredentialLogger.msg(WARNING,"VOMS: the holder serial number %i is not the same as in AC - %i",ASN1_INTEGER_get(cert->cert_info->serialNumber),ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
+        // return false;
       }
        
       names = ac->acinfo->holder->baseid->issuer;
       if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || (name->type != GEN_DIRNAME)) {
-        std::cerr<<"The holder issuer information in AC is wrong"<<std::endl; return false;
+        CredentialLogger.msg(ERROR,"VOMS: the holder issuer information in AC is wrong");
+        return false;
       }
       
       //If the holder is self-signed, and the holder also self sign the AC
-      std::cout<<"The holder DN in AC: "<<X509_NAME_oneline(name->d.dirn,NULL,0)<<std::endl;
-      std::cout<<"The holder DN: "<<X509_NAME_oneline(cert->cert_info->subject,NULL,0)<<std::endl;
-      std::cout<<"The holder's issuer DN: "<<X509_NAME_oneline(cert->cert_info->issuer,NULL,0)<<std::endl;
+      CredentialLogger.msg(VERBOSE,"VOMS: DN of holder in AC: %s",X509_NAME_oneline(name->d.dirn,NULL,0));
+      CredentialLogger.msg(VERBOSE,"VOMS: DN of holder: %s",X509_NAME_oneline(cert->cert_info->subject,NULL,0));
+      CredentialLogger.msg(VERBOSE,"VOMS: DN of issuer: %s",X509_NAME_oneline(cert->cert_info->issuer,NULL,0));
       if (X509_NAME_cmp(name->d.dirn, cert->cert_info->subject) && X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
-        std::cerr<<"The holder itself can not sign an AC by using a self-sign certificate"<<std::endl; return false;
+        CredentialLogger.msg(ERROR,"VOMS: the holder itself can not sign an AC by using a self-sign certificate"); return false;
       }
 
       if ((ac->acinfo->holder->baseid->uid && cert->cert_info->issuerUID) ||
           (!cert->cert_info->issuerUID && !ac->acinfo->holder->baseid->uid)) {
         if (ac->acinfo->holder->baseid->uid) {
           if (M_ASN1_BIT_STRING_cmp(ac->acinfo->holder->baseid->uid, cert->cert_info->issuerUID)) {
-            std::cerr<<"The holder issuerUID is not the same as that in AC"<<std::endl; return false;
+            CredentialLogger.msg(ERROR,"VOMS: the holder issuerUID is not the same as that in AC");
+            return false;
           }
         }
       }
-      else { std::cerr<<"The holder issuerUID is not the same as that in AC"<<std::endl; return false; }
+      else {
+        CredentialLogger.msg(ERROR,"VOMS: the holder issuerUID is not the same as that in AC");
+        return false;
+      }
     }
     else if (ac->acinfo->holder->name) {
       names = ac->acinfo->holder->name;
@@ -1107,7 +1147,8 @@ err:
         if (X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
           /* CHECK ALT_NAMES */
           /* in VOMS ACs, checking into alt names is assumed to always fail. */
-          std::cerr<<"The holder issuer name is not the same as that in AC"<<std::endl; return false;
+          CredentialLogger.msg(ERROR,"VOMS: the holder issuer name is not the same as that in AC");
+          return false;
         }
       }
     }
@@ -1115,11 +1156,13 @@ err:
     names = ac->acinfo->form->names;
     if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || (name->type != GEN_DIRNAME) ||
        X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
-      std::cerr<<"The issuer's issuer name: "<<X509_NAME_oneline(issuer->cert_info->subject,NULL,0)<<" is not the same as that in AC: "<<X509_NAME_oneline(name->d.dirn,NULL,0)<<std::endl; return false;
+      CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",X509_NAME_oneline(issuer->cert_info->subject,NULL,0),X509_NAME_oneline(name->d.dirn,NULL,0));
+      return false;
     }
 
     if (ac->acinfo->serial->length > 20) {
-      std::cerr<<"The serial number of ACINFO is too long"<<std::endl; return false;
+      CredentialLogger.msg(ERROR,"VOMS: the serial number of AC INFO is too long - expecting no more than 20 octets");
+      return false;
     }
   
     bool ret = false;
@@ -1143,16 +1186,28 @@ err:
     int pos = 0;
     nid = OBJ_txt2nid("idatcap");
     pos = X509at_get_attr_by_NID(atts, nid, -1);
-    if(!(pos >=0)) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+    if(!(pos >=0)) {
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
+      return false;
+    }
 
     AC_ATTR * caps = sk_AC_ATTR_value(atts, pos);
-    if(!caps) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+    if(!caps) {
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract vo name from AC");
+      return false;
+    }
 
     AC_IETFATTR * capattr = sk_AC_IETFATTR_value(caps->ietfattr, 0);
-    if(!capattr) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+    if(!capattr) {
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract vo name from AC");
+      return false;
+    }
 
     GENERAL_NAME * name = sk_GENERAL_NAME_value(capattr->names, 0);
-    if(!name) { std::cerr<<"Unable to extract vo name from AC"<<std::endl; return false; }
+    if(!name) {
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract vo name from AC");
+      return false;
+    }
 
     std::string voname((const char *)name->d.ia5->data, 0, name->d.ia5->length);
     std::string::size_type cpos = voname.find("://");
@@ -1162,20 +1217,21 @@ err:
       if (cpos2 != std::string::npos)
         hostname = voname.substr(cpos+3, (cpos2 - cpos - 3));
       else {
-        std::cerr<<"Unable to determine hostname from AC: "<<voname<<std::endl;
+        CredentialLogger.msg(ERROR,"VOMS: unable to determine hostname of AC from VO name: %s",voname);
         return false;
       }
       voname = voname.substr(0, cpos);
     }
     else {
-      std::cerr<<"Unable to extract vo name from AC"<<std::endl;
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
       return false;
     }
  
     X509* issuer = NULL;
 
     if(!check_signature(ac, voname, hostname, ca_cert_dir, ca_cert_file, vomscert_trust_dn, &issuer)) {
-      std::cerr<<"Can not verify the signature of the AC"<<std::endl; return false; 
+      CredentialLogger.msg(ERROR,"VOMS: cannt verify the signature of the AC");
+      return false; 
     }
 
     if(check_acinfo(holder, issuer, ac, output)) return true;

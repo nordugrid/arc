@@ -187,12 +187,12 @@ namespace Arc {
     PKCS12* pkcs12 = NULL;
     STACK_OF(X509)* pkcs12_certs = NULL;
     format = getFormat(certbio);
-    CredentialLogger.msg(INFO,"Certificate format for BIO is: %d", format);
 
     if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
  
     switch(format) {
       case PEM:
+        CredentialLogger.msg(VERBOSE,"Certificate format is PEM");
         //Get the certificte, By default, certificate is without passphrase
         //Read certificate
         if(!(x509 = PEM_read_bio_X509(certbio, &cert, NULL, NULL))) {
@@ -220,6 +220,7 @@ namespace Arc {
         break;
 
       case DER:
+        CredentialLogger.msg(VERBOSE,"Certificate format is DER");
         cert=d2i_X509_bio(certbio,NULL);
         if(!cert){
           CredentialLogger.msg(ERROR,"Unable to read DER credential from BIO"); LogError();
@@ -228,6 +229,7 @@ namespace Arc {
         break;
 
       case PKCS:
+        CredentialLogger.msg(VERBOSE,"Certificate format is PKCS");
         pkcs12 = d2i_PKCS12_bio(certbio, NULL);
         if(pkcs12){
           char password[100];
@@ -256,6 +258,7 @@ namespace Arc {
         break;
 
       default:  
+        CredentialLogger.msg(VERBOSE,"Certificate format is unknown");
         break;
      } // end switch
 
@@ -345,7 +348,7 @@ namespace Arc {
 
   bool Credential::Verify(void) {
     if(verify_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
-      CredentialLogger.msg(INFO, "Certificate verification succeeded");
+      CredentialLogger.msg(VERBOSE, "Certificate verification succeeded");
       return true;
     }
     else {CredentialLogger.msg(ERROR, "Certificate verification failed"); LogError(); return false;}
