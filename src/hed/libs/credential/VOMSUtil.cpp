@@ -20,6 +20,77 @@ using namespace ArcCredential;
 
 namespace Arc {
 
+  VOMSTrustList::VOMSTrustList(const std::vector<std::string>& encoded_list) {
+    VOMSTrustChain chain;
+    for(std::vector<std::string>::const_iterator i = encoded_list.begin();
+                                i != encoded_list.end(); ++i) {
+      if(*i == "NEXT CHAIN") {
+        if(chain.size() > 0) {
+          if(chain.size() > 1) { // More than one item in chain means DN list
+            AddChain(chain);
+          } else {
+            // Trying to find special symbols
+            if((chain[0].find('^') != std::string::npos) ||
+               (chain[0].find('$') != std::string::npos) ||
+               (chain[0].find('*') != std::string::npos)) {
+              AddRegex(chain[0]);
+            } else {
+              AddChain(chain);
+            };
+          }
+          chain.clear();
+        }
+        continue;
+      }
+      chain.push_back(*i);
+    }
+    if(chain.size() > 0) {
+      if(chain.size() > 1) { // More than one item in chain means DN list
+        AddChain(chain);
+      } else {
+        // Trying to find special symbols
+        if((chain[0].find('^') != std::string::npos) ||
+           (chain[0].find('$') != std::string::npos) ||
+           (chain[0].find('*') != std::string::npos)) {
+          AddRegex(chain[0]);
+        } else {
+          AddChain(chain);
+        };
+      }
+      chain.clear();
+    }
+  }
+
+  VOMSTrustList::VOMSTrustList(const std::vector<VOMSTrustChain>& chains,const std::vector<VOMSTrustRegex>& regexs):chains_(chains) {
+    for(std::vector<VOMSTrustRegex>::const_iterator r = regexs.begin();
+                    r != regexs.end();++r) {
+      AddRegex(*r);
+    }
+  }
+
+  VOMSTrustList::~VOMSTrustList(void) {
+    for(std::vector<RegularExpression*>::iterator r = regexs_.begin();
+                    r != regexs_.end();++r) {
+      if(*r) delete *r; *r=NULL;
+    }
+  }
+
+  VOMSTrustChain& VOMSTrustList::AddChain(void) {
+    VOMSTrustChain chain;
+    return *chains_.insert(chains_.end(),chain);
+  }
+
+  VOMSTrustChain& VOMSTrustList::AddChain(const VOMSTrustChain& chain) {
+    return *chains_.insert(chains_.end(),chain);
+  }
+
+  RegularExpression& VOMSTrustList::AddRegex(const VOMSTrustRegex& reg) {
+    RegularExpression* r = new RegularExpression(reg);
+    regexs_.insert(regexs_.end(),r);
+    return *r;
+  }
+
+
   void InitVOMSAttribute(void) {
     #define idpkix                "1.3.6.1.5.5.7"
     #define idpkcs9               "1.2.840.113549.1.9"
@@ -614,8 +685,40 @@ err:
     return match;
   }
 
-  static bool check_signature(AC* ac, std::string& voname, std::string& hostname, 
-    const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::vector<std::string>& vomscert_trust_dn, 
+  static bool check_trust(const VOMSTrustChain& chain,STACK_OF(X509)* certstack) {
+    int n = 0;
+    X509 *current = NULL;
+    if(chain.size() > (sk_X509_num(certstack)+1)) return false;
+    for(;n < sk_X509_num(certstack);++n) {
+      if(n >= chain.size()) return true;
+      current = sk_X509_value(certstack,n);
+      if(!current) return false;
+      if(chain[n] != X509_NAME_oneline(X509_get_subject_name(current),NULL,0)) {
+        return false;
+      }
+    }
+    if(n < chain.size()) {
+      if(!current) return false;
+      if(chain[n] != X509_NAME_oneline(X509_get_issuer_name(current),NULL,0)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool check_trust(const RegularExpression& reg,STACK_OF(X509)* certstack) {
+    if(sk_X509_num(certstack) <= 0) return false;
+    X509 *current = sk_X509_value(certstack,0);
+    std::string subject(X509_NAME_oneline(X509_get_subject_name(current),NULL,0));
+    std::list<std::string> unmatched, matched;
+    return reg.match(subject,unmatched,matched);
+  }
+
+  static bool check_signature(AC* ac, std::string& voname, 
+    std::string& hostname, 
+    const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+    const VOMSTrustList& vomscert_trust_dn, 
+    //const std::vector<std::string>& vomscert_trust_dn, 
     X509** issuer_cert) {
     X509* issuer = NULL;
 
@@ -629,6 +732,28 @@ err:
       STACK_OF(X509)* certstack = certs->stackcert;
 
       bool success = false;
+
+      if(certstack) {
+        for(int n = 0;n < vomscert_trust_dn.SizeChains();++n) {
+          const VOMSTrustChain& chain = vomscert_trust_dn.GetChain(n);
+          if(check_trust(chain,certstack)) {
+            success = true;
+            break;
+          }
+        }
+        if(!success) for(int n = 0;n < vomscert_trust_dn.SizeRegexs();++n) {
+          const RegularExpression& reg = vomscert_trust_dn.GetRegex(n);
+          if(check_trust(reg,certstack)) {
+            success = true;
+            break;
+          }
+        }
+      }
+
+
+
+      /*
+      bool success = false;
       bool final = false;
 
       unsigned int k=0;
@@ -636,6 +761,8 @@ err:
         success = true;
         for (int i = 0; i < sk_X509_num(certstack); i++) {
           X509 *current = sk_X509_value(certstack, i);
+
+          
 
           std::string subject_name;
           std::string issuer_name;
@@ -665,13 +792,13 @@ err:
             return false;
           }
 
-          /*
+          *
           if(subject_name.empty() || issuer_name.empty()) { 
             success = false;
             final = true;
             break;
           }
-          */
+          *
 
           std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
           std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
@@ -700,6 +827,7 @@ err:
         }
         if (success || k >= vomscert_trust_dn.size()) final = true;
       } while (!final);
+      */
 
       if (!success) {
         AC_CERTS_free(certs);
@@ -1192,8 +1320,11 @@ err:
     return true;
   }
 
-  bool verifyVOMSAC(AC* ac, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-        const std::vector<std::string>& vomscert_trust_dn, X509* holder, std::vector<std::string>& output) {
+  static bool verifyVOMSAC(AC* ac,
+        const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+        const VOMSTrustList& vomscert_trust_dn,
+        //const std::vector<std::string>& vomscert_trust_dn,
+        X509* holder, std::vector<std::string>& output) {
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
@@ -1252,8 +1383,11 @@ err:
     else return false;
   }
 
-  bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-        const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output) {
+  bool parseVOMSAC(X509* holder,
+        const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+        const VOMSTrustList& vomscert_trust_dn,
+        //const std::vector<std::string>& vomscert_trust_dn,
+        std::vector<std::string>& output) {
 
     InitVOMSAttribute();
 
@@ -1292,8 +1426,11 @@ err:
     return verified;
   }
 
-  bool parseVOMSAC(Credential& holder_cred, const std::string& ca_cert_dir, const std::string& ca_cert_file,
-         const std::vector<std::string>& vomscert_trust_dn, std::vector<std::string>& output) {
+  bool parseVOMSAC(Credential& holder_cred,
+         const std::string& ca_cert_dir, const std::string& ca_cert_file,
+         const VOMSTrustList& vomscert_trust_dn,
+         //const std::vector<std::string>& vomscert_trust_dn,
+         std::vector<std::string>& output) {
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;
     bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output);

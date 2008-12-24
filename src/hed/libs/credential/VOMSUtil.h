@@ -4,10 +4,63 @@
 #include <vector>
 #include <string>
 
+#include <arc/ArcRegex.h>
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSAttribute.h>
 
 namespace Arc {
+
+  typedef std::vector<std::string> VOMSTrustChain;
+
+  typedef std::string VOMSTrustRegex;
+
+  /** Stores definitions for making decision if VOMS server is trusted */
+  class VOMSTrustList {
+    private:
+      std::vector<VOMSTrustChain> chains_;
+      std::vector<RegularExpression*> regexs_;
+    public:
+      VOMSTrustList(void) { };
+      /** Creates chain lists and regexps from plain list. 
+        List is made of chunks delimited by elements containing
+        pattern "NEXT CHAIN". Each chunk with more than one element
+        is converted into one instance of VOMSTrustChain. Chunks
+        with single element are converted to VOMSTrustChain if
+        element does not have special symbols. Otherwise it is 
+        treated as regular expression. Those symbols are '^','$'
+        and '*'. */
+      VOMSTrustList(const std::vector<std::string>& encoded_list);
+      /** Creates chain lists and regexps from those specified in arguments.
+        See AddChain() and AddRegex() for more information. */
+      VOMSTrustList(const std::vector<VOMSTrustChain>& chains,const std::vector<VOMSTrustRegex>& regexs);
+      ~VOMSTrustList(void);
+      /** Adds chain if trusted DNs to list.
+        During verification each signature of AC is checked against
+        all stored chains. DNs of chain of certificate used for signing
+        AC are compared against DNs stored in these chains one by one.
+        If needed DN of issuer of last certificate is checked too.
+        Comparison succeeds if DNs in at least one stored chain are
+        same as those in certificate chain. Comparison stops when all DNs
+        in stored chain are compared. If there are more DNs in stored chain
+        than in certificate chain then comparison fails. Empty stored 
+        list matches any certificate chain.
+        Taking into account that cartificate chains are verified down
+        to trusted CA anyway, having more than one DN is stored
+        chain seems to be useless. But such feature may be found useful
+        by some very strict sysadmins. */
+      VOMSTrustChain& AddChain(const VOMSTrustChain& chain);
+      /** Adds empty chain of trusted DNs to list. */
+      VOMSTrustChain& AddChain(void);
+      /** Adds regular expression to list.
+        During verification each signature of AC is checked against
+        all stored regular expressions. DN of signing certificate
+        must match at least one of stored regular expressions. */
+      RegularExpression& AddRegex(const VOMSTrustRegex& reg);
+      int SizeChains(void) const { return chains_.size(); };
+      int SizeRegexs(void) const { return chains_.size(); };
+      const VOMSTrustChain& GetChain(int num) const { return chains_[num]; };
+      const RegularExpression& GetRegex(int num) const { return *(regexs_[num]); };
+  };
 
   void InitVOMSAttribute(void);
 
@@ -66,14 +119,16 @@ namespace Arc {
    */
   bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
-                   const std::vector<std::string>& vomscert_trust_dn,
+                   const VOMSTrustList& vomscert_trust_dn,
+                   //const std::vector<std::string>& vomscert_trust_dn,
                    std::vector<std::string>& output);
 
   /**Parse the certificate. The same as the above one */
   bool parseVOMSAC(Arc::Credential& holder_cred,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
-                   const std::vector<std::string>& vomscert_trust_dn,
+                   const VOMSTrustList& vomscert_trust_dn,
+                   //const std::vector<std::string>& vomscert_trust_dn,
                    std::vector<std::string>& output);
 
 }// namespace Arc
