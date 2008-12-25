@@ -630,21 +630,42 @@ err:
 
       if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
         X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
-        for (int i = 0; i < sk_X509_num(stack); i++) {
-          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
-          ERR_clear_error();
-          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+        //Check the AC issuer certificate's chain
+        for (int i = sk_X509_num(stack)-1; i >=0; i--) {
+          //Firstly, try to verify the certificate which is issues by CA;
+          //Then try to verify the next one; the last one is the certificate
+          //(voms server certificate) which issues AC.
+          //Normally the voms server certificate is directly issued by a CA,
+          //so sk_X509_num(stack) should be 1.
+          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
           index = X509_verify_cert(csc);
+          if(!index) break;
+          //If the 'i' is verified, then add it as trusted certificate
+          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
         }
+/*
+        for (int i = 1; i < sk_X509_num(stack); i++)
+          X509_STORE_add_cert(ctx,sk_X509_value(stack, i)); 
+        ERR_clear_error();
+        X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+        index = X509_verify_cert(csc);
+*/
       }
       else if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
         X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_PEM);
-        for (int i = 0; i < sk_X509_num(stack); i++) {
-          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
-          ERR_clear_error();
-          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+        for (int i = sk_X509_num(stack)-1; i >=0; i--) {
+          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
           index = X509_verify_cert(csc);
+          if(!index) break;
+          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
         }
+/*
+        for (int i = 1; i < sk_X509_num(stack); i++)
+          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
+        ERR_clear_error();
+        X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+        index = X509_verify_cert(csc);
+*/
       }
     }
     if (ctx) X509_STORE_free(ctx);
@@ -689,6 +710,7 @@ err:
     int n = 0;
     X509 *current = NULL;
     if(chain.size() > (sk_X509_num(certstack)+1)) return false;
+#if 0
     for(;n < sk_X509_num(certstack);++n) {
       if(n >= chain.size()) return true;
       current = sk_X509_value(certstack,n);
@@ -703,15 +725,35 @@ err:
         return false;
       }
     }
+#endif
+    for(;n < sk_X509_num(certstack);++n) {
+      if((n+1) >= chain.size()) return true;
+      current = sk_X509_value(certstack,n);
+      if(!current) return false;
+      if(chain[n] != X509_NAME_oneline(X509_get_subject_name(current),NULL,0)) {
+        return false;
+      }
+      if(chain[n+1] != X509_NAME_oneline(X509_get_issuer_name(current),NULL,0)) {
+        return false;
+      }
+    }
+
     return true;
   }
 
   static bool check_trust(const RegularExpression& reg,STACK_OF(X509)* certstack) {
     if(sk_X509_num(certstack) <= 0) return false;
     X509 *current = sk_X509_value(certstack,0);
+#if 0
     std::string subject(X509_NAME_oneline(X509_get_subject_name(current),NULL,0));
     std::list<std::string> unmatched, matched;
     return reg.match(subject,unmatched,matched);
+#endif
+    std::string subject(X509_NAME_oneline(X509_get_subject_name(current),NULL,0));
+    std::string issuer(X509_NAME_oneline(X509_get_issuer_name(current),NULL,0));
+    std::list<std::string> unmatched, matched;
+    return (reg.match(subject,unmatched,matched) && reg.match(issuer,unmatched,matched));
+
   }
 
   static bool check_signature(AC* ac, std::string& voname, 

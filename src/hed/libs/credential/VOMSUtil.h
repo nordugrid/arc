@@ -44,10 +44,14 @@ namespace Arc {
         in stored chain are compared. If there are more DNs in stored chain
         than in certificate chain then comparison fails. Empty stored 
         list matches any certificate chain.
-        Taking into account that cartificate chains are verified down
-        to trusted CA anyway, having more than one DN is stored
+        Taking into account that certificate chains are verified down
+        to trusted CA anyway, having more than one DN in stored
         chain seems to be useless. But such feature may be found useful
-        by some very strict sysadmins. */
+        by some very strict sysadmins. 
+        ??? IMO,DN list here is not only for authentication, it is also kind
+        of ACL, which means the AC consumer only trusts those DNs which
+        issues AC.
+        */
       VOMSTrustChain& AddChain(const VOMSTrustChain& chain);
       /** Adds empty chain of trusted DNs to list. */
       VOMSTrustChain& AddChain(void);

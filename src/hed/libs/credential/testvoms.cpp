@@ -41,7 +41,7 @@ int main(void) {
   //Here we use the same credential for holder and issuer
   std::string cert1("./out.pem");
   std::string key1("./out.pem");
-  Arc::Credential holder_cred(cert1, key1, cadir, "");
+  Arc::Credential holder_cred(cert1, "", cadir, "");
 
 
   /** a.Below is voms-specific processing*/
@@ -141,7 +141,7 @@ int main(void) {
   vomscert_trust_dn.push_back("NEXT CHAIN");
   vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
   vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
-  Arc::Credential proxy2(in_file_ac, in_file_ac, ca_cert_dir, "");
+  Arc::Credential proxy2(in_file_ac, "", ca_cert_dir, "");
   std::vector<std::string> attributes;
   Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
 
