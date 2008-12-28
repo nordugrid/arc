@@ -45,6 +45,20 @@
       </xsd:complexType>
       <xsd:element name="TokenRequest" type="deleg:TokenRequestType"/>
 
+      <xsd:complexType name="DelegatedTokenLookupType">
+        <xsd:sequence>
+          <!--Credential's Identity and Credential delegator's IP address;
+           These two values will be treated as the alternative of 'Id' to locate
+           the credential in delegation service's credential cache -->
+          <xsd:element name="CredIdentity" type="xsd:string"/>
+          <xsd:element name="CredDelegatorIP" type="xsd:string"/>
+          <!--Id of the credential-->
+          <xsd:element name="Id" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="DelegatedTokenLookup" type="deleg:DelegatedTokenLookupType"/>
+
       <!-- Types for messages -->
 
       <xsd:complexType name="DelegateCredentialsInitRequestType">
@@ -72,6 +86,20 @@
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="UpdateCredentialsResponse" type="deleg:UpdateCredentialsResponseType"/>
+
+      <xsd:complexType name="AcquireCredentialsRequestType">
+        <xsd:sequence>
+          <xsd:element name="DelegatedTokenLookup" type="deleg:DelegatedTokenLookupType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="AcquireCredentials" type="deleg:AcquireCredentialsRequestType"/>
+
+      <xsd:complexType name="AcquireCredentialsResponseType">
+        <xsd:sequence>
+          <xsd:element name="DelegatedToken" type="deleg:DelegatedTokenType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="AcquireCredentialsResponse" type="deleg:AcquireCredentialsResponseType"/>
 
       <!-- Faults -->
 
@@ -113,6 +141,14 @@
 
   <wsdl:message name="UpdateCredentialsResponse">
     <wsdl:part name="UpdateCredentialsResponse" element="deleg:UpdateCredentialsResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="AcquireCredentialsRequest">
+    <wsdl:part name="AcquireCredentialsRequest" element="deleg:AcquireCredentials"/>
+  </wsdl:message>
+
+  <wsdl:message name="AcquireCredentialsResponse">
+    <wsdl:part name="AcquireCredentialsResponse" element="deleg:AcquireCredentialsResponse"/>
   </wsdl:message>
 
   <wsdl:message name="UnsupportedFault">
@@ -157,6 +193,21 @@
         message="deleg:WrongReferenceFault"/>
     </wsdl:operation>
 
+   <wsdl:operation name="AcquireCredentials">
+      <wsdl:documentation>
+      </wsdl:documentation>
+      <wsdl:input name="AcquireCredentialsRequest"
+        message="deleg:AcquireCredentialsRequest"/>
+      <wsdl:output name="AcquireCredentialsResponse"
+        message="deleg:AcquireCredentialsResponse"/>
+      <wsdl:fault name="UnsupportedFault"
+        message="deleg:UnsupportedFault"/>
+      <wsdl:fault name="ProcessingFault"
+        message="deleg:ProcessingFault"/>
+      <wsdl:fault name="WrongReferenceFault"
+        message="deleg:WrongReferenceFault"/>
+    </wsdl:operation>
+
   </wsdl:portType>
 
   <wsdl:binding name="DelegationBinding" type="deleg:DelegationPortType">
@@ -180,6 +231,16 @@
       </wsdl:input>
       <wsdl:output name="UpdateCredentialsResponse">
         <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="AcquireCredentials">
+      <soap:operation soapAction="AcquireCredentials"/>
+      <wsdl:input name="AcquireCredentialsRequest">
+         <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="AcquireCredentialsResponse">
+         <soap:body use="literal"/>
       </wsdl:output>
     </wsdl:operation>
 

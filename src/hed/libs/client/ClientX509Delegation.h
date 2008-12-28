@@ -44,8 +44,17 @@ namespace Arc {
     ClientX509Delegation() {}
     ClientX509Delegation(const BaseConfig& cfg, const URL& url);
     virtual ~ClientX509Delegation();
-    /** Process the delegation according to the different remote 
-     *  delegation service. 
+    /** Create the delegation credential according to the different remote 
+     *  delegation service.
+     *  This method should be called by holder of EEC(end entity credential)
+     *  which would delegate its EEC credential, or by holder of delegated 
+     *  credential(normally, the holder is intermediate service) which would
+     *  further delegate the credential (on behalf of the original EEC's holder)
+     *  (for instance, the 'n' intermediate service creates a delegation credential,
+     *  then the 'n+1' intermediate service aquires this delegation credential 
+     *  from the delegation service and also acts on behalf of the EEC's holder
+     *  by using this delegation credential).
+     *
      *  @param deleg Delegation type
      *  @param delegation_id   For gridsite delegation service, the delegation_id
      *       is supposed to be created by client side, and sent to service side; 
@@ -55,9 +64,34 @@ namespace Arc {
      *       it is treated as output.
      */
     bool createDelegation(DelegationType deleg, std::string& delegation_id);
-    //bool deleteDelegation(DelegationType deleg);
-    //bool acquireDelegation(DelegationType deleg, std::string& delegation_id, 
-    //        std::string username = "", std::string password = "");
+    bool destroyDelegation(DelegationType deleg) { return false; };
+    /** Acquire delegation credential from delegation service.
+     *  This method should be called by intermediate service ('n+1' service as 
+     *  explained on above) in order to use this delegation credential on behalf
+     *  of the EEC's holder.
+     *  @param deleg Delegation type
+     *  @param delegation_id  delegation ID which is used to look up the credential
+     *                        by delegation service
+     *  @param cred_identity  the identity (in case of x509 credential, it is the 
+     *                        DN of EEC credential). 
+     *  @param cred_delegator_ip the IP address of the credential delegator. Regard of 
+     *                           delegation, an intermediate service should accomplish
+     *                           three tasks:
+     *                           1. Acquire 'n' level delegation credential (which is 
+     *                             delegated by 'n-1' level delegator) from delegation 
+     *                             service;
+     *                           1. Create 'n+1' level delegation credential to 
+     *                             delegation service;
+     *                           2. Use 'n' level delegation credential to act on behalf
+     *                             of the EEC's holder.
+     *                           In case of absense of delegation_id, the 'n-1' level
+     *                           delegator's IP address and credential's identity are 
+     *                           supposed to be used for look up the delegation credential
+     *                           from delegation service.
+     */
+    bool acquireDelegation(DelegationType deleg, std::string& delegation_id,
+            const std::string cred_identity = "", const std::string cred_delegator_ip = "", 
+            const std::string username = "", const std::string password = "");
 
   private:
     ClientSOAP* soap_client_;
