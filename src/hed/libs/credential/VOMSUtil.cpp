@@ -636,11 +636,23 @@ err:
           //Then try to verify the next one; the last one is the certificate
           //(voms server certificate) which issues AC.
           //Normally the voms server certificate is directly issued by a CA,
-          //so sk_X509_num(stack) should be 1.
+          //in this case, sk_X509_num(stack) should be 1.
+          //On the other hand, if the voms server certificate is issued by a CA
+          //which is issued by an parent CA, and so on, then the AC issuer should 
+          //put those CA certificates (except the root CA certificate which has 
+          //been configured to be trusted on the AC consumer side) together with 
+          //the voms server certificate itself in the 'certseq' part of AC.
+          //
+          //The CA certificates are checked one by one: the certificate which
+          //is signed by root CA is checked firstly; the voms server certificate
+          //is checked lastly.
+          //
           X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
           index = X509_verify_cert(csc);
           if(!index) break;
-          //If the 'i' is verified, then add it as trusted certificate
+          //If the 'i'th certificate is verified, then add it as trusted certificate,
+          //then 'i'th certificate will be used as 'trusted certificate' to check
+          //the 'i-1'th certificate
           X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
         }
 /*
