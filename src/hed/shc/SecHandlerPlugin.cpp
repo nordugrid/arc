@@ -6,7 +6,7 @@
 
 #include "simplelistpdp/SimpleListPDP.h"
 #include "pdpserviceinvoker/ArcPDPServiceInvoker.h"
-#include "delegationsh/DelegationPDP.h"
+#include "delegationpdp/DelegationPDP.h"
 #include "arcpdp/ArcPDP.h"
 #include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
