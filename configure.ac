@@ -1205,6 +1205,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile
+                 src/hed/shc/delegationpdp/Makefile
                  src/hed/shc/gaclpdp/Makefile
                  src/hed/shc/pdpserviceinvoker/Makefile
                  src/hed/shc/allowpdp/Makefile
@@ -1212,7 +1213,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/countpdp/Makefile
                  src/hed/shc/simplelistpdp/Makefile
                  src/hed/shc/arcauthzsh/Makefile
-                 src/hed/shc/delegationsh/Makefile
                  src/hed/shc/usernametokensh/Makefile
                  src/hed/shc/x509tokensh/Makefile
                  src/hed/shc/saml2sso_assertionconsumersh/Makefile
