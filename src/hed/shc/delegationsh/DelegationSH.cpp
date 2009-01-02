@@ -85,22 +85,15 @@ class DelegationContext:public Arc::MessageContextElement{
   std::string delegation_endpoint_;
   std::string delegation_id_;
   std::string deleg_cred_;
+  std::string deleg_cred_path_;
   DelegationContext(const std::string& delegation_endpoint,const std::string& delegation_id,const std::string& deleg_cred);
-  std::string acquire_credential_path();
   virtual ~DelegationContext(void) { };
 };
 
 DelegationContext::DelegationContext(const std::string& delegation_endpoint,const std::string& delegation_id,const std::string& deleg_cred):delegation_endpoint_(delegation_endpoint),delegation_id_(delegation_id),deleg_cred_(deleg_cred),have_delegated_(false) {
-  std::string path="/tmp/";
-  path.append(delegation_endpoint_).append(delegation_id_);
-   
+  deleg_cred_path_="/tmp/";
+  deleg_cred_path_.append(delegation_endpoint_).append(delegation_id_); //generate hash value?
 }
-
-std::string DelegationContext::acquire_credential_path() {
-  std::string path="/tmp/";
-  path.append(delegation_endpoint_).append(delegation_id_);
-  return path;
-} 
 
 DelegationContext* DelegationSH::get_delegcontext(Arc::Message& msg, const std::string& ds_endpoint, const std::string& delegation_id, const std::string& deleg_cred) {
   DelegationContext* deleg_ctx=NULL;
@@ -129,6 +122,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
       if(delegation_role_ == delegation_service) {
         //Try to get the delegation service and delegation ID
         //information from incoming message
+        logger.msg(Arc::INFO,"+++++++++ Delegation handler with service role starts to process +++++++++");
         std::string method = (*msg).Attributes()->get("HTTP:METHOD");
         if(method == "POST") {
           logger.msg(Arc::DEBUG, "process: POST");
@@ -177,12 +171,19 @@ bool DelegationSH::Handle(Arc::Message* msg){
               logger.msg(Arc::ERROR, "Can't create delegation context");
               return false;
             };
-            return true; 
+            //Remove the delegation information inside the payload 
+            //since this information ('DelegationService' and 'DelegationID') 
+            //is only supposed to be consumer by this security handler, not 
+            //the hosted service itself.
+            if((*inpayload)["DelegationService"]) ((*inpayload)["DelegationService"]).Destroy();
+            if((*inpayload)["DelegationID"]) ((*inpayload)["DelegationID"]).Destroy();
           } else {
             logger.msg(ERROR,"The endpoint of delgation service should be configured");
             return false;
           }
         };
+        logger.msg(Arc::INFO,"+++++++++ Delegation handler with service role ends +++++++++");
+        return true;
       }
       else if(delegation_role_ == delegation_client) {
         //Create one more level of delegation
@@ -197,6 +198,8 @@ bool DelegationSH::Handle(Arc::Message* msg){
         //utilities) to create one more level of delegation, this delegation credential
         //will be used by the next intermediate service to act on behalf of
         //the EEC credential's holder
+        logger.msg(Arc::INFO,"+++++++++ Delegation handler with client role starts to process +++++++++");
+
         if(!proxy_file_.empty()) {        
           ds_client_cfg.AddProxy(proxy_file_);
         }
@@ -211,7 +214,8 @@ bool DelegationSH::Handle(Arc::Message* msg){
           if(!deleg_ctx) {
             logger.msg(Arc::ERROR, "Can't acquire delegation context");
             return false;
-          };   
+          };
+          proxy_path=deleg_ctx->deleg_cred_path_;   
           ds_client_cfg.AddProxy(proxy_path);
         }
         if(!ca_dir_.empty()) ds_client_cfg.AddCADir(ca_dir_);
@@ -238,8 +242,12 @@ bool DelegationSH::Handle(Arc::Message* msg){
         //
         //The delegation service and delegation ID
         //information will be sent to the service side by the 
-        //client side, so the handler should be configured into 
-        //the 'outgoing' message.
+        //client side. If the client functionality is hosted/called by
+        //some intermediate service, this handler (delegation handler with
+        //client role) should be configured into the 'incoming' message of 
+        //the hosted service; if the client functionality is called by
+        //some independent client utility, this handler should be configured 
+        //into the 'incoming' message of the client itself.
         //
         //The credential used to send delegation service and delegation ID
         //information is the same credential which is used to interact with
@@ -253,20 +261,23 @@ bool DelegationSH::Handle(Arc::Message* msg){
         Arc::URL peers_url(peers_endpoint_);
         Arc::ClientSOAP client_peer(peers_client_cfg,peers_url);
         Arc::NS delegation_ns; delegation_ns["deleg"]="urn:delegation"; //
-        Arc::PayloadSOAP req(delegation_ns);
-        req.NewChild("DelegationService")=ds_endpoint_;
-        req.NewChild("DelegationID")=delegation_id;
-        Arc::PayloadSOAP* resp = NULL;
-        Arc::MCC_Status status = client_peer.process(&req,&resp);
-        if(!status) {
-          logger.msg(Arc::ERROR, "SOAP invokation failed");
-          throw std::runtime_error("SOAP invokation failed");
-        }
-        if(resp == NULL) {
-          logger.msg(Arc::ERROR,"There is no SOAP response");
-          throw std::runtime_error("There is no SOAP response");
-        }
-        if(resp) delete resp;
+
+        //Treat the delegation information as 'out-of-bound' information
+        //to SOAP message
+        Arc::PayloadSOAP* outpayload = NULL;
+        try {
+          outpayload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
+        } catch(std::exception& e) { };
+        if(!outpayload) {
+          logger.msg(Arc::ERROR, "output is not SOAP");
+          return false;
+        };
+        outpayload->NewChild("deleg:DelegationService")=ds_endpoint_;
+        outpayload->NewChild("deleg:DelegationID")=delegation_id;
+      
+
+        logger.msg(Arc::INFO, "Succeeded to send DelegationService: %s and DelegationID: %s info to peer service",ds_endpoint_.c_str(),delegation_id.c_str());
+        logger.msg(Arc::INFO,"+++++++++ Delegation handler with service role ends +++++++++");
         return true;     
       }
 

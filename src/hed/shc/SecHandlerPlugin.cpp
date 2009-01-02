@@ -16,6 +16,7 @@
 #include "usernametokensh/UsernameTokenSH.h"
 #include "x509tokensh/X509TokenSH.h"
 #include "saml2sso_assertionconsumersh/SAML2SSO_AssertionConsumerSH.h"
+#include "delegationsh/DelegationSH.h"
 
 #include "arcpdp/ArcPolicy.h"
 #include "gaclpdp/GACLPolicy.h"
@@ -57,6 +58,8 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "saml2ssoassertionconsumer.handler", "HED:SHC", 0,
                   &ArcSec::SAML2SSO_AssertionConsumerSH::get_sechandler},
 #endif
+    { "delegation.handler", "HED:SHC", 0,
+                  &ArcSec::DelegationSH::get_sechandler},
     { "arc.policy", "__arc_policy_modules__", 0,
                   &ArcSec::ArcPolicy::get_policy },
     { "gacl.policy", "__arc_policy_modules__", 0,

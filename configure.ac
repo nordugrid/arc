@@ -1216,6 +1216,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/usernametokensh/Makefile
                  src/hed/shc/x509tokensh/Makefile
                  src/hed/shc/saml2sso_assertionconsumersh/Makefile
+                 src/hed/shc/delegationsh/Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
@@ -1325,6 +1326,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
                  src/tests/policy-delegation/Makefile
+                 src/tests/delegation/Makefile
                  src/tests/translator/Makefile
                  src/tests/xpath/Makefile
                  src/tests/arcpolicy/Makefile
