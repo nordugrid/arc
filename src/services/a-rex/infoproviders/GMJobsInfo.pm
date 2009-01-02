@@ -14,6 +14,7 @@ our $gmjobs_options_schema = {
 our $gmjobs_info_schema = {
         '*' => {
             # from .local
+            share              => '',
             lrms               => '*',
             queue              => '*',
             localid            => '*',
@@ -36,25 +37,27 @@ our $gmjobs_info_schema = {
             fullaccess         => '*',
             lifetime           => '*',
             jobreport          => '*',
-            # from .description
+            # from .description -- it's kept even for deleted jobs
             stdin              => '*',
             stdout             => '*',
             stderr             => '*',
-            count              => '*',
-            reqwalltime        => '*',
-            reqcputime         => '*',
+            count              => '',
+            reqwalltime        => '*', # units: s
+            reqcputime         => '*', # units: s
             runtimeenvironments=> [ '*' ],
             # from .status
             status             => '',
             completiontime     => '*',
+            localowner         => '',
             # from .failed
-            errors             => '*',
+            errors             => [ '*' ],
+            lrmsexitcode       => '*',
             # from .diag
             exitcode           => '*',
             nodenames          => [ '*' ],
-            UsedMem            => '*', # units: kB
-            WallTime           => '*',
-            CpuTime            => '*'
+            UsedMem            => '*', # units: kB; summed over all threads
+            CpuTime            => '*'  # units: s;  summed over all threads
+            WallTime           => '*', # units: s;  real-world time elapsed
         }
 };
 
@@ -92,11 +95,6 @@ sub get_gmjobs_info($) {
 
     my @gridmanager_jobs = map {$_=~m/job\.(.+)\.status/; $_=$1;} @allfiles;
 
-    # read the gridmanager jobinfo into a hash of hashes %gmjobs
-    # filter out jobs not belonging to this $queue
-    # fill the %gm_queued{SN} with number of gm_queued jobs for every grid user
-    # count the prelrmsqueued, pendingprelrms grid jobs belonging to this queue
-
     foreach my $ID (@gridmanager_jobs) {
         my $gmjob_local       = $controldir."/job.".$ID.".local";
         my $gmjob_status      = $controldir."/job.".$ID.".status";
@@ -112,20 +110,47 @@ sub get_gmjobs_info($) {
 
         # parse the content of the job.ID.local into the %gmjobs hash
         foreach my $line (@local_allines) {
-            $line=~m/^(\w+)=(.+)$/;
-            $gmjobs{$ID}{$1}=$2;
+            $gmjobs{$ID}{$1}=$2 if $line=~m/^(\w+)=(.+)$/;
         }
         close GMJOB_LOCAL;
 
+		# OBS: assume now share=queue. Longer term modify GM to save share name
+        $gmjobs{$ID}{share} = $gmjobs{$ID}{queue};
+        
         # read the job.ID.status into "status"
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             $log->warning("Can't open $gmjob_status");
             $gmjobs{$ID}{status} = undef;
         } else {
+            my @file_stat = stat GMJOB_STATUS;
             chomp (my ($first_line) = <GMJOB_STATUS>);
             close GMJOB_STATUS;
+
             $gmjobs{$ID}{status} = $first_line;
+
+            if (@file_stat) {
+
+                # localowner
+                my $uid = $file_stat[4];
+                my $user = (getpwuid($uid))[0];
+                if ($user) {
+                    $gmjobs{$ID}{localowner} = $user;
+                } else {
+                    $log->warning("Cannot determine user name for owner (uid $uid) of job $ID");
+                }
+
+                # completiontime
+                if ($gmjobs{$ID}{"status"} eq "FINISHED") {
+                    my ($s,$m,$h,$D,$M,$Y) = gmtime($file_stat[9]);
+                    my $ts = sprintf("%4d%02d%02d%02d%02d%02d%1sZ",$Y+1900,$M+1,$D,$h,$m,$s);
+                    $gmjobs{$ID}{"completiontime"} = $ts;
+                }
+
+            } else {
+                $log->warning("Cannot stat status file of job $ID: $!");
+            }
         }
+
 
         #Skip the remaining files if the jobstate "DELETED"
         next if $gmjobs{$ID}{"status"} eq "DELETED";
@@ -139,14 +164,7 @@ sub get_gmjobs_info($) {
             } else {
                 chomp (my @allines = <GMJOB_FAILED>);
                 close GMJOB_FAILED;
-                my $errors = join " ", @allines;
-                $errors =~ s/\s+$//;
-                $gmjobs{$ID}{errors} = substr($errors, 0, 87) if $errors;
-
-                #PBS backend doesn't write to .diag when walltime is exceeded
-                if ($errors =~ /PBS: job killed: walltime (\d*) exceeded limit (\d*)/){
-                    $gmjobs{$ID}{"WallTime"} = ceil($2/60);
-                }
+                $gmjobs{$ID}{errors} = \@allines;
             }
         }
 
@@ -161,16 +179,6 @@ sub get_gmjobs_info($) {
                     $gmjobs{$ID}{status} = "FAILED";
                 }
             }
-
-            #job-completiontime
-
-            my @file_stat = stat $gmjob_status;
-            my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)
-                = gmtime ($file_stat[9]);
-            my $file_time = sprintf ( "%4d%02d%02d%02d%02d%02d%1s",
-                                      $year+1900,$mon+1,$mday,$hour,
-                                      $min,$sec,"Z");
-            $gmjobs{$ID}{"completiontime"} = $file_time;
         }
 
         # read the stdin,stdout,stderr from job.ID.description file
@@ -204,12 +212,12 @@ sub get_gmjobs_info($) {
 
             if ($rsl_string=~m/"cputime"\s+=\s+"(\S+)"/i) {
                 my $reqcputime_sec=$1;
-                $gmjobs{$ID}{"reqcputime"}= int $reqcputime_sec/60;
+                $gmjobs{$ID}{"reqcputime"}= int $reqcputime_sec;
             }
 
             if ($rsl_string=~m/"walltime"\s+=\s+"(\S+)"/i) {
                 my $reqwalltime_sec=$1;
-                $gmjobs{$ID}{"reqwalltime"}= int $reqwalltime_sec/60;
+                $gmjobs{$ID}{"reqwalltime"}= int $reqwalltime_sec;
             }
 
             while ($rsl_string =~ m/\("runtimeenvironment"\s+=\s+([^\)]+)/ig) {
@@ -226,22 +234,22 @@ sub get_gmjobs_info($) {
             } else {
                 my ($kerneltime, $usertime);
                 while (my $line = <GMJOB_DIAG>) {
-                    $line=~m/nodename=(\S+)/ and
+                    $line=~m/^nodename=(\S+)/ and
                         push @{$gmjobs{$ID}{nodenames}}, $1;
-                    $line=~m/WallTime=(\d+)(\.\d*)?/ and
-                        $gmjobs{$ID}{WallTime} = ceil($1/60);
-                    $line=~m/exitcode=(\d+)/ and
+                    $line=~m/^WallTime=(\d+)(\.\d*)?/ and
+                        $gmjobs{$ID}{WallTime} = ceil($1);
+                    $line=~m/^exitcode=(\d+)/ and
                         $gmjobs{$ID}{exitcode} = $1;
-                    $line=~m/AverageTotalMemory=(\d+)kB/ and
+                    $line=~m/^AverageTotalMemory=(\d+)kB/ and
                         $gmjobs{$ID}{UsedMem} = ceil($1);
-                    $line=~m/KernelTime=(\d+)(\.\d*)?/ and
+                    $line=~m/^KernelTime=(\d+)(\.\d*)?/ and
                         $kerneltime=$1;
-                    $line=~m/UserTime=(\d+)(\.\d*)?/ and
+                    $line=~m/^UserTime=(\d+)(\.\d*)?/ and
                         $usertime=$1;
                 }
                 close GMJOB_DIAG;
 
-                $gmjobs{$ID}{CpuTime}= ceil( ($kerneltime + $usertime)/ 60)
+                $gmjobs{$ID}{CpuTime}= ceil($kerneltime + $usertime)
                     if defined $kerneltime and defined $usertime;
             }
         }
