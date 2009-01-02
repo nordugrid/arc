@@ -119,7 +119,7 @@ sub run_callback {
 
     close QQ;
     my $status = $? >> 8;
-    $log->warning("Failed running (exit status $status): $command")
+    $log->warning("Failed running command (exit status $status returned): $command")
         if $status;
     return ! $status;
 }
@@ -194,10 +194,10 @@ sub count_array_spec($) {
 
     #### Regular expression matching a queue line, like:
     # libero@compute-3-7.local       BPC   0/8       4.03     lx24-amd64    S
-    # all.q@compute-14-2.local       BIPC  0/8       9.02     lx24-amd64    
+    # all.q@hyper.uio.no             BIP   0/0/1     0.00     lx24-x86
     # all.q@compute-14-19.local      BIPC  0/8       -NA-     lx24-amd64    Adu
     # corvus.q             BICP  0/16      99.99    solaris64 aAdu
-    my $queue_regex = '^\s*(\S+)\s+\w+\s+(\d+)/(\d+)\s+(\S+)\s+\S+(?:\s+(\w+))?\s*$';
+    my $queue_regex = '^\s*(\S+)\s+\w+\s+(?:(\d+)/)?(\d+)/(\d+)\s+(\S+)\s+\S+(?:\s+(\w+))?\s*$';
 
     #### Regular expression matching complex lines from qstat -F
     #         hl:num_proc=1
@@ -259,7 +259,6 @@ sub count_array_spec($) {
             handle_queue($fh);
             handle_running_jobs($fh);
         }
-
         return unless defined $line; # if there are no waiting jobs
 
         $line = <$fh>; $log->error("Unexpected line from qstat") unless $line =~ /############/;
@@ -280,7 +279,7 @@ sub count_array_spec($) {
 
         if (defined $line and $line =~ /$queue_regex/) {
 
-            my ($qname,$used,$total,$load,$flags) = ($1,$2,$3,$4,$5||'');
+            my ($qname,$used,$total,$load,$flags) = ($1,$3,$4,$5,$6||'');
             $line = <$fh>;
 
             if (not $compat_mode) {
@@ -357,15 +356,15 @@ sub count_array_spec($) {
                     $task->{queue} = $currentqueue;
                     $task->{slots}++;
                     $task->{nodes}{$currentnode}++;
-                    $task->{is_serial} = 1;
+                    $task->{is_parallel} = 0;
                     if ($task->{state} =~ /[sST]/) {
                         $node_stats{$currentnode}{queues}{$currentqueue}{suspslots}++;
                     } else {
                         $node_stats{$currentnode}{runningslots}++;
                     }
-                } elsif ($task->{is_serial}) {  # Fist SLAVE following the MASTER
-                    $task->{is_serial} = 0;     # Don't count this SLAVE
-                } else {                        # Other SLAVEs, resume counting
+                } elsif (not $task->{is_parallel}) {  # Fist SLAVE following the MASTER
+                    $task->{is_parallel} = 1;         # Don't count this SLAVE
+                } else {                              # Other SLAVEs, resume counting
                     $task->{slots}++;
                     $task->{nodes}{$currentnode}++;
                     if ($task->{state} =~ /[sST]/) {
@@ -624,7 +623,7 @@ sub queue_info ($) {
     # h_rt                  48:00:00,[cpt.uio.no=24:00:00]
 
     my $command = "$path/qconf -sq @qnames";
-    die unless loop_callback($command, sub {
+    $log->error("Failed listing queues") unless loop_callback($command, sub {
         my $l = shift;
         if ($l =~ /^[sh]_rt\s+(\S+)/) {
             return if $1 eq 'INFINITY';
