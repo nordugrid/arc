@@ -33,8 +33,8 @@ my_id=`id -u`
 STAT_USERNAME='stat -u'
 $STAT_USERNAME $0 2>/dev/null 1>&2
 if [ ! $? = '0' ] ; then
-  STAT_USERNAME='stat -c uid:%U'
-  $STAT_USERNAME $0 2>/dev/null 1>&2
+  STAT_USERNAME='stat -c "uid (%U)"'
+  eval $STAT_USERNAME $0 2>/dev/null 1>&2
   if [ ! $? = '0' ] ; then
     # OBS: Solaris 9 is missing stat (but Solaris 10 has it)
     echo "Warning: Can't find useable stat utility" 1>&2
@@ -92,13 +92,13 @@ for ctr_dir in $control_dirs ; do
       if [ ! -O "$jobfile" ] ; then continue ; fi
     fi
     # Define a function for running commands as the user who owns this job.
-    as_owner() { ( $* ); }        # By default, it's a do-nothing function.
+    # By default, it just runs commands as the current user
+    as_owner() { /bin/sh -c "$*"; }
     # find who runs this job
     if [ "$my_id" = '0' ] ; then
-      username=`$STAT_USERNAME "${jobfile}" | sed -n 's/^uid:\([^ ]*\)$/\1/p'`
+      username=`eval $STAT_USERNAME "$jobfile" | sed -n 's/^uid (\([^)]*\))/\1/p'`
       if [ $? = 0 ] && [ ! -z "$username" ]; then
-        # echo "Info: Will switch to user $id to access files belonging to SGE job $id" 1>&2
-        as_owner() { ( su "${username}" -c "$*" ); }
+        as_owner() { su "$username" -c "$*"; }
       else
         echo "Warning: cannot determine owner of $jobfile" 1>&2
       fi
