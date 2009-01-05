@@ -41,6 +41,9 @@ int main(void) {
   
   std::string ca_passphrase = "aa1122";
   Arc::Credential signer(CAcert, CAkey, CAserial, 0, "", "", ca_passphrase);
+  std::string identity_name = signer.GetIdentityName();
+  std::cout<<"Identity Name: "<<identity_name<<std::endl;
+
   std::string dn("/O=KnowARC/OU=UIO/CN=Test001");
   signer.SignEECRequest(&eec, dn, out_certfile.c_str());
 

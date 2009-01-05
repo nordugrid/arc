@@ -11,8 +11,6 @@ namespace ArcSec {
 
 /// 
 
-class DelegationContext;
-
 class DelegationSH : public SecHandler {
  private:
   enum {
@@ -39,14 +37,13 @@ class DelegationSH : public SecHandler {
                               //If the client role Delegation handler is configured 
                               //in a service, then delegation_id_ delegation_id
                               //does not need to set.
+  std::string delegation_cred_identity_;
   std::string cert_file_;
   std::string key_file_;
   std::string proxy_file_;
   std::string ca_file_;
   std::string ca_dir_;
 
- private:
-  DelegationContext* get_delegcontext(Arc::Message& msg, const std::string& ds_endpoint="", const std::string& delegation_id="", const std::string& deleg_cred="");
  public:
   DelegationSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~DelegationSH(void);

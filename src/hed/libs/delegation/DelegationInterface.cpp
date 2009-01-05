@@ -803,16 +803,16 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
   return true;
 }
 
-bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageContext* context) {
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageContext* context,const DelegationRestrictions& restrictions) {
   MessageAttributes attributes_in;
   MessageAttributes attributes_out;
   return UpdateCredentials(interface,&attributes_in,&attributes_out,context);
 }
 
-bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context) {
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,const DelegationRestrictions& restrictions) {
   if(id_.empty()) return false;
   if(request_.empty()) return false;
-  std::string delegation = Delegate(request_);
+  std::string delegation = Delegate(request_,restrictions);
   if(delegation.empty()) return false;
   NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
   PayloadSOAP req_soap(ns);

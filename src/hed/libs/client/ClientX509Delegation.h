@@ -89,7 +89,7 @@ namespace Arc {
      *                           supposed to be used for look up the delegation credential
      *                           from delegation service.
      */
-    bool acquireDelegation(DelegationType deleg, std::string& delegation_id,
+    bool acquireDelegation(DelegationType deleg, std::string& delegation_cred, std::string& delegation_id,
             const std::string cred_identity = "", const std::string cred_delegator_ip = "", 
             const std::string username = "", const std::string password = "");
 

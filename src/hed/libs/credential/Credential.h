@@ -68,7 +68,9 @@ class Credential {
                const std::string& passphrase4key = "");
 
     /**Constructor, specific constructor for proxy certificate, only acts as a 
-    * container for generating certificate request, is meaningless for any other use.
+    * container for constraining certificate signing and/or generating certificate 
+    * request(only keybits is useful for creating certificate request), is meaningless 
+    * for any other use.
     * The proxyversion and policylang is for specifying the proxy certificate type and 
     * the policy language inside proxy.
     * The definition of proxyversion and policy language is based on 
@@ -82,7 +84,10 @@ class Credential {
     *
     *@param start, start time of proxy certificate
     *@param lifetime, lifetime of proxy certificate
-    *@param keybits, modulus size for RSA key generation, it should be greater than 1024
+    *@param keybits, modulus size for RSA key generation, 
+         *it should be greater than 1024 if 'this' class is
+         *used for generating X509 request; it should be '0' if 
+         *'this' class is used for constraing certificate signing.
     */ 
    Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), 
               int keybits = 1024, std::string proxyversion = "", 

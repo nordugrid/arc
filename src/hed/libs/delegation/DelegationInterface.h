@@ -136,11 +136,11 @@ class DelegationProviderSOAP: public DelegationProvider {
      This concludes delegation procedure and passes delagated credentials to 
     DelegationConsumerSOAP instance.
   */
-  bool UpdateCredentials(MCCInterface& mcc_interface,MessageContext* context);
+  bool UpdateCredentials(MCCInterface& mcc_interface,MessageContext* context,const DelegationRestrictions& restrictions = DelegationRestrictions());
   /** Extended version of UpdateCredentials(MCCInterface&,MessageContext*).
      Additionally takes attributes for request and response message to make fine
     control on message processing possible. */
-  bool UpdateCredentials(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
+  bool UpdateCredentials(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,const DelegationRestrictions& restrictions = DelegationRestrictions());
   /** Generates DelegatedToken element.
      Element is created as child of provided XML element and contains structure
     described in delegation.wsdl. */

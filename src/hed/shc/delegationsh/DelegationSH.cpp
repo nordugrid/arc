@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <openssl/md5.h>
+
 #include <arc/ArcConfig.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
@@ -39,17 +41,18 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
   ds_endpoint_ = (std::string)((*cfg)["DelegationServiceEndpoint"]);
   peers_endpoint_ =  (std::string)((*cfg)["PeerServiceEndpoint"]);// And this value will be parsed from main chain later 
   delegation_id_ = (std::string)((*cfg)["DelegationID"]);
+  delegation_cred_identity_ = (std::string)((*cfg)["DelegationCredIdentity"]);  
 
   if(delegation_type == "x509") {
     proxy_file_=(std::string)((*cfg)["ProxyPath"]);
     cert_file_=(std::string)((*cfg)["CertificatePath"]);
-    if(cert_file_.empty()&&proxy_file_.empty()) {
-      logger.msg(ERROR,"Missing CertificatePath element or ProxyPath element");
+    if(cert_file_.empty()&&proxy_file_.empty()&&delegation_cred_identity_.empty()) {
+      logger.msg(ERROR,"Missing CertificatePath element or ProxyPath element, or <DelegationCredIdentity/> is missing");
       return;
     };
     key_file_=(std::string)((*cfg)["KeyPath"]);
-    if(key_file_.empty()&&proxy_file_.empty()) {
-      logger.msg(ERROR,"Missing or empty KeyPath element");
+    if(key_file_.empty()&&proxy_file_.empty()&&delegation_cred_identity_.empty()) {
+      logger.msg(ERROR,"Missing or empty KeyPath element, or <DelegationCredIdentity/> is missing");
       return;
     };
     ca_file_=(std::string)((*cfg)["CACertificatePath"]);
@@ -79,39 +82,15 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
 DelegationSH::~DelegationSH() {
 }
 
-class DelegationContext:public Arc::MessageContextElement{
- public:
-  bool have_delegated_;
-  std::string delegation_endpoint_;
-  std::string delegation_id_;
-  std::string deleg_cred_;
-  std::string deleg_cred_path_;
-  DelegationContext(const std::string& delegation_endpoint,const std::string& delegation_id,const std::string& deleg_cred);
-  virtual ~DelegationContext(void) { };
-};
-
-DelegationContext::DelegationContext(const std::string& delegation_endpoint,const std::string& delegation_id,const std::string& deleg_cred):delegation_endpoint_(delegation_endpoint),delegation_id_(delegation_id),deleg_cred_(deleg_cred),have_delegated_(false) {
-  deleg_cred_path_="/tmp/";
-  deleg_cred_path_.append(delegation_endpoint_).append(delegation_id_); //generate hash value?
-}
-
-DelegationContext* DelegationSH::get_delegcontext(Arc::Message& msg, const std::string& ds_endpoint, const std::string& delegation_id, const std::string& deleg_cred) {
-  DelegationContext* deleg_ctx=NULL;
-  Arc::MessageContextElement* mcontext = (*msg.Context())["deleg.context"];
-  if(mcontext) {
-    try {
-      deleg_ctx = dynamic_cast<DelegationContext*>(mcontext);
-    } catch(std::exception& e) { };
-  };
-  if(deleg_ctx) return deleg_ctx;
-  deleg_ctx = new DelegationContext(ds_endpoint,delegation_id,deleg_cred);
-  if(deleg_ctx) {
-    deleg_ctx->have_delegated_ = true;
-    msg.Context()->Add("deleg.context",deleg_ctx);
-  } else {
-    logger.msg(Arc::ERROR, "Failed to acquire delegation context");
-  }
-  return deleg_ctx;
+//Generate hash value for a string
+static unsigned long string_hash(const std::string& value){
+  unsigned long ret=0;
+  unsigned char md[16];
+  MD5((unsigned char *)(value.c_str()),value.length(),&(md[0]));
+  ret=(((unsigned long)md[0])|((unsigned long)md[1]<<8L)|
+       ((unsigned long)md[2]<<16L)|((unsigned long)md[3]<<24L)
+       )&0xffffffffL;
+  return ret;
 }
 
 bool DelegationSH::Handle(Arc::Message* msg){
@@ -158,25 +137,37 @@ bool DelegationSH::Handle(Arc::Message* msg){
                 return false;
               };
             } else {
-              std::string cred_identity = msg->Attributes()->get("TCP:REMOTEHOST");
-              std::string cred_delegator_ip = msg->Attributes()->get("TLS:IDENTITYDN");
+              std::string cred_identity = msg->Attributes()->get("TLS:IDENTITYDN");
+              std::string cred_delegator_ip = msg->Attributes()->get("TCP:REMOTEHOST");
               if(!client_deleg.acquireDelegation(DELEG_ARC,delegation_cred,delegation_id,cred_identity,cred_delegator_ip)) {
                 logger.msg(ERROR,"Can not get the delegation credential: %s from delegation service:%s",delegation_id.c_str(),ds_endpoint.c_str());
                 return false;
               };
             }
-            //Store delegation credential into message context memory
-            DelegationContext* deleg_ctx = get_delegcontext(*msg,ds_endpoint,delegation_id,delegation_cred);
-            if(!deleg_ctx) {
-              logger.msg(Arc::ERROR, "Can't create delegation context");
-              return false;
-            };
+
+            std::string cred_identity = msg->Attributes()->get("TLS:IDENTITYDN");
+            unsigned long hash_value = string_hash(cred_identity);
+            //Store the delegated credential (got from delegation service)
+            //into local temporary path; this delegated credential will be 
+            //used by the client functionality in this service (intemidiate 
+            //service) to contact the next service. 
+            std::string deleg_cred_path="/tmp/";
+            char text[8];
+            sprintf(text, "%08lx", hash_value);
+            deleg_cred_path.append(text).append(".x509");
+            logger.msg(INFO,"Delegated credential identity: %s",cred_identity.c_str());
+            logger.msg(INFO,"The delegated credential got from delegation service is stored into path: %s",deleg_cred_path.c_str());
+            std::ofstream proxy_f(deleg_cred_path.c_str());
+            proxy_f.write(delegation_cred.c_str(),delegation_cred.size());
+            proxy_f.close();
+
             //Remove the delegation information inside the payload 
             //since this information ('DelegationService' and 'DelegationID') 
             //is only supposed to be consumer by this security handler, not 
             //the hosted service itself.
             if((*inpayload)["DelegationService"]) ((*inpayload)["DelegationService"]).Destroy();
             if((*inpayload)["DelegationID"]) ((*inpayload)["DelegationID"]).Destroy();
+
           } else {
             logger.msg(ERROR,"The endpoint of delgation service should be configured");
             return false;
@@ -190,33 +181,37 @@ bool DelegationSH::Handle(Arc::Message* msg){
         Arc::MCCConfig ds_client_cfg;
         //Use delegation credential (one option is to use the one got and stored 
         //in the delegation handler with 'service' delegation role, note in this 
-        //case the service should be configured with delegation handler with both 
-        //'client' and 'service' role; the other option is cofigure the credential
+        //case the service implementation should configure the client interface 
+        //(the client interface which is called by the service implementation to
+        //contact another service) with the 'Identity' of the credential on which 
+        //this service will act on behalf, then the delegation handler with 'client' 
+        //delegation role (configured in this client interface's configuration) will
+        //get the delegated credential from local temporary path (this path is 
+        //decided according to the 'Identity'); the other option is cofigure the credential
         //(EEC credential or delegated credential) in this 'client' role delegation
-        //handler's configuration. which can be concluded here is: the former option
+        //handler's configuration. What can be concluded here is: the former option
         //applies to intermediate service; the later option applies to the client
-        //utilities) to create one more level of delegation, this delegation credential
+        //utilities. 
+        //By creating one more level of delegation, the delegated credential
         //will be used by the next intermediate service to act on behalf of
         //the EEC credential's holder
         logger.msg(Arc::INFO,"+++++++++ Delegation handler with client role starts to process +++++++++");
 
-        if(!proxy_file_.empty()) {        
+        std::string proxy_path;
+        if(!delegation_cred_identity_.empty()) {
+          unsigned long hash_value = string_hash(delegation_cred_identity_);
+          proxy_path="/tmp/";
+          char text[8];
+          sprintf(text, "%08lx", hash_value);
+          proxy_path.append(text).append(".x509");
+          logger.msg(INFO,"Delegated credential identity: %s",delegation_cred_identity_.c_str());
+          logger.msg(INFO,"The delegated credential got from path: %s",proxy_path.c_str());
+          ds_client_cfg.AddProxy(proxy_path);
+        }else if(!proxy_file_.empty()) {        
           ds_client_cfg.AddProxy(proxy_file_);
-        }
-        else if(!cert_file_.empty()&&!key_file_.empty()) {
+        }else if(!cert_file_.empty()&&!key_file_.empty()) {
           ds_client_cfg.AddCertificate(cert_file_); 
           ds_client_cfg.AddPrivateKey(key_file_); 
-        }
-        else {
-          //Parse the delegation credential from message context
-          std::string proxy_path;
-          DelegationContext* deleg_ctx = get_delegcontext(*msg);
-          if(!deleg_ctx) {
-            logger.msg(Arc::ERROR, "Can't acquire delegation context");
-            return false;
-          };
-          proxy_path=deleg_ctx->deleg_cred_path_;   
-          ds_client_cfg.AddProxy(proxy_path);
         }
         if(!ca_dir_.empty()) ds_client_cfg.AddCADir(ca_dir_);
         if(!ca_file_.empty())ds_client_cfg.AddCAFile(ca_file_);

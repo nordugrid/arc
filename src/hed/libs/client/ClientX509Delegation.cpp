@@ -82,7 +82,8 @@ namespace Arc {
         std::cout<<"X509 Request: \n"<<x509request<<std::endl;
  
         //Sign the proxy certificate
-        Arc::Credential proxy;
+        Arc::Time start;
+        Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "independent");
         std::string signedcert;
         proxy.InquireRequest(x509request);
         if(!(signer_->SignRequest(&proxy, signedcert))) {
@@ -209,7 +210,7 @@ namespace Arc {
     return true; 
   }
 
-  bool ClientX509Delegation::acquireDelegation(DelegationType deleg, std::string& delegation_id,
+  bool ClientX509Delegation::acquireDelegation(DelegationType deleg, std::string& delegation_cred, std::string& delegation_id,
             const std::string cred_identity, const std::string cred_delegator_ip,
             const std::string username, const std::string password) {
     if(deleg == DELEG_ARC) {
@@ -251,13 +252,13 @@ namespace Arc {
           delete response; return false;
         };
         delegation_id = (std::string)(token["Id"]);
-        std::string x509_cred = (std::string)(token["Value"]);
+        delegation_cred = (std::string)(token["Value"]);
         delete response;
-        if(delegation_id.empty() || x509_cred.empty()) {
+        if(delegation_id.empty() || delegation_cred.empty()) {
           logger.msg(Arc::ERROR, "There is no Id or X509 token value in the response");
           return false;
         };
-        std::cout<<"Get delegated X509 Token: \n"<<x509_cred<<std::endl;
+        std::cout<<"Get delegated X509 Token: \n"<<delegation_cred<<std::endl;
         return true;
       }
       else {
