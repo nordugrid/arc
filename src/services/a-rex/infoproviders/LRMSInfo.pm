@@ -118,7 +118,8 @@ our $log = LogUtils->getLogger("LRMSInfo");
 
 
 # Loads the needed LRMS plugin at runtime
-# First try to load XYZmod.pm (new interface), then XYZ.pm (old interface)
+# First try to load XYZmod.pm (implementing the native ARC1 interface)
+# otherwise try to load XYZ.pm (ARC0.6 plugin)
 
 sub load_lrms($) {
     my $lrms_name = uc(shift);
@@ -127,8 +128,8 @@ sub load_lrms($) {
     eval { require "$module.pm" };
 
     if ($@) {
-        $log->info("LRMS module $module not found");
-        $log->info("Falling back to ARC0.6 compatible module $lrms_name");
+        $log->debug("Native ARC1 LRMS module $module not found");
+        $log->debug("Falling back to ARC0.6 compatible module $lrms_name");
 
         require ARC0mod;
         ARC0mod::load_lrms($lrms_name);

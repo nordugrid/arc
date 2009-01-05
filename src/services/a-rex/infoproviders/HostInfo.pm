@@ -282,6 +282,8 @@ sub get_host_info {
     if ( $options->{cachedir} ){
         my ($cachedir) = split /\s+/, $options->{cachedir};
         my $cachespace = diskspace($cachedir);
+        $log->warning("Failed checking disk space in cache directory $options->{cachedir}")
+            unless $cachespace;
     }
     #OBS: only accurate if cache is on a filesystem of it's own 
     #TODO: find a way to get better numbers from new cache system

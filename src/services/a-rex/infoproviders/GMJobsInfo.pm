@@ -56,8 +56,8 @@ our $gmjobs_info_schema = {
             exitcode           => '*',
             nodenames          => [ '*' ],
             UsedMem            => '*', # units: kB; summed over all threads
-            CpuTime            => '*'  # units: s;  summed over all threads
-            WallTime           => '*', # units: s;  real-world time elapsed
+            CpuTime            => '*', # units: s;  summed over all threads
+            WallTime           => '*'  # units: s;  real-world time elapsed
         }
 };
 
@@ -151,10 +151,6 @@ sub get_gmjobs_info($) {
             }
         }
 
-
-        #Skip the remaining files if the jobstate "DELETED"
-        next if $gmjobs{$ID}{"status"} eq "DELETED";
-
         # Comes the splitting of the terminal job state
         # check for job failure, (job.ID.failed )   "errors"
 
@@ -173,7 +169,7 @@ sub get_gmjobs_info($) {
             #terminal job state mapping
 
             if ( $gmjobs{$ID}{errors} ) {
-                if ($gmjobs{$ID}{errors} =~ /User requested to cancel the job/) {
+                if (grep /User requested to cancel the job/, @{$gmjobs{$ID}{errors}}) {
                     $gmjobs{$ID}{status} = "KILLED";
                 } elsif ( defined $gmjobs{$ID}{errors} ) {
                     $gmjobs{$ID}{status} = "FAILED";

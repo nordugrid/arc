@@ -4,6 +4,17 @@ package ARC0mod;
 # Loads ARC0.6 LRMS modules for use with ARC1
 #
 
+# To include a new (ARC 0.6) LRMS plugin:
+#
+# 1. Each LRMS specific module needs to provide subroutines
+#    cluster_info, queue_info, jobs_info, and users_info.
+#    
+# 2. References to subroutines defined in new LRMS modules are added
+#    to the select_lrms subroutine in this module, and the module reference
+#    itself, naturally.
+
+
+
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
