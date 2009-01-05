@@ -9,6 +9,7 @@ use ARC1ClusterSchema;
 
 use Storable;
 use LogUtils;
+use POSIX qw(ceil);
 
 use strict;
 
@@ -20,6 +21,12 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 sub timenow(){
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime(time);
     return sprintf "%4d-%02d-%02dT%02d:%02d:%02d%1s", $year+1900, $mon+1, $mday,$hour,$min,$sec,"Z";
+}
+
+# converts MDS-style time to ISO 8061 time ( 20081212151903Z --> 2008-12-12T15:19:03Z )
+sub mdstoiso {
+    return "$1-$2-$3T$4:$5:$6Z" if shift =~ /^(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d(?:\.\d+)?)Z$/;
+    return undef;
 }
 
 ############################################################################
@@ -62,27 +69,46 @@ sub _collect($$) {
     # total jobs in each GM state
     my %gmtotalcount;
 
-    # jobs in each GM state, by queue
-    my %gmqueuecount;
+    # jobs in each GM state, by share
+    my %gmsharecount;
 
-    # grid jobs running in the lrms, by queue
+    # grid jobs running in the lrms, by share
     my %lrmsgridrunning;
 
-    # grid jobs queued in the lrms, by queue
+    # grid jobs queued in the lrms, by share
+    # TODO: check correctness when there are multiple shares per queue
     my %lrmsgridqueued;
 
-    # number of slots needed by all waiting jobs, per queue
+    # number of slots needed by all waiting jobs, per share
     my %requestedslots;
 
-    for my $job (values %{$gmjobs_info}) {
-        my $qname = $job->{queue} || '';
+    for my $jobid (keys %$gmjobs_info) {
 
-        $log->warning("queue not defined") and next unless $qname;
+        my $job = $gmjobs_info->{$jobid};
+        my $qname = $job->{queue};
+
+        unless ($qname) {
+            my $msg = "Queue not defined for job $jobid";
+            if ($config->{defaultqueue}) {
+                $log->info($msg.". Assuming default: ".$config->{defaultqueue});
+                $qname = $job->{queue} = $config->{defaultqueue};
+            } else {
+                my @qnames = keys %{$config->{queues}};
+                if (@qnames == 1) {
+                    $log->info($msg.". Assuming: ".$qnames[0]);
+                } else {
+                    $log->warning($msg." and no default queue is defined. Picked first queue: ".$qnames[0]);
+                }
+                $qname = $job->{queue} = $qnames[0];
+            }
+        }
+
+        my $share = $job->{share} || $qname;
 
         $gmtotalcount{totaljobs}++;
-        $gmqueuecount{$qname}{totaljobs}++;
+        $gmsharecount{$share}{totaljobs}++;
 
-        # count grid jobs running and queued in LRMS for each queue
+        # count grid jobs running and queued in LRMS for each share
 
         if ($job->{status} eq 'INLRMS') {
             my $lrmsid = $job->{localid};
@@ -117,7 +143,7 @@ sub _collect($$) {
 
                 if ($job->{status} =~ /$state_match/) {
                     $gmtotalcount{$state_name}++;
-                    $gmqueuecount{$qname}{$state_name}++;
+                    $gmsharecount{$share}{$state_name}++;
                     last STATES;
                 }
             }
@@ -130,7 +156,7 @@ sub _collect($$) {
 
         # if we got to this point, the job was not yet deleted
         $gmtotalcount{notdeleted}++;
-        $gmqueuecount{$qname}{notdeleted}++;
+        $gmsharecount{$share}{notdeleted}++;
 
         next if $job->{status} =~ /FINISHED/;
         next if $job->{status} =~ /FAILED/;
@@ -138,7 +164,7 @@ sub _collect($$) {
 
         # if we got to this point, the job has not yet finished
         $gmtotalcount{notfinished}++;
-        $gmqueuecount{$qname}{notfinished}++;
+        $gmsharecount{$share}{notfinished}++;
 
         next if $job->{status} =~ /FINISHING/;
         next if $job->{status} =~ /CANCELING/;
@@ -146,8 +172,8 @@ sub _collect($$) {
 
         # if we got to this point, the job whas not yet reached the LRMS
         $gmtotalcount{notsubmitted}++;
-        $gmqueuecount{$qname}{notsubmitted}++;
-        $requestedslots{$qname} += $job->{count} || 1;
+        $gmsharecount{$share}{notsubmitted}++;
+        $requestedslots{$share} += $job->{count} || 1;
 
         next if $job->{status} =~ /SUBMIT/;
         next if $job->{status} =~ /PREPARING/;
@@ -167,7 +193,7 @@ sub _collect($$) {
 
     for my $ID (keys %{$gmjobs_info}) {
 
-        my $qname = $gmjobs_info->{$ID}{queue};
+        my $share = $gmjobs_info->{$ID}{share};
 
         # set the job_gridowner of the job (read from the job.id.local)
         # which is used as the key of the %gm_queued
@@ -176,11 +202,11 @@ sub _collect($$) {
         # count the gm_queued jobs per grid users (SNs) and the total
         if ( grep /^$gmjobs_info->{$ID}{status}$/, @gmqueued_states ) {
             $gm_queued{$job_gridowner}++;
-            $prelrmsqueued{$qname}++;
+            $prelrmsqueued{$share}++;
         }
         # count the GM PRE-LRMS pending jobs
         if ( grep /^$gmjobs_info->{$ID}{status}$/, @gmpendingprelrms_states ) {
-           $pendingprelrms{$qname}++;
+           $pendingprelrms{$share}++;
         }
     }
 
@@ -226,8 +252,8 @@ sub _collect($$) {
     my $csvID = 'csv0'; # ComputingService
     my $cepID = 'cep0'; # ComputingEndpoint
     my $cmgrID = 'cmgr0'; # ComputingManager
-    my $cactID = 'cact0'; my @cactIDs; # ComputingActivity
-    my $cshaID = 'csha0'; my @cshaIDs; # ComputingShare
+    my $cactID = 'cact0'; my %cactIDs; # ComputingActivity
+    my $cshaID = 'csha0'; my %cshaLIDs; # ComputingShare
     my $aenvID = 'aenv0'; my @aenvIDs; # ApplicationEnvironment
     my $xenvID = 'xenv0'; my @xenvIDs; # ExecutionEnvironment
     my $locID = 'loc0';   my @locIDs;  # Location
@@ -333,7 +359,9 @@ sub _collect($$) {
 
     # ComputingShares: 1 share per LRMS queue
 
-    for my $qname (keys %{$config->{queues}}) {
+    for my $share (keys %{$config->{queues}}) {
+
+        my $qname = $share; # This may change
 
         my $qinfo = $lrms_info->{queues}{$qname};
         my $qconfig = { %$config, %{$config->{queues}{$qname}} };
@@ -346,9 +374,9 @@ sub _collect($$) {
         $csha->{Validity} = $validity_ttl;
         $csha->{BaseType} = 'Share';
 
-        $csha->{LocalID} = [ $cshaID ]; push @cshaIDs, $cshaID++;
+        $csha->{LocalID} = [ $cshaID ]; $cshaLIDs{$qname} = $cshaID++;
 
-        $csha->{Name} = [ $qname ];
+        $csha->{Name} = [ $share ];
         $csha->{Description} = [ $qconfig->{comment} ] if $qconfig->{comment};
         $csha->{MappingQueue} = [ $qname ];
 
@@ -396,9 +424,9 @@ sub _collect($$) {
 
         # MaxPreLRMSWaitingJobs: use GM's maxjobs option
         # OBS: GM only cares about totals, not per share limits!
-	# OBS: this formula is actually an upper limit on the sum of pre + post
-	#      lrms jobs. GM does not have separate limit for pre lrms jobs
-	$csha->{MaxPreLRMSWaitingJobs} = [ $maxtotal - $maxlrms ]
+    # OBS: this formula is actually an upper limit on the sum of pre + post
+    #      lrms jobs. GM does not have separate limit for pre lrms jobs
+    $csha->{MaxPreLRMSWaitingJobs} = [ $maxtotal - $maxlrms ]
             if defined $maxtotal and defined $maxlrms;
 
         $csha->{MaxUserRunningJobs} = [ $qinfo->{maxuserrun} ]
@@ -446,7 +474,7 @@ sub _collect($$) {
         }
 
         # OBS: Finished/failed/deleted jobs are not counted
-        $csha->{TotalJobs} = [ $gmqueuecount{$qname}{notfinished} || 0 ];
+        $csha->{TotalJobs} = [ $gmsharecount{$share}{notfinished} || 0 ];
 
         $csha->{RunningJobs} = [ $lrmsgridrunning{$qname} || 0 ];
         $csha->{WaitingJobs} = [ $lrmsgridqueued{$qname} || 0 ];
@@ -455,13 +483,13 @@ sub _collect($$) {
         $csha->{LocalWaitingJobs} = [ $qinfo->{queued}  - ($lrmsgridqueued{$qname} || 0) ]
             if defined $qinfo->{queued}; 
 
-	$csha->{StagingJobs} = [ ( $gmqueuecount{$qname}{perparing} || 0 )
-                             + ( $gmqueuecount{$qname}{finishing} || 0 ) ];
+    $csha->{StagingJobs} = [ ( $gmsharecount{$share}{perparing} || 0 )
+                             + ( $gmsharecount{$share}{finishing} || 0 ) ];
 
         # OBS: suspending jobs is not yet supported
         $csha->{SuspendedJobs} = [ 0 ];
 
-        $csha->{PreLRMSWaitingJobs} = [ $gmqueuecount{$qname}{notsubmitted} || 0 ];
+        $csha->{PreLRMSWaitingJobs} = [ $gmsharecount{$share}{notsubmitted} || 0 ];
 
         # TODO: get these estimates from maui/torque
         $csha->{EstimatedAverageWaitingTime} = [ $qinfo->{averagewaitingtime} ] if defined $qinfo->{averagewaitingtime};
@@ -477,10 +505,10 @@ sub _collect($$) {
         }
 
         # Local users have individual restrictions
-	# FreeSlots: find the maximum freecpus of any local user mapped in this
-	# share and use that as an upper limit for $freeslots
-	# FreeSlotsWithDuration: for each duration, find the maximum freecpus
-	# of any local user mapped in this share
+    # FreeSlots: find the maximum freecpus of any local user mapped in this
+    # share and use that as an upper limit for $freeslots
+    # FreeSlotsWithDuration: for each duration, find the maximum freecpus
+    # of any local user mapped in this share
         # TODO: is this the correct way to do it?
 
         my %timeslots;
@@ -524,7 +552,7 @@ sub _collect($$) {
         $csha->{FreeSlotsWithDuration} = [ join(" ", @durations) || 0 ];
 
         # Don't advertise free slots while busy with staging
-        $csha->{FreeSlotsWithDuration} = [ 0 ] if $pendingprelrms{$qname};
+        $csha->{FreeSlotsWithDuration} = [ 0 ] if $pendingprelrms{$share};
 
         $csha->{UsedSlots} = [ $qinfo->{running} ];
 
@@ -538,16 +566,111 @@ sub _collect($$) {
 
     }
 
+    # Computing Activities
 
-    # TODO: move after Shares are defined
-    $cep->{Associations}{ComputingShareID} = [ @cshaIDs ];
+    for my $jobid (keys %$gmjobs_info) {
 
-    # TODO: add Jobs here
-    $cep->{ComputingActivities}{ComputingActivity} = [ ];
+        my $gmjob = $gmjobs_info->{$jobid};
+        my $status = $gmjob->{status};
+        my ( $lrmsid, $lrmsjob );
+        if ( $status eq "INLRMS" ) {
+            $lrmsid = $gmjob->{localid};
+            $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+        }
+
+        my $exited= undef; # whether the job has already run; 
+
+        my $cact = {};
+        push @{$csv->{ComputingActivities}{ComputingActivity}}, $cact;
+
+        $cact->{CreationTime} = $creation_time;
+        $cact->{Validity} = $validity_ttl;
+        $cact->{BaseType} = 'Activity';
+
+        my $gridid = "$cepID/$jobid";
+        $cactIDs{$jobid} = $gridid;
+
+        $cact->{Type} = [ 'Computing' ];
+        $cact->{ID} = [ $gridid ];
+        $cact->{IDFromEndpoint} = [ $gridid ];
+        $cact->{LocalIDFromManager} = [ $lrmsid ] if defined $lrmsid;
+        $cact->{Name} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
+        # TODO: state name mapping to BES states
+        # TODO: add LRMS substate
+        $cact->{State} = [ $status ];
+        # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
+        $cact->{JobDescription} = [ "ogf:jsdl:1.0" ];
+        # TODO: state name mapping to BES states
+        # <RestartState>Stagein</RestartState>
+        $cact->{RestartState} = [ $gmjob->{failedstate} ] if $gmjob->{failedstate};
+        $cact->{ExitCode} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
+        # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
+        $cact->{ComputingManagerExitCode} = [ $gmjob->{lrmsexitcode} ] if $gmjob->{lrmsexitcode};
+        $cact->{Error} = [ map { substr($_,0,87) } $gmjob->{errors} ] if $gmjob->{errors};
+        $cact->{WaitingPosition} = [ $lrmsjob->{rank} ] if defined $lrmsjob->{rank};
+        # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
+        $cact->{Owner} = [ $gmjob->{subject} ];
+        $cact->{LocalOwner} = [ $gmjob->{localowner} ] if $gmjob->{localowner};
+        # OBS: Times are in seconds.
+        $cact->{RequestedTotalWallTime} = [ $gmjob->{reqwalltime} ] if defined $gmjob->{reqwalltime};
+        $cact->{RequestedTotalCPUTime} = [ $gmjob->{reqcputime} ] if defined $gmjob->{reqcputime};
+        # OBS: Should include name and version. Exact format not specified
+        unshift @{$cact->{RequestedApplicationEnvironment}}, $_ for @{$gmjob->{runtimeenvironments}};
+        $cact->{RequestedSlots} = [ $gmjob->{count} ];
+        $cact->{StdIn} = [ $gmjob->{stdin} ] if $gmjob->{stdin};
+        $cact->{StdOut} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
+        $cact->{StdErr} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
+        $cact->{LogDir} = [ $gmjob->{gmlog} ] if $gmjob->{gmlog};
+        unshift @{$cact->{ExecutionNode}}, $_ for @{$gmjob->{nodenames}};
+        $cact->{Queue} = [ $gmjob->{queue} ] if $gmjob->{queue};
+        # Times for running jobs; LRMS still uses minutes
+        $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * 60 * $gmjob->{count} ] if defined $lrmsjob->{walltime};
+        $cact->{UsedTotalCPUTime} = [ $lrmsjob->{cputime} * 60 ] if defined $lrmsjob->{cputime};
+        $cact->{UsedMainMemory} = [ ceil($lrmsjob->{mem}/1024) ] if defined $lrmsjob->{mem};
+        # Times for finished jobs
+        $cact->{UsedTotalWallTime} = [ $gmjob->{WallTime} * $gmjob->{count} ] if defined $gmjob->{WallTime};
+        $cact->{UsedTotalCPUTime} = [ $gmjob->{CpuTime} ] if defined $gmjob->{CpuTime};
+        $cact->{UsedMainMemory} = [ ceil($gmjob->{UsedMem}/1024) ] if defined $gmjob->{UsedMem};
+        my $usbmissiontime = mdstoiso($gmjob->{starttime} || '');
+        $cact->{SubmissionTime} = [ $usbmissiontime ] if $usbmissiontime;
+        # TODO: change gm to save LRMSSubmissionTime
+        $cact->{ComputingManagerSubmissionTime} = [ 'NotImplemented' ];
+        # TODO: this should be queried in scan-job.
+        $cact->{StartTime} = [ 'NotImplemented' ];
+        # TODO: scan-job has to produce this
+        $cact->{ComputingManagerEndTime} = [ 'NotImplemented' ];
+        my $endtime = mdstoiso($gmjob->{completiontime} || '');
+        $cact->{EndTime} = [ $endtime ] if $endtime;
+        $cact->{WorkingAreaEraseTime} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
+        $cact->{ProxyExpirationTime} = [ $gmjob->{delegexpiretime} ] if $gmjob->{delegexpiretime};
+        # OBS: address of client, as seen by the server is used.
+        my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
+        my ($external_address, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::\d+)(?:;(.+))$/;
+        $cact->{SubmissionHost} = [ $external_address ] if $external_address;
+        $cact->{SubmissionClientName} = [ $gmjob->{clientsoftware} ] if $gmjob->{clientsoftware};
+        unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
+
+        # Computing Activity Associations
+
+        # TODO: add link
+        $cact->{Associations}{ExecutionEnvironmentID} = [];
+        $cact->{Associations}{ComputingEndpointID} = [ $cepID ];
+
+        my $share = $gmjob->{share};
+        if ( $share and $cshaLIDs{$share} ) {
+            $cact->{Associations}{ComputingShareLocalID} = [ $cshaLIDs{$share} ];
+        } else {
+            $log->warning("Job $jobid does not belong to a configured share (queue)");
+        }
+
+    }
+
+
+    $cep->{Associations}{ComputingShareLocalID} = [ values %cshaLIDs ];
+    $cep->{Associations}{ComputingActivityID} = [ values %cactIDs ];
 
     return $csv;
 }
-
 
 1;
 

@@ -293,7 +293,7 @@ sub get_gmjobs_info($) {
                 # completiontime
                 if ($gmjobs{$ID}{"status"} eq "FINISHED") {
                     my ($s,$m,$h,$D,$M,$Y) = gmtime($file_stat[9]);
-                    my $ts = sprintf("%4d%02d%02d%02d%02d%02d%1sZ",$Y+1900,$M+1,$D,$h,$m,$s);
+                    my $ts = sprintf("%4d%02d%02d%02d%02d%02dZ",$Y+1900,$M+1,$D,$h,$m,$s);
                     $gmjobs{$ID}{"completiontime"} = $ts;
                 }
 

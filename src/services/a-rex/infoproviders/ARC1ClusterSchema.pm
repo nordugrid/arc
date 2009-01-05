@@ -71,11 +71,9 @@ sub arc1_info_schema {
             'Staging'            => [ '*' ],
             'JobDescription'     => [ '*' ],
             'AccessPolicy'       => [ $access_pol_t ],
-            'ComputingActivities' => {
-                'ComputingActivity' => [ $comp_activity_t ]
-            },
              'Associations' => {
-                'ComputingShareID' =>  [ '' ],
+                'ComputingShareLocalID' =>  [ '' ],
+                'ComputingActivityID'   =>  [ '' ],
             }
     };
 
@@ -238,7 +236,7 @@ my $comp_activity_t = {
             'ComputingManagerExitCode'=> [ '*' ],
             'Error'                   => [ '*' ],
             'WaitingPosition'         => [ '*' ],
-            'UserDomain'              => [ '' ],
+            'UserDomain'              => [ '*' ],
             'Owner'                   => [ '' ],
             'LocalOwner'              => [ '' ],
             'RequestedTotalWallTime'  => [ '*' ],
@@ -265,9 +263,10 @@ my $comp_activity_t = {
             'SubmissionClientName'    => [ '' ],
             'OtherMessages'           => [ '*' ],
             'Associations' => {
-                'ComputingShareLocalID'       => [ '' ],
-                'ExecutionEnvironmentLocalID' => [ '' ],
-                }
+                'ComputingShareLocalID'  => [ '' ],
+                'ComputingEndpointID'    => [ '' ],
+                'ExecutionEnvironmentID' => [ '' ],
+             }
     };
 
     my $comp_serv_t = {
@@ -293,6 +292,9 @@ my $comp_activity_t = {
             'ComputingEndpoint'  => [ $comp_endp_t ],
             'ComputingShares' => {
                 'ComputingShare' => [ $comp_share_t ]
+            },
+            'ComputingActivities' => {
+                'ComputingActivity' => [ $comp_activity_t ]
             },
             #'ComputingResource' => [ $comp_manager_t ],
             #'Associations' => {
