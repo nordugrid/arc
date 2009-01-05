@@ -25,19 +25,21 @@ GMKICK=${basedir}/gm-kick
 
 ##############################################################
 
+olog () { echo "scan-sge-job: $*" 1>&2; }
+
 
 umask 022
 
 my_id=`id -u`
 
 STAT_USERNAME='stat -u'
-$STAT_USERNAME $0 2>/dev/null 1>&2
+eval $STAT_USERNAME $0 2>/dev/null 1>&2
 if [ ! $? = '0' ] ; then
   STAT_USERNAME='stat -c "uid (%U)"'
   eval $STAT_USERNAME $0 2>/dev/null 1>&2
   if [ ! $? = '0' ] ; then
     # OBS: Solaris 9 is missing stat (but Solaris 10 has it)
-    echo "Warning: Can't find useable stat utility" 1>&2
+    olog "Warning: Can't find useable stat utility"
     STAT_USERNAME='echo bogous'
   fi
 fi
@@ -62,7 +64,7 @@ done
 # Get all jobs
 pids=`${SGE_BIN_PATH}/qstat -u '*' 2>/dev/null | sed -n 's/^ *\([0-9][0-9]*\) .*/\1/p'`
 if [ $? != 0 ]; then
-  echo "[`date`] Failed running ${SGE_BIN_PATH}/qstat" 1>&2
+  olog "Failed running ${SGE_BIN_PATH}/qstat"
   sleep 60
   exit 1
 fi
@@ -96,11 +98,11 @@ for ctr_dir in $control_dirs ; do
     as_owner() { /bin/sh -c "$*"; }
     # find who runs this job
     if [ "$my_id" = '0' ] ; then
-      username=`eval $STAT_USERNAME "$jobfile" | sed -n 's/^uid (\([^)]*\))/\1/p'`
+      username=`eval $STAT_USERNAME "${jobfile}" | sed -n 's/^uid (\([^)]*\))/\1/p'`
       if [ $? = 0 ] && [ ! -z "$username" ]; then
         as_owner() { su "$username" -c "$*"; }
       else
-        echo "Warning: cannot determine owner of $jobfile" 1>&2
+        olog "Warning: cannot determine owner of $jobfile"
       fi
     fi
     # extract grid id
@@ -121,7 +123,7 @@ for ctr_dir in $control_dirs ; do
       diagfile="${session}.diag"
       # try to obtain the exit code
       # $diagfile is owned by the user running the job. Switch user to access it.
-      exitcode=`as_owner "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//'`
+      exitcode=`as_owner "sed -n 's/^exitcode=//p' '$diagfile'" | tail -n 1`
 
       diagfile_tmp=`mktemp "$TMP_DIR/diag_tmp.XXXXXX"` || { sleep 60; exit 1; }
       diagfile_acct=`mktemp "$TMP_DIR/diag_acct.XXXXXX"` || { sleep 60; exit 1; }
@@ -158,9 +160,16 @@ for ctr_dir in $control_dirs ; do
                          print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
                          print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
                          print "failed=$failed\n";
-                         print "\nexitcode=$exitcode\n";
+                         print "\nsgeexitcode=$exitcode\n";
                        }' \
           > "$diagfile_acct"
+      used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
+      used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
+      used_memory=`sed -n 's/^AverageTotalMemory=\(.*\)kB/\1/p' "$diagfile_acct" | tail -n 1`
+      sgeexitcode=`sed -n 's/^sgeexitcode=//p' "$diagfile_acct" | tail -n 1`
+      failedreason=`sed -n 's/^failed=//p' "$diagfile_acct" | tail -n 1`
+      failedcode=`echo $failedreason | awk '{print $1}'`
+
       if [ "x$briefacct" != "x" ]; then rm -f "$briefacct"; fi
 
       # If the last qacct record is about migration,
@@ -169,14 +178,12 @@ for ctr_dir in $control_dirs ; do
       if grep -q "^failed=24 *: migrating"    "$diagfile_acct" \
       || grep -q "^failed=25 *: rescheduling" "$diagfile_acct"; then
           rm -f "$diagfile_acct"
-          echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct" 1>&2
+          olog "SGE job $id: the last record in qacct is about migration. Waiting for next record to appear"
       fi
 
       # Add accounting info to $diagfile
       if [ -s "$diagfile_acct" ]; then
 
-          # Accouting info is present
-          accountinginfo=1
           as_owner cat "$diagfile" \
                         | grep -v "^nodename=" \
                         | grep -v "^WallTime=" \
@@ -185,24 +192,17 @@ for ctr_dir in $control_dirs ; do
                         | grep -v "^CPUTime=" \
                         | grep -v "^MaxResidentMemory=" \
                         | grep -v "^AverageTotalMemory=" \
-                        | grep -v "^exitcode=" \
           > "$diagfile_tmp"
-          as_owner "cat >  '$diagfile'" < "$diagfile_tmp"
-          as_owner "cat >> '$diagfile'" < "$diagfile_acct"
 
-          exitcode=`as_owner "grep '^exitcode=' '$diagfile'" | tail -n 1 | sed 's/^exitcode=//'`
-          failedreason=`as_owner "grep '^failed=' '$diagfile'" | tail -n 1 | sed 's/^failed=//'`
-          failedcode=`echo $failedreason | awk '{print $1}'`
+          cat "$diagfile_tmp" "$diagfile_acct" \
+            | grep -v '^sgeexitcode=' \
+            | as_owner "cat > '$diagfile'"
 
           # Check for exceeded resources limits
           if [ -s "$gramifile" ]; then
             req_walltime=`sed -n "s/^joboption_walltime=//p" "$gramifile" | tail -n 1`
             req_cputime=`sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1`
             req_memory=`sed -n "s/^joboption_memory=//p" "$gramifile" | tail -n 1`
-
-            used_walltime=`as_owner "sed -n 's/^WallTime=\(.*\).0s/\1/p' '$diagfile'" | tail -n 1`
-            used_cputime=`as_owner "sed -n 's/^CPUTime=\(.*\).0s/\1/p' '$diagfile'" | tail -n 1`
-            used_memory=`as_owner "sed -n 's/^AverageTotalMemory=\(.*\)kB/\1/p' '$diagfile'" | tail -n 1`
 
             if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
             && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
@@ -236,21 +236,31 @@ for ctr_dir in $control_dirs ; do
 
           fi # grami file
 
-          if [ "$failedcode" = "0" ]; then
-            if [ "$exitcode" = "0" ]; then
-              echo "SGE job $id finished succesfully" 1>&2
-              echo "$exitcode" > "$donefile"
+          if [ -z "$failedcode" ]; then
+            # Should never happen
+            olog "SGE job $id failed: SGE accouting record is incomplete"
+            echo "-1 SGE accouting record is incomplete" > "$donefile"
+
+          elif [ "$failedcode" = "0" ]; then
+
+            if [ -z "$exitcode" ]; then
+              olog "SGE job $id failed with unknown exit code"
+              if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
+              echo "$sgeexitcode Job failed with unknown exit code" > "$donefile"
+
+            elif [ "$exitcode" = "0" ]; then
+              #olog "SGE job $id finished succesfully"
+              echo "0" > "$donefile"
+
             else
-              echo "SGE job $id failed with exit code $exitcode" 1>&2
-              echo "$exitcode Job finished with non-zero exit code" > "$donefile"
+              #olog "SGE job $id failed with exit code $exitcode"
+              if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
+              echo "$sgeexitcode Job failed with exit code $exitcode" > "$donefile"
             fi
-          else
-            # SGE reports a problem
-            if [ -z "$failedcode" ]; then
-              : # Should never happen
-            elif [ "$failedcode" = "0" ]; then
-              : # Should never happen
-            elif [ "$failedcode" = "25" ]; then
+
+          else  # SGE reports a problem
+
+            if [ "$failedcode" = "25" ]; then
               failedreason="SGE error $failedcode: Job will be rescheduled"
             elif [ "$failedcode" = "24" ]; then
               failedreason="SGE error $failedcode: Job will be migrated"
@@ -258,7 +268,7 @@ for ctr_dir in $control_dirs ; do
 	      # This happens when SGE signals the job, as in the case when a
 	      # resource limit is exceeded.  We don't know for sure whether
 	      # they were enforced or not but if a job is killed by SGE, this
-	      # might the likely cause.
+	      # might be the likely cause.
 	      if [ -z "$overlimit" ]; then
                 failedreason="SGE error $failedreason"
               elif [ $overlimit = "memory" ]; then
@@ -271,18 +281,10 @@ for ctr_dir in $control_dirs ; do
             else
               failedreason="SGE error $failedreason"
             fi
-            exitcode=$(($failedcode+256))
-            exitcode=271
-            echo "SGE job $id failed: $failedreason" 1>&2
-            echo $exitcode $failedreason > "$donefile"
 
-            # Change exit code in the diag file
-            as_owner cat "$diagfile" > "$diagfile_tmp"
-            if [ $? = 0 ]; then
-              cat "$diagfile_tmp" | grep -v "^exitcode=" | as_owner "cat > '$diagfile'"
-              echo "exitcode=$exitcode" | as_owner "cat >>  '$diagfile'"
-              rm -f "$diagfile_tmp"
-            fi
+            olog "SGE job $id failed: $failedreason"
+            if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
+            echo "271 $failedreason" > "$donefile"
 
           fi # failedcode
 
@@ -315,11 +317,14 @@ for ctr_dir in $control_dirs ; do
     if [ "$counter" -gt 5 ]; then
       # Cannot wait more for accounting info.
       if [ -z "$exitcode" ]; then
-        echo "SGE job $id finished with unknown exit code." 1>&2
-        echo "256 Job disappeared from SGE." > "$donefile"
-      else
-        echo "SGE job $id failed with exit code $exitcode." 1>&2
-        echo "$exitcode Job finished with non-zero exit code" > "$donefile"
+        olog "SGE job $id failed with unknown exit code. No SGE accounting record found"
+        echo "-1 Job failed with unknown exit code. No SGE accounting record found" > "$donefile"
+      elif [ "$exitcode" = "0" ]; then
+        olog "SGE job $id finished succesfully but no SGE accounting record found"
+        echo "-1 Job finished succesfully but no SGE accounting record found" > "$donefile"
+      else 
+        olog "SGE job $id failed with exit code $exitcode. No SGE accounting record found"
+        echo "$exitcode Job failed with exit code $exitcode. No SGE accounting record found" > "$donefile"
       fi
       rm -f "$countfile"
 
