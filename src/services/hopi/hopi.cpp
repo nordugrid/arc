@@ -96,22 +96,24 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
     try {
         Arc::PayloadStreamInterface& stream = dynamic_cast<Arc::PayloadStreamInterface&>(payload);
         const int bufsize = 1024*1024;
-        char* sbuf = new char[bufsize];
+        char* buf = new char[bufsize];
         for(;;) {
+            char* sbuf = buf;
             int size = bufsize;
             if(!stream.Get(sbuf,size)) {
                 if(!stream) {
-                    delete[] sbuf;
+                    delete[] buf;
                     close(fd);
                     unlink(full_path.c_str());
                     logger.msg(Arc::DEBUG, "error reading from HTTP stream");
                     return Arc::MCC_Status();
                 }
+                break;
             }
             for(;size>0;) {
                 ssize_t l = write(fd, sbuf, size);
                 if(l == -1) {
-                    delete[] sbuf;
+                    delete[] buf;
                     close(fd);
                     unlink(full_path.c_str());
                     logger.msg(Arc::DEBUG, "error on write");
@@ -120,7 +122,7 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
                 size-=l; sbuf+=l;
             }
         }
-        delete[] sbuf;
+        delete[] buf;
     } catch (std::exception &e) {
         try {
             Arc::PayloadRawInterface& buf = dynamic_cast<Arc::PayloadRawInterface&>(payload);
