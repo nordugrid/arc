@@ -458,10 +458,10 @@ sub req_limits ($) {
     my $line = shift;
     my ($reqcputime, $reqwalltime);
     while ($line =~ /[sh]_cpu=(\d+)/g) {
-	$reqcputime = ceil($1/60) if not $reqcputime or $reqcputime > ceil($1/60);
+	$reqcputime = $1 if not $reqcputime or $reqcputime > $1;
     }
     while ($line =~ /[sh]_rt=(\d+)/g) {
-	$reqwalltime = ceil($1/60) if not $reqwalltime or $reqwalltime > ceil($1/60);
+	$reqwalltime = $1 if not $reqwalltime or $reqwalltime > $1;
     }
     return ($reqcputime, $reqwalltime);
 }
@@ -628,7 +628,7 @@ sub queue_info ($) {
         if ($l =~ /^[sh]_rt\s+(\S+)/) {
             return if $1 eq 'INFINITY';
             my $timelimit;
-            if ($1 =~ /^(?:(\d+):)?(\d+):(\d\d):(\d\d)^/) {
+            if ($1 =~ /^(?:(\d+):)?(\d+):(\d\d):(\d\d)$/) {
                 my ($d,$h,$m,$s) = ($1||0,$2,$3,$4);
                 $timelimit = $s + 60*($m + 60*($h + 24*$d));
             } else {
@@ -642,9 +642,8 @@ sub queue_info ($) {
         }
         elsif ($l =~ /^[sh]_cpu\s+(\S+)/) {
             return if $1 eq 'INFINITY';
-            my @a = split ":", $1;
             my $timelimit;
-            if ($1 =~ /^(?:(\d+):)?(\d+):(\d\d):(\d\d)^/) {
+            if ($1 =~ /^(?:(\d+):)?(\d+):(\d\d):(\d\d)$/) {
                 my ($d,$h,$m,$s) = ($1||0,$2,$3,$4);
                 $timelimit = $s + 60*($m + 60*($h + 24*$d));
             } else {
@@ -790,7 +789,7 @@ sub jobs_info ($) {
             if ($l =~ /cpu=(?:(\d+):)?(\d+):(\d\d):(\d\d)/) {
                 my ($d,$h,$m,$s) = ($1||0,$2,$3,$4);
                 my $cputime = $s + 60*($m + 60*($h + 24*$d));
-                $lrms_jobs->{$jid}{cputime} = int($cputime/60);
+                $lrms_jobs->{$jid}{cputime} = $cputime;
             }
         }
         elsif ($l =~ /^hard resource_list/) {

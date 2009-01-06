@@ -285,8 +285,8 @@ sub jobs_info ($) {
             $_->{ppid} == $id and $cputime += $_->{cputime} for @procinfo;
 
             $lrms_jobs->{$id}{mem} = $proc->{vsize};
-            $lrms_jobs->{$id}{walltime} = ceil $proc->{etime}/60;
-            $lrms_jobs->{$id}{cputime} = ceil $cputime/60;
+            $lrms_jobs->{$id}{walltime} = $proc->{etime};
+            $lrms_jobs->{$id}{cputime} = $cputime;
             $lrms_jobs->{$id}{status} = 'R';
             $lrms_jobs->{$id}{rank} = 0;
             $lrms_jobs->{$id}{cpus} = 1;

@@ -13,6 +13,8 @@ package ARC0mod;
 #    to the select_lrms subroutine in this module, and the module reference
 #    itself, naturally.
 
+# NB: ARC0 modules use minutes for time units. ARC1 modules use seconds.
+
 
 
 require Exporter;
@@ -102,6 +104,25 @@ sub get_lrms_info($) {
             if defined $queue_config{acl_users};
 
     }
+
+    # ARC0 LRMS plugins use minutes. Convert to seconds here.
+
+    for my $queue (values %{$lrms_info->{queues}}) {
+        $queue->{minwalltime} = int 60*$queue->{minwalltime} if $queue->{minwalltime};
+        $queue->{mincputime}  = int 60*$queue->{mincputime}  if $queue->{mincputime};
+        $queue->{maxwalltime} = int 60*$queue->{maxwalltime} if $queue->{maxwalltime};
+        $queue->{maxcputime}  = int 60*$queue->{maxcputime}  if $queue->{maxcputime};
+        $queue->{defaultwalltime} = int 60*$queue->{defaultwalltime} if $queue->{defaultwalltime};
+        $queue->{defaultcputime}  = int 60*$queue->{defaultcputime}  if $queue->{defaultcputime};
+    }
+
+    for my $job (values %{$lrms_info->{jobs}}) {
+        $job->{reqcputime}  = int 60*$job->{reqcputime}  if $job->{reqcputime};
+        $job->{reqwalltime} = int 60*$job->{reqwalltime} if $job->{reqwalltime};
+        $job->{cputime}     = int 60*$job->{cputime}     if $job->{cputime};
+        $job->{walltime}    = int 60*$job->{walltime}    if $job->{walltime};
+    }
+
     return $lrms_info;
 }
 

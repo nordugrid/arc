@@ -292,12 +292,12 @@ sub _collect($$) {
         $q->{'nq0:maxrunning'} = [ $qinfo->{maxrunning} ] if defined $qinfo->{maxrunning};
         $q->{'nq0:maxqueuable'}= [ $qinfo->{maxqueuable}] if defined $qinfo->{maxqueuable};
         $q->{'nq0:maxuserrun'} = [ $qinfo->{maxuserrun} ] if defined $qinfo->{maxuserrun};
-        $q->{'nq0:maxcputime'} = [ $qinfo->{maxcputime} ] if defined $qinfo->{maxcputime};
-        $q->{'nq0:mincputime'} = [ $qinfo->{mincputime} ] if defined $qinfo->{mincputime};
-        $q->{'nq0:defaultcputime'} = [ $qinfo->{defaultcput} ] if defined $qinfo->{defaultcput};
-        $q->{'nq0:maxwalltime'} =  [ $qinfo->{maxwalltime} ] if defined $qinfo->{maxwalltime};
-        $q->{'nq0:minwalltime'} =  [ $qinfo->{minwalltime} ] if defined $qinfo->{minwalltime};
-        $q->{'nq0:defaultwalltime'} = [ $qinfo->{defaultwallt} ] if defined $qinfo->{defaultwallt};
+        $q->{'nq0:maxcputime'} = [ int $qinfo->{maxcputime}/60 ] if defined $qinfo->{maxcputime};
+        $q->{'nq0:mincputime'} = [ int $qinfo->{mincputime}/60 ] if defined $qinfo->{mincputime};
+        $q->{'nq0:defaultcputime'} = [ int $qinfo->{defaultcput}/60 ] if defined $qinfo->{defaultcput};
+        $q->{'nq0:maxwalltime'} =  [ int $qinfo->{maxwalltime}/60 ] if defined $qinfo->{maxwalltime};
+        $q->{'nq0:minwalltime'} =  [ int $qinfo->{minwalltime}/60 ] if defined $qinfo->{minwalltime};
+        $q->{'nq0:defaultwalltime'} = [ int $qinfo->{defaultwallt}/60 ] if defined $qinfo->{defaultwallt};
         $q->{'nq0:running'} = [ $qinfo->{running} ] if defined $qinfo->{running};
         $q->{'nq0:gridrunning'} = [ $gridrunning{$qname} || 0 ];   
         $q->{'nq0:gridqueued'} = [ $gridqueued{$qname} || 0 ];    
@@ -361,8 +361,8 @@ sub _collect($$) {
                 if $gmjob->{"status"} eq "FAILED";
             $j->{'nuj0:comment'} = [ $gmjob->{comment} ] if $gmjob->{comment};
 
-            $j->{'nuj0:reqcputime'} = [ $gmjob->{reqcputime} ] if $gmjob->{reqcputime};
-            $j->{'nuj0:reqwalltime'} = [ $gmjob->{reqwalltime} ] if $gmjob->{reqwalltime};
+            $j->{'nuj0:reqcputime'} = [ int $gmjob->{reqcputime}/60 ] if $gmjob->{reqcputime};
+            $j->{'nuj0:reqwalltime'} = [ int $gmjob->{reqwalltime}/60 ] if $gmjob->{reqwalltime};
 
             if ($gmjob->{status} eq "INLRMS") {
 
@@ -372,10 +372,10 @@ sub _collect($$) {
                     or $log->warning("No local job for $jobid") and next;
 
                 $j->{'nuj0:usedmem'}     = [ $lrmsjob->{mem} ]        if defined $lrmsjob->{mem};
-                $j->{'nuj0:usedwalltime'}= [ $lrmsjob->{walltime} ]   if defined $lrmsjob->{walltime};
-                $j->{'nuj0:usedcputime'} = [ $lrmsjob->{cputime} ]    if defined $lrmsjob->{cputime};
-                $j->{'nuj0:reqwalltime'} = [ $lrmsjob->{reqwalltime}] if defined $lrmsjob->{reqwalltime};
-                $j->{'nuj0:reqcputime'}  = [ $lrmsjob->{reqcputime} ] if defined $lrmsjob->{reqcputime};
+                $j->{'nuj0:usedwalltime'}= [ int $lrmsjob->{walltime}/60 ]   if defined $lrmsjob->{walltime};
+                $j->{'nuj0:usedcputime'} = [ int $lrmsjob->{cputime}/60 ]    if defined $lrmsjob->{cputime};
+                $j->{'nuj0:reqwalltime'} = [ int $lrmsjob->{reqwalltime}/60] if defined $lrmsjob->{reqwalltime};
+                $j->{'nuj0:reqcputime'}  = [ int $lrmsjob->{reqcputime}/60 ] if defined $lrmsjob->{reqcputime};
                 $j->{'nuj0:executionnodes'} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
 
                 # LRMS-dependent attributes taken from LRMS when the job
@@ -400,12 +400,12 @@ sub _collect($$) {
                 # the job has passed the 'INLRMS' state
 
                 $j->{'nuj0:status'} = [ $gmjob->{status} ];
-                $j->{'nuj0:usedwalltime'} = [ $gmjob->{WallTime} ] if defined $gmjob->{WallTime};
-                $j->{'nuj0:usedcputime'} = [ $gmjob->{CpuTime} ] if defined $gmjob->{CpuTime};
+                $j->{'nuj0:usedwalltime'} = [ int $gmjob->{WallTime}/60 ] if defined $gmjob->{WallTime};
+                $j->{'nuj0:usedcputime'} = [ int $gmjob->{CpuTime}/60 ] if defined $gmjob->{CpuTime};
                 $j->{'nuj0:executionnodes'} = $gmjob->{nodenames} if $gmjob->{nodenames};
                 $j->{'nuj0:usedmem'} = [ $gmjob->{UsedMem} ] if $gmjob->{UsedMem};
                 $j->{'nuj0:completiontime'} = [ $gmjob->{completiontime} ] if $gmjob->{completiontime};
-                $j->{'nuj0:errors'} = [ substr($gmjob->{errors},0,87) ] if $gmjob->{errors};
+                $j->{'nuj0:errors'} = [ map { substr($_,0,87) } @{$gmjob->{errors}} ] if $gmjob->{errors};
                 $j->{'nuj0:exitcode'} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
             }
 

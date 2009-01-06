@@ -382,12 +382,12 @@ sub _collect($$) {
 
         # use limits from LRMS
         # TODO: convert backends to return values in seconds. Document new units in schema
-        $csha->{MaxCPUTime} = [ $qinfo->{maxcputime} * 60 ] if defined $qinfo->{maxcputime};
-        $csha->{MinCPUTime} = [ $qinfo->{mincputime} * 60 ] if defined $qinfo->{mincputime};
-        $csha->{DefaultCPUTime} = [ $qinfo->{defaultcput} * 60 ] if defined $qinfo->{defaultcput};
-        $csha->{MaxWallTime} =  [ $qinfo->{maxwalltime} * 60 ] if defined $qinfo->{maxwalltime};
-        $csha->{MinWallTime} =  [ $qinfo->{minwalltime} * 60 ] if defined $qinfo->{minwalltime};
-        $csha->{DefaultWallTime} = [ $qinfo->{defaultwallt} * 60 ] if defined $qinfo->{defaultwallt};
+        $csha->{MaxCPUTime} = [ $qinfo->{maxcputime} ] if defined $qinfo->{maxcputime};
+        $csha->{MinCPUTime} = [ $qinfo->{mincputime} ] if defined $qinfo->{mincputime};
+        $csha->{DefaultCPUTime} = [ $qinfo->{defaultcput} ] if defined $qinfo->{defaultcput};
+        $csha->{MaxWallTime} =  [ $qinfo->{maxwalltime} ] if defined $qinfo->{maxwalltime};
+        $csha->{MinWallTime} =  [ $qinfo->{minwalltime} ] if defined $qinfo->{minwalltime};
+        $csha->{DefaultWallTime} = [ $qinfo->{defaultwallt} ] if defined $qinfo->{defaultwallt};
 
         my ($maxtotal, $maxlrms) = split ' ', ($qconfig->{maxjobs} || '');
 
@@ -606,7 +606,7 @@ sub _collect($$) {
         $cact->{ExitCode} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
         # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
         $cact->{ComputingManagerExitCode} = [ $gmjob->{lrmsexitcode} ] if $gmjob->{lrmsexitcode};
-        $cact->{Error} = [ map { substr($_,0,87) } $gmjob->{errors} ] if $gmjob->{errors};
+        $cact->{Error} = [ map { substr($_,0,255) } @{$gmjob->{errors}} ] if $gmjob->{errors};
         $cact->{WaitingPosition} = [ $lrmsjob->{rank} ] if defined $lrmsjob->{rank};
         # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
         $cact->{Owner} = [ $gmjob->{subject} ];
@@ -624,8 +624,8 @@ sub _collect($$) {
         unshift @{$cact->{ExecutionNode}}, $_ for @{$gmjob->{nodenames}};
         $cact->{Queue} = [ $gmjob->{queue} ] if $gmjob->{queue};
         # Times for running jobs; LRMS still uses minutes
-        $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * 60 * $gmjob->{count} ] if defined $lrmsjob->{walltime};
-        $cact->{UsedTotalCPUTime} = [ $lrmsjob->{cputime} * 60 ] if defined $lrmsjob->{cputime};
+        $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * $gmjob->{count} ] if defined $lrmsjob->{walltime};
+        $cact->{UsedTotalCPUTime} = [ $lrmsjob->{cputime} ] if defined $lrmsjob->{cputime};
         $cact->{UsedMainMemory} = [ ceil($lrmsjob->{mem}/1024) ] if defined $lrmsjob->{mem};
         # Times for finished jobs
         $cact->{UsedTotalWallTime} = [ $gmjob->{WallTime} * $gmjob->{count} ] if defined $gmjob->{WallTime};
@@ -643,9 +643,9 @@ sub _collect($$) {
         $cact->{EndTime} = [ $endtime ] if $endtime;
         $cact->{WorkingAreaEraseTime} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
         $cact->{ProxyExpirationTime} = [ $gmjob->{delegexpiretime} ] if $gmjob->{delegexpiretime};
-        # OBS: address of client, as seen by the server is used.
+        # OBS: address of client as seen by the server is used.
         my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
-        my ($external_address, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::\d+)(?:;(.+))$/;
+        my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
         $cact->{SubmissionHost} = [ $external_address ] if $external_address;
         $cact->{SubmissionClientName} = [ $gmjob->{clientsoftware} ] if $gmjob->{clientsoftware};
         unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
