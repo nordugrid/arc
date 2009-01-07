@@ -1172,7 +1172,9 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/ws-security/Makefile
                  src/hed/libs/infosys/Makefile
+                 src/hed/libs/infosys/test/Makefile
                  src/hed/libs/delegation/Makefile
+                 src/hed/libs/delegation/test/Makefile
                  src/hed/libs/ws/Makefile
                  src/hed/libs/dbxml/Makefile
                  src/hed/libs/xmlsec/Makefile
