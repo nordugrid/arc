@@ -3,7 +3,7 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
-  xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
+  xmlns:deleg="http://www.nordugrid.org/schemas/DelegationSH"
   xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
   xmlns:echo="urn:echo_config"
 >
@@ -52,12 +52,12 @@
         </Service>
         <Service name="echo" id="echo">
             <SecHandler name='delegation.handler' id='delegation' event='incoming'>
-              <Type>x509</Type>
-              <Role>service</Role>
-              <DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</DelegationServiceEndpoint>
-              <KeyPath>../echo/testkey-nopass.pem</KeyPath>
-              <CertificatePath>../echo/testcert.pem</CertificatePath>
-              <CACertificatePath>../echo/cacert.pem</CACertificatePath>
+              <deleg:Type>x509</deleg:Type>
+              <deleg:Role>service</deleg:Role>
+              <deleg:DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</deleg:DelegationServiceEndpoint>
+              <deleg:KeyPath>../echo/testkey-nopass.pem</deleg:KeyPath>
+              <deleg:CertificatePath>../echo/testcert.pem</deleg:CertificatePath>
+              <deleg:CACertificatePath>../echo/cacert.pem</deleg:CACertificatePath>
             </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
