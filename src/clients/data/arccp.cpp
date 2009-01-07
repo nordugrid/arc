@@ -380,9 +380,7 @@ void arccp(const Arc::URL& source_url_,
     }
   }
   Arc::DataHandle source(source_url);
-  source->AssignCredentials(credentials);
   Arc::DataHandle destination(destination_url);
-  destination->AssignCredentials(credentials);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
     return;
@@ -392,6 +390,8 @@ void arccp(const Arc::URL& source_url_,
 	       destination_url.str());
     return;
   }
+  source->AssignCredentials(credentials);
+  destination->AssignCredentials(credentials);
   Arc::DataMover mover;
   mover.secure(secure);
   mover.passive(passive);
