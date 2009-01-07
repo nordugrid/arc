@@ -21,9 +21,11 @@ class EchoService:
         # time.sleep(10)
         # get the payload from the message
         inpayload = inmsg.Payload()
+        a = inmsg.Auth()
+        x = arc.XMLNode()
+        a.Export(arc.SecAttr.ARCAuth.fget(),x)
         attributes = inmsg.Attributes()
-        log.msg(attributes.getAll())
-        log.msg("EchoService (python) got:", inpayload.GetXML())
+        log.msg(arc.INFO, "EchoService (python) got:", inpayload.GetXML())
         # the first child of the payload should be the name of the request
         request_node = inpayload.Child()
         # we want to use members of the 'urn:echo' namespace
@@ -60,11 +62,13 @@ class EchoService:
                     cfg.AddCADir(self.ssl_config.get('ca_dir', None))
                 ssl = True
             if ssl: 	    
-               log.msg('Calling https://localhost:60000/Echo using ClientSOAP')
+                url = arc.URL('https://localhost:60000/Echo')
+                log.msg('Calling https://localhost:60000/Echo using ClientSOAP')
             else: 	    
-               log.msg('Calling http://localhost:60000/Echo using ClientSOAP')
+                url = arc.URL('http://localhost:60000/Echo')
+                log.msg('Calling http://localhost:60000/Echo using ClientSOAP')
             # creating the ClientSOAP object
-            s = arc.ClientSOAP(cfg, 'localhost', 60000, ssl, '/Echo')
+            s = arc.ClientSOAP(cfg, url)
             new_payload = arc.PayloadSOAP(ns)
             # creating the message
             new_payload.NewChild('echo:echo').NewChild('echo:say').Set(hear)
