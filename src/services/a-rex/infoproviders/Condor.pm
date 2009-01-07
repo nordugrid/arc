@@ -524,7 +524,7 @@ sub jobs_info ($$@) {
             $lrms_jobs{$id}{reqcputime} = floor($job{lc 'JobCpuLimit'} / 60); # caller knows these better
             $lrms_jobs{$id}{rank} = rank($id0) ? rank($id0) : '';
             $lrms_jobs{$id}{comment} = []; # TODO
-            $lrms_jobs{$id}{cpus} = $job{'CurrentHosts'};
+            $lrms_jobs{$id}{cpus} = $job{lc 'CurrentHosts'};
 
             # For queued jobs, unset meanigless values
             if ($lrms_jobs{$id}{status} eq 'Q') {

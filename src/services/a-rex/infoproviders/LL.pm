@@ -548,7 +548,7 @@ sub jobs_info ($$$) {
  	$lrms_jobs{$id}{walltime} = POSIX::ceil((time() - $dispt) /60);
  	# Setting cputime, should be converted to minutes
         my (@cput) = split(/:/,$jobinfo{$id}{Step_Total_Time});       
-	$lrms_jobs{$id}{cputime} = int($cput[0])*60 + int($cput[1]) + int($cput[2])/60; 
+	$lrms_jobs{$id}{cputime} = int($cput[0]*60 + $cput[1] + $cput[2]/60); 
 	$lrms_jobs{$id}{reqwalltime} = $jobinfo{$id}{Wall_Clk_Hard_Limit};
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];
