@@ -9,8 +9,8 @@ rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 
 # For Gateway service
 gateway_uri = 'urn:storagegateway'
-externalInfo_uri = 'urn:externalinfo'
-transfer_uri = 'urn:transfer'
+
+
 
 
 # URI for the simple transfer mechanism of ByteIO

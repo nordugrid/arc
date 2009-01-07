@@ -9,11 +9,11 @@
         <Logger level="ERROR">./logfile</Logger>
     </Server>
     <ModuleManager>
-        <Path>../../../../../../arc1-trunk/src/services/wrappers/python/.libs/</Path>
-        <Path>../../../../../../arc1-trunk/src/hed/mcc/http/.libs/</Path>
-        <Path>../../../../../../arc1-trunk/src/hed/mcc/soap/.libs/</Path>
-        <Path>../../../../../../arc1-trunk/src/hed/mcc/tcp/.libs/</Path>
-        <Path>../../../../../../arc1-trunk/src/hed/mcc/tls/.libs/</Path>
+        <Path>../../../../../../arc1/src/services/wrappers/python/.libs/</Path>
+        <Path>../../../../../../arc1/src/hed/mcc/http/.libs/</Path>
+        <Path>../../../../../../arc1/src/hed/mcc/soap/.libs/</Path>
+        <Path>../../../../../../arc1/src/hed/mcc/tcp/.libs/</Path>
+        <Path>../../../../../../arc1/src/hed/mcc/tls/.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
@@ -32,22 +32,23 @@
         </Component>
         <Plexer name="plexer.service" id="plexer">
             <next id="gateway">/Gateway</next>
-	    <next id="externalStorageInformation">/ExternalStorageInformation</next>
-	    <next id="transfer">/Transfer</next>	
+	<!--    <next id="externalStorageInformation">/ExternalStorageInformation</next>
+	    <next id="transfer">/Transfer</next> -->	
 		
 	</Plexer>
         <Service name="pythonservice" id="gateway">
 	    <ClassName>storage.gateway.gateway.gateway.GatewayService</ClassName>	
-	    <ExternalStorageInformationURL>http://localhost:60000/ExternalStorageInformation</ExternalStorageInformationURL>
-           <TransferURL>http://localhost:60000/Transfer</TransferURL> 	
+	    <!--
+	    	<ExternalStorageInformationURL>http://localhost:60000/ExternalStorageInformation</ExternalStorageInformationURL>
+           	<TransferURL>http://localhost:60000/Transfer</TransferURL> --> 	
 	</Service>
-	<Service name = "pythonservice" id="externalStorageInformation">
+	<!-- <Service name = "pythonservice" id="externalStorageInformation">
 	    <ClassName>storage.gateway.externalStorageInformation.externalStorageInformation.ExternalStorageInformationService</ClassName>
 	</Service>
 	<Service name = "pythonservice" id="transfer">
 	    <ClassName>storage.gateway.transfer.transfer.TransferService</ClassName>
 	</Service>	
-	
+	-->
     </Chain>
 </ArcConfig>
 
