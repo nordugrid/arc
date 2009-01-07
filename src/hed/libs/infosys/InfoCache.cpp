@@ -58,7 +58,7 @@ static bool create_directory(const std::string dir) {
 
 // --------------------------------------------------------------------------------
 
-InfoCache::InfoCache(Arc::Config &cfg, const std::string &service_id)
+InfoCache::InfoCache(const Arc::Config &cfg, const std::string &service_id)
 {
     std::string cfg_s;
     cfg.GetXML(cfg_s);

@@ -159,8 +159,6 @@ InformationContainer::InformationContainer(XMLNode doc,bool copy):InformationInt
   } else {
     doc_=doc;
   };
-std::string s; doc_.GetXML(s);
-std::cerr<<"-------------------\nInformationContainer constructor\n"<<s<<"------------------"<<std::endl;
 }
 
 InformationContainer::~InformationContainer(void) {
@@ -182,19 +180,15 @@ void InformationContainer::Assign(XMLNode doc,bool copy) {
   } else {
     doc_=doc;
   };
-std::string s; doc_.GetXML(s);
-std::cerr<<"-------------------\nInformationContainer::Assign\n"<<s<<"\n------------------"<<std::endl;
   lock_.unlock();
 }
 
 
 void InformationContainer::Get(const std::list<std::string>& path,XMLNodeContainer& result) {
-std::cerr<<"-------------------\nInformationContainer::Get\nsize: "<<path.size()<<"\n------------------"<<std::endl;
   std::list<XMLNode> cur_list;
   std::list<std::string>::const_iterator cur_name = path.begin();
   cur_list.push_back(doc_);
   for(;cur_name != path.end(); ++cur_name) {
-std::cerr<<"path="<<(*cur_name)<<std::endl;
     std::list<XMLNode> new_list;
     for(std::list<XMLNode>::iterator cur_node = cur_list.begin();
                        cur_node != cur_list.end(); ++cur_node) {
@@ -216,7 +210,6 @@ std::cerr<<"path="<<(*cur_name)<<std::endl;
 
 void InformationContainer::Get(XMLNode query,XMLNodeContainer& result) {
   std::string q = query;
-std::cerr<<"-------------------\nInformationContainer::Get\nquery: "<<q<<"------------------"<<std::endl;
   NS ns = query.Namespaces();
   result.Add(doc_.XPathLookup(q,ns));
   return;
