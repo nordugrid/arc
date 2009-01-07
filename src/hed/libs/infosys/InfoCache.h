@@ -14,6 +14,8 @@
 
 namespace Arc {
 
+/// Stores XML document in filesystem split into parts
+/** */
 class InfoCache {
     protected:
         std::string path_base;
@@ -26,7 +28,12 @@ class InfoCache {
         bool Get(const std::string &xml_path, Arc::XMLNodeContainer &result) { return Get(xml_path.c_str(), result); };
         bool Unset(const char *xml_path);
         bool Unset(const std::string &xml_path) { return Unset(xml_path.c_str()); };
-        InfoCache(Arc::Config &cfg, const std::string &service_id);
+        /// Creates object according to configuration (see InfoCacheConfig.xsd)
+        /** XML configuration is passed in cfg. Argument service_id is used
+           to distiguish between various documents stored under same 
+           path - corresponding files will be stored in subdirectory with
+           service_id name. */
+        InfoCache(const Arc::Config &cfg, const std::string &service_id);
         ~InfoCache();
 };
 

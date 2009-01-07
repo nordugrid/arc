@@ -53,7 +53,10 @@ class InfoFilter {
   bool Filter(XMLNode doc);
   /// Filter information document according to internal and external policies
   /** In provided document all policies and nodes which have their policies
-     evaluated to negative result are removed. */
+     evaluated to negative result are removed. Esternal policies are provided 
+     in policies argument. First element of every pair is XPath definign to 
+     which XML node policy must be applied. Second element is policy itself.
+     Argument ns defines XML namespaces for XPath evaluation. */
   bool Filter(XMLNode doc,const std::list< std::pair<std::string,XMLNode> >& policies,const Arc::NS& ns);
 };
 
