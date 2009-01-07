@@ -57,16 +57,35 @@ int main(void) {
         <SecHandler name='delegation.handler' id='delegation' event='outgoing'>\
           <Type>x509</Type>\
           <Role>client</Role>\
-          <DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</DelegationServiceEndpoint>\
+          <DelegationServiceEndpoint>https://glueball.uio.no:60000/delegation</DelegationServiceEndpoint>\
           <PeerServiceEndpoint>https://127.0.0.1:60000/echo</PeerServiceEndpoint>\
           <!--KeyPath>../echo/testkey-nopass.pem</KeyPath>\
           <CertificatePath>../echo/testcert.pem</CertificatePath-->\
+          <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\
           <DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity>\
           <CACertificatePath>../echo/cacert.pem</CACertificatePath>\
         </SecHandler>\
       </Component>\
      </Chain>\
     </ArcConfig>");
+
+  /*For the firstly client in the service invocation chain, the credential path
+    should be configured for the 'client' role delegation handler.
+     <KeyPath>../echo/testkey-nopass.pem</KeyPath>\
+     <CertificatePath>../echo/testcert.pem</CertificatePath>\
+     <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\
+    Alternatively, For the clients which are called in the intermediate 
+    service inside the service invocation chain, the the 'Identity' should 
+    be configured for the 'client' role delegation handler. The 'Identity' 
+    can be parsed from the 'incoming' message context of the service itself 
+    by service implementation: 
+      std::string identity= msg->Attributes()->get("TLS:IDENTITYDN");
+    Afterwards, the service implementation should change the client 
+    (the client that this service will call to contact the next intemediate service) 
+    configuration to add 'DelegationCredIdentity' like the following.
+    <DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity>\
+  */
+
   Arc::Config client_config(client_doc);
   if(!client_config) {
     logger.msg(Arc::ERROR, "Failed to load client configuration");
@@ -98,28 +117,30 @@ int main(void) {
   reqmsg.Context(&context);
   repmsg.Attributes(&attributes_rep);
   repmsg.Context(&context);
-  Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-  if(!status) {
-    logger.msg(Arc::ERROR, "Request failed");
-    std::cerr << "Status: " << std::string(status) << std::endl;
-    return -1;
-  };
-  Arc::PayloadSOAP* resp = NULL;
-  if(repmsg.Payload() == NULL) {
-    logger.msg(Arc::ERROR, "There is no response");
-    return -1;
-  };
-  try {
-    resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-  } catch(std::exception&) { };
-  if(resp == NULL) {
-    logger.msg(Arc::ERROR, "Response is not SOAP");
-    return -1;
-  };
-  std::string xml;
-  resp->GetXML(xml);
-  std::cout << "XML: "<< xml << std::endl;
-  std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
-  //}    
+  for(int i=0; i<2; i++) {
+    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+    if(!status) {
+      logger.msg(Arc::ERROR, "Request failed");
+      std::cerr << "Status: " << std::string(status) << std::endl;
+      return -1;
+    };
+    Arc::PayloadSOAP* resp = NULL;
+    if(repmsg.Payload() == NULL) {
+      logger.msg(Arc::ERROR, "There is no response");
+      return -1;
+    };
+    try {
+      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+    } catch(std::exception&) { };
+    if(resp == NULL) {
+      logger.msg(Arc::ERROR, "Response is not SOAP");
+      return -1;
+    };
+    std::string xml;
+    resp->GetXML(xml);
+    std::cout << "XML: "<< xml << std::endl;
+    std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
+    if(resp) delete resp;
+  }    
   return 0;
 }
