@@ -51,9 +51,11 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 #include "MCCTCP.h"
 
+#define PROTO_NAME(ADDR) ((ADDR->ai_family==AF_INET6)?"IPv6":"IPv4")
 Arc::Logger Arc::MCC_TCP::logger(Arc::MCC::logger,"TCP");
 
 Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : MCC(cfg) {
@@ -121,23 +123,27 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
             continue;
         };
         for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
-            logger.msg(Arc::DEBUG, "Trying to listen on port %s", port_s);
+            logger.msg(Arc::DEBUG, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
             int s = ::socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
             if(s == -1) {
-	        logger.msg(Arc::ERROR, "Failed to create socket for port %s", port_s);
+                std::string e = StrError(errno);
+	        logger.msg(Arc::ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 continue;
             };
             if(::bind(s,info->ai_addr,info->ai_addrlen) == -1) {
-	        logger.msg(Arc::ERROR, "Failed to bind socket for port %s", port_s);
+                std::string e = StrError(errno);
+	        logger.msg(Arc::ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
             if(::listen(s,-1) == -1) {
-	        logger.msg(Arc::WARNING, "Failed to listen at port %s", port_s);
+                std::string e = StrError(errno);
+	        logger.msg(Arc::WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
             handles_.push_back(s);
+            logger.msg(Arc::INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
         };
         freeaddrinfo(info);
     };
