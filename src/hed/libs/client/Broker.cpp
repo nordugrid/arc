@@ -227,24 +227,24 @@ namespace Arc {
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
 	   target++) {  
 
-       if (jir.EndPointURL.Host() != "") {
-           if ((*target).DomainName != "") {
+       if (jir.EndPointURL.Host().empty()) {
+           if ((*target).DomainName.empty()) {
 	        if ((*target).DomainName != jir.EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu 
 			   continue;
             }
            }
        }
     
-       if (jir.CEType != "") {
-           if ((*target).ImplementationName != "") {
+       if (jir.CEType.empty()) {
+           if ((*target).ImplementationName.empty()) {
 	        if ((*target).ImplementationName != jir.CEType) { // Example: ARC or UNICORE or CREAM 
 			   continue;
             }
            }
        }
 
-       if (jir.QueueName != "") {
-           if ((*target).MappingQueue != "") {
+       if (jir.QueueName.empty()) {
+           if ((*target).MappingQueue.empty()) {
 	        if ((*target).MappingQueue != jir.QueueName) { // Example: gridlong 
 			   continue;
             }
@@ -283,24 +283,24 @@ namespace Arc {
             }
        }
 
-       if (jir.Platform != "") {
-           if ((*target).Platform != "") { // Example: i386
+       if (jir.Platform.empty()) {
+           if ((*target).Platform.empty()) { // Example: i386
 	        if ((*target).Platform != jir.Platform) {  
 			   continue;
             }
            }
        }
 
-       if (jir.OSFamily != "") {
-           if ((*target).OSFamily != "") { // Example: linux
+       if (jir.OSFamily.empty()) {
+           if ((*target).OSFamily.empty()) { // Example: linux
 	        if ((*target).OSFamily != jir.OSFamily) {  
 			   continue;
             }
            }
        }
 
-       if (jir.OSName != "") {
-           if ((*target).OSName != "") { // Example: ubuntu
+       if (jir.OSName.empty()) {
+           if ((*target).OSName.empty()) { // Example: ubuntu
 	        if ((*target).OSName != jir.OSName) {  
 			   continue;
             }
