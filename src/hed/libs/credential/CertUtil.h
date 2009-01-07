@@ -40,6 +40,7 @@ namespace ArcCredential {
       CERT_TYPE_RFC_ANYLANGUAGE_PROXY
     } certType; 
 
+    /** True if certificate type is one of proxy certificates */
     #define CERT_IS_PROXY(cert_type) \
         (cert_type == CERT_TYPE_GSI_3_IMPERSONATION_PROXY || \
          cert_type == CERT_TYPE_GSI_3_INDEPENDENT_PROXY || \
@@ -53,6 +54,7 @@ namespace ArcCredential {
          cert_type == CERT_TYPE_GSI_2_PROXY || \
          cert_type == CERT_TYPE_GSI_2_LIMITED_PROXY)
 
+    /** True if certificate type is one of standard proxy certificates */
     #define CERT_IS_RFC_PROXY(cert_type) \
         (cert_type == CERT_TYPE_RFC_IMPERSONATION_PROXY || \
          cert_type == CERT_TYPE_RFC_INDEPENDENT_PROXY || \
@@ -60,12 +62,14 @@ namespace ArcCredential {
          cert_type == CERT_TYPE_RFC_RESTRICTED_PROXY || \
          cert_type == CERT_TYPE_RFC_ANYLANGUAGE_PROXY)
 
+    /** True if certificate type is one of Globus newer proxy certificates */
     #define CERT_IS_GSI_3_PROXY(cert_type) \
         (cert_type == CERT_TYPE_GSI_3_IMPERSONATION_PROXY || \
          cert_type == CERT_TYPE_GSI_3_INDEPENDENT_PROXY || \
          cert_type == CERT_TYPE_GSI_3_LIMITED_PROXY || \
          cert_type == CERT_TYPE_GSI_3_RESTRICTED_PROXY)
 
+    /** True if certificate type is one of Globus older proxy certificates */
     #define CERT_IS_GSI_2_PROXY(cert_type) \
         (cert_type == CERT_TYPE_GSI_2_PROXY || \
          cert_type == CERT_TYPE_GSI_2_LIMITED_PROXY)
@@ -91,8 +95,9 @@ namespace ArcCredential {
          cert_type == CERT_TYPE_GSI_2_PROXY || \
          cert_type == CERT_TYPE_GSI_2_LIMITED_PROXY)
 
-    /* VERIFY_CTX_STORE_EX_DATA_IDX here could be temperal solution, for openssl>=098, there is 
-     * get_proxy_auth_ex_data_idx() which is specific for proxy extention
+    /* VERIFY_CTX_STORE_EX_DATA_IDX here could be temporal solution.
+     * OpenSSL >= 098 has get_proxy_auth_ex_data_idx() which is 
+     * specific for proxy extention.
      */
     #define VERIFY_CTX_STORE_EX_DATA_IDX  1
 
@@ -116,4 +121,5 @@ namespace ArcCredential {
 
 }
 
-#endif
+#endif // __ARC_CERTUTIL_H__
+

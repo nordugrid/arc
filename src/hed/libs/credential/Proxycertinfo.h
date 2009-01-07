@@ -1,8 +1,12 @@
-/**Provide functions for maintaining information about proxy certificates*/
+/**
+  Functions and constants for maintaining proxy certificates
+ */
 
-/**The code is derived from globus gsi, voms, and openssl-0.9.8e
- It seems the existing code about maintaining proxy certificate information in new openssl version is not enough for
- globus-compatible certificate, so here the globus code is introduced.
+/**
+ The code is derived from globus gsi, voms, and openssl-0.9.8e.
+ The existing code for maintaining proxy certificates in OpenSSL only
+ covers standard proxies and does not cover old Globus proxies, so 
+ here the Globus code is introduced.
 */
 
 #ifndef ARC_PROXYCERTINFO_H

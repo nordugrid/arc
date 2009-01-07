@@ -315,4 +315,3 @@ class Credential {
 
 #endif /* __ARC_CREDENTIAL_H__ */
 
-
