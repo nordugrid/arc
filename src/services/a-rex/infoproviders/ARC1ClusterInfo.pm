@@ -29,6 +29,47 @@ sub mdstoiso {
     return undef;
 }
 
+# TODO: Substates need discussing, documenting
+# OBS: Deleted is not in OGSA-BES
+sub ogsa_state {
+    my ($gm_state,$lrms_state) = @_;
+    if      ($gm_state eq "ACCEPTED") {
+        return "Pending:Accepted";
+    } elsif ($gm_state eq "PREPARING") {
+        return "Running:Stage-in";
+    } elsif ($gm_state eq "SUBMIT") {
+        return "Running:Submitting";
+    } elsif ($gm_state eq "INLRMS") {
+        if (not defined $lrms_state) {
+            return "Running";
+        } elsif ($lrms_state eq 'Q') {
+            return "Running:Queuing";
+        } elsif ($lrms_state eq 'R') {
+            return "Running:Executing";
+        } elsif ($lrms_state eq 'EXECUTED' or $lrms_state eq '') {
+            return "Running:Executed";
+        } elsif ($lrms_state eq 'S') {
+            return "Running:Suspended";
+        } else {
+            return "Running:LRMSOther";
+        }
+    } elsif ($gm_state eq "FINISHING") {
+        return "Running:Stage-out";
+    } elsif ($gm_state eq "CANCELING") {
+        return "Running:Cancelling";
+    } elsif ($gm_state eq "KILLED") {
+        return "Cancelled";
+    } elsif ($gm_state eq "FAILED") {
+        return "Failed";
+    } elsif ($gm_state eq "FINISHED") {
+        return "Finished";
+    } elsif ($gm_state eq "DELETED") {
+        return "Deleted";
+    } else {
+        return undef;
+    }
+}
+
 ############################################################################
 # Combine info from all sources to prepare the final representation
 ############################################################################
@@ -248,18 +289,21 @@ sub _collect($$) {
     # # # # # # # # # # build information tree  # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    my $arexhostport = "$host_info->{hostname}:$config->{gm_port}";
+
+    # Global IDs
+    my $csvID = "urn:grid:csv:$arexhostport"; # ComputingService
+    my $cepID = "urn:grid:cep:$arexhostport"; # ComputingEndpoint
+    my $cmgrID = "urn:grid:cmgr:$arexhostport"; # ComputingManager
+    my %cactIDs; # ComputingActivity IDs
+
     # Locally Unique IDs
-    my $csvID = 'csv0'; # ComputingService
-    my $cepID = 'cep0'; # ComputingEndpoint
-    my $cmgrID = 'cmgr0'; # ComputingManager
-    my $cactID = 'cact0'; my %cactIDs; # ComputingActivity
-    my $cshaID = 'csha0'; my %cshaLIDs; # ComputingShare
-    my $aenvID = 'aenv0'; my @aenvIDs; # ApplicationEnvironment
-    my $xenvID = 'xenv0'; my @xenvIDs; # ExecutionEnvironment
-    my $locID = 'loc0';   my @locIDs;  # Location
-    my $conID = 'con0';   my @conIDs;  # Contact
-    my $apolID = 'apol0'; my @apolIDs; # AccessPolicy
-    my $mpolID = 'mpol0'; my @mpolIDs; # MappingPolicy
+    my $cshaLID = 'csha0'; my %cshaLIDs; # ComputingShare
+    my $xenvLID = 'xenv0'; my @xenvIDs; # ExecutionEnvironment
+    my $locLID = 'loc0';   my @locLIDs;  # Location
+    my $conLID = 'con0';   my @conLIDs;  # Contact
+    my $apolLID = 'apol0'; my @apolLIDs; # AccessPolicy
+    my $mpolLID = 'mpol0'; my @mpolLIDs; # MappingPolicy
 
     my $csv = {};
 
@@ -267,7 +311,7 @@ sub _collect($$) {
     $csv->{Validity} = $validity_ttl;
     $csv->{BaseType} = 'Service';
 
-    $csv->{ID} = [ $csvID++ ];
+    $csv->{ID} = [ $csvID ];
 
     $csv->{Name} = [ $config->{cluster_alias} ] if $config->{cluster_alias};
     $csv->{Capability} = [ 'executionmanagement.jobexecution' ];
@@ -312,11 +356,11 @@ sub _collect($$) {
 
     # Name not necessary
 
-    $cep->{URL} = [ "https://$host_info->{hostname}:$config->{gm_port}/arex" ];
+    $cep->{URL} = [ "https://$arexhostport/arex" ];
     $cep->{Technology} = [ 'webservice' ];
     $cep->{Interface} = [ 'OGSA-BES' ];
     #$cep->{InterfaceExtension} = '';
-    $cep->{WSDL} = [ "https://$host_info->{hostname}:$config->{gm_port}/arex/?wsdl" ];
+    $cep->{WSDL} = [ "https://$arexhostport/arex/?wsdl" ];
     # Wrong type, should be URI
     $cep->{SupportedProfile} = [ "WS-I 1.0", "HPC-BP" ];
     $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
@@ -374,14 +418,13 @@ sub _collect($$) {
         $csha->{Validity} = $validity_ttl;
         $csha->{BaseType} = 'Share';
 
-        $csha->{LocalID} = [ $cshaID ]; $cshaLIDs{$qname} = $cshaID++;
+        $csha->{LocalID} = [ $cshaLID ]; $cshaLIDs{$qname} = $cshaLID++;
 
         $csha->{Name} = [ $share ];
         $csha->{Description} = [ $qconfig->{comment} ] if $qconfig->{comment};
         $csha->{MappingQueue} = [ $qname ];
 
         # use limits from LRMS
-        # TODO: convert backends to return values in seconds. Document new units in schema
         $csha->{MaxCPUTime} = [ $qinfo->{maxcputime} ] if defined $qinfo->{maxcputime};
         $csha->{MinCPUTime} = [ $qinfo->{mincputime} ] if defined $qinfo->{mincputime};
         $csha->{DefaultCPUTime} = [ $qinfo->{defaultcput} ] if defined $qinfo->{defaultcput};
@@ -571,12 +614,6 @@ sub _collect($$) {
     for my $jobid (keys %$gmjobs_info) {
 
         my $gmjob = $gmjobs_info->{$jobid};
-        my $status = $gmjob->{status};
-        my ( $lrmsid, $lrmsjob );
-        if ( $status eq "INLRMS" ) {
-            $lrmsid = $gmjob->{localid};
-            $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-        }
 
         my $exited= undef; # whether the job has already run; 
 
@@ -587,27 +624,21 @@ sub _collect($$) {
         $cact->{Validity} = $validity_ttl;
         $cact->{BaseType} = 'Activity';
 
-        my $gridid = "$cepID/$jobid";
+        my $gridid = "https://$arexhostport/arex/$jobid";
         $cactIDs{$jobid} = $gridid;
 
         $cact->{Type} = [ 'Computing' ];
         $cact->{ID} = [ $gridid ];
         $cact->{IDFromEndpoint} = [ $gridid ];
-        $cact->{LocalIDFromManager} = [ $lrmsid ] if defined $lrmsid;
         $cact->{Name} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
-        # TODO: state name mapping to BES states
-        # TODO: add LRMS substate
-        $cact->{State} = [ $status ];
         # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
         $cact->{JobDescription} = [ "ogf:jsdl:1.0" ];
-        # TODO: state name mapping to BES states
-        # <RestartState>Stagein</RestartState>
-        $cact->{RestartState} = [ $gmjob->{failedstate} ] if $gmjob->{failedstate};
+        $cact->{State} = [ ogsa_state($gmjob->{status}) or 'UNDEFINEDVALUE' ];
+        $cact->{RestartState} = [ ogsa_state($gmjob->{failedstate},'R') or 'UNDEFINEDVALUE' ] if $gmjob->{failedstate};
         $cact->{ExitCode} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
         # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
         $cact->{ComputingManagerExitCode} = [ $gmjob->{lrmsexitcode} ] if $gmjob->{lrmsexitcode};
         $cact->{Error} = [ map { substr($_,0,255) } @{$gmjob->{errors}} ] if $gmjob->{errors};
-        $cact->{WaitingPosition} = [ $lrmsjob->{rank} ] if defined $lrmsjob->{rank};
         # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
         $cact->{Owner} = [ $gmjob->{subject} ];
         $cact->{LocalOwner} = [ $gmjob->{localowner} ] if $gmjob->{localowner};
@@ -615,18 +646,14 @@ sub _collect($$) {
         $cact->{RequestedTotalWallTime} = [ $gmjob->{reqwalltime} ] if defined $gmjob->{reqwalltime};
         $cact->{RequestedTotalCPUTime} = [ $gmjob->{reqcputime} ] if defined $gmjob->{reqcputime};
         # OBS: Should include name and version. Exact format not specified
-        unshift @{$cact->{RequestedApplicationEnvironment}}, $_ for @{$gmjob->{runtimeenvironments}};
+        $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
         $cact->{RequestedSlots} = [ $gmjob->{count} ];
         $cact->{StdIn} = [ $gmjob->{stdin} ] if $gmjob->{stdin};
         $cact->{StdOut} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
         $cact->{StdErr} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
         $cact->{LogDir} = [ $gmjob->{gmlog} ] if $gmjob->{gmlog};
-        unshift @{$cact->{ExecutionNode}}, $_ for @{$gmjob->{nodenames}};
+        $cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
         $cact->{Queue} = [ $gmjob->{queue} ] if $gmjob->{queue};
-        # Times for running jobs; LRMS still uses minutes
-        $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * $gmjob->{count} ] if defined $lrmsjob->{walltime};
-        $cact->{UsedTotalCPUTime} = [ $lrmsjob->{cputime} ] if defined $lrmsjob->{cputime};
-        $cact->{UsedMainMemory} = [ ceil($lrmsjob->{mem}/1024) ] if defined $lrmsjob->{mem};
         # Times for finished jobs
         $cact->{UsedTotalWallTime} = [ $gmjob->{WallTime} * $gmjob->{count} ] if defined $gmjob->{WallTime};
         $cact->{UsedTotalCPUTime} = [ $gmjob->{CpuTime} ] if defined $gmjob->{CpuTime};
@@ -648,7 +675,6 @@ sub _collect($$) {
         my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
         $cact->{SubmissionHost} = [ $external_address ] if $external_address;
         $cact->{SubmissionClientName} = [ $gmjob->{clientsoftware} ] if $gmjob->{clientsoftware};
-        unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
 
         # Computing Activity Associations
 
@@ -661,6 +687,25 @@ sub _collect($$) {
             $cact->{Associations}{ComputingShareLocalID} = [ $cshaLIDs{$share} ];
         } else {
             $log->warning("Job $jobid does not belong to a configured share (queue)");
+        }
+
+        if ( $gmjob->{status} eq "INLRMS" ) {
+            my $lrmsid = $gmjob->{localid};
+            $log->warning("No local id for job $jobid") and next unless $lrmsid;
+            $cact->{LocalIDFromManager} = [ $lrmsid ];
+
+            my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+            $log->warning("No local job for $jobid") and next unless $lrmsjob;
+
+            $cact->{State} = [ ogsa_state("INLRMS", $lrmsjob->{status}) or 'UNDEFINEDVALUE' ];
+            $cact->{WaitingPosition} = [ $lrmsjob->{rank} ] if defined $lrmsjob->{rank};
+            $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
+            unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
+
+            # Times for running jobs
+            $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * $gmjob->{count} ] if defined $lrmsjob->{walltime};
+            $cact->{UsedTotalCPUTime} = [ $lrmsjob->{cputime} ] if defined $lrmsjob->{cputime};
+            $cact->{UsedMainMemory} = [ ceil($lrmsjob->{mem}/1024) ] if defined $lrmsjob->{mem};
         }
 
     }

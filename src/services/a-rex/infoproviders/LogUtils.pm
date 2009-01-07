@@ -1,5 +1,19 @@
 package LogUtils;
 
+# Object-oriented usage example:
+# 
+#    $log = LogUtils->getLogger("MyProg.MyClass");
+#    $log->level($LogUtils::INFO);
+#    $log->logfile("log");
+#    $log->warning("Oops!");
+#    $log->error("Can't go on!");
+
+# Procedural usage example:
+#
+#    start_logging($LogUtils::INFO,'log');
+#    warning("Oops!");
+#    error("Can't go on!");
+
 use POSIX;
 use FileHandle;
 use File::Basename;
@@ -89,7 +103,7 @@ sub log($$$) {
         print STDERR $self->_format($level,$msg);
     } else {
         my $fh = new FileHandle ">>$logfile"
-            or die "Error opening $logfile: $!";
+            or die "Error opening logfile $logfile: $!";
         print $fh $self->_format($level,$msg);
         close $fh;
     }
