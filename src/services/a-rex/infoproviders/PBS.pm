@@ -170,20 +170,43 @@ sub cluster_info ($) {
     unless (open QSTATOUTPUT,  "$path/qstat -n 2>/dev/null |") {
 	error("Error in executing qstat");
     }
+    #This variable is used so we know what state the job is in when
+    #counting nodes
+    my $statusline;
     while (my $line= <QSTATOUTPUT>) {       
-	if ( ! $line =~ m/^\d+/) {
-	    next;
+	if ( $line =~ m/^\d+/ ) {
+	    my ($jid, $user, $queue, $jname, $sid, $nds, $tsk, $reqmem,
+		$reqtime, $state, $etime) = split " ", $line;
+	    if ( $state eq "R" ) {
+		$lrms_cluster{runningjobs}++;
+	    } elsif( $state =~ /^(W|T|Q)$/){
+		$lrms_cluster{queuedjobs}++;
+	    }
+	    $statusline=$line;
 	}
-	my ($jid, $user, $queue, $jname, $sid, $nds, $tsk, $reqmem,
-	    $reqtime, $state, $etime) = split " ", $line;
-	$totalcpus += $nds;
-	if ( $state eq "R" ) {
-	    $lrms_cluster{usedcpus} += $nds;
-	    $lrms_cluster{runningjobs}++;
-	} elsif( $state =~ /^(W|T|Q)$/){
-	    $lrms_cluster{queuedjobs}++;
+	#NOTE This does not take dedicated  nodes into account, is it possible to do that?
+	#     Should it do that?
+	#TODO Lines that are split funny will not be counted
+	#nodelist is of the format: nodename/cpunumber+nodename/cpunumber
+	elsif ( $line =~ m/\w*[a-zA-Z0-9]+\/[0-9]+/ ){
+	    #Count slashes to decide how many cpus are used.
+	    #Alternative way would be to get resource_list.nodes
+	    #from qstat -f, but that is also a free-format string
+	    #which can contain cumbersome attributes.
+	    my $count=0;
+	    $count++ while $line =~ /\//g;
+
+	    my ($jid, $user, $queue, $jname, $sid, $nds, $tsk, $reqmem,
+		$reqtime, $state, $etime) = split " ", $statusline;
+	    if ( $state eq "R" ){
+		$lrms_cluster{usedcpus} += $count;
+		$totalcpus+=$count;
+	    }
+	    elsif ($state =~ /^(W|T|Q)$/){
+		$totalcpus+=$count;
+	    }
 	}
-    }   
+    }
     close QSTATOUTPUT;
     $lrms_cluster{queuedcpus} = $totalcpus - $lrms_cluster{usedcpus};
 
@@ -284,30 +307,51 @@ sub queue_info ($$) {
     $lrms_queue{queued} = 0;
     $lrms_queue{totalcpus} = 0;
     if ( ($qstat{"enabled"} =~ /True/) and ($qstat{"started"} =~ /True/)) {
-	unless (open QSTATOUTPUT,   "$path/qstat -Q $qname 2>/dev/null |") {
+	unless (open QSTATOUTPUT,   "$path/qstat -f -Q $qname 2>/dev/null |") {
 	    error("Error in executing qstat: $path/qstat -f -Q $qname");
 	}
-	while (my $line = <QSTATOUTPUT> ) {
-	    if ( $line =~ /^$qname\s+/) {
-		my (@a) = split " ", $line;
-		my %l_c=cluster_info($config);
-		my $cpus=$l_c{totalcpus};
-		if($cpus<$a[1] || $a[1] < 1 ) {
-		    $lrms_queue{totalcpus} = $cpus;
-		} else {
-		  $lrms_queue{totalcpus} = $a[1];
-		}
-		$lrms_queue{status} = $lrms_queue{totalcpus} - $a[2];
-		if ( $lrms_queue{status} < 0 ) {
-		    $lrms_queue{status} = 0;
-		}
-		$lrms_queue{running} = $a[6];
-		$lrms_queue{queued} = $a[5];
-		#$lrms_queue{total} = $a[2];
-		last;
+	
+	my %qstat;
+	while (my $line= <QSTATOUTPUT>) {
+	    if ($line =~ m/ = /) {
+		chomp($line);
+		my ($qstat_var,$qstat_value) = split("=", $line);
+		$qstat_var =~ s/\s+//g;
+		$qstat_value =~ s/\s+//g;
+		$qstat{$qstat_var}=$qstat_value;
 	    }
 	}
 	close QSTATOUTPUT;
+	
+	
+	my (%keywords) = ('max_running' => 'totalcpus',
+			  'total_jobs' => 'total',
+			  'resources_assigned.nodect' => 'running');
+	
+	foreach my $k (keys %keywords) {
+	    if (defined $qstat{$k} ) {
+		$lrms_queue{$keywords{$k}} = $qstat{$k};
+	    } else {
+		$lrms_queue{$keywords{$k}} = "";
+	    }
+	}
+
+	if(defined $$config{totalcpus}){
+	    if ( $$config{totalcpus} < $lrms_queue{totalcpus} ) {
+		$lrms_queue{totalcpus}=$$config{totalcpus};
+	    }
+	}
+
+	$lrms_queue{status}=$lrms_queue{totalcpus}-$lrms_queue{running};
+	$lrms_queue{status}=0 if $lrms_queue{status} < 0;
+
+	
+	if ( $qstat{state_count} =~ m/.*Queued:([0-9]*).*/ ){
+	    $lrms_queue{queued}=$1;
+	} else {
+	    $lrms_queue{queued}=0;
+	}
+
     }
 
     return %lrms_queue;
@@ -346,9 +390,11 @@ sub jobs_info ($$@) {
     my (%tkeywords) = ( 'resources_used.walltime' => 'walltime',
 			'resources_used.cput' => 'cputime',
 			'Resource_List.walltime' => 'reqwalltime',
-			'Resource_List.cputime' => 'reqcputime',
-			'Resource_List.nodect' => 'cpus');
- 
+			'Resource_List.cputime' => 'reqcputime');
+
+    # Keywords that should not be translated
+    my (%nkeywords) = ('Resource_List.nodect' => 'cpus');
+
     my ($alljids) = join ' ', @{$jids};
     my ($jid) = 0;
     my ($rank) = 0;
@@ -357,19 +403,19 @@ sub jobs_info ($$@) {
     if (lc($$config{scheduling_policy}) eq "maui") {
 	my $showq = (defined $$config{maui_bin_path}) ? $$config{maui_bin_path}."/showq" : "showq";
 	unless (open SHOWQOUTPUT, " $showq |"){
-		error("error in executing $showq ");
+	    error("error in executing $showq ");
 	}
 	my $idle=-1;
 	while(my $line=<SHOWQOUTPUT>) {
-		if($line=~/^IDLE.+/) {
-			$idle=0;
-			$line=<SHOWQOUTPUT>;$line=<SHOWQOUTPUT>;
-		}
-		next if $idle == -1;
-		if ($line=~/^(\d+).+/) {
-			$idle++;
-			$showqrank{$1}=$idle;	
-		} 
+	    if($line=~/^IDLE.+/) {
+		$idle=0;
+		$line=<SHOWQOUTPUT>;$line=<SHOWQOUTPUT>;
+	    }
+	    next if $idle == -1;
+	    if ($line=~/^(\d+).+/) {
+		$idle++;
+		$showqrank{$1}=$idle;	
+	    } 
 	}
 	close SHOWQOUTPUT;
     }
@@ -410,6 +456,8 @@ sub jobs_info ($$@) {
 	} elsif ( defined $tkeywords{$k} ) {
 	    my ( @t ) = split ':',$v;
 	    $lrms_jobs{$jid}{$tkeywords{$k}} = $t[0]*60+$t[1];
+	} elsif (defined $nkeywords{$k} ) {
+	    $lrms_jobs{$jid}{$nkeywords{$k}} = $v;
 	} elsif ( $k eq 'exec_host' ) {
 	    #move hostnames from n12/3 syntax to n12
 	    $v =~ s/\/\d+//g;
@@ -495,8 +543,19 @@ sub users_info($$@) {
 	error("Error in executing qstat: $path/qstat -f -Q $qname");
     }
     my $acl_user_enable = 0;
+    my @acl_users;
+    my $more_acls = 0;
     while (my $line= <QSTATOUTPUT>) {   
         chomp $line;
+
+	# is this a continuation of the acl line?
+	if ($more_acls) {
+	    $line =~ s/^\s*//;  # strip leading spaces
+	    push @acl_users, split ',', $line;
+	    $more_acls = 0 unless $line =~ /,\s*$/;
+	    next;
+	}
+
 	if ( $line =~ /\s*acl_user_enable/ ) {
 	    my ( $k ,$v ) = split ' = ', $line;
 	    unless ( $v eq 'False' ) {
@@ -511,25 +570,30 @@ sub users_info($$@) {
 	      # version or flavour of PBS really has False as an alternative
 	      # to usernames to indicate the absence of user access control
 	      # A Corrallary: Dont name your users 'False' ...
-		foreach my $a ( @{$accts} ) {
-		    if (  grep /\b$a\b/, $v ) {  # matches only whole words
-		      # The acl_users list has to be sent back to the caller.
-		      # This trick works because the config hash is passed by
-		      # reference.
-		      push @{$$config{acl_users}}, $a;
-		    }
-		    else {		       
-			warning("Local user $a does not ".
-				"have access in queue $qname.");
-		    }
-		}
+		push @acl_users, split ',', $v;
+		$more_acls = 1 if $v =~ /,\s*$/;
 	    }
 	}
     }
     close QSTATOUTPUT;
 
     # acl_users is only in effect when acl_user_enable is true
-    delete $$config{acl_users} unless $acl_user_enable;
+    if ($acl_user_enable) {
+	foreach my $a ( @{$accts} ) {
+	    if (  grep { $a eq $_ } @acl_users ) {
+	      # The acl_users list has to be sent back to the caller.
+	      # This trick works because the config hash is passed by
+	      # reference.
+	      push @{$$config{acl_users}}, $a;
+	    }
+	    else {		       
+		warning("Local user $a does not ".
+			"have access in queue $qname.");
+	    }
+	}
+    } else {
+	delete $$config{acl_users};
+    }
 
     # Uses saved module data structure %lrms_queue, which
     # exists if queue_info is called before
@@ -565,6 +629,7 @@ sub users_info($$@) {
 		    last; 
 		}
 	    }
+	    #TODO free cpus are actually free jobs
 	    $lrms_users{$u}{freecpus} = $maui_freecpus;
 	    $lrms_users{$u}{queuelength} = $user_jobs_queued{$u} || 0;
 	}
@@ -573,9 +638,11 @@ sub users_info($$@) {
 		$lrms_users{$u}{freecpus} = $lrms_queue{maxuserrun} - $user_jobs_running{$u};
 	    }
 	    else {
+		#TODO free cpus are actually free jobs
 		$lrms_users{$u}{freecpus} = $lrms_queue{status};
 	    }
 	    $lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
+	    #TODO free cpus are actually free jobs
 	    if ($lrms_users{$u}{freecpus} < 0) {
 		$lrms_users{$u}{freecpus} = 0;
 	    }
