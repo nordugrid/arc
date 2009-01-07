@@ -69,10 +69,18 @@ if [ ! $? = '0' ] ; then
   fi
 fi 
 
+
+# Function for translating time from 00:01:01 format to 0061s format
+translate_time_to_seconds () {
+    orig_time=$1
+    ttts_new_time=`echo $orig_time | awk 'BEGIN { FS = ":" } ; { print $1*3600+$2*60+$3}'`
+}
+
 #
 #  Main fnction for processing one PBS log.
 #  Extracts log lines with code 0010 (job exited) and 0008 (job killed)
 #
+# TODO this should be split into smaller functions
 process_log_file () {
 eval "set -- $control_dirs"
 egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | \
@@ -109,6 +117,13 @@ sort -u | \
     # Try to extract exit code of PBS (note: if executable fails it's code goes to PBS)
     exit_code=`echo "$job_message" | sed -n 's/^.*Exit_status=\([-0-9]*\).*/\1/p'`
     job_id=`echo "$job_id" | awk '{split($0,field,".");print field[1]"."field[2]}'`
+
+    # Try to extract walltime and cputime
+    #WallTime
+    walltime=`echo "$job_message" | sed 's/^.*resources_used.walltime=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/;t leave;s/.*//;:leave'`
+    #UserTime
+    cputime=`echo "$job_message" | sed 's/^.*resources_used.cput=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/;t leave;s/.*//;:leave'`
+
     # look for this id in job.ID.local
     {
       for ctr_dir in "$@" ; do
@@ -123,11 +138,32 @@ sort -u | \
         fi
         base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
         if [ -z "${base_name}" ] ; then continue ; fi
+
+        # Check if this is already written in .diag file.
+	if [ -z "`grep WallTime $base_name.diag`" ]; then
+            # Check if it is possible to write to file
+            if [ ! -w $base_name.diag ]; then
+                echo "Error: job $job_id has finished without writing WallTime to diag-file" 1>&2
+                echo " and the diag-file is not writeable by grid-manager." 1>&2
+                continue
+            fi
+
+            # It has not been written, write info to .diag file.
+	    translate_time_to_seconds "$walltime"
+	    echo "WallTime=${ttts_new_time}s" >> $base_name.diag
+	    translate_time_to_seconds "$cputime"
+	    echo "UserTime=${ttts_new_time}s" >> $base_name.diag
+	    echo "KernelTime=0s" >> $base_name.diag
+
+	fi
+
 	# check if job already reported
         if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
+
         # more protection - check if grid-manager thinks job is still running
         grep INLRMS "${base_name}.status" 2>/dev/null 1>/dev/null
         if [ ! $? = '0' ] ; then continue ; fi
+
 	# So far only PBS exit code is available
 	# It would be nice to have exit code of main executable
 	exitcode=''
@@ -256,6 +292,7 @@ eval "set -- $control_dirs"
 pidslist=`mktemp "$TMP_DIR/qstat.XXXXXX"` || 
 if [ ! "$?" = '0' ] ; then 
   # FS problems ?
+  # TODO debug output here
   sleep 60
   exit 1
 fi
