@@ -75,7 +75,8 @@ class DelegationProvider {
   bool operator!(void) { return key_ == NULL; };
   /** Perform delegation.
     Takes X509 certificate request and creates proxy credentials
-   excluding private key. Result is then fed into DelegationConsumer::Acquire */
+   excluding private key. Result is then to be fed into 
+   DelegationConsumer::Acquire */
   std::string Delegate(const std::string& request,const DelegationRestrictions& restrictions = DelegationRestrictions());
 };
 

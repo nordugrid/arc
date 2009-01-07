@@ -287,7 +287,7 @@ bool DelegationConsumer::Request(std::string& content) {
   bool res = false;
   content.resize(0);
   EVP_PKEY *pkey = EVP_PKEY_new();
-  const EVP_MD *digest = EVP_md5();
+  const EVP_MD *digest = EVP_sha1();
   if(pkey) {
     RSA *rsa = (RSA*)key_;
     if(rsa) {
@@ -395,7 +395,7 @@ DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL
   bool res = false;
 
   //OpenSSL_add_all_algorithms();
-  EVP_add_digest(EVP_md5());
+  EVP_add_digest(EVP_sha1());
 
   if(!string_to_x509(credentials,cert,pkey,cert_sk)) goto err;
   cert_=cert; cert=NULL;
@@ -422,7 +422,7 @@ DelegationProvider::DelegationProvider(const std::string& cert_file,const std::s
   bool res = false;
 
   //OpenSSL_add_all_algorithms();
-  EVP_add_digest(EVP_md5());
+  EVP_add_digest(EVP_sha1());
 
   if(!string_to_x509(cert_file,key_file,inpwd,cert,pkey,cert_sk)) goto err;
   cert_=cert; cert=NULL;
@@ -467,7 +467,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   X509_EXTENSION *ex = NULL;
   PROXY_CERT_INFO_EXTENSION proxy_info;
   PROXY_POLICY proxy_policy;
-  const EVP_MD *digest = EVP_md5();
+  const EVP_MD *digest = EVP_sha1();
   X509_NAME *subject = NULL;
   std::string proxy_cn;
   std::string res;
