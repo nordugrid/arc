@@ -220,10 +220,117 @@ namespace Arc {
 				TargetSortingDone(false){}
 
   Broker::~Broker() {}
+ 
+  void Broker::GINProfilePreFilterTargets(Arc::TargetGenerator& targen, 
+                                          Arc::JobInnerRepresentation& jir) {
+    for (std::list<Arc::ExecutionTarget>::const_iterator target =	\
+	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
+	   target++) {  
+
+       if (jir.EndPointURL.Host() != "") {
+           if ((*target).DomainName != "") {
+	        if ((*target).DomainName != jir.EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu 
+			   continue;
+            }
+           }
+       }
+    
+       if (jir.CEType != "") {
+           if ((*target).ImplementationName != "") {
+	        if ((*target).ImplementationName != jir.CEType) { // Example: ARC or UNICORE or CREAM 
+			   continue;
+            }
+           }
+       }
+
+       if (jir.QueueName != "") {
+           if ((*target).MappingQueue != "") {
+	        if ((*target).MappingQueue != jir.QueueName) { // Example: gridlong 
+			   continue;
+            }
+           }
+       }
+
+       if (jir.TotalWallTime != -1) {
+	        if ((int)(*target).MaxWallTime.GetPeriod() != -1) { // Example: 123
+               if (!((int)(*target).MaxWallTime.GetPeriod()) >= (int)jir.TotalWallTime.GetPeriod()) { 
+			       continue;
+               }
+            }
+       }
+
+       if (jir.TotalCPUTime != -1) {
+	        if ((int)(*target).MaxCPUTime.GetPeriod() != -1) { // Example: 456
+               if (!((int)(*target).MaxCPUTime.GetPeriod()) >= (int)jir.TotalCPUTime.GetPeriod()) {
+			       continue;
+               }
+            }
+       }
+
+       if (jir.IndividualPhysicalMemory != -1) {
+	        if ((*target).NodeMemory != -1) { // Example: 678
+               if (!((*target).NodeMemory >= jir.IndividualPhysicalMemory)) {
+			       continue;
+               }
+            }
+       }
+
+       if (jir.DiskSpace != -1) {
+	        if ((*target).MaxDiskSpace != -1) { // Example: 234
+               if (!((*target).MaxDiskSpace >= jir.DiskSpace)) {
+			       continue;
+               }
+            }
+       }
+
+       if (jir.Platform != "") {
+           if ((*target).Platform != "") { // Example: i386
+	        if ((*target).Platform != jir.Platform) {  
+			   continue;
+            }
+           }
+       }
+
+       if (jir.OSFamily != "") {
+           if ((*target).OSFamily != "") { // Example: linux
+	        if ((*target).OSFamily != jir.OSFamily) {  
+			   continue;
+            }
+           }
+       }
+
+       if (jir.OSName != "") {
+           if ((*target).OSName != "") { // Example: ubuntu
+	        if ((*target).OSName != jir.OSName) {  
+			   continue;
+            }
+           }
+       }
+
+      if (!jir.RunTimeEnvironment.empty()) {
+
+          if (!(*target).ApplicationEnvironments.empty()) {
   
+          // TODO: finish this runtimeenvironment prefiltering part
+/*
+          std::list<Arc::RunTimeEnvironmentType>::const_iterator iter;
+        for (iter = RunTimeEnvironment.begin(); iter != RunTimeEnvironment.end(); iter++){
+           
+        std::coddut << Arc::IString(" RunTimeEnvironment.Name: %s", (*iter).Name) << std::endl;
+            std::list<std::string>::const_iterator it;
+            for (it = (*iter).Version.begin(); it != (*iter).Version.end(); it++){
+            std::cout << Arc::IString("    RunTimeEnvironment.Version: %s", (*it)) << std::endl;
+           }
+    
+  */      }    
+      }    
+      } // End of for     
+
+  }
+
   void Broker::PreFilterTargets(Arc::TargetGenerator& targen,  Arc::JobDescription jd) {
     
-    logger.msg(VERBOSE, "Prefiltering targets according to input jobdescription");
+    logger.msg(VERBOSE, "Prefiltering: targets according to input jobdescription");
     
     //for testing purposes
     /*

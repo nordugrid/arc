@@ -7,6 +7,7 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/JobInnerRepresentation.h>
 
 namespace Arc {
   
@@ -29,6 +30,8 @@ namespace Arc {
     */
     void PreFilterTargets(Arc::TargetGenerator& targen, 
 			  Arc::JobDescription jd);
+    void GINProfilePreFilterTargets(Arc::TargetGenerator& targen, 
+			  Arc::JobInnerRepresentation& jir);
     
   protected:
     Broker(Config *cfg);
