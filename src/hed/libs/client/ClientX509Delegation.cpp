@@ -83,16 +83,20 @@ namespace Arc {
  
         //Sign the proxy certificate
         Arc::Time start;
-        Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "independent");
+        Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritall","",-1);
+        //Set proxy path length to be -1, which means infinit length
         std::string signedcert;
         proxy.InquireRequest(x509request);
         if(!(signer_->SignRequest(&proxy, signedcert))) {
           logger.msg(ERROR, "DelegateProxy failed");
           return false;
         }
-        std::string signerstr;
-        signer_->OutputCertificate(signerstr);
-        signedcert.append(signerstr);
+        std::string signercert_str;
+        std::string signercertchain_str;
+        signer_->OutputCertificate(signercert_str);
+        signer_->OutputCertificateChain(signercertchain_str);
+        signedcert.append(signercert_str);
+        signedcert.append(signercertchain_str);
 
         PayloadSOAP request2(ns);
         XMLNode token2 = request2.NewChild("deleg:UpdateCredentials").NewChild("deleg:DelegatedToken");
