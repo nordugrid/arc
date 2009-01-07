@@ -33,13 +33,13 @@ int main(void) {
         <Path>../../hed/mcc/soap/.libs/</Path>\
         <Path>../../hed/mcc/tls/.libs/</Path>\
         <Path>../../hed/mcc/tcp/.libs/</Path>\
-        <Path>../../hed/pdc/.libs/</Path>\
+        <Path>../../hed/shc/.libs/</Path>\
      </ModuleManager>\
      <Plugins><Name>mcctcp</Name></Plugins>\
      <Plugins><Name>mcctls</Name></Plugins>\
      <Plugins><Name>mcchttp</Name></Plugins>\
      <Plugins><Name>mccsoap</Name></Plugins>\
-     <Plugins><Name>arcpdc</Name></Plugins>\
+     <Plugins><Name>arcshc</Name></Plugins>\
      <Chain>\
       <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
       <Component name='tls.client' id='tls'><next id='tcp'/>\
