@@ -92,3 +92,7 @@ supplied and ACRs are applied immediately.
 which are used and implement ACR evaluation.
  Combination of 1 and 3 looks most promising because it is flexible and 
 keeps information system and policy evaluation code separated.
+
+
+* References
+"Information access control use cases" http://wiki.nordugrid.org/index.php/ARC1/Infosys/Access_Use_cases
