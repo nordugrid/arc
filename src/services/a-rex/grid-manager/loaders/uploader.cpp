@@ -155,7 +155,7 @@ int main(int argc,char** argv) {
   int n_threads = 1;
   int n_files = MAX_DOWNLOADS;
   /* used to find caches used by this user */
-  char * file_owner_username = "";
+  std::string file_owner_username = "";
   uid_t file_owner = 0;
   gid_t file_group = 0;
   std::vector<struct Arc::CacheParameters> caches;
@@ -227,6 +227,7 @@ int main(int argc,char** argv) {
         };
         file_owner=pw->pw_uid;
         file_group=pw->pw_gid;
+        if(pw->pw_name) file_owner_username=pw->pw_name;
         if((getuid() != 0) && (getuid() != file_owner)) {
           olog<<"Specified user can't be handled"<<std::endl; exit(1);
         };
@@ -241,6 +242,7 @@ int main(int argc,char** argv) {
         };
         file_owner=pw->pw_uid;
         file_group=pw->pw_gid;
+        if(pw->pw_name) file_owner_username=pw->pw_name;
         if((getuid() != 0) && (getuid() != file_owner)) {
           olog<<"Specified user can't be handled"<<std::endl; exit(1);
         };
@@ -317,7 +319,7 @@ int main(int argc,char** argv) {
     if(pw == NULL) {
       olog<<"Wrong user name"<<std::endl; exit(1);
     }
-    file_owner_username=pw->pw_name;
+    if(pw->pw_name) file_owner_username=pw->pw_name;
   }
   
   if(use_conf_cache) {
