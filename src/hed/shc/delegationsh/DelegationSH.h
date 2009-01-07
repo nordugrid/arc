@@ -11,6 +11,8 @@ namespace ArcSec {
 
 /// 
 
+class DelegationContext;
+
 class DelegationSH : public SecHandler {
  private:
   enum {
@@ -43,6 +45,9 @@ class DelegationSH : public SecHandler {
   std::string proxy_file_;
   std::string ca_file_;
   std::string ca_dir_;
+ 
+ private:
+  DelegationContext* get_delegcontext(Arc::Message& msg);
 
  public:
   DelegationSH(Arc::Config *cfg, Arc::ChainContext* ctx);

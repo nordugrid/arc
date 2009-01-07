@@ -82,6 +82,31 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
 DelegationSH::~DelegationSH() {
 }
 
+class DelegationContext:public Arc::MessageContextElement{
+ public:
+  bool have_delegated_;
+  DelegationContext(void){ have_delegated_ = false; };
+  virtual ~DelegationContext(void) { };
+};
+
+DelegationContext* DelegationSH::get_delegcontext(Arc::Message& msg) {
+  DelegationContext* deleg_ctx=NULL;
+  Arc::MessageContextElement* mcontext = (*msg.Context())["deleg.context"];
+  if(mcontext) {
+    try {
+      deleg_ctx = dynamic_cast<DelegationContext*>(mcontext);
+    } catch(std::exception& e) { };
+  };
+  if(deleg_ctx) return deleg_ctx;
+  deleg_ctx = new DelegationContext();
+  if(deleg_ctx) {
+    msg.Context()->Add("deleg.context",deleg_ctx);
+  } else {
+    logger.msg(Arc::ERROR, "Failed to acquire delegation context");
+  }
+  return deleg_ctx;
+}
+
 //Generate hash value for a string
 static unsigned long string_hash(const std::string& value){
   unsigned long ret=0;
@@ -195,8 +220,17 @@ bool DelegationSH::Handle(Arc::Message* msg){
         //By creating one more level of delegation, the delegated credential
         //will be used by the next intermediate service to act on behalf of
         //the EEC credential's holder
-        logger.msg(Arc::INFO,"+++++++++ Delegation handler with client role starts to process +++++++++");
 
+        //Store delegation context into message context
+        DelegationContext* deleg_ctx = get_delegcontext(*msg);
+        if(!deleg_ctx) {
+          logger.msg(Arc::ERROR, "Can't create delegation context");
+          return false;
+        }
+        //Credential delegation will only be triggered once for each connection
+        if(deleg_ctx->have_delegated_) return true;
+
+        logger.msg(Arc::INFO,"+++++++++ Delegation handler with client role starts to process +++++++++");
         std::string proxy_path;
         if(!delegation_cred_identity_.empty()) {
           unsigned long hash_value = string_hash(delegation_cred_identity_);
@@ -269,7 +303,11 @@ bool DelegationSH::Handle(Arc::Message* msg){
         };
         outpayload->NewChild("deleg:DelegationService")=ds_endpoint_;
         outpayload->NewChild("deleg:DelegationID")=delegation_id;
-      
+
+        //Set the 'have_delegated_' value of DelegationContext to
+        //be true, so that the delegation process will only be triggered
+        //once for each communication.
+        deleg_ctx->have_delegated_=true;      
 
         logger.msg(Arc::INFO, "Succeeded to send DelegationService: %s and DelegationID: %s info to peer service",ds_endpoint_.c_str(),delegation_id.c_str());
         logger.msg(Arc::INFO,"+++++++++ Delegation handler with service role ends +++++++++");
