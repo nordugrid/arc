@@ -22,8 +22,8 @@ class EchoService:
         # get the payload from the message
         inpayload = inmsg.Payload()
         a = inmsg.Auth()
-        x = arc.XMLNode()
-        a.Export(arc.SecAttr.ARCAuth.fget(),x)
+        x = a.Export(arc.SecAttr.ARCAuth)
+        print x.GetXML()
         attributes = inmsg.Attributes()
         log.msg(arc.INFO, "EchoService (python) got:", inpayload.GetXML())
         # the first child of the payload should be the name of the request
