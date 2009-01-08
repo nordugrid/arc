@@ -50,11 +50,10 @@ int main(void) {
       </Component>\
       <Component name='http.client' id='http'><next id='tls'/>\
         <Method>POST</Method>\
-        <Endpoint>/Echo</Endpoint>\
+        <Endpoint>/echo</Endpoint>\
       </Component>\
       <Component name='soap.client' id='soap' entry='soap'>\
         <next id='http'/>\
-        <!--SecHandler name='saml2ssouseragent.handler' id='saml2ssoua' event='outgoing'/-->\
       </Component>\
      </Chain>\
     </ArcConfig>");

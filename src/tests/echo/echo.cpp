@@ -23,6 +23,8 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { NULL, NULL, 0, NULL }
 };
 
+using namespace Arc;
+
 namespace Echo {
 
 Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "Echo") {
@@ -93,6 +95,32 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   }; 
 
   Arc::PayloadSOAP* outpayload = NULL;
+
+
+  /**Export the formated policy-decision request**/
+  MessageAuth* mauth = inmsg.Auth();
+  MessageAuth* cauth = inmsg.AuthContext();
+  if((!mauth) && (!cauth)) {
+    logger.msg(ERROR,"Missing security object in message");
+    return Arc::MCC_Status();
+  };
+  NS ns;
+  XMLNode requestxml(ns,"");
+  if(mauth) {
+    if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
+      delete mauth;
+      logger.msg(ERROR,"Failed to convert security information to ARC request");
+      return Arc::MCC_Status();
+    };
+  };
+  if(cauth) {
+    if(!cauth->Export(SecAttr::ARCAuth,requestxml)) {
+      delete mauth;
+      logger.msg(ERROR,"Failed to convert security information to ARC request");
+      return Arc::MCC_Status();
+    };
+  };
+  /** */
 
   // Analyzing request 
 
