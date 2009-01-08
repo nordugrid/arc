@@ -36,6 +36,15 @@
 %apply std::string& OUTPUT { std::string &val };
 %include "../src/hed/libs/message/SecAttr.h"
 %clear std::string &val;
+#ifdef SWIGPYTHON
+%pythonprepend Arc::MessageAuth::Export %{
+        x = XMLNode("<dummy/>")
+        args = (args[0], args[1].fget(), x)
+%}
+%pythonappend Arc::MessageAuth::Export %{
+        return x
+%}
+#endif
 %include "../src/hed/libs/message/MessageAuth.h"
 %include "../src/hed/libs/message/Message.h"
 %include "../src/hed/libs/message/PayloadRaw.h"
