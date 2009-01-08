@@ -12,7 +12,7 @@ Arc::Plugin* ArcSec::ArcAuthZ::get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg =
             arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
     if(!shcarg) return NULL;
-    return new ArcSec::ArcAuthZ((Arc::Config*)shcarg,(Arc::ChainContext*)(*shcarg));
+    return new ArcSec::ArcAuthZ((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
 }
 
 /*
