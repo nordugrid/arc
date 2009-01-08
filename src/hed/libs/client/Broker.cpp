@@ -227,31 +227,37 @@ namespace Arc {
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
 	   target++) {  
 
-       if (jir.EndPointURL.Host().empty()) {
-           if ((*target).DomainName.empty()) {
+       if (jir.ExclusiveExecution) {
+	        if (!(*target).Reservation) { // Example: false (boolean)
+			       continue;
+            }
+       }
+
+       if (!jir.EndPointURL.Host().empty()) {
+           if (!(*target).DomainName.empty()) {
 	        if ((*target).DomainName != jir.EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu 
 			   continue;
             }
            }
        }
     
-       if (jir.CEType.empty()) {
-           if ((*target).ImplementationName.empty()) {
+       if (!jir.CEType.empty()) {
+           if (!(*target).ImplementationName.empty()) {
 	        if ((*target).ImplementationName != jir.CEType) { // Example: ARC or UNICORE or CREAM 
 			   continue;
             }
            }
        }
 
-       if (jir.QueueName.empty()) {
-           if ((*target).MappingQueue.empty()) {
+       if (!jir.QueueName.empty()) {
+           if (!(*target).MappingQueue.empty()) {
 	        if ((*target).MappingQueue != jir.QueueName) { // Example: gridlong 
 			   continue;
             }
            }
        }
 
-       if (jir.TotalWallTime != -1) {
+       if ((int)jir.TotalWallTime.GetPeriod() != -1) {
 	        if ((int)(*target).MaxWallTime.GetPeriod() != -1) { // Example: 123
                if (!((int)(*target).MaxWallTime.GetPeriod()) >= (int)jir.TotalWallTime.GetPeriod()) { 
 			       continue;
@@ -259,7 +265,7 @@ namespace Arc {
             }
        }
 
-       if (jir.TotalCPUTime != -1) {
+       if ((int)jir.TotalCPUTime.GetPeriod() != -1) {
 	        if ((int)(*target).MaxCPUTime.GetPeriod() != -1) { // Example: 456
                if (!((int)(*target).MaxCPUTime.GetPeriod()) >= (int)jir.TotalCPUTime.GetPeriod()) {
 			       continue;
@@ -283,32 +289,40 @@ namespace Arc {
             }
        }
 
-       if (jir.Platform.empty()) {
-           if ((*target).Platform.empty()) { // Example: i386
+       if (!jir.Platform.empty()) {
+           if (!(*target).Platform.empty()) { // Example: i386
 	        if ((*target).Platform != jir.Platform) {  
 			   continue;
             }
            }
        }
 
-       if (jir.OSFamily.empty()) {
-           if ((*target).OSFamily.empty()) { // Example: linux
+       if (!jir.OSFamily.empty()) {
+           if (!(*target).OSFamily.empty()) { // Example: linux
 	        if ((*target).OSFamily != jir.OSFamily) {  
 			   continue;
             }
            }
        }
 
-       if (jir.OSName.empty()) {
-           if ((*target).OSName.empty()) { // Example: ubuntu
+       if (!jir.OSName.empty()) {
+           if (!(*target).OSName.empty()) { // Example: ubuntu
 	        if ((*target).OSName != jir.OSName) {  
 			   continue;
             }
            }
        }
 
-      if (!jir.RunTimeEnvironment.empty()) {
+       if (!jir.OSVersion.empty()) {
+           if (!(*target).OSVersion.empty()) { // Example: ubuntu
+			// TODO finish the version check
+	        if ((*target).OSVersion != jir.OSVersion) {  
+			   continue;
+            }
+           }
+       }
 
+      if (!jir.RunTimeEnvironment.empty()) {
           if (!(*target).ApplicationEnvironments.empty()) {
   
           // TODO: finish this runtimeenvironment prefiltering part
@@ -323,7 +337,60 @@ namespace Arc {
            }
     
   */      }    
-      }    
+      }
+
+       if (!jir.NetworkInfo.empty()) {
+           if (!(*target).NetworkInfo.empty()) { // Example: infiniband
+	        if ((*target).NetworkInfo != jir.NetworkInfo) {  
+			   continue;
+            }
+           }
+       }
+
+       if (jir.SessionDiskSpace != -1) {
+	        if ((*target).WorkingAreaFree != -1) { // Example: 5656
+               if (!((*target).WorkingAreaFree >= jir.SessionDiskSpace)) {
+			       continue;
+               }
+            }
+       }
+
+       if (jir.CacheDiskSpace != -1) {
+	        if ((*target).CacheFree != -1) { // Example: 5656
+               if (!((*target).CacheFree >= jir.CacheDiskSpace)) {
+			       continue;
+               }
+            }
+       }
+
+       if ((int)jir.SessionLifeTime.GetPeriod() != -1) {
+	        if ((int)(*target).MaxWallTime.GetPeriod() != -1) { // Example: 123
+               if (!((int)(*target).MaxWallTime.GetPeriod()) >= (int)jir.SessionLifeTime.GetPeriod()) { 
+			       continue;
+               }
+            }
+       }
+
+       if (jir.InBound) {
+	        if (!(*target).ConnectivityIn) { // Example: false (boolean)
+			       continue;
+            }
+       }
+
+       if (jir.OutBound) {
+	        if (!(*target).ConnectivityOut) { // Example: false (boolean)
+			       continue;
+            }
+       }
+    
+
+       if (!jir.ReferenceTime.value.empty()) {
+           if (!(*target).Benchmarks.empty()) { // Example: benchmark="frequency" value="2.8Ghz"
+			// TODO finish the benchmark test
+			 continue;
+           }
+       }
+
       } // End of for     
 
   }
