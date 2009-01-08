@@ -68,6 +68,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
   // Making XML document top level Request element
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+  if(!val) XMLNode(ns,"ra:Request").New(val);
   XMLNode newreq = val;
   newreq.Namespaces(ns);
   newreq.Name("ra:Request");
