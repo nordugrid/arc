@@ -162,6 +162,15 @@ bool TLSSecAttr::equal(const SecAttr &b) const {
 }
 
 static void add_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
+   //If the same SubjectAttribute (same attributeID and same value) exists,
+   //avoid adding a new one.
+   for(int i=0;; i++){
+     XMLNode cn;
+     cn=item["ra:SubjectAttribute"][i];
+     if(!cn) break;
+     if((std::string)(cn.Attribute("AttributeId"))==std::string(id)
+      &&(std::string)cn==subject) return;
+   }
    XMLNode attr = item.NewChild("ra:SubjectAttribute");
    attr=subject; attr.NewAttribute("Type")="string";
    attr.NewAttribute("AttributeId")=id;
