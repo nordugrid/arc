@@ -42,6 +42,7 @@ Description: ARC shared libraries
 
 Package: nordugrid-arc1-client
 Architecture: any
+Recommends: libldap2
 Depends: nordugrid-arc1-lib, nordugrid-arc1-plugins-base
 Suggests: globus
 Description: ARC prototype clients
