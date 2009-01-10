@@ -96,12 +96,14 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config) {
       for(int idx = 0;;++idx) {
          if(idx >= sk_X509_num(peerchain)) break;
          X509* cert = sk_X509_value(peerchain,sk_X509_num(peerchain)-idx-1);
+#if 0
          if(idx == 0) { // Obtain CA subject
            buf[0]=0;
            X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof(buf));
            subject=buf;
            subjects_.push_back(subject);
          };
+#endif
          buf[0]=0;
          X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
          subject=buf;
@@ -162,15 +164,6 @@ bool TLSSecAttr::equal(const SecAttr &b) const {
 }
 
 static void add_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
-   //If the same SubjectAttribute (same attributeID and same value) exists,
-   //avoid adding a new one.
-   for(int i=0;; i++){
-     XMLNode cn;
-     cn=item["ra:SubjectAttribute"][i];
-     if(!cn) break;
-     if((std::string)(cn.Attribute("AttributeId"))==std::string(id)
-      &&(std::string)cn==subject) return;
-   }
    XMLNode attr = item.NewChild("ra:SubjectAttribute");
    attr=subject; attr.NewAttribute("Type")="string";
    attr.NewAttribute("AttributeId")=id;
