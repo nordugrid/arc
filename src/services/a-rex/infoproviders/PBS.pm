@@ -205,8 +205,10 @@ sub cluster_info ($) {
 	    elsif ($state =~ /^(W|T|Q)$/){
 		$totalcpus+=$count;
 	    }
+
 	}
     }
+
     close QSTATOUTPUT;
     $lrms_cluster{queuedcpus} = $totalcpus - $lrms_cluster{usedcpus};
 
@@ -310,7 +312,7 @@ sub queue_info ($$) {
 	unless (open QSTATOUTPUT,   "$path/qstat -f -Q $qname 2>/dev/null |") {
 	    error("Error in executing qstat: $path/qstat -f -Q $qname");
 	}
-	
+
 	my %qstat;
 	while (my $line= <QSTATOUTPUT>) {
 	    if ($line =~ m/ = /) {
@@ -322,8 +324,8 @@ sub queue_info ($$) {
 	    }
 	}
 	close QSTATOUTPUT;
-	
-	
+
+
 	my (%keywords) = ('max_running' => 'totalcpus',
 			  'total_jobs' => 'total',
 			  'resources_assigned.nodect' => 'running');
@@ -345,7 +347,6 @@ sub queue_info ($$) {
 	$lrms_queue{status}=$lrms_queue{totalcpus}-$lrms_queue{running};
 	$lrms_queue{status}=0 if $lrms_queue{status} < 0;
 
-	
 	if ( $qstat{state_count} =~ m/.*Queued:([0-9]*).*/ ){
 	    $lrms_queue{queued}=$1;
 	} else {
