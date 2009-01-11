@@ -25,7 +25,7 @@ GMKICK=${basedir}/gm-kick
 
 ##############################################################
 
-olog () { echo "scan-sge-job: $*" 1>&2; }
+olog () { echo "[`date +%F\ %T`] scan-sge-job: $*" 1>&2; }
 
 
 umask 022
@@ -336,9 +336,26 @@ for ctr_dir in $control_dirs ; do
       ${SGE_BIN_PATH}/qstat -j $id > /dev/null 2>&1
       if [ $? -ne 0 ]; then
         echo "$counter" > "$countfile"
+      else
+        olog "SGE job $id disappeared and then reappeared!"
+        rm -f "$countfile"
       fi
     fi
   done # loop over bids
+
+  # Detect the unlikely situation when a job reappears in the qstat listing
+  # after being absent in the previous run of the scan-*-job (which updated
+  # the counter file)
+  for countfile in `find $ctr_dir -name 'job.*.lrms_job'`; do
+    localfile=${countfile%.lrms_job}.local
+    pid=`sed -n 's/^localid=\([^ ]*\)/\1/p' "$localfile" 2>/dev/null`
+    if [ -z "$pid" ]; then continue; fi
+    if echo "$pids" | grep "^$pid\$" >/dev/null; then
+      olog "SGE job $id disappeared and then reappeared!"
+      rm -f "$countfile"
+    fi
+  done
+
 done # loop over control_dirs
 sleep 60
 exit 0
