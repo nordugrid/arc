@@ -293,6 +293,8 @@ sub get_short_job_info($$) {
 
         my ($total, $waiting, $pending, $running, $held, $preempted);
 
+        $total = 0; $waiting = 0; $pending = 0; $running = 0; $held = 0; $preempted = 0;
+
         if (/(\d*) .* (\d*) waiting, (\d*) pending, (\d*) running, (\d*) held, (\d*) preempted/) {
           $total     = $1;
           $waiting   = $2;
