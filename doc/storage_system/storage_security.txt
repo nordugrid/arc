@@ -25,55 +25,68 @@ It is possible to use the A-Hash to store the identity of the trusted services. 
 Transfer-level authorization
 ----------------------------
 
-When the Bartender decides that a user indeed has permission to download a file, then it chooses a location (a Shepherd on a storage node), and initiate the transfer by the Shepherd. The Shepherd communicates with the storage element service on the storage node, prepares the transfer, and creates a transfer URL (TURL), which is a direct URL to the storage element service (Hopi, apache, etc.). Then this TURL is returned to the user, then the user connects directly to the storage element. The simplest architecture would be this: the storage element could be configured in a way that it serves everybody. First it seems very insecure, but if new TURLs are generated for each request, and if this TURLs are long enough to be unguessable (and the TURLs are returned to the user via secure channel), then this could be taken as a one-time password solution. Currently the Hopi service is implemented in a way, that it only accepts the first HTTP connection to an URL, so if the user starts downloading the file, nobody else can do it, and before the user starts downloading the file nobody can guess the TURL.
+When the Bartender decides that a user indeed has permission to download a file, then it chooses a location (a Shepherd on a storage node), and initiate the transfer by the Shepherd. The Shepherd communicates with the storage element service on the storage node, prepares the transfer, and creates a transfer URL (TURL), which is a direct URL to the storage element service (Hopi, apache, etc.). Then this TURL is returned to the user, then the user connects directly to the storage element. The simplest architecture would be this: the storage element could be configured in a way that it serves everybody. If new TURLs are generated for each request, and if this TURLs are long enough to be unguessable (and the TURLs are returned to the user via secure channel), then this could be taken as a one-time password solution. Currently the Hopi service is implemented in a way, that it only accepts the first HTTP connection to an URL, so if the user starts downloading the file, nobody else can do it, and before the user starts downloading the file nobody can guess the TURL.
 
-To achieve a more sophisticated solution, we need the storage element services to trust the Bartender services. One possible option would be that the Bartender creates a proxy certificate which delegates the rights of the Bartender to the client, but with some restricitions, e.g. a policy document which says that a user only allowed to access that one single file. Then we need a storage element service which is capable of handling embedded policy documents, so it will first accept the certificate because it trusts the Bartender, and in this case the user acts on behalf of the Bartender, then the storage element will extract the policy document from the certificate which contains which file can be downloaded by the user. But if the storage element cannot understand policy documents, then this method cannot be used, or even is a security risk. With the Hopi service we can implement this behaviour. But we plan to support other services as Storage Elements: apache, dcache, castor.
-
-Other option is to use SAML assertions. The Bartender knows which user has permisson to a file, so it could create a SAML assertion and provide it to the storage element esrvice. But currently it is not clear which type of SAML assertion could we use, how to give this assertion to the user, how can the user give this assertion to the storage element service. To use SAML we need an Identity Provider, which authenticates the user. But in the case of the ARC storage, there are no such service. We have no list of registered users. We identify the users with their DNs which are in their certificates. If the user has VOMS-attributes in the certiciate, then it will be used as well. How can we implement or use an existing Identity Provider in this case?
+If we want more than that, we need to have access to all the different storage element services and change the access control rules on the storage element servic itself. For example if we use the Hopi service as a storage element service, and 'User1' wants to get a file, User1 connects to the Bartender, which asks the Shepherd which controls this Hopi service, and the Shepherd will modify the access control of the given file, so when the user later connects with the given TURL to the Hopi service the user can use its own certificate, the Hopi service will know that this user has rights to get the file. In this case we need some mechinasim which will remove the user from the authorized users of the file after the download finished, or after a given amount of time. For this, we need to add some more methods to the interface of Shepherd backends, and implement this access control change ruli change mechanism for each supported storage element service.
 
 High-level authorization
 ------------------------
 
-The ARC storage system has a component called Librarian, which is storing all the metadata about files and collections in the system (and uses the A-Hash service as a database, so "stored in the A-Hash" and "stored at the Librarian" means the same). The access policies are stored among these metadata (currently in native ARC policy format as XML documents - later other policy languages could be supported as well.)
+The ARC storage system has a component called Librarian, which is storing all the metadata about files and collections in the system (and uses the A-Hash service as a database, so "stored in the A-Hash" and "stored at the Librarian" means the same). The access control rules are stored among these metadata. The format of the access control rules is the following:
 
-A policy has a couple of rules, where each rule contains Subjects, Resources, Actions and Conditions parts, and each rule has an effect of permitting or denying the request when it is applied. 'Subjects' contains a list of identities, where an identity could refer to a user, or some group (e.g. a VO) usually via a DN. The 'Resource' here is the file or collection the policy is attached to, so in this case the policy itself does not contain the Resource, or if it contains any Resource it will be ignored and replaced. The 'Actions' part could contain one or more of the valid actions, e.g. 'read' for a file, or 'list' for collection. The Condition part could contain any other arbitrary condition allowed by the policy language.
-Besides these policies, each file and collection has an 'owner', which is a user who could always modify the policies, even if the policies would deny it.
+DN1: +action, +action, -action, ....
+DN2: +action, -action, -action, ....
+...
 
-There are two kinds of policies:
-- Basic policy: a basic policy contains rules for one single user or one single group (or VO), and it has no Conditions. So a basic policy could state that User1 has rights to read the content of the collection and to add an entry to it, but has no rights to remove an entry. An other basic policy could say that all members of a VO has rights to modify the metadata of the file. These policies could be easily created and modified automatically, and these policies could be easily transformed to a human-readable form. The system will support fine-grained modification of these policies, so e.g. if you want to give read rights to a user, then the system will check wether a basic policy does already exist for this user, or not. If it does, then it will modify that policy to give read rights to the user. If it does not, then it will create a new basic policy for this user.
-- Complex policy: a complex policy could contain anything, multiple subjects and conditions (but still no resources - they well be removed and replaced by the file or collection the policy is attached to). The fine-grained modification of these policies are not supported by the system, you can add a complex policy to a file or collection, or remove a complex policy, and you can overwrite and existing one, but you cannot ask the system to just change a part of it.
+There are DNs (Distingushed Names as used in the X509 certificates) listed and for each DN there is a list of actions, each prefixed with a + or - character which indicates that the given action is allowed or not allowed for the given DN.
 
+The list of actions:
+- read: user can get the list of entries in the collection; user can download the file
+- addEntry: user can add a new entry to the collection;
+- removeEntry: user can remove any entry from the collection 
+- delete: user can delete the collection if it is empty; user can delete a file
+- modifyPolicy: user can modify the policy of the file/collection
+- modifyStates: user can modify some special metadata of the file/collection (close the collection, number of needed replica of the file)
+- modifyMetadata: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
 
-For example we have a collection with a Logical Name of '/niif/projects/jupiter'.
-If this file has one single basic policy, e.g.:
+Additionaly, each file and collection has an 'owner' which is a user who always can modify the access control rules.
 
- <Policy>
-    <Rule Effect="Permit"> 
-       <Subjects>
-          <Subject>	
-             <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
-          </Subject>
-       </Subjects>
-       <Actions>
-          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">read</Action>
-       </Actions>
-    </Rule>
-    <Rule Effect="Deny"> 
-       <Subjects>
-          <Subject>	
-             <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
-          </Subject>
-       </Subjects>
-       <Actions>
-          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">removeEntry</Action>
-       </Actions>
-    </Rule>
- </Policy>
+If we have a collection with a Logical Name of '/niif/projects/jupiter', and we have this rule among its metadata:
 
-Which means that a user who has the identity '/C=HU/O=NIIF/CN=zsombor@niif.hu' is allowed to read the contents of this file and not allowed to removeEntry. (In case if this user is part of a VO, and if there is an other policy which says that the VO has rights to removeEntry, then we need to somehow decide that the vo-level policy is stronger or the user-level, or the denial is stronger)
-So when this user is contacting a Bartender to get the content of the collection of '/niif/projects/jupiter', then the Bartender gets the metadata of the collection from the Librarian, and now the Bartender has all the policies which are effective to this collection.
+/C=HU/O=NIIF/CN=zsombor@niif.hu: +read, -removeEntry
 
-Now the Bartender has to create a 'request' which is also an XML document containing the information who wants to do what.
+Which means that a user who has the identity '/C=HU/O=NIIF/CN=zsombor@niif.hu' is allowed to read the contents of this file and not allowed to removeEntry. So when this user is contacting a Bartender to get the content of the collection of '/niif/projects/jupiter', then the Bartender gets the metadata of the collection from the Librarian, and now the Bartender has the access control rules which are effective to this collection.
+
+Now the Bartender wants to use the policy evaluator framework of the HED, so it will convert this simple representation to the native ARC policy XML format, something like this:
+
+>>> print storage.common.AuthPolicy({'/C=HU/O=NIIF/CN=zsombor@niif.hu': ['+read', '-removeEntry']}).get_policy()
+
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" CombiningAlg="Deny-Overrides">
+  <Rule Effect="Deny">
+    <Description>/C=HU/O=NIIF/CN=zsombor@niif.hu is not allowed to removeEntry</Description>
+    <Subjects>
+      <Subject>
+        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
+      </Subject>
+    </Subjects>
+    <Actions>
+      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">removeEntry</Action>
+    </Actions>
+  </Rule>
+  <Rule Effect="Permit">
+    <Description>/C=HU/O=NIIF/CN=zsombor@niif.hu is allowed to read</Description>
+    <Subjects>
+      <Subject>
+        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
+      </Subject>
+    </Subjects>
+    <Actions>
+      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">read</Action>
+    </Actions>
+  </Rule>
+</Policy>
+
+Then the Bartender needs to create a 'request' which is also an XML document containing the information who wants to do what.
 Something like this:
 
  <Request>
@@ -85,17 +98,8 @@ Something like this:
    </RequestItem>
  </Request>
 
-The <Subject> part should be automatically generated by the security framework, it should contain everything we know about the user, the DN, any attributes from the certificate of the user, VO membership, etc. These information are extracted by the MCCs and/or Security Handlers, and can be accessed using the Security Attributes.
+The <Subject> part is retrieved from the security framework by exporting the Security Attributes of the message, it should contain everything we know about the user, the DN, any attributes from the certificate of the user, VO membership, etc. These information are extracted by the MCCs and/or Security Handlers.
 
 The <Action> part is filled by the Bartender, e.g. the 'list' method needs a 'read' permission, so it will put that action into the request. 
 
-Now the Bartender has a request, and several policies (basic policies and maybe complex policies as well), and it needs to make a decision. The Bartender creates an Evaluator, adds all the policies to it, and then call the 'evaluate' method with the request. Then the Evaluator returns the decision.
-
-These are the actions for the storage system:
-- read: user can get the list of entries in the collection; user can download the file
-- addEntry: user can add a new entry to the collection;
-- removeEntry: user can remove any entry from the collection 
-- delete: user can delete the collection if it is empty; user can delete a file
-- modifyPolicy: user can modify the policy of the file/collection
-- modifyStates: user can modify some special metadata of the file/collection (close the collection, number of needed replica of the file)
-- modifyMetadata: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
+Now the Bartender creates an Evaluator, adds the policy to it, and then call the 'evaluate' method with the request. Then the Evaluator returns the decision.
