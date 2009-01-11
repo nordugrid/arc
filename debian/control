@@ -51,13 +51,14 @@ Description: ARC prototype clients
 Package: nordugrid-arc1-server
 Architecture: any
 Depends: nordugrid-arc1-arex, nordugrid-arc1-lib
+Recommends: nordugrid-arc1-python
 Description: ARC Hosting Environment Daemon
  ARC Hosting Environment Daemon (HED). This daemon
  presents a site to other participants on the grid.
 
 Package: nordugrid-arc1-arex
 Architecture: any
-Depends: nordugrid-arc1-lib, libxml-simple-perl
+Depends: nordugrid-arc1-plugins-base, nordugrid-arc1-lib, libxml-simple-perl
 Description: ARC Remote EXecution service
  ARC Remote EXecution service (AREX).
 
@@ -86,7 +87,7 @@ Description: ARC development files
 
 Package: nordugrid-arc1-python
 Architecture: any
-Depends: nordugrid-arc1-lib
+Depends: nordugrid-arc1-lib, python2.4
 Description: ARC Python wrapper
  Python wrapper for ARC.
 
