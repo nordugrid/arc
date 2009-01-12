@@ -1,4 +1,4 @@
-#!@posix_shell@ -f 
+#!@posix_shell@
 # set -xv
 #
 #  Submits job to loadleveler.
