@@ -12,7 +12,7 @@ namespace Arc {
 
   JobInnerRepresentation::JobInnerRepresentation() { Reset(); }
 
-  JobInnerRepresentation::~JobInnerRepresentation() {}
+  //JobInnerRepresentation::~JobInnerRepresentation() {}
 
   void JobInnerRepresentation::Print(bool longlist) const {
 
@@ -254,6 +254,20 @@ namespace Arc {
         std::cout << Arc::IString(" StagingOutBaseURI: %s", StagingOutBaseURI.fullstr()) << std::endl;
     }
 
+      if ( !XRSL_elements.empty() ) {
+        std::map<std::string, std::string>::const_iterator it;
+        for ( it = XRSL_elements.begin(); it != XRSL_elements.end(); it++ ) {
+            std::cout << Arc::IString(" XRSL_elements: [%s], %s", it->first, it->second) << std::endl;
+        }
+      }
+
+      if ( !JDL_elements.empty() ) {
+        std::map<std::string, std::string>::const_iterator it;
+        for ( it = JDL_elements.begin(); it != JDL_elements.end(); it++ ) {
+            std::cout << Arc::IString(" JDL_elements: [%s], %s", it->first, it->second) << std::endl;
+        }
+      }
+
     std::cout << std::endl;
   } // end of Print
 
@@ -293,12 +307,11 @@ namespace Arc {
     if (!Error.empty())
        Error.clear();
 
-/*    if (!bool(RemoteLogging)){
-       RemoteLogging.ChangePort(-1);		//TODO: reset the URL is better
+    if (!bool(RemoteLogging)){
+       RemoteLogging.ChangePort(-1);		//TODO: reset the URL better
        RemoteLogging.ChangeLDAPScope(URL::base);
-//       RemoteLogging.~URL();
-//       RemoteLogging.URL();
-    }*/
+       RemoteLogging.ChangeProtocol("");
+    }
     if (!Environment.empty())
        Environment.clear();
     if (LRMSReRun > -1)
@@ -319,10 +332,11 @@ namespace Arc {
        ProcessingStartTime = -1;
     if (!Notification.empty())
        Notification.clear();
-/*    if (!bool(CredentialService)){
-       CredentialService.ChangePort(-1);		//TODO: reset the URL is better
+    if (!bool(CredentialService)){
+       CredentialService.ChangePort(-1);		//TODO: reset the URL better
        CredentialService.ChangeLDAPScope(URL::base);
-    }*/
+       CredentialService.ChangeProtocol("");
+    }
     if (Join)
        Join = false;
 
@@ -364,10 +378,11 @@ namespace Arc {
        CacheDiskSpace = -1;
     if (SessionDiskSpace > -1)
        SessionDiskSpace = -1;
-/*    if (!bool(EndPointURL)){
-       EndPointURL.ChangePort(-1);		//TODO: reset the URL is better
+    if (!bool(EndPointURL)){
+       EndPointURL.ChangePort(-1);		//TODO: reset the URL better
        EndPointURL.ChangeLDAPScope(URL::base);
-    }*/
+       EndPointURL.ChangeProtocol("");
+    }
     if (!QueueName.empty())
        QueueName.clear();
     if (!CEType.empty())
@@ -391,23 +406,34 @@ namespace Arc {
        File.clear();
     if (!Directory.empty())
        Directory.clear();
-/*    if (!bool(DataIndexingService)){
-       DataIndexingService.ChangePort(-1);		//TODO: reset the URL is better
+    if (!bool(DataIndexingService)){
+       DataIndexingService.ChangePort(-1);		//TODO: reset the URL better
        DataIndexingService.ChangeLDAPScope(URL::base);
-    }*/
-/*    if (!bool(StagingInBaseURI)){
-       StagingInBaseURI.ChangePort(-1);		//TODO: reset the URL is better
+       DataIndexingService.ChangeProtocol("");
+    }
+    if (!bool(StagingInBaseURI)){
+       StagingInBaseURI.ChangePort(-1);		//TODO: reset the URL better
        StagingInBaseURI.ChangeLDAPScope(URL::base);
-    }*/
-/*    if (!bool(StagingOutBaseURI)){
-       StagingOutBaseURI.ChangePort(-1);		//TODO: reset the URL is better
+       StagingInBaseURI.ChangeProtocol("");
+    }
+    if (!bool(StagingOutBaseURI)){
+       StagingOutBaseURI.ChangePort(-1);		//TODO: reset the URL better
        StagingOutBaseURI.ChangeLDAPScope(URL::base);
-    }*/
+       StagingOutBaseURI.ChangeProtocol("");
+    }
+
+    if ( !XRSL_elements.empty() )
+       XRSL_elements.clear();
+
+    if ( !JDL_elements.empty() )
+       JDL_elements.clear();
+
+    cached = false;
   } // end of Reset
 
     //Inner representation export to JSDL-GIN XML
     bool JobInnerRepresentation::getXML( Arc::XMLNode& jobTree) const {
-        //TODO: wath is the new GIN namespace
+        //TODO: wath is the new GIN namespace (it is now temporary namespace)
         Arc::NS gin_namespaces;
         gin_namespaces["jsdl-gin"] = "http://schemas.ogf.org/gin-profile/2008/11/jsdl";
         gin_namespaces["targetNamespace"] = "http://schemas.ogf.org/gin-profile/2008/11/jsdl";
@@ -1031,5 +1057,80 @@ namespace Arc {
         }
         return true;
     } //end of getXML
+
+  // Copy constructor
+  JobInnerRepresentation::JobInnerRepresentation(const JobInnerRepresentation& job){
+    JobName             = job.JobName;
+    Description         = job.Description;
+    JobProject          = job.JobProject;
+    JobType             = job.JobType;
+    JobCategory         = job.JobCategory;
+    UserTag             = job.UserTag;
+    
+    OptionalElement     = job.OptionalElement;
+    Author              = job.Author;
+    DocumentExpiration  = job.DocumentExpiration;
+    Rank                = job.Rank;
+    FuzzyRank           = job.FuzzyRank;
+
+    Executable          = job.Executable;
+    LogDir              = job.LogDir;
+    Argument            = job.Argument;
+    Input               = job.Input;
+    Output              = job.Output;
+    Error               = job.Error;
+    RemoteLogging       = job.RemoteLogging;
+    Environment         = job.Environment;
+    LRMSReRun           = job.LRMSReRun;
+    Prologue.Name       = job.Prologue.Name;
+    Prologue.Arguments  = job.Prologue.Arguments;
+    Epilogue.Name       = job.Epilogue.Name;
+    Epilogue.Arguments  = job.Epilogue.Arguments;
+    SessionLifeTime     = job.SessionLifeTime;
+    AccessControl       = job.AccessControl;
+    ProcessingStartTime = job.ProcessingStartTime;
+    Notification        = job.Notification;
+    CredentialService   = job.CredentialService;
+    Join                = job.Join;
+
+    TotalCPUTime        = job.TotalCPUTime;
+    IndividualCPUTime   = job.IndividualCPUTime;
+    TotalWallTime       = job.TotalWallTime;
+    IndividualWallTime  = job.IndividualWallTime;
+    ReferenceTime.benchmark_attribute = job.ReferenceTime.benchmark_attribute;
+    ReferenceTime.value_attribute     = job.ReferenceTime.value_attribute;
+    ReferenceTime.value               = job.ReferenceTime.value;
+    ExclusiveExecution  = job.ExclusiveExecution;
+    NetworkInfo         = job.NetworkInfo;
+    OSFamily            = job.OSFamily;
+    OSName              = job.OSName;
+    OSVersion           = job.OSVersion;
+    Platform            = job.Platform;
+    IndividualPhysicalMemory = job.IndividualPhysicalMemory;
+    IndividualVirtualMemory  = job.IndividualVirtualMemory;
+    IndividualDiskSpace      = job.IndividualDiskSpace;
+    DiskSpace           = job.DiskSpace;
+    CacheDiskSpace      = job.CacheDiskSpace;
+    SessionDiskSpace    = job.SessionDiskSpace;
+    EndPointURL         = job.EndPointURL;
+    QueueName           = job.QueueName;
+    CEType              = job.CEType;
+    NumberOfProcesses   = job.NumberOfProcesses;
+    ProcessPerHost      = job.ProcessPerHost;
+    ThreadPerProcesses  = job.ThreadPerProcesses;
+    SPMDVariation       = job.SPMDVariation;
+    RunTimeEnvironment  = job.RunTimeEnvironment;
+    InBound             = job.InBound;
+    OutBound            = job.OutBound;
+
+    File                = job.File;
+    Directory           = job.Directory;
+    DataIndexingService = job.DataIndexingService;
+    StagingInBaseURI    = job.StagingInBaseURI;
+    StagingOutBaseURI   = job.StagingOutBaseURI;
+
+    XRSL_elements       = job.XRSL_elements;
+    JDL_elements        = job.JDL_elements;
+  } // end of copy constructor
 
 } // namespace Arc

@@ -2,6 +2,7 @@
 #define __ARC_JOBINNERREPRESENTATION_H__
 
 #include <string>
+#include <map>
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
@@ -74,7 +75,17 @@ struct DirectoryType {
   public:
 
     JobInnerRepresentation();
-    ~JobInnerRepresentation();
+    //~JobInnerRepresentation();
+
+    // Copy constructor
+    JobInnerRepresentation(const JobInnerRepresentation&);
+
+    // Print all value to the standard output.
+    void Print(bool longlist) const;
+    void Reset();
+
+    // Export the inner representation into the jobTree XMLNode.
+    bool getXML( Arc::XMLNode& jobTree) const;
 
     // Meta information
     std::list<std::string> OptionalElement;
@@ -148,10 +159,11 @@ struct DirectoryType {
     URL StagingInBaseURI;       //Defaults
     URL StagingOutBaseURI;      //Defaults
 
+    //other specified elements
+    std::map<std::string, std::string> XRSL_elements;
+    std::map<std::string, std::string> JDL_elements;
+    bool cached;
 
-    void Print(bool longlist) const;
-    void Reset();
-    bool getXML( Arc::XMLNode& jobTree) const;
   };
 
 } // namespace Arc

@@ -8,6 +8,8 @@
 #include <time.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
+#include <arc/client/JobInnerRepresentation.h>
+//#include "JobInnerRepresentation.h"
 
 
 namespace Arc {
@@ -62,39 +64,42 @@ namespace Arc {
     //Abstract class for the different parsers
     class JobDescriptionParser {
         public:
-            virtual bool parse( Arc::XMLNode& jobTree, const std::string source ) = 0;
-            virtual bool getProduct( const Arc::XMLNode& jobTree, std::string& product ) = 0;
+            virtual bool parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) = 0;
+            virtual bool getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) = 0;
             virtual ~JobDescriptionParser(){};
     };
 
     class JSDLParser : public JobDescriptionParser {
+        private:
+            StringManipulator sm;
         public:
-            bool parse( Arc::XMLNode& jobTree, const std::string source );
-            bool getProduct( const Arc::XMLNode& jobTree, std::string& product );
+            bool parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source );
+            //bool handleJSDLattribute( std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation );
+            bool getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product );
     };
 
     class XRSLParser : public JobDescriptionParser {
         private:
             StringManipulator sm;
-            bool handleXRSLattribute( std::string attributeName, std::string attributeValue, Arc::XMLNode& jobTree );
+            bool handleXRSLattribute( std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation );
             std::string simpleXRSLvalue( std::string attributeValue );
             std::vector<std::string> listXRSLvalue( std::string attributeValue );
             std::vector< std::vector<std::string> > doubleListXRSLvalue( std::string attributeValue );
         public:
-            bool parse( Arc::XMLNode& jobTree, const std::string source );
-            bool getProduct( const Arc::XMLNode& jobTree, std::string& product );
+            bool parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source );
+            bool getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product );
     };
 
     class JDLParser : public  JobDescriptionParser {
         private:
             StringManipulator sm;
             bool splitJDL(std::string original_string, std::vector<std::string>& lines);
-            bool handleJDLattribute( std::string attributeName, std::string attributeValue, Arc::XMLNode& jobTree );
+            bool handleJDLattribute( std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation );
             std::string simpleJDLvalue( std::string attributeValue );
             std::vector<std::string> listJDLvalue( std::string attributeValue );
         public:
-            bool parse( Arc::XMLNode& jobTree, const std::string source );
-            bool getProduct( const Arc::XMLNode& jobTree, std::string& product );
+            bool parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source );
+            bool getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product );
     };
 
     class JobDescriptionOrderer {
@@ -113,15 +118,18 @@ namespace Arc {
             std::string sourceString;
             std::string sourceFormat;
             JobDescriptionOrderer jdOrderer;
+            Arc::JobInnerRepresentation* innerRepresentation;
             void resetJobTree();
         public:
             JobDescription();
             JobDescription(const JobDescription& desc);
+            ~JobDescription();
 
             // Returns true if the source has been setted up and wasn't any syntax error in it and there
             // is a mandatory (Executable) element setted correctly or false otherwise
             bool isValid() const {return (sourceFormat.length() != 0) && 
-                                    jobTree["JobDescription"]["Application"]["POSIXApplication"]["Executable"];};
+                                    !(*innerRepresentation).Executable.empty() /*&& 
+                                    !(*innerRepresentation).LogDir.empty()*/;};
 
             // Try to parse the source string and store it in an inner job description representation.
             // If there is some syntax error then it throws an exception.
@@ -129,18 +137,21 @@ namespace Arc {
 
             // Transform the inner job description representation into a given format, if it's known as a parser (JSDL as default)
             // If there is some error during this method, then throws an error.
-            void getProduct( std::string& product, std::string format = "JSDL" ) throw(JobDescriptionError);
+            bool getProduct( std::string& product, std::string format = "JSDL" );
 
             // Returns with the original job descriptions format as a string. Right now, this value is one of the following:
             // "jsdl", "jdl", "xrsl". If there is an other parser written for another language, then this set can be extended.
-            std::string getSourceFormat() throw(JobDescriptionError);
+            bool getSourceFormat( std::string& _sourceFormat );
 
             // Returns with the XML representation of the job description. This inner representation is very similar
             // to the JSDL structure and exactly the same in cases, which are defined in the JSDL specification.
-            Arc::XMLNode getXML() throw(JobDescriptionError);
+            bool getXML( Arc::XMLNode& node );
 
             // Returns the uploadable local files list, if the source has been setted up and is valid, else throws an exception
-            std::vector< std::pair< std::string, std::string > > getUploadableFiles() throw(JobDescriptionError);
+            bool getUploadableFiles( std::vector< std::pair< std::string, std::string > >& sourceFiles );
+
+            // Returns with the inner representation object.
+            bool getInnerRepresentation( Arc::JobInnerRepresentation& job );
     };
 
 } // namespace Arc

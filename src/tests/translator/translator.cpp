@@ -18,7 +18,13 @@ int main() {
   jd.setSource( xrsl_string );
 
   std::string test;
-  jd.getXML().GetDoc(test, true);
+  Arc::XMLNode node;
+  //jd.getXML().GetDoc(test, true);
+  if ( !jd.getXML(node) ){
+       std::cerr << "The JobDescription was empty." << std::endl;
+       return 1;
+  }
+  node.GetDoc(test, true);
   std::cout << std::endl << " [ jd.getXML() ] " << std::endl << std::endl << test << std::endl;
 
   try {

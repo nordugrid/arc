@@ -283,9 +283,15 @@ int main(int argc, char **argv) {
 	continue;
       }
       
-      if (it->getXML()["JobDescription"]["JobIdentification"]["JobName"])
+      /*if (it->getXML()["JobDescription"]["JobIdentification"]["JobName"])
 	info.NewChild("Name") = (std::string)
-	  it->getXML()["JobDescription"]["JobIdentification"]["JobName"];
+	  it->getXML()["JobDescription"]["JobIdentification"]["JobName"];*/
+      Arc::XMLNode node;
+      if ( it->getXML(node) ){
+         if ( (bool)node["JobDescription"]["JobIdentification"]["JobName"] ){
+            info.NewChild("Name") = (std::string)node["JobDescription"]["JobIdentification"]["JobName"];
+         }
+      }
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();

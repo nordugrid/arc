@@ -34,8 +34,13 @@ namespace Arc {
     mover.passive(true);
     mover.verbose(false);
 
-    std::vector<std::pair<std::string, std::string> > fileList =
-      jobdesc.getUploadableFiles();
+    //std::vector<std::pair<std::string, std::string> > fileList =
+    //  jobdesc.getUploadableFiles();
+    std::vector<std::pair<std::string, std::string> > fileList;
+    if ( !jobdesc.getUploadableFiles( fileList ) ){
+	std::cerr << "No uploadable files." << std::endl;
+        return false;
+    }
 
     std::vector<std::pair<std::string, std::string> >::iterator file;
 

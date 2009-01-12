@@ -433,7 +433,11 @@ namespace Arc {
     jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
     jobd.Namespaces(jsdl_namespaces);
 
-    jobd = jd.getXML();
+    //jobd = jd.getXML();
+    if ( !jd.getXML(jobd) ){
+       std::cerr << "The JobDescription was empty." << std::endl;
+       return;
+    }
 
     for (std::list<Arc::ExecutionTarget>::const_iterator target =	\
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \

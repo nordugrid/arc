@@ -226,8 +226,11 @@ namespace Arc {
        Arc::JobDescription jd;
        if (jd.setSource(job.JobDescription) && jd.isValid()){
           Arc::XMLNode jd_xml;
-          jd_xml = jd.getXML();
-           
+          //jd_xml = jd.getXML();
+          if ( !jd.getXML(jd_xml) ){
+             std::cerr << "The JobDescription was empty." << std::endl;
+             return false;
+          }           
           if ( (bool)(jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"]) &&
               (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"] != "" )        
              job.StdIn = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"];
