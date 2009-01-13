@@ -25,7 +25,7 @@ GMKICK=${basedir}/gm-kick
 
 ##############################################################
 
-olog () { echo "[`date +%F\ %T`] scan-sge-job: $*" 1>&2; }
+olog () { echo "[`date +%Y-%m-%d\ %T`] scan-sge-job: $*" 1>&2; }
 
 
 umask 022
