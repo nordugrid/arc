@@ -94,7 +94,7 @@ namespace Arc {
     return foundTargets;
   }
 
-  const std::list<XMLNode>& TargetGenerator::FoundJobs() const {
+  const std::list<XMLNode*>& TargetGenerator::FoundJobs() const {
     return foundJobs;
   }
 
@@ -150,7 +150,10 @@ namespace Arc {
 
   void TargetGenerator::AddJob(const XMLNode& job) {
     Glib::Mutex::Lock jobLock(jobMutex);
-    foundJobs.push_back(job);
+    NS ns;
+    XMLNode *j = new XMLNode(ns, "");
+    j->Replace(job);
+    foundJobs.push_back(j);
   }
 
   void TargetGenerator::RetrieverDone() {

@@ -169,10 +169,11 @@ int main(int argc, char **argv) {
   //Write extracted job info to joblist (overwrite the file)
   {//start of file lock
     Arc::FileLock lock(joblist);
-    Arc::Config jobs;
-    for (std::list<Arc::XMLNode>::const_iterator job = targen.FoundJobs().begin(); 
+    Arc::NS ns;
+    Arc::Config jobs(ns);
+    for (std::list<Arc::XMLNode*>::const_iterator job = targen.FoundJobs().begin(); 
 	 job != targen.FoundJobs().end(); job++){
-      jobs.NewChild(*job);
+      jobs.NewChild(**job);
     }
     jobs.SaveToFile(joblist);
   }//end of file lock

@@ -27,7 +27,7 @@ namespace Arc {
 
     void GetTargets(int targetType, int detailLevel);
     const std::list<ExecutionTarget>& FoundTargets() const;
-    const std::list<XMLNode>& FoundJobs() const;
+    const std::list<XMLNode*>& FoundJobs() const;
     
     bool AddService(const URL& url);
     bool AddIndexServer(const URL& url);
@@ -48,7 +48,7 @@ namespace Arc {
     std::list<URL> foundServices;
     std::list<URL> foundIndexServers;
     std::list<ExecutionTarget> foundTargets;
-    std::list<XMLNode> foundJobs;
+    std::list<XMLNode*> foundJobs;
 
     Glib::Mutex serviceMutex;
     Glib::Mutex indexServerMutex;

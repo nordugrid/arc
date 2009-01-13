@@ -92,6 +92,10 @@ namespace Arc {
   void TargetRetrieverARC0::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    std::string& proxyPath = thrarg->proxyPath;
+    std::string& certificatePath = thrarg->certificatePath;
+    std::string& keyPath = thrarg->keyPath;
+    std::string& caCertificatesDir = thrarg->caCertificatesDir;
 
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::base);
@@ -143,6 +147,14 @@ namespace Arc {
 
       NS ns;
       Config cfg(ns);
+      if (!proxyPath.empty())
+	cfg.NewChild("ProxyPath") = proxyPath;
+      if (!certificatePath.empty())
+	cfg.NewChild("CertificatePath") = certificatePath;
+      if (!keyPath.empty())
+	cfg.NewChild("KeyPath") = keyPath;
+      if (!caCertificatesDir.empty())
+	cfg.NewChild("CACertificatesDir") = caCertificatesDir;
       XMLNode URLXML = cfg.NewChild("URL") = url.str();
       URLXML.NewAttribute("ServiceType") = "index";
 
@@ -170,6 +182,14 @@ namespace Arc {
 
       NS ns;
       Config cfg(ns);
+      if (!proxyPath.empty())
+	cfg.NewChild("ProxyPath") = proxyPath;
+      if (!certificatePath.empty())
+	cfg.NewChild("CertificatePath") = certificatePath;
+      if (!keyPath.empty())
+	cfg.NewChild("KeyPath") = keyPath;
+      if (!caCertificatesDir.empty())
+	cfg.NewChild("CACertificatesDir") = caCertificatesDir;
       XMLNode URLXML = cfg.NewChild("URL") = url.str();
       URLXML.NewAttribute("ServiceType") = "computing";
 
@@ -184,14 +204,13 @@ namespace Arc {
   void TargetRetrieverARC0::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    std::string& proxyPath = thrarg->proxyPath;
+    std::string& certificatePath = thrarg->certificatePath;
+    std::string& keyPath = thrarg->keyPath;
+    std::string& caCertificatesDir = thrarg->caCertificatesDir;
     int targetType = thrarg->targetType;
 
     //Create credential object in order to get the user DN
-    std::string proxyPath = thrarg->proxyPath;
-    std::string certificatePath = thrarg->certificatePath;
-    std::string keyPath = thrarg->keyPath;
-    std::string caCertificatesDir = thrarg->caCertificatesDir;
-
     Credential* credential;
     if(certificatePath.empty()){
       credential = new Arc::Credential(proxyPath, "", caCertificatesDir, "");
@@ -474,7 +493,7 @@ namespace Arc {
       
       XMLNodeList jobs =
 	xmlresult.XPathLookup("//nordugrid-job-globalid"
-			      "[objectClass='nordugrid-job'", NS());
+			      "[objectClass='nordugrid-job']", NS());
       
       for (XMLNodeList::iterator it = jobs.begin(); it != jobs.end(); it++) {
 	
@@ -490,7 +509,8 @@ namespace Arc {
 	if((*it)["nordugrid-job-submissiontime"]){
 	  info.NewChild("LocalSubmissionTime") = (std::string) (*it)["nordugrid-job-submissiontime"];
 	}
-	
+
+	info.NewChild("Flavour") = "ARC0";
 	info.NewChild("Cluster") = url.str();
 	
 	URL infoEndpoint(url);
@@ -501,7 +521,6 @@ namespace Arc {
 	info.NewChild("InfoEndpoint") = infoEndpoint.str();
 	
 	mom.AddJob(info);
-
       }
 
     } //end targetType ==1, i.e. jobs
