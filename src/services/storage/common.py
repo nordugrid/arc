@@ -667,60 +667,75 @@ def splitLN(LN):
 # In [10]: p2
 # Out[10]: {'User1': ['-delete', '+modifyMetadata', '+read'], 'User2': ['+modifyPolicy']}
 
-auth_mapping = {'identity' : ('Subject', 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'),
-            'LN' : ('Resource', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/logicalname'),
-            'method' : ('Action', 'http://www.nordugrid.org/schemas/policy-arc/types/storage/method')}
-            # TODO: rename this 'method' to 'action'
+
 
 storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
+identity_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'
+action_type = 'http://www.nordugrid.org/schemas/policy-arc/types/storage/action'
+request_ns = 'http://www.nordugrid.org/schemas/request-arc'
 
-class AuthRequest(dict):
+class AuthRequest():
     
-    def get_request(self, format = 'ARCAuth'):
+    def __init__(self, message):
+        auth = message.Auth()
+        import arc
+        xml = auth.Export(arc.SecAttr.ARCAuth)
+        subject = xml.Get('RequestItem').Get('Subject')
+        self.subject = subject.GetXML()
+        self.identity = str(subject.XPathLookup('//ra:SubjectAttribute[@AttributeId="%s"]' % identity_type, arc.NS({'ra':request_ns}))[0])
+    
+    def get_request(self, action, format = 'ARCAuth'):
         if format not in ['ARCAuth']:
             raise Exception, 'Unsupported format %s' % format
         if format == 'ARCAuth':
-            result = []
-            for name, value in self.items():
-                if auth_mapping.has_key(name):
-                    section, attrid = auth_mapping[name]
-                    if section == 'Subject':
-                        result.append('    <Subject>\n      <Attribute AttributeId="%s" Type="string">%s</Attribute>\n    </Subject>\n' % (attrid, value))
-                    else:
-                        result.append('    <%s AttributeId="%s" Type="string">%s</%s>\n' % (section, attrid, value, section))
-            return '<Request xmlns="http://www.nordugrid.org/schemas/request-arc">\n  <RequestItem>\n%s  </RequestItem>\n</Request>' % ''.join(result)
+            return '<Request xmlns="%s">\n  <RequestItem>\n%s\n%s  </RequestItem>\n</Request>' % \
+                (request_ns, self.subject, '    <Action AttributeId="%s" Type="string">%s</Action>\n' % (action_type, action))
+            
+    def get_identity(self):
+        return self.identity
+            
+    def __str__(self): 
+        return self.subject
+    
 
             
 class AuthPolicy(dict):
 
-    def get_policy(self, format = 'ARCAuth'):
-        if format not in ['ARCAuth']:
+    def get_policy(self, format  = 'ARCAuth'):
+        if format not in ['ARCAuth', 'StorageAuth']:
             raise Exception, 'Unsupported format %s' % format
         if format == 'ARCAuth':
             result = []
             for identity, actions in self.items():
-                raw_methods = [a for a in actions if a[1:] in storage_actions]
-                methods = {}
-                methods[True] = [method[1:] for method in raw_methods if method[0] == '+']
-                methods[False] = [method[1:] for method in raw_methods if method[0] != '+']
-                for permit, method_list in methods.items():
-                    if method_list:
+                raw_actions = [a for a in actions if a[1:] in storage_actions]
+                actions = {}
+                actions[True] = [action[1:] for action in raw_actions if action[0] == '+']
+                actions[False] = [action[1:] for action in raw_actions if action[0] != '+']
+                for permit, action_list in actions.items():
+                    if action_list:
                         result.append('  <Rule Effect="%s">\n' % (permit and 'Permit' or 'Deny') +
-                        '    <Description>%s is %s to %s</Description>\n' % (identity, permit and 'allowed' or 'not allowed', ', '.join(method_list)) +
+                        '    <Description>%s is %s to %s</Description>\n' % (identity, permit and 'allowed' or 'not allowed', ', '.join(action_list)) +
                         '    <Subjects>\n' +
                         '      <Subject>\n' + 
-                        '        <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">%s</Attribute>\n' % identity +
+                        '        <Attribute AttributeId="%s" Type="string">%s</Attribute>\n' % (identity_type, identity) +
                         '      </Subject>\n' +
                         '    </Subjects>\n' +
                         '    <Actions>\n' + 
-                        ''.join(['      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/method" Type="string">%s</Action>\n' % method for method in method_list]) +
+                        ''.join(['      <Action AttributeId="%s" Type="string">%s</Action>\n' % (action_type, action) for action in action_list]) +
                         '    </Actions>\n' +
                         '  </Rule>\n')
             return '<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" CombiningAlg="Deny-Overrides">\n%s</Policy>\n' % ''.join(result)            
+        if format == 'StorageAuth':
+            return [(identity, ' '.join([a for a in actions if a[1:] in storage_actions])) for identity, actions in self.items()]
     
-    def set_policy(self, policy, format = 'ARCAuth'):
+    def set_policy(self, policy, format = None):
+        if not format:
+            if isinstance(policy, list):
+                format = 'StorageAuth'
+            else:
+                format = 'ARCAuth'
         self.clear()
-        if format not in ['ARCAuth']:
+        if format not in ['ARCAuth', 'StorageAuth']:
             raise Exception, 'Unsupported format %s' % format
         if format == 'ARCAuth':
             for rule in get_child_nodes(policy):
@@ -728,13 +743,16 @@ class AuthPolicy(dict):
                 identities = []
                 for subject in get_child_nodes(rule.Get('Subjects')):
                     for attribute in get_child_nodes(subject):
-                        if get_attributes(attribute).get('AttributeId', '') == 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity':
+                        if get_attributes(attribute).get('AttributeId', '') == identity_type:
                             identities.append(str(attribute))
-                methods = [(permit and '+' or '-') + str(action) \
+                actions = [(permit and '+' or '-') + str(action) \
                     for action in get_child_nodes(rule.Get('Actions')) \
-                        if get_attributes(action).get('AttributeId', '') == 'http://www.nordugrid.org/schemas/policy-arc/types/storage/method']
+                        if get_attributes(action).get('AttributeId', '') == action_type]
                 for identity in identities:
-                    self[identity] = methods + self.get(identity, [])
+                    self[identity] = actions + self.get(identity, [])
+        if format == 'StorageAuth':
+            for identity, actionstring in policy:
+                self[identity] = actionstring.split()
 
 def create_owner_policy(identity):
     p = AuthPolicy()
@@ -746,35 +764,31 @@ def parse_arc_policy(policy):
     p = AuthPolicy()
     p.set_policy(arc.XMLNode(policy))
     return p
+    
+def parse_storage_policy(policy):
+    import arc
+    p = AuthPolicy()
+    p.set_policy([(property, value) for (section, property), value in policy.items() if section == 'policy'])
+    return p
 
 def make_decision_metadata(metadata, request):
-    policies = [v for ((s,p), v) in metadata.items() if s == 'policies']
-    return make_decision(policies, request)
+    return make_decision(parse_storage_policy(metadata).get_policy(), request)
 
-def make_decision(policies, request):
-    # if type(policy) != str:
-    #     metadata = policy
-    #     try:
-    #         p = parse_arc_policy(metadata.get(('policies', 'main'), ''))
-    #         if not p: # no policy: PERMIT
-    #             return True
-    #         policy = p.get_policy()
-    #     except:
-    #         return False
+def make_decision(policy, request):
     import arc
     loader = arc.EvaluatorLoader()
     evaluator = loader.getEvaluator('arc.evaluator')
     print 'calling evaluate with request:'
     print request
-    print 'and policies:'
-    for policy in policies:
-        print policy
-        p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
-        evaluator.addPolicy(p)
+    print 'and policy:'
+    print policy
+    p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
+    evaluator.addPolicy(p)
     r = loader.getRequest('arc.request', arc.Source(str(request)))
     response = evaluator.evaluate(r)
     responses = response.getResponseItems()
     response_list = [responses.getItem(i).res for i in range(responses.size())]
+    print response_list
     return response_list[0]
     # print response_list
     # if response_list.count(arc.DECISION_DENY) > 0:

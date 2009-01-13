@@ -27,11 +27,7 @@ class Service:
     
     def _call_request(self, request_name, inmsg):
         inpayload = inmsg.Payload()
-        attributes = inmsg.Attributes().getAll()
-        auth = AuthRequest()
-        identity = attributes.get('TLS:IDENTITYDN', '')
-        if identity:
-            auth['identity'] = identity
+        auth = AuthRequest(inmsg)
         inpayload.auth = auth
         return getattr(self,request_name)(inpayload)
     

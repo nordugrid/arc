@@ -8,7 +8,7 @@ from storage.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, librarian_uri, bartender_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
-                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config, make_decision_metadata, parse_arc_policy, create_owner_policy
+                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config, make_decision_metadata, create_owner_policy
 import traceback
 
 from storage.logger import Logger
@@ -37,7 +37,6 @@ class Bartender:
         Returns a dictionary with requestIDs as keys, and metadata as values.
         The 'metadata' is a dictionary with (section, property) pairs as keys.
         """
-        auth['method'] = 'read'
         response = {}
         # get the information from the librarian
         traverse_response = self.librarian.traverseLN(requests)
@@ -45,7 +44,7 @@ class Bartender:
         for requestID, (metadata, _, _, _, wasComplete, _) in traverse_response.items():
             if wasComplete: # if it was complete, then we found the entry and got the metadata
                 try:
-                    # decision = make_decision_metadata(metadata, auth.get_request())
+                    # decision = make_decision_metadata(metadata, auth.get_request('read'))
                     decision = arc.DECISION_PERMIT
                     if decision != arc.DECISION_PERMIT:
                         metadata = {('error','permission denied') : 'you are not allowed to read'}
@@ -64,8 +63,7 @@ class Bartender:
         
         requests is a dictionary with requestID as key and (Logical Name, child metadata, protocols) as value
         """
-        auth['method'] = 'delete'
-        auth_request = auth.get_request()
+        auth_request = auth.get_request('delete')
         import time
         response = {}
         # get the information from the librarian
@@ -167,8 +165,7 @@ class Bartender:
             else:
                 # if it was successful and we have a parent collection
                 if child_name and parent_GUID:
-                    auth['method'] = 'addEntry'
-                    # decision = make_decision_metadata(parent_metadata, auth.get_request())
+                    # decision = make_decision_metadata(parent_metadata, auth.get_request('addEntry))
                     decision = arc.DECISION_PERMIT
                     if decision == arc.DECISION_PERMIT:
                         # we need to add the newly created librarian-entry to the parent collection
@@ -201,8 +198,7 @@ class Bartender:
         
         requests is a dictionary with requestID as key, and (Logical Name, protocol list) as value
         """
-        auth['method'] = 'read'
-        auth_request = auth.get_request()
+        auth_request = auth.get_request('read')
         # call the _traverse helper method the get the information about the requested Logical Names
         requests, traverse_response = self._traverse(requests)
         response = {}
@@ -276,11 +272,10 @@ class Bartender:
         requests is a dictionary with requestID-GUID pairs
         protocols is a list of supported protocols
         """
-        auth['method'] = 'addEntry'
-        auth_request = auth.get_request()
+        auth_request = auth.get_request('addEntry')
         # get the size and checksum information about all the requested GUIDs (these are in the 'states' section)
         #   the second argument of the get method specifies that we only need metadata from the 'states' section
-        data = self.librarian.get(requests.values(), [('states',''),('locations',''),('policies','')])
+        data = self.librarian.get(requests.values(), [('states',''),('locations',''),('policy','')])
         response = {}
         for rID, GUID in requests.items():
             # for each requested GUID
@@ -452,8 +447,7 @@ class Bartender:
 
     def unmakeCollection(self, auth, requests):
         """docstring for unmakeCollection"""
-        auth['method'] = 'delete'
-        auth_request = auth.get_request()
+        auth_request = auth.get_request('delete')
         requests, traverse_response = self._traverse(requests)
         response = {}
         for rID, [LN] in requests:
@@ -501,16 +495,19 @@ class Bartender:
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
             log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
-            owner_identity = auth.get('identity', None)
+            owner_identity = auth.get_identity()
             if owner_identity:
-                owner_policy = create_owner_policy(owner_identity).get_policy()
-                child_metadata[('policies', owner_identity)] = owner_policy
+                owner_policy = create_owner_policy(owner_identity).get_policy('StorageAuth')
+                print owner_policy
+                for identity, actions in owner_policy:
+                    child_metadata[('policy', identity)] = actions
             child_metadata[('entry','type')] = 'collection'
             if wasComplete: # this means the LN exists
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
                 # this means the collection has no parent
                 child_metadata[('entry','GUID')] = rootguid or global_root_guid
+                print child_metadata
                 success, _ = self._new(auth, child_metadata)
             elif restLN != child_name or GUID == '':
                 success = 'parent does not exist'
@@ -530,8 +527,7 @@ class Bartender:
         neededMetadata is a list of (section, property) where property could be empty which means all properties of that section
             if neededMetadata is empty it means we need everything
         """
-        auth['method'] = 'read'
-        auth_request = auth.get_request()
+        auth_request = auth.get_request('read')
         # do traverse the requested Logical Names
         traverse_response = self.librarian.traverseLN(requests)
         response = {}
@@ -576,10 +572,8 @@ class Bartender:
             (sourceLN, targetLN, preserverOriginal) as value
         if preserverOriginal is true this method creates a hard link instead of moving
         """
-        auth['method'] = 'addEntry'
-        auth_addEntry = auth.get_request()
-        auth['method'] = 'removeEntry'
-        auth_removeEntry = auth.get_request()
+        auth_addEntry = auth.get_request('addEntry')
+        auth_removeEntry = auth.get_request('removeEntry')
         traverse_request = {}
         # create a traverse request, each move request needs two traversing: source and target
         for requestID, (sourceLN, targetLN, _) in requests.items():
