@@ -64,7 +64,9 @@ for (std::list< std::string >::iterator it = descriptions.begin(); it != descrip
 
     std::string test;
     if (requested_format == "") {
-      jd.getXML().GetDoc(test, true);
+      Arc::XMLNode nd;
+      jd.getXML(nd);
+      nd.GetDoc(test, true);
       std::cout << std::endl << " [ Inner representation ] " << std::endl << std::endl << test << std::endl;
     }
 
