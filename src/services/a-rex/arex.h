@@ -38,6 +38,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status StopAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status make_response(Arc::Message& outmsg);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);

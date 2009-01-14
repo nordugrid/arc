@@ -268,6 +268,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         StartAcceptingNewActivities(*config,op,BESManagementResponse(res,"StartAcceptingNewActivities"));
       } else if(MatchXMLName(op,"ChangeActivityStatus")) {
         ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
+      } else if(MatchXMLName(op,"CacheCheck")) {
+        CacheCheck(*config,*inpayload,*outpayload);
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete outpayload;
