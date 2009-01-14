@@ -718,6 +718,7 @@ namespace Arc {
     DataPointHTTP& point = *(info.point);
     ClientHTTP *client = info.client;
     bool transfer_failure = false;
+    int retries = 0;
     point.transfer_lock.lock();
     ++(point.transfers_started);
     point.transfer_lock.unlock();
@@ -743,9 +744,13 @@ namespace Arc {
         delete response;
       if (!r) {
         // Failed to transfer chunk - retry.
-        // TODO: implement internal retry count?
+        // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
         // TODO: report failure.
+        if((++retries) > 10) {
+          transfer_failure = true;
+          break;
+        }
         // Return buffer
         point.buffer->is_notwritten(transfer_handle);
         // Recreate connection
@@ -763,6 +768,7 @@ namespace Arc {
         client = new ClientHTTP(cfg, point.url);
         continue;
       }
+      retries=0;
       if( (transfer_info.code != 201) &&
           (transfer_info.code != 200) &&
           (transfer_info.code != 204) ) { // HTTP error - retry?
