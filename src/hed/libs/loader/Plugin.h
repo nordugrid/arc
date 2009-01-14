@@ -1,4 +1,5 @@
 #ifndef __ARC_PLUGIN_H__
+
 #define __ARC_PLUGIN_H__
 
 #include <string>
@@ -116,6 +117,26 @@ namespace Arc {
         return p;
       };
   };
+
+  template<class P>
+  P* PluginCast(PluginArgument* p) {
+    if(p == NULL) return NULL;
+    P* pp = dynamic_cast<P*>(p);
+    if(pp != NULL) return pp;
+    // Workaround for g++ and loadable modules
+    if(strcmp(typeid(P).name(),typeid(*p).name()) != 0) return NULL;
+    return static_cast<P*>(p);
+  }
+
+  template<class P>
+  P* PluginCast(Plugin* p) {
+    if(p == NULL) return NULL;
+    P* pp = dynamic_cast<P*>(p);
+    if(pp != NULL) return pp;
+    // Workaround for g++ and loadable modules
+    if(strcmp(typeid(P).name(),typeid(*p).name()) != 0) return NULL;
+    return static_cast<P*>(p);
+  }
 
 } // namespace Arc
 
