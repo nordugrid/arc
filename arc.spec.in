@@ -370,6 +370,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libaccARC1.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
+%{_libdir}/%{pkgdir}/libarcjob.so
 
 %files plugins-globus
 %defattr(-,root,root,-)

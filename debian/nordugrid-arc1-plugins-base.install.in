@@ -8,3 +8,4 @@ usr/lib/arc/libdmcldap.so
 usr/lib/arc/libaccARC1.so
 usr/lib/arc/libaccCREAM.so
 usr/lib/arc/libaccBroker.so
+usr/lib/arc/libarcjob.so
