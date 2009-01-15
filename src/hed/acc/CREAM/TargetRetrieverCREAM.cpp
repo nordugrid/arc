@@ -477,7 +477,7 @@ namespace Arc {
       // target.SchedulingPolicy      - not available in schema
 
       if (SubCluster["GlueHostMainMemoryVirtualSize"])
-	target.MaxMemory =
+	target.MaxMainMemory =
 	  stringtoi(SubCluster["GlueHostMainMemoryVirtualSize"]);
 
       // target.MaxDiskSpace          - not available in schema

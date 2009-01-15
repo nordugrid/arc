@@ -99,7 +99,8 @@ namespace Arc {
     int MaxStageInStreams;
     int MaxStageOutStreams;
     std::string SchedulingPolicy;
-    int MaxMemory;
+    int MaxMainMemory;
+    int MaxVirtualMemory;
     int MaxDiskSpace;
     URL DefaultStorageService;
     bool Preemption;

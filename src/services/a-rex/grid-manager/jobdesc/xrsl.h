@@ -14,7 +14,7 @@
 
 #include <globus_rsl.h>
 
-#include <arc/error.h>
+#include <arc/job/error.h>
 
 /**
  * Class represents exceptions associated with usage of the Xrsl class.

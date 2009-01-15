@@ -35,7 +35,8 @@ namespace Arc {
       MaxSlotsPerJob(-1),
       MaxStageInStreams(-1),
       MaxStageOutStreams(-1),
-      MaxMemory(-1),
+      MaxMainMemory(-1),
+      MaxVirtualMemory(-1),
       MaxDiskSpace(-1),
       DefaultStorageService(),
       Preemption(false),
@@ -168,8 +169,10 @@ namespace Arc {
       if (MaxStageOutStreams != -1)
 	std::cout << IString(" Max Stage Out Streams: %i", MaxStageOutStreams)
 		  << std::endl;
-      if (MaxMemory != -1)
-	std::cout << IString(" Max Memory: %i", MaxMemory) << std::endl;
+      if (MaxMainMemory != -1)
+	std::cout << IString(" Max Memory: %i", MaxMainMemory) << std::endl;
+      if (MaxVirtualMemory != -1)
+	std::cout << IString(" Max Virtual Memory: %i", MaxVirtualMemory) << std::endl;
       if (MaxDiskSpace != -1)
 	std::cout << IString(" Max Disk Space: %i", MaxDiskSpace) << std::endl;
       if (DefaultStorageService)

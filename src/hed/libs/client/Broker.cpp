@@ -227,20 +227,18 @@ namespace Arc {
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
 	   target++) {  
 
-       if (jir.ExclusiveExecution) {
-	        if (!(*target).Reservation) { // Example: false (boolean)
-			       continue;
-            }
-       }
+	  // TODO: if the type is a number than we need to check the measure
 
-       if (!jir.EndPointURL.Host().empty()) {
-           if (!(*target).DomainName.empty()) {
-	        if ((*target).DomainName != jir.EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu 
-			   continue;
-            }
-           }
+       if (!((std::string)(jir.EndPointURL.Host())).empty()) {
+        //   if (!((std::string)((*target).url)).empty()) {
+	    //    if (((std::string)(*target).url) != jir.EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu 
+		//	   continue;
+        //    }
+        //   }
        }
     
+      // CEType is not decided yet, this will be modify to other
+
        if (!jir.CEType.empty()) {
            if (!(*target).ImplementationName.empty()) {
 	        if ((*target).ImplementationName != jir.CEType) { // Example: ARC or UNICORE or CREAM 
@@ -263,11 +261,21 @@ namespace Arc {
 			       continue;
                }
             }
+	        if ((int)(*target).MinWallTime.GetPeriod() != -1) { // Example: 123
+               if (!((int)(*target).MinWallTime.GetPeriod()) > (int)jir.TotalWallTime.GetPeriod()) { 
+			       continue;
+               }
+            }
        }
 
        if ((int)jir.TotalCPUTime.GetPeriod() != -1) {
 	        if ((int)(*target).MaxCPUTime.GetPeriod() != -1) { // Example: 456
                if (!((int)(*target).MaxCPUTime.GetPeriod()) >= (int)jir.TotalCPUTime.GetPeriod()) {
+			       continue;
+               }
+            }
+	        if ((int)(*target).MinCPUTime.GetPeriod() != -1) { // Example: 456
+               if (!((int)(*target).MinCPUTime.GetPeriod()) > (int)jir.TotalCPUTime.GetPeriod()) {
 			       continue;
                }
             }
@@ -279,11 +287,29 @@ namespace Arc {
 			       continue;
                }
             }
+	        else if ((*target).MaxMainMemory != -1) { // Example: 678
+               if (!((*target).MaxMainMemory >= jir.IndividualPhysicalMemory)) {
+			       continue;
+               }
+            }
+       }
+
+       if (jir.IndividualVirtualMemory != -1) {
+	        if ((*target).MaxVirtualMemory != -1) { // Example: 678
+               if (!((*target).MaxVirtualMemory >= jir.IndividualVirtualMemory)) {
+			       continue;
+               }
+            }
        }
 
        if (jir.DiskSpace != -1) {
 	        if ((*target).MaxDiskSpace != -1) { // Example: 234
                if (!((*target).MaxDiskSpace >= jir.DiskSpace)) {
+			       continue;
+               }
+            }
+	        else if ((*target).WorkingAreaFree != -1) { // Example: 234
+               if (!((*target).WorkingAreaFree >= jir.DiskSpace)) {
 			       continue;
                }
             }
@@ -347,6 +373,8 @@ namespace Arc {
            }
        }
 
+       // TODO: The SessionDiskSpace ExecutionTarget pair is not fixed yet
+
        if (jir.SessionDiskSpace != -1) {
 	        if ((*target).WorkingAreaFree != -1) { // Example: 5656
                if (!((*target).WorkingAreaFree >= jir.SessionDiskSpace)) {
@@ -358,6 +386,16 @@ namespace Arc {
        if (jir.CacheDiskSpace != -1) {
 	        if ((*target).CacheFree != -1) { // Example: 5656
                if (!((*target).CacheFree >= jir.CacheDiskSpace)) {
+			       continue;
+               }
+            }
+       }
+
+       //TODO: Slots parsing, similar usage to DiskSpace 
+
+       if (jir.NumberOfProcesses != -1) {
+	        if ((*target).FreeSlots != -1) { // Example: 5656
+               if (!((*target).FreeSlots >= jir.NumberOfProcesses)) {
 			       continue;
                }
             }
@@ -634,18 +672,18 @@ namespace Arc {
 	    }
       }
 
-      if ((*target).MaxMemory != -1 ) {
+      if ((*target).MaxMainMemory != -1 ) {
 
 	  	if (jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"]) {
-	       if (!Arc::Value_Matching( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ))
+	       if (!Arc::Value_Matching( (*target).MaxMainMemory, jobd["JobDescription"]["Resources"]["IndividualPhysicalMemory"] ))
 		      continue;
 	    }
 	  	else if (jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"]) {
-	       if (!Arc::Value_Matching( (*target).MaxMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ))
+	       if (!Arc::Value_Matching( (*target).MaxMainMemory, jobd["JobDescription"]["Resources"]["TotalPhysicalMemory"] ))
 		      continue;
 	    }
 		else if (jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]) { 
-		   if (!((*target).MaxMemory > jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]));
+		   if (!((*target).MaxMainMemory > jobd["JobDescription"]["Application"]["POSIXApplication"]["MemoryLimit"]));
 	        continue;
 	    }
       }
