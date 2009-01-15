@@ -23,7 +23,7 @@ namespace ArcSec {
      <ModuleManager>\
         <Path></Path>\
      </ModuleManager>\
-     <Plugins Name='arcpdc'>\
+     <Plugins Name='arcshc'>\
           <Plugin Name='__arc_attrfactory_modules__'>attrfactory</Plugin>\
           <Plugin Name='__arc_fnfactory_modules__'>fnfactory</Plugin>\
           <Plugin Name='__arc_algfactory_modules__'>algfactory</Plugin>\
