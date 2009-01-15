@@ -188,8 +188,8 @@ Response* ArcEvaluator::evaluate(Request* request){
 
   //evaluate the request based on policy
   if(evalctx)
-    return(evaluate(evalctx));
-  else return NULL;
+    return evaluate(evalctx);
+  return NULL;
 }
 
 
@@ -388,25 +388,33 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
 Response* ArcEvaluator::evaluate(Request* request, const Source& policy) {
   plstore->removePolicies();
   plstore->addPolicy(policy, context, "");
-  return (evaluate(request));
+  Response* resp = evaluate(request);
+  plstore->removePolicies();
+  return resp;
 }
 
 Response* ArcEvaluator::evaluate(const Source& request, const Source& policy) {
   plstore->removePolicies();
   plstore->addPolicy(policy, context, "");
-  return (evaluate(request));
+  Response* resp = evaluate(request);
+  plstore->removePolicies();
+  return resp;
 }
 
 Response* ArcEvaluator::evaluate(Request* request, Policy* policyobj) {
   plstore->removePolicies();
   plstore->addPolicy(policyobj, context, "");
-  return (evaluate(request));
+  Response* resp = evaluate(request);
+  plstore->releasePolicies();
+  return resp;
 }
 
 Response* ArcEvaluator::evaluate(const Source& request, Policy* policyobj) {
   plstore->removePolicies();
   plstore->addPolicy(policyobj, context, "");
-  return (evaluate(request));
+  Response* resp = evaluate(request);
+  plstore->releasePolicies();
+  return resp;
 }
 
 const char* ArcEvaluator::getName(void) const {
