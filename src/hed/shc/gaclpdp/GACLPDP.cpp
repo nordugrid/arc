@@ -23,7 +23,7 @@
 
 Arc::Logger ArcSec::GACLPDP::logger(ArcSec::PDP::logger,"GACLPDP");
 
-Arc::SecAttrFormat ArcSec::GACLPDP::GACL("format:gacl");
+Arc::SecAttrFormat ArcSec::GACLPDP::GACL("gacl");
 
 /*
 static ArcSec::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
