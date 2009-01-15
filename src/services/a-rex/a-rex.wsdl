@@ -17,7 +17,7 @@
 
   <wsdl:import namespace="http://schemas.ggf.org/bes/2006/08/bes-factory" location="./bes-factory.wsdl"/>
   <wsdl:import namespace="http://schemas.ggf.org/bes/2006/08/bes-management" location="./bes-management.wsdl"/>
-  <wsdl:import namespace="http://www.nordugrid.org/schemas/delegation" location="../../hed/libs/delegation.wsdl"/>
+  <wsdl:import namespace="http://www.nordugrid.org/schemas/delegation" location="../../hed/libs/delegation/delegation.wsdl"/>
   <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
   <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rw-2" location="http://docs.oasis-open.org/wsrf/rw-2.wsdl"/>
 
