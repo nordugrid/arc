@@ -283,7 +283,7 @@ class TransDBStore(BaseStore):
                 if self.txn:
                     self.txn.abort()
                 time.sleep(0.2)
-                if retry_count < deadlock_retries:
+                if retry_count < self.deadlock_retries:
                     log.msg(arc.DEBUG, "got DBLockDeadlockError")
                     log.msg(arc.DEBUG, "retrying transaction")
                     retry_count += 1
