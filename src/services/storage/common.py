@@ -754,25 +754,27 @@ class AuthPolicy(dict):
             for identity, actionstring in policy:
                 self[identity] = actionstring.split()
 
-def create_owner_policy(identity):
-    p = AuthPolicy()
-    p[identity] = ['+' + action for action in storage_actions]
-    return p
-
 def parse_arc_policy(policy):
     import arc
     p = AuthPolicy()
     p.set_policy(arc.XMLNode(policy))
     return p
     
-def parse_storage_policy(policy):
+def parse_storage_policy(metadata):
     import arc
     p = AuthPolicy()
-    p.set_policy([(property, value) for (section, property), value in policy.items() if section == 'policy'])
+    p.set_policy([(property, value) for (section, property), value in metadata.items() if section == 'policy'])
+    if metadata.has_key(('entry','owner')):
+        p[metadata[('entry','owner')]] = ['+' + action for action in storage_actions]        
     return p
 
 def make_decision_metadata(metadata, request):
-    return make_decision(parse_storage_policy(metadata).get_policy(), request)
+    import arc
+    #print 'METADATA:', metadata
+    policy = parse_storage_policy(metadata).get_policy()
+    #print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
+    return arc.DECISION_PERMIT
+    #return make_decision(parse_storage_policy(metadata).get_policy(), request)
 
 def make_decision(policy, request):
     import arc

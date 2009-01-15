@@ -8,7 +8,7 @@ from storage.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, librarian_uri, bartender_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
-                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config, make_decision_metadata, create_owner_policy
+                            serialize_ids, deserialize_ids, sestore_guid, parse_ssl_config, make_decision_metadata
 import traceback
 
 from storage.logger import Logger
@@ -44,8 +44,7 @@ class Bartender:
         for requestID, (metadata, _, _, _, wasComplete, _) in traverse_response.items():
             if wasComplete: # if it was complete, then we found the entry and got the metadata
                 try:
-                    # decision = make_decision_metadata(metadata, auth.get_request('read'))
-                    decision = arc.DECISION_PERMIT
+                    decision = make_decision_metadata(metadata, auth.get_request('read'))
                     if decision != arc.DECISION_PERMIT:
                         metadata = {('error','permission denied') : 'you are not allowed to read'}
                 except:
@@ -73,8 +72,7 @@ class Bartender:
         cat_mod_requests = {}
         check_again = []
         for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
-            # decision = make_decision_metadata(metadata, auth_request)
-            decision = arc.DECISION_PERMIT
+            decision = make_decision_metadata(metadata, auth_request)
             if decision != arc.DECISION_PERMIT:
                 response[requestID] = 'denied'
             elif wasComplete and metadata[('entry', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
@@ -152,7 +150,6 @@ class Bartender:
         try:
             # set creation time stamp
             child_metadata[('timestamps', 'created')] = str(time.time())
-            # set owner's permissions
             if child_name and parent_GUID:
                 child_metadata[('parents', '%s/%s' % (parent_GUID, child_name))] = 'parent'
             # call the new method of the librarian with the child's metadata (requestID is '_new')
@@ -165,8 +162,7 @@ class Bartender:
             else:
                 # if it was successful and we have a parent collection
                 if child_name and parent_GUID:
-                    # decision = make_decision_metadata(parent_metadata, auth.get_request('addEntry))
-                    decision = arc.DECISION_PERMIT
+                    decision = make_decision_metadata(parent_metadata, auth.get_request('addEntry'))
                     if decision == arc.DECISION_PERMIT:
                         # we need to add the newly created librarian-entry to the parent collection
                         log.msg(arc.DEBUG, 'adding', child_GUID, 'to parent', parent_GUID)
@@ -217,8 +213,7 @@ class Bartender:
                 else:
                     # metadata contains all the metadata of the given entry
                     # ('entry', 'type') is the type of the entry: file, collection, etc.
-                    #decision = make_decision_metadata(metadata, auth_request)
-                    decision = arc.DECISION_PERMIT
+                    decision = make_decision_metadata(metadata, auth_request)
                     if decision != arc.DECISION_PERMIT:
                         success = 'denied'
                     else:
@@ -280,8 +275,7 @@ class Bartender:
         for rID, GUID in requests.items():
             # for each requested GUID
             metadata = data[GUID]
-            #decision = make_decision_metadata(metadata, auth_request)
-            decision = arc.DECISION_PERMIT
+            decision = make_decision_metadata(metadata, auth_request)
             if decision != arc.DECISION_PERMIT:
                 response[rID] = ('denied', None, None)
             else:
@@ -434,7 +428,7 @@ class Bartender:
                         # if everything is OK, then we set the type of the new entry
                         child_metadata[('entry','type')] = 'file'
                         # then create it
-                        success, GUID = self._new(auth, child_metadata, child_name, GUID)
+                        success, GUID = self._new(auth, child_metadata, child_name, GUID, metadata)
                     if success == 'done':
                         # if the file was successfully created, it still has no replica, so we initiate creating one
                         # if neededReplicas is 0, we do nothing
@@ -456,8 +450,7 @@ class Bartender:
             if not wasComplete:
                 success = 'no such LN'
             else:
-                #decision = make_decision_metadata(metadata, auth_request)
-                decision = arc.DECISION_PERMIT
+                decision = make_decision_metadata(metadata, auth_request)
                 if decision != arc.DECISION_PERMIT:
                     success = 'denied'
                 else:
@@ -495,12 +488,7 @@ class Bartender:
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
             log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
-            owner_identity = auth.get_identity()
-            if owner_identity:
-                owner_policy = create_owner_policy(owner_identity).get_policy('StorageAuth')
-                print owner_policy
-                for identity, actions in owner_policy:
-                    child_metadata[('policy', identity)] = actions
+            child_metadata[('entry','owner')] = auth.get_identity()
             child_metadata[('entry','type')] = 'collection'
             if wasComplete: # this means the LN exists
                 success = 'LN exists'
@@ -536,8 +524,7 @@ class Bartender:
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
             if wasComplete:
                 # this means the LN exists
-                #decision = make_decision_metadata(metadata, auth_request)
-                decision = arc.DECISION_PERMIT
+                decision = make_decision_metadata(metadata, auth_request)
                 if decision != arc.DECISION_PERMIT:
                     entries = {}
                     status = 'denied'
@@ -616,8 +603,7 @@ class Bartender:
                 #   so we just put the old name after it
                 if new_child_name == '':
                     new_child_name = old_child_name
-                #decision = make_decision_metadata(targetmetadata, auth_addEntry)
-                decision = arc.DECISION_PERMIT
+                decision = make_decision_metadata(targetmetadata, auth_addEntry)
                 if decision != arc.DECISION_PERMIT:
                     success = 'adding child to parent denied'
                 else:
