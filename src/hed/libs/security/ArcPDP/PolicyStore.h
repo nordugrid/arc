@@ -40,6 +40,8 @@ public:
 
   virtual void removePolicies();
 
+  virtual void releasePolicies();
+
   // std::list<std::string> policysrclist;
 private:
   std::list<PolicyElement> policies;

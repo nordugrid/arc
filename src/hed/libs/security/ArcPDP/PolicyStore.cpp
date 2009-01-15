@@ -64,6 +64,12 @@ void PolicyStore::removePolicies(void) {
   }
 }
 
+void PolicyStore::releasePolicies(void) {
+  while(!(policies.empty())){
+    policies.pop_back();
+  }
+}
+
 PolicyStore::~PolicyStore(){
   removePolicies();
 }

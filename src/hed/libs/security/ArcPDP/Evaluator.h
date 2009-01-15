@@ -46,19 +46,23 @@ public:
   virtual Response* evaluate(const Source& request) = 0;
 
   /**Evaluate the specified request against the policy from specified source. 
-  *All of the existing policy inside the evaluator will be replaced by the policy argument*/
+   In some implementations all of the existing policies inside the evaluator
+   may be destroyed by this method. */
   virtual Response* evaluate(Request* request, const Source& policy) = 0;
 
   /**Evaluate the request from specified source against the policy from specified source.
-  *All of the existing policy inside the evaluator will be replaced by the policy argument*/
+   In some implementations all of the existing policie inside the evaluator
+   may be destroyed by this method. */
   virtual Response* evaluate(const Source& request, const Source& policy) = 0;
 
   /**Evaluate the specified request against the specified policy.
-  *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
+   In some implementations all of the existing policy inside the evaluator
+   may be destroyed by this method. */
   virtual Response* evaluate(Request* request, Policy* policyobj) = 0;
 
   /**Evaluate the request from specified source against the specified policy.
-  *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
+   In some implementations all of the existing policie inside the evaluator
+   may be destroyed by this method. */
   virtual Response* evaluate(const Source& request, Policy* policyobj) = 0;
 
   /**Get the AttributeFactory object*/
@@ -73,7 +77,9 @@ public:
   /**Add policy from specified source to the evaluator. Policy will be marked with id. */
   virtual void addPolicy(const Source& policy,const std::string& id = "") = 0;
 
-  /**Add policy to the evaluator. Policy will be marked with id. */
+  /**Add policy to the evaluator. Policy will be marked with id.
+    The policy object is taken over by this instance and will be 
+    destroyed in destructor. */
   virtual void addPolicy(Policy* policy,const std::string& id = "") = 0;
 
   /**Specifies one of simple combining algorithms. In case of multiple policies their results will be combined using this algorithm. */
@@ -85,7 +91,9 @@ public:
   /**Get the name of this evaluator*/
   virtual const char* getName(void) const = 0;
 protected:
-  /**Evaluate the request by using the EvaluationCtx object (which includes the information about request)*/
+  /**Evaluate the request by using the EvaluationCtx object 
+    (which includes the information about request). The ctx is destroyed
+    inside this method (why?!?!?). */
   virtual Response* evaluate(EvaluationCtx* ctx) = 0;
 
 private:
