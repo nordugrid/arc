@@ -17,7 +17,7 @@
 
   <wsdl:import namespace="http://schemas.ggf.org/bes/2006/08/bes-factory" location="./bes-factory.wsdl"/>
   <wsdl:import namespace="http://schemas.ggf.org/bes/2006/08/bes-management" location="./bes-management.wsdl"/>
-  <wsdl:import namespace="http://www.nordugrid.org/schemas/delegation" location="../../hed/libs/delegation/delegation.wsdl"/>
+  <wsdl:import namespace="http://www.nordugrid.org/schemas/delegation" location="../../hed/libs/delegation.wsdl"/>
   <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
   <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rw-2" location="http://docs.oasis-open.org/wsrf/rw-2.wsdl"/>
 
@@ -97,6 +97,43 @@
       </xsd:complexType>
       <xsd:element name="ChangeActivityStatusResponse" type="a-rex:ChangeActivityStatusResponseType"/>
 		
+		
+      <xsd:complexType name="TheseFilesNeedToCheckType">
+        <xsd:sequence>
+	          <xsd:element name="FileURL" type="xsd:anyURI" minOccurs="1" maxOccurs="unbounded"/>    
+        </xsd:sequence>
+      </xsd:complexType>
+		
+      <xsd:complexType name="CacheCheckRequestType">
+        <xsd:sequence>
+          <xsd:element name="TheseFilesNeedToCheck" type="a-rex:TheseFilesNeedToCheckType" minOccurs='1' maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:element name="CacheCheckRequest" type="a-rex:CacheCheckRequestType"/>
+
+
+      <xsd:complexType name="ResultType">
+        <xsd:sequence>
+	          <xsd:element name="FileURL" type="xsd:anyURI" minOccurs="1" maxOccurs="1"/>    
+	          <xsd:element name="ExistInTheCache" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>    
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="CacheCheckResultType">
+        <xsd:sequence>
+	          <xsd:element name="Result" type="a-rex:ResultType" minOccurs="1" maxOccurs="unbounded"/>    
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="CacheCheckResponseType">
+        <xsd:sequence>
+          <xsd:element name="CacheCheckResult" type="a-rex:CacheCheckResultType" minOccurs='1' maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:element name="CacheCheckResponse" type="a-rex:CacheCheckResponseType"/>
+
     </xsd:schema>
   </wsdl:types>
 
@@ -106,6 +143,14 @@
 
   <wsdl:message name="ChangeActivityStatusResponse">
     <wsdl:part name="ChangeActivityStatusResponse" element="a-rex:ChangeActivityStatusResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="CacheCheckRequest">
+    <wsdl:part name="CacheCheckRequest" element="a-rex:CacheCheckRequest"/>
+  </wsdl:message>
+
+  <wsdl:message name="CacheCheckResponse">
+    <wsdl:part name="CacheCheckResponse" element="a-rex:CacheCheckResponse"/>
   </wsdl:message>
 
   <wsdl:portType name="a-rex">
@@ -213,6 +258,17 @@
         message="wsrf-rpw:QueryEvaluationErrorFault"
         wsa:Action="http://docs.oasis-open.org/wsrf/fault"/>
     </wsdl:operation>
+    <wsdl:operation name="CacheCheck">
+      <wsdl:documentation>
+        This will be give a solution to query that files are in the grid-manager cache or not. 
+        The DataBroker will use it to sent the job where the data is.  
+      </wsdl:documentation>
+      <wsdl:input name="CacheCheckRequest"
+        message="a-rex:CacheCheckRequest"/>
+      <wsdl:output name="CacheCheckResponse"
+        message="a-rex:CacheCheckResponse"/>
+    </wsdl:operation>
+
   </wsdl:portType>
 
   <wsdl:binding name="a-rex" type="a-rex:a-rex">
@@ -315,6 +371,15 @@
       <wsdl:fault name="QueryEvaluationErrorFault">
         <soap:fault name="QueryEvaluationErrorFault" use="literal" />
       </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CacheCheck">
+      <soap:operation soapAction="CacheCheck"/>
+      <wsdl:input name="CacheCheckRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="CacheCheckResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
 
