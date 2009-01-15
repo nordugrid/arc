@@ -40,10 +40,6 @@ GACLEvaluator::GACLEvaluator(const char * cfgfile) : Evaluator(cfgfile){
 }
 
 Response* GACLEvaluator::evaluate(Request* request, Policy* policyobj) {
-  if(plstore) {
-    plstore->removePolicies();
-    plstore->addPolicy(policyobj,NULL,"");
-  };
   GACLPolicy* gpol = dynamic_cast<GACLPolicy*>(policyobj);
   if(!gpol) return NULL;
   GACLRequest* greq = dynamic_cast<GACLRequest*>(request);
