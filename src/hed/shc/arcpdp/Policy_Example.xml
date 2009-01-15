@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
    <Rule RuleId="rule1" Effect="Permit">
       <Description>
          Sample Permit rule for Storage_manager service
