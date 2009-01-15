@@ -32,9 +32,14 @@ bool InfoPolicy::Evaluate(MessageAuth& id) {
     return false;
   };
   // Generate request from identity of requestor
+  std::string policyname = policy->getName();
+  if((policyname.length() > 7) &&
+     (policyname.substr(policyname.length()-7) == ".policy")) {
+    policyname.resize(policyname.length()-7);
+  };
   XMLNode req;
   // TODO: do it only once
-  if(!id.Export(eval->getName(),req)) { // Failed to generate request
+  if(!id.Export(SecAttrFormat(policyname.c_str()),req)) { // Failed to generate request
     return false;
   };
   // Evaluate internal policy
@@ -129,8 +134,8 @@ static bool FilterNode(MessageAuth& id,XMLNode node,std::list< std::pair<XMLNode
     for(;(bool)def;++def) {
       // Create policy and store it in map
       // TODO: policies without identifier
-      std::string pid = node.Attribute("id");
-      ipolicies[pid]=InfoPolicy(def);
+      std::string pid = def.Attribute("id");
+      ipolicies[pid]=InfoPolicy(def.Child());
     };
     // 2. Check for tag
     // TODO: policies without ids and tags
@@ -152,8 +157,9 @@ static bool FilterNode(MessageAuth& id,XMLNode node,std::list< std::pair<XMLNode
   };
   if((bool)node) {
     // Process children nodes
-    XMLNode cnode = node.Child();
-    for(;(bool)cnode;++cnode) {
+    for(int n = 0;;++n) {
+      XMLNode cnode = node.Child(n);
+      if(!cnode) break;
       if(!FilterNode(id,cnode,policies,epolicies,ipolicies)) return false;
     };
   };

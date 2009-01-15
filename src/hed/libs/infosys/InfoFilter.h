@@ -12,11 +12,8 @@
     <xsd:complexType name="InfoFilterDefinition_Type">
         <!-- This element defines information document filtering definition. -->
         <xsd:sequence>
-            <!-- Policy contains authorization policy to by applied -->
-            <xsd:complexType name="Policy">
-              <xsd:any minOccurs="0" maxOccurs="unbounded"/>
-              <xsd:anyAttribute namespace="##other" processContents="lax"/>
-            </xsd:complexType>
+            <!-- Filter contains one authorization policy to by applied -->
+            <xsd:any minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
         <!-- Attribute 'id' defines reference used by InfoFilterTag elements -->
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
