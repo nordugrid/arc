@@ -1,6 +1,6 @@
 import arc
 import time
-from storage.common import parse_ssl_config
+from storage.common import parse_ssl_config, AuthRequest
 from storage.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py'))
 
@@ -21,10 +21,8 @@ class EchoService:
         # time.sleep(10)
         # get the payload from the message
         inpayload = inmsg.Payload()
-        a = inmsg.Auth()
-        x = a.Export(arc.SecAttr.ARCAuth)
-        print x.GetXML()
-        attributes = inmsg.Attributes()
+        log.msg(arc.DEBUG, 'AuthRequest(inmsg) = ', AuthRequest(inmsg))
+        log.msg(arc.DEBUG, 'inmsg.Attributes().getAll() = ', inmsg.Attributes().getAll())
         log.msg(arc.INFO, "EchoService (python) got:", inpayload.GetXML())
         # the first child of the payload should be the name of the request
         request_node = inpayload.Child()
