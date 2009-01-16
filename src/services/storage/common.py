@@ -685,7 +685,11 @@ class AuthRequest:
         xml = auth.Export(arc.SecAttr.ARCAuth)
         subject = xml.Get('RequestItem').Get('Subject')
         self.subject = subject.GetXML()
-        self.identity = str(subject.XPathLookup('//ra:SubjectAttribute[@AttributeId="%s"]' % identity_type, arc.NS({'ra':request_ns}))[0])
+        try:
+            self.identity = str(subject.XPathLookup('//ra:SubjectAttribute[@AttributeId="%s"]' % identity_type, arc.NS({'ra':request_ns}))[0])
+        except:
+            # if there is no identity in the auth object (e.g. if not using TLS)
+            self.identity = None
     
     def get_request(self, action, format = 'ARCAuth'):
         if format not in ['ARCAuth']:
@@ -773,29 +777,31 @@ def parse_storage_policy(metadata):
 
 def make_decision_metadata(metadata, request):
     import arc
-    #print 'METADATA:', metadata
     policy = parse_storage_policy(metadata).get_policy()
     #print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
-    return arc.DECISION_PERMIT
-    #return make_decision(parse_storage_policy(metadata).get_policy(), request)
+    #return arc.DECISION_PERMIT
+    if policy:
+        decision = make_decision(policy, request)
+    else:
+        decision == arc.DECISION_PERMIT
+    #if decision == arc.DECISION_PERMIT:
+    #    print 'PERMITTED!'
+    #else:
+    #    print 'DENIED! (%s)' % decision
+    return decision
 
 def make_decision(policy, request):
     import arc
     loader = arc.EvaluatorLoader()
     evaluator = loader.getEvaluator('arc.evaluator')
-    print 'calling evaluate with request:'
-    print request
-    print 'and policy:'
-    print policy
     p = loader.getPolicy('arc.policy', arc.Source(str(policy)))
     evaluator.addPolicy(p)
     r = loader.getRequest('arc.request', arc.Source(str(request)))
     response = evaluator.evaluate(r)
     responses = response.getResponseItems()
     response_list = [responses.getItem(i).res for i in range(responses.size())]
-    print response_list
+    #print 'RESPONSE_LIST = ', response_list
     return response_list[0]
-    # print response_list
     # if response_list.count(arc.DECISION_DENY) > 0:
     #     return 'deny'
     # if response_list.count(arc.DECISION_PERMIT) > 0:
