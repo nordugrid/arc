@@ -780,9 +780,9 @@ def parse_storage_policy(metadata):
 
 def make_decision_metadata(metadata, request):
     import arc
+    return arc.DECISION_PERMIT
     policy = parse_storage_policy(metadata).get_policy()
     print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
-    #return arc.DECISION_PERMIT
     if policy:
         decision = make_decision(policy, request)
     else:
