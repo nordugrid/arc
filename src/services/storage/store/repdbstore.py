@@ -10,10 +10,6 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.RepDBStore'))
 
 from bsddb3 import db
 
-CACHESIZE = 10 * 1024 * 1024
-DATABASE  = "repdb.db"
-SLEEPTIME = 3
-
 class HostInfo:
     """
     Class for storing info on a RepDB host
@@ -75,6 +71,8 @@ class RepDBStore(TransDBStore):
             self.db_flags = (self.app_data.is_master and 
                              db.DB_CREATE | db.DB_AUTO_COMMIT or 
                              db.DB_AUTO_COMMIT)
+        if not hasattr(self, "database"):
+            self.database  = "repdb.db"
         if not hasattr(self, "dbenv"):
             self.dbenv = db.DBEnv(0)
 
@@ -271,7 +269,6 @@ class RepDBStore(TransDBStore):
 
                 ID = 'rephosts'
 
-                self.set(ID, None)
                 self.site_list = dbenv.repmgr_site_list()
                 host = self.app_config.this_host.host
                 port = self.app_config.this_host.port
@@ -290,7 +287,8 @@ class RepDBStore(TransDBStore):
             elif which == db.DB_EVENT_REP_STARTUPDONE:
                 log.msg(arc.DEBUG, "Replication startup done")
             elif which == db.DB_EVENT_REP_PERM_FAILED:
-                log.msg(arc.DEBUG, "Getting permission failed")
+                #log.msg(arc.DEBUG, "Getting permission failed")
+                pass
             elif which == db.DB_EVENT_WRITE_FAILED:
                 log.msg(arc.DEBUG, "Write failed")
             elif which == db.DB_EVENT_REP_NEWMASTER:

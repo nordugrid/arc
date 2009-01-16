@@ -10,9 +10,6 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.TransDBStore'))
 
 from bsddb3 import db
 
-CACHESIZE = 10 * 1024 * 1024
-DATABASE  = "transdb.db"
-SLEEPTIME = 3
 
 class TransConfigInfo:
     """
@@ -37,12 +34,6 @@ class TransDBStore(BaseStore):
         log.msg(arc.DEBUG, "TransDBStore constructor called")
         log.msg(arc.DEBUG, "datadir:", self.datadir)
 
-        try:
-            self.deadlock_retries = int(str(storecfg.Get('DeadlockRetries')))
-        except:
-            log.msg(arc.WARNING, "couldn't find DeadlockRetries, using 5 as default")
-            self.deadlock_retries = 5
-
         # db and transaction pointers
         self.dbp = None
         self.txn = None
@@ -55,10 +46,16 @@ class TransDBStore(BaseStore):
                                db.DB_INIT_LOG | \
                                db.DB_INIT_MPOOL | \
                                db.DB_INIT_TXN
+        if not hasattr(self, "database"):
+            self.database  = "transdb.db"
+        if not hasattr(self, "cachesize"):
+            self.cachesize = 10 * 1024 * 1024
         if not hasattr(self, "dbenv"):
             self.dbenv = db.DBEnv(0)
+
+        self.__configureTransaction(storecfg)
             
-        self.dbenv.set_cachesize(0, CACHESIZE, 0)
+        self.dbenv.set_cachesize(0, self.cachesize, 0)
         # if key not found, raise DBNotFoundError:
         self.dbenv.set_get_returns_none(0) 
 
@@ -72,6 +69,17 @@ class TransDBStore(BaseStore):
         """
         self.__err()
         self.terminate()
+
+    def __configureTransaction(self, storecfg):
+        try:
+            self.deadlock_retries = int(str(storecfg.Get('DeadlockRetries')))
+        except:
+            log.msg(arc.WARNING, "couldn't find DeadlockRetries, using 5 as default")
+            self.deadlock_retries = 5
+        try:
+            self.cachesize = int(str(storecfg.Get('CacheSize')))
+        except:
+            log.msg(arc.WARNING, "couldn't find CacheSize, using %d as default"%self.cachesize)
 
     def __err(self):
         """
@@ -117,7 +125,7 @@ class TransDBStore(BaseStore):
 #                self.terminate()
             try:
                 # using linear hashing for db
-                dbp.open(DATABASE, dbtype = db.DB_HASH, 
+                dbp.open(self.database, dbtype = db.DB_HASH, 
                          flags = self.getDBFlags())
             except db.DBError, (errnum, strerror): 
                 # It is expected that this condition will be triggered when
@@ -136,7 +144,7 @@ class TransDBStore(BaseStore):
                         log.msg(arc.ERROR, "unexpected error closing after failed open")
                         raise db.DBErr, strerror2
                     dbp = None
-                    time.sleep(SLEEPTIME)
+                    time.sleep(self.sleeptime)
                     continue
                 elif errnum == db.DB_LOCK_DEADLOCK:
                     log.msg(arc.DEBUG, "got deadlock - retrying")
@@ -149,7 +157,7 @@ class TransDBStore(BaseStore):
                         
                         raise db.DBErr, strerror2
                     dbp = None
-                    time.sleep(SLEEPTIME)
+                    time.sleep(self.sleeptime)
                     continue
                 else:
                     log.msg()
@@ -226,7 +234,7 @@ class TransDBStore(BaseStore):
 
         self.dbp = self.__opendb(self.dbp)
         try:
-            object = self.dbp.get(ID)
+            object = self.dbp.get(ID, txn=self.txn)
             try:
                 # using cPickle.loads for loading
                 object = cPickle.loads(object)
@@ -270,11 +278,11 @@ class TransDBStore(BaseStore):
         while retry:
             try:
                 if object == None:
-                    self.dbp.delete(ID)
+                    self.dbp.delete(ID, txn=self.txn)
                 else:
                     # note that object needs to be converted to string
                     # using cPickle.dumps for converting
-                    self.dbp.put(ID, cPickle.dumps(object, cPickle.HIGHEST_PROTOCOL))
+                    self.dbp.put(ID, cPickle.dumps(object, cPickle.HIGHEST_PROTOCOL), txn=self.txn)
                 retry = False
             except db.DBLockDeadlockError:
                 log.msg(arc.INFO, "Got deadlock error")            
@@ -282,6 +290,7 @@ class TransDBStore(BaseStore):
                 # need to close transaction handle as well
                 if self.txn:
                     self.txn.abort()
+                    self.txn = None
                 time.sleep(0.2)
                 if retry_count < self.deadlock_retries:
                     log.msg(arc.DEBUG, "got DBLockDeadlockError")
@@ -298,17 +307,19 @@ class TransDBStore(BaseStore):
                 log.msg(arc.WARNING,"Read-only db. I'm not a master.")
                 if self.txn:
                     self.txn.abort()
+                    self.txn = None
                 raise
             except db.DBNotFoundError:
                 log.msg(arc.WARNING, "cannot delete non-existing entries")
                 if self.txn:
                     self.txn.abort()
+                    self.txn = None
                 retry = False
             except:
                 if self.txn:
                     self.txn.abort()
+                    self.txn = None
                 self.__del__()
-                
                 log.msg()
                 log.msg(arc.ERROR, "Error setting %s"%ID)
                 retry = False
