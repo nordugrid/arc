@@ -44,9 +44,8 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     if protocol == 'byteio':
         from storage.client import ByteIOClient
         return ByteIOClient(turl).write(fobj)
-	
     elif protocol == 'external':
-	return 
+        return 
     elif protocol == 'http':
         proto, host, port, path = parse_url(turl)
         import httplib
@@ -684,12 +683,16 @@ class AuthRequest:
         import arc
         xml = auth.Export(arc.SecAttr.ARCAuth)
         subject = xml.Get('RequestItem').Get('Subject')
-        self.subject = subject.GetXML()
         try:
             self.identity = str(subject.XPathLookup('//ra:SubjectAttribute[@AttributeId="%s"]' % identity_type, arc.NS({'ra':request_ns}))[0])
         except:
             # if there is no identity in the auth object (e.g. if not using TLS)
-            self.identity = None
+            self.identity = 'ANONYMOUS'
+            identity_node = subject.NewChild('ra:SubjectAttribute',arc.NS({'ra':request_ns}))
+            identity_node.Set(self.identity)
+            identity_node.NewAttribute('AttributeId').Set(identity_type)
+            identity_node.NewAttribute('Type').Set('string')
+        self.subject = subject.GetXML()
     
     def get_request(self, action, format = 'ARCAuth'):
         if format not in ['ARCAuth']:
@@ -778,7 +781,7 @@ def parse_storage_policy(metadata):
 def make_decision_metadata(metadata, request):
     import arc
     policy = parse_storage_policy(metadata).get_policy()
-    #print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
+    print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
     #return arc.DECISION_PERMIT
     if policy:
         decision = make_decision(policy, request)
@@ -800,7 +803,7 @@ def make_decision(policy, request):
     response = evaluator.evaluate(r)
     responses = response.getResponseItems()
     response_list = [responses.getItem(i).res for i in range(responses.size())]
-    #print 'RESPONSE_LIST = ', response_list
+    print 'RESPONSE_LIST = ', response_list
     return response_list[0]
     # if response_list.count(arc.DECISION_DENY) > 0:
     #     return 'deny'
