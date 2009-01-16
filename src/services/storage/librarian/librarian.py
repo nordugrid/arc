@@ -136,8 +136,7 @@ class Librarian:
 
     def new(self, requests):
         response = {}
-        #print requests
-        for rID, metadata in requests.items():
+	for rID, metadata in requests.items():
             #print 'Processing new request:', metadata
             try:
                 type = metadata[('entry','type')]
@@ -152,9 +151,11 @@ class Librarian:
                 except:
                     GUID = mkuid()
                     metadata[('entry', 'GUID')] = GUID
-                check = self.ahash.change(
-                    {'new': (GUID, 'set', 'entry', 'type', type, {'0' : ('unset','entry','type','')})}
-                )
+              
+		check = self.ahash.change(
+                      {'new': (GUID, 'set', 'entry', 'type', type, {'0' : ('unset','entry','type','')})}
+                    )
+		
                 status, failedCondition = check['new']
                 if status == 'set':
                     success = 'success'
@@ -195,7 +196,7 @@ class Librarian:
                     else:
                         child_guid = metadata[('entries',path[0])]
                         child_metadata = self.ahash.get([child_guid])[child_guid]
-                    traversed.append(path.pop(0))
+		    traversed.append(path.pop(0))
                     GUIDs.append(child_guid)
                     guid = child_guid
                     metadata = child_metadata
@@ -224,8 +225,8 @@ class Librarian:
             else:
                 try:
                     metadata = self._traverse(guid, metadata0, path, traversed, GUIDs)
-                    traversedList = [(traversed[i], GUIDs[i]) for i in range(len(traversed))]
-                    wasComplete = len(path) == 0
+		    traversedList = [(traversed[i], GUIDs[i]) for i in range(len(traversed))]
+	            wasComplete = len(path) == 0
                     traversedLN = guid0 + '/' + '/'.join(traversed[1:])
                     GUID = GUIDs[-1]
                     restLN = '/'.join(path)
@@ -234,7 +235,7 @@ class Librarian:
                     log.msg()
                     response[rID] = ([], False, '', guid0, None, '/'.join(path))
             #print '?\n? traversedList, wasComplete, traversedLN, GUID, metadata, restLN\n? ', response
-        return response
+	return response
 
     def modifyMetadata(self, requests):
         changes = {}
@@ -291,7 +292,7 @@ class LibrarianService(Service):
     def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),
             ['requestID', 'metadataList'], single = True, string = False)
-        requests = dict([(str(requestID), parse_metadata(metadataList))
+        requests = dict([(str(requestID), parse_metadata(metadataList)) 
             for requestID, metadataList in requests0.items()])
         resp = self.librarian.new(requests)
         return create_response('lbr:new',

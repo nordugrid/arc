@@ -151,7 +151,8 @@ class AHashClient(Client):
 
         'changes' is a dictionary of {changeID : (ID, changeType, section, property, value, conditions)}
             where 'conditions' is a dictionary of {conditionID : (conditionType, section, property, value)}
-        """
+	"""
+	
         tree = XMLTree(from_tree =
             ('ahash:change', [
                 ('ahash:changeRequestList', [
@@ -244,6 +245,7 @@ class LibrarianClient(Client):
         return elements
 
     def new(self, requests):
+	
         tree = XMLTree(from_tree =
             ('lbr:new', [
                 ('lbr:newRequestList', [
@@ -557,6 +559,54 @@ class BartenderClient(Client):
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
+
+    ### Created by Salman Toor ###
+    def makeMountpoint(self, requests):
+        """ Create a new Mountpoint.
+        
+        makeMountpoint(requests)
+
+        requests is a dictionary with requestID as key and (LN, metadata) as value, where
+            LN is the Logical Name
+            metadata is the metadata of the new collection, a dictionary with (section, property) as key
+        returns a dictionary with requestID as key and the state of the request as value
+        
+        In: {'b5':['/coloredcollection', {('metadata','color') : 'light blue'}]}
+        Out: {'b5': 'done'}
+        """
+	tree = XMLTree(from_tree =
+            ('bar:makeMountpoint', [
+                ('bar:makeMountpointRequestList', [
+                    ('bar:makeMountpointRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+			('bar:URL', URL),
+                        ('bar:metadataList', create_metadata(metadata, 'bar'))
+                    ]) for rID, (LN,metadata,URL) in requests.items()
+                ])
+            ])
+        )
+
+	msg = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
+    	
+    def unmakeMountpoint(self, requests):
+        """docstring for unmakeMountpoint"""
+        tree = XMLTree(from_tree =
+            ('bar:unmakeMountpoint', [
+                ('bar:unmakeMountpointRequestList', [
+                    ('bar:unmakeMountpointRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                    ]) for rID, LN in requests.items()
+                ])
+            ])
+        )
+        msg = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
+	###    ###
 
     def list(self, requests, neededMetadata = []):
         """ List the contents of a collection.

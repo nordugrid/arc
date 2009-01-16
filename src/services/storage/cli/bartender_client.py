@@ -26,7 +26,7 @@ if bartender_url.startswith('https'):
         ssl_config = {}
         print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
 bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
-if len(args) == 0 or args[0] not in ['stat', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
+if len(args) == 0 or args[0] not in ['stat', 'makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
     print 'Supported methods: stat, makeCollection, unmakeCollection, list, move, putFile, getFile, delFile, addReplica, modify' 
 else:
     command = args.pop(0)
@@ -129,6 +129,27 @@ else:
             response = bartender.makeCollection(request)
             print response
             print '\n', response['0']
+
+    ### Created by Salman Toor ###
+    elif command == 'unmakeMountpoint':
+        if len(args) < 1:
+            print 'Usage: unmakeMountpoint <LN>'
+        else:
+            request = {'0': (args[0])}
+            print 'unmakeMountpoint', request
+            response = bartender.unmakeMountpoint(request)
+            print response
+            print '\n', response['0']
+    elif command == 'makeMountpoint':
+        if len(args) < 2:
+            print 'Usage: makeMountpoint <LN> <URL>'
+        else:
+            request = {'0': (args[0], {('states', 'closed') : false}, args[1])}
+            print 'makeMountpoint', request
+            response = bartender.makeMountpoint(request)
+            print response
+            print '\n', response['0']
+    ###    ###		
     elif command == 'list':
         if len(args) < 1:
             print 'Usage: list <LN> [<LN> ...]'

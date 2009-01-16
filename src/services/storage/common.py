@@ -34,7 +34,7 @@ def parse_url(url):
         port = 80
     return proto, host, int(port), path
 
-common_supported_protocols = ['http', 'byteio']
+common_supported_protocols = ['http', 'byteio','external']
 CHUNKSIZE = 2**20
 
 def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
@@ -44,6 +44,9 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     if protocol == 'byteio':
         from storage.client import ByteIOClient
         return ByteIOClient(turl).write(fobj)
+	
+    elif protocol == 'external':
+	return 
     elif protocol == 'http':
         proto, host, port, path = parse_url(turl)
         import httplib
@@ -674,7 +677,7 @@ identity_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'
 action_type = 'http://www.nordugrid.org/schemas/policy-arc/types/storage/action'
 request_ns = 'http://www.nordugrid.org/schemas/request-arc'
 
-class AuthRequest():
+class AuthRequest:
     
     def __init__(self, message):
         auth = message.Auth()
