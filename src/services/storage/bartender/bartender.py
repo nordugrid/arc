@@ -275,7 +275,8 @@ class Bartender:
         requests is a dictionary with requestID-GUID pairs
         protocols is a list of supported protocols
         """
-        auth_request = auth.get_request('addEntry')
+        # currently we permit everyone to upload a new replica,
+        #   if it not matches the checksum or the size, then it will be removed
         # get the size and checksum information about all the requested GUIDs (these are in the 'states' section)
         #   the second argument of the get method specifies that we only need metadata from the 'states' section
         data = self.librarian.get(requests.values(), [('states',''),('locations',''),('policy','')])
@@ -283,22 +284,18 @@ class Bartender:
         for rID, GUID in requests.items():
             # for each requested GUID
             metadata = data[GUID]
-            decision = make_decision_metadata(metadata, auth_request)
-            if decision != arc.DECISION_PERMIT:
-                response[rID] = ('denied', None, None)
-            else:
-                log.msg(arc.DEBUG, 'addReplica', 'requestID', rID, 'GUID', GUID, 'metadata', metadata, 'protocols', protocols)
-                # get the size and checksum information of the file
-                size = metadata[('states','size')]
-                checksumType = metadata[('states','checksumType')]
-                checksum = metadata[('states','checksum')]
-                # list of shepherds with a replica of this file (to avoid using one shepherd twice)
-                exceptedSEs = [deserialize_ids(location)[0] 
-                               for (section, location), status in metadata.items() if section == 'locations']
-                # initiate replica addition of this file with the given protocols 
-                success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
-                # set the response of this request
-                response[rID] = (success, turl, protocol)
+            log.msg(arc.DEBUG, 'addReplica', 'requestID', rID, 'GUID', GUID, 'metadata', metadata, 'protocols', protocols)
+            # get the size and checksum information of the file
+            size = metadata[('states','size')]
+            checksumType = metadata[('states','checksumType')]
+            checksum = metadata[('states','checksum')]
+            # list of shepherds with a replica of this file (to avoid using one shepherd twice)
+            exceptedSEs = [deserialize_ids(location)[0] 
+                           for (section, location), status in metadata.items() if section == 'locations']
+            # initiate replica addition of this file with the given protocols 
+            success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
+            # set the response of this request
+            response[rID] = (success, turl, protocol)
         return response
 
     def _find_alive_se(self, except_these=[]):
@@ -442,6 +439,7 @@ class Bartender:
                         # set the type and GUID of the new file
                         child_metadata[('entry','type')] = 'file'
                         child_metadata[('entry','GUID')] = rootguid or global_root_guid
+                        child_metadata[('entry','owner')] = auth.get_identity()
                         # create the new entry
                         success, GUID = self._new(auth, child_metadata)
                     elif restLN != child_name or GUID == '':
