@@ -50,7 +50,7 @@ fi)
 if test -n "$GPT_FLAVOR"; then
    AC_MSG_RESULT($GPT_FLAVOR)
 else
-   AC_MSG_RESULT(none detected, is globus_core-devel installed?)
+   AC_MSG_RESULT([none detected, is globus_core-devel installed?])
 fi
 ])
 
