@@ -1201,10 +1201,10 @@ def call_it(method_name, *args):
     print '- done in %0.2f seconds.' % (time.time()-start)
     return response
 
-if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod']:
+if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol']:
     print 'Usage:'
     print '  arc_storage_cli <method> [<arguments>]'
-    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]'
+    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy]'
     print 'Without arguments, each method prints its own help.'
 else:
     try:
@@ -1416,3 +1416,35 @@ else:
             #print 'modify', request
             mod_response = call_it('modify', request)['0']
             print mod_response
+    elif command == 'pol':
+        if len(args) < 3:
+            print "Usage: policy <LN> <changeType> <userDN> <action list>"
+            print "  <changeType> could be 'set', 'change' or 'clear'"
+            print "    'set': sets the action list to the given user overwriting the old one"
+            print "    'change': modify the current action list with adding and removing actions"
+            print "    'clear': clear the action list of the given user"
+            print "  <action list> is a list actions prefixed with '+' or '-'"
+            print "    e.g. '+read +addEntry -delete'"
+        else:
+            LN = args.pop(0)
+            changeType = args.pop(0)
+            userDN = args.pop(0)
+            if changeType not in ['set', 'change', 'clear']:
+                print 'wrong change type!'
+            else:
+                if changeType == 'set':
+                    action_list = ' '.join(args)
+                elif changeType == 'change':
+                    stat = call_it('stat', {'policy' : LN})
+                    old_list = stat['policy'].get(('policy',userDN),'')
+                    print "old action list for the user %s was '%s'" % (userDN, old_list)
+                    action_dict = dict([(paction[1:], (paction[0] == '+')) for paction in old_list.split()])
+                    for paction in args:
+                        action_dict[paction[1:]] = (paction[0] == '+')
+                    action_list = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
+                elif changeType == 'clear':
+                    action_list = ''                
+                print "the new action list of user %s for LN %s will be '%s'" % (userDN, LN, action_list)
+                mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', userDN, action_list)})
+                print mod_response
+            
