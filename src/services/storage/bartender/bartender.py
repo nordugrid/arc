@@ -39,7 +39,7 @@ class Bartender:
         """
         response = {}
         # get the information from the librarian
-        traverse_response = self.librarian.traverseLN(requests)
+        requests, traverse_response = self._traverse(requests)
         # we are only interested in the metadata and if the traversing was complete or not
         for requestID, (metadata, _, _, _, wasComplete, _) in traverse_response.items():
             if wasComplete: # if it was complete, then we found the entry and got the metadata
@@ -125,17 +125,19 @@ class Bartender:
         # in each request the requestID is the key and the value is a list
         # the first item of the list is the Logical Name, we want to remove the trailing slash, and
         # leave the other items intact
-	requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
+        requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
         log.msg(arc.DEBUG, '//// _traverse request trailing slash removed:', dict(requests))
         # then we do the traversing. a traverse request contains a requestID and the Logical Name
         # so we just need the key (which is the request ID) and the first item of the value (which is the LN)
-	traverse_request = dict([(rID, data[0]) for rID, data in requests])
+        traverse_request = dict([(rID, data[0]) for rID, data in requests])
         # call the librarian service
         traverse_response = self.librarian.traverseLN(traverse_request)
         # return the requests as list (without the trailing slashes) and the traverse response from the librarian
-	return requests, traverse_response
+        #print requests, traverse_response
+        return requests, traverse_response
 
-    def _new(self, auth, child_metadata, child_name = None, parent_GUID = None, parent_metadata = {}, URL = None):
+
+    def _new(self, auth, child_metadata, child_name = None, parent_GUID = None, parent_metadata = {}):
         """ Helper method which create a new entry in the librarian.
         
         _new(child_metadata, child_name = None, parent_GUID = None)
@@ -151,12 +153,7 @@ class Bartender:
             # set creation time stamp
             child_metadata[('timestamps', 'created')] = str(time.time())
             if child_name and parent_GUID:
-
-	        ##### modified  by Salman Toor. ########	
-	        child_metadata[('parents', '%s/%s' % (parent_GUID, child_name))] = 'parent'
-		if URL:
-		    child_metadata[('mountpoint','externalURL')] = URL 
-		#########################################	
+                child_metadata[('parents', '%s/%s' % (parent_GUID, child_name))] = 'parent' # this 'parent' string is never used
             # call the new method of the librarian with the child's metadata (requestID is '_new')
             new_response = self.librarian.new({'_new' : child_metadata})
             # we can access the response with the requestID, so we get the GUID of the newly created entry
@@ -202,22 +199,19 @@ class Bartender:
         auth_request = auth.get_request('read')
         # call the _traverse helper method the get the information about the requested Logical Names
         requests, traverse_response = self._traverse(requests)
-	response = {}
+        response = {}
         # for each requested LN
         for rID, (LN, protocols) in requests:
             turl = ''
             protocol = ''
             success = 'unknown'
-	    try:
+            try:
                 log.msg(arc.DEBUG, traverse_response[rID])
                 # split the traverse response
-		metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
-		# wasComplete is true if the given LN was found, so it could have been fully traversed
+                metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
+                # wasComplete is true if the given LN was found, so it could have been fully traversed
                 if not wasComplete:
                     success = 'not found'
-		    # Modified by Salman Toor #####
-		    
-					
                 else:
                     # metadata contains all the metadata of the given entry
                     # ('entry', 'type') is the type of the entry: file, collection, etc.
@@ -227,7 +221,7 @@ class Bartender:
                     else:
                         type = metadata[('entry', 'type')]
                         if type != 'file':
-			    success = 'is not a file'
+                            success = 'is not a file'
                         else:
                             # if it is a file,  then we need all the locations where it is stored and alive
                             # this means all the metadata entries with in the 'locations' sections whose value is 'alive'
@@ -415,23 +409,13 @@ class Bartender:
                     #   wasComplete indicates if the traverse was complete or not, if it was complete means that this LN exists
                     #   traversedlist contains the GUID and metadata of each element along the path of the LN
                     metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-                    print 'traversedlist'
-		    print traversedlist
-		    print 'restLN'
-		    print restLN
-		    print 'metadata'		
-		    print metadata
-		    
-		    ### Edited by Salman Toor. ###
-
-
-		    if metadata[('entry','type')] == 'mountpoint':
-
-		        url = metadata[('mountpoint', 'externalURL')]+'/'+restLN		
-	                success = 'done'
-		        response[rID] = (success,url,'external')
-			return response	   
-		    log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+                    log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+                    #   if the traversing stopped at a mount point:
+                    if metadata[('entry','type')] == 'mountpoint':
+                        url = metadata[('mountpoint','externalURL')] + '/' + restLN                
+                        success = 'done'
+                        response[rID] = (success, url, 'external')
+                        return response    
                     if wasComplete: # this means the LN already exists, so we couldn't put a new file there
                         success = 'LN exists'
                     elif child_name == '': # this only can happen if the LN was a single GUID
@@ -456,8 +440,6 @@ class Bartender:
                         # if neededReplicas is 0, we do nothing
                         if int(neededReplicas) > 0: # this will call shepherd.put()
                             success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
-			    print 'protocol'
-			    print protocol
                 except:
                     success = 'internal error (%s)' % traceback.format_exc()
             response[rID] = (success, turl, protocol)
@@ -519,7 +501,6 @@ class Bartender:
             elif child_name == '': # this only can happen if the LN was a single GUID
                 # this means the collection has no parent
                 child_metadata[('entry','GUID')] = rootguid or global_root_guid
-                print child_metadata
                 success, _ = self._new(auth, child_metadata)
             elif restLN != child_name or GUID == '':
                 success = 'parent does not exist'
@@ -533,9 +514,8 @@ class Bartender:
     ### Created by Salman Toor ###
     
     def unmakeMountpoint(self, auth, requests):        
-        """docstring for unmakeMountpoint"""        
-        auth['method'] = 'delete'
-        auth_request = auth.get_request()
+        """docstring for unmakeMountpoint"""  
+        auth_request = auth.get_request('delete')      
         requests, traverse_response = self._traverse(requests)
         response = {}
         for rID, [LN] in requests:
@@ -544,27 +524,21 @@ class Bartender:
             if not wasComplete:
                 success = 'no such LN'
             else:
-                #decision = make_decision_metadata(metadata, auth_request)
-                decision = arc.DECISION_PERMIT
+                decision = make_decision_metadata(metadata, auth_request)
                 if decision != arc.DECISION_PERMIT:
                     success = 'denied'
                 else:
-                    number_of_entries = len([section for (section, _), _ in metadata.items() if section == 'entries'])
-                    if number_of_entries > 0:
-                        success = 'Mountpoint is not empty'
-                    else:
-                        try:
-                            parentLN, parentGUID = traversedlist[-2]
-                            # TODO: get the metadata of the parent, and check if the user has permission to removeEntry from it
-                            mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
-                            mod_response = self.librarian.modifyMetadata(mod_requests)
-                            success = mod_response['unmake']
-                        except IndexError:
-                            # it has no parent
-                            success = 'unset'
-                        if success == 'unset':
-                            # TODO: handle hardlinks to collections
-                            success = self.librarian.remove({'unmake' : GUID})['unmake']
+                    try:
+                        parentLN, parentGUID = traversedlist[-2]
+                        # TODO: get the metadata of the parent, and check if the user has permission to removeEntry from it
+                        mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
+                        mod_response = self.librarian.modifyMetadata(mod_requests)
+                        success = mod_response['unmake']
+                    except IndexError:
+                        # it has no parent
+                        success = 'unset'
+                    if success == 'unset':
+                        success = self.librarian.remove({'unmake' : GUID})['unmake']
             response[rID] = success
         return response
 
@@ -579,24 +553,22 @@ class Bartender:
             # for each request first split the Logical Name
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            log.msg(arc.DEBUG, 'metadata', metadata,'URL', URL, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
-            owner_identity = auth.get('identity', None)
-            if owner_identity:
-                owner_policy = create_owner_policy(owner_identity).get_policy()
-                child_metadata[('policies', owner_identity)] = owner_policy
+            log.msg(arc.DEBUG, 'LN', LN, 'URL', URL, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            child_metadata[('entry','owner')] = auth.get_identity()
             child_metadata[('entry','type')] = 'mountpoint'
+            child_metadata[('mountpoint','externalURL')] = URL 
             if wasComplete: # this means the LN exists
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
                 # this means the collection has no parent
                 child_metadata[('entry','GUID')] = rootguid or global_root_guid
-                success, _ = self._new(auth, child_metadata,None,None,None,URL)
+                success, _ = self._new(auth, child_metadata)
             elif restLN != child_name or GUID == '':
                 success = 'parent does not exist'
             else:
                 # if everything is OK, create the new collection
                 #   here GUID is of the parent collection
-                success, _ = self._new(auth, child_metadata, child_name, GUID, metadata,URL)
+                success, _ = self._new(auth, child_metadata, child_name, GUID, metadata)
             response[rID] = success
         return response
 
@@ -614,9 +586,9 @@ class Bartender:
         """
         auth_request = auth.get_request('read')
         # do traverse the requested Logical Names
-        traverse_response = self.librarian.traverseLN(requests)
+        requests, traverse_response = self._traverse(requests)
         response = {}
-        for requestID, LN in requests.items():
+        for requestID, [LN] in requests.items():
             # for each LN
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
             if wasComplete:
@@ -812,9 +784,10 @@ class BartenderService(Service):
         # get all the requests
         request_nodes = get_child_nodes(inpayload.Child().Child())
         # get the requestID and LN of each request and create a dictionary where the requestID is the key and the LN is the value
-        requests = dict([
-            (str(request_node.Get('requestID')), str(request_node.Get('LN')))
-                for request_node in request_nodes
+        requests = dict([(
+            str(request_node.Get('requestID')),
+            [str(request_node.Get('LN'))]
+            ) for request_node in request_nodes
         ])
         # call the Bartender class
         response = self.bartender.stat(inpayload.auth, requests)
@@ -1090,11 +1063,11 @@ class BartenderService(Service):
         #                   <bar:requestID>0</bar:requestID>
         #                   <bar:LN>/testdir</bar:LN>
         #                   <bar:URL>URL</bar:URL>
-	#			<bar:metadataList>
+        #                   <bar:metadataList>
         #                       <bar:metadata>
-        #                           <bar:section>states</bar:section>
-        #                           <bar:property>closed</bar:property>
-        #                           <bar:value>0</bar:value>
+        #                           <bar:section>any</bar:section>
+        #                           <bar:property>additional</bar:property>
+        #                           <bar:value>metadata</bar:value>
         #                       </bar:metadata>
         #                   </bar:metadataList>
         #               </bar:makeMountpointRequestElement>
@@ -1126,8 +1099,8 @@ class BartenderService(Service):
         response = self.bartender.makeMountpoint(inpayload.auth, requests)
         return create_response('bar:makeMountpoint',
             ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
-	
-    ###     ####	
+        
+    ###     ####        
 
     def list(self, inpayload):
         # incoming SOAP message example:
@@ -1188,8 +1161,6 @@ class BartenderService(Service):
         #       </soap-env:Body>
         #   </soap-env:Envelope>
         
-        #if inpayload.auth:
-        #    print 'Bartender auth "list": ', inpayload.auth
         requests = parse_node(inpayload.Child().Get('listRequestList'),
             ['requestID', 'LN'], single = True)
         neededMetadata = [
