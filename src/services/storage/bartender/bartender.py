@@ -133,7 +133,7 @@ class Bartender:
         # call the librarian service
         traverse_response = self.librarian.traverseLN(traverse_request)
         # return the requests as list (without the trailing slashes) and the traverse response from the librarian
-        #print requests, traverse_response
+        print requests, traverse_response
         return requests, traverse_response
 
 
@@ -396,6 +396,8 @@ class Bartender:
                 success = 'missing metadata ' + str(e)
             if metadata_ok:
                 # if the metadata of the new file is OK
+                child_metadata[('entry','type')] = 'file'
+                child_metadata[('entry','owner')] = auth.get_identity()
                 try:
                     # split the Logical Name, rootguid will be the GUID of the root collection of this LN,
                     #   child_name is the name of the new file withing the parent collection
@@ -421,9 +423,7 @@ class Bartender:
                     elif child_name == '': # this only can happen if the LN was a single GUID
                         # this means that the new file will have no parent
                         # set the type and GUID of the new file
-                        child_metadata[('entry','type')] = 'file'
                         child_metadata[('entry','GUID')] = rootguid or global_root_guid
-                        child_metadata[('entry','owner')] = auth.get_identity()
                         # create the new entry
                         success, GUID = self._new(auth, child_metadata)
                     elif restLN != child_name or GUID == '':
@@ -431,9 +431,7 @@ class Bartender:
                         #   or we have no parent guid
                         success = 'parent does not exist'
                     else:
-                        # if everything is OK, then we set the type of the new entry
-                        child_metadata[('entry','type')] = 'file'
-                        # then create it
+                        # if everything is OK, then we create the new entry
                         success, GUID = self._new(auth, child_metadata, child_name, GUID, metadata)
                     if success == 'done':
                         # if the file was successfully created, it still has no replica, so we initiate creating one
@@ -588,7 +586,7 @@ class Bartender:
         # do traverse the requested Logical Names
         requests, traverse_response = self._traverse(requests)
         response = {}
-        for requestID, [LN] in requests.items():
+        for requestID, [LN] in requests:
             # for each LN
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
             if wasComplete:
