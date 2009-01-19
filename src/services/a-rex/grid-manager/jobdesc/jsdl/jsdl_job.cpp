@@ -31,7 +31,16 @@ static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
   for(std::list<FileData>::iterator i=inputdata.begin();i!=inputdata.end();++i){  
   
   if(i->has_lfn()) {
-    if((*i).pfn == fname) {
+
+    std::string pfn = (*i).pfn;
+    if (pfn[0] != '.' && pfn[1] != '/')
+		pfn = "./" + pfn;
+
+    std::string fname_tmp = fname;
+    if (fname_tmp[0] != '.' && fname_tmp[1] != '/')
+		fname_tmp = "./" + fname_tmp;
+
+    if(pfn == fname_tmp) {
       Arc::URL u(i->lfn);
       if(u) {
         u.AddOption("cache","no");
@@ -193,6 +202,7 @@ bool JSDLJob::get_execs(std::list<std::string>& execs) {
       Arc::XMLNode isExecutableNode = childNode["IsExecutable"];
       if( ((bool)isExecutableNode) && (( (std::string) isExecutableNode ) == "true") ) {
 	std::string str_filename = (std::string) n["DataStaging"][i]["FileName"];
+         if (str_filename[0] != '/' && (str_filename[0] != '.' && str_filename[1] != '/')) str_filename = "./" + str_filename;
         execs.push_back(str_filename);
       };
     };
@@ -480,7 +490,6 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
     Arc::XMLNode targetNode = ds["Target"];
     Arc::XMLNode filenameNode = ds["FileName"];
 	std::string filename = (std::string) filenameNode;
-    if (filename[0] != '/' && (filename[0] != '.' && filename[1] != '/')) filename = "./" + filename;
     // CreationFlag - ignore
     // DeleteOnTermination - ignore
     if( ( !sourceNode ) && ( !targetNode ) ) {
