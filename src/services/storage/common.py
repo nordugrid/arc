@@ -675,6 +675,7 @@ storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 
 identity_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'
 action_type = 'http://www.nordugrid.org/schemas/policy-arc/types/storage/action'
 request_ns = 'http://www.nordugrid.org/schemas/request-arc'
+all_user = 'ALL'
 
 class AuthRequest:
     
@@ -717,6 +718,14 @@ class AuthPolicy(dict):
         if format == 'ARCAuth':
             result = []
             for identity, actions in self.items():
+                if identity == all_user:
+                    subjects = ''
+                else:
+                    subjects = ('    <Subjects>\n' +
+                                '      <Subject>\n' + 
+                                '        <Attribute AttributeId="%s" Type="string">%s</Attribute>\n' % (identity_type, identity) +
+                                '      </Subject>\n' +
+                                '    </Subjects>\n')
                 raw_actions = [a for a in actions if a[1:] in storage_actions]
                 actions = {}
                 actions[True] = [action[1:] for action in raw_actions if action[0] == '+']
@@ -725,11 +734,7 @@ class AuthPolicy(dict):
                     if action_list:
                         result.append('  <Rule Effect="%s">\n' % (permit and 'Permit' or 'Deny') +
                         '    <Description>%s is %s to %s</Description>\n' % (identity, permit and 'allowed' or 'not allowed', ', '.join(action_list)) +
-                        '    <Subjects>\n' +
-                        '      <Subject>\n' + 
-                        '        <Attribute AttributeId="%s" Type="string">%s</Attribute>\n' % (identity_type, identity) +
-                        '      </Subject>\n' +
-                        '    </Subjects>\n' +
+                        subjects +
                         '    <Actions>\n' + 
                         ''.join(['      <Action AttributeId="%s" Type="string">%s</Action>\n' % (action_type, action) for action in action_list]) +
                         '    </Actions>\n' +
