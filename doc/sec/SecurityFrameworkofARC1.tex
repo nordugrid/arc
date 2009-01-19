@@ -218,7 +218,7 @@
 \renewcommand\theFigure{\arabic{Figure}}
 \title{}
 \author{Aleksandr Konstantinov}
-\date{2008-12-23}
+\date{2009-01-19}
 \begin{document}
 \begin{flushleft}
 \tablehead{}\begin{supertabular}{m{1.3809599in}m{2.0976598in}}
@@ -2131,7 +2131,7 @@ http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace &
 element\\\hline
 \end{supertabular}
 \end{flushleft}
-\subsection[Delegation Restrictions]{Delegation Restrictions}
+\subsection[Delegation]{Delegation}
 \label{bkm:Ref204009393}\subsubsection[Delegation
 Architecture]{Delegation Architecture}
 \label{bkm:Ref204009914}{\selectlanguage{english}\upshape\color{black}
@@ -2194,8 +2194,10 @@ enforcing policies defined by client.}
 \subsubsection[Delegation interface]{Delegation interface}
 \label{bkm:Ref204009766}{\selectlanguage{english}\upshape\color{black}
 Delegation interface in the ARC1 is implemented using Web Service
-approach. Each ARC1 service wishing to accept delegated credentials
-implements this interface. Here is how delegation procedure works:}
+approach. Each ARC1 service wishing to act on behalf of client identity
+implements this interface in order to accept delegated credentials.
+Here is how delegation procedure works (also shown in figures
+\ref{seq:refFigure7} and \ref{seq:refFigure8}) :}
 
 \liststyleWWviiiNumix
 \begin{itemize}
@@ -2227,6 +2229,35 @@ operations on service in service specific way.}
 \item {\selectlanguage{english}\color{black}
 Service responds with empty UpdateCredentialsResponse message.}
 \end{itemize}
+{\selectlanguage{english}\color{black}
+Optionally step 2 can be skipped and the DelegatedToken element provided
+to Service as additional payload of other service specific message. }
+
+{\selectlanguage{english}\color{black}
+The Id element obtained in the step 1 can be reused multiple times with
+different content of the Value element.}
+
+{\selectlanguage{english}\color{black}
+WSDL of portType implementing delegation functionality can be found at
+\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/libs/delegation/delegation.wsdl}
+.}
+
+{\centering [Warning: Draw object ignored]\par}
+
+{\centering\selectlanguage{english}\itshape\color{black}
+Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure7}}. The
+flow diaram of delegation procedure with multiple second step and
+session expiration. 
+\par}
+
+{\centering [Warning: Draw object ignored]\par}
+
+{\centering\selectlanguage{english}\itshape\color{black}
+Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure8}}. The
+flow diagram of delegation procedure with certificate transfered as
+payload of service specific message. 
+\par}
+
 \subsection[Schemas, descriptions and examples]{Schemas, descriptions
 and examples}
 \subsubsection[Authorization Policy]{Authorization Policy}
@@ -2893,20 +2924,21 @@ Shibboleth IdP implementation is used. Figure 6 shows the process of
 SAML2.0 SSO integrated in ARC client and service.}
 
 
-
-\begin{center}
-\includegraphics[width=3.2256in,height=1.8472in]{SecurityFrameworkofARC1-img7.png}
-\end{center}
-
 \bigskip
 
+{\centering 
+\includegraphics[width=3.2256in,height=1.8472in]{SecurityFrameworkofARC1-img7.png}
+\par}
+
 {\centering\selectlanguage{english}\itshape\color{black}
-Figure \stepcounter{Figure}{\theFigure}.\textbf{ }SAML2.0 SSO profile in
-ARC
+Figure
+{\refstepcounter{Figure}\theFigure\label{seq:refFigure5}}.\textbf{
+}SAML2.0 SSO profile in ARC
 \par}
 
 {\selectlanguage{english}\color{black}
-\ The steps shows in Figure 6 are described as follows:}
+\ The steps shows in Figure \ref{seq:refFigure5} are described as
+follows:}
 
 \liststyleLii
 \begin{enumerate}
@@ -3020,10 +3052,10 @@ contact any registration authority (RA) or certificate authority (CA).}
 \ \ \ \ The SLCS service is also a Web Service (standard Web Service
 implemented by using ARC service interface), and the SLCS client is a
 specific command-line interface (CLI) which includes the user agent and
-WS client. The whole process of SLCS invocation is showed in Figure 7
-(from step 1 to step 8), which is the same as in Figure 6, except that
-step 7 and step 8 are invoked for the SLCS certificate request and
-response.}
+WS client. The whole process of SLCS invocation is showed in Figure
+\ref{seq:refFigure6} (from step 1 to step 8), which is the same as in
+Figure \ref{seq:refFigure5}, except that step 7 and step 8 are invoked
+for the SLCS certificate request and response.}
 
 
 
@@ -3031,7 +3063,8 @@ response.}
 \includegraphics[width=3.7689in,height=3.2055in]{SecurityFrameworkofARC1-img8.png}
 \end{center}
 {\centering\selectlanguage{english}\itshape\color{black}
-Figure \stepcounter{Figure}{\theFigure}.Short lived credential service
+Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure6}}.Short
+lived credential service
 \par}
 
 
