@@ -91,11 +91,11 @@ Glib::Module *ModuleManager::load(const std::string& name,bool load_local,bool r
     Loader::logger.msg(DEBUG, "Could not locate module %s", name);
     return NULL;
   };
-#ifdef HAVE_GLIBMM_BIND_LOCAL
-  Glib::Module *module = new Glib::Module(path,load_local?Glib::MODULE_BIND_LOCAL:(Glib::ModuleFlags(0)));
-#else
+//#ifdef HAVE_GLIBMM_BIND_LOCAL
+//  Glib::Module *module = new Glib::Module(path,load_local?Glib::MODULE_BIND_LOCAL:(Glib::ModuleFlags(0)));
+//#else
   Glib::Module *module = new Glib::Module(path);
-#endif
+//#endif
   if ((!module) || (!(*module))) {
     Loader::logger.msg(ERROR, Glib::Module::get_last_error());
     if(module) delete module;
