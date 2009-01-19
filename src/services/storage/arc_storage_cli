@@ -474,6 +474,8 @@ class FakeXMLNode(object):
         """docstring for Set"""
         self.node.appendChild(self.doc.createTextNode(text_data))            
     
+storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
+    
 # This part is copied form xmltree.py and the 'xmlnode_class = arc.XMLNode' is changed
 
 class XMLTree:
@@ -1425,6 +1427,7 @@ else:
             print "    'clear': clear the action list of the given user"
             print "  <action list> is a list actions prefixed with '+' or '-'"
             print "    e.g. '+read +addEntry -delete'"
+            print "    possible actions: ", ' '.join(storage_actions)
         else:
             LN = args.pop(0)
             changeType = args.pop(0)
@@ -1432,19 +1435,23 @@ else:
             if changeType not in ['set', 'change', 'clear']:
                 print 'wrong change type!'
             else:
-                if changeType == 'set':
-                    action_list = ' '.join(args)
-                elif changeType == 'change':
-                    stat = call_it('stat', {'policy' : LN})
-                    old_list = stat['policy'].get(('policy',userDN),'')
-                    print "old action list for the user %s was '%s'" % (userDN, old_list)
-                    action_dict = dict([(paction[1:], (paction[0] == '+')) for paction in old_list.split()])
-                    for paction in args:
-                        action_dict[paction[1:]] = (paction[0] == '+')
-                    action_list = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
-                elif changeType == 'clear':
-                    action_list = ''                
-                print "the new action list of user %s for LN %s will be '%s'" % (userDN, LN, action_list)
-                mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', userDN, action_list)})
-                print mod_response
+                wrong_args = [arg[1:] for arg in args if arg[1:] not in storage_actions]
+                if wrong_args:
+                    print 'wrong action names:', ' '.join(wrong_args)
+                else:
+                    if changeType == 'set':
+                        action_list = ' '.join(args)
+                    elif changeType == 'change':
+                        stat = call_it('stat', {'policy' : LN})
+                        old_list = stat['policy'].get(('policy',userDN),'')
+                        print "old action list for the user %s was '%s'" % (userDN, old_list)
+                        action_dict = dict([(paction[1:], (paction[0] == '+')) for paction in old_list.split()])
+                        for paction in args:
+                            action_dict[paction[1:]] = (paction[0] == '+')
+                        action_list = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
+                    elif changeType == 'clear':
+                        action_list = ''                
+                    print "the new action list of user %s for LN %s will be '%s'" % (userDN, LN, action_list)
+                    mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', userDN, action_list)})
+                    print mod_response['policy'] + '.'
             

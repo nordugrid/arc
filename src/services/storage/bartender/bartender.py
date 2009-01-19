@@ -709,15 +709,29 @@ class Bartender:
         requests, traverse_response = self._traverse(requests)
         librarian_requests = {}
         not_found = []
+        denied = []
         for changeID, (LN, changeType, section, property, value) in requests:
-            _, GUID, _, _, wasComplete, _ = traverse_response[changeID]
+            metadata, GUID, _, _, wasComplete, _ = traverse_response[changeID]
             if wasComplete:
-                librarian_requests[changeID] = (GUID, changeType, section, property, value)
+                if section == 'states':
+                    decision = make_decision_metadata(metadata, auth.get_request('modifyStates'))
+                elif section == 'metadata':
+                    decision = make_decision_metadata(metadata, auth.get_request('modifyMetadata'))
+                elif section == 'policy':
+                    decision = make_decision_metadata(metadata, auth.get_request('modifyPolicy'))
+                else:
+                    decision = arc.DECISION_DENY
+                if decision == arc.DECISION_PERMIT:
+                    librarian_requests[changeID] = (GUID, changeType, section, property, value)
+                else:
+                    denied.append(changeID)
             else:
                 not_found.append(changeID)
         response = self.librarian.modifyMetadata(librarian_requests)
         for changeID in not_found:
             response[changeID] = 'no such LN'
+        for changeID in denied:
+            response[changeID] = 'denied'
         return response
 
 from storage.service import Service
