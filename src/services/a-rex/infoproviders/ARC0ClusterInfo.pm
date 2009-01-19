@@ -168,21 +168,20 @@ sub _collect($$) {
                            'FINISHING' => 'EXECUTED',
                            'SUBMIT'    => 'PREPARED');
 
-    # We're running ARC1: Always assume GM is up
+    # Infosys is run by A-REX: Always assume GM is up
     $host_info->{processes}{'grid-manager'} = 1;
 
     for my $job (values %$gmjobs_info) {
 
-        if ( grep ( /^$job->{status}$/, keys %map_always ) ) {
-            $job->{status} = $map_always{$job->{status}};
-        }
-        if ( grep ( /^$job->{status}$/, keys %map_if_gm_up ) and
-             $host_info->{processes}{'grid-manager'} ) {
-            $job->{status} = $map_if_gm_up{$job->{status}};
-        }
-        if ( grep ( /^$job->{status}$/, keys %map_if_gm_down ) and
-             ! $host_info->{processes}{'grid-manager'} ) {
-            $job->{status} = $map_if_gm_down{$job->{status}};
+        $job->{status} = $map_always{$job->{status}}
+            if grep { $job->{status} eq $_ } keys %map_always;
+
+        if ($host_info->{processes}{'grid-manager'}) {
+            $job->{status} = $map_if_gm_up{$job->{status}}
+                if grep { $job->{status} eq $_ } keys %map_if_gm_up;
+        } else {
+            $job->{status} = $map_if_gm_down{$job->{status}}
+                if grep { $job->{status} eq $_ } keys %map_if_gm_down;
         }
     }
 
@@ -461,9 +460,6 @@ sub _collect($$) {
                 push @freecpus, $minutes ? "$ncpu:$minutes" : $ncpu;
             }
             $u->{'na0:freecpus'} = [ join(" ", @freecpus) || 0 ];
-
-            # Don't advertise free slots while busy with staging
-            $u->{'na0:freecpus'} = [ 0 ] if $pendingprelrms{$qname};
 
             $u->{'na0:queuelength'} = [ $gm_queued{$sn} + $lrms_user->{queuelength} ];
             $u->{'M0:validfrom'} = [ $valid_from ] if $valid_from;

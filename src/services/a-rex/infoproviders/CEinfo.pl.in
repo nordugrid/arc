@@ -97,11 +97,20 @@ sub main {
     my $parser = ConfigParser->new($configfile)
         or $log->error("Cannot open $configfile");
     %config = (%config, $parser->get_section('common'));
+    # Change level for root logger (affects all loggers)
     LogUtils->getLogger()->level($config{debug}) if defined $config{debug};
     %config = (%config, $parser->get_section('cluster'));
     %config = (%config, $parser->get_section('grid-manager'));
     %config = (%config, $parser->get_section('infosys'));
 
+    my @snames = $parser->list_subsections('share');
+
+    $config{shares} = {};
+    for my $sname (@snames) {
+        my %share_config = $parser->get_section("share/$sname");
+        $config{shares}{$sname} = \%share_config;
+    }
+    
     my @qnames = $parser->list_subsections('queue');
     $log->error("No queues defined") unless @qnames;
 
@@ -109,6 +118,14 @@ sub main {
     for my $qname (@qnames) {
         my %queue_config = $parser->get_section("queue/$qname");
         $config{queues}{$qname} = \%queue_config;
+
+	# There must be at least one share section that references this queue.
+	# If there isn't one, create a new share section.
+        unless (grep { $qname eq $_->{qname} } values %{$config{shares}}) {
+            $log->info("Adding implicit share for LRMS queue $qname");
+            my $sname = $qname;
+            $config{shares}{$sname} = { qname => $qname };
+        }
     
         # put this option in the proper place
         if ($queue_config{maui_bin_path}) {
@@ -118,6 +135,15 @@ sub main {
         # maui should not be a per-queue option
         if (lc($queue_config{scheduling_policy}) eq 'maui') {
             $config{pbs_scheduler} = 'maui';
+            delete $queue_config{scheduling_policy};
+        }
+    }
+
+    # Check that each share references a defined queue
+    for my $sname (keys %{$config{shares}}) {
+        my $qname = $config{shares}{$sname}{qname};
+        unless ($config{queues}{$qname}) {
+            $log->warning("Share $sname references undefined queue $qname");
         }
     }
 
@@ -150,6 +176,11 @@ my $config_schema = {
     queues => {              # queue names are keys in this hash
         '*' => {
             name => '*'
+        }
+    },
+    shares => {              # share names are keys in this hash
+        '*' => {
+            qname => ''      # reference to a queue section
         }
     }
 };
@@ -228,11 +259,10 @@ sub get_lrms_info($$$) {
     # possibly any options from config are needed, so just clone it all
     my $lrms_opts = Storable::dclone($config);
     $lrms_opts->{jobs} = $jobids;
-
-    my @queues = keys %{$lrms_opts->{queues}};
-    for my $queue ( @queues ) {
+    for my $queue ( keys %{$lrms_opts->{queues}} ) {
         $lrms_opts->{queues}{$queue}{users} = $localusers;
     }
+    delete $lrms_opts->{shares};
     return LRMSInfo->new()->get_info($lrms_opts);
 }
 
@@ -316,6 +346,14 @@ sub test {
                                      'architecture' => 'adotf',
                                      'nodememory' => '512',
                                      'comment' => 'Dedicated queue for ATLAS users'
+                                   }
+                      },
+          'shares' => {
+                        'testing' => {
+                                       'qname' => 'all.q'
+                                     },
+                        'other' => {
+                                       'qname' => 'all.q'
                                    }
                       },
         };

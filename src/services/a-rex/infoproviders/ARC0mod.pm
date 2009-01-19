@@ -136,6 +136,11 @@ sub delete_empty($) {
     return $hashref;
 }
 
+# Convert frecpus string into a hash.
+# Example: "6 11:2880 23:1440" --> { 6 => 0, 11 => 2880, 23 => 1440 }
+
+# OBS: Assuming the function cpu vs. time is monotone, this transformation is safe.
+
 sub split_freecpus($) {
     my $freecpus_string = shift;
     my $freecpus_hash = {};

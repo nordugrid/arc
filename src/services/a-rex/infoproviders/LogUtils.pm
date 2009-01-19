@@ -48,6 +48,7 @@ sub getLogger {
 sub level {
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self,$level) = @_;
+    $level = @lnames - 1 if $level > @lnames - 1;
     return $self->_searchopt($opts{levels}) unless defined $level;
     return $opts{levels}{$self->{name}} = $level;
 }
@@ -149,7 +150,7 @@ sub test {
 }
 
 sub test2 {
-    start_logging(2,'xxx');
+    start_logging(2,'logfile');
     debug('geee');
     info('beee');
     warning('meee');

@@ -86,6 +86,7 @@ my $lrms_info_schema = {
             'defaultwallt' => '*', # units: seconds
             'running'      => '',  # the number of cpus being occupied by running jobs
             'queued'       => '',  # the number of queued jobs
+            'total'        => '*', # the total number of jobs in this queue
             'totalcpus'    => '',  # the number of cpus dedicated to this queue
             'acl_users'  => [ '*' ],
             'users' => {

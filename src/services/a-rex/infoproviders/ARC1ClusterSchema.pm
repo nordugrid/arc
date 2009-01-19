@@ -100,7 +100,7 @@ sub arc1_info_schema {
             'MaxStageInStreams'     => [ '*' ],
             'MaxStageOutStreams'    => [ '*' ],
             'SchedulingPolicy'      => [ '*' ],
-            'MaxMemory'             => [ '' ],  # units: MB
+            'MaxMainMemory'         => [ '' ],  # units: MB
             'MaxDiskSpace'          => [ '*' ], # units: GB
             'DefaultStorageService' => [ '*' ],
             'Preemption'            => [ '*' ],
@@ -112,6 +112,7 @@ sub arc1_info_schema {
             'LocalWaitingJobs'      => [ '' ],
             'StagingJobs'           => [ '' ],
             'SuspendedJobs'         => [ '' ],
+            'LocalSuspendedJobs'    => [ '' ],
             'PreLRMSWaitingJobs'    => [ '' ],
             'EstimatedAverageWaitingTime' => [ '*' ],
             'EstimatedWorstWaitingTime'   => [ '*' ],

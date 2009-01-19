@@ -29,7 +29,7 @@ sub mdstoiso {
     return undef;
 }
 
-# TODO: Substates need discussing, documenting
+# TODO: Stage-in and Stage-out are substates of what?
 # OBS: Deleted is not in OGSA-BES
 sub ogsa_state {
     my ($gm_state,$lrms_state) = @_;
@@ -113,21 +113,29 @@ sub _collect($$) {
     # jobs in each GM state, by share
     my %gmsharecount;
 
-    # grid jobs running in the lrms, by share
-    my %lrmsgridrunning;
-
-    # grid jobs queued in the lrms, by share
-    # TODO: check correctness when there are multiple shares per queue
-    my %lrmsgridqueued;
+    # grid jobs in each lrms sub-state (queued, running, suspended), by share
+    my %inlrmscount;
 
     # number of slots needed by all waiting jobs, per share
     my %requestedslots;
 
+    # Jobs waiting to be prepared by GM (indexed by share)
+    my %share_pending;
+
+    # Jobs being prepared by GM (indexed by share)
+    my %share_prepping;
+
+    # Jobs being prepared by GM (indexed by grid owner)
+    my %user_prepping;
+    # $user_prepping{$_} = 0 for keys %$usermap;
+
     for my $jobid (keys %$gmjobs_info) {
 
         my $job = $gmjobs_info->{$jobid};
+        my $gridowner = $gmjobs_info->{$jobid}{subject};
         my $qname = $job->{queue};
 
+        # Temporary hack: If A-REX has not choosen a queue for the job, default to one.
         unless ($qname) {
             my $msg = "Queue not defined for job $jobid";
             if ($config->{defaultqueue}) {
@@ -138,151 +146,87 @@ sub _collect($$) {
                 if (@qnames == 1) {
                     $log->info($msg.". Assuming: ".$qnames[0]);
                 } else {
-                    $log->warning($msg." and no default queue is defined. Picked first queue: ".$qnames[0]);
+                    $log->error($msg." and no default queue is defined.");
                 }
                 $qname = $job->{queue} = $qnames[0];
             }
+            $job->{share} = $job->{queue};
         }
 
-        my $share = $job->{share} || $qname;
+        my $share = $job->{share} ||= '';
+        # A share which is not defined in the configuration is invalid
+        $share = '' unless exists $config->{shares}{$share};
+        $job->{share} = $share;
+
+        my $gmstatus = $job->{status};
 
         $gmtotalcount{totaljobs}++;
         $gmsharecount{$share}{totaljobs}++;
 
+        # count GM states by category
+
+        my %states = ( 'UNDEFINED'        => [0, 'undefined'],
+                       'ACCEPTED'         => [1, 'accepted'],
+                       'PENDING:ACCEPTED' => [1, 'accepted'],
+                       'PREPARING'        => [2, 'preparing'],
+                       'PENDING:PREPARING'=> [2, 'preparing'],
+                       'SUBMIT'           => [2, 'preparing'],
+                       'INLRMS'           => [3, 'inlrms'],
+                       'PENDING:INLRMS'   => [4, 'finishing'],
+                       'FINISHING'        => [4, 'finishing'],
+                       'CANCELING'        => [4, 'finishing'],
+                       'FAILED'           => [5, 'finished'],
+                       'KILLED'           => [5, 'finished'],
+                       'FINISHED'         => [5, 'finished'],
+                       'DELETED'          => [6, 'deleted']   );
+
+        unless ($states{$gmstatus}) {
+            $log->warning("Unexpected job status for job $jobid: $gmstatus");
+            $gmstatus = $job->{status} = 'UNDEFINED';
+        }
+        my ($age, $category) = @{$states{$gmstatus}};
+
+        $gmtotalcount{$category}++;
+        $gmsharecount{$share}{$category}++;
+
+        if ($age < 6) {
+            $gmtotalcount{notdeleted}++;
+            $gmsharecount{$share}{notdeleted}++;
+        } elsif ($age < 5) {
+            $gmtotalcount{notfinished}++;
+            $gmsharecount{$share}{notfinished}++;
+        } elsif ($age < 3) {
+            $gmtotalcount{notsubmitted}++;
+            $gmsharecount{$share}{notsubmitted}++;
+            $requestedslots{$share} += $job->{count} || 1;
+            $share_prepping{$share}++;
+            $user_prepping{$gridowner}++;
+        } elsif ($age < 2) {
+            $share_pending{$share}++;
+        }
+
         # count grid jobs running and queued in LRMS for each share
 
-        if ($job->{status} eq 'INLRMS') {
+        if ($gmstatus eq 'INLRMS') {
             my $lrmsid = $job->{localid};
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
 
             if (defined $lrmsjob and $lrmsjob->{status} ne 'EXECUTED') {
-                if ($lrmsjob->{status} eq 'R' or $lrmsjob->{status} eq 'S') {
-                    $lrmsgridrunning{$qname}++;
-                } else {
-                    $lrmsgridqueued{$qname}++;
-                    $requestedslots{$qname} += $job->{count} || 1;
+                if ($lrmsjob->{status} eq 'R') {
+                    $inlrmscount{$share}{running}++;
+                } elsif ($lrmsjob->{status} eq 'S') {
+                    $inlrmscount{$share}{suspended}++;
+                } else {  # Consider other states 'queued'
+                    $inlrmscount{$share}{queued}++;
+                    $requestedslots{$share} += $job->{count} || 1;
                 }
             }
         }
 
-        # count by GM state
-
-        my @states = ( { ACCEPTED  => 'accepted'  },
-                       { PREPARING => 'preparing' },
-                       { SUBMIT    => 'submit'    },
-                       { INLRMS    => 'inlrms'    },
-                       { CANCELING => 'canceling' },
-                       { FINISHING => 'finishing' },
-                       { KILLED    => 'finished'  },
-                       { FAILED    => 'finished'  },
-                       { FINISHED  => 'finished'  },
-                       { DELETED   => 'deleted'   } );
-
-        STATES: {
-            for my $state (@states) {
-                my ($state_match, $state_name) = %$state;
-
-                if ($job->{status} =~ /$state_match/) {
-                    $gmtotalcount{$state_name}++;
-                    $gmsharecount{$share}{$state_name}++;
-                    last STATES;
-                }
-            }
-            # none of the %states matched this job
-            $log->warning("Unexpected job status: $job->{status}");
-        };
-
-
-        next if $job->{status} eq 'DELETED';
-
-        # if we got to this point, the job was not yet deleted
-        $gmtotalcount{notdeleted}++;
-        $gmsharecount{$share}{notdeleted}++;
-
-        next if $job->{status} =~ /FINISHED/;
-        next if $job->{status} =~ /FAILED/;
-        next if $job->{status} =~ /KILLED/;
-
-        # if we got to this point, the job has not yet finished
-        $gmtotalcount{notfinished}++;
-        $gmsharecount{$share}{notfinished}++;
-
-        next if $job->{status} =~ /FINISHING/;
-        next if $job->{status} =~ /CANCELING/;
-        next if $job->{status} =~ /INLRMS/;
-
-        # if we got to this point, the job whas not yet reached the LRMS
-        $gmtotalcount{notsubmitted}++;
-        $gmsharecount{$share}{notsubmitted}++;
-        $requestedslots{$share} += $job->{count} || 1;
-
-        next if $job->{status} =~ /SUBMIT/;
-        next if $job->{status} =~ /PREPARING/;
-        next if $job->{status} =~ /ACCEPTED/;
-
     }
 
-    my %prelrmsqueued;
-    my %pendingprelrms;
-    my %gm_queued;
-    my @gmqueued_states = ("ACCEPTED","PENDING:ACCEPTED","PREPARING","PENDING:PREPARING","SUBMIT");
-    my @gmpendingprelrms_states =("PENDING:ACCEPTED","PENDING:PREPARING" );
-
-    for my $job_gridowner (keys %$usermap) {
-        $gm_queued{$job_gridowner} = 0;
-    }
-
-    for my $ID (keys %{$gmjobs_info}) {
-
-        my $share = $gmjobs_info->{$ID}{share};
-
-        # set the job_gridowner of the job (read from the job.id.local)
-        # which is used as the key of the %gm_queued
-        my $job_gridowner = $gmjobs_info->{$ID}{subject};
-
-        # count the gm_queued jobs per grid users (SNs) and the total
-        if ( grep /^$gmjobs_info->{$ID}{status}$/, @gmqueued_states ) {
-            $gm_queued{$job_gridowner}++;
-            $prelrmsqueued{$share}++;
-        }
-        # count the GM PRE-LRMS pending jobs
-        if ( grep /^$gmjobs_info->{$ID}{status}$/, @gmpendingprelrms_states ) {
-           $pendingprelrms{$share}++;
-        }
-    }
-
-
-    # Grid Manager job state mappings to Infosys job states
-
-    my %map_always = ( 'ACCEPTED'          => 'ACCEPTING',
-                       'PENDING:ACCEPTED'  => 'ACCEPTED',
-                       'PENDING:PREPARING' => 'PREPARED',
-                       'PENDING:INLRMS'    => 'EXECUTED',
-                       'CANCELING'         => 'KILLING');
-
-    my %map_if_gm_up = ( 'SUBMIT' => 'SUBMITTING');
-
-    my %map_if_gm_down = ( 'PREPARING' => 'ACCEPTED',
-                           'FINISHING' => 'EXECUTED',
-                           'SUBMIT'    => 'PREPARED');
-
-    # We're running A-REX: Always assume GM is up
+    # Infosys is run by A-REX: Always assume GM is up
     $host_info->{processes}{'grid-manager'} = 1;
-
-    for my $job (values %$gmjobs_info) {
-
-        if ( grep ( /^$job->{status}$/, keys %map_always ) ) {
-            $job->{status} = $map_always{$job->{status}};
-        }
-        if ( grep ( /^$job->{status}$/, keys %map_if_gm_up ) and
-             $host_info->{processes}{'grid-manager'} ) {
-            $job->{status} = $map_if_gm_up{$job->{status}};
-        }
-        if ( grep ( /^$job->{status}$/, keys %map_if_gm_down ) and
-             ! $host_info->{processes}{'grid-manager'} ) {
-            $job->{status} = $map_if_gm_down{$job->{status}};
-        }
-    }
 
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -317,33 +261,33 @@ sub _collect($$) {
     $csv->{Capability} = [ 'executionmanagement.jobexecution' ];
     $csv->{Type} = [ 'org.nordugrid.arex' ];
 
-    # QualityLevel: new config option ?
+    # OBS: QualityLevel reflects the quality of the sotware
+    # One of: development, testing, pre-production, production
     $csv->{QualityLevel} = [ 'development' ];
 
     # StatusPage: new config option ?
 
-    # OBS: assuming one share per queue
-    my $nqueues = keys %{$config->{queues}};
-    $csv->{Complexity} = [ "endpoint=1,share=$nqueues,resource=1" ];
+    my $nshares = keys %{$config->{shares}};
+    $csv->{Complexity} = [ "endpoint=1,share=$nshares,resource=1" ];
 
     # OBS: Finished/failed/deleted jobs are not counted
     $csv->{TotalJobs} = [ $gmtotalcount{notfinished} || 0 ];
 
-    my $nrun = 0; $nrun += $_ for values %lrmsgridrunning;
-    my $nque = 0; $nque += $_ for values %lrmsgridqueued;
+    # Sum over shares
+    my $nrun = 0; $nrun += $_->{running} || 0 for values %inlrmscount;
+    my $nsus = 0; $nsus += $_->{suspended} || 0 for values %inlrmscount;
+    my $nque = 0; $nque += $_->{queued} || 0 for values %inlrmscount;
     $csv->{RunningJobs} = [ $nrun ];
+    $csv->{SuspendedJobs} = [ $nsus ];
     $csv->{WaitingJobs} = [ $nque ];
 
     $csv->{StagingJobs} = [ ( $gmtotalcount{perparing} || 0 )
                          + ( $gmtotalcount{finishing} || 0 ) ];
 
-    # Suspended not supported yet
-    $csv->{SuspendedJobs} = [ 0 ];
-
-    # should this include staging in jobs?
-    my $npreq = 0; $npreq += $_ for values %prelrmsqueued;
+    my $npreq = 0; $npreq += $_ for values %share_pending;
+    # OBS: should this include jobs doing stage-in?
+    # $npreq += $_ for values %share_prepping;
     $csv->{PreLRMSWaitingJobs} = [ $npreq ];
-
 
     my $cep = {};
     $csv->{ComputingEndpoint} = [ $cep ];
@@ -397,18 +341,27 @@ sub _collect($$) {
     # TODO: AccessPolicy, needs studying the security configuration
     $cep->{AccessPolicy} = [];
 
+    # TODO: like for csv: TotalJobs, RunningJobs, WaitingJobs, StagingJobs, SuspendedJobs, PreLRMSWaitingJobs
 
     $csv->{ComputingShares} = { ComputingShare => [] };
 
 
-    # ComputingShares: 1 share per LRMS queue
+    # ComputingShares: multiple shares can share the same LRMS queue
 
-    for my $share (keys %{$config->{queues}}) {
+    for my $share (keys %{$config->{shares}}) {
 
-        my $qname = $share; # This may change
+        my $qname = $config->{shares}{$share}{qname};
 
         my $qinfo = $lrms_info->{queues}{$qname};
-        my $qconfig = { %$config, %{$config->{queues}{$qname}} };
+
+        # Prepare flattened config hash for this share. Share options override queue options
+        my $sconfig = { %$config, %{$config->{queues}{$qname}}, %{$config->{shares}{$share}} };
+        delete $sconfig->{shares};
+        delete $sconfig->{queues};
+
+        # List of all shares submitting to the current queue, including the current share.
+        my @siblingshares = grep { $qname if $qname eq $_->{qname} } values %{$config->{shares}};
+        $sconfig->{siblingshares} = \@siblingshares;
 
         my $csha = {};
 
@@ -421,7 +374,7 @@ sub _collect($$) {
         $csha->{LocalID} = [ $cshaLID ]; $cshaLIDs{$qname} = $cshaLID++;
 
         $csha->{Name} = [ $share ];
-        $csha->{Description} = [ $qconfig->{comment} ] if $qconfig->{comment};
+        $csha->{Description} = [ $sconfig->{comment} ] if $sconfig->{comment};
         $csha->{MappingQueue} = [ $qname ];
 
         # use limits from LRMS
@@ -432,7 +385,7 @@ sub _collect($$) {
         $csha->{MinWallTime} =  [ $qinfo->{minwalltime} ] if defined $qinfo->{minwalltime};
         $csha->{DefaultWallTime} = [ $qinfo->{defaultwallt} ] if defined $qinfo->{defaultwallt};
 
-        my ($maxtotal, $maxlrms) = split ' ', ($qconfig->{maxjobs} || '');
+        my ($maxtotal, $maxlrms) = split ' ', ($sconfig->{maxjobs} || '');
 
         # MaxWaitingJobs: use GM's maxjobs config option
         # OBS: GM only cares about totals, not per share limits!
@@ -467,9 +420,9 @@ sub _collect($$) {
 
         # MaxPreLRMSWaitingJobs: use GM's maxjobs option
         # OBS: GM only cares about totals, not per share limits!
-    # OBS: this formula is actually an upper limit on the sum of pre + post
-    #      lrms jobs. GM does not have separate limit for pre lrms jobs
-    $csha->{MaxPreLRMSWaitingJobs} = [ $maxtotal - $maxlrms ]
+        # OBS: this formula is actually an upper limit on the sum of pre + post
+        #      lrms jobs. GM does not have separate limit for pre lrms jobs
+        $csha->{MaxPreLRMSWaitingJobs} = [ $maxtotal - $maxlrms ]
             if defined $maxtotal and defined $maxlrms;
 
         $csha->{MaxUserRunningJobs} = [ $qinfo->{maxuserrun} ]
@@ -478,39 +431,39 @@ sub _collect($$) {
         # OBS: new config option. Default value is 1
         # TODO: new return value from LRMS infocollector
         # TODO: see how LRMSs can detect the correct value
-        $csha->{MaxSlotsPerJob} = [ $qconfig->{maxslotsperjob} || $qinfo->{maxslotsperjob}  || 1 ];
+        $csha->{MaxSlotsPerJob} = [ $sconfig->{maxslotsperjob} || $qinfo->{maxslotsperjob}  || 1 ];
 
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: GM does not have separate limits for up and downloads.
         # OBS: GM only cares about totals, not per share limits!
-        my ($maxstaging) = split ' ', ($qconfig->{maxload} || '');
+        my ($maxstaging) = split ' ', ($sconfig->{maxload} || '');
         $csha->{MaxStageInStreams}  = [ $maxstaging ] if defined $maxstaging;
         $csha->{MaxStageOutStreams} = [ $maxstaging ] if defined $maxstaging;
 
-        # OBS: 'maui' is not a valid SchedulingPolicy
-        $qconfig->{scheduling_policy} = 'fairshare'
-            if defined($qconfig->{scheduling_policy})
-                and lc($qconfig->{scheduling_policy}) eq 'maui';
-
-        # TODO: new return value from LRMS infocollector.
-        $csha->{SchedulingPolicy} = [ $qinfo->{schedpolicy} ] if $qinfo->{schedpolicy};
-        $csha->{SchedulingPolicy} = [ lc $qconfig->{scheduling_policy} ] if $qconfig->{scheduling_policy};
+        # TODO: new return value schedpolicy from LRMS infocollector.
+        my $shedpolicy = $qinfo->{schedpolicy} || undef;
+        if ($sconfig->{scheduling_policy} and not $shedpolicy) {
+            $shedpolicy = 'fifo' if lc($sconfig->{scheduling_policy}) eq 'fifo';
+            $shedpolicy = 'fairshare' if lc($sconfig->{scheduling_policy}) eq 'maui';
+        }
 
         # TODO: get it from ExecutionEnviromnets mapped to this share instead
-        $csha->{MaxMemory} = [ $qconfig->{nodememory} ] if $qconfig->{nodememory};
+        $csha->{MaxMainMemory} = [ $sconfig->{nodememory} ] if $sconfig->{nodememory};
+        # TODO: decide which ones to use from: MaxMainMemory, MaxVirtualMemory, GuaranteedMainMemory, GuaranteedVirtualMemory
 
         # OBS: new config option (space measured in GB !?)
         # OBS: only informative, not enforced,
         # TODO: implement check at job accept time in a-rex
-        $csha->{MaxDiskSpace} = [ $qconfig->{maxdiskperjob} ] if $qconfig->{maxdiskperjob};
+        $csha->{MaxDiskSpace} = [ $sconfig->{maxdiskperjob} ] if $sconfig->{maxdiskperjob};
 
         # DefaultStorageService: Has no meaning for ARC
 
         # TODO: new return value from LRMS infocollector.
+        # OBS: Should be ExtendedBoolean_t (one of 'True', 'False', 'Undefined')
         $csha->{Preemption} = [ $qinfo->{preemption} ] if $qinfo->{preemption};
 
         # ServingState: closed and queuing are not yet supported
-        if (defined $qconfig->{allownew} and lc($qconfig->{allownew}) eq 'no') {
+        if (defined $sconfig->{allownew} and lc($sconfig->{allownew}) eq 'no') {
             $csha->{ServingState} = [ 'production' ];
         } else {
             $csha->{ServingState} = [ 'draining' ];
@@ -519,26 +472,39 @@ sub _collect($$) {
         # OBS: Finished/failed/deleted jobs are not counted
         $csha->{TotalJobs} = [ $gmsharecount{$share}{notfinished} || 0 ];
 
-        $csha->{RunningJobs} = [ $lrmsgridrunning{$qname} || 0 ];
-        $csha->{WaitingJobs} = [ $lrmsgridqueued{$qname} || 0 ];
-        $csha->{LocalRunningJobs} = [ $qinfo->{running} - ($lrmsgridrunning{$qname} || 0) ]
-            if defined $qinfo->{running}; 
-        $csha->{LocalWaitingJobs} = [ $qinfo->{queued}  - ($lrmsgridqueued{$qname} || 0) ]
-            if defined $qinfo->{queued}; 
+        $csha->{RunningJobs} = [ $inlrmscount{$share}{running} || 0 ];
+        $csha->{WaitingJobs} = [ $inlrmscount{$share}{queued} || 0 ];
+        $csha->{SuspendedJobs} = [ $inlrmscount{$share}{suspended} || 0 ];
 
-    $csha->{StagingJobs} = [ ( $gmsharecount{$share}{perparing} || 0 )
-                             + ( $gmsharecount{$share}{finishing} || 0 ) ];
+        # TODO: backends to count suspended jobs
 
-        # OBS: suspending jobs is not yet supported
-        $csha->{SuspendedJobs} = [ 0 ];
+        # Take into account that several shares could submit to the same queue
+        my $localrunning = $qinfo->{running};
+        my $localqueued = $qinfo->{queued};
+        my $localsuspended = $qinfo->{suspended};
+
+        $localrunning -= $inlrmscount{$_}{running} || 0 for @{$sconfig->{siblingshares}};
+        $localqueued -= $inlrmscount{$_}{queued} || 0 for @{$sconfig->{siblingshares}};
+        $localsuspended -= $inlrmscount{$_}{suspended} || 0 for @{$sconfig->{siblingshares}};
+
+        $csha->{LocalRunningJobs} = [ $localrunning ];
+        $csha->{LocalWaitingJobs} = [ $localqueued ];
+        $csha->{LocalSuspendedJobs} = [ $localsuspended ];
+
+        $csha->{StagingJobs} = [ ( $gmsharecount{$share}{perparing} || 0 )
+                               + ( $gmsharecount{$share}{finishing} || 0 ) ];
 
         $csha->{PreLRMSWaitingJobs} = [ $gmsharecount{$share}{notsubmitted} || 0 ];
 
-        # TODO: get these estimates from maui/torque
+        # TODO: investigate if it's possible to get these estimates from maui/torque
         $csha->{EstimatedAverageWaitingTime} = [ $qinfo->{averagewaitingtime} ] if defined $qinfo->{averagewaitingtime};
         $csha->{EstimatedWorstWaitingTime} = [ $qinfo->{worstwaitingtime} ] if defined $qinfo->{worstwaitingtime};
 
         # TODO: implement $qinfo->{freeslots} in LRMS plugins
+
+        # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
+
+
 
         my $freeslots = 0;
         if (defined $qinfo->{freeslots}) {
@@ -548,10 +514,10 @@ sub _collect($$) {
         }
 
         # Local users have individual restrictions
-    # FreeSlots: find the maximum freecpus of any local user mapped in this
-    # share and use that as an upper limit for $freeslots
-    # FreeSlotsWithDuration: for each duration, find the maximum freecpus
-    # of any local user mapped in this share
+        # FreeSlots: find the maximum freecpus of any local user mapped in this
+        # share and use that as an upper limit for $freeslots
+        # FreeSlotsWithDuration: for each duration, find the maximum freecpus
+        # of any local user mapped in this share
         # TODO: is this the correct way to do it?
 
         my %timeslots;
@@ -593,9 +559,6 @@ sub _collect($$) {
         }
 
         $csha->{FreeSlotsWithDuration} = [ join(" ", @durations) || 0 ];
-
-        # Don't advertise free slots while busy with staging
-        $csha->{FreeSlotsWithDuration} = [ 0 ] if $pendingprelrms{$share};
 
         $csha->{UsedSlots} = [ $qinfo->{running} ];
 
@@ -683,10 +646,10 @@ sub _collect($$) {
         $cact->{Associations}{ComputingEndpointID} = [ $cepID ];
 
         my $share = $gmjob->{share};
-        if ( $share and $cshaLIDs{$share} ) {
+        if ( $share ) {
             $cact->{Associations}{ComputingShareLocalID} = [ $cshaLIDs{$share} ];
         } else {
-            $log->warning("Job $jobid does not belong to a configured share (queue)");
+            $log->warning("Job $jobid does not belong to a configured share");
         }
 
         if ( $gmjob->{status} eq "INLRMS" ) {
