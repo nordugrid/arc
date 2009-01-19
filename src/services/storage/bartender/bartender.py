@@ -1160,7 +1160,7 @@ class BartenderService(Service):
         #   </soap-env:Envelope>
         
         requests = parse_node(inpayload.Child().Get('listRequestList'),
-            ['requestID', 'LN'], single = True)
+            ['requestID', 'LN'], single = False)
         neededMetadata = [
             node_to_data(node, ['section', 'property'], single = True)
                 for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
