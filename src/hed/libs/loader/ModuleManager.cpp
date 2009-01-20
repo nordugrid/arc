@@ -74,28 +74,31 @@ void ModuleManager::unload(const std::string& name)
   }
 }
 
-Glib::Module *ModuleManager::load(const std::string& name,bool load_local,bool reload)
+Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool reload*/ )
 {
   if (!Glib::Module::get_supported()) {
     return false;
   }
   // find name in plugin_cache 
-  if(!reload) {
+  //if(!reload) {
     if (plugin_cache.find(name) != plugin_cache.end()) {
       Loader::logger.msg(VERBOSE, "Found %s in cache", name);
       return plugin_cache[name];
     }
-  }
+  //}
   std::string path = findLocation(name);
   if(path.empty()) {
     Loader::logger.msg(DEBUG, "Could not locate module %s", name);
     return NULL;
   };
-//#ifdef HAVE_GLIBMM_BIND_LOCAL
-//  Glib::Module *module = new Glib::Module(path,load_local?Glib::MODULE_BIND_LOCAL:(Glib::ModuleFlags(0)));
-//#else
-  Glib::Module *module = new Glib::Module(path);
-//#endif
+  Glib::ModuleFlags flags = Glib::ModuleFlags(0);
+#ifdef HAVE_GLIBMM_BIND_LOCAL
+  //flags|=Glib::MODULE_BIND_LOCAL;
+  if(probe) flags|=Glib::MODULE_BIND_LAZY | Glib::MODULE_BIND_LOCAL;
+#else
+  if(probe) flags|=Glib::MODULE_BIND_LAZY;
+#endif
+  Glib::Module *module = new Glib::Module(path,flags);
   if ((!module) || (!(*module))) {
     Loader::logger.msg(ERROR, Glib::Module::get_last_error());
     if(module) delete module;
@@ -104,6 +107,26 @@ Glib::Module *ModuleManager::load(const std::string& name,bool load_local,bool r
   Loader::logger.msg(VERBOSE, "Loaded %s", path);
   plugin_cache[name] = module;
   return module;
+}
+
+Glib::Module* ModuleManager::reload(Glib::Module* omodule)
+{
+  plugin_cache_t::iterator p = plugin_cache.begin();
+  for(;p!=plugin_cache.end();++p) {
+    if(p->second == omodule) break;
+  }
+  if(p==plugin_cache.end()) return NULL;
+  Glib::ModuleFlags flags = Glib::ModuleFlags(0);
+  //flags|=Glib::MODULE_BIND_LOCAL;
+  Glib::Module *module = new Glib::Module(omodule->get_name(),flags);
+  if ((!module) || (!(*module))) {
+    Loader::logger.msg(ERROR, Glib::Module::get_last_error());
+    if(module) delete module;
+    return NULL;
+  }
+  p->second=module;
+  delete omodule;
+  return module; 
 }
 
 void ModuleManager::setCfg (Arc::Config *cfg) {

@@ -34,7 +34,7 @@ namespace Arc {
     return NULL;
   }
 
-  static Glib::Module* load_module(std::string name,ModuleManager& manager) {
+  static Glib::Module* probe_module(std::string name,ModuleManager& manager) {
     std::string::size_type p = 0;
     for(;;) {
       p=name.find(':',p);
@@ -42,10 +42,15 @@ namespace Arc {
       name.replace(p,1,"_");
       ++p;
     };
-    return manager.load(name);
+    return manager.load(name,true);
   }
 
-  void unload_module(Glib::Module* module,ModuleManager& manager) {
+  inline static Glib::Module* reload_module(Glib::Module* module,ModuleManager& manager) {
+    if(!module) return NULL;
+    return manager.reload(module);
+  }
+
+  inline static void unload_module(Glib::Module* module,ModuleManager& manager) {
     if(!module) return;
     manager.unload(module);
   }
@@ -80,7 +85,7 @@ namespace Arc {
     };
     // Try to load module of plugin
     std::string mname = kind;
-    Glib::Module* module = load_module(kind,*this);
+    Glib::Module* module = probe_module(kind,*this);
     if (module == NULL) {
       logger.msg(ERROR, "Could not find loadable module by name %s (%s)",kind,Glib::Module::get_last_error());
       return NULL;
@@ -100,8 +105,14 @@ namespace Arc {
       Plugin* plugin = desc->instance(arg);
       if(plugin) {
         // Keep plugin loaded and registered
+        Glib::Module* nmodule = reload_module(module,*this);
+        if(!nmodule) {
+          logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,Glib::Module::get_last_error());
+          unload_module(module,*this);
+          return false;
+        };
         descriptors_[mname]=(PluginDescriptor*)ptr;
-        modules_[mname]=module;
+        modules_[mname]=nmodule;
         //descriptors_.push_back((PluginDescriptor*)ptr);
         //modules_.push_back(module);
         return plugin;
@@ -128,11 +139,11 @@ namespace Arc {
     };
     // Try to load module - first by name of plugin
     std::string mname = name;
-    Glib::Module* module = load_module(name,*this);
+    Glib::Module* module = probe_module(name,*this);
     if (module == NULL) {
       // Then by kind of plugin
       mname=kind;
-      module=load_module(kind,*this);
+      module=probe_module(kind,*this);
       logger.msg(ERROR, "Could not find loadable module by name %s and %s (%s)",name,kind,Glib::Module::get_last_error());
       return NULL;
     };
@@ -147,8 +158,14 @@ namespace Arc {
     PluginDescriptor* desc = find_constructor((PluginDescriptor*)ptr,kind,name,min_version,max_version);
     if(desc) {
       // Keep plugin loaded and registered
+      Glib::Module* nmodule = reload_module(module,*this);
+      if(!nmodule) {
+        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,Glib::Module::get_last_error());
+        unload_module(module,*this);
+        return false;
+      };
       descriptors_[mname]=(PluginDescriptor*)ptr;
-      modules_[mname]=module;
+      modules_[mname]=nmodule;
       //descriptors_.push_back((PluginDescriptor*)ptr);
       //modules_.push_back(module);
       return desc->instance(arg);
@@ -180,7 +197,7 @@ namespace Arc {
     } else {
       // Try to load module by specified name
       mname = name;
-      module = load_module(name,*this);
+      module = probe_module(name,*this);
       if (module == NULL) {
         logger.msg(ERROR, "Could not find loadable module by name %s (%s)",name,Glib::Module::get_last_error());
         return false;
@@ -206,8 +223,14 @@ namespace Arc {
       };
     };
     if(!mname.empty()) {
+      Glib::Module* nmodule=reload_module(module,*this);
+      if(!nmodule) {
+        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,Glib::Module::get_last_error());
+        unload_module(module,*this);
+        return false;
+      };
       descriptors_[mname]=(PluginDescriptor*)ptr;
-      modules_[mname]=module;
+      modules_[mname]=nmodule;
       //descriptors_.push_back((PluginDescriptor*)ptr);
       //modules_.push_back(module);
     };

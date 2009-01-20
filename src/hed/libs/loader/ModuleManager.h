@@ -29,7 +29,12 @@ class ModuleManager
         ModuleManager(const Arc::Config *cfg);
         ~ModuleManager();
         /** Finds module 'name' in cache or loads corresponding shared library */
-        Glib::Module *load(const std::string& name,bool load_local = true,bool reload = false);
+        Glib::Module* load(const std::string& name,bool probe = false /*,bool reload = false*/ );
+        /** Reload module previously loaded in probe mode.
+          New module is loaded with all symbols resolved and 
+          old module handler is unloaded. In case of error old 
+          module is not unloaded. */
+        Glib::Module* reload(Glib::Module* module);
         void unload(Glib::Module* module);
         void unload(const std::string& name);
         /** Finds shared library corresponding to module 'name' and returns path to it */
