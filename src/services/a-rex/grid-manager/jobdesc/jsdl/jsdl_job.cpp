@@ -27,28 +27,24 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 #include "jsdl_job.h"
 
+static bool session_fname_compare(const char* fname1,const char* fname2) {
+  if((fname1[0] == '.') && (fname1[1] == '/')) fname1+=2;
+  if((fname2[0] == '.') && (fname2[1] == '/')) fname2+=2;
+  return (strcmp(fname1,fname2) == 0);
+}
+
 static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
   for(std::list<FileData>::iterator i=inputdata.begin();i!=inputdata.end();++i){  
-  
-  if(i->has_lfn()) {
-
-    std::string pfn = (*i).pfn;
-    if (pfn[0] != '.' && pfn[1] != '/')
-		pfn = "./" + pfn;
-
-    std::string fname_tmp = fname;
-    if (fname_tmp[0] != '.' && fname_tmp[1] != '/')
-		fname_tmp = "./" + fname_tmp;
-
-    if(pfn == fname_tmp) {
-      Arc::URL u(i->lfn);
-      if(u) {
-        u.AddOption("cache","no");
-        u.AddOption("exec","yes");
-        i->lfn=u.fullstr();
+    if(i->has_lfn()) {
+      if(session_fname_compare(fname,i->pfn.c_str())) {
+        Arc::URL u(i->lfn);
+        if(u) {
+          u.AddOption("cache","no");
+          u.AddOption("exec","yes");
+          i->lfn=u.fullstr();
+        };
       };
     };
-   };
   };
 }
 
