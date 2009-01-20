@@ -65,12 +65,13 @@ namespace Arc {
   Arc::Logger Arc::Plexer::logger(Arc::Logger::rootLogger,"Plexer");
 
   std::string Plexer::getPath(std::string url){
+    // TODO: Need even more reliable URL detection
     std::string::size_type ds, ps;
-    ds=url.find("//");
+    ds=url.find("://");
     if (ds==std::string::npos)
       ps=url.find("/");
     else
-      ps=url.find("/", ds+2);
+      ps=url.find("/", ds+3);
     if (ps==std::string::npos)
       return "";
     else

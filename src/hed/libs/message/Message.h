@@ -16,6 +16,17 @@ class MessagePayload {
   virtual ~MessagePayload(void) { };
 };
 
+template<class P>
+P* PayloadCast(MessagePayload* p) {
+    if(p == NULL) return NULL;
+    P* pp = dynamic_cast<P*>(p);
+    if(pp != NULL) return pp;
+    // Workaround for g++ and loadable modules
+    if(strcmp(typeid(P).name(),typeid(*p).name()) != 0) return NULL;
+    return static_cast<P*>(p);
+  }
+
+
 /// Top class for elements contained in message context.
 /** Objects of classes inherited with this one may be stored in
   MessageContext container. */

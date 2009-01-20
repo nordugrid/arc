@@ -1,4 +1,5 @@
 #include "SOAPEnvelope.h"
+#include "PayloadRaw.h"
 
 const char* xml_str = "\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\
@@ -34,5 +35,14 @@ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><SOAP-ENV:Body><bes-fact
 
 int main(void) {
   Arc::SOAPEnvelope soap(xml_str);
+
+
+Arc::MessagePayload *m = new Arc::PayloadRaw();
+std::cerr<<"m: "<<typeid(m).name()<<std::endl;
+std::cerr<<"*m: "<<typeid(*m).name()<<std::endl;
+std::cerr<<"MessagePayload: "<<typeid(Arc::MessagePayload).name()<<std::endl;
+std::cerr<<"PayloadRawInterface: "<<typeid(Arc::PayloadRawInterface).name()<<std::endl;
+std::cerr<<"PayloadRaw: "<<typeid(Arc::PayloadRaw).name()<<std::endl;
+
   return 0;
 }
