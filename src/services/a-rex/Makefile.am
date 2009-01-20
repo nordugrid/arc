@@ -1,7 +1,7 @@
 SUBDIRS = grid-manager ldif config infoproviders lrms
 DIST_SUBDIRS = grid-manager ldif config infoproviders lrms
 pkglib_LTLIBRARIES = libarex.la
-noinst_PROGRAMS=test
+noinst_PROGRAMS=test test_cache_check
 
 initddir=@initddir@
 initd_SCRIPTS=a-rex
@@ -30,6 +30,13 @@ test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                 $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
                 $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
                 $(top_srcdir)/src/hed/libs/infosys/libinfosys.la #$(top_srcdir)/src/hed/libs/ws/libarcws.la
+
+
+test_cache_check_SOURCES  = test_cache_check.cpp
+test_cache_check_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+test_cache_check_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+test_cache_check_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la
+
 
 sysconf_DATA = arc_arex.conf
 
