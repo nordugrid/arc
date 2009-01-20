@@ -61,7 +61,7 @@ namespace Arc {
         must match at least one of stored regular expressions. */
       RegularExpression& AddRegex(const VOMSTrustRegex& reg);
       int SizeChains(void) const { return chains_.size(); };
-      int SizeRegexs(void) const { return chains_.size(); };
+      int SizeRegexs(void) const { return regexs_.size(); };
       const VOMSTrustChain& GetChain(int num) const { return chains_[num]; };
       const RegularExpression& GetRegex(int num) const { return *(regexs_[num]); };
   };
