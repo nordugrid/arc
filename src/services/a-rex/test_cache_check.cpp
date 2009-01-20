@@ -19,11 +19,12 @@ int main(void) {
   logger.msg(Arc::INFO, "Creating client side chain");
 
   std::string id;
-  std::string url("https://zion.ki.iif.hu:60000/arex");
+  std::string url("https://localhost:60000/arex");
   Arc::NS ns;
   Arc::MCCConfig cfg;
 
-  cfg.AddProxy("/home/roczei/.globus/proxy.pem");
+  cfg.AddProxy("/Users/roczei/.globus/proxy.pem");
+  cfg.AddCADir("/Users/roczei/arc1/etc/certificates");
 
   Arc::ClientSOAP client(cfg, url);
 
@@ -33,7 +34,12 @@ int main(void) {
     Arc::PayloadSOAP request(ns);
     Arc::XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    req.NewChild("FileURL") = "http://knowarc.grid.niif.hu/storage/Makefile";
+    req.NewChild("FileURL") = "http://localhost:8888/storage/ucc.log";
+
+    req.NewChild("FileURL") = "http://localhost:8888/storage/job.jdl";
+
+    req.NewChild("FileURL") = "http://knowarc1.grid.niif.hu/storage/Makefile";
+
 
     Arc::PayloadSOAP* response;
 

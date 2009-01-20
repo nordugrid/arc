@@ -18,20 +18,6 @@
 namespace ARex {
 
 Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-   // TODO: Finish this method
-   //
-   // Method for grid-manager cache checking 
-   //
-   //  You should call CheckCreated() with the URL of the file you want to check - eg CheckCreated("http://..."). File() is called within this method to resolve the URL to the local file name.
-   //
-   //  This information is from David Cameron
-   //
-   
-   {
-     std::string s;
-     in.GetXML(s);
-     logger.msg(Arc::DEBUG, "CachCheck: request = \n%s", s); 
-   };  
 
   uid_t uid = getuid();
   gid_t gid = getgid();
@@ -48,7 +34,6 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
     getpwuid_r(getuid(),&pw_,buf,BUFSIZ,&pw);
     if(pw == NULL) {
      logger.msg(Arc::ERROR, "Wrong user name"); 
-     exit(1);
     }
     if(pw->pw_name) file_owner_username=pw->pw_name;
 
@@ -87,47 +72,25 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
   Arc::XMLNode resp = out.NewChild("CacheCheckResponse");
 
   Arc::XMLNode results = resp.NewChild("CacheCheckResult");
-
+  
    for(int n = 0;;++n) {
-      Arc::XMLNode id = in["TheseFilesNeedToCheck"]["FileURL"][n];
-      if(!id) break;
+      Arc::XMLNode id = in["CacheCheck"]["TheseFilesNeedToCheck"]["FileURL"][n];
       
+      if (!id) break;
+    
       fileexist = false;
 
-	  std::string fileurl = ((std::string)in["TheseFilesNeedToCheck"]["FileURL"][n]);
-         
+	  std::string fileurl = (std::string)in["CacheCheck"]["TheseFilesNeedToCheck"]["FileURL"][n];
+
       fileexist = (*cache).CheckCreated(fileurl);
 
-      Arc::XMLNode file;
+      Arc::XMLNode resultelement = results.NewChild("Result");
 
-	  file.NewChild("FileURL") = fileurl;
-	  file.NewChild("ExistInTheCache") = (fileexist ? "true": "false");
+	  resultelement.NewChild("FileURL") = fileurl;
+	  resultelement.NewChild("ExistInTheCache") = (fileexist ? "true": "false");
 
-
-      Arc::XMLNode resultelement("Result");
-
-      resultelement.NewChild(file);
-
-      results.NewChild(resultelement);
    }
   
-
-   // TESTING: file_owner_username
-
-      fileexist = false;
-
-	  std::string fileurl = "http://knowarc1.grid.niif.hu/storage/Makefile";
-         
-      fileexist = (*cache).CheckCreated(fileurl);
-
-      logger.msg(Arc::INFO, "Cache check working or not: %s", fileexist ? "true": "false"); 
-
-   {
-     std::string s;
-     out.GetXML(s);
-     logger.msg(Arc::DEBUG, "CachCheck: response = \n%s", s); 
-   };  
-
    return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
