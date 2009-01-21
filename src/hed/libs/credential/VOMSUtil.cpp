@@ -24,7 +24,7 @@ namespace Arc {
     VOMSTrustChain chain;
     for(std::vector<std::string>::const_iterator i = encoded_list.begin();
                                 i != encoded_list.end(); ++i) {
-      if(*i == "NEXT CHAIN") {
+      if((*i).find("NEXT CHAIN") != std::string::npos) {
         if(chain.size() > 0) {
           if(chain.size() > 1) { // More than one item in chain means DN list
             AddChain(chain);
