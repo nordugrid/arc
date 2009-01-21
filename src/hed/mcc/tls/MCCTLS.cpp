@@ -41,7 +41,7 @@ class TLSSecAttr: public Arc::SecAttr {
  friend class MCC_TLS_Service;
  friend class MCC_TLS_Client;
  public:
-  TLSSecAttr(PayloadTLSStream&, ConfigTLSMCC& config);
+  TLSSecAttr(PayloadTLSStream&, ConfigTLSMCC& config, Logger& logger);
   virtual ~TLSSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
@@ -87,7 +87,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 using namespace Arc;
 
 
-TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config) {
+TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& logger) {
    char buf[100];
    std::string subject;
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
@@ -116,7 +116,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config) {
         // Parse VOMS attributes from each certificate of the peer chain.
         bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_);
         if(!res) {
-          throw std::runtime_error("VOMS attribute parsing failed");
+          logger.msg(ERROR,"VOMS attribute parsing failed");
         };
       };
    };
@@ -369,7 +369,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    if(tstream && (config_.IfClientAuthn())) {
       TLSSecAttr* sattr = NULL;
       try {
-        sattr = new TLSSecAttr(*tstream, config_);
+        sattr = new TLSSecAttr(*tstream, config_, logger);
       }  catch(std::exception& e) { return MCC_Status(); };
       nextinmsg.Auth()->set("TLS",sattr);
       // TODO: Remove following code, use SecAttr instead
