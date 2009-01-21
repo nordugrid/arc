@@ -1,26 +1,25 @@
-% This file was converted to LaTeX by Writer2LaTeX ver. 0.9.3
+% This file was converted to LaTeX by Writer2LaTeX ver. 0.5
 % see http://www.hj-gym.dk/~hj/writer2latex for more info
-\documentclass[a4paper]{article}
+\documentclass{article}
 \usepackage[ascii]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish,english]{babel}
-\usepackage{amsmath}
-\usepackage{amssymb,amsfonts,textcomp}
+\usepackage{amsmath,amssymb,amsfonts,textcomp}
 \usepackage{color}
 \usepackage{array}
 \usepackage{supertabular}
 \usepackage{hhline}
 \usepackage{hyperref}
-\hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, urlcolor=blue, pdftitle=, pdfauthor=Aleksandr Konstantinov, pdfsubject=, pdfkeywords=}
+\hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, pagecolor=blue, urlcolor=blue, pdftitle=, pdfauthor=qiangwz, pdfsubject=, pdfkeywords=}
 \usepackage[pdftex]{graphicx}
 % Text styles
 \newcommand\textstyleInternetlink[1]{\textcolor[rgb]{0.0,0.0,0.5019608}{#1}}
 % Outline numbering
 \setcounter{secnumdepth}{4}
-\renewcommand\thesection{\arabic{section}}
-\renewcommand\thesubsection{\arabic{subsection}}
-\renewcommand\thesubsubsection{\arabic{subsection}.\arabic{subsubsection}}
-\renewcommand\theparagraph{\arabic{subsection}.\arabic{subsubsection}.\arabic{paragraph}}
+\renewcommand\thesection{\arabic{section}.}
+\renewcommand\thesubsection{\arabic{subsection}.}
+\renewcommand\thesubsubsection{\arabic{subsection}.\arabic{subsubsection}.}
+\renewcommand\theparagraph{\arabic{subsection}.\arabic{subsubsection}.\arabic{paragraph}.}
 \makeatletter
 \newcommand\arraybslash{\let\\\@arraycr}
 \makeatother
@@ -169,7 +168,7 @@
 \renewcommand\labelenumiii{\theenumiii.}
 \renewcommand\labelenumiv{\theenumiv.}
 }
-\newcommand\liststyleLii{%
+\newcommand\liststyleLi{%
 \renewcommand\theenumi{\arabic{enumi}}
 \renewcommand\theenumii{\arabic{enumii}}
 \renewcommand\theenumiii{\arabic{enumiii}}
@@ -180,6 +179,8 @@
 \renewcommand\labelenumiv{\theenumiv.}
 }
 % Page layout (geometry)
+\setlength\paperwidth{8.2673in}
+\setlength\paperheight{11.6925in}
 \setlength\voffset{-1in}
 \setlength\hoffset{-1in}
 \setlength\topmargin{1in}
@@ -217,8 +218,6 @@
 \newcounter{Figure}
 \renewcommand\theFigure{\arabic{Figure}}
 \title{}
-\author{Aleksandr Konstantinov}
-\date{2009-01-19}
 \begin{document}
 \begin{flushleft}
 \tablehead{}\begin{supertabular}{m{1.3809599in}m{2.0976598in}}
@@ -274,7 +273,7 @@ Table of Contents
 \bigskip
 
 \bigskip
-\clearpage\clearpage\pagestyle{Convertv}
+\clearpage\clearpage\setcounter{page}{1}\pagestyle{Convertv}
 
 \bigskip
 
@@ -570,9 +569,8 @@ detail information about request schema and policy schema.}
 The Delegation PDP is basically similar to Arc PDP, except it uses the
 delegation policy parsed from remote proxy credential by
 \textit{delegation.collector}, and evaluates the request against
-delegation policy. See section \ref{bkm:Ref204009393}for the design
-idea and use case of delegation policy in fine-grained identity
-delegation.}
+delegation policy. See section 6for the design idea and use case of
+delegation policy in fine-grained identity delegation.}
 
 \liststyleWWviiiNumxiii
 \begin{itemize}
@@ -688,37 +686,37 @@ multiplicity of elements)}
 Policy (1)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ Rule (1-)}
+ Rule (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ Subjects (1)}
+  Subjects (1)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ Subject (1-)}
+   Subject (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ Attribute (1-)}
+    Attribute (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ Resources (0-1)}
+   Resources (0-1)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ Resource (1-)}
+   Resource (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ Actions (0-1)}
+  Actions (0-1)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ Action (1-)}
+   Action (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ Conditions (0-1)}
+  Conditions (0-1)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ Condition (1-)}
+   Condition (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ \ \ Attribute (1-)}
+    Attribute (1-)}
 
 {\selectlanguage{english}\upshape\color{black}
 The schema for ARC Request is available at \ }
@@ -735,25 +733,25 @@ multiplicity of elements)}
 Request (1)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ RequestItem (1-)}
+ RequestItem (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ Subject (1-)}
+  Subject (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ SubjectAttribute (1-)}
+   SubjectAttribute (1-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ Resource (0-)}
+  Resource (0-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ Action (0-)}
+  Action (0-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ Context (0-)}
+  Context (0-)}
 
 {\selectlanguage{english}\itshape\color{black}
-\ \ \ \ \ \ ContextAttribute (1-)}
+   ContextAttribute (1-)}
 
 {\selectlanguage{english}\upshape\color{black}
 The schema for ARC Response is available at}
@@ -1926,8 +1924,7 @@ from parent SecAttr class
 stores it{\textquotesingle}s information in internal format and is
 capable to export it to one of predefined formats using Export()
 method. Currently only supported format is ARC Policy/Request XML
-document described in Section \ref{bkm:Ref204009564}and
-\ref{bkm:Ref204009595}}
+document described in Section 7.1and 7.2}
 
 {\selectlanguage{english}\upshape\color{black}
 Collectors of Security Attributes instantiate corresponding classes and
@@ -1938,8 +1935,8 @@ storing collected attributes per request and per session
 correspondingly. Each attribute is assigned a name. Current
 implementations of Security Attributes Collectors are either integrated
 into existing MCCs or implemented as separate SecHandler plugins. See
-Section \ref{bkm:Ref204009636}for available Collectors and
-corresponding Security Attributes. }
+Section 5.2for available Collectors and corresponding Security
+Attributes. }
 
 {\selectlanguage{english}\upshape\color{black}
 Note for service developers: Services may implement own authorization
@@ -1960,13 +1957,13 @@ selected set of attributes against specified Policy documents thus
 making it possible to enforce policies defined/selected by service
 providers. }
 \item {\selectlanguage{english}\color{black}
-Delegation PDP is described below in Section \ref{bkm:Ref204009695}}
+Delegation PDP is described below in Section 6.3}
 \end{itemize}
 \subsubsection[Available collectors]{Available collectors}
 \label{bkm:Ref204009636}{\selectlanguage{english}\upshape\color{black}
 Here Security Attribute collectors distributed as part of the ARC1 are
 described except those used for Delegation Restrictions. Those are
-described in Section \ref{bkm:Ref204009734}}
+described in Section 6.2}
 
 \paragraph{TCP}
 {\selectlanguage{english}\upshape\color{black}
@@ -2051,7 +2048,7 @@ having string value NULL. Example of VOMS attribute looks like }
 /VO=knowarc.eu/Group=testers/Role=admin/Capability=NULL}
 
 {\selectlanguage{english}\color{black}
-Each set of attributes is acompanied by identifier of service which
+Each set of attributes is accompanied by identifier of service which
 provided those attributes. It is made of \textit{voname} element with
 name of VO followed by optional element \textit{hostname} with hostname
 and port of service. Here is an example}
@@ -2070,6 +2067,75 @@ usually same as VO name. Below is an example of such attribute}
 
 {\selectlanguage{english}\bfseries\color{black}
 /voname=knowarc.eu/hostname=arthur.hep.lu.se:15001/knowarc.eu:UniqueKnowarcAttribute=False}
+
+{\selectlanguage{english}\color{black}
+Which is needed to describe is the configuration of trusted certificates
+to constrain the Attribute Certificate (AC) which the service would
+accept. The trusted certificates should be organized in a chunk which
+contains a suit of DN of trusted certificate in a chain
+(\textit{{\textless}VOMSCertTrustDNChain{\textgreater}}), in which the
+first line is the DN of the VOMS server certificate (cert0) which is
+used to sign the Attribute Certificate (AC), the second line is the DN
+of the corresponding issuer certificate(cert1) which is used to sign
+cert0. So if there are one or more intermediate issuers, then there
+should be 3 or more than 3 lines of DN in this chunk (considering cert0
+and the root CA certificate, plus the intermediate certificate).
+Regular expression is supported as well for match-making, in this case,
+only one line of regular expression is needed under one chain. Also,
+the trusted certificate chain can also be acquired from an independent
+text file including the same format of content.}
+
+{\selectlanguage{english}\color{black}
+The chain (\textit{{\textless}VOMSCertTrustDNChain{\textgreater}})
+should be configured under the configuration of TLS MCC. There also
+could be a few chains, if there are a few VOMS servers which are
+trusted by this service container.}
+
+\begin{center}
+\tablehead{}\begin{supertabular}{|m{5.6886597in}|}
+\hline
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDNChain{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDN{\textgreater}/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se{\textless}/tls:VOMSCertTrustDN{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDN{\textgreater}/O=Grid/O=NorduGrid/CN=NorduGrid
+Certification Authority{\textless}/tls:VOMSCertTrustDN{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}/tls:VOMSCertTrustDNChain{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDNChain{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDN{\textgreater}/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch{\textless}/tls:VOMSCertTrustDN{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDN{\textgreater}/DC=ch/DC=cern/CN=CERN
+Trusted Certification
+Authority{\textless}/tls:VOMSCertTrustDN{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}/tls:VOMSCertTrustDNChain{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDNChain{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustRegex{\textgreater}\^{}/O=Grid/O=NorduGrid{\textless}/tls:VOMSCertTrustRegex{\textgreater}}
+
+{\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}/tls:VOMSCertTrustDNChain{\textgreater}}
+
+\selectlanguage{english}\itshape\color{black}
+\ \ \ \ \ \ \ \ \ \ \ \ {\textless}tls:VOMSCertTrustDNChainsLocation{\textgreater}./{\textless}/tls:VOMSCertTrustDNChainsLocation{\textgreater}\\\hline
+\end{supertabular}
+\end{center}
+
+\bigskip
 
 \paragraph{HTTP}
 {\selectlanguage{english}\upshape\color{black}
@@ -2139,7 +2205,7 @@ In current implementation delegation is achieved through Identity
 Delegation implemented using X509 Proxy Certificates as defined in RFC
 3820. Client wishing to allow service to act on it{\textquotesingle}s
 behalf provides Proxy Certificate to the service using Web Service
-based Delegation interface described in Section \ref{bkm:Ref204009766}}
+based Delegation interface described in Section 6.4}
 
 {\selectlanguage{english}\upshape\color{black}
 For limiting the scope of delegated credentials along with usually used
@@ -2152,15 +2218,15 @@ of ARC Policy XML document.}
 
 {\selectlanguage{english}\upshape\color{black}
 Each deployment implementing Delegation Restrictions must use dedicated
-Security Handler plugin (see section \ref{bkm:Ref204009818}) to collect
-all Policy documents from Proxy Certificates used for establishing
-secure connection. Then those documents must be processed by dedicated
-Policy Decision Point plugin (see section \ref{bkm:Ref204009855}) to
-make a final decision based on collected Policies and various
-information about client{\textquotesingle}s identity and requested
-operation. Service or MCC chain supporting Delegation Restrictions must
-accept negative decision of this PDP as final and do not override it
-with any other decision based on other policies.}
+Security Handler plugin (see section 5.1) to collect all Policy
+documents from Proxy Certificates used for establishing secure
+connection. Then those documents must be processed by dedicated Policy
+Decision Point plugin (see section 2.3) to make a final decision based
+on collected Policies and various information about
+client{\textquotesingle}s identity and requested operation. Service or
+MCC chain supporting Delegation Restrictions must accept negative
+decision of this PDP as final and do not override it with any other
+decision based on other policies.}
 
 \subsubsection[Delegation Collector]{Delegation Collector}
 \label{bkm:Ref204009734}{\selectlanguage{english}\upshape\color{black}
@@ -2168,9 +2234,8 @@ This Security Attribute is collected by dedicated Security Handler
 plugin named {\textquotedbl}delegation.collector{\textquotedbl}
 avaialble as part of the ARC1 distribution. It extracts policy document
 stored inside X509 certificate proxy extension as defined in RFC3820
-and described in Section \ref{bkm:Ref204009914}All proxy certificates
-in a chain provided by client are examined and all available policies
-are extracted. }
+and described in Section 6.1All proxy certificates in a chain provided
+by client are examined and all available policies are extracted. }
 
 {\selectlanguage{english}\upshape\color{black}
 Extracted content is converted into XML document. Then document is
@@ -2197,7 +2262,7 @@ Delegation interface in the ARC1 is implemented using Web Service
 approach. Each ARC1 service wishing to act on behalf of client identity
 implements this interface in order to accept delegated credentials.
 Here is how delegation procedure works (also shown in figures
-\ref{seq:refFigure7} and \ref{seq:refFigure8}) :}
+\ref{seq:refFigure5} and \ref{seq:refFigure6}) :}
 
 \liststyleWWviiiNumix
 \begin{itemize}
@@ -2245,15 +2310,15 @@ WSDL of portType implementing delegation functionality can be found at
 {\centering [Warning: Draw object ignored]\par}
 
 {\centering\selectlanguage{english}\itshape\color{black}
-Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure7}}. The
-flow diaram of delegation procedure with multiple second step and
+Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure5}}. The
+flow diagram of delegation procedure with multiple second step and
 session expiration. 
 \par}
 
 {\centering [Warning: Draw object ignored]\par}
 
 {\centering\selectlanguage{english}\itshape\color{black}
-Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure8}}. The
+Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure6}}. The
 flow diagram of delegation procedure with certificate transfered as
 payload of service specific message. 
 \par}
@@ -2348,7 +2413,7 @@ name={\textquotedbl}arc.request{\textquotedbl} /{\textgreater}}
 {\textless}/Service{\textgreater}}
 
 {\selectlanguage{english}\upshape\color{black}
-See Section \ref{bkm:Ref204009974}for the explanation of ARC Policy.}
+See Section 7.7for the explanation of ARC Policy.}
 
 \subsubsection{SimpleList PDP configuration and Policy Example}
 {\selectlanguage{english}\upshape\color{black}
@@ -2477,9 +2542,9 @@ There could be a few policy files under
 against all of the policies.}
 
 {\selectlanguage{english}\upshape\color{black}
-There is an example policy for echo service below. See Section
-\ref{bkm:Ref204009564}for the policy schema. The example policy is
-\ made of following elements: }
+There is an example policy for echo service below. See Section 7.1for
+the policy schema. The example policy is \ made of following elements:
+}
 
 {\selectlanguage{english}\color{black}
 1. Line 14 \ defines resource being protected. In this it is everything
@@ -2587,7 +2652,8 @@ Type={\textquotedbl}string{\textquotedbl}{\textgreater}echo{\textless}/Action{\t
 \item {\selectlanguage{english}\ttfamily\color{black}
 {\textless}/Policy{\textgreater}}
 \end{enumerate}
-\subsubsection{PDP Service Invoker configuration}
+\subsubsection[PDP Service Invoker configuration]{PDP Service Invoker
+configuration}
 {\selectlanguage{english}\upshape\color{black}
 Configuration XML schema with comments is available at
 \url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.xsd}
@@ -2794,7 +2860,7 @@ UsernameToken SecHandler must be configured under SOAP MCC.}
 configuration}
 {\selectlanguage{english}\upshape\color{black}
 Configuration XML schema with comments available at
-\href{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/usernametokensh/UsernameTokenSH.xsd}{\textstyleInternetlink{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/x509tokensh/X509TokenSH.xsd}}.}
+\href{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/usernametokensh/UsernameTokenSH.xsd}{\textstyleInternetlink{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/x509tokensh/X509TokenSH.xs}}\href{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/usernametokensh/UsernameTokenSH.xsd}{\textstyleInternetlink{d}}.}
 
 {\selectlanguage{english}\upshape\color{black}
 Below is an example of configuration of X509Token SecHandler inside
@@ -2845,10 +2911,9 @@ X509Token SecHandler must be configured under SOAP MCC.}
 
 \bigskip
 
-\subsection[Using Shibboleth IdP for Authentication and
-Attribute{}-based Authorization]{Using
-\foreignlanguage{english}{Shibboleth} IdP for Authentication and
-Attribute-based Authorization}
+\subsection[Using Shibboleth IdP for Authentication and Attribute-based
+Authorization]{Using \foreignlanguage{english}{Shibboleth} IdP for
+Authentication and Attribute-based Authorization}
 {\selectlanguage{english}\color{black}
 \ \ \ \ In grid community, GSI (grid security infrastructure) is the
 de-facto standard about transport level communication for the legacy
@@ -2932,15 +2997,15 @@ SAML2.0 SSO integrated in ARC client and service.}
 
 {\centering\selectlanguage{english}\itshape\color{black}
 Figure
-{\refstepcounter{Figure}\theFigure\label{seq:refFigure5}}.\textbf{
+{\refstepcounter{Figure}\theFigure\label{seq:refFigure7}}.\textbf{
 }SAML2.0 SSO profile in ARC
 \par}
 
 {\selectlanguage{english}\color{black}
-\ The steps shows in Figure \ref{seq:refFigure5} are described as
+\ The steps shows in Figure \ref{seq:refFigure7} are described as
 follows:}
 
-\liststyleLii
+\liststyleLi
 \begin{enumerate}
 \item {\selectlanguage{english}\color{black}
 The client uses the user agent interface to launch a HTTP request
@@ -3037,7 +3102,7 @@ only require server authentication instead of mutual authentication.}
 
 \bigskip
 
-\subsection[\ Short{}-Lived Credential
+\subsection[\ Short-Lived Credential
 Service]{\foreignlanguage{english}{\ }Short-Lived Credential Service}
 {\selectlanguage{english}\color{black}
 \ \ \ \ However, most of the widely used Grid middlewares are based on
@@ -3053,8 +3118,8 @@ contact any registration authority (RA) or certificate authority (CA).}
 implemented by using ARC service interface), and the SLCS client is a
 specific command-line interface (CLI) which includes the user agent and
 WS client. The whole process of SLCS invocation is showed in Figure
-\ref{seq:refFigure6} (from step 1 to step 8), which is the same as in
-Figure \ref{seq:refFigure5}, except that step 7 and step 8 are invoked
+\ref{seq:refFigure8} (from step 1 to step 8), which is the same as in
+Figure \ref{seq:refFigure7}, except that step 7 and step 8 are invoked
 for the SLCS certificate request and response.}
 
 
@@ -3063,7 +3128,7 @@ for the SLCS certificate request and response.}
 \includegraphics[width=3.7689in,height=3.2055in]{SecurityFrameworkofARC1-img8.png}
 \end{center}
 {\centering\selectlanguage{english}\itshape\color{black}
-Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure6}}.Short
+Figure {\refstepcounter{Figure}\theFigure\label{seq:refFigure8}}.Short
 lived credential service
 \par}
 
@@ -3324,9 +3389,9 @@ prototype),
 \url{http://www.knowarc.eu/documents/Knowarc_D1.2-2_07.pdf}}
 
 {\selectlanguage{english}\color{black}
-\stepcounter{Bibitem}{\theBibitem}.\foreignlanguage{english}{Web Service
-Security Username Token Profile 1.1.
-}\url{http://www.oasis-open.org/committees/download.php/16782/wss-v1.1-spec-os-UsernameTokenProfile.pdf}}
+\textstyleInternetlink{\textcolor{black}{\stepcounter{Bibitem}{\theBibitem}}}\textstyleInternetlink{\textcolor{black}{.}}\textstyleInternetlink{\foreignlanguage{english}{\textcolor{black}{Web
+Service Security Username Token Profile 1.1.
+}}}\url{http://www.oasis-open.org/committees/download.php/16782/wss-v1.1-spec-os-UsernameTokenProfile.pdf}}
 
 {\selectlanguage{english}\color{black}
 \stepcounter{Bibitem}{\theBibitem}. OGSA{\textregistered} Basic
@@ -3334,7 +3399,7 @@ Execution Service Version 1.0,
 \ \url{http://www.ogf.org/documents/GFD.108.pdf} }
 
 {\selectlanguage{english}\color{black}
-\stepcounter{Bibitem}{\theBibitem}. OASIS Web Services Security (WSS)
-TC.
-\url{http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss}}
+\textstyleInternetlink{\textcolor{black}{\stepcounter{Bibitem}{\theBibitem}}}\textstyleInternetlink{\textcolor{black}{.
+OASIS Web Services Security (WSS) TC.
+}}\url{http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss}}
 \end{document}
