@@ -112,7 +112,7 @@ sub collect_jobids($$) {
     my %pairs;
     my $qname = shift;
     my $controldir = shift;
-    my $cmd = "find $controldir -name 'job.??????????*.status' -maxdepth 1";
+    my $cmd = "find $controldir -maxdepth 1 -name 'job.??????????*.status'";
     $cmd   .= ' | xargs grep -l INLRMS ';
     $cmd   .= ' | sed \'s/status$/local/\' ';
     $cmd   .= ' | xargs grep -H "^queue=\|^localid="';
