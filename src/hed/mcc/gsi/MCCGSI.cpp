@@ -96,6 +96,9 @@ namespace Arc {
       inpayload->Get(&readbuf[pos], len);
       pos += len;
     }
+    //TODO: for different types (GSI, Globus SSL, TLS/SSL3, SSL2) of communication
+    //request from client side, differently process the header of received data
+    //and the sent data correspondingly.
 
     gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
     gss_buffer_desc recv_tok = GSS_C_EMPTY_BUFFER;
@@ -420,6 +423,11 @@ namespace Arc {
 	  response->Get(&readbuf[pos], len);
 	  pos += len;
 	}
+
+        if (readbuf[0] >= 20 && readbuf[0] <= 23)  logger.msg(DEBUG,"Transfer protocol is TLS or SSL3");
+        else if (readbuf[0] ==26)  logger.msg(DEBUG,"Transfer protocol is GLOBUS SSL");
+        else if (readbuf[0] & 0x80 && readbuf[0] <= 23) logger.msg(DEBUG,"Transfer protocol is SSL2");
+        else logger.msg(DEBUG,"Transfer protocol is GSI");
 
 	recv_tok.length = (unsigned char)readbuf[3] * 256 +
 			  (unsigned char)readbuf[4] + 5;
