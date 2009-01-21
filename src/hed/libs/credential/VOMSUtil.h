@@ -28,7 +28,34 @@ namespace Arc {
         with single element are converted to VOMSTrustChain if
         element does not have special symbols. Otherwise it is 
         treated as regular expression. Those symbols are '^','$'
-        and '*'. */
+        and '*'. 
+        Trusted chains can be congicured in two ways: 
+        one way is:
+            <tls:VOMSCertTrustDNChain>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>----NEXT CHAIN---</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/DC=ch/DC=cern/CN=CERN Trusted Certification Authority</tls:VOMSCertTrustDN>
+            </tls:VOMSCertTrustDNChain>
+        the other way is:
+            <tls:VOMSCertTrustDNChain>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
+            </tls:VOMSCertTrustDNChain>
+            <tls:VOMSCertTrustDNChain>
+              <tls:VOMSCertTrustDN>/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/DC=ch/DC=cern/CN=CERN Trusted Certification Authority</tls:VOMSCertTrustDN>
+            </tls:VOMSCertTrustDNChain>
+        each chunk is supposed to contain a suit of DN of trusted 
+        certificate chain, in which the first DN is the DN of the 
+        certificate (cert0) which is used to sign the Attribute Certificate
+        (AC), the second DN is the DN of the issuer certificate(cert1) 
+        which is used to sign cert0. So if there are one or more intermediate 
+        issuers, then there should be 3 or more than 3 DNs in this 
+        chunk (considering cert0 and the root certificate, plus the intermediate
+        certificate) .
+      */
       VOMSTrustList(const std::vector<std::string>& encoded_list);
       /** Creates chain lists and regexps from those specified in arguments.
         See AddChain() and AddRegex() for more information. */
