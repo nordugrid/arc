@@ -375,7 +375,7 @@ namespace Arc {
 				     target_name,
 				     GSS_C_NO_OID,
 				     GSS_C_CONF_FLAG | GSS_C_MUTUAL_FLAG |
-				     GSS_C_INTEG_FLAG | GSS_C_DELEG_FLAG,
+				     GSS_C_INTEG_FLAG, // | GSS_C_DELEG_FLAG,
 				     0,
 				     NULL,
 				     &recv_tok,
