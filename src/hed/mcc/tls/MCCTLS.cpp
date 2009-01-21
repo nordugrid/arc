@@ -115,7 +115,9 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config) {
 #endif
         // Parse VOMS attributes from each certificate of the peer chain.
         bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_);
-
+        if(!res) {
+          throw std::runtime_error("VOMS attribute parsing failed");
+        };
       };
    };
    X509* peercert = payload.GetPeerCert();
@@ -132,7 +134,9 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config) {
 #endif
       // Parse VOMS attributes from peer certificate
       bool res = parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_);
-
+      if(!res) {
+        throw std::runtime_error("VOMS attribute parsing failed");
+      };
       X509_free(peercert);
    };
    if(identity_.empty()) identity_=subject;
@@ -363,7 +367,10 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream);
    // Filling security attributes
    if(tstream && (config_.IfClientAuthn())) {
-      TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_);
+      TLSSecAttr* sattr = NULL;
+      try {
+        sattr = new TLSSecAttr(*tstream, config_);
+      }  catch(std::exception& e) { return MCC_Status(); };
       nextinmsg.Auth()->set("TLS",sattr);
       // TODO: Remove following code, use SecAttr instead
       //Getting the subject name of peer(client) certificate
