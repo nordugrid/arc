@@ -69,11 +69,19 @@ public:
      } 
 protected: 
      int_type overflow(int_type c) { 
+         // Call to PyGILState_Ensure ensures there is Python 
+         // thread state created/assigned.
+         PyGILState_STATE gstate = PyGILState_Ensure();
          PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "c", c); 
+         PyGILState_Release(gstate);
          return c; 
      } 
      std::streamsize xsputn(const char* s, std::streamsize count) { 
+         // Call to PyGILState_Ensure ensures there is Python 
+         // thread state created/assigned.
+         PyGILState_STATE gstate = PyGILState_Ensure();
          PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", s, int(count)); 
+         PyGILState_Release(gstate);
          return count; 
      } 
      PyObject* m_PyObj; 
