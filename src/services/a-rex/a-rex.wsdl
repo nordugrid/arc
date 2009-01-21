@@ -257,6 +257,12 @@
       <wsdl:fault name="QueryEvaluationErrorFault" 
         message="wsrf-rpw:QueryEvaluationErrorFault"
         wsa:Action="http://docs.oasis-open.org/wsrf/fault"/>
+      <wsdl:fault name="ResourceUnknownFault"
+        message="wsrf-rw:ResourceUnknownFault"
+        wsa:Action="http://docs.oasis-open.org/wsrf/fault"/>
+      <wsdl:fault name="ResourceUnknownFault"
+        message="wsrf-rw:ResourceUnknownFault"
+        wsa:Action="http://docs.oasis-open.org/wsrf/fault"/>
     </wsdl:operation>
     <wsdl:operation name="CacheCheck">
       <wsdl:documentation>
@@ -267,6 +273,12 @@
         message="a-rex:CacheCheckRequest"/>
       <wsdl:output name="CacheCheckResponse"
         message="a-rex:CacheCheckResponse"/>
+      <wsdl:fault name="CacheConfigurationFault"
+        message="a-rex:CacheConfigurationFault"
+        wsa:Action="http://www.nordugrid.org/schemas/a-rex/fault"/>
+      <wsdl:fault name="CacheDisabledFault"
+        message="a-rex:CacheDisabledFault"
+        wsa:Action="http://www.nordugrid.org/schemas/a-rex/fault"/>
     </wsdl:operation>
 
   </wsdl:portType>
@@ -380,6 +392,12 @@
       <wsdl:output name="CacheCheckResponse">
         <soap:body use="literal"/>
       </wsdl:output>
+      <wsdl:fault name="CacheConfigurationFault">
+        <soap:fault name="CacheConfigurationFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="CacheDisabledFault">
+        <soap:fault name="CacheDisabledFault" use="literal" />
+      </wsdl:fault>
     </wsdl:operation>
   </wsdl:binding>
 

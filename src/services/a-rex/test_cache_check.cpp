@@ -23,8 +23,8 @@ int main(void) {
   Arc::NS ns;
   Arc::MCCConfig cfg;
 
-  cfg.AddProxy("/Users/roczei/.globus/proxy.pem");
-  cfg.AddCADir("/Users/roczei/arc1/etc/certificates");
+  cfg.AddProxy("/home/roczei/.globus/proxy.pem");
+  //cfg.AddCADir("/Users/roczei/arc1/etc/certificates");
 
   Arc::ClientSOAP client(cfg, url);
 
@@ -34,11 +34,11 @@ int main(void) {
     Arc::PayloadSOAP request(ns);
     Arc::XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    req.NewChild("FileURL") = "http://localhost:8888/storage/ucc.log";
-
-    req.NewChild("FileURL") = "http://localhost:8888/storage/job.jdl";
+    req.NewChild("FileURL") = "http://knowarc1.grid.niif.hu/storage/kiir";
 
     req.NewChild("FileURL") = "http://knowarc1.grid.niif.hu/storage/Makefile";
+
+    req.NewChild("FileURL") = "http://knowarc1.grid.niif.hu/storage/rossz_file";
 
 
     Arc::PayloadSOAP* response;
@@ -46,22 +46,13 @@ int main(void) {
     Arc::MCC_Status status = client.process(&request, &response);
 
     if (!status) {
-        std::cerr << "Request failed" << std::endl;
-        if(response) {
-           std::string str;
-           response->GetXML(str);
-           std::cout << str << std::endl;
-           delete response;
-        }
-     };
+           std::cerr << "Request failed" << std::endl;
+    }
 
-     if (!response) {
-         std::cerr << "No response" << std::endl;
-     };
+    std::string str;
+    response->GetDoc(str, true);
+    std::cout << str << std::endl;
 
    return 0;  
 };
-
-
-
 
