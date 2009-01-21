@@ -721,7 +721,11 @@ err:
   static bool check_trust(const VOMSTrustChain& chain,STACK_OF(X509)* certstack) {
     int n = 0;
     X509 *current = NULL;
-    if(chain.size() > (sk_X509_num(certstack)+1)) return false;
+    //A trusted chain is like following:
+    // /O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se
+    // /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
+    // ----NEXT CHAIN----
+    if(chain.size()-1 > (sk_X509_num(certstack)+1)) return false;
 #if 0
     for(;n < sk_X509_num(certstack);++n) {
       if(n >= chain.size()) return true;
@@ -738,14 +742,17 @@ err:
       }
     }
 #endif
+
     for(;n < sk_X509_num(certstack);++n) {
       if((n+1) >= chain.size()) return true;
       current = sk_X509_value(certstack,n);
       if(!current) return false;
       if(chain[n] != X509_NAME_oneline(X509_get_subject_name(current),NULL,0)) {
+        CredentialLogger.msg(ERROR,"VOMS: the DN does in certificate: %s does not match that in trusted DN list: %s",X509_NAME_oneline(X509_get_subject_name(current),NULL,0), chain[n]);
         return false;
       }
       if(chain[n+1] != X509_NAME_oneline(X509_get_issuer_name(current),NULL,0)) {
+        CredentialLogger.msg(ERROR,"VOMS: the Issuer identity does in certificate: %s does not match that in trusted DN list: %s",X509_NAME_oneline(X509_get_issuer_name(current),NULL,0), chain[n+1]);
         return false;
       }
     }
