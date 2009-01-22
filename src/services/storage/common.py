@@ -8,7 +8,8 @@ shepherd_uri = 'http://www.nordugrid.org/schemas/shepherd'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 
 # For Gateway service
-gateway_uri = 'urn:storagegateway'
+gateway_uri = 'http://www.nordugrid.org/schemas/gateway'
+#gateway_uri = 'urn:storagegateway'
 
 
 

@@ -19,7 +19,7 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Gateway'))
 
 class Gateway:
 
-    def __init__(self):
+    def __init__(self,cfg):
         print "Gateway constructor..."
     
     def get(self, sourceURL, flags):
@@ -98,10 +98,11 @@ class GatewayService(Service):
     def __init__(self, cfg):
 
         print "GatewayService Constructor..."
-  
+
+	self.service_name = 'Gateway' 
         request_names = ['get','list','put','remove']
-        Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri)
-        self.gateway = Gateway()
+        Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri, cfg)
+        self.gateway = Gateway(cfg)
                 
     def get(self, inpayload):
     

@@ -858,10 +858,10 @@ import commands
 
 class GatewayClient(Client):
 
-        def __init__(self, url):
-            ns = arc.NS('gateway', gateway_uri)
+        def __init__(self, url, print_xml = False, ssl_config = {}):
+            ns = self.NS_class('gateway', gateway_uri)
             # calls the superclass' constructor
-            Client.__init__(self, url, ns)
+            Client.__init__(self, url, ns, print_xml, ssl_config)
 
         def get(self, request,flags=''):
             """request will come with the source and the destination URLS of the file. 
@@ -871,7 +871,8 @@ class GatewayClient(Client):
             Example:
             ['sourceURL', 'destinationURL']
             ['/mycollection/dCache/pnfs/uppmax.uu.se/data/file1', '/tmp/file1']"""        
-            tree = XMLTree(from_tree = 
+            
+	    tree = XMLTree(from_tree = 
                 ('gateway:get', [
                     ('gateway:URLs', [
                         ('gateway:sourceURL', request),
@@ -880,11 +881,16 @@ class GatewayClient(Client):
                 ])
             )
             #print tree
-            msg = self.call(tree)
+            protocol = ''
+	    url = ''
+	    msg = self.call(tree)
             xml = arc.XMLNode(msg)
             elements = parse_to_dict(get_data_node(xml), ['file','url','status'])
-            print elements
-
+            for key in elements.keys():
+		url = elements[key]['url']
+		if url[0:6] == 'gsiftp':	
+		    protocol = 'GridFTP'	
+	    return url, protocol
         def put(self, request, flags=''):
             """request will come with the source and the destination URLS of the file. 
             request is the python list. 
@@ -908,7 +914,8 @@ class GatewayClient(Client):
             print elements
 
         def list(self, requests, flags = '' ):
-            """requests: contain the path of the file or directory.
+            
+	    """requests: contain the path of the file or directory.
             flags: optional parameter contain different flags of the 
                 arcls command for example whether user needs long listing 
                 or debuging info ect.
@@ -932,7 +939,11 @@ class GatewayClient(Client):
                     </soap-env:Body>
                 </soap-env:Envelope>
             """
-            tree = XMLTree(from_tree = 
+            print 'requests from client'
+	    url = ''
+	    status = ''
+	    list = []	
+	    tree = XMLTree(from_tree = 
                 ('gateway:list', [
                     ('gateway:URLs',[
                         ('gateway:externalURL', requests),
@@ -943,7 +954,12 @@ class GatewayClient(Client):
             msg = self.call(tree)
             xml = arc.XMLNode(msg)
             elements = parse_to_dict(get_data_node(xml), ['url', 'status','info'])
-            print elements
+            for key in elements.keys():
+		url = key
+		status = elements[key]['status']
+		list = elements[key]['info']
+	    
+	    return {url: (status, list.split(","))} 		 
 
 ####################################################
 

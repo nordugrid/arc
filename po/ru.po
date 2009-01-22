@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-07 17:00+0100\n"
+"POT-Creation-Date: 2009-01-21 13:56+0100\n"
 "PO-Revision-Date: 2008-12-02 17:43+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
@@ -372,21 +372,21 @@ msgstr ""
 msgid "Submission to %s failed, trying next target"
 msgstr ""
 
-#: src/clients/arclib/arcsub.cpp:295
+#: src/clients/arclib/arcsub.cpp:301
 #, c-format
 msgid "Job submitted with jobid: %s"
 msgstr ""
 
-#: src/clients/arclib/arcsub.cpp:316
+#: src/clients/arclib/arcsub.cpp:322
 msgid "Job submission summary:"
 msgstr ""
 
-#: src/clients/arclib/arcsub.cpp:319
+#: src/clients/arclib/arcsub.cpp:325
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr ""
 
-#: src/clients/arclib/arcsub.cpp:323
+#: src/clients/arclib/arcsub.cpp:329
 #, c-format
 msgid "The following %d were not submitted"
 msgstr ""
@@ -553,10 +553,15 @@ msgstr ""
 #: src/clients/credentials/arcslcs.cpp:254 src/hed/acc/ARC1/AREXClient.cpp:185
 #: src/hed/acc/ARC1/AREXClient.cpp:276 src/hed/acc/ARC1/AREXClient.cpp:362
 #: src/hed/acc/ARC1/AREXClient.cpp:440 src/hed/acc/ARC1/AREXClient.cpp:518
-#: src/hed/acc/CREAM/CREAMClient.cpp:182 src/hed/acc/CREAM/CREAMClient.cpp:407
-#: src/hed/acc/CREAM/CREAMClient.cpp:462 src/hed/acc/CREAM/CREAMClient.cpp:527
-#: src/hed/acc/CREAM/CREAMClient.cpp:604 src/hed/acc/CREAM/CREAMClient.cpp:660
-#: src/hed/acc/CREAM/CREAMClient.cpp:710 src/hed/acc/CREAM/CREAMClient.cpp:747
+#: src/hed/acc/CREAM/CREAMClient.cpp:182 src/hed/acc/CREAM/CREAMClient.cpp:410
+#: src/hed/acc/CREAM/CREAMClient.cpp:465 src/hed/acc/CREAM/CREAMClient.cpp:530
+#: src/hed/acc/CREAM/CREAMClient.cpp:607 src/hed/acc/CREAM/CREAMClient.cpp:663
+#: src/hed/acc/CREAM/CREAMClient.cpp:713 src/hed/acc/CREAM/CREAMClient.cpp:750
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:186
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:277
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:363
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:441
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:519
 #: src/hed/shc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:111
 #: src/services/compiler/arex_client.cpp:192
 #: src/services/compiler/arex_client.cpp:270
@@ -567,6 +572,15 @@ msgstr ""
 #: src/tests/echo/test_clientinterface.cpp:142
 #: src/tests/echo/test_clientinterface.py:29
 msgid "There was no SOAP response"
+msgstr ""
+
+#: src/clients/credentials/test2vomsserver.cpp:60
+msgid "No stream response"
+msgstr ""
+
+#: src/clients/credentials/test2vomsserver.cpp:76
+#, c-format
+msgid "Returned msg from voms server: %s "
 msgstr ""
 
 #: src/clients/data/arccp.cpp:62 src/clients/data/arccp.cpp:86
@@ -1116,14 +1130,14 @@ msgstr ""
 msgid "Creating an A-REX client"
 msgstr "Создаётся клиент A-REX"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:82 src/services/a-rex/test.cpp:154
-#: src/services/a-rex/test.cpp:227 src/services/a-rex/test.cpp:275
-#: src/services/a-rex/test.cpp:323 src/services/a-rex/test.cpp:371
-#: src/services/compiler/arex_client.cpp:90
+#: src/hed/acc/ARC1/AREXClient.cpp:82 src/hed/acc/UNICORE/UNICOREClient.cpp:83
+#: src/services/a-rex/test.cpp:154 src/services/a-rex/test.cpp:227
+#: src/services/a-rex/test.cpp:275 src/services/a-rex/test.cpp:323
+#: src/services/a-rex/test.cpp:371 src/services/compiler/arex_client.cpp:90
 #: src/services/compiler/test_client.cpp:60 src/tests/count/test_client.cpp:60
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:104
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:56
-#: src/tests/echo/test_client.cpp:76
+#: src/tests/echo/test_client.cpp:75
 #: src/tests/echo/test_clientinterface.cpp:58
 #: src/tests/echo/test_clientinterface.cpp:100
 #: src/tests/echo/test_clientinterface.cpp:129
@@ -1132,48 +1146,59 @@ msgid "Creating and sending request"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:138
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:139
 #: src/services/compiler/arex_client.cpp:143
 #, c-format
 msgid "Job description to be sent: %s"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:160
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:161
 #: src/services/compiler/arex_client.cpp:167
 msgid "Failed to find delegation credentials in client configuration"
 msgstr "Не удалось обнаружить доверенности в конфигурации клиента"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:169 src/hed/acc/ARC1/AREXClient.cpp:200
-#: src/services/a-rex/test.cpp:86 src/services/compiler/arex_client.cpp:176
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:170
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:201 src/services/a-rex/test.cpp:86
+#: src/services/compiler/arex_client.cpp:176
 #: src/services/compiler/arex_client.cpp:205
 msgid "Initiating delegation procedure"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:172 src/hed/acc/ARC1/AREXClient.cpp:202
-#: src/services/a-rex/test.cpp:88 src/services/compiler/arex_client.cpp:178
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:173
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:203 src/services/a-rex/test.cpp:88
+#: src/services/compiler/arex_client.cpp:178
 #: src/services/compiler/arex_client.cpp:207
 msgid "Failed to initiate delegation"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:181 src/hed/acc/ARC1/AREXClient.cpp:214
-#: src/hed/acc/CREAM/CREAMClient.cpp:523 src/hed/acc/CREAM/CREAMClient.cpp:600
-#: src/hed/acc/CREAM/CREAMClient.cpp:656 src/hed/acc/CREAM/CREAMClient.cpp:706
-#: src/hed/acc/CREAM/CREAMClient.cpp:743
+#: src/hed/acc/CREAM/CREAMClient.cpp:526 src/hed/acc/CREAM/CREAMClient.cpp:603
+#: src/hed/acc/CREAM/CREAMClient.cpp:659 src/hed/acc/CREAM/CREAMClient.cpp:709
+#: src/hed/acc/CREAM/CREAMClient.cpp:746
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:182
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:215
 #: src/services/compiler/arex_client.cpp:188
 #: src/services/compiler/arex_client.cpp:220
 msgid "Submission request failed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:217
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:218
 #: src/services/compiler/arex_client.cpp:223
 msgid "Submission request succeed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:219
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:220
 #: src/services/compiler/arex_client.cpp:225
 msgid "There was no response to a submission request"
 msgstr "Не поступил ответ на запрос об отправке задачи"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:227
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:228
 #: src/services/compiler/arex_client.cpp:232
 msgid "A response to a submission request was not a SOAP message"
 msgstr ""
@@ -1181,120 +1206,151 @@ msgstr ""
 #: src/hed/acc/ARC1/AREXClient.cpp:234 src/hed/acc/ARC1/AREXClient.cpp:315
 #: src/hed/acc/ARC1/AREXClient.cpp:403 src/hed/acc/ARC1/AREXClient.cpp:480
 #: src/hed/acc/ARC1/AREXClient.cpp:556 src/hed/acc/CREAM/CREAMClient.cpp:187
-#: src/hed/acc/CREAM/CREAMClient.cpp:412 src/hed/acc/CREAM/CREAMClient.cpp:467
-#: src/hed/acc/CREAM/CREAMClient.cpp:532 src/hed/acc/CREAM/CREAMClient.cpp:609
-#: src/hed/acc/CREAM/CREAMClient.cpp:665 src/hed/acc/CREAM/CREAMClient.cpp:715
-#: src/hed/acc/CREAM/CREAMClient.cpp:752
+#: src/hed/acc/CREAM/CREAMClient.cpp:415 src/hed/acc/CREAM/CREAMClient.cpp:470
+#: src/hed/acc/CREAM/CREAMClient.cpp:535 src/hed/acc/CREAM/CREAMClient.cpp:612
+#: src/hed/acc/CREAM/CREAMClient.cpp:668 src/hed/acc/CREAM/CREAMClient.cpp:718
+#: src/hed/acc/CREAM/CREAMClient.cpp:755
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:235
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:316
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:404
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:481
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:557
 msgid "There is no connection chain configured"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:250
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:251
 #, c-format
 msgid "Submission returned failure: %s"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:251
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:252
 #, c-format
 msgid "Submission failed, service returned: %s"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:259 src/hed/acc/CREAM/CREAMClient.cpp:159
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:260
 #: src/services/compiler/arex_client.cpp:255
 msgid "Creating and sending a status request"
 msgstr "Создание и отправка запроса о состоянии"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:295
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:296
 msgid "A status request failed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:298
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:299
 msgid "A status request succeed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:300
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:301
 #: src/services/compiler/arex_client.cpp:292
 msgid "There was no response to a status request"
 msgstr "Не поступил ответ на запрос о состоянии"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:309
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:310
 msgid "The response of a status request was not a SOAP message"
 msgstr ""
 
-#: src/hed/acc/ARC1/AREXClient.cpp:334 src/hed/acc/CREAM/CREAMClient.cpp:384
+#: src/hed/acc/ARC1/AREXClient.cpp:334 src/hed/acc/CREAM/CREAMClient.cpp:387
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:335
 msgid "The job status could not be retrieved"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:346
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:347
 #: src/services/compiler/arex_client.cpp:330
 msgid "Creating and sending a service status request"
 msgstr "Создание и отправка запроса о состоянии службы"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:382
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:383
 msgid "A service status request failed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:385
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:386
 msgid "A service status request succeed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:388
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:389
 #: src/services/compiler/arex_client.cpp:365
 msgid "There was no response to a service status request"
 msgstr "Не поступил ответ на запрос о состоянии службы"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:396
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:397
 #: src/services/compiler/arex_client.cpp:373
 msgid "The response of a service status request was not a SOAP message"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:412
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:413
 msgid "The service status could not be retrieved"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:424 src/hed/acc/ARC1/AREXClient.cpp:505
-#: src/hed/acc/CREAM/CREAMClient.cpp:392
+#: src/hed/acc/CREAM/CREAMClient.cpp:395
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:425
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:506
 #: src/services/compiler/arex_client.cpp:395
 #: src/services/compiler/arex_client.cpp:466
 msgid "Creating and sending request to terminate a job"
 msgstr "Создание и отправка запроса о прерывании задачи"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:459
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:460
 msgid "A job termination request failed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:462
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:463
 msgid "A job termination request succeed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:465
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:466
 #: src/services/compiler/arex_client.cpp:432
 msgid "There was no response to a job termination request"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:473
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:474
 #: src/services/compiler/arex_client.cpp:441
 msgid "The response of a job termination request was not a SOAP message"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:496 src/hed/acc/ARC1/AREXClient.cpp:570
-#: src/hed/acc/CREAM/CREAMClient.cpp:437
+#: src/hed/acc/CREAM/CREAMClient.cpp:440
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:497
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:571
 msgid "Job termination failed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:535
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:536
 msgid "A job cleaning request failed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:538
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:539
 msgid "A job cleaning request succeed"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:541
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:542
 #: src/services/compiler/arex_client.cpp:501
 msgid "There was no response to a job cleaning request"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:549
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:550
 #: src/services/compiler/arex_client.cpp:510
 msgid "The response of a job cleaning request was not a SOAP message"
 msgstr ""
@@ -1339,46 +1395,46 @@ msgstr ""
 msgid "Creating a CREAM client"
 msgstr "Создаётся клиент CREAM"
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:444
+#: src/hed/acc/CREAM/CREAMClient.cpp:447
 msgid "Creating and sending request to clean a job"
 msgstr "Создание и отправка запроса об удалении результатов работы задачи"
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:492
+#: src/hed/acc/CREAM/CREAMClient.cpp:495
 msgid "Job cleaning failed"
 msgstr ""
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:500
+#: src/hed/acc/CREAM/CREAMClient.cpp:503
 msgid "Creating and sending job register request"
 msgstr "Создание и отправка запроса о регистрации задачи"
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:571
+#: src/hed/acc/CREAM/CREAMClient.cpp:574
 msgid "No job ID has been received"
 msgstr ""
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:579
+#: src/hed/acc/CREAM/CREAMClient.cpp:582
 msgid "Creating and sending job start request"
 msgstr "Создание и отправка запроса о начале задачи"
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:634
+#: src/hed/acc/CREAM/CREAMClient.cpp:637
 msgid "Job starting failed"
 msgstr ""
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:642 src/hed/acc/CREAM/CREAMClient.cpp:729
+#: src/hed/acc/CREAM/CREAMClient.cpp:645 src/hed/acc/CREAM/CREAMClient.cpp:732
 msgid "Creating delegation"
 msgstr ""
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:678 src/hed/acc/CREAM/CREAMClient.cpp:720
+#: src/hed/acc/CREAM/CREAMClient.cpp:681 src/hed/acc/CREAM/CREAMClient.cpp:723
 #: src/hed/acc/CREAM/SubmitterCREAM.cpp:41
 msgid "Creating delegation failed"
 msgstr ""
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:689
+#: src/hed/acc/CREAM/CREAMClient.cpp:692
 #: src/hed/libs/client/ClientX509Delegation.cpp:91
 #: src/hed/libs/client/ClientX509Delegation.cpp:172
 msgid "DelegateProxy failed"
 msgstr ""
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:759
+#: src/hed/acc/CREAM/CREAMClient.cpp:762
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:110
 msgid "Destroying delegation failed"
 msgstr ""
@@ -1411,6 +1467,20 @@ msgstr ""
 #: src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:90
 msgid "TargetRetrieverCREAM initialized with unknown url type"
 msgstr ""
+
+#: src/hed/acc/UNICORE/TargetRetrieverUNICORE.cpp:59
+#, c-format
+msgid "TargetRetriverUNICORE initialized with %s service url: %s"
+msgstr ""
+
+#: src/hed/acc/UNICORE/TargetRetrieverUNICORE.cpp:85
+msgid "TargetRetrieverUNICORE initialized with unknown url type"
+msgstr ""
+
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:63
+#, fuzzy
+msgid "Creating a UNICORE client"
+msgstr "Создаётся клиент CREAM"
 
 #: src/hed/daemon/unix/daemon.cpp:42
 #, c-format
@@ -1830,7 +1900,7 @@ msgstr ""
 msgid "DataPoint::deinit_handle: destroy ftp_handle"
 msgstr ""
 
-#: src/hed/dmc/gridftp/DMCGridFTP.cpp:41 src/hed/mcc/tls/MCCTLS.cpp:243
+#: src/hed/dmc/gridftp/DMCGridFTP.cpp:41 src/hed/mcc/tls/MCCTLS.cpp:249
 msgid "SSL_library_init failed"
 msgstr ""
 
@@ -3136,16 +3206,16 @@ msgstr ""
 msgid "Loaded ArcClientComponent %s(%s)"
 msgstr ""
 
-#: src/hed/libs/client/Broker.cpp:333
+#: src/hed/libs/client/Broker.cpp:438
 msgid "Prefiltering: targets according to input jobdescription"
 msgstr ""
 
-#: src/hed/libs/client/Broker.cpp:619
+#: src/hed/libs/client/Broker.cpp:728
 #, c-format
 msgid "Number of possible targets : %d"
 msgstr ""
 
-#: src/hed/libs/client/Broker.cpp:633
+#: src/hed/libs/client/Broker.cpp:742
 msgid "Target sorting not done, sorting them now"
 msgstr ""
 
@@ -3276,190 +3346,195 @@ msgstr ""
 msgid "There is no Id or X509 token value in the response"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:84
+#: src/hed/libs/client/ExecutionTarget.cpp:85
 #, c-format
 msgid "Cluster: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:86
-#: src/hed/libs/client/ExecutionTarget.cpp:119
+#: src/hed/libs/client/ExecutionTarget.cpp:87
+#: src/hed/libs/client/ExecutionTarget.cpp:120
 #, c-format
 msgid " Health State: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:90 src/hed/libs/client/Job.cpp:51
+#: src/hed/libs/client/ExecutionTarget.cpp:91 src/hed/libs/client/Job.cpp:51
 #, c-format
 msgid " Owner: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:92
+#: src/hed/libs/client/ExecutionTarget.cpp:93
 #, c-format
 msgid " PostCode: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:94
+#: src/hed/libs/client/ExecutionTarget.cpp:95
 #, c-format
 msgid " Place: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:96
+#: src/hed/libs/client/ExecutionTarget.cpp:97
 #, c-format
 msgid " Latitude: %f"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:98
+#: src/hed/libs/client/ExecutionTarget.cpp:99
 #, c-format
 msgid " Longitude: %f"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:100
+#: src/hed/libs/client/ExecutionTarget.cpp:101
 msgid "Endpoint information"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:102
+#: src/hed/libs/client/ExecutionTarget.cpp:103
 #, c-format
 msgid " URL: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:104
+#: src/hed/libs/client/ExecutionTarget.cpp:105
 #, c-format
 msgid " Interface Name: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:106
+#: src/hed/libs/client/ExecutionTarget.cpp:107
 #, c-format
 msgid " Interface Extension: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:110
+#: src/hed/libs/client/ExecutionTarget.cpp:111
 #, c-format
 msgid " Implementor: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:112
+#: src/hed/libs/client/ExecutionTarget.cpp:113
 #, c-format
 msgid " Implementation Name: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:115
+#: src/hed/libs/client/ExecutionTarget.cpp:116
 #, c-format
 msgid " Implementation Version: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:121
+#: src/hed/libs/client/ExecutionTarget.cpp:122
 #, c-format
 msgid " Serving State: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:123
+#: src/hed/libs/client/ExecutionTarget.cpp:124
 #, c-format
 msgid " Issuer CA: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:125
+#: src/hed/libs/client/ExecutionTarget.cpp:126
 #, c-format
 msgid " Staging: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:127
+#: src/hed/libs/client/ExecutionTarget.cpp:128
 msgid "Queue information"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:129
+#: src/hed/libs/client/ExecutionTarget.cpp:130
 #, c-format
 msgid " Mapping Queue: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:131
+#: src/hed/libs/client/ExecutionTarget.cpp:132
 #, c-format
 msgid " Max Wall Time: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:134
+#: src/hed/libs/client/ExecutionTarget.cpp:135
 #, c-format
 msgid " Min Wall Time: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:137
+#: src/hed/libs/client/ExecutionTarget.cpp:138
 #, c-format
 msgid " Default Wall Time: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:140
+#: src/hed/libs/client/ExecutionTarget.cpp:141
 #, c-format
 msgid " Max CPU Time: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:143
+#: src/hed/libs/client/ExecutionTarget.cpp:144
 #, c-format
 msgid " Min CPU Time: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:146
+#: src/hed/libs/client/ExecutionTarget.cpp:147
 #, c-format
 msgid " Default CPU Time: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:149
+#: src/hed/libs/client/ExecutionTarget.cpp:150
 #, c-format
 msgid " Max Total Jobs: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:151
+#: src/hed/libs/client/ExecutionTarget.cpp:152
 #, c-format
 msgid " Max Running Jobs: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:154
+#: src/hed/libs/client/ExecutionTarget.cpp:155
 #, c-format
 msgid " Max Waiting Jobs: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:157
+#: src/hed/libs/client/ExecutionTarget.cpp:158
 #, c-format
 msgid " Max Pre LRMS Waiting Jobs: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:160
+#: src/hed/libs/client/ExecutionTarget.cpp:161
 #, c-format
 msgid " Max User Running Jobs: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:163
+#: src/hed/libs/client/ExecutionTarget.cpp:164
 #, c-format
 msgid " Max Slots Per Job: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:166
+#: src/hed/libs/client/ExecutionTarget.cpp:167
 #, c-format
 msgid " Max Stage In Streams: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:169
+#: src/hed/libs/client/ExecutionTarget.cpp:170
 #, c-format
 msgid " Max Stage Out Streams: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:172
+#: src/hed/libs/client/ExecutionTarget.cpp:173
 #, c-format
 msgid " Max Memory: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:174
+#: src/hed/libs/client/ExecutionTarget.cpp:175
+#, c-format
+msgid " Max Virtual Memory: %i"
+msgstr ""
+
+#: src/hed/libs/client/ExecutionTarget.cpp:177
 #, c-format
 msgid " Max Disk Space: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:176
+#: src/hed/libs/client/ExecutionTarget.cpp:179
 #, c-format
 msgid " Default Storage Service: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:179
+#: src/hed/libs/client/ExecutionTarget.cpp:182
 msgid " Supports Preemption"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:181
+#: src/hed/libs/client/ExecutionTarget.cpp:184
 msgid " Doesn't Support Preemption"
 msgstr ""
 
@@ -4152,6 +4227,16 @@ msgstr ""
 msgid " StagingOutBaseURI: %s"
 msgstr ""
 
+#: src/hed/libs/client/JobInnerRepresentation.cpp:260
+#, c-format
+msgid " XRSL_elements: [%s], %s"
+msgstr ""
+
+#: src/hed/libs/client/JobInnerRepresentation.cpp:267
+#, c-format
+msgid " JDL_elements: [%s], %s"
+msgstr ""
+
 #: src/hed/libs/client/JobSupervisor.cpp:34
 msgid "Failed resolving aliases"
 msgstr ""
@@ -4176,12 +4261,12 @@ msgid ""
 "Identifying needed job controllers according to all jobs present in job list"
 msgstr ""
 
-#: src/hed/libs/client/Submitter.cpp:57
+#: src/hed/libs/client/Submitter.cpp:62
 #, c-format
 msgid "Failed uploading file: %s"
 msgstr ""
 
-#: src/hed/libs/client/Submitter.cpp:59
+#: src/hed/libs/client/Submitter.cpp:64
 msgid "Failed uploading file"
 msgstr ""
 
@@ -5054,175 +5139,189 @@ msgid "VOMS: CA direcory or CA file must be provided"
 msgstr ""
 
 #: src/hed/libs/credential/VOMSUtil.cpp:704
-#: src/hed/libs/credential/VOMSUtil.cpp:909
-#: src/hed/libs/credential/VOMSUtil.cpp:970
+#: src/hed/libs/credential/VOMSUtil.cpp:916
+#: src/hed/libs/credential/VOMSUtil.cpp:977
 msgid "VOMS: unable to verify AC signature"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:888
+#: src/hed/libs/credential/VOMSUtil.cpp:751
+#, c-format
+msgid ""
+"VOMS: the DN does in certificate: %s does not match that in trusted DN list: "
+"%s"
+msgstr ""
+
+#: src/hed/libs/credential/VOMSUtil.cpp:755
+#, c-format
+msgid ""
+"VOMS: the Issuer identity does in certificate: %s does not match that in "
+"trusted DN list: %s"
+msgstr ""
+
+#: src/hed/libs/credential/VOMSUtil.cpp:895
 msgid "VOMS: unable to match certificate chain against VOMS trusted DNs"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:915
+#: src/hed/libs/credential/VOMSUtil.cpp:922
 msgid "VOMS: unable to verify certificate chain"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:919
+#: src/hed/libs/credential/VOMSUtil.cpp:926
 #, c-format
 msgid "VOMS: cannot find certificate of AC issuer for VO %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:937
+#: src/hed/libs/credential/VOMSUtil.cpp:944
 #, c-format
 msgid "VOMS: directory for trusted service certificates: %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:963
+#: src/hed/libs/credential/VOMSUtil.cpp:970
 #, c-format
 msgid "VOMS: Cannot find certificate of AC issuer for VO %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:989
+#: src/hed/libs/credential/VOMSUtil.cpp:996
 msgid "VOMS: Can not find AC_ATTR with IETFATTR type"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:996
+#: src/hed/libs/credential/VOMSUtil.cpp:1003
 msgid "VOMS: case of multiple IETFATTR attributes not supported"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1006
+#: src/hed/libs/credential/VOMSUtil.cpp:1013
 msgid "VOMS: case of multiple policyAuthority not supported"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1022
+#: src/hed/libs/credential/VOMSUtil.cpp:1029
 msgid "VOMS: the format of policyAuthority is unsupported - expecting URI"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1031
+#: src/hed/libs/credential/VOMSUtil.cpp:1038
 msgid ""
 "VOMS: the format of IETFATTRVAL is not supported - expecting OCTET STRING"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1109
+#: src/hed/libs/credential/VOMSUtil.cpp:1116
 msgid "VOMS: the grantor attribute is empty"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1126
+#: src/hed/libs/credential/VOMSUtil.cpp:1133
 msgid "VOMS: the attribute name is empty"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1131
+#: src/hed/libs/credential/VOMSUtil.cpp:1138
 msgid "VOMS: the attribute value is empty"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1136
+#: src/hed/libs/credential/VOMSUtil.cpp:1143
 msgid "VOMS: the attribute qualifier is empty"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1165
+#: src/hed/libs/credential/VOMSUtil.cpp:1172
 msgid ""
 "VOMS: both idcenoRevAvail and authorityKeyIdentifier certificate extensions "
 "must be present"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1196
+#: src/hed/libs/credential/VOMSUtil.cpp:1203
 msgid "VOMS: FQDN of this host does not match that in AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1201
+#: src/hed/libs/credential/VOMSUtil.cpp:1208
 msgid "VOMS: the only supported critical extension of the AC is idceTargets"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1214
+#: src/hed/libs/credential/VOMSUtil.cpp:1221
 msgid "VOMS: failed to parse attributes from AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1254
+#: src/hed/libs/credential/VOMSUtil.cpp:1261
 msgid "VOMS: authorityKey is wrong"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1281
+#: src/hed/libs/credential/VOMSUtil.cpp:1288
 msgid "VOMS: unsupported time format format in AC - expecting GENERALIZED TIME"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1286
+#: src/hed/libs/credential/VOMSUtil.cpp:1293
 msgid "VOMS: AC is not yet valid"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1291
+#: src/hed/libs/credential/VOMSUtil.cpp:1298
 msgid "VOMS: AC has expired"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1301
+#: src/hed/libs/credential/VOMSUtil.cpp:1308
 msgid "VOMS: AC is not complete - missing Serial or Issuer information"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1306
+#: src/hed/libs/credential/VOMSUtil.cpp:1313
 #, c-format
 msgid "VOMS: the holder serial number %i is not the same as in AC - %i"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1312
+#: src/hed/libs/credential/VOMSUtil.cpp:1319
 msgid "VOMS: the holder issuer information in AC is wrong"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1317
+#: src/hed/libs/credential/VOMSUtil.cpp:1324
 #, c-format
 msgid "VOMS: DN of holder in AC: %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1318
+#: src/hed/libs/credential/VOMSUtil.cpp:1325
 #, c-format
 msgid "VOMS: DN of holder: %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1319
+#: src/hed/libs/credential/VOMSUtil.cpp:1326
 #, c-format
 msgid "VOMS: DN of issuer: %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1321
+#: src/hed/libs/credential/VOMSUtil.cpp:1328
 msgid ""
 "VOMS: the holder itself can not sign an AC by using a self-sign certificate"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1328
-#: src/hed/libs/credential/VOMSUtil.cpp:1334
+#: src/hed/libs/credential/VOMSUtil.cpp:1335
+#: src/hed/libs/credential/VOMSUtil.cpp:1341
 msgid "VOMS: the holder issuerUID is not the same as that in AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1346
+#: src/hed/libs/credential/VOMSUtil.cpp:1353
 msgid "VOMS: the holder issuer name is not the same as that in AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1355
+#: src/hed/libs/credential/VOMSUtil.cpp:1362
 #, c-format
 msgid "VOMS: the issuer name %s is not the same as that in AC - %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1360
+#: src/hed/libs/credential/VOMSUtil.cpp:1367
 msgid ""
 "VOMS: the serial number of AC INFO is too long - expecting no more than 20 "
 "octets"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1389
-#: src/hed/libs/credential/VOMSUtil.cpp:1425
+#: src/hed/libs/credential/VOMSUtil.cpp:1396
+#: src/hed/libs/credential/VOMSUtil.cpp:1432
 msgid "VOMS: unable to extract VO name from AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1395
-#: src/hed/libs/credential/VOMSUtil.cpp:1401
-#: src/hed/libs/credential/VOMSUtil.cpp:1407
+#: src/hed/libs/credential/VOMSUtil.cpp:1402
+#: src/hed/libs/credential/VOMSUtil.cpp:1408
+#: src/hed/libs/credential/VOMSUtil.cpp:1414
 msgid "VOMS: unable to extract vo name from AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1419
+#: src/hed/libs/credential/VOMSUtil.cpp:1426
 #, c-format
 msgid "VOMS: unable to determine hostname of AC from VO name: %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1432
+#: src/hed/libs/credential/VOMSUtil.cpp:1439
 msgid "VOMS: cannt verify the signature of the AC"
 msgstr ""
 
@@ -6194,27 +6293,33 @@ msgstr ""
 msgid "Could not locate module %s"
 msgstr ""
 
-#: src/hed/libs/loader/ModuleManager.cpp:104
+#: src/hed/libs/loader/ModuleManager.cpp:107
 #, c-format
 msgid "Loaded %s"
 msgstr ""
 
-#: src/hed/libs/loader/ModuleManager.cpp:112
+#: src/hed/libs/loader/ModuleManager.cpp:135
 msgid "Module Manager Init by ModuleManager::setCfg"
 msgstr ""
 
-#: src/hed/libs/loader/Plugin.cpp:85 src/hed/libs/loader/Plugin.cpp:185
+#: src/hed/libs/loader/Plugin.cpp:90 src/hed/libs/loader/Plugin.cpp:202
 #, c-format
 msgid "Could not find loadable module by name %s (%s)"
 msgstr ""
 
-#: src/hed/libs/loader/Plugin.cpp:91 src/hed/libs/loader/Plugin.cpp:142
-#: src/hed/libs/loader/Plugin.cpp:190
+#: src/hed/libs/loader/Plugin.cpp:96 src/hed/libs/loader/Plugin.cpp:153
+#: src/hed/libs/loader/Plugin.cpp:207
 #, c-format
 msgid "Module %s is not an ARC plugin (%s)"
 msgstr ""
 
-#: src/hed/libs/loader/Plugin.cpp:136
+#: src/hed/libs/loader/Plugin.cpp:110 src/hed/libs/loader/Plugin.cpp:163
+#: src/hed/libs/loader/Plugin.cpp:228
+#, c-format
+msgid "Module %s failed to reload (%s)"
+msgstr ""
+
+#: src/hed/libs/loader/Plugin.cpp:147
 #, c-format
 msgid "Could not find loadable module by name %s and %s (%s)"
 msgstr ""
@@ -6402,53 +6507,69 @@ msgstr ""
 msgid "Can not generate policy object"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:108 src/hed/mcc/gsi/MCCGSI.cpp:264
-#: src/hed/mcc/gsi/MCCGSI.cpp:429
+#: src/hed/mcc/gsi/MCCGSI.cpp:111 src/hed/mcc/gsi/MCCGSI.cpp:267
+#: src/hed/mcc/gsi/MCCGSI.cpp:437
 #, c-format
 msgid "Recieved token length: %i"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:132
+#: src/hed/mcc/gsi/MCCGSI.cpp:135
 #, c-format
 msgid "GSS accept security context: %i/%i"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:134
+#: src/hed/mcc/gsi/MCCGSI.cpp:137
 #, c-format
 msgid "Returned token length: %i"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:153 src/hed/mcc/gsi/PayloadGSIStream.cpp:57
+#: src/hed/mcc/gsi/MCCGSI.cpp:156 src/hed/mcc/gsi/PayloadGSIStream.cpp:57
 #, c-format
 msgid "GSS unwrap: %i/%i"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:155 src/hed/mcc/gsi/MCCGSI.cpp:278
-#: src/hed/mcc/gsi/MCCGSI.cpp:386
+#: src/hed/mcc/gsi/MCCGSI.cpp:158 src/hed/mcc/gsi/MCCGSI.cpp:281
+#: src/hed/mcc/gsi/MCCGSI.cpp:389
 #, c-format
 msgid "Sent token length: %i"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:204 src/hed/mcc/gsi/MCCGSI.cpp:296
+#: src/hed/mcc/gsi/MCCGSI.cpp:207 src/hed/mcc/gsi/MCCGSI.cpp:299
 msgid "Security check failed in GSI MCC for incoming message"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:212 src/hed/mcc/gsi/MCCGSI.cpp:249
+#: src/hed/mcc/gsi/MCCGSI.cpp:215 src/hed/mcc/gsi/MCCGSI.cpp:252
 msgid "Security check failed in GSI MCC for outgoing message"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:276 src/hed/mcc/gsi/PayloadGSIStream.cpp:67
+#: src/hed/mcc/gsi/MCCGSI.cpp:279 src/hed/mcc/gsi/PayloadGSIStream.cpp:67
 #, c-format
 msgid "GSS wrap: %i/%i"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:384
+#: src/hed/mcc/gsi/MCCGSI.cpp:387
 #, c-format
 msgid "GSS init security context: %i/%i"
 msgstr ""
 
-#: src/hed/mcc/gsi/MCCGSI.cpp:409
+#: src/hed/mcc/gsi/MCCGSI.cpp:412
 msgid "No payload during GSI context initialisation"
+msgstr ""
+
+#: src/hed/mcc/gsi/MCCGSI.cpp:427
+msgid "Transfer protocol is TLS or SSL3"
+msgstr ""
+
+#: src/hed/mcc/gsi/MCCGSI.cpp:428
+msgid "Transfer protocol is GLOBUS SSL"
+msgstr ""
+
+#: src/hed/mcc/gsi/MCCGSI.cpp:429
+msgid "Transfer protocol is SSL2"
+msgstr ""
+
+#: src/hed/mcc/gsi/MCCGSI.cpp:430
+msgid "Transfer protocol is GSI"
 msgstr ""
 
 #: src/hed/mcc/gsi/PayloadGSIStream.cpp:39
@@ -6633,7 +6754,7 @@ msgid "Only Raw Buffer payload is supported for output"
 msgstr ""
 
 #: src/hed/mcc/tcp/MCCTCP.cpp:443 src/hed/mcc/tcp/MCCTCP.cpp:533
-#: src/hed/mcc/tls/MCCTLS.cpp:457
+#: src/hed/mcc/tls/MCCTLS.cpp:466
 msgid "Failed to send content of buffer"
 msgstr ""
 
@@ -6768,37 +6889,37 @@ msgstr ""
 msgid "Unknown element in Globus signing policy"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:240
+#: src/hed/mcc/tls/MCCTLS.cpp:246
 msgid "MCC_TLS::do_ssl_init"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:266
+#: src/hed/mcc/tls/MCCTLS.cpp:272
 msgid "Failed to allocate SSL locks"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:284
+#: src/hed/mcc/tls/MCCTLS.cpp:290
 msgid "SSL initialization counter lost sync"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:286
+#: src/hed/mcc/tls/MCCTLS.cpp:292
 msgid "MCC_TLS::do_ssl_deinit"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:373
+#: src/hed/mcc/tls/MCCTLS.cpp:382
 #, c-format
 msgid "Peer name: %s"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:377 src/hed/mcc/tls/MCCTLS.cpp:388
+#: src/hed/mcc/tls/MCCTLS.cpp:386 src/hed/mcc/tls/MCCTLS.cpp:397
 #, c-format
 msgid "Identity name: %s"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:404 src/hed/mcc/tls/MCCTLS.cpp:465
+#: src/hed/mcc/tls/MCCTLS.cpp:413 src/hed/mcc/tls/MCCTLS.cpp:474
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr ""
 
-#: src/hed/mcc/tls/MCCTLS.cpp:448
+#: src/hed/mcc/tls/MCCTLS.cpp:457
 msgid "Security check failed in TLS MCC for outgoing message"
 msgstr ""
 
@@ -6987,6 +7108,7 @@ msgstr ""
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:57
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:128
 #: src/hed/shc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:64
+#: src/tests/echo/echo.cpp:104
 msgid "Missing security object in message"
 msgstr ""
 
@@ -6996,6 +7118,7 @@ msgstr ""
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:136 src/hed/shc/gaclpdp/GACLPDP.cpp:144
 #: src/hed/shc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:72
 #: src/hed/shc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:80
+#: src/tests/echo/echo.cpp:112 src/tests/echo/echo.cpp:119
 msgid "Failed to convert security information to ARC request"
 msgstr ""
 
@@ -7428,14 +7551,14 @@ msgstr ""
 msgid "process: operation: %s"
 msgstr ""
 
-#: src/services/arex2/arex2.cpp:169 src/services/a-rex/arex.cpp:287
+#: src/services/arex2/arex2.cpp:169 src/services/a-rex/arex.cpp:289
 #: src/services/sched/grid_sched.cpp:156
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr ""
 
-#: src/services/arex2/arex2.cpp:176 src/services/a-rex/arex.cpp:294
-#: src/services/sched/grid_sched.cpp:164 src/tests/echo/echo.cpp:125
+#: src/services/arex2/arex2.cpp:176 src/services/a-rex/arex.cpp:296
+#: src/services/sched/grid_sched.cpp:164 src/tests/echo/echo.cpp:153
 #, c-format
 msgid "process: response=%s"
 msgstr ""
@@ -7481,15 +7604,15 @@ msgstr ""
 msgid "Can't obtain configuration"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:212 src/services/a-rex/arex.cpp:302
-#: src/services/a-rex/arex.cpp:314 src/services/a-rex/arex.cpp:328
+#: src/services/a-rex/arex.cpp:212 src/services/a-rex/arex.cpp:304
+#: src/services/a-rex/arex.cpp:316 src/services/a-rex/arex.cpp:330
 #: src/services/delegation/delegation.cpp:62
 #: src/services/delegation/delegation.cpp:142 src/services/slcs/slcs.cpp:44
 #: src/services/slcs/slcs.cpp:157
 msgid "Security Handlers processing failed"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:236 src/tests/echo/echo.cpp:92
+#: src/services/a-rex/arex.cpp:236 src/tests/echo/echo.cpp:94
 #, c-format
 msgid "process: request=%s"
 msgstr ""
@@ -7502,18 +7625,37 @@ msgstr ""
 msgid "process: CreateActivity"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:309
+#: src/services/a-rex/arex.cpp:311
 msgid "process: GET"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:321
+#: src/services/a-rex/arex.cpp:323
 msgid "process: PUT"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:335
+#: src/services/a-rex/arex.cpp:337
 #, c-format
 msgid "process: method %s is not supported"
 msgstr ""
+
+#: src/services/a-rex/cachecheck.cpp:36
+msgid "Wrong user name"
+msgstr ""
+
+#: src/services/a-rex/cachecheck.cpp:56
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:449
+#, c-format
+msgid "Error with cache configuration: %s"
+msgstr ""
+
+#: src/services/a-rex/cachecheck.cpp:57
+msgid "Will not use caching"
+msgstr ""
+
+#: src/services/a-rex/cachecheck.cpp:65
+#, fuzzy
+msgid "Error creating cache"
+msgstr "Сбой импортирования"
 
 #: src/services/a-rex/change_activity_status.cpp:35
 #, c-format
@@ -7823,11 +7965,6 @@ msgstr ""
 msgid "Warning: creation of user \"%s\" failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:449
-#, c-format
-msgid "Error with cache configuration: %s"
-msgstr ""
-
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:450
 msgid "Caching is disabled"
 msgstr ""
@@ -8043,27 +8180,27 @@ msgstr ""
 msgid "Timer kicking"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:145
+#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:154
 #, c-format
 msgid ""
 "job description executable is provided by element [jsdl-hpcpa:Executable] - %"
 "s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:163
+#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:172
 #, c-format
 msgid ""
 "job description executable is provided by element [jsdl-posix:Executable] - %"
 "s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:239
-#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:256
+#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:249
+#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:266
 msgid "ENV: "
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:239
-#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:256
+#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:249
+#: src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:266
 msgid "="
 msgstr ""
 
@@ -8842,21 +8979,21 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/services/a-rex/test.cpp:34 src/services/charon/test.cpp:29
-#: src/services/saml/test.cpp:44 src/services/saml/test_service.cpp:26
-#: src/tests/count/test_service.cpp:21 src/tests/echo/test.cpp:28
-#: src/tests/echo/test_service.cpp:26
-msgid "Creating service side chain"
-msgstr ""
-
-#: src/services/a-rex/test.cpp:43 src/services/charon/test.cpp:37
-#: src/services/compiler/test_client.cpp:23
+#: src/services/a-rex/test_cache_check.cpp:19 src/services/a-rex/test.cpp:43
+#: src/services/charon/test.cpp:37 src/services/compiler/test_client.cpp:23
 #: src/services/saml/test_client.cpp:59 src/services/saml/test.cpp:52
 #: src/tests/count/test_client.cpp:19
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:24
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:20
 #: src/tests/echo/test_client.cpp:24
 msgid "Creating client side chain"
+msgstr ""
+
+#: src/services/a-rex/test.cpp:34 src/services/charon/test.cpp:29
+#: src/services/saml/test.cpp:44 src/services/saml/test_service.cpp:26
+#: src/tests/count/test_service.cpp:21 src/tests/echo/test.cpp:28
+#: src/tests/echo/test_service.cpp:26
+msgid "Creating service side chain"
 msgstr ""
 
 #: src/services/a-rex/test.cpp:49 src/services/charon/test.cpp:42
@@ -8866,7 +9003,7 @@ msgstr ""
 #: src/tests/count/test_client.cpp:49 src/tests/data/test.cpp:40
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:91
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:43
-#: src/tests/echo/test_client.cpp:63
+#: src/tests/echo/test_client.cpp:62
 msgid "Failed to load client configuration"
 msgstr ""
 
@@ -8877,7 +9014,7 @@ msgstr ""
 #: src/tests/count/test_client.cpp:53
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:95
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:47
-#: src/tests/echo/test_client.cpp:67 src/tests/echo/test.cpp:44
+#: src/tests/echo/test_client.cpp:66 src/tests/echo/test.cpp:44
 msgid "Client side MCCs are loaded"
 msgstr ""
 
@@ -8888,7 +9025,7 @@ msgstr ""
 #: src/tests/count/test_client.cpp:56
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:98
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:50
-#: src/tests/echo/test_client.cpp:70
+#: src/tests/echo/test_client.cpp:69
 msgid "Client chain does not have entry point"
 msgstr ""
 
@@ -8901,7 +9038,7 @@ msgstr ""
 #: src/tests/count/test_client.cpp:83
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:123
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:74
-#: src/tests/echo/test_client.cpp:94 src/tests/echo/test.cpp:60
+#: src/tests/echo/test_client.cpp:93 src/tests/echo/test.cpp:60
 msgid "Request failed"
 msgstr ""
 
@@ -8920,7 +9057,7 @@ msgstr ""
 #: src/tests/count/test_client.cpp:89
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:129
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:80
-#: src/tests/echo/test_client.cpp:100 src/tests/echo/test.cpp:65
+#: src/tests/echo/test_client.cpp:99 src/tests/echo/test.cpp:65
 msgid "There is no response"
 msgstr ""
 
@@ -8932,7 +9069,7 @@ msgstr ""
 #: src/tests/count/test_client.cpp:96
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:136
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:87
-#: src/tests/echo/test_client.cpp:107
+#: src/tests/echo/test_client.cpp:106
 msgid "Response is not SOAP"
 msgstr ""
 
@@ -9063,12 +9200,12 @@ msgid "STATUS: "
 msgstr ""
 
 #: src/services/compiler/compiler.cpp:583 src/tests/count/count.cpp:58
-#: src/tests/echo/echo.cpp:86
+#: src/tests/echo/echo.cpp:88
 msgid "Input is not SOAP"
 msgstr ""
 
 #: src/services/compiler/compiler.cpp:589 src/tests/count/count.cpp:98
-#: src/tests/count/count.cpp:104 src/tests/echo/echo.cpp:112
+#: src/tests/count/count.cpp:104 src/tests/echo/echo.cpp:140
 #, c-format
 msgid "Request is not supported - %s"
 msgstr ""
@@ -9139,6 +9276,18 @@ msgstr ""
 
 #: src/services/delegation/delegation.cpp:124
 msgid "Can not find the corresponding credential from credential cache"
+msgstr ""
+
+#: src/services/echo_python/EchoService.py:24
+msgid "AuthRequest(inmsg) = "
+msgstr ""
+
+#: src/services/echo_python/EchoService.py:25
+msgid "inmsg.Attributes().getAll() = "
+msgstr ""
+
+#: src/services/echo_python/EchoService.py:26
+msgid "EchoService (python) got:"
 msgstr ""
 
 #: src/services/hopi/hopi.cpp:33
@@ -9766,77 +9915,79 @@ msgstr "Сбой импортирования"
 msgid "Error importing class"
 msgstr ""
 
-#: src/services/storage/bartender/bartender.py:108
+#: src/services/storage/bartender/bartender.py:104
 msgid ""
 "\n"
 "\n"
 "!!!!check_again"
 msgstr ""
 
-#: src/services/storage/bartender/bartender.py:116
+#: src/services/storage/bartender/bartender.py:112
 msgid ""
 "\n"
 "\n"
 "!!!!do_delete"
 msgstr ""
 
-#: src/services/storage/bartender/bartender.py:133
+#: src/services/storage/bartender/bartender.py:129
 msgid "//// _traverse request trailing slash removed:"
 msgstr ""
 
-#: src/services/storage/bartender/bartender.py:175
-#: src/services/storage/bartender/bartender.py:630
+#: src/services/storage/bartender/bartender.py:170
+#: src/services/storage/bartender/bartender.py:677
 msgid "adding"
 msgstr "добавляется"
 
-#: src/services/storage/bartender/bartender.py:178
+#: src/services/storage/bartender/bartender.py:173
 msgid "modifyMetadata response"
 msgstr "возврат modifyMetadata"
 
-#: src/services/storage/bartender/bartender.py:185
+#: src/services/storage/bartender/bartender.py:180
 msgid "modifyMetadata failed, removing the new librarian entry"
 msgstr "ошибка выполнения modifyMetadata, удаление новой записи библиотекаря"
 
-#: src/services/storage/bartender/bartender.py:247
+#: src/services/storage/bartender/bartender.py:240
 msgid "location chosen:"
 msgstr "выбранное расположение:"
 
-#: src/services/storage/bartender/bartender.py:257
-#: src/services/storage/bartender/bartender.py:358
+#: src/services/storage/bartender/bartender.py:250
+#: src/services/storage/bartender/bartender.py:346
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-#: src/services/storage/bartender/bartender.py:293
+#: src/services/storage/bartender/bartender.py:281
 msgid "addReplica"
 msgstr ""
 
-#: src/services/storage/bartender/bartender.py:317
+#: src/services/storage/bartender/bartender.py:305
 msgid "Registered Shepherds in Librarian"
 msgstr "Зарегистрированные у Библиотекаря Чабаны"
 
-#: src/services/storage/bartender/bartender.py:320
+#: src/services/storage/bartender/bartender.py:308
 msgid "Alive Shepherds:"
 msgstr "Живые Чабаны:"
 
-#: src/services/storage/bartender/bartender.py:326
+#: src/services/storage/bartender/bartender.py:314
 msgid "Shepherd chosen:"
 msgstr "Выбран Чабан:"
 
-#: src/services/storage/bartender/bartender.py:415
+#: src/services/storage/bartender/bartender.py:405
+#: src/services/storage/bartender/bartender.py:554
 msgid "LN"
 msgstr ""
 
-#: src/services/storage/bartender/bartender.py:424
-#: src/services/storage/bartender/bartender.py:461
-#: src/services/storage/bartender/bartender.py:503
+#: src/services/storage/bartender/bartender.py:414
+#: src/services/storage/bartender/bartender.py:453
+#: src/services/storage/bartender/bartender.py:494
+#: src/services/storage/bartender/bartender.py:521
 msgid "metadata"
 msgstr "метаданные"
 
-#: src/services/storage/bartender/bartender.py:590
+#: src/services/storage/bartender/bartender.py:638
 msgid "\\/\\/"
 msgstr ""
 
-#: src/services/storage/bartender/bartender.py:646
+#: src/services/storage/bartender/bartender.py:693
 msgid "removing"
 msgstr "удаляется"
 
@@ -9848,7 +9999,7 @@ msgstr ""
 msgid "ERROR setting next heartbeat time!"
 msgstr ""
 
-#: src/services/storage/service.py:60
+#: src/services/storage/service.py:56
 #, python-format
 msgid "%s.%s called"
 msgstr ""
@@ -9990,7 +10141,9 @@ msgstr ""
 
 #: src/services/storage/store/cachedstringstore.py:22
 #: src/services/storage/store/picklestore.py:23
+#: src/services/storage/store/repdbstore.py:86
 #: src/services/storage/store/stringstore.py:22
+#: src/services/storage/store/transdbstore.py:35
 #: src/services/storage/store/zodbstore.py:44
 msgid "datadir:"
 msgstr ""
@@ -10004,8 +10157,182 @@ msgstr ""
 msgid "filename:"
 msgstr "файл:"
 
+#: src/services/storage/store/repdbstore.py:85
+msgid "RepDBStore constructor called"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:94
+msgid "Couldn't start replication manager."
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:156
+#, python-format
+msgid "bad StoreHost, %s, cannot continue"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:161
+msgid "bad TotalSites, will try to find it my self"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:170
+msgid "Couldn't add other host"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:179
+msgid "Bad Priority value"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:186
+#, fuzzy
+msgid "Could not find checking period"
+msgstr "Не удалось обнаружить системную конфигурацию клиента"
+
+#: src/services/storage/store/repdbstore.py:207
+msgid "Bad cache size or no cache size configured, using 10MB"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:230
+#, python-format
+msgid "Could not set listen address to host:port %s:%s"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:241
+#, python-format
+msgid "could not add site %s:%s"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:247
+msgid "rep_set_nsites call failed, continuing..."
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:263
+msgid "I am now a master"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:286
+msgid "I am now a client"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:288
+#, fuzzy
+msgid "Replication startup done"
+msgstr "Новое состояние %s: %s"
+
+#: src/services/storage/store/repdbstore.py:293
+msgid "Write failed"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:296
+msgid "New master elected"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:300
+msgid "I won the election: I am the MASTER"
+msgstr ""
+
+#: src/services/storage/store/repdbstore.py:302
+msgid "Oops! Internal DB panic!"
+msgstr ""
+
 #: src/services/storage/store/stringstore.py:21
 msgid "StringStore constructor called"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:34
+msgid "TransDBStore constructor called"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:64
+msgid "db environment opened"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:77
+msgid "couldn't find DeadlockRetries, using 5 as default"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:82
+#, python-format
+msgid "couldn't find CacheSize, using %d as default"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:90
+msgid "database closed"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:101
+msgid "Caught exception during DB environment open."
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:136
+msgid "No stock db available yet - retrying"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:144
+#: src/services/storage/store/transdbstore.py:155
+msgid "unexpected error closing after failed open"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:150
+msgid "got deadlock - retrying"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:186
+msgid "Couldn't acquire transaction lock"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:201
+msgid "Error on txn.commit()"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:219
+#: src/services/storage/store/transdbstore.py:252
+#: src/services/storage/store/transdbstore.py:288
+msgid "Got deadlock error"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:224
+#, fuzzy
+msgid "Error listing db"
+msgstr "Сбой импортирования"
+
+#: src/services/storage/store/transdbstore.py:257
+#, fuzzy, python-format
+msgid "Error getting %s"
+msgstr "Сбой импортирования"
+
+#: src/services/storage/store/transdbstore.py:296
+msgid "got DBLockDeadlockError"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:297
+msgid "retrying transaction"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:304
+msgid "Deadlock exception, giving up..."
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:307
+msgid "Read-only db. I'm not a master."
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:313
+msgid "cannot delete non-existing entries"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:324
+#, fuzzy, python-format
+msgid "Error setting %s"
+msgstr "Сбой импортирования"
+
+#: src/services/storage/store/transdbstore.py:331
+#: src/services/storage/store/transdbstore.py:342
+msgid "db environment closed"
+msgstr ""
+
+#: src/services/storage/store/transdbstore.py:336
+#: src/services/storage/store/transdbstore.py:345
+msgid "error closing environment"
 msgstr ""
 
 #: src/services/storage/store/zodbstore.py:43
@@ -10193,7 +10520,7 @@ msgstr ""
 msgid "Cannot convert outmsg to python object"
 msgstr ""
 
-#: src/tests/count/count.cpp:89 src/tests/echo/echo.cpp:76
+#: src/tests/count/count.cpp:89 src/tests/echo/echo.cpp:78
 msgid "echo: Unauthorized"
 msgstr ""
 
@@ -10227,7 +10554,7 @@ msgstr ""
 msgid "Delegation to gridsite delegation service failed"
 msgstr ""
 
-#: src/tests/echo/echo.cpp:103
+#: src/tests/echo/echo.cpp:131
 msgid "WSRF request failed"
 msgstr ""
 
