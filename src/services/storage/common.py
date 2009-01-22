@@ -673,6 +673,7 @@ def splitLN(LN):
 
 storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
 identity_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'
+vomsattribute_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute'
 action_type = 'http://www.nordugrid.org/schemas/policy-arc/types/storage/action'
 request_ns = 'http://www.nordugrid.org/schemas/request-arc'
 all_user = 'ALL'
@@ -720,6 +721,12 @@ class AuthPolicy(dict):
             for identity, actions in self.items():
                 if identity == all_user:
                     subjects = ''
+                elif identity.startswith('VOMS:'):
+                    subjects = ('    <Subjects>\n' +
+                                '      <Subject>\n' + 
+                                '         <Attribute AttributeId="%s" Type="string" Function="match">/VO=%s/</Attribute>\n' % (vomsattribute_type, identity[5:]) +
+                                '      </Subject>\n' +
+                                '    </Subjects>\n')
                 else:
                     subjects = ('    <Subjects>\n' +
                                 '      <Subject>\n' + 
@@ -769,7 +776,7 @@ def make_decision_metadata(metadata, request):
     import arc
     #return arc.DECISION_PERMIT
     policy = parse_storage_policy(metadata).get_policy()
-    #print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
+    print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
     try:
         decision = make_decision(policy, request)
     except:
@@ -809,7 +816,11 @@ def parse_ssl_config(cfg):
         ssl_config = {}
         ssl_config['key_file'] = str(client_ssl_node.Get('KeyPath'))
         ssl_config['cert_file'] = str(client_ssl_node.Get('CertificatePath'))
-        ssl_config['ca_file'] = str(client_ssl_node.Get('CACertificatePath'))
+        ca_file = str(client_ssl_node.Get('CACertificatePath'))
+        if ca_file:
+            ssl_config['ca_file'] = ca_file
+        else:
+            ssl_config['ca_dir'] = str(client_ssl_node.Get('CACertificatesDir'))
         return ssl_config
     except:
         traceback.print_exc()
