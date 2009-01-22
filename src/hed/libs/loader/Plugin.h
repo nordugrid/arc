@@ -4,6 +4,7 @@
 
 #include <string>
 #include <map>
+#include <typeinfo>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif

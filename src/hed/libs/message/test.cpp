@@ -1,3 +1,5 @@
+#include <typeinfo>
+
 #include "SOAPEnvelope.h"
 #include "PayloadRaw.h"
 
