@@ -1479,18 +1479,28 @@ else:
             print mod_response
     elif command == 'pol':
         if len(args) < 3:
-            print "Usage: policy <LN> <changeType> <userDN> <action list>"
+            print "Usage: policy <LN> <changeType> <identity> <action list>"
             print "  <changeType> could be 'set', 'change' or 'clear'"
             print "    'set': sets the action list to the given user overwriting the old one"
             print "    'change': modify the current action list with adding and removing actions"
             print "    'clear': clear the action list of the given user"
+            print "  <identity> could be a '<UserDN>' or a 'VOMS:<VO name>'"
             print "  <action list> is a list actions prefixed with '+' or '-'"
             print "    e.g. '+read +addEntry -delete'"
             print "    possible actions: ", ' '.join(storage_actions)
         else:
             LN = args.pop(0)
             changeType = args.pop(0)
-            userDN = args.pop(0)
+            # this is an ugly hack for handling DNs with spaces in them
+            # TODO: figure out how to do this the proper way
+            identity = ''
+            try:
+                while args[0][0] not in ['+', '-']:
+                    identity += args.pop(0) + ' '
+            except:
+                pass
+            if identity:
+                identity = identity[:-1]
             if changeType not in ['set', 'change', 'clear']:
                 print 'wrong change type!'
             else:
@@ -1502,15 +1512,15 @@ else:
                         action_list = ' '.join(args)
                     elif changeType == 'change':
                         stat = call_it('stat', {'policy' : LN})
-                        old_list = stat['policy'].get(('policy',userDN),'')
-                        print "old action list for the user %s was '%s'" % (userDN, old_list)
+                        old_list = stat['policy'].get(('policy',identity),'')
+                        print "old action list for the user %s was '%s'" % (identity, old_list)
                         action_dict = dict([(paction[1:], (paction[0] == '+')) for paction in old_list.split()])
                         for paction in args:
                             action_dict[paction[1:]] = (paction[0] == '+')
                         action_list = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
                     elif changeType == 'clear':
                         action_list = ''                
-                    print "the new action list of user %s for LN %s will be '%s'" % (userDN, LN, action_list)
-                    mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', userDN, action_list)})
+                    print "the new action list of user %s for LN %s will be '%s'" % (identity, LN, action_list)
+                    mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', identity, action_list)})
                     print mod_response['policy'] + '.'
             
