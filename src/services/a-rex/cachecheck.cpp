@@ -11,6 +11,7 @@
 #include <arc/data/DataPoint.h>
 #include <arc/URL.h>
 #include <arc/data/DMC.h>
+#include <arc/StringConv.h>
 
 #include "arex.h"
 #include "grid-manager/conf/conf_cache.h"
@@ -18,6 +19,7 @@
 #include "grid-manager/jobs/users.h"
 
 #define CACHE_CHECK_SESSION_DIR_ID "9999999999999999999999999999999"
+#define inttostring Arc::tostring
 
 namespace ARex {
 
@@ -123,6 +125,13 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
 
 	  resultelement.NewChild("FileURL") = fileurl;
 	  resultelement.NewChild("ExistInTheCache") = (fileexist ? "true": "false");
+  
+      if (fileexist) 
+	     resultelement.NewChild("FileSize") = inttostring(fileStat.st_size);
+	  else
+	     resultelement.NewChild("FileSize") = "0";
+
+
    }
   
    return Arc::MCC_Status(Arc::STATUS_OK);

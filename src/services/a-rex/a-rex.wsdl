@@ -117,6 +117,7 @@
         <xsd:sequence>
 	          <xsd:element name="FileURL" type="xsd:anyURI" minOccurs="1" maxOccurs="1"/>    
 	          <xsd:element name="ExistInTheCache" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>    
+	          <xsd:element name="FileSize" type="xsd:long" minOccurs="1" maxOccurs="1"/>    
         </xsd:sequence>
       </xsd:complexType>
 
