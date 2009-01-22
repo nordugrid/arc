@@ -911,7 +911,7 @@ class GatewayClient(Client):
             msg = self.call(tree)
             xml = arc.XMLNode(msg)
             elements = parse_to_dict(get_data_node(xml), ['file', 'url','status'])
-            print elements
+            #print elements
 
         def list(self, requests, flags = '' ):
             
@@ -939,7 +939,7 @@ class GatewayClient(Client):
                     </soap-env:Body>
                 </soap-env:Envelope>
             """
-            print 'requests from client'
+            #print 'requests from client'
 	    url = ''
 	    status = ''
 	    list = []	

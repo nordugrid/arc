@@ -199,8 +199,8 @@ class Bartender:
 	
 	if flag == 'list':	
 	    response =  self.gateway.list(url)
-	    print 'response'	
-	    print response	
+	    #print 'response'	
+	    #print response	
 	elif flag == 'getFile':
 	    response = self.gateway.get(url)
 	
@@ -587,7 +587,7 @@ class Bartender:
 	    # for each request first split the Logical Name
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-	    print metadata[('entry', 'type')]
+	    #print metadata[('entry', 'type')]
             if metadata[('entry', 'type')] == 'mountpoint':
                 success = 'cannot create anything in mountpoint'
                 response[rID] = success
@@ -631,8 +631,8 @@ class Bartender:
         for requestID, [LN] in requests:
             # for each LN
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
-            print 'metadata'
-	    print metadata
+            #print 'metadata'
+	    #print metadata
 	    if wasComplete:
                 # this means the LN exists
                 decision = make_decision_metadata(metadata, auth_request)

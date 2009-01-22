@@ -20,7 +20,7 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Gateway'))
 class Gateway:
 
     def __init__(self,cfg):
-        print "Gateway constructor..."
+        #print "Gateway constructor..."
     
     def get(self, sourceURL, flags):
         response ={}    
@@ -32,13 +32,13 @@ class Gateway:
         handle.__deref__().AssignCredentials(cred);
         (files, status) = handle.__deref__().ListFiles(True);
         for file in files:
-        	print file.GetName()
+        	#print file.GetName()
 		response[file.GetName()] = [sourceURL,status] 
         return response
             
     def put(self, request, flags):
 	response = {}
-        print request
+        #print request
         return response
 
     def list(self, request, flags):
@@ -86,7 +86,7 @@ class Gateway:
         #handle.__deref__().AssignCredentials(cred)
         #(files, status) = handle.__deref__().ListFiles(True)
 	
-	print "File or directory removed"     
+	#print "File or directory removed"     
 	return response	
 	
 
@@ -97,7 +97,7 @@ class GatewayService(Service):
     
     def __init__(self, cfg):
 
-        print "GatewayService Constructor..."
+        #print "GatewayService Constructor..."
 
 	self.service_name = 'Gateway' 
         request_names = ['get','list','put','remove']
@@ -106,29 +106,29 @@ class GatewayService(Service):
                 
     def get(self, inpayload):
     
-        print "Inside getFile function of GatwayService"
-        print "Message from the client:", inpayload.GetXML()    
+        #print "Inside getFile function of GatwayService"
+        #print "Message from the client:", inpayload.GetXML()    
         request_node = get_child_nodes(inpayload.Child())
         sourceURL = str(request_node[0].Get('sourceURL'))
         flags = str(request_node[0].Get('flags'))
         response = self.gateway.get(sourceURL,flags)
         
-        print response
+        #print response
 
         return create_response('gateway:getFile', 
             ['gateway:file', 'gateway:url', 'gateway:status'], response, self.newSOAPPayload() )
     
     def put(self, inpayload):
 
-        print "Inside getFile function of GatwayService"
-        print "Message from the client:", inpayload.GetXML()
+        #print "Inside getFile function of GatwayService"
+        #print "Message from the client:", inpayload.GetXML()
         request_node = get_child_nodes(inpayload.Child())
         sourceURL = str(request_node[0].Get('sourceURL'))
-        print '\n sourceURL = ', sourceURL
+        #print '\n sourceURL = ', sourceURL
         flags = str(request_node[0].Get('flags'))
 
         response = self.gateway.put(soruceURL,flags)
-        print response
+        #print response
         
         return create_response('gateway:putFile',
                         ['gateway:file', 'gateway:url', 'gateway:status'], response, self.newSOAPPayload() )
@@ -138,23 +138,23 @@ class GatewayService(Service):
         this message to the working class of the service class. 
         This method returns the requestID, status of the request and the 
         output genarated from the external store"""
-        print "\n --- \n Inside list function of GatewayService"
-        print "Message from the client:", inpayload.GetXML()
-        print "\n ---"
+        #print "\n --- \n Inside list function of GatewayService"
+        #print "Message from the client:", inpayload.GetXML()
+        #print "\n ---"
         request_node = get_child_nodes(inpayload.Child())
         externalrequest = str(request_node[0].Get('externalURL'))                
         flags = str(request_node[0].Get('flags'))
         response = self.gateway.list(externalrequest, flags)
-	print response
+	#print response
         return create_response('gateway:list',
                         ['gateway:url','gateway:status', 'gateway:info'], response, self.newSOAPPayload() )
     
     def remove(self, inpayload):
         """ remove the file or directory """
-        print "Message from the client:", inpayload.GetXML()
+        #print "Message from the client:", inpayload.GetXML()
         request_node = get_child_nodes(inpayload.Child())
         sourceURL = str(request_node[0].Get('sourceURL'))
         print '\n sourceURL = ', sourceURL
         flags = str(request_node[0].Get('flags'))
 	response = self.gateway.remove(sourceURL, flags)
-	print response 	
+	#print response 	
