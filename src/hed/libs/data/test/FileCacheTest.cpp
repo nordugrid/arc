@@ -359,7 +359,7 @@ void FileCacheTest::testLinkFile() {
   
   std::string soft_link = _session_dir+"/"+_jobid+"/file1";
   std::string hard_link = _cache_job_dir+"/"+_jobid+"/file1";
-  // link non-existant file
+  // link non-existent file
   CPPUNIT_ASSERT(!_fc1->Link(soft_link, _url));
   
   // Start cache
@@ -387,6 +387,9 @@ void FileCacheTest::testLinkFile() {
   _files.push_back(soft_link);
   
   // check hard- and soft-links exist
+  CPPUNIT_ASSERT( stat(_cache_job_dir.c_str(), &fileStat) == 0);
+  CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
+  
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat hard link "+hard_link, 0, stat( hard_link.c_str(), &fileStat) );
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat soft link "+soft_link, 0, stat( soft_link.c_str(), &fileStat) );
 
@@ -396,6 +399,15 @@ void FileCacheTest::testLinkFile() {
   
   // Stop cache to release lock
   CPPUNIT_ASSERT(_fc1->Stop(_url));
+  
+  // use bad cache job dir
+  if (_uid != 0 && stat("/lost+found/sessiondir", &fileStat) != 0 &&  errno == EACCES) {
+    Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, "/lost+found/joblinks", "", _jobid, _uid, _gid);
+    CPPUNIT_ASSERT(*fc2);
+    CPPUNIT_ASSERT(!fc2->Link(soft_link, _url));
+    delete fc2;
+  }
+  
 }
 
 void FileCacheTest::testLinkFileLinkCache() {
@@ -750,8 +762,6 @@ void FileCacheTest::testConstructor() {
   // permissions testing of dirs created by the constructor
   struct stat fileStat;
   CPPUNIT_ASSERT( stat(_cache_dir.c_str(), &fileStat) == 0);
-  CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
-  CPPUNIT_ASSERT( stat(_cache_job_dir.c_str(), &fileStat) == 0);
   CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
   // create constructor with same parameters
   Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid);

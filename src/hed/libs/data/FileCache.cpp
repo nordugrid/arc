@@ -89,22 +89,9 @@ bool FileCache::_init(std::vector<struct CacheParameters> caches,
       logger.msg(ERROR, "Cannot create directory \"%s\" for cache", cache_path);
       return false;
     }
-    // create dir for per-job hard links, making the final dir readable only by the job user
+    // check cache_job_dir_path is not in cache_path
     if (cache_job_dir_path.substr(0, cache_path.length()+1) == cache_path+"/") {
       logger.msg(ERROR, "Cannot have per job link directory in the main cache directory");
-      return false;
-    }
-    std::string hard_link_path = cache_job_dir_path + "/" + _id;
-    if (!_cacheMkDir(hard_link_path, true)) {
-      logger.msg(ERROR, "Cannot create directory \"%s\" for per-job hard links", hard_link_path);
-      return false;
-    }
-    if (chown(hard_link_path.c_str(), _uid, _gid) != 0) {
-      logger.msg(ERROR, "Cannot change owner of %s", cache_path);
-      return false;
-    }
-    if (chmod(hard_link_path.c_str(), S_IRWXU) != 0) {
-      logger.msg(ERROR, "Cannot change permissions of \"%s\" to 0700", cache_path);
       return false;
     }
 
@@ -465,10 +452,6 @@ bool FileCache::Link(std::string link_path, std::string url) {
   // if _cache_link_path is '.' then copy instead, bypassing the hard-link
   if (cache_params.cache_link_path == ".") return Copy(link_path, url);
    
-  std::string hard_link_path = cache_params.cache_job_dir_path + "/" + _id;
-  std::string filename = link_path.substr(link_path.rfind("/")+1);
-  std::string hard_link_file = hard_link_path + "/" + filename;
-  std::string session_dir = link_path.substr(0, link_path.rfind("/"));
   
   // check the original file exists
   struct stat fileStat;
@@ -477,7 +460,26 @@ bool FileCache::Link(std::string link_path, std::string url) {
     else logger.msg(ERROR, "Error accessing cache file %s: %s", File(url), strerror(errno));
     return false;
   }
-  
+     
+  // create per-job hard link dir if necessary, making the final dir readable only by the job user
+  std::string hard_link_path = cache_params.cache_job_dir_path + "/" + _id;
+  if (!_cacheMkDir(hard_link_path, true)) {
+    logger.msg(ERROR, "Cannot create directory \"%s\" for per-job hard links", hard_link_path);
+    return false;
+  }
+  if (chown(hard_link_path.c_str(), _uid, _gid) != 0) {
+    logger.msg(ERROR, "Cannot change owner of %s", hard_link_path);
+    return false;
+  }
+  if (chmod(hard_link_path.c_str(), S_IRWXU) != 0) {
+    logger.msg(ERROR, "Cannot change permissions of \"%s\" to 0700", hard_link_path);
+    return false;
+  }
+    
+  std::string filename = link_path.substr(link_path.rfind("/")+1);
+  std::string hard_link_file = hard_link_path + "/" + filename;
+  std::string session_dir = link_path.substr(0, link_path.rfind("/"));
+    
   // make the hard link
   if (link(File(url).c_str(), hard_link_file.c_str()) != 0) {
     logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, File(url), strerror(errno));
