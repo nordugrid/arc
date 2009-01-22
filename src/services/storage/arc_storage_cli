@@ -751,6 +751,8 @@ class Client:
         self.ssl_config = {}
         if proto == 'https':
             self.ssl_config = ssl_config
+            if not ssl_config:
+                raise Exception, 'SSL is disabled!'
         if ':' in host_port:
             host, port = host_port.split(':')
         else:
@@ -763,12 +765,35 @@ class Client:
         self.url = url
         self.print_xml = print_xml
         self.xmlnode_class = FakeXMLNode
+        try:
+            import arc
+            self.call_raw = self.call_raw_hed
+            print 'call_raw_hed'
+            self.cfg = arc.MCCConfig()
+            self.cfg.AddCertificate(self.ssl_config.get('cert_file', None))
+            self.cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
+            if ssl_config.has_key('ca_file'):
+                self.cfg.AddCAFile(self.ssl_config.get('ca_file', None))
+            elif ssl_config.has_key('ca_dir'):
+                self.cfg.AddCADir(self.ssl_config.get('ca_dir', None))
+            else:
+                raise Exception, 'no CA file or CA dir found!'
+            self.url = arc.URL(url)
+        except:
+            self.call_raw = self.call_raw_standalone
+            print 'call_raw_standalone'
 
     def create_soap_envelope(self, ns):
         """docstring for create_soap_envelope"""
-        namespaces = ns.getNamespaces()
-        xml_text = '<soap-env:Envelope %s xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body/></soap-env:Envelope>' % namespaces
-        return FakeXMLNode(from_string = xml_text)
+        try:
+            import arc
+            out = arc.PayloadSOAP(arc.NS(ns.NS))
+            return out, out
+        except:
+            namespaces = ns.getNamespaces()
+            xml_text = '<soap-env:Envelope %s xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body/></soap-env:Envelope>' % namespaces
+            out = FakeXMLNode(from_string = xml_text)
+            return out, out.Child()
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.
@@ -779,9 +804,9 @@ class Client:
         return_tree_only indicates that we only need to put the response into an XMLTree
         """
         # create a new PayloadSOAP object with the given namespace
-        out = self.create_soap_envelope(self.ns)
+        out, body = self.create_soap_envelope(self.ns)
         # add the content of the XMLTree to the XMLNode of the SOAP object
-        tree.add_to_node(out.Child())
+        tree.add_to_node(body)
         if self.print_xml:
             msg = out.GetXML()
             print 'Request:'
@@ -802,7 +827,7 @@ class Client:
         else:
             return resp
 
-    def call_raw(self, outpayload):
+    def call_raw_standalone(self, outpayload):
         """ Send a POST request with the SOAP XML message.
         
         call_raw(outpayload)
@@ -828,6 +853,26 @@ class Client:
             raise socket.error, (-1, 'Server did not return SOAP answer. Maybe wrong URL: "%s:%s/%s"?' % (self.host, self.port, self.path))
         # return the data and the status
         return resp
+
+
+    def call_raw_hed(self, outpayload):
+        """ Send a POST request with the SOAP XML message.
+        
+        call_raw(outpayload)
+        
+        outpayload is an XMLNode with the SOAP message
+        """
+        try:
+            import arc
+            s = arc.ClientSOAP(self.cfg, self.url)          
+            resp, status = s.process(outpayload)
+            resp = resp.GetXML()
+            return resp
+        except:
+            print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
+            raise
+
+
 
 # This part is copied from client.py
 
@@ -1223,12 +1268,18 @@ else:
     if bartender_url.startswith('https'):
         try:
             ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
-            ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
             print '- The key file:', ssl_config['key_file']
+            ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
             print '- The cert file:', ssl_config['cert_file']
+            try:
+                ssl_config['ca_file'] = os.environ['ARC_CA_FILE']
+                print '- The CA file:', ssl_config['ca_file']
+            except:
+                ssl_config['ca_dir'] = os.environ['ARC_CA_DIR']
+                print '- The CA dir:', ssl_config['ca_dir']
         except:
             ssl_config = {}
-            print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
+            print '- ARC_KEY_FILE or ARC_CERT_FILE or ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
     bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
     command = args.pop(0)[0:3]
     if command in ['sta']:
