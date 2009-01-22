@@ -85,12 +85,19 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
       try {
         Glib::Dir dir(*plugin);
         for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
-          if((*file).substr(0, 3) == "lib") {
-            std::string name = (*file).substr(3,(*file).find('.')-3);
-            Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
-            plugcfg.NewAttribute("Name")=name;
-            plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_evaluator_modules__";
-          };
+          std::string name = *file;
+          if(name.substr(0, 3) != "lib") continue;
+           // TODO: This won't work on windows and maybe even on some
+           // unices which do have shared libraries ending with .so
+          if(name.substr(name.length()-3, 3) != ".so") continue;
+          std::string fname = Glib::build_filename(*plugin,name);
+          // Few tests just in case
+          if(!file_test(fname,Glib::FILE_TEST_IS_EXECUTABLE)) continue;
+          if(!file_test(fname,Glib::FILE_TEST_IS_REGULAR | Glib::FILE_TEST_IS_SYMLINK)) continue;
+          name = name.substr(3,name.find('.')-3);
+          Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
+          plugcfg.NewAttribute("Name")=name;
+          plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_evaluator_modules__";
         };
       } catch (Glib::FileError) {};
     }
@@ -218,13 +225,20 @@ Policy* EvaluatorLoader::getPolicy(const Source& policysource) {
     try {
       Glib::Dir dir(*plugin);
       for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
-        if((*file).substr(0, 3) == "lib") {
-          std::string name = (*file).substr(3,(*file).find('.')-3);
-          Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
-          plugcfg.NewAttribute("Name")=name;
-          plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_policy_modules__";
-          // ?? plugcfg["Plugin"]="policy"; ??
-        };
+        std::string name = *file;
+        if(name.substr(0, 3) != "lib") continue;
+         // TODO: This won't work on windows and maybe even on some
+         // unices which do have shared libraries ending with .so
+        if(name.substr(name.length()-3, 3) != ".so") continue;
+        std::string fname = Glib::build_filename(*plugin,name);
+        // Few tests just in case
+        if(!file_test(fname,Glib::FILE_TEST_IS_EXECUTABLE)) continue;
+        if(!file_test(fname,Glib::FILE_TEST_IS_REGULAR | Glib::FILE_TEST_IS_SYMLINK)) continue;
+        name = name.substr(3,name.find('.')-3);
+        Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
+        plugcfg.NewAttribute("Name")=name;
+        plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_policy_modules__";
+        // ?? plugcfg["Plugin"]="policy"; ??
       };
     } catch (Glib::FileError) {};
   };
@@ -259,13 +273,20 @@ Request* EvaluatorLoader::getRequest(const Source& requestsource) {
     try {
       Glib::Dir dir(*plugin);
       for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
-        if((*file).substr(0, 3) == "lib") {
-          std::string name = (*file).substr(3,(*file).find('.')-3);
-          Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
-          plugcfg.NewAttribute("Name")=name;
-          plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_request_modules__";
-          // ?? plugcfg["Plugin"]="request"; ??
-        };
+        std::string name = *file;
+        if(name.substr(0, 3) != "lib") continue;
+         // TODO: This won't work on windows and maybe even on some
+         // unices which do have shared libraries ending with .so
+        if(name.substr(name.length()-3, 3) != ".so") continue;
+        std::string fname = Glib::build_filename(*plugin,name);
+        // Few tests just in case
+        if(!file_test(fname,Glib::FILE_TEST_IS_EXECUTABLE)) continue;
+        if(!file_test(fname,Glib::FILE_TEST_IS_REGULAR | Glib::FILE_TEST_IS_SYMLINK)) continue;
+        name = name.substr(3,name.find('.')-3);
+        Arc::XMLNode plugcfg = cfg.NewChild("Plugins");
+        plugcfg.NewAttribute("Name")=name;
+        plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_request_modules__";
+        // ?? plugcfg["Plugin"]="request"; ??
       };
     } catch (Glib::FileError) {};
   };
