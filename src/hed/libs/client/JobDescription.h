@@ -69,6 +69,15 @@ namespace Arc {
             virtual ~JobDescriptionParser(){};
     };
 
+    class PosixJSDLParser : public JobDescriptionParser {
+        private:
+            StringManipulator sm;
+        public:
+            bool parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source );
+            //bool handleJSDLattribute( std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation );
+            bool getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product );
+    };
+
     class JSDLParser : public JobDescriptionParser {
         private:
             StringManipulator sm;

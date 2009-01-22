@@ -57,6 +57,36 @@ namespace Arc {
 
         Candidate candidate;
 
+        // POSIX JSDL attributes
+        //Set defaults//
+        candidate.extensions.clear();
+        candidate.pattern.clear();
+        candidate.negative_pattern.clear();
+        candidate.priority = DEFAULT_PRIORITY; //Default value
+        //End of setting defaults//
+        candidate.typeName = "POSIX JSDL";
+        candidate.extensions.push_back("jsdl");
+        candidate.extensions.push_back("xml");
+        candidate.pattern.push_back("<?xml ");
+        candidate.pattern.push_back("<!--");
+        candidate.pattern.push_back("-->");
+        candidate.pattern.push_back("<JobDefinition");
+        candidate.pattern.push_back("<JobDescription");
+        candidate.pattern.push_back("<JobIdentification");
+        candidate.pattern.push_back("<POSIXApplication");
+        candidate.pattern.push_back("<Description");
+        candidate.pattern.push_back("<Executable");
+        candidate.pattern.push_back("<Argument");
+        candidate.pattern.push_back("<Input");
+        candidate.pattern.push_back("<Output");
+        candidate.pattern.push_back("<Error");
+        
+        candidate.pattern.push_back("<?xml ");
+        candidate.pattern.push_back("<JobDescription");
+        //Save entry
+        candidates.push_back(candidate);
+        // End of POSIX JSDL
+
         // JSDL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -273,6 +303,15 @@ namespace Arc {
                 }
                 //else
                 resetJobTree();
+            } else if ( sm.toLowerCase( (*it).typeName ) == "posix jsdl" ) {
+                if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as JSDL" << std::endl;
+                PosixJSDLParser parser;
+                if ( parser.parse( *innerRepresentation, sourceString ) ) {
+                    sourceFormat = "jsdl";
+                    break;
+                }
+                //else
+                resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "jsdl" ) {
                 if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as JSDL" << std::endl;
                 JSDLParser parser;
@@ -346,6 +385,14 @@ namespace Arc {
                return false;
             }
             return true;
+        } else if ( sm.toLowerCase( format ) == "posix jsdl" ) {
+            if ( VERBOSEX ) std::cerr << "[JobDescription] Generate JSDL output" << std::endl;
+            PosixJSDLParser parser;
+            if ( !parser.getProduct( *innerRepresentation, product ) ) {
+               std::cerr << "Generating " << format << " output was unsuccessful" << std::endl;
+               return false;
+            }
+            return true;
         } else if ( sm.toLowerCase( format ) == "jsdl" ) {
             if ( VERBOSEX ) std::cerr << "[JobDescription] Generate JSDL output" << std::endl;
             JSDLParser parser;
@@ -392,6 +439,16 @@ namespace Arc {
             ++sourceNode;
         }
         return true;
+    }
+
+    bool PosixJSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) {
+        //TODO: Implement this function
+        return false;
+    }
+
+    bool PosixJSDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
+        //TODO: Implement this function
+        return false;
     }
 
     bool JSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) {
