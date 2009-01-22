@@ -7,6 +7,11 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
+#include <arc/Utils.h>
+
 #include <arc/infosys/InfoFilter.h>
 
 using namespace Arc;
@@ -24,8 +29,37 @@ public:
   void TestInfoFilter();
 };
 
+static void add_libs(std::string& paths,const std::string& curpath) {
+  std::string fname = Glib::build_filename(curpath,".libs");
+  if(file_test(fname, Glib::FILE_TEST_IS_DIR)) {
+    paths+=":"+fname;
+  };
+  Glib::Dir dir(curpath);
+  for(;;) {
+    fname = dir.read_name();
+    if(fname.empty()) break;
+    fname=Glib::build_filename(curpath,fname);
+    if(fname == ".libs") {
+    } else if(file_test(fname, Glib::FILE_TEST_IS_DIR)) {
+      add_libs(paths,fname);
+    };
+  };
+}
 
 void InfoFilterTest::setUp() {
+  std::string paths;
+  std::string toppath = Glib::get_current_dir();
+  // Find top source directory by looking for configure file
+  for(int n=0;n<15;++n) {
+    std::string fname = Glib::build_filename(toppath, "configure");
+    if(file_test(fname, Glib::FILE_TEST_IS_REGULAR)) {
+      // Go to all .libs directories
+      add_libs(paths,toppath);
+      break;
+    };
+    toppath = Glib::path_get_dirname(toppath);
+  };
+  Arc::SetEnv("ARC_PLUGIN_PATH",paths);
 }
 
 
@@ -112,7 +146,6 @@ void InfoFilterTest::TestInfoFilter() {
   </Policy>\n\
 </InfoFilterDefinition>");
 
-std::string str;
   // Service description with policies
   XMLNode infodoc_sec;
   infodoc.New(infodoc_sec);
@@ -121,9 +154,6 @@ std::string str;
   infodoc_sec["Resource"][1].NewChild(policy2);
   infodoc_sec["Resource"][1].NewAttribute("InfoFilterTag")="policy2";
 
-infodoc_sec.GetXML(str);
-std::cerr<<str<<std::endl;
-  
   // Requestor's identifier
   MessageAuth user_id;
   TestSecAttr* user_attr = new TestSecAttr("USER1");
@@ -143,9 +173,6 @@ std::cerr<<str<<std::endl;
   // Applying filter
   infodoc_sec.New(infodoc_filtered);
   CPPUNIT_ASSERT(filter.Filter(infodoc_filtered));
-
-infodoc_filtered.GetXML(str);
-std::cerr<<str<<std::endl;
 
 }
 
