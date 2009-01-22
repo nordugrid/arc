@@ -87,7 +87,7 @@ class Client:
             resp = resp.GetXML()
             return resp
         except:
-            print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
+            #TODO: print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
             raise
 
 class AHashClient(Client):

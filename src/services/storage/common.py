@@ -743,28 +743,10 @@ class AuthPolicy(dict):
         if format == 'StorageAuth':
             return [(identity, ' '.join([a for a in actions if a[1:] in storage_actions])) for identity, actions in self.items()]
     
-    def set_policy(self, policy, format = None):
-        if not format:
-            if isinstance(policy, list):
-                format = 'StorageAuth'
-            else:
-                format = 'ARCAuth'
-        self.clear()
-        if format not in ['ARCAuth', 'StorageAuth']:
+    def set_policy(self, policy, format = 'StorageAuth'):
+        if format != 'StorageAuth':
             raise Exception, 'Unsupported format %s' % format
-        if format == 'ARCAuth':
-            for rule in get_child_nodes(policy):
-                permit = str(rule.Attribute('Effect')) == 'Permit'
-                identities = []
-                for subject in get_child_nodes(rule.Get('Subjects')):
-                    for attribute in get_child_nodes(subject):
-                        if get_attributes(attribute).get('AttributeId', '') == identity_type:
-                            identities.append(str(attribute))
-                actions = [(permit and '+' or '-') + str(action) \
-                    for action in get_child_nodes(rule.Get('Actions')) \
-                        if get_attributes(action).get('AttributeId', '') == action_type]
-                for identity in identities:
-                    self[identity] = actions + self.get(identity, [])
+        self.clear()
         if format == 'StorageAuth':
             for identity, actionstring in policy:
                 self[identity] = actionstring.split()
