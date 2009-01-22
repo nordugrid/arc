@@ -768,20 +768,21 @@ class Client:
         try:
             import arc
             self.call_raw = self.call_raw_hed
-            print 'call_raw_hed'
             self.cfg = arc.MCCConfig()
             self.cfg.AddCertificate(self.ssl_config.get('cert_file', None))
             self.cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
             if ssl_config.has_key('ca_file'):
-                self.cfg.AddCAFile(self.ssl_config.get('ca_file', None))
+                self.cfg.AddCAFile(self.ssl_config['ca_file'])
             elif ssl_config.has_key('ca_dir'):
-                self.cfg.AddCADir(self.ssl_config.get('ca_dir', None))
+                self.cfg.AddCADir(self.ssl_config['ca_dir'])
             else:
                 raise Exception, 'no CA file or CA dir found!'
+            if ssl_config.has_key('proxy_file'):
+                self.cfg.AddProxy(self.ssl_config['proxy_file'])
             self.url = arc.URL(url)
         except:
             self.call_raw = self.call_raw_standalone
-            print 'call_raw_standalone'
+            print '- No ARC HED installation found: CA checking and proxy certificate support disabled.'
 
     def create_soap_envelope(self, ns):
         """docstring for create_soap_envelope"""
@@ -866,6 +867,8 @@ class Client:
             import arc
             s = arc.ClientSOAP(self.cfg, self.url)          
             resp, status = s.process(outpayload)
+            if not status.isOk():
+                raise Exception, status
             resp = resp.GetXML()
             return resp
         except:
@@ -1277,6 +1280,11 @@ else:
             except:
                 ssl_config['ca_dir'] = os.environ['ARC_CA_DIR']
                 print '- The CA dir:', ssl_config['ca_dir']
+            try:
+                ssl_config['proxy_file'] = os.environ['ARC_PROXY_FILE']
+                print '- The proxy file:', ssl_config['proxy_file']
+            except:
+                pass
         except:
             ssl_config = {}
             print '- ARC_KEY_FILE or ARC_CERT_FILE or ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
