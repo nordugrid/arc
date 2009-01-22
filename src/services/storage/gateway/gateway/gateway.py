@@ -21,7 +21,7 @@ class Gateway:
 
     def __init__(self,cfg):
         #print "Gateway constructor..."
-    
+   	self.service_name = 'Gateway' 
     def get(self, sourceURL, flags):
         response ={}    
 	url = arc.URL(sourceURL);
