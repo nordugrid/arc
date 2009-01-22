@@ -92,12 +92,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
     return NULL;
   };
   Glib::ModuleFlags flags = Glib::ModuleFlags(0);
-#ifdef HAVE_GLIBMM_BIND_LOCAL
-  //flags|=Glib::MODULE_BIND_LOCAL;
-  if(probe) flags|=Glib::MODULE_BIND_LAZY | Glib::MODULE_BIND_LOCAL;
-#else
   if(probe) flags|=Glib::MODULE_BIND_LAZY;
-#endif
   Glib::Module *module = new Glib::Module(path,flags);
   if ((!module) || (!(*module))) {
     Loader::logger.msg(ERROR, Glib::Module::get_last_error());
