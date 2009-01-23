@@ -99,11 +99,16 @@ namespace Arc {
     return os;
   }
 
-  LogDestination::LogDestination() {}
+  LogDestination::LogDestination() {
+std::cerr<<"LogDestination(): "<<(unsigned int)this<<std::endl;
+}
 
-  LogDestination::LogDestination(const std::string& locale) : locale(locale) {}
+  LogDestination::LogDestination(const std::string& locale) : locale(locale) {
+std::cerr<<"LogDestination(const std::string&): "<<(unsigned int)this<<std::endl;
+}
 
   LogDestination::LogDestination(const LogDestination&) {
+std::cerr<<"LogDestination(const LogDestination&): "<<(unsigned int)this<<std::endl;
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
@@ -185,6 +190,7 @@ namespace Arc {
   }
 
   void Logger::msg(LogMessage message) {
+if(getenv("SLEEP_ENDLESS")) for(int i = 0; i<1; ) sleep(1);
     message.setDomain(domain);
     log(message);
   }

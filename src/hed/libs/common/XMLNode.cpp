@@ -529,6 +529,33 @@ void XMLNode::Destroy(void) {
   };
 }
 
+XMLNodeList XMLNode::Path(const std::string& path) const {
+  XMLNodeList res;
+  std::string::size_type name_s = 0;
+  std::string::size_type name_e = path.find('/',name_s);
+  if(name_e == std::string::npos) name_e=path.length();
+  res.push_back(*this);
+  int nodes_num = res.size();
+  for(;;) {
+    if(res.size() <= 0) return res;
+    XMLNodeList::iterator node = res.begin();
+    std::string node_name = path.substr(name_s,name_e-name_s);
+    for(int n=0;n<nodes_num;++n) {
+      XMLNode cnode = (*node)[node_name];
+      for(;(bool)cnode;++cnode) {
+        res.push_back(cnode);
+      };
+      ++node;
+    };
+    res.erase(res.begin(),node);
+    if(name_e >= path.length()) break;
+    name_s=name_e+1;
+    name_e=path.find('/',name_s);
+    if(name_e == std::string::npos) name_e=path.length();
+  };
+  return res;
+}
+
 XMLNodeList XMLNode::XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList) const {
   std::list<XMLNode> retlist;
   if(node_ == NULL) return retlist;

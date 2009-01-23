@@ -223,6 +223,13 @@ class XMLNode {
     XML element is unlinked from XML tree and destroyed.
     After this operation XMLNode instance becomes invalid */
   void Destroy(void);
+  /** Collects nodes corresponding to specified path.
+    This is a convenience function to cover common use of XPath but
+    without performance hit. Path is made of node_name[/node_name[...]]
+    and is relative to current node. node_names are treated in same way
+    as in operator[].
+    Returns all nodes which are represented by path. */
+  XMLNodeList Path(const std::string& path) const;
   /** Uses xPath to look up the whole xml structure,
     Returns a list of XMLNode points. The xpathExpr should be like 
     "//xx:child1/" which indicates the namespace and node that you 
