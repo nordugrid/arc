@@ -57,7 +57,6 @@ struct FileType {
     bool IsExecutable;
     URL DataIndexingService;
     bool DownloadToCache;
-    bool IsInput;
 };
 
 struct DirectoryType {
@@ -136,18 +135,20 @@ struct DirectoryType {
     std::string Platform;
     int IndividualPhysicalMemory;
     int IndividualVirtualMemory;
-    int IndividualDiskSpace;
     int DiskSpace;
     int CacheDiskSpace;         //DiskSpace
     int SessionDiskSpace;       //DiskSpace
+    int IndividualDiskSpace;    //DiskSpace
     URL EndPointURL;            //CandidateTarget
     std::string QueueName;      //CandidateTarget
     std::string CEType;
+    int Slots;
     int NumberOfProcesses;      //Slots
     int ProcessPerHost;	        //Slots
     int ThreadPerProcesses;     //Slots
     std::string SPMDVariation;  //Slots
     std::list<Arc::RunTimeEnvironmentType> RunTimeEnvironment;
+    bool Homogeneous;
     bool InBound;               //NodeAccess
     bool OutBound;              //NodeAccess
 
