@@ -150,7 +150,6 @@ namespace Arc {
     virtual void log(const LogMessage& message) = 0;
 
     virtual ~LogDestination() {
-std::cerr<<"~LogDestination: "<<(unsigned int)this<<std::endl;
 };
 
    protected:
