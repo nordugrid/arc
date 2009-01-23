@@ -360,35 +360,11 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.DN=config_.GridName();
   job_.clientname=clientid;
   // Try to create proxy
-  if(!credentials.empty()) {
-    std::string fname=config.User()->ControlDir()+"/job."+id_+".proxy";
-    int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
-    if(h == -1) {
-      failure_="Failed to store credentials";
-      failure_type_=ARexJobInternalError;
-      delete_job_id();
-      return;
-    };
-    fix_file_owner(fname,*config.User());
-    const char* s = credentials.c_str();
-    int ll = credentials.length();
-    int l = 0;
-    for(;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
-    if(l==-1) {
-      ::close(h);
-      failure_="Failed to store credentials";
-      failure_type_=ARexJobInternalError;
-      delete_job_id();
-      return;
-    };
-    ::close(h);
-    //@try {
-    //////Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
-    //@   Certificate ci(PROXY,fname);
-    //@   job_desc.expiretime = ci.Expires().GetTime();
-    //@ } catch (std::exception) {
-    //@   job_desc.expiretime = time(NULL);
-    //@ };
+  if(!update_credentials(credentials)) {
+    failure_="Failed to store credentials";
+    failure_type_=ARexJobInternalError;
+    delete_job_id();
+    return;
   };
   // Write local file
   JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
@@ -501,7 +477,19 @@ bool ARexJob::Clean(void) {
 
 bool ARexJob::Resume(void) {
   if(id_.empty()) return false;
-  return false;
+  if(job_.failedstate.length() == 0) {
+    // Job can't be restarted.
+    return false;
+  };
+  if(job_.reruns <= 0) {
+    // Job run out of number of allowed retries.
+    return false;
+  };
+  if(!job_restart_mark_put(JobDescription(id_,""),*config_.User())) {
+    // Failed to report restart request.
+    return false;
+  };
+  return true;
 }
 
 std::string ARexJob::State(void) {
@@ -519,6 +507,34 @@ std::string ARexJob::State(bool& job_pending) {
 bool ARexJob::Failed(void) {
   if(id_.empty()) return false;
   return job_failed_mark_check(id_,*config_.User());
+}
+
+bool ARexJob::UpdateCredentials(const std::string& credentials) {
+  if(id_.empty()) return false;
+  return update_credentials(credentials);
+}
+
+bool ARexJob::update_credentials(const std::string& credentials) {
+  if(credentials.empty()) return true;
+  std::string fname=config_.User()->ControlDir()+"/job."+id_+".proxy";
+  ::unlink(fname.c_str());
+  int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
+  if(h == -1) return false;
+  fix_file_owner(fname,*config_.User());
+  const char* s = credentials.c_str();
+  int ll = credentials.length();
+  int l = 0;
+  for(;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
+  ::close(h);
+  if(l==-1) return false;
+  //@try {
+  //////Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
+  //@   Certificate ci(PROXY,fname);
+  //@   job_desc.expiretime = ci.Expires().GetTime();
+  //@ } catch (std::exception) {
+  //@   job_desc.expiretime = time(NULL);
+  //@ };
+  return true;
 }
 
 /*

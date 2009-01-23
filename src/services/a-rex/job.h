@@ -70,6 +70,7 @@ class ARexJob {
   JobLocalDescription job_;
   bool make_job_id(void);
   bool delete_job_id(void);
+  bool update_credentials(const std::string& credentials);
  public:
   /** Create instance which is an interface to existing job */
   ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check = false);
@@ -106,6 +107,8 @@ class ARexJob {
   static std::list<std::string> Jobs(ARexGMConfig& config,Arc::Logger& logger);
   /** Creates file in job's session directory and returns handler */
   int CreateFile(const std::string& filename);
+  /** Updates job credentials */
+  bool UpdateCredentials(const std::string& credentials);
 };
 
 } // namespace ARex

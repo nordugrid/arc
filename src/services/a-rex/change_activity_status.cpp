@@ -80,6 +80,19 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   };
   std::string new_bes_state = new_state.Attribute("state");
   std::string new_arex_state = new_state["a-rex:state"];
+  // Take renewed proxy if supplied
+  std::string delegation;
+  Arc::XMLNode delegated_token = new_state["deleg:DelegatedToken"];
+  if(delegated_token) {
+    if(!delegations_.DelegatedToken(delegation,delegated_token)) {
+      // Failed to accept delegation (report as bad request)
+      logger_.msg(Arc::ERROR, "ChangeActivityStatus: Failed to accept delegation");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");
+      InvalidRequestMessageFault(fault,"deleg:DelegatedToken","This token does not exist");
+      out.Destroy();
+      return Arc::MCC_Status();
+    };
+  };
 
   bool pending = false;
   std::string gm_state = job.State(pending);
@@ -122,15 +135,23 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   if((new_bes_state == "Running") &&
      (new_arex_state.empty())) { // Not supporting resume into user-defined state
     // Request to resume job
+    if(!job.UpdateCredentials(delegation)) {
+      logger_.msg(Arc::ERROR, "ChangeActivityStatus: failed to update credentials");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Internal error: Failed to update credentials");
+      out.Destroy();
+      return Arc::MCC_Status();
+    };
     if(!job.Resume()) {
-
+      logger_.msg(Arc::ERROR, "ChangeActivityStatus: failed to resume job");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Internal error: Failed to resume activity");
+      out.Destroy();
       return Arc::MCC_Status();
     };
   } else {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: state change not allowed: from %s/%s to %s/%s",
                 bes_state.c_str(),arex_state.c_str(),new_bes_state.c_str(),new_arex_state.c_str());
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Status transition is not supported");
-    CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"Status transition is not supported");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Requested status transition is not supported");
+    CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"Requested status transition is not supported");
     out.Destroy();
     return Arc::MCC_Status();
   };
