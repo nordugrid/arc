@@ -78,6 +78,8 @@ namespace Arc {
     if (!loader)
       return;
 
+    logger.msg(DEBUG, "Running resource (target) discovery");
+
     TargetRetriever *TR;
     for (int i = 0;
 	 (TR = dynamic_cast<TargetRetriever*>(loader->getACC("retriever" +
@@ -87,7 +89,14 @@ namespace Arc {
     while (threadCounter > 0)
       threadCond.wait(threadMutex);
 
-    logger.msg(INFO, "Number of Targets found: %ld", foundTargets.size());
+    logger.msg(INFO, "Found %ld targets", foundTargets.size());
+
+    for(std::list<ExecutionTarget>::iterator iter = foundTargets.begin();
+	iter != foundTargets.end(); iter++){
+      logger.msg(DEBUG, "Cluster: %s", iter->DomainName);
+      logger.msg(DEBUG, "Health State: %s", iter->HealthState);
+    }
+
   }
 
   const std::list<ExecutionTarget>& TargetGenerator::FoundTargets() const {

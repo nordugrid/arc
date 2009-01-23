@@ -230,8 +230,7 @@ int main(int argc, char **argv) {
   targen.GetTargets(0, 1);
 
   if (targen.FoundTargets().empty()) {
-    logger.msg(Arc::ERROR, "Job submission failed because none of "
-	       "the specified clusters returned any information");
+    std::cout << Arc::IString("Job submission aborted because no clusters returned any information")<< std::endl;
     return 1;
   }
 
@@ -254,10 +253,11 @@ int main(int argc, char **argv) {
   Arc::XMLNode Broker = cfg.NewChild("ArcClientComponent");
   Broker.NewAttribute("name") = broker;
   Broker.NewAttribute("id") = "broker";
-
+  
   Arc::ACCLoader loader(cfg);
   Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
-
+  logger.msg(Arc::INFO, "Broker %s loaded", broker);  
+  
   for (std::list<Arc::JobDescription>::iterator it =
 	 jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {

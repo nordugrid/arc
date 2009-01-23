@@ -435,7 +435,7 @@ namespace Arc {
 
   void Broker::PreFilterTargets(Arc::TargetGenerator& targen,  Arc::JobDescription jd) {
     
-    logger.msg(VERBOSE, "Prefiltering: targets according to input jobdescription");
+    logger.msg(DEBUG, "Prefiltering targets according to input jobdescription");
     
     //for testing purposes
     /*
@@ -725,7 +725,14 @@ namespace Arc {
     
     } //end loop over all found targets
     
-    logger.msg(VERBOSE, "Number of possible targets : %d",PossibleTargets.size());
+    logger.msg(DEBUG, "Possible targets after prefiltering: %d",PossibleTargets.size());
+    
+    for(std::vector<ExecutionTarget>::iterator iter = PossibleTargets.begin();
+	iter != PossibleTargets.end(); iter++){
+      logger.msg(DEBUG, "Cluster: %s", iter->DomainName);
+      logger.msg(DEBUG, "Health State: %s", iter->HealthState);
+    }
+    
     PreFilteringDone = true;
     TargetSortingDone = false;
 
