@@ -187,7 +187,6 @@ namespace Arc {
   }
 
   void Logger::msg(LogMessage message) {
-if(getenv("SLEEP_ENDLESS")) for(int i = 0; i<1; ) sleep(1);
     message.setDomain(domain);
     log(message);
   }
