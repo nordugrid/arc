@@ -9,12 +9,12 @@ int main(int argc, char* argv[]) {
 Arc::OptionParser options(istring("[job description ...]"),
   istring("This tiny tool can be used for testing"
           "the JobDescription's conversion abilities."),
-  istring("The job description also can be a file or a string in JDL, JSDL, or XRSL format.")
+  istring("The job description also can be a file or a string in JDL, POSIX JSDL, JSDL, or XRSL format.")
   );
 
 std::string requested_format = "";
   options.AddOption('f', "format",
-    istring("define the requested format (JSDL, JDL, XRSL)"),
+    istring("define the requested format (POSIXJSDL, JSDL, JDL, XRSL)"),
     istring("format"),
     requested_format);
 
@@ -94,6 +94,15 @@ for (std::list< std::string >::iterator it = descriptions.begin(); it != descrip
       try {
     jd.getProduct( test, "XRSL" );
     std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
+      } catch (Arc::JobDescriptionError jde) {
+        std::cout << std::endl << " " << jde.what() << std::endl;
+      }
+    }
+
+    if (requested_format == "POSIXJSDL" || requested_format == "") {
+      try {
+    jd.getProduct( test, "POSIXJSDL" );
+    std::cout << std::endl << " [ POSIXJSDL ] " << std::endl << test << std::endl;
       } catch (Arc::JobDescriptionError jde) {
         std::cout << std::endl << " " << jde.what() << std::endl;
       }

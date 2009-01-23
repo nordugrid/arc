@@ -64,7 +64,7 @@ namespace Arc {
         candidate.negative_pattern.clear();
         candidate.priority = DEFAULT_PRIORITY; //Default value
         //End of setting defaults//
-        candidate.typeName = "POSIX JSDL";
+        candidate.typeName = "POSIXJSDL";
         candidate.extensions.push_back("jsdl");
         candidate.extensions.push_back("xml");
         candidate.pattern.push_back("<?xml ");
@@ -81,12 +81,12 @@ namespace Arc {
         candidate.pattern.push_back("<Output");
         candidate.pattern.push_back("<Error");
         
-        candidate.pattern.push_back("<?xml ");
-        candidate.pattern.push_back("<JobDescription");
+        //candidate.pattern.push_back("<?xml ");
+        //candidate.pattern.push_back("<JobDescription");
         //Save entry
         candidates.push_back(candidate);
         // End of POSIX JSDL
-
+/*
         // JSDL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -113,7 +113,7 @@ namespace Arc {
         //Save entry  
         candidates.push_back(candidate);
         // End of JSDL
-
+*/
         // RSL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -303,11 +303,11 @@ namespace Arc {
                 }
                 //else
                 resetJobTree();
-            } else if ( sm.toLowerCase( (*it).typeName ) == "posix jsdl" ) {
-                if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as JSDL" << std::endl;
+            } else if ( sm.toLowerCase( (*it).typeName ) == "posixjsdl" ) {
+                if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as POSIX JSDL" << std::endl;
                 PosixJSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
-                    sourceFormat = "jsdl";
+                    sourceFormat = "posixjsdl";
                     break;
                 }
                 //else
@@ -385,8 +385,8 @@ namespace Arc {
                return false;
             }
             return true;
-        } else if ( sm.toLowerCase( format ) == "posix jsdl" ) {
-            if ( VERBOSEX ) std::cerr << "[JobDescription] Generate JSDL output" << std::endl;
+        } else if ( sm.toLowerCase( format ) == "posixjsdl" ) {
+            if ( VERBOSEX ) std::cerr << "[JobDescription] Generate POSIX JSDL output" << std::endl;
             PosixJSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
                std::cerr << "Generating " << format << " output was unsuccessful" << std::endl;
@@ -441,14 +441,236 @@ namespace Arc {
         return true;
     }
 
-    bool PosixJSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) {
-        //TODO: Implement this function
-        return false;
+    int get_limit(Arc::XMLNode range)
+    {
+       if (!range) return -1;
+       Arc::XMLNode n = range["UpperBound"];
+       if ((bool)n) {
+          return Arc::stringto<int>((std::string)n);
+       }
+       n = range["LowerBound"];
+       if ((bool)n) {
+          return Arc::stringto<int>((std::string)n);
+       }
+       return -1;
+    } 
+
+    bool PosixJSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) { 
+	
+	    Arc::XMLNode node(source);
+        Arc::NS nsList;
+        nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
+        nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
+        nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
+      
+	   node.Namespaces(nsList);
+
+        Arc::XMLNode jobdescription = node["JobDescription"];
+
+        if (jobdescription["LocalLogging"]["Directory"]) {
+           innerRepresentation.LogDir = (std::string)jobdescription["LocalLogging"]["Directory"];
+        }
+
+        if (jobdescription["RemoteLogging"]["URL"]) {
+           URL url((std::string)jobdescription["RemoteLogging"]["URL"]);
+           innerRepresentation.RemoteLogging = url;
+        }
+
+        if (jobdescription["CredentialServer"]["URL"]) {
+           URL url((std::string)jobdescription["CredentialServer"]["URL"]);
+           innerRepresentation.CredentialService = url;
+        }
+
+        if (jobdescription["ProcessingStartTime"]) {
+           Time stime((std::string)jobdescription["ProcessingStartTime"]);
+           innerRepresentation.ProcessingStartTime = stime;
+        }
+
+        Arc::XMLNode jobidentification = node["JobDescription"]["JobIdentification"];
+
+      
+        if (jobidentification["JobName"]) {
+           innerRepresentation.JobName = (std::string)jobidentification["JobName"];
+        }
+
+        Arc::XMLNode application = node["JobDescription"]["Application"]["POSIXApplication"];
+ 
+        if (application["Executable"]) {
+           innerRepresentation.Executable = (std::string)application["Executable"];
+        }
+
+        for ( int i=0; (bool)(application["Argument"][i]); i++ ) { 
+          std::string value = (std::string) application["Argument"][i];
+          innerRepresentation.Argument.push_back(value);
+        }   
+
+        if (application["Input"])  {
+              innerRepresentation.Input = (std::string)application["Input"];
+        }
+
+        if (application["Output"])  {
+              innerRepresentation.Output = (std::string)application["Output"];
+        }
+
+        if (application["Error"])  {
+              innerRepresentation.Error = (std::string)application["Error"];
+        }
+
+        for (int i=0; (bool)(application["Environment"][i]); i++) {
+           Arc::XMLNode env = application["Environment"][i];
+           Arc::XMLNode name = env.Attribute("name");
+           std::string value = (std::string)env;
+           if(!name) {
+               return false;
+           } 
+           Arc::EnvironmentType env_tmp;
+           env_tmp.name_attribute = (std::string)env.Attribute("name");
+           env_tmp.value = (std::string)env;
+           innerRepresentation.Environment.push_back(env_tmp);
+        }
+
+        if (application["VirtualMemoryLimit"]) {
+           innerRepresentation.IndividualVirtualMemory = Arc::stringto<int>((std::string)application["VirtualMemoryLimit"]);
+        }
+
+        if (application["CPUTimeLimit"]) {
+           Period time((std::string)application["CPUTimeLimit"]);
+           innerRepresentation.TotalCPUTime = time;
+        }
+
+        if (application["WallTimeLimit"]) {
+           Period time((std::string)application["WallTimeLimit"]);
+           innerRepresentation.TotalWallTime = time;
+        }
+
+        if (application["MemoryLimit"]) {
+           innerRepresentation.IndividualPhysicalMemory = Arc::stringto<int>((std::string)application["MemoryLimit"]);
+        }
+
+        Arc::XMLNode resource = node["JobDescription"]["Resource"];
+
+        if (resource["SessionLifeTime"]) {
+           Period time((std::string)resource["SessionLifeTime"]);
+           innerRepresentation.SessionLifeTime = time;
+        }
+
+        if (resource["TotalCPUTime"]) {
+           int value = get_limit((std::string)resource["TotalCPUTime"]);
+		   if (value != -1)
+              innerRepresentation.TotalCPUTime = value;
+        }
+
+        if (resource["IndividualCPUTime"]) {
+           int value = get_limit((std::string)resource["IndividualCPUTime"]);
+		   if (value != -1)
+              innerRepresentation.IndividualCPUTime = value;
+        }
+
+        if (resource["IndividualPhysicalMemory"]) {
+           int value = get_limit((std::string)resource["IndividualPhysicalMemory"]);
+		   if (value != -1)
+              innerRepresentation.IndividualPhysicalMemory = value;
+        }
+
+        if (resource["IndividualVirtualMemory"]) {
+           int value = get_limit((std::string)resource["IndividualVirtualMemory"]);
+		   if (value != -1)
+              innerRepresentation.IndividualPhysicalMemory = value;
+        }
+
+        Arc::XMLNode datastaging = node["JobDescription"]["DataStaging"];
+       
+        for(int i=0; datastaging[i]; i++) {
+           Arc::XMLNode ds = datastaging[i];
+           Arc::XMLNode source_uri = ds["Source"]["URI"];
+           Arc::XMLNode target_uri = ds["Target"]["URI"];
+           Arc::XMLNode filenameNode = ds["FileName"];
+
+           Arc::FileType file;
+
+          if (filenameNode) {
+             file.Name = (std::string) filenameNode;
+             if (source_uri) {
+                Arc::SourceType source;
+                URL uri;
+                uri.ChangePath((std::string)source_uri);
+                source.URI = uri;
+                file.Source.push_back(source);
+             }
+             if (target_uri) {
+                Arc::TargetType target;
+                URL uri;
+                uri.ChangePath((std::string)target_uri);
+                target.URI = uri;
+                file.Target.push_back(target);
+             }
+
+             StringManipulator sm;
+
+             if (sm.toLowerCase(((std::string)ds["IsExecutable"])) == "true")
+                file.IsExecutable = true;
+             else
+                file.IsExecutable = false;
+             file.KeepData = false;
+             file.DownloadToCache = false;
+             file.IsInput = false;
+             innerRepresentation.File.push_back(file);
+          }
+        }
+        return true;
     }
 
     bool PosixJSDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
-        //TODO: Implement this function
-        return false;
+        Arc::NS nsList;        
+        nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
+        nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
+        nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
+           
+	   
+	   Arc::XMLNode jobdefinition("<JobDefinition/>");
+	   
+	   jobdefinition.Namespaces(nsList);
+
+       Arc::XMLNode jobdescription = jobdefinition.NewChild("JobDescription");
+
+       Arc::XMLNode jobidentification = jobdescription.NewChild("JobIdentification");
+
+       jobidentification.NewChild("JobName") = innerRepresentation.JobName;
+
+       Arc::XMLNode application = jobdescription.NewChild("Application").NewChild("POSIXApplication");
+
+       application.NewChild("Executable") = innerRepresentation.Executable;
+       application.NewChild("Input") = innerRepresentation.Input;
+       application.NewChild("Output") = innerRepresentation.Output;
+       application.NewChild("Error") = innerRepresentation.Error;
+
+       for (std::list<std::string>::const_iterator it=innerRepresentation.Argument.begin();
+                 it!=innerRepresentation.Argument.end(); it++) {
+             application.NewChild("Argument") = *it;
+       }
+
+       Arc::XMLNode datastaging = jobdescription.NewChild("DataStaging");
+
+       for (std::list<Arc::FileType>::const_iterator it=innerRepresentation.File.begin();
+                 it!=innerRepresentation.File.end(); it++) {
+		   datastaging.NewChild("FileName") = (*it).Name;
+		   if ((*it).Source.size() != 0) {
+		      std::list<Arc::SourceType>::const_iterator it2;
+			  it2 = ((*it).Source).begin();
+		      datastaging.NewChild("Source").NewChild("URI") = ((*it2).URI).fullstr();
+		   }
+		   if ((*it).Target.size() != 0) {
+		      std::list<Arc::TargetType>::const_iterator it3;
+			  it3 = ((*it).Target).begin();
+		      datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
+		   }	  
+		   if ((*it).IsExecutable)
+		      datastaging.NewChild("IsExecutable") = "true";
+       }
+
+       jobdefinition.GetDoc( product, true );
+
+       return true;
     }
 
     bool JSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) {

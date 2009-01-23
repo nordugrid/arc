@@ -40,7 +40,7 @@ namespace Arc {
     AREXClient ac(submissionEndpoint, cfg);
 
     std::string jobdescstring;
-    jobdesc.getProduct(jobdescstring, "JSDL");
+    jobdesc.getProduct(jobdescstring, "POSIXJSDL");
     std::istringstream jsdlfile(jobdescstring);
 
     std::string jobid;
