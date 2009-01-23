@@ -165,7 +165,12 @@ DelegationConsumer::DelegationConsumer(const std::string& content):key_(NULL) {
 DelegationConsumer::~DelegationConsumer(void) {
   if(key_) RSA_free((RSA*)key_);
 }
- 
+
+const std::string& DelegationConsumer::ID(void) {
+  static std::string s;
+  return s;
+}
+
 #ifdef HAVE_OPENSSL_OLDRSA
 static void progress_cb(int p, int, void*) {
   char c='*';
