@@ -86,7 +86,7 @@ namespace Arc {
         //Save entry
         candidates.push_back(candidate);
         // End of POSIX JSDL
-
+/*
         // JSDL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -118,7 +118,7 @@ namespace Arc {
         //Save entry  
         candidates.push_back(candidate);
         // End of JSDL
-
+*/
         // RSL attributes
         //Set defaults//
         candidate.extensions.clear();

@@ -220,9 +220,11 @@ namespace Arc {
 				TargetSortingDone(false){}
 
   Broker::~Broker() {}
+
+  void Broker::PreFilterTargets(Arc::TargetGenerator& targen,  Arc::JobDescription jd) {
  
-  void Broker::GINProfilePreFilterTargets(Arc::TargetGenerator& targen, 
-                                          Arc::JobInnerRepresentation& jir) {
+	jd.getInnerRepresentation(jir);
+
     for (std::list<Arc::ExecutionTarget>::const_iterator target =	\
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
 	   target++) {  
@@ -429,54 +431,19 @@ namespace Arc {
            }
        }
 
-      } // End of for     
+      PossibleTargets.push_back(*target);	     
 
-  }
-
-  void Broker::PreFilterTargets(Arc::TargetGenerator& targen,  Arc::JobDescription jd) {
+    } //end loop over all found targets
     
     logger.msg(DEBUG, "Prefiltering targets according to input jobdescription");
+
+    logger.msg(VERBOSE, "Number of possible targets : %d",PossibleTargets.size());
+    PreFilteringDone = true;
+    TargetSortingDone = false;
     
-    //for testing purposes
-    /*
-    ExecutionTarget eTarget;
-    eTarget.MaxCPUTime = 1; 
-    eTarget.RunningJobs = 1; 
-    eTarget.MaxRunningJobs = 1; 
-    eTarget.WaitingJobs = 3;
-    eTarget.MaxDiskSpace = 10;
-    PossibleTargets.push_back(eTarget);
-    
-    eTarget.MinCPUTime = 1; 
-    eTarget.MaxRunningJobs = 22;
-    eTarget.WaitingJobs = 1; 
-    PossibleTargets.push_back(eTarget);
-    
-    ExecutionTarget eTarget2;
-    eTarget2.DefaultCPUTime = 1; 
-    eTarget2.RunningJobs = 3; 
-    eTarget2.MaxRunningJobs = 31;
-    eTarget2.WaitingJobs = 20; 
-    PossibleTargets.push_back(eTarget2);
-    */
+  }
 
-    //Perform pre filtering of targets found according to the input jobdescription
-
-    Arc::XMLNode jobd;
-
-    Arc::NS jsdl_namespaces;
-    jsdl_namespaces[""] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-    jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-    jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
-    jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-    jobd.Namespaces(jsdl_namespaces);
-
-    //jobd = jd.getXML();
-    if ( !jd.getXML(jobd) ){
-       std::cerr << "The JobDescription was empty." << std::endl;
-       return;
-    }
-
+/*
     for (std::list<Arc::ExecutionTarget>::const_iterator target =	\
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
 	 target++) {  
@@ -737,7 +704,8 @@ namespace Arc {
     TargetSortingDone = false;
 
   }
-    
+*/   
+
   ExecutionTarget& Broker::GetBestTarget(bool &EndOfList) {
 
     if(PossibleTargets.size() <= 0) {

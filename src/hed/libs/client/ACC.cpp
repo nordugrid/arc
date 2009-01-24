@@ -14,13 +14,9 @@ namespace Arc {
   ACC::ACC(Config *cfg, const std::string& flavour)
     : flavour(flavour){
     proxyPath = (std::string)(*cfg)["ProxyPath"];
-    std::cout<<"proxypath = " << proxyPath << std::endl;
     certificatePath = (std::string)(*cfg)["CertificatePath"];
-    std::cout<<"certificatepath = " << certificatePath << std::endl;
     keyPath = (std::string)(*cfg)["KeyPath"];
-    std::cout<<"keypath = " << keyPath << std::endl;
     caCertificatesDir = (std::string)(*cfg)["CACertificatesDir"];
-    std::cout<<"caCertificatesDir = " << caCertificatesDir << std::endl;
 
   }
 

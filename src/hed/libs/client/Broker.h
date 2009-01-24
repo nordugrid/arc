@@ -30,9 +30,6 @@ namespace Arc {
     */
     void PreFilterTargets(Arc::TargetGenerator& targen, 
 			  Arc::JobDescription jd);
-    void GINProfilePreFilterTargets(Arc::TargetGenerator& targen, 
-			  Arc::JobInnerRepresentation& jir);
-    
   protected:
     Broker(Config *cfg);
     virtual ~Broker();
@@ -49,6 +46,7 @@ namespace Arc {
     std::vector<Arc::ExecutionTarget> PossibleTargets;
     /// It is true if "custom" sorting is done
     bool TargetSortingDone;
+	Arc::JobInnerRepresentation jir;
     
   private:	
     /// This is a pointer for the actual Execution Target in the PossibleTargets vector

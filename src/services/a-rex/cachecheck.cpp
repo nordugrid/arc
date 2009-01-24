@@ -49,7 +49,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Error with cache configuration");  
      fault.Detail(true).NewChild("CacheConfigurationFault");
 	 out.Destroy();
-	 return Arc::MCC_Status(Arc::GENERIC_ERROR);
+	 return Arc::MCC_Status();
     }
     if(pw->pw_name) file_owner_username=pw->pw_name;
 
@@ -73,14 +73,14 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Error with cache configuration");  
      fault.Detail(true).NewChild("CacheConfigurationFault");
 	 out.Destroy();
-	 return Arc::MCC_Status(Arc::GENERIC_ERROR);
+	 return Arc::MCC_Status();
     }
 
   if (caches.empty()) {
      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Cache is disabled");  
      fault.Detail(true).NewChild("CacheDisabledFault");
 	 out.Destroy();
-	 return Arc::MCC_Status(Arc::GENERIC_ERROR);
+	 return Arc::MCC_Status();
   }
 
 
@@ -93,7 +93,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Error with cache configuration");  
      fault.Detail(true).NewChild("CacheConfigurationFault");
 	 out.Destroy();
-	 return Arc::MCC_Status(Arc::GENERIC_ERROR);
+	 return Arc::MCC_Status();
     }
   }
 

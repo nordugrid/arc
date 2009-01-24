@@ -1,6 +1,7 @@
 #ifndef __ARC_DATABROKER_H__
 #define __ARC_DATABROKER_H__
 
+#include <map>
 #include <arc/client/Broker.h>
 
 namespace Arc {
@@ -11,8 +12,8 @@ namespace Arc {
     DataBroker(Config *cfg);
     ~DataBroker();
     static Plugin* Instance(PluginArgument* arg);
-    bool CacheCheck(std::string& filename, ExecutionTarget& target);
-    
+    bool CacheCheck(void);
+
   protected:
     void SortTargets();
   };

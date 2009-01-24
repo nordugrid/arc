@@ -254,6 +254,8 @@ int main(int argc, char **argv) {
   Broker.NewAttribute("name") = broker;
   Broker.NewAttribute("id") = "broker";
   
+  usercfg.ApplySecurity(Broker);
+
   Arc::ACCLoader loader(cfg);
   Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);  
