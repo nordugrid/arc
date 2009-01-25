@@ -13,12 +13,18 @@
 
 namespace Arc {
 
-    std::map<std::string, long> CacheMappingTable;
+  //Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
+  //Arc::LogStream logcerr(std::cerr);
+
+  std::map<std::string, long> CacheMappingTable;
 
   bool DataBroker::CacheCheck(void) {
   
     Arc::MCCConfig cfg;
     Arc::NS ns;
+
+    // TODO: delegation
+
     //cfg.AddProxy(proxyPath);
     cfg.AddCertificate(certificatePath);
     cfg.AddPrivateKey(keyPath);

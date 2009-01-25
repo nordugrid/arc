@@ -8,6 +8,10 @@
 
 namespace Arc {
     
+
+  Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
+  Arc::LogStream logcerr(std::cerr);
+
   bool CompareExecutionTarget(const ExecutionTarget& T1, const ExecutionTarget& T2){
 
     //Scale queue to become cluster size independent

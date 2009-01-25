@@ -7,7 +7,10 @@
 #include "FastestCPUBroker.h"
 
 namespace Arc {
-    
+ 
+ // Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
+ // Arc::LogStream logcerr(std::cerr);
+   
   bool CheckCPUSpeeds(const ExecutionTarget& T1, const ExecutionTarget& T2){
     double T1performance = 0;
     double T2performance = 0;

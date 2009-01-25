@@ -411,11 +411,11 @@ namespace Arc {
       }
       if (queue["nordugrid-queue-homogeneity"]) {
 	if ((std::string)queue["nordugrid-queue-homogeneity"] == "false")
-	  target.Homogeneity = false;
+	  target.Homogeneous = false;
       }
       else if (cluster["nordugrid-cluster-homogeneity"])
 	if ((std::string)cluster["nordugrid-cluster-homogeneity"] == "false")
-	  target.Homogeneity = false;
+	  target.Homogeneous = false;
       if (cluster["nordugrid-cluster-sessiondir-free"])
 	target.WorkingAreaFree =
 	  stringtoi(std::string(cluster["nordugrid-cluster-sessiondir-free"]));

@@ -115,12 +115,14 @@ namespace Arc {
     int TotalPhysicalCPUs;
     int TotalLogicalCPUs;
     int TotalSlots;
-    bool Homogeneity;
+    bool Homogeneous;
     std::string NetworkInfo;
     bool WorkingAreaShared;
     int WorkingAreaFree;
+    int WorkingAreaTotal;
     Period WorkingAreaLifeTime;
     int CacheFree;
+    int CacheTotal;
 
     //ExecutionEnvironment
     std::string Platform;

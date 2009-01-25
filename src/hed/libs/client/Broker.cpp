@@ -232,14 +232,32 @@ namespace Arc {
 	  // TODO: if the type is a number than we need to check the measure
 
        if (!((std::string)(jir.EndPointURL.Host())).empty()) {
-        //   if (!((std::string)((*target).url)).empty()) {
-	    //    if (((std::string)(*target).url) != jir.EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu 
-		//	   continue;
-        //    }
-        //   }
+           if (!((std::string)((*target).url.Host())).empty()) {
+	        if (((std::string)(*target).url.Host()) != jir.EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu 
+			   continue;
+            }
+          }
        }
     
       // CEType is not decided yet, this will be modify to other
+
+       if ((int)jir.ProcessingStartTime.GetTime() != -1) {
+           if ((int)(*target).DowntimeStarts.GetTime() != -1 && (int)(*target).DowntimeEnds.GetTime() != -1) {
+	        if ((int)(*target).DowntimeStarts.GetTime() > (int)jir.ProcessingStartTime.GetTime() || 
+               (int)(*target).DowntimeEnds.GetTime() < (int)jir.ProcessingStartTime.GetTime()) { // 3423434 
+			   continue;
+            }
+           }
+       }
+
+       if (!(*target).HealthState.empty()) {
+
+          // Enumeration for healthstate: ok, critical, other, unknown, warning
+
+           if ((*target).HealthState != "ok") {
+			   continue;
+           }
+       }
 
        if (!jir.CEType.empty()) {
            if (!(*target).ImplementationName.empty()) {
@@ -304,19 +322,6 @@ namespace Arc {
             }
        }
 
-       if (jir.DiskSpace != -1) {
-	        if ((*target).MaxDiskSpace != -1) { // Example: 234
-               if (!((*target).MaxDiskSpace >= jir.DiskSpace)) {
-			       continue;
-               }
-            }
-	        else if ((*target).WorkingAreaFree != -1) { // Example: 234
-               if (!((*target).WorkingAreaFree >= jir.DiskSpace)) {
-			       continue;
-               }
-            }
-       }
-
        if (!jir.Platform.empty()) {
            if (!(*target).Platform.empty()) { // Example: i386
 	        if ((*target).Platform != jir.Platform) {  
@@ -375,29 +380,75 @@ namespace Arc {
            }
        }
 
-       // TODO: The SessionDiskSpace ExecutionTarget pair is not fixed yet
-
        if (jir.SessionDiskSpace != -1) {
-	        if ((*target).WorkingAreaFree != -1) { // Example: 5656
-               if (!((*target).WorkingAreaFree >= jir.SessionDiskSpace)) {
+	        if ((*target).MaxDiskSpace != -1) { // Example: 5656
+               if (!((*target).MaxDiskSpace >= jir.SessionDiskSpace)) {
+			       continue;
+               }
+            }
+	        else if ((*target).WorkingAreaTotal != -1) { // Example: 5656
+               if (!((*target).WorkingAreaTotal >= jir.SessionDiskSpace)) {
+			       continue;
+               }
+            }
+           
+       }
+
+       if (jir.DiskSpace != -1 && jir.CacheDiskSpace != -1) {
+	        if ((*target).MaxDiskSpace != -1) { // Example: 5656
+               if (!((*target).MaxDiskSpace >= (jir.DiskSpace - jir.CacheDiskSpace))) {
+			       continue;
+               }
+            }
+	        else if ((*target).WorkingAreaTotal != -1) { // Example: 5656
+               if (!((*target).WorkingAreaTotal >= (jir.DiskSpace - jir.CacheDiskSpace))) {
+			       continue;
+               }
+            }
+       }
+
+       if (jir.DiskSpace != -1) {
+	        if ((*target).MaxDiskSpace != -1) { // Example: 5656
+               if (!((*target).MaxDiskSpace >= jir.DiskSpace)) {
+			       continue;
+               }
+            }
+	        else if ((*target).WorkingAreaTotal != -1) { // Example: 5656
+               if (!((*target).WorkingAreaTotal >= jir.DiskSpace)) {
 			       continue;
                }
             }
        }
 
        if (jir.CacheDiskSpace != -1) {
-	        if ((*target).CacheFree != -1) { // Example: 5656
-               if (!((*target).CacheFree >= jir.CacheDiskSpace)) {
+	        if ((*target).CacheTotal != -1) { // Example: 5656
+               if (!((*target).CacheTotal >= jir.CacheDiskSpace)) {
 			       continue;
                }
             }
        }
 
-       //TODO: Slots parsing, similar usage to DiskSpace 
+       if (jir.Slots != -1) {
+	        if ((*target).TotalSlots != -1) { // Example: 5656
+               if (!((*target).TotalSlots >= jir.Slots)) {
+			       continue;
+               }
+            }
+	        else if ((*target).MaxSlotsPerJob != -1) { // Example: 5656
+               if (!((*target).MaxSlotsPerJob >= jir.Slots)) {
+			       continue;
+               }
+            }
+       }
 
        if (jir.NumberOfProcesses != -1) {
-	        if ((*target).FreeSlots != -1) { // Example: 5656
-               if (!((*target).FreeSlots >= jir.NumberOfProcesses)) {
+	        if ((*target).TotalSlots != -1) { // Example: 5656
+               if (!((*target).TotalSlots >= jir.NumberOfProcesses)) {
+			       continue;
+               }
+            }
+	        else if ((*target).MaxSlotsPerJob != -1) { // Example: 5656
+               if (!((*target).MaxSlotsPerJob >= jir.NumberOfProcesses)) {
 			       continue;
                }
             }
