@@ -275,6 +275,8 @@ void arccp(const Arc::URL& source_url_,
 	  (source_url.Protocol() != "fireman") &&
 	  (source_url.Protocol() != "file") &&
 	  (source_url.Protocol() != "se") &&
+    (source_url.Protocol() != "srm") &&
+    (source_url.Protocol() != "lfc") &&
 	  (source_url.Protocol() != "gsiftp") &&
 	  (source_url.Protocol() != "ftp")) {
 	logger.msg(Arc::ERROR,

@@ -436,11 +436,9 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             // get cache parameters for this user
             try {
               CacheConfig * cache_config = new CacheConfig(user->UnixName());
-              std::list<std::list<std::string> > cache_info = cache_config->getCacheDirs();
-              for (std::list<std::list<std::string> >::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
-                for (std::list<std::string>::iterator j = i->begin(); j != i->end(); j++) {
-                  user->substitute(*j);
-                }
+              std::list<std::string> cache_info = cache_config->getCacheDirs();
+              for (std::list<std::string>::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
+                user->substitute(*i);
               }
               cache_config->setCacheDirs(cache_info);
               user->SetCacheParams(cache_config);
@@ -560,18 +558,17 @@ bool print_serviced_users(const JobUsers &users) {
     
     CacheConfig * cache_config = user->CacheParams();
 
-    std::list<std::list<std::string> > conf_caches = cache_config->getCacheDirs();
+    std::list<std::string> conf_caches = cache_config->getCacheDirs();
     if(conf_caches.empty()) {
       logger.msg(Arc::INFO,"No cache directory found in configuration, caching is disabled");
       continue;
     }
     // list each cache
-    for (std::list<std::list<std::string> >::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
-      std::list<std::string>::iterator j = i->begin();
-      logger.msg(Arc::INFO, "\tCache :");
-      logger.msg(Arc::INFO, "\tCache data dir   : %s", *j); j++;
-      logger.msg(Arc::INFO, "\tCache job dir    : %s", *j); j++;
-      if (j != i->end() && !j->empty()) logger.msg(Arc::INFO, "\tCache link dir   : %s", *j);
+    for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+      logger.msg(Arc::INFO, "\tCache            : %s", (*i).substr(0, (*i).find(" ")));
+      if ((*i).find(" ") != std::string::npos) {
+        logger.msg(Arc::INFO, "\tCache link dir   : %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
+      }
     }
     if (cache_config->cleanCache()) logger.msg(Arc::INFO, "\tCache cleaning enabled");
     else logger.msg(Arc::INFO, "\tCache cleaning disabled");

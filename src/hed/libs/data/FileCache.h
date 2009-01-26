@@ -20,7 +20,6 @@ class Logger;
  */
 struct CacheParameters {
   std::string cache_path;
-  std::string cache_job_dir_path;
   std::string cache_link_path;
 };
 
@@ -64,22 +63,9 @@ class FileCache {
  private:
   /**
    * Vector of caches. Each entry defines a cache and specifies 
-   * a cache directory, per-job directory and link path.
+   * a cache directory and optional link path.
    */
   std::vector<struct CacheParameters> _caches;
-  /**
-   * path to directory with cache info files 
-   */
-  std::string _cache_path;
-  /**
-   * path to directory where per-job hard links are created
-   */
-  std::string _cache_job_dir_path;
-  /**
-   * path used to create link in case cache_directory is visible
-   * under different name during actual usage 
-   */
-  std::string _cache_link_path;
   /**
    * identifier used to claim files, ie the job id 
    */
@@ -99,6 +85,14 @@ class FileCache {
    */
   std::string _pid;
   /**
+   * The sub-dir of the cache for data
+   */
+  static const std::string CACHE_DATA_DIR;
+  /**
+   * The sub-dir of the cache for per-job links
+   */
+  static const std::string CACHE_JOB_DIR;
+  /**
    * The length of each cache subdirectory
    */
   static const int CACHE_DIR_LENGTH;
@@ -117,7 +111,7 @@ class FileCache {
   /**
    * Common code for constuctors
    */
-  bool _init(std::vector<struct CacheParameters> caches,
+  bool _init(std::vector<std::string> caches,
              std::string id,
              uid_t job_uid,
              gid_t job_gid);
@@ -154,14 +148,11 @@ class FileCache {
  public:
   /**
    * Create a new FileCache instance.
-   * TODO: Take these parameters directly from the conf file?
-   * @param cache_path path to directory with cache files
-   * @param cache_job_dir_path path to where hard links should
-   * be created in per-job directories. This path cannot be under
-   * the main cache directory.
-   * @param cache_link_path path used to create link in case 
-   * cache directory is visible under different name during actual
-   * usage. When linking from the session dir this path should be used
+   * @param cache_path The format is "cache_dir[ link_path]".
+   * path is the path to the cache directory and the optional
+   * link_path is used to create a link in case the
+   * cache directory is visible under a different name during actual
+   * usage. When linking from the session dir this path is used
    * instead of cache_path.
    * @param id the job id. This is used to create the per-job dir
    * which the job's cache files will be hard linked from
@@ -170,23 +161,21 @@ class FileCache {
    * @param job_gid owner group of job
    */
   FileCache(std::string cache_path,
-            std::string cache_job_dir_path,
-            std::string cache_link_path,
             std::string id,
             uid_t job_uid,
             gid_t job_gid);
 
   /**
    * Create a new FileCache instance with multiple cache dirs
-   * @param caches a vector of CacheParameter structs describing
-   * each cache.
+   * @param caches a vector of strings describing caches. The format
+   * of each string is "cache_dir[ link_path]".
    * @param id the job id. This is used to create the per-job dir
    * which the job's cache files will be hard linked from
    * @param job_uid owner of job. The per-job dir will only be
    * readable by this user
    * @param job_gid owner group of job
    */
-  FileCache(std::vector<struct CacheParameters> caches,
+  FileCache(std::vector<std::string> caches,
             std::string id,
             uid_t job_uid,
             gid_t job_gid);
@@ -197,7 +186,7 @@ class FileCache {
   /**
    * Default constructor. Invalid cache.
    */
-  FileCache() {_cache_path = "";};
+  FileCache() {_caches.clear();};
   /**
    * Destructor
    */
@@ -261,7 +250,7 @@ class FileCache {
   /**
    * Copy the cache file corresponding to url to the dest_path 
    */
-  bool Copy(std::string dest_path, std::string url);
+  bool Copy(std::string dest_path, std::string url, bool executable = false);
   /**
    * Remove some amount of oldest information from cache. 
    * Returns true on success. Not implemented.

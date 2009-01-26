@@ -193,7 +193,6 @@ void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
     if(i->has_lfn()) if((*i) == fname) {
       Arc::URL u(i->lfn);
       if(u) {
-        u.AddOption("cache","no");
         u.AddOption("exec","yes");
         i->lfn=u.fullstr();
       };

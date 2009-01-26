@@ -968,6 +968,24 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
             if((time(NULL)-t) >= 0) {
               logger.msg(Arc::INFO,"%s: Job is too old - deleting",i->job_id);
               if(i->keep_deleted) {
+                // here we have to get the cache per-job dirs to be deleted
+                CacheConfig * cache_config;
+                std::list<std::string> cache_per_job_dirs;
+                try {
+                  cache_config = new CacheConfig();
+                }
+                catch (CacheConfigException e) {
+                  logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
+                  job_clean_deleted(*i,*user);
+                  i->job_state = JOB_STATE_DELETED;
+                  state_changed=true;
+                  return;
+                }
+                std::list<std::string> conf_caches = cache_config->getCacheDirs();
+                // add each dir to our list
+                for (std::list<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
+                  cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+                }
                 job_clean_deleted(*i,*user);
                 i->job_state = JOB_STATE_DELETED;
                 state_changed=true;

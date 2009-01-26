@@ -30,9 +30,9 @@ public:
 class CacheConfig {
  private:
    /**
-    * List of lists of (cache dir, cache job dir, cache link dir)
+    * List of (cache dir [link dir])
     */
-   std::list<std::list<std::string> > _cache_dirs;
+   std::list<std::string> _cache_dirs;
    int _cache_max;
    int _cache_min;
    /**
@@ -51,11 +51,11 @@ class CacheConfig {
     */
   CacheConfig(std::string username = "");
   ~CacheConfig(void) {};
-  std::list<std::list <std::string> > getCacheDirs() { return _cache_dirs; };
+  std::list<std::string> getCacheDirs() { return _cache_dirs; };
   /**
    * To allow for substitutions done during configuration
    */
-  void setCacheDirs(std::list<std::list<std::string> > cache_dirs) { _cache_dirs = cache_dirs; };
+  void setCacheDirs(std::list<std::string> cache_dirs) { _cache_dirs = cache_dirs; };
   int getCacheMax() { return _cache_max; };
   int getCacheMin() { return _cache_min; };
   bool cleanCache() { return _clean_cache; };

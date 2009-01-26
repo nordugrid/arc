@@ -41,10 +41,7 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
       if (cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
 
       // add this cache to our list
-      std::list<std::string> cache;
-      cache.push_back(cache_dir+"/data");
-      cache.push_back(cache_dir+"/joblinks");
-      cache.push_back(cache_link_dir);
+      std::string cache = cache_dir;
       _cache_dirs.push_back(cache);
     }
     else if(command == "cachedata") {
@@ -103,10 +100,8 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
   // check for old configuration, use cache_data_dir as cache dir
   if (_old_conf && !_cache_dirs.empty() && !cache_data_dir.empty()) {
     _cache_dirs.clear();
-    std::list<std::string> cache;
-    cache.push_back(cache_data_dir+"/data");
-    cache.push_back(cache_data_dir+"/joblinks");
-    cache.push_back(cache_link_dir);
+    std::string cache = cache_data_dir;
+    if (!cache_link_dir.empty()) cache += " "+cache_link_dir;
     _cache_dirs.push_back(cache);
   }
   config_close(cfile);

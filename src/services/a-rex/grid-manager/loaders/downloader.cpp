@@ -234,7 +234,7 @@ int main(int argc,char** argv) {
   std::string file_owner_username = "";
   uid_t file_owner = 0;
   gid_t file_group = 0;
-  std::vector<struct Arc::CacheParameters> caches;
+  std::vector<std::string> caches;
   bool use_conf_cache=false;
   unsigned long long int min_speed = 0;
   time_t min_speed_time = 300;
@@ -401,17 +401,12 @@ int main(int argc,char** argv) {
   if(use_conf_cache) {
     // use cache dir(s) from conf file
     try {
-      CacheConfig * cache_config = new CacheConfig(file_owner_username);
-      std::list<std::list<std::string> > conf_caches = cache_config->getCacheDirs();
+      CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
+      std::list<std::string> conf_caches = cache_config->getCacheDirs();
       // add each cache to our list
-      for (std::list<std::list<std::string> >::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
-        std::list<std::string>::iterator j = i->begin();
-        struct Arc::CacheParameters cache_params;
-        user.substitute(*j); cache_params.cache_path = (*j); j++;
-        user.substitute(*j); cache_params.cache_job_dir_path = (*j); j++;
-        if (j != i->end()) {user.substitute(*j); cache_params.cache_link_path = (*j);}
-        else cache_params.cache_link_path = "";
-        caches.push_back(cache_params);
+      for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+        user.substitute(*i);
+        caches.push_back(*i);
       }
     }
     catch (CacheConfigException e) {
@@ -421,14 +416,10 @@ int main(int argc,char** argv) {
   }
   else {
     if(argv[optind+3]) {
-      struct Arc::CacheParameters cache_params;
-      cache_params.cache_path = argv[optind+3];
-      if(!argv[optind+4]) { olog << "Missing cache per-job dir" << std::endl; return 1; };
-      cache_params.cache_job_dir_path = argv[optind+4];
-      if (argv[optind+5]) cache_params.cache_link_path = argv[optind+5];
-      else cache_params.cache_link_path = "";
-      caches.push_back(cache_params);
-    };
+      std::string cache_path = argv[optind+3];
+      if(argv[optind+4]) cache_path += " "+std::string(argv[optind+4]);
+      caches.push_back(cache_path);
+    }
   }
   if(min_speed != 0) { olog<<"Minimal speed: "<<min_speed<<" B/s during "<<min_speed_time<<" s"<<std::endl; };
   if(min_average_speed != 0) { olog<<"Minimal average speed: "<<min_average_speed<<" B/s"<<std::endl; };

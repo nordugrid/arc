@@ -51,6 +51,7 @@ public:
   
 private:
   std::string _cache_dir;
+  std::string _cache_data_dir;
   std::string _cache_job_dir;
   std::string _session_dir;
   std::string _url;
@@ -73,11 +74,13 @@ private:
 void FileCacheTest::setUp() {
 
   _cache_dir = "/tmp/"+_intToString(getpid());
-  _cache_job_dir = "/tmp/"+_intToString(getpid())+"_jobcache";
+  _cache_data_dir = _cache_dir+"/data";
+  _cache_job_dir = _cache_dir+"/joblinks";
   _session_dir = "/tmp/"+_intToString(getpid())+"_session";
   
   // remove directories that may have been created
-  rmdir(std::string(_cache_dir+"/69").c_str());
+  rmdir(std::string(_cache_data_dir+"/69").c_str());
+  rmdir(std::string(_cache_data_dir).c_str());
   rmdir(std::string(_session_dir+"/"+_jobid).c_str());
   rmdir(std::string(_session_dir).c_str());
   rmdir(std::string(_cache_job_dir+"/"+_jobid).c_str());
@@ -88,7 +91,7 @@ void FileCacheTest::setUp() {
   _uid = getuid();
   _gid = getgid();
   _jobid = "1";
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid);
+  _fc1 = new Arc::FileCache(_cache_dir, _jobid, _uid, _gid);
 }
 
 void FileCacheTest::tearDown() {
@@ -99,7 +102,8 @@ void FileCacheTest::tearDown() {
   _files.clear();
 
   // remove directories that have been created
-  rmdir(std::string(_cache_dir+"/69").c_str());
+  rmdir(std::string(_cache_data_dir+"/69").c_str());
+  rmdir(std::string(_cache_data_dir).c_str());
   rmdir(std::string(_session_dir+"/"+_jobid).c_str());
   rmdir(std::string(_session_dir).c_str());
   rmdir(std::string(_cache_job_dir+"/"+_jobid).c_str());
@@ -208,7 +212,7 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(!available);
   CPPUNIT_ASSERT(is_locked);
   
-  // delete lock file and try again with a non-existant pid
+  // delete lock file and try again with a non-existent pid
   CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url)+".lock").c_str()));
   _createFile(_fc1->File(_url)+".lock", "99999@" + host);
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
@@ -387,9 +391,8 @@ void FileCacheTest::testLinkFile() {
   _files.push_back(soft_link);
   
   // check hard- and soft-links exist
-  CPPUNIT_ASSERT( stat(_cache_job_dir.c_str(), &fileStat) == 0);
-  CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
-  
+  CPPUNIT_ASSERT( stat((_cache_job_dir+"/1").c_str(), &fileStat) == 0);
+  CPPUNIT_ASSERT((fileStat.st_mode & S_IRWXU) == S_IRWXU);
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat hard link "+hard_link, 0, stat( hard_link.c_str(), &fileStat) );
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat soft link "+soft_link, 0, stat( soft_link.c_str(), &fileStat) );
 
@@ -398,24 +401,15 @@ void FileCacheTest::testLinkFile() {
     CPPUNIT_ASSERT(!_fc1->Link("/lost_found/sessiondir/file1", _url));
   
   // Stop cache to release lock
-  CPPUNIT_ASSERT(_fc1->Stop(_url));
-  
-  // use bad cache job dir
-  if (_uid != 0 && stat("/lost+found/sessiondir", &fileStat) != 0 &&  errno == EACCES) {
-    Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, "/lost+found/joblinks", "", _jobid, _uid, _gid);
-    CPPUNIT_ASSERT(*fc2);
-    CPPUNIT_ASSERT(!fc2->Link(soft_link, _url));
-    delete fc2;
-  }
-  
+  CPPUNIT_ASSERT(_fc1->Stop(_url));  
 }
 
 void FileCacheTest::testLinkFileLinkCache() {
   
   // new cache with link path set
   std::string cache_link_dir = "/tmp/"+_intToString(getpid())+"_link";
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_job_dir, cache_link_dir, _jobid, _uid, _gid);
-  CPPUNIT_ASSERT(symlink(_cache_job_dir.c_str(), cache_link_dir.c_str()) == 0);
+  _fc1 = new Arc::FileCache(_cache_dir+" "+cache_link_dir, _jobid, _uid, _gid);
+  CPPUNIT_ASSERT(symlink(_cache_dir.c_str(), cache_link_dir.c_str()) == 0);
   _files.push_back(cache_link_dir);
   _files.push_back(_fc1->File(_url)+".lock");
   
@@ -457,7 +451,7 @@ void FileCacheTest::testCopyFile() {
   
   std::string dest_file = _session_dir+"/"+_jobid+"/file1";
 
-  // copy non-existant file
+  // copy non-existent file
   CPPUNIT_ASSERT(!_fc1->Copy(dest_file, _url));
   
   // Start cache
@@ -496,30 +490,23 @@ void FileCacheTest::testCopyFile() {
 
 void FileCacheTest::testFile() {
   // test hash returned
-  CPPUNIT_ASSERT_EQUAL( std::string(_cache_dir+"/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), _fc1->File(_url));
+  CPPUNIT_ASSERT_EQUAL( std::string(_cache_data_dir+"/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), _fc1->File(_url));
 
   // set up two caches
-  std::vector<struct Arc::CacheParameters> caches;
-  struct Arc::CacheParameters params;
-  params.cache_path = _cache_dir;
-  params.cache_job_dir_path = _cache_job_dir;
-  params.cache_link_path = "/tmp/"+_intToString(getpid())+"_link";
-  struct Arc::CacheParameters params2;
-  params2.cache_path = "/tmp/"+_intToString(getpid())+"_cache2";
-  params2.cache_job_dir_path = "/tmp/"+_intToString(getpid())+"_jobcache2";
-  params2.cache_link_path = "";
-  caches.push_back(params);
-  caches.push_back(params2);
+  std::vector<std::string> caches;
+  caches.push_back(_cache_dir);
+  std::string cache_dir2 = _cache_dir+"2";
+  caches.push_back(cache_dir2);
 
-  _files.push_back(params2.cache_path);
-  _files.push_back(params2.cache_job_dir_path+"/1");
-  _files.push_back(params2.cache_job_dir_path);
+  _files.push_back(cache_dir2+"/joblinks");
+  _files.push_back(cache_dir2+"/data");
+  _files.push_back(cache_dir2);
   
   Arc::FileCache * fc2 = new Arc::FileCache(caches, "1", _uid, _gid);
   // _url should go to the first cache
-  CPPUNIT_ASSERT_EQUAL( std::string(params.cache_path+"/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), fc2->File(_url));
+  CPPUNIT_ASSERT_EQUAL( std::string(_cache_data_dir+"/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), fc2->File(_url));
   // this url goes to the second cache
-  CPPUNIT_ASSERT_EQUAL( std::string(params2.cache_path+"/11/8f1aa74364c6546cfe2c536c8979bfd1609a7b"), fc2->File("rls://rls1.ndgf.org/file2"));
+  CPPUNIT_ASSERT_EQUAL( std::string(cache_dir2+"/data/11/8f1aa74364c6546cfe2c536c8979bfd1609a7b"), fc2->File("rls://rls1.ndgf.org/file2"));
   delete fc2;
 }
 
@@ -573,17 +560,11 @@ void FileCacheTest::testRelease() {
 void FileCacheTest::testTwoCaches() {
   
   // set up two caches
-  std::vector<struct Arc::CacheParameters> caches;
-  struct Arc::CacheParameters params;
-  params.cache_path = _cache_dir;
-  params.cache_job_dir_path = _cache_job_dir;
-  params.cache_link_path = "/tmp/"+_intToString(getpid())+"_link";
-  struct Arc::CacheParameters params2;
-  params2.cache_path = _cache_dir+"_cache2";
-  params2.cache_job_dir_path = _cache_job_dir+"_jobcache2";
-  params2.cache_link_path = "";
-  caches.push_back(params);
-  caches.push_back(params2);
+  std::vector<std::string> caches;
+  caches.push_back(_cache_dir);
+  std::string cache_dir2 = _cache_dir+"2";
+  caches.push_back(cache_dir2);
+
   std::string url2 = "rls://rls1.ndgf.org/file2";
   
   Arc::FileCache * fc2 = new Arc::FileCache(caches, "1", _uid, _gid);
@@ -618,17 +599,18 @@ void FileCacheTest::testTwoCaches() {
   std::string soft_link2 = _session_dir+"/"+_jobid+"/file2";
   // we expect the hard links to be made to here
   std::string hard_link = _cache_job_dir+"/"+_jobid+"/file1";
-  std::string hard_link2 = params2.cache_job_dir_path+"/"+_jobid+"/file2";
+  std::string hard_link2 = cache_dir2+"/joblinks/"+_jobid+"/file2";
   CPPUNIT_ASSERT(fc2->Link(soft_link, _url));
   CPPUNIT_ASSERT(fc2->Link(soft_link2, url2));
   _files.push_back(hard_link);
   _files.push_back(hard_link2);
   _files.push_back(soft_link);
   _files.push_back(soft_link2);
-  _files.push_back(params2.cache_path+"/11");
-  _files.push_back(params2.cache_path);
-  _files.push_back(params2.cache_job_dir_path+"/1");
-  _files.push_back(params2.cache_job_dir_path);
+  _files.push_back(cache_dir2+"/data/11");
+  _files.push_back(cache_dir2+"/data");
+  _files.push_back(cache_dir2+"/joblinks/1");  
+  _files.push_back(cache_dir2+"/joblinks");
+  _files.push_back(cache_dir2);
   
   // check correct hard links are made
   struct stat fileStat;
@@ -646,7 +628,7 @@ void FileCacheTest::testTwoCaches() {
   CPPUNIT_ASSERT( stat(hard_link.c_str(), &fileStat) != 0);
   CPPUNIT_ASSERT( stat(hard_link2.c_str(), &fileStat) != 0);
   CPPUNIT_ASSERT( stat(std::string(_cache_job_dir+"/"+_jobid).c_str(), &fileStat) != 0);
-  CPPUNIT_ASSERT( stat(std::string(params2.cache_job_dir_path+"/"+_jobid).c_str(), &fileStat) != 0);
+  CPPUNIT_ASSERT( stat(std::string(cache_dir2+"/joblinks/"+_jobid).c_str(), &fileStat) != 0);
 
   // copy file
   CPPUNIT_ASSERT_EQUAL(0, remove(soft_link.c_str()));
@@ -761,10 +743,12 @@ void FileCacheTest::testValidityDate() {
 void FileCacheTest::testConstructor() {
   // permissions testing of dirs created by the constructor
   struct stat fileStat;
-  CPPUNIT_ASSERT( stat(_cache_dir.c_str(), &fileStat) == 0);
+  CPPUNIT_ASSERT( stat(_cache_data_dir.c_str(), &fileStat) == 0);
+  CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
+  CPPUNIT_ASSERT( stat(_cache_job_dir.c_str(), &fileStat) == 0);
   CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
   // create constructor with same parameters
-  Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, _cache_job_dir, "", _jobid, _uid, _gid);
+  Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, _jobid, _uid, _gid);
   CPPUNIT_ASSERT( *_fc1 == *fc2 );
   delete fc2;
   // test copy constructor
@@ -778,29 +762,19 @@ void FileCacheTest::testConstructor() {
   delete fc5;
   
   // create with 2 cache dirs
-  std::vector<struct Arc::CacheParameters> caches;
-  struct Arc::CacheParameters params;
-  params.cache_path = _cache_dir;
-  params.cache_job_dir_path = _cache_job_dir;
-  params.cache_link_path = "/tmp/"+_intToString(getpid())+"_link";
-  struct Arc::CacheParameters params2;
-  params2.cache_path = "/tmp/"+_intToString(getpid())+"_cache2";
-  params2.cache_job_dir_path = "/tmp/"+_intToString(getpid())+"_jobcache2";
-  params2.cache_link_path = "";
-  struct Arc::CacheParameters params3;
-  params3.cache_path = "/tmp/"+_intToString(getpid())+"_cache3";
-  params3.cache_job_dir_path = "/tmp/"+_intToString(getpid())+"_jobcache3";
-  params3.cache_link_path = "";
-  
-  _files.push_back(params2.cache_path);
-  _files.push_back(params2.cache_job_dir_path+"/1");
-  _files.push_back(params2.cache_job_dir_path);
-  _files.push_back(params3.cache_path);
-  _files.push_back(params3.cache_job_dir_path+"/1");
-  _files.push_back(params3.cache_job_dir_path);
-  
-  caches.push_back(params);
-  caches.push_back(params2);
+  std::vector<std::string> caches;
+  std::string cache_dir2 = _cache_dir+"2";
+  std::string cache_dir3 = _cache_dir+"3";
+
+  _files.push_back(cache_dir2+"/joblinks");
+  _files.push_back(cache_dir2+"/data");
+  _files.push_back(cache_dir2);
+  _files.push_back(cache_dir3+"/joblinks");
+  _files.push_back(cache_dir3+"/data");
+  _files.push_back(cache_dir3);
+
+  caches.push_back(_cache_dir);
+  caches.push_back(cache_dir2);
   
   Arc::FileCache *fc6 = new Arc::FileCache(caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(*fc6);
@@ -808,8 +782,8 @@ void FileCacheTest::testConstructor() {
   
   // create with two different caches and compare
   caches.empty();
-  caches.push_back(params);
-  caches.push_back(params3);
+  caches.push_back(_cache_dir);
+  caches.push_back(cache_dir3);
   Arc::FileCache *fc7 = new Arc::FileCache(caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(*fc7);
   CPPUNIT_ASSERT( !(*fc6 == *fc7) );
@@ -819,34 +793,22 @@ void FileCacheTest::testConstructor() {
 }
 
 void FileCacheTest::testBadConstructor() {
-  delete _fc1;
-  // job cache inside cache
-  _fc1 = new Arc::FileCache(_cache_dir, _cache_dir+"/jobcache", "", _jobid, _uid, _gid);
-  CPPUNIT_ASSERT( !(*_fc1) );
-  delete _fc1;
   // permission denied
+  delete _fc1;
   struct stat fileStat;
   if (_uid != 0 && stat("/lost+found/cache", &fileStat) != 0 &&  errno == EACCES) {
-    _fc1 = new Arc::FileCache("/lost+found/cache", _cache_job_dir, "", _jobid, _uid, _gid);
+    _fc1 = new Arc::FileCache("/lost+found/cache", _jobid, _uid, _gid);
     CPPUNIT_ASSERT( !(*_fc1) );
     delete _fc1;
   }
   // no cache dir
-  _fc1 = new Arc::FileCache("", _cache_job_dir, "", _jobid, _uid, _gid);
+  _fc1 = new Arc::FileCache("", _jobid, _uid, _gid);
   CPPUNIT_ASSERT( !(*_fc1) );
   delete _fc1;
   // two caches, one of which is bad
-  std::vector<struct Arc::CacheParameters> caches;
-  struct Arc::CacheParameters params;
-  params.cache_path = _cache_dir;
-  params.cache_job_dir_path = _cache_job_dir;
-  params.cache_link_path = "/tmp/"+_intToString(getpid())+"_link";
-  struct Arc::CacheParameters params2;
-  params2.cache_path = "";
-  params2.cache_job_dir_path = "/tmp/"+_intToString(getpid())+"_jobcache2";
-  params2.cache_link_path = "";
-  caches.push_back(params);
-  caches.push_back(params2);
+  std::vector<std::string> caches;
+  caches.push_back(_cache_dir);
+  caches.push_back("");
   _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT( !(*_fc1) );
   // call some methods
@@ -861,7 +823,7 @@ void FileCacheTest::testBadConstructor() {
 
 void FileCacheTest::testInternal() {
   
-  // read a non-existant file
+  // read a non-existent file
   std::string pid(_intToString(getpid()));
   std::string testfile("test.file." + pid);
   CPPUNIT_ASSERT(_readFile(testfile) == "");

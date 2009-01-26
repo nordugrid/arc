@@ -19,6 +19,8 @@
 
 namespace Arc {
 
+const std::string FileCache::CACHE_DATA_DIR = "data";
+const std::string FileCache::CACHE_JOB_DIR = "joblinks";
 const int FileCache::CACHE_DIR_LENGTH = 2;
 const int FileCache::CACHE_DIR_LEVELS = 1;
 const std::string FileCache::CACHE_LOCK_SUFFIX = ".lock";
@@ -27,26 +29,19 @@ const std::string FileCache::CACHE_META_SUFFIX = ".meta";
 Logger FileCache::logger(Logger::getRootLogger(), "FileCache");
 
 FileCache::FileCache(std::string cache_path,
-    std::string cache_job_dir_path,
-    std::string cache_link_path,
     std::string id,
     uid_t job_uid,
     gid_t job_gid) {
   
   // make a vector of one item and call _init
-  struct CacheParameters cache_info;
-  cache_info.cache_path = cache_path;
-  cache_info.cache_job_dir_path = cache_job_dir_path;
-  cache_info.cache_link_path = cache_link_path;
-  
-  std::vector<struct CacheParameters> caches;
-  caches.push_back(cache_info);
+  std::vector<std::string> caches;
+  caches.push_back(cache_path);
   
   // if problem in init, clear _caches so object is invalid
   if (!_init(caches, id, job_uid, job_gid)) _caches.clear();
 }
 
-FileCache::FileCache(std::vector<struct CacheParameters> caches,
+FileCache::FileCache(std::vector<std::string> caches,
     std::string id,
     uid_t job_uid,
     gid_t job_gid) {
@@ -55,7 +50,7 @@ FileCache::FileCache(std::vector<struct CacheParameters> caches,
   if (!_init(caches, id, job_uid, job_gid)) _caches.clear();
 }
 
-bool FileCache::_init(std::vector<struct CacheParameters> caches,
+bool FileCache::_init(std::vector<std::string> caches,
     std::string id,
     uid_t job_uid,
     gid_t job_gid) {
@@ -66,38 +61,31 @@ bool FileCache::_init(std::vector<struct CacheParameters> caches,
   
   // for each cache
   for (int i = 0; i < (int)caches.size(); i++) {
-    struct CacheParameters cache_params = caches.at(i);
-    std::string cache_path = cache_params.cache_path;
+    std::string cache = caches[i];
+    std::string cache_path = cache.substr(0, cache.find(" "));
     if (cache_path.empty()) {
-      logger.msg(ERROR, "No cache directory specified");
-      return false;
+       logger.msg(ERROR, "No cache directory specified");
+       return false;
     }
-    std::string cache_job_dir_path = cache_params.cache_job_dir_path;
-    if(cache_job_dir_path.empty()) {
-      logger.msg(ERROR, "No per-job directory specified");
-      return false;
-    }
-    std::string cache_link_path = cache_params.cache_link_path;
+    std::string cache_link_path = "";
+    if (cache.find(" ") != std::string::npos) cache_link_path = cache.substr(cache.find_last_of(" ")+1, cache.length()-cache.find_last_of(" ")+1);
     
     // tidy up paths - take off any trailing slashes
     if (cache_path.rfind("/") == cache_path.length()-1) cache_path = cache_path.substr(0, cache_path.length()-1);
-    if (cache_job_dir_path.rfind("/") == cache_job_dir_path.length()-1) cache_job_dir_path = cache_job_dir_path.substr(0, cache_job_dir_path.length()-1);
     if (cache_link_path.rfind("/") == cache_link_path.length()-1) cache_link_path = cache_link_path.substr(0, cache_link_path.length()-1);
   
-    // create cache dir
-    if (!_cacheMkDir(cache_path, true)) {
-      logger.msg(ERROR, "Cannot create directory \"%s\" for cache", cache_path);
+    // create cache dir and subdirs
+    if (!_cacheMkDir(cache_path+"/"+CACHE_DATA_DIR, true)) {
+      logger.msg(ERROR, "Cannot create directory \"%s\" for cache", cache_path+"/"+CACHE_DATA_DIR);
       return false;
     }
-    // check cache_job_dir_path is not in cache_path
-    if (cache_job_dir_path.substr(0, cache_path.length()+1) == cache_path+"/") {
-      logger.msg(ERROR, "Cannot have per job link directory in the main cache directory");
+     if (!_cacheMkDir(cache_path+"/"+CACHE_JOB_DIR, true)) {
+      logger.msg(ERROR, "Cannot create directory \"%s\" for cache", cache_path+"/"+CACHE_JOB_DIR);
       return false;
     }
-
     // add this cache to our list
+    struct CacheParameters cache_params;
     cache_params.cache_path = cache_path;
-    cache_params.cache_job_dir_path = cache_job_dir_path;
     cache_params.cache_link_path = cache_link_path;
     _caches.push_back(cache_params);
   }
@@ -132,9 +120,6 @@ FileCache::FileCache(const FileCache& cache) {
   ss >> _pid;
   
   _caches = cache._caches;
-  _cache_path = cache._cache_path;
-  _cache_job_dir_path = cache._cache_job_dir_path;
-  _cache_link_path = cache._cache_link_path;
   _id = cache._id;
   _uid = cache._uid;
   _gid = cache._gid;
@@ -439,7 +424,7 @@ std::string FileCache::File(std::string url) {
     // go to next slash position, add one since we just inserted a slash
     index += CACHE_DIR_LENGTH + 1;
   }
-  return _caches.at(_chooseCache(hash)).cache_path+"/"+hash;
+  return _caches.at(_chooseCache(hash)).cache_path+"/"+CACHE_DATA_DIR+"/"+hash;
 }
 
 bool FileCache::Link(std::string link_path, std::string url) {
@@ -452,7 +437,6 @@ bool FileCache::Link(std::string link_path, std::string url) {
   // if _cache_link_path is '.' then copy instead, bypassing the hard-link
   if (cache_params.cache_link_path == ".") return Copy(link_path, url);
    
-  
   // check the original file exists
   struct stat fileStat;
   if (stat(File(url).c_str(), &fileStat) != 0) {
@@ -461,8 +445,9 @@ bool FileCache::Link(std::string link_path, std::string url) {
     return false;
   }
      
+  std::string hard_link_path = cache_params.cache_path + "/" + CACHE_JOB_DIR + "/" + _id;
+
   // create per-job hard link dir if necessary, making the final dir readable only by the job user
-  std::string hard_link_path = cache_params.cache_job_dir_path + "/" + _id;
   if (!_cacheMkDir(hard_link_path, true)) {
     logger.msg(ERROR, "Cannot create directory \"%s\" for per-job hard links", hard_link_path);
     return false;
@@ -509,8 +494,8 @@ bool FileCache::Link(std::string link_path, std::string url) {
   }
   
   // make the soft link, changing the target if cache_link_path is defined
-  if (!_cache_link_path.empty()) {
-    hard_link_file.replace(0, cache_params.cache_job_dir_path.length(), _cache_link_path, 0, cache_params.cache_link_path.length());
+  if (!cache_params.cache_link_path.empty()) {
+    hard_link_file = cache_params.cache_link_path + "/" + CACHE_JOB_DIR + "/" +_id + "/" + filename;
   }
   if (symlink(hard_link_file.c_str(), link_path.c_str()) != 0) {
     logger.msg(ERROR, "Failed to create soft link: %s", strerror(errno));
@@ -525,7 +510,7 @@ bool FileCache::Link(std::string link_path, std::string url) {
   return true;
 }
 
-bool FileCache::Copy(std::string dest_path, std::string url) {
+bool FileCache::Copy(std::string dest_path, std::string url, bool executable) {
   
   if(!(*this)) return false;
 
@@ -553,7 +538,9 @@ bool FileCache::Copy(std::string dest_path, std::string url) {
 
   // do the copy - taken directly from old datacache.cc
   char buf[65536];
-  int fdest = open(dest_path.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+  mode_t perm = S_IRUSR | S_IWUSR;
+  if (executable) perm |= S_IXUSR;
+  int fdest = open(dest_path.c_str(), O_WRONLY | O_CREAT | O_EXCL, perm);
   if(fdest == -1) {
     logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
     return false;
@@ -600,7 +587,7 @@ bool FileCache::Release() {
   // go through all caches and remove per-job dirs for our job id
   for (int i = 0; i < (int)_caches.size(); i++) {
     
-    std::string job_dir = _caches.at(i).cache_job_dir_path + "/" + _id;
+    std::string job_dir = _caches.at(i).cache_path +  "/" + CACHE_JOB_DIR + "/" + _id;
     
     // check if job dir exists
     DIR * dirp = opendir(job_dir.c_str());
@@ -733,13 +720,9 @@ bool FileCache::operator==(const FileCache& a) {
   if (a._caches.size() != _caches.size()) return false;
   for (int i = 0; i < (int)a._caches.size(); i++) {
     if (a._caches.at(i).cache_path != _caches.at(i).cache_path) return false;
-    if (a._caches.at(i).cache_job_dir_path != _caches.at(i).cache_job_dir_path) return false;
     if (a._caches.at(i).cache_link_path != _caches.at(i).cache_link_path) return false;
   }
   return (
-    a._cache_path == _cache_path &&
-    a._cache_job_dir_path == _cache_job_dir_path &&
-    a._cache_link_path == _cache_link_path &&
     a._id == _id &&
     a._uid == _uid &&
     a._gid == _gid

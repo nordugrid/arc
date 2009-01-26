@@ -349,6 +349,10 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
     destination.SetAdditionalChecks(do_checks);
     /* take suggestion from DataHandle about buffer, etc. */
     bool cacheable = false;
+    /* is file executable */
+    bool executable = false;
+    std::string exec_option = source.GetURL().Option("exec");
+    if (exec_option == "yes") executable = true;
     unsigned long int bufsize;
     int bufnum;
     if (source.Cache() && destination.Local() && cache) cacheable = true;
@@ -488,7 +492,7 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
             continue;
           }
           logger.msg(DEBUG, "Cached copy is still valid");
-          if (source.ReadOnly()) {
+          if (source.ReadOnly() && !executable) {
             logger.msg(DEBUG, "Linking/copying cached file");
             if (!cache.Link(destination.CurrentLocation().Path(), canonic_url)) {
               /* failed cache link is unhandable */
@@ -497,7 +501,7 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
             }
           } else {
             logger.msg(DEBUG, "Copying cached file");
-            if (!cache.Copy(destination.CurrentLocation().Path(), canonic_url)) {
+            if (!cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable)) {
               /* failed cache copy is unhandable */
               cache.Stop(canonic_url);
               return DataStatus::CacheError;
@@ -699,8 +703,16 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
       if (!download_error) {
         if (source.CheckValid())
           cache.SetValid(canonic_url, source.GetValid());
-        logger.msg(DEBUG, "Linking/copying cached file");
-        if (!cache.Link(destination.CurrentLocation().Path(), canonic_url)) {
+        bool cache_link_result;
+        if (executable) {
+          logger.msg(DEBUG, "Copying cached file");
+          cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, true);
+        }
+        else {
+          logger.msg(DEBUG, "Linking/copying cached file");
+          cache_link_result = cache.Link(destination.CurrentLocation().Path(), canonic_url);
+        }
+        if (!cache_link_result) {
           buffer.error_write(true);
           cache.Stop(canonic_url);
           if (!destination.PreUnregister(replication ||

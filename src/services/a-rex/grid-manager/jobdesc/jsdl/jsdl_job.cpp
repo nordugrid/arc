@@ -39,7 +39,6 @@ static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
       if(session_fname_compare(fname,i->pfn.c_str())) {
         Arc::URL u(i->lfn);
         if(u) {
-          u.AddOption("cache","no");
           u.AddOption("exec","yes");
           i->lfn=u.fullstr();
         };

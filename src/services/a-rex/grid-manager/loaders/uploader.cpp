@@ -158,7 +158,7 @@ int main(int argc,char** argv) {
   std::string file_owner_username = "";
   uid_t file_owner = 0;
   gid_t file_group = 0;
-  std::vector<struct Arc::CacheParameters> caches;
+  std::vector<std::string> caches;
   bool use_conf_cache = false;
   unsigned long long int min_speed = 0;
   time_t min_speed_time = 300;
@@ -326,16 +326,11 @@ int main(int argc,char** argv) {
     // use cache dir(s) from conf file
     try {
       CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
-      std::list<std::list<std::string> > conf_caches = cache_config->getCacheDirs();
+      std::list<std::string> conf_caches = cache_config->getCacheDirs();
       // add each cache to our list
-      for (std::list<std::list<std::string> >::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
-        std::list<std::string>::iterator j = i->begin();
-        struct Arc::CacheParameters cache_params;
-        user.substitute(*j); cache_params.cache_path = (*j); j++;
-        user.substitute(*j); cache_params.cache_job_dir_path = (*j); j++;
-        if (j != i->end()) {user.substitute(*j); cache_params.cache_link_path = (*j);}
-        else cache_params.cache_link_path = "";
-        caches.push_back(cache_params);
+      for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+        user.substitute(*i);
+        caches.push_back(*i);
       }
     }
     catch (CacheConfigException e) {
@@ -345,14 +340,10 @@ int main(int argc,char** argv) {
   }
   else {
     if(argv[optind+3]) {
-      struct Arc::CacheParameters cache_params;
-      cache_params.cache_path = argv[optind+3];
-      if(!argv[optind+4]) { olog << "Missing cache per-job dir" << std::endl; return 1; };
-      cache_params.cache_job_dir_path = argv[optind+4];
-      if (argv[optind+5]) cache_params.cache_link_path = argv[optind+5];
-      else cache_params.cache_link_path = "";
-      caches.push_back(cache_params);
-    };
+      std::string cache_path = argv[optind+3];
+      if(argv[optind+4]) cache_path += " "+std::string(argv[optind+4]);
+      caches.push_back(cache_path);
+    }
   }
   if(min_speed != 0) { olog<<"Minimal speed: "<<min_speed<<" B/s during "<<min_speed_time<<" s"<<std::endl; };
   if(min_average_speed != 0) { olog<<"Minimal average speed: "<<min_average_speed<<" B/s"<<std::endl; };
@@ -393,14 +384,30 @@ int main(int argc,char** argv) {
     mover.set_default_max_inactivity_time(max_inactivity_time);
   bool transfered = true;
   bool credentials_expired = false;
+  std::list<FileData>::iterator it = job_files_.begin();
 
   // get the list of output files
   if(!job_output_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in uploader\n";
     olog << "Can't read list of output files" << std::endl; res=1; goto exit;
     //olog << "WARNING: Can't read list of output files - whole output will be removed" << std::endl;
-  };
-
+  }
+  // add any output files dynamically added by the user during the job
+  for(it = job_files_.begin(); it != job_files_.end() ; ++it) {
+    if(it->pfn.find("@") == 1) { // GM puts a slash on the front of the local file
+      std::string outputfilelist = session_dir + std::string("/") + it->pfn.substr(2);
+      olog << "Reading output files from user generated list " << outputfilelist << std::endl;
+      if (!job_Xput_read_file(outputfilelist, job_files_)) {
+        olog << "Error reading user generated output file list in " << outputfilelist << std::endl; res=1; goto exit;
+      }
+    }
+  }
+  // remove dynamic output file lists from the files to upload
+  it = job_files_.begin();
+  while (it != job_files_.end()) {
+    if(it->pfn.find("@") == 1) it = job_files_.erase(it);
+    else it++;
+  }
   // remove bad files
   if(clean_files(job_files_,session_dir) != 0) {
     failure_reason+="Internal error in uploader\n";

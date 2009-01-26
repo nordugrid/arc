@@ -38,7 +38,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
 
   JobUser user(uid);
 
-  std::vector<struct Arc::CacheParameters> caches;
+  std::vector<std::string> caches;
 
     struct passwd pw_;
     struct passwd *pw;
@@ -55,17 +55,12 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
 
     // use cache dir(s) from conf file
     try {
-      CacheConfig * cache_config = new CacheConfig(file_owner_username);
-      std::list<std::list<std::string> > conf_caches = cache_config->getCacheDirs();
+      CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
+      std::list<std::string> conf_caches = cache_config->getCacheDirs();
       // add each cache to our list
-      for (std::list<std::list<std::string> >::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
-        std::list<std::string>::iterator j = i->begin();
-        struct Arc::CacheParameters cache_params;
-        user.substitute(*j); cache_params.cache_path = (*j); j++;
-        user.substitute(*j); cache_params.cache_job_dir_path = (*j); j++;
-        if (j != i->end()) {user.substitute(*j); cache_params.cache_link_path = (*j);}
-        else cache_params.cache_link_path = "";
-        caches.push_back(cache_params);
+      for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+        user.substitute(*i);
+        caches.push_back(*i);
       }
     }
     catch (CacheConfigException e) {
