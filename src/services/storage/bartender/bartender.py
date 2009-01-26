@@ -724,7 +724,7 @@ class Bartender:
                 #   so we just put the old name after it
                 if new_child_name == '':
                     new_child_name = old_child_name
-                decision = make_decision_metadata(targetmetadata, auth_addEntry)
+                decision = make_decision_metadata(targetMetadata, auth_addEntry)
                 if decision != arc.DECISION_PERMIT:
                     success = 'adding child to parent denied'
                 else:
