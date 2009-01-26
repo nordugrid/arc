@@ -99,10 +99,13 @@ namespace Arc {
 	  
 	  std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
 
-      for (;iter != PossibleTargets.end();iter++) {
-	      if ((iter->ImplementationName) != "A-REX")
-	        iter = PossibleTargets.erase(iter);
-	  }
+       while(iter != PossibleTargets.end()){
+	      if((iter->ImplementationName) != "A-REX"){
+		      iter = PossibleTargets.erase(iter);
+	          continue;
+          }   
+	      iter++;
+      }   
 
     CacheCheck(); 
   	std::sort(PossibleTargets.begin(), PossibleTargets.end(), DataCompare);
