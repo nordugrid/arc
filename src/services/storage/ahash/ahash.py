@@ -30,16 +30,23 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.A-Hash'))
 class CentralAHash:
     """ A centralized implementation of the A-Hash service. """
 
-    def __init__(self, storeclass, storecfg):
+    def __init__(self, cfg):
         """ The constructor of the CentralAHash class.
 
-        CentralAHash(storeclass, storecfg)
+        CentralAHash(cfg)
 
-        'storeclass' is the name of the class which will store the data
-        'storecfg' is an XMLNode with the configuration of the storeclass
+        cfg must contain the following parameters:
+        'storeclass', the name of the class which will store the data
+        'storecfg', an XMLNode with the configuration of the storeclass
         """
         log.msg(arc.DEBUG, "CentralAHash constructor called")
         # import the storeclass and call its constructor with the datadir
+
+        # the name of the class which is capable of storing the object
+        storeclass = str(cfg.Get('StoreClass'))
+        # this is a directory for storing object data
+        storecfg = cfg.Get('StoreCfg')
+
         try:
             cl = import_class_from_string(storeclass)
         except:
@@ -204,17 +211,13 @@ class AHashService(Service):
         Service.__init__(self, self.service_name, request_names, 'ahash', ahash_uri, cfg)
         # the name of the class which implements the business logic of the A-Hash service
         ahashclass = str(cfg.Get('AHashClass'))
-        # the name of the class which is capable of storing the object
-        storeclass = str(cfg.Get('StoreClass'))
-        # this is a directory for storing object data
-        storecfg = cfg.Get('StoreCfg')
         # import and instatiate the business logic class
         try:
             cl = import_class_from_string(ahashclass)
         except:
             log.msg(arc.ERROR, 'Error importing class', ahashclass)
             raise Exception, 'A-Hash cannot run.'
-        self.ahash = cl(storeclass, storecfg)
+        self.ahash = cl(cfg)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
