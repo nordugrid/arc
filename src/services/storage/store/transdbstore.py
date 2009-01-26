@@ -38,22 +38,10 @@ class TransDBStore(BaseStore):
         self.dbp = None
         self.txn = None
         
-        if not hasattr(self, "dbenv_flags"):            
-            # dbenv_flags could already have been set in some child class
-            self.dbenv_flags = db.DB_CREATE | \
-                               db.DB_RECOVER | \
-                               db.DB_INIT_LOCK | \
-                               db.DB_INIT_LOG | \
-                               db.DB_INIT_MPOOL | \
-                               db.DB_INIT_TXN
-        if not hasattr(self, "database"):
-            self.database  = "transdb.db"
-        if not hasattr(self, "cachesize"):
-            self.cachesize = 10 * 1024 * 1024
-        if not hasattr(self, "dbenv"):
-            self.dbenv = db.DBEnv(0)
+        self.database  = "store.db"
+        self.dbenv = db.DBEnv(0)
 
-        self.__configureTransaction(storecfg)
+        self.__configureDB(storecfg)
             
         self.dbenv.set_cachesize(0, self.cachesize, 0)
         # if key not found, raise DBNotFoundError:
@@ -70,7 +58,16 @@ class TransDBStore(BaseStore):
         self.__err()
         self.terminate()
 
-    def __configureTransaction(self, storecfg):
+    def __configureDB(self, storecfg):
+        try:
+            self.dbenv_flags = int(storecfg.Get("DBEnvFlags"))
+        except:
+            self.dbenv_flags = db.DB_CREATE | \
+                               db.DB_RECOVER | \
+                               db.DB_INIT_LOCK | \
+                               db.DB_INIT_LOG | \
+                               db.DB_INIT_MPOOL | \
+                               db.DB_INIT_TXN
         try:
             self.deadlock_retries = int(str(storecfg.Get('DeadlockRetries')))
         except:
@@ -79,6 +76,7 @@ class TransDBStore(BaseStore):
         try:
             self.cachesize = int(str(storecfg.Get('CacheSize')))
         except:
+            self.cachesize = 10 * 1024 * 1024
             log.msg(arc.WARNING, "couldn't find CacheSize, using %d as default"%self.cachesize)
 
     def __err(self):
