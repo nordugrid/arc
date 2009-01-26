@@ -748,11 +748,8 @@ class Client:
         """
         import urlparse
         (proto, host_port, path, _, _, _) = urlparse.urlparse(url)
-        self.ssl_config = {}
-        if proto == 'https':
-            self.ssl_config = ssl_config
-            if not ssl_config:
-                raise Exception, 'SSL is disabled!'
+        self.ssl_config = ssl_config
+        self.https = (proto == 'https')
         if ':' in host_port:
             host, port = host_port.split(':')
         else:
@@ -769,24 +766,31 @@ class Client:
             import arc
             self.call_raw = self.call_raw_hed
             self.cfg = arc.MCCConfig()
-            if ssl_config.has_key('proxy_file'):
-                self.cfg.AddProxy(self.ssl_config['proxy_file'])
-            else:
-                try:
-                    self.cfg.AddCertificate(self.ssl_config['cert_file'])
-                    self.cfg.AddPrivateKey(self.ssl_config['key_file'])
-                except:
-                    raise Exception, 'no key file or cert file found!'
-            if ssl_config.has_key('ca_file'):
-                self.cfg.AddCAFile(self.ssl_config['ca_file'])
-            elif ssl_config.has_key('ca_dir'):
-                self.cfg.AddCADir(self.ssl_config['ca_dir'])
-            else:
-                raise Exception, 'no CA file or CA dir found!'
+            if self.https:
+                if ssl_config.has_key('proxy_file'):
+                    self.cfg.AddProxy(self.ssl_config['proxy_file'])
+                else:
+                    try:
+                        self.cfg.AddCertificate(self.ssl_config['cert_file'])
+                        self.cfg.AddPrivateKey(self.ssl_config['key_file'])
+                    except:
+                        raise Exception, 'no key file or cert file found!'
+                if ssl_config.has_key('ca_file'):
+                    self.cfg.AddCAFile(self.ssl_config['ca_file'])
+                elif ssl_config.has_key('ca_dir'):
+                    self.cfg.AddCADir(self.ssl_config['ca_dir'])
+                else:
+                    raise Exception, 'no CA file or CA dir found!'
             self.url = arc.URL(url)
-        except:
+        except ImportError:
             self.call_raw = self.call_raw_standalone
-            print '- No ARC HED installation found: CA checking and proxy certificate support disabled.'
+            if self.https:
+                if ssl_config.has_key('proxy_file'):
+                    raise Exception, 'No ARC HED installation found: proxy certificates not supported!'
+                if not ssl_config.has_key('cert_file') or not ssl_config.has_key('key_file'):
+                    raise Exception, 'no key file or cert file found!'
+                if ssl_config.has_key('ca_file') or ssl_config.has_key('ca_dir'):
+                    print '- No ARC HED installation found: the validity of the CA will not be checked!'
 
     def create_soap_envelope(self, ns):
         """docstring for create_soap_envelope"""
@@ -841,7 +845,7 @@ class Client:
         """
         # TODO: use the client-side libs of ARCHED
         import httplib
-        if self.ssl_config:
+        if self.https:
             h = httplib.HTTPSConnection(self.host, self.port, key_file = self.ssl_config.get('key_file', None), cert_file = self.ssl_config.get('cert_file', None))
         else:
             # create an HTTP connection
@@ -849,13 +853,19 @@ class Client:
         # get the XML from outpayload, and send it as POST
         h.request('POST', self.path, outpayload.GetXML())
         # get the response object
-        r = h.getresponse()
+        try:
+            r = h.getresponse()
+        except httplib.BadStatusLine:
+            raise socket.error, (-1, 'Bad status line from the server.\nMaybe wrong URL: "%s%s:%s%s"?' %
+                (self.https and 'https://' or 'http://', self.host, self.port, self.path))            
         # read the response data
         resp = r.read()
         if not resp:
-            raise socket.error, (-1, 'Server returned empty answer. Maybe wrong URL: "%s:%s/%s"?' % (self.host, self.port, self.path))
+            raise socket.error, (-1, 'Server returned empty answer.\nMaybe wrong URL: "%s%s:%s%s"?' %
+                (self.https and 'https://' or 'http://',self.host, self.port, self.path))
         if 'text/xml' not in r.getheader('content-type'):
-            raise socket.error, (-1, 'Server did not return SOAP answer. Maybe wrong URL: "%s:%s/%s"?' % (self.host, self.port, self.path))
+            raise socket.error, (-1, 'Server did not return SOAP answer.\nMaybe wrong URL: "%s%s:%s%s"?' %
+                (self.https and 'https://' or 'http://',self.host, self.port, self.path))
         # return the data and the status
         return resp
 
@@ -876,8 +886,9 @@ class Client:
             resp = resp.GetXML()
             return resp
         except:
-            print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
-            raise
+            raise socket.error, (-1, "Wrong status from server.\nMaybe wrong URL: '%s%s:%s%s'" %
+                (self.https and 'https://' or 'http://', self.host, self.port, self.path))
+            
 
 
 
@@ -1250,7 +1261,11 @@ def call_it(method_name, *args):
     try:
         response = getattr(bartender, method_name)(*args)
     except socket.error, e:
-        print 'Socket error:', ' '.join([str(a) for a in e.args])
+        print 'ERROR:',
+        try:
+            print e.args[1]
+        except:
+            print e
         sys.exit(-1)
     print '- done in %0.2f seconds.' % (time.time()-start)
     return response
@@ -1276,30 +1291,28 @@ else:
         key_file = os.environ.get('ARC_KEY_FILE', None)
         cert_file = os.environ.get('ARC_CERT_FILE', None)
         proxy_file = os.environ.get('ARC_PROXY_FILE', None)
+        ca_file = os.environ.get('ARC_CA_FILE', None)
+        ca_dir = os.environ.get('ARC_CA_DIR', None)
         if proxy_file:
             ssl_config['proxy_file'] = proxy_file
-            print '- Proxy certificate file:', ssl_config['proxy_file']
+            print '- The proxy certificate file:', ssl_config['proxy_file']
         else:
             if key_file and cert_file:                
                 ssl_config['key_file'] = key_file
                 ssl_config['cert_file'] = cert_file
                 print '- The key file:', ssl_config['key_file']
                 print '- The cert file:', ssl_config['cert_file']
-            else:
-                print '- ARC_KEY_FILE and ARC_CERT_FILE or ARC_PROXY_FILE environment variable not found, SSL disabled'
-        # if the ssl_config is empty at this point, then SSL was disabled
-        if ssl_config:
-            ca_file = os.environ.get('ARC_CA_FILE', None)
-            ca_dir = os.environ.get('ARC_CA_DIR', None)
-            if ca_file:
-                ssl_config['ca_file'] = ca_file
-                print '- The CA file:', ssl_config['ca_file']
-            elif ca_dir:
-                ssl_config['ca_dir'] = ca_dir
-                print '- The CA dir:', ssl_config['ca_dir']
-            else:
-                print '- ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
-    bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
+        if ca_file:
+            ssl_config['ca_file'] = ca_file
+            print '- The CA file:', ssl_config['ca_file']
+        elif ca_dir:
+            ssl_config['ca_dir'] = ca_dir
+            print '- The CA dir:', ssl_config['ca_dir']
+    try:
+        bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
+    except Exception, e:
+        print 'ERROR:', e
+        sys.exit(-1)
     command = args.pop(0)[0:3]
     if command in ['sta']:
         if len(args) < 1:
