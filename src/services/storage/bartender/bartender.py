@@ -25,9 +25,9 @@ class Bartender:
         """
         self.librarian = librarian
 
-	# For the Gateway Service
-	self.gateway = gateway
- 	
+        # For the Gateway Service
+        self.gateway = gateway
+        
         self.ssl_config = ssl_config
 
     def stat(self, auth, requests):
@@ -192,19 +192,17 @@ class Bartender:
         except:
             log.msg()
             return 'internal error', None
-	
-    def externalStore(self,url,flag):
-
+        
+    def _externalStore(self, url, flag):
         """ This method calles the gateway service to get the full URL of the externally stored file"""
-	
-	if flag == 'list':	
-	    response =  self.gateway.list(url)
-	    #print 'response'	
-	    #print response	
-	elif flag == 'getFile':
-	    response = self.gateway.get(url)
-	
-	return response
+        if flag == 'list':      
+            response =  self.gateway.list(url)
+            #print 'response'   
+            #print response     
+        elif flag == 'getFile':
+            response = self.gateway.get(url)
+        return response
+
     def getFile(self, auth, requests):
         """ Get files from the storage.
         
@@ -216,7 +214,7 @@ class Bartender:
         # call the _traverse helper method the get the information about the requested Logical Names
         requests, traverse_response = self._traverse(requests)
         response = {}
-	#print traverse_response
+        #print traverse_response
         # for each requested LN
         for rID, (LN, protocols) in requests:
             turl = ''
@@ -226,21 +224,17 @@ class Bartender:
                 log.msg(arc.DEBUG, traverse_response[rID])
                 # split the traverse response
                 metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
-                
-		# wasComplete is true if the given LN was found, so it could have been fully traversed
+                # wasComplete is true if the given LN was found, so it could have been fully traversed
                 if not wasComplete:
-		    if metadata[('entry', 'type')] == 'mountpoint':
-		        url = metadata[('mountpoint', 'externalURL')]
-			turl,protocol = self.externalStore(url+restLN,'getFile')
-			if not turl:
-			    success = 'not found'
-			else:	
-			    success = 'found in external store'
-			
-		    else:	
-		        success = 'not found'
-
-
+                    if metadata.get(('entry', 'type'), '') == 'mountpoint':
+                        url = metadata[('mountpoint', 'externalURL')]
+                        turl,protocol = self._externalStore(url+restLN,'getFile')
+                        if not turl:
+                            success = 'not found'
+                        else:   
+                            success = 'found in external store'
+                    else:       
+                        success = 'not found'
                 else:
                     # metadata contains all the metadata of the given entry
                     # ('entry', 'type') is the type of the entry: file, collection, etc.
@@ -441,8 +435,8 @@ class Bartender:
                     #   traversedlist contains the GUID and metadata of each element along the path of the LN
                     metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
                     log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
-                    #   if the traversing stopped at a mount point:
-                    if metadata[('entry','type')] == 'mountpoint':
+                    # if the traversing stopped at a mount point:
+                    if metadata.get(('entry','type'), '') == 'mountpoint':
                         url = metadata[('mountpoint','externalURL')] + '/' + restLN                
                         success = 'done'
                         response[rID] = (success, url, 'external')
@@ -520,13 +514,12 @@ class Bartender:
             # for each request first split the Logical Name
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-	    
             #print metadata[('entry', 'type')]
-	    if metadata[('entry', 'type')] == 'mountpoint':
-	        success = 'cannot create collection in mountpoint'	
-	        response[rID] = success    
-		return response
-	    log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            if metadata.get(('entry', 'type'), '') == 'mountpoint':
+                success = 'cannot create collection in mountpoint'      
+                response[rID] = success    
+                return response
+            log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             child_metadata[('entry','owner')] = auth.get_identity()
             child_metadata[('entry','type')] = 'collection'
             if wasComplete: # this means the LN exists
@@ -582,18 +575,18 @@ class Bartender:
         # do traverse all the requests
         requests, traverse_response = self._traverse(requests)
         response = {}
-	
-	for rID, (LN, child_metadata, URL) in requests:
-	    # for each request first split the Logical Name
+        
+        for rID, (LN, child_metadata, URL) in requests:
+            # for each request first split the Logical Name
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-	    #print metadata[('entry', 'type')]
-            if metadata[('entry', 'type')] == 'mountpoint':
+            #print metadata[('entry', 'type')]
+            if metadata.get(('entry', 'type'), '') == 'mountpoint':
                 success = 'cannot create anything in mountpoint'
                 response[rID] = success
                 return response
 
-	    log.msg(arc.DEBUG, 'LN', LN, 'URL', URL, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            log.msg(arc.DEBUG, 'LN', LN, 'URL', URL, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             child_metadata[('entry','owner')] = auth.get_identity()
             child_metadata[('entry','type')] = 'mountpoint'
             child_metadata[('mountpoint','externalURL')] = URL 
@@ -632,26 +625,23 @@ class Bartender:
             # for each LN
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
             #print 'metadata'
-	    #print metadata
-	    if wasComplete:
+            #print metadata
+            if wasComplete:
                 # this means the LN exists
                 decision = make_decision_metadata(metadata, auth_request)
                 if decision != arc.DECISION_PERMIT:
                     entries = {}
                     status = 'denied'
-		    
                 else:
                     # let's get the type
                     type = metadata[('entry', 'type')]
-		    if type == 'file': # files have no contents, we do not list them
+                    if type == 'file': # files have no contents, we do not list them
                         status = 'is a file'
                         entries = {}
-		    elif type == 'mountpoint':
-			
-		 	status = 'moutpoint'
-			res = self.externalStore(metadata[('mountpoint', 'externalURL')], 'list')
-		        entries = dict([(url, (status, {('mountpoint','status'):stat,('external','list'):list})) for url,stat  in res.items()])
-			 	
+                    elif type == 'mountpoint':
+                        status = 'moutpoint'
+                        res = self._externalStore(metadata[('mountpoint', 'externalURL')], 'list')
+                        entries = dict([(url, (status, {('mountpoint','status'):stat,('external','list'):list})) for url,stat  in res.items()])
                     else: # if it is not a file, it must be a collection (currently there is no other type)
                         status = 'found'
                         # get all the properties and values from the 'entries' metadata section of the collection
@@ -662,24 +652,19 @@ class Bartender:
                         metadata = self.librarian.get(GUIDs.values(), neededMetadata)
                         # create a dictionary with the name of the entry as key and (GUID, metadata) as value
                         entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
-            
-	    elif metadata[('entry', 'type')] == 'mountpoint':	 
-
-	        status = 'file/collection in moutpoint'
-                res = self.externalStore(metadata[('mountpoint', 'externalURL')]+restLN, 'list')
-               	for url,stat in res.items():
- 		    if len(stat[1]) == 1:
-			status = 'not found'
-			entries = {}
-		    else:	
-			entries = dict([(url, (status, {('mountpoint','status'):stat})) for url,stat in res.items()])
-
-	    else:
+            elif metadata.get(('entry', 'type'), '') == 'mountpoint':
+                status = 'file/collection in moutpoint'
+                res = self._externalStore(metadata[('mountpoint', 'externalURL')]+restLN, 'list')
+                for url,stat in res.items():
+                    if len(stat[1]) == 1:
+                        status = 'not found'
+                        entries = {}
+                    else:       
+                        entries = dict([(url, (status, {('mountpoint','status'):stat})) for url,stat in res.items()])
+            else:
                 entries = {}
-                status = 'not found'	    
-	
+                status = 'not found'        
             response[requestID] = (entries, status)
-	    	
         return response
 
     def move(self, auth, requests):
@@ -715,13 +700,11 @@ class Bartender:
             # get the GUID form the target's traverse response, this should be the parent of the target LN
             targetMetadata, targetGUID, _, targetRestLN, targetWasComplete, targetTraversedList \
                 = traverse_response[requestID + 'target']
-            
-	    if targetMetadata[('entry', 'type')] == 'mountpoint':
-                success = 'cannot create anything in mountpoint'
+            if targetMetadata.get(('entry', 'type'), '') == 'mountpoint':
+                success = 'moving into a mountpoint is not supported'
                 response[requestID] = success
                 return response
-	 
-	    # if the source traverse was not complete: the source LN does not exist
+            # if the source traverse was not complete: the source LN does not exist
             if not sourceWasComplete:
                 success = 'nosuchLN'
             # if the target traverse was complete: the target LN already exists
@@ -820,13 +803,13 @@ class BartenderService(Service):
         Service.__init__(self, self.service_name, request_names, 'bar', bartender_uri, cfg)
         # get the URL of the Librarian from the config file
         librarian_url = str(cfg.Get('LibrarianURL'))
-	# get the URL of the Gateway from the config file
-	gateway_url = str(cfg.Get('GatewayURL'))
+        # get the URL of the Gateway from the config file
+        gateway_url = str(cfg.Get('GatewayURL'))
         ssl_config = parse_ssl_config(cfg)
         # create a LibrarianClient from the URL
         librarian = LibrarianClient(librarian_url, ssl_config = ssl_config)
-	# create a GatewayClient from the URL
-	gateway = GatewayClient(gateway_url)
+        # create a GatewayClient from the URL
+        gateway = GatewayClient(gateway_url)
         self.bartender = Bartender(librarian, gateway, ssl_config)
 
     def stat(self, inpayload):

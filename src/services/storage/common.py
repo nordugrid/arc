@@ -777,7 +777,7 @@ def make_decision_metadata(metadata, request):
     import arc
     #return arc.DECISION_PERMIT
     policy = parse_storage_policy(metadata).get_policy()
-    print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
+    #print 'DECISION NEEDED\nPOLICY:\n%s\nREQUEST:\n%s\n' % (policy, request)
     try:
         decision = make_decision(policy, request)
     except:
@@ -799,7 +799,7 @@ def make_decision(policy, request):
     response = evaluator.evaluate(r)
     responses = response.getResponseItems()
     response_list = [responses.getItem(i).res for i in range(responses.size())]
-    print 'RESPONSE_LIST = ', response_list
+    #print 'RESPONSE_LIST = ', response_list
     return response_list[0]
     # if response_list.count(arc.DECISION_DENY) > 0:
     #     return 'deny'
