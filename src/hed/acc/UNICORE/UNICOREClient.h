@@ -17,8 +17,7 @@ namespace Arc {
   class MCCConfig;
 
   //! A client class for the UNICORE service.
-  /*! This class is a client for the UNICORE service (Arc
-     Resource-coupled EXecution service). It provides methods for three
+  /*! This class implements client functionality for the UNICORE service. It provides methods for three
      operations on an UNICORE service:
      - Job submission
      - Job status queries
@@ -36,9 +35,6 @@ namespace Arc {
     UNICOREClient(const URL& url, const MCCConfig& cfg);
 
     //! The destructor.
-    /*! This is the destructor. It does what destructors usually do,
-       cleans up...
-     */
     ~UNICOREClient();
 
     //! Submit a job.

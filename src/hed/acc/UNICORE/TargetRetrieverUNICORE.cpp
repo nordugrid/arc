@@ -49,8 +49,11 @@ namespace Arc {
 
   TargetRetrieverUNICORE::~TargetRetrieverUNICORE() {}
 
-  ACC* TargetRetrieverUNICORE::Instance(Config *cfg, ChainContext*) {
-    return new TargetRetrieverUNICORE(cfg);
+  Plugin* TargetRetrieverUNICORE::Instance(PluginArgument* arg) {
+    ACCPluginArgument* accarg =
+            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
+    if(!accarg) return NULL;
+    return new TargetRetrieverUNICORE((Arc::Config*)(*accarg));
   }
 
   void TargetRetrieverUNICORE::GetTargets(TargetGenerator& mom, int targetType,
@@ -97,13 +100,14 @@ namespace Arc {
   }
 
   void TargetRetrieverUNICORE::InterrogateTarget(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
-    TargetGenerator& mom = *thrarg->mom;
+     ThreadArg *thrarg = (ThreadArg*)arg;
+     TargetGenerator& mom = *thrarg->mom;
 
-    URL& url = thrarg->url;
+     URL& url = thrarg->url;
 
-    delete thrarg;
-    mom.RetrieverDone();
+
+     delete thrarg;
+     mom.RetrieverDone();
   }
 
 } // namespace Arc

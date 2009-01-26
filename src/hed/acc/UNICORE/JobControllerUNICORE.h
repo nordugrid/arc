@@ -5,7 +5,6 @@
 
 namespace Arc {
 
-  class ChainContext;
   class Config;
   class URL;
 
@@ -18,7 +17,7 @@ namespace Arc {
     ~JobControllerUNICORE();
 
     void GetJobInformation();
-    static ACC* Instance(Config *cfg, ChainContext *cxt);
+    static Plugin* Instance(PluginArgument* arg);
 
   private:
     bool GetJob(const Job& job, const std::string& downloaddir);

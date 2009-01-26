@@ -14,24 +14,22 @@ namespace Arc {
   static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
   static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
 
-  // TODO: probably worth moving it to common library
-  // Of course xpath can be used too. But such solution is probably an overkill.
-//   static XMLNode find_xml_node(const XMLNode& node,
-// 			       const std::string& el_name,
-// 			       const std::string& attr_name,
-// 			       const std::string& attr_value) {
-//     if (MatchXMLName(node, el_name) &&
-// 	(((std::string)node.Attribute(attr_name)) == attr_value))
-//       return node;
-//     XMLNode cn = node[el_name];
-//     while (cn) {
-//       XMLNode fn = find_xml_node(cn, el_name, attr_name, attr_value);
-//       if (fn)
-// 	return fn;
-//       cn = cn[1];
-//     }
-//     return XMLNode();
-//   }
+  static XMLNode find_xml_node(const XMLNode& node,
+			       const std::string& el_name,
+			       const std::string& attr_name,
+			       const std::string& attr_value) {
+    if (MatchXMLName(node, el_name) &&
+	(((std::string)node.Attribute(attr_name)) == attr_value))
+      return node;
+    XMLNode cn = node[el_name];
+    while (cn) {
+      XMLNode fn = find_xml_node(cn, el_name, attr_name, attr_value);
+      if (fn)
+	return fn;
+      cn = cn[1];
+    }
+    return XMLNode();
+  }
 
   Logger UNICOREClient::logger(Logger::rootLogger, "UNICORE-Client");
 
@@ -61,8 +59,7 @@ namespace Arc {
       client_entry(NULL) {
 
     logger.msg(INFO, "Creating a UNICORE client");
-    client = new ClientSOAP(cfg, url.Host(), url.Port(),
-			    url.Protocol() == "https", url.Path());
+    client = new ClientSOAP(cfg, url);
     set_arex_namespaces(arex_ns);
   }
 
