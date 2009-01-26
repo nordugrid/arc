@@ -769,16 +769,20 @@ class Client:
             import arc
             self.call_raw = self.call_raw_hed
             self.cfg = arc.MCCConfig()
-            self.cfg.AddCertificate(self.ssl_config.get('cert_file', None))
-            self.cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
+            if ssl_config.has_key('proxy_file'):
+                self.cfg.AddProxy(self.ssl_config['proxy_file'])
+            else:
+                try:
+                    self.cfg.AddCertificate(self.ssl_config['cert_file'])
+                    self.cfg.AddPrivateKey(self.ssl_config['key_file'])
+                except:
+                    raise Exception, 'no key file or cert file found!'
             if ssl_config.has_key('ca_file'):
                 self.cfg.AddCAFile(self.ssl_config['ca_file'])
             elif ssl_config.has_key('ca_dir'):
                 self.cfg.AddCADir(self.ssl_config['ca_dir'])
             else:
                 raise Exception, 'no CA file or CA dir found!'
-            if ssl_config.has_key('proxy_file'):
-                self.cfg.AddProxy(self.ssl_config['proxy_file'])
             self.url = arc.URL(url)
         except:
             self.call_raw = self.call_raw_standalone
@@ -1269,25 +1273,32 @@ else:
         needed_replicas = 1
     ssl_config = {}
     if bartender_url.startswith('https'):
-        try:
-            ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
-            print '- The key file:', ssl_config['key_file']
-            ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
-            print '- The cert file:', ssl_config['cert_file']
-            try:
-                ssl_config['ca_file'] = os.environ['ARC_CA_FILE']
+        key_file = os.environ.get('ARC_KEY_FILE', None)
+        cert_file = os.environ.get('ARC_CERT_FILE', None)
+        proxy_file = os.environ.get('ARC_PROXY_FILE', None)
+        if proxy_file:
+            ssl_config['proxy_file'] = proxy_file
+            print '- Proxy certificate file:', ssl_config['proxy_file']
+        else:
+            if key_file and cert_file:                
+                ssl_config['key_file'] = key_file
+                ssl_config['cert_file'] = cert_file
+                print '- The key file:', ssl_config['key_file']
+                print '- The cert file:', ssl_config['cert_file']
+            else:
+                print '- ARC_KEY_FILE and ARC_CERT_FILE or ARC_PROXY_FILE environment variable not found, SSL disabled'
+        # if the ssl_config is empty at this point, then SSL was disabled
+        if ssl_config:
+            ca_file = os.environ.get('ARC_CA_FILE', None)
+            ca_dir = os.environ.get('ARC_CA_DIR', None)
+            if ca_file:
+                ssl_config['ca_file'] = ca_file
                 print '- The CA file:', ssl_config['ca_file']
-            except:
-                ssl_config['ca_dir'] = os.environ['ARC_CA_DIR']
+            elif ca_dir:
+                ssl_config['ca_dir'] = ca_dir
                 print '- The CA dir:', ssl_config['ca_dir']
-            try:
-                ssl_config['proxy_file'] = os.environ['ARC_PROXY_FILE']
-                print '- The proxy file:', ssl_config['proxy_file']
-            except:
-                pass
-        except:
-            ssl_config = {}
-            print '- ARC_KEY_FILE or ARC_CERT_FILE or ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
+            else:
+                print '- ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
     bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
     command = args.pop(0)[0:3]
     if command in ['sta']:
