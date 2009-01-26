@@ -46,8 +46,10 @@ namespace Arc {
     std::vector<Arc::ExecutionTarget> PossibleTargets;
     /// It is true if "custom" sorting is done
     bool TargetSortingDone;
-	Arc::JobInnerRepresentation jir;
-    
+    Arc::JobInnerRepresentation jir;
+
+    static Logger logger;
+
   private:	
     /// This is a pointer for the actual Execution Target in the PossibleTargets vector
     std::vector<Arc::ExecutionTarget>::iterator current;

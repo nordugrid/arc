@@ -212,8 +212,7 @@ namespace Arc {
 
   }
 
-  Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
-  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger Broker::logger(Arc::Logger::getRootLogger(), "broker");
   
   Broker::Broker(Config *cfg) : ACC(cfg),
 				PreFilteringDone(false),
