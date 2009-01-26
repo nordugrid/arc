@@ -3,6 +3,7 @@ package HostInfo;
 use Sys::Hostname;
 
 use base InfoCollector;
+use Sysinfo qw(cpuinfo processid diskinfo diskspaces);
 use LogUtils;
 
 use strict;
@@ -61,52 +62,9 @@ sub _collect($$) {
 
 # private subroutines
 
-#
-# Returns disk space (total and free) in MB on a filesystem
-#
-sub diskspace ($) {
-    my $path = shift;
-    my ($diskfree, $disktotal);
-
-    if ( -d "$path") {
-        # check if on afs
-        if ($path =~ m#/afs/#) {
-            my @dfstring =`fs listquota $path 2>/dev/null`;
-            if ($? != 0) {
-                $log->warning("Failed running: fs listquota $path");
-            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
-                $disktotal = int $1/1024;
-                $diskfree  = int(($1 - $2)/1024);
-            } else {
-                $log->warning("Failed interpreting output of: fs listquota $path");
-            }
-        # "ordinary" disk
-        } else {
-            my @dfstring =`df -k $path 2>/dev/null`;
-            if ($? != 0) {
-                $log->warning("Failed running: df -k $path");
-
-            # The first column may be printed on a separate line.
-            # The relevant numbers are always on the last line.
-            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+\d+\s+(\d+)\s+\d+%\s+\//) {
-    	        $disktotal = int $1/1024;
-    	        $diskfree  = int $2/1024;
-            } else {
-                $log->warning("Failed interpreting output of: df -k $path");
-            }
-        }
-    } else {
-        $log->warning("Not a directory: $path");
-    }
-
-    return undef unless defined($disktotal) and defined($diskfree);
-    return {megstotal => $disktotal, megsfree => $diskfree};
-}
-
-
 sub grid_diskspace ($$) {
     my ($sessiondir, $localids) = @_;
-    my $commonspace = diskspace($sessiondir);
+    my $commonspace = diskinfo($sessiondir);
     $log->warning("Failed checking disk space in sessiondir $sessiondir")
          unless $commonspace;
 
@@ -119,7 +77,7 @@ sub grid_diskspace ($$) {
 
         if ($sessiondir =~ /^\s*\*\s*$/) {
             $users->{$u}{gridarea} = $home."/.jobs";
-            my $gridspace = diskspace($users->{$u}{gridarea}); 
+            my $gridspace = diskinfo($users->{$u}{gridarea}); 
             $log->warning("Failed checking disk space in personal gridarea $users->{$u}{gridarea}")
                 unless $gridspace;
             $users->{$u}{diskfree} = $gridspace->{megsfree} || 0;
@@ -130,31 +88,6 @@ sub grid_diskspace ($$) {
     }
     return $users;
 }
-
-# Return PIDs of named commands owned by the current user
-# Only one pid is returned per command name
-
-sub process_status (@) {
-
-    my @procs = `ps -u $< -o pid,comm 2>/dev/null`;
-    if ( $? != 0 ) {
-        $log->info("Failed running: ps -u $< -o pid,comm");
-        $log->warning("Failed listing processes");
-        return {};
-    }
-    shift @procs; # throw away header line
-
-    # make hash of comm => pid
-    my %all;
-    /\s*(\d+)\s+(.+)/ and $all{$2} = $1 for @procs;
-
-    my %pids;
-    foreach my $name ( @_ ) {
-        $pids{$name} = $all{$name} if $all{$name};
-    }
-    return \%pids;
-}
-
 
 
 sub get_host_info {
@@ -171,58 +104,12 @@ sub get_host_info {
     chomp( $host_info->{architecture} = `uname -m`);
     $log->warning("Failed running uname") if $?;
 
-    if (-f "/proc/cpuinfo") {
-        # Linux variant
-
-        open (CPUINFO, "</proc/cpuinfo")
-            or $log->warning("Failed opening /proc/cpuinfo: $!");
-        while ( my $line = <CPUINFO> ) {
-            if ($line=~/^model name\s*:\s+(.*)$/) {
-                $host_info->{cpumodel} = $1;
-            } elsif ($line=~/^cpu MHz\s+:\s+(.*)$/) {
-                $host_info->{cpufreq} = int $1;
-            }
-        }
-        close CPUINFO;
-
-    } elsif (-x "/usr/sbin/system_profiler") {
-        # OS X
-
-        my @lines = `/usr/sbin/system_profiler SPHardwareDataType`;
-        $log->warning("Failed running system_profiler: $!") if $?;
-        for my $line ( @lines ) {
-            if ($line =~ /Processor Name:\s*(.*)/) {
-                $host_info->{cpumodel} = $1;
-            } elsif ($line =~ /Processor Speed:\s*([.\d]+) (\w+)/) {
-                if ($2 eq "MHz") {
-                    $host_info->{cpufreq} = int $1;
-                } elsif ($2 eq "GHz") {
-                    $host_info->{cpufreq} = int 1000*$1;
-                }
-            }
-        }
-
-    } elsif (-x "/usr/bin/kstat" ) {
-        # Solaris
-
-        my %chips;
-        eval {
-            require Sun::Solaris::Kstat;
-            my $ks = Sun::Solaris::Kstat->new();
-            my $cpuinfo = $ks->{cpu_info};
-            die "key not found: cpu_info" unless defined $cpuinfo;
-            my $info = $cpuinfo->{0}{"cpu_info0"};
-            die "key not found: cpu_info0" unless defined $info;
-            # $host_info->{cpumodel} = $info->{cpu_type}; # like sparcv9
-            $host_info->{cpumodel} = $info->{implementation}; # like UltraSPARC-III+
-            $host_info->{cpufreq} = int $info->{clock_MHz};
-        };
-        if ($@) {
-            $log->error("Failed running module Sun::Solaris::Kstat: $@");
-        }
-
+    my $cpuinfo = cpuinfo();
+    if ($cpuinfo) {
+        $host_info->{cpumodel} = $cpuinfo->{cpumodel};
+        $host_info->{cpufreq} = $cpuinfo->{cpufreq};
     } else {
-        $log->warning("Cannot query CPU info: unsupported operating system");
+        $log->error("Failed querying CPU info");
     }
 
 
@@ -271,25 +158,22 @@ sub get_host_info {
     $host_info->{trustedcas} = \@trustedca;
     
     #nordugrid-cluster-sessiondirusage
-    my $sessionspace = diskspace($options->{sessiondir});
+    my $sessionspace = diskinfo($options->{sessiondir});
     $log->warning("Failed checking disk space in sessiondir $options->{sessiondir}")
         unless $sessionspace;
     $host_info->{session_free} = $sessionspace->{megsfree} || 0;
     $host_info->{session_total} = $sessionspace->{megstotal} || 0;
-        
+
     #nordugrid-cluster-cacheusage
-    my $cachespace;
-    if ( $options->{cachedir} ){
-        my ($cachedir) = split /\s+/, $options->{cachedir};
-        my $cachespace = diskspace($cachedir);
-        $log->warning("Failed checking disk space in cache directory $options->{cachedir}")
-            unless $cachespace;
-    }
     #OBS: only accurate if cache is on a filesystem of it's own 
-    #TODO: find a way to get better numbers from new cache system
-    $host_info->{cache_free} = $cachespace->{megsfree} || 0;
-    $host_info->{cache_total} = $cachespace->{megstotal} || 0;
-    
+    my @paths = split /\[separator\]/, ($options->{cachedir} || '');
+    @paths = map { my @pair = split " ", $_; $pair[0] } @paths;
+    my %cacheinfo = diskspaces(@paths);
+    $log->warning("Failed checking disk space in cache directory $options->{cachedir}")
+        unless %cacheinfo;
+    $host_info->{cache_total} = $cacheinfo{totalsum} || 0;
+    $host_info->{cache_free} = ($cacheinfo{freemin} || 0) * $cacheinfo{ndisks};
+
     #NorduGrid middleware version
     #Skipped...
     
@@ -326,7 +210,7 @@ sub get_host_info {
 
     # users and diskspace
     $host_info->{localusers} = grid_diskspace($options->{sessiondir}, $options->{localusers});
-    $host_info->{processes} = process_status(@{$options->{processes}});
+    $host_info->{processes} = processid(@{$options->{processes}});
 
     return $host_info;
 }

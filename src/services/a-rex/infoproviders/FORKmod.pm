@@ -274,7 +274,7 @@ sub jobs_info ($) {
 
         $lrms_jobs->{$id}{nodes} = [ hostname ];
 
-        my ($proc) = grep { $id == $_->{pid} } @procinfo;
+        my ($proc) = grep { $id eq $_->{pid} } @procinfo;
         if ($proc) {
 
             # number of running jobs. Will be used in queue_info

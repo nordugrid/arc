@@ -329,6 +329,7 @@ exit 0
 %{_libdir}/%{pkgdir}/LRMSInfo.pm
 #
 %{_libdir}/%{pkgdir}/LogUtils.pm
+%{_libdir}/%{pkgdir}/Sysinfo.pm
 #
 %{_libexecdir}/%{pkgdir}/submit-*-job
 %{_libexecdir}/%{pkgdir}/cancel-*-job

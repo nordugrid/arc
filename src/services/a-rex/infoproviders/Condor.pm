@@ -449,7 +449,7 @@ sub queue_info ($$) {
     my $config = shift;
     my $qname = shift;
 
-    $qdef = join "", split /\[separator\]/, $$config{condor_requirements};
+    $qdef = join "", split /\[separator\]/, ($$config{condor_requirements} || '');
     warning("Option 'condor_requirements' is not defined for queue $qname") unless $qdef;
     debug("===Requirements for queue $qname: $qdef");
     

@@ -31,6 +31,7 @@ usr/lib/arc/InfoCollector.pm
 usr/lib/arc/LRMSInfo.pm
 
 usr/lib/arc/LogUtils.pm
+usr/lib/arc/Sysinfo.pm
 
 usr/lib/arc/submit-*-job
 usr/lib/arc/cancel-*-job

@@ -70,6 +70,12 @@ sub arc1_info_schema {
             'DowntimeInfo'       => [ '*' ],
             'Staging'            => [ '*' ],
             'JobDescription'     => [ '*' ],
+            'TotalJobs'          => [ '' ],
+            'RunningJobs'        => [ '' ],
+            'WaitingJobs'        => [ '' ],
+            'SuspendedJobs'      => [ '' ],
+            'StagingJobs'        => [ '' ],
+            'PreLRMSWaitingJobs' => [ '' ],
             'AccessPolicy'       => [ $access_pol_t ],
              'Associations' => {
                 'ComputingShareLocalID' =>  [ '' ],
@@ -100,7 +106,7 @@ sub arc1_info_schema {
             'MaxStageInStreams'     => [ '*' ],
             'MaxStageOutStreams'    => [ '*' ],
             'SchedulingPolicy'      => [ '*' ],
-            'MaxMainMemory'         => [ '' ],  # units: MB
+            'GuaranteedVirtualMemory' => [ '' ],  # units: MB
             'MaxDiskSpace'          => [ '*' ], # units: GB
             'DefaultStorageService' => [ '*' ],
             'Preemption'            => [ '*' ],
@@ -123,11 +129,11 @@ sub arc1_info_schema {
             'ReservationPolicy'     => [ '*' ],
             'Tag'                   => [ '*' ],
             #'MappingPolicy' => [ $mapping_pol_t ],
-            #'Associations' => {
-            #    'ComputingEndpointID'         => [ '' ],
-            #    'ExecutionEnvironmentLocalID' => [ '' ],
-            #    'ComputingActivityID'         => [ '' ],
-            #},
+            'Associations' => {
+                'ComputingEndpointID'         => [ '' ],
+                'ExecutionEnvironmentLocalID' => [ '' ],
+                'ComputingActivityID'         => [ '' ],
+            },
     };
 
     my $comp_manager_t = {
@@ -135,7 +141,7 @@ sub arc1_info_schema {
             'CreationTime' => '',
             'Validity'     => '',
             'ID'                    => [ '' ],
-            'Name'                  => [ '' ],
+            'Name'                  => [ '*' ],
             'Type'                  => [ '' ],
             'Version'               => [ '' ],
             'Reservation'           => [ '*' ],
@@ -145,24 +151,28 @@ sub arc1_info_schema {
             'TotalSlots'            => [ '' ],
             'SlotsUsedByLocalJobs'  => [ '' ],
             'SlotsUsedByGridJobs'   => [ '' ],
-            'Homogeneity'           => [ '' ],
+            'Homogeneous'           => [ '' ],
             'NetworkInfo'           => [ '*' ],
             'LogicalCPUDistribution'=> [ '' ],
             'WorkingAreaShared'     => [ '' ],
             'WorkingAreaTotal'      => [ '' ],
             'WorkingAreaFree'       => [ '' ],
             'WorkingAreaLifeTime'   => [ '' ],
+            'WorkingAreaMPIShared'  => [ '*' ],
+            'WorkingAreaMPITotal'   => [ '*' ],
+            'WorkingAreaMPIFree'    => [ '*' ],
+            'WorkingAreaMPILifeTime'=> [ '*' ],
             'CacheTotal'            => [ '' ],
             'CacheFree'             => [ '' ],
             'TmpDir'                => [ '*' ],
             'ScratchDir'            => [ '*' ],
             'ApplicationDir'        => [ '*' ],
             'OtherInfo'             => [ '*' ],
-            'Benchmark' => [ $benchmark_t ],
-            'ApplicationEnvironments' => {
-                'ApplicationEnvironment' => [ $app_env_t ]
-            },
-            'ExecutionEnvironment' => [ $exec_env_t ],
+            #'Benchmark' => [ $benchmark_t ],
+            #'ApplicationEnvironments' => {
+            #    'ApplicationEnvironment' => [ $app_env_t ]
+            #},
+            #'ExecutionEnvironment' => [ $exec_env_t ],
     };
 
     my $app_env_t = {
@@ -297,10 +307,10 @@ my $comp_activity_t = {
             'ComputingActivities' => {
                 'ComputingActivity' => [ $comp_activity_t ]
             },
-            #'ComputingResource' => [ $comp_manager_t ],
-            #'Associations' => {
-            #    'ServiceID' => [ '*' ],
-            #}
+            'ComputingManager' => [ $comp_manager_t ],
+            'Associations' => {
+                'ServiceID' => [ '*' ],
+            }
     };
 
 
