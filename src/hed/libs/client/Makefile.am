@@ -30,6 +30,7 @@ libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
         $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+	$(top_srcdir)/src/hed/libs/job/libarcjob.la \
 	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS)
 
 test_jobdescription_SOURCES  = test_jobdescription.cpp

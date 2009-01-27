@@ -13,9 +13,6 @@
 
 namespace Arc {
 
-  //Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
-  //Arc::LogStream logcerr(std::cerr);
-
   std::map<std::string, long> CacheMappingTable;
 
   bool DataBroker::CacheCheck(void) {
@@ -107,8 +104,26 @@ namespace Arc {
 	      iter++;
       }   
 
+    logger.msg(DEBUG, "Matching against job description, following targets possible for DataBroker: %d",PossibleTargets.size());
+
+    iter = PossibleTargets.begin();
+        
+    for(int i=1; iter != PossibleTargets.end(); iter++, i++){
+      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+    }     
+
     CacheCheck(); 
   	std::sort(PossibleTargets.begin(), PossibleTargets.end(), DataCompare);
+
+    logger.msg(DEBUG, "Best targets are: %d",PossibleTargets.size());
+
+    iter = PossibleTargets.begin();
+        
+    for(int i=1; iter != PossibleTargets.end(); iter++, i++){
+      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+    }     
+
+
 	TargetSortingDone = true;
   }
 } // namespace Arc

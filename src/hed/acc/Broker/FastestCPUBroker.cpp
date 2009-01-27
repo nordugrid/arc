@@ -8,9 +8,6 @@
 
 namespace Arc {
  
- // Arc::Logger logger(Arc::Logger::getRootLogger(), "broker");
- // Arc::LogStream logcerr(std::cerr);
-   
   bool CheckCPUSpeeds(const ExecutionTarget& T1, const ExecutionTarget& T2){
     double T1performance = 0;
     double T2performance = 0;
@@ -57,8 +54,25 @@ namespace Arc {
       }
       iter++;
     }
+ 
+   logger.msg(DEBUG, "Matching against job description, following targets possible for FastestCPUBroker: %d",PossibleTargets.size());
+
+    iter = PossibleTargets.begin();
     
+    for(int i=1; iter != PossibleTargets.end(); iter++, i++){
+      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+    }    
+
     std::sort(PossibleTargets.begin(), PossibleTargets.end(), CheckCPUSpeeds);
+
+    logger.msg(DEBUG, "Best targets are: %d",PossibleTargets.size());
+
+    iter = PossibleTargets.begin();
+    
+    for(int i=1; iter != PossibleTargets.end(); iter++, i++){
+      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+    }    
+
     TargetSortingDone = true;
 
   }

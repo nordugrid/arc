@@ -578,7 +578,7 @@ namespace Arc {
            innerRepresentation.ThreadPerProcesses = stringtoi((std::string)application["ThreadCountLimit"]);
         }
 
-        Arc::XMLNode resource = node["JobDescription"]["Resource"];
+        Arc::XMLNode resource = node["JobDescription"]["Resources"];
 
         if (bool(resource["SessionLifeTime"])) {
            Period time((std::string)resource["SessionLifeTime"]);
@@ -684,9 +684,15 @@ namespace Arc {
         }
 
         if (bool(resource["RunTimeEnvironment"])) {
-           Arc::RunTimeEnvironmentType rt;
-           rt.Name = (std::string)resource["RunTimeEnvironment"];
-           innerRepresentation.RunTimeEnvironment.push_back(rt);
+		   StringManipulator sm;
+		   for( int i=0; (bool)(resource["RunTimeEnvironment"][i]); i++ ) {
+               Arc::RunTimeEnvironmentType rt;
+			   std::string version;
+               rt.Name = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Name"]);
+               version = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Version"]["Exact"]);
+		       rt.Version.push_back(version);
+               innerRepresentation.RunTimeEnvironment.push_back(rt);
+           }
         }
 
         Arc::XMLNode datastaging = node["JobDescription"]["DataStaging"];
