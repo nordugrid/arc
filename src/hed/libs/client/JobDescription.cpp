@@ -1841,6 +1841,7 @@ namespace Arc {
     }
 
     bool XRSLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
+        product = "&\n";
         if (!innerRepresentation.Executable.empty()) {
             product += "( executable = ";//TODO:
             product += innerRepresentation.Executable;
