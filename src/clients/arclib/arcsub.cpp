@@ -251,7 +251,13 @@ int main(int argc, char **argv) {
   acccfg.MakeConfig(cfg);
   
   Arc::XMLNode Broker = cfg.NewChild("ArcClientComponent");
-  Broker.NewAttribute("name") = broker;
+  std::string::size_type pos = broker.find(':');
+  if (pos != std::string::npos) {
+    Broker.NewAttribute("name") = broker.substr(0, pos);
+    Broker.NewChild("Arguments") = broker.substr(pos + 1);
+  }
+  else
+    Broker.NewAttribute("name") = broker;
   Broker.NewAttribute("id") = "broker";
   
   usercfg.ApplySecurity(Broker);
