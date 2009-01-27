@@ -299,8 +299,16 @@ namespace Arc {
       if (cluster["nordugrid-cluster-middleware"])
 	target.ImplementationVersion =
 	  (std::string)cluster["nordugrid-cluster-middleware"];
-      if (queue["nordugrid-queue-status"])
-	target.HealthState = (std::string)queue["nordugrid-queue-status"];
+      if (queue["nordugrid-queue-status"]) {
+	if (((std::string)queue["nordugrid-queue-status"]).substr(0, 6)
+	    == "active")
+	  target.HealthState = "ok";
+	else if (((std::string)queue["nordugrid-queue-status"]).substr(0, 8)
+		 == "inactive")
+	  target.HealthState = "critical";
+	else
+	  target.HealthState = "other";
+      }
       if (cluster["nordugrid-cluster-issuerca"])
 	if (cluster["nordugrid-cluster-issuerca-hash"])
 	  target.IssuerCA =
