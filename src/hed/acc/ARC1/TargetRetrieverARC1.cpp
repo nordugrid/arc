@@ -137,9 +137,9 @@ namespace Arc {
 
     if (ServerStatus["IsAcceptingNewActivities"]) {
       if ((std::string)ServerStatus["IsAcceptingNewActivities"] == "true")
-	target.HealthState = "active";
+	target.HealthState = "ok";
       else
-	target.HealthState = "inactive";
+	target.HealthState = "critical";
     }
 
     if (ServerStatus["TotalNumberOfActivities"])
