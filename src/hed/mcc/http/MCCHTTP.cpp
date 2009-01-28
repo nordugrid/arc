@@ -182,7 +182,27 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
   // Creating attributes
-  nextinmsg.Attributes()->set("ENDPOINT",nextpayload.Endpoint());
+  // Endpoints must be URL-like so make sure HTTP path is 
+  // converted to HTTP URL 
+  std::string endpoint = nextpayload.Endpoint();
+  {
+    std::string::size_type p = endpoint.find("://");
+    if(p == std::string::npos) {
+      std::string oendpoint = nextinmsg.Attributes()->get("ENDPOINT");
+      p=oendpoint.find("://");
+      if(p != std::string::npos) {
+        oendpoint.erase(0,p+3);
+      };
+      // Assuming we have host:port here
+      if(oendpoint.empty() ||
+         (oendpoint[oendpoint.length()-1] != '/')) {
+        if(endpoint[0] != '/') oendpoint+="/";
+      };
+      // TODO: HTTPS detection
+      endpoint="http://"+oendpoint+endpoint;
+    };
+  };
+  nextinmsg.Attributes()->set("ENDPOINT",endpoint);
   nextinmsg.Attributes()->set("HTTP:ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
   // Filling security attributes
