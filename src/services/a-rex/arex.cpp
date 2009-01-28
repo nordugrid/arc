@@ -167,22 +167,32 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   return config;
 }
 
+static std::string GetPath(Arc::Message &inmsg,std::string &base) {
+  base = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
+  std::string path;
+  if(iterator.hasMore()) {
+    // Service is behind plexer
+    path = *iterator;
+    if(base.length() > path.length()) base.resize(base.length()-path.length());
+  } else {
+    // Standalone service
+    path=Arc::URL(base).Path();
+    base.resize(0);
+  };
+  return path;
+}
 
 Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Split request path into parts: service, job and file path. 
   // TODO: make it HTTP independent
+  std::string endpoint;
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
-  std::string id = inmsg.Attributes()->get("PLEXER:EXTENSION");
-  std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  std::string id = GetPath(inmsg,endpoint);
   std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
   if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
   logger_.msg(Arc::DEBUG, "process: method: %s", method);
   logger_.msg(Arc::DEBUG, "process: endpoint: %s", endpoint);
-  if(id.length() < endpoint.length()) {
-    if(endpoint.substr(endpoint.length()-id.length()) == id) {
-      endpoint.resize(endpoint.length()-id.length());
-    };
-  };
   while(id[0] == '/') id=id.substr(1);
   std::string subpath;
   {
