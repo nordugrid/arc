@@ -7,6 +7,7 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataMover.h>
+#include <arc/data/URLMap.h>
 %}
 
 #ifdef SWIGPYTHON
@@ -37,6 +38,21 @@ and the second member is the original return value, the DataStatus. */
     $result = tuple;
 }
 
+
+%typemap(in, numinputs=0) std::string& failure_description (std::string temp) {
+    $1 = &temp;
+}
+
+%typemap(argout) std::string & failure_description {
+    PyObject *o, *tuple;
+    tuple = PyTuple_New(2);
+    o = PyString_FromString($1->c_str());
+    PyTuple_SetItem(tuple,0,$result);
+    PyTuple_SetItem(tuple,1,o);
+    $result = tuple;
+}
+
+
 }
 
 #endif
@@ -49,5 +65,15 @@ and the second member is the original return value, the DataStatus. */
 %include "../src/hed/libs/data/DataBuffer.h"
 %include "../src/hed/libs/data/FileCache.h"
 %include "../src/hed/libs/data/DataMover.h"
+%include "../src/hed/libs/data/URLMap.h"
+
+%pythoncode %{
+    def DataPointFromURL(url):
+        handle = DataHandle(url)
+        handle.thisown = False
+        point = handle.__ref__()
+        return point
+%}
+
 
 
