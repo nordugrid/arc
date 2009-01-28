@@ -40,6 +40,8 @@ class CentralAHash:
         'storecfg', an XMLNode with the configuration of the storeclass
         """
         log.msg(arc.DEBUG, "CentralAHash constructor called")
+        
+        self.public_request_names = []
         # import the storeclass and call its constructor with the datadir
 
         # the name of the class which is capable of storing the object
@@ -207,8 +209,6 @@ class AHashService(Service):
         self.service_name = 'A-Hash'
         # names of provided methods
         request_names = ['get','change']
-        # call the Service's constructor
-        Service.__init__(self, self.service_name, request_names, 'ahash', ahash_uri, cfg)
         # the name of the class which implements the business logic of the A-Hash service
         ahashclass = str(cfg.Get('AHashClass'))
         # import and instatiate the business logic class
@@ -218,6 +218,14 @@ class AHashService(Service):
             log.msg(arc.ERROR, 'Error importing class', ahashclass)
             raise Exception, 'A-Hash cannot run.'
         self.ahash = cl(cfg)
+        ahash_request_names = self.ahash.public_request_names
+        # bring the additional request methods into the namespace of this object
+        for name in ahash_request_names:
+            if not hasattr(self, name):
+                setattr(self, name, getattr(self.ahash, name))
+                request_names.append(name)
+        # call the Service's constructor
+        Service.__init__(self, self.service_name, request_names, 'ahash', ahash_uri, cfg)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
