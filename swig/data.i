@@ -67,6 +67,7 @@ and the second member is the original return value, the DataStatus. */
 %include "../src/hed/libs/data/DataMover.h"
 %include "../src/hed/libs/data/URLMap.h"
 
+#ifdef SWIGPYTHON
 %pythoncode %{
     def DataPointFromURL(url):
         handle = DataHandle(url)
@@ -74,6 +75,4 @@ and the second member is the original return value, the DataStatus. */
         point = handle.__ref__()
         return point
 %}
-
-
-
+#endif
