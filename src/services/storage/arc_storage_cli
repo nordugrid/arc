@@ -31,36 +31,51 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
         from storage.client import ByteIOClient
         return ByteIOClient(turl).write(fobj)
     elif protocol == 'http':
-        proto, host, port, path = parse_url(turl)
-        import httplib
-        if proto == 'https':
-            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+        try:
+            import arc
+            use_hed = True
+        except:
+            use_hed = False
+        if use_hed:
+            src = arc.DataPointFromURL(arc.URL(fobj.name))
+            dst = arc.DataPointFromURL(arc.URL(turl))
+            dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
+                ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
+            mover = arc.DataMover()
+            mover.verbose(True)
+            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            return str(status)
         else:
-            h = httplib.HTTPConnection(host, port)
-        if not size:
-            size = os.path.getsize(fobj.name)
-        print 'Uploading %s bytes...' % size,
-        h.putrequest('PUT', path)
-        h.putheader('Content-Length', size)
-        h.endheaders()
-        chunk = fobj.read(CHUNKSIZE)
-        uploaded = 0
-        print '00%',
-        t = time.time()
-        while chunk:
-            sys.stdout.flush()    
-            h.send(chunk)
-            uploaded = uploaded + len(chunk)
-            if time.time() - t > 2:
-                t = time.time()
-                print '\b\b\b\b%02d%%' % (uploaded*100/size),
+            proto, host, port, path = parse_url(turl)
+            import httplib
+            if proto == 'https':
+                h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+            else:
+                h = httplib.HTTPConnection(host, port)
+            if not size:
+                size = os.path.getsize(fobj.name)
+            print 'Uploading %s bytes...' % size,
+            h.putrequest('PUT', path)
+            h.putheader('Content-Length', size)
+            h.endheaders()
             chunk = fobj.read(CHUNKSIZE)
-        print '\b\b\b\bdata sent, waiting...',
-        sys.stdout.flush()    
-        r = h.getresponse()
-        print 'done.'
-        #resp = r.read()
-        return r.status
+            uploaded = 0
+            print '00%',
+            t = time.time()
+            while chunk:
+                sys.stdout.flush()    
+                h.send(chunk)
+                uploaded = uploaded + len(chunk)
+                if time.time() - t > 2:
+                    t = time.time()
+                    print '\b\b\b\b%02d%%' % (uploaded*100/size),
+                chunk = fobj.read(CHUNKSIZE)
+            print '\b\b\b\bdata sent, waiting...',
+            sys.stdout.flush()    
+            r = h.getresponse()
+            print 'done.'
+            #resp = r.read()
+            return r.status
 
 def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
     """docstring for download_from_turl"""
@@ -70,30 +85,45 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
         from storage.client import ByteIOClient
         ByteIOClient(turl).read(file = f)
     elif protocol == 'http':
-        proto, host, port, path = parse_url(turl)
-        import httplib
-        if proto == 'https':
-            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+        try:
+            import arc
+            use_hed = True
+        except:
+            use_hed = False
+        if use_hed:
+            src = arc.DataPointFromURL(arc.URL(turl))
+            dst = arc.DataPointFromURL(arc.URL(fobj.name))
+            src.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
+                ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
+            mover = arc.DataMover()
+            mover.verbose(True)
+            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            return str(status)
         else:
-            h = httplib.HTTPConnection(host, port)
-        h.request('GET', path)
-        r = h.getresponse()
-        size = int(r.getheader('Content-Length', CHUNKSIZE))
-        print 'Downloading %s bytes...' % size,
-        chunk = r.read(CHUNKSIZE)
-        downloaded = 0
-        print '00%',
-        t = time.time()
-        while chunk:
-            sys.stdout.flush()    
-            fobj.write(chunk)
-            downloaded = downloaded + len(chunk)
-            if time.time() - t > 2:
-                t = time.time()
-                print '\b\b\b\b%02d%%' % (downloaded*100/size),
+            proto, host, port, path = parse_url(turl)
+            import httplib
+            if proto == 'https':
+                h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
+            else:
+                h = httplib.HTTPConnection(host, port)
+            h.request('GET', path)
+            r = h.getresponse()
+            size = int(r.getheader('Content-Length', CHUNKSIZE))
+            print 'Downloading %s bytes...' % size,
             chunk = r.read(CHUNKSIZE)
-        print '\b\b\b\bdone.'
-        return r.status
+            downloaded = 0
+            print '00%',
+            t = time.time()
+            while chunk:
+                sys.stdout.flush()    
+                fobj.write(chunk)
+                downloaded = downloaded + len(chunk)
+                if time.time() - t > 2:
+                    t = time.time()
+                    print '\b\b\b\b%02d%%' % (downloaded*100/size),
+                chunk = r.read(CHUNKSIZE)
+            print '\b\b\b\bdone.'
+            return r.status
 
 def splitLN(LN):
     """  Split a Logical Name to a 3-tuple: GUID, dirname, basename.
