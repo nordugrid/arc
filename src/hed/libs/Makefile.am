@@ -18,8 +18,8 @@ endif
 
 # order is important!
 SUBDIRS = common loader message credential data delegation security \
-	ws-addressing $(XMLSEC_DIR) ws-security wsrf client $(DBXML_DIR) \
-	infosys ws $(GLOBUSUTILS_DIR) job
+	ws-addressing $(XMLSEC_DIR) ws-security wsrf job client $(DBXML_DIR) \
+	infosys ws $(GLOBUSUTILS_DIR)
 DIST_SUBDIRS = common loader message credential data delegation security \
-	ws-addressing xmlsec ws-security wsrf client dbxml \
-	infosys ws globusutils job
+	ws-addressing xmlsec ws-security wsrf job client dbxml \
+	infosys ws globusutils 
