@@ -12,6 +12,7 @@
 #include <arc/message/MessageAttributes.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
+#include <arc/URL.h>
 #include <arc/Utils.h>
 
 
@@ -162,22 +163,29 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+static std::string GetPath(Arc::Message &inmsg,std::string &base) {
+  base = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
+  std::string path;
+  if(iterator.hasMore()) {
+    // Service is behind plexer
+    path = *iterator;
+    if(base.length() > path.length()) base.resize(base.length()-path.length());
+  } else {
+    // Standalone service
+    path=Arc::URL(base).Path();
+    base.resize(0);
+  };
+  return path;
+}
+
 Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
 {
     std::string method = inmsg.Attributes()->get("HTTP:METHOD");
-    std::string url = inmsg.Attributes()->get("HTTP:ENDPOINT");
-    std::string path;
     std::string base_url;
-    Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
-    if (iterator.hasMore()) {
-        path = *iterator;
-        base_url = url.substr(0, url.length() - path.length());    
-    } else {
-        path = url;
-        base_url = "";
-    }
+    std::string path = GetPath(inmsg,base_url);
 
-    logger.msg(Arc::DEBUG, "method=%s, path=%s, url=%s, base_url=%s", method, path, url, base_url);
+    logger.msg(Arc::DEBUG, "method=%s, path=%s, url=%s, base=%s", method, path, inmsg.Attributes()->get("HTTP:ENDPOINT"), base_url);
     if (method == "GET") {
         Arc::PayloadRawInterface *buf = Get(path, base_url);
         if (!buf) {
