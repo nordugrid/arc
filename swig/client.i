@@ -46,7 +46,7 @@ the first member will be the '*response' and the second member is the original r
 %include "../src/hed/libs/client/ClientInterface.h"
 %apply std::string& INOUT { std::string& delegation_id };
 %include "../src/hed/libs/client/ClientX509Delegation.h"
-%clear std::string& out_xml_str;
+%clear std::string& delegation_id;
 %include "../src/hed/libs/client/Submitter.h"
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %include "../src/hed/libs/client/Job.h"
