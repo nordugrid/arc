@@ -1,10 +1,14 @@
 %{
+#include <arc/client/ACC.h>
+#include <arc/client/ACCLoader.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/client/ClientX509Delegation.h>
 #include <arc/client/Submitter.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/JobInnerRepresentation.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
@@ -37,12 +41,18 @@ the first member will be the '*response' and the second member is the original r
 }
 #endif
 
+%include "../src/hed/libs/client/ACC.h"
+%include "../src/hed/libs/client/ACCLoader.h"
 %include "../src/hed/libs/client/ClientInterface.h"
+%apply std::string& INOUT { std::string& delegation_id };
+%include "../src/hed/libs/client/ClientX509Delegation.h"
+%clear std::string& out_xml_str;
 %include "../src/hed/libs/client/Submitter.h"
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %include "../src/hed/libs/client/Job.h"
 %include "../src/hed/libs/client/JobController.h"
 %include "../src/hed/libs/client/JobDescription.h"
+%include "../src/hed/libs/client/JobInnerRepresentation.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetGenerator.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
