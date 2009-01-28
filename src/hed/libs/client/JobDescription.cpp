@@ -1,6 +1,7 @@
 #include <cstring>
 #include <algorithm>
 #include <arc/StringConv.h>
+#include <arc/job/runtimeenvironment.h>
 #include "JobDescription.h"
 
 namespace Arc {
@@ -65,6 +66,7 @@ namespace Arc {
         candidate.priority = DEFAULT_PRIORITY; //Default value
         //End of setting defaults//
         candidate.typeName = "POSIXJSDL";
+        candidate.extensions.push_back("posix");
         candidate.extensions.push_back("jsdl");
         candidate.extensions.push_back("xml");
         candidate.pattern.push_back("<?xml ");
@@ -77,16 +79,18 @@ namespace Arc {
         candidate.pattern.push_back("<Description");
         candidate.pattern.push_back("<Executable");
         candidate.pattern.push_back("<Argument");
-        candidate.pattern.push_back("<Input");
-        candidate.pattern.push_back("<Output");
-        candidate.pattern.push_back("<Error");
+//        candidate.pattern.push_back("<Input");
+//        candidate.pattern.push_back("<Output");
+//        candidate.pattern.push_back("<Error");
+        candidate.pattern.push_back("<CPUArchitectureName");
+        candidate.pattern.push_back("<DeleteOnTermination");
         
         //candidate.pattern.push_back("<?xml ");
         //candidate.pattern.push_back("<JobDescription");
         //Save entry
         candidates.push_back(candidate);
         // End of POSIX JSDL
-/*
+
         // JSDL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -109,16 +113,16 @@ namespace Arc {
         candidate.pattern.push_back("<Executable");
         candidate.pattern.push_back("<LogDir");
         candidate.pattern.push_back("<Argument");
-        candidate.pattern.push_back("<Input");
-        candidate.pattern.push_back("<Output");
-        candidate.pattern.push_back("<Error");
+//        candidate.pattern.push_back("<Input");
+//        candidate.pattern.push_back("<Output");
+//        candidate.pattern.push_back("<Error");
         candidate.pattern.push_back("<OSName");
         candidate.pattern.push_back("<File");
         candidate.pattern.push_back("<Directory");
         //Save entry  
         candidates.push_back(candidate);
         // End of JSDL
-*/
+
         // RSL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -462,7 +466,7 @@ namespace Arc {
     } 
 
     bool PosixJSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) { 
-        
+
         Arc::XMLNode node(source);
         Arc::NS nsList;
         nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
@@ -496,14 +500,15 @@ namespace Arc {
            innerRepresentation.LRMSReRun = stringtoi((std::string)jobdescription["Reruns"]);
         }
 
+        if (bool(jobdescription["AccessControl"]["Content"])) {
+           Arc::XMLNode accesscontrol(jobdescription["AccessControl"]["Content"]);
+           accesscontrol.Child(0).New(innerRepresentation.AccessControl);
+        }
+
         Arc::XMLNode jobidentification = node["JobDescription"]["JobIdentification"];
 
         if (bool(jobidentification["JobName"])) {
            innerRepresentation.JobName = (std::string)jobidentification["JobName"];
-        }
-
-        if (bool(jobidentification["AccessControl"]["Content"])) {
-           innerRepresentation.AccessControl = jobidentification["AccessControl"]["Content"];
         }
 
         if (bool(jobidentification["Notify"])) {
@@ -712,6 +717,7 @@ namespace Arc {
                  URL uri;
                  uri.ChangePath((std::string)source_uri);
                  source.URI = uri;
+                 source.Threads = -1;
                  file.Source.push_back(source);
               }
               if (bool(target_uri)) {
@@ -719,6 +725,7 @@ namespace Arc {
                  URL uri;
                  uri.ChangePath((std::string)target_uri);
                  target.URI = uri;
+                 target.Threads = -1;
                  file.Target.push_back(target);
               }
 
@@ -729,7 +736,11 @@ namespace Arc {
               }else{
                  file.IsExecutable = false;
               }
-              file.KeepData = false;
+              if (sm.toLowerCase(((std::string)ds["DeleteOnTermination"])) == "true"){
+                 file.KeepData = false;
+              }else{
+                 file.KeepData = true;
+              }
               file.DownloadToCache = false;
               innerRepresentation.File.push_back(file);
            }
@@ -750,27 +761,67 @@ namespace Arc {
 
         Arc::XMLNode jobdescription = jobdefinition.NewChild("JobDescription");
 
-        Arc::XMLNode jobidentification = jobdescription.NewChild("JobIdentification");
-
-        jobidentification.NewChild("JobName") = innerRepresentation.JobName;
-
-        Arc::XMLNode application = jobdescription.NewChild("Application").NewChild("POSIXApplication");
-
-        application.NewChild("Executable") = innerRepresentation.Executable;
-        application.NewChild("Input") = innerRepresentation.Input;
-        application.NewChild("Output") = innerRepresentation.Output;
-        application.NewChild("Error") = innerRepresentation.Error;
-
-        for (std::list<std::string>::const_iterator it=innerRepresentation.Argument.begin();
-                 it!=innerRepresentation.Argument.end(); it++) {
-             application.NewChild("Argument") = *it;
+        // JobIdentification
+        if (!innerRepresentation.JobName.empty()){
+           if ( !bool( jobdescription["JobIdentification"] ) ) jobdescription.NewChild("JobIdentification");
+           jobdescription["JobIdentification"].NewChild("JobName") = innerRepresentation.JobName;
         }
 
-        Arc::XMLNode datastaging = jobdescription.NewChild("DataStaging");
+        if (!innerRepresentation.JobProject.empty()){
+           if ( !bool( jobdescription["JobIdentification"] ) ) jobdescription.NewChild("JobIdentification");
+           jobdescription["JobIdentification"].NewChild("JobProject") = innerRepresentation.JobProject;
+        }
 
+        // Application
+        if (!innerRepresentation.Executable.empty()){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("Executable") = innerRepresentation.Executable;
+        }
+        if (!innerRepresentation.Argument.empty()){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("POSIXApplication");
+           for (std::list<std::string>::const_iterator it=innerRepresentation.Argument.begin();
+                 it!=innerRepresentation.Argument.end(); it++) {
+               jobdescription["Application"]["POSIXApplication"].NewChild("Argument") = *it;
+           }
+        }
+        if (!innerRepresentation.Input.empty()){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("Input") = innerRepresentation.Input;
+        }
+        if (!innerRepresentation.Output.empty()){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("Output") = innerRepresentation.Output;
+        }
+        if (!innerRepresentation.Error.empty()){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("Error") = innerRepresentation.Error;
+        }
+        for (std::list<Arc::EnvironmentType>::const_iterator it=innerRepresentation.Environment.begin();
+                 it!=innerRepresentation.Environment.end(); it++) {
+            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+            if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+               jobdescription["Application"].NewChild("POSIXApplication");
+            Arc::XMLNode environment = jobdescription["Application"]["POSIXApplication"].NewChild("Environment");
+            environment = (*it).value;
+            environment.NewAttribute("name") = (*it).name_attribute;
+        }
+
+        // DataStaging
         for (std::list<Arc::FileType>::const_iterator it=innerRepresentation.File.begin();
                  it!=innerRepresentation.File.end(); it++) {
-            datastaging.NewChild("FileName") = (*it).Name;
+            Arc::XMLNode datastaging = jobdescription.NewChild("DataStaging");
+            if ( !(*it).Name.empty())
+               datastaging.NewChild("FileName") = (*it).Name;
             if ((*it).Source.size() != 0) {
                std::list<Arc::SourceType>::const_iterator it2;
                it2 = ((*it).Source).begin();
@@ -781,13 +832,69 @@ namespace Arc {
                it3 = ((*it).Target).begin();
                datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
            }      
-           if ((*it).IsExecutable)
+           if ((*it).IsExecutable || (*it).Name == innerRepresentation.Executable)
               datastaging.NewChild("IsExecutable") = "true";
-       }
+           if ((*it).KeepData){
+              datastaging.NewChild("DeleteOnTermination") = "false";
+           }
+           else {
+              datastaging.NewChild("DeleteOnTermination") = "true";
+           }
+        }
 
-       jobdefinition.GetDoc( product, true );
+        // Resources
+        for (std::list<Arc::RunTimeEnvironmentType>::const_iterator it=innerRepresentation.RunTimeEnvironment.begin();
+                 it!=innerRepresentation.RunTimeEnvironment.end(); it++) {
+            Arc::XMLNode resources;
+            if ( !bool(jobdescription["Resources"]) ){
+               resources = jobdescription.NewChild("Resources");
+            }else {
+               resources = jobdescription["Resources"];
+            }
+            // When the version is not parsing
+            if ( !(*it).Name.empty() && (*it).Version.empty()){
+               resources.NewChild("RunTimeEnvironment").NewChild("Name") = (*it).Name;
+            }
 
-       return true;
+            // When more then one version are parsing
+            for (std::list<std::string>::const_iterator it_version=(*it).Version.begin();
+                 it_version!=(*it).Version.end(); it_version++) {
+                Arc::XMLNode RTE = resources.NewChild("RunTimeEnvironment");
+                RTE.NewChild("Name") = (*it).Name;
+                Arc::XMLNode version = RTE.NewChild("Version").NewChild("Exact");
+                version.NewAttribute("epsilon") = "0.5";
+                version = *it_version;
+            }
+        }
+
+        if (!innerRepresentation.CEType.empty()) {
+            if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+            if ( !bool( jobdescription["Resources"]["Middleware"] ) ) 
+               jobdescription["Resources"].NewChild("Middleware");
+            jobdescription["Resources"]["Middleware"].NewChild("Name") = innerRepresentation.CEType;
+            //jobdescription["Resources"]["Middleware"].NewChild("Version") = ?;
+        }
+
+        // AccessControl
+        if (bool(innerRepresentation.AccessControl)) {
+            if ( !bool( jobdescription["AccessControl"] ) ) jobdescription.NewChild("AccessControl");
+            if ( !bool( jobdescription["AccessControl"]["Type"] ) ) 
+               jobdescription["AccessControl"].NewChild("Type") = "GACL"; //or "ARC" ?
+            jobdescription["AccessControl"].NewChild("Content").NewChild(innerRepresentation.AccessControl);
+        }
+
+        // Notify
+        if (!innerRepresentation.Notification.empty()) {
+            if ( !bool( jobdescription["Notify"] ) ) jobdescription.NewChild("Notify");
+            for (std::list<Arc::NotificationType>::const_iterator it=innerRepresentation.Notification.begin();
+                 it!=innerRepresentation.Notification.end(); it++) {
+                 //TODO: make this method
+            }
+        }
+
+        jobdefinition.GetDoc( product, true );
+
+        return true;
     }
 
     bool JSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) {
@@ -1638,8 +1745,10 @@ namespace Arc {
             return true;
         } else if ( attributeName == "runtimeenvironment" ) {
             Arc::RunTimeEnvironmentType runtime;
-            runtime.Name =  simpleXRSLvalue( attributeValue );
-            //runtime.Version = ?
+            RuntimeEnvironment rt(simpleXRSLvalue( attributeValue ));
+            runtime.Name =  rt.Name();
+            if (!rt.Version().empty())
+               runtime.Version.push_back(rt.Version());
             innerRepresentation.RunTimeEnvironment.push_back( runtime );
             return true;
         } else if ( attributeName == "middleware" ) {
@@ -1925,28 +2034,36 @@ namespace Arc {
             product += " )\n";
         }
         if (!innerRepresentation.File.empty()) {
-            product += "( executables =";
+            bool first_time = true;
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
-                std::list<Arc::TargetType>::const_iterator it_target;
                 if ( (*iter).IsExecutable ) {
-                    product += " \"" + (*iter).Name + "\"";
+                   if ( first_time ) {
+                      product += "( executables =";
+                      first_time = false;
+                   }
+                   product += " \"" + (*iter).Name + "\"";
                 }
             }
-            product += " )\n";
+            if ( !first_time ) 
+               product += " )\n";
         }
         if (!innerRepresentation.File.empty()) {
-            product += "( outputfiles =";
+            bool first_time = true;
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
                 std::list<Arc::TargetType>::const_iterator it_target;
                 for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++){
+                    if ( first_time ) {
+                       product += "( outputfiles =";
+                       first_time = false;
+                    }
                     product += " (" + (*iter).Name;
-//TODO:StagingOutBaseURI added
                     product += " " +  (*it_target).URI.fullstr() + " )";
                 }
             }
-            product += " )\n";
+            if ( !first_time ) 
+               product += " )\n";
         }
         if (!innerRepresentation.QueueName.empty()) {
             product += "( queue = ";
@@ -2696,7 +2813,6 @@ namespace Arc {
             product += "\";\n";
         }
         if (!innerRepresentation.File.empty()) {
-            product += "  OutputSandbox = {";
             std::list<Arc::FileType>::const_iterator iter;
             bool first = true;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
@@ -2705,19 +2821,25 @@ namespace Arc {
                       product += ",";
                    }
                    else {
+                      product += "  OutputSandbox = {";
                       first = false;
                    }
                    product += " \"" +  (*iter).Name + "\"";
                 }
             }
-            product += " };\n";
+            if ( !first )
+               product += " };\n";
         }
         if (!innerRepresentation.File.empty()) {
-            product += "  OutputSandboxDestURI = {\n";
+            bool first = true;
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
                 std::list<Arc::TargetType>::const_iterator it_target;
                 for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++){
+                    if ( first ){
+                       product += "  OutputSandboxDestURI = {\n";
+                       first = false;
+                    }
                     product += "    \"" +  (*it_target).URI.fullstr() + "\"";
                     if (it_target++ != (*iter).Target.end()) {
                        product += ",";
@@ -2726,7 +2848,8 @@ namespace Arc {
                     product += "\n";
                 }
             }
-            product += "    };\n";
+            if ( !first)
+               product += "    };\n";
         }
         if (bool(innerRepresentation.StagingOutBaseURI)) {
             product += "  OutputSandboxBaseURI = \"";

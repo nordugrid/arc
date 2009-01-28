@@ -149,20 +149,22 @@ namespace Arc {
 	std::cout << Arc::IString(" IndividualPhysicalMemory: %d", IndividualPhysicalMemory) << std::endl;
       if (IndividualVirtualMemory > -1)
 	std::cout << Arc::IString(" IndividualVirtualMemory: %d", IndividualVirtualMemory) << std::endl;
-      if (IndividualDiskSpace > -1)
-	std::cout << Arc::IString(" IndividualDiskSpace: %d", IndividualDiskSpace) << std::endl;
       if (DiskSpace > -1)
 	std::cout << Arc::IString(" DiskSpace: %d", DiskSpace) << std::endl;
       if (CacheDiskSpace > -1)
 	std::cout << Arc::IString(" CacheDiskSpace: %d", CacheDiskSpace) << std::endl;
       if (SessionDiskSpace > -1)
 	std::cout << Arc::IString(" SessionDiskSpace: %d", SessionDiskSpace) << std::endl;
+      if (IndividualDiskSpace > -1)
+	std::cout << Arc::IString(" IndividualDiskSpace: %d", IndividualDiskSpace) << std::endl;
       if (bool(EndPointURL))
         std::cout << Arc::IString(" EndPointURL: %s", EndPointURL.str()) << std::endl;
       if (!QueueName.empty())
 	std::cout << Arc::IString(" QueueName: %s", QueueName) << std::endl;
       if (!CEType.empty())
 	std::cout << Arc::IString(" CEType: %s", CEType) << std::endl;
+      if (Slots > -1)
+	std::cout << Arc::IString(" Slots: %d", Slots) << std::endl;
       if (NumberOfProcesses > -1)
 	std::cout << Arc::IString(" NumberOfProcesses: %d", NumberOfProcesses) << std::endl;
       if (ProcessPerHost > -1)
@@ -181,6 +183,8 @@ namespace Arc {
             }
         }
       }
+      if (Homogeneous)
+	std::cout << Arc::IString(" Homogeneous: true") << std::endl;
       if (InBound)
 	std::cout << Arc::IString(" InBound: true") << std::endl;
       if (OutBound)
@@ -370,14 +374,14 @@ namespace Arc {
        IndividualPhysicalMemory = -1;
     if (IndividualVirtualMemory > -1)
        IndividualVirtualMemory = -1;
-    if (IndividualDiskSpace > -1)
-       IndividualDiskSpace = -1;
     if (DiskSpace > -1)
        DiskSpace = -1;
     if (CacheDiskSpace > -1)
        CacheDiskSpace = -1;
     if (SessionDiskSpace > -1)
        SessionDiskSpace = -1;
+    if (IndividualDiskSpace > -1)
+       IndividualDiskSpace = -1;
     if (!bool(EndPointURL)){
        EndPointURL.ChangePort(-1);		//TODO: reset the URL better
        EndPointURL.ChangeLDAPScope(URL::base);
@@ -387,6 +391,8 @@ namespace Arc {
        QueueName.clear();
     if (!CEType.empty())
        CEType.clear();
+    if (Slots > -1)
+       Slots = -1;
     if (NumberOfProcesses > -1)
        NumberOfProcesses = -1;
     if (ProcessPerHost > -1)
@@ -397,6 +403,8 @@ namespace Arc {
        SPMDVariation.clear();
     if (!RunTimeEnvironment.empty())
        RunTimeEnvironment.clear();
+    if (Homogeneous)
+       Homogeneous = false;
     if (InBound)
        InBound = false;
     if (OutBound)
@@ -783,16 +791,6 @@ namespace Arc {
            oss << IndividualVirtualMemory;
            jobTree["JobDescription"]["Resource"]["IndividualVirtualMemory"] = oss.str();
         }
-        if (IndividualDiskSpace > -1){
-           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
-              jobTree["JobDescription"].NewChild("Resource");
-           if ( !bool( jobTree["JobDescription"]["Resource"]["IndividualDiskSpace"] ) ) 
-              jobTree["JobDescription"]["Resource"].NewChild("IndividualDiskSpace");
-           std::ostringstream oss;
-           oss << IndividualDiskSpace;
-           jobTree["JobDescription"]["Resource"]["IndividualDiskSpace"] = oss.str();
-        }
         if (DiskSpace > -1){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
            if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
@@ -827,6 +825,18 @@ namespace Arc {
            oss << SessionDiskSpace;
            jobTree["JobDescription"]["Resource"]["DiskSpace"]["SessionDiskSpace"] = oss.str();
         }
+        if (IndividualDiskSpace > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["DiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("DiskSpace");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["DiskSpace"]["IndividualDiskSpace"] ) ) 
+              jobTree["JobDescription"]["Resource"]["DiskSpace"].NewChild("IndividualDiskSpace");
+           std::ostringstream oss;
+           oss << IndividualDiskSpace;
+           jobTree["JobDescription"]["Resource"]["DiskSpace"]["IndividualDiskSpace"] = oss.str();
+        }
         if (bool(EndPointURL)){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
            if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
@@ -853,6 +863,16 @@ namespace Arc {
               jobTree["JobDescription"].NewChild("Resource");
            if ( !bool( jobTree["JobDescription"]["Resource"]["CEType"] ) ) 
               jobTree["JobDescription"]["Resource"].NewChild("CEType") = CEType;
+        }
+        if (Slots > -1){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Slots"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Slots");
+           std::ostringstream oss;
+           oss << NumberOfProcesses;
+           jobTree["JobDescription"]["Resource"]["Slots"] = oss.str();
         }
         if (NumberOfProcesses > -1){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
@@ -914,6 +934,13 @@ namespace Arc {
                     attribute.NewChild("Version") = (*it);
                 }
            }
+        }
+        if (Homogeneous){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Homogeneous"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Homogeneous") = "true";
         }
         if (InBound){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
@@ -1115,11 +1142,13 @@ namespace Arc {
     EndPointURL         = job.EndPointURL;
     QueueName           = job.QueueName;
     CEType              = job.CEType;
+    Slots               = job.Slots;
     NumberOfProcesses   = job.NumberOfProcesses;
     ProcessPerHost      = job.ProcessPerHost;
     ThreadPerProcesses  = job.ThreadPerProcesses;
     SPMDVariation       = job.SPMDVariation;
     RunTimeEnvironment  = job.RunTimeEnvironment;
+    Homogeneous         = job.Homogeneous;
     InBound             = job.InBound;
     OutBound            = job.OutBound;
 
