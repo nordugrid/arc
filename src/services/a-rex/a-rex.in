@@ -118,7 +118,6 @@ readconfigvar()
 prepare() 
 {
 
-set -x
 CMD="$ARC_LOCATION/sbin/$prog"
 if ! test -x "$CMD"; then
     failure "Missing executable"
@@ -275,6 +274,7 @@ AREXCFGWSS="\
 <?xml version=\"1.0\"?>\
 <ArcConfig\
   xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+  xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
   xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
   <Server>\
     <PidFile>$PID_FILE</PidFile>\
@@ -286,7 +286,10 @@ AREXCFGWSS="\
   <Plugins><Name>mcctcp</Name></Plugins>\
   <Plugins><Name>mcctls</Name></Plugins>\
   <Plugins><Name>mcchttp</Name></Plugins>\
+  <Plugins><Name>mccsoap</Name></Plugins>\
   <Plugins><Name>arex</Name></Plugins>\
+  <Plugins><Name>identitymap</Name></Plugins>\
+  <Plugins><Name>arcshc</Name></Plugins>\
   <Chain>\
     <Component name=\"tcp.service\" id=\"tcp\">\
       <next id=\"tls\"/>\
@@ -327,8 +330,7 @@ elif [ "$arex_proto" = "https" ] ; then
 else
   failure "Unsupported protocol: $arex_proto"
 fi
-cat "$AREX_CONFIG"
-exit 1
+#cat "$AREX_CONFIG"
 
 }
 
