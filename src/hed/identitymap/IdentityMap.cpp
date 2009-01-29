@@ -2,7 +2,10 @@
 #include <config.h>
 #endif
 
+#include <fstream>
+
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/message/MCCLoader.h>
 
 #include "SimpleMap.h"
@@ -23,7 +26,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace ArcSec {
 
-// --------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 class LocalMapDirect: public LocalMap {
  private:
   std::string id_;
@@ -33,7 +36,7 @@ class LocalMapDirect: public LocalMap {
   virtual std::string ID(Arc::Message*) { return id_; };
 };
 
-// --------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 class LocalMapPool: public LocalMap {
  private:
   std::string dir_;
@@ -59,7 +62,73 @@ std::string LocalMapPool::ID(Arc::Message* msg) {
   return pool.map(dn);
 }
 
-// --------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+class LocalMapList: public LocalMap {
+ private:
+  std::string file_;
+ public:
+  LocalMapList(const std::string& dir);
+  virtual ~LocalMapList(void);
+  virtual std::string ID(Arc::Message* msg);
+};
+
+LocalMapList::LocalMapList(const std::string& file):file_(file) {
+}
+
+LocalMapList::~LocalMapList(void) {
+}
+
+static std::string get_val(std::string& str) {
+  std::string val;
+  if(str[0] == '"') {
+    std::string::size_type p = str.find('"',1);
+    if(p == std::string::npos) return "";
+    val=str.substr(1,p-1);
+    str=str.substr(p+1);
+    return val;
+  };
+  if(str[0] == '\'') {
+    std::string::size_type p = str.find('\'',1);
+    if(p == std::string::npos) return "";
+    val=str.substr(1,p-1);
+    str=str.substr(p+1);
+    return val;
+  };
+  std::string::size_type p = str.find_first_of(" \t");
+  if(p == std::string::npos) {
+    val=str; str.resize(0);
+  } else {
+    val=str.substr(0,p); str=str.substr(p);
+  };
+  return val;
+}
+
+std::string LocalMapList::ID(Arc::Message* msg) {
+  // Compare user Grid identity to list in file.
+  // So far only DN from TLS is supported.
+  std::string dn = msg->Attributes()->get("TLS:IDENTITYDN");
+  if(dn.empty()) return "";
+  std::ifstream f(file_.c_str());
+  if(!f.is_open() ) return "";
+  for(;!f.eof();) {
+    std::string buf;
+    std::getline(f,buf);
+    buf=Arc::trim(buf);
+    if(buf.empty()) continue;
+    if(buf[0] == '#') continue;
+    std::string val = get_val(buf);
+    if(val != dn) continue;
+    buf=Arc::trim(buf);
+    val=get_val(buf);
+    if(val.empty()) continue;
+    f.close();
+    return val;
+  };
+  f.close();
+  return "";
+}
+
+// --------------------------------------------------------------------------
 static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
   Arc::XMLNode p;
   p=pdp["LocalName"];
@@ -67,6 +136,12 @@ static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
     std::string name = p;
     if(name.empty()) return NULL;
     return new LocalMapDirect(name);
+  };
+  p=pdp["LocalList"];
+  if(p) {
+    std::string file = p;
+    if(file.empty()) return NULL;
+    return new LocalMapList(file);
   };
   p=pdp["LocalSimplePool"];
   if(p) {
@@ -77,7 +152,7 @@ static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
   return NULL;
 }
 
-// --------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHandler(cfg){
   Arc::PluginsFactory* pdp_factory = (Arc::PluginsFactory*)(*ctx);
   if(pdp_factory) {
