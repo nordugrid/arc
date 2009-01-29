@@ -78,7 +78,7 @@ static void* cache_func(void* arg) {
         // TODO: use GM log?
         gmuser.SetControlDir(cacheuser->ControlDir()); // Should this requirement be removed ?
         int argc=0;
-        char* args[6+cache_info_dirs.size()];
+        char* args[6+cache_info_dirs.size()+1];
         
         // do cache-clean -h for explanation of options
         std::string cmd = nordugrid_libexec_loc + "/cache-clean";
@@ -96,6 +96,7 @@ static void* cache_func(void* arg) {
         for (std::list<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
           args[argc++]=(char*)(*i).c_str();
         }
+        args[argc]=NULL;
         if(JobsList::CacheRegistration()) { } // TODO: do unregistration
         if(!RunParallel::run(gmuser,"cache-clean",args,&proc,false,false)) {
           logger.msg(Arc::ERROR,"Failed to run cache cleanup script: %s", cmd);
