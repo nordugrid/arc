@@ -118,6 +118,7 @@ readconfigvar()
 prepare() 
 {
 
+set -x
 CMD="$ARC_LOCATION/sbin/$prog"
 if ! test -x "$CMD"; then
     failure "Missing executable"
@@ -171,12 +172,43 @@ fi
 if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
  GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
 fi
+
+# Exporting collected variables
 if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
 if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
 if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
-if [ -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
-if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
-if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
+if [ ! -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
+if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
+if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
+
+# Required defaults
+if [ -z "$GRIDMAP" ] ; then
+ GRIDMAP=/etc/grid-security/grid-mapfile
+fi
+if [ -z "$X509_USER_CERT" ] ; then
+ X509_USER_CERT=/etc/grid-security/hostcert.pem
+fi
+if [ -z "$X509_USER_KEY" ] ; then
+ X509_USER_KEY=/etc/grid-security/hostkey.pem
+fi
+if [ -z "$X509_CERT_DIR" ] ; then
+ X509_CERT_DIR=/etc/grid-security/certificates
+fi
+
+# Web Service configuration
+arex_mount_point=`readconfigvar "$ARC_CONFIG" cluster arex_mount_point`
+if [ ! -z "$arex_mount_point" ] ; then
+  arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
+  arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
+  arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
+  arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
+  if [ -z "$arex_port" ] ; then arex_port="60000" ; fi
+fi
+#echo "arex_mount_point=$arex_mount_point"
+#echo "arex_proto=$arex_proto"
+#echo "arex_host=$arex_host"
+#echo "arex_port=$arex_port"
+#echo "arex_path=$arex_path"
 
 AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
 if [ -z "$AREX_CONFIG" ] ; then
@@ -216,6 +248,7 @@ if [ ! -z "$USERNAME" ] ; then
   CMD="su '$USERNAME' $CMD"
 fi
 
+# A-Rex without WS interface
 AREXCFG="\
 <?xml version=\"1.0\"?>\
 <ArcConfig\
@@ -236,8 +269,66 @@ AREXCFG="\
   </Chain>\
 </ArcConfig>\
 "
-echo "$AREXCFG" > "$AREX_CONFIG"
-#cat "$AREX_CONFIG"
+
+# A-Rex with WS interface over HTTPS
+AREXCFGWSS="\
+<?xml version=\"1.0\"?>\
+<ArcConfig\
+  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
+  <Server>\
+    <PidFile>$PID_FILE</PidFile>\
+    <Logger level=\"$LOGLEVEL\">$LOGFILE</Logger>\
+  </Server>\
+  <ModuleManager>\
+    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>\
+  </ModuleManager>\
+  <Plugins><Name>mcctcp</Name></Plugins>\
+  <Plugins><Name>mcctls</Name></Plugins>\
+  <Plugins><Name>mcchttp</Name></Plugins>\
+  <Plugins><Name>arex</Name></Plugins>\
+  <Chain>\
+    <Component name=\"tcp.service\" id=\"tcp\">\
+      <next id=\"tls\"/>\
+      <tcp:Listen><tcp:Port>$arex_port</tcp:Port></tcp:Listen>\
+    </Component>\
+    <Component name=\"tls.service\" id=\"tls\">\
+      <next id=\"http\"/>\
+      <KeyPath>$X509_USER_KEY</KeyPath>\
+      <CertificatePath>$X509_USER_CERT</CertificatePath>\
+      <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>\
+      <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">\
+        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>\
+        <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>\
+      </SecHandler>\
+    </Component>\
+    <Component name=\"http.service\" id=\"http\">\
+      <next id=\"soap\">POST</next>\
+      <next id=\"plexer\">GET</next>\
+      <next id=\"plexer\">PUT</next>\
+    </Component>\
+    <Component name=\"soap.service\" id=\"soap\">\
+      <next id=\"plexer\"/>\
+    </Component>\
+    <Plexer name=\"plexer.service\" id=\"plexer\">\
+      <next id=\"a-rex\">^/$arex_path</next>\
+    </Plexer>\
+    <Service name=\"a-rex\" id=\"a-rex\">\
+      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>\
+    </Service>\
+  </Chain>\
+</ArcConfig>\
+"
+
+if [ -z "$arex_proto" ] ; then
+  echo "$AREXCFG" > "$AREX_CONFIG"
+elif [ "$arex_proto" = "https" ] ; then
+  echo "$AREXCFGWSS" > "$AREX_CONFIG"
+else
+  failure "Unsupported protocol: $arex_proto"
+fi
+cat "$AREX_CONFIG"
+exit 1
 
 }
 
