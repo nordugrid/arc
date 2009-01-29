@@ -276,39 +276,23 @@ namespace Arc {
   } // end of Print
 
   void JobInnerRepresentation::Reset(){
-    Executable.clear();
-    LogDir.clear();
-    if (!JobName.empty())
+       Executable.clear();
+       LogDir.clear();
        JobName.clear();
-    if (!Description.empty())
        Description.clear();
-    if (!JobProject.empty())
        JobProject.clear();
-    if (!JobType.empty())
        JobType.clear();
-    if (!JobCategory.empty())
        JobCategory.clear();
-    if (!UserTag.empty())
        UserTag.clear();
-    
-    if (!OptionalElement.empty())
        OptionalElement.clear();
-    if (!Author.empty())
        Author.clear();
-    if (DocumentExpiration != -1)
        DocumentExpiration = -1;
-    if (!Rank.empty())
        Rank.clear();
-    if (FuzzyRank)
        FuzzyRank = false;
 
-    if (!Argument.empty())
        Argument.clear();
-    if (!Input.empty())
        Input.clear();
-    if (!Output.empty())
        Output.clear();
-    if (!Error.empty())
        Error.clear();
 
     if (!bool(RemoteLogging)){
@@ -316,25 +300,16 @@ namespace Arc {
        RemoteLogging.ChangeLDAPScope(URL::base);
        RemoteLogging.ChangeProtocol("");
     }
-    if (!Environment.empty())
        Environment.clear();
-    if (LRMSReRun > -1)
        LRMSReRun = -1;
-    if (!Prologue.Name.empty())
        Prologue.Name.clear();
-     if (!Prologue.Arguments.empty())
        Prologue.Arguments.clear();
-    if (!Epilogue.Name.empty())
        Epilogue.Name.clear();
-    if (!Epilogue.Arguments.empty())
        Epilogue.Arguments.clear();
-    if (SessionLifeTime != -1)
        SessionLifeTime = -1;
     if (!bool(AccessControl))
        AccessControl.Destroy();
-    if (ProcessingStartTime != -1)
        ProcessingStartTime = -1;
-    if (!Notification.empty())
        Notification.clear();
     if (!bool(CredentialService)){
        CredentialService.ChangePort(-1);		//TODO: reset the URL better
@@ -344,75 +319,43 @@ namespace Arc {
     if (Join)
        Join = false;
 
-    if (TotalCPUTime != -1)
        TotalCPUTime = -1;
-    if (IndividualCPUTime != -1)
        IndividualCPUTime = -1;
-    if (TotalWallTime != -1)
        TotalWallTime = -1;
-    if (IndividualWallTime != -1)
        IndividualWallTime = -1;
-      if (!ReferenceTime.benchmark_attribute.empty())
-	ReferenceTime.benchmark_attribute.clear();
-      if (!ReferenceTime.value_attribute.empty())
-	ReferenceTime.value_attribute.clear();
-      if (!ReferenceTime.value.empty())
-	ReferenceTime.value.clear();
-    if (ExclusiveExecution)
+	   ReferenceTime.benchmark_attribute.clear();
+	   ReferenceTime.value_attribute.clear();
+	   ReferenceTime.value.clear();
        ExclusiveExecution = false;
-    if (!NetworkInfo.empty())
        NetworkInfo.clear();
-    if (!OSFamily.empty())
        OSFamily.clear();
-    if (!OSName.empty())
        OSName.clear();
-    if (!OSVersion.empty())
        OSVersion.clear();
-    if (!Platform.empty())
        Platform.clear();
-    if (IndividualPhysicalMemory > -1)
        IndividualPhysicalMemory = -1;
-    if (IndividualVirtualMemory > -1)
        IndividualVirtualMemory = -1;
-    if (DiskSpace > -1)
        DiskSpace = -1;
-    if (CacheDiskSpace > -1)
        CacheDiskSpace = -1;
-    if (SessionDiskSpace > -1)
        SessionDiskSpace = -1;
-    if (IndividualDiskSpace > -1)
        IndividualDiskSpace = -1;
     if (!bool(EndPointURL)){
        EndPointURL.ChangePort(-1);		//TODO: reset the URL better
        EndPointURL.ChangeLDAPScope(URL::base);
        EndPointURL.ChangeProtocol("");
     }
-    if (!QueueName.empty())
        QueueName.clear();
-    if (!CEType.empty())
        CEType.clear();
-    if (Slots > -1)
        Slots = -1;
-    if (NumberOfProcesses > -1)
        NumberOfProcesses = -1;
-    if (ProcessPerHost > -1)
        ProcessPerHost = -1;
-    if (ThreadPerProcesses > -1)
        ThreadPerProcesses = -1;
-    if (!SPMDVariation.empty())
        SPMDVariation.clear();
-    if (!RunTimeEnvironment.empty())
        RunTimeEnvironment.clear();
-    if (Homogeneous)
        Homogeneous = false;
-    if (InBound)
        InBound = false;
-    if (OutBound)
        OutBound = false;
 
-    if (!File.empty())
        File.clear();
-    if (!Directory.empty())
        Directory.clear();
     if (!bool(DataIndexingService)){
        DataIndexingService.ChangePort(-1);		//TODO: reset the URL better
