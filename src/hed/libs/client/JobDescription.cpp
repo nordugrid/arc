@@ -90,7 +90,7 @@ namespace Arc {
         //Save entry
         candidates.push_back(candidate);
         // End of POSIX JSDL
-
+/*
         // JSDL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -122,7 +122,7 @@ namespace Arc {
         //Save entry  
         candidates.push_back(candidate);
         // End of JSDL
-
+*/
         // RSL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -820,17 +820,20 @@ namespace Arc {
         for (std::list<Arc::FileType>::const_iterator it=innerRepresentation.File.begin();
                  it!=innerRepresentation.File.end(); it++) {
             Arc::XMLNode datastaging = jobdescription.NewChild("DataStaging");
+			StringManipulator sm;
             if ( !(*it).Name.empty())
                datastaging.NewChild("FileName") = (*it).Name;
             if ((*it).Source.size() != 0) {
                std::list<Arc::SourceType>::const_iterator it2;
                it2 = ((*it).Source).begin();
-               datastaging.NewChild("Source").NewChild("URI") = ((*it2).URI).fullstr();
+			   if (sm.trim(((*it2).URI).fullstr()) != "" )
+                  datastaging.NewChild("Source").NewChild("URI") = ((*it2).URI).fullstr();
             }
             if ((*it).Target.size() != 0) {
                std::list<Arc::TargetType>::const_iterator it3;
                it3 = ((*it).Target).begin();
-               datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
+			   if (sm.trim(((*it3).URI).fullstr()) != "" )
+                  datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
            }      
            if ((*it).IsExecutable || (*it).Name == innerRepresentation.Executable)
               datastaging.NewChild("IsExecutable") = "true";
@@ -1693,7 +1696,7 @@ namespace Arc {
                 Arc::TargetType target;
                 Arc::URL url;
                 if ( (*it)[1] != "" ) url.ChangePath((*it)[1]);
-                else url.ChangePath((*it)[0]);
+                else url.ChangePath("");
                 target.URI = url;
                 target.Threads = -1;
                 target.Mandatory = false;

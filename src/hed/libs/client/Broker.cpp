@@ -24,6 +24,7 @@ namespace Arc {
     for (std::list<Arc::ExecutionTarget>::const_iterator target =	\
 	   targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
 	   target++) {  
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget URL:  %s ", (std::string)(*target).url.fullstr());
 
 	  // TODO: if the type is a number than we need to check the measure
 
@@ -172,21 +173,41 @@ namespace Arc {
       if (!jir.RunTimeEnvironment.empty()) {
           if (!(*target).ApplicationEnvironments.empty()) { // Example: ATLAS-9.0.3
              std::list<Arc::RunTimeEnvironmentType>::const_iterator iter1;
+		     bool next_target;
+		     bool match;
              for (iter1 = jir.RunTimeEnvironment.begin(); iter1 != jir.RunTimeEnvironment.end(); iter1++){
+			      next_target = false;
                   std::list<std::string>::const_iterator iter2;
+				  match = false;
                   for (iter2 = (*iter1).Version.begin(); iter2 != (*iter1).Version.end(); iter2++){
                      std::list<Arc::ApplicationEnvironment>::const_iterator iter3;                     
-                     RuntimeEnvironment RE0((*iter1).Name + "-" + (*iter2));
-                     for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++){
-                         RuntimeEnvironment RE1((*iter3).Name + "-" + (*iter3).Version);
-                         if (RE1 < RE0) {
-                         // TODO finish
-                         //   continue;
-                         }
+					 if ((*iter1).Version.size() == 0) {
+                        for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++){
+                             if ((*iter1).Name == (*iter1).Name) {
+							    match = true;
+							    break;
+					         }
+					    }
+					 }
+                     else {
+                             for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++){
+                                  if ((*iter1).Name == (*iter3).Name && (*iter2) == (*iter3).Version) {
+							          match = true;
+									  break;
+                                  }
+						     }
                      }   
-                  }   
-             }   
-          }   
+                   }  // end of jir's version list parsing 
+		           if (!match) {
+                         next_target = true;        
+                      break;  
+		           }
+      }
+		if (next_target) {
+		   logger.msg(DEBUG, "Matchmaking, RunTimeEnvironment problem");
+           continue;  
+		}
+      }   
       }   
 
       if (!jir.NetworkInfo.empty()) {
@@ -307,7 +328,11 @@ namespace Arc {
        }
     
        if (!jir.ReferenceTime.value.empty()) {
-           if (!(*target).Benchmarks.empty()) { // Example: benchmark="frequency" value="2.8"
+          
+ 
+
+
+           if (!(*target).Benchmarks.empty()) { // Example: benchmark="frequency" value="2.8GHz"
                std::list<Arc::Benchmark>::const_iterator iter1;                     
                for (iter1 = (*target).Benchmarks.begin(); iter1 != (*target).Benchmarks.end(); iter1++){
                 // TODO: finish this part                 
