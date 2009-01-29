@@ -751,7 +751,7 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
       logger.msg(Arc::ERROR, failure); 
       return false;
     };
-    fix_file_permissions(session_dir+"/"+(*i));
+    fix_file_permissions(session_dir+"/"+(*i),true);
   };
   return true;
 }
