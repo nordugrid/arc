@@ -304,7 +304,7 @@ def splitLN(LN):
     dirname = '/'.join(parts)
     return rootguid, dirname, basename
 
-from arcom.security import storage_actions, AuthPolicy
+from arcom.security import storage_actions, AuthPolicy, make_decision
 
 def parse_storage_policy(metadata):
     import arc

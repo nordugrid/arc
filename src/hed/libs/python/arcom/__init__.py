@@ -27,13 +27,19 @@ def get_child_nodes(node):
     # the node.Size() method returns the number of children
     return [node.Child(i) for i in range(node.Size())]
 
+# for DataHandle and DataPoint
+
 def datapoint_from_url(url):
-    handle = DataHandle(url)
+    import arc
+    handle = arc.DataHandle(url)
     handle.thisown = False
     point = handle.__ref__()
     return point
 
+# for the URL class
+
 def parse_url(url):
+    import arc
     url = arc.URL(turl)
     proto = url.Protocol()
     host = url.Host()
