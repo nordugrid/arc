@@ -1180,6 +1180,8 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
                  src/hed/libs/job/Makefile
+                 src/hed/libs/python/Makefile
+                 src/hed/libs/python/arcom/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/unix/Makefile
