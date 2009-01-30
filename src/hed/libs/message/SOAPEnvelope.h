@@ -6,6 +6,9 @@
 #include <arc/XMLNode.h>
 
 namespace Arc {
+
+class SOAPEnvelope;
+
   /// Interface to SOAP Fault message.
   /** SOAPFault class provides a convenience interface for accessing elements 
     of SOAP faults.  It also tries to expose single interface for both version 
