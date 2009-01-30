@@ -218,9 +218,6 @@ namespace Arc {
       credential = new Arc::Credential(certificatePath, keyPath, caCertificatesDir, "");
     }
 
-    std::cout<<"Now trying to output the DN"<<std::endl;
-    std::cout<<"Got the DN: "<<credential->GetIdentityName()<<std::endl;
-
     //Query GRIS for all relevant information
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
@@ -229,7 +226,6 @@ namespace Arc {
       url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
 			   "(objectclass=nordugrid-queue)"
 			   "(nordugrid-authuser-sn="+credential->GetIdentityName()+"))");
-      std::cout<<"Filter is: "<<url.LDAPFilter()<<std::endl;
     } else if(targetType==1){
       url.ChangeLDAPFilter("(|(nordugrid-job-globalowner="+credential->GetIdentityName()+"))");
     }
@@ -496,7 +492,6 @@ namespace Arc {
     }
     } else if(targetType==1){
       
-      xmlresult.SaveToStream(std::cout);
       // Process information and find the jobs
       
       XMLNodeList jobs =
