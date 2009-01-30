@@ -73,6 +73,10 @@ class SOAPFault {
   void Role(const char* role);
   /** Access Fault Detail element. If create is set to true this element is created if not present. */
   XMLNode Detail(bool create = false);
+  /** Convenience method for creating SOAP Fault message.
+     Returns full SOAP message representing Fault with
+    specified code and reason. */
+  static SOAPEnvelope* MakeSOAPFault(SOAPFaultCode code,const std::string& reason = "");
 };
 
 /// Extends XMLNode class to support structures of SOAP message.

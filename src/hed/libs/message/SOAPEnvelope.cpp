@@ -353,4 +353,14 @@ SOAPEnvelope& SOAPEnvelope::operator=(const SOAPEnvelope& soap) {
   return *this;
 }
 
+SOAPEnvelope* SOAPFault::MakeSOAPFault(SOAPFaultCode code,const std::string& reason) {
+  SOAPEnvelope* out = new SOAPEnvelope(NS(),true);
+  if(!out) return NULL;
+  SOAPFault* fault = out->Fault();
+  if(!fault) { delete out; return NULL; };
+  fault->Code(code);
+  fault->Reason(reason);
+  return out;
+}
+
 } // namespace Arc
