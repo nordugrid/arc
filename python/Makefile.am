@@ -22,14 +22,3 @@ arc_wrap.cpp arc.py: $(top_srcdir)/swig/*.i
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT arc.py -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python -threads -module arc -o arc_wrap.cpp \
 		-I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
-	cp arc_wrap.cpp arc_wrap.cpp.bak
-	sed -e 's/^  int res = 0;$$//' \
-			< arc_wrap.cpp.bak > arc_wrap.cpp
-	cp arc_wrap.cpp arc_wrap.cpp.bak
-	sed -e 's/\/\*  if (val) \*val = PyObject_IsTrue(obj); return 1; \*\//int res = 0;/' \
-			< arc_wrap.cpp.bak > arc_wrap.cpp
-	cp arc_wrap.cpp arc_wrap.cpp.bak
-	grep -q "int res =" arc_wrap.cpp || \
-		sed -e 's/if (obj == Py_True) /int res = 0; if (obj == Py_True) /' \
-			< arc_wrap.cpp.bak > arc_wrap.cpp
-	rm arc_wrap.cpp.bak

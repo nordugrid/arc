@@ -385,6 +385,8 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/python?.?/site-packages/
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
+%{ifpy}%{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%{ifpy}%doc src/hed/acc/PythonBroker/SampleBroker.py
 
 %if "%{!?disable_java:java}"
 %files java

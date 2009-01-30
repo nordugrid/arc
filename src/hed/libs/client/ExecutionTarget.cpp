@@ -59,6 +59,10 @@ namespace Arc {
       ConnectivityIn(true),
       ConnectivityOut(true) {}
 
+  ExecutionTarget::ExecutionTarget(const long int addrptr) {
+    *this = *((ExecutionTarget*) addrptr);
+  }
+
   ExecutionTarget::~ExecutionTarget() {}
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {

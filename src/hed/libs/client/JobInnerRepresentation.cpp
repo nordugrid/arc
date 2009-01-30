@@ -1105,4 +1105,8 @@ namespace Arc {
     JDL_elements        = job.JDL_elements;
   } // end of copy constructor
 
+  JobInnerRepresentation::JobInnerRepresentation(const long int addrptr) {
+    *this = *((JobInnerRepresentation*) addrptr);
+  }
+
 } // namespace Arc

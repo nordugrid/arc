@@ -31,6 +31,7 @@ namespace Arc {
   class ExecutionTarget {
   public:
     ExecutionTarget();
+    ExecutionTarget(const long int addrptr);
     virtual ~ExecutionTarget();
 
     //Domain/Location attributes

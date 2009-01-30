@@ -79,6 +79,9 @@ struct DirectoryType {
     // Copy constructor
     JobInnerRepresentation(const JobInnerRepresentation&);
 
+    // Special language wrapper constructor
+    JobInnerRepresentation(const long int ptraddr);
+
     // Print all value to the standard output.
     void Print(bool longlist) const;
     void Reset();

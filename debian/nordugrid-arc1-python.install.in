@@ -1,2 +1,4 @@
 @SWIG_ENABLED_TRUE@@PYTHON_ENABLED_TRUE@usr/lib/python?.?/site-packages/
 @SWIG_ENABLED_TRUE@@PYTHON_ENABLED_TRUE@usr/lib/arc/libpythonservice.so
+@SWIG_ENABLED_TRUE@@PYTHON_ENABLED_TRUE@usr/lib/arc/libaccPythonBroker.so
+@SWIG_ENABLED_TRUE@@PYTHON_ENABLED_TRUE@usr/share/doc/arc/SampleBroker.py
