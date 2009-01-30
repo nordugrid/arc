@@ -66,13 +66,3 @@ and the second member is the original return value, the DataStatus. */
 %include "../src/hed/libs/data/FileCache.h"
 %include "../src/hed/libs/data/DataMover.h"
 %include "../src/hed/libs/data/URLMap.h"
-
-#ifdef SWIGPYTHON
-%pythoncode %{
-    def DataPointFromURL(url):
-        handle = DataHandle(url)
-        handle.thisown = False
-        point = handle.__ref__()
-        return point
-%}
-#endif
