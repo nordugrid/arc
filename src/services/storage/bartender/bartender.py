@@ -676,8 +676,6 @@ class Bartender:
             (sourceLN, targetLN, preserverOriginal) as value
         if preserverOriginal is true this method creates a hard link instead of moving
         """
-        auth_addEntry = auth.get_request('addEntry')
-        auth_removeEntry = auth.get_request('removeEntry')
         traverse_request = {}
         # create a traverse request, each move request needs two traversing: source and target
         for requestID, (sourceLN, targetLN, _) in requests.items():
@@ -724,7 +722,7 @@ class Bartender:
                 #   so we just put the old name after it
                 if new_child_name == '':
                     new_child_name = old_child_name
-                decision = make_decision_metadata(targetMetadata, auth_addEntry)
+                decision = make_decision_metadata(targetMetadata, auth.get_request('addEntry'))
                 if decision != arc.DECISION_PERMIT:
                     success = 'adding child to parent denied'
                 else:

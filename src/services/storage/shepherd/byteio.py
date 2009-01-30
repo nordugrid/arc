@@ -1,4 +1,4 @@
-from storage.common import rbyteio_uri, byteio_simple_uri, mkuid, create_checksum, upload_to_turl, download_from_turl
+from storage.common import rbyteio_uri, byteio_simple_uri, create_checksum, upload_to_turl, download_from_turl
 from storage.client import NotifyClient, ByteIOClient
 import traceback
 import arc
@@ -46,7 +46,7 @@ class ByteIOBackend:
     def prepareToGet(self, referenceID, localID, protocol):
         if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
-        turl_id = mkuid()
+        turl_id = arc.UUID()
         try:
             os.link(os.path.join(self.datadir, localID), os.path.join(self.transferdir, turl_id))
             self.idstore[turl_id] = referenceID
@@ -59,7 +59,7 @@ class ByteIOBackend:
     def prepareToPut(self, referenceID, localID, protocol):
         if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
-        turl_id = mkuid()
+        turl_id = arc.UUID()
         datapath = os.path.join(self.datadir, localID)
         f = file(datapath, 'wb')
         f.close()
@@ -84,7 +84,7 @@ class ByteIOBackend:
         return None
 
     def generateLocalID(self):
-        return mkuid()
+        return arc.UUID()
 
     def matchProtocols(self, protocols):
         return [protocol for protocol in protocols if protocol in self.supported_protocols]

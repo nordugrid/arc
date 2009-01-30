@@ -7,7 +7,7 @@ import random
 
 import arc
 from storage.xmltree import XMLTree
-from storage.common import shepherd_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true, common_supported_protocols, parse_ssl_config
+from storage.common import shepherd_uri, import_class_from_string, get_child_nodes, parse_node, create_response, true, common_supported_protocols, parse_ssl_config
 from storage.client import LibrarianClient, BartenderClient
 
 from storage.logger import Logger
@@ -349,7 +349,7 @@ class Shepherd:
                     response[requestID] = [('error', 'not enough space')]
                 else:
                     # create a new referenceID
-                    referenceID = mkuid()
+                    referenceID = arc.UUID()
                     # ask the backend to create a local ID
                     localID = self.backend.generateLocalID()
                     # create the local data of the new file

@@ -25,9 +25,10 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 
 # arc storage stuff
 from storage.client import BartenderClient
-from storage.common import create_checksum, mkuid
+from storage.common import create_checksum
 from storage.common import false, true
 from storage.common import upload_to_turl, download_from_turl
+import arc
 
 import time
 
@@ -379,7 +380,7 @@ class ARCFS(Fuse):
             self.bartender = bartender
             self.transfer = FUSETRANSFER
             self.path = path
-            self.tmp_path = os.path.join(self.transfer, mkuid())
+            self.tmp_path = os.path.join(self.transfer, arc.UUID())
             request = {'0' : (path, [PROTOCOL])}
             success, turl, protocol = self.bartender.getFile(request)['0']
             if success == 'not found':

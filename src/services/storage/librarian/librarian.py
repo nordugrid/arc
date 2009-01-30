@@ -7,7 +7,7 @@ import time
 from storage.xmltree import XMLTree
 from storage.client import AHashClient
 from storage.common import librarian_uri, global_root_guid, true, false, sestore_guid
-from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, \
+from storage.common import get_child_nodes, node_to_data, parse_metadata, create_response, \
     create_metadata, parse_node, serialize_ids, parse_ssl_config
 import traceback
 import copy
@@ -93,7 +93,7 @@ class Librarian:
         if not serviceGUID:
             ## print 'report se is not registered yet', serviceID
             # let's create a new GUID
-            serviceGUID = mkuid()
+            serviceGUID = arc.UUID()
             # let's add the new shepherd-GUID to the list of shepherd-GUIDs but only if someone else not done that just now
             ahash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
             ## print 'report ahash_request', ahash_request
@@ -149,7 +149,7 @@ class Librarian:
                 try:
                     GUID = metadata[('entry','GUID')]
                 except:
-                    GUID = mkuid()
+                    GUID = arc.UUID()
                     metadata[('entry', 'GUID')] = GUID
               
 		check = self.ahash.change(

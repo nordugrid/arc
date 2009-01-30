@@ -1,4 +1,4 @@
-from storage.common import mkuid, create_checksum, upload_to_turl, download_from_turl
+from storage.common import create_checksum, upload_to_turl, download_from_turl
 import traceback
 import arc
 import base64
@@ -77,7 +77,7 @@ class HardlinkingBackend:
     def prepareToGet(self, referenceID, localID, protocol):
         if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
-        turl_id = mkuid()
+        turl_id = arc.UUID()
         try:
             filepath = os.path.join(self.datadir, localID)
             # set it to readonly
@@ -92,7 +92,7 @@ class HardlinkingBackend:
     def prepareToPut(self, referenceID, localID, protocol):
         if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
-        turl_id = mkuid()
+        turl_id = arc.UUID()
         datapath = os.path.join(self.datadir, localID)
         f = file(datapath, 'wb')
         f.close()
@@ -117,7 +117,7 @@ class HardlinkingBackend:
         return None
 
     def generateLocalID(self):
-        return mkuid()
+        return arc.UUID()
 
     def matchProtocols(self, protocols):
         return [protocol for protocol in protocols if protocol in self.supported_protocols]
