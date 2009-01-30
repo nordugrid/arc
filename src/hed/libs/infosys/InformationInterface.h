@@ -31,12 +31,9 @@ class InformationInterface {
   InformationInterface(bool safe = true);
   virtual ~InformationInterface(void);
   /* This method is called by service which wants to process WSRF request.
-    It parses 'in' message, calls appropriate 'Get' method and fills
-    response in initially empty 'out' message.
-    In case of error it produces proper fault in 'out' and returns
-    negative MCC_Status.
-    If message is not WSRF information request then 'out' is not filled
-    and returned value is positive. */
+    It parses 'in' message, calls appropriate 'Get' method and returns
+    response SOAP message.
+    In case of error it either returns NULL or corresponding SOAP fault. */
   SOAPEnvelope* Process(SOAPEnvelope& in);
 };
 
