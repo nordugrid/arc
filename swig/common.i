@@ -5,6 +5,7 @@
 #include <arc/Logger.h>
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/GUID.h>
 %}
 %include <typemaps.i>
 
@@ -52,6 +53,8 @@
 %include "../src/hed/libs/common/Logger.h"
 %include "../src/hed/libs/common/DateTime.h"
 %include "../src/hed/libs/common/URL.h"
+%include "../src/hed/libs/common/GUID.h"
+
 
 #ifdef SWIGPYTHON
 
