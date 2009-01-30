@@ -7,6 +7,7 @@
 #include <arc/XMLNode.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/wsrf/WSResourceProperties.h>
+#include <arc/infosys/InfoFilter.h>
 
 namespace Arc {
 
@@ -35,6 +36,11 @@ class InformationInterface {
     response SOAP message.
     In case of error it either returns NULL or corresponding SOAP fault. */
   SOAPEnvelope* Process(SOAPEnvelope& in);
+  /* This method adds possibility to filter produced document.
+    Document is filtered according to embedded and provided policies. 
+    User identity and filtering algorithm are defined by
+     specified */
+  SOAPEnvelope* Process(SOAPEnvelope& in,const InfoFilter& filter,const InfoFilterPolicies& policies = InfoFilterPolicies(),const NS& ns = NS());
 };
 
 /// Information System document container and processor.

@@ -32,6 +32,8 @@
 
 namespace Arc {
 
+typedef std::list< std::pair<std::string,XMLNode> > InfoFilterPolicies;
+
 /// Filters information document according to identity of requestor
 /** Identity is compared to policies stored inside information 
 document and external ones. Parts of document which do not pass 
@@ -47,14 +49,14 @@ class InfoFilter {
   /// Filter information document according to internal policies
   /** In provided document all policies and nodes which have their policies
      evaluated to negative result are removed. */
-  bool Filter(XMLNode doc);
+  bool Filter(XMLNode doc) const;
   /// Filter information document according to internal and external policies
   /** In provided document all policies and nodes which have their policies
-     evaluated to negative result are removed. Esternal policies are provided 
-     in policies argument. First element of every pair is XPath definign to 
+     evaluated to negative result are removed. External policies are provided 
+     in policies argument. First element of every pair is XPath defining to 
      which XML node policy must be applied. Second element is policy itself.
      Argument ns defines XML namespaces for XPath evaluation. */
-  bool Filter(XMLNode doc,const std::list< std::pair<std::string,XMLNode> >& policies,const Arc::NS& ns);
+  bool Filter(XMLNode doc,const InfoFilterPolicies& policies,const Arc::NS& ns) const;
 };
 
 } // namespace Arc

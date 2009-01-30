@@ -111,16 +111,8 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     if(!(*req)) throw std::exception();
     if(req->Dialect() != XPATH_1_0_URI) {
       // TODO: generate proper fault
-      SOAPEnvelope* out = new SOAPEnvelope(NS(),true);
-      if(out) {
-        SOAPFault* fault = out->Fault();
-        if(fault) {
-          fault->Code(SOAPFault::Sender);
-          fault->Reason("Operation not supported");
-        };
-      };
       delete &wsrp;
-      return out;
+      return SOAPFault::MakeSOAPFault(SOAPFault::Sender,"Query dialect not supported");
     }
     XMLNodeContainer presp; Get(req->Query(),presp);
     WSRPQueryResourcePropertiesResponse* resp =
@@ -138,17 +130,23 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     return out;
   } catch(std::exception& e) { };
   if(to_lock_) lock_.unlock();
-  SOAPEnvelope* out = new SOAPEnvelope(NS(),true);
-  if(out) {
-    SOAPFault* fault = out->Fault();
-    if(fault) {
-      fault->Code(SOAPFault::Sender);
-      fault->Reason("Operation not supported");
-    };
-  };
   delete &wsrp;
-  return out;
+  return SOAPFault::MakeSOAPFault(SOAPFault::Sender,"Operation not supported");
 }
+
+SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in,const InfoFilter& filter,const InfoFilterPolicies& policies,const NS& ns) {
+  SOAPEnvelope* out = Process(in);
+  // If error or fault - leave
+  if(!out) return out;
+  if(!(*out)) return out;
+  if(out->IsFault()) return out;
+  // Otherwise filter body of result
+  if(filter.Filter(out->Body(),policies,ns)) return out;
+  // If filtering failed it is safer to return SOAP fault
+  delete out;
+  return SOAPFault::MakeSOAPFault(SOAPFault::Sender,"Operation not supported");
+}
+
 
 InformationContainer::InformationContainer(void):InformationInterface(true) {
 }

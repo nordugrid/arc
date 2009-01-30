@@ -169,13 +169,13 @@ static bool FilterNode(MessageAuth& id,XMLNode node,std::list< std::pair<XMLNode
 InfoFilter::InfoFilter(MessageAuth& id):id_(id) {
 }
 
-bool InfoFilter::Filter(XMLNode doc) {
+bool InfoFilter::Filter(XMLNode doc) const {
   std::list< std::pair<std::string,XMLNode> > policies;
   Arc::NS ns;
   return Filter(doc,policies,ns);
 }
 
-bool InfoFilter::Filter(XMLNode doc,const std::list< std::pair<std::string,XMLNode> >& policies,const Arc::NS& ns) {
+bool InfoFilter::Filter(XMLNode doc,const std::list< std::pair<std::string,XMLNode> >& policies,const Arc::NS& ns) const {
   std::map<std::string,InfoPolicy> ipolicies_; // internal policies associated to their ids
   std::list<InfoPolicy> epolicies_; // external policies
   std::list< std::pair<XMLNode,std::list<InfoPolicy>::iterator> > policies_; // nodes associated to external policies
