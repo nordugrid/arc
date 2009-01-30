@@ -1,5 +1,5 @@
 import arc, sys, os
-from storage.xmltree import XMLTree
+from arcom.xmltree import XMLTree
 from storage.client import AHashClient
 print ":".join(sys.argv)
 args = sys.argv[1:]

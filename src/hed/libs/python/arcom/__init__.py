@@ -32,3 +32,11 @@ def datapoint_from_url(url):
     handle.thisown = False
     point = handle.__ref__()
     return point
+
+def parse_url(url):
+    url = arc.URL(turl)
+    proto = url.Protocol()
+    host = url.Host()
+    port = url.Port()
+    path = url.Path()
+    return proto, host, int(port), path

@@ -26,7 +26,7 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 # arc storage stuff
 from storage.client import BartenderClient
 from storage.common import create_checksum
-from storage.common import false, true
+from arcom.service import false, true
 from storage.common import upload_to_turl, download_from_turl
 import arc
 

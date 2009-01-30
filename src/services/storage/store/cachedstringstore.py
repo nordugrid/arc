@@ -3,7 +3,7 @@ import copy, os, base64
 
 from storage.store.cachedpicklestore import CachedPickleStore
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.CachedStringStore'))
 
 class CachedStringStore(CachedPickleStore):

@@ -1,5 +1,5 @@
 import arc, sys, time, os
-from storage.xmltree import XMLTree
+from arcom.xmltree import XMLTree
 from storage.client import LibrarianClient
 args = sys.argv[1:]
 if len(args) > 0 and args[0] == '-x':

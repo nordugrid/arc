@@ -5,7 +5,7 @@ from persistent import Persistent
 
 from storage.store.basestore import BaseStore
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.ZODBStore'))
 
 class Metadata(Persistent):

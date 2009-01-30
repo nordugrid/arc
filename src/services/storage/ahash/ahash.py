@@ -22,9 +22,11 @@ Sample configuration:
 import arc
 import traceback
 import time
-from storage.common import import_class_from_string, ahash_uri, node_to_data, create_metadata, get_child_nodes
+from arcom import import_class_from_string, get_child_nodes
+from arcom.service import ahash_uri, node_to_data
+from storage.common import create_metadata
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.A-Hash'))
 
 class CentralAHash:
@@ -193,8 +195,8 @@ class CentralAHash:
             response[changeID] = (success, unmetConditionID)
         return response
 
-from storage.xmltree import XMLTree
-from storage.service import Service
+from arcom.xmltree import XMLTree
+from arcom.service import Service
 
 class AHashService(Service):
     """ AHashService class implementing the XML interface of the A-Hash service. """

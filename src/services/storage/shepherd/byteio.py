@@ -1,11 +1,13 @@
-from storage.common import rbyteio_uri, byteio_simple_uri, create_checksum, upload_to_turl, download_from_turl
+from arcom.service import rbyteio_uri, byteio_simple_uri
+
+from storage.common import create_checksum, upload_to_turl, download_from_turl
 from storage.client import NotifyClient, ByteIOClient
 import traceback
 import arc
 import base64
 import os
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.ByteIO'))
 
 class ByteIOBackend:
@@ -105,7 +107,7 @@ class ByteIOBackend:
     def checksum(self, localID, checksumType):
         return create_checksum(file(os.path.join(self.datadir, localID), 'rb'), checksumType)
 
-from storage.service import Service
+from arcom.service import Service
 
 class ByteIOService(Service):
 

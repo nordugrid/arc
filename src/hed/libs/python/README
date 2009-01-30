@@ -1,0 +1,9 @@
+The 'arcom' python package with helper methods and classes.
+
+__init__.py -   some general purpuse methods
+client.py   -   a base class for sending SOAP messages
+logger.py   -   logging facilities
+security.py -   some classes for simple usage of the HED's security framework
+service.py  -   a python superclass of service classes with common features and some common methods for handling SOAP messages
+xmltree.py  -   a python class for easy handling of simple XML structures
+

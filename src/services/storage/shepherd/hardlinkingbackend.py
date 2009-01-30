@@ -7,7 +7,7 @@ import threading
 import time
 import stat
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.HardlinkingBackend'))
 
 class HardlinkingBackend:

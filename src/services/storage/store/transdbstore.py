@@ -5,7 +5,7 @@ import threading
 import cPickle
 from storage.store.basestore import BaseStore
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.TransDBStore'))
 
 from bsddb3 import db

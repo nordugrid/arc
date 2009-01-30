@@ -1,5 +1,5 @@
 import arc, sys, time, StringIO, os
-from storage.xmltree import XMLTree
+from arcom.xmltree import XMLTree
 from storage.client import ShepherdClient, ByteIOClient
 from storage.common import create_checksum
 args = sys.argv[1:]

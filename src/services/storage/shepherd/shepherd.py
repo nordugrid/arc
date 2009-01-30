@@ -6,11 +6,16 @@ import threading
 import random
 
 import arc
-from storage.xmltree import XMLTree
-from storage.common import shepherd_uri, import_class_from_string, get_child_nodes, parse_node, create_response, true, common_supported_protocols, parse_ssl_config
+from arcom import get_child_nodes
+from arcom import import_class_from_string
+from arcom.security import parse_ssl_config
+from arcom.service import shepherd_uri, true, parse_node, create_response
+
+from arcom.xmltree import XMLTree
+from storage.common import common_supported_protocols
 from storage.client import LibrarianClient, BartenderClient
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Shepherd'))
 
 ALIVE = 'alive'
@@ -402,7 +407,7 @@ class Shepherd:
                 response[requestID].append(localData.get(p, None))
         return response
 
-from storage.service import Service
+from arcom.service import Service
 
 class ShepherdService(Service):
 

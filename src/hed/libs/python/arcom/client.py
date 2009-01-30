@@ -1,8 +1,4 @@
 import arc
-import base64
-import time
-import sys
-import socket
 
 class Client:
     """ Base Client class for sending SOAP messages to services """

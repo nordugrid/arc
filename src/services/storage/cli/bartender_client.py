@@ -1,6 +1,6 @@
 import arc, sys, time, os
-from storage.common import false
-from storage.xmltree import XMLTree
+from arcom.service import false
+from arcom.xmltree import XMLTree
 from storage.client import BartenderClient, ByteIOClient
 from storage.common import create_checksum, upload_to_turl, download_from_turl
 args = sys.argv[1:]

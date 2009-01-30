@@ -18,9 +18,9 @@ import arc
 import inspect
 import time
 import sys
-from storage.common import AuthRequest
-
-from storage.logger import Logger
+from arcom import get_child_nodes
+from arcom.security import AuthRequest
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Service'))
 
 class Service:
@@ -224,7 +224,7 @@ def create_response(method_name, tag_names, elements, payload, single = False):
     if we want namespace prefixes.
     """
     # first create an XMLTree, then add it to the payload XMLNode
-    from storage.xmltree import XMLTree
+    from arcom.xmltree import XMLTree
     if single:
         # if there is only a single value for each key
         tree = XMLTree(from_tree =

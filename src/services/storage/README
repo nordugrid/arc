@@ -11,13 +11,10 @@ fuse      - FUSE interface to storage for mounting storage system
 
 And has the following files:
 client.py                       - collection of python classes which can be used to talk to the services
-common.py                       - collection of python methods and classes used by more than one service
+common.py                       - collection of python methods and classes used by more than one storage service
 storage_service.xml.example     - an example service configuration xml for HED with HTTP Shepherd backend
 storage.service.xml.3S.example  - an example service configuration xml for HED with 3 ByteIO-backed Shepherds
-service.py                      - a python superclass of service classes with common features
-xmltree.py                      - a python class for easy handling of simple XML structures
-fakexmlnode.py                  - providing the interface of an ARC XMLNode without the ARC libraries
-arc_storage_cli              - standalone client for the storage system (supporting HTTP transfer)
+arc_storage_cli                 - standalone client for the storage system (supporting HTTP transfer)
 
 Bit more detail about the main services:
 - A-Hash: it is basically a (currently centralized but later distributed)

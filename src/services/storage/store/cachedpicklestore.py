@@ -4,7 +4,7 @@ import cPickle as pickle
 
 from storage.store.picklestore import PickleStore
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.CachedPickleStore'))
 
 class CachedPickleStore(PickleStore):

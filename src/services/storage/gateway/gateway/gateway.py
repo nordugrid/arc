@@ -10,11 +10,12 @@ email: salman.toor@it.uu.se
 """
 import arc
 import time
-from storage.common import create_response, gateway_uri, get_child_nodes, true
-from storage.service import Service 
+from arcom import get_child_nodes
+from arcom.service import gateway_uri, true, create_response
+from arcom.service import Service 
 import commands
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Gateway'))
 
 class Gateway:

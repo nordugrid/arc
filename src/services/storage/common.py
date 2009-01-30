@@ -5,14 +5,6 @@ global_root_guid = '0'
 # a special entity where the data about Shepherds are stored (SEStore)
 sestore_guid = '1'
 
-def parse_url(url):
-    url = arc.URL(turl)
-    proto = url.Protocol()
-    host = url.Host()
-    port = url.Port()
-    path = url.Path()
-    return proto, host, int(port), path
-
 common_supported_protocols = ['http', 'byteio','external']
 CHUNKSIZE = 2**20
 
@@ -26,7 +18,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     elif protocol == 'external':
         return 
     elif protocol == 'http':
-        import arc
+        from arcom import parse_url
         proto, host, port, path = parse_url(turl)
         import httplib
         if proto == 'https':
@@ -67,6 +59,7 @@ def download_from_turl(turl, protocol, fobj, ssl_config = {}):
         from storage.client import ByteIOClient
         ByteIOClient(turl).read(file = f)
     elif protocol == 'http':
+        from arcom import parse_url
         proto, host, port, path = parse_url(turl)
         import httplib
         if proto == 'https':
@@ -310,6 +303,8 @@ def splitLN(LN):
     # put the slashes back between the rest items
     dirname = '/'.join(parts)
     return rootguid, dirname, basename
+
+from arcom.security import storage_actions, AuthPolicy
 
 def parse_storage_policy(metadata):
     import arc

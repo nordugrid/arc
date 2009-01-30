@@ -5,7 +5,7 @@ import threading
 
 from storage.store.transdbstore import TransDBStore
 
-from storage.logger import Logger
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.RepDBStore'))
 
 from bsddb3 import db
