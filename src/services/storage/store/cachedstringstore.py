@@ -1,10 +1,10 @@
 import arc
 import copy, os, base64
 
-from storage.store.cachedpicklestore import CachedPickleStore
+from arcom.store.cachedpicklestore import CachedPickleStore
 
 from arcom.logger import Logger
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.CachedStringStore'))
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'arcom.CachedStringStore'))
 
 class CachedStringStore(CachedPickleStore):
     """ Class for storing object in a serialized python format. """

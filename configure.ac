@@ -1182,6 +1182,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/job/Makefile
                  src/hed/libs/python/Makefile
                  src/hed/libs/python/arcom/Makefile
+                 src/hed/libs/python/arcom/store/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/unix/Makefile
@@ -1293,7 +1294,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/storage/shepherd/Makefile 
                  src/services/storage/ahash/Makefile 
                  src/services/storage/bartender/Makefile 
-                 src/services/storage/store/Makefile 
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
                  src/tests/echo/echo_service.xml.example

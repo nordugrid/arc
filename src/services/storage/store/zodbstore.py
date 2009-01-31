@@ -3,10 +3,10 @@ import os, copy, threading, time
 from ZODB import FileStorage, DB
 from persistent import Persistent
 
-from storage.store.basestore import BaseStore
+from arcom.store.basestore import BaseStore
 
 from arcom.logger import Logger
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.ZODBStore'))
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'arcom.ZODBStore'))
 
 class Metadata(Persistent):
     """

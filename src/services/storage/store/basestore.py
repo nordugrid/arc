@@ -2,7 +2,7 @@ import arc
 import os, threading, traceback
 
 from arcom.logger import Logger
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.BaseStore'))
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'arcom.BaseStore'))
 
 class BaseStore:
     

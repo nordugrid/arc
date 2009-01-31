@@ -1,10 +1,10 @@
 import arc
 import copy, os, base64
 
-from storage.store.picklestore import PickleStore
+from arcom.store.picklestore import PickleStore
 
 from arcom.logger import Logger
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.StringStore'))
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'arcom.StringStore'))
 
 class StringStore(PickleStore):
     """ Class for storing string objects. """

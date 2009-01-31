@@ -3,10 +3,10 @@ import arc
 import sys, exceptions, errno, copy, time
 import threading
 import cPickle
-from storage.store.basestore import BaseStore
+from arcom.store.basestore import BaseStore
 
 from arcom.logger import Logger
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.TransDBStore'))
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'arcom.TransDBStore'))
 
 from bsddb3 import db
 
