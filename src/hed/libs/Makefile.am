@@ -19,7 +19,7 @@ endif
 # order is important!
 SUBDIRS = common loader message credential data delegation security \
 	ws-addressing $(XMLSEC_DIR) ws-security wsrf job client $(DBXML_DIR) \
-	infosys ws $(GLOBUSUTILS_DIR)
+	infosys ws $(GLOBUSUTILS_DIR) python
 DIST_SUBDIRS = common loader message credential data delegation security \
 	ws-addressing xmlsec ws-security wsrf job client dbxml \
-	infosys ws globusutils 
+	infosys ws globusutils python
