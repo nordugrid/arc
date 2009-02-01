@@ -6,7 +6,9 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
-
+// headers for debugging 
+#include <sstream>
+// end headers for debugging
 #include "UNICOREClient.h"
 
 namespace Arc {
@@ -33,14 +35,14 @@ namespace Arc {
 
   Logger UNICOREClient::logger(Logger::rootLogger, "UNICORE-Client");
 
-  static void set_arex_namespaces(NS& ns) {
-    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+  static void set_UNICORE_namespaces(NS& ns) {
     ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
     ns["wsa"] = "http://www.w3.org/2005/08/addressing";
     ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
     ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
     ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+    ns["ns0"]="urn:oasis:names:tc:SAML:2.0:assertion";
+    ns["rp"]="http://docs.oasis-open.org/wsrf/rp-2";
   }
 
   static void set_bes_factory_action(SOAPEnvelope& soap, const char *op) {
@@ -60,7 +62,7 @@ namespace Arc {
 
     logger.msg(INFO, "Creating a UNICORE client");
     client = new ClientSOAP(cfg, url);
-    set_arex_namespaces(arex_ns);
+    set_UNICORE_namespaces(unicore_ns);
   }
 
   UNICOREClient::~UNICOREClient() {
@@ -85,7 +87,7 @@ namespace Arc {
 	 bes-factory:ActivityDocument
 	   jsdl:JobDefinition
      */
-    PayloadSOAP req(arex_ns);
+    PayloadSOAP req(unicore_ns);
     XMLNode op = req.NewChild("bes-factory:CreateActivity");
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     set_bes_factory_action(req, "CreateActivity");
@@ -93,7 +95,7 @@ namespace Arc {
     std::string jsdl_str;
     std::getline<char>(jsdl_file, jsdl_str, 0);
     act_doc.NewChild(XMLNode(jsdl_str));
-    act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
+    act_doc.Child(0).Namespaces(unicore_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
 
     XMLNode ds =
@@ -256,7 +258,7 @@ namespace Arc {
     std::string state, substate, faultstring;
     logger.msg(INFO, "Creating and sending a status request");
 
-    PayloadSOAP req(arex_ns);
+    PayloadSOAP req(unicore_ns);
     XMLNode jobref =
       req.NewChild("bes-factory:GetActivityStatuses").
       NewChild(XMLNode(jobid));
@@ -338,12 +340,63 @@ namespace Arc {
     }
   }
 
+  bool UNICOREClient::listTargetSystemFactories(XMLNodeList& tsf, std::string& status) {
+
+    std::string state, faultstring;
+    logger.msg(INFO, "Creating and sending a service an index service query");
+    PayloadSOAP req(unicore_ns);
+    XMLNode query = req.NewChild("rp:QueryResourceProperties");
+    XMLNode exp = query.NewChild("rp:QueryExpression");
+    exp.NewAttribute("Dialect")="http://www.w3.org/TR/1999/REC-xpath-19991116";
+    exp="//*";
+    PayloadSOAP *resp = NULL;
+    MCC_Status rrstatus = client->process("http://docs.oasis-open.org/wsrf/rpw-2"
+			"/QueryResourceProperties/QueryResourcePropertiesRequest",
+			&req, &resp);
+    //Check lots of different things that could have gone wrong
+    //Report these through logger with suitable loglevel
+    //React and recover from these problems in suitable ways
+    if (resp == NULL) {
+      logger.msg(ERROR, "There was no SOAP response");
+      return false;
+    }
+    resp->GetDoc(status, true);
+    XMLNodeList memberServices = (resp->Body()).Path("QueryResourcePropertiesResponse/ServiceGroupRP"
+			"/Entry/MemberServiceEPR");
+
+    //debugging
+    std::stringstream ss;
+    ss << "\nNumber of member services found: " << memberServices.size();
+    status += ss.str();
+    //end debugging
+    for (XMLNodeList::iterator it = memberServices.begin(); it != memberServices.end(); it++) {
+      std::string iName = (*it)["Metadata"]["InterfaceName"];
+      if (iName.find("BESFactoryPortType") != std::string::npos){
+        std::string urlstr = (*it)["Address"];
+        status += "\nFound a BESFactory at " + urlstr; //Temp debugging
+
+        //store in tsf in some form
+        //is anything apart from url needed?
+        NS ns;
+        Config cfg(ns);
+        XMLNode URLXML = cfg.NewChild("URL") = urlstr;
+        URLXML.NewAttribute("ServiceType") = "computing";
+        // Add other things that might need to be configured
+        tsf.push_back(cfg);
+
+
+      }
+    }
+
+    return true;
+  }
+
   bool UNICOREClient::sstat(std::string& status) {
 
     std::string state, faultstring;
     logger.msg(INFO, "Creating and sending a service status request");
 
-    PayloadSOAP req(arex_ns);
+    PayloadSOAP req(unicore_ns);
     XMLNode jobref =
       req.NewChild("bes-factory:GetFactoryAttributesDocument");
     set_bes_factory_action(req, "GetFactoryAttributesDocument");
@@ -421,7 +474,7 @@ namespace Arc {
     std::string result, faultstring;
     logger.msg(INFO, "Creating and sending request to terminate a job");
 
-    PayloadSOAP req(arex_ns);
+    PayloadSOAP req(unicore_ns);
     XMLNode jobref =
       req.NewChild("bes-factory:TerminateActivities").
       NewChild(XMLNode(jobid));
@@ -502,7 +555,7 @@ namespace Arc {
     std::string result, faultstring;
     logger.msg(INFO, "Creating and sending request to terminate a job");
 
-    PayloadSOAP req(arex_ns);
+    PayloadSOAP req(unicore_ns);
     XMLNode op = req.NewChild("a-rex:ChangeActivityStatus");
     XMLNode jobref = op.NewChild(XMLNode(jobid));
     XMLNode jobstate = op.NewChild("a-rex:NewStatus");

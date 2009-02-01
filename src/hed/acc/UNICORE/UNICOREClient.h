@@ -80,7 +80,16 @@ namespace Arc {
        @return true on success
      */
     bool sstat(std::string& status);
-
+    /*! This method queries the UNICORE registry about BES compliant
+       execution services.
+       @param tsf A list of different execution services returned from the
+       registry. This variable will be overwritten by the method.
+       @param status The XML document representing reply from the service.
+       This variable will be overwritten by the method. This parameter may
+       be removed at some point as it is mainly for debugging.
+       @return true on success
+     */
+    bool listTargetSystemFactories(XMLNodeList& tsf, std::string& status);
     ClientSOAP* SOAP(void) {
       return client;
     }
@@ -110,7 +119,7 @@ namespace Arc {
     //! Namespaces.
     /*! A map containing namespaces.
      */
-    NS arex_ns;
+    NS unicore_ns;
 
     URL rurl;
 

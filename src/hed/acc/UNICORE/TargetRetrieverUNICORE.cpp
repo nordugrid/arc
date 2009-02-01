@@ -3,6 +3,7 @@
 #endif
 
 #include <arc/ArcConfig.h>
+#include <arc/message/MCC.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
@@ -10,6 +11,8 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
+
+#include <iostream>
 
 #include "UNICOREClient.h"
 #include "TargetRetrieverUNICORE.h"
@@ -93,8 +96,21 @@ namespace Arc {
     TargetGenerator& mom = *thrarg->mom;
 
     URL& url = thrarg->url;
-
-
+    MCCConfig cfg;
+/*    if (!thrarg->proxyPath.empty())
+      cfg.AddProxy(thrarg->proxyPath);
+    if (!thrarg->certificatePath.empty())
+      cfg.AddCertificate(thrarg->certificatePath);
+    if (!thrarg->keyPath.empty())
+      cfg.AddPrivateKey(thrarg->keyPath);
+    if (!thrarg->caCertificatesDir.empty())
+      cfg.AddCADir(thrarg->caCertificatesDir);*/
+    UNICOREClient uc(url, cfg);
+    std::string thePayload;
+    XMLNodeList beses;
+    //beses should hold a list of trees each suitable to configure a new TargetRetriever
+    uc.listTargetSystemFactories(beses, thePayload);
+    std::cout << thePayload << std::endl;
     delete thrarg;
     mom.RetrieverDone();
   }
