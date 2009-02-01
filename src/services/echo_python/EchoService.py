@@ -1,7 +1,7 @@
 import arc
 import time
-from storage.common import parse_ssl_config, AuthRequest
-from storage.logger import Logger
+from arcom.security import parse_ssl_config, AuthRequest
+from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py'))
 
 class EchoService:
