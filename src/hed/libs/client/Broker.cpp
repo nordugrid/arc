@@ -6,6 +6,7 @@
 
 #include <arc/client/Broker.h>
 #include <arc/job/runtimeenvironment.h>
+#include <arc/StringConv.h>
 
 namespace Arc {
 
@@ -35,6 +36,10 @@ namespace Arc {
 			   continue;
             }
           }
+		  else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, URL is not defined", (std::string)(*target).url.str() );
+		  }
+
        }
     
        if ((int)jir.ProcessingStartTime.GetTime() != -1) {
@@ -45,6 +50,9 @@ namespace Arc {
 			   continue;
             }
            }
+		   else  {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, Downtime is not defined", (std::string)(*target).url.str());
+		  }
        }
 
        if (!(*target).HealthState.empty()) {
@@ -55,6 +63,9 @@ namespace Arc {
                logger.msg(DEBUG, "Matchmaking, HealthState problem, ExecutionTarget: %s (HealthState) != ok");
 			   continue;
            }
+		  else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (!jir.CEType.empty()) {
@@ -64,6 +75,9 @@ namespace Arc {
 			   continue;
             }
            }
+		  else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (!jir.QueueName.empty()) {
@@ -73,6 +87,9 @@ namespace Arc {
 			   continue;
             }
            }
+		  else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MappingQueue is not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if ((int)jir.TotalWallTime.GetPeriod() != -1) {
@@ -82,12 +99,19 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxWallTime is not defined", (std::string)(*target).url.str());
+		    }
+
 	        if ((int)(*target).MinWallTime.GetPeriod() != -1) { // Example: 123
                if (!((int)(*target).MinWallTime.GetPeriod()) > (int)jir.TotalWallTime.GetPeriod()) { 
                    logger.msg(DEBUG, "Matchmaking, MinWallTime problem, ExecutionTarget: %s (MinWallTime) JobDescription: %s (TotalWallTime)", (std::string)(*target).MinWallTime, (std::string)jir.TotalWallTime);
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinWallTime is not defined", (std::string)(*target).url.str());
+		    }
        }
 
        if ((int)jir.TotalCPUTime.GetPeriod() != -1) {
@@ -97,12 +121,19 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxCPUTime is not defined", (std::string)(*target).url.str());
+		    }
+
 	        if ((int)(*target).MinCPUTime.GetPeriod() != -1) { // Example: 456
                if (!((int)(*target).MinCPUTime.GetPeriod()) > (int)jir.TotalCPUTime.GetPeriod()) {
                    logger.msg(DEBUG, "Matchmaking, MinCPUTime problem, ExecutionTarget: %s (MinCPUTime) JobDescription: %s (TotalCPUTime)", (std::string)(*target).MinCPUTime, (std::string)jir.TotalCPUTime);
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinCPUTime is not defined", (std::string)(*target).url.str());
+		    }
        }
 
        if (jir.IndividualPhysicalMemory != -1) {
@@ -112,13 +143,16 @@ namespace Arc {
 			      continue;
                }
             }
-	        else if ((*target).MaxMainMemory != -1) { // Example: 678
+			else if ((*target).MaxMainMemory != -1) { // Example: 678
                if (!((*target).MaxMainMemory >= jir.IndividualPhysicalMemory)) {
                   logger.msg(DEBUG, "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), JobDescription: %d (IndividualPhysicalMemory)", (*target).MaxMainMemory, jir.IndividualPhysicalMemory);
 			       continue;
                }
 
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and NodeMemory are not defined", (std::string)(*target).url.str());
+		    }
        }
 
        if (jir.IndividualVirtualMemory != -1) {
@@ -128,6 +162,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", (std::string)(*target).url.str());
+		    }
        }
 
        if (!jir.Platform.empty()) {
@@ -137,6 +174,9 @@ namespace Arc {
 			   continue;
             }
            }
+		   else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (!jir.OSFamily.empty()) {
@@ -147,6 +187,9 @@ namespace Arc {
             }
            }
        }
+	   else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, OSFamily is not defined", (std::string)(*target).url.str() );
+		  }
 
        if (!jir.OSName.empty()) {
            if (!(*target).OSName.empty()) { // Example: ubuntu
@@ -155,7 +198,10 @@ namespace Arc {
 			   continue;
             }
            }
-       }
+	       else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, OSName is not defined", (std::string)(*target).url.str() );
+		  }
+	   }
 
        if (!jir.OSVersion.empty()) {
            if (!(*target).OSVersion.empty()) { // Example: 4.3.1
@@ -168,6 +214,9 @@ namespace Arc {
 			      continue;
                }
            }
+	       else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, OSVersion is not defined", (std::string)(*target).url.str() );
+		  }
        }
 
       if (!jir.RunTimeEnvironment.empty()) {
@@ -199,15 +248,19 @@ namespace Arc {
                      }   
                    }  // end of jir's version list parsing 
 		           if (!match) {
-                         next_target = true;        
+                      next_target = true;        
+                      logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, this RunTimeEnvironment is not installed: %s", (std::string)(*target).url.str(), (*iter1).Name );
                       break;  
 		           }
       }
 		if (next_target) {
-		   logger.msg(DEBUG, "Matchmaking, RunTimeEnvironment problem");
            continue;  
 		}
       }   
+	  else {
+          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment is not defined", (std::string)(*target).url.str());
+      }
+
       }   
 
       if (!jir.NetworkInfo.empty()) {
@@ -215,7 +268,10 @@ namespace Arc {
 	        if ((*target).NetworkInfo != jir.NetworkInfo) {  
 			   logger.msg(DEBUG, "Matchmaking, NetworkInfo problem, ExecutionTarget: %s (NetworkInfo) JobDescription: %s (NetworkInfo)", (*target).NetworkInfo, jir.NetworkInfo);
 			   continue;
-            }
+		  }
+		   else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", (std::string)(*target).url.str() );
+		  }
            }
        }
 
@@ -232,6 +288,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", (std::string)(*target).url.str() );
+		  }
            
        }
 
@@ -248,6 +307,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (jir.DiskSpace != -1) {
@@ -263,6 +325,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (jir.CacheDiskSpace != -1) {
@@ -272,6 +337,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (jir.Slots != -1) {
@@ -287,6 +355,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (jir.NumberOfProcesses != -1) {
@@ -302,6 +373,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if ((int)jir.SessionLifeTime.GetPeriod() != -1) {
@@ -311,6 +385,9 @@ namespace Arc {
 			       continue;
                }
             }
+		    else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxWallTime is not defined", (std::string)(*target).url.str() );
+		  }
        }
 
        if (jir.InBound) {
@@ -328,16 +405,35 @@ namespace Arc {
        }
     
        if (!jir.ReferenceTime.value.empty()) {
-          
- 
 
+	      // TODO: we need a better walltime calculation algorithm
+		  
+          StringManipulator sm;
+          std::string benchmark_attribute = sm.toLowerCase(jir.ReferenceTime.benchmark_attribute);
+          std::string value_attribute = sm.toLowerCase(jir.ReferenceTime.value_attribute);
 
-           if (!(*target).Benchmarks.empty()) { // Example: benchmark="frequency" value="2.8GHz"
-               std::list<Arc::Benchmark>::const_iterator iter1;                     
-               for (iter1 = (*target).Benchmarks.begin(); iter1 != (*target).Benchmarks.end(); iter1++){
-                // TODO: finish this part                 
+          if (benchmark_attribute == "frequency" && value_attribute == "2.8ghz") {
+
+            // ExecutionTarget: CPUClockSpeed unit is MHz ((*target).CPUClockSpeed)
+			// JobInnerRepresentation: ReferenceTime value unit is secundum (jir.ReferenceTime.value)
+			// JobInnerRepresentation: ReferenceTime frequence unit is GHz (jir.ReferenceTime.value_attribute)
+			// Ratio:
+			//
+			//     jir.ReferenceTime.value / 28000000 ~=  Counted walltime / (1000000 * (*target).CPUClockSpeed)
+			//
+			// We need this computed Walltime value which can be compare with the MaxWallTime value
+			//
+
+		    double value = Arc::stringto<double>(jir.ReferenceTime.value);
+	        if ((int)(*target).MaxWallTime.GetPeriod() != -1 && (*target).CPUClockSpeed != -1) { // Example: 123
+               if (!((int)(*target).MaxWallTime.GetPeriod() >= (int)(value / (1000000.0 * (double)(*target).CPUClockSpeed)) * 28000000.0 )) { 
+                    continue;
                }
            }
+		   else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxWallTime and CPUClockSpeed are not defined", (std::string)(*target).url.str() );
+		  }
+         }
        }
 
       PossibleTargets.push_back(*target);	     

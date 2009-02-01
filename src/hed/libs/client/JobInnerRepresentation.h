@@ -14,7 +14,7 @@ namespace Arc {
 struct ReferenceTimeType {
     std::string benchmark_attribute;
     std::string value_attribute;
-    std::string value;
+    std::string value; // TODO: this should be number
 };
 
 struct EnvironmentType {
