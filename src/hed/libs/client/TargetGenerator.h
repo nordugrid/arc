@@ -27,6 +27,7 @@ namespace Arc {
 
     void GetTargets(int targetType, int detailLevel);
     const std::list<ExecutionTarget>& FoundTargets() const;
+    std::list<ExecutionTarget>& ModifyFoundTargets();
     const std::list<XMLNode*>& FoundJobs() const;
     
     bool AddService(const URL& url);

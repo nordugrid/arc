@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 
   std::string broker;
   options.AddOption('b', "broker",
-		    istring("select broker method (Random (default), QueueBalance, or custom)"),
+		    istring("select broker method (RandomBroker (default), FastestQueueBroker, or custom)"),
 		    istring("broker"), broker);
 
   bool version = false;
@@ -290,7 +290,41 @@ int main(int argc, char **argv) {
 	std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str())<< std::endl;
 	continue;
       }
-      
+      else {
+           for (std::list<Arc::ExecutionTarget>::iterator target2 =   \
+	            targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); \
+		        target2++) { 
+                     
+                if (target.url.str() ==  (*target2).url.str() ) {
+				    if ((*target2).FreeSlots > (*target2).RequestedSlots){
+					   //The job will start directly
+					   if ((*target2).FreeSlots != -1) {
+					      (*target2).FreeSlots--;
+                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, FreeSlots value before submission: %d, after submission: %d", (*target2).url.str(), (*target2).FreeSlots, (*target2).FreeSlots + 1);
+					   }
+					   else
+                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, FreeSlots value undefined", (*target2).url.str());
+
+					   if ((*target2).UsedSlots != -1) {
+					      (*target2).UsedSlots++;
+                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, UsedSlots value before submission: %d, after submission: %d", (*target2).url.str(), (*target2).UsedSlots, (*target2).UsedSlots - 1);
+					   }
+					   else
+                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, UsedSlots value undefined", (*target2).url.str());
+					}else{
+					   //The job will be queuing
+					   if ((*target2).WaitingJobs != -1) {
+					      (*target2).WaitingJobs++;
+                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, WaitingJobs value before submission: %d, after submission: %d", (*target2).url.str(), (*target2).WaitingJobs, (*target2).WaitingJobs - 1);
+					   }
+					   else
+                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, WaitingJobs value undefined", (*target2).url.str());
+					}
+					break;
+				}
+          }
+	  }
+
       /*if (it->getXML()["JobDescription"]["JobIdentification"]["JobName"])
 	info.NewChild("Name") = (std::string)
 	  it->getXML()["JobDescription"]["JobIdentification"]["JobName"];*/

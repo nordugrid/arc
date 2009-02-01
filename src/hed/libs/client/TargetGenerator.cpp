@@ -103,6 +103,10 @@ namespace Arc {
     return foundTargets;
   }
 
+  std::list<ExecutionTarget>& TargetGenerator::ModifyFoundTargets() {
+    return foundTargets;
+  }
+
   const std::list<XMLNode*>& TargetGenerator::FoundJobs() const {
     return foundJobs;
   }
