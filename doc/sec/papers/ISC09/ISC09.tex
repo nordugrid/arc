@@ -151,7 +151,7 @@ Here is the explanation of steps shown in Figure \ref{fig:SAML2SSO}:
 \item The client uses the user agent interface to launch a HTTP request including the IdP name (to which the user belongs) to the service side. The endpoint of the SP (Service Provider) service is the same as that of the other target services, except the last part of the endpoint is ``saml2sp'' which is specific for pointing to the SP Service. Note that we use Identity Provider (IdP) name here to simplify the IdP discovery process in order to avoid the IdP discovery process, because we suppose that the user who would access the target services should better know where is he from initially.
 \item The SP Service searches the metadata (we use the same metadata format as defined in the Shibboleth) and gets the location of the single sign-on service (hosted in IdP) and also the location of assertion consuming service (hosted in this SP itself). Then SP Service uses obtained information to compose and issue the SAML authentication request also by utilizing own X.509 certificate (note that in the SAML2.0 SSO profile, X.509 certificates are still needed for IdP and SP) and sends the response back to the user agent.
 \item User agent sends the SAML authentication request to the Identity Provider.
-\item Identity Provider requires an act of authentication. The authentication mechanism is outside of the SAML2.0 SSO profile. The Shibboleth IdP implementation uses login handlers for authentication. The current user agent implementation is compatible with the Username/Password login handler of Shibboleth IdP. Through the HTTP protocol, the user agent will feed IdP with the username/password which has been given by the caller of user agent interface.
+\item Identity Provider requires an act of authentication. The authentication mechanism is outside of the SAML 2.0 SSO profile. The Shibboleth IdP implementation uses login handlers for authentication. The current user agent implementation is compatible with the Username/Password login handler of Shibboleth IdP. Through the HTTP protocol, the user agent will feed IdP with the username/password which has been given by the caller of user agent interface.
 \item Once the authentication has been succeeded, the IdP issues a SAML response including SAML assertion encrypted by destination SP’s public key, and then this SAML response will be delivered by the user agent to the Service Provider.
 \item The SP Service verifies and checks the SAML response, decrypts and stores the SAML assertion into session/connection context. That assertion includes the AuthnStatement and AttributeStatement elements.
 \item The WS client launches the Grid/Web Service request via the same connection as the one which is used by user agent to contact SP Service.
@@ -335,10 +335,10 @@ We would thank all of the ARC middleware developers for their work. We wish to t
 % etc
 
 \bibitem{IFoster01}
-Foster I, Kesselman C, Tuecke S. The anatomy of the Grid: Enabling scalable virtual organizations, International Journal of Supercomputer Applications, 15(3), 200-222 (2001)
+I. Foster, C. Kesselman, S. Tuecke. The anatomy of the Grid: Enabling scalable virtual organizations, International Journal of Supercomputer Applications, 15(3), 200-222 (2001)
 
 \bibitem{IFoster98}
-Foster, I., Kesselman, C., Tsudik, G. and Tuecke, S. A Security Architecture for Computational Grids, ACM Conference on Computers and Security, 1998, 83-91.
+I. Foster, C. Kesselman, G. Tsudik, and S. Tuecke, A Security Architecture for Computational Grids, ACM Conference on Computers and Security, 1998, 83-91.
 
 \bibitem{AlfieriR05}
 R. Alfieri, R. Cecchini, V. Ciaschini, L. dell’Agnello, A. Frohner, K. Lorentey, and F. Spataro. From gridmap-file to voms: managing authorization in a Grid environment. Future Generation Comp. Syst., 21(4), 549-558 (2005)
@@ -407,7 +407,7 @@ OASIS WS-Trust specification. http://docs.oasis-open.org/ws-sx/ws-trust/200512
 Gridsite delegation service. http://www.gridsite.org/wiki/Delegation\_protocol
 
 \bibitem{GAloisio05}
-Giovanni Aloisio, Massimo Cafaro, Italo Epicoco, Daniele Lezzi, and Robert van Engelen, The GSI plug-in for gSOAP: Enhanced Security, Performance, and Reliability, ITCC conference 2005, IEEE Press, Volume I, pp. 304-309.
+G. Aloisio, M. Cafaro, I. Epicoco, D. Lezzi, and R. van Engelen, The GSI plug-in for gSOAP: Enhanced Security, Performance, and Reliability, International Conference on Information Technology: Coding and Computing (ITCC'05), IEEE Press, Volume I, pp. 304-309.
 
 \end{thebibliography}
 
