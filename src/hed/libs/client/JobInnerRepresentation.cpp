@@ -323,9 +323,11 @@ namespace Arc {
        IndividualCPUTime = -1;
        TotalWallTime = -1;
        IndividualWallTime = -1;
-	   ReferenceTime.benchmark_attribute.clear();
-	   ReferenceTime.value_attribute.clear();
+    if (!bool(ReferenceTime)){
+	   ReferenceTime.benchmark_attribute = "frequency";
+	   ReferenceTime.value_attribute = "2.8Ghz" ;
 	   ReferenceTime.value.clear();
+    }
        ExclusiveExecution = false;
        NetworkInfo.clear();
        OSFamily.clear();
