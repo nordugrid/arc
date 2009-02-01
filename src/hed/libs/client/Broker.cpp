@@ -38,6 +38,7 @@ namespace Arc {
           }
 		  else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, URL is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
 
        }
@@ -63,10 +64,11 @@ namespace Arc {
                logger.msg(DEBUG, "Matchmaking, HealthState problem, ExecutionTarget: %s (HealthState) != ok");
 			   continue;
            }
-		  else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", (std::string)(*target).url.str() );
-		  }
        }
+	   else {
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", (std::string)(*target).url.str() );
+			   continue;
+	   }
 
        if (!jir.CEType.empty()) {
            if (!(*target).ImplementationName.empty()) {
@@ -77,6 +79,7 @@ namespace Arc {
            }
 		  else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -89,6 +92,7 @@ namespace Arc {
            }
 		  else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MappingQueue is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -101,6 +105,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxWallTime is not defined", (std::string)(*target).url.str());
+			   continue;
 		    }
 
 	        if ((int)(*target).MinWallTime.GetPeriod() != -1) { // Example: 123
@@ -111,6 +116,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinWallTime is not defined", (std::string)(*target).url.str());
+			   continue;
 		    }
        }
 
@@ -123,6 +129,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxCPUTime is not defined", (std::string)(*target).url.str());
+			   continue;
 		    }
 
 	        if ((int)(*target).MinCPUTime.GetPeriod() != -1) { // Example: 456
@@ -133,6 +140,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinCPUTime is not defined", (std::string)(*target).url.str());
+			   continue;
 		    }
        }
 
@@ -152,6 +160,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and NodeMemory are not defined", (std::string)(*target).url.str());
+			   continue;
 		    }
        }
 
@@ -164,6 +173,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", (std::string)(*target).url.str());
+			   continue;
 		    }
        }
 
@@ -176,6 +186,7 @@ namespace Arc {
            }
 		   else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -186,10 +197,11 @@ namespace Arc {
 			   continue;
             }
            }
-       }
-	   else {
+	       else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, OSFamily is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
+       }
 
        if (!jir.OSName.empty()) {
            if (!(*target).OSName.empty()) { // Example: ubuntu
@@ -200,6 +212,7 @@ namespace Arc {
            }
 	       else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, OSName is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
 	   }
 
@@ -216,6 +229,7 @@ namespace Arc {
            }
 	       else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, OSVersion is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -259,6 +273,7 @@ namespace Arc {
       }   
 	  else {
           logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment is not defined", (std::string)(*target).url.str());
+		  continue;
       }
 
       }   
@@ -271,6 +286,7 @@ namespace Arc {
 		  }
 		   else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
            }
        }
@@ -290,6 +306,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
            
        }
@@ -309,6 +326,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -327,6 +345,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -339,6 +358,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -357,6 +377,7 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -375,18 +396,20 @@ namespace Arc {
             }
 		    else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
        if ((int)jir.SessionLifeTime.GetPeriod() != -1) {
-	        if ((int)(*target).MaxWallTime.GetPeriod() != -1) { // Example: 123
-               if (!((int)(*target).MaxWallTime.GetPeriod()) >= (int)jir.SessionLifeTime.GetPeriod()) { 
-			   logger.msg(DEBUG, "Matchmaking, MaxWallTime problem, ExecutionTarget: %s (MaxWallTime) JobDescription: %s (SessionLifeTime)", (std::string)(*target).MaxWallTime, (std::string)jir.SessionLifeTime);
+	        if ((int)(*target).WorkingAreaLifeTime.GetPeriod() != -1) { // Example: 123
+               if (!((int)(*target).WorkingAreaLifeTime.GetPeriod()) >= (int)jir.SessionLifeTime.GetPeriod()) { 
+			   logger.msg(DEBUG, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)(*target).WorkingAreaLifeTime, (std::string)jir.SessionLifeTime);
 			       continue;
                }
             }
 		    else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxWallTime is not defined", (std::string)(*target).url.str() );
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
        }
 
@@ -432,6 +455,7 @@ namespace Arc {
            }
 		   else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxWallTime and CPUClockSpeed are not defined", (std::string)(*target).url.str() );
+			   continue;
 		  }
          }
        }
