@@ -2062,7 +2062,10 @@ namespace Arc {
                        first_time = false;
                     }
                     product += " (" + (*iter).Name;
-                    product += " " +  (*it_target).URI.fullstr() + " )";
+					if ((*it_target).URI.fullstr().empty())
+                       product += " " +  (std::string)"\"\"" + " )";
+					else 
+                       product += " " +  (*it_target).URI.fullstr() + " )";
                 }
             }
             if ( !first_time ) 
