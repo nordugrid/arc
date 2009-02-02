@@ -40,7 +40,7 @@ def datapoint_from_url(url):
 
 def parse_url(url):
     import arc
-    url = arc.URL(turl)
+    url = arc.URL(url)
     proto = url.Protocol()
     host = url.Host()
     port = url.Port()
