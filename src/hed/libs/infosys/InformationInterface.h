@@ -24,7 +24,7 @@ class InformationInterface {
     Real implementation of this class should return (sub)tree 
     of XML document. This method may be called multiple times
     per single Process call. Here @path is a set on XML element 
-    names specidying how to reach requested node(s).  */  
+    names specifying how to reach requested node(s).  */  
   virtual void Get(const std::list<std::string>& path,XMLNodeContainer& result);
   virtual void Get(XMLNode xpath,XMLNodeContainer& result);
  public:
