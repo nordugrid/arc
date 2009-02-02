@@ -680,8 +680,8 @@ namespace Arc {
            innerRepresentation.QueueName = (std::string)resource["CandidateTarget"]["QueueName"];
         }
 
-        if (bool(resource["Middleware"])) {
-           innerRepresentation.CEType = (std::string)resource["Middleware"];
+        if (bool(resource["Middleware"][0]["Name"])) {
+           innerRepresentation.CEType = (std::string)resource["Middleware"][0]["Name"];
         }
 
         if (bool(resource["TotalCPUCount"])) {
@@ -2098,10 +2098,12 @@ namespace Arc {
         }
         if (!innerRepresentation.RunTimeEnvironment.empty()) {
             std::list<Arc::RunTimeEnvironmentType>::const_iterator iter;
-            for (iter = innerRepresentation.RunTimeEnvironment.begin();
+            std::list<std::string>::const_iterator viter;
+            for (iter = innerRepresentation.RunTimeEnvironment.begin(); \
                  iter != innerRepresentation.RunTimeEnvironment.end(); iter++){
-                product += "( runtimeenvironment = ";//TODO:
-                product +=  (*iter).Name;
+			    viter = ((*iter).Version).begin(); 
+                product += "( runtimeenvironment = ";
+                product +=  (*iter).Name + "-" + (*viter);
                 product += " )\n";
             }
         }
