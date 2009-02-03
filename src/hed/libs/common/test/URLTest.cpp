@@ -18,6 +18,7 @@ class URLTest
   CPPUNIT_TEST(TestRlsUrl);
   CPPUNIT_TEST(TestRlsUrl2);
   CPPUNIT_TEST(TestRlsUrl3);
+  CPPUNIT_TEST(TestLfcUrl);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -33,9 +34,10 @@ public:
   void TestRlsUrl();
   void TestRlsUrl2();
   void TestRlsUrl3();
+  void TestLfcUrl();
 
 private:
-  Arc::URL *gsiftpurl, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3;
+  Arc::URL *gsiftpurl, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl;
 };
 
 
@@ -50,6 +52,7 @@ void URLTest::setUp() {
   rlsurl = new Arc::URL("rls://rls.nordugrid.org/test.txt");
   rlsurl2 = new Arc::URL("rls://gsiftp://hagrid.it.uu.se/storage/test.txt|http://www.nordugrid.org/files/test.txt@rls.nordugrid.org/test.txt");
   rlsurl3 = new Arc::URL("rls://;exec=yes|gsiftp://hagrid.it.uu.se;threads=10/storage/test.txt|http://www.nordugrid.org;cache=no/files/test.txt@rls.nordugrid.org;local=yes/test.txt");
+  lfcurl = new Arc::URL("lfc://atlaslfc.nordugrid.org;cache=no//grid/atlas/file1:guid=7d36da04-430f-403c-adfb-540b27506cfa:checksumtype=ad:checksumvalue=12345678");
 }
 
 
@@ -64,6 +67,7 @@ void URLTest::tearDown() {
   delete rlsurl;
   delete rlsurl2;
   delete rlsurl3;
+  delete lfcurl;
 }
 
 
@@ -246,5 +250,30 @@ void URLTest::TestRlsUrl3() {
   CPPUNIT_ASSERT_EQUAL(urlit->fullstr(), std::string("http://www.nordugrid.org:80;cache=no/files/test.txt"));
 }
 
+void URLTest::TestLfcUrl() {
+  CPPUNIT_ASSERT_EQUAL(std::string("lfc"), lfcurl->Protocol());
+  CPPUNIT_ASSERT(lfcurl->Username().empty());
+  CPPUNIT_ASSERT(lfcurl->Passwd().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("atlaslfc.nordugrid.org"), lfcurl->Host());
+  CPPUNIT_ASSERT_EQUAL(5010, lfcurl->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/grid/atlas/file1"), lfcurl->Path());
+  CPPUNIT_ASSERT(lfcurl->HTTPOptions().empty());
+  
+  std::map<std::string, std::string> options = lfcurl->Options();
+  CPPUNIT_ASSERT_EQUAL(1, (int)options.size());
+
+  std::map<std::string, std::string>::iterator mapit = options.begin();
+  CPPUNIT_ASSERT_EQUAL(std::string("cache"), mapit->first);
+  CPPUNIT_ASSERT_EQUAL(std::string("no"), mapit->second);
+
+  CPPUNIT_ASSERT(lfcurl->CommonLocOptions().empty());
+
+  CPPUNIT_ASSERT(lfcurl->Locations().empty());
+  
+  CPPUNIT_ASSERT_EQUAL(3, (int)lfcurl->MetaDataOptions().size());
+  CPPUNIT_ASSERT_EQUAL(std::string("7d36da04-430f-403c-adfb-540b27506cfa"), lfcurl->MetaDataOption("guid"));
+  CPPUNIT_ASSERT_EQUAL(std::string("ad"), lfcurl->MetaDataOption("checksumtype"));
+  CPPUNIT_ASSERT_EQUAL(std::string("12345678"), lfcurl->MetaDataOption("checksumvalue"));
+}
 
 CPPUNIT_TEST_SUITE_REGISTRATION(URLTest);

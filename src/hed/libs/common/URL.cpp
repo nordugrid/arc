@@ -211,6 +211,12 @@ namespace Arc {
     }
     if(pos2 != std::string::npos) host.resize(pos2);
 
+    pos = path.find(':');
+    if(pos != std::string::npos) {
+      metadataoptions = ParseOptions(path.substr(pos+1), ':');
+      path = path.substr(0, pos);
+    }
+    
     if(port == -1) {
       if(protocol == "rc") port = RC_DEFAULT_PORT;
       if(protocol == "rls") port = RLS_DEFAULT_PORT;
@@ -378,6 +384,19 @@ namespace Arc {
     std::map<std::string, std::string>::const_iterator
       opt = httpoptions.find(option);
     if(opt != httpoptions.end())
+      return opt->second;
+    else
+      return undefined;
+  }
+
+  const std::map<std::string, std::string>& URL::MetaDataOptions() const {
+    return metadataoptions;
+  }
+
+  const std::string& URL::MetaDataOption(const std::string& option,
+                                         const std::string& undefined) const {
+    std::map<std::string, std::string>::const_iterator opt = metadataoptions.find(option);
+    if(opt != metadataoptions.end())
       return opt->second;
     else
       return undefined;

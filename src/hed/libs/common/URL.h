@@ -119,6 +119,16 @@ namespace Arc {
     const std::string& Option(const std::string& option,
                               const std::string& undefined = "") const;
 
+    /** Returns metadata options if any. */
+    const std::map<std::string, std::string>& MetaDataOptions() const;
+
+    /** Returns the value of a metadata option.
+  \param option     The option whose value is returned.
+  \param undefined  This value is returned if the metadata option is
+        not defined. */
+    const std::string& MetaDataOption(const std::string& option,
+                                      const std::string& undefined = "") const;
+
     /** Adds a URL option. */
     void AddOption(const std::string& option, const std::string& value,
                    bool overwrite = true);
@@ -182,6 +192,9 @@ namespace Arc {
     /** HTTP options of the url. */
     std::map<std::string, std::string> httpoptions;
 
+    /** Meta data options */
+    std::map<std::string, std::string> metadataoptions;
+    
     /** LDAP attributes of the url. */
     std::list<std::string> ldapattributes;
 
