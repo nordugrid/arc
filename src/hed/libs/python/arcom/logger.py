@@ -3,6 +3,9 @@ import traceback
 
 log_levels = [arc.VERBOSE, arc.DEBUG, arc.INFO, arc.WARNING, arc.ERROR, arc.FATAL]
 
+def get_logger(system = '<UNKNOWN>'):
+    return Logger(arc.Logger(arc.Logger_getRootLogger(), system))
+
 class Logger:
 
     def __init__(self, logger):

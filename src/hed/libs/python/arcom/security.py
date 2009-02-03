@@ -6,6 +6,9 @@ request_ns = 'http://www.nordugrid.org/schemas/request-arc'
 all_user = 'ALL'
 anonymous_user = 'ANONYMOUS'
 
+from arcom.logger import get_logger
+log = get_logger('arcom.security')
+
 class AuthRequest:
     
     def __init__(self, message):
@@ -109,6 +112,15 @@ def make_decision(policy, request):
 def parse_ssl_config(cfg):
     try:
         client_ssl_node = cfg.Get(('ClientSSLConfig'))
+        fromFile = str(client_ssl_node.Attribute('fromFile'))
+        if fromFile:
+            try:
+                xml_string = file(fromFile).read()
+                import arc
+                client_ssl_node = arc.XMLNode(xml_string)
+            except:
+                log.msg()
+                pass
         if client_ssl_node.Size() == 0:
             return {}
         ssl_config = {}
@@ -121,5 +133,5 @@ def parse_ssl_config(cfg):
             ssl_config['ca_dir'] = str(client_ssl_node.Get('CACertificatesDir'))
         return ssl_config
     except:
-        traceback.print_exc()
+        log.msg()
         return {}

@@ -29,9 +29,9 @@ def get_child_nodes(node):
 
 # for DataHandle and DataPoint
 
-def datapoint_from_url(url):
+def datapoint_from_url(url_string):
     import arc
-    handle = arc.DataHandle(url)
+    handle = arc.DataHandle(arc.URL(url_string))
     handle.thisown = False
     point = handle.__ref__()
     return point
