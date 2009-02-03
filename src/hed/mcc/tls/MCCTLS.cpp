@@ -173,6 +173,16 @@ static void add_subject_attribute(XMLNode item,const std::string& subject,const 
    attr.NewAttribute("AttributeId")=id;
 }
 
+static void Email2emailAddress(std::string& value) {
+  std::string str;
+  size_t found;
+  while(true) {
+    found =value.find("Email");
+    if(found == std::string::npos) return;
+    value.replace(found, 5, "emailAddress");
+  };
+}
+
 bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
@@ -185,15 +195,20 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     std::string subject;
     if(s != subjects_.end()) {
       subject=*s;
+      Email2emailAddress(subject);
       add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/ca");
       for(;s != subjects_.end();++s) {
         subject=*s;
+        Email2emailAddress(subject);
         add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/chain");
       };
+      Email2emailAddress(subject);
       add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/subject");
     };
     if(!identity_.empty()) {
-       add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+       std::string identity(identity_);
+       Email2emailAddress(identity);
+       add_subject_attribute(subj,identity,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
     };
     if(!voms_attributes_.empty()) {
       for(int k=0; k < voms_attributes_.size(); k++) {
