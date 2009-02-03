@@ -774,7 +774,14 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
       }
       continue;
     }
-    if (crc)
+    // check if checksum is specified as a metadata attribute
+    if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
+        !destination.GetURL().MetaDataOption("checksumvalue").empty()) {
+      std::string csum = destination.GetURL().MetaDataOption("checksumtype") + ":" + destination.GetURL().MetaDataOption("checksumvalue");
+      source.SetCheckSum(csum.c_str());
+      logger.msg(DEBUG, "DataMove::Transfer: using supplied checksum %s", csum);
+    }
+    else if (crc)
       if (buffer.checksum_valid()) {
         // source.meta_checksum(crc.end());
         char buf[100];

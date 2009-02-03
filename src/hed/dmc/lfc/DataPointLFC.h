@@ -23,6 +23,8 @@ namespace Arc {
   protected:
     static Logger logger;
     std::string guid;
+  private:
+    bool resolveGUIDToLFN();
   };
 
 } // namespace Arc

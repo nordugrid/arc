@@ -42,7 +42,7 @@ namespace Arc {
   Logger DataPointLFC::logger(DataPoint::logger, "LFC");
 
   DataPointLFC::DataPointLFC(const URL& url)
-    : DataPointIndex(url) {
+    : DataPointIndex(url), guid("") {
     // set retry env variables (don't overwrite if set already)
     // connection timeout
     SetEnv("LFC_CONNTIMEOUT", "30");
@@ -67,6 +67,22 @@ namespace Arc {
       return DataStatus::ReadResolveError;
     }
 #endif
+    
+    if(lfc_startsess(const_cast<char *>(url.Host().c_str()),
+                     const_cast<char *>("ARC")) != 0) {
+      logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
+      lfc_endsess();
+      return DataStatus::ReadResolveError;
+    }
+  
+    if (source && !resolveGUIDToLFN()) {
+      lfc_endsess();
+      return DataStatus::ReadResolveError;
+    }
+    if (!source && !url.MetaDataOption("guid").empty()) {
+      guid = url.MetaDataOption("guid");
+      logger.msg(DEBUG, "Using supplied guid %s", guid);
+    }
   
     resolved = false;
     registered = false;
@@ -85,10 +101,6 @@ namespace Arc {
         logger.msg(INFO, "Locations are missing in destination LFC URL");
         return DataStatus::WriteResolveError;
       }
-    }
-    if (lfc_startsess(const_cast<char *>(url.Host().c_str()),  const_cast<char *>("ARC")) != 0) {
-      logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      return DataStatus::WriteResolveError;
     }
     int nbentries = 0;
     struct lfc_filereplica *entries = NULL;
@@ -204,7 +216,13 @@ namespace Arc {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::PreRegisterError;
     }
-    guid = UUID();
+    if (guid.empty()) {
+      GUID(guid);
+    }
+    else if (!url.MetaDataOption("guid").empty()) {
+      guid = url.MetaDataOption("guid");
+      logger.msg(DEBUG, "Using supplied guid %s", guid);
+    }
     if (lfc_creatg(url.Path().c_str(), guid.c_str(),
                    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
       
@@ -299,6 +317,7 @@ namespace Arc {
       else {
         ckstype = cksumvalue.substr(0, p);
         if (ckstype=="md5") ckstype = "MD";
+        if (ckstype=="ad") ckstype = "AD";
         cksumvalue = cksumvalue.substr(p + 1);
         logger.msg(DEBUG, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
       }
@@ -331,6 +350,10 @@ namespace Arc {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::UnregisterError;
     }
+    if (!resolveGUIDToLFN()) {
+      lfc_endsess();
+      return DataStatus::UnregisterError;
+    }
     if (lfc_unlink(url.Path().c_str()) != 0) {
       if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
         logger.msg(ERROR, "Failed to remove LFN in LFC - You may need to do it by hand");
@@ -359,6 +382,10 @@ namespace Arc {
     if (lfc_startsess(const_cast<char *>(url.Host().c_str()),
                       const_cast<char *>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
+      return DataStatus::UnregisterError;
+    }
+    if (!resolveGUIDToLFN()) {
+      lfc_endsess();
       return DataStatus::UnregisterError;
     }
     if (all) {
@@ -428,12 +455,16 @@ namespace Arc {
     }
 #endif
     
-    // first stat the url and see if it is a file or directory
     if (lfc_startsess(const_cast<char *>(url.Host().c_str()),
                       const_cast<char *>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::ListError;
     }
+    if (!resolveGUIDToLFN()) {
+      lfc_endsess();
+      return DataStatus::ListError;
+    }
+    // first stat the url and see if it is a file or directory
     struct lfc_filestatg st;
     if (lfc_statg(url.Path().c_str(), NULL, &st) != 0) {
       logger.msg(ERROR, "Error listing file or directory: %s", sstrerror(serrno));
@@ -537,6 +568,27 @@ namespace Arc {
     }
     lfc_endsess();
     return DataStatus::Success;
+  }
+  
+  bool DataPointLFC::resolveGUIDToLFN() {
+  
+    // check if guid is already defined
+    if (!guid.empty()) return true;
+      
+    // check for guid in the attributes
+    if (url.MetaDataOption("guid").empty()) return true;
+    guid = url.MetaDataOption("guid");
+
+    lfc_list listp;
+    struct lfc_linkinfo * info = lfc_listlinks (NULL, (char*)guid.c_str(), CNS_LIST_BEGIN, &listp);
+    if (!info) {
+      logger.msg(ERROR, "Error finding LFN from guid %s: %s", guid, sstrerror(serrno));
+      return false;
+    }
+    url = URL(url.Protocol()+"://"+url.Host()+"/"+std::string(info[0].path));
+    logger.msg(DEBUG, "guid %s resolved to LFN %s", guid, url.Path());
+    lfc_listlinks (NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
+    return true;
   }
 
 } // namespace Arc
