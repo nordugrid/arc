@@ -38,8 +38,8 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
         except:
             use_hed = False
         if use_hed:
-            src = datapoint_from_url(arc.URL(fobj.name))
-            dst = datapoint_from_url(arc.URL(turl))
+            src = datapoint_from_url(fobj.name)
+            dst = datapoint_from_url(turl)
             dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
                 ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
             mover = arc.DataMover()
@@ -88,12 +88,13 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
     elif protocol == 'http':
         try:
             import arc
+            from arcom import datapoint_from_url
             use_hed = True
         except:
             use_hed = False
         if use_hed:
-            src = datapoint_from_url(arc.URL(turl))
-            dst = datapoint_from_url(arc.URL(fobj.name))
+            src = datapoint_from_url(turl)
+            dst = datapoint_from_url(fobj.name)
             src.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
                 ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
             mover = arc.DataMover()
@@ -1390,7 +1391,7 @@ else:
             if filename == '.':
                 _, _, filename = splitLN(LN)
             if os.path.exists(filename):
-                print '"%s"' % filename, 'already exists'
+                print "ERROR: local path '%s'" % filename, 'already exists!'
             else:
                 request = {'0' : (LN, ['http'])}
                 #print 'getFile', request
@@ -1434,7 +1435,11 @@ else:
             print 'Usage: putFile <source filename> <target LN>'
         else:
             filename = args[0]
-            size = os.path.getsize(filename)
+            try:
+                size = os.path.getsize(filename)
+            except:
+                print 'ERROR: local file', "'%s'" % filename, 'does not exist!'
+                sys.exit(-1)
             print '- The size of the file is', size, 'bytes'
             f = file(filename,'rb')
             print '- Calculating md5 checksum...'
