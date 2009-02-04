@@ -4,6 +4,7 @@
 #include <arc/job/runtimeenvironment.h>
 #include "JobDescription.h"
 
+
 namespace Arc {
     JobDescriptionError::JobDescriptionError(const std::string& what) : std::runtime_error(what){  }
 
@@ -467,8 +468,8 @@ namespace Arc {
         Arc::XMLNode node(source);
         Arc::NS nsList;
         nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
-        nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
-        nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
+        nsList.insert(std::pair<std::string, std::string>("jsdl-posix","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
+        nsList.insert(std::pair<std::string, std::string>("jsdl-arc","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
       
         node.Namespaces(nsList);
 
@@ -506,6 +507,15 @@ namespace Arc {
 
         if (bool(jobidentification["JobName"])) {
            innerRepresentation.JobName = (std::string)jobidentification["JobName"];
+        }
+
+        if (bool(jobidentification["Migration"])) {
+           for ( int i=0; (bool)(jobidentification["OldJobID"][i]); i++ ) { 
+              Arc::WSAEndpointReference old_job_epr(jobidentification["OldJobID"][i]);
+			  innerRepresentation.Migration.OldJobIDs.push_back(old_job_epr);
+           }
+		   Arc::WSAEndpointReference migration_id(jobidentification["Migration"]["MigrationID"]);
+           innerRepresentation.Migration.MigrationID = migration_id;
         }
 
         if (bool(jobidentification["Notify"])) {

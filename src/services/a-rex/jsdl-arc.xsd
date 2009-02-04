@@ -2,7 +2,12 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	    xmlns="http://www.nordugrid.org/ws/schemas/jsdl-arc"
 	    xmlns:jsdl-arc="http://www.nordugrid.org/ws/schemas/jsdl-arc"
-	    targetNamespace="http://www.nordugrid.org/ws/schemas/jsdl-arc">
+	    targetNamespace="http://www.nordugrid.org/ws/schemas/jsdl-arc"
+        xmlns:wsa="http://www.w3.org/2005/08/addressing">
+
+ <xsd:import
+      namespace="http://www.w3.org/2005/08/addressing"
+      schemaLocation="./ws-addr.xsd"/>
 
  <xsd:simpleType name="GMState_Type">
   <xsd:restriction base="xsd:string">
@@ -160,6 +165,14 @@
   <xsd:restriction base="xsd:dateTime"/>
  </xsd:simpleType>
 
+ <xsd:complexType name="Miration_Type">
+  <xsd:annotation><xsd:documentation> For jsdl:JobIdentification_Type </xsd:documentation></xsd:annotation>
+  <xsd:sequence>
+   <xsd:element name="OldJobID" minOccurs="1" maxOccurs="unbounded" type="wsa:EndpointReferenceType"/>
+   <xsd:element name="MigrationID" minOccurs="1" maxOccurs="1" type="wsa:EndpointReferenceType"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
  <!--=========================================================-->
  <xsd:element name="IsExecutable" type="IsExecutable_Type"/>
  <xsd:element name="FileParameters" type="FileParameters_Type"/>
@@ -177,5 +190,6 @@
  <xsd:element name="GridTimeLimit" type="GridTimeLimit_Type"/>
  <xsd:element name="CandidateTarget" type="CandidateTarget_Type"/>
  <xsd:element name="ProcessingStartTime" type="Time_Type"/>
+ <xsd:element name="Migration" type="Migration_Type"/>
 
 </xsd:schema>

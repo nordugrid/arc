@@ -28,13 +28,15 @@ libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-        $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
+    $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
 	$(top_srcdir)/src/hed/libs/job/libarcjob.la \
+    $(top_srcdir)/src/hed/libs/ws-addressing/libwsaddressing.la \
 	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS)
 
 test_jobdescription_SOURCES  = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_jobdescription_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-test_jobdescription_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la libarcclient.la
+test_jobdescription_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la libarcclient.la \
+           $(top_srcdir)/src/hed/libs/ws-addressing/libwsaddressing.la
 

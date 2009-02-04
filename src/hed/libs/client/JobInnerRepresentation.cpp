@@ -35,6 +35,22 @@ namespace Arc {
         for (iter = UserTag.begin(); iter != UserTag.end(); iter++)
 	  std::cout << Arc::IString(" UserTag: %s", *iter) << std::endl;
       }
+
+	  if (!(Migration.MigrationID.Address()).empty()) {
+         std::list<Arc::WSAEndpointReference>::const_iterator m_iter;
+		 std::string str;
+		 int i = 1;
+		 Arc::WSAEndpointReference epr_tmp;
+         for (m_iter = Migration.OldJobIDs.begin(); m_iter != Migration.OldJobIDs.end(); m_iter++, i++) {
+		    epr_tmp = (*m_iter);
+		    ((Arc::XMLNode)epr_tmp).GetXML(str, true);
+	        std::cout << Arc::IString("%d. Old Job EPR: %s", i, str) << std::endl;
+         }
+		 epr_tmp = Migration.MigrationID;
+		 ((Arc::XMLNode)epr_tmp).GetXML(str, true);
+	     std::cout << Arc::IString("Migration EPR: %s", str) << std::endl;
+      }
+
       if (!OptionalElement.empty()) {
         std::list<std::string>::const_iterator iter;
         for (iter = OptionalElement.begin(); iter != OptionalElement.end(); iter++)

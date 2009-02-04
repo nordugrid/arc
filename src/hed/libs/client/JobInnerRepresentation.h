@@ -7,7 +7,7 @@
 #include <arc/DateTime.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
-
+#include <arc/ws-addressing/WSA.h>
 
 namespace Arc {
 
@@ -69,6 +69,11 @@ struct DirectoryType {
     bool DownloadToCache;
 };
 
+struct MigrationType {
+    std::list<Arc::WSAEndpointReference> OldJobIDs;
+	Arc::WSAEndpointReference MigrationID;
+};
+
   class JobInnerRepresentation {
 
   public:
@@ -103,6 +108,7 @@ struct DirectoryType {
     std::string JobType;
     std::string JobCategory;
     std::list<std::string> UserTag;
+    MigrationType Migration;
 
     // Application information
     std::string Executable;

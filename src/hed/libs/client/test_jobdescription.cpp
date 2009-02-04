@@ -3,6 +3,7 @@
 #include <arc/client/JobDescription.h>
 #include <arc/OptionParser.h>
 #include <arc/IString.h>
+#include <arc/ws-addressing/WSA.h>
 
 int main(int argc, char* argv[]) {
 
@@ -109,6 +110,7 @@ for (std::list< std::string >::iterator it = descriptions.begin(); it != descrip
     }
   }
 }
+   
   return 0;
 
 }
