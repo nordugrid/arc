@@ -101,7 +101,7 @@ bool JobRequestJSDL::set(Arc::XMLNode jsdl_description_) throw(JobRequestError) 
       if( bool(jsdl_resources_["CandidateTarget"]["QueueName"]) == true ) queue = (std::string) jsdl_resources_["CandidateTarget"]["QueueName"];
     };
 
-    if( bool(jsdl_resources_["CPUArchitecture"]) == true ) architecture = (std::string) jsdl_resources_["CPUArchitecture"];
+    if( bool(jsdl_resources_["CPUArchitecture"]["CPUArchitectureName"]) == true ) architecture = (std::string) jsdl_resources_["CPUArchitecture"]["CPUArchitectureName"];
     for( int i=0; bool(jsdl_resources_["RunTimeEnvironment"][i]) == true; ++i ) {
       std::string s = (std::string) jsdl_resources_["RunTimeEnvironment"][i]["Name"];
       
@@ -210,7 +210,7 @@ bool JobRequestJSDL::set(Arc::XMLNode jsdl_description_) throw(JobRequestError) 
           };
           if( bool(sourceNode["URI"]) != true ) {
             // Source without URL - uploaded by client
-            Arc::XMLNode fileParameterNode = jsdl_description_["DataStaging"][i]["FileParamters"];
+            Arc::XMLNode fileParameterNode = jsdl_description_["DataStaging"][i]["FileParameters"];
             if( bool(fileParameterNode) == true ) {
               inputdata.push_back(JobRequest::InputFile( (std::string) filenameNode, (std::string) fileParameterNode ) );
             } else {
