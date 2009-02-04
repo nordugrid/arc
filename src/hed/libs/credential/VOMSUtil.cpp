@@ -526,6 +526,9 @@ err:
     AC* received_ac;
     AC** actmplist = NULL;
     char *p, *pp;
+
+    InitVOMSAttribute();
+
     int l = codedac.size();
 
     pp = (char *)malloc(codedac.size());

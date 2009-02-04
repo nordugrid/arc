@@ -66,9 +66,9 @@ int main(void) {
   std::string voname = "knowarc";
   std::string uri = "testvoms.knowarc.eu:50000";
 
-  std::string codedac;
-  Arc::createVOMSAC(codedac, issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
-
+  std::string ac_str;
+  Arc::createVOMSAC(ac_str, issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
+  std::cout<<"AC: "<<ac_str<<std::endl;
 
   /* Parse the Attribute Certificate with string format
   * In real senario the Attribute Certificate with string format should be received from the other end, 
@@ -77,7 +77,7 @@ int main(void) {
   * list as a proxy certificate's extension.
   */
   ArcCredential::AC** aclist = NULL;
-  Arc::addVOMSAC(aclist, codedac);
+  Arc::addVOMSAC(aclist, ac_str);
    
 
   /** b.Below is general proxy processing, which is the same as the 
