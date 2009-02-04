@@ -22,10 +22,10 @@ class Gateway:
 
     def __init__(self,cfg):
         #print "Gateway constructor..."
-   	self.service_name = 'Gateway' 
+        self.service_name = 'Gateway' 
     def get(self, sourceURL, flags):
         response ={}    
-	url = arc.URL(sourceURL);
+        url = arc.URL(sourceURL);
         handle = arc.DataHandle(url);
         usercfg = arc.UserConfig("");
         cred = arc.Config(arc.NS());
@@ -33,12 +33,12 @@ class Gateway:
         handle.__deref__().AssignCredentials(cred);
         (files, status) = handle.__deref__().ListFiles(True);
         for file in files:
-        	#print file.GetName()
-		response[file.GetName()] = [sourceURL,status] 
+                #print file.GetName()
+                response[file.GetName()] = [sourceURL,status] 
         return response
             
     def put(self, request, flags):
-	response = {}
+        response = {}
         #print request
         return response
 
@@ -46,50 +46,50 @@ class Gateway:
         """Input arguments
         URL of the file or directory """
         response = {}
-	tmpList = []
+        tmpList = []
         url = arc.URL(request)
-	handle = arc.DataHandle(url)
-	usercfg = arc.UserConfig("")
-	cred = arc.Config(arc.NS())
-	usercfg.ApplySecurity(cred)
-	handle.__deref__().AssignCredentials(cred)
-	(files, status) = handle.__deref__().ListFiles(True)
-	print status	 
-	if (flags == '-l'):
-	    for file in files:
-    		print file.GetName(), " ", file.GetSize(), " ", file.GetCreated()
-		if ( file.GetType() == 1):
-		    type = 'file'
-		elif (file.GetType() == 2):
-		    type = 'dir'
-		else:
-		    type = 'known'	 
-		if (flags == '-l'):	 
-		    tmpList.append(file.GetName()+':'+str(file.GetSize())+':'+type+'\n')
-		else:
+        handle = arc.DataHandle(url)
+        usercfg = arc.UserConfig("")
+        cred = arc.Config(arc.NS())
+        usercfg.ApplySecurity(cred)
+        handle.__deref__().AssignCredentials(cred)
+        (files, status) = handle.__deref__().ListFiles(True)
+        print status     
+        if (flags == '-l'):
+            for file in files:
+                print file.GetName(), " ", file.GetSize(), " ", file.GetCreated()
+                if ( file.GetType() == 1):
+                    type = 'file'
+                elif (file.GetType() == 2):
+                    type = 'dir'
+                else:
+                    type = 'known'       
+                if (flags == '-l'):      
+                    tmpList.append(file.GetName()+':'+str(file.GetSize())+':'+type+'\n')
+                else:
                     tmpList.append(file.GetName()+'\n')
-	else:
-		for file in files:
-			tmpList.append(file.GetName()+',')
+        else:
+                for file in files:
+                        tmpList.append(file.GetName()+',')
 
-	response[request]=[status,''.join(tmpList)]
-	return response
+        response[request]=[status,''.join(tmpList)]
+        return response
     
     def remove(self, sourceURL, flags):
-	
+        
         """ remove file or direcotory """
-	response = {}
+        response = {}
         #url = arc.URL(sourceURL)
-	#handle = arc.DataHandle(url)
+        #handle = arc.DataHandle(url)
         #usercfg = arc.UserConfig("")
         #cred = arc.Config(arc.NS())
         #usercfg.ApplySecurity(cred)
         #handle.__deref__().AssignCredentials(cred)
         #(files, status) = handle.__deref__().ListFiles(True)
-	
-	#print "File or directory removed"     
-	return response	
-	
+        
+        #print "File or directory removed"     
+        return response 
+        
 
 """ A high level service that contacts the externalStorageInformationService and TransferService To 
     to provide a bridge between ARC Storage Manager and thrid party storage system."""
@@ -100,9 +100,9 @@ class GatewayService(Service):
 
         #print "GatewayService Constructor..."
 
-	self.service_name = 'Gateway' 
+        self.service_name = 'Gateway' 
         request_names = ['get','list','put','remove']
-        Service.__init__(self, 'Gateway', request_names, 'gateway', gateway_uri, cfg)
+        Service.__init__(self, request_names, 'gateway', gateway_uri, cfg)
         self.gateway = Gateway(cfg)
                 
     def get(self, inpayload):
@@ -117,7 +117,7 @@ class GatewayService(Service):
         #print response
 
         return create_response('gateway:getFile', 
-            ['gateway:file', 'gateway:url', 'gateway:status'], response, self.newSOAPPayload() )
+            ['gateway:file', 'gateway:url', 'gateway:status'], response, self._new_soap_payload() )
     
     def put(self, inpayload):
 
@@ -132,7 +132,7 @@ class GatewayService(Service):
         #print response
         
         return create_response('gateway:putFile',
-                        ['gateway:file', 'gateway:url', 'gateway:status'], response, self.newSOAPPayload() )
+                        ['gateway:file', 'gateway:url', 'gateway:status'], response, self._new_soap_payload() )
     
     def list(self, inpayload):
         """ This method recieves the message from the client and forword 
@@ -146,9 +146,9 @@ class GatewayService(Service):
         externalrequest = str(request_node[0].Get('externalURL'))                
         flags = str(request_node[0].Get('flags'))
         response = self.gateway.list(externalrequest, flags)
-	#print response
+        #print response
         return create_response('gateway:list',
-                        ['gateway:url','gateway:status', 'gateway:info'], response, self.newSOAPPayload() )
+                        ['gateway:url','gateway:status', 'gateway:info'], response, self._new_soap_payload() )
     
     def remove(self, inpayload):
         """ remove the file or directory """
@@ -157,5 +157,5 @@ class GatewayService(Service):
         sourceURL = str(request_node[0].Get('sourceURL'))
         print '\n sourceURL = ', sourceURL
         flags = str(request_node[0].Get('flags'))
-	response = self.gateway.remove(sourceURL, flags)
-	#print response 	
+        response = self.gateway.remove(sourceURL, flags)
+        #print response         

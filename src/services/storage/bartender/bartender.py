@@ -6,7 +6,6 @@ import time
 import traceback
 
 from arcom import get_child_nodes
-from arcom.security import parse_ssl_config
 from arcom.service import librarian_uri, bartender_uri, gateway_uri, true, parse_node, create_response, node_to_data
 
 from arcom.xmltree import XMLTree
@@ -795,23 +794,21 @@ class BartenderService(Service):
 
     def __init__(self, cfg):
         self.service_name = 'Bartender'
-
         # names of provided methods
         request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify']
         # call the Service's constructor, 'Bartender' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
         # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
-        Service.__init__(self, self.service_name, request_names, 'bar', bartender_uri, cfg)
+        Service.__init__(self, request_names, 'bar', bartender_uri, cfg)
         # get the URL of the Librarian from the config file
         librarian_url = str(cfg.Get('LibrarianURL'))
         # get the URL of the Gateway from the config file
         gateway_url = str(cfg.Get('GatewayURL'))
-        ssl_config = parse_ssl_config(cfg)
         # create a LibrarianClient from the URL
-        librarian = LibrarianClient(librarian_url, ssl_config = ssl_config)
+        librarian = LibrarianClient(librarian_url, ssl_config = self.ssl_config)
         # create a GatewayClient from the URL
         gateway = GatewayClient(gateway_url)
-        self.bartender = Bartender(librarian, gateway, ssl_config)
+        self.bartender = Bartender(librarian, gateway, self.ssl_config)
 
     def stat(self, inpayload):
         # incoming SOAP message example:
@@ -867,7 +864,7 @@ class BartenderService(Service):
             response[requestID] = create_metadata(metadata, 'bar')
         # create the response message with the requestID and the metadata for each request
         return create_response('bar:stat',
-            ['bar:requestID', 'bar:metadataList'], response, self.newSOAPPayload(), single = True)
+            ['bar:requestID', 'bar:metadataList'], response, self._new_soap_payload(), single = True)
 
     def delFile(self, inpayload):
         # incoming SOAP message example:
@@ -904,7 +901,7 @@ class BartenderService(Service):
         ])
         response = self.bartender.delFile(inpayload.auth, requests)
         return create_response('bar:delFile',
-            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single=True)
+            ['bar:requestID', 'bar:success'], response, self._new_soap_payload(), single=True)
 
 
     def getFile(self, inpayload):
@@ -951,7 +948,7 @@ class BartenderService(Service):
         ])
         response = self.bartender.getFile(inpayload.auth, requests)
         return create_response('bar:getFile',
-            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
+            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self._new_soap_payload())
     
     def addReplica(self, inpayload):
         # incoming SOAP message example:
@@ -993,7 +990,7 @@ class BartenderService(Service):
                 for request_node in request_nodes])
         response = self.bartender.addReplica(inpayload.auth, requests, protocols)
         return create_response('bar:addReplica',
-            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
+            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self._new_soap_payload())
     
     def putFile(self, inpayload):
         # incoming SOAP message example:
@@ -1052,7 +1049,7 @@ class BartenderService(Service):
         ])
         response = self.bartender.putFile(inpayload.auth, requests)
         return create_response('bar:putFile',
-            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
+            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self._new_soap_payload())
 
     def unmakeCollection(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
@@ -1063,7 +1060,7 @@ class BartenderService(Service):
         ])
         response = self.bartender.unmakeCollection(inpayload.auth, requests)
         return create_response('bar:unmakeCollection',
-            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
+            ['bar:requestID', 'bar:success'], response, self._new_soap_payload(), single = True)
 
     def makeCollection(self, inpayload):
         # incoming SOAP message example:
@@ -1109,7 +1106,7 @@ class BartenderService(Service):
         ])
         response = self.bartender.makeCollection(inpayload.auth, requests)
         return create_response('bar:makeCollection',
-            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
+            ['bar:requestID', 'bar:success'], response, self._new_soap_payload(), single = True)
 
     ### Created by Salman Toor. ###
     
@@ -1122,7 +1119,7 @@ class BartenderService(Service):
         ])
         response = self.bartender.unmakeMountpoint(inpayload.auth, requests)
         return create_response('bar:unmakeMountpoint',
-            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
+            ['bar:requestID', 'bar:success'], response, self._new_soap_payload(), single = True)
 
     def makeMountpoint(self, inpayload):
         # incoming SOAP message example:
@@ -1169,7 +1166,7 @@ class BartenderService(Service):
         ])
         response = self.bartender.makeMountpoint(inpayload.auth, requests)
         return create_response('bar:makeMountpoint',
-            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
+            ['bar:requestID', 'bar:success'], response, self._new_soap_payload(), single = True)
         
     ###     ####        
 
@@ -1249,7 +1246,7 @@ class BartenderService(Service):
             status)
         ) for requestID, (entries, status) in response0.items()])
         return create_response('bar:list',
-            ['bar:requestID', 'bar:entries', 'bar:status'], response, self.newSOAPPayload())
+            ['bar:requestID', 'bar:entries', 'bar:status'], response, self._new_soap_payload())
 
     def move(self, inpayload):
         # incoming SOAP message example:
@@ -1285,11 +1282,11 @@ class BartenderService(Service):
             ['requestID', 'sourceLN', 'targetLN', 'preserveOriginal'])
         response = self.bartender.move(inpayload.auth, requests)
         return create_response('bar:move',
-            ['bar:requestID', 'bar:status'], response, self.newSOAPPayload(), single = True)
+            ['bar:requestID', 'bar:status'], response, self._new_soap_payload(), single = True)
 
     def modify(self, inpayload):
         requests = parse_node(inpayload.Child().Child(), ['bar:changeID',
             'bar:LN', 'bar:changeType', 'bar:section', 'bar:property', 'bar:value'])
         response = self.bartender.modify(inpayload.auth, requests)
         return create_response('bar:modify', ['bar:changeID', 'bar:success'],
-            response, self.newSOAPPayload(), single = True)
+            response, self._new_soap_payload(), single = True)

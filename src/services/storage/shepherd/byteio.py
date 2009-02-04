@@ -116,7 +116,7 @@ class ByteIOService(Service):
         # names of provided methods
         request_names = ['read', 'write']
         # call the Service's constructor
-        Service.__init__(self, 'ByteIO', request_names, 'rb', rbyteio_uri, cfg)
+        Service.__init__(self, request_names, 'rb', rbyteio_uri, cfg)
         self.transferdir = str(cfg.Get('TransferDir'))
         log.msg(arc.DEBUG, "ByteIOService transfer dir:", self.transferdir)
         self.notify = NotifyClient(str(cfg.Get('NotifyURL')))
@@ -145,7 +145,7 @@ class ByteIOService(Service):
             log.msg()
             raise Exception, 'write failed'
         self.notify.notify(subject, 'received')
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         response_node = out.NewChild('rb:writeResponse').Set('OK')
         return out
 
@@ -156,7 +156,7 @@ class ByteIOService(Service):
             log.msg()
             data = ''
         self.notify.notify(subject, 'sent')
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         response_node = out.NewChild('rb:readResponse')
         transfer_node = response_node.NewChild('rb:transfer-information')
         transfer_node.NewAttribute('transfer-mechanism').Set(byteio_simple_uri)

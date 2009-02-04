@@ -289,7 +289,7 @@ class LibrarianService(Service):
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
-        Service.__init__(self, 'Librarian', request_names, 'lbr', librarian_uri, cfg)
+        Service.__init__(self, request_names, 'lbr', librarian_uri, cfg)
         self.librarian = Librarian(cfg)
     
     def new(self, inpayload):
@@ -299,7 +299,7 @@ class LibrarianService(Service):
             for requestID, metadataList in requests0.items()])
         resp = self.librarian.new(requests)
         return create_response('lbr:new',
-            ['lbr:requestID', 'lbr:GUID', 'lbr:success'], resp, self.newSOAPPayload())
+            ['lbr:requestID', 'lbr:GUID', 'lbr:success'], resp, self._new_soap_payload())
 
     def get(self, inpayload):
         requests = [str(node.Get('GUID')) for node in get_child_nodes(inpayload.Child().Get('getRequestList'))]
@@ -308,7 +308,7 @@ class LibrarianService(Service):
                 for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
         ]
         tree = self.librarian.get(requests, neededMetadata)
-        out = arc.PayloadSOAP(self.newSOAPPayload())
+        out = arc.PayloadSOAP(self._new_soap_payload())
         response_node = out.NewChild('lbr:getResponse')
         tree.add_to_node(response_node)
         return out
@@ -330,20 +330,20 @@ class LibrarianService(Service):
                 traversedLN, GUID, metadataTree, restLN)
         return create_response('lbr:traverseLN',
             ['lbr:requestID', 'lbr:traversedList', 'lbr:wasComplete',
-                'lbr:traversedLN', 'lbr:GUID', 'lbr:metadataList', 'lbr:restLN'], response, self.newSOAPPayload())
+                'lbr:traversedLN', 'lbr:GUID', 'lbr:metadataList', 'lbr:restLN'], response, self._new_soap_payload())
 
     def modifyMetadata(self, inpayload):
         requests = parse_node(inpayload.Child().Child(), ['lbr:changeID',
             'lbr:GUID', 'lbr:changeType', 'lbr:section', 'lbr:property', 'lbr:value'])
         response = self.librarian.modifyMetadata(requests)
         return create_response('lbr:modifyMetadata', ['lbr:changeID', 'lbr:success'],
-            response, self.newSOAPPayload(), single = True)
+            response, self._new_soap_payload(), single = True)
 
     def remove(self, inpayload):
         requests = parse_node(inpayload.Child().Child(), ['lbr:requestID', 'lbr:GUID'], single = True)
         response = self.librarian.remove(requests)
         return create_response('lbr:remove', ['lbr:requestID', 'lbr:success'],
-            response, self.newSOAPPayload(), single = True)
+            response, self._new_soap_payload(), single = True)
     
     def report(self, inpayload):
         request_node = inpayload.Child()
@@ -352,7 +352,7 @@ class LibrarianService(Service):
         file_nodes = get_child_nodes(filelist_node)
         filelist = [(str(node.Get('GUID')), str(node.Get('referenceID')), str(node.Get('state'))) for node in file_nodes]
         nextReportTime = self.librarian.report(serviceID, filelist)
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         response_node = out.NewChild('lbr:registerResponse')
         response_node.NewChild('lbr:nextReportTime').Set(str(nextReportTime))
         return out

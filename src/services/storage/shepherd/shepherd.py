@@ -429,14 +429,14 @@ class ShepherdService(Service):
                 setattr(self, name, getattr(self.shepherd.backend, name))
                 request_names.append(name)
         # call the Service's constructor
-        Service.__init__(self, serviceID, request_names, 'she', shepherd_uri, cfg)
+        Service.__init__(self, request_names, 'she', shepherd_uri, cfg)
 
     def stat(self, inpayload):
         request = parse_node(inpayload.Child().Child(), ['requestID', 'referenceID'], single = True)
         response = self.shepherd.stat(request)
         #print response
         return create_response('she:stat',
-            ['she:requestID', 'she:referenceID', 'she:state', 'she:checksumType', 'she:checksum', 'she:acl', 'she:size', 'she:GUID', 'she:localID'], response, self.newSOAPPayload())
+            ['she:requestID', 'she:referenceID', 'she:state', 'she:checksumType', 'she:checksum', 'she:acl', 'she:size', 'she:GUID', 'she:localID'], response, self._new_soap_payload())
     
 
     def delete(self, inpayload):
@@ -450,7 +450,7 @@ class ShepherdService(Service):
                     ]) for requestID, status in response.items()
                 ])
             )
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         response_node = out.NewChild('deleteresponse')
         tree.add_to_node(response_node)
         return out
@@ -478,7 +478,7 @@ class ShepherdService(Service):
                 ]) for requestID, responseData in response.items()
             ])
         )
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         response_node = out.NewChild(putget + 'response')
         tree.add_to_node(response_node)
         return out
@@ -498,7 +498,7 @@ class ShepherdService(Service):
     def toggleReport(self, inpayload):
         doReporting = str(inpayload.Child().Get('doReporting'))
         response = self.shepherd.toggleReport(doReporting == true)
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         response_node = out.NewChild('lbr:toggleReportResponse')
         response_node.Set(response)
         return out

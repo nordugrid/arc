@@ -1,5 +1,6 @@
 storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
 identity_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/identity'
+ca_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/ca'
 vomsattribute_type = 'http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute'
 storage_action_type = 'http://www.nordugrid.org/schemas/policy-arc/types/storage/action'
 request_ns = 'http://www.nordugrid.org/schemas/request-arc'
@@ -25,6 +26,10 @@ class AuthRequest:
             identity_node.Set(self.identity)
             identity_node.NewAttribute('AttributeId').Set(identity_type)
             identity_node.NewAttribute('Type').Set('string')
+        try:
+            self.ca = str(subject.XPathLookup('//ra:SubjectAttribute[@AttributeId="%s"]' % ca_type, arc.NS({'ra':request_ns}))[0])
+        except:
+            self.ca = ''
         self.subject = subject.GetXML()
     
     def get_request(self, action, format = 'ARCAuth'):
@@ -36,6 +41,9 @@ class AuthRequest:
             
     def get_identity(self):
         return self.identity
+
+    def get_identity_and_ca(self):
+        return self.identity, self.ca
             
     def __str__(self): 
         return self.subject
@@ -111,8 +119,8 @@ def make_decision(policy, request):
 
 def parse_ssl_config(cfg):
     try:
-        client_ssl_node = cfg.Get(('ClientSSLConfig'))
-        fromFile = str(client_ssl_node.Attribute('fromFile'))
+        client_ssl_node = cfg.Get('ClientSSLConfig')
+        fromFile = str(client_ssl_node.Attribute('FromFile'))
         if fromFile:
             try:
                 xml_string = file(fromFile).read()

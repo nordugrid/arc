@@ -19,6 +19,7 @@ if ahash_url.startswith('https'):
     try:
         ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
         ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
+        ssl_config['ca_dir'] = os.environ['ARC_CA_DIR']
         # print '- The key file:', ssl_config['key_file']
         # print '- The cert file:', ssl_config['cert_file']
     except:

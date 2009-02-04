@@ -12,39 +12,123 @@ byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/s
 # True and False values used in the XML representation
 true = '1'
 false = '0'
-
+# the defaults for TrustManager
+default_checking_interval = 600
+default_ahash_id = '3'
 
 import arc
 import inspect
 import time
 import sys
+import threading
+import random
 from arcom import get_child_nodes
-from arcom.security import AuthRequest
+from arcom.security import AuthRequest, parse_ssl_config
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Service'))
 
 class Service:
     
-    def __init__(self, service_name, request_names, namespace_prefix, namespace_uri, cfg = None):
-        #if cfg:
-        #    log_level = str(cfg.Get('LogLevel'))
-        #else:
-        #    log_level = None
-        self.service_name = service_name
-        log.msg(arc.DEBUG, service_name, "constructor called")
+    def __init__(self, request_names, namespace_prefix, namespace_uri, cfg = None):
+        self._trust_manager = []
+        self.ssl_config = {}
+        if cfg:
+            self.ssl_config = parse_ssl_config(cfg)
+            trust_manager_node = cfg.Get('TrustManager')
+            fromFile = str(trust_manager_node.Attribute('FromFile'))
+            if fromFile:
+                try:
+                    xml_string = file(fromFile).read()
+                    trust_manager_node = arc.XMLNode(xml_string)
+                except:
+                    log.msg()
+                    pass
+            self._force_trust = str(trust_manager_node.Attribute('Force')) not in ['no', 'No', 'NO']
+            entries = get_child_nodes(trust_manager_node)
+            for entry in entries:
+                name = entry.Name()
+                if name in ['DN', 'CA']:
+                    self._trust_manager.append({'type': name, 'DNs': [str(entry)]})
+                if name in ['DNsFromAHash']:
+                    try:
+                        checking_interval = int(str(entry.Attribute('CheckingInterval')))
+                    except:
+                        checking_interval = None
+                    if not checking_interval:
+                        checking_interval = default_checking_interval
+                    ahash_id = str(entry.Attribute('ID'))
+                    if not ahash_id:
+                        ahash_id = default_ahash_id
+                    ahashes = get_child_nodes(entry)
+                    ahash_urls = []
+                    for ahash in ahashes:
+                        if ahash.Name() == 'AHashURL':
+                            ahash_urls.append(str(ahash))
+                    data = {'type': name, 'DNs' : [], 'URLs' : ahash_urls,
+                        'checking_interval' : checking_interval, 'ahash_id' : ahash_id}
+                    self._trust_manager.append(data)
+                    threading.Thread(target = self._get_dns_from_ahash, args = [data]).start()
+        if not hasattr(self,'service_name'):
+            self.service_name = 'Python Service With No Name'
+        #if self._trust_manager:
+        #    print self.service_name, "TrustManager:", self._force_trust and 'force' or 'don\'t force', self._trust_manager
+        log.msg(arc.DEBUG, self.service_name, "constructor called")
         self.request_names = request_names
         self.namespace_prefix = namespace_prefix
         self.namespace_uri = namespace_uri
         self.ns = arc.NS(namespace_prefix, namespace_uri)
         
+    def _get_dns_from_ahash(self, data):
+        try:
+            from storage.client import AHashClient
+        except:
+            log.msg()
+        # first just wait a few seconds
+        time.sleep(10)
+        while True:
+            try:
+                #print "Start getting a list of DNs from an AHash"
+                ahash_url = random.choice(data['URLs'])
+                #print "Chosen AHash:", ahash_url
+                ahash = AHashClient(ahash_url, ssl_config = self.ssl_config)
+                results = ahash.get([data['ahash_id']])[data['ahash_id']]
+                data['DNs'] = [DN for (_, DN) in results.keys()]
+                #print "data", data
+                #print "Done, waiting for %d seconds" % data['checking_interval']
+                time.sleep(data['checking_interval'])
+            except:
+                log.msg()
+                time.sleep(1)
     
-    def newSOAPPayload(self):
+    def _is_trusted(self, DN, CA):
+        if not self._trust_manager:
+            return True
+        #print '_is_trusted called with', DN, CA
+        trusted = False
+        for entry in self._trust_manager:
+            if entry['type'] == 'DN':
+                if DN in entry['DNs']:
+                    #print DN, 'is listed as trusted'
+                    trusted = True
+            if entry['type'] == 'CA':
+                if CA in entry['DNs']:
+                    #print DN, 'has a CA which is listed as trusted'
+                    trusted = True
+            if entry['type'] == 'DNsFromAHash':
+                if DN in entry['DNs']:
+                    #print DN, 'is listed as trusted in these AHashes:', ', '.join(entry['URLs'])
+                    trusted = True
+        return trusted
+    
+    def _new_soap_payload(self):
         return arc.PayloadSOAP(self.ns)
     
     def _call_request(self, request_name, inmsg):
         inpayload = inmsg.Payload()
         auth = AuthRequest(inmsg)
         inpayload.auth = auth
+        if self._force_trust and not self._is_trusted(*auth.get_identity_and_ca()):
+            raise Exception, 'client is not trusted'
         return getattr(self,request_name)(inpayload)
     
     def process(self, inmsg, outmsg):

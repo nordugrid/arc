@@ -227,7 +227,7 @@ class AHashService(Service):
                 setattr(self, name, getattr(self.ahash, name))
                 request_names.append(name)
         # call the Service's constructor
-        Service.__init__(self, self.service_name, request_names, 'ahash', ahash_uri, cfg)
+        Service.__init__(self, request_names, 'ahash', ahash_uri, cfg)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
@@ -252,7 +252,7 @@ class AHashService(Service):
         # gets the result from the business logic class
         objects = self.ahash.get(ids, neededMetadata)
         # create the response payload
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         # create the 'getResponse' node
         response_node = out.NewChild('ahash:getResponse')
         # create an XMLTree from the results
@@ -303,7 +303,7 @@ class AHashService(Service):
         # call the business logic class
         resp = self.ahash.change(changes)
         # prepare the response payload
-        out = self.newSOAPPayload()
+        out = self._new_soap_payload()
         # create the 'changeResponse' node
         response_node = out.NewChild('ahash:changeResponse')
         # create an XMLTree for the response
