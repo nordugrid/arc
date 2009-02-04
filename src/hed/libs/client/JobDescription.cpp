@@ -63,7 +63,7 @@ namespace Arc {
         candidate.extensions.clear();
         candidate.pattern.clear();
         candidate.negative_pattern.clear();
-        candidate.priority = DEFAULT_PRIORITY; //Default value
+        candidate.priority = TOP_PRIORITY; //50 value
         //End of setting defaults//
         candidate.typeName = "POSIXJSDL";
         candidate.extensions.push_back("posix");
@@ -82,11 +82,8 @@ namespace Arc {
 //        candidate.pattern.push_back("<Input");
 //        candidate.pattern.push_back("<Output");
 //        candidate.pattern.push_back("<Error");
-        candidate.pattern.push_back("<CPUArchitectureName");
-        candidate.pattern.push_back("<DeleteOnTermination");
-        
-        //candidate.pattern.push_back("<?xml ");
-        //candidate.pattern.push_back("<JobDescription");
+//        candidate.pattern.push_back("<CPUArchitectureName");
+//        candidate.pattern.push_back("<DeleteOnTermination");
         //Save entry
         candidates.push_back(candidate);
         // End of POSIX JSDL
@@ -751,8 +748,8 @@ namespace Arc {
     bool PosixJSDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
         Arc::NS nsList;        
         nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
-        nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
-        nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
+        nsList.insert(std::pair<std::string, std::string>("jsdl-posix","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
+        nsList.insert(std::pair<std::string, std::string>("jsdl-arc","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
            
    
         Arc::XMLNode jobdefinition("<JobDefinition/>");
@@ -771,50 +768,77 @@ namespace Arc {
            if ( !bool( jobdescription["JobIdentification"] ) ) jobdescription.NewChild("JobIdentification");
            jobdescription["JobIdentification"].NewChild("JobProject") = innerRepresentation.JobProject;
         }
+        // end of JobIdentification
 
         // Application
         if (!innerRepresentation.Executable.empty()){
            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
            if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
-              jobdescription["Application"].NewChild("POSIXApplication");
-           jobdescription["Application"]["POSIXApplication"].NewChild("Executable") = innerRepresentation.Executable;
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:Executable") = innerRepresentation.Executable;
         }
         if (!innerRepresentation.Argument.empty()){
            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
            if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
-              jobdescription["Application"].NewChild("POSIXApplication");
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
            for (std::list<std::string>::const_iterator it=innerRepresentation.Argument.begin();
                  it!=innerRepresentation.Argument.end(); it++) {
-               jobdescription["Application"]["POSIXApplication"].NewChild("Argument") = *it;
+               jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:Argument") = *it;
            }
         }
         if (!innerRepresentation.Input.empty()){
            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
            if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
-              jobdescription["Application"].NewChild("POSIXApplication");
-           jobdescription["Application"]["POSIXApplication"].NewChild("Input") = innerRepresentation.Input;
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:Input") = innerRepresentation.Input;
         }
         if (!innerRepresentation.Output.empty()){
            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
            if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
-              jobdescription["Application"].NewChild("POSIXApplication");
-           jobdescription["Application"]["POSIXApplication"].NewChild("Output") = innerRepresentation.Output;
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:Output") = innerRepresentation.Output;
         }
         if (!innerRepresentation.Error.empty()){
            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
            if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
-              jobdescription["Application"].NewChild("POSIXApplication");
-           jobdescription["Application"]["POSIXApplication"].NewChild("Error") = innerRepresentation.Error;
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:Error") = innerRepresentation.Error;
         }
         for (std::list<Arc::EnvironmentType>::const_iterator it=innerRepresentation.Environment.begin();
                  it!=innerRepresentation.Environment.end(); it++) {
             if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
             if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
-               jobdescription["Application"].NewChild("POSIXApplication");
-            Arc::XMLNode environment = jobdescription["Application"]["POSIXApplication"].NewChild("Environment");
+               jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+            Arc::XMLNode environment = jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:Environment");
             environment = (*it).value;
             environment.NewAttribute("name") = (*it).name_attribute;
         }
+        if (innerRepresentation.TotalWallTime != -1){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           Period time((std::string)innerRepresentation.TotalWallTime);
+           std::ostringstream oss;
+           oss << time.GetPeriod();
+           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:WallTimeLimit") = oss.str();
+        }
+        if (innerRepresentation.NumberOfProcesses > -1){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           std::ostringstream oss;
+           oss << innerRepresentation.NumberOfProcesses;
+           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:ProcessCountLimit") = oss.str();
+        }
+        if (innerRepresentation.ThreadPerProcesses > -1){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           std::ostringstream oss;
+           oss << innerRepresentation.ThreadPerProcesses;
+           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:ThreadCountLimit") = oss.str();
+        }
+        // end of Application
 
         // DataStaging
         for (std::list<Arc::FileType>::const_iterator it=innerRepresentation.File.begin();
@@ -836,7 +860,7 @@ namespace Arc {
                   datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
            }      
            if ((*it).IsExecutable || (*it).Name == innerRepresentation.Executable)
-              datastaging.NewChild("IsExecutable") = "true";
+              datastaging.NewChild("jsdl-arc:IsExecutable") = "true";
            if ((*it).KeepData){
               datastaging.NewChild("DeleteOnTermination") = "false";
            }
@@ -856,15 +880,15 @@ namespace Arc {
             }
             // When the version is not parsing
             if ( !(*it).Name.empty() && (*it).Version.empty()){
-               resources.NewChild("RunTimeEnvironment").NewChild("Name") = (*it).Name;
+               resources.NewChild("jsdl-arc:RunTimeEnvironment").NewChild("jsdl-arc:Name") = (*it).Name;
             }
 
             // When more then one version are parsing
             for (std::list<std::string>::const_iterator it_version=(*it).Version.begin();
                  it_version!=(*it).Version.end(); it_version++) {
-                Arc::XMLNode RTE = resources.NewChild("RunTimeEnvironment");
-                RTE.NewChild("Name") = (*it).Name;
-                Arc::XMLNode version = RTE.NewChild("Version").NewChild("Exact");
+                Arc::XMLNode RTE = resources.NewChild("jsdl-arc:RunTimeEnvironment");
+                RTE.NewChild("jsdl-arc:Name") = (*it).Name;
+                Arc::XMLNode version = RTE.NewChild("jsdl-arc:Version").NewChild("jsdl-arc:Exact");
                 version.NewAttribute("epsilon") = "0.5";
                 version = *it_version;
             }
@@ -873,26 +897,261 @@ namespace Arc {
         if (!innerRepresentation.CEType.empty()) {
             if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
             if ( !bool( jobdescription["Resources"]["Middleware"] ) ) 
-               jobdescription["Resources"].NewChild("Middleware");
-            jobdescription["Resources"]["Middleware"].NewChild("Name") = innerRepresentation.CEType;
+               jobdescription["Resources"].NewChild("jsdl-arc:Middleware");
+            jobdescription["Resources"]["Middleware"].NewChild("jsdl-arc:Name") = innerRepresentation.CEType;
             //jobdescription["Resources"]["Middleware"].NewChild("Version") = ?;
         }
 
+        if (innerRepresentation.SessionLifeTime != -1) {
+            if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+            if ( !bool( jobdescription["Resources"]["SessionLifeTime"] ) ) 
+               jobdescription["Resources"].NewChild("jsdl-arc:SessionLifeTime");
+            std::string outputValue;
+            std::stringstream ss;
+            ss << innerRepresentation.SessionLifeTime.GetPeriod();
+            ss >> outputValue;
+            jobdescription["Resources"]["SessionLifeTime"] = outputValue;
+        }
+
+        if ( !innerRepresentation.ReferenceTime.value.empty()) {
+            if ( innerRepresentation.ReferenceTime.benchmark_attribute.empty() && 
+                 innerRepresentation.ReferenceTime.value_attribute.empty() &&
+                 isdigit(innerRepresentation.ReferenceTime.value[1])){
+              if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+              if ( !bool( jobdescription["Resources"]["GridTimeLimit"] ) ) 
+                 jobdescription["Resources"].NewChild("jsdl-arc:GridTimeLimit");
+              jobdescription["Resources"]["GridTimeLimit"] = innerRepresentation.ReferenceTime.value;
+            }
+            //TODO: what is the mapping, when the bechmark and the value attribute are not empty?
+        }
+
+        if (bool(innerRepresentation.EndPointURL)) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["CandidateTarget"] ) ) 
+              jobdescription["Resources"].NewChild("jsdl-arc:CandidateTarget");
+           if ( !bool( jobdescription["Resources"]["CandidateTarget"]["HostName"] ) ) 
+              jobdescription["Resources"]["CandidateTarget"].NewChild("jsdl-arc:HostName");
+           jobdescription["Resources"]["CandidateTarget"]["HostName"] = innerRepresentation.EndPointURL.str();
+        }
+
+        if (!innerRepresentation.QueueName.empty()) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["CandidateTarget"] ) ) 
+              jobdescription["Resources"].NewChild("jsdl-arc:CandidateTarget");
+           if ( !bool( jobdescription["Resources"]["CandidateTarget"]["QueueName"] ) ) 
+              jobdescription["Resources"]["CandidateTarget"].NewChild("jsdl-arc:QueueName");
+           jobdescription["Resources"]["CandidateTarget"]["QueueName"] = innerRepresentation.QueueName;
+        }
+
+        if (!innerRepresentation.Platform.empty()) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["CPUArchitecture"] ) ) 
+              jobdescription["Resources"].NewChild("CPUArchitecture");
+           if ( !bool( jobdescription["Resources"]["CPUArchitecture"]["CPUArchitectureName"] ) ) 
+              jobdescription["Resources"]["CPUArchitecture"].NewChild("CPUArchitectureName");
+           jobdescription["Resources"]["CPUArchitecture"]["CPUArchitectureName"] = innerRepresentation.Platform;
+        }
+
+        if (!innerRepresentation.OSName.empty()) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["OperatingSystem"] ) ) 
+              jobdescription["Resources"].NewChild("OperatingSystem");
+           if ( !bool( jobdescription["Resources"]["OperatingSystem"]["OperatingSystemType"] ) ) 
+              jobdescription["Resources"]["OperatingSystem"].NewChild("OperatingSystemType");
+            if ( !bool( jobdescription["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"] ) ) 
+              jobdescription["Resources"]["OperatingSystem"]["OperatingSystemType"].NewChild("OperatingSystemName");
+           jobdescription["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"] = innerRepresentation.OSName;
+        }
+
+        if (!innerRepresentation.OSVersion.empty()) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["OperatingSystem"] ) ) 
+              jobdescription["Resources"].NewChild("OperatingSystem");
+           if ( !bool( jobdescription["Resources"]["OperatingSystem"]["OperatingSystemVersion"] ) ) 
+              jobdescription["Resources"]["OperatingSystem"].NewChild("OperatingSystemVersion");
+           jobdescription["Resources"]["OperatingSystem"]["OperatingSystemVersion"] = innerRepresentation.OSVersion;
+        }
+
+        if (innerRepresentation.ProcessPerHost > -1) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["TotalCPUCount"] ) ) 
+              jobdescription["Resources"].NewChild("TotalCPUCount");
+            if ( !bool( jobdescription["Resources"]["TotalCPUCount"]["LowerBoundRange"] ) ) 
+              jobdescription["Resources"]["TotalCPUCount"].NewChild("LowerBoundRange");
+           std::ostringstream oss;
+           oss << innerRepresentation.ProcessPerHost;
+           jobdescription["Resources"]["TotalCPUCount"]["LowerBoundRange"] = oss.str();
+        }
+
+        if (innerRepresentation.IndividualPhysicalMemory > -1) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["IndividualPhysicalMemory"] ) ) 
+              jobdescription["Resources"].NewChild("IndividualPhysicalMemory");
+           if ( !bool( jobdescription["Resources"]["IndividualPhysicalMemory"]["LowerBoundRange"] ) ) 
+              jobdescription["Resources"]["IndividualPhysicalMemory"].NewChild("LowerBoundRange");
+           std::ostringstream oss;
+           oss << innerRepresentation.IndividualPhysicalMemory;
+           jobdescription["Resources"]["IndividualPhysicalMemory"]["LowerBoundRange"] = oss.str();
+        }
+
+        if (innerRepresentation.IndividualVirtualMemory > -1) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["IndividualVirtualMemory"] ) ) 
+              jobdescription["Resources"].NewChild("IndividualVirtualMemory");
+           if ( !bool( jobdescription["Resources"]["IndividualVirtualMemory"]["LowerBoundRange"] ) ) 
+              jobdescription["Resources"]["IndividualVirtualMemory"].NewChild("LowerBoundRange");
+           std::ostringstream oss;
+           oss << innerRepresentation.IndividualVirtualMemory;
+           jobdescription["Resources"]["IndividualVirtualMemory"]["LowerBoundRange"] = oss.str();
+        }
+
+        if (innerRepresentation.IndividualDiskSpace > -1) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["IndividualDiskSpace"] ) ) 
+              jobdescription["Resources"].NewChild("IndividualDiskSpace");
+           if ( !bool( jobdescription["Resources"]["IndividualDiskSpace"]["LowerBoundRange"] ) ) 
+              jobdescription["Resources"]["IndividualDiskSpace"].NewChild("LowerBoundRange");
+           std::ostringstream oss;
+           oss << innerRepresentation.IndividualDiskSpace;
+           jobdescription["Resources"]["IndividualDiskSpace"]["LowerBoundRange"] = oss.str();
+        }
+
+        if (innerRepresentation.TotalCPUTime != -1) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["TotalCPUTime"] ) ) 
+              jobdescription["Resources"].NewChild("TotalCPUTime");
+           if ( !bool( jobdescription["Resources"]["TotalCPUTime"]["LowerBoundRange"] ) ) 
+              jobdescription["Resources"]["TotalCPUTime"].NewChild("LowerBoundRange");
+           Period time((std::string)innerRepresentation.TotalCPUTime);
+           std::ostringstream oss;
+           oss << time.GetPeriod();
+           jobdescription["Resources"]["TotalCPUTime"]["LowerBoundRange"] = oss.str();
+        }
+
+        if (innerRepresentation.IndividualCPUTime != -1) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["IndividualCPUTime"] ) ) 
+              jobdescription["Resources"].NewChild("IndividualCPUTime");
+           if ( !bool( jobdescription["Resources"]["IndividualCPUTime"]["LowerBoundRange"] ) ) 
+              jobdescription["Resources"]["IndividualCPUTime"].NewChild("LowerBoundRange");
+           Period time((std::string)innerRepresentation.IndividualCPUTime);
+           std::ostringstream oss;
+           oss << time.GetPeriod();
+           jobdescription["Resources"]["IndividualCPUTime"]["LowerBoundRange"] = oss.str();
+        }
+
+        if (innerRepresentation.DiskSpace > -1) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["FileSystem"] ) ) 
+              jobdescription["Resources"].NewChild("FileSystem");
+           if ( !bool( jobdescription["Resources"]["FileSystem"]["DiskSpace"] ) ) 
+              jobdescription["Resources"]["FileSystem"].NewChild("DiskSpace");
+           if ( !bool( jobdescription["Resources"]["FileSystem"]["DiskSpace"]["LowerBoundRange"] ) ) 
+              jobdescription["Resources"]["FileSystem"]["DiskSpace"].NewChild("LowerBoundRange");
+           std::ostringstream oss;
+           oss << innerRepresentation.DiskSpace;
+           jobdescription["Resources"]["FileSystem"]["DiskSpace"]["LowerBoundRange"] = oss.str();
+        }
+
+        if (innerRepresentation.ExclusiveExecution) {
+           if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+           if ( !bool( jobdescription["Resources"]["ExclusiveExecution"] ) ) 
+              jobdescription["Resources"].NewChild("ExclusiveExecution") = "true";
+        }
+
+        if (!innerRepresentation.NetworkInfo.empty()) {
+           std::string value = "";
+           if (innerRepresentation.NetworkInfo == "100megabitethernet"){
+              value = "104857600.0";
+           }
+           else if (innerRepresentation.NetworkInfo == "gigabitethernet"){
+              value = "1073741824.0";
+           }
+           else if (innerRepresentation.NetworkInfo == "myrinet"){
+              value = "2147483648.0";
+           }
+           else if (innerRepresentation.NetworkInfo == "infiniband"){
+              value = "10737418240.0";
+           }
+           else {
+              value = "";
+           }
+
+           if ( value != "" ) {
+              if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
+              if ( !bool( jobdescription["Resources"]["IndividualNetworkBandwidth"] ) ) 
+                 jobdescription["Resources"].NewChild("IndividualNetworkBandwidth");
+              if ( !bool( jobdescription["Resources"]["IndividualNetworkBandwidth"]["LowerBoundRange"] ) ) 
+                 jobdescription["Resources"]["IndividualNetworkBandwidth"].NewChild("LowerBoundRange");
+              jobdescription["Resources"]["IndividualNetworkBandwidth"]["LowerBoundRange"] = value;
+           }
+        }
+        // end of Resources
+
+
         // AccessControl
         if (bool(innerRepresentation.AccessControl)) {
-            if ( !bool( jobdescription["AccessControl"] ) ) jobdescription.NewChild("AccessControl");
+            if ( !bool( jobdescription["AccessControl"] ) ) jobdescription.NewChild("jsdl-arc:AccessControl");
             if ( !bool( jobdescription["AccessControl"]["Type"] ) ) 
-               jobdescription["AccessControl"].NewChild("Type") = "GACL"; //or "ARC" ?
-            jobdescription["AccessControl"].NewChild("Content").NewChild(innerRepresentation.AccessControl);
+               jobdescription["AccessControl"].NewChild("jsdl-arc:Type") = "GACL";
+            jobdescription["AccessControl"].NewChild("jsdl-arc:Content").NewChild(innerRepresentation.AccessControl);
         }
 
         // Notify
         if (!innerRepresentation.Notification.empty()) {
-            if ( !bool( jobdescription["Notify"] ) ) jobdescription.NewChild("Notify");
             for (std::list<Arc::NotificationType>::const_iterator it=innerRepresentation.Notification.begin();
                  it!=innerRepresentation.Notification.end(); it++) {
-                 //TODO: make this method
+                Arc::XMLNode notify = jobdescription.NewChild("jsdl-arc:Notify");
+                notify.NewChild("jsdl-arc:Type") = "Email";
+                std::string email = "";
+                for (std::list<std::string>::const_iterator it_address=(*it).Address.begin();
+                                                it_address!=(*it).Address.end(); it_address++) {
+                    if (it_address != (*it).Address.begin()) email += "; "; //separator character
+                    email += *it_address;
+                }
+                if ( email != "" ) notify.NewChild("jsdl-arc:Endpoint") = email;
+                for (std::list<std::string>::const_iterator it_state=(*it).State.begin();
+                                                it_state!=(*it).State.end(); it_state++) {
+                    notify.NewChild("jsdl-arc:State") = *it_state;
+                }
+
+                   
             }
+        }
+
+        // ProcessingStartTime
+        if (innerRepresentation.ProcessingStartTime != -1) {
+           if ( !bool( jobdescription["ProcessingStartTime"] ) ) jobdescription.NewChild("jsdl-arc:ProcessingStartTime");
+           jobdescription["ProcessingStartTime"] = innerRepresentation.ProcessingStartTime.str();
+        }
+
+        // Reruns
+        if (innerRepresentation.LRMSReRun != -1) {
+           if ( !bool( jobdescription["Reruns"] ) ) jobdescription.NewChild("jsdl-arc:Reruns");
+           std::ostringstream oss;
+           oss << innerRepresentation.LRMSReRun;
+           jobdescription["Reruns"] = oss.str();
+        }
+
+        // LocalLogging.Directory
+        if (!innerRepresentation.LogDir.empty()) {
+           if ( !bool( jobdescription["LocalLogging"] ) ) jobdescription.NewChild("jsdl-arc:LocalLogging");
+           if ( !bool( jobdescription["LocalLogging"]["Directory"] ) ) jobdescription["LocalLogging"].NewChild("jsdl-arc:Directory");
+           jobdescription["LocalLogging"]["Directory"] = innerRepresentation.LogDir;
+        }
+
+        // CredentialServer.URL
+        if (bool(innerRepresentation.CredentialService)) {
+           if ( !bool( jobdescription["CredentialServer"] ) ) jobdescription.NewChild("jsdl-arc:CredentialServer");
+           if ( !bool( jobdescription["CredentialServer"]["URL"] ) ) jobdescription["CredentialServer"].NewChild("jsdl-arc:URL");
+           jobdescription["CredentialServer"]["URL"] = innerRepresentation.CredentialService.fullstr();
+        }
+
+        // RemoteLogging.URL
+        if (bool(innerRepresentation.RemoteLogging)) {
+           if ( !bool( jobdescription["RemoteLogging"] ) ) jobdescription.NewChild("jsdl-arc:RemoteLogging");
+           if ( !bool( jobdescription["RemoteLogging"]["URL"] ) ) jobdescription["RemoteLogging"].NewChild("jsdl-arc:URL");
+           jobdescription["RemoteLogging"]["URL"] = innerRepresentation.RemoteLogging.fullstr();
         }
 
         jobdefinition.GetDoc( product, true );
@@ -2031,7 +2290,7 @@ namespace Arc {
                 for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
                     product += " (" + (*iter).Name;
 //TODO:StagingInBaseURI added
-                    product += " " +  (*it_source).URI.fullstr() + " )";
+                    product += " " +  (*it_source).URI.fullstr() + " \"\" )";
                 }
             }
             product += " )\n";
@@ -2062,9 +2321,9 @@ namespace Arc {
                        first_time = false;
                     }
                     product += " (" + (*iter).Name;
-					if ((*it_target).URI.fullstr().empty())
-                       product += " " +  (std::string)"\"\"" + " )";
-					else 
+		    if ((*it_target).URI.fullstr().empty())
+                       product += " \"\" )";
+		    else 
                        product += " " +  (*it_target).URI.fullstr() + " )";
                 }
             }

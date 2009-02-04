@@ -18,6 +18,7 @@ namespace Arc {
 
     // Define variables for the jobDescriptionOrderer
     #define DEFAULT_PRIORITY 0
+    #define TOP_PRIORITY 50
 
     #define EXACT_EXTENSION_MATCHING 10
     #define PARTIAL_EXTENSION_MATCHING 5
