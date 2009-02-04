@@ -131,7 +131,7 @@ namespace Arc {
     done=1;
 
     /* VOMS Attribute related objects*/
-    OBJ_create(email, "Email", "Email");
+    //OBJ_create(email, "Email", "Email");
     OBJC(idatcap,"idatcap");
 
     OBJC(attribs,"attributes");
