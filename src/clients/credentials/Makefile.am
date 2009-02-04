@@ -29,6 +29,7 @@ test2vomsserver_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test2vomsserver_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                            $(top_srcdir)/src/hed/libs/client/libarcclient.la \
-                           $(top_srcdir)/src/hed/libs/message/libarcmessage.la
+                           $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                           $(top_srcdir)/src/hed/libs/credential/libarccredential.la
 
 man_MANS = arcproxy.1 arcslcs.1
