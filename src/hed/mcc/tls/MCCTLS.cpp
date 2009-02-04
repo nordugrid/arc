@@ -45,6 +45,15 @@ class TLSSecAttr: public Arc::SecAttr {
   virtual ~TLSSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
+  std::string Identity(void) { return identity_; };
+  std::string Subject(void) {
+    if(subjects_.size() <= 0) return "";
+    return *(--(subjects_.end()));
+  };
+  std::string CA(void) {
+    if(subjects_.size() <= 0) return "";
+    return *(subjects_.begin());
+  };
  protected:
   std::string identity_; // Subject of last non-proxy certificate
   std::list<std::string> subjects_; // Subjects of all certificates in chain
@@ -87,6 +96,9 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 using namespace Arc;
 
 
+#define SELFSIGNED(cert) (X509_NAME_cmp(X509_get_issuer_name(cert),X509_get_subject_name(cert)) == 0)
+ 
+
 TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& logger) {
    char buf[100];
    std::string subject;
@@ -96,14 +108,15 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       for(int idx = 0;;++idx) {
          if(idx >= sk_X509_num(peerchain)) break;
          X509* cert = sk_X509_value(peerchain,sk_X509_num(peerchain)-idx-1);
-#if 0
          if(idx == 0) { // Obtain CA subject
-           buf[0]=0;
-           X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof(buf));
-           subject=buf;
-           subjects_.push_back(subject);
+           // Sometimes certificates chain contains CA certificate.
+           if(!SELFSIGNED(cert)) {           
+             buf[0]=0;
+             X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof(buf));
+             subject=buf;
+             subjects_.push_back(subject);
+           };
          };
-#endif
          buf[0]=0;
          X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
          subject=buf;
@@ -122,6 +135,15 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
    };
    X509* peercert = payload.GetPeerCert();
    if (peercert != NULL) {
+      if(subjects_.size() <= 0) { // Obtain CA subject if not obtained yet
+        // Check for CA certificate used for connection - overprotection
+        if(!SELFSIGNED(peercert)) {           
+          buf[0]=0;
+          X509_NAME_oneline(X509_get_issuer_name(peercert),buf,sizeof buf);
+          subject=buf;
+          subjects_.push_back(subject);
+        };
+      };
       buf[0]=0;
       X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
       subject=buf;
@@ -140,7 +162,6 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       X509_free(peercert);
    };
    if(identity_.empty()) identity_=subject;
-
    X509* hostcert = payload.GetCert();
    if (hostcert != NULL) {
       buf[0]=0;
@@ -173,16 +194,6 @@ static void add_subject_attribute(XMLNode item,const std::string& subject,const 
    attr.NewAttribute("AttributeId")=id;
 }
 
-static void Email2emailAddress(std::string& value) {
-  std::string str;
-  size_t found;
-  while(true) {
-    found =value.find("Email");
-    if(found == std::string::npos) return;
-    value.replace(found, 5, "emailAddress");
-  };
-}
-
 bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
@@ -195,20 +206,15 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     std::string subject;
     if(s != subjects_.end()) {
       subject=*s;
-      Email2emailAddress(subject);
       add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/ca");
       for(;s != subjects_.end();++s) {
         subject=*s;
-        Email2emailAddress(subject);
         add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/chain");
       };
-      Email2emailAddress(subject);
       add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/subject");
     };
     if(!identity_.empty()) {
-       std::string identity(identity_);
-       Email2emailAddress(identity);
-       add_subject_attribute(subj,identity,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+       add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
     };
     if(!voms_attributes_.empty()) {
       for(int k=0; k < voms_attributes_.size(); k++) {
@@ -384,40 +390,13 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    if(tstream && (config_.IfClientAuthn())) {
       TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, logger);
       nextinmsg.Auth()->set("TLS",sattr);
-      // TODO: Remove following code, use SecAttr instead
       //Getting the subject name of peer(client) certificate
-      char buf[100];     
-      X509* peercert = tstream->GetPeerCert();
-      if (peercert != NULL) {
-         X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
-         std::string peer_dn = buf;
-         logger.msg(DEBUG, "Peer name: %s", peer_dn);
-         nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
-#ifdef HAVE_OPENSSL_PROXY
-         if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
-            logger.msg(DEBUG, "Identity name: %s", peer_dn);
-            nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
-         } else {
-            STACK_OF(X509)* peerchain = tstream->GetPeerChain();
-            if(peerchain != NULL) {
-               for(int idx = 0;;++idx) {
-                  if(idx >= sk_X509_num(peerchain)) break;
-                  X509* cert = sk_X509_value(peerchain,idx);
-                  if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
-                     X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
-                     std::string identity_dn = buf;
-                     logger.msg(DEBUG, "Identity name: %s", identity_dn);
-                     nextinmsg.Attributes()->set("TLS:IDENTITYDN",identity_dn);
-                     break;
-                  };
-               };
-            };
-         };
-#else
-         nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
-#endif
-         X509_free(peercert);
-      }
+      logger.msg(DEBUG, "Peer name: %s", sattr->Subject());
+      nextinmsg.Attributes()->set("TLS:PEERDN",sattr->Subject());
+      logger.msg(DEBUG, "Identity name: %s", sattr->Identity());
+      nextinmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
+      logger.msg(DEBUG, "CA name: %s", sattr->CA());
+      nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
    }
 
    // Checking authentication and authorization;
