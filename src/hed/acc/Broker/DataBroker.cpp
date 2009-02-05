@@ -71,7 +71,7 @@ namespace Arc {
   }
  
   bool DataCompare(const ExecutionTarget& T1, const ExecutionTarget& T2) {
-      return CacheMappingTable[T1.url.fullstr()] < CacheMappingTable[T2.url.fullstr()];
+      return CacheMappingTable[T1.url.fullstr()] > CacheMappingTable[T2.url.fullstr()];
   }
 
   DataBroker::DataBroker(Config *cfg) : Broker(cfg){}
