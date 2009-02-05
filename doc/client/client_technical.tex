@@ -480,7 +480,50 @@ information needed by the {\Submitter}.
 
 \subsection{{\Broker}}
 
-There are two usable broker type at the current state: \textbf{FastQueueBroker} and \textbf{RandomBroker}. These classes are inheritance of the "super \textbf{Broker}" class. This parent class has a prefiltering part and its task is to create a mapping between the \textbf{JobDescription} and the \textbf{ExecutionTarget}. The mapping is working but it will be change at the near future because the \textbf{JobDescription} class will be  recreate with \textbf{GIN Profile JSDL}. The mapping result is the \textbf{PossibleTargets} vector which content the "good" \textbf{ExecutionTargets}. The descendant broker classes task is to sort the \textbf{PossibleTargets} vector with its name type, for example: \textbf{RandomBroker} sort type is \textbf{Random}. The broker separated into a module therefore it is loadable.
+The Broker inherits from the {\ACC} base class in order to be loadable by the ARC \texttt{Loader}. It is the base class of the specialized Brokers. If you are using the arcsub command then you can choose a broker type with ``-b`` parameter. There is a solution for add parameters to these descendants Brokers. Here is an example:
+
+\begin{shaded}
+\begin{verbatim}
+arcsub -b RandomBroker:a,b,c -c ARC1:https://knowarc1.grid.niif.hu:60000/arex job.jsdl
+\end{verbatim}
+\end{shaded}
+
+The Broker's constructor set the PreFilteringDone and the TargetSortingDone values to false because we need to call at first the PreFilterTargets and second the GetBestTarget which trigger the specialised Broker sorting method.
+
+The base Broker operations are the followings:
+
+
+\begin{enumerate}
+\item{The first step is the PreFilterTargets, this implements the matchmaking: the JobDescription and the TargetGenerator's ExecutionTargets will be compared inside this method. JobDescription content the job's JobInnerRepresentation, and the ExecutionTarget content the candidate cluster's queue information. There are main elements in the JobInnerRepresentation which are used for matchmaking, these are documented in this Appendix: ... (every matchmaking elements and their comparison logic are there) The macthmaking working on this way: it takes every JobInnerrepresentation elements which are relevant and in an ordered way check them. If a matchmaking element is not presented in the JobInnerRepresentation then it will be ignored, but if it is there than the ExecutionTarget should content its pair.} For example SessionLifeTime is in the JobInnerRepresentaion and the WorkingAreaLifeTime is in the ExecutionTarget (these are matchmaking pair). If the WorkingAreaLifeTime is not defined then the Broker cannot check the times therefore it will ignore this cluster, but if the WorkingAreaLifeTime exist and the comparison between this elements are true then this check will be passed other way the cluster will be ignored. We are using this rule for every elements checking. There is only one exception and this is the ProcessingStartTime because if the DownTime is not defined in the ExecutionTarget than we can trust by it that the job can anytime start and it will be not killed with shutdown. This rule checking runs for every ExecutionTargets and if every matchmaking checks are ok for a target then this ExecutionTarget will be added to the PossibleTargets vector.
+\item{If the matchmaking finished then  the PreFilteringDone variable will be true and the TargetSortingDone will be false. }
+\item{The next step is the GetBestTarget method calling, this will give an ExecutionTarget which is good for our job. If the Possibletarget vector empty then it will give nothing. The first time the GetBestTarget will trigger the specialid Broker type sorting with this method calling:  SortTargets. This SortTargets method is virtual method, therefore every specialised Broker should implement it.}
+\item{If the SortTargets finished then the TargetSortingDone will be true and the GetBestTarget will return the first element of the PossibleTargetVector and the current iterator will be incremented with one.}
+\item{If the submision failed to this cluster then we can call again the GetBestTarget and we will get an other ExecutionTarget till it will not consume. If  the targets run out from the PossibleTargetVector then the GetBestTarget's bool parameter will be true, its name is EndOfList''}
+\end{enumerate}
+
+\begin{shaded}
+\begin{verbatim}
+class Broker : public ACC {
+public:
+    ExecutionTarget& GetBestTarget(bool &EndOfList);
+    void PreFilterTargets(Arc::TargetGenerator& targen, Arc::JobDescription jd);    
+protected:
+    Broker(Config *cfg);
+    virtual ~Broker();
+    virtual void SortTargets() = 0;
+    std::vector<Arc::ExecutionTarget> PossibleTargets;
+    bool TargetSortingDone;
+    Arc::JobInnerRepresentation jir;
+    static Logger logger;
+private:
+    std::vector<Arc::ExecutionTarget>::iterator current;
+    bool PreFilteringDone;
+};
+\end{verbatim}
+\end{shaded}
+
+The Broker class content  two useful data elements: logger and JobInnerRepresentation. These can be helpful when somebody create a specialised Broker and he would like to use the logger and need some information about the job.
+
 
 \subsection{{\JobDescription}}
 
@@ -826,7 +869,7 @@ a SOAP MCC to the chain. Specializations of the {\TargetRetriever},
 {\Submitter} and {\JobController} classes that communicate with SOAP
 based services make use of this class.
 
-\section{Specialized Classes (Grid Flavour Plugins)}
+\section{Specialized Classes (Grid Flavour and Broker plugins)}
 \label{sec:plugins}
 
 \subsection{ARC0 Plugins}
@@ -897,6 +940,36 @@ way the ARC1 plugin does.
 
 Stage-in and stage-out of input and output files are done using the
 gridftp protocol. The gridftp DMC is therefore required.
+
+\subsection{Broker plugins}
+
+\subsubsection{RandomBroker}
+
+The sorting method is random.
+
+TODO: finish
+
+\subsubsection{FastestCPUBroker}
+
+The sorting method based on the fastest cpu, we are using for this the specint2006 benchmark solution.
+
+TODO: finish
+
+\subsubsection{FastestQueueBroker}
+
+The sorting method based on the shortest queue, where the waiting jobs number is low.
+
+TODO: finish
+
+\subsubsection{DataBroker}
+
+The sorting method based on the A-REX file cache. I will describe how does it working.
+
+TODO: finish
+
+\subsubsection{PythonBroker}
+
+TODO: finish
 
 \chapter{Building Command Line Interfaces}
 \label{sec:cli}
