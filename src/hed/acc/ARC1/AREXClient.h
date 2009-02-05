@@ -83,7 +83,7 @@ namespace Arc {
        @param status The XML document representing status of the service.
        @return true on success
      */
-    bool sstat(std::string& status);
+    bool sstat(XMLNode& status);
 
     ClientSOAP* SOAP(void) {
       return client;

@@ -15,6 +15,10 @@
 #include "AREXClient.h"
 #include "TargetRetrieverARC1.h"
 
+//Remove these after debugging
+#include <iostream>
+//End of debugging headers
+
 namespace Arc {
 
   struct ThreadArg {
@@ -115,14 +119,37 @@ namespace Arc {
     if (!thrarg->caCertificatesDir.empty())
       cfg.AddCADir(thrarg->caCertificatesDir);
     AREXClient ac(url, cfg);
-    std::string status;
-    if (!ac.sstat(status)) {
+    XMLNode ServerStatus;
+    if (!ac.sstat(ServerStatus)) {
       delete thrarg;
       mom.RetrieverDone();
-      return;
     }
 
-    XMLNode ServerStatus(status);
+    #define _XML_descend(X , sl)\
+    {\
+      std::list<std::string>::iterator si = sl.begin();\
+      for (; si != sl.end() && X[*si]; X=X[*si], si++);\
+      if (si != sl.end()) {\
+        std::string path = ".";\
+        for (std::list<std::string>::iterator si2 = sl.begin(); si2 != si; si2++){\
+          path += "/" + *si2;\
+        }\
+        logger.msg(ERROR, "The node %s has no %s element.", path, *si);\
+        delete thrarg;\
+        mom.RetrieverDone();\
+      }\
+    }
+
+    XMLNode GLUEService = ServerStatus;
+    std::string tmpsa[] = {"GetResourcePropertyDocumentResponse", "InfoRoot", "Domains", "AdminDomain", "Services", "Service"};
+    std::list<std::string> tmpsl(tmpsa, tmpsa+6);
+    _XML_descend (GLUEService, tmpsl);
+    XMLNode NUGCService = ServerStatus;
+    std::string tmpsb[] = {"GetResourcePropertyDocumentResponse", "InfoRoot", "nordugrid"};
+    std::list<std::string> tmpsk(tmpsb, tmpsb+3);
+    _XML_descend (NUGCService, tmpsk);
+
+    // std::cout << GLUEService << std::endl; //for dubugging
 
     ExecutionTarget target;
 
@@ -135,20 +162,21 @@ namespace Arc {
 
     target.DomainName = url.Host();
 
-    if (ServerStatus["IsAcceptingNewActivities"]) {
-      if ((std::string)ServerStatus["IsAcceptingNewActivities"] == "true")
-	target.HealthState = "ok";
-      else
-	target.HealthState = "critical";
+    if (GLUEService["ComputingEndpoint"]["HealthState"]) {
+      target.HealthState = (std::string) GLUEService["ComputingEndpoint"]["HealthState"];
+    } else {
+      logger.msg(WARNING, "The Service advertises no Health State.");
     }
 
-    if (ServerStatus["TotalNumberOfActivities"])
-      target.TotalJobs =
-	stringtoi((std::string)ServerStatus["TotalNumberOfActivities"]);
+    if (GLUEService["ComputingEndpoint"]["TotalJobs"]) {
+      target.TotalJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["TotalJobs"]);
+    } else {
+      logger.msg(WARNING, "The Service doesn't advertise the Total Number of Jobs.");
+    }
 
-    if (ServerStatus["LocalResourceManagerType"])
-      target.ManagerType =
-	(std::string)ServerStatus["LocalResourceManagerType"];
+//     if (ServerStatus["LocalResourceManagerType"])
+//       target.ManagerType =
+// 	(std::string)ServerStatus["LocalResourceManagerType"];
 
     mom.AddTarget(target);
 

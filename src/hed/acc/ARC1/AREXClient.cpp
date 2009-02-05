@@ -6,7 +6,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
-
+#include <arc/wsrf/WSResourceProperties.h>
 #include "AREXClient.h"
 
 namespace Arc {
@@ -340,23 +340,21 @@ namespace Arc {
     }
   }
 
-  bool AREXClient::sstat(std::string& status) {
+  bool AREXClient::sstat(XMLNode& status) {
 
-    std::string state, faultstring;
     logger.msg(INFO, "Creating and sending a service status request");
 
-    PayloadSOAP req(arex_ns);
-    XMLNode jobref =
-      req.NewChild("bes-factory:GetFactoryAttributesDocument");
-    set_bes_factory_action(req, "GetFactoryAttributesDocument");
-    WSAHeader(req).To(rurl.str());
+    WSRPGetResourcePropertyDocumentRequest WSRPReq;
+    PayloadSOAP req(WSRPReq.SOAP());
+    WSAHeader(req).To(rurl.str()); //?
 
     // Send status request
     PayloadSOAP *resp = NULL;
     if (client) {
       MCC_Status status =
-	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-			"BESFactoryPortType/GetFactoryAttributesDocument",
+	client->process("http://docs.oasis-open.org/wsrf/rpw-2"
+			"/GetResourcePropertyDocument"
+			"/GetResourcePropertyDocumentRequest",
 			&req, &resp);
       if (resp == NULL) {
 	logger.msg(ERROR, "There was no SOAP response");
@@ -367,9 +365,9 @@ namespace Arc {
       Message reqmsg;
       Message repmsg;
       MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-			 "bes-factory/BESFactoryPortType/"
-			 "GetFactoryAttributesDocument");
+      attributes_req.set("SOAP:ACTION", "http://docs.oasis-open.org/wsrf/rpw-2"
+			 "/GetResourcePropertyDocument"
+			 "/GetResourcePropertyDocumentRequest");
       MessageAttributes attributes_rep;
       MessageContext context;
       reqmsg.Payload(&req);
@@ -382,7 +380,7 @@ namespace Arc {
 	logger.msg(ERROR, "A service status request failed");
 	return false;
       }
-      logger.msg(INFO, "A service status request succeed");
+      logger.msg(INFO, "A service status request succeeded");
       if (repmsg.Payload() == NULL) {
 	logger.msg(ERROR,
 		   "There was no response to a service status request");
@@ -403,20 +401,16 @@ namespace Arc {
       logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
-    XMLNode st;
-    (*resp)["GetFactoryAttributesDocumentResponse"]
-    ["FactoryResourceAttributesDocument"].New(st);
-    st.GetDoc(state);
+    resp->XMLNode::New(status);
     delete resp;
-    if (state == "") {
+    if (status) {
+      return true;
+    } else {
       logger.msg(ERROR, "The service status could not be retrieved");
       return false;
     }
-    else {
-      status = state;
-      return true;
-    }
   }
+
 
   bool AREXClient::kill(const std::string& jobid) {
 
