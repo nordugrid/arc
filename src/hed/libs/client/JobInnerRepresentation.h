@@ -71,7 +71,7 @@ struct DirectoryType {
 
 struct MigrationType {
     std::list<Arc::WSAEndpointReference> OldJobIDs;
-	Arc::WSAEndpointReference MigrationID;
+    Arc::WSAEndpointReference MigrationID;
 };
 
   class JobInnerRepresentation {

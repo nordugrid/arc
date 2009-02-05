@@ -145,7 +145,7 @@ namespace Arc {
 
             // Transform the inner job description representation into a given format, if it's known as a parser (JSDL as default)
             // If there is some error during this method, then return with false.
-            bool getProduct( std::string& product, std::string format = "JSDL" );
+            bool getProduct( std::string& product, std::string format = "POSIXJSDL" );
 
             // Returns with the original job descriptions format as a string. Right now, this value is one of the following:
             // "jsdl", "jdl", "xrsl". If there is an other parser written for another language, then this set can be extended.

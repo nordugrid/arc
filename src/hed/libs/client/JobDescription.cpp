@@ -1,7 +1,12 @@
 #include <cstring>
 #include <algorithm>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <arc/StringConv.h>
 #include <arc/job/runtimeenvironment.h>
+#include <arc/data/CheckSum.h>
+
 #include "JobDescription.h"
 
 
@@ -452,11 +457,11 @@ namespace Arc {
     long get_limit(Arc::XMLNode range)
     {
        if (!range) return -1;
-       Arc::XMLNode n = range["LowerBound"];
+       Arc::XMLNode n = range["LowerBoundRange"];
        if ((bool)n) {
           return Arc::stringto<long>((std::string)n);
        }
-       n = range["UpperBound"];
+       n = range["UpperBoundRange"];
        if ((bool)n) {
           return Arc::stringto<long>((std::string)n);
        }
@@ -503,6 +508,12 @@ namespace Arc {
            accesscontrol.Child(0).New(innerRepresentation.AccessControl);
         }
 
+        if (bool(jobdescription["Notify"])) {
+//TODO:
+//           innerRepresentation.Notification.? = jobdescription["Notify"];
+        }
+
+        // JobIdentification
         Arc::XMLNode jobidentification = node["JobDescription"]["JobIdentification"];
 
         if (bool(jobidentification["JobName"])) {
@@ -511,10 +522,10 @@ namespace Arc {
 
         if (bool(jobidentification["Migration"])) {
            for ( int i=0; (bool)(jobidentification["OldJobID"][i]); i++ ) { 
-              Arc::WSAEndpointReference old_job_epr(jobidentification["OldJobID"][i]);
-			  innerRepresentation.Migration.OldJobIDs.push_back(old_job_epr);
+               Arc::WSAEndpointReference old_job_epr(jobidentification["OldJobID"][i]);
+               innerRepresentation.Migration.OldJobIDs.push_back(old_job_epr);
            }
-		   Arc::WSAEndpointReference migration_id(jobidentification["Migration"]["MigrationID"]);
+           Arc::WSAEndpointReference migration_id(jobidentification["Migration"]["MigrationID"]);
            innerRepresentation.Migration.MigrationID = migration_id;
         }
 
@@ -526,7 +537,9 @@ namespace Arc {
         if (bool(jobidentification["JobProject"])) {
            innerRepresentation.JobProject = (std::string)jobidentification["JobProject"];
         }
+        // end of JobIdentification
 
+        // Application
         Arc::XMLNode application = node["JobDescription"]["Application"]["POSIXApplication"];
  
         if (bool(application["Executable"])) {
@@ -564,12 +577,14 @@ namespace Arc {
         }
 
         if (bool(application["VirtualMemoryLimit"])) {
-           innerRepresentation.IndividualVirtualMemory = Arc::stringto<int>((std::string)application["VirtualMemoryLimit"]);
+           if (innerRepresentation.IndividualVirtualMemory < Arc::stringto<int>((std::string)application["VirtualMemoryLimit"]))
+              innerRepresentation.IndividualVirtualMemory = Arc::stringto<int>((std::string)application["VirtualMemoryLimit"]);
         }
 
         if (bool(application["CPUTimeLimit"])) {
            Period time((std::string)application["CPUTimeLimit"]);
-           innerRepresentation.TotalCPUTime = time;
+           if (innerRepresentation.TotalCPUTime < time)
+              innerRepresentation.TotalCPUTime = time;
         }
 
         if (bool(application["WallTimeLimit"])) {
@@ -578,7 +593,8 @@ namespace Arc {
         }
 
         if (bool(application["MemoryLimit"])) {
-           innerRepresentation.IndividualPhysicalMemory = Arc::stringto<int>((std::string)application["MemoryLimit"]);
+           if (innerRepresentation.IndividualPhysicalMemory < Arc::stringto<int>((std::string)application["MemoryLimit"]))
+              innerRepresentation.IndividualPhysicalMemory = Arc::stringto<int>((std::string)application["MemoryLimit"]);
         }
 
         if (bool(application["ProcessCountLimit"])) {
@@ -589,7 +605,9 @@ namespace Arc {
         if (bool(application["ThreadCountLimit"])) {
            innerRepresentation.ThreadPerProcesses = stringtoi((std::string)application["ThreadCountLimit"]);
         }
+        // end of Application
 
+        // Resources
         Arc::XMLNode resource = node["JobDescription"]["Resources"];
 
         if (bool(resource["SessionLifeTime"])) {
@@ -598,37 +616,44 @@ namespace Arc {
         }
 
         if (bool(resource["TotalCPUTime"])) {
-           int value = get_limit((std::string)resource["TotalCPUTime"]);
-           if (value != -1)
-              innerRepresentation.TotalCPUTime = value;
+           long value = get_limit(resource["TotalCPUTime"]);
+           if (value != -1){
+              Period time((time_t)value);
+              if (innerRepresentation.TotalCPUTime < time)
+                 innerRepresentation.TotalCPUTime = time;
+           }
         }
 
         if (bool(resource["IndividualCPUTime"])) {
-           int value = get_limit((std::string)resource["IndividualCPUTime"]);
-           if (value != -1)
-              innerRepresentation.IndividualCPUTime = value;
+           long value = get_limit(resource["IndividualCPUTime"]);
+           if (value != -1){
+              Period time((time_t)value);
+              innerRepresentation.IndividualCPUTime = time;
+           }
         }
 
         if (bool(resource["IndividualPhysicalMemory"])) {
-           int value = get_limit((std::string)resource["IndividualPhysicalMemory"]);
+           long value = get_limit(resource["IndividualPhysicalMemory"]);
            if (value != -1)
-              innerRepresentation.IndividualPhysicalMemory = value;
+              if (innerRepresentation.IndividualPhysicalMemory < value)
+                 innerRepresentation.IndividualPhysicalMemory = value;
         }
 
         if (bool(resource["IndividualVirtualMemory"])) {
-           int value = get_limit((std::string)resource["IndividualVirtualMemory"]);
+           long value = get_limit(resource["IndividualVirtualMemory"]);
            if (value != -1)
-              innerRepresentation.IndividualVirtualMemory = value;
+              if (innerRepresentation.IndividualVirtualMemory < value)
+                 innerRepresentation.IndividualVirtualMemory = value;
         }
 
         if (bool(resource["IndividualDiskSpace"])) {
-           int value = get_limit((std::string)resource["IndividualDiskSpace"]);
+           long value = get_limit(resource["IndividualDiskSpace"]);
            if (value != -1)
               innerRepresentation.IndividualDiskSpace = value;
         }
 
-        if (bool(resource["DiskSpace"])) {
-           int value = get_limit((std::string)resource["DiskSpace"]);
+        if (bool(resource["FileSystem"]["DiskSpace"])) {
+           long value = get_limit(resource["FileSystem"]["DiskSpace"]);
            if (value != -1)
               innerRepresentation.DiskSpace = value;
         }
@@ -687,12 +712,12 @@ namespace Arc {
            innerRepresentation.QueueName = (std::string)resource["CandidateTarget"]["QueueName"];
         }
 
-        if (bool(resource["Middleware"][0]["Name"])) {
-           innerRepresentation.CEType = (std::string)resource["Middleware"][0]["Name"];
+        if (bool(resource["Middleware"]["Name"])) {
+           innerRepresentation.CEType = (std::string)resource["Middleware"]["Name"];
         }
 
         if (bool(resource["TotalCPUCount"])) {
-           innerRepresentation.ProcessPerHost = stringtoi((std::string)resource["TotalCPUCount"]);
+           innerRepresentation.ProcessPerHost = (int)get_limit(resource["TotalCPUCount"]);
         }
 
         if (bool(resource["RunTimeEnvironment"])) {
@@ -706,7 +731,9 @@ namespace Arc {
                innerRepresentation.RunTimeEnvironment.push_back(rt);
            }
         }
+        // end of Resources
 
+        // Datastaging
         Arc::XMLNode datastaging = node["JobDescription"]["DataStaging"];
        
         for(int i=0; datastaging[i]; i++) {
@@ -752,6 +779,7 @@ namespace Arc {
               innerRepresentation.File.push_back(file);
            }
         }
+        // end of Datastaging
         return true;
     }
 
@@ -832,13 +860,27 @@ namespace Arc {
            oss << time.GetPeriod();
            jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:WallTimeLimit") = oss.str();
         }
-        if (innerRepresentation.NumberOfProcesses > -1){
+        if (innerRepresentation.NumberOfProcesses > -1 && 
+            innerRepresentation.NumberOfProcesses >= innerRepresentation.Slots){
            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
            if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
               jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"]["ProcessCountLimit"] ) ) 
+              jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:ProcessCountLimit");
            std::ostringstream oss;
            oss << innerRepresentation.NumberOfProcesses;
-           jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:ProcessCountLimit") = oss.str();
+           jobdescription["Application"]["POSIXApplication"]["ProcessCountLimit"] = oss.str();
+        }
+        if (innerRepresentation.Slots > -1 && 
+            innerRepresentation.Slots >= innerRepresentation.NumberOfProcesses){
+           if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"] ) ) 
+              jobdescription["Application"].NewChild("jsdl-posix:POSIXApplication");
+           if ( !bool( jobdescription["Application"]["POSIXApplication"]["ProcessCountLimit"] ) ) 
+              jobdescription["Application"]["POSIXApplication"].NewChild("jsdl-posix:ProcessCountLimit");
+           std::ostringstream oss;
+           oss << innerRepresentation.Slots;
+           jobdescription["Application"]["POSIXApplication"]["ProcessCountLimit"] = oss.str();
         }
         if (innerRepresentation.ThreadPerProcesses > -1){
            if ( !bool( jobdescription["Application"] ) ) jobdescription.NewChild("Application");
@@ -2293,14 +2335,62 @@ namespace Arc {
             }
         }
         if (!innerRepresentation.File.empty()) {
-            product += "( inputfiles =";//TODO:
+            bool first_time = true;
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
                 std::list<Arc::SourceType>::const_iterator it_source;
                 for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
+                    if (first_time){
+                       product += "( inputfiles =";//TODO:
+                       first_time = false;
+                    }
                     product += " (" + (*iter).Name;
 //TODO:StagingInBaseURI added
-                    product += " " +  (*it_source).URI.fullstr() + " \"\" )";
+                    product += " " +  (*it_source).URI.fullstr();
+                    // file size added
+                    struct stat fileStat;
+                    if ( stat((*it_source).URI.fullstr().c_str(), &fileStat) == 0){
+                       std::string filesize;
+                       std::stringstream ss;
+                       ss << fileStat.st_size;
+                       ss >> filesize;
+                       product += " \"" + filesize + "\"";
+                    }
+                    else{
+                       product += " \"\"";
+                    }
+
+                    // checksum added
+                    // It is optional!!!
+                    int h=open((*it_source).URI.fullstr().c_str(),O_RDONLY);
+                    if (h > -1) { /* if we can read that file job can checksum compute */
+                       Arc::CRC32Sum crc;
+                       char buffer[1024];
+                       ssize_t l;
+                       size_t ll = 0;
+                       for(;;) {
+                          if ((l=read(h,buffer,1024)) == -1) {
+                             std::cerr << "Error reading file " << (*it_source).URI.fullstr() << std::endl;
+                             std::cerr << "Could not read file to compute checksum." << std::endl;
+                          }
+                          if(l==0) break; ll+=l;
+                          crc.add(buffer,l);
+                       }
+                       close(h);
+                       crc.end();
+                       /* //it is not working now!
+                       unsigned char *buf;
+                       unsigned int len;
+                       crc.result(buf,len);
+                       std::string file_checksum;
+                       std::stringstream ss;
+                       ss << (unsigned long)buf;
+                       ss >> file_checksum;
+                       if (!file_checksum.empty() && false)
+                          product += " \"" + file_checksum + "\"";
+                       */
+                    }
+                    product +=  " )";
                 }
             }
             product += " )\n";

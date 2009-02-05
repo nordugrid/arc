@@ -36,19 +36,19 @@ namespace Arc {
 	  std::cout << Arc::IString(" UserTag: %s", *iter) << std::endl;
       }
 
-	  if (!(Migration.MigrationID.Address()).empty()) {
-         std::list<Arc::WSAEndpointReference>::const_iterator m_iter;
-		 std::string str;
-		 int i = 1;
-		 Arc::WSAEndpointReference epr_tmp;
-         for (m_iter = Migration.OldJobIDs.begin(); m_iter != Migration.OldJobIDs.end(); m_iter++, i++) {
-		    epr_tmp = (*m_iter);
-		    ((Arc::XMLNode)epr_tmp).GetXML(str, true);
-	        std::cout << Arc::IString("%d. Old Job EPR: %s", i, str) << std::endl;
-         }
-		 epr_tmp = Migration.MigrationID;
-		 ((Arc::XMLNode)epr_tmp).GetXML(str, true);
-	     std::cout << Arc::IString("Migration EPR: %s", str) << std::endl;
+      if (!(Migration.MigrationID.Address()).empty()) {
+        std::list<Arc::WSAEndpointReference>::const_iterator m_iter;
+        std::string str;
+        int i = 1;
+        Arc::WSAEndpointReference epr_tmp;
+        for (m_iter = Migration.OldJobIDs.begin(); m_iter != Migration.OldJobIDs.end(); m_iter++, i++) {
+           epr_tmp = (*m_iter);
+           ((Arc::XMLNode)epr_tmp).GetXML(str, true);
+           std::cout << Arc::IString("%d. Old Job EPR: %s", i, str) << std::endl;
+        }
+        epr_tmp = Migration.MigrationID;
+        ((Arc::XMLNode)epr_tmp).GetXML(str, true);
+        std::cout << Arc::IString("Migration EPR: %s", str) << std::endl;
       }
 
       if (!OptionalElement.empty()) {
@@ -339,9 +339,9 @@ namespace Arc {
        IndividualCPUTime = -1;
        TotalWallTime = -1;
        IndividualWallTime = -1;
-	   ReferenceTime.benchmark_attribute = "frequency";
-	   ReferenceTime.value_attribute = "2.8Ghz" ;
-	   ReferenceTime.value.clear();
+       ReferenceTime.benchmark_attribute = "frequency";
+       ReferenceTime.value_attribute = "2.8Ghz" ;
+       ReferenceTime.value.clear();
        ExclusiveExecution = false;
        NetworkInfo.clear();
        OSFamily.clear();
