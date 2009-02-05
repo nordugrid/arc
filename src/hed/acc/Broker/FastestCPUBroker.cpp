@@ -48,10 +48,24 @@ namespace Arc {
     //Remove clusters with incomplete information for target sorting
     std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
     while(iter != PossibleTargets.end()){
-      if(!(iter->WaitingJobs != -1 && iter->TotalSlots != -1 && iter->FreeSlots != -1)){
-	iter = PossibleTargets.erase(iter);
-	continue;
+      if((iter->Benchmarks).empty()){
+	      iter = PossibleTargets.erase(iter);
+	      continue;
       }
+	  else {
+          std::list<Benchmark>::const_iterator iter2;
+		  bool ok = false;
+          for(iter2 = (*iter).Benchmarks.begin(); iter2 != (*iter).Benchmarks.end();iter2++){
+             if(strcasestr(iter2->Type.c_str(), "specint2006")){
+			    ok = true;
+            	break;
+             }
+          }
+		  if (!ok) {
+	         iter = PossibleTargets.erase(iter);
+	         continue;
+		  }
+	  }
       iter++;
     }
  
