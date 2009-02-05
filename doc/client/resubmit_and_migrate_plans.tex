@@ -1,4 +1,4 @@
-\documentclass[12pt,oneside,a4paper,english]{article}
+\documentclass[11pt,oneside,a4paper,english]{article}
 \usepackage[english]{babel}
 \usepackage[latin1]{inputenc}
 \usepackage[T1]{fontenc}
@@ -6,9 +6,10 @@
 \usepackage{graphicx,epic,eepic}
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{a4wide}
+\usepackage{xspace}
 
-\title{Thoughts on resubmission within ARC1}
-\author{Peter Rosendahl}
+\newcommand{\arcmigrate}{\texttt{arcmigrate}\xspace}
 
 \begin{document}
 %\maketitle
@@ -22,19 +23,33 @@ Before discussing the implementation of the resubmission and migration functiona
 {\bf Migrating} a job is defined as moving a job from a cluster(queue) to a new cluster(queue) where it will then be executed. 
 
 \subsection*{Solutions}
-In order to solve the scenarios mentioned above, we suggest to implement functionality on both server and client side to provide the commands \texttt{arcresume}, \texttt{arcmigrate} and \texttt{arcresub}.
+In order to solve the scenarios mentioned above, we suggest to implement functionality on both server and client side to provide the commands \texttt{arcresume}, \arcmigrate and \texttt{arcresub}.
 
 \subsection*{\texttt{arcresume}}
 The {\texttt arcresume} command will restart the job from its last resumable state (as reported by the cluster) on the same cluster (computing element) as the job initially was running on. A typical use of this functionality could be if a job has run successfully, but fails in the uploading of output files, e.g. due to the expiration of the user proxy. The user can resolve this situation by uploading a new proxy to the cluster and invoking the {\texttt arcresume} command which resumes the job and the file upload. Since the job will resume at the same cluster (computing element) the {\texttt arcresume} command should be possible to implement for all supported middlewares if the middleware itself supports the resume action. {\bf This command is neither a migration nor a resubmission of the job, and thus not foreseen to be a part of the D2.2-1 deliverable, but will be implemented as a part of Task 1.2.}
 
-\subsection*{\texttt{arcmigrate}}
-The \texttt{arcmigrate} command should enable users to move jobs from one cluster to another. In this first implementation the command will only support the migration of jobs which are queued in the batch system, i.e. there will be no support for check-pointing etc allowing for migration of running jobs. Nevertheless migration of queueing jobs is the foreseen most frequent use case, in which users would like to migrate queueing jobs from one cluster (computing element) to another cluster (computing element) which meanwhile have been freed or made available in other ways. 
+\subsection*{\arcmigrate}
+The \arcmigrate command should enable users to move jobs from one cluster to another. In this first implementation the command will only support the migration of jobs which are queued in the batch system, i.e. there will be no support for check-pointing etc allowing for migration of running jobs. Nevertheless migration of queueing jobs is the foreseen most frequent use case, in which users would like to migrate queueing jobs from one cluster (computing element) to another cluster (computing element) which meanwhile have been freed or made available in other ways. 
 
 Upon migration of the job, both the job description and the local input files will be copied directly from the cluster where the job is queueing to the new cluster where the job will be executed\footnote{Input files from storage elements will be copied from the storage element onto the new cluster}. No files or job description will pass via the user's host, thus enabling the user to migrate a job even if the local input files has been changed or deleted. Additionally this will enable the user to perform job migration from a host different from the submission host, e.g. migrating jobs from an internet cafe.
 
 {\bf Keep in mind:} Upon job migration the initial job is killed and hence the job receives a new job-id. The old job-id and accompanying job information (endpoint etc) thus have to be updated in the user's local XML file which holds the list of all active jobs.
 
+
+%% Edited by Martin Skou
 \subsubsection*{Technical imlplementation:}
+In a first implementation the \arcmigrate will only be able to migrate a queued job from an ARC1 cluster (old-cluster) to an ARC1 cluster (new-cluster). In its simplest invocation the command should take one argument specified by the user ie. the job id of a queued job on old-cluster. In case the job is not queued an error should be returned and the command should exit.
+
+From the job id a migration specific JSDL file (migration-JSDL) is generated and used communicate with a possible new-cluster (candidate-cluster). For the migration-JSDL file extending JSDL was required.
+
+Now clusters are contacted in the usual way and if a connection to a candidate cluster is accepted migration-JSDL is send.
+
+From the received migration-JSDL, candidate-cluster fetches the JSDL file of the job (original-JSDL) which is located on old-cluster. Candidate-cluster then examine through original-JSDL if the job are able to run there. If positive, input files specified in original-JSDL should be fetched. If not candidate-cluster returns an error and the next cluster should be tried.
+
+Input files can be divided in two categories: local files and storage element files. As default candidate-cluster should fetch local files from old-cluster while storage element files should be fetched from the storage element as this in general should be faster. If candidate-cluster succeeds in fetching the files the job is started at candidate-cluster now termed new-cluster.
+
+Now the job on old-cluster should be killed. Two possible solutions exists. First solution is to let the client send a kill signal to old-cluster. And in the second solution the signal will be send from new-cluster. If the client should send the kill signal, new-cluster should return the new job-id after starting the job. While if new-cluster should send the signal, the job-id will be returned after sending the signal. In both cases, if the job cannot be killed a warning will be given.
+
 
 \subsection*{\texttt{arcresub}}
 The resubmission command will redo an entire job from scratch by first trying to kill the existing job (if possible) and then resubmit the job. The command could e.g. be used if the contact to the cluster running a job is lost, and the user would like to resubmit the job to a different cluster. In this particular use case no information about the job can be retrieved from the cluster, thus everything constituting the job (job description and input files) will have to be retrieved from elsewhere. This is solved by implementing a local sandbox which upon job submission automatically stores the job description and checksums of the local input files. The local sandbox ensures that the user is able to resubmit the job to a new cluster even if the cluster running the job goes down, and that the resubmitted job contains the exact same input files as the original job (reliable resubmission)\footnote{The reliable resubmission only governs the local input files. Input files taken from storage elements are not under this control}. 
@@ -46,8 +61,4 @@ The feature of storing job descriptions and checksums in a local sandbox could i
 Both the issues above of the \texttt{ngresub} command are resolved with the proposed new implementation (\texttt{arcresub}). The proposed new solution also resolves the situation with multiple middlewares supported by the client library, and enables resubmission to middlewares different from the middleware originally running the job. All this is achieved through the usage of a local sandbox, which on the other side prevents the user from doing resubmission from a different host then the submission host since everything is stored locally. This could in the future be solved by adopting the above mentioned model of a ``grid sandbox'' but local input files are still likely to be a cause of concern.     
 
 \subsubsection*{Technical imlplementation:}
-
-% Comments from Balazs:
-%relate new job to the old one
-%clarify what it means to be started
 \end{document}
