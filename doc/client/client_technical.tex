@@ -494,7 +494,7 @@ The base Broker operations are the followings:
 
 
 \begin{enumerate}
-\item{The first step is the PreFilterTargets, this implements the matchmaking: the JobDescription and the TargetGenerator's ExecutionTargets will be compared inside this method. JobDescription content the job's JobInnerRepresentation, and the ExecutionTarget content the candidate cluster's queue information. There are main elements in the JobInnerRepresentation which are used for matchmaking, these are documented in this Appendix: ... (every matchmaking elements and their comparison logic are there) The macthmaking working on this way: it takes every JobInnerrepresentation elements which are relevant and in an ordered way check them. If a matchmaking element is not presented in the JobInnerRepresentation then it will be ignored, but if it is there than the ExecutionTarget should content its pair.} For example SessionLifeTime is in the JobInnerRepresentaion and the WorkingAreaLifeTime is in the ExecutionTarget (these are matchmaking pair). If the WorkingAreaLifeTime is not defined then the Broker cannot check the times therefore it will ignore this cluster, but if the WorkingAreaLifeTime exist and the comparison between this elements are true then this check will be passed other way the cluster will be ignored. We are using this rule for every elements checking. There is only one exception and this is the ProcessingStartTime because if the DownTime is not defined in the ExecutionTarget than we can trust by it that the job can anytime start and it will be not killed with shutdown. This rule checking runs for every ExecutionTargets and if every matchmaking checks are ok for a target then this ExecutionTarget will be added to the PossibleTargets vector.
+\item{The first step is the PreFilterTargets, this implements the matchmaking: the JobDescription and the TargetGenerator's ExecutionTargets will be compared inside this method. JobDescription content the job's JobInnerRepresentation, and the ExecutionTarget content the candidate cluster's queue information. There are main elements in the JobInnerRepresentation which are used for matchmaking, these are documented in this Appendix: \ref{sec:broker-mapping}, every matchmaking elements and their comparison logic are there. The macthmaking working on this way: it takes every JobInnerrepresentation elements which are relevant and in an ordered way check them. If a matchmaking element is not presented in the JobInnerRepresentation then it will be ignored, but if it is there than the ExecutionTarget should content its pair.} For example SessionLifeTime is in the JobInnerRepresentaion and the WorkingAreaLifeTime is in the ExecutionTarget (these are matchmaking pair). If the WorkingAreaLifeTime is not defined then the Broker cannot check the times therefore it will ignore this cluster, but if the WorkingAreaLifeTime exist and the comparison between this elements are true then this check will be passed other way the cluster will be ignored. We are using this rule for every elements checking. There is only one exception and this is the ProcessingStartTime because if the DownTime is not defined in the ExecutionTarget than we can trust by it that the job can anytime start and it will be not killed with shutdown. This rule checking runs for every ExecutionTargets and if every matchmaking checks are ok for a target then this ExecutionTarget will be added to the PossibleTargets vector.
 \item{If the matchmaking finished then  the PreFilteringDone variable will be true and the TargetSortingDone will be false. }
 \item{The next step is the GetBestTarget method calling, this will give an ExecutionTarget which is good for our job. If the Possibletarget vector empty then it will give nothing. The first time the GetBestTarget will trigger the specialid Broker type sorting with this method calling:  SortTargets. This SortTargets method is virtual method, therefore every specialised Broker should implement it.}
 \item{If the SortTargets finished then the TargetSortingDone will be true and the GetBestTarget will return the first element of the PossibleTargetVector and the current iterator will be incremented with one.}
@@ -957,29 +957,91 @@ gridftp protocol. The gridftp DMC is therefore required.
 
 \subsubsection{RandomBroker}
 
-The sorting method is random.
-
-TODO: finish
+The ExecutionTarget sorting based on randomization, the only thing is what happen is that the PossibTargets vector will be shuffled.
 
 \subsubsection{FastestCPUBroker}
 
-The sorting method based on the fastest cpu, we are using for this the specint2006 benchmark solution.
+The sorting method based on the fastest CPU, we are using for this the CINT2006 (Integer Component of SPEC CPU2006) benchmark solution, here are more information about this benchmark type: http://www.spec.org/cpu2006/CINT2006/
 
-TODO: finish
+These is the sorting algorithm for this Broker:
+
+\begin{enumerate}
+\item{There is a cluster filtering at the begining of the sorting. If the cluster is not publish the specint2006 benchmark information then it will be ignored.}
+\item{That cluster will be the first in the PossibleTargets vector which has the highest specint2006 value.}
+\end{enumerate}
 
 \subsubsection{FastestQueueBroker}
 
-The sorting method based on the shortest queue, where the waiting jobs number is low.
+The sorting method based on the shortest queue, where the waiting jobs number is the lowest. 
 
-TODO: finish
+These is the sorting algorithm for this Broker:
+
+\begin{enumerate}
+\item{That clusters will be removed which are not content the target sorting information: WaitingJobs, TotalSlots and FreeSlots.}
+\item{Sort the targets according to the number of waiting jobs (in percent of the cluster size). That cluster will be better where the WaitingJobs number division with the TotalSlots give lower number. This solution will result that the scale queue will be independent from the cluster size.}
+\item{If several clusters(queues) have free slots (CPUs) do basic load balancing}
+\end{enumerate}
 
 \subsubsection{DataBroker}
 
-The sorting method based on the A-REX file cache. I will describe how does it working.
+The main idea was that the jobs should submit to that cluster where the data is. The sorting method based on the A-REX file cache checking. There is a CacheCheck interface inside the A-REX which can be use to query that files present or not in the cache directory. There is a limitation at the current state because the CacheCheck interface can use only this cache directory format: 
 
-TODO: finish
+\begin{shaded}
+\begin{verbatim}
+cachedir="/tmp/cache"
+\end{verbatim}
+\end{shaded}
 
+If the cachedir parameter content {\%}U or other substitute element then the CacheCheck will not working.
+
+These is the sorting algorithm for this Broker:
+
+\begin{enumerate}
+\item{Only the A-REX service has CacheCheck method therefore the other clusters will be ignored}
+\item{The files URL collected from the JobInnerRepresentation }
+\item{Every ExecutionTargets which are A-REXs will be called its  CacheCheck method, there is only one query per service, with this it will be not increment its load too. The Broker will summarize the file sizes. The CacheMappingTable is an array where the A-REX's URL is the key and the summarized file size is the value. When there is some problem to query file size from the A-REX then the summarized size will be zero.}
+\item{The last step is to sort the PossibleTargets vector in descending way  (CacheMappingTable used for this), which cluster content the most data that will be at the front of the vector.}
+\end{enumerate}
+
+Example for CacheCheck request what can be sent to an A-REX service:
+
+\begin{shaded}
+\begin{verbatim}
+<CacheCheck>
+   <TheseFilesNeedToCheck>
+       <FileURL>http://knowarc1.grid.niif.hu/storage/Makefile</FileURL>
+       <FileURL>ftp://download.nordugrid.org/test/README</FileURL>
+   </TheseFilesNeedToCheck>
+</CacheCheck>
+\end{verbatim}
+\end{shaded}
+
+Example CacheCheck response of the A-REX service:
+
+\begin{shaded}
+\begin{verbatim}
+<CacheCheckResponse>
+   <CacheCheckResult>
+   <Result>
+         <FileURL>http://knowarc1.grid.niif.hu/storage/Makefile</FileURL>
+         <ExistInTheCache>true</ExistInTheCache>
+         <FileSize>30</FileSize>
+   </Result>
+   <Result>
+         <FileURL>http://knowarc1.grid.niif.hu/storage/Makefile</FileURL>
+         <ExistInTheCache>true</ExistInTheCache>
+         <FileSize>30</FileSize>
+   </Result>
+  </CacheCheckResult>
+</CacheCheckResponse>
+\end{verbatim}
+\end{shaded}
+
+   
+   
 \subsubsection{PythonBroker}
+
+Mattias
 
 TODO: finish
 
@@ -1625,6 +1687,19 @@ ARC0: nordugrid-job-comment
 \subsection*{std::string UsedOSFamily}
 
 \subsection*{std::string UsedPlatform}
+
+\chapter{{\Broker}}
+\label{app:broker}
+
+\section{Broker mapping}
+\label{sec:broker-mapping}
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/broker-mapping.ods
+
+\section{JobInnerrepresentation}
+\label{sec:jobinnerrepresentation}
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/JobInnerRepresentation.ods
 
 \bibliography{grid}
 
