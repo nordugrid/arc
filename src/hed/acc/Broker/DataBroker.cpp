@@ -20,9 +20,7 @@ namespace Arc {
     Arc::MCCConfig cfg;
     Arc::NS ns;
 
-    // TODO: delegation
-
-    //cfg.AddProxy(proxyPath);
+    cfg.AddProxy(proxyPath);
     cfg.AddCertificate(certificatePath);
     cfg.AddPrivateKey(keyPath);
     cfg.AddCADir(caCertificatesDir);
@@ -65,9 +63,6 @@ namespace Arc {
            if (((std::string)ExistCount[i]["ExistInTheCache"]) == "true") j++;
            DataSize += Arc::stringto<long>((std::string)ExistCount[i]["FileSize"]);
        }
-
-       //std::cout << "count of true files: " << j << std::endl;
-       //std::cout << "count of data: " << DataSize << std::endl;
 
 	   CacheMappingTable[(*target).url.fullstr()] = DataSize;
     }
@@ -122,7 +117,6 @@ namespace Arc {
     for(int i=1; iter != PossibleTargets.end(); iter++, i++){
       logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
     }     
-
 
 	TargetSortingDone = true;
   }
