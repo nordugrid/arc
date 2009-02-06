@@ -14,6 +14,7 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
+#include <arc/Thread.h>
 
 
 #include "hopi.h"
@@ -34,47 +35,79 @@ Arc::Logger Hopi::logger(Arc::Logger::rootLogger, "Hopi");
 class HopiFileChunks {
  private:
   static std::map<std::string,HopiFileChunks> files;
+  static Glib::Mutex lock;
   typedef std::list<std::pair<off_t,off_t> > chunks_t;
   chunks_t chunks;
   off_t size;
   time_t last_accessed;
+  int refcount;
   std::map<std::string,HopiFileChunks>::iterator self;
   HopiFileChunks(void);
  public:
   void Add(off_t start,off_t end);
   off_t Size(void) { return size; };
-  void Size(off_t size) { HopiFileChunks::size = size; };
+  void Size(off_t size) {
+    lock.lock();
+    if(size > HopiFileChunks::size) HopiFileChunks::size = size;
+    lock.unlock();
+  };
   static HopiFileChunks& Get(std::string path);
   void Remove(void);
   void Release(void);
   bool Complete(void);
+  void Print(void);
 };
 
 std::map<std::string,HopiFileChunks> HopiFileChunks::files;
+Glib::Mutex HopiFileChunks::lock;
 
-HopiFileChunks::HopiFileChunks(void):size(0),last_accessed(time(NULL)),self(files.end()) {
+void HopiFileChunks::Print(void) {
+  int n = 0;
+  for(chunks_t::iterator c = chunks.begin();c!=chunks.end();++c) {
+    Hopi::logger.msg(Arc::VERBOSE, "Chunk %u: %u - %u",n,c->first,c->second);
+  };
+}
+
+HopiFileChunks::HopiFileChunks(void):size(0),last_accessed(time(NULL)),refcount(0),self(files.end()) {
 }
 
 void HopiFileChunks::Remove(void) {
-  if(self == files.end()) return;
-  files.erase(self);
-  self=files.end();
+  lock.lock();
+  --refcount;
+  if(refcount <= 0) {
+    if(self != files.end()) {
+      files.erase(self);
+    }
+  }
+  lock.unlock();
 }
 
 HopiFileChunks& HopiFileChunks::Get(std::string path) {
+  lock.lock();
   std::map<std::string,HopiFileChunks>::iterator c = files.find(path);
   if(c == files.end()) {
     c=files.insert(std::pair<std::string,HopiFileChunks>(path,HopiFileChunks())).first;
     c->second.self=c;
   }
+  ++(c->second.refcount);
+  lock.unlock();
   return (c->second);
 }
 
 void HopiFileChunks::Release(void) {
-  if(chunks.empty()) Remove();
+  lock.lock();
+  if(chunks.empty()) {
+    lock.unlock();
+    Remove();
+  } else {
+    --refcount;
+    lock.unlock();
+  }
 }
 
 void HopiFileChunks::Add(off_t start,off_t end) {
+  lock.lock();
+  if(end > size) size=end;
   for(chunks_t::iterator chunk = chunks.begin();chunk!=chunks.end();++chunk) {
     if((start >= chunk->first) && (start <= chunk->second)) {
       // New chunk starts within existing chunk
@@ -91,26 +124,35 @@ void HopiFileChunks::Add(off_t start,off_t end) {
           chunk_=chunks.erase(chunk_);
         };
       };
+      lock.unlock();
+      return;
     } else if((end >= chunk->first) && (end <= chunk->second)) {
-      // New chunk end within existing chunk
+      // New chunk ends within existing chunk
       if(start < chunk->first) {
         // Extend chunk
         chunk->first=start;
       };
+      lock.unlock();
+      return;
     } else if(end < chunk->first) {
       // New chunk is between existing chunks or first chunk
       chunks.insert(chunk,std::pair<off_t,off_t>(start,end));
+      lock.unlock();
+      return;
     };
   };
   // New chunk is last chunk or there are no chunks currently
   chunks.insert(chunks.end(),std::pair<off_t,off_t>(start,end));
+  lock.unlock();
 }
 
 bool HopiFileChunks::Complete(void) {
-  if((chunks.size() == 1) &&
-     (chunks.begin()->first == 0) &&
-     (chunks.begin()->second == size)) return true;
-  return false;
+  lock.lock();
+  bool r = ((chunks.size() == 1) &&
+            (chunks.begin()->first == 0) &&
+            (chunks.begin()->second == size));
+  lock.unlock();
+  return r;
 }
 
 class HopiFile {
@@ -127,6 +169,7 @@ class HopiFile {
   void Size(off_t size) { chunks.Size(size); };
   operator bool(void) { return (handle != -1); };
   bool operator!(void) { return (handle == -1); };
+  void Destroy(void);
 };
 
 HopiFile::HopiFile(const std::string& path,bool for_read,bool slave):handle(-1),chunks(HopiFileChunks::Get(path)) {
@@ -158,6 +201,7 @@ HopiFile::~HopiFile(void) {
     if(!for_read) {
       if(chunks.Complete()) {
         if(slave) {
+          Hopi::logger.msg(Arc::ERROR, "Removing complete file in slave mode");
           unlink(path.c_str());
         }
         chunks.Remove();
@@ -166,6 +210,13 @@ HopiFile::~HopiFile(void) {
     }
   }
   chunks.Release();
+}
+
+void HopiFile::Destroy(void) {
+  if(handle != -1) close(handle);
+  handle=-1;
+  unlink(path.c_str());
+  chunks.Remove();
 }
 
 int HopiFile::Write(void* buf,off_t offset,int size) {
@@ -177,6 +228,7 @@ int HopiFile::Write(void* buf,off_t offset,int size) {
     ssize_t l = write(handle,buf,s);
     if(l == -1) return -1;
     chunks.Add(offset,offset+l);
+    chunks.Print();
     s-=l; buf=((char*)buf)+l; offset+=l;
   }
   return size;
@@ -241,6 +293,15 @@ Arc::PayloadRawInterface *Hopi::Get(const std::string &path, const std::string &
     return NULL;
 }
 
+static off_t GetEntitySize(Arc::MessagePayload &payload) {
+    try {
+        return dynamic_cast<Arc::PayloadRawInterface&>(payload).Size();
+    } catch (std::exception &e) {
+    }
+    return 0;
+}
+
+
 Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
 {
     // XXX eliminate relativ paths first
@@ -250,41 +311,29 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
         logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files");        
         return Arc::MCC_Status();
     }
-    int fd = open(full_path.c_str(), O_CREAT|O_WRONLY|O_TRUNC, 0600);
-    if (fd == -1) {
-        logger.msg(Arc::ERROR, Arc::StrError(errno));        
+    HopiFile fd(full_path.c_str(),false,slave_mode == "1");
+    if (!fd) {
         return Arc::MCC_Status();
     }
+    fd.Size(GetEntitySize(payload));
     try {
         Arc::PayloadStreamInterface& stream = dynamic_cast<Arc::PayloadStreamInterface&>(payload);
-        const int bufsize = 1024*1024;
-        char* buf = new char[bufsize];
+        char sbuf[1024*1024];
         for(;;) {
-            char* sbuf = buf;
-            int size = bufsize;
+            int size = sizeof(sbuf);
+            off_t offset = stream.Pos();
             if(!stream.Get(sbuf,size)) {
                 if(!stream) {
-                    delete[] buf;
-                    close(fd);
-                    unlink(full_path.c_str());
                     logger.msg(Arc::DEBUG, "error reading from HTTP stream");
                     return Arc::MCC_Status();
                 }
                 break;
             }
-            for(;size>0;) {
-                ssize_t l = write(fd, sbuf, size);
-                if(l == -1) {
-                    delete[] buf;
-                    close(fd);
-                    unlink(full_path.c_str());
-                    logger.msg(Arc::DEBUG, "error on write");
-                    return Arc::MCC_Status();
-                }
-                size-=l; sbuf+=l;
+            if(fd.Write(sbuf,offset,size) != size) {
+              logger.msg(Arc::DEBUG, "error on write");
+              return Arc::MCC_Status();
             }
         }
-        delete[] buf;
     } catch (std::exception &e) {
         try {
             Arc::PayloadRawInterface& buf = dynamic_cast<Arc::PayloadRawInterface&>(payload);
@@ -294,33 +343,17 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
                 off_t offset = buf.BufferPos(n);
                 size_t size = buf.BufferSize(n);
                 if(size > 0) {
-                    off_t o = lseek(fd, offset, SEEK_SET);
-                    if(o != offset) {
-                        close(fd);
-                        unlink(full_path.c_str());
-                        logger.msg(Arc::DEBUG, "error on seek");
+                    if(fd.Write(sbuf,offset,size) != size) {
+                        logger.msg(Arc::DEBUG, "error on write");
                         return Arc::MCC_Status();
-                    }
-                    for(;size>0;) {
-                        ssize_t l = write(fd, sbuf, size);
-                        if(l == -1) {
-                            close(fd);
-                            unlink(full_path.c_str());
-                            logger.msg(Arc::DEBUG, "error on write");
-                            return Arc::MCC_Status();
-                        }
-                        size-=l; sbuf+=l;
                     }
                 }
             }
         } catch (std::exception &e) {
-            close(fd);
             logger.msg(Arc::ERROR, "Input for PUT operation is neither stream nor buffer");
             return Arc::MCC_Status();
         }
     }
-    close(fd);
-    if (slave_mode == "1") unlink(full_path.c_str());
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
