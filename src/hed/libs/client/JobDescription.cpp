@@ -1995,8 +1995,6 @@ namespace Arc {
                 Arc::TargetType target;
                 if ( (*it)[1] != "" )
                     target.URI = (*it)[1];
-                else
-                    target.URI = (*it)[0];
                 target.Threads = -1;
                 target.Mandatory = false;
                 target.NeededReplicas = -1;
@@ -2333,16 +2331,18 @@ namespace Arc {
                        first_time = false;
                     }
                     product += " (\"" + (*iter).Name;
-//TODO:StagingInBaseURI added
-                    product += "\" " +  (*it_source).URI.fullstr();
+
                     // file size added
                     struct stat fileStat;
-                    if ( stat((*it_source).URI.fullstr().c_str(), &fileStat) == 0){
+                    if ( stat((*it_source).URI.Path().c_str(), &fileStat) == 0){
                        std::string filesize;
                        std::stringstream ss;
                        ss << fileStat.st_size;
                        ss >> filesize;
                        product += " \"" + filesize + "\"";
+                    }
+                    else {
+                        product += "\" " +  (*it_source).URI.fullstr();
                     }
 
                     // checksum added
@@ -2398,6 +2398,7 @@ namespace Arc {
         }
         if (!innerRepresentation.File.empty()) {
             bool first_time = true;
+            bool output(false),error(false);
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
                 std::list<Arc::TargetType>::const_iterator it_target;
@@ -2407,6 +2408,8 @@ namespace Arc {
                        first_time = false;
                     }
                     product += " (\"" + (*iter).Name;
+                    if ( (*iter).Name == innerRepresentation.Output ) output = true;
+                    if ( (*iter).Name == innerRepresentation.Error ) error = true;
 		    if ((*it_target).URI.fullstr().empty())
                        product += "\" \"\" )";
 		    else 
@@ -2414,8 +2417,10 @@ namespace Arc {
                 }
             }
             if ( !first_time ){
-               if (!innerRepresentation.Output.empty()) product += " (\"" + innerRepresentation.Output + "\" \"\" )";
-               if (!innerRepresentation.Error.empty()) product += " (\"" + innerRepresentation.Error + "\" \"\" )";
+               if (!innerRepresentation.Output.empty() && !output)
+                  product += " (\"" + innerRepresentation.Output + "\" \"\" )";
+               if (!innerRepresentation.Error.empty() && !error)
+                  product += " (\"" + innerRepresentation.Error + "\" \"\" )";
                product += " )\n";
             }
             else {
