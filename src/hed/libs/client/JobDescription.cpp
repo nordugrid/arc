@@ -2344,9 +2344,9 @@ namespace Arc {
                        product += "( inputfiles =";//TODO:
                        first_time = false;
                     }
-                    product += " (" + (*iter).Name;
+                    product += " (\"" + (*iter).Name;
 //TODO:StagingInBaseURI added
-                    product += " " +  (*it_source).URI.fullstr();
+                    product += "\" " +  (*it_source).URI.fullstr();
                     // file size added
                     struct stat fileStat;
                     if ( stat((*it_source).URI.fullstr().c_str(), &fileStat) == 0){
@@ -2355,9 +2355,6 @@ namespace Arc {
                        ss << fileStat.st_size;
                        ss >> filesize;
                        product += " \"" + filesize + "\"";
-                    }
-                    else{
-                       product += " \"\"";
                     }
 
                     // checksum added
@@ -2421,24 +2418,24 @@ namespace Arc {
                        product += "( outputfiles =";
                        first_time = false;
                     }
-                    product += " (" + (*iter).Name;
+                    product += " (\"" + (*iter).Name;
 		    if ((*it_target).URI.fullstr().empty())
-                       product += " \"\" )";
+                       product += "\" \"\" )";
 		    else 
-                       product += " " +  (*it_target).URI.fullstr() + " )";
+                       product += "\" " +  (*it_target).URI.fullstr() + " )";
                 }
             }
             if ( !first_time ){
-               if (!innerRepresentation.Output.empty()) product += " (" + innerRepresentation.Output + " \"\" )";
-               if (!innerRepresentation.Error.empty()) product += " (" + innerRepresentation.Error + " \"\" )";
+               if (!innerRepresentation.Output.empty()) product += " (\"" + innerRepresentation.Output + "\" \"\" )";
+               if (!innerRepresentation.Error.empty()) product += " (\"" + innerRepresentation.Error + "\" \"\" )";
                product += " )\n";
             }
             else {
                if (!innerRepresentation.Output.empty() ||
                    !innerRepresentation.Output.empty()) product += "( outputfiles =";
                
-               if (!innerRepresentation.Output.empty()) product += " (" + innerRepresentation.Output + " \"\" )";
-               if (!innerRepresentation.Error.empty())  product += " (" + innerRepresentation.Error + " \"\" )";
+               if (!innerRepresentation.Output.empty()) product += " (\"" + innerRepresentation.Output + "\" \"\" )";
+               if (!innerRepresentation.Error.empty())  product += " (\"" + innerRepresentation.Error + "\" \"\" )";
                if (!innerRepresentation.Output.empty() ||
                    !innerRepresentation.Output.empty()) product += " )\n";
 
@@ -2514,9 +2511,9 @@ namespace Arc {
             product += " )\n";
         }
         if (!innerRepresentation.JobName.empty()) {
-            product += "( jobname = ";
+            product += "( jobname = \"";
             product +=  innerRepresentation.JobName;
-            product += " )\n";
+            product += "\" )\n";
         }
         if (bool(innerRepresentation.AccessControl)) {
             product += "( acl = ";
