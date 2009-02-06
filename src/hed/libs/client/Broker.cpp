@@ -61,7 +61,7 @@ namespace Arc {
           // Enumeration for healthstate: ok, critical, other, unknown, warning
 
            if ((*target).HealthState != "ok") {
-               logger.msg(DEBUG, "Matchmaking, HealthState problem, ExecutionTarget: %s (HealthState) != ok");
+               logger.msg(DEBUG, "Matchmaking, HealthState problem, ExecutionTarget: %s (HealthState) != ok %s", (std::string)(*target).url.str(), (*target).HealthState);
 			   continue;
            }
        }
@@ -92,7 +92,9 @@ namespace Arc {
            }
 		  else {
                logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MappingQueue is not defined", (std::string)(*target).url.str() );
-			   continue;
+			  // TODO: CREAM, MappingQueue not available in schema
+			  //
+			  // continue;
 		  }
        }
 
