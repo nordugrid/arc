@@ -24,4 +24,4 @@ SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(PO_SD) $(DOC_SD)
 
 DIST_SUBDIRS = src swig java python po doc include debian
 
-EXTRA_DIST = arc.spec autogen.sh
+EXTRA_DIST = arc.spec autogen.sh LICENSE
