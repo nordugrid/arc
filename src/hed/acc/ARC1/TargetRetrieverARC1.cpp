@@ -171,8 +171,96 @@ namespace Arc {
     if (GLUEService["ComputingEndpoint"]["TotalJobs"]) {
       target.TotalJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["TotalJobs"]);
     } else {
-      logger.msg(WARNING, "The Service doesn't advertise the Total Number of Jobs.");
+      logger.msg(INFO, "The Service doesn't advertise the Total Number of Jobs.");
     }
+
+    if (GLUEService["ComputingEndpoint"]["ID"]) {
+      target.CEID = (std::string)GLUEService["ComputingEndpoint"]["ID"];
+    } else {
+      logger.msg(WARNING, "The Service doesn't advertise its ID.");
+    }
+
+    if (GLUEService["Name"]) {
+      target.CEName = (std::string)GLUEService["Name"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise its Name.");
+    }
+
+    if (GLUEService["Capability"]) {
+      target.Capability = (std::string)GLUEService["Capability"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise its Capability.");
+    }
+
+    if (GLUEService["Type"]) {
+      target.Type = (std::string)GLUEService["Type"];
+    } else {
+      logger.msg(WARNING, "The Service doesn't advertise its Type.");
+    }
+
+    if (GLUEService["QualityLevel"]) {
+      target.QualityLevel = (std::string)GLUEService["QualityLevel"];
+    } else {
+      logger.msg(WARNING, "The Service doesn't advertise its Quality Level.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["Technology"]) {
+      target.Technology = (std::string)GLUEService["ComputingEndpoint"]["Technology"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise its Technology.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["InterfaceName"]) {
+      target.Interface = (std::string)GLUEService["ComputingEndpoint"]["InterfaceName"];
+    } else if (GLUEService["ComputingEndpoint"]["Interface"]) {
+      target.Interface = (std::string)GLUEService["ComputingEndpoint"]["Interface"];
+    }
+ 
+    if (target.Interface == "") {
+      logger.msg(WARNING, "The Service doesn't advertise its Interface.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["InterfaceExtension"]) {
+      target.InterfaceExtension = (std::string)GLUEService["ComputingEndpoint"]["InterfaceExtension"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise an Interface Extension.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["SupportedProfile"]) {
+      target.SupportedProfile = (std::string)GLUEService["ComputingEndpoint"]["SupportedProfile"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise any Supported Profile.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ImplementationVersion"]) {
+      target.ImplementationVersion = (std::string)GLUEService["ComputingEndpoint"]["ImplementationVersion"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise an Implementation Version.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ServingState"]) {
+      target.ServingState = (std::string)GLUEService["ComputingEndpoint"]["ServingState"];
+    } else {
+      logger.msg(WARNING, "The Service doesn't advertise its Serving State.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["IssuerCA"]) {
+      target.IssuerCA = (std::string)GLUEService["ComputingEndpoint"]["IssuerCA"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise its Issuer CA.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["TrustedCA"]) {
+      XMLNode n = GLUEService["ComputingEndpoint"]["TrustedCA"];
+      while (n) {
+        target.TrustedCA.push_back((std::string)n);
+        ++n; //The increment operator works in an unusual manner (returns void)
+      }
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise any Trusted CA.");
+    }
+
+    //std::cout <<  << std::endl; //for dubugging
 
 //     if (ServerStatus["LocalResourceManagerType"])
 //       target.ManagerType =
