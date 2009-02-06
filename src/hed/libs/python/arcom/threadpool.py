@@ -231,7 +231,8 @@ if __name__ == "__main__":
         sleep(data)
         return "Waiter", data
 
-    def addTask((data, locker)):
+    locker = ReadWriteLock()
+    def addTask(data):
         global COUNTER
         nadds = 10000
         for i in range(nadds):
@@ -252,22 +253,21 @@ if __name__ == "__main__":
     pool = ThreadPool(3)
 
     # Insert tasks into the queue and let them run
-#    pool.queueTask(sortTask, (1000, 100000), taskCallback)
-#    pool.queueTask(waitTask, 5, taskCallback)
-#    pool.queueTask(sortTask, (200, 200000), taskCallback)
-#    pool.queueTask(waitTask, 2, taskCallback)
-#    pool.queueTask(sortTask, (3, 30000), taskCallback)
-#    pool.queueTask(waitTask, 7, taskCallback)
+    pool.queueTask(sortTask, (1000, 100000), taskCallback)
+    pool.queueTask(waitTask, 5, taskCallback)
+    pool.queueTask(sortTask, (200, 200000), taskCallback)
+    pool.queueTask(waitTask, 2, taskCallback)
+    pool.queueTask(sortTask, (3, 30000), taskCallback)
+    pool.queueTask(waitTask, 7, taskCallback)
 
     pool.joinAll()
 
-    pool = ThreadPool(3)
+    pool = ThreadPool(5)
 
-    locker = ReadWriteLock()
-    pool.queueTask(addTask, (10, locker), taskCallback)
-    pool.queueTask(addTask, (10, locker), taskCallback)
-    pool.queueTask(addTask, (10, locker), taskCallback)
-    pool.queueTask(addTask, (10, locker), taskCallback)
+    pool.queueTask(addTask, 10, taskCallback)
+    pool.queueTask(addTask, 10, taskCallback)
+    pool.queueTask(addTask, 10, taskCallback)
+    pool.queueTask(addTask, 10, taskCallback)
     
     print "before join", COUNTER
     # When all tasks are finished, allow the threads to terminate
