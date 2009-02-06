@@ -748,17 +748,13 @@ namespace Arc {
               file.Name = (std::string) filenameNode;
               if (bool(source_uri)) {
                  Arc::SourceType source;
-                 URL uri;
-                 uri.ChangePath((std::string)source_uri);
-                 source.URI = uri;
+                 source.URI = (std::string)source_uri;
                  source.Threads = -1;
                  file.Source.push_back(source);
               }
               if (bool(target_uri)) {
                  Arc::TargetType target;
-                 URL uri;
-                 uri.ChangePath((std::string)target_uri);
-                 target.URI = uri;
+                 target.URI = (std::string)target_uri;
                  target.Threads = -1;
                  file.Target.push_back(target);
               }
@@ -1601,9 +1597,7 @@ namespace Arc {
             for (std::list<Arc::XMLNode>::const_iterator it_source = source.begin(); it_source!= source.end(); it_source++) {
                 Arc::SourceType _source;
                 if ( (bool)((*it_source)["URI"]) ) {
-                   URL uri;
-                   uri.ChangePath((std::string)(*it_source)["URI"]);
-                   _source.URI = uri;
+                   _source.URI = (std::string)(*it_source)["URI"];
                 }
                 if ( (bool)((*it_source)["Threads"])) {
                    _source.Threads = stringtoi((std::string)(*it_source)["Threads"]);
@@ -1617,9 +1611,7 @@ namespace Arc {
             for (std::list<Arc::XMLNode>::const_iterator it_target = target.begin(); it_target!= target.end(); it_target++) {
                 Arc::TargetType _target;
                 if ( (bool)((*it_target)["URI"]) ) {
-                   URL uri;
-                   uri.ChangePath((std::string)(*it_target)["URI"]);
-                   _target.URI = uri;
+                   _target.URI = (std::string)(*it_target)["URI"];
                 }
                 if ( (bool)((*it_target)["Threads"])) {
                    _target.Threads = stringtoi((std::string)(*it_target)["Threads"]);
@@ -1708,9 +1700,7 @@ namespace Arc {
             for (std::list<Arc::XMLNode>::const_iterator it_source = source.begin(); it_source!= source.end(); it_source++) {
                 Arc::SourceType _source;
                 if ( (bool)((*it_source)["URI"]) ) {
-                   URL uri;
-                   uri.ChangePath((std::string)(*it_source)["URI"]);
-                   _source.URI = uri;
+                   _source.URI = (std::string)(*it_source)["URI"];
                 }
                 if ( (bool)((*it_source)["Threads"])) {
                    _source.Threads = stringtoi((std::string)(*it_source)["Threads"]);
@@ -1724,9 +1714,7 @@ namespace Arc {
             for (std::list<Arc::XMLNode>::const_iterator it_target = target.begin(); it_target!= target.end(); it_target++) {
                 Arc::TargetType _target;
                 if ( (bool)((*it_target)["URI"]) ) {
-                   URL uri;
-                   uri.ChangePath((std::string)(*it_target)["URI"]);
-                   _target.URI = uri;
+                   _target.URI = (std::string)(*it_target)["URI"];
                 }
                 if ( (bool)((*it_target)["Threads"])) {
                    _target.Threads = stringtoi((std::string)(*it_target)["Threads"]);
@@ -1968,10 +1956,10 @@ namespace Arc {
                 Arc::FileType file;
                 file.Name = (*it)[0];
                 Arc::SourceType source;
-                Arc::URL url;
-                if ( (*it)[1] != "" ) url.ChangePath((*it)[1]);
-                else url.ChangePath((*it)[0]);
-                source.URI = url;
+                if ( (*it)[1] != "" )
+                    source.URI = (*it)[1];
+                else
+                    source.URI = (*it)[0];
                 source.Threads = -1;
                 file.Source.push_back(source);
                 //initializing this variables
@@ -2005,10 +1993,10 @@ namespace Arc {
                 Arc::FileType file;
                 file.Name = (*it)[0];
                 Arc::TargetType target;
-                Arc::URL url;
-                if ( (*it)[1] != "" ) url.ChangePath((*it)[1]);
-                else url.ChangePath("");
-                target.URI = url;
+                if ( (*it)[1] != "" )
+                    target.URI = (*it)[1];
+                else
+                    target.URI = (*it)[0];
                 target.Threads = -1;
                 target.Mandatory = false;
                 target.NeededReplicas = -1;
@@ -2792,9 +2780,7 @@ namespace Arc {
                 Arc::FileType file;
                 file.Name = (*it);
                 Arc::SourceType source;
-                Arc::URL url;
-                url.ChangePath(*it);
-                source.URI = url;
+                source.URI = *it;
                 source.Threads = -1;
                 file.Source.push_back(source);
                 //initializing this variables
@@ -2814,9 +2800,7 @@ namespace Arc {
                 Arc::FileType file;
                 file.Name = (*it);
                 Arc::TargetType target;
-                Arc::URL url;
-                url.ChangePath(*it);
-                target.URI = url;
+                target.URI = *it;
                 target.Threads = -1;
                 target.Mandatory = false;
                 target.NeededReplicas = -1;
@@ -2835,9 +2819,7 @@ namespace Arc {
                                                           it!=innerRepresentation.File.end(); it++) {
                 if ( !(*it).Target.empty() ) {
                    if ( i < value.size() ) {
-                      Arc::URL url;
-                      url.ChangePath(value[i]);
-                      (*it).Target.begin()->URI = url;
+                      (*it).Target.begin()->URI = value[i];
                       i++;
                    }
                    else {
