@@ -2393,7 +2393,8 @@ namespace Arc {
                     product +=  " )";
                 }
             }
-            product += " )\n";
+            if (!first_time)
+               product += " )\n";
         }
         if (!innerRepresentation.File.empty()) {
             bool first_time = true;
