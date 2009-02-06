@@ -376,6 +376,11 @@ namespace Arc {
 
 	 ... now do the mapping */
 
+    // TODO: we need to somehow query the HealthState
+
+    target.HealthState = "ok";
+
+
       if (Site["GlueSiteName"])
 	target.DomainName = (std::string)Site["GlueSiteName"];
 
