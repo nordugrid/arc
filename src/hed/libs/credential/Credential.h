@@ -89,10 +89,10 @@ class Credential {
          *used for generating X509 request; it should be '0' if 
          *'this' class is used for constraing certificate signing.
     */ 
-   Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), 
-              int keybits = 1024, std::string proxyversion = "", 
-              std::string policylang = "independent", std::string policyfile = "", 
-              int pathlength = 0);
+   Credential(Arc::Time start, Arc::Period lifetime = Arc::Period("PT12H"), 
+              int keybits = 1024, std::string proxyversion = "rfc", 
+              std::string policylang = "inheritAll", std::string policyfile = "", 
+              int pathlength = -1);
 
     /**Constructor, specific constructor for usual certificate, constructing from 
     * credential files. only acts as a container for parsing the certificate and key 

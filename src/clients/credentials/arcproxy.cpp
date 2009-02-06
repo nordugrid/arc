@@ -61,6 +61,9 @@ int main(int argc, char* argv[]){
 				    "  validityStart=time\n"
 				    "  validityEnd=time\n"
 				    "  validityPeriod=time\n"
+                                    "  vomsACvalidityStart=time\n"
+                                    "  vomsACvalidityEnd=time\n"
+                                    "  vomsACvalidityPeriod=time\n"
 				    "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file"));
 
@@ -223,17 +226,21 @@ int main(int argc, char* argv[]){
       Arc::Credential signer(cert_path, key_path, ca_dir, "");
       std::string private_key, signing_cert, signing_cert_chain;
 
-      Arc::Time t(constraints["validityStart"]);
+      Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
+      Arc::Period period1 = constraints["validityEnd"].empty() ? Arc::Period(std::string("43200")) : (Arc::Time(constraints["validityEnd"]) - start);
+      Arc::Period period = constraints["validityPeriod"].empty() ? period1 : (Arc::Period(constraints["validityPeriod"]));
       int keybits = 1024;
       std::string req_str;
-      Arc::Credential cred_request(t, Arc::Period(constraints["validityPeriod"]), keybits, "rfc","inheritAll", "", -1);
+      Arc::Credential cred_request(start, period, keybits, "rfc","inheritAll", "", -1);
+
       cred_request.GenerateRequest(req_str);
 
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
-      Arc::Credential proxy;
-      proxy.InquireRequest(req_str);
-      signer.SignRequest(&proxy, proxy_path.c_str());
+      //Arc::Credential proxy;
+      //proxy.InquireRequest(req_str);
+      //signer.SignRequest(&proxy, proxy_path.c_str());
+      signer.SignRequest(&cred_request, proxy_path.c_str());
       cred_request.OutputPrivatekey(private_key);
       signer.OutputCertificate(signing_cert);
       signer.OutputCertificateChain(signing_cert_chain);
@@ -315,13 +322,13 @@ int main(int argc, char* argv[]){
         ret_str.append(ret_buf,len);
         memset(ret_buf,0,1024);
       }while(len == 1024);
-      logger.msg(Arc::INFO, "Returned msg from voms server: %s ", ret_str.c_str());
+      //logger.msg(Arc::DEBUG, "Returned msg from voms server: %s ", ret_str.c_str());
 
       //Put the return attribute certificate into proxy certificate as the extension part
       Arc::XMLNode node(ret_str);
       std::string codedac;
       codedac = (std::string)(node["ac"]);
-      std::cout<<"Coded AC: "<<codedac<<std::endl;
+      //std::cout<<"Coded AC: "<<codedac<<std::endl;
       std::string decodedac;
       int size;
       char* dec = NULL;
@@ -332,11 +339,13 @@ int main(int argc, char* argv[]){
       ArcCredential::AC** aclist = NULL;
       Arc::addVOMSAC(aclist, decodedac);
 
-      Arc::Credential proxy1;
-      proxy1.InquireRequest(req_str);
+      //Arc::Credential proxy1;
+      //proxy1.InquireRequest(req_str);
 
-      proxy1.AddExtension("acseq", (char**) aclist);
-      signer.SignRequest(&proxy1, proxy_path.c_str());
+      //proxy1.AddExtension("acseq", (char**) aclist);
+      cred_request.AddExtension("acseq", (char**) aclist);
+      //signer.SignRequest(&proxy1, proxy_path.c_str());
+      signer.SignRequest(&cred_request, proxy_path.c_str());
 
       std::ofstream out_f1(proxy_path.c_str(), std::ofstream::app);
       out_f1.write(private_key.c_str(), private_key.size());
