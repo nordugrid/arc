@@ -11,7 +11,7 @@ namespace Hopi {
 class Hopi: public Arc::Service {
     protected:
         std::string doc_root;
-        std::string slave_mode;
+        bool slave_mode;
         Arc::PayloadRawInterface* Get(const std::string &path, const std::string &base_url);
         Arc::MCC_Status Put(const std::string &path, Arc::MessagePayload &buf);
     public:

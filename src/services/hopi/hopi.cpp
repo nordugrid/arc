@@ -15,6 +15,7 @@
 #include <arc/URL.h>
 #include <arc/Utils.h>
 #include <arc/Thread.h>
+#include <arc/StringConv.h>
 
 
 #include "hopi.h"
@@ -36,6 +37,8 @@ class HopiFileChunks {
  private:
   static std::map<std::string,HopiFileChunks> files;
   static Glib::Mutex lock;
+  static int timeout;
+  static time_t last_timeout;
   typedef std::list<std::pair<off_t,off_t> > chunks_t;
   chunks_t chunks;
   off_t size;
@@ -44,6 +47,7 @@ class HopiFileChunks {
   std::map<std::string,HopiFileChunks>::iterator self;
   HopiFileChunks(void);
  public:
+  static void Timeout(int t) { timeout=t; };
   void Add(off_t start,off_t end);
   off_t Size(void) { return size; };
   void Size(off_t size) {
@@ -51,7 +55,9 @@ class HopiFileChunks {
     if(size > HopiFileChunks::size) HopiFileChunks::size = size;
     lock.unlock();
   };
+  std::string Path(void) { return self->first; };
   static HopiFileChunks& Get(std::string path);
+  static HopiFileChunks* GetStuck(void);
   void Remove(void);
   void Release(void);
   bool Complete(void);
@@ -60,6 +66,8 @@ class HopiFileChunks {
 
 std::map<std::string,HopiFileChunks> HopiFileChunks::files;
 Glib::Mutex HopiFileChunks::lock;
+int HopiFileChunks::timeout = 600; // 10 minutes by default
+time_t HopiFileChunks::last_timeout = time(NULL);
 
 void HopiFileChunks::Print(void) {
   int n = 0;
@@ -69,6 +77,23 @@ void HopiFileChunks::Print(void) {
 }
 
 HopiFileChunks::HopiFileChunks(void):size(0),last_accessed(time(NULL)),refcount(0),self(files.end()) {
+}
+
+HopiFileChunks* HopiFileChunks::GetStuck(void) {
+  if(((int)(time(NULL)-last_timeout)) < timeout) return NULL;
+  lock.lock();
+  for(std::map<std::string,HopiFileChunks>::iterator f = files.begin();
+                    f != files.end();++f) {
+    if((f->second.refcount <= 0) && 
+       (((int)(time(NULL) - f->second.last_accessed)) >= timeout )) {
+      ++(f->second.refcount);
+      lock.unlock();
+      return &(f->second);
+    }
+  }
+  last_timeout=time(NULL);
+  lock.unlock();
+  return NULL;
 }
 
 void HopiFileChunks::Remove(void) {
@@ -107,6 +132,7 @@ void HopiFileChunks::Release(void) {
 
 void HopiFileChunks::Add(off_t start,off_t end) {
   lock.lock();
+  last_accessed=time(NULL);
   if(end > size) size=end;
   for(chunks_t::iterator chunk = chunks.begin();chunk!=chunks.end();++chunk) {
     if((start >= chunk->first) && (start <= chunk->second)) {
@@ -167,9 +193,11 @@ class HopiFile {
   int Write(void* buf,off_t offset,int size);
   int Read(void* buf,off_t offset,int size);
   void Size(off_t size) { chunks.Size(size); };
+  off_t Size(void) { return chunks.Size(); };
   operator bool(void) { return (handle != -1); };
   bool operator!(void) { return (handle == -1); };
   void Destroy(void);
+  static void DestroyStuck(void);
 };
 
 HopiFile::HopiFile(const std::string& path,bool for_read,bool slave):handle(-1),chunks(HopiFileChunks::Get(path)) {
@@ -219,6 +247,23 @@ void HopiFile::Destroy(void) {
   chunks.Remove();
 }
 
+void HopiFile::DestroyStuck(void) {
+  std::string prev_path;
+  for(;;) {
+    HopiFileChunks* stuck_chunks = HopiFileChunks::GetStuck();
+    if(!stuck_chunks) return;
+    std::string stuck_path = stuck_chunks->Path();
+    if(stuck_path == prev_path) {
+      // This may happen if other thread just started accessing this file
+      stuck_chunks->Release();
+      return;
+    }
+    unlink(stuck_path.c_str());
+    stuck_chunks->Remove();
+    prev_path=stuck_path;
+  }
+}
+
 int HopiFile::Write(void* buf,off_t offset,int size) {
   if(handle == -1) return -1;
   if(for_read) return -1;
@@ -242,7 +287,7 @@ int HopiFile::Read(void* buf,off_t offset,int size) {
 }
 
 
-Hopi::Hopi(Arc::Config *cfg):Service(cfg)
+Hopi::Hopi(Arc::Config *cfg):Service(cfg),slave_mode(false)
 {
     logger.msg(Arc::INFO, "Hopi Initialized"); 
     doc_root = (std::string)((*cfg)["DocumentRoot"]);
@@ -250,11 +295,13 @@ Hopi::Hopi(Arc::Config *cfg):Service(cfg)
         doc_root = "./";
     }
     logger.msg(Arc::INFO, "Hopi DocumentRoot is " + doc_root);
-    slave_mode = (std::string)((*cfg)["SlaveMode"]);
-    if (slave_mode.empty()) {
-        slave_mode = "0";
-    }  
-    if (slave_mode == "1") logger.msg(Arc::INFO, "Hopi SlaveMode is on!");
+    slave_mode = (((std::string)((*cfg)["SlaveMode"])) == "1");
+    if (slave_mode) logger.msg(Arc::INFO, "Hopi SlaveMode is on!");
+    int timeout;
+    if(Arc::stringto((std::string)((*cfg)["UploadTimeout"]),timeout)) {
+        if(timeout > 0) HopiFileChunks::Timeout(timeout);
+    }
+      
 }
 
 Hopi::~Hopi(void)
@@ -269,9 +316,9 @@ Arc::PayloadRawInterface *Hopi::Get(const std::string &path, const std::string &
     if (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == true) {
         if (Glib::file_test(full_path, Glib::FILE_TEST_IS_REGULAR) == true) {
             PayloadFile * pf = new PayloadFile(full_path.c_str());
-            if (slave_mode == "1") unlink(full_path.c_str());
+            if (slave_mode) unlink(full_path.c_str());
             return pf;
-        } else if (Glib::file_test(full_path, Glib::FILE_TEST_IS_DIR) && slave_mode != "1") {
+        } else if (Glib::file_test(full_path, Glib::FILE_TEST_IS_DIR) && !slave_mode) {
             std::string html = "<HTML>\r\n<HEAD>Directory list of '" + path + "'</HEAD>\r\n<BODY><UL>\r\n";
             Glib::Dir dir(full_path);
             std::string d;
@@ -304,18 +351,21 @@ static off_t GetEntitySize(Arc::MessagePayload &payload) {
 
 Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
 {
-    // XXX eliminate relativ paths first
+    // XXX eliminate relative paths first
     logger.msg(Arc::DEBUG, "PUT called");
     std::string full_path = Glib::build_filename(doc_root, path);
-    if ((slave_mode == "1") && (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == false)) {
+    if (slave_mode && (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == false)) {
         logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files");        
         return Arc::MCC_Status();
     }
-    HopiFile fd(full_path.c_str(),false,slave_mode == "1");
+    // Do file cleaning here to avoid running dedicated thread
+    HopiFile::DestroyStuck();
+    HopiFile fd(full_path.c_str(),false,slave_mode);
     if (!fd) {
         return Arc::MCC_Status();
     }
     fd.Size(GetEntitySize(payload));
+    logger.msg(Arc::VERBOSE, "File size is %u",fd.Size());
     try {
         Arc::PayloadStreamInterface& stream = dynamic_cast<Arc::PayloadStreamInterface&>(payload);
         char sbuf[1024*1024];
