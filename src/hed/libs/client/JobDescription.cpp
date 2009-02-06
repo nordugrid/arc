@@ -69,7 +69,7 @@ namespace Arc {
         candidate.extensions.clear();
         candidate.pattern.clear();
         candidate.negative_pattern.clear();
-        candidate.priority = TOP_PRIORITY; //50 value
+        candidate.priority = DEFAULT_PRIORITY; //0 default value
         //End of setting defaults//
         candidate.typeName = "POSIXJSDL";
         candidate.extensions.push_back("posix");
@@ -2384,9 +2384,9 @@ namespace Arc {
                        crc.result(buf,len);
                        std::string file_checksum;
                        std::stringstream ss;
-                       ss << (unsigned long)buf;
+                       ss << buf;
                        ss >> file_checksum;
-                       if (!file_checksum.empty() && false)
+                       if (!file_checksum.empty())
                           product += " \"" + file_checksum + "\"";
                        */
                     }
@@ -2428,8 +2428,21 @@ namespace Arc {
                        product += " " +  (*it_target).URI.fullstr() + " )";
                 }
             }
-            if ( !first_time ) 
+            if ( !first_time ){
+               if (!innerRepresentation.Output.empty()) product += " (" + innerRepresentation.Output + " \"\" )";
+               if (!innerRepresentation.Error.empty()) product += " (" + innerRepresentation.Error + " \"\" )";
                product += " )\n";
+            }
+            else {
+               if (!innerRepresentation.Output.empty() ||
+                   !innerRepresentation.Output.empty()) product += "( outputfiles =";
+               
+               if (!innerRepresentation.Output.empty()) product += " (" + innerRepresentation.Output + " \"\" )";
+               if (!innerRepresentation.Error.empty())  product += " (" + innerRepresentation.Error + " \"\" )";
+               if (!innerRepresentation.Output.empty() ||
+                   !innerRepresentation.Output.empty()) product += " )\n";
+
+            }
         }
         if (!innerRepresentation.QueueName.empty()) {
             product += "( queue = ";
