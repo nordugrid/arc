@@ -1502,5 +1502,97 @@ err:
     return res;
   }
 
+  static char trans2[128] = { 0,   0,  0,  0,  0,  0,  0,  0,
+                            0,   0,  0,  0,  0,  0,  0,  0,
+                            0,   0,  0,  0,  0,  0,  0,  0,
+                            0,   0,  0,  0,  0,  0,  0,  0,
+                            0,   0,  0,  0,  0,  0,  0,  0,
+                            0,   0,  0,  0,  0,  0,  0,  0,
+                            52, 53, 54, 55, 56, 57, 58, 59,
+                            60, 61,  0,  0,  0,  0,  0,  0,
+                            0,  26, 27, 28, 29, 30, 31, 32,
+                            33, 34, 35, 36, 37, 38, 39, 40,
+                            41, 42, 43, 44, 45, 46, 47, 48,
+                            49, 50, 51, 62,  0, 63,  0,  0,
+                            0,   0,  1,  2,  3,  4,  5,  6,
+                            7,   8,  9, 10, 11, 12, 13, 14,
+                            15, 16, 17, 18, 19, 20, 21, 22,
+                            23, 24, 25,  0,  0,  0,  0,  0};
+
+  static char *base64Decode(const char *data, int size, int *j) {
+    BIO *b64 = NULL;
+    BIO *in = NULL;
+
+    char *buffer = (char *)malloc(size);
+    if (!buffer)
+      return NULL;
+
+    memset(buffer, 0, size);
+
+    b64 = BIO_new(BIO_f_base64());
+    in = BIO_new_mem_buf((void*)data, size);
+    in = BIO_push(b64, in);
+
+    *j = BIO_read(in, buffer, size);
+
+    BIO_free_all(in);
+    return buffer;
+  }
+
+  static char *MyDecode(const char *data, int size, int *n) {
+    int bit = 0;
+    int i = 0;
+    char *res;
+
+    if (!data || !size) return NULL;
+
+    if ((res = (char *)calloc(1, (size*3)/4 + 2))) {
+      *n = 0;
+
+      while (i < size) {
+        char c  = trans2[(int)data[i]];
+        char c2 = (((i+1) < size) ? trans2[(int)data[i+1]] : 0);
+
+        switch(bit) {
+        case 0:
+          res[*n] = ((c & 0x3f) << 2) | ((c2 & 0x30) >> 4);
+          if ((i+1) < size)
+            (*n)++;
+          bit=4;
+          i++;
+          break;
+        case 4:
+          res[*n] = ((c & 0x0f) << 4) | ((c2 & 0x3c) >> 2);
+          if ((i+1) < size)
+            (*n)++;
+          bit=2;
+          i++;
+          break;
+        case 2:
+          res[*n] = ((c & 0x03) << 6) | (c2 & 0x3f);
+          if ((i+1) < size)
+            (*n)++;
+
+          i += 2;
+          bit = 0;
+          break;
+        }
+      }
+
+      return res;
+    }
+    return NULL;
+  }
+
+  char *VOMSDecode(const char *data, int size, int *j) {
+    int i = 0;
+
+    while (i < size)
+      if (data[i++] == '\n')
+        return base64Decode(data, size, j);
+
+    return MyDecode(data, size, j);
+  }
+
 } // namespace Arc
 

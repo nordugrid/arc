@@ -57,7 +57,7 @@ class Credential {
     */
     Credential();
 
-    ~Credential();
+    virtual ~Credential();
 
     /**Constructor, specific constructor for CA certificate
     *is meaningless for any other use.

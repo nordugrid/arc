@@ -168,6 +168,10 @@ namespace Arc {
                    const std::string& ca_cert_file, 
                    const VOMSTrustList& vomscert_trust_dn,
                    std::vector<std::string>& output);
+  
+  /**Decode the data which is encoded by voms server. Since voms code uses some specific
+  * coding method (not base64 encoding), we simply copy the method from voms code to here*/
+  char *VOMSDecode(const char *data, int size, int *j);
 
 }// namespace Arc
 
