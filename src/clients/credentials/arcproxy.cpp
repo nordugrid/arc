@@ -231,7 +231,9 @@ int main(int argc, char* argv[]){
       Arc::Period period = constraints["validityPeriod"].empty() ? period1 : (Arc::Period(constraints["validityPeriod"]));
       int keybits = 1024;
       std::string req_str;
-      Arc::Credential cred_request(start, period, keybits, "rfc","inheritAll", "", -1);
+      std::string policy;
+      policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
+      Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
 
       cred_request.GenerateRequest(req_str);
 

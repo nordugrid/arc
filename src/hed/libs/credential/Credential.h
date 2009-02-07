@@ -91,7 +91,7 @@ class Credential {
     */ 
    Credential(Arc::Time start, Arc::Period lifetime = Arc::Period("PT12H"), 
               int keybits = 1024, std::string proxyversion = "rfc", 
-              std::string policylang = "inheritAll", std::string policyfile = "", 
+              std::string policylang = "inheritAll", std::string policy = "", 
               int pathlength = -1);
 
     /**Constructor, specific constructor for usual certificate, constructing from 
@@ -296,7 +296,7 @@ class Credential {
 
     //Proxy policy
     std::string proxyversion_;
-    std::string policyfile_;
+    std::string policy_;
     std::string policylang_;
     int proxyver_;
     int pathlength_;

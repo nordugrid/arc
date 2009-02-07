@@ -4,6 +4,7 @@
 #endif
 
 #include <fstream>
+#include <fcntl.h>
 
 #include "Credential.h"
 
@@ -369,12 +370,28 @@ namespace Arc {
 
   }
 
+  //Check if the name is a file/dir
+  static bool fexists(const char *fname) {
+    struct stat dummy;
+    if (!lstat(fname, &dummy))
+      return true;
+    return false;
+  }
+
+  //Check if the name is a regular file
+  static bool isfile(const char *fname) {
+    struct stat sb;
+    if (!stat(fname, &sb) && S_ISREG(sb.st_mode))
+      return true;
+    return false;
+  }
+
   Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion, 
-        std::string policylang, std::string policyfile, int pathlength) : 
+        std::string policylang, std::string policy, int pathlength) : 
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL), 
         signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), proxyversion_(proxyversion), 
-        policyfile_(policyfile), policylang_(policylang), pathlength_(pathlength),
+        policy_(policy), policylang_(policylang), pathlength_(pathlength),
         extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
@@ -438,14 +455,14 @@ namespace Arc {
 
     if(cert_type_ != CERT_TYPE_EEC) {
 
-      if(!policyfile_.empty() && policylang_.empty()) {
-        std::cerr<<"If you specify a policy file you also need to specify a policy language.\n" <<std::endl;
+      if(!policy_.empty() && policylang_.empty()) {
+        std::cerr<<"If you specify a policy you also need to specify a policy language.\n" <<std::endl;
         exit(1);
       }
 
       proxy_cert_info_ = PROXYCERTINFO_new();
-      PROXYPOLICY *   policy =PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
-      PROXYPOLICY_set_policy(policy, NULL, 0);
+      PROXYPOLICY *   ppolicy =PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
+      PROXYPOLICY_set_policy(ppolicy, NULL, 0);
       ASN1_OBJECT *   policy_object = NULL;
 
       //set policy language, see definiton in: http://dev.globus.org/wiki/Security/ProxyCertTypes
@@ -454,26 +471,26 @@ namespace Arc {
         case CERT_TYPE_GSI_3_IMPERSONATION_PROXY:
         case CERT_TYPE_RFC_IMPERSONATION_PROXY:
           if((policy_object = OBJ_nid2obj(OBJ_sn2nid(IMPERSONATION_PROXY_SN))) != NULL) {
-            PROXYPOLICY_set_policy_language(policy, policy_object); 
+            PROXYPOLICY_set_policy_language(ppolicy, policy_object); 
           }
           break;
 
         case CERT_TYPE_GSI_3_INDEPENDENT_PROXY:
         case CERT_TYPE_RFC_INDEPENDENT_PROXY:
           if((policy_object = OBJ_nid2obj(OBJ_sn2nid(INDEPENDENT_PROXY_SN))) != NULL) {
-            PROXYPOLICY_set_policy_language(policy, policy_object);
+            PROXYPOLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
 
         case CERT_TYPE_GSI_3_LIMITED_PROXY:
         case CERT_TYPE_RFC_LIMITED_PROXY:
           if((policy_object = OBJ_nid2obj(OBJ_sn2nid(LIMITED_PROXY_SN))) != NULL) {
-            PROXYPOLICY_set_policy_language(policy, policy_object);
+            PROXYPOLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
         case CERT_TYPE_RFC_ANYLANGUAGE_PROXY:
           if((policy_object = OBJ_nid2obj(OBJ_sn2nid(ANYLANGUAGE_PROXY_SN))) != NULL) {
-            PROXYPOLICY_set_policy_language(policy, policy_object);
+            PROXYPOLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
         default:
@@ -486,24 +503,38 @@ namespace Arc {
 
       //set policy
       std::string policystring;
-      std::ifstream fp;
-      if(!policyfile_.empty()) {
-        fp.open(policyfile_.c_str());
-        if(!fp) {
-          std::cerr << "Error: can't open policy file" << std::endl;
-          exit(1);
+      if(!policy_.empty()) {
+        if(fexists(policy_.c_str())) {
+          //If the argument is a location which specifies a file that 
+          //includes the policy content
+          if(isfile(policy_.c_str())) {
+            std::ifstream fp;
+            fp.open(policy_.c_str());
+            if(!fp) {
+              CredentialLogger.msg(ERROR,"Error: can't open policy file: %s", policy_.c_str());
+              exit(1);
+            }
+            fp.unsetf(std::ios::skipws);
+            char c;
+            while(fp.get(c))
+              policystring += c;
+          }
+          else {
+            CredentialLogger.msg(ERROR,"Error: policy location: %s is not a regular file", policy_.c_str());
+            exit(1);
+          }
         }
-        fp.unsetf(std::ios::skipws);
-        char c;
-        while(fp.get(c))
-          policystring += c;
+        else {
+          //Otherwise the argument should include the policy content
+          policystring = policy_;
+        }
       }
    
       if(policylang_ == "LIMITED" || policylang_ == "limited") policylang_ = LIMITED_PROXY_OID;
       else if(policylang_ == "INDEPENDENT" || policylang_ == "independent") policylang_ = INDEPENDENT_PROXY_OID;
       else if(policylang_ == "IMPERSONATION" || policylang_ == "impersonation") policylang_ = IMPERSONATION_PROXY_OID;
       else if(policylang_.empty()) {
-        if(policyfile_.empty()) policylang_ = IMPERSONATION_PROXY_OID;
+        if(policy_.empty()) policylang_ = IMPERSONATION_PROXY_OID;
         else policylang_ = GLOBUS_GSI_PROXY_GENERIC_POLICY_OID;
       } 
 
@@ -511,15 +542,15 @@ namespace Arc {
        * but it could cover "restricted" language which has no explicit definition 
        * according to http://dev.globus.org/wiki/Security/ProxyCertTypes 
        */
-      OBJ_create((char *)policylang_.c_str(), (char *)policylang_.c_str(), (char *)policylang_.c_str());
+      //OBJ_create((char *)policylang_.c_str(), (char *)policylang_.c_str(), (char *)policylang_.c_str());
 
-      policy_object = OBJ_nid2obj(OBJ_sn2nid(policylang_.c_str()));
+      //policy_object = OBJ_nid2obj(OBJ_sn2nid(policylang_.c_str()));
 
-      policy = PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
-      //Here only consider the situation when there is policy file
+      ppolicy = PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
+      //Here only consider the situation when there is policy specified
       if(policystring.size() > 0) { 
-        PROXYPOLICY_set_policy_language(policy, policy_object);
-        PROXYPOLICY_set_policy(policy, (unsigned char*)policystring.c_str(), policystring.size());
+        //PROXYPOLICY_set_policy_language(ppolicy, policy_object);
+        PROXYPOLICY_set_policy(ppolicy, (unsigned char*)policystring.c_str(), policystring.size());
       }
 
       //set the version of PROXYCERTINFO
@@ -1373,9 +1404,11 @@ err:
     }    
 
     for (int i=0; i<sk_X509_EXTENSION_num(proxy->extensions_); i++) {
-      ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(proxy->extensions_, i));
+      //ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(proxy->extensions_, i));
+      ext = sk_X509_EXTENSION_value(proxy->extensions_, i);
       if (ext == NULL) {
-        CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); goto err;
+        //CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); goto err;
+        CredentialLogger.msg(ERROR,"Failed to find extension"); LogError(); goto err;
       }
          
       if (!sk_X509_EXTENSION_push(cert_info->extensions, ext)) {
@@ -1383,6 +1416,10 @@ err:
       }
     }
 
+    /*Clean extensions attached to "proxy" after it has been linked into 
+    to-signed certificate*/
+    sk_X509_EXTENSION_zero(proxy->extensions_);
+    
     /* Now sign the new certificate */
     if(!(issuer_priv = GetPrivKey())) {
       CredentialLogger.msg(ERROR, "Can not get the issuer's private key"); goto err;
