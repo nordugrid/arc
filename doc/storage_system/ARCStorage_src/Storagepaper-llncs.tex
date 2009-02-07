@@ -150,15 +150,15 @@ resources, a {\it replication service} for managing replica locations,
 and a (often centralized) {\it metadata catalog} imposing a global
 namespace on top of the resources. Data access can be handled either
 through a file transfer service or directly through the storage
-resource by quering the metadata catalog.
+resource by querying the metadata catalog.
 
-While this architecture has strongly improved the accessability of
+While this architecture has strongly improved the accessibility of
 physically distributed data, common Grid storage solutions typically have
 some limitations: The metadata catalog, which is in most cases
 centralized can quickly become a bottleneck. In typical Grid storage
 systems, the storage resource is unaware of the state of its files,
 making consistency guarantees hard to give. Traditional Grid
-solutions often take for granted that the resource are dedicated for
+solutions often take for granted that the resources are dedicated for
 the Grid, and in some cases even require specific operating systems,
 thus restricting the amount of available hardware resources\footnote{It is often hard to convince a
 system administrator to install a specific operating system to be able to share
@@ -174,15 +174,15 @@ resources and an operating system agnostic implementation.
 \section{Related Work}
 \label{Related Work}
 %jon
-Many Grid projects have developed their own, aplication specific
+Many Grid projects have developed their own, application specific
 solutions. However, some general Grid storage solutions are widely
 adopted: 
 
 dCache~\cite{dCache} is a service oriented storage system which combines heterogeneous storage
 elements to collect several hundreds of terabytes in a single
 namespace. Originally designed to work on a local area network,
-dCache has proven to be usefull also in a Grid environment, with the
-NDGF (Nordic Data Grid Facillity) dCache
+dCache has proven to be useful also in a Grid environment, with the
+NDGF (Nordic Data Grid Facility) dCache
 installation~\cite{DSSWithdCache} as the largest example. There, the
 core components, such as the metadata catalog, indexing service and
 protocol doors are run in a centralized manner, while the storage
@@ -207,7 +207,7 @@ groups less familiar with Grid solutions.
 %% connected with HSM\footnote{Hierarchical Storage Manager, used for the
 %%   tape storage}. Namespace manager; used PNFS \footnote{Perfectly
 %%   Normal FileSystem; A network file system, designed in Desy} as a
-%% filesystem  for storing matadata. And the number of protocol
+%% filesystem  for storing metadata. And the number of protocol
 %% doors. One of the biggest deployment of dCache is the distributed
 %% infrastructure of  NDGF.\\ 
 %% dCache has proven to be a fairly stable and scalable solution. However,
@@ -225,7 +225,7 @@ groups less familiar with Grid solutions.
 %% %% a persistent, ordered immutable map and Chubby \cite{Chubby}, a highly
 %% %% available and persistent distributed lock service. The system uses a
 %% %% three-level B$^+$-tree to store \textit{tablets}. The location of the
-%% %% first level is stored in Chubby, making Chubby a vitaly important part
+%% %% first level is stored in Chubby, making Chubby a vitally important part
 %% %% of the design. To ensure a persistent solution, Chubby takes advantage
 %% %% of the Paxos algorithm \cite{Paxos,PaxosLive}.\\
 %% Bigtable has several interesting features, one of which is the
@@ -254,7 +254,7 @@ system. It allows  uniform access to heterogeneous
 storage resources over a wide area network. %% SRB also manages the
 %% namespaces used to identify files, storage resources, users, metadata,
 %% and access controls independently of the physical storage systems. It
-%% uses centralized matadata catalog (MCat). Also supports several file
+%% uses centralized metadata catalog (MCat). Also supports several file
 %% systems of UNIX, Windows, Linux, Mac OS X, HPSS and large scale
 %% storage systems like Castor and dCache.\\
 Its functionality, with a uniform namespace for several Data Grid
@@ -504,7 +504,7 @@ is a hash table for consistently storing data in property-value
 pairs. All metadata about files, collections, mount point, Shepherd's
 health status, and so forth, is stored in the A-Hash. As the A-Hash is
 the service storing the entire state of the storage system, it is
-absolutely crucial for the sttorage system that the A-Hash is
+absolutely crucial for the storage system that the A-Hash is
 consistent. The distribution and replication of this service is
 therefore both necessary and challenging.
 
@@ -573,7 +573,7 @@ immediately informs the Librarian and the Librarian changes the state of the giv
 `\textbf{invalid}'. To recover its replica, the Shepherd contacts a
 Bartender and asks for another replica of the file. The Bartender chooses a valid
 replica, initiates a file transfer from a Shepherd having the replica,
-and returns the TURL to the Shepherd with the invalid replica. When the
+and returns a Transfer URL to the Shepherd with the invalid replica. When the
 Shepherd has received the replica and compared the checksum, it notifies the
 Librarian that the replica is alive again.  
 \item In the case of a Shepherd going offline, a Librarian will,
@@ -679,7 +679,7 @@ high-level authorization:
   very secure at first. However, provided that the TURL has a very long,
   unguessable name, that it is transfered to the user in a secure way
   and that it can only be accessed once before it is deleted, the
-  chance of being compromized is very low.
+  chance of being compromised is very low.
 \item The \textbf{high-level authorization} considers the access
   policies for the files and collections in the system. These policies
   are stored in A-Hash, in the metadata of the corresponding file or
@@ -727,7 +727,7 @@ The following tests were carried out:
 \item \textbf{Test 1:} The distribution of data after uploading 10 large size (1 GB)
   files with one replica each.  
 \item \textbf{Test 2:} The distribution of files after uploading 100 small size (1 kB)
-  files with one replica each, and with simultanious uploading.
+  files with one replica each, and with simultaneous uploading.
 \item \textbf{Test 3:} The distribution of data after repeating Tests 1 and 2 with three replicas.  
 \item \textbf{Test 4:} System behavior while some of the Shepherds are offline.   
 \end{itemize}
@@ -833,7 +833,7 @@ can see that all files are properly distributed between the remaining
 Shepherds when one of them is disrupted and that the storage load evens out 
 again when the Shepherd comes back online. When the
 system discovers that there are more replicas than needed, the first
-Shepherd noticing will set mark its replica as obsolete. Since the failing Shepherd didn't lose any replicas while
+Shepherd noticing will set mark its replica as obsolete. Since the failing Shepherd did not lose any replicas while
 being down, redistribution of replicas is just a matter of deleting
 obsolete replicas. We also see that the NIIF node actually got fewer
 files when USIT-2 went offline. If two Shepherds simultaneously
