@@ -244,24 +244,24 @@ namespace Arc {
 			      next_target = false;
                   std::list<std::string>::const_iterator iter2;
 				  match = false;
-                  for (iter2 = (*iter1).Version.begin(); iter2 != (*iter1).Version.end(); iter2++){
-                     std::list<Arc::ApplicationEnvironment>::const_iterator iter3;                     
-					 if ((*iter1).Version.size() == 0) {
-                        for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++){
-                             if ((*iter1).Name == (*iter1).Name) {
-							    match = true;
-							    break;
-					         }
+                  std::list<Arc::ApplicationEnvironment>::const_iterator iter3;                     
+			      if ((*iter1).Version.size() == 0) {
+                     for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++){
+                          RuntimeEnvironment rt((*iter3).Name);
+                          if ((*iter1).Name == rt.Name()) {
+				       	    match = true;
+			     		    break;
+			    	      }
 					    }
-					 }
-                     else {
+				  }
+                  for (iter2 = (*iter1).Version.begin(); iter2 != (*iter1).Version.end(); iter2++){
                              for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++){
-                                  if ((*iter1).Name == (*iter3).Name && (*iter2) == (*iter3).Version) {
+                             RuntimeEnvironment rt((*iter3).Name);
+                                  if ((*iter1).Name == rt.Name() && (*iter2) == rt.Version()) {
 							          match = true;
 									  break;
                                   }
 						     }
-                     }   
                    }  // end of jir's version list parsing 
 		           if (!match) {
                       next_target = true;        
