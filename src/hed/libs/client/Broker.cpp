@@ -369,7 +369,7 @@ namespace Arc {
 		  }
        }
 
-       if (jir.Slots != 1) {
+       if (jir.Slots != -1) {
 	        if ((*target).TotalSlots != -1) { // Example: 5656
                if (!((*target).TotalSlots >= jir.Slots)) {
 			   logger.msg(DEBUG, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (Slots)", (*target).TotalSlots, jir.Slots);
