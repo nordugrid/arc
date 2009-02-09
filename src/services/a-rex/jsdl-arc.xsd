@@ -165,7 +165,7 @@
   <xsd:restriction base="xsd:dateTime"/>
  </xsd:simpleType>
 
- <xsd:complexType name="Miration_Type">
+ <xsd:complexType name="Migration_Type">
   <xsd:annotation><xsd:documentation> For jsdl:JobIdentification_Type </xsd:documentation></xsd:annotation>
   <xsd:sequence>
    <xsd:element name="OldJobID" minOccurs="1" maxOccurs="unbounded" type="wsa:EndpointReferenceType"/>
