@@ -482,7 +482,7 @@ A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided
 in $ARC_LOCATION/share/doc/ in files jsdl_simple.xml and jsdl_stage.xml . To 
 submit job to A-REX service one may use 'arcsub' command
 
-$ARC_LOCATION/bin/arcsub https://localhost:60000/arex /usr/local/share/doc/arc/jsdl_simple.xml id.xml
+$ARC_LOCATION/bin/arcsub -c https://localhost:60000/arex -f /usr/local/share/doc/arc/jsdl_simple.xml -j id.xml
 
 If everything goes properly somewhere in it's output there should be a message
 "Submitted the job!". Obtained job identifier is an XML document and is stored
