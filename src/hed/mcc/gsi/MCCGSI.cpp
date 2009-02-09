@@ -12,6 +12,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 
@@ -27,24 +28,34 @@ namespace Arc {
   // This function tries to activate Globus OpenSSL module
   // and keep it active forever because on deacivation Globus
   // destroys global structures of OpenSSL.
-  static void globus_openldap_lock(void) {
+  static void globus_openldap_lock(ModuleManager& mm) {
     static bool done = false;
     if(done) return;
+    // Increasing globus module counter so it is never deactivated
     globus_module_activate(GLOBUS_OPENSSL_MODULE);
+    // Making sure this plugin is never unloaded
+    // TODO: This is hack - probably proper solution would be 
+    // to decouple Globus libraries from plugin.
+    std::string path = mm.findLocation("mccgsi");
+    // Let's hope nothing bad will happen. We can't
+    // influence that anyway.
+    if(!path.empty()) new Glib::Module(path,Glib::ModuleFlags(0));
   }
 
   static Plugin* get_mcc_service(PluginArgument* arg) {
     MCCPluginArgument* mccarg =
             arg?dynamic_cast<MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new MCC_GSI_Service(*(Arc::Config*)(*mccarg));
+    return new MCC_GSI_Service(*(Arc::Config*)(*mccarg),
+               *(PluginsFactory*)(*(Arc::ChainContext*)(*mccarg)));
   }
 
   static Plugin* get_mcc_client(PluginArgument* arg) {
     MCCPluginArgument* mccarg =
             arg?dynamic_cast<MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new MCC_GSI_Client(*(Arc::Config*)(*mccarg));
+    return new MCC_GSI_Client(*(Arc::Config*)(*mccarg),
+               *(PluginsFactory*)(*(Arc::ChainContext*)(*mccarg)));
   }
 
   class MCC_GSI_Context
@@ -192,10 +203,10 @@ namespace Arc {
     return MCC_Status(STATUS_OK);
   }
 
-  MCC_GSI_Service::MCC_GSI_Service(Config& cfg)
+  MCC_GSI_Service::MCC_GSI_Service(Config& cfg,ModuleManager& mm)
     : MCC(&cfg) {
     globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
-    globus_openldap_lock();
+    globus_openldap_lock(mm);
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
@@ -232,11 +243,11 @@ namespace Arc {
     }
   }
 
-  MCC_GSI_Client::MCC_GSI_Client(Config& cfg)
+  MCC_GSI_Client::MCC_GSI_Client(Config& cfg,ModuleManager& mm)
     : MCC(&cfg),
       ctx(GSS_C_NO_CONTEXT) {
     globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
-    globus_openldap_lock();
+    globus_openldap_lock(mm);
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
