@@ -58,7 +58,7 @@ namespace Arc {
     for(iter = PossibleTargets.begin(); iter != PossibleTargets.end(); iter++){
       if(iter->WaitingJobs == 0){
 	ZeroQueueCluster++;
-	TotalFreeCPUs += iter->FreeSlots / jir.Slots;
+	TotalFreeCPUs += iter->FreeSlots / abs(jir.Slots);
       }
     }
     
@@ -67,14 +67,14 @@ namespace Arc {
       for(int n = 0; n < ZeroQueueCluster-1; n++){
 	double RandomCPU = rand()*TotalFreeCPUs;
 	for(int j = n; j < ZeroQueueCluster; j++){
-	  if((PossibleTargets[j].FreeSlots / jir.Slots) > RandomCPU){
+	  if((PossibleTargets[j].FreeSlots / abs(jir.Slots)) > RandomCPU){
 	    ExecutionTarget temp = PossibleTargets[n];
 	    PossibleTargets[n] = PossibleTargets[j];
 	    PossibleTargets[j] = temp;	    
-	    TotalFreeCPUs -= (PossibleTargets[n].FreeSlots / jir.Slots);
+	    TotalFreeCPUs -= (PossibleTargets[n].FreeSlots / abs(jir.Slots));
 	    break;
 	  } else{
-	    RandomCPU -= (PossibleTargets[j].FreeSlots / jir.Slots);
+	    RandomCPU -= (PossibleTargets[j].FreeSlots / abs(jir.Slots));
 	  }
 	}
       }
