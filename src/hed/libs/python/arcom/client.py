@@ -1,4 +1,5 @@
 import arc
+from arcom.xmltree import XMLTree
 
 class Client:
     """ Base Client class for sending SOAP messages to services """
@@ -23,12 +24,20 @@ class Client:
         self.cfg = arc.MCCConfig()
         if self.url.Protocol() == 'https':
             self.ssl_config = ssl_config
-            self.cfg.AddCertificate(self.ssl_config.get('cert_file', None))
-            self.cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
-            if ssl_config.has_key('ca_file'):
-                self.cfg.AddCAFile(self.ssl_config.get('ca_file', None))
+            if ssl_config.has_key('proxy_file'):
+                self.cfg.AddProxy(self.ssl_config['proxy_file'])
             else:
-                self.cfg.AddCADir(self.ssl_config.get('ca_dir', None))
+                try:
+                    self.cfg.AddCertificate(self.ssl_config['cert_file'])
+                    self.cfg.AddPrivateKey(self.ssl_config['key_file'])
+                except:
+                    raise Exception, 'no key file or cert file found!'
+            if ssl_config.has_key('ca_file'):
+                self.cfg.AddCAFile(self.ssl_config['ca_file'])
+            elif ssl_config.has_key('ca_dir'):
+                self.cfg.AddCADir(self.ssl_config['ca_dir'])
+            else:
+                raise Exception, 'no CA file or CA dir found!'
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.

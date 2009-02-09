@@ -75,8 +75,8 @@ class AHashClient(Client):
 
         'changes' is a dictionary of {changeID : (ID, changeType, section, property, value, conditions)}
             where 'conditions' is a dictionary of {conditionID : (conditionType, section, property, value)}
-	"""
-	
+        """
+        
         tree = XMLTree(from_tree =
             ('ahash:change', [
                 ('ahash:changeRequestList', [
@@ -169,7 +169,7 @@ class LibrarianClient(Client):
         return elements
 
     def new(self, requests):
-	
+        
         tree = XMLTree(from_tree =
             ('lbr:new', [
                 ('lbr:newRequestList', [
@@ -498,23 +498,23 @@ class BartenderClient(Client):
         In: {'b5':['/coloredcollection', {('metadata','color') : 'light blue'}]}
         Out: {'b5': 'done'}
         """
-	tree = XMLTree(from_tree =
+        tree = XMLTree(from_tree =
             ('bar:makeMountpoint', [
                 ('bar:makeMountpointRequestList', [
                     ('bar:makeMountpointRequestElement', [
                         ('bar:requestID', rID),
                         ('bar:LN', LN),
-			('bar:URL', URL),
+                        ('bar:URL', URL),
                         ('bar:metadataList', create_metadata(metadata, 'bar'))
                     ]) for rID, (LN,metadata,URL) in requests.items()
                 ])
             ])
         )
 
-	msg = self.call(tree)
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
-    	
+        
     def unmakeMountpoint(self, requests):
         """docstring for unmakeMountpoint"""
         tree = XMLTree(from_tree =
@@ -530,7 +530,7 @@ class BartenderClient(Client):
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
-	###    ###
+        ###    ###
 
     def list(self, requests, neededMetadata = []):
         """ List the contents of a collection.
@@ -796,7 +796,7 @@ class GatewayClient(Client):
             ['sourceURL', 'destinationURL']
             ['/mycollection/dCache/pnfs/uppmax.uu.se/data/file1', '/tmp/file1']"""        
             
-	    tree = XMLTree(from_tree = 
+            tree = XMLTree(from_tree = 
                 ('gateway:get', [
                     ('gateway:URLs', [
                         ('gateway:sourceURL', request),
@@ -806,15 +806,15 @@ class GatewayClient(Client):
             )
             #print tree
             protocol = ''
-	    url = ''
-	    msg = self.call(tree)
+            url = ''
+            msg = self.call(tree)
             xml = arc.XMLNode(msg)
             elements = parse_to_dict(get_data_node(xml), ['file','url','status'])
             for key in elements.keys():
-		url = elements[key]['url']
-		if url[0:6] == 'gsiftp':	
-		    protocol = 'GridFTP'	
-	    return url, protocol
+                url = elements[key]['url']
+                if url[0:6] == 'gsiftp':        
+                    protocol = 'GridFTP'        
+            return url, protocol
         def put(self, request, flags=''):
             """request will come with the source and the destination URLS of the file. 
             request is the python list. 
@@ -839,7 +839,7 @@ class GatewayClient(Client):
 
         def list(self, requests, flags = '' ):
             
-	    """requests: contain the path of the file or directory.
+            """requests: contain the path of the file or directory.
             flags: optional parameter contain different flags of the 
                 arcls command for example whether user needs long listing 
                 or debuging info ect.
@@ -864,10 +864,10 @@ class GatewayClient(Client):
                 </soap-env:Envelope>
             """
             #print 'requests from client'
-	    url = ''
-	    status = ''
-	    list = []	
-	    tree = XMLTree(from_tree = 
+            url = ''
+            status = ''
+            list = []   
+            tree = XMLTree(from_tree = 
                 ('gateway:list', [
                     ('gateway:URLs',[
                         ('gateway:externalURL', requests),
@@ -879,11 +879,11 @@ class GatewayClient(Client):
             xml = arc.XMLNode(msg)
             elements = parse_to_dict(get_data_node(xml), ['url', 'status','info'])
             for key in elements.keys():
-		url = key
-		status = elements[key]['status']
-		list = elements[key]['info']
-	    
-	    return {url: (status, list.split(","))} 		 
+                url = key
+                status = elements[key]['status']
+                list = elements[key]['info']
+            
+            return {url: (status, list.split(","))}              
 
 ####################################################
 

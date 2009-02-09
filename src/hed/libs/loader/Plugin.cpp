@@ -199,7 +199,7 @@ namespace Arc {
       mname = name;
       module = probe_module(name,*this);
       if (module == NULL) {
-        logger.msg(ERROR, "Could not find loadable module by name %s (%s)",name,Glib::Module::get_last_error());
+        logger.msg(WARNING, "Could not find loadable module by name %s (%s)",name,Glib::Module::get_last_error());
         return false;
       };
       // Identify table of descriptors

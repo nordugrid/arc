@@ -17,14 +17,26 @@ except:
     print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
 ssl_config = {}
 if bartender_url.startswith('https'):
-    try:
-        ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
-        ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
-        # print '- The key file:', ssl_config['key_file']
-        # print '- The cert file:', ssl_config['cert_file']
-    except:
-        ssl_config = {}
-        print '- ARC_KEY_FILE or ARC_CERT_FILE environment variable not found, SSL disabled'
+    key_file = os.environ.get('ARC_KEY_FILE', None)
+    cert_file = os.environ.get('ARC_CERT_FILE', None)
+    proxy_file = os.environ.get('ARC_PROXY_FILE', None)
+    ca_file = os.environ.get('ARC_CA_FILE', None)
+    ca_dir = os.environ.get('ARC_CA_DIR', None)
+    if proxy_file:
+        ssl_config['proxy_file'] = proxy_file
+        print '- The proxy certificate file:', ssl_config['proxy_file']
+    else:
+        if key_file and cert_file:                
+            ssl_config['key_file'] = key_file
+            ssl_config['cert_file'] = cert_file
+            print '- The key file:', ssl_config['key_file']
+            print '- The cert file:', ssl_config['cert_file']
+    if ca_file:
+        ssl_config['ca_file'] = ca_file
+        print '- The CA file:', ssl_config['ca_file']
+    elif ca_dir:
+        ssl_config['ca_dir'] = ca_dir
+        print '- The CA dir:', ssl_config['ca_dir']
 bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
 if len(args) == 0 or args[0] not in ['stat', 'makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
     print 'Supported methods: stat, makeCollection, unmakeCollection, list, move, putFile, getFile, delFile, addReplica, modify' 
