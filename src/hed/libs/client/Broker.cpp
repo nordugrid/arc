@@ -56,10 +56,10 @@ namespace Arc {
 		  }
        }
 
-       if ((*target).FreeSlots == -1) {
+      /* if ((*target).FreeSlots == -1) {
                logger.msg(DEBUG, "Matchmaking, FreeSlots problem, ExecutionTarget: %s, FreeSlots == -1", (std::string)(*target).url.str());
 	 		   continue;
-	   }
+	   }*/
 
        if (!(*target).HealthState.empty()) {
 

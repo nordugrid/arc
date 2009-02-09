@@ -11,6 +11,9 @@
 
 
 namespace Arc {
+
+    Arc::Logger JobDescription::logger(Arc::Logger::getRootLogger(), "jobdescription");
+
     JobDescriptionError::JobDescriptionError(const std::string& what) : std::runtime_error(what){  }
 
 
@@ -234,22 +237,22 @@ namespace Arc {
         for ( std::vector<Candidate>::iterator i = candidates.begin(); i != candidates.end(); i++ ) {
             for ( std::vector<std::string>::const_iterator j = (*i).pattern.begin(); j != (*i).pattern.end(); j++ ) {
                 if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-                    if ( VERBOSEX ) std::cerr << "[JobDescriptionOrderer]\tText pattern matching: \"" << *j << "\" to " << (*i).typeName << std::endl;
+				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += TEXT_PATTERN_MATCHING;
                 } else {
                     if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-                        if ( VERBOSEX ) std::cerr << "[JobDescriptionOrderer]\tText pattern matching (just with removed whitespaces) : \"" << *j << "\" to " << (*i).typeName << std::endl;
+				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }
                 }
             }
             for ( std::vector<std::string>::const_iterator j = (*i).negative_pattern.begin(); j != (*i).negative_pattern.end(); j++ ) {
                 if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-                    if ( VERBOSEX ) std::cerr << "[JobDescriptionOrderer]\tNegative text pattern matching: \"" << *j << "\" to " << (*i).typeName << std::endl;
+				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING;
                 } else {
                     if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-                        if ( VERBOSEX ) std::cerr << "[JobDescriptionOrderer]\tNegative text pattern matching (just with removed whitespaces): \"" << *j << "\" to " << (*i).typeName << std::endl;
+				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }
                 }
@@ -296,7 +299,7 @@ namespace Arc {
         //
         // Get the candidate list of formats in the proper order
         if ( sourceString.empty() || sourceString.length() == 0 ){ 
-           std::cerr << "There is nothing in the source. Cannot generate any product." << std::endl;
+		   JobDescription::logger.msg(DEBUG, "There is nothing in the source. Cannot generate any product.");
            return false;
         }
 
@@ -307,7 +310,7 @@ namespace Arc {
         // (If not then just reset the jobTree variable and see the next one)
         for (std::vector<Candidate>::const_iterator it = candidates.begin(); it < candidates.end(); it++) {
             if ( sm.toLowerCase( (*it).typeName ) == "xrsl" ) {
-                if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as XRSL" << std::endl;
+			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as XRSL");
                 XRSLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "xrsl";
@@ -316,7 +319,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "posixjsdl" ) {
-                if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as POSIX JSDL" << std::endl;
+			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as POSIX JSDL");
                 PosixJSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "posixjsdl";
@@ -325,7 +328,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "jsdl" ) {
-                if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as JSDL" << std::endl;
+			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JSDL");
                 JSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "jsdl";
@@ -334,7 +337,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "jdl" ) {
-                if ( VERBOSEX ) std::cerr << "[JobDescription] Try to parse as JDL" << std::endl;
+			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JDL");
                 JDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "jdl";
@@ -345,7 +348,7 @@ namespace Arc {
             }
         }
         if (sourceFormat.length() == 0){
-           std::cerr << "The parsing of the source string was unsuccessful." << std::endl;
+		   JobDescription::logger.msg(DEBUG, "The parsing of the source string was unsuccessful.");
            return false;
         }
         return true;
@@ -361,7 +364,7 @@ namespace Arc {
     bool JobDescription::getXML( Arc::XMLNode& jobTree) {
         if ( innerRepresentation == NULL ) return false;
         if ( !(*innerRepresentation).getXML(jobTree) ) {
-           std::cerr << "Error during the XML generation!" << std::endl;
+		   JobDescription::logger.msg(DEBUG, "Error during the XML generation!");
            return false;
         }
         return true;
@@ -374,7 +377,7 @@ namespace Arc {
 
         // Generate the output text with the right parser class
         if ( innerRepresentation == NULL || !this->isValid() ) {
-            std::cerr << "There is no successfully parsed source" << std::endl;
+		   JobDescription::logger.msg(DEBUG, "There is no successfully parsed source");
             return false;
         }
         if ( sm.toLowerCase( format ) == sm.toLowerCase( sourceFormat ) && 
@@ -383,46 +386,46 @@ namespace Arc {
             return true;
         }
         if ( sm.toLowerCase( format ) == "jdl" ) {
-            if ( VERBOSEX ) std::cerr << "[JobDescription] Generate JDL output" << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JDL output");
             JDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-               std::cerr << "Generating " << format << " output was unsuccessful" << std::endl;
+			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "xrsl" ) {
-            if ( VERBOSEX ) std::cerr << "[JobDescription] Generate XRSL output" << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate XRSL output");
             XRSLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-               std::cerr << "Generating " << format << " output was unsuccessful" << std::endl;
+			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "posixjsdl" ) {
-            if ( VERBOSEX ) std::cerr << "[JobDescription] Generate POSIX JSDL output" << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate POSIX JSDL output");
             PosixJSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-               std::cerr << "Generating " << format << " output was unsuccessful" << std::endl;
+			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "jsdl" ) {
-            if ( VERBOSEX ) std::cerr << "[JobDescription] Generate JSDL output" << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JSDL output");
             JSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-               std::cerr << "Generating " << format << " output was unsuccessful" << std::endl;
+			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else {
-            std::cerr << "Unknown output format: " << format << std::endl;
+		    JobDescription::logger.msg(DEBUG, "Unknown output format: %s", format) ;
             return false;
         }
     }
 
     bool JobDescription::getSourceFormat( std::string& _sourceFormat ) {
         if (!isValid()) {
-           std::cerr << "There is no input defined yet or it's format can be determinized." << std::endl;
+		   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
            return false;
          } else {
            _sourceFormat = sourceFormat;
@@ -432,7 +435,7 @@ namespace Arc {
 
     bool JobDescription::getUploadableFiles(std::vector< std::pair< std::string, std::string > >& sourceFiles ) {
         if (!isValid()) {
-           std::cerr << "There is no input defined yet or it's format can be determinized." << std::endl;
+		   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
            return false;
         }
         // Get the URI's from the DataStaging/File/Source files
@@ -567,7 +570,7 @@ namespace Arc {
            Arc::XMLNode env = application["Environment"][i];
            Arc::XMLNode name = env.Attribute("name");
            if(!name) {
-               std::cerr << "[PosixJSDLParser] Error during the parsing: missed the name attributes of the \"" << (std::string)env << "\" Environment" << std::endl;
+		       JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
                return false;
            } 
            Arc::EnvironmentType env_tmp;
@@ -1249,7 +1252,7 @@ namespace Arc {
               innerRepresentation.FuzzyRank = false;
            }
            else {
-              std::cerr << "Invalid \"/Meta/FuzzyRank\" value:" << (std::string)(*meta.begin()) << std::endl;              
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/Meta/FuzzyRank\" value: %s", (std::string)(*meta.begin()));              
            }
         meta.clear();
 
@@ -1466,7 +1469,7 @@ namespace Arc {
               innerRepresentation.ExclusiveExecution = false;
            }
            else {
-              std::cerr << "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value:" << (std::string)(*resource.begin()) << std::endl;
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value: %s", (std::string)(*resource.begin()));
            }
         }
         resource.clear();
@@ -1627,7 +1630,7 @@ namespace Arc {
                       _target.Mandatory = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/File/Target/Mandatory\" value:" << (std::string)(*it_target)["Mandatory"] << std::endl;
+				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/Target/Mandatory\" value: %s", (std::string)(*it_target)["Mandatory"]);
                    }
                 }
                 else {
@@ -1649,7 +1652,7 @@ namespace Arc {
                       _file.KeepData = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/File/KeepData\" value:" << (std::string)(*it)["KeepData"] << std::endl;
+                       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
                    }
             }
             else {
@@ -1663,7 +1666,7 @@ namespace Arc {
                       _file.IsExecutable = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value:" << (std::string)(*it)["IsExecutable"] << std::endl;
+				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
                    }
             }
             else {
@@ -1681,7 +1684,7 @@ namespace Arc {
                       _file.DownloadToCache = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value:" << (std::string)(*it)["DownloadToCache"] << std::endl;
+				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
                    }
             }
             else {
@@ -1730,7 +1733,7 @@ namespace Arc {
                       _target.Mandatory = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/Directory/Target/Mandatory\" value:" << (std::string)(*it_target)["Mandatory"] << std::endl;
+				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/Target/Mandatory\" value: %s",  (std::string)(*it_target)["Mandatory"]);
                    }
                 }
                 else {
@@ -1752,7 +1755,7 @@ namespace Arc {
                       _directory.KeepData = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value:" << (std::string)(*it)["KeepData"] << std::endl;
+				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
                    }
             }
             else {
@@ -1766,7 +1769,7 @@ namespace Arc {
                       _directory.IsExecutable = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value:" << (std::string)(*it)["IsExecutable"] << std::endl;
+				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
                    }
             }
             else {
@@ -1784,7 +1787,7 @@ namespace Arc {
                       _directory.DownloadToCache = false;
                    }
                    else {
-                       std::cerr << "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value:" << (std::string)(*it)["DownloadToCache"] << std::endl;
+				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
                    }
             }
             else {
@@ -1824,7 +1827,7 @@ namespace Arc {
             jobDescription.GetDoc( product, true );
             return true;
         } else {
-            if ( DEBUGX ) std::cerr << "[JSDLParser] Job inner representation's root element has not found." << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JSDLParser] Job inner representation's root element has not found.");
             return false;
         }
     }
@@ -2124,8 +2127,9 @@ namespace Arc {
                          case 'e': nofity.State.push_back( "FINISHED" ); break;
                          case 'c': nofity.State.push_back( "CANCELLED" ); break;
                          case 'd': nofity.State.push_back( "DELETED" ); break;
-                         default: std::cerr << "Invalid notify attribute: " << (*it)[i] << std::endl;
-                                  return false;
+                         default: 
+						    JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", (*it)[i]);
+							return false;
                      }
                  }
               }
@@ -2151,7 +2155,7 @@ namespace Arc {
             } else if ( simpleXRSLvalue( attributeValue ) == "outbound") {
                innerRepresentation.OutBound = true;
             } else {
-               std::cerr << "Invalid NodeAccess value: " << simpleXRSLvalue( attributeValue ) << std::endl;
+			   JobDescription::logger.msg(DEBUG, "Invalid NodeAccess value: %s", simpleXRSLvalue( attributeValue ));
                return false;
             }
             return true;
@@ -2205,7 +2209,7 @@ namespace Arc {
             innerRepresentation.CredentialService = url;
             return true;
         }
-        if ( DEBUGX ) std::cerr << "[XRSLParser] Unknown XRSL attribute: " << attributeName << std::endl;
+		JobDescription::logger.msg(DEBUG, "[XRSLParser] Unknown XRSL attribute: %s", attributeName);
         return false;
     }
 
@@ -2237,7 +2241,7 @@ namespace Arc {
                         //Split the bracket's content by the equal sign & trim the two half
                         unsigned long eqpos = wattr.find_first_of("=");
                         if ( eqpos == std::string::npos ) {
-                            if ( DEBUGX ) std::cerr << "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)" << std::endl;
+						    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)");
                             return false;
                         }
                         if ( !handleXRSLattribute( sm.trim( wattr.substr(0,eqpos) ) , sm.trim( wattr.substr(eqpos+1) ) , innerRepresentation) ) return false;
@@ -2249,7 +2253,7 @@ namespace Arc {
         }
   
         if (depth != 0 ) {
-            if ( DEBUGX ) std::cerr << "[XRSLParser] XRSL Syntax error (bracket mistake)" << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (bracket mistake)");
             return false;
         }
         return true;
@@ -2355,8 +2359,8 @@ namespace Arc {
                        size_t ll = 0;
                        for(;;) {
                           if ((l=read(h,buffer,1024)) == -1) {
-                             std::cerr << "Error reading file " << (*it_source).URI.fullstr() << std::endl;
-                             std::cerr << "Could not read file to compute checksum." << std::endl;
+						     JobDescription::logger.msg(DEBUG, "Error reading file: %s", (*it_source).URI.fullstr());
+							 JobDescription::logger.msg(DEBUG, "Could not read file to compute checksum.");
                           }
                           if(l==0) break; ll+=l;
                           crc.add(buffer,l);
@@ -2527,7 +2531,9 @@ namespace Arc {
                      else if ( *iter == "FINISHED" ) { product +=  "e"; }
                      else if ( *iter == "CANCELLED" ) { product +=  "c"; }
                      else if ( *iter == "DELETED" ) { product +=  "d"; }
-                     else { std::cerr << "Invalid State [" <<  *iter << "] in the Notification!" << std::endl; }
+                     else { 
+					     JobDescription::logger.msg(DEBUG, "Invalid State [\"%s\"] in the Notification!", *iter );
+						 }
                 }
                 for (std::list<std::string>::const_iterator iter=(*it).Address.begin();
                             iter!=(*it).Address.end(); iter++) {
@@ -2667,7 +2673,7 @@ namespace Arc {
               product += "\" )\n";
           }
         }
-        if ( DEBUGX ) std::cerr << "[XRSLParser] Converting to XRSL" << std::endl;
+	    JobDescription::logger.msg(DEBUG, "[XRSLParser] Converting to XRSL");
         return true;
     }
 
@@ -2749,14 +2755,14 @@ namespace Arc {
             std::string value = sm.toLowerCase( simpleJDLvalue( attributeValue ) );
             if ( value == "job" ) return true;
             if ( value == "dag" ) {
-                if ( DEBUGX ) std::cerr << "[JDLParser] This kind of JDL decriptor is not supported yet: " << value << std::endl;
+			    JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
                 return false; // This kind of JDL decriptor is not supported yet
             }
             if ( value == "collection" ) {
-                if ( DEBUGX ) std::cerr << "[JDLParser] This kind of JDL decriptor is not supported yet: " << value << std::endl;
+			    JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
                 return false; // This kind of JDL decriptor is not supported yet
             }
-            if ( DEBUGX ) std::cerr << "[JDLParser] Attribute name: " << attributeName << ", has unknown value: " << value << std::endl;
+			JobDescription::logger.msg(DEBUG, "[JDLParser] Attribute name: %s, has unknown value: %s", attributeName , value);
             return false; // Unknown attribute value - error
         } else if ( attributeName == "jobtype") {
             return true; // Skip this attribute
@@ -2828,7 +2834,7 @@ namespace Arc {
                       i++;
                    }
                    else {
-                      std::cerr << "Not enought outputsandboxdesturi element!" << std::endl;
+				      JobDescription::logger.msg(DEBUG, "Not enought outputsandboxdesturi element!");
                       return false;
                    }
 
@@ -2892,7 +2898,7 @@ namespace Arc {
                     env.value = (*it).substr( equal_pos+1, std::string::npos );
                     innerRepresentation.Environment.push_back(env);
                 } else {
-                    if ( DEBUGX ) std::cerr << "[JDLParser] Environment variable has been defined without any equal sign." << std::endl;
+				    JobDescription::logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
                     return false;
                 }
             }
@@ -3021,7 +3027,7 @@ namespace Arc {
             innerRepresentation.JDL_elements["ShortDeadlineJob"] = simpleJDLvalue( attributeValue ); 
             return true;
         }
-        if ( DEBUGX ) std::cerr << "[JDL Parser]: Unknown attribute name: '" << attributeName << "', with value: " << attributeValue << std::endl;
+		JobDescription::logger.msg(DEBUG, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
         return false;
     }
 
@@ -3029,7 +3035,7 @@ namespace Arc {
         unsigned long first = source.find_first_of( "[" );
         unsigned long last = source.find_last_of( "]" );
         if ( first == std::string::npos || last == std::string::npos ) {
-            if ( DEBUGX ) std::cerr << "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')" << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
             return false;
         }
         std::string input_text = source.substr( first+1, last-first-1 );
@@ -3056,11 +3062,11 @@ namespace Arc {
         }
   
         if ( !splitJDL(wcpy, lines) ) {
-            if ( DEBUGX ) std::cerr << "[JDLParser] Syntax error found during the split function." << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JDLParser] Syntax error found during the split function.");
             return false;
         }
         if (lines.size() <= 0) {
-            if ( DEBUGX ) std::cerr << "[JDLParser] Lines count is zero or other funny error has occurred." << std::endl;
+		    JobDescription::logger.msg(DEBUG, "[JDLParser] Lines count is zero or other funny error has occurred.");
             return false;
         }
         
@@ -3069,7 +3075,7 @@ namespace Arc {
             if ( equal_pos == std::string::npos ) {
                 if ( i == lines.size()-1 ) continue;
                 else {
-                    if ( DEBUGX ) std::cerr << "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected." << std::endl;
+				    JobDescription::logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
                     return false;
                 }
             }    

@@ -9,6 +9,7 @@
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/client/JobInnerRepresentation.h>
+#include <arc/Logger.h>
 
 
 namespace Arc {
@@ -130,6 +131,7 @@ namespace Arc {
             Arc::JobInnerRepresentation* innerRepresentation;
             void resetJobTree();
         public:
+            static Logger logger;
             JobDescription();
             JobDescription(const JobDescription& desc);
             ~JobDescription();
