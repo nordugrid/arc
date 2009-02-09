@@ -27,9 +27,9 @@ ModuleManager::ModuleManager(const Arc::Config *cfg)
 ModuleManager::~ModuleManager(void)
 {
     // removes all element from cache
-    std::map<std::string, Glib::Module *>::iterator i;
+    plugin_cache_t::iterator i;
     for(i=plugin_cache.begin();i!=plugin_cache.end();++i) {
-        delete i->second;
+        while(i->second.unload() > 0) { };
     };
     plugin_cache.clear();
 }
@@ -58,8 +58,9 @@ void ModuleManager::unload(Glib::Module *module)
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
-      delete p->second;
-      plugin_cache.erase(p);
+      if(p->second.unload() <= 0) {
+        plugin_cache.erase(p);
+      }      
       break;
     }
   }
@@ -69,8 +70,9 @@ void ModuleManager::unload(const std::string& name)
 {
   plugin_cache_t::iterator p = plugin_cache.find(name);
   if (p != plugin_cache.end()) {
-    delete p->second;
-    plugin_cache.erase(p);
+    if(p->second.unload() <= 0) {
+      plugin_cache.erase(p);
+    }
   }
 }
 
@@ -80,12 +82,14 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
     return false;
   }
   // find name in plugin_cache 
-  //if(!reload) {
-    if (plugin_cache.find(name) != plugin_cache.end()) {
+  {
+    plugin_cache_t::iterator p = plugin_cache.find(name);
+    if (p != plugin_cache.end()) {
       Loader::logger.msg(VERBOSE, "Found %s in cache", name);
-      return plugin_cache[name];
+      p->second.load();
+      return static_cast<Glib::Module*>(p->second);
     }
-  //}
+  }
   std::string path = findLocation(name);
   if(path.empty()) {
     Loader::logger.msg(DEBUG, "Could not locate module %s", name);
@@ -100,7 +104,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
     return NULL;
   }
   Loader::logger.msg(VERBOSE, "Loaded %s", path);
-  plugin_cache[name] = module;
+  (plugin_cache[name] = module).load();
   return module;
 }
 

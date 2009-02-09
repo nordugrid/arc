@@ -9,7 +9,31 @@
 
 namespace Arc {
 
-typedef std::map<std::string, Glib::Module *> plugin_cache_t;
+class LoadableModuleDesciption {
+ private:
+  Glib::Module* module;
+  int count;
+  std::string path;
+ public:
+  LoadableModuleDesciption(void):module(NULL),count(0) { };
+  LoadableModuleDesciption(Glib::Module* m):module(m),count(0) { };
+  LoadableModuleDesciption& operator=(Glib::Module* m) {
+    module=m;
+    return *this;
+  }; 
+  operator Glib::Module*(void) { return module; };
+  bool operator==(Glib::Module* m) { return (module==m); }; 
+  int load(void) { ++count; return count; };
+  int unload(void) {
+    --count;
+    if(count <= 0) {
+      if(module) delete module;
+      module=NULL;
+    }
+    return count;
+  };
+};
+typedef std::map<std::string, LoadableModuleDesciption> plugin_cache_t;
 
 /// Manager of shared libraries
 /** This class loads shared libraries/modules. 
