@@ -104,6 +104,9 @@ STACK_OF(CONF_VALUE) * i2v_PROXYPOLICY(struct v3_ext_method * method, PROXYPOLIC
 PROXYCERTINFO * PROXYCERTINFO_new();
 void PROXYCERTINFO_free(PROXYCERTINFO * proxycertinfo);
 
+/* duplicate */
+PROXYCERTINFO * PROXYCERTINFO_dup(PROXYCERTINFO * proxycertinfo);
+
 int PROXYCERTINFO_print_fp(FILE* fp, PROXYCERTINFO* cert_info);
 
 /* set path_length */

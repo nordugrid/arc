@@ -69,8 +69,10 @@ int PROXYPOLICY_print(BIO* bp, PROXYPOLICY* policy) {
 /* set policy language */
 int PROXYPOLICY_set_policy_language(PROXYPOLICY * policy, ASN1_OBJECT * policy_language) {
   if(policy_language != NULL) {
-    ASN1_OBJECT_free(policy->policy_language);
-    policy->policy_language = OBJ_dup(policy_language);
+    if(policy_language != policy->policy_language) {
+      ASN1_OBJECT_free(policy->policy_language);
+      policy->policy_language = OBJ_dup(policy_language);
+    }
     return 1;
   }
   return 0;
@@ -94,8 +96,10 @@ int PROXYPOLICY_set_policy(PROXYPOLICY * proxypolicy, unsigned char * policy, in
     /* set member policy of proxypolicy */
     ASN1_OCTET_STRING_set(proxypolicy->policy, copy, length);
   }
-  else if(proxypolicy->policy) 
+  else if(proxypolicy->policy) {
     ASN1_OCTET_STRING_free(proxypolicy->policy);
+    proxypolicy->policy = NULL;
+  }
   return 1;
 }
 
@@ -252,6 +256,19 @@ void PROXYCERTINFO_free(PROXYCERTINFO * proxycertinfo) {
   OPENSSL_free(proxycertinfo);
 }
 
+PROXYCERTINFO * PROXYCERTINFO_dup(PROXYCERTINFO * proxycertinfo) {
+  PROXYCERTINFO * new_proxycertinfo = NULL;
+  if(proxycertinfo == NULL) return NULL;
+  new_proxycertinfo = PROXYCERTINFO_new();
+  if(new_proxycertinfo == NULL) return NULL;
+  if(proxycertinfo->path_length) {
+    new_proxycertinfo->path_length =
+            ASN1_INTEGER_dup(proxycertinfo->path_length);
+  }
+  new_proxycertinfo->version = proxycertinfo->version;
+  PROXYCERTINFO_set_proxypolicy(new_proxycertinfo,proxycertinfo->proxypolicy);
+}
+
 int PROXYCERTINFO_print(BIO* bp, PROXYCERTINFO* cert_info) {
   STACK_OF(CONF_VALUE)* values = NULL;
   values = i2v_PROXYCERTINFO(PROXYCERTINFO_v4_x509v3_ext_meth(), cert_info, NULL);
@@ -313,11 +330,13 @@ long PROXYCERTINFO_get_path_length(PROXYCERTINFO * proxycertinfo) {
 
 /* set policy */
 int PROXYCERTINFO_set_proxypolicy(PROXYCERTINFO * proxycertinfo, PROXYPOLICY * proxypolicy) {
-  PROXYPOLICY_free(proxycertinfo->proxypolicy);
-  if(proxypolicy != NULL)
-    proxycertinfo->proxypolicy = PROXYPOLICY_dup(proxypolicy);
-  else
-    proxycertinfo->proxypolicy = NULL;
+  if(proxypolicy != proxycertinfo->proxypolicy) {
+    PROXYPOLICY_free(proxycertinfo->proxypolicy);
+    if(proxypolicy != NULL)
+      proxycertinfo->proxypolicy = PROXYPOLICY_dup(proxypolicy);
+    else
+      proxycertinfo->proxypolicy = NULL;
+  }
   return 1;
 }
 
