@@ -183,12 +183,15 @@ namespace Arc {
 
   MCC_GSI_Service::MCC_GSI_Service(Config& cfg)
     : MCC(&cfg) {
+    globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
   }
 
-  MCC_GSI_Service::~MCC_GSI_Service() {}
+  MCC_GSI_Service::~MCC_GSI_Service() {
+    globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
+  }
 
   MCC_Status MCC_GSI_Service::process(Message& inmsg, Message& outmsg) {
 
@@ -220,6 +223,7 @@ namespace Arc {
   MCC_GSI_Client::MCC_GSI_Client(Config& cfg)
     : MCC(&cfg),
       ctx(GSS_C_NO_CONTEXT) {
+    globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
@@ -231,6 +235,7 @@ namespace Arc {
       majstat = gss_delete_sec_context(&minstat, &ctx, GSS_C_NO_BUFFER);
       ctx = GSS_C_NO_CONTEXT;
     }
+    globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
   }
 
   MCC_Status MCC_GSI_Client::process(Message& inmsg, Message& outmsg) {
@@ -456,5 +461,5 @@ namespace Arc {
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "gsi.service", "HED:MCC", 0, &Arc::get_mcc_service },
   { "gsi.client",  "HED:MCC", 0, &Arc::get_mcc_client },
-  { NULL, 0, NULL }
+  { NULL, NULL, 0, NULL }
 };
