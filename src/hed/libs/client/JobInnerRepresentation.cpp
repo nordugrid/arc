@@ -361,7 +361,7 @@ namespace Arc {
     }
        QueueName.clear();
        CEType.clear();
-       Slots = -1;
+       Slots = 1;
        NumberOfProcesses = -1;
        ProcessPerHost = -1;
        ThreadPerProcesses = -1;

@@ -56,6 +56,11 @@ namespace Arc {
 		  }
        }
 
+       if ((*target).FreeSlots == -1) {
+               logger.msg(DEBUG, "Matchmaking, FreeSlots problem, ExecutionTarget: %s, FreeSlots == -1", (std::string)(*target).url.str());
+	 		   continue;
+	   }
+
        if (!(*target).HealthState.empty()) {
 
           // Enumeration for healthstate: ok, critical, other, unknown, warning
@@ -364,7 +369,7 @@ namespace Arc {
 		  }
        }
 
-       if (jir.Slots != -1) {
+       if (jir.Slots != 1) {
 	        if ((*target).TotalSlots != -1) { // Example: 5656
                if (!((*target).TotalSlots >= jir.Slots)) {
 			   logger.msg(DEBUG, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (Slots)", (*target).TotalSlots, jir.Slots);
