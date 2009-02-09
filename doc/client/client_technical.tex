@@ -1041,9 +1041,46 @@ Example CacheCheck response of the A-REX service:
    
 \subsubsection{PythonBroker}
 
-Mattias
+This broker allows users to write their customized broker in
+python. To use this broker the user should write a python class. The
+class should contain:
 
-TODO: finish
+\begin{itemize}
+
+\item{an \_\_init\_\_ method that takes a Config object as input, and}
+\item{a SortTargets method that takes a python list of ExecutionTarget
+  objects and a JobInnerRepresentation object as input.}
+
+\end{itemize}
+
+The Config, ExecutionTarget and JobInnerRepresentation classes are
+available in the swig generated arc python module.
+
+To invoke the python broker, the name of the python module defining
+the broker class and the name of the broker class must be given. If
+e.g. the broker class MyBroker is defined in the python module
+SampleBroker the command line option to arcsub to use this broker is:
+
+\begin{shaded}
+\begin{verbatim}
+-b PythonBroker:SampleBroker.MyBroker
+\end{verbatim}
+\end{shaded}
+
+Additional arguments to the python broker can be added by appending
+them after an additional colon after the python class name:
+
+\begin{shaded}
+\begin{verbatim}
+-b PythonBroker:SampleBroker.MyBroker:args
+\end{verbatim}
+\end{shaded}
+
+Extracting these additional arguments should be done in the python
+broker class's \_\_init\_\_ method.
+
+For a complete example of a simple python broker see the
+SampleBroker.py file that comes with your arc python installation.
 
 \chapter{Building Command Line Interfaces}
 \label{sec:cli}
