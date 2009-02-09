@@ -12,28 +12,40 @@ Building ARC on Windows system using MinGW
   below should be done from that shell.
   - From contribution package mingwPORT - http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=233332
     HINT: mingwPORT packages are installed in following way:
+      * Note: If installing on Windows Vista, please download and install install.exe.manifest and
+        install-info.exe.manifest and patch.exe.manifest into c:\msys\1.0\bin (the last one can be obtained by copying one
+        of the first ones and rename it to patch.exe.maifest). The files can be downloaded from
+        http://sourceforge.net/tracker/index.php?func=detail&aid=1711379&group_id=2435&atid=102435
+        Otherwise Vista will think it needs administrative privileges to run these files and the installation of packages
+        will fail.
       * Download corresponding package
-      * Unpack is (tar -zxvf package.tar.gz  or  bzip2 -cd paclage.tar.bz2 | tar -xvf -)
+      * Unpack is (tar -zxvf package.tar.gz  or  bzip2 -cd package.tar.bz2 | tar -xvf -)
       * cd inside package - cd package/mingwPORT
-      * Run installation scripr - ./mingwPORT.sh
+      * Run installation script - ./mingwPORT.sh
       * Answer all question by pressing Enter/Return key of your keyboard. Trying to enter
         any values different from default may cause You a lot of headache.
     - Install wget - it will be used by other packages during installation. 
       HINT: wget package contains precompiled wget.exe which is needed for downloading 
       wget source code. You have to put it into /tmp directry - or same place that is 
       used for downloding source tarballs by mingwPORT.sh - otherwise that executable
-      may refuse to work. Do not ask me why because I do not know.
+      may refuse to work. Do not ask me why because I do not know. (Alternative solution: export PATH=<path>/wget-1.9.1/mingwPORT:$PATH)
     - Install libiconv
     - Install zlib
   - Install extra contribution package regex  - https://sourceforge.net/project/showfiles.php?group_id=2435&package_id=73286
+  - Install package mingw autoconf-2.61 update http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=67879
+  - Install package gettext - http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=67879  (gettext-0.16.1-1-src.tar.bz2)
+  - Install package automake version 1.10 (http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=67879)
+  - Install libtool1.5-1.5.25a-1-src.tar.bz2 
 
 - Install gtkmm devel package. It includes glibmm. 
   (http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/)
   TODO: We probably need to provide either mingwPORT or some other port which 
-  includes only glibmm. 
+  includes only glibmm.
+  - Add mktime.m4 to C:\GTK\2.0\share\alocal   (https://svn.habolinux.de/filedetails.php?repname=tar&path=%2Fm4%2Fmktime.m4&rev=0&sc=0)
 
 - Install OpenSSL. 
   (http://www.slproweb.com/products/Win32OpenSSL.html)
+  - export OPENSSL_BIN=/bin/openssl
 
 - After all installs are completed reopen MSYS shell to make it 
   acquire new environment variables.
@@ -53,13 +65,11 @@ Building ARC on Windows system using MinGW
     like /C/GTK/2.0/lib/pkgconfig. If there is no GTK in path You may need to add it.
   * Prepare source tree for configuration by running
     autoreconf --verbose --force --install
-    HINT: If You see some weird errors at this stage then autom4te may need a patch as 
-    described in http://osdir.com/ml/sysutils.autoconf.general/2002-11/msg00081.html
-  * Configure source tree with something like
+      * Configure source tree with something like
     ./configure CXXFLAGS="-g" OPENSSL_CFLAGS=-I/c/OpenSSL/include OPENSSL_LIBS="-L/c/OpenSSL -lssl32 -leay32" --prefix=/c/arc
     If You have installed OpenSSL at different location You may need to adjust paths.
     During configuration stage You will see that most or all services are disabled. You may
-    enable then with --enable-servicename option. But take into account that building of services
+    enable them with --enable-servicename option. But take into account that building of services
     in MinGW environment was not tested yet.
     TODO: Expand ways OpenSSL is detected. This should also help in case of OpenBSD which 
     has OpenSSL as part of system and not reflected in pkg-config.
