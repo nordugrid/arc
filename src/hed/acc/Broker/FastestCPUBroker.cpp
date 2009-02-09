@@ -14,7 +14,7 @@ namespace Arc {
     std::list<Benchmark>::const_iterator iter;
 
     for(iter = T1.Benchmarks.begin(); iter != T1.Benchmarks.end();iter++){
-      if(strcasestr(iter->Type.c_str(), "specint2006")){
+      if(strcasestr(iter->Type.c_str(), "specint2000")){
 	T1performance = iter->Value;
 	break;
       }
@@ -22,7 +22,7 @@ namespace Arc {
 
     
     for(iter = T2.Benchmarks.begin(); iter != T2.Benchmarks.end();iter++){
-      if(strcasestr(iter->Type.c_str(), "specint2006")){
+      if(strcasestr(iter->Type.c_str(), "specint2000")){
 	T1performance = iter->Value;
 	break;
       }
@@ -56,7 +56,7 @@ namespace Arc {
           std::list<Benchmark>::const_iterator iter2;
 		  bool ok = false;
           for(iter2 = (*iter).Benchmarks.begin(); iter2 != (*iter).Benchmarks.end();iter2++){
-             if(strcasestr(iter2->Type.c_str(), "specint2006")){
+             if(strcasestr(iter2->Type.c_str(), "specint2000")){
 			    ok = true;
             	break;
              }
