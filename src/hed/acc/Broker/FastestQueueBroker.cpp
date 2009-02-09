@@ -34,7 +34,7 @@ namespace Arc {
     //Remove clusters with incomplete information for target sorting
     std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
     while(iter != PossibleTargets.end()){
-      if(!(iter->WaitingJobs != -1 || iter->TotalSlots != -1 || iter->FreeSlots != -1)){
+      if(iter->WaitingJobs == -1 || iter->TotalSlots == -1 || iter->FreeSlots == -1){
 	iter = PossibleTargets.erase(iter);
 	continue;
       }
