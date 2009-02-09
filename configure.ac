@@ -834,7 +834,11 @@ if test "x$gsoap" = 'xyes'; then
   fi
 fi
 AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enable_srm_dmc" = "xyes"])
-AM_CONDITIONAL([GSI_MCC_ENABLED],[test -n "$GLOBUS_GSSAPI_GSI_VERSION"])
+enable_gsi_mcc=no
+if test ! "x$GLOBUS_GSSAPI_GSI_VERSION" = 'x'; then
+  enable_gsi_mcc=yes
+fi
+AM_CONDITIONAL([GSI_MCC_ENABLED],[test "x$enable_gsi_mcc" = "xyes"])
 
 # Setup defines
 if test -n "$GLOBUS_RSL_VERSION"; then
@@ -1380,6 +1384,7 @@ SCHED service:      ${enable_sched_service}
 STORAGE service:    ${enable_storage_service}
 PAUL service:       ${enable_paul_service}
 SRM client (DMC):   ${enable_srm_dmc}
+GSI channel (MCC):  ${enable_gsi_mcc}
 ])
 
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then
