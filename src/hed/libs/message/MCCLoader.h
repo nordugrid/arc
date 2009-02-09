@@ -93,7 +93,7 @@ namespace Arc {
 
   /// Interface to chain specific functionality
   /** Object of this class is associated with every MCCLoader object. It is
-    acecssible for MCC and Service components and provides an interface
+    accessible for MCC and Service components and provides an interface
     to manipulate chains stored in Loader. This makes it possible to 
     modify chains dynamically - like deploying new services on demand. */
   class ChainContext {
