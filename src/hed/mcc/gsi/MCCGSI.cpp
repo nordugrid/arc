@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include <globus_openssl.h>
+
 #include <arc/globusutils/GSSCredential.h>
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadStream.h>
@@ -21,6 +23,15 @@ namespace Arc {
   Logger MCC_GSI_Service::logger(MCC::logger, "GSI Service");
 
   Logger MCC_GSI_Client::logger(MCC::logger, "GSI Client");
+
+  // This function tries to activate Globus OpenSSL module
+  // and keep it active forever because on deacivation Globus
+  // destroys global structures of OpenSSL.
+  static void globus_openldap_lock(void) {
+    static bool done = false;
+    if(done) return;
+    globus_module_activate(GLOBUS_OPENSSL_MODULE);
+  }
 
   static Plugin* get_mcc_service(PluginArgument* arg) {
     MCCPluginArgument* mccarg =
@@ -184,6 +195,7 @@ namespace Arc {
   MCC_GSI_Service::MCC_GSI_Service(Config& cfg)
     : MCC(&cfg) {
     globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
+    globus_openldap_lock();
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
@@ -224,6 +236,7 @@ namespace Arc {
     : MCC(&cfg),
       ctx(GSS_C_NO_CONTEXT) {
     globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
+    globus_openldap_lock();
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
