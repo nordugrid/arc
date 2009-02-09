@@ -271,6 +271,7 @@ namespace Arc {
 
       XMLNode queue = *it;
       XMLNode cluster = queue.Parent();
+      XMLNode authuser = (*it)["nordugrid-info-group-name"]["nordugrid-authuser-name"];
 
       ExecutionTarget target;
 
@@ -478,6 +479,17 @@ namespace Arc {
 	  bm.Value = performance;
 	  target.Benchmarks.push_back(bm);
 	}
+
+      //authuser from nordugrid schema
+      if(authuser){
+	if(authuser["nordugrid-authuser-freecpus"]){
+	  target.FreeSlots = stringtoi(std::string(authuser["nordugrid-authuser-freecpus"]));
+	}else if (target.TotalJobs && target.UsedSlots){
+	  target.FreeSlots = target.TotalJobs - target.UsedSlots;
+	}else{
+	  target.FreeSlots = 0;
+	}
+      }
 
       //ApplicationEnvironments
       for (XMLNode n = cluster["nordugrid-cluster-runtimeenvironment"];
