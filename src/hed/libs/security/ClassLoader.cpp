@@ -67,35 +67,6 @@ void ClassLoader::load_all_instances(Config *cfg){
     }
     std::string share_lib_name = (std::string)(plugins.Attribute("Name"));
     
-    /*
-    Glib::Module *module = NULL;
-    if(!(share_lib_name.empty())){
-      module = ModuleManager::load(share_lib_name);
-      if(module == NULL){
-        std::cout<<"Loadable module "<<share_lib_name<<" could not be loaded"<<std::endl;
-        return;
-      }
-    }
-
-    for(int j = 0;;++j){
-      XMLNode plugin = plugins.Child(j);
-      if(!plugin){
-        break;
-      }
-      if (MatchXMLName(plugin, "Plugin")) {
-        std::string plugin_name = (std::string)(plugin.Attribute("Name"));
-        void *ptr = NULL;
-        if (module->get_symbol(plugin_name.c_str(), ptr)) {
-          //If there is a existing "Plugin" with the same plugin_name as the inserting one, the original one
-          //will be covered.
-          id_map[plugin_name]=ptr;
-        }
-        //else {
-        //  std::cout<<"There is no " << plugin_name <<" type plugin"<<std::endl;
-        //}
-      }
-    }
-    */
     for(int j = 0;;++j){
       XMLNode plugin = plugins.Child(j);
       if(!plugin){
