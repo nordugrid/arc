@@ -31,20 +31,29 @@ namespace Arc {
 
   void FastestQueueBroker::SortTargets() {
 
+    logger.msg(DEBUG, "FastestQueueBroker is filtering %d targets",PossibleTargets.size());
+
     //Remove clusters with incomplete information for target sorting
     std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
     while(iter != PossibleTargets.end()){
       if(iter->WaitingJobs == -1 || iter->TotalSlots == -1 || iter->FreeSlots == -1){
+	if(iter->WaitingJobs == -1){
+	  logger.msg(DEBUG, "Target %s removed by FastestQueueBroker, doesn't report number of waiting jobs", iter->DomainName);
+	}
+	else if(iter->TotalSlots == -1){
+	  logger.msg(DEBUG, "Target %s removed by FastestQueueBroker, doesn't report number of total slots", iter->DomainName);	
+	}
+	else if(iter->FreeSlots == -1){
+	  logger.msg(DEBUG, "Target %s removed by FastestQueueBroker, doesn't report number of free slots", iter->DomainName);
+	}
 	iter = PossibleTargets.erase(iter);
 	continue;
       }
       iter++;
     }
-
-    logger.msg(DEBUG, "Matching against job description, following targets possible for FastestQueueBroker: %d",PossibleTargets.size());
-
-    iter = PossibleTargets.begin();
     
+    logger.msg(DEBUG, "FastestQueueBroker will rank the following %d targets",PossibleTargets.size());
+    iter = PossibleTargets.begin();
     for(int i=1; iter != PossibleTargets.end(); iter++, i++){
       logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
     }    
