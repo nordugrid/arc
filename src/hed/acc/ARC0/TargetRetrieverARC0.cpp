@@ -330,9 +330,16 @@ namespace Arc {
       if (queue["nordugrid-queue-queued"])
 	target.WaitingJobs =
 	  stringtoi(std::string(queue["nordugrid-queue-queued"]));
-      else if (cluster["nordugrid-cluster-queuedjobs"])
-	target.WaitingJobs =
-	  stringtoi(std::string(cluster["nordugrid-cluster-queuedjobs"]));
+      else if (queue["nordugrid-queue-gridqueued"] || queue["nordugrid-queue-localqueued"]){
+	target.WaitingJobs = 0;
+	if(queue["nordugrid-queue-gridqueued"])
+	  target.WaitingJobs =
+	    stringtoi(std::string(queue["nordugrid-queue-gridqueued"]));
+	if(queue["nordugrid-queue-localqueued"])
+	  target.WaitingJobs +=
+	    stringtoi(std::string(queue["nordugrid-queue-localqueued"]));
+      }
+
       if (queue["nordugrid-queue-prelrmsqueued"])
 	target.PreLRMSWaitingJobs =
 	  stringtoi(std::string(queue["nordugrid-queue-prelrmsqueued"]));
