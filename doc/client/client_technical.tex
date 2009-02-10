@@ -488,7 +488,7 @@ arcsub -b RandomBroker:a,b,c -c ARC1:https://knowarc1.grid.niif.hu:60000/arex jo
 \end{verbatim}
 \end{shaded}
 
-The Broker's constructor sets the PreFilteringDone and the TargetSortingDone values to false because we need to call the PreFilterTargets first then the second the GetBestTarget which trigger the specialised Broker sorting method.
+The Broker's constructor sets the PreFilteringDone and the TargetSortingDone values to false because we need to call the PreFilterTargets first then the second the GetBestTarget which triggers the specialised Broker sorting method.
 
 The base Broker operations are the followings:
 
@@ -961,7 +961,9 @@ The ExecutionTarget sorting is based on randomization, the PossibleTargets vecto
 
 \subsubsection{FastestCPUBroker}
 
-The sorting method is based on the fastest CPU, we use the CINT2000 (Integer Component of SPEC CPU2000) benchmark for this purpose , here are more information about this benchmark type: http://www.spec.org/cpu2000/CINT2000/
+The sorting method is based on the fastest CPU, we use the CINT2000 (Integer Component of SPEC CPU2000) benchmark for this purpose , here are more information about this benchmark type: 
+
+http://www.spec.org/cpu2000/CINT2000/
 
 The sorting algorithm for this Broker is as follows:
 
