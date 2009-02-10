@@ -168,12 +168,6 @@ namespace Arc {
       logger.msg(WARNING, "The Service advertises no Health State.");
     }
 
-    if (GLUEService["ComputingEndpoint"]["TotalJobs"]) {
-      target.TotalJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["TotalJobs"]);
-    } else {
-      logger.msg(INFO, "The Service doesn't advertise the Total Number of Jobs.");
-    }
-
     if (GLUEService["ComputingEndpoint"]["ID"]) {
       target.CEID = (std::string)GLUEService["ComputingEndpoint"]["ID"];
     } else {
@@ -259,8 +253,113 @@ namespace Arc {
     } else {
       logger.msg(INFO, "The Service doesn't advertise any Trusted CA.");
     }
+/*    for (std::list<std::string>::iterator dbgit = target.TrustedCA.begin(); dbgit != target.TrustedCA.end(); ++dbgit) {
+      std::cout << *dbgit << std::endl; //for dubugging
+    }*/
 
-    //std::cout <<  << std::endl; //for dubugging
+    if (GLUEService["ComputingEndpoint"]["DowntimeStart"]) {
+      Arc::Time tmp((std::string)GLUEService["ComputingEndpoint"]["DowntimeStart"]);
+      if (tmp != -1) target.DowntimeStarts = tmp;
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Downtime Start.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["DowntimeEnd"]) {
+      Arc::Time tmp((std::string)GLUEService["ComputingEndpoint"]["DowntimeEnd"]);
+      if (tmp != -1) target.DowntimeEnds = tmp;
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Downtime End.");
+    }
+
+/*    std::cout << "Dowtime start:\t" << target.DowntimeStarts << std::endl; //for dubugging
+    std::cout << "Dowtime end:\t" << target.DowntimeEnds << std::endl; //for dubugging*/
+
+    if (GLUEService["ComputingEndpoint"]["Staging"]) {
+      target.Staging = (std::string)GLUEService["ComputingEndpoint"]["Staging"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise any Staging capabilities.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["Jobdescription"]) {
+      target.Jobdescription = (std::string)GLUEService["ComputingEndpoint"]["Jobdescription"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise what Job Description type it accepts.");
+    }
+
+    //Attributes below should possibly consider elements in different places (Service/Endpoint/Share etc).
+
+    if (GLUEService["ComputingEndpoint"]["TotalJobs"]) {
+      target.TotalJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["TotalJobs"]);
+    } else if (GLUEService["TotalJobs"]) {
+      target.TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Total Number of Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["RunningJobs"]) {
+      target.RunningJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["RunningJobs"]);
+    } else if (GLUEService["RunningJobs"]) {
+      target.RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Running Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["WaitingJobs"]) {
+      target.WaitingJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["WaitingJobs"]);
+    } else if (GLUEService["WaitingJobs"]) {
+      target.WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Waiting Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["StagingJobs"]) {
+      target.StagingJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["StagingJobs"]);
+    } else if (GLUEService["StagingJobs"]) {
+      target.StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Staging Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["SuspendedJobs"]) {
+      target.SuspendedJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["SuspendedJobs"]);
+    } else if (GLUEService["SuspendedJobs"]) {
+      target.SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Suspended Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["PreLRMSWaitingJobs"]) {
+      target.PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["PreLRMSWaitingJobs"]);
+    } else if (GLUEService["PreLRMSWaitingJobs"]) {
+      target.PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Jobs not yet in the LRMS.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["LocalRunningJobs"]) {
+      target.LocalRunningJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["LocalRunningJobs"]);
+    } else if (GLUEService["LocalRunningJobs"]) {
+      target.LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Local Running Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["LocalWaitingJobs"]) {
+      target.LocalWaitingJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["LocalWaitingJobs"]);
+    } else if (GLUEService["LocalWaitingJobs"]) {
+      target.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Local Waiting Jobs.");
+    }
+
+/*
+    if (GLUEService["ComputingEndpoint"]["Jobdescription"]) {
+      target.TotalJobs = (std::string)GLUEService["ComputingEndpoint"]["Jobdescription"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise what Jod Description type it accepts.");
+    }*/
+
+
 
 //     if (ServerStatus["LocalResourceManagerType"])
 //       target.ManagerType =
