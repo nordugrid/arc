@@ -440,6 +440,23 @@ class BartenderClient(Client):
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
+    def unlink(self, requests):
+        """docstring for unlink"""
+        tree = XMLTree(from_tree =
+            ('bar:unlink', [
+                ('bar:unlinkRequestList', [
+                    ('bar:unlinkRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                    ]) for rID, LN in requests.items()
+                ])
+            ])
+        )
+        msg = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
+    
+
     def unmakeCollection(self, requests):
         """docstring for unmakeCollection"""
         tree = XMLTree(from_tree =

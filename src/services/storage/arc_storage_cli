@@ -1128,6 +1128,22 @@ class BartenderClient(Client):
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
+    def unlink(self, requests):
+        """docstring for unlink"""
+        tree = XMLTree(from_tree =
+            ('bar:unlink', [
+                ('bar:unlinkRequestList', [
+                    ('bar:unlinkRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                    ]) for rID, LN in requests.items()
+                ])
+            ])
+        )
+        msg = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
+
     def unmakeCollection(self, requests):
         """docstring for unmakeCollection"""
         tree = XMLTree(from_tree =
@@ -1302,10 +1318,10 @@ def call_it(method_name, *args):
     print '- done in %0.2f seconds.' % (time.time()-start)
     return response
 
-if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol']:
+if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl']:
     print 'Usage:'
     print '  arc_storage_cli <method> [<arguments>]'
-    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy]'
+    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy], unlink'
     print 'Without arguments, each method prints its own help.'
 else:
     try:
@@ -1466,13 +1482,20 @@ else:
                 print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
             else:
                 print '%s: %s' % (LN, success)
+    elif command in ['unl']:
+        if len(args) < 1:
+            print 'Usage: unlink <LN>'
+        else:
+            request = {'0': (args[0])}
+            response = call_it('unlink', request)
+            print "Unlinking '%s': %s" % (args[0], response['0'])
     elif command in ['unm', 'rmd']:
         if len(args) < 1:
             print 'Usage: unmakeCollection <LN>'
         else:
             request = {'0': (args[0])}
             #print 'unmakeCollection', request
-            response = call_it('unmakeCollection',request)
+            response = call_it('unmakeCollection', request)
             #print response
             print "Removing collection '%s': %s" % (args[0], response['0'])
     elif command in ['mak','mkd']:

@@ -467,6 +467,34 @@ class Bartender:
                     success = 'internal error (%s)' % traceback.format_exc()
             response[rID] = (success, turl, protocol)
         return response
+        
+    def unlink(self, auth, requests):
+        """docstring for unlink"""
+        auth_request = auth.get_request('removeEntry')
+        requests, traverse_response = self._traverse(requests)
+        response = {}
+        for rID, [LN] in requests:
+            metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
+            print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
+            if not wasComplete:
+                success = 'no such LN'
+            else:
+                if len(traversedlist) < 2:
+                    success = 'nothing to unlink'
+                else:
+                    parent_GUID = traversedlist[-2][1]
+                    child_name = traversedlist[-1][0]
+                    parent_metadata = self.librarian.get([parent_GUID])[parent_GUID]
+                    decision = make_decision_metadata(parent_metadata, auth_request)
+                    if decision != arc.DECISION_PERMIT:
+                        success = 'denied'
+                    else:
+                        mod_requests = {'unlink' : (parent_GUID, 'unset', 'entries', child_name, '')}
+                        mod_response = self.librarian.modifyMetadata(mod_requests)
+                        success = mod_response['unlink']
+            response[rID] = success
+        return response
+
 
     def unmakeCollection(self, auth, requests):
         """docstring for unmakeCollection"""
@@ -795,7 +823,7 @@ class BartenderService(Service):
     def __init__(self, cfg):
         self.service_name = 'Bartender'
         # names of provided methods
-        request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify']
+        request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'unlink']
         # call the Service's constructor, 'Bartender' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
         # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
@@ -1050,6 +1078,19 @@ class BartenderService(Service):
         response = self.bartender.putFile(inpayload.auth, requests)
         return create_response('bar:putFile',
             ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self._new_soap_payload())
+
+    def unlink(self, inpayload):
+        """docstring for unlink"""
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        requests = dict([(
+                str(request_node.Get('requestID')),
+                [str(request_node.Get('LN'))]
+            ) for request_node in request_nodes
+        ])
+        response = self.bartender.unlink(inpayload.auth, requests)
+        return create_response('bar:unlink',
+            ['bar:requestID', 'bar:success'], response, self._new_soap_payload(), single = True)
+    
 
     def unmakeCollection(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
