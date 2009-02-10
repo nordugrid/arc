@@ -532,9 +532,9 @@ transparently address grid job descriptions written in different job
 description languages by translating them automatically. In the
 {\arclib} library this functionality is implemented in the
 {\JobDescription} class. The inner representation (\texttt{JobInnerRepresentation}
-class) is like to the GIN-JSDL and all elements are correspond to
-variables. This variables are simple variables or complex data structures,
-and private on the {\JobDescription} class.
+class) is similar to the GIN-JSDL and all elements correspond to
+variables. These variables are either simple variables or complex data structures,
+and are private in the {\JobDescription} class.
 
 
 This is a generic class that takes a job
@@ -548,15 +548,15 @@ bool setSource(const std::string source);
 
 in any supported formats (currently XRSL~\cite{xrsl}, JDL~\cite{jdl},
 JSDL~\cite{jsdl}), converts and stores it in a GIN-JSDL-like internal job
-description format. The identification of the source's description
+description format. The identification of the source description
 format is internally handled by a \texttt{JobDescriptionOrderer} class
 which identifies the format by pattern matching. If the source string is
-empty or the \texttt{JobDescriptionOrderer} class can not be recognize
-to any formats, then it is not store nothing and return with false, else
-convert and store it. 
+empty or the \texttt{JobDescriptionOrderer} class can not be recognized
+to any formats, then it does not store anything and returns with false, otherwise
+it converts and stores it. 
 
 Different operations, like getting the job description in other
-formats or getting job-related information, can be performed using the
+formats or getting job-related information, can be performed by using the
 description-independent functions of this class, e.g.:
 
 \begin{shaded}
@@ -568,26 +568,26 @@ bool getProduct(std::string& product, std::string format = "POSIXJSDL")
 The {\JobDescription} class has three back-end classes, sometimes
 referred to as back-end or translator modules, corresponding to the
 three supported job description languages. The {\JobDescription} class
-chooses the appropriate back-end module according to the pattern match
+chooses the appropriate back-end module according to the pattern matching
 performed by the \texttt{JobDescriptionOrderer}, and uses the back-end
 module for parsing and generating the job descriptions.
 If the inner representation is empty or the source job descrition is not
-valid, then the output is empty and return with false.
-When the source format is equal with the output's format and it is not XRSL,
-than set the product string with the source string. The XRSL output is
-always generation from the inner representation. 
+valid, then the output is empty too and returns with false.
+When the source format is the same as the output format and it is not XRSL,
+than we set the product string to the source string. The XRSL output is
+always generated from the inner representation. 
 
 Parsing is currently possible from any of the languages. JSDL, XRSL and
-JDL output generation is implemented yet and even for these there are
+JDL output generation is implemented already but even for these there are
 some limitations.
 
 The conversion mainly means a syntactical transformation and the
-{\JobDescription} class can of course do nothing in those cases where
-not enough data to assemble a given attribute is available or when
-information can be lost because the received attribute has no
+{\JobDescription} class can do nothing in those cases where
+there are not enough data is available to assemble a given attribute or
+when information can be lost because the received attribute has no
 equivalent in the output language.
 
-For the JSDL output generation the {\JobDescription} class is using
+For the JSDL output generation the {\JobDescription} class uses
 the core JSDL's capabilities amended with the JSDL-POSIX and JSDL-ARC
 extensions. The loss of information is minimal in case of generating
 such an output.
