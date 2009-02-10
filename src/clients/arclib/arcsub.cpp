@@ -286,53 +286,34 @@ int main(int argc, char **argv) {
       
       Arc::NS ns;
       Arc::XMLNode info(ns, "Job");
+      //submit the job
       if (!submitter->Submit(*it, info)) {
 	std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str())<< std::endl;
 	continue;
       }
-      else {
-           for (std::list<Arc::ExecutionTarget>::iterator target2 =   \
-	            targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); \
-		        target2++) { 
-                     
-                if (target.url.str() ==  (*target2).url.str() ) {
-				    if ((*target2).FreeSlots > (*target2).RequestedSlots){
-					   //The job will start directly
-					   if ((*target2).FreeSlots != -1) {
-					      (*target2).FreeSlots--;
-                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, FreeSlots value before submission: %d, after submission: %d", (*target2).url.str(), (*target2).FreeSlots, (*target2).FreeSlots + 1);
-					   }
-					   else
-                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, FreeSlots value undefined", (*target2).url.str());
+      
+      //need to get the jobinnerrepresentation in order to get the number of slots
+      Arc::JobInnerRepresentation jir;
+      it->getInnerRepresentation(jir);
 
-					   if ((*target2).UsedSlots != -1) {
-					      (*target2).UsedSlots++;
-                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, UsedSlots value before submission: %d, after submission: %d", (*target2).url.str(), (*target2).UsedSlots, (*target2).UsedSlots - 1);
-					   }
-					   else
-                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, UsedSlots value undefined", (*target2).url.str());
-					}else{
-					   //The job will be queuing
-					   if ((*target2).WaitingJobs != -1) {
-					      (*target2).WaitingJobs++;
-                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, WaitingJobs value before submission: %d, after submission: %d", (*target2).url.str(), (*target2).WaitingJobs, (*target2).WaitingJobs - 1);
-					   }
-					   else
-                          logger.msg(Arc::DEBUG, "ExecutionTarget: %s, WaitingJobs value undefined", (*target2).url.str());
-					}
-					break;
-				}
-          }
+      for(std::list<Arc::ExecutionTarget>::iterator target2 = targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); target2++){ 
+	if(target.url ==  (*target2).url){
+	  if((*target2).FreeSlots >= abs(jir.Slots)){	 //The job will start directly
+	    (*target2).FreeSlots -= abs(jir.Slots);
+	    if ((*target2).UsedSlots != -1)
+	      (*target2).UsedSlots += abs(jir.Slots);
+	  }else{                                         //The job will be queued
+	    if ((*target2).WaitingJobs != -1)
+	      (*target2).WaitingJobs += abs(jir.Slots);
 	  }
+	}
+      }
 
-      /*if (it->getXML()["JobDescription"]["JobIdentification"]["JobName"])
-	info.NewChild("Name") = (std::string)
-	  it->getXML()["JobDescription"]["JobIdentification"]["JobName"];*/
       Arc::XMLNode node;
       if ( it->getXML(node) ){
-         if ( (bool)node["JobDescription"]["JobIdentification"]["JobName"] ){
-            info.NewChild("Name") = (std::string)node["JobDescription"]["JobIdentification"]["JobName"];
-         }
+	if ( (bool)node["JobDescription"]["JobIdentification"]["JobName"] ){
+	  info.NewChild("Name") = (std::string)node["JobDescription"]["JobIdentification"]["JobName"];
+	}
       }
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
