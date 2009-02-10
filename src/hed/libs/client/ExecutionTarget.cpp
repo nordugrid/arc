@@ -61,9 +61,9 @@ namespace Arc {
       DowntimeStarts((time_t)(-1)),
       DowntimeEnds((time_t)(-1)) {}
 
-  ExecutionTarget::ExecutionTarget(const long int addrptr) {
-    *this = *((ExecutionTarget*) addrptr);
-  }
+//   ExecutionTarget::ExecutionTarget(const long int addrptr) {
+//     *this = *((ExecutionTarget*) addrptr);
+//   }
 
   ExecutionTarget::~ExecutionTarget() {}
 
