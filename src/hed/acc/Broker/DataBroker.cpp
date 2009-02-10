@@ -65,6 +65,8 @@ namespace Arc {
        }
 
 	   CacheMappingTable[(*target).url.fullstr()] = DataSize;
+
+       if(response!=NULL) { delete response; response = NULL; }
     }
 
     return true;
