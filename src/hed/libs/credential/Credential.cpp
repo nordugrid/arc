@@ -6,6 +6,8 @@
 #include <fstream>
 #include <fcntl.h>
 
+#include <glibmm/fileutils.h>
+
 #include "Credential.h"
 
 using namespace ArcCredential;
@@ -370,22 +372,6 @@ namespace Arc {
 
   }
 
-  //Check if the name is a file/dir
-  static bool fexists(const char *fname) {
-    struct stat dummy;
-    if (!lstat(fname, &dummy))
-      return true;
-    return false;
-  }
-
-  //Check if the name is a regular file
-  static bool isfile(const char *fname) {
-    struct stat sb;
-    if (!stat(fname, &sb) && S_ISREG(sb.st_mode))
-      return true;
-    return false;
-  }
-
   Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion, 
         std::string policylang, std::string policy, int pathlength) : 
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
@@ -504,10 +490,10 @@ namespace Arc {
       //set policy
       std::string policystring;
       if(!policy_.empty()) {
-        if(fexists(policy_.c_str())) {
+        if(Glib::file_test(policy_,Glib::FILE_TEST_EXISTS)) {
           //If the argument is a location which specifies a file that 
           //includes the policy content
-          if(isfile(policy_.c_str())) {
+          if(Glib::file_test(policy_,Glib::FILE_TEST_IS_REGULAR)) {
             std::ifstream fp;
             fp.open(policy_.c_str());
             if(!fp) {
