@@ -10,7 +10,7 @@
 
 namespace Arc {
 
-  JobInnerRepresentation::JobInnerRepresentation() { Reset(); }
+  JobInnerRepresentation::JobInnerRepresentation():Join(false) { Reset(); }
 
   //JobInnerRepresentation::~JobInnerRepresentation() {}
 
