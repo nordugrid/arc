@@ -290,12 +290,22 @@ namespace Arc {
       if (cluster["nordugrid-cluster-contactstring"])
 	target.url = (std::string)cluster["nordugrid-cluster-contactstring"];
 
-      target.Interface = "GridFTP";
-      target.Implementor = "NorduGrid";
-      target.ImplementationName = "ARC0";
-      if (cluster["nordugrid-cluster-middleware"])
-	target.ImplementationVersion =
-	  (std::string)cluster["nordugrid-cluster-middleware"];
+      if (cluster["nordugrid-cluster-middleware"]) {
+	std::string mw = (std::string)cluster["nordugrid-cluster-middleware"];
+	std::string::size_type pos1 = mw.find('-');
+	if (pos1 == std::string::npos)
+	  target.Implementor = mw;
+	else {
+	  target.Implementor = mw.substr(0, pos1);
+	  std::string::size_type pos2 = mw.find('-', pos1 + 1);
+	  if (pos2 == std::string::npos)
+	    target.ImplementationName = mw.substr(pos1 + 1);
+	  else {
+	    target.ImplementationName = mw.substr(pos1 + 1, pos2 - pos1 - 1);
+	    target.ImplementationVersion = mw.substr(pos2 + 1);
+	  }
+	}	
+      }
       if (queue["nordugrid-queue-status"]) {
 	if (((std::string)queue["nordugrid-queue-status"]).substr(0, 6)
 	    == "active")
@@ -381,10 +391,10 @@ namespace Arc {
 	target.MaxWaitingJobs =
 	  stringtoi((std::string)queue["nordugrid-queue-maxqueable"]);
       if (queue["nordugrid-queue-nodememory"])
-	target.NodeMemory =
+	target.MainMemorySize =
 	  stringtoi(std::string(queue["nordugrid-queue-nodememory"]));
       else if (cluster["nordugrid-cluster-nodememory"])
-	target.NodeMemory =
+	target.MainMemorySize =
 	  stringtoi(std::string(cluster["nordugrid-cluster-nodememory"]));
       if (queue["nordugrid-queue-maxuserrun"])
 	target.MaxUserRunningJobs =
@@ -398,13 +408,11 @@ namespace Arc {
 
       //ComputingManager/ExecutionEnvironment
       if (cluster["nordugrid-cluster-lrms-type"])
-	if (cluster["nordugrid-cluster-lrms-version"])
-	  target.ManagerType =
-	    (std::string)cluster["nordugrid-cluster-lrms-type"] + " (" +
-	    (std::string)cluster["nordugrid-cluster-lrms-version"] + ")";
-	else
-	  target.ManagerType =
-	    (std::string)cluster["nordugrid-cluster-lrms-type"];
+	target.ManagerProductName =
+	  (std::string)cluster["nordugrid-cluster-lrms-type"];
+      if (cluster["nordugrid-cluster-lrms-version"])
+	target.ManagerProductVersion =
+	  (std::string)cluster["nordugrid-cluster-lrms-version"];
       if (queue["nordugrid-queue-totalcpus"]) {
 	target.TotalPhysicalCPUs =
 	  stringtoi(std::string(queue["nordugrid-queue-totalcpus"]));
@@ -470,10 +478,7 @@ namespace Arc {
 	  std::string::size_type alpha = benchmark.find_first_of("@");
 	  std::string benchmarkname = benchmark.substr(0, alpha);
 	  double performance = stringtod(benchmark.substr(alpha + 1));
-	  Benchmark bm;
-	  bm.Type = benchmarkname;
-	  bm.Value = performance;
-	  target.Benchmarks.push_back(bm);
+	  target.Benchmarks[benchmarkname] = performance;
 	}
       else if (cluster["nordugrid-cluster-benchmark"])
 	for (XMLNode n = cluster["nordugrid-cluster-benchmark"]; n; ++n) {
@@ -481,10 +486,7 @@ namespace Arc {
 	  std::string::size_type alpha = benchmark.find_first_of("@");
 	  std::string benchmarkname = benchmark.substr(0, alpha);
 	  double performance = stringtod(benchmark.substr(alpha + 1));
-	  Benchmark bm;
-	  bm.Type = benchmarkname;
-	  bm.Value = performance;
-	  target.Benchmarks.push_back(bm);
+	  target.Benchmarks[benchmarkname] = performance;
 	}
 
       //authuser from nordugrid schema

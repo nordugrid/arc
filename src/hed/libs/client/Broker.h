@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <arc/Logger.h>
+#include <arc/client/ACC.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/ExecutionTarget.h>

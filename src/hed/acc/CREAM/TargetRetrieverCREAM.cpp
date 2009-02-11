@@ -458,7 +458,7 @@ namespace Arc {
 	target.MaxWaitingJobs = stringtoi(CE["GlueCEPolicyMaxWaitingJobs"]);
 
       if (SubCluster["GlueHostMainMemoryRAMSize"])
-	target.NodeMemory = stringtoi(SubCluster["GlueHostMainMemoryRAMSize"]);
+	target.MaxMainMemory = stringtoi(SubCluster["GlueHostMainMemoryRAMSize"]);
 
       // target.MaxPreLRMSWaitingJobs - not available in schema
 

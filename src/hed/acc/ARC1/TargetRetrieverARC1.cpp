@@ -156,7 +156,7 @@ namespace Arc {
     target.GridFlavour = "ARC1";
     target.Cluster = thrarg->url;
     target.url = url;
-    target.Interface = "BES";
+    target.InterfaceName = "BES";
     target.Implementor = "NorduGrid";
     target.ImplementationName = "A-REX";
 
@@ -168,26 +168,21 @@ namespace Arc {
       logger.msg(WARNING, "The Service advertises no Health State.");
     }
 
-    if (GLUEService["ComputingEndpoint"]["ID"]) {
-      target.CEID = (std::string)GLUEService["ComputingEndpoint"]["ID"];
-    } else {
-      logger.msg(WARNING, "The Service doesn't advertise its ID.");
-    }
-
     if (GLUEService["Name"]) {
-      target.CEName = (std::string)GLUEService["Name"];
+      target.ServiceName = (std::string)GLUEService["Name"];
     } else {
       logger.msg(INFO, "The Service doesn't advertise its Name.");
     }
 
     if (GLUEService["Capability"]) {
-      target.Capability = (std::string)GLUEService["Capability"];
+      for (XMLNode n = GLUEService["Capability"]; n; ++n)
+	target.Capability.push_back((std::string)n);
     } else {
       logger.msg(INFO, "The Service doesn't advertise its Capability.");
     }
 
     if (GLUEService["Type"]) {
-      target.Type = (std::string)GLUEService["Type"];
+      target.ServiceType = (std::string)GLUEService["Type"];
     } else {
       logger.msg(WARNING, "The Service doesn't advertise its Type.");
     }
@@ -205,23 +200,23 @@ namespace Arc {
     }
 
     if (GLUEService["ComputingEndpoint"]["InterfaceName"]) {
-      target.Interface = (std::string)GLUEService["ComputingEndpoint"]["InterfaceName"];
+      target.InterfaceName = (std::string)GLUEService["ComputingEndpoint"]["InterfaceName"];
     } else if (GLUEService["ComputingEndpoint"]["Interface"]) {
-      target.Interface = (std::string)GLUEService["ComputingEndpoint"]["Interface"];
-    }
- 
-    if (target.Interface == "") {
+      target.InterfaceName = (std::string)GLUEService["ComputingEndpoint"]["Interface"];
+    } else {
       logger.msg(WARNING, "The Service doesn't advertise its Interface.");
     }
 
     if (GLUEService["ComputingEndpoint"]["InterfaceExtension"]) {
-      target.InterfaceExtension = (std::string)GLUEService["ComputingEndpoint"]["InterfaceExtension"];
+      for (XMLNode n = GLUEService["ComputingEndpoint"]["InterfaceExtension"]; n; ++n)
+	target.InterfaceExtension.push_back((std::string)n);
     } else {
       logger.msg(INFO, "The Service doesn't advertise an Interface Extension.");
     }
 
     if (GLUEService["ComputingEndpoint"]["SupportedProfile"]) {
-      target.SupportedProfile = (std::string)GLUEService["ComputingEndpoint"]["SupportedProfile"];
+      for (XMLNode n = GLUEService["ComputingEndpoint"]["SupportedProfile"]; n; ++n)
+	target.SupportedProfile.push_back((std::string)n);
     } else {
       logger.msg(INFO, "The Service doesn't advertise any Supported Profile.");
     }
@@ -280,8 +275,9 @@ namespace Arc {
       logger.msg(INFO, "The Service doesn't advertise any Staging capabilities.");
     }
 
-    if (GLUEService["ComputingEndpoint"]["Jobdescription"]) {
-      target.Jobdescription = (std::string)GLUEService["ComputingEndpoint"]["Jobdescription"];
+    if (GLUEService["ComputingEndpoint"]["JobDescription"]) {
+      for (XMLNode n = GLUEService["ComputingEndpoint"]["JobDescription"]; n; ++n)
+	target.JobDescriptions.push_back((std::string)n);
     } else {
       logger.msg(INFO, "The Service doesn't advertise what Job Description type it accepts.");
     }
@@ -451,21 +447,16 @@ namespace Arc {
       logger.msg(INFO, "The Service doesn't advertise the Maximum Number of Waiting Jobs.");
     }
 
+    /*
+    // This attribute does not exist in the latest Glue draft
+    // There is a MainMemorySize in the Execution Environment instead...
+
     if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["NodeMemory"]) {
       target.NodeMemory = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["NodeMemory"]);
     } else {
       logger.msg(INFO, "The Service doesn't advertise the Amount of Memory per Node.");
     }
-
-
-/*
-    if (GLUEService["ComputingEndpoint"]["Jobdescription"]) {
-      target.TotalJobs = (std::string)GLUEService["ComputingEndpoint"]["Jobdescription"];
-    } else {
-      logger.msg(INFO, "The Service doesn't advertise what Jod Description type it accepts.");
-    }*/
-
-
+    */
 
 //     if (ServerStatus["LocalResourceManagerType"])
 //       target.ManagerType =

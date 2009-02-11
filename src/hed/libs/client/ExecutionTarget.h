@@ -2,22 +2,17 @@
 #define __ARC_EXECUTIONTARGET_H__
 
 #include <list>
+#include <map>
 #include <string>
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
-#include <arc/client/ACC.h>
-#include <arc/client/Submitter.h>
 
 namespace Arc {
 
   class ACCLoader;
+  class Submitter;
   class UserConfig;
-
-  struct Benchmark {
-    std::string Type;
-    double Value;
-  };
 
   struct ApplicationEnvironment {
     std::string Name;
@@ -29,61 +24,59 @@ namespace Arc {
   };
 
   class ExecutionTarget {
+
   public:
     ExecutionTarget();
     ExecutionTarget(const long int addrptr);
     virtual ~ExecutionTarget();
 
-    //Domain/Location attributes
-    std::string DomainName;
-    std::string Owner;
+    // Attributes from 5.3 Location
+
     std::string Address;
     std::string Place;
+    std::string Country;
     std::string PostCode;
     float Latitude;
     float Longitude;
 
-    //ComputingService and ComputingEndpoint attributes
-    std::string CEID;
-    std::string CEName;
-    std::string Capability;
-    std::string Type;
-    std::string QualityLevel;
+    // Attributes from 5.5.1 Admin Domain
+
+    std::string DomainName;
+    std::string Owner;
+
+    // Attributes from 6.1 Computing Service
+
+    std::string ServiceName;
+    std::string ServiceType;
+
+    // Attributes from 6.2 Computing Endpoint
+
     URL url;
+    std::list<std::string> Capability;
     std::string Technology;
-    std::string Interface;
-    std::string InterfaceExtension;
-    std::string SupportedProfile;
+    std::string InterfaceName;
+    std::list<std::string> InterfaceVersion;
+    std::list<std::string> InterfaceExtension;
+    std::list<std::string> SupportedProfile;
     std::string Implementor;
     std::string ImplementationName;
     std::string ImplementationVersion;
+    std::string QualityLevel;
     std::string HealthState;
+    std::string HealthStateInfo;
     std::string ServingState;
     std::string IssuerCA;
     std::list<std::string> TrustedCA;
     Time DowntimeStarts;
     Time DowntimeEnds;
     std::string Staging;
-    std::string Jobdescription;
+    std::list<std::string> JobDescriptions;
 
-    //ComputingService/ComputingShare load attributes
-    int TotalJobs;
-    int RunningJobs;
-    int WaitingJobs;
-    int StagingJobs;
-    int SuspendedJobs;
-    int PreLRMSWaitingJobs;
-    int LocalRunningJobs;
-    int LocalWaitingJobs;
-    int FreeSlots;
-    std::string FreeSlotsWithDuration;
-    int UsedSlots;
-    int RequestedSlots;
+    // Attributes from 6.3 Computing Share
 
-    //ComputingShare
     std::string MappingQueue;
     Period MaxWallTime;
-    Period MaxTotalWallTime;
+    Period MaxTotalWallTime; // not in current Glue2 draft
     Period MinWallTime;
     Period DefaultWallTime;
     Period MaxCPUTime;
@@ -93,7 +86,6 @@ namespace Arc {
     int MaxTotalJobs;
     int MaxRunningJobs;
     int MaxWaitingJobs;
-    int NodeMemory;
     int MaxPreLRMSWaitingJobs;
     int MaxUserRunningJobs;
     int MaxSlotsPerJob;
@@ -105,27 +97,47 @@ namespace Arc {
     int MaxDiskSpace;
     URL DefaultStorageService;
     bool Preemption;
+    int TotalJobs;
+    int RunningJobs;
+    int LocalRunningJobs;
+    int WaitingJobs;
+    int LocalWaitingJobs;
+    int SuspendedJobs;
+    int LocalSuspendedJobs;
+    int StagingJobs;
+    int PreLRMSWaitingJobs;
     Period EstimatedAverageWaitingTime;
     Period EstimatedWorstWaitingTime;
+    int FreeSlots;
+    std::string FreeSlotsWithDuration;
+    int UsedSlots;
+    int RequestedSlots;
     std::string ReservationPolicy;
 
-    //ComputingManager
-    std::string ManagerType;
+    // Attributes from 6.4 Computing Manager
+
+    std::string ManagerProductName;
+    std::string ManagerProductVersion;
     bool Reservation;
     bool BulkSubmission;
     int TotalPhysicalCPUs;
     int TotalLogicalCPUs;
     int TotalSlots;
     bool Homogeneous;
-    std::string NetworkInfo;
+    std::list<std::string> NetworkInfo;
     bool WorkingAreaShared;
-    int WorkingAreaFree;
     int WorkingAreaTotal;
+    int WorkingAreaFree;
     Period WorkingAreaLifeTime;
-    int CacheFree;
     int CacheTotal;
+    int CacheFree;
 
-    //ExecutionEnvironment
+    // Attributes from 6.5 Benchmark
+
+    std::map<std::string, double> Benchmarks;
+
+    // Attributes from 6.6 Execution Environment
+
     std::string Platform;
     bool VirtualMachine;
     std::string CPUVendor;
@@ -138,12 +150,13 @@ namespace Arc {
     std::string OSVersion;
     bool ConnectivityIn;
     bool ConnectivityOut;
-    std::list<Benchmark> Benchmarks;
 
-    //ApplicationEnvironment
+    // Attributes from 6.7 Application Environment
+
     std::list<ApplicationEnvironment> ApplicationEnvironments;
 
-    //Other
+    // Other
+
     std::string GridFlavour;
     URL Cluster; // contains the URL of the infosys that provided the info
 

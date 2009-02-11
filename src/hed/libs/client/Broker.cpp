@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
 #include <list>
 
 #include <arc/client/Broker.h>
@@ -152,9 +153,9 @@ namespace Arc {
        }
 
        if (jir.IndividualPhysicalMemory != -1) {
-	        if ((*target).NodeMemory != -1) { // Example: 678
-               if (!((*target).NodeMemory >= jir.IndividualPhysicalMemory)) {
-                  logger.msg(DEBUG, "Matchmaking, NodeMemory problem, ExecutionTarget: %d (NodeMemory), JobDescription: %d (IndividualPhysicalMemory)", (*target).NodeMemory, jir.IndividualPhysicalMemory);
+	        if ((*target).MainMemorySize != -1) { // Example: 678
+               if (!((*target).MainMemorySize >= jir.IndividualPhysicalMemory)) {
+                  logger.msg(DEBUG, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", (*target).MainMemorySize, jir.IndividualPhysicalMemory);
 			      continue;
                }
             }
@@ -166,7 +167,7 @@ namespace Arc {
 
             }
 		    else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and NodeMemory are not defined", (std::string)(*target).url.str());
+               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not defined", (std::string)(*target).url.str());
 			   continue;
 		    }
        }
@@ -287,8 +288,9 @@ namespace Arc {
 
       if (!jir.NetworkInfo.empty()) {
            if (!(*target).NetworkInfo.empty()) { // Example: infiniband
-	        if ((*target).NetworkInfo != jir.NetworkInfo) {  
-			   logger.msg(DEBUG, "Matchmaking, NetworkInfo problem, ExecutionTarget: %s (NetworkInfo) JobDescription: %s (NetworkInfo)", (*target).NetworkInfo, jir.NetworkInfo);
+	     if (std::find(target->NetworkInfo.begin(), target->NetworkInfo.end(),
+			   jir.NetworkInfo) == target->NetworkInfo.end()) {  
+			   // logger.msg(DEBUG, "Matchmaking, NetworkInfo problem, ExecutionTarget: %s (NetworkInfo) JobDescription: %s (NetworkInfo)", (*target).NetworkInfo, jir.NetworkInfo);
 			   continue;
 		  }
 		   else {

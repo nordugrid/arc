@@ -11,19 +11,18 @@ namespace Arc {
   bool CheckCPUSpeeds(const ExecutionTarget& T1, const ExecutionTarget& T2){
     double T1performance = 0;
     double T2performance = 0;
-    std::list<Benchmark>::const_iterator iter;
+    std::map<std::string, double>::const_iterator iter;
 
-    for(iter = T1.Benchmarks.begin(); iter != T1.Benchmarks.end();iter++){
-      if(strcasestr(iter->Type.c_str(), "specint2000")){
-	T1performance = iter->Value;
+    for(iter = T1.Benchmarks.begin(); iter != T1.Benchmarks.end(); iter++) {
+      if(strcasestr(iter->first.c_str(), "specint2000")){
+	T1performance = iter->second;
 	break;
       }
     }
 
-    
-    for(iter = T2.Benchmarks.begin(); iter != T2.Benchmarks.end();iter++){
-      if(strcasestr(iter->Type.c_str(), "specint2000")){
-	T1performance = iter->Value;
+    for(iter = T2.Benchmarks.begin(); iter != T2.Benchmarks.end(); iter++) {
+      if(strcasestr(iter->first.c_str(), "specint2000")){
+	T1performance = iter->second;
 	break;
       }
     }
@@ -49,23 +48,24 @@ namespace Arc {
     std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
     while(iter != PossibleTargets.end()){
       if((iter->Benchmarks).empty()){
-	      iter = PossibleTargets.erase(iter);
-	      continue;
+	iter = PossibleTargets.erase(iter);
+	continue;
       }
-	  else {
-          std::list<Benchmark>::const_iterator iter2;
-		  bool ok = false;
-          for(iter2 = (*iter).Benchmarks.begin(); iter2 != (*iter).Benchmarks.end();iter2++){
-             if(strcasestr(iter2->Type.c_str(), "specint2000")){
-			    ok = true;
-            	break;
-             }
-          }
-		  if (!ok) {
-	         iter = PossibleTargets.erase(iter);
-	         continue;
-		  }
+      else {
+	std::map<std::string, double>::const_iterator iter2;
+	bool ok = false;
+	for(iter2 = iter->Benchmarks.begin();
+	    iter2 != iter->Benchmarks.end(); iter2++) {
+	  if(strcasestr(iter2->first.c_str(), "specint2000")){
+	    ok = true;
+	    break;
 	  }
+	}
+	if (!ok) {
+	  iter = PossibleTargets.erase(iter);
+	  continue;
+	}
+      }
       iter++;
     }
  
