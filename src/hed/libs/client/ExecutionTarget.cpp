@@ -389,10 +389,10 @@ namespace Arc {
       if (!CPUVersion.empty())
 	std::cout << IString(" CPU Version: %s", CPUVersion) << std::endl;
       if (CPUClockSpeed != -1)
-	std::cout << IString(" CPU Clock Speed: %s", CPUClockSpeed)
+	std::cout << IString(" CPU Clock Speed: %i", CPUClockSpeed)
 		  << std::endl;
       if (MainMemorySize != -1)
-	std::cout << IString(" Main Memory SIze: %s", MainMemorySize)
+	std::cout << IString(" Main Memory SIze: %i", MainMemorySize)
 		  << std::endl;
       if (!OSFamily.empty())
 	std::cout << IString(" OS Family: %s", OSFamily) << std::endl;
