@@ -71,14 +71,13 @@ namespace Arc {
   profile type, and the information which will be used by the specific
   WS-Security profile.*/
   typedef enum {
-    NONE,
+    NONETOKEN,
     USERNAMETOKEN,
     X509TOKEN,
     SAMLTOKEN,
     KERBEROSTOKEN
   } WSSType;
 
-  struct WSSInfo;
   struct WSSInfo {
     std::string username;
     std::string password;

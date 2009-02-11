@@ -64,11 +64,7 @@ namespace Arc {
   }
   
   BaseConfig::BaseConfig() {
-    key = "";
-    cert = "";
-    cafile = "";
-    proxy = "";
-    cadir = "";
+    wsstype = NONETOKEN;
 #ifdef WIN32
     char separator = ';';
 #else
