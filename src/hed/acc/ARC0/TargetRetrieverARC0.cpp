@@ -328,7 +328,11 @@ namespace Arc {
 	for (XMLNode n = cluster["nordugrid-cluster-trustedca"]; n; ++n)
 	  target.TrustedCA.push_back((std::string)n);
       if (cluster["nordugrid-cluster-nodeaccess"])
-	target.Staging = (std::string)cluster["nordugrid-cluster-nodeaccess"];
+	for (XMLNode n = cluster["nordugrid-cluster-nodeaccess"]; n; ++n)
+	  if ((std::string)n == "inbound")
+	    target.ConnectivityIn = true;
+	  else if ((std::string)n == "outbound")
+	    target.ConnectivityOut = true;
 
       //ComputingService/ComputingShare load attributes
       if (cluster["nordugrid-cluster-totaljobs"])
