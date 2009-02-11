@@ -467,12 +467,12 @@ namespace Arc {
 	target.CPUVersion = (std::string)queue["nordugrid-cluster-nodecpu"];
       }
       if (queue["nordugrid-queue-opsys"]) {
-	target.OSFamily = (std::string)queue["nordugrid-queue-opsys"];
-	target.OSName = (std::string)queue["nordugrid-queue-opsys"];
+	target.OSName = (std::string)queue["nordugrid-queue-opsys"][0];
+	target.OSVersion = (std::string)queue["nordugrid-queue-opsys"][1];
       }
       else if (cluster["nordugrid-cluster-opsys"]) {
-	target.OSFamily = (std::string)cluster["nordugrid-cluster-opsys"];
-	target.OSName = (std::string)cluster["nordugrid-cluster-opsys"];
+	target.OSName = (std::string)cluster["nordugrid-cluster-opsys"][0];
+	target.OSVersion = (std::string)cluster["nordugrid-cluster-opsys"][1];
       }
 
       //Benchmark
