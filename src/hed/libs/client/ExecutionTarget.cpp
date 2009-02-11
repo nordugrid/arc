@@ -18,6 +18,14 @@ namespace Arc {
       Longitude(0),
       DowntimeStarts(-1),
       DowntimeEnds(-1),
+      MaxWallTime(-1),
+      MaxTotalWallTime(-1),
+      MinWallTime(-1),
+      DefaultWallTime(-1),
+      MaxCPUTime(-1),
+      MaxTotalCPUTime(-1),
+      MinCPUTime(-1),
+      DefaultCPUTime(-1),
       MaxTotalJobs(-1),
       MaxRunningJobs(-1),
       MaxWaitingJobs(-1),
@@ -58,11 +66,11 @@ namespace Arc {
       VirtualMachine(false),
       CPUClockSpeed(-1),
       MainMemorySize(-1),
-      ConnectivityIn(true),
-      ConnectivityOut(true) {}
+      ConnectivityIn(false),
+      ConnectivityOut(false) {}
 
   ExecutionTarget::ExecutionTarget(const long int addrptr) {
-    *this = *((ExecutionTarget*) addrptr);
+    *this = *((ExecutionTarget*)addrptr);
   }
 
   ExecutionTarget::~ExecutionTarget() {}
@@ -140,20 +148,21 @@ namespace Arc {
 		  << std::endl;
       if (!InterfaceVersion.empty()) {
 	std::cout << IString(" Interface Versions:") << std::endl;
-	for (std::list<std::string>::const_iterator it = InterfaceVersion.begin();
-	     it != InterfaceVersion.end(); it++)
+	for (std::list<std::string>::const_iterator it =
+	       InterfaceVersion.begin(); it != InterfaceVersion.end(); it++)
 	  std::cout << "  " << *it << std::endl;
       }
       if (!InterfaceExtension.empty()) {
 	std::cout << IString(" Interface Extensions:") << std::endl;
-	for (std::list<std::string>::const_iterator it = InterfaceExtension.begin();
+	for (std::list<std::string>::const_iterator it =
+	       InterfaceExtension.begin();
 	     it != InterfaceExtension.end(); it++)
 	  std::cout << "  " << *it << std::endl;
       }
       if (!SupportedProfile.empty()) {
 	std::cout << IString(" Supported Profiles:") << std::endl;
-	for (std::list<std::string>::const_iterator it = SupportedProfile.begin();
-	     it != SupportedProfile.end(); it++)
+	for (std::list<std::string>::const_iterator it =
+	       SupportedProfile.begin(); it != SupportedProfile.end(); it++)
 	  std::cout << "  " << *it << std::endl;
       }
       if (!Implementor.empty())
@@ -191,8 +200,8 @@ namespace Arc {
 	std::cout << IString(" Staging: %s", Staging) << std::endl;
       if (!JobDescriptions.empty()) {
 	std::cout << IString(" Job Descriptions:") << std::endl;
-	for (std::list<std::string>::const_iterator it = JobDescriptions.begin();
-	     it != JobDescriptions.end(); it++)
+	for (std::list<std::string>::const_iterator it =
+	       JobDescriptions.begin(); it != JobDescriptions.end(); it++)
 	  std::cout << "  " << *it << std::endl;
       }
 
@@ -342,7 +351,8 @@ namespace Arc {
 	  std::cout << "  " << *it << std::endl;
       }
       if (WorkingAreaShared)
-	std::cout << IString(" Working area is shared among jobs") << std::endl;
+	std::cout << IString(" Working area is shared among jobs")
+		  << std::endl;
       else
 	std::cout << IString(" Working area is nor shared among jobs")
 		  << std::endl;
@@ -366,8 +376,8 @@ namespace Arc {
 
       if (!Benchmarks.empty()) {
 	std::cout << IString(" Benchmark Information:") << std::endl;
-	for (std::map<std::string, double>::const_iterator it = Benchmarks.begin();
-	     it != Benchmarks.end(); it++)
+	for (std::map<std::string, double>::const_iterator it =
+	       Benchmarks.begin(); it != Benchmarks.end(); it++)
 	  std::cout << "  " << it->first << ": " << it->second << std::endl;
       }
 
