@@ -13,6 +13,7 @@
 #ifndef WIN32
 #include <termios.h>
 #endif
+#include <glibmm/stringutils.h>
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -61,8 +62,6 @@ int main(int argc, char* argv[]){
 				    "  validityStart=time\n"
 				    "  validityEnd=time\n"
 				    "  validityPeriod=time\n"
-                                    "  vomsACvalidityStart=time\n"
-                                    "  vomsACvalidityEnd=time\n"
                                     "  vomsACvalidityPeriod=time\n"
 				    "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file"));
@@ -145,6 +144,21 @@ int main(int argc, char* argv[]){
   if((constraints["validityEnd"].empty()) && 
      (constraints["validityPeriod"].empty()))
     constraints["validityPeriod"] = "43200";
+
+  //Set the default proxy validity lifetime to 12 hours if there is
+  //no validity lifetime provided by command caller
+  if(constraints["vomsACvalidityPeriod"].empty()) {
+    if((constraints["validityEnd"].empty()) &&
+       (constraints["validityPeriod"].empty()))
+      constraints["vomsACvalidityPeriod"] = "43200";
+    else if((constraints["validityEnd"].empty()) &&
+       (!(constraints["validityPeriod"].empty())))
+      constraints["vomsACvalidityPeriod"] = constraints["validityPeriod"];
+    else
+      constraints["vomsACvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - Arc::Time()) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
+  }
+
+  std::string voms_period = Glib::Ascii::dtostr(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
 
   SSL_load_error_strings();
   SSL_library_init();
@@ -233,15 +247,12 @@ int main(int argc, char* argv[]){
       std::string req_str;
       std::string policy;
       policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
-      Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
-
+      //Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
+      Arc::Credential cred_request(start, period, keybits, "rfc");
       cred_request.GenerateRequest(req_str);
 
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
-      //Arc::Credential proxy;
-      //proxy.InquireRequest(req_str);
-      //signer.SignRequest(&proxy, proxy_path.c_str());
       signer.SignRequest(&cred_request, proxy_path.c_str());
       cred_request.OutputPrivatekey(private_key);
       signer.OutputCertificate(signing_cert);
@@ -308,7 +319,7 @@ int main(int argc, char* argv[]){
         else if(pos != std::string::npos && pos > 0)
           command_2server.append("B").append(command.substr(0,pos)).append(":").append(command.substr(pos+6));
       }
-      send_msg.append(command_2server).append("</command><lifetime>43200</lifetime></voms>");
+      send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
@@ -365,13 +376,9 @@ int main(int argc, char* argv[]){
       ArcCredential::AC** aclist = NULL;
       Arc::addVOMSAC(aclist, decodedac);
 
-      //Arc::Credential proxy1;
-      //proxy1.InquireRequest(req_str);
-
-      //proxy1.AddExtension("acseq", (char**) aclist);
       if(aclist != NULL)
         cred_request.AddExtension("acseq", (char**) aclist);
-      //signer.SignRequest(&proxy1, proxy_path.c_str());
+      cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
       signer.SignRequest(&cred_request, proxy_path.c_str());
 
       std::ofstream out_f1(proxy_path.c_str(), std::ofstream::app);

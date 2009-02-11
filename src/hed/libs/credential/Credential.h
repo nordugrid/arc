@@ -178,6 +178,10 @@ class Credential {
     /**Get the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
     std::string GetProxyPolicy(void);
 
+    /**Set the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
+    void SetProxyPolicy(const std::string& proxyversion, const std::string& policylang,
+        const std::string& policy, int pathlength);
+
     /**Output the private key into string
     *@param encryption, whether encrypt the output private key or not
     *@param passphrase, the passphrase to encrypt the output private key
@@ -202,6 +206,11 @@ class Credential {
     /**Returns validity end time of certificate or proxy*/
     Arc::Time GetEndTime();
 
+    /**Set lifetime of certificate or proxy*/
+    void SetLifeTime(const Arc::Period& period);
+    
+    /**Set start time of certificate or proxy*/
+    void SetStartTime(const Arc::Time& start_time);
 
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,

@@ -181,6 +181,14 @@ namespace Arc {
     return start_+lifetime_;
   }
 
+  void Credential::SetLifeTime(const Arc::Period& period) {
+    lifetime_ = period;
+  }
+
+  void Credential::SetStartTime(const Arc::Time& start_time) {
+    start_ = start_time;
+  }
+
   void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
     //Parse the certificate
     Credformat format;
@@ -376,9 +384,7 @@ namespace Arc {
         std::string policylang, std::string policy, int pathlength) : 
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL), 
-        signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), proxyversion_(proxyversion), 
-        policy_(policy), policylang_(policylang), pathlength_(pathlength),
-        extensions_(NULL) {
+        signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_md5());
@@ -387,6 +393,17 @@ namespace Arc {
 
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
+   
+    SetProxyPolicy(proxyversion, policylang, policy, pathlength);
+  }
+  
+  void Credential::SetProxyPolicy(const std::string& proxyversion, const std::string& policylang, 
+        const std::string& policy, int pathlength) {
+
+    proxyversion_ = proxyversion;
+    policy_ = policy;
+    policylang_ = policylang;
+    pathlength_ = pathlength;
 
     //Get certType
     if(proxyversion_.compare("GSI2") == 0 || proxyversion_.compare("gsi2") == 0) { 
@@ -440,7 +457,6 @@ namespace Arc {
     }
 
     if(cert_type_ != CERT_TYPE_EEC) {
-
       if(!policy_.empty() && policylang_.empty()) {
         std::cerr<<"If you specify a policy you also need to specify a policy language.\n" <<std::endl;
         exit(1);
