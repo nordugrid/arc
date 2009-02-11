@@ -78,7 +78,7 @@ class Bartender:
         cat_mod_requests = {}
         check_again = []
         for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
-            print metadata
+            #print metadata
             decision = make_decision_metadata(metadata, auth_request)
             if decision != arc.DECISION_PERMIT:
                 response[requestID] = 'denied'
@@ -94,12 +94,12 @@ class Bartender:
                 response[requestID] = 'deleted'
             else: # if it was not complete, then we didn't find the entry, so metadata will be empty
                 response[requestID] = 'nosuchLN'
-        print cat_rem_requests
-        print cat_mod_requests
+        #print cat_rem_requests
+        #print cat_mod_requests
         success = self.librarian.remove(cat_rem_requests)
         modify_success = self.librarian.modifyMetadata(cat_mod_requests)
-        print success
-        print modify_success
+        #print success
+        #print modify_success
         return response
             
 
@@ -444,7 +444,7 @@ class Bartender:
         response = {}
         for rID, [LN] in requests:
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
+            #print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
             if not wasComplete:
                 success = 'no such LN'
             else:
