@@ -26,6 +26,7 @@ import traceback
 import time
 import cPickle
 
+from arcom.threadpool import ThreadPool, ReadWriteLock
 from storage.common import ahash_uri, node_to_data, create_metadata, get_child_nodes
 from storage.xmltree import XMLTree 
 from storage.ahash.ahash import CentralAHash
@@ -61,15 +62,39 @@ class ReplicatedAHash(CentralAHash):
                            ('ahash:%s'%arg, value) for arg,value in repmsg.items()
                            ]))
         msg = ahash.call(tree)
-        return msg
+        xml = arc.XMLNode(msg)
+        objects = parse_node(get_data_node(xml), ['ID', 'metadataList'], single = True, string = False)
+        success = xml.Get('ahash:success')
+        return success
 
-    def processMsg(self, msg):
+    def newSOAPPayload(self):
+        return arc.PayloadSOAP(self.ns)
+
+    def processMsg(self, inpayload):
         """
         processing ahash msg
         """
-        ### unwrap msg and call store.processMsg
-
         
+        # get the grandchild of the root node, which is the 'changeRequestList'
+        requests_node = inpayload.Child().Child()
+        control = cPickle.loads(str(request_node.Get['control']))
+        record = cPickle.loads(str(request_node.Get['record']))
+        eid = cPickle.loads(str(request_node.Get['eid']))
+        retlsn = cPickle.loads(str(request_node.Get['retlsn']))
+        sender = cPickle.loads(str(request_node.Get['sender']))
+
+        resp = self.store.repmgr.processMsg(control, record, eid, retlsn, sender)
+
+        # prepare the response payload
+        out = self.newSOAPPayload()
+        # create the 'changeResponse' node
+        response_node = out.NewChild('ahash:processResponse')
+        # create an XMLTree for the response
+        tree = XMLTree(from_tree = ('ahash:success', rep))
+        # add the XMLTree to the XMLNode
+        tree.add_to_node(response_node)
+        return out
+
         
 class ReplicationStore(TransDBStore):
     """
@@ -178,7 +203,7 @@ class ReplicationStore(TransDBStore):
             # only master can create db
             # DB_AUTO_COMMIT ensures that all db modifications will
             # automatically be enclosed in transactions
-            return (self.app_data.is_master and 
+            return (self.repmgr.isMaster() and 
                     db.DB_CREATE | db.DB_AUTO_COMMIT or 
                     db.DB_AUTO_COMMIT)
 
@@ -195,7 +220,7 @@ class ReplicationStore(TransDBStore):
                 # is_master can be true before DB_EVENT_REP_MASTER,
                 # even though db is not ready for writing
                 # so need to test for self.site_list before writing to db
-                if self.app_data.is_master and hasattr(self, "site_list"):
+                if self.repmgr.isMaster() and hasattr(self, "site_list"):
                     # get list of all registered client sites
                     site_list = self.dbenv.repmgr_site_list()
                     obj = {}
@@ -228,6 +253,8 @@ class Replica:
         self.sentLsn = 0
         self.retLsn = 0
 
+hostMap = {}
+
 class ReplicationManager:
     """
     class managing replicas, elections and message handling
@@ -237,16 +264,33 @@ class ReplicationManager:
         # no master is found yet
         self.masterID = db.DB_EID_INVALID
         self.ahash_send = ahash_send
-        self.hostMap = {my_replica.eid:my_replica, other_replica.eid:other_replica}
+        self.locker = ReadWriteLock()
+        global hostMap
+        self.hostMap = hostMap
+        self.locker.acquire_write()
+        self.hostMap[my_replica.eid] = my_replica
+        self.hostMap[other_replica.eid] = other_replica
+        self.locker.release_write()
         self.eid = my_replica.eid
         self.dbenv = dbenv
 
     def isMaster(self):
-        if self.masterID == db.DB_REP_MASTER:
-            return True
-        else:
-            return False
+        self.locker.acquire_read()
+        is_master = self.masterID == db.DB_REP_MASTER
+        self.locker.release_read()
+        return is_master
 
+    def getMasterID(self):
+        self.locker.acquire_read()
+        masterID = self.masterID
+        self.locker.release_read()        
+        return self.masterID
+
+    def setMasterID(self, masterID):
+        self.locker.acquire_write()
+        self.masterID = masterID
+        self.locker.release_write()
+    
     def start(self, nthreads, flags):
         # need some threading
         try:
@@ -256,35 +300,102 @@ class ReplicationManager:
         except:
             log.msg(arc.ERROR, "Couldn't start replication framework")
             log.msg()
-        # whait for db
-        # start thread pool here
+
             
     def startElection(self):
         print 'election'
         
-        master = db.DB_EID_INVALID
+        masterID = db.DB_EID_INVALID
         
-    
+        num_reps = len(self.hostMap)
+        priority = self.hostMap[self.eid]
+        votes = num_rep/2 + 1
+        
+        while masterID == db.DB_EID_INVALID:
+            try:
+                self.dbenv.rep_elect(num_reps, votes)
+                # wait one second for election to finish
+                # should be some better way to do this...
+                time.sleep(1)
+                masterID = self.getMasterID()
+                log.msg(arc.DEBUG)
+            except:
+                log.msg(arc.ERROR, "Couldn't run election")
+                log.msg()
+
+    def beginRole(self, role):
+        try:
+            self.locker.acquire_write()
+            self.envp.rep_start(role, cdata=self.hostMap[self.eid].url)
+        except:
+            log.msg(arc.ERROR, "Couldn't begin role")
+            log.msg()
+        self.locker.release_write()
+        return
+        
     def repSend(self, env, control, record, lsn, eid, flags):
         """
         callback function for dbenv transport
         """
-        # wrap control, record, lsn, eid and flags into dict
+        # wrap control, record, lsn, eid, flags and sender into dict
+        # note: could be inefficient to send sender info for every message
+        # if bandwidth and latency is low
         msg = {'control':cPickle.dumps(control),
                'record':cPickle.dumps(record),
                'lsn':cPickle.dumps(lsn),
-               'eid':eid}
+               'eid':cPickle.dumps(eid),
+               'sender':cPickle.dumps(self.hostMap[self.eid])}
         try:
             resp = self.ahash_send(self.hostMap[eid].url, msg)
-            return 0
+            if str(resp) == "processed":
+                return 0
         except:
             # assume url is disconnected
             if eid==self.masterID:
                 self.startElection()
-
-    def processMsg(self, control, record, eid, retlsn):
+        return 1
+    
+    def processMsg(self, control, record, eid, retlsn, sender):
         """
         Function to process incoming messages, forwarding 
         them to self.envp.rep_process_message()
         """
-        return
+        
+        try:
+            log.msg(arc.DEBUG, "processing message from %d"%eid)
+            res, retlsn = self.envp.rep_process_message(control, record, eid)
+        except:
+            log.msg(arc.ERROR, "couldn't process message")
+            log.msg()
+            return "failed"
+        
+        if res == db.DB_REP_NEWSITE:
+            # assign eid to n_reps, since I have eid 1
+            self.locker.acquire_write()
+            self.hostMap[len(self.hostMap)] = cPickle.loads(sender)
+            self.locker.release_write()
+        elif res == db.DB_REP_HOLD_ELECTION:
+            self.startElection()
+        elif res == db.DB_REP_NEWMASTER:
+            self.setMasterID(eid)
+            log.msg(arc.DEBUG, "New master is %d"%eid)
+        elif res == db.DB_REP_ISPERM:
+            log.msg(arc.DEBUG, "REP_ISPERM returned for LSN %s"%str(retlsn))
+        elif res == db.dB_REP_NOTPERM:
+            log.msg(arc.DEBUG, "REP_NOTPERM returned for LSN %s"%str(retlsn))
+        elif res == db.DB_REP_DUPMASTER:
+            log.msg(arc.DEBUG, "REP_DUPMASTER received, starting new election")
+            # yield to revolution, switch to client
+            self.beginRole(db.DB_REP_CLIENT)
+            self.startElection()
+        elif res == db.DB_REP_IGNORE:
+            log.msg(arc.DEBUG, "REP_IGNORE received")
+        elif res == db.DB_REP_JOIN_FAILURE:
+            log.msg(arc.ERROR, "JOIN_FAILIURE received")
+        elif res == db.DB_REP_STARTUPDONE:
+            log.msg(arc.DEBUG, "Startup done")
+        else:
+            log.msg(arc.ERROR, "unknown return code %d"%res)
+        
+        return "processed"
+    
