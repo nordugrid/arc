@@ -352,6 +352,112 @@ namespace Arc {
       logger.msg(INFO, "The Service doesn't advertise the Number of Local Waiting Jobs.");
     }
 
+// The following target attributes might be problematic since there might be many shares and
+// the relevant one is ill defined.
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["FreeSlots"]) {
+      target.FreeSlots = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["FreeSlots"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Free Slots.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["FreeSlotsWithDuration"]) {
+      target.FreeSlotsWithDuration = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["FreeSlotsWithDuration"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Free Slots with Duration.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["UsedSlots"]) {
+      target.UsedSlots = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["UsedSlots"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Used Slots.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["RequestedSlots"]) {
+      target.RequestedSlots = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["RequestedSlots"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Number of Requested Slots.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MappingQueue"]) {
+      target.MappingQueue = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MappingQueue"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise its Mapping Queue.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxWallTime"]) {
+      target.MaxWallTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxWallTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Maximum Wall Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxTotalWallTime"]) {
+      target.MaxTotalWallTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxTotalWallTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Maximum Total Wall Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MinWallTime"]) {
+      target.MinWallTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MinWallTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Minimum Wall Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["DefaultWallTime"]) {
+      target.DefaultWallTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["DefaultWallTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Default Wall Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxCPUTime"]) {
+      target.MaxCPUTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxCPUTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Maximum CPU Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxTotalCPUTime"]) {
+      target.MaxTotalCPUTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxTotalCPUTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Maximum Total CPU Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MinCPUTime"]) {
+      target.MinCPUTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MinCPUTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Minimum CPU Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["DefaultCPUTime"]) {
+      target.DefaultCPUTime = (std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["DefaultCPUTime"];
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise a Default CPU Time.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxTotalJobs"]) {
+      target.MaxTotalJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxTotalJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Maximum Number of Total Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxRunningJobs"]) {
+      target.MaxRunningJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxRunningJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Maximum Number of Running Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxWaitingJobs"]) {
+      target.MaxWaitingJobs = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["MaxWaitingJobs"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Maximum Number of Waiting Jobs.");
+    }
+
+    if (GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["NodeMemory"]) {
+      target.NodeMemory = stringtoi((std::string)GLUEService["ComputingEndpoint"]["ComputingShares"]["ComputingShare"]["NodeMemory"]);
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise the Amount of Memory per Node.");
+    }
+
+
 /*
     if (GLUEService["ComputingEndpoint"]["Jobdescription"]) {
       target.TotalJobs = (std::string)GLUEService["ComputingEndpoint"]["Jobdescription"];
