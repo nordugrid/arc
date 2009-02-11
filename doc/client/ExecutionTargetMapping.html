@@ -1,0 +1,1478 @@
+<html>
+
+<head>
+
+<title>Execution Target Mapping</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<style>
+table { width: 100% }
+th { text-align: left }
+tr.Attribute { background: pink }
+tr.ARC0 { background: beige }
+tr.ARC1 { background: seashell }
+tr.CREAM { background: lightcyan }
+tr.UNICORE { background: lightyellow }
+tr.ARC0 th:after { content: "ARC0" }
+tr.ARC1 th:after { content: "ARC1" }
+tr.CREAM th:after { content: "CREAM" }
+tr.UNICORE th:after { content: "UniCore" }
+span.type { color: gray }
+</style>
+
+</head>
+
+<body>
+
+<h1>Mapping of information system attributes to Execution Target class
+members</h1>
+
+<p>The Execution Target class describes a queue at a remote computing
+element. It is a flattened structure where attributes from different
+Glue 2 elements has been collected in a single class. For grids using
+the Glue 2 information model the mapping to the Execution Target class
+attribute is almost trivial. For non-Glue 2 based information systems
+a more elaborate mapping is required.</p>
+
+<p>The following table describes the mappings for the grid flavours
+supported by the ARC client.</p>
+
+<h2>Attributes from 5.3 Location</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> Address</th>
+</tr>
+<tr>
+<td colspan="3">Street address</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> Place</th>
+</tr>
+<tr>
+<td colspan="3">Name of town/city</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueSite)</td>
+<td>GlueSiteLocation</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> Country</th>
+</tr>
+<tr>
+<td colspan="3">Name of the country</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> PostCode</th>
+</tr>
+<tr>
+<td colspan="3">Postal code</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-location</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">float</span> Latitude</th>
+</tr>
+<tr>
+<td colspan="3">The position of a place north or south of the equator
+measured from −90° to +90° with positive values going north and
+negative values going south (degrees)</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueSite)</td>
+<td>GlueSiteLatitude</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">float</span> Longitude</th>
+</tr>
+<tr>
+<td colspan="3">The position of a place east or west of the primary
+meridian (located in Greenwich, UK) measured from −180° to +180° with
+positive values going east and negative values going west (degrees)</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueSite)</td>
+<td>GlueSiteLongitude</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 5.5.1 Admin Domain</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> DomainName</th>
+</tr>
+<tr>
+<td colspan="3">Human-readable name</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-name</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueSite)</td>
+<td>GlueSiteName</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+Owner</th>
+</tr>
+<tr>
+<td colspan="3">Identification of the person or legal entity which
+pays for the services and resources (no particular format is
+defined)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-owner</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 6.1 Computing Service</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> ServiceName</th>
+</tr>
+<tr>
+<td colspan="3">Human-readable name</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> ServiceType</th>
+</tr>
+<tr>
+<td colspan="3">The type of service according to a namespace-based
+classification (the namespace MAY be related to a middleware name, an
+organization or other concepts; org.glue and org.ogf are
+reserved)</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 6.2 Computing Endpoint</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::URL</span> url</th>
+</tr>
+<tr>
+<td colspan="3">Network location of the endpoint to contact the
+related service</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEInfoContactString</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+Capability</th>
+</tr>
+<tr>
+<td colspan="3">The provided capability according to the OGSA
+architecture (it is given by the sum of all the capabilities provided
+by the related endpoints)</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> Technology</th>
+</tr>
+<tr>
+<td colspan="3">Technology used to implement the endpoint</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> InterfaceName</th>
+</tr>
+<tr>
+<td colspan="3">Identification of the interface</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+InterfaceVersion</th>
+</tr>
+<tr>
+<td colspan="3">Version of the interface</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+InterfaceExtension</th>
+</tr>
+<tr>
+<td colspan="3">Identification of an extension to the interface</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+SupportedProfile</th>
+</tr>
+<tr>
+<td colspan="3">URI identifying a supported profile</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> Implementor</th>
+</tr>
+<tr>
+<td colspan="3">Main organization implementing this software component</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-middleware | cut -d- -f1</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> ImplementationName</th>
+</tr>
+<tr>
+<td colspan="3">Name of the implementation</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-middleware | cut -d- -f2</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEImplementationName</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span>
+ImplementationVersion</th>
+</tr>
+<tr>
+<td colspan="3">Version of the implementation (e.g., major
+version.minor version.patch version)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-middleware | cut -d- -f3</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEImplementationVersion</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> QualityLevel</th>
+</tr>
+<tr>
+<td colspan="3">Maturity of the service in terms of quality of the
+software components</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> HealthState</th>
+</tr>
+<tr>
+<td colspan="3">A state representing the health of the endpoint in
+terms of its capability of properly delivering the
+functionalities</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-status (mapped)</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> HealthStateInfo</th>
+</tr>
+<tr>
+<td colspan="3">Textual explanation of the state endpoint</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-status</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> ServingState</th>
+</tr>
+<tr>
+<td colspan="3">A state specifying if the endpoint is accepting new
+requests and if it is serving the already accepted requests</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEStateStatus</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateStatus</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> IssuerCA</th>
+</tr>
+<tr>
+<td colspan="3">Distinguished name of Certification Authority issuing
+the certificate for the endpoint</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-issuerca</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+TrustedCA</th>
+</tr>
+<tr>
+<td colspan="3">Distinguished names of the trusted Certification
+Authorities (CAs), i.e., certificates issued by the CAs are accepted
+by the authentication process</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Time</span> DowntimeStarts</th>
+</tr>
+<tr>
+<td colspan="3">The starting timestamp of the next scheduled downtime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Time</span> DowntimeEnds</th>
+</tr>
+<tr>
+<td colspan="3">The ending timestamp of the next scheduled downtime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> Staging</th>
+</tr>
+<tr>
+<td colspan="3">Supported staging functionalities</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>static mapping</td>
+<td>“staginginout”</td>
+</tr>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>static mapping</td>
+<td>“staginginout”</td>
+</tr>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>static mapping</td>
+<td>“staginginout”</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+JobDescription</th>
+</tr>
+<tr>
+<td colspan="3">Supported type of job description language</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>static mapping</td>
+<td>“nordugrid:xrsl”, “ogf:jsdl”</td>
+</tr>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>static mapping</td>
+<td>“ogf:jsdl”</td>
+</tr>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>static mapping</td>
+<td>“egee:jdl”</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 6.3 Computing Share</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> MappingQueue</th>
+</tr>
+<tr>
+<td colspan="3">Name of a queue available in the underlying computing
+manager (i.e. LRMS) where jobs of this share are submitted (different
+shares MAY be mapped into the same queue; it is not foreseen that a
+single share MAY be mapped into many different queues)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-name</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> MaxWallTime</th>
+</tr>
+<tr>
+<td colspan="3">The maximum obtainable wall clock time that MAY be
+granted to a single-slot job upon user request (unnormalized
+value)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-maxwalltime</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyMaxWallClockTime</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyMaxWallClockTime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> MaxTotalWallTime</th>
+</tr>
+<tr>
+<td colspan="3">The maximum obtainable wall time that MAY be granted to
+the job upon user request across all assigned slots; this attribute is
+a limit for the sum of the wall time used in all the slots occupied by
+a multi-slot job (unnormalized value)</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> MinWallTime</th>
+</tr>
+<tr>
+<td colspan="3">The minimum wall clock time per slot for a job
+(unnormalized value); if a job requests a lower time, then it MAY be
+rejected; if a job requests at least this value, but runs for a
+shorter time, than it might be accounted for this value</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-minwalltime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> DefaultWallTime</th>
+</tr>
+<tr>
+<td colspan="3">The default wall clock time per slot allowed to a job
+by the computing manager (i.e. LRMS) if no limit is requested in the
+job submission description. Once this time is expired the job will
+most likely be killed or removed from the queue (unnormalized
+value)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-defaultwalltime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> MaxCPUTime</th>
+</tr>
+<tr>
+<td colspan="3">The maximum obtainable CPU time that MAY be granted to
+the job upon user request per slot (unnormalized value)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-maxcputime</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyMaxCPUClockTime</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyMaxCPUClockTime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> MaxTotalCPUTime</th>
+</tr>
+<tr>
+<td colspan="3">The maximum obtainable CPU time that MAY be granted to
+the job upon user request across all assigned slots; this attribute is
+a limit for the sum of the CPU time used in all the slots occupied by
+a multi-slot job (unnormalized value)</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> MinCPUTime</th>
+</tr>
+<tr>
+<td colspan="3">The minimum CPU time per slot for a job (unnormalized
+value); if a job requests a lower time, than it MAY be rejected; if a
+job requests at least this value, but uses the CPU for a shorter time,
+than it might be accounted for this value (unnormalized value)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-mincputime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> DefaultCPUTime</th>
+</tr>
+<tr>
+<td colspan="3">The default CPU time per slot allowed to each job by
+the computing manager (LRMS) if no limit is requested in the job
+submission description (unnormalized value)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-defaultcputime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxTotalJobs</th>
+</tr>
+<tr>
+<td colspan="3">The maximum allowed number of jobs in this share</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyMaxTotalJobs</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyMaxTotalJobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxRunningJobs</th>
+</tr>
+<tr>
+<td colspan="3">The maximum allowed number of jobs in running state in
+this share</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-maxrunning</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyMaxRunningJobs</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyMaxRunningJobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxWaitingJobs</th>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-maxqueueable</td>
+</tr>
+<tr>
+<td colspan="3">The maximum allowed number of jobs in waiting state in
+this share</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyMaxWaitingJobs</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyMaxWaitingJobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxPreLRMSWaitingJobs</th>
+</tr>
+<tr>
+<td colspan="3">The maximum allowed number of jobs that are in the
+Grid layer waiting to be passed to the underlying computing manager
+(i.e. LRMS) for this share</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxUserRunningJobs</th>
+</tr>
+<tr>
+<td colspan="3">The maximum allowed number of jobs in running state
+per Grid user in this share</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-maxuserrun</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyAssignedJobSlots</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyAssignedJobSlots</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxSlotsPerJob</th>
+</tr>
+<tr>
+<td colspan="3">The maximum number of slots which could be allocated
+to a single job (defined to be 1 for a computing service accepting
+only single-slot jobs)</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyMaxSlotsPerJob</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyMaxSlotsPerJob</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxStageInStreams</th>
+</tr>
+<tr>
+<td colspan="3">The maximum number of streams to stage files in</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxStageOutStreams</th>
+</tr>
+<tr>
+<td colspan="3">The maximum number of streams to stage files out</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> SchedulingPolicy</th>
+</tr>
+<tr>
+<td colspan="3">Implied scheduling policy of the share</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-schedulingpolicy</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxMainMemory</th>
+</tr>
+<tr>
+<td colspan="3">The maximum RAM that a job MAY use; if the limit is
+hit, then the LRMS could kill the job</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-nodememory</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodememory</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueSubCluster)</td>
+<td>GlueHostMainMemoryRAMSize</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxVirtualMemory</th>
+</tr>
+<tr>
+<td colspan="3">The maximum virtual memory that a job MAY use; if the
+limit is hit, then the LRMS could kill the job</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueSubCluster)</td>
+<td>GlueHostMainMemoryVirtualSize</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MaxDiskSpace</th>
+</tr>
+<tr>
+<td colspan="3">The maximum disk space that a job MAY use in the
+working area</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::URL</span> DefaultStorageService</th>
+</tr>
+<tr>
+<td colspan="3">ID of the default Storage Service to be used to store
+files by jobs in case no destination Storage Service is explicitly
+stated</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-localse</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEInfoDefaultSE</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEInfoDefaultSE</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> Preemption</th>
+</tr>
+<tr>
+<td colspan="3">True if the computing manager (i.e. LRMS) enables
+preemption of jobs; a preempted job is supposed to be automatically
+resumed</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEPolicyPreemption</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEPolicyPreemption</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> TotalJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of total jobs in any state (sum of RunningJobs,
+LocalRunningJobs, WaitingJobs, LocalWaitingJobs, StagingJobs,
+SuspendedJobs and PreLRMSWaitingJobs); this number includes the local
+jobs</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-totaljobs</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEStateTotalJobs</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateTotalJobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> RunningJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of running jobs submitted via any type of
+interface (local and Grid)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-running</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEStateRunningJobs</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateRunningJobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> LocalRunningJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of running jobs submitted via a local interface</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-running − nordugrid-queue-gridrunning</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> WaitingJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of jobs waiting in the underlying computing
+managers (i.e. LRMSs) submitted via any type of interface (local and
+Grid)</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-queued</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-queuedjobs</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEStateWaitingJobs</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateWaitingJobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> LocalWaitingJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of jobs waiting in the underlying computing
+managers (i.e. LRMSs) submitted via a local interface</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-localqueued</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> SuspendedJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of jobs which started their execution, but are
+suspended, e.g. for preemption (local and Grid)</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> LocalSuspendedJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of local jobs which started their execution,
+but are suspended (e.g. for preemption)</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> StagingJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of Grid jobs that are staging files in/out</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> PreLRMSWaitingJobs</th>
+</tr>
+<tr>
+<td colspan="3">Number of Grid jobs that are in the Grid layer waiting
+to be passed to the underlying computing manager (i.e. LRMS)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-prelrmsqueued</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span>
+EstimatedAverageWaitingTime</th>
+</tr>
+<tr>
+<td colspan="3">Estimated time to last for a new job from the
+acceptance to the start of its execution</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEStateEstimatedResponseTime</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateEstimatedResponseTime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span>
+EstimatedWorstWaitingTime</th>
+</tr>
+<tr>
+<td colspan="3">Estimated worst waiting time assuming that all jobs
+run for the maximum wall time</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="2"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEStateWorstResponseTime</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateWorstResponseTime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> FreeSlots</th>
+</tr>
+<tr>
+<td colspan="3">Number of free slots</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-authuser)</td>
+<td>nordugrid-authuser-freecpus</td>
+</tr>
+<tr class="ARC0">
+<td>calculated from other fields</td>
+<td>TotalSlots − UsedSlots</td>
+</tr>
+<tr class="CREAM">
+<th rowspan="4"></th>
+<td>(objectClass=GlueVOView)</td>
+<td>GlueCEStateFreeJobSlots</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueVoView)</td>
+<td>GlueCEStateFreeCPUs</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateFreeJobSlots</td>
+</tr>
+<tr class="CREAM">
+<td>(objectClass=GlueCE)</td>
+<td>GlueCEStateFreeCPUs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span>
+FreeSlotsWithDuration</th>
+</tr>
+<tr>
+<td colspan="3">Number of free slots with their time limits. Syntax:
+ns[:t] [ns:t]* where the pair ns:t means that there are ns free slots
+for the duration of t (expressed in seconds); the time limit
+information is optional</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> UsedSlots</th>
+</tr>
+<tr>
+<td colspan="3">Number of slots used by running jobs</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-usedcpus</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> RequestedSlots</th>
+</tr>
+<tr>
+<td colspan="3">Number of slots which are needed to execute all
+waiting and staging jobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> ReservationPolicy</th>
+</tr>
+<tr>
+<td colspan="3">Type of reservation policy</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 6.4 Computing Manager</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> ManagerProductName</th>
+</tr>
+<tr>
+<td colspan="3">Name of the software product adopted as manager</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-lrms-type</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> ManagerProductVersion</th>
+</tr>
+<tr>
+<td colspan="3">Version of the software product adopted as manager</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-lrms-version</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> Reservation</th>
+</tr>
+<tr>
+<td colspan="3">True if the computing manager (i.e. LRMS) supports
+advance reservation</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> BulkSubmission</th>
+</tr>
+<tr>
+<td colspan="3">True if the computing manager (i.e. LRMS) supports the
+bulk submission</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> TotalPhysicalCPUs</th>
+</tr>
+<tr>
+<td colspan="3">Number of managed physical CPUs accessible via any of
+the available endpoints (there is one physical CPU per socket)</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-totalcpus</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-totalcpus</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> TotalLogicalCPUs</th>
+</tr>
+<tr>
+<td colspan="3">Number of managed logical CPUs accessible via any of
+the available endpoints (a logical CPU corresponds to a CPU visible to
+the operating system)</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-totalcpus</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-totalcpus</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> TotalSlots</th>
+</tr>
+<tr>
+<td colspan="3">Number of managed slots</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-totalcpus</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-totalcpus</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> Homogeneous</th>
+</tr>
+<tr>
+<td colspan="3">True if the computing manager has only one type of
+execution environment</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-homogeneity</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-homogeneity</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
+NetworkInfo</th>
+</tr>
+<tr>
+<td colspan="3">Type of internal network available among the managed
+execution environment instances; if many values are published, then
+the various types of network MAY be available only within subsets of
+the execution environment instances; the execution environment
+properties SHOULD be checked</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> WorkingAreaShared</th>
+</tr>
+<tr>
+<td colspan="3">True if the working area is shared across different
+execution environment instances (i.e. cluster nodes); this attribute
+applies to single-slot jobs</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> WorkingAreaTotal</th>
+</tr>
+<tr>
+<td colspan="3">Total size of working area available to all the
+single-slot Grid jobs either as a shared area across all the execution
+environments (WorkingAreaShared is true) or local to a certain
+execution environment (WorkingAreaShared is false); if the computing
+manager supports individual quota per job/user, this is not
+advertised; in case of non-shared working area with different local
+space allocation, the advertised total size is the minimum available
+across all the execution environment instances
+</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-sessiondir-total</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> WorkingAreaFree</th>
+</tr>
+<tr>
+<td colspan="3">Free size of working area available to all single-slot
+Grid jobs either as a shared area across all the execution
+environments (WorkingAreaShared is true) or local to a certain
+execution environment (WorkingAreaShared is false); if the computing
+manager supports individual quota per job/user, this is not
+advertised; in case of non-shared and non-guaranteed working area,
+this attribute represents the minimum guaranteed free working area
+available in any execution environment instance at the time of
+attribute measurement; in case of non-shared and guaranteed working
+area, the free area equals the total area</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-sessiondir-free</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">Arc::Period</span> WorkingAreaLifeTime</th>
+</tr>
+<tr>
+<td colspan="3">Guaranteed lifetime of the single-slot Grid job files
+present in the working area; the lifetime is related to the end time
+of the job; after the expiration of the lifetime, the files are not
+guaranteed to exist</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-sessiondir-lifetime</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> CacheTotal</th>
+</tr>
+<tr>
+<td colspan="3">If a caching functionality of input files is
+supported, this attribute represents the total size of a shared
+storage area where frequently accessed data MAY be stored for rapid
+access by subsequent Grid jobs; in this area, files are kept after job
+completion for a certain amount of time depending the caching
+algorithm</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-cache-total</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> CacheFree</th>
+</tr>
+<tr>
+<td colspan="3">If a caching functionality of input files is
+supported, this attribute represents the free size of a shared storage
+area where frequently accessed data MAY be stored for rapid access by
+subsequent Grid jobs; in the computation of the free size, files which
+are not claimed by any job MAY be considered as deleted</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-cache-free</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 6.5 Benchmark</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::map&lt;std::string,
+double&gt;</span> Benchmarks</th>
+</tr>
+<tr>
+<td colspan="3">Type of benchmark and its value</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-benchmark</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-benchmark</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 6.6 Execution Environment</h2>
+
+<table>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> Platform</th>
+</tr>
+<tr>
+<td colspan="3">The architecture platform of this execution environment</td>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-architecture</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-architecture</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> VirtualMachine</th>
+</tr>
+<tr>
+<td colspan="3">True if the execution environment is based on a
+virtual machine (in this case, the values of the other attributes are
+related to the virtualized environment and not to the hosting
+environment)</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> CPUVendor</th>
+</tr>
+<tr>
+<td colspan="3">Name of the physical CPU vendor</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-nodecpu</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodecpu</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> CPUModel</th>
+</tr>
+<tr>
+<td colspan="3">Physical CPU model as defined by the vendor</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-nodecpu</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodecpu</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> CPUVersion</th>
+</tr>
+<tr>
+<td colspan="3">Physical CPU version as defined by the vendor</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-nodecpu</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodecpu</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> CPUClockSpeed</th>
+</tr>
+<tr>
+<td colspan="3">Nominal clock speed of the physical CPU</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-nodecpu</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodecpu</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">int</span> MainMemorySize</th>
+</tr>
+<tr>
+<td colspan="3">Amount of RAM (if many jobs run in the same execution
+environment, they compete for the total RAM)</th>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> OSFamily</th>
+</tr>
+<tr>
+<td colspan="3">Family of the operating system</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-opsys</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-opsys</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> OSName</th>
+</tr>
+<tr>
+<td colspan="3">Name of the operating system</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-opsys</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-opsys</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::string</span> OSVersion</th>
+</tr>
+<tr>
+<td colspan="3">Version of the operating system</th>
+</tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-opsys</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-opsys</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> ConnectivityIn</th>
+</tr>
+<tr>
+<td colspan="3">Permission for direct inbound connectivity, even if
+limited</th>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodeaccess</td>
+</tr>
+
+<tr class="Attribute">
+<th colspan="3"><span class="type">bool</span> ConnectivityOut</th>
+</tr>
+<tr>
+<td colspan="3">Permission for direct outbound connectivity, even if
+limited</th>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodeaccess</td>
+</tr>
+
+</table>
+
+<h2>Attributes from 6.7 Application Environment</h2>
+
+<table>
+<tr class="Attribute">
+<th colspan="3"><span class="type">std::list&lt;Arc::ApplicationEnvironment&gt;</span>
+ApplicationEnvironments</th>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-runtimeenvironment</td>
+</tr>
+<tr class="CREAM">
+<th></th>
+<td>(objectClass=GlueSubCluster)</td>
+<td>GlueHostApplicationSoftwareRunTimeEnvironment</td>
+</tr>
+</table>
+
+</body>
+
+</html>
