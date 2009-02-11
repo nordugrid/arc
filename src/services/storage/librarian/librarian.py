@@ -248,6 +248,10 @@ class Librarian:
             elif changeType == 'add':
                 changeType = 'set'
                 conditions = {'0': ('unset', section, property, '')}
+            elif changeType.startswith('setifvalue='):
+                ifvalue = changeType[11:]
+                changeType = 'set'
+                conditions = {'0': ('is', section, property, ifvalue)}
             changes[changeID] = (GUID, changeType, section, property, value, conditions)
         ahash_response = self.ahash.change(changes)
         response = {}
@@ -255,7 +259,7 @@ class Librarian:
             if success in ['set', 'unset']:
                 response[changeID] = success
             elif conditionID == '0':
-                response[changeID] = 'entry exists'
+                response[changeID] = 'condition failed'
             else:
                 response[changeID] = 'failed: ' + success
         return response

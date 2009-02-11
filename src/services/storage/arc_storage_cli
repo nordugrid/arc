@@ -1502,7 +1502,7 @@ else:
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
         else:
-            request = {'0': (args[0], {('states', 'closed') : false})}
+            request = {'0': (args[0], {})}
             #print 'makeCollection', request
             response = call_it('makeCollection', request)
             #print response

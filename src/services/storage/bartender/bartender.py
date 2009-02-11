@@ -78,45 +78,28 @@ class Bartender:
         cat_mod_requests = {}
         check_again = []
         for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
+            print metadata
             decision = make_decision_metadata(metadata, auth_request)
             if decision != arc.DECISION_PERMIT:
                 response[requestID] = 'denied'
             elif wasComplete and metadata[('entry', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
-                parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
-                if parentno < 2:
-                    # remove the file itself,  if this file has only one parent (hardlink), or has no parent at all
-                    cat_rem_requests[requestID] = GUID
+                # remove the file
+                cat_rem_requests[requestID] = GUID
                 # if this entry has a parent:
-                if len(traversedList)>1:
-                    # notify the parent collection
-                    # TODO: get the metadata of the parent collection and check if the user has permission to removeEntry from it
-                    parentLN, parentGUID = traversedList[-2]
-                    cat_mod_requests[requestID + '_1'] = (parentGUID, 'unset', 'entries',
-                                                      traversedList[-1][0],GUID)
-                                                    
-                    if parentno > 1:
-                        # remove the parent entry from the child, if this file has more than one parents (hardlinks)
-                        _, _, filename = splitLN(LN)
-                        cat_mod_requests[requestID + '_2'] = (GUID, 'unset', 'parents', '%s/%s' % (parentGUID, filename), '')
-                        # if the other parents of this file are removing it at the same time, all are thinking that there are more parents
-                        check_again.append(GUID)
+                parents = [p for (s,p) in metadata.keys() if s == 'parents']
+                for parent in parents:
+                    parent_GUID, child_name = parent.split('/')
+                    cat_mod_requests[requestID + '-' + parent] = (parent_GUID, 'unset', 'entries', child_name, GUID)
+                    cat_mod_requests[requestID + '-' + parent + '-closed?'] = (parent_GUID, 'setifvalue=yes', 'states', 'closed', 'broken')
                 response[requestID] = 'deleted'
             else: # if it was not complete, then we didn't find the entry, so metadata will be empty
                 response[requestID] = 'nosuchLN'
+        print cat_rem_requests
+        print cat_mod_requests
         success = self.librarian.remove(cat_rem_requests)
         modify_success = self.librarian.modifyMetadata(cat_mod_requests)
-        # check the files with more parents (hardlinks) again
-        if check_again:
-            log.msg(arc.DEBUG, '\n\n!!!!check_again', check_again)
-            checked_again = self.librarian.get(check_again)
-            do_delete = {}
-            for GUID, metadata in checked_again.items():
-                # if a file has no parents now, remove it
-                parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
-                if parentno == 0:
-                    do_delete[GUID] = GUID
-            log.msg(arc.DEBUG, '\n\n!!!!do_delete', do_delete)
-            self.librarian.remove(do_delete)
+        print success
+        print modify_success
         return response
             
 
@@ -175,7 +158,8 @@ class Bartender:
                         # we need to add the newly created librarian-entry to the parent collection
                         log.msg(arc.DEBUG, 'adding', child_GUID, 'to parent', parent_GUID)
                         # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
-                        modify_response = self.librarian.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
+                        modify_response = self.librarian.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID),
+                                                                        '_new_closed?' : (parent_GUID, 'setifvalue=yes', 'states', 'closed', 'broken')})
                         log.msg(arc.DEBUG, 'modifyMetadata response', modify_response)
                         # get the 'success' value
                         modify_success = modify_response['_new']
@@ -377,21 +361,6 @@ class Bartender:
             turl = put_response['TURL']
             protocol = put_response['protocol']
             return 'done', turl, protocol
-            #referenceID = put_response['referenceID']
-            ## currently the serviceID is the URL of the shepherd service
-            #serviceID = shepherd.url
-            #log.msg(arc.DEBUG, 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
-            ## the serviceID and the referenceID is the location of the replica, serialized as one string
-            ## put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)
-            #modify_response = self.librarian.modifyMetadata({'putFile' :
-            #        (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
-            #modify_success = modify_response['putFile']
-            #if modify_success != 'set':
-            #    log.msg(arc.DEBUG, 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID)
-            #    return 'failed to add new location to file', turl, protocol
-            #    # TODO: error handling
-            #else:
-            #    return 'done', turl, protocol
             
     def putFile(self, auth, requests):
         """ Put a new file to the storage: initiate the process.
@@ -489,7 +458,8 @@ class Bartender:
                     if decision != arc.DECISION_PERMIT:
                         success = 'denied'
                     else:
-                        mod_requests = {'unlink' : (parent_GUID, 'unset', 'entries', child_name, '')}
+                        mod_requests = {'unlink' : (parent_GUID, 'unset', 'entries', child_name, ''),
+                                        'unlink-closed?' : (parent_GUID, 'setifvalue=yes', 'states', 'closed', 'broken')}
                         mod_response = self.librarian.modifyMetadata(mod_requests)
                         success = mod_response['unlink']
             response[rID] = success
@@ -518,7 +488,8 @@ class Bartender:
                         try:
                             parentLN, parentGUID = traversedlist[-2]
                             # TODO: get the metadata of the parent, and check if the user has permission to removeEntry from it
-                            mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
+                            mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], ''),
+                                            'unmake-closed?' : (parentGUID, 'setifvalue=yes', 'states', 'closed', 'broken')}
                             mod_response = self.librarian.modifyMetadata(mod_requests)
                             success = mod_response['unmake']
                         except IndexError:
@@ -759,9 +730,10 @@ class Bartender:
                     log.msg(arc.DEBUG, 'adding', sourceGUID, 'to parent', targetGUID)
                     # adding the entry to the new parent
                     mm_resp = self.librarian.modifyMetadata(
-                        {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
-                            'parent' : (sourceGUID, 'set', 'parents', '%s/%s' % (targetGUID, new_child_name), 'parent')})
-                    mm_succ = mm_resp['move']
+                        {'move-target' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
+                        'move-target-parent' : (sourceGUID, 'set', 'parents', '%s/%s' % (targetGUID, new_child_name), 'parent'),
+                        'move-target-closed?' : (targetGUID, 'setifvalue=yes', 'states', 'closed', 'broken')})
+                    mm_succ = mm_resp['move-target']
                     if mm_succ != 'set':
                         success = 'failed adding child to parent'
                     else:
@@ -775,9 +747,10 @@ class Bartender:
                             log.msg(arc.DEBUG, 'removing', sourceGUID, 'from parent', source_parent_guid)
                             # delete the entry from the source parent
                             mm_resp = self.librarian.modifyMetadata(
-                                {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
-                                    'parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), '')})
-                            mm_succ = mm_resp['move']
+                                {'move-source' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
+                                'move-source-parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), ''),
+                                'move-source-closed?' : (source_parent_guid, 'setifvalue=yes', 'states', 'closed', 'broken')})
+                            mm_succ = mm_resp['move-source']
                             if mm_succ != 'unset':
                                 success = 'failed removing child from parent'
                                 # TODO: need some handling; remove the new entry or something
@@ -787,7 +760,6 @@ class Bartender:
         return response
 
     def modify(self, auth, requests):
-        # TODO: auth is completely missing here
         requests, traverse_response = self._traverse(requests)
         librarian_requests = {}
         not_found = []
@@ -797,6 +769,17 @@ class Bartender:
             if wasComplete:
                 if section == 'states':
                     decision = make_decision_metadata(metadata, auth.get_request('modifyStates'))
+                    # TODO: do this instead with conditions in the Librarian
+                    if property == 'closed':
+                        current_state = metadata.get(('states','closed'),'no')
+                        if value == 'no':
+                            if current_state != 'no':
+                                decision = arc.DECISION_DENY
+                        elif value == 'yes':
+                            if current_state not in ['no', 'yes']:
+                                decision = arc.DECISION_DENY
+                        else:
+                            decision = arc.DECISION_DENY
                 elif section == 'metadata':
                     decision = make_decision_metadata(metadata, auth.get_request('modifyMetadata'))
                 elif section == 'policy':
@@ -1116,7 +1099,7 @@ class BartenderService(Service):
         #                       <bar:metadata>
         #                           <bar:section>states</bar:section>
         #                           <bar:property>closed</bar:property>
-        #                           <bar:value>0</bar:value>
+        #                           <bar:value>no</bar:value>
         #                       </bar:metadata>
         #                   </bar:metadataList>
         #               </bar:makeCollectionRequestElement>
