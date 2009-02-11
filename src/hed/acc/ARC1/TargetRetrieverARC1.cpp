@@ -123,6 +123,7 @@ namespace Arc {
     if (!ac.sstat(ServerStatus)) {
       delete thrarg;
       mom.RetrieverDone();
+      return;
     }
 
     #define _XML_descend(X , sl)\
@@ -137,6 +138,7 @@ namespace Arc {
         logger.msg(ERROR, "The node %s has no %s element.", path, *si);\
         delete thrarg;\
         mom.RetrieverDone();\
+        return;\
       }\
     }
 
