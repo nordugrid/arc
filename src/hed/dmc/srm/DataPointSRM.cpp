@@ -12,12 +12,15 @@
 #include <arc/URL.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
+#include <arc/globusutils/GlobusWorkarounds.h>
 
 #include "DataPointSRM.h"
 
 namespace Arc {
 
   Logger DataPointSRM::logger(DataPoint::logger, "SRM");
+
+  static proxy_initialized = false;
 
   DataPointSRM::DataPointSRM(const URL& url)
     : DataPointDirect(url),
@@ -27,6 +30,8 @@ namespace Arc {
       writing(false) {
     globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_module_activate(GLOBUS_IO_MODULE);
+    if(!proxy_initialized)
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
   }
 
   DataPointSRM::~DataPointSRM() {

@@ -8,6 +8,7 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/data/DMCLoader.h>
+#include <arc/globusutils/GlobusWorkarounds.h>
 
 #include "DataPointGridFTP.h"
 #include "DMCGridFTP.h"
@@ -16,12 +17,15 @@ namespace Arc {
 
   static Glib::Mutex openssl_lock;
   static bool openssl_initialized = false;
+  static bool proxy_initialized = false;
 
   Logger DMCGridFTP::logger(DMC::logger, "GridFTP");
 
   DMCGridFTP::DMCGridFTP(Config *cfg)
     : DMC(cfg) {
     globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
+    if(!proxy_initialized) 
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
     Register(this);
   }
 

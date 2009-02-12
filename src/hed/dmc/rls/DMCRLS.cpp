@@ -9,11 +9,14 @@ extern "C" {
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/data/DMCLoader.h>
+#include <arc/globusutils/GlobusWorkarounds.h>
 
 #include "DataPointRLS.h"
 #include "DMCRLS.h"
 
 namespace Arc {
+
+  static bool proxy_initialized = false;
 
   Logger DMCRLS::logger(DMC::logger, "RLS");
 
@@ -22,6 +25,8 @@ namespace Arc {
     globus_module_activate(GLOBUS_COMMON_MODULE);
     globus_module_activate(GLOBUS_IO_MODULE);
     globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
+    if(!proxy_initialized)
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
     Register(this);
   }
 
