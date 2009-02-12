@@ -18,13 +18,13 @@ int PayloadTLSMCC::ex_data_index_ = -1;
 #define FLAG_CRL_DISABLED (0x1)
 
 static unsigned long get_flag_STORE_CTX(X509_STORE_CTX* container) {
-  Arc::PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
+  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
   if(!it) return 0;
   return it->Flags();
 }
 
 static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
-  Arc::PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
+  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
   if(!it) return;
   it->Flags(flags);
 }
@@ -57,7 +57,8 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         // Calling X509_verify_cert will cause a recursive call to verify_callback.
         // But there should be no loop because PROXY_CERTIFICATES_NOT_ALLOWED error
         // can't happen anymore.
-        ok=X509_verify_cert(sctx);
+        //ok=X509_verify_cert(sctx);
+        ok=1;
         if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
 #endif
@@ -70,26 +71,31 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
         if(sctx->param) {
           X509_VERIFY_PARAM_clear_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-          ok=X509_verify_cert(sctx);
-          X509_VERIFY_PARAM_set_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
+          //ok=X509_verify_cert(sctx);
+          //X509_VERIFY_PARAM_set_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
+          ok=1;
           if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
         };
 #else
         sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
         set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) | FLAG_CRL_DISABLED);
-        ok=X509_verify_cert(sctx);
-        sctx->flags |= X509_V_FLAG_CRL_CHECK;
-        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) & (~FLAG_CRL_DISABLED));
+        //ok=X509_verify_cert(sctx);
+        //sctx->flags |= X509_V_FLAG_CRL_CHECK;
+        //set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) & (~FLAG_CRL_DISABLED));
+        ok=1;
         if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
 #endif
+      }; break;
+      default: {
+        PayloadTLSMCC::HandleError(Logger::getRootLogger(),err);
       }; break;
     };
   };
   if(ok == 1) {
     // Do additional verification here.
-    Arc::PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
+    PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
     if(it == NULL) {
-      Arc::Logger::getRootLogger().msg(Arc::WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+      Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
     } else {
       // Globus signing policy
       // Do not apply to proxies and self-signed CAs.
@@ -101,11 +107,11 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
 #else
         {
 #endif
-          std::istream* in = Arc::open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
+          std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
           if(in) {
-            if(!Arc::match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
+            if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
               char* s = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
-              Arc::Logger::getRootLogger().msg(Arc::ERROR,"Certificate %s failed Globus signing policy",s);
+              Logger::getRootLogger().msg(ERROR,"Certificate %s failed Globus signing policy",s);
               OPENSSL_free(s);
               ok=0;
               X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);            };
@@ -160,7 +166,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
         logger.msg(ERROR, "Can not read file %s with list of trusted VOMS DNs", filename);
         continue;
       };
-      Arc::XMLNode node;
+      XMLNode node;
       file >> node;
       config_VOMS_add(node,vomscert_trust_dn_);
     };
@@ -222,7 +228,7 @@ bool PayloadTLSMCC::StoreInstance(void) {
       ex_data_index_=SSL_CTX_get_ex_new_index(0,ex_data_id,NULL,NULL,NULL);
    };
    if(ex_data_index_ == -1) {
-      Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to store application data");
+      Logger::getRootLogger().msg(ERROR,"Failed to store application data");
       return false;
    };
    SSL_CTX_set_ex_data(sslctx_,ex_data_index_,this);
@@ -236,12 +242,12 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
     if(ssl != NULL) {
       SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
       if(ssl_ctx != NULL) {
-        it = (Arc::PayloadTLSMCC*)SSL_CTX_get_ex_data(ssl_ctx,ex_data_index_);
+        it = (PayloadTLSMCC*)SSL_CTX_get_ex_data(ssl_ctx,ex_data_index_);
       }
     };
   };
   if(it == NULL) {
-    Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to retrieve application data from OpenSSL");
+    Logger::getRootLogger().msg(ERROR,"Failed to retrieve application data from OpenSSL");
   };
   return it;
 }
