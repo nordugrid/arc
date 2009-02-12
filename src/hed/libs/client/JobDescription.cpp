@@ -2334,7 +2334,7 @@ namespace Arc {
                        product += "( inputfiles =";//TODO:
                        first_time = false;
                     }
-                    product += " (\"" + (*iter).Name;
+                    product += " ( \"" + (*iter).Name;
 
                     // file size added
                     struct stat fileStat;
@@ -2343,7 +2343,7 @@ namespace Arc {
                        std::stringstream ss;
                        ss << fileStat.st_size;
                        ss >> filesize;
-                       product += " \"" + filesize + "\"";
+                       product += "\" \"" + filesize + "\"";
                     }
                     else {
                         product += "\" " +  (*it_source).URI.fullstr();
@@ -2411,7 +2411,7 @@ namespace Arc {
                        product += "( outputfiles =";
                        first_time = false;
                     }
-                    product += " (\"" + (*iter).Name;
+                    product += " ( \"" + (*iter).Name;
                     if ( (*iter).Name == innerRepresentation.Output ) output = true;
                     if ( (*iter).Name == innerRepresentation.Error ) error = true;
 		    if ((*it_target).URI.fullstr().empty())
@@ -2422,17 +2422,17 @@ namespace Arc {
             }
             if ( !first_time ){
                if (!innerRepresentation.Output.empty() && !output)
-                  product += " (\"" + innerRepresentation.Output + "\" \"\" )";
+                  product += " ( \"" + innerRepresentation.Output + "\" \"\" )";
                if (!innerRepresentation.Error.empty() && !error)
-                  product += " (\"" + innerRepresentation.Error + "\" \"\" )";
+                  product += " ( \"" + innerRepresentation.Error + "\" \"\" )";
                product += " )\n";
             }
             else {
                if (!innerRepresentation.Output.empty() ||
                    !innerRepresentation.Output.empty()) product += "( outputfiles =";
                
-               if (!innerRepresentation.Output.empty()) product += " (\"" + innerRepresentation.Output + "\" \"\" )";
-               if (!innerRepresentation.Error.empty())  product += " (\"" + innerRepresentation.Error + "\" \"\" )";
+               if (!innerRepresentation.Output.empty()) product += " ( \"" + innerRepresentation.Output + "\" \"\" )";
+               if (!innerRepresentation.Error.empty())  product += " ( \"" + innerRepresentation.Error + "\" \"\" )";
                if (!innerRepresentation.Output.empty() ||
                    !innerRepresentation.Output.empty()) product += " )\n";
 
@@ -2570,7 +2570,7 @@ namespace Arc {
             }
         }
         if (!innerRepresentation.ReferenceTime.value.empty()) {
-            product += "( benchmarks = (\"";//TODO:
+            product += "( benchmarks = ( \"";//TODO:
             if ( !innerRepresentation.ReferenceTime.benchmark_attribute.empty() && 
                  !innerRepresentation.ReferenceTime.value_attribute.empty()) {
                 product += innerRepresentation.ReferenceTime.benchmark_attribute;
