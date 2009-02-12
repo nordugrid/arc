@@ -20,10 +20,14 @@ namespace Arc {
     Arc::MCCConfig cfg;
     Arc::NS ns;
 
-    cfg.AddProxy(proxyPath);
-    cfg.AddCertificate(certificatePath);
-    cfg.AddPrivateKey(keyPath);
-    cfg.AddCADir(caCertificatesDir);
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
 
     Arc::PayloadSOAP request(ns);
     Arc::XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
