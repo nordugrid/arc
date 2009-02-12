@@ -15,7 +15,8 @@ When running arcslcs (SLCS client), the idp name "https://squark.uio.no/idp/shib
 needs to be specified.
 As result, a short-lived X.509 Credential will be generated.
 
-
+2009-02-12 Weizhong Qiang
+arcproxy utility with voms client functionality.
 
 
 

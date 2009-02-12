@@ -59,10 +59,10 @@ int main(int argc, char* argv[]){
 
   Arc::OptionParser options("", "",
 			    istring("Supported constraints are:\n"
-				    "  validityStart=time\n"
+				    "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
 				    "  validityEnd=time\n"
-				    "  validityPeriod=time\n"
-                                    "  vomsACvalidityPeriod=time\n"
+				    "  validityPeriod=time (e.g. 43200; if both validityPeriod and validityEnd not specified, the default is 12 hours)\n"
+                                    "  vomsACvalidityPeriod=time (e.g. 43200; if not specified, validityPeriod is used\n"
 				    "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file"));
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]){
 		    istring("path"), key_path);
 
   std::string ca_dir;
-  options.AddOption('T', "trusted certdir", istring("path to trusted certificate directory"),
+  options.AddOption('T', "trusted certdir", istring("path to trusted certificate directory, only needed for voms client functionality"),
                     istring("path"), ca_dir);
 
   std::string vomses_path;
@@ -87,7 +87,16 @@ int main(int argc, char* argv[]){
                     istring("path"), vomses_path);
 
   std::string voms;
-  options.AddOption('S', "voms", istring("voms<:command>. Specify voms server. :command is optional, and is used to ask for specific attributes(e.g: roles)"),
+  options.AddOption('S', "voms", istring("voms<:command>. Specify voms server. \n"
+                    "              :command is optional, and is used to ask for specific attributes(e.g: roles)\n"
+                    "              command option is:\n"
+                    "              all --- put all of this DN's attributes into AC; \n"
+                    "              list ---list all of the DN's attribute,will not create AC extension; \n"
+                    "              /Role=yourRole --- specify the role, if this DN \n"
+                    "                               has such a role, the role will be put into AC \n"
+                    "              /voname/groupname/Role=yourRole --- specify the vo,group and role if this DN \n"
+                    "                               has such a role, the role will be put into AC \n"
+                    ),
                     istring("string"), voms);
 
   std::list<std::string> constraintlist;
@@ -248,7 +257,7 @@ int main(int argc, char* argv[]){
       std::string policy;
       policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
       //Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
-      Arc::Credential cred_request(start, period, keybits, "rfc");
+      Arc::Credential cred_request(start, period, keybits);
       cred_request.GenerateRequest(req_str);
 
       //Generate a temporary self-signed proxy certificate
