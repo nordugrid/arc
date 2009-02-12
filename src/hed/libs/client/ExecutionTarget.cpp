@@ -131,7 +131,7 @@ namespace Arc {
       if (!ServiceName.empty())
 	std::cout << IString(" Service Type: %s", ServiceType) << std::endl;
 
-      std::cout << std::endl << IString("Endpoint information") << std::endl;
+      std::cout << std::endl << IString("Endpoint information:") << std::endl;
 
       if (url)
 	std::cout << IString(" URL: %s", url.str()) << std::endl;
@@ -205,7 +205,7 @@ namespace Arc {
 	  std::cout << "  " << *it << std::endl;
       }
 
-      std::cout << std::endl << IString("Queue information") << std::endl;
+      std::cout << std::endl << IString("Queue information:") << std::endl;
 
       if (!MappingQueue.empty())
 	std::cout << IString(" Mapping Queue: %s", MappingQueue) << std::endl;
@@ -315,7 +315,7 @@ namespace Arc {
 	std::cout << IString(" Reservation Policy: %s", ReservationPolicy)
 		  << std::endl;
 
-      std::cout << std::endl << IString("Manager information") << std::endl;
+      std::cout << std::endl << IString("Manager information:") << std::endl;
 
       if (!ManagerProductName.empty())
 	std::cout << IString(" Resource Manager: %s", ManagerProductName)
@@ -381,7 +381,7 @@ namespace Arc {
 	  std::cout << "  " << it->first << ": " << it->second << std::endl;
       }
 
-      std::cout << std::endl << IString("Execution Environment information")
+      std::cout << std::endl << IString("Execution Environment information:")
 		<< std::endl;
 
       if (!Platform.empty())
@@ -402,7 +402,7 @@ namespace Arc {
 	std::cout << IString(" CPU Clock Speed: %i", CPUClockSpeed)
 		  << std::endl;
       if (MainMemorySize != -1)
-	std::cout << IString(" Main Memory SIze: %i", MainMemorySize)
+	std::cout << IString(" Main Memory Size: %i", MainMemorySize)
 		  << std::endl;
       if (!OSFamily.empty())
 	std::cout << IString(" OS Family: %s", OSFamily) << std::endl;

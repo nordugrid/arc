@@ -123,7 +123,7 @@ positive values going east and negative values going west (degrees)</td>
 <tr class="ARC0">
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
-<td>nordugrid-cluster-name</td>
+<td>nordugrid-cluster-alias</td>
 </tr>
 <tr class="CREAM">
 <th></th>
@@ -158,6 +158,11 @@ defined)</td>
 <tr>
 <td colspan="3">Human-readable name</td>
 </tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-name</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> ServiceType</th>
@@ -167,6 +172,11 @@ defined)</td>
 classification (the namespace MAY be related to a middleware name, an
 organization or other concepts; org.glue and org.ogf are
 reserved)</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>static mapping</td>
+<td>“org.nordugrid.arc-classic”</td>
 </tr>
 
 </table>
@@ -181,6 +191,11 @@ reserved)</td>
 <tr>
 <td colspan="3">Network location of the endpoint to contact the
 related service</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-contactstring</td>
 </tr>
 <tr class="CREAM">
 <th></th>
@@ -197,12 +212,22 @@ Capability</th>
 architecture (it is given by the sum of all the capabilities provided
 by the related endpoints)</td>
 </tr>
+<tr class="ARC0">
+<th></th>
+<td>static mapping</td>
+<td>“executionmanagement.jobexecution”, “executionmanagement.jobmanager”</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> Technology</th>
 </tr>
 <tr>
 <td colspan="3">Technology used to implement the endpoint</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>static mapping</td>
+<td>“gridftp”</td>
 </tr>
 
 <tr class="Attribute">
@@ -731,6 +756,15 @@ hit, then the LRMS could kill the job</td>
 <td colspan="3">The maximum virtual memory that a job MAY use; if the
 limit is hit, then the LRMS could kill the job</td>
 </tr>
+<tr class="ARC0">
+<th rowspan="2"></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-nodememory</td>
+</tr>
+<tr class="ARC0">
+<td>(objectClass=nordugrid-cluster)</td>
+<td>nordugrid-cluster-nodememory</td>
+</tr>
 <tr class="CREAM">
 <th></th>
 <td>(objectClass=GlueSubCluster)</td>
@@ -797,8 +831,8 @@ jobs</td>
 </tr>
 <tr class="ARC0">
 <th></th>
-<td>(objectClass=nordugrid-cluster)</td>
-<td>nordugrid-cluster-totaljobs</td>
+<td>calculated from other fields</td>
+<td>RunningJobs + WaitingJobs + PreLRMSWaitingJobs</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -855,11 +889,7 @@ Grid)</td>
 <tr class="ARC0">
 <th rowspan="2"></th>
 <td>(objectClass=nordugrid-queue)</td>
-<td>nordugrid-queue-queued</td>
-</tr>
-<tr class="ARC0">
-<td>(objectClass=nordugrid-cluster)</td>
-<td>nordugrid-cluster-queuedjobs</td>
+<td>nordugrid-queue-gridqueued + nordugrid-queue-localqueued</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -963,13 +993,9 @@ run for the maximum wall time</td>
 <td colspan="3">Number of free slots</td>
 </tr>
 <tr class="ARC0">
-<th rowspan="2"></th>
+<th></th>
 <td>(objectClass=nordugrid-authuser)</td>
 <td>nordugrid-authuser-freecpus</td>
-</tr>
-<tr class="ARC0">
-<td>calculated from other fields</td>
-<td>TotalSlots − UsedSlots</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="4"></th>
@@ -999,6 +1025,11 @@ ns[:t] [ns:t]* where the pair ns:t means that there are ns free slots
 for the duration of t (expressed in seconds); the time limit
 information is optional</td>
 </tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-authuser)</td>
+<td>nordugrid-authuser-freecpus</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> UsedSlots</th>
@@ -1025,6 +1056,11 @@ waiting and staging jobs</td>
 </tr>
 <tr>
 <td colspan="3">Type of reservation policy</td>
+</tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-queue)</td>
+<td>nordugrid-queue-schedulingpolicy</td>
 </tr>
 
 </table>
