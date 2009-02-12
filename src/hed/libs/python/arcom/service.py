@@ -29,7 +29,7 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Service'))
 
 class Service:
     
-    def __init__(self, request_names, namespace_prefix, namespace_uri, cfg = None):
+    def __init__(self, request_config, cfg = None):
         self._trust_manager = []
         self.ssl_config = {}
         if cfg:
@@ -73,10 +73,9 @@ class Service:
         #if self._trust_manager:
         #    print self.service_name, "TrustManager:", self._force_trust and 'force' or 'don\'t force', self._trust_manager
         log.msg(arc.DEBUG, self.service_name, "constructor called")
-        self.request_names = request_names
-        self.namespace_prefix = namespace_prefix
-        self.namespace_uri = namespace_uri
-        self.ns = arc.NS(namespace_prefix, namespace_uri)
+        self.request_config = request_config
+        self.ns = arc.NS(dict([(request_type['namespace_prefix'], request_type['namespace_uri'])
+            for request_type in self.request_config]))
         
     def _get_dns_from_ahash(self, data):
         try:
@@ -136,21 +135,17 @@ class Service:
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
         try:
-            # gets the namespace prefix of the service's namespace in its incoming payload
-            prefix = inpayload.NamespacePrefix(self.namespace_uri)
             # the first child of the payload should be the name of the request
             request_node = inpayload.Child()
-            # get the qualified name of the request
-            request_name = request_node.FullName()
-            #print request_name
-            if not request_name.startswith(prefix + ':'):
-                # if the request is not in the service's namespace
-                prefix = request_node.NamespacePrefix(self.namespace_uri)
-                if not request_name.startswith(prefix + ':'):
-                    raise Exception, 'wrong namespace. expected: %s' % (self.namespace_uri)
+            # get the namespace of the request node
+            request_namespace = request_node.Namespace()
+            matched_request_types = [request_type for request_type in self.request_config if request_type['namespace_uri'] == request_namespace]
+            if len(matched_request_types) == 0:
+                raise Exception, 'wrong namespace. expected: %s' % ', '.join([request_type['namespace_uri'] for request_type in self.request_config])
+            current_request_type = matched_request_types[0]
             # get the name of the request without the namespace prefix
             request_name = request_node.Name()
-            if request_name not in self.request_names:
+            if request_name not in current_request_type['request_names']:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
             log.msg(arc.DEBUG,'%s.%s called' % (self.service_name, request_name))
@@ -170,7 +165,7 @@ class Service:
             msg = log.msg()
             # TODO: need proper fault message
             outpayload = arc.PayloadSOAP(self.ns)
-            outpayload.NewChild(self.namespace_prefix + ':Fault').Set(msg)
+            outpayload.NewChild('Fault').Set(msg)
             outmsg.Payload(outpayload)
             # TODO: return with the status GENERIC_ERROR
             return arc.MCC_Status(arc.STATUS_OK)
