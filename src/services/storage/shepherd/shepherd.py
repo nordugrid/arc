@@ -429,7 +429,7 @@ class ShepherdService(Service):
                 setattr(self, name, getattr(self.shepherd.backend, name))
                 request_names.append(name)
         # call the Service's constructor
-        Service.__init__(self, request_names, 'she', shepherd_uri, cfg)
+        Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'she', 'namespace_uri': shepherd_uri}], cfg)
 
     def stat(self, inpayload):
         request = parse_node(inpayload.Child().Child(), ['requestID', 'referenceID'], single = True)

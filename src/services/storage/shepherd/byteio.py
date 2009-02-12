@@ -116,7 +116,7 @@ class ByteIOService(Service):
         # names of provided methods
         request_names = ['read', 'write']
         # call the Service's constructor
-        Service.__init__(self, request_names, 'rb', rbyteio_uri, cfg)
+        Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'rb', 'namespace_uri': rbyteio_uri}], cfg)
         self.transferdir = str(cfg.Get('TransferDir'))
         log.msg(arc.DEBUG, "ByteIOService transfer dir:", self.transferdir)
         self.notify = NotifyClient(str(cfg.Get('NotifyURL')))

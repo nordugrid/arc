@@ -102,7 +102,7 @@ class GatewayService(Service):
 
         self.service_name = 'Gateway' 
         request_names = ['get','list','put','remove']
-        Service.__init__(self, request_names, 'gateway', gateway_uri, cfg)
+        Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'gateway', 'namespace_uri': gateway_uri}], cfg)
         self.gateway = Gateway(cfg)
                 
     def get(self, inpayload):

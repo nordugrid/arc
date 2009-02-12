@@ -227,7 +227,7 @@ class AHashService(Service):
                 setattr(self, name, getattr(self.ahash, name))
                 request_names.append(name)
         # call the Service's constructor
-        Service.__init__(self, request_names, 'ahash', ahash_uri, cfg)
+        Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'ahash', 'namespace_uri': ahash_uri}], cfg)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.

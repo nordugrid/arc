@@ -806,11 +806,19 @@ class BartenderService(Service):
     def __init__(self, cfg):
         self.service_name = 'Bartender'
         # names of provided methods
-        request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'unlink']
-        # call the Service's constructor, 'Bartender' is the human-readable name of the service
-        # request_names is the list of the names of the provided methods
+        # bar_request_names is the list of the names of the provided methods
+        bar_request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'unlink']
         # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
-        Service.__init__(self, request_names, 'bar', bartender_uri, cfg)
+        bar_request_type = {'request_names' : bar_request_names,
+            'namespace_prefix': 'bar', 'namespace_uri': bartender_uri} 
+        # deleg_request_names contains the methods for delegation
+        deleg_request_names = ['DelegateCredentialsInit', 'UpdateCredentials']
+        # 'deleg' is the prefix for the delegation
+        deleg_request_type = {'request_names' : deleg_request_names,
+            'namespace_prefix': 'deleg', 'namespace_uri': 'http://www.nordugrid.org/schemas/delegation'}
+        request_config = [deleg_request_type, bar_request_type]
+        # call the Service's constructor
+        Service.__init__(self, request_config, cfg)
         # get the URL of the Librarian from the config file
         librarian_url = str(cfg.Get('LibrarianURL'))
         # get the URL of the Gateway from the config file
