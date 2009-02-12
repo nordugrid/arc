@@ -1128,14 +1128,14 @@ void *attributes_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
     for (i = 0; i < sk_AC_ATT_HOLDER_num(stack); i++) 
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       sk_AC_ATT_HOLDER_push(a->providers,
-                            (AC_ATT_HOLDER *)ASN1_dup((int (*)(void*, unsigned char**))i2d_AC_ATT_HOLDER,
-                                                      (void*(*)(void**, const unsigned char**, long int))d2i_AC_ATT_HOLDER, 
-                                                      (char *)(sk_AC_ATT_HOLDER_value(stack, i))));
+           (AC_ATT_HOLDER *)ASN1_dup((int (*)(void*, unsigned char**))i2d_AC_ATT_HOLDER,
+           (void*(*)(void**, const unsigned char**, long int))d2i_AC_ATT_HOLDER, 
+           (char *)(sk_AC_ATT_HOLDER_value(stack, i))));
 #else
       sk_AC_ATT_HOLDER_push(a->providers,
-                            (AC_ATT_HOLDER *)ASN1_dup((int (*)())i2d_AC_ATT_HOLDER,
-                                                      (char * (*)())d2i_AC_ATT_HOLDER,
-                                                      (char *)(sk_AC_ATT_HOLDER_value(stack, i))));
+           (AC_ATT_HOLDER *)ASN1_dup((int (*)())i2d_AC_ATT_HOLDER,
+           (char * (*)())d2i_AC_ATT_HOLDER,
+           (char *)(sk_AC_ATT_HOLDER_value(stack, i))));
 #endif
     
     return a;

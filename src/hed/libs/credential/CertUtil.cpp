@@ -51,7 +51,8 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
   if (X509_STORE_load_locations(cert_store, vctx->ca_file.empty() ? NULL:vctx->ca_file.c_str(), 
      vctx->ca_dir.empty() ? NULL:vctx->ca_dir.c_str())) {
     store_ctx = X509_STORE_CTX_new();
-    X509_STORE_CTX_init(store_ctx, cert_store, user_cert,NULL); //Last parameter is "untrusted", probably related globus code is wrong.
+    X509_STORE_CTX_init(store_ctx, cert_store, user_cert,NULL); 
+    //Last parameter is "untrusted", probably related globus code is wrong.
 
 #if SSLEAY_VERSION_NUMBER >=  0x0090600fL
     /* override the check_issued with our version */
@@ -211,9 +212,11 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         std::cerr<<"Certificate with subject "<<subject_name<<" has expired"<<std::endl;
       }
       else if(store_ctx->error == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN) {
-        std::cerr<<"Untrusted self-signed certificate in chain with subject:  "<<subject_name<<"and hash: "<<issuer_hash<<std::endl;
+        std::cerr<<"Untrusted self-signed certificate in chain with subject:  "
+        <<subject_name<<"and hash: "<<issuer_hash<<std::endl;
       }
-      else { std::cerr<<"Certificate verification error: "<< X509_verify_cert_error_string(store_ctx->error) <<std::endl; }
+      else
+        std::cerr<<"Certificate verification error: "<< X509_verify_cert_error_string(store_ctx->error) <<std::endl; 
 
       if(subject_name) OPENSSL_free(subject_name);
 
@@ -250,7 +253,8 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     if((CERT_IS_GSI_2_PROXY(vctx->cert_type) && !CERT_IS_GSI_2_PROXY(type)) ||
          (CERT_IS_GSI_3_PROXY(vctx->cert_type) && !CERT_IS_GSI_3_PROXY(type)) ||
          (CERT_IS_RFC_PROXY(vctx->cert_type) && !CERT_IS_RFC_PROXY(type))) {
-      std::cerr<<"The proxy to be signed should be compatible with the signing certificate "<<vctx->cert_type<<" "<<type<<std::endl;
+      std::cerr<<"The proxy to be signed should be compatible with the signing certificate "
+        <<vctx->cert_type<<" "<<type<<std::endl;
       return (0);
     }
 
@@ -263,7 +267,8 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
      
     vctx->proxy_depth++;  
     if(vctx->max_proxy_depth!=-1 && vctx->max_proxy_depth < vctx->proxy_depth) {
-      std::cerr<<"The proxy depth is out of maxium limitation:"<<"max_proxy_depth is "<<vctx->max_proxy_depth<<"current proxy_depth is: "<<vctx->proxy_depth<<std::endl;
+      std::cerr<<"The proxy depth is out of maxium limitation:"<<"max_proxy_depth is "
+        <<vctx->max_proxy_depth<<"current proxy_depth is: "<<vctx->proxy_depth<<std::endl;
       return (0);  
     }
     vctx->cert_type=type;  
@@ -433,7 +438,8 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
      */
       PROXY_CERT_INFO_EXTENSION*  proxycertinfo = NULL;
       proxycertinfo = (PROXY_CERT_INFO_EXTENSION*) X509V3_EXT_d2i(ext);
-        if (proxycertinfo == NULL) std::cerr<<"Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal format"<<std::endl;
+        if (proxycertinfo == NULL) 
+          std::cerr<<"Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal format"<<std::endl;
         int path_length = ASN1_INTEGER_get(proxycertinfo->pcPathLengthConstraint);
         /* ignore negative values */
         if(path_length > -1) {
@@ -464,7 +470,8 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
               {
               /* Here get the proxy policy */
               vctx->proxy_policy.clear();
-              vctx->proxy_policy.append(proxycertinfo->proxyPolicy->policy->data, proxycertinfo->proxyPolicy->policy->length);
+              vctx->proxy_policy.append(proxycertinfo->proxyPolicy->policy->data, 
+                proxycertinfo->proxyPolicy->policy->length);
               /* Use : as seperator for policies parsed from different proxy certificate*/
               vctx->proxy_policy.append(":");
               }
@@ -477,7 +484,8 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       PROXYCERTINFO*  proxycertinfo = NULL;
       if(nid == OBJ_sn2nid("PROXYCERTINFO_V3") || nid == OBJ_sn2nid("PROXYCERTINFO_V4")) {
         proxycertinfo = (PROXYCERTINFO*) X509V3_EXT_d2i(ext);
-        if (proxycertinfo == NULL) std::cerr<<"Can not convert DER encoded PROXYCERTINFO extension to internal format"<<std::endl;
+        if (proxycertinfo == NULL) 
+          std::cerr<<"Can not convert DER encoded PROXYCERTINFO extension to internal format"<<std::endl;
         int path_length = PROXYCERTINFO_get_path_length(proxycertinfo);
         /* ignore negative values */    
         if(path_length > -1) {
@@ -492,11 +500,11 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       if(proxycertinfo != NULL) {
         int policynid = OBJ_obj2nid(PROXYPOLICY_get_policy_language(proxycertinfo->proxypolicy));
         if(policynid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) {
-               /* Put whatever explicit policy here to this particular proxy certificate, usually by
-                * pulling them from some database. If there is none policy which need to be explicitly
-                * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
-                * be void of any policy, because here the policylanguage is independent)
-                */
+           /* Put whatever explicit policy here to this particular proxy certificate, usually by
+            * pulling them from some database. If there is none policy which need to be explicitly
+            * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
+            * be void of any policy, because here the policylanguage is independent)
+            */
             vctx->proxy_policy.clear();
         }
         else if(policynid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) {
@@ -558,7 +566,8 @@ bool check_cert_type(X509* cert, certType& type) {
   int index = -1;
   int critical;
   BASIC_CONSTRAINTS* x509v3_bc = NULL;
-  if((x509v3_bc = (BASIC_CONSTRAINTS*) X509_get_ext_d2i(cert, NID_basic_constraints, &critical, &index)) && x509v3_bc->ca) {
+  if((x509v3_bc = (BASIC_CONSTRAINTS*) X509_get_ext_d2i(cert, 
+    NID_basic_constraints, &critical, &index)) && x509v3_bc->ca) {
     type = CERT_TYPE_CA;
     if(x509v3_bc) { BASIC_CONSTRAINTS_free(x509v3_bc); }
     return true;

@@ -39,13 +39,13 @@ namespace Arc {
       //  snprintf(prompt, sizeof(prompt), "Enter passphrase to encrypte the key file: ");
       r = EVP_read_pw_string(pwd, len, prompt, verify);
       if(r != 0) {
-        std::cerr<<"Failed to read input passphrase"<<std::endl;
+        CredentialLogger.msg(ERROR,"Failed to read input passphrase");
         memset(pwd,0,(unsigned int)len);
         return(-1);
       }
       j = strlen(pwd);
       if(verify && (j < PASS_MIN_LENGTH)) {
-        std::cerr<<"Input phrase is too short (at least "<<PASS_MIN_LENGTH<<" chars)"<<std::endl;
+        CredentialLogger.msg(ERROR,"Input phrase is too short (at least %d char",PASS_MIN_LENGTH);
       }
       else { return j; }
     }
@@ -107,29 +107,30 @@ namespace Arc {
   //Parse the BIO for certificate and get the format of it
   Credformat Credential::getFormat(BIO* bio) {
     PKCS12* pkcs12 = NULL;
-    Credformat format;
+    Credformat format = CRED_UNKNOWN;
     char buf[1];
     char firstbyte;
     int position;
     if((position = BIO_tell(bio))<0 || BIO_read(bio, buf, 1)<=0 || BIO_seek(bio, position)<0) {
       LogError(); 
       CredentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
-      throw CredentialError("Can't get the first byte of input BIO to get its format");
+      return format;
     }
     firstbyte = buf[0];
     // DER-encoded structure (including PKCS12) will start with ASCII 048.
     // Otherwise, it's PEM.
     if(firstbyte==48) {
-        // DER-encoded, PKCS12 or DER? parse it as PKCS12 ASN.1, if can not parse it, then it is DER format
-      if((pkcs12 = d2i_PKCS12_bio(bio,NULL)) == NULL){ format=DER; PKCS12_free(pkcs12); } 
-      else {format=PKCS;}
-
+      //DER-encoded, PKCS12 or DER? firstly parse it as PKCS12 ASN.1, 
+      //if can not parse it, then it is DER format
+      if((pkcs12 = d2i_PKCS12_bio(bio,NULL)) == NULL){ format=CRED_DER; PKCS12_free(pkcs12); } 
+      else { format = CRED_PKCS; }
       if( BIO_seek(bio, position) < 0 ) {
         LogError();
-        throw CredentialError("Can't reset the BIO");
+        CredentialLogger.msg(ERROR,"Can't reset the BIO");
+        return format;
       }
     }
-    else {format = PEM;}
+    else { format = CRED_PEM; }
     return format;
   }
 
@@ -191,7 +192,7 @@ namespace Arc {
 
   void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
     //Parse the certificate
-    Credformat format;
+    Credformat format = CRED_UNKNOWN;
     int n=0;
     
     X509* x509 = NULL;
@@ -202,59 +203,51 @@ namespace Arc {
     if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
  
     switch(format) {
-      case PEM:
+      case CRED_PEM:
         CredentialLogger.msg(VERBOSE,"Certificate format is PEM");
         //Get the certificte, By default, certificate is without passphrase
         //Read certificate
         if(!(x509 = PEM_read_bio_X509(certbio, &cert, NULL, NULL))) {
-          CredentialLogger.msg(ERROR,"Can not read cert information from BIO"); LogError();
-          throw CredentialError("Can not read cert information from BIO");
+          throw CredentialError("Can not read cert information from BIO"); 
         }
- 
         //Get the issuer chain
         *certchain = sk_X509_new_null();
         while(!BIO_eof(certbio)){
           X509 * tmp = NULL;
           if(!(PEM_read_bio_X509(certbio, &tmp, NULL, NULL))){
-            ERR_clear_error();
-            break;
+            ERR_clear_error(); break;
           }
-          
           if(!sk_X509_insert(*certchain, tmp, n)) {
             std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             X509_free(tmp);
-            CredentialLogger.msg(ERROR, "Can not insert cert %s into certificate's issuer chain", str); LogError();
-            throw CredentialError("Can not insert cert into certificate's issuer chain");
+            throw CredentialError("Can not insert cert into certificate's issuer chain"); 
           }
           ++n;
         }
         break;
 
-      case DER:
+      case CRED_DER:
         CredentialLogger.msg(VERBOSE,"Certificate format is DER");
         cert=d2i_X509_bio(certbio,NULL);
         if(!cert){
-          CredentialLogger.msg(ERROR,"Unable to read DER credential from BIO"); LogError();
-          throw CredentialError("Unable to read DER credential from BIO");
+          throw CredentialError("Unable to read DER credential from BIO"); 
         }
         break;
 
-      case PKCS:
+      case CRED_PKCS:
         CredentialLogger.msg(VERBOSE,"Certificate format is PKCS");
         pkcs12 = d2i_PKCS12_bio(certbio, NULL);
         if(pkcs12){
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
           if(!PKCS12_parse(pkcs12, password, NULL, &cert, &pkcs12_certs)) {
-            CredentialLogger.msg(ERROR,"Can not parse PKCS12 file"); LogError();
+            if(pkcs12) PKCS12_free(pkcs12);
             throw CredentialError("Can not parse PKCS12 file");
           }
         }
         else{
-          CredentialLogger.msg(ERROR,"Can not read PKCS12 credential from BIO"); LogError();
-          throw CredentialError("Can not read PKCS12 credential file");
+          throw CredentialError("Can not read PKCS12 credential from BIO"); 
         }
-
         if (pkcs12_certs && sk_num(pkcs12_certs)){
           X509* tmp;
           for (n = 0; n < sk_X509_num(pkcs12_certs); n++) {
@@ -262,7 +255,6 @@ namespace Arc {
             sk_X509_insert(*certchain, tmp, n);
           }
         }
-
         if(pkcs12) { PKCS12_free(pkcs12); }
         if(pkcs12_certs) { sk_X509_pop_free(pkcs12_certs, X509_free); }
 
@@ -282,27 +274,26 @@ namespace Arc {
     format = getFormat(keybio);
     std::string prompt;
     switch(format){
-      case PEM:
+      case CRED_PEM:
         prompt = "Enter passphrase to decrypt the PEM key file: ";
         EVP_set_pw_prompt((char*)(prompt.c_str()));
-        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, (passphrase.empty())?NULL:(void*)(passphrase.c_str())))) {  
-          CredentialLogger.msg(ERROR,"Can not read credential key from PEM key BIO"); LogError();
-          throw CredentialError("Can not read credential key");
+        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, 
+          (passphrase.empty()) ? NULL : (void*)(passphrase.c_str())))) {  
+          throw CredentialError("Can not read credential key from PEM key BIO"); 
         }
         break;
 
-      case DER:
+      case CRED_DER:
         pkey=d2i_PrivateKey_bio(keybio, NULL);
         break;
 
-      case PKCS: 
+      case CRED_PKCS: 
         pkcs12 = d2i_PKCS12_bio(keybio, NULL);
         if(pkcs12) {
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
           if(!PKCS12_parse(pkcs12, password, &pkey, NULL, NULL)) {
-            CredentialLogger.msg(ERROR,"Can not parse PKCS12 file"); LogError();
-            throw CredentialError("Can not parse PKCS12 file");
+            throw CredentialError("Can not parse PKCS12 file"); 
           }
           PKCS12_free(pkcs12);
         }
@@ -377,7 +368,6 @@ namespace Arc {
 
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
-
   }
 
   Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion, 
@@ -411,7 +401,7 @@ namespace Arc {
         cert_type_ = CERT_TYPE_GSI_2_LIMITED_PROXY;
       }
       else if (policylang_.compare("RESTRICTED") == 0 || policylang_.compare("restricted") == 0) {
-        std::cerr<<"Globus legacy proxies can not carry policy data or path length contraints" <<std::endl;
+        CredentialLogger.msg(ERROR,"Globus legacy proxies can not carry policy data or path length contraints");
       }
       else {
         cert_type_ = CERT_TYPE_GSI_2_PROXY;
@@ -458,8 +448,8 @@ namespace Arc {
 
     if(cert_type_ != CERT_TYPE_EEC) {
       if(!policy_.empty() && policylang_.empty()) {
-        std::cerr<<"If you specify a policy you also need to specify a policy language.\n" <<std::endl;
-        exit(1);
+        CredentialLogger.msg(ERROR,"If you specify a policy you also need to specify a policy language");
+        return;
       }
 
       proxy_cert_info_ = PROXYCERTINFO_new();
@@ -514,7 +504,11 @@ namespace Arc {
             fp.open(policy_.c_str());
             if(!fp) {
               CredentialLogger.msg(ERROR,"Error: can't open policy file: %s", policy_.c_str());
-              exit(1);
+              if(proxy_cert_info_) {
+                PROXYCERTINFO_free(proxy_cert_info_);
+                proxy_cert_info_ = NULL;
+              }
+              return;
             }
             fp.unsetf(std::ios::skipws);
             char c;
@@ -523,7 +517,11 @@ namespace Arc {
           }
           else {
             CredentialLogger.msg(ERROR,"Error: policy location: %s is not a regular file", policy_.c_str());
-            exit(1);
+            if(proxy_cert_info_) {
+              PROXYCERTINFO_free(proxy_cert_info_);
+              proxy_cert_info_ = NULL;
+            }
+            return;
           }
         }
         else {
@@ -532,9 +530,12 @@ namespace Arc {
         }
       }
    
-      if(policylang_ == "LIMITED" || policylang_ == "limited") policylang_ = LIMITED_PROXY_OID;
-      else if(policylang_ == "INDEPENDENT" || policylang_ == "independent") policylang_ = INDEPENDENT_PROXY_OID;
-      else if(policylang_ == "IMPERSONATION" || policylang_ == "impersonation") policylang_ = IMPERSONATION_PROXY_OID;
+      if(policylang_ == "LIMITED" || policylang_ == "limited") 
+        policylang_ = LIMITED_PROXY_OID;
+      else if(policylang_ == "INDEPENDENT" || policylang_ == "independent") 
+        policylang_ = INDEPENDENT_PROXY_OID;
+      else if(policylang_ == "IMPERSONATION" || policylang_ == "impersonation") 
+        policylang_ = IMPERSONATION_PROXY_OID;
       else if(policylang_.empty()) {
         if(policy_.empty()) policylang_ = IMPERSONATION_PROXY_OID;
         else policylang_ = GLOBUS_GSI_PROXY_GENERIC_POLICY_OID;
@@ -561,14 +562,14 @@ namespace Arc {
       else 
         PROXYCERTINFO_set_version(proxy_cert_info_, 3);
     }
-
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile, 
         const std::string& cadir, const std::string& cafile, const std::string& passphrase4key) : 
         cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), 
+        keybits_(1024), extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_md5());
@@ -577,26 +578,31 @@ namespace Arc {
 
     BIO* certbio = NULL, *keybio = NULL; 
 
-    certbio = BIO_new_file(certfile.c_str(), "r"); 
-    if(!certbio){
-      CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile); LogError();
-      throw CredentialError("Can not read certificate file");
-    }
-    if(!keyfile.empty()) {
-      keybio = BIO_new_file(keyfile.c_str(), "r");
-      if(!keybio){
-        CredentialLogger.msg(ERROR,"Can not read key file: %s", keyfile); LogError();
-        throw CredentialError("Can not read key file");
+    try {
+      certbio = BIO_new_file(certfile.c_str(), "r"); 
+      if(!certbio){
+        CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile); LogError(); 
+        throw CredentialError("Can not read certificate file");
       }
-    }
+      if(!keyfile.empty()) {
+        keybio = BIO_new_file(keyfile.c_str(), "r");
+        if(!keybio){
+          CredentialLogger.msg(ERROR,"Can not read key file: %s", keyfile); LogError();
+          throw CredentialError("Can not read key file");
+        }
+      }
 
-    loadCertificate(certbio, cert_, &cert_chain_);
+      loadCertificate(certbio, cert_, &cert_chain_);
 
-    if(keybio!=NULL) loadKey(keybio, pkey_, passphrase4key);
-    else {
-      //the private key could be in the certificate file, if the certificate is a proxy.
-      keybio = BIO_new_file(certfile.c_str(), "r");
-      loadKey(keybio, pkey_, passphrase4key);
+      if(keybio!=NULL) loadKey(keybio, pkey_, passphrase4key);
+      else {
+        //the private key could be in the certificate file, if the certificate is a proxy.
+        keybio = BIO_new_file(certfile.c_str(), "r");
+        loadKey(keybio, pkey_, passphrase4key);
+      }
+    } catch(std::exception& err){
+      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+      LogError(); return;
     }
     
     //Get the lifetime of the credential
@@ -845,7 +851,10 @@ namespace Arc {
 
   bool Credential::GenerateRequest(std::string &content) {
     BIO *out = BIO_new(BIO_s_mem());
-    if(!out) { CredentialLogger.msg(ERROR, "Can not create BIO for request"); LogError(); return false;}
+    if(!out) { 
+      CredentialLogger.msg(ERROR, "Can not create BIO for request"); 
+      LogError(); return false;
+    }
  
     if(GenerateRequest(out)) {
       for(;;) {
@@ -862,15 +871,22 @@ namespace Arc {
 
   bool Credential::GenerateRequest(const char* filename) {
     BIO *out = BIO_new(BIO_s_file());
-    if(!out) { CredentialLogger.msg(ERROR, "Can not create BIO for request"); LogError(); return false;}
+    if(!out) { 
+      CredentialLogger.msg(ERROR, "Can not create BIO for request"); 
+      LogError(); return false;
+    }
     if (!(BIO_write_filename(out, (char*)filename))) {
-      CredentialLogger.msg(ERROR, "Can not set writable file for request BIO"); LogError(); BIO_free_all(out); return false;
+      CredentialLogger.msg(ERROR, "Can not set writable file for request BIO"); 
+      LogError(); BIO_free_all(out); return false;
     }
 
     if(GenerateRequest(out)) {
       CredentialLogger.msg(INFO, "Wrote request into a file");
     }
-    else {CredentialLogger.msg(ERROR, "Failed to write request into a file"); BIO_free_all(out); return false;}
+    else {
+      CredentialLogger.msg(ERROR, "Failed to write request into a file"); 
+      BIO_free_all(out); return false;
+    }
  
     BIO_free_all(out);
     return true;
@@ -881,13 +897,18 @@ namespace Arc {
     if(!out) return false;
     EVP_CIPHER *enc = NULL;
     if(!encryption) {
-      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,NULL,NULL)) { BIO_free_all(out); return false; };
+      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,NULL,NULL)) { 
+        BIO_free_all(out); return false; 
+      }
     }
     else {
       enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
       std::string prompt;
       prompt = "Enter passphrase to encrypt the PEM key file: ";
-      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,(passphrase.empty())?NULL:(void*)(passphrase.c_str()))) { BIO_free_all(out); return false; };
+      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,
+        (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) { 
+        BIO_free_all(out); return false; 
+      }
     }
     for(;;) {
       char s[256];
@@ -931,7 +952,7 @@ namespace Arc {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     X509 *cert;
-    std::cout<<"+++++ cert chain number: "<<sk_X509_num(cert_chain_)<<std::endl;
+    //std::cout<<"+++++ cert chain number: "<<sk_X509_num(cert_chain_)<<std::endl;
 
     //Out put the cert chain, except the CA certificate and this certificate itself
     for (int n = 1; n < sk_X509_num(cert_chain_) - 1; n++) {
@@ -1040,7 +1061,10 @@ err:
     if(InquireRequest(in)) {
       CredentialLogger.msg(INFO, "Read request from a string");
     }
-    else {CredentialLogger.msg(ERROR, "Failed to read request from a string"); BIO_free_all(in); return false;}
+    else {
+      CredentialLogger.msg(ERROR, "Failed to read request from a string"); 
+      BIO_free_all(in); return false;
+    }
 
     BIO_free_all(in);
     return true;
@@ -1048,7 +1072,10 @@ err:
 
   bool Credential::InquireRequest(const char* filename, bool if_eec) {
     BIO *in = BIO_new(BIO_s_file());
-    if(!in) { CredentialLogger.msg(ERROR, "Can not create BIO for parsing request"); LogError(); return false;}
+    if(!in) { 
+      CredentialLogger.msg(ERROR, "Can not create BIO for parsing request"); 
+      LogError(); return false;
+    }
     if (!(BIO_read_filename(in, (char*)filename))) {
       CredentialLogger.msg(ERROR, "Can not set readable file for request BIO"); 
       LogError(); BIO_free_all(in); return false;
@@ -1057,7 +1084,10 @@ err:
     if(InquireRequest(in)) {
       CredentialLogger.msg(INFO, "Read request from a file");
     }
-    else {CredentialLogger.msg(ERROR, "Failed to read request from a file"); BIO_free_all(in); return false;}
+    else {
+      CredentialLogger.msg(ERROR, "Failed to read request from a file"); 
+      BIO_free_all(in); return false;
+    }
 
     BIO_free_all(in);
     return true;
@@ -1122,7 +1152,10 @@ err:
     BIO*  bio = NULL;
     int length;
     bio = BIO_new(BIO_s_mem());
-    if(pkey_ == NULL) {CredentialLogger.msg(ERROR, "Private key of the credential object is NULL"); BIO_free(bio); return NULL;}
+    if(pkey_ == NULL) {
+      CredentialLogger.msg(ERROR, "Private key of the credential object is NULL"); 
+      BIO_free(bio); return NULL;
+    }
     length = i2d_PrivateKey_bio(bio, pkey_);
     if(length <= 0) {
       CredentialLogger.msg(ERROR, "Can not convert private key to DER format");
@@ -1228,7 +1261,8 @@ err:
        
       int length = ext_method->i2d(proxy->proxy_cert_info_, NULL);
       if(length < 0) {
-        CredentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); LogError();
+        CredentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); 
+        LogError();
       }
       else {certinfo_data = (unsigned char*)malloc(length); }
 
@@ -1239,14 +1273,16 @@ err:
         free(certinfo_data); certinfo_data = NULL; LogError();
       }
       if(certinfo_data) {
-        std::string certinfo_string((char*)certinfo_data, length); free(certinfo_data); certinfo_data = NULL;
+        std::string certinfo_string((char*)certinfo_data, length); free(certinfo_data); 
+        certinfo_data = NULL;
         std::string NID_sn = OBJ_nid2sn(certinfo_NID);
         certinfo_ext = CreateExtension(NID_sn, certinfo_string, 1);
       }
       if(certinfo_ext != NULL) {
         //if(!X509_add_ext(*tosign, certinfo_ext, 0)) {
         if(!sk_X509_EXTENSION_push(proxy->extensions_, certinfo_ext)) {
-          CredentialLogger.msg(ERROR, "Can not add X509 extension to proxy cert"); LogError(); goto err; 
+          CredentialLogger.msg(ERROR, "Can not add X509 extension to proxy cert"); 
+          LogError(); goto err; 
         }
       }
     }
@@ -1295,8 +1331,8 @@ err:
       if(ext != NULL) {
         //if(!X509_add_ext(*tosign, ext, 0)) {
         if(!sk_X509_EXTENSION_push(proxy->extensions_, ext)) {
-          CredentialLogger.msg(ERROR, "Can not add X509 extension to proxy cert"); LogError();
-          X509_EXTENSION_free(ext); ext = NULL; goto err;
+          CredentialLogger.msg(ERROR, "Can not add X509 extension to proxy cert"); 
+          LogError(); X509_EXTENSION_free(ext); ext = NULL; goto err;
         }
       }
     }
@@ -1308,18 +1344,22 @@ err:
       }
 
       ext = X509_EXTENSION_dup(ext);
-      if(ext == NULL) { CredentialLogger.msg(ERROR, "Can not copy extended KeyUsage extension"); LogError(); goto err; }
+      if(ext == NULL) { 
+        CredentialLogger.msg(ERROR, "Can not copy extended KeyUsage extension"); 
+        LogError(); goto err; 
+      }
 
       //if(!X509_add_ext(*tosign, ext, 0)) {
       if(!sk_X509_EXTENSION_push(proxy->extensions_, ext)) {
-        CredentialLogger.msg(ERROR, "Can not add X509 extended KeyUsage extension to new proxy certificate"); LogError();
-        X509_EXTENSION_free(ext); ext = NULL; goto err;
+        CredentialLogger.msg(ERROR, "Can not add X509 extended KeyUsage extension to new proxy certificate"); 
+        LogError(); X509_EXTENSION_free(ext); ext = NULL; goto err;
       }
     }
 
     /* Create proxy subject name */
     if((subject_name = X509_NAME_dup(X509_get_subject_name(issuer))) == NULL) {
-      CredentialLogger.msg(ERROR, "Can not copy the subject name from issuer for proxy certificate"); goto err;
+      CredentialLogger.msg(ERROR, "Can not copy the subject name from issuer for proxy certificate"); 
+      goto err;
     }
     if((name_entry = X509_NAME_ENTRY_create_by_NID(&name_entry, NID_commonName, V_ASN1_APP_CHOOSE,
                                      (unsigned char *) CN_name, -1)) == NULL) {
@@ -1336,15 +1376,18 @@ err:
     X509_NAME_ENTRY_free(name_entry);
 
     if(!X509_set_issuer_name(*tosign, X509_get_subject_name(issuer))) {
-      CredentialLogger.msg(ERROR, "Can not set issuer's subject for proxy certificate"); LogError(); goto err;
+      CredentialLogger.msg(ERROR, "Can not set issuer's subject for proxy certificate"); 
+      LogError(); goto err;
     }
 
     if(!X509_set_version(*tosign, 2L)) {
-      CredentialLogger.msg(ERROR, "Can not set version number for proxy certificate"); LogError(); goto err;
+      CredentialLogger.msg(ERROR, "Can not set version number for proxy certificate"); 
+      LogError(); goto err;
     }
 
     if(!X509_set_serialNumber(*tosign, serial_number)) {
-      CredentialLogger.msg(ERROR, "Can not set serial number for proxy certificate"); LogError(); goto err;
+      CredentialLogger.msg(ERROR, "Can not set serial number for proxy certificate"); 
+      LogError(); goto err;
     }
 
     if(!SetProxyPeriod(*tosign, issuer, proxy->start_, proxy->lifetime_)) {
@@ -1352,7 +1395,8 @@ err:
     }
     
     if(!X509_set_pubkey(*tosign, req_pubkey)) {
-      CredentialLogger.msg(ERROR, "Can not set pubkey for proxy certificate"); LogError(); goto err;
+      CredentialLogger.msg(ERROR, "Can not set pubkey for proxy certificate"); 
+      LogError(); goto err;
     }
  
     res = true;
@@ -1381,19 +1425,26 @@ err:
     EVP_PKEY* req_pubkey = NULL;
     req_pubkey = X509_REQ_get_pubkey(proxy->req_);
 
-    if(!req_pubkey) { CredentialLogger.msg(ERROR, "Error when extracting public key from request"); LogError(); return false;}
+    if(!req_pubkey) { 
+      CredentialLogger.msg(ERROR, "Error when extracting public key from request"); 
+      LogError(); return false;
+    }
 
     if(!X509_REQ_verify(proxy->req_, req_pubkey)){
       CredentialLogger.msg(ERROR,"Failed to verify the request"); LogError(); goto err;
     }
 
     if(!SignRequestAssistant(proxy, req_pubkey, &proxy_cert)) {
-      CredentialLogger.msg(ERROR,"Failed to add issuer's extension into proxy"); LogError(); goto err;
+      CredentialLogger.msg(ERROR,"Failed to add issuer's extension into proxy"); 
+      LogError(); goto err;
     }
 
-    /*Add the extensions which has just been added by application, into the proxy_cert which will be signed soon
-     *Note here we suppose it is the signer who will add the extension to to-signed proxy and then sign it;
-     * it also could be the request who add the extension and put it inside X509 request' extension, but here the situation
+    /*Add the extensions which has just been added by application, 
+     * into the proxy_cert which will be signed soon. 
+     * Note here we suppose it is the signer who will add the 
+     * extension to to-signed proxy and then sign it;
+     * it also could be the request who add the extension and put 
+     * it inside X509 request' extension, but here the situation
      * has not been considered for now
      */
     cert_info = proxy_cert->cert_info;
@@ -1429,7 +1480,7 @@ err:
 
     /* Check whether MD5 isn't requested as the signing algorithm in the request*/
     if(EVP_MD_type(proxy->signing_alg_) != NID_md5) {
-      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed, it should be MD5 to sign certificate requests",
+      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be MD5 to sign certificate requests",
       OBJ_nid2sn(EVP_MD_type(proxy->signing_alg_)));
       goto err;
     }
@@ -1451,7 +1502,10 @@ err:
     if(PEM_write_bio_X509(outputbio, proxy_cert)) {
       CredentialLogger.msg(INFO, "Output the proxy certificate"); res = true;
     }
-    else { CredentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format"); LogError();}
+    else { 
+      CredentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format"); 
+      LogError();
+    }
    
 err:
     if(issuer_priv) { EVP_PKEY_free(issuer_priv);}
@@ -1463,7 +1517,10 @@ err:
 
   bool Credential::SignRequest(Credential* proxy, std::string &content) {
     BIO *out = BIO_new(BIO_s_mem());
-    if(!out) { CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); LogError(); return false;}
+    if(!out) { 
+      CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); 
+      LogError(); return false;
+    }
               
     if(SignRequest(proxy, out)) {
       for(;;) { 
@@ -1480,15 +1537,22 @@ err:
                   
   bool Credential::SignRequest(Credential* proxy, const char* filename) {
     BIO *out = BIO_new(BIO_s_file());
-    if(!out) { CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); LogError(); return false;}
+    if(!out) { 
+      CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); 
+      LogError(); return false;
+    }
     if (!(BIO_write_filename(out, (char*)filename))) {
-      CredentialLogger.msg(ERROR, "Can not set writable file for signed proxy certificate BIO"); LogError(); BIO_free_all(out); return false;
+      CredentialLogger.msg(ERROR, "Can not set writable file for signed proxy certificate BIO"); 
+      LogError(); BIO_free_all(out); return false;
     }     
           
     if(SignRequest(proxy, out)) {
       CredentialLogger.msg(INFO, "Wrote signed proxy certificate into a file");
     }
-    else {CredentialLogger.msg(ERROR, "Failed to write signed proxy certificate into a file"); BIO_free_all(out); return false;}
+    else {
+      CredentialLogger.msg(ERROR, "Failed to write signed proxy certificate into a file"); 
+      BIO_free_all(out); return false;
+    }
 
     BIO_free_all(out);
     return true;
@@ -1506,27 +1570,33 @@ err:
     extensions_ = sk_X509_EXTENSION_new_null();
 
     BIO* certbio = NULL, *keybio = NULL;
-    certbio = BIO_new_file(CAfile.c_str(), "r");
-    if(!certbio){
-      CredentialLogger.msg(ERROR,"Can not read CA certificate file: %s", CAfile); LogError();
-      throw CredentialError("Can not read CA certificate file");
-    }
-    keybio = BIO_new_file(CAkey.c_str(), "r");
-    if(!keybio){
-      CredentialLogger.msg(ERROR,"Can not read CA key file: %s", CAkey); LogError();
-      throw CredentialError("Can not read CA key file");
-    }
 
-    loadCertificate(certbio, cert_, &cert_chain_);
-    loadKey(keybio, pkey_, passphrase4key);
+    try {
+      certbio = BIO_new_file(CAfile.c_str(), "r");
+      if(!certbio){
+        CredentialLogger.msg(ERROR,"Can not read CA certificate file: %s", CAfile);
+        throw CredentialError("Can not read CA certificate file");
+      }
+      keybio = BIO_new_file(CAkey.c_str(), "r");
+      if(!keybio){
+        CredentialLogger.msg(ERROR,"Can not read CA key file: %s", CAkey);
+        throw CredentialError("Can not read CA key file");
+      }
+
+      loadCertificate(certbio, cert_, &cert_chain_);
+      loadKey(keybio, pkey_, passphrase4key);
+    } catch(std::exception& err){
+      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+      LogError();
+    }
   }
 
   static void print_ssl_errors() {
     unsigned long err;
     while(err = ERR_get_error()) {
-      std::cerr<<"SSL error: "<<ERR_error_string(err, NULL)<<"lib: "<<ERR_lib_error_string(err)
-                              <<"func: "<<ERR_func_error_string(err)
-                              <<"reason: "<<ERR_reason_error_string(err)<<std::endl;
+      CredentialLogger.msg(ERROR,"SSL error: %s, libs: %s, func: %s, reason: %s",
+        ERR_error_string(err, NULL),ERR_lib_error_string(err),
+        ERR_func_error_string(err),ERR_reason_error_string(err));
     }
   }
 
@@ -1575,17 +1645,17 @@ error:
       else {
         ret=BN_new();
         if (ret == NULL || !rand_serial(ret, ai))
-          std::cerr<<"Out of memory"<<std::endl;
+          CredentialLogger.msg(ERROR,"Out of memory");
       }
     }
     else {
       if (!a2i_ASN1_INTEGER(in,ai,buf,1024)) {
-        std::cerr<<"unable to load number from: "<<serialfile<<std::endl;
+        CredentialLogger.msg(ERROR,"unable to load number from: %s",serialfile);
         goto err;
       }
       ret=ASN1_INTEGER_to_BN(ai,NULL);
       if (ret == NULL) {
-        std::cerr<<"error converting number from bin to BIGNUM"<<std::endl;
+        CredentialLogger.msg(ERROR, "error converting number from bin to BIGNUM");
         goto err;
       }
     }
@@ -1612,7 +1682,7 @@ err:
     else
       j = strlen(serialfile) + strlen(suffix) + 1;
     if (j >= BSIZE) {
-      std::cerr<<"file name too long"<<std::endl;
+      CredentialLogger.msg(ERROR,"file name too long");
       goto err;
     }
 
@@ -1635,7 +1705,7 @@ err:
       goto err;
     }
     if ((ai=BN_to_ASN1_INTEGER(serial,NULL)) == NULL) {
-      std::cerr<<"error converting serial to ASN.1 format"<<std::endl;
+      CredentialLogger.msg(ERROR,"error converting serial to ASN.1 format");
       goto err;
     }
     i2a_ASN1_INTEGER(out,ai);
@@ -1663,7 +1733,7 @@ err:
             ?(strlen(CAfile)+strlen(POSTFIX)+1)
             :(strlen(serialfile)))+1;
     buf=(char*)(OPENSSL_malloc(len));
-    if (buf == NULL) { std::cerr<<"out of mem"<<std::endl; goto end; }
+    if (buf == NULL) { CredentialLogger.msg(ERROR,"out of memory"); goto end; }
     if (serialfile == NULL) {
       BUF_strlcpy(buf,CAfile,len);
       for (p=buf; *p; p++)
@@ -1680,7 +1750,7 @@ err:
     if (serial == NULL) goto end;
 
     if (!BN_add_word(serial,1)) { 
-      std::cerr<<"add_word failure"<<std::endl; goto end; 
+      CredentialLogger.msg(ERROR,"add_word failure"); goto end; 
     }
 
     if (!save_serial(buf, NULL, serial, &bs)) goto end;
@@ -1704,7 +1774,7 @@ err:
     EVP_PKEY_free(upkey);
 
     if(!X509_STORE_CTX_init(&xsc,ctx,x,NULL)) {
-      std::cerr<<"Error initialising X509 store"<<std::endl;
+      CredentialLogger.msg(ERROR,"Error initialising X509 store");
       goto end;
     }
     if (sno) bs = sno;
@@ -1716,7 +1786,7 @@ err:
     //  goto end;
 
     if (!X509_check_private_key(xca,pkey)) {
-      std::cerr<<"CA certificate and CA private key do not match"<<std::endl;
+      CredentialLogger.msg(ERROR,"CA certificate and CA private key do not match");
       goto end;
     }
 
@@ -1758,7 +1828,8 @@ end:
  * where characters may be escaped by \
  */
   X509_NAME *parse_name(char *subject, long chtype, int multirdn) { 
-    size_t buflen = strlen(subject)+1; /* to copy the types and values into. due to escaping, the copy can only become shorter */
+    size_t buflen = strlen(subject)+1; 
+    /* to copy the types and values into. due to escaping, the copy can only become shorter */
     char *buf = (char*)(OPENSSL_malloc(buflen));
     size_t max_ne = buflen / 2 + 1; /* maximum number of name elements */
     char **ne_types =  (char **)(OPENSSL_malloc(max_ne * sizeof (char *)));
@@ -1772,11 +1843,11 @@ end:
     int nid;
 
     if (!buf || !ne_types || !ne_values) {
-      std::cerr<<"malloc error"<<std::endl;
+      CredentialLogger.msg(ERROR,"malloc error");
       goto error;
     }       
     if (*subject != '/') {
-      std::cerr<<"Subject does not start with '/'"<<std::endl;
+      CredentialLogger.msg(ERROR,"Subject does not start with '/'");
       goto error;
     }
     sp++; /* skip leading / */
@@ -1792,7 +1863,7 @@ end:
           if (*++sp)
           *bp++ = *sp++;
           else {
-            std::cerr<<"escape character at end of string"<<std::endl;
+            CredentialLogger.msg(ERROR,"escape character at end of string");
             goto error;
           }
         }
@@ -1804,7 +1875,7 @@ end:
         else  *bp++ = *sp++;
       }
       if (!*sp) {
-        std::cerr<<"end of string encountered while processing type of subject name element #"<<ne_num<<std::endl;
+        CredentialLogger.msg(ERROR,"end of string encountered while processing type of subject name element #%d",ne_num);
         goto error;
       }
       ne_values[ne_num] = bp;
@@ -1813,7 +1884,7 @@ end:
           if (*++sp)
             *bp++ = *sp++;
           else {
-            std::cerr<<"escape character at end of string"<<std::endl;
+            CredentialLogger.msg(ERROR,"escape character at end of string");
             goto error;
           }
         }
@@ -1841,11 +1912,11 @@ end:
 
     for (i = 0; i < ne_num; i++) {
       if ((nid=OBJ_txt2nid(ne_types[i])) == NID_undef) {
-        std::cerr<<"Subject Attribute "<<ne_types[i]<<" has no known NID, skipped"<<std::endl;
+        CredentialLogger.msg(ERROR,"Subject Attribute %s has no known NID, skipped",ne_types[i]);
         continue;
       }
       if (!*ne_values[i]) {
-        std::cerr<<"No value provided for Subject Attribute" <<ne_types[i]<<" skipped"<<std::endl;
+        CredentialLogger.msg(ERROR,"No value provided for Subject Attribute %s skipped",ne_types[i]);
         continue;
       }
 
@@ -1878,11 +1949,11 @@ error:
     EVP_PKEY* req_pubkey = NULL;
     req_pubkey = X509_REQ_get_pubkey(eec->req_);
     if(!req_pubkey) { CredentialLogger.msg(ERROR, "Error when extracting public key from request"); 
-      LogError(); throw CredentialError("Error when extracting public key from request");
+      LogError(); return false;
     }
     if(!X509_REQ_verify(eec->req_, req_pubkey)){
       CredentialLogger.msg(ERROR,"Failed to verify the request"); 
-      LogError(); throw CredentialError("Failed to verify the request"); 
+      LogError(); return false; 
     }
     eec_cert = X509_new();
     X509_set_pubkey(eec_cert, req_pubkey);
@@ -1924,11 +1995,11 @@ error:
       if (!NCONF_load(extconf, extfile_.c_str(),&errorline)) {
         if (errorline <= 0) {
           CredentialLogger.msg(ERROR,"Error when loading the extension config file: %s", extfile_.c_str());
-          throw CredentialError("Error when loading the extension config file");
+          return false;
         }
         else {
-          CredentialLogger.msg(ERROR,"Error when loading the extension config file: %s on line: %d", extfile_.c_str(), errorline);
-          throw CredentialError("Error when loading the extension config file");
+          CredentialLogger.msg(ERROR,"Error when loading the extension config file: %s on line: %d", 
+             extfile_.c_str(), errorline);
         }
       }
       //section from config file with X509V3 extensions to add
@@ -1942,8 +2013,9 @@ error:
       X509V3_set_ctx_test(&ctx2);
       X509V3_set_nconf(&ctx2, extconf);
       if (!X509V3_EXT_add_nconf(extconf, &ctx2, (char*)(extsect_.c_str()), NULL)) {
-        CredentialLogger.msg(ERROR,"Error when loading the extension section: %s", extsect_.c_str()); LogError();
-        throw CredentialError("Error when loading the extension config file");
+        CredentialLogger.msg(ERROR,"Error when loading the extension section: %s", 
+          extsect_.c_str()); 
+        LogError();
       }
     }
     
@@ -1961,29 +2033,26 @@ error:
       ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(eec->extensions_, i));
       if (ext == NULL) {
         CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError();
-        throw CredentialError("Failed to duplicate extension");
       }
 
       if (!sk_X509_EXTENSION_push(cert_info->extensions, ext)) {
         CredentialLogger.msg(ERROR,"Failed to add extension into EEC certificate"); LogError();
-        throw CredentialError("Failed to add extension into EEC certificate");
       }
     }
-
 
     long lifetime = 12*60*60; //Default lifetime 12 hours
     if (!x509_certify(ctx,(char*)(certfile_.c_str()), digest, eec_cert, cert_,
                       pkey_, (char*)(CAserial_.c_str()), CAcreateserial_, lifetime, 0,
                       extconf, (char*)(extsect_.c_str()), NULL)) {
       CredentialLogger.msg(ERROR,"Can not sign a EEC"); LogError();
-      throw CredentialError("Can not sign a EEC");
     }
 
     if(PEM_write_bio_X509(outputbio, eec_cert)) {
       CredentialLogger.msg(INFO, "Output EEC certificate"); res = true;
     }
-    else { CredentialLogger.msg(ERROR, "Can not convert signed EEC cert into DER format"); 
-      LogError(); throw CredentialError("Can not convert signed EEC cert into DER format");
+    else { 
+      CredentialLogger.msg(ERROR, "Can not convert signed EEC cert into DER format"); 
+      LogError(); 
     }
 
     NCONF_free(extconf);
@@ -1995,7 +2064,10 @@ error:
 
   bool Credential::SignEECRequest(Credential* eec, const std::string& dn, std::string &content) {
     BIO *out = BIO_new(BIO_s_mem());
-    if(!out) { CredentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); LogError(); return false;}
+    if(!out) { 
+      CredentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); 
+      LogError(); return false;
+    }
 
     if(SignEECRequest(eec, dn, out)) {
       for(;;) {
@@ -2011,15 +2083,22 @@ error:
 
   bool Credential::SignEECRequest(Credential* eec, const std::string& dn, const char* filename) {
     BIO *out = BIO_new(BIO_s_file());
-    if(!out) { CredentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); LogError(); return false;}
+    if(!out) { 
+      CredentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate"); 
+      LogError(); return false;
+    }
     if (!(BIO_write_filename(out, (char*)filename))) {
-      CredentialLogger.msg(ERROR, "Can not set writable file for signed EEC certificate BIO"); LogError(); BIO_free_all(out); return false;
+      CredentialLogger.msg(ERROR, "Can not set writable file for signed EEC certificate BIO"); 
+      LogError(); BIO_free_all(out); return false;
     }
 
     if(SignEECRequest(eec, dn, out)) {
       CredentialLogger.msg(INFO, "Wrote signed EEC certificate into a file");
     }
-    else {CredentialLogger.msg(ERROR, "Failed to write signed EEC certificate into a file"); BIO_free_all(out); return false;    }
+    else {
+      CredentialLogger.msg(ERROR, "Failed to write signed EEC certificate into a file"); 
+      BIO_free_all(out); return false;    
+    }
     BIO_free_all(out);
     return true;
   }

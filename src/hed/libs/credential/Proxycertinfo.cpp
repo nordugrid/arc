@@ -428,7 +428,8 @@ PROXYCERTINFO * d2i_PROXYCERTINFO(PROXYCERTINFO ** cert_info, unsigned char ** p
   return info;
 }
 
-STACK_OF(CONF_VALUE) * i2v_PROXYCERTINFO(struct v3_ext_method* /* method */, PROXYCERTINFO* ext, STACK_OF(CONF_VALUE)* extlist) {
+STACK_OF(CONF_VALUE) * i2v_PROXYCERTINFO(struct v3_ext_method* /* method */, 
+    PROXYCERTINFO* ext, STACK_OF(CONF_VALUE)* extlist) {
   int     len = 128;
   char    tmp_string[128];
   if(!ext) {
@@ -455,7 +456,8 @@ STACK_OF(CONF_VALUE) * i2v_PROXYCERTINFO(struct v3_ext_method* /* method */, PRO
 }
 
 /*
-//The i2r_PROXYCERTINFO and r2i_PROXYCERTINFO are introduced from openssl-0.9.8e (crypto/x509v3/V3_pci.c)
+//The i2r_PROXYCERTINFO and r2i_PROXYCERTINFO are introduced 
+//from openssl-0.9.8e (crypto/x509v3/V3_pci.c)
 int i2r_PROXYCERTINFO(X509V3_EXT_METHOD *method, PROXYCERTINFO *ext, BIO *out, int indent) {
   BIO_printf(out, "%*sPath Length Constraint: ", indent, "");
   if (ext->path_length)
@@ -471,7 +473,8 @@ int i2r_PROXYCERTINFO(X509V3_EXT_METHOD *method, PROXYCERTINFO *ext, BIO *out, i
   return 1;
 }
 
-static int process_pci_value(CONF_VALUE *val, ASN1_OBJECT **language, ASN1_INTEGER **pathlen, ASN1_OCTET_STRING **policy) {
+static int process_pci_value(CONF_VALUE *val, ASN1_OBJECT **language, 
+    ASN1_INTEGER **pathlen, ASN1_OCTET_STRING **policy) {
   int free_policy = 0;
 
   if (strcmp(val->name, "language") == 0) {

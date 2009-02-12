@@ -61,7 +61,8 @@ namespace Arc {
     }
   }
 
-  VOMSTrustList::VOMSTrustList(const std::vector<VOMSTrustChain>& chains,const std::vector<VOMSTrustRegex>& regexs):chains_(chains) {
+  VOMSTrustList::VOMSTrustList(const std::vector<VOMSTrustChain>& chains,
+    const std::vector<VOMSTrustRegex>& regexs):chains_(chains) {
     for(std::vector<VOMSTrustRegex>::const_iterator r = regexs.begin();
                     r != regexs.end();++r) {
       AddRegex(*r);
@@ -381,7 +382,8 @@ namespace Arc {
     }
 
    //for (int i=0; i < sk_X509_num(stk); i++) 
-   //  fprintf(stderr, "stk[%i] = %s\n", i , X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); 
+   //  fprintf(stderr, "stk[%i] = %s\n", i , 
+   //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); 
 
 #ifdef HAVE_OPENSSL_OLDRSA
     sk_X509_push(stk, (X509 *)ASN1_dup((int (*)())i2d_X509,
@@ -392,7 +394,8 @@ namespace Arc {
 #endif
 
    //for(int i=0; i<sk_X509_num(stk); i++)
-   //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
+   //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
+   //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
 
     certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("certseq"), (char*)stk);
     sk_X509_pop_free(stk, X509_free);
@@ -484,8 +487,8 @@ err:
   }
 
   bool createVOMSAC(std::string &codedac, Credential &issuer_cred, Credential &holder_cred, 
-             std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes, 
-             std::string &voname, std::string &uri, int lifetime) {
+             std::vector<std::string> &fqan, std::vector<std::string> &targets, 
+             std::vector<std::string>& attributes, std::string &voname, std::string &uri, int lifetime) {
 
     EVP_PKEY* issuerkey = NULL;
     X509* holder = NULL;
@@ -751,11 +754,13 @@ err:
       current = sk_X509_value(certstack,n);
       if(!current) return false;
       if(chain[n] != X509_NAME_oneline(X509_get_subject_name(current),NULL,0)) {
-        CredentialLogger.msg(ERROR,"VOMS: the DN does in certificate: %s does not match that in trusted DN list: %s",X509_NAME_oneline(X509_get_subject_name(current),NULL,0), chain[n]);
+        CredentialLogger.msg(ERROR,"VOMS: the DN does in certificate: %s does not match that in trusted DN list: %s",
+          X509_NAME_oneline(X509_get_subject_name(current),NULL,0), chain[n]);
         return false;
       }
       if(chain[n+1] != X509_NAME_oneline(X509_get_issuer_name(current),NULL,0)) {
-        CredentialLogger.msg(ERROR,"VOMS: the Issuer identity does in certificate: %s does not match that in trusted DN list: %s",X509_NAME_oneline(X509_get_issuer_name(current),NULL,0), chain[n+1]);
+        CredentialLogger.msg(ERROR,"VOMS: the Issuer identity does in certificate: %s does not match that in trusted DN list: %s",
+          X509_NAME_oneline(X509_get_issuer_name(current),NULL,0), chain[n+1]);
         return false;
       }
     }
@@ -813,8 +818,6 @@ err:
           }
         }
       }
-
-
 
       /*
       bool success = false;
@@ -902,14 +905,15 @@ err:
       /* check if able to find the DN in the vomscert_trust_dn which is corresponding to the signing certificate*/
 
 #ifdef HAVE_OPENSSL_OLDRSA
-      X509 *cert = (X509 *)ASN1_dup((int (*)())i2d_X509, (char * (*)())d2i_X509, (char *)sk_X509_value(certstack, 0));
+      X509 *cert = (X509 *)ASN1_dup((int (*)())i2d_X509, 
+        (char * (*)())d2i_X509, (char *)sk_X509_value(certstack, 0));
 #else
       X509 *cert = (X509 *)ASN1_dup((int (*)(void*, unsigned char**))i2d_X509, 
-                   (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)sk_X509_value(certstack, 0));
+        (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)sk_X509_value(certstack, 0));
 #endif
 
    //for (int i=0; i <sk_X509_num(certstack); i ++)
-   //  fprintf(stderr, "+++ stk[%i] = %d  %s\n", i , sk_X509_value(certstack, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(certstack, i)), NULL, 0));
+   //fprintf(stderr, "+++ stk[%i] = %d  %s\n", i , sk_X509_value(certstack, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(certstack, i)), NULL, 0));
 
       bool found = false;
 
@@ -1270,11 +1274,12 @@ err:
   }
 
   static bool check_acinfo(X509* cert, X509* issuer, AC* ac, std::vector<std::string>& output) {
-    if(!ac || !cert || !(ac->acinfo) || !(ac->acinfo->version) || !(ac->acinfo->holder) || (ac->acinfo->holder->digest)
-       || !(ac->acinfo->form) || !(ac->acinfo->form->names) || (ac->acinfo->form->is) || (ac->acinfo->form->digest)
-       || !(ac->acinfo->serial) || !(ac->acinfo->validity) || !(ac->acinfo->alg) || !(ac->acinfo->validity) 
-       || !(ac->acinfo->validity->notBefore) || !(ac->acinfo->validity->notAfter) || !(ac->acinfo->attrib)
-       || !(ac->sig_alg) || !(ac->signature)) return false;
+    if(!ac || !cert || !(ac->acinfo) || !(ac->acinfo->version) || !(ac->acinfo->holder) 
+       || (ac->acinfo->holder->digest) || !(ac->acinfo->form) || !(ac->acinfo->form->names) 
+       || (ac->acinfo->form->is) || (ac->acinfo->form->digest) || !(ac->acinfo->serial) 
+       || !(ac->acinfo->validity) || !(ac->acinfo->alg) || !(ac->acinfo->validity) 
+       || !(ac->acinfo->validity->notBefore) || !(ac->acinfo->validity->notAfter) 
+       || !(ac->acinfo->attrib) || !(ac->sig_alg) || !(ac->signature)) return false;
 
     //Check the validity time  
     ASN1_GENERALIZEDTIME *start;
@@ -1313,12 +1318,15 @@ err:
       }
 
       if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
-        CredentialLogger.msg(WARNING,"VOMS: the holder serial number %i is not the same as in AC - %i",ASN1_INTEGER_get(cert->cert_info->serialNumber),ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
+        CredentialLogger.msg(WARNING,"VOMS: the holder serial number %i is not the same as in AC - %i",
+          ASN1_INTEGER_get(cert->cert_info->serialNumber),
+          ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
         // return false;
       }
        
       names = ac->acinfo->holder->baseid->issuer;
-      if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || (name->type != GEN_DIRNAME)) {
+      if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) ||
+        (name->type != GEN_DIRNAME)) {
         CredentialLogger.msg(ERROR,"VOMS: the holder issuer information in AC is wrong");
         return false;
       }
@@ -1327,8 +1335,10 @@ err:
       CredentialLogger.msg(VERBOSE,"VOMS: DN of holder in AC: %s",X509_NAME_oneline(name->d.dirn,NULL,0));
       CredentialLogger.msg(VERBOSE,"VOMS: DN of holder: %s",X509_NAME_oneline(cert->cert_info->subject,NULL,0));
       CredentialLogger.msg(VERBOSE,"VOMS: DN of issuer: %s",X509_NAME_oneline(cert->cert_info->issuer,NULL,0));
-      if (X509_NAME_cmp(name->d.dirn, cert->cert_info->subject) && X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
-        CredentialLogger.msg(ERROR,"VOMS: the holder itself can not sign an AC by using a self-sign certificate"); return false;
+      if (X509_NAME_cmp(name->d.dirn, cert->cert_info->subject) && 
+        X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
+        CredentialLogger.msg(ERROR,"VOMS: the holder itself can not sign an AC by using a self-sign certificate"); 
+        return false;
       }
 
       if ((ac->acinfo->holder->baseid->uid && cert->cert_info->issuerUID) ||
@@ -1360,9 +1370,11 @@ err:
     }
   
     names = ac->acinfo->form->names;
-    if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || (name->type != GEN_DIRNAME) ||
-       X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
-      CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",X509_NAME_oneline(issuer->cert_info->subject,NULL,0),X509_NAME_oneline(name->d.dirn,NULL,0));
+    if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || 
+       (name->type != GEN_DIRNAME) || X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
+      CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",
+        X509_NAME_oneline(issuer->cert_info->subject,NULL,0),
+        X509_NAME_oneline(name->d.dirn,NULL,0));
       return false;
     }
 

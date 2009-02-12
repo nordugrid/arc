@@ -45,7 +45,7 @@ class CredentialError : public std::runtime_error {
     CredentialError(const std::string& what="");
 };
 
-typedef enum {PEM, DER, PKCS, UNKNOWN} Credformat;
+typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
 
 /**Logger to be used by all modules of credentials library*/
 extern Logger CredentialLogger;
@@ -129,14 +129,19 @@ class Credential {
      */
     bool Verify(void);
  
-    /**Create a certificate extension based on the arguments name and data.
-    *argument crit will be used by X509_EXTENSION_create_by_OBJ which is called inside CreateExtension method.
+    /**Create a certificate extension based on the arguments 
+    * name and data. argument crit will be used by 
+    * X509_EXTENSION_create_by_OBJ which is called inside 
+    * CreateExtension method.
     */
     X509_EXTENSION* CreateExtension(std::string& name, std::string& data, bool crit = false);
 
-    /** Set the start and end time for the proxy credential. After setting, the start time of proxy
-    * will not before the later value from issuer's start time and the "start" parameter, and the end time of proxy
-    * will not after the ealier value from issuer's end time and the "start" parameter plus "lifetime" paremeter
+    /** Set the start and end time for the proxy credential. 
+    * After setting, the start time of proxy will not 
+    * before the later value from issuer's start time 
+    * and the "start" parameter, and the end time of proxy
+    * will not after the ealier value from issuer's end 
+    * time and the "start" parameter plus "lifetime" paremeter
     */
     bool SetProxyPeriod(X509* tosign, X509* issuer, Arc::Time& start, Arc::Period& lifetime);
 
@@ -175,10 +180,14 @@ class Credential {
      */
     std::string GetIdentityName(void);
 
-    /**Get the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
+    /**Get the proxy policy attached to the "proxy certificate 
+     * information" extension of the proxy certicate
+     */
     std::string GetProxyPolicy(void);
 
-    /**Set the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
+    /**Set the proxy policy attached to the "proxy certificate 
+     * information" extension of the proxy certicate
+     */
     void SetProxyPolicy(const std::string& proxyversion, const std::string& policylang,
         const std::string& policy, int pathlength);
 
@@ -225,18 +234,22 @@ class Credential {
     bool AddExtension(std::string name, std::string data, bool crit = false);
 
     /**Add an extension to the extension part of the certificate
-    *@param binary, the data which will be inserted into certificate extension part as a specific extension
-    *there should be specific methods defined inside specific X509V3_EXT_METHOD structure
-    *to parse the specific extension format.
-    *for example, VOMS attribute certificate is a specific extension to proxy certificate. There is 
-    *specific X509V3_EXT_METHOD defined in VOMSAttribute.h and VOMSAttribute.c for parsing attribute certificate.
-    *In openssl, the specific X509V3_EXT_METHOD can be got according to the extension name/id,
-    *see X509V3_EXT_get_nid(ext_nid) 
+    * @param binary, the data which will be inserted into certificate 
+    * extension part as a specific extension there should be specific 
+    * methods defined inside specific X509V3_EXT_METHOD structure 
+    * to parse the specific extension format.
+    * For example, VOMS attribute certificate is a specific 
+    * extension to proxy certificate. There is specific X509V3_EXT_METHOD 
+    * defined in VOMSAttribute.h and VOMSAttribute.c for parsing attribute 
+    * certificate.
+    * In openssl, the specific X509V3_EXT_METHOD can be got according to 
+    * the extension name/id, see X509V3_EXT_get_nid(ext_nid) 
     */
     bool AddExtension(std::string name, char** binary, bool crit = false);
 
-    /**Generate a proxy request, base on the keybits and signing algorithm information inside this object
-    *output the certificate request to output BIO
+    /**Generate a proxy request, base on the keybits and signing 
+    * algorithm information inside this object
+    * output the certificate request to output BIO
     */
     bool GenerateRequest(BIO* &bio);
 
@@ -246,8 +259,10 @@ class Credential {
     /**Generate a proxy request, output the certificate request to a file*/
     bool GenerateRequest(const char* filename);
 
-    /**Inquire the certificate request from BIO, and put the request information to X509_REQ inside this object,
-    *and parse the certificate type from the PROXYCERTINFO of request' extension
+    /**Inquire the certificate request from BIO, and put the request 
+    * information to X509_REQ inside this object,
+    * and parse the certificate type from the PROXYCERTINFO 
+    * of request' extension
     */
     bool InquireRequest(BIO* &reqbio, bool if_eec = false);
    
@@ -257,7 +272,9 @@ class Credential {
     /**Inquire the certificate request from a file*/
     bool InquireRequest(const char* filename, bool if_eec = false);
 
-    /**Sign request based on the information inside proxy, and output the signed certificate to output BIO*/
+    /**Sign request based on the information inside proxy, and 
+     * output the signed certificate to output BIO
+     */
     bool SignRequest(Credential* proxy, BIO* outputbio);
 
     /**Sign request and output the signed certificate to a string*/
