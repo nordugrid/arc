@@ -27,8 +27,17 @@ namespace Arc {
 
   public:
     ExecutionTarget();
+    ExecutionTarget(const ExecutionTarget& target);
     ExecutionTarget(const long int addrptr);
+    ExecutionTarget& operator=(const ExecutionTarget& target);
     virtual ~ExecutionTarget();
+
+  private:
+    void Copy(const ExecutionTarget& target);
+
+  public:
+    Submitter* GetSubmitter(const UserConfig& ucfg) const;
+    void Print(bool longlist) const;
 
     // Attributes from 5.3 Location
 
@@ -159,9 +168,6 @@ namespace Arc {
 
     std::string GridFlavour;
     URL Cluster; // contains the URL of the infosys that provided the info
-
-    Submitter* GetSubmitter(const UserConfig& ucfg) const;
-    void Print(bool longlist) const;
 
   private:
     ACCLoader *loader;

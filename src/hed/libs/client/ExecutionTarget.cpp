@@ -61,6 +61,7 @@ namespace Arc {
       WorkingAreaShared(true),
       WorkingAreaTotal(-1),
       WorkingAreaFree(-1),
+      WorkingAreaLifeTime(-1),
       CacheTotal(-1),
       CacheFree(-1),
       VirtualMachine(false),
@@ -69,11 +70,155 @@ namespace Arc {
       ConnectivityIn(false),
       ConnectivityOut(false) {}
 
+  ExecutionTarget::ExecutionTarget(const ExecutionTarget& target) {
+    Copy(target);
+  }
+
   ExecutionTarget::ExecutionTarget(const long int addrptr) {
-    *this = *((ExecutionTarget*)addrptr);
+    Copy(*(ExecutionTarget*)addrptr);
+  }
+
+  ExecutionTarget& ExecutionTarget::operator=(const ExecutionTarget& target) {
+    Copy(target);
+    return *this;
   }
 
   ExecutionTarget::~ExecutionTarget() {}
+
+  void ExecutionTarget::Copy(const ExecutionTarget& target) {
+
+    // Attributes from 5.3 Location
+
+    Address = target.Address;
+    Place = target.Place;
+    Country = target.Country;
+    PostCode = target.PostCode;
+    Latitude = target.Latitude;
+    Longitude = target.Longitude;
+
+    // Attributes from 5.5.1 Admin Domain
+
+    DomainName = target.DomainName;
+    Owner = target.Owner;
+
+    // Attributes from 6.1 Computing Service
+
+    ServiceName = target.ServiceName;
+    ServiceType = target.ServiceType;
+
+    // Attributes from 6.2 Computing Endpoint
+
+    url = target.url;
+    Capability = target.Capability;
+    Technology = target.Technology;
+    InterfaceName = target.InterfaceName;
+    InterfaceVersion = target.InterfaceVersion;
+    InterfaceExtension = target.InterfaceExtension;
+    SupportedProfile = target.SupportedProfile;
+    Implementor = target.Implementor;
+    ImplementationName = target.ImplementationName;
+    ImplementationVersion = target.ImplementationVersion;
+    QualityLevel = target.QualityLevel;
+    HealthState = target.HealthState;
+    HealthStateInfo = target.HealthStateInfo;
+    ServingState = target.ServingState;
+    IssuerCA = target.IssuerCA;
+    TrustedCA = target.TrustedCA;
+    DowntimeStarts = target.DowntimeStarts;
+    DowntimeEnds = target.DowntimeEnds;
+    Staging = target.Staging;
+    JobDescriptions = target.JobDescriptions;
+
+    // Attributes from 6.3 Computing Share
+
+    MappingQueue = target.MappingQueue;
+    MaxWallTime = target.MaxWallTime;
+    MaxTotalWallTime = target.MaxTotalWallTime;
+    MinWallTime = target.MinWallTime;
+    DefaultWallTime = target.DefaultWallTime;
+    MaxCPUTime = target.MaxCPUTime;
+    MaxTotalCPUTime = target.MaxTotalCPUTime;
+    MinCPUTime = target.MinCPUTime;
+    DefaultCPUTime = target.DefaultCPUTime;
+    MaxTotalJobs = target.MaxTotalJobs;
+    MaxRunningJobs = target.MaxRunningJobs;
+    MaxWaitingJobs = target.MaxWaitingJobs;
+    MaxPreLRMSWaitingJobs = target.MaxPreLRMSWaitingJobs;
+    MaxUserRunningJobs = target.MaxUserRunningJobs;
+    MaxSlotsPerJob = target.MaxSlotsPerJob;
+    MaxStageInStreams = target.MaxStageInStreams;
+    MaxStageOutStreams = target.MaxStageOutStreams;
+    SchedulingPolicy = target.SchedulingPolicy;
+    MaxMainMemory = target.MaxMainMemory;
+    MaxVirtualMemory = target.MaxVirtualMemory;
+    MaxDiskSpace = target.MaxDiskSpace;
+    DefaultStorageService = target.DefaultStorageService;
+    Preemption = target.Preemption;
+    TotalJobs = target.TotalJobs;
+    RunningJobs = target.RunningJobs;
+    LocalRunningJobs = target.LocalRunningJobs;
+    WaitingJobs = target.WaitingJobs;
+    LocalWaitingJobs = target.LocalWaitingJobs;
+    SuspendedJobs = target.SuspendedJobs;
+    LocalSuspendedJobs = target.LocalSuspendedJobs;
+    StagingJobs = target.StagingJobs;
+    PreLRMSWaitingJobs = target.PreLRMSWaitingJobs;
+    EstimatedAverageWaitingTime = target.EstimatedAverageWaitingTime;
+    EstimatedWorstWaitingTime = target.EstimatedWorstWaitingTime;
+    FreeSlots = target.FreeSlots;
+    FreeSlotsWithDuration = target.FreeSlotsWithDuration;
+    UsedSlots = target.UsedSlots;
+    RequestedSlots = target.RequestedSlots;
+    ReservationPolicy = target.ReservationPolicy;
+
+    // Attributes from 6.4 Computing Manager
+
+    ManagerProductName = target.ManagerProductName;
+    ManagerProductVersion = target.ManagerProductVersion;
+    Reservation = target.Reservation;
+    BulkSubmission = target.BulkSubmission;
+    TotalPhysicalCPUs = target.TotalPhysicalCPUs;
+    TotalLogicalCPUs = target.TotalLogicalCPUs;
+    TotalSlots = target.TotalSlots;
+    Homogeneous = target.Homogeneous;
+    NetworkInfo = target.NetworkInfo;
+    WorkingAreaShared = target.WorkingAreaShared;
+    WorkingAreaTotal = target.WorkingAreaTotal;
+    WorkingAreaFree = target.WorkingAreaFree;
+    WorkingAreaLifeTime = target.WorkingAreaLifeTime;
+    CacheTotal = target.CacheTotal;
+    CacheFree = target.CacheFree;
+
+    // Attributes from 6.5 Benchmark
+
+    Benchmarks = target.Benchmarks;
+
+    // Attributes from 6.6 Execution Environment
+
+    Platform = target.Platform;
+    VirtualMachine = target.VirtualMachine;
+    CPUVendor = target.CPUVendor;
+    CPUModel = target.CPUModel;
+    CPUVersion = target.CPUVersion;
+    CPUClockSpeed = target.CPUClockSpeed;
+    MainMemorySize = target.MainMemorySize;
+    OSFamily = target.OSFamily;
+    OSName = target.OSName;
+    OSVersion = target.OSVersion;
+    ConnectivityIn = target.ConnectivityIn;
+    ConnectivityOut = target.ConnectivityOut;
+
+    // Attributes from 6.7 Application Environment
+
+    ApplicationEnvironments = target.ApplicationEnvironments;
+
+    // Other
+
+    GridFlavour = target.GridFlavour;
+    Cluster = target.Cluster;
+
+    loader = NULL;
+  }
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
 
