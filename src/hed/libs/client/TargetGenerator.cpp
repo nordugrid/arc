@@ -71,7 +71,10 @@ namespace Arc {
     loader = new ACCLoader(cfg);
   }
 
-  TargetGenerator::~TargetGenerator() {}
+  TargetGenerator::~TargetGenerator() {
+    if (loader)
+      delete loader;
+  }
 
   void TargetGenerator::GetTargets(int targetType, int detailLevel) {
 
