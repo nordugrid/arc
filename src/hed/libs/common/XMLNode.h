@@ -113,6 +113,12 @@ class XMLNode {
   bool operator==(const std::string& str) { return ((std::string)(*this) == str); };
   /** This operator is needed to avoid ambiguity */
   bool operator!=(const std::string& str) { return ((std::string)(*this) != str); };
+  /** This operator is needed to avoid ambiguity */
+  bool operator==(const char* str) { return ((std::string)(*this) == str); };
+  /** This operator is needed to avoid ambiguity */
+  bool operator!=(const char* str) { return ((std::string)(*this) != str); };
+  /** Returns XMLNode instance representing n-th child of XML element.
+    If such does not exist invalid XMLNode instance is returned */
   /** Returns XMLNode instance representing n-th child of XML element.
     If such does not exist invalid XMLNode instance is returned */
   XMLNode Child(int n = 0) const;
@@ -200,7 +206,8 @@ class XMLNode {
   std::string NamespacePrefix(const char* urn);
   /** Creates new child XML element at specified position with specified name.
     Default is to put it at end of list. If global order is true position
-    applies to whole set of children, otherwise only to children of same name */
+    applies to whole set of children, otherwise only to children of same name.
+    Returns created node. */
   XMLNode NewChild(const char* name,int n = -1,bool global_order = false);
   /** Same as NewChild(const char*,int,bool) */
   XMLNode NewChild(const std::string& name,int n = -1,bool global_order = false) {
