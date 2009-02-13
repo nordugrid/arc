@@ -548,7 +548,7 @@ namespace Arc {
     }
 
     if (GLUEService["ComputingManager"]["Type"]) {
-      target.ManagerType = (std::string)GLUEService["ComputingManager"]["Type"];
+      target.ManagerProductName = (std::string)GLUEService["ComputingManager"]["Type"];
     } else {
       logger.msg(INFO, "The Service doesn't advertise its LRMS.");
     }
@@ -590,7 +590,8 @@ namespace Arc {
     }
 
     if (GLUEService["ComputingManager"]["NetworkInfo"]) {
-      target.NetworkInfo = (std::string)GLUEService["ComputingManager"]["NetworkInfo"];
+      for (XMLNode n = GLUEService["ComputingManager"]["NetworkInfo"]; n; ++n)
+	target.NetworkInfo.push_back((std::string)n);
     } else {
       logger.msg(INFO, "The Service doesn't advertise whether it is Homogeneous.");
     }
