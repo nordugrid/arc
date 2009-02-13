@@ -68,7 +68,8 @@ namespace Arc {
       CPUClockSpeed(-1),
       MainMemorySize(-1),
       ConnectivityIn(false),
-      ConnectivityOut(false) {}
+      ConnectivityOut(false),
+      loader(NULL) {}
 
   ExecutionTarget::ExecutionTarget(const ExecutionTarget& target) {
     Copy(target);
