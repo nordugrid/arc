@@ -33,10 +33,16 @@
 \newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
 \newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
 \newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
-\newcommand{\arclib}{libarcclient}
+\newcommand{\libarcclient}{libarcclient}
 \newcommand{\ACC}{\texttt{ACC}}
 \newcommand{\ACCConfig}{\texttt{ACCConfig}}
+\newcommand{\Config}{\texttt{Config}}
 \newcommand{\Broker}{\texttt{Broker}}
+\newcommand{\RandomBroker}{\texttt{RandomBroker}}
+\newcommand{\FastestCPUBroker}{\texttt{FastestCPUBroker}}
+\newcommand{\FastestQueueBroker}{\texttt{FastestQueueBroker}}
+\newcommand{\PythonBroker}{\texttt{PythonBroker}}
+\newcommand{\DataBroker}{\texttt{DataBroker}}
 \newcommand{\ClientInterface}{\texttt{ClientInterface}}
 \newcommand{\ClientTCP}{\texttt{ClientTCP}}
 \newcommand{\ClientHTTP}{\texttt{ClientHTTP}}
@@ -82,7 +88,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large {\arclib}}\Large \par}
+{\centering \textsc{\Large {\libarcclient}}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -113,6 +119,7 @@ of C++ classes for
 \begin{itemize}
 \item{handling proxy, user and host certificates,}
 \item{performing resource discovery and information retrieval,}
+\item{filtering and brokering of found resources,}
 \item{job submission and management and}
 \item{data handling.}
 \end{itemize}
@@ -139,7 +146,7 @@ the library.
 \chapter{Functionality Overview}
 \label{sec:FuncOver}
 
-The new {\arclib} makes extensive use of plugins for command
+The new {\libarcclient} makes extensive use of plugins for command
 handling. These plugins are handled by a set of higher level classes
 which thus are the ones to offer the plugin functionality to external
 calls. In this section an overview of the library's main functionality
@@ -152,7 +159,7 @@ classes.
 With the increasing number of grid clusters around the world, a
 reliable and fast resource discovery and information retrieval
 capability is of crucial importance for a user interface. The new
-{\arclib} resource discovery and information retrieval component
+{\libarcclient} resource discovery and information retrieval component
 consists of three classes; the {\TargetGenerator}, the
 {\TargetRetriever} and the {\ExecutionTarget}. Of these the
 {\TargetRetriever} is a base class for further grid middleware
@@ -254,8 +261,8 @@ description of each step is given:
 \item{In order to rank the found services ({\ExecutionTarget}s) the
   {\Broker} needs detailed knowledge about the job requirements, thus
   the {\JobDescription} is passed as input to the brokering process.}
-\item{The {\Broker} outputs a ordered list of {\ExecutionTarget}s
-  according to the provided {\JobDescription}.}
+\item{The {\Broker} filters and ranks the {\ExecutionTarget}s according 
+  to the ranking method chosen by the user.}
 \item{Each {\ExecutionTarget} has a method to return a specialized
   {\Submitter} which is capable of submitting jobs to the service it
   represents. The best suitable {\ExecutionTarget} for the job is
@@ -269,7 +276,7 @@ description of each step is given:
 \section{Job Management}
 
 Once a job is submitted job related information (job identification
-string, cluster etc) is stored in a local XML file which hosts similar
+string, cluster etc) is stored in a local XML file which stores this 
 information for all active jobs. This file may contain jobs running on
 completely different grid flavours, and thus job management should be
 handled using plugins similar to resource discovery and job
@@ -301,7 +308,7 @@ together and below a step by step description is given:
   extensively used by the {\JobSupervisor} to identify the
   {\JobController} flavours which are to be loaded. The information in
   the joblist file is also used to look up the job identifier for jobs
-  specified using job names. Alias resolution for the selected and
+  specified using job names. Alias resolving for the selected and
   rejected clusters are performed using the information in the
   {\UserConfig} object.}
 \item{Suitable {\JobController}s are loaded}
@@ -316,7 +323,7 @@ together and below a step by step description is given:
 \label{sec:Implementation}
 
 In this section an overview of all important classes in the new
-{\arclib} is given. The overview is subdivided in two parts where
+{\libarcclient} is given. The overview is subdivided in two parts where
 first all the generic classes are presented,
 Section~\ref{sec:genclass}, before the grid flavour specializations
 are presented in Section~\ref{sec:plugins}. Classes are described both
@@ -447,8 +454,8 @@ server.
 
 The {\ExecutionTarget} is the class representation of a computing
 resource (queue) capable of executing a grid job. It serves as input
-to the {\Broker} which is foreseen to be able to select between
-different {\ExecutionTarget}s from different grid flavours without a
+to the {\Broker} which is able to filter and rank different 
+{\ExecutionTarget}s from different grid flavours without a
 priori knowing their difference. The {\ExecutionTarget} class mimics
 the Glue2 information model (with a flattened structure), and thus a
 mapping between attributes from other information systems into the
@@ -463,7 +470,7 @@ void Print(bool longlist) const;
 \end{verbatim}
 \end{shaded}
 
-Following a broker decision jobs are to be submitted. Since all
+Following a broker ranking jobs are to be submitted. Since all
 information about the selected computing service resides within the
 selected {\ExecutionTarget}, the {\ExecutionTarget} is capable of
 returning a {\Submitter} capable of submitting a job to the service it
@@ -480,65 +487,45 @@ information needed by the {\Submitter}.
 
 \subsection{{\Broker}}
 
-The Broker inherits from the {\ACC} base class in order to be loadable by the ARC \texttt{Loader}. It is the base class of the specialized Brokers. If you are using command arcsub then you can choose a broker type with with ``-b`` parameter. There is a solution for adding parameters to these descendants Brokers. Here is an example:
+The {\Broker} inherits from the {\ACC} base class in order to be loadable by the ARC \texttt{Loader}. It is the base class of the 
+specialized {\Broker} and it implements the method for reducing a list of resources found by resource discovery (the list of 
+{\ExecutionTarget}s residing witin the {\TargetGenerator}) to a list of resources capable of running a certain job:
 
 \begin{shaded}
 \begin{verbatim}
-arcsub -b RandomBroker:a,b,c -c ARC1:https://knowarc1.grid.niif.hu:60000/arex job.jsdl
+void PreFilterTargets(Arc::TargetGenerator& targen, Arc::JobDescription jd);
 \end{verbatim}
 \end{shaded}
 
-The Broker's constructor sets the PreFilteringDone and the TargetSortingDone values to false because we need to call the PreFilterTargets first then the second the GetBestTarget which triggers the specialised Broker sorting method.
-
-The base Broker operations are the followings:
-
-
-\begin{enumerate}
-\item{The first step is the PreFilterTargets, this implements the matchmaking: the JobDescription and the TargetGenerator's ExecutionTargets will be compared inside this method. JobDescription encapsulate the job's JobInnerRepresentation, and the ExecutionTarget involves the candidate cluster's queue information. There are main elements in the JobInnerRepresentation which are used for matchmaking, these are documented in  Appendix: \ref{sec:broker-mapping}, all matchmaking elements and their comparison logic are there. The macthmaking works the following way: it takes every JobInnerrepresentation elements which are relevant and  check them in an ordered way. If a matchmaking element is not presented in the JobInnerRepresentation then it will be ignored, but if it is there than the ExecutionTarget should compare. For example SessionLifeTime is in the JobInnerRepresentaion and the WorkingAreaLifeTime is in the ExecutionTarget (these are matchmaking pair). If the WorkingAreaLifeTime is not defined then the Broker cannot check the times therefore it will ignore this cluster, but if the WorkingAreaLifeTime exist and the comparison between this elements are true then this check will be passed otherwise the cluster will be ignored. We are using this rule for checking every elements. There is only one exception that is the ProcessingStartTime. If the DownTime is not defined in the ExecutionTarget than we can believe it that the job can start anytime and it will not be killed by shutdown. This rule checking runs for every ExecutionTargets and if every matchmaking checks are successfull for a target then this ExecutionTarget will be added to the PossibleTargets vector.}
-\item{When the matchmaking has finished then  the PreFilteringDone variable will be set to true and the TargetSortingDone will be set to false. }
-\item{The next step is calling the GetBestTarget method, which will give an ExecutionTarget candidate. If the PossibleTargets vector is empty then it will give nothing. The GetBestTarget will call the specialid Broker type sorting  method. This SortTargets method is a virtual method, therefore every specialised Broker should implement it.}
-\item{When the SortTargets has finished then the TargetSortingDone will be true and the GetBestTarget will return the first element of the PossibleTargetVector and the current iterator will be incremented by one.}
-\item{If the submision fails to this cluster then we can call the GetBestTarget again and we will get an other ExecutionTarget till it will not consumes. If  the targets run out from the PossibleTargetVector then the GetBestTarget's boolean parameter (EndOfList) will be true}
-\end{enumerate}
+The {\texttt PreFilterTargets} method compares every hardware and software requirement given in the job description against the 
+computing resource (cluster) specifications stored in the {\ExecutionTarget}. If the{\ExecutionTarget} doesn't fulfill 
+the requirements imposed by the job description, or it is impossible to carry out the matchmaking due to incomplete information 
+published by the computing resource, the {\ExecutionTarget} will be removed from the list of possible targets. A detailed overview 
+of the matchmaking between {\JobDescription} and {\ExecutionTarget} attributes is given in Appendix~\ref{sec:broker-mapping}. 
+ 
+Once prefiltered the remaining {\ExecutionTarget}s should be ranked in order to return the ``best'' {\ExecutionTarget} for 
+job submission. Different ranking methods are implemented by the specialized brokers, but for usability and consistency reasons 
+these methods are encapsulated by the {\Broker} base class method
 
 \begin{shaded}
 \begin{verbatim}
-class Broker : public ACC {
-public:
-    ExecutionTarget& GetBestTarget(bool &EndOfList);
-    void PreFilterTargets(Arc::TargetGenerator& targen, Arc::JobDescription jd);    
-protected:
-    Broker(Config *cfg);
-    virtual ~Broker();
-    virtual void SortTargets() = 0;
-    std::vector<Arc::ExecutionTarget> PossibleTargets;
-    bool TargetSortingDone;
-    Arc::JobInnerRepresentation jir;
-    static Logger logger;
-private:
-    std::vector<Arc::ExecutionTarget>::iterator current;
-    bool PreFilteringDone;
-};
+ExecutionTarget& GetBestTarget(bool &EndOfList);
 \end{verbatim}
 \end{shaded}
 
-The Broker class encasulated two useful data elements: logger and JobInnerRepresentation. These can be helpful when somebody creates a specialised Broker and wants to use the logger and needs some information about the job.
-
+which invokes the {\texttt SortTargets} method implemented by the specialized broker (see Section~\ref{sec:brokerplugins}) 
+and returns the best target. The {\texttt GetBestTarget} method is ``incremented'' at each call, thus upon a second call 
+the second best {\ExecutionTarget} will be returned. 
 
 \subsection{{\JobDescription}}
 
 When addressing interoperability it is of paramount importance to
 transparently address grid job descriptions written in different job
 description languages by translating them automatically. In the
-{\arclib} library this functionality is implemented in the
-{\JobDescription} class. The inner representation (\texttt{JobInnerRepresentation}
-class) is similar to the GIN-JSDL and all elements correspond to
-variables. These variables are either simple variables or complex data structures,
-and are private in the {\JobDescription} class.
-
-
-This is a generic class that takes a job
-description (string) as input
+{\libarcclient} library this functionality is implemented in the
+{\JobDescription} class which parses job descriptions given in the 
+XRSL~\cite{xrsl}, JDL~\cite{jdl} or JSDL~\cite{jsdl} formats into an 
+internal representation based upon the upcoming PGI-JSDL proposal. 
 
 \begin{shaded}
 \begin{verbatim}
@@ -546,18 +533,22 @@ bool setSource(const std::string source);
 \end{verbatim}
 \end{shaded}
 
-in any supported formats (currently XRSL~\cite{xrsl}, JDL~\cite{jdl},
-JSDL~\cite{jsdl}), converts and stores it in a GIN-JSDL-like internal job
-description format. The identification of the source description
-format is internally handled by a \texttt{JobDescriptionOrderer} class
-which identifies the format by pattern matching. If the source string is
-empty or the \texttt{JobDescriptionOrderer} class can not be recognized
-to any formats, then it does not store anything and returns with false, otherwise
-it converts and stores it. 
+The identification of the source description format is internally handled by a 
+\texttt{JobDescriptionOrderer} class which identifies the format by pattern matching.
+Once the format is determined from the elements are mapped from the original format (XRSL, JDL or JSDL) 
+into the internal representation (the \texttt{JobInnerRepresentation} class). Mapping details 
+are given in Section~\ref{sec:jobinnerrepresentation}. 
 
-Different operations, like getting the job description in other
-formats or getting job-related information, can be performed by using the
-description-independent functions of this class, e.g.:
+The {\JobDescription} class has three back-end classes, sometimes
+referred to as back-end or translator modules, corresponding to the
+three supported job description languages. The {\JobDescription} class
+chooses the appropriate back-end module according to the pattern matching
+performed by the \texttt{JobDescriptionOrderer}, and uses the back-end
+module for parsing and translation (if needed) of the job descriptions.
+
+Once the job description language required by the {\ExecutionTarget} chosen 
+for job submission is known the parsed and (if needed) translated job description 
+can be retrieved through the {\texttt GetProduct} funcion as shown below:
 
 \begin{shaded}
 \begin{verbatim}
@@ -565,27 +556,23 @@ bool getProduct(std::string& product, std::string format = "POSIXJSDL")
 \end{verbatim}
 \end{shaded}
 
-The {\JobDescription} class has three back-end classes, sometimes
-referred to as back-end or translator modules, corresponding to the
-three supported job description languages. The {\JobDescription} class
-chooses the appropriate back-end module according to the pattern matching
-performed by the \texttt{JobDescriptionOrderer}, and uses the back-end
-module for parsing and generating the job descriptions.
 If the inner representation is empty or the source job descrition is not
-valid, then the output is empty too and returns with false.
-When the source format is the same as the output format and it is not XRSL,
-than we set the product string to the source string. The XRSL output is
-always generated from the inner representation. 
+valid, then the {\texttt GetProduct} output is empty too and the method 
+returns with false. When the product format is the same as the source format 
+and not XRSL, than the product string is set to the source string. The XRSL 
+output is always generated from the inner representation, as it includes 
+automatic job description modifications similar to those of the production 
+ARC client. If the product format differs from the source format the 
+{\texttt GetProduct} method calls upon the \texttt{JobDescriptionOrderer} 
+class to carry out the translation.
 
-Parsing is currently possible from any of the languages. JSDL, XRSL and
-JDL output generation is implemented already but even for these there are
-some limitations.
-
-The conversion mainly means a syntactical transformation and the
-{\JobDescription} class can do nothing in those cases where
-there are not enough data is available to assemble a given attribute or
-when information can be lost because the received attribute has no
-equivalent in the output language.
+The translation of a job description basically means a syntactical transformation 
+of the job description from one language to another. Thus the {\JobDescription}
+class can do nothing in those cases where there is not enough data is available 
+to assemble a given attribute or when information can be lost because the received 
+attribute has no equivalent in the output language. In these events the {\texttt GetProduct} 
+method returns with a false and an empty product stringt. For limitations in the translation
+see Section~\ref{sec:jobinnerrepresentation}.
 
 For the JSDL output generation the {\JobDescription} class uses
 the core JSDL's capabilities amended with the JSDL-POSIX and JSDL-ARC
@@ -595,7 +582,6 @@ such an output.
 For the JDL generation the latest version of JDL specification was
 used (v0.9) \cite{jdl}. Deprecated and backward compatibility
 attributes are not implemented.
-
 
 \subsection{{\Submitter}}
 
@@ -747,7 +733,7 @@ Section~\ref{sec:plugins}.
 The {\Job} is a generic job class for storing all job related
 information. Attributes are derived from the Glue2 information model
 and thus a mapping is needed for non Glue2 compliant grid middlewares.
-Appendix \ref{app:job} shows the present mapping schema.
+Appendix~\ref{app:job} shows the present mapping schema.
 
 All attributes of the {\Job} can be printed by the method
 
@@ -926,7 +912,7 @@ plugins requires the http DMC.
 The gLite computing element offers several interfaces, one of them
 being the Web Service based computing element interface known as the
 CREAM CE~\cite{cream}. The current revision of this interface (CREAM
-version 2) has been chosen for implementation within {\arclib} for the
+version 2) has been chosen for implementation within {\libarcclient} for the
 following reasons:
 
 \begin{itemize}
@@ -954,39 +940,55 @@ Stage-in and stage-out of input and output files are done using the
 gridftp protocol. The gridftp DMC is therefore required.
 
 \subsection{Broker plugins}
+\label{sec:brokerplugins}
 
-\subsubsection{RandomBroker}
+\subsubsection{\RandomBroker}
 
-The ExecutionTarget sorting is based on randomization, the PossibleTargets vector will be shuffled.
+The {\RandomBroker} ranks the {\ExecutionTarget}s randomly. 
 
-\subsubsection{FastestCPUBroker}
+\subsubsection{\FastestCPUBroker}
 
-The sorting method is based on the fastest CPU, we use the CINT2000 (Integer Component of SPEC CPU2000) benchmark for this purpose , here are more information about this benchmark type: 
+The {\FastestCPUBroker} ranks the {\ExecutionTarget}s according to their CPU performance. The most 
+reliable comparison is achieved through the usage of a benchmark scenario, and the {\FastestCPUBroker}
+uses the CINT2000 (Integer Component of SPEC CPU2000)\footnote{http://www.spec.org/cpu2000/CINT2000/} 
+benchmark for this purpose. 
 
-http://www.spec.org/cpu2000/CINT2000/
-
-The sorting algorithm for this Broker is as follows:
-
-\begin{enumerate}
-\item{There is a cluster filtering at the begining of the sorting. If the cluster is not publish the specint2000 benchmark information then it will be ignored.}
-\item{The cluster having the highest specint2000 value will be the first in the PossibleTargets vector which has }
-\end{enumerate}
-
-\subsubsection{FastestQueueBroker}
-
-The sorting method is based on the shortest queue, where the number waiting jobs  of  is the lowest. 
-
-The sorting algorithm for this Broker is as follows:
+The {\texttt SortTargets} method has two steps:
 
 \begin{enumerate}
-\item{The clusters which do not involve the target sorting information will be removed  (WaitingJobs, TotalSlots and FreeSlots).}
-\item{Sort the targets according to the number of waiting jobs (in percent of the cluster size). The cluster will be better where the WaitingJobs number divided by the TotalSlots gives the lower number. This solution will result that the scale queue will be independent from the cluster size.}
-\item{If several clusters(queues) have free slots (CPUs) do basic load balancing}
+\item{{\ExecutionTarget}s not publishing the specint2000 benchmark information are removed from the list 
+  of possible targets as their performance is unknown.}
+\item{The {\ExecutionTarget}s are ranked such that the {\ExecutionTarget} with highest specint2000 value 
+  receives top ranking}
 \end{enumerate}
 
-\subsubsection{DataBroker}
+\subsubsection{\FastestQueueBroker}
 
-The main idea was that the jobs should submit to that cluster where the data is. The sorting method is based on the A-REX file cache checking. There is a CacheCheck interface inside the A-REX which can be used to query whether files in question are present or not in the cache directory. There is a limitation at the current state because the CacheCheck interface can only use this cache directory format: 
+The {\FastestQueueBroker} ranks the {\ExecutionTarget}s according to their queue length measured in percentage 
+of the {\ExecutionTarget}'s size (i.e. the queue length divided by the number of total slots/CPUs). If more 
+than one {\ExecutionTarget} has zero queue, the {\FastestQueueBroker} makes use of a basic load balancing method 
+to rearrange the zero queue {\ExecutionTarget}s depending on their number of free slots/CPUs. 
+
+The {\texttt SortTargets} method has three steps:
+
+\begin{enumerate}
+\item{{\ExecutionTarget}s not publishing WaitingJobs, TotalSlots and FreeSlots are removed from the list of possible targets 
+as it is impossible to determine their queue length and perform load balancing.}
+\item{The {\ExecutionTarget}s are ranked according to their queue length relative to the number of slots/CPUs. Zero queue 
+{\ExecutionTarget}s is ranked top.}
+\item{If more than one {\ExecutionTarget} has zero queue the targets are randomly reshuffled based upon how many free slots 
+they have. E.g. if two {\ExecutionTarget}s have zero queue and they have 90 and 10 free slots respectively, then the first
+{\ExecutionTarget} has a 90\% propability of becoming the top ranked cluster.}
+\end{enumerate}
+
+\subsubsection{\DataBroker}
+
+The {\DataBroker} ranks the {\ExecutionTarget}s according to how many megabytes of the requested input files that already 
+stored in the cache of the computing resource the {\ExecutionTarget} represents. The broker is motivated by that jobs should 
+be submitted to {\ExecutionTarget}s where the data already is, thus reducing the network load on both the computing resource 
+and client side. The ranking method is based upon the A-REX\footnote{http://www.knowarc.eu/download/D1.2-3\_documentation.pdf} 
+interface {\texttt CacheCheck} for querying for the presence of the file in the cache directory. This interface has a limitation 
+in the current implementation as it can only use cache directory of format
 
 \begin{shaded}
 \begin{verbatim}
@@ -994,18 +996,21 @@ cachedir="/tmp/cache"
 \end{verbatim}
 \end{shaded}
 
-If the cachedir parameter involves {\%}U or other substitute element then the CacheCheck will not work.
+If the cachedir parameter involves {\%}U or other substitute element then the {\texttt CacheCheck} will not work.
 
-The sorting algorithm for this Broker is as follows:
+The {\texttt SortTargets} method has four steps:
 
 \begin{enumerate}
-\item{Only the A-REX service has CacheCheck method therefore the other clusters will be ignored}
-\item{The URL files are collected from the JobInnerRepresentation }
-\item{All of the ExecutionTargets which are A-REXs will be called by their  CacheCheck method. Single query used for achieving all the necessary information. The Broker will summarize the file sizes. The CacheMappingTable is an array where the A-REX's URL is the key and the summarized file size is the value. When there is some problem to query file size from the A-REX then the summarized size will be zero.}
-\item{The last step is to sort the PossibleTargets vector in descending order  (CacheMappingTable used for this), which cluster having the most data that will be at the front of the vector.}
+\item{Only the A-REX service has {\texttt CacheCheck} method, thus {\ExecutionTarget}s not running A-REX are removed.
+therefore the other clusters will be ignored.}
+\item{Information about input files is collected from the JobInnerRepresentation.}
+\item{Each {\ExecutionTarget} is queried (through the {\texttt CacheCheck} method) for the existence of input files. 
+A single query is used for achieving all the necessary information and file sizes are summarized. If there is problems 
+determining file sizes, then the summarized size will be zero.}
+\item{The possible {\ExecutionTarget}s are ranked in a descending order according to the amount of input data they have in cache.}
 \end{enumerate}
 
-Example for CacheCheck request what can be sent to an A-REX service:
+Example of a CacheCheck request that can be sent to an A-REX service:
 
 \begin{shaded}
 \begin{verbatim}
@@ -1018,7 +1023,7 @@ Example for CacheCheck request what can be sent to an A-REX service:
 \end{verbatim}
 \end{shaded}
 
-Example CacheCheck response of the A-REX service:
+Example CacheCheck response from the A-REX service:
 
 \begin{shaded}
 \begin{verbatim}
@@ -1038,14 +1043,12 @@ Example CacheCheck response of the A-REX service:
 </CacheCheckResponse>
 \end{verbatim}
 \end{shaded}
-
    
-   
-\subsubsection{PythonBroker}
+\subsubsection{\PythonBroker}
 
-This broker allows users to write their customized broker in
-python. To use this broker the user should write a python class. The
-class should contain:
+This {\PythonBroker} allows users to write their customized broker in
+python. To use this broker the user should write a python class which 
+should contain:
 
 \begin{itemize}
 
@@ -1055,10 +1058,10 @@ class should contain:
 
 \end{itemize}
 
-The Config, ExecutionTarget and JobInnerRepresentation classes are
+The {\Config}, {\ExecutionTarget} and {\texttt JobInnerRepresentation} classes are
 available in the swig generated arc python module.
 
-To invoke the python broker, the name of the python module defining
+To invoke the {\PythonBroker}, the name of the python module defining
 the broker class and the name of the broker class must be given. If
 e.g. the broker class MyBroker is defined in the python module
 SampleBroker the command line option to arcsub to use this broker is:
@@ -1089,7 +1092,7 @@ SampleBroker.py file that comes with your arc python installation.
 
 Given all components listed above it is possible to write versatile
 command line interfaces (cli) for grid job submission and
-management. {\arclib} offers the following native commands:
+management. {\libarcclient} offers the following native commands:
 
 \begin{enumerate}
 \item{\texttt{arcstat} - for computing resource or grid job status
@@ -1213,530 +1216,15 @@ int main(int argc, char **argv) {
 \chapter{{\ExecutionTarget}}
 \label{app:ExTarget}
 
-\section{Domain and Location attributes}
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/ExecutionTargetMapping.html
 
-\subsection*{std::string DomainName}
-
-ARC0: nordugrid-cluster-name \\
-CREAM: GlueSiteName
-
-\subsection*{std::string Owner}
-
-ARC0: nordugrid-cluster-owner
-
-\subsection*{std::string Address}
-
-\subsection*{std::string Place}
-
-CREAM: GlueSiteLocation
-
-\subsection*{std::string PostCode}
-
-ARC0: nordugrid-cluster-location
-
-\subsection*{float Latitude}
-
-CREAM: GlueSiteLatitude
-
-\subsection*{float Longitude}
-
-CREAM: GlueSiteLongitude
-
-\section{ComputingService and ComputingEndpoint attributes}
-
-\subsection*{std::string CEID}
-
-\subsection*{std::string CEName}
-
-\subsection*{std::string Capability}
-
-\subsection*{std::string Type}
-
-\subsection*{std::string QualityLevel}
-
-\subsection*{URL url}
-
-ARC0: nordugrid-cluster-contactstring \\
-CREAM: GlueCEInfoContactString
-
-\subsection*{std::string Technology}
-
-\subsection*{std::string Interface}
-
-ARC0: ``GridFTP''
-
-\subsection*{std::string InterfaceExtension}
-
-\subsection*{std::string SupportedProfile}
-
-\subsection*{std::string Implementor}
-
-ARC0: ``NorduGrid''
-
-\subsection*{std::string ImplementationName}
-
-ARC0: ``ARC0'' \\
-CREAM: GlueCEImplementationName
-
-\subsection*{std::string ImplementationVersion}
-
-ARC0: nordugrid-cluster-middleware \\
-CREAM: GlueCEImplementaionVersion
-
-\subsection*{std::string HealthState}
-
-ARC0: nordugrid-queue-status
-
-\subsection*{std::string ServingState}
-
-CREAM: GlueCEStateStatus (GlueVOView $||$ GlueCE)
-
-\subsection*{std::string IssuerCA}
-
-ARC0: nordugrid-cluster-issuerca (nordugrid-cluster-issuerca-hash)
-
-\subsection*{std::list<std::string> TrustedCA}
-
-ARC0: nordugrid-cluster-trustedca
-
-\subsection*{Time DowntimeStarts}
-
-\subsection*{Time DowntimeEnds}
-
-\subsection*{std::string Staging}
-
-ARC0: nordugrid-cluster-nodeaccess
-
-\subsection*{std::string Jobdescription}
-
-\section{ComputingService and ComputingShare load attributes}
-
-\subsection*{int TotalJobs}
-
-ARC0: nordugrid-cluster-totaljobs \\
-CREAM: GlueCEStateTotalJobs (GlueVOView $||$ GlueCE)
-
-\subsection*{int RunningJobs}
-
-ARC0: nordugrid-queue-running \\
-CREAM: GlueCEStateRunningJobs (GlueVOView $||$ GlueCE)
-
-\subsection*{int WaitingJobs}
-
-ARC0: nordugrid-queue-queued $||$ nordugrid-cluster-queuedjobs \\
-CREAM: GlueCEStateWaitingJobs (GlueVOView $||$ GlueCE)
-
-\subsection*{int StagingJobs}
-
-\subsection*{int SuspendedJobs}
-
-\subsection*{int PreLRMSWaitingJobs}
-
-ARC0: nordugrid-queue-prelrmsqueued
-
-\subsection*{int LocalRunningJobs}
-
-ARC0: nordugrid-queue-running $-$ nordugrid-queue-gridrunning
-
-\subsection*{int LocalWaitingJobs}
-
-ARC0: nordugrid-queue-queued $-$ nordugrid-queue-gridqueue
-
-\subsection*{int FreeSlots}
-
-CREAM: GlueCEStateFreeJobSlots $||$ GlueCEStateFreeCPUs (GlueVOView $||$ GlueCE)
-
-\subsection*{std::string FreeSlotsWithDuration}
-
-\subsection*{int UsedSlots}
-
-ARC0: nordugrid-queue-usedcpus
-
-\subsection*{int RequestedSlots}
-
-\section{ComputingShare attributes}
-
-\subsection*{std::string MappingQueue}
-
-ARC0: nordugrid-queue-name
-
-\subsection*{Period MaxWallTime}
-
-ARC0: nordugrid-queue-maxwalltime \\
-CREAM: GlueCEPolicyMaxWallClockTime (GlueVOView $||$ GlueCE)
-
-\subsection*{Period MaxTotalWallTime}
-
-\subsection*{Period MinWallTime}
-
-ARC0: nordugrid-queue-minwalltime
-
-\subsection*{Period DefaultWallTime}
-
-ARC0: nordugrid-queue-defaultwalltime
-
-\subsection*{Period MaxCPUTime}
-
-ARC0: nordugrid-queue-maxcputime \\
-CREAM: GlueCEPolicyMaxCPUTime (GlueVOView $||$ GlueCE)
-
-\subsection*{Period MaxTotalCPUTime}
-
-\subsection*{Period MinCPUTime}
-
-ARC0: nordugrid-queue-defaultcputime
-
-\subsection*{Period DefaultCPUTime}
-
-ARC0: nordugrid-queue-defaultcputime
-
-\subsection*{int MaxTotalJobs}
-
-CREAM: GlueCEPolicyMaxTotalJobs (GlueVOView $||$ GlueCE)
-
-\subsection*{int MaxRunningJobs}
-
-ARC0: nordugrid-queue-maxrunning \\
-CREAM: GlueCEPolicyMaxRunningJobs (GlueVOView $||$ GlueCE)
-
-\subsection*{int MaxWaitingJobs}
-
-ARC0: nordugrid-queue-maxqueable \\
-CREAM: GlueCEPolicyMaxWaitingJobs (GlueVOView $||$ GlueCE)
-
-\subsection*{int NodeMemory}
-
-ARC0: nordugrid-queue-nodememory $||$ nordugrid-cluster-nodememory \\
-CREAM: GlueHostMainMemoryRAMSize
-
-\subsection*{int MaxPreLRMSWaitingJobs}
-
-\subsection*{int MaxUserRunningJobs}
-
-ARC0: nordugrid-queue-maxuserrun \\
-CREAM: GlueCEPolicyAssignedJobSlots (GlueVOView $||$ GlueCE) % ??
-
-\subsection*{int MaxSlotsPerJob}
-
-CREAM: GlueCEPolicyMaxSlotsPerJob (GlueVOView $||$ GlueCE)
-
-\subsection*{int MaxStageInStreams}
-\subsection*{int MaxStageOutStreams}
-\subsection*{std::string SchedulingPolicy}
-
-ARC0: nordugrid-queue-schedulingpolicy
-
-\subsection*{int MaxMemory}
-
-ARC0: nordugrid-queue-nodememory $||$ nordugrid-cluster-nodememory \\
-CREAM: GlueHostMainMemoryVirtualSize
-
-\subsection*{int MaxDiskSpace}
-\subsection*{URL DefaultStorageService}
-
-ARC0: nordugrid-cluster-localse \\
-CREAM: GlueCEInfoDefaultSE (GlueVOView $||$ GlueCE)
-
-\subsection*{bool Preemption}
-
-CREAM: GlueCEPolicyPreemption (GlueVOView $||$ GlueCE)
-
-\subsection*{Period EstimatedAverageWaitingTime}
-
-CREAM: GlueCEStateEstimatedResponseTime (GlueVOView $||$ GlueCE)
-
-\subsection*{Period EstimatedWorstWaitingTime}
-
-CREAM: GlueCEStateWorstResponseTime (GlueVOView $||$ GlueCE)
-
-\subsection*{std::string ReservationPolicy}
-
-\section{ComputingManager attributes}
-
-\subsection*{std::string ManagerType}
-
-ARC0: nordugrid-cluster-lrms-type (nordugrid-cluster-lrms-version)
-
-\subsection*{bool Reservation}
-\subsection*{bool BulkSubmission}
-\subsection*{int TotalPhysicalCPUs}
-
-ARC0: nordugrid-queue-totalcpus $||$ nordugrid-cluster-totalcpus
-
-\subsection*{int TotalLogicalCPUs}
-
-ARC0: nordugrid-queue-totalcpus $||$ nordugrid-cluster-totalcpus
-
-\subsection*{int TotalSlots}
-
-ARC0: nordugrid-queue-totalcpus $||$ nordugrid-cluster-totalcpus
-
-\subsection*{bool Homogeneity}
-
-ARC0: nordugrid-queue-homogeneity $||$ nordugrid-cluster-homogeneity
-
-\subsection*{std::string NetworkInfo}
-
-\subsection*{bool WorkingAreaShared}
-
-\subsection*{int WorkingAreaFree}
-
-ARC0: nordugrid-cluster-sessiondir-free
-
-\subsection*{Period WorkingAreaLifeTime}
-
-ARC0: nordugrid-cluster-sessiondir-lifetime
-
-\subsection*{int CacheFree}
-
-ARC0: nordugrid-cluster-cache-free
-
-\section{ExecutionEnvironment attributes}
-
-\subsection*{std::string Platform}
-
-ARC0: nordugrid-queue-architecture $||$ nordugrid-cluster-architecture
-
-\subsection*{bool VirtualMachine}
-
-\subsection*{std::string CPUVendor}
-
-ARC0: nordugrid-queue-nodecpu $||$ nordugrid-cluster-nodecpu
-
-\subsection*{std::string CPUModel}
-
-ARC0: nordugrid-queue-nodecpu $||$ nordugrid-cluster-nodecpu
-
-\subsection*{std::string CPUVersion}
-
-ARC0: nordugrid-queue-nodecpu $||$ nordugrid-cluster-nodecpu
-
-\subsection*{int CPUClockSpeed}
-
-\subsection*{int MainMemorySize}
-
-\subsection*{std::string OSFamily}
-
-ARC0: nordugrid-queue-opsys $||$ nordugrid-cluster-opsys
-
-\subsection*{std::string OSName}
-
-ARC0: nordugrid-queue-opsys $||$ nordugrid-cluster-opsys
-
-\subsection*{std::string OSVersion}
-
-\subsection*{bool ConnectivityIn}
-
-\subsection*{bool ConnectivityOut}
-
-\subsection*{std::list<Benchmark> Benchmarks}
-
-ARC0: nordugrid-queue-benchmark $||$ nordugrid-cluster-benchmark
-
-\section{ApplicationEnvironment}
-
-\subsection*{std::list<ApplicationEnvironment> ApplicationEnvironments}
-
-ARC0: nordugrid-cluster-runtimeenvironment \\
-CREAM: GlueHostApplicationSoftwareRunTimeEnvironment
-
-\chapter{{\Job}}
-\label{app:job}
-
-\section{Information stored in the job list file}
-
-\subsection*{std::string Flavour}
-
-\subsection*{URL JobID}
-
-\subsection*{URL Cluster}
-
-\subsection*{URL SubmissionEndpoint}
-
-\subsection*{URL InfoEndpoint}
-
-\subsection*{URL ISB}
-
-\subsection*{URL OSB}
-
-\subsection*{URL AuxURL}
-
-\subsection*{std::string AuxInfo}
-
-\section{Information retrieved from the informtaion system}
-
-\subsection*{std::string Name}
-
-ARC0: nordugrid-job-jobname
-
-\subsection*{std::string Type}
-
-\subsection*{URL IDFromEndpoint}
-
-\subsection*{std::string LocalIdFromManager}
-
-\subsection*{std::string JobDescription}
-
-\subsection*{std::string State}
-
-ARC0: nordugrid-job-status
-
-\subsection*{std::string RestartState}
-
-ARC0: nordugrid-job-rerunable
-
-\subsection*{int ExitCode}
-
-ARC0: nordugrid-job-exitcode
-
-\subsection*{std::string ComputingManagerExitCode}
-
-\subsection*{std::list<std::string> Error}
-
-ARC0: nordugrid-job-errors
-
-\subsection*{int WaitingPosition}
-
-ARC0: nordugrid-job-queuerank
-
-\subsection*{std::string UserDomain}
-
-\subsection*{std::string Owner}
-
-ARC0: nordugrid-job-globalowner
-
-\subsection*{std::string LocalOwner}
-
-\subsection*{Period RequestedWallTime}
-
-ARC0: nordugrid-job-reqwalltime
-
-\subsection*{Period RequestedTotalCPUTime}
-
-ARC0: nordugrid-job-reqcputime
-
-\subsection*{int RequestedMainMemory}
-
-\subsection*{int RequestedSlots}
-
-\subsection*{std::string StdIn}
-
-ARC0: nordugrid-job-stdin
-
-\subsection*{std::string StdOut}
-
-ARC0: nordugrid-job-stdout
-
-\subsection*{std::string StdErr}
-
-ARC0: nordugrid-job-stderr
-
-\subsection*{std::string LogDir}
-
-ARC0: nordugrid-job-gmlog
-
-\subsection*{std::list<std::string> ExecutionNode}
-
-Arc0: nordugrid-job-executionnodes
-
-\subsection*{std::string ExecutionCE}
-
-ARC0: nordugrid-job-execcluster
-
-\subsection*{std::string Queue}
-
-ARC0: nordugrid-job-execqueue
-
-\subsection*{Period UsedWallTime}
-
-ARC0: nordugrid-job-usedwalltime
-
-\subsection*{Period UsedTotalCPUTime}
-
-ARC0: nordugrid-job-usedcputime
-
-\subsection*{int UsedMainMemory}
-
-ARC0: nordugrid-job-usedmem
-
-\subsection*{std::list<std::string> UsedApplicationEnvironment}
-
-ARC0: nordugrid-job-runtimeenvironment
-
-\subsection*{int UsedSlots}
-
-ARC0: nordugrid-job-cpucount
-
-\subsection*{Time LocalSubmissionTime}
-
-\subsection*{Time SubmissionTime}
-
-ARC0: nordugrid-job-submissiontime
-
-\subsection*{Time ComputingManagerSubmissionTime}
-
-\subsection*{Time StartTime}
-
-\subsection*{Time ComputingManagerEndTime}
-
-\subsection*{Time EndTime}
-
-ARC0: nordugrid-job-completiontime
-
-\subsection*{Time WorkingAreaEraseTime}
-
-ARC0: nordugrid-job-sessiondirerasetime
-
-\subsection*{Time ProxyExpirationTime}
-
-ARC0: nordugrid-job-proxyexpirationtime
-
-\subsection*{std::string SubmissionHost}
-
-ARC0: nordugrid-job-submissionui
-
-\subsection*{std::string SubmissionClientName}
-
-ARC0: nordugrid-job-clientsoftware
-
-\subsection*{Time CreationTime}
-
-ARC0: Mds-validfrom
-
-\subsection*{Period Validity}
-
-ARC0: Mds-validto $-$ Mds-validfrom
-
-\subsection*{std::string OtherMessages}
-
-ARC0: nordugrid-job-comment
-
-\section{Associations}
-
-\subsection*{URL JobManagementEndpoint}
-
-\subsection*{URL DataStagingEndpoint}
-
-\section{ExecutionEnvironment (condensed)}
-
-\subsection*{bool VirtualMachine}
-
-\subsection*{std::string UsedCPUType}
-
-\subsection*{std::string UsedOSFamily}
-
-\subsection*{std::string UsedPlatform}
-
-\chapter{{\Broker}}
-\label{app:broker}
-
-\section{Broker mapping}
-\label{sec:broker-mapping}
+\chapter{Broker mapping}
+\label{app:broker-mapping}
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/broker-mapping.ods
 
-\section{JobInnerrepresentation}
-\label{sec:jobinnerrepresentation}
+\chapter{Job Inner Representation}
+\label{app:jobinnerrepresentation}
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/JobInnerRepresentation.ods
 
