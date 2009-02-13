@@ -93,11 +93,17 @@ sub cluster_info ($) {
     }
     if ($qmgr_string =~ /pbs_version = \b(\D+)_(\d\S+)\b/) {
       $lrms_cluster{lrms_type} = $1;
+      $lrms_cluster{lrms_glue_type}=lc($1);
       $lrms_cluster{lrms_version} = $2;
     }
     else {
 	$qmgr_string =~ /pbs_version = \b(\d\S+)\b/;
 	$lrms_cluster{lrms_type}="torque";
+	if (lc($$config{scheduling_policy}) eq "maui") {
+	    $lrms_cluster{lrms_glue_type}="torquemaui"
+	} else {
+	    $lrms_cluster{lrms_glue_type}="torque";
+	}
 	$lrms_cluster{lrms_version}=$1;
     }
 

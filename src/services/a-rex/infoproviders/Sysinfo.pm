@@ -141,7 +141,7 @@ sub diskinfo ($) {
         $log->warning("Not a directory: $path");
     }
 
-    return {} if not defined $disktotal;
+    return undef if not defined $disktotal;
     return {megstotal => $disktotal, megsfree => $diskfree, mountpoint => $mountpoint};
 }
 
@@ -162,11 +162,14 @@ sub diskspaces {
     my $errors = 0;
     my %mounts;
     for my $path (@_) {
-        my $i = diskinfo($path);
-        my ($total, $free, $mount) = ($i->{megstotal},$i->{megsfree},$i->{mountpoint});
-        $mounts{$mount}{free} = $free;
-        $mounts{$mount}{total} = $total;
-        ++$errors unless $total;
+        my $di = diskinfo($path);
+        if ($di) {
+            my ($total, $free, $mount) = ($di->{megstotal},$di->{megsfree},$di->{mountpoint});
+            $mounts{$mount}{free} = $free;
+            $mounts{$mount}{total} = $total;
+        } else {
+            ++$errors;
+        }
     }
     for my $stats (values %mounts) {
         if (defined $freesum) {

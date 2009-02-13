@@ -649,7 +649,7 @@ sub _collect($$) {
 
     # Name not needed
 
-    $cmgr->{Type} = [ $cluster_info->{lrms_type} ];
+    $cmgr->{Type} = [ $cluster_info->{lrms_glue_type} ];
     $cmgr->{Version} = [ $cluster_info->{lrms_version} ];
     $cmgr->{Reservation} = [ "Undefined" ];
     $cmgr->{BulkSubmission} = [ "False" ];

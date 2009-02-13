@@ -416,6 +416,7 @@ sub cluster_info ($) {
     collect_node_data();
     collect_job_data();
 
+    $lrms_cluster{lrms_glue_type} = "condor";
     ( $lrms_cluster{lrms_type}, $lrms_cluster{lrms_version} ) = type_and_version();
 
     # Count used/free CPUs and queued jobs in the cluster

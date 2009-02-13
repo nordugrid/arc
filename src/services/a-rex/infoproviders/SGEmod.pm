@@ -494,6 +494,7 @@ sub cluster_info () {
 
     # Figure out SGE type and version
 
+    $lrms_cluster->{lrms_glue_type} = "sungridengine";
     $lrms_cluster->{lrms_type} = $sge_type;
     $lrms_cluster->{lrms_version} = $sge_version;
 

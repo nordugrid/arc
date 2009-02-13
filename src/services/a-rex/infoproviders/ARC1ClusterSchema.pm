@@ -92,6 +92,7 @@ sub arc1_info_schema {
             'Description'           => [ '*' ],
             'MappingQueue'          => [ '' ],
             'MaxWallTime'           => [ '*' ], # units: seconds
+            'MaxMultiSlotWallTime'  => [ '*' ], # units: seconds
             'MinWallTime'           => [ '*' ], # units: seconds
             'DefaultWallTime'       => [ '*' ], # units: seconds
             'MaxCPUTime'            => [ '*' ], # units: seconds

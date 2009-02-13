@@ -265,6 +265,7 @@ sub cluster_info ($) {
     $lrms_cluster{queue} = [];
 
     #lookup batch type and version
+    $lrms_cluster{lrms_glue_type} = "lsf";
     ($lrms_cluster{lrms_type},$lrms_cluster{lrms_version}) = type_and_version();   
 
     #get info on nodes in cluster

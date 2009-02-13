@@ -64,6 +64,7 @@ my $lrms_options_schema = {
 my $lrms_info_schema = {
     'cluster' => {
         'lrms_type'       => '',
+        'lrms_glue_type'  => '',  # one of: bqs condor fork loadleveler lsf openpbs sungridengine torque torquemaui ...
         'lrms_version'    => '',
         'scheduling_policy' => '*',
         'totalcpus'       => '',
