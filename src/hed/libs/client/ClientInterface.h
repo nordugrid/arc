@@ -41,6 +41,7 @@ namespace Arc {
     MCCLoader *loader;
     MessageContext context;
     static Logger logger;
+    void AddHandler(XMLNode mcccfg,XMLNode handlercfg);
   };
 
   enum SecurityLayer { NoSec, TLSSec, GSISec };
@@ -61,6 +62,7 @@ namespace Arc {
       return tls_entry ? tls_entry : tcp_entry;
     }
     virtual void Load();
+    void AddHandler(XMLNode handlercfg,SecurityLayer sec);
   protected:
     MCC *tcp_entry;
     MCC *tls_entry;
@@ -108,6 +110,7 @@ namespace Arc {
     MCC* GetEntry() {
       return http_entry;
     }
+    void AddHandler(XMLNode handlercfg);
     virtual void Load();
   protected:
     MCC *http_entry;
@@ -132,9 +135,14 @@ namespace Arc {
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action, PayloadSOAP *request,
 		       PayloadSOAP **response);
+    /** Returns entry point to SOAP MCC in configured chain.
+       To initialize entry point Load() method must be called. */
     MCC* GetEntry() {
       return soap_entry;
     }
+    /** Adds security handler to configuration of SOAP MCC */
+    void AddHandler(XMLNode handlercfg);
+    /** Instantiates pluggable elements according to generated configuration */
     virtual void Load();
   protected:
     MCC *soap_entry;

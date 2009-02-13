@@ -49,11 +49,22 @@ namespace Arc {
   static XMLNode ConfigMakeComponent(XMLNode chain, const char *name,
 				     const char *id, const char *next = NULL) {
     XMLNode comp = chain.NewChild("Component");
+
+    // Make sure namespaces and names are corre
     comp.NewAttribute("name") = name;
     comp.NewAttribute("id") = id;
     if (next)
       comp.NewChild("next").NewAttribute("id") = next;
     return comp;
+  }
+
+  static XMLNode ConfigFindComponent(XMLNode chain, const char *name,
+                                     const char *id) {
+    XMLNode comp = chain["Component"];
+    for(;(bool)comp;++comp) {
+      if((comp.Attribute("name") == name) &&
+         (comp.Attribute("id") == id)) return comp;
+    }
   }
 
   ClientInterface::ClientInterface(const BaseConfig& cfg)
@@ -80,6 +91,12 @@ namespace Arc {
 
   void ClientInterface::Overlay(XMLNode cfg) {
     xml_add_elements(xmlcfg, cfg);
+  }
+
+  void ClientInterface::AddHandler(XMLNode mcccfg,XMLNode handlercfg) {
+    // Insert SecHandler configuration into MCC configuration block
+    // Make sure namespaces and names are correct
+    mcccfg.NewChild(handlercfg).Name("SecHandler");
   }
 
   ClientTCP::ClientTCP(const BaseConfig& cfg, const std::string& host,
@@ -169,6 +186,22 @@ namespace Arc {
 	delete repmsg.Payload();
       }
     return r;
+  }
+
+  void ClientTCP::AddHandler(XMLNode handlercfg,SecurityLayer sec) {
+    if (sec == TLSSec) {
+      ClientInterface::AddHandler(
+          ConfigFindComponent(xmlcfg["Chain"], "tls.client", "tls"),
+          handlercfg);
+    } else if (sec == GSISec) {
+      ClientInterface::AddHandler(
+          ConfigFindComponent(xmlcfg["Chain"], "gsi.client", "gsi"),
+          handlercfg);
+    } else {
+      ClientInterface::AddHandler(
+          ConfigFindComponent(xmlcfg["Chain"], "tcp.client", "tcp"),
+          handlercfg);
+    }
   }
 
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url)
@@ -304,6 +337,12 @@ namespace Arc {
     return r;
   }
 
+  void ClientHTTP::AddHandler(XMLNode handlercfg) {
+    ClientInterface::AddHandler(
+        ConfigFindComponent(xmlcfg["Chain"], "http.client", "http"),
+        handlercfg);
+  }
+
   ClientSOAP::ClientSOAP(const BaseConfig& cfg, const URL& url)
     : ClientHTTP(cfg, url),
       soap_entry(NULL) {
@@ -368,6 +407,12 @@ namespace Arc {
 	delete repmsg.Payload();
       }
     return r;
+  }
+
+  void ClientSOAP::AddHandler(XMLNode handlercfg) {
+    ClientInterface::AddHandler(
+        ConfigFindComponent(xmlcfg["Chain"], "soap.client", "soap"),
+        handlercfg);
   }
 
 } // namespace Arc
