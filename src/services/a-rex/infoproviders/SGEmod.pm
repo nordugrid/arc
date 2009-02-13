@@ -864,6 +864,9 @@ sub users_info($$) {
         } else {
 	    $freecpus = $lrms_queue->{status};
         }
+   $lrms_queue->{minwalltime} = 0;
+   $lrms_queue->{mincputime} = 0;
+
 	$lrms_users->{$u}{queuelength} = $user_waiting_jobs{$u} || 0;
         $freecpus = 0 if $freecpus < 0;
         if ($lrms_queue->{maxwalltime}) {
