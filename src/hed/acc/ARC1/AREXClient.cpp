@@ -239,14 +239,14 @@ namespace Arc {
     if (!fs) {
       (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
       id.GetDoc(jobid);
-      delete resp;
+      // delete resp;
       return true;
     }
     else {
       faultstring = fs.Reason();
       std::string s;
       resp->GetXML(s);
-      delete resp;
+      // delete resp;
       logger.msg(VERBOSE, "Submission returned failure: %s", s);
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
       return false;
@@ -325,7 +325,7 @@ namespace Arc {
     substate = (std::string)sst;
     (*resp)["Fault"]["faultstring"].New(fs);
     faultstring = (std::string)fs;
-    delete resp;
+    // delete resp;
     if (faultstring != "") {
       logger.msg(ERROR, faultstring);
       return false;
@@ -402,7 +402,7 @@ namespace Arc {
       return false;
     }
     resp->XMLNode::New(status);
-    delete resp;
+    // delete resp;
     if (status) {
       return true;
     } else {
@@ -481,7 +481,7 @@ namespace Arc {
     result = (std::string)cancelled;
     (*resp)["Fault"]["faultstring"].New(fs);
     faultstring = (std::string)fs;
-    delete resp;
+    // delete resp;
     if (faultstring != "") {
       logger.msg(ERROR, faultstring);
       return false;
@@ -552,7 +552,7 @@ namespace Arc {
     }
 
     if (!((*resp)["ChangeActivityStatusResponse"])) {
-      delete resp;
+      // delete resp;
       XMLNode fs;
       (*resp)["Fault"]["faultstring"].New(fs);
       faultstring = (std::string)fs;
@@ -565,7 +565,7 @@ namespace Arc {
 	return false;
       }
     }
-    delete resp;
+    // delete resp;
     return true;
   }
 
