@@ -44,6 +44,12 @@ namespace ArcSec {
     operator Arc::ChainContext* (void) { return context_; };
   };
 
+  /** Helper class to create Security Handler configuration */
+  class SecHandlerConfig: public Arc::XMLNode {
+   public:
+    SecHandlerConfig(const std::string& name,const std::string& event = "",const std::string& id = "");
+  };
+
 } // namespace ArcSec
 
 #endif /* __ARC_SEC_SECHANDLER_H__ */
