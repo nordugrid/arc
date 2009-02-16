@@ -141,6 +141,7 @@ namespace Arc {
         logger.msg(ERROR, "The node %s has no %s element.", path, *si);
         delete thrarg;
         mom.RetrieverDone();
+        return;
       }
     }
 
@@ -159,6 +160,7 @@ namespace Arc {
         logger.msg(ERROR, "The node %s has no %s element.", path, *si);
         delete thrarg;
         mom.RetrieverDone();
+        return;
       }
     }
 
