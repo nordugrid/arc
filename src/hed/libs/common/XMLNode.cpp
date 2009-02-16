@@ -397,7 +397,9 @@ XMLNode::operator std::string(void) const {
 
 XMLNode& XMLNode::operator=(const char* content) {
   if(!node_) return *this;
+  if(!content) content="";
   xmlChar* encode = xmlEncodeSpecialChars(node_->doc, (xmlChar*)content);
+  if(!encode) encode=(xmlChar*)"";
   xmlNodeSetContent(node_,encode);
   xmlFree(encode);  
   return *this;
