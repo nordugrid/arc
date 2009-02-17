@@ -35,9 +35,9 @@ static XMLNode get_node(XMLNode& parent,const char* name) {
 }
 
 
-WSAEndpointReference::WSAEndpointReference(XMLNode epr) {
-  epr_=epr;
-}
+WSAEndpointReference::WSAEndpointReference(const XMLNode& epr) : epr_(epr) {}
+
+WSAEndpointReference::WSAEndpointReference(const WSAEndpointReference& wsa) : epr_(wsa.epr_) {}
 
 
 WSAEndpointReference::WSAEndpointReference(const std::string&) {
@@ -61,6 +61,13 @@ std::string WSAEndpointReference::Address(void) const {
 
 WSAEndpointReference& WSAEndpointReference::operator=(const std::string& address) {
   Address(address);
+  return *this;
+}
+
+WSAEndpointReference& WSAEndpointReference::operator=(const WSAEndpointReference& ref) {
+  if ( this != &ref ) { 
+    ref.epr_.New(epr_);
+  }   
   return *this;
 }
 
