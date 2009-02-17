@@ -64,14 +64,6 @@ WSAEndpointReference& WSAEndpointReference::operator=(const std::string& address
   return *this;
 }
 
-WSAEndpointReference& WSAEndpointReference::operator=(const WSAEndpointReference& ref) {
-  if ( this != &ref ) { 
-    ref.epr_.New(epr_);
-  }   
-  return *this;
-}
-
-
 void WSAEndpointReference::Address(const std::string& uri) {
   get_node(epr_,"wsa:Address")=uri; 
 }

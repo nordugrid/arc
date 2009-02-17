@@ -35,8 +35,6 @@ class WSAEndpointReference {
   void Address(const std::string& uri);
   /** Same as Address(uri) */
   WSAEndpointReference& operator=(const std::string& address);
-  /** Copy assignment operator */
-  WSAEndpointReference& operator=(const WSAEndpointReference& ref);
   /** Access to ReferenceParameters element of EPR.
     Obtained XML element should be manipulated directly in application-dependent
     way. If EPR had no ReferenceParameters element it is created. */
