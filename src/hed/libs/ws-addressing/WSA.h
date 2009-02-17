@@ -20,7 +20,9 @@ class WSAEndpointReference {
   XMLNode epr_; /** Link to top level EPR XML node */
  public:
   /** Linking to existing EPR in XML tree */
-  WSAEndpointReference(XMLNode epr);
+  WSAEndpointReference(const XMLNode& epr);
+  /** Copy constructor */
+  WSAEndpointReference(const WSAEndpointReference& wsa);
   /** Creating independent EPR - not implemented */
   WSAEndpointReference(const std::string& address);
   /** Dummy constructor - creates invalid instance */
@@ -33,6 +35,8 @@ class WSAEndpointReference {
   void Address(const std::string& uri);
   /** Same as Address(uri) */
   WSAEndpointReference& operator=(const std::string& address);
+  /** Copy assignment operator */
+  WSAEndpointReference& operator=(const WSAEndpointReference& ref);
   /** Access to ReferenceParameters element of EPR.
     Obtained XML element should be manipulated directly in application-dependent
     way. If EPR had no ReferenceParameters element it is created. */
