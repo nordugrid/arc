@@ -26,13 +26,13 @@ bool Service::ProcessSecHandlers(Arc::Message& message,const std::string& label)
     std::list<ArcSec::SecHandler*>::iterator h = q->second.begin();
     for(;h!=q->second.end();++h) {
         ArcSec::SecHandler* handler = *h;
-        if(handler) if(handler->Handle(&message)) {
-            logger.msg(Arc::VERBOSE, "Security processing/check passed");
-            return true;
+        if(handler) if(!(handler->Handle(&message))) {
+            logger.msg(Arc::VERBOSE, "Security processing/check for '%s' failed", label);
+            return false;
         }
     }
-    logger.msg(Arc::VERBOSE, "Security processing/check failed");
-    return false;
+    logger.msg(Arc::VERBOSE, "Security processing/check for '%s' passed", label);
+    return true;
 }
 
 bool Service::RegistrationCollector(Arc::XMLNode &doc)
