@@ -31,6 +31,7 @@
 #include <openssl/ebcdic.h>
 #endif 
 
+#include "XmlSecUtils.h"
 #include "saml_util.h"
 
 namespace Arc {
@@ -125,7 +126,15 @@ namespace Arc {
     return new_query;
   }
 
-  bool VerifyQuery(const std::string query, const xmlSecKey *sender_public_key) {
+  //bool VerifyQuery(const std::string query, const xmlSecKey *sender_public_key) {
+  bool VerifyQuery(const std::string query, const std::string& sender_cert_str) {
+
+    xmlSecKey* sender_public_key = NULL;
+    sender_public_key =  get_key_from_certstr(sender_cert_str);
+    if(sender_public_key == NULL) { 
+      std::cerr<<"Failed to get public key from the certificate string"<<std::endl; 
+      return false; 
+    }
 
     /* split query, the signature MUST be the last param of the query,
      * there could be more params in the URL; but they wouldn't be
@@ -134,7 +143,7 @@ namespace Arc {
     f = query.find("&Signature=");
     if(f == std::string::npos) { std::cerr<<"Failed to find signature in the query"<<std::endl; return false; }
 
-    std::string str0 = query.substr(0,f-1);
+    std::string str0 = query.substr(0,f);
     std::string str1 = query.substr(f+11);
 
     f = str0.find("&SigAlg=");
@@ -147,6 +156,7 @@ namespace Arc {
     DSA *dsa = NULL;
     char* usig_alg = NULL;
     usig_alg = xmlURIUnescapeString(sig_alg.c_str(), 0, NULL);
+
     if (strcmp(usig_alg, (char*)xmlSecHrefRsaSha1) == 0) {
       if (sender_public_key->value->id != xmlSecOpenSSLKeyDataRsaId) {
          xmlFree(usig_alg); return false;

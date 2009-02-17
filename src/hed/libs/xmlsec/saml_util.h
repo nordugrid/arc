@@ -24,7 +24,9 @@ namespace Arc {
 
   std::string SignQuery(std::string query, SignatureMethod sign_method, std::string& privkey_file);
 
-  bool VerifyQuery(const std::string query, const xmlSecKey *sender_public_key);
+  //bool VerifyQuery(const std::string query, const xmlSecKey *sender_public_key);
+
+  bool VerifyQuery(const std::string query, const std::string& sender_cert_str);
 
   std::string BuildDeflatedQuery(const Arc::XMLNode& node);
 
