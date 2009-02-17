@@ -661,8 +661,23 @@ namespace Arc {
     }
 
     if (GLUEService["ComputingManager"]["Benchmark"]) {
-      for (XMLNode n = GLUEService["ComputingManager"]["Benchmark"]; n; ++n)
-        target.Benchmarks[(std::string)n["Type"]] = Glib::Ascii::strtod((std::string)n["Value"]);
+      for (XMLNode n = GLUEService["ComputingManager"]["Benchmark"]; n; ++n){
+        std::string left;
+        std::string right;
+        if (n["Type"] && n["Value"]) {
+          left = (std::string)n["Type"];
+          right = (std::string)n["Value"];
+        } else {
+          logger.msg(WARNING, "Couldn't parse benchmark XML:\n%s", (std::string)n);
+          continue;
+        }
+        try {
+          target.Benchmarks[left] = Glib::Ascii::strtod(right);
+        } catch (std::runtime_error e) {
+          logger.msg(WARNING, "Couldn't parse value \"%s\" of benchmark %s. Parse error: \"%s\".", right, left, e.what());
+          //should the something be removed from Benchmarks. Probably it was never added...
+        }
+      }
     } else if (NUGCService["benchmark"]) {
       for (XMLNode n = NUGCService["benchmark"]; n; ++n){
         std::string tmp = (std::string)n;
@@ -681,7 +696,7 @@ namespace Arc {
           logger.msg(WARNING, "Couldn't parse value \"%s\" of benchmark %s. Parse error: \"%s\".", right, left, e.what());
           //should the something be removed from Benchmarks. Probably it was never added...
         }
-        //std::cout << std::endl << "Found benchmark:" << std::endl << "  Type: `" << left << "´" << std::endl << "  Value: `" << right << "´" << std::endl; //Debugging: remove!
+        //std::cout << std::endl << "Found benchmark:" << std::endl << "  Type: `" << left << "´" << std::endl << "  Value: `" << right << "´" << std::endl << "  Interpreted as: `" << target.Benchmarks[left] << "´" << std::endl; //Debugging: remove!
       }
     } else {
       logger.msg(INFO, "The Service doesn't advertise any Benchmarks.");
