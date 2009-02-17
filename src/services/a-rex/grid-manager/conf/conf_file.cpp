@@ -555,10 +555,16 @@ bool print_serviced_users(const JobUsers &users) {
     logger.msg(Arc::INFO,"\tdefault LRMS     : %s",user->DefaultLRMS());
     logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue());
     logger.msg(Arc::INFO,"\tdefault ttl      : %u",user->KeepFinished());
-    
+
     CacheConfig * cache_config = user->CacheParams();
 
+    if(!cache_config) {
+      logger.msg(Arc::INFO,"No cache directory found in configuration, caching is disabled");
+      continue;
+    }
+
     std::list<std::string> conf_caches = cache_config->getCacheDirs();
+
     if(conf_caches.empty()) {
       logger.msg(Arc::INFO,"No cache directory found in configuration, caching is disabled");
       continue;

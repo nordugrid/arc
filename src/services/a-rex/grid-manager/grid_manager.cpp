@@ -307,7 +307,7 @@ static void grid_manager(void* arg) {
   };
   // check if cleaning is enabled for any user, if so activate cleaning thread
   for (JobUsers::const_iterator cacheuser = users.begin(); cacheuser != users.end(); ++cacheuser) {
-    if (cacheuser->CacheParams()->cleanCache()) {
+    if (cacheuser->CacheParams() && cacheuser->CacheParams()->cleanCache()) {
       if(pthread_create(&cache_thread,NULL,&cache_func,(void*)(&users))!=0) {
         logger.msg(Arc::INFO,"Failed to start new thread: cache won't be cleaned");
       }

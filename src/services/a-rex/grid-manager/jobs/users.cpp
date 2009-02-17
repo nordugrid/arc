@@ -191,6 +191,7 @@ JobUser::JobUser(uid_t uid_,RunPlugin* cred) {
     };
   };
   jobs=NULL;
+  cache_params=NULL;
   SetControlDir("");
   SetSessionRoot("");
   SetLRMS("","");
@@ -227,6 +228,7 @@ JobUser::JobUser(const std::string &u_name,RunPlugin* cred) {
   SetSessionRoot("");
   SetLRMS("","");
   jobs=NULL;
+  cache_params=NULL;
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
