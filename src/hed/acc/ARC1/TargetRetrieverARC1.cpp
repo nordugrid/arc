@@ -11,6 +11,7 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/message/MCC.h>
+#include <glibmm/stringutils.h>
 
 #include "AREXClient.h"
 #include "TargetRetrieverARC1.h"
@@ -31,6 +32,8 @@ namespace Arc {
     int targetType;
     int detailLevel;
   };
+
+  const std::string alphanum("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
   ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom,
 						  int targetType,
@@ -164,7 +167,7 @@ namespace Arc {
       }
     }
 
-    // std::cout << GLUEService << std::endl; //for dubugging
+    //std::cout << std::endl << "---Begin response---" << std::endl << ServerStatus << std::endl << "---End response---" << std::endl; //for dubugging
 
     ExecutionTarget target;
 
@@ -595,7 +598,7 @@ namespace Arc {
       for (XMLNode n = GLUEService["ComputingManager"]["NetworkInfo"]; n; ++n)
 	target.NetworkInfo.push_back((std::string)n);
     } else {
-      logger.msg(INFO, "The Service doesn't advertise whether it is Homogeneous.");
+      logger.msg(INFO, "The Service doesn't advertise any Network Info.");
     }
 
     if (GLUEService["ComputingManager"]["WorkingAreaShared"]) {
@@ -632,6 +635,33 @@ namespace Arc {
       target.CacheTotal = stringtoi((std::string)GLUEService["ComputingManager"]["CacheTotal"]);
     } else {
       logger.msg(INFO, "The Service doesn't advertise the amount of Total Cache.");
+    }
+
+    if (GLUEService["ComputingManager"]["Benchmark"]) {
+      for (XMLNode n = GLUEService["ComputingManager"]["Benchmark"]; n; ++n)
+        target.Benchmarks[(std::string)n["Type"]] = Glib::Ascii::strtod((std::string)n["Value"]);
+    } else if (NUGCService["benchmark"]) {
+      for (XMLNode n = NUGCService["benchmark"]; n; ++n){
+        std::string tmp = (std::string)n;
+        std::string::size_type at = tmp.find('@');
+        if (at == std::string::npos){
+          logger.msg(WARNING, "Couldn't parse benchmark string: \"%s\".", tmp);
+          continue;
+        }
+        std::string left = tmp.substr(0, at);
+        left.resize(left.find_last_of(alphanum)+1);
+        std::string right = tmp.substr(at+1, std::string::npos);
+        right.erase(0, right.find_first_of(alphanum));
+        try {
+          target.Benchmarks[left] = Glib::Ascii::strtod(right);
+        } catch (std::runtime_error e) {
+          logger.msg(WARNING, "Couldn't parse value \"%s\" of benchmark %s. Parse error: \"%s\".", right, left, e.what());
+          //should the something be removed from Benchmarks. Probably it was never added...
+        }
+        //std::cout << std::endl << "Found benchmark:" << std::endl << "  Type: `" << left << "´" << std::endl << "  Value: `" << right << "´" << std::endl; //Debugging: remove!
+      }
+    } else {
+      logger.msg(INFO, "The Service doesn't advertise any Benchmarks.");
     }
 
     mom.AddTarget(target);
