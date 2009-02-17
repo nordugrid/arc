@@ -24,7 +24,6 @@ namespace Arc {
   private:
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
-    bool _XML_descend (XMLNode& X , std::list<std::string> sl);
 
     ThreadArg* CreateThreadArg(TargetGenerator& mom,
 			       int targetType, int detailLevel);
