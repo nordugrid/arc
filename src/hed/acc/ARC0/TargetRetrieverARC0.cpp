@@ -396,12 +396,34 @@ namespace Arc {
 	  (target.RunningJobs > 0) ? target.RunningJobs : 0 +
 	  (target.WaitingJobs > 0) ? target.WaitingJobs : 0 +
 	  (target.PreLRMSWaitingJobs > 0) ? target.PreLRMSWaitingJobs : 0;
-	if (authuser["nordugrid-authuser-freecpus"])
-	  target.FreeSlots =
-	    stringtoi((std::string)authuser["nordugrid-authuser-freecpus"]);
-	if (authuser["nordugrid-authuser-freecpus"])
-	  target.FreeSlotsWithDuration =
+	if (authuser["nordugrid-authuser-freecpus"]) {
+	  std::string value =
 	    (std::string)authuser["nordugrid-authuser-freecpus"];
+	  std::string::size_type pos = 0;
+	  do {
+	    std::string::size_type spacepos = value.find(' ', pos);
+	    std::string entry;
+	    if (spacepos == std::string::npos)
+	      entry = value.substr(pos);
+	    else
+	      entry = value.substr(pos, spacepos - pos);
+	    int num_cpus;
+	    Period time;
+	    std::string::size_type colonpos = entry.find(':');
+	    if (colonpos == std::string::npos) {
+	      num_cpus = stringtoi(entry);
+	      time = LONG_MAX;
+	    }
+	    else {
+	      num_cpus = stringtoi(entry.substr(0, colonpos));
+	      time = stringtoi(entry.substr(colonpos + 1)) * 60;
+	    }
+	    target.FreeSlotsWithDuration[time] = num_cpus;
+	    pos = spacepos;
+	    if (pos != std::string::npos) pos++;
+	  } while (pos != std::string::npos);
+	  target.FreeSlots = target.FreeSlotsWithDuration.begin()->second;
+	}
 	if (cluster["nordugrid-queue-usedcpus"])
 	  target.UsedSlots =
 	    stringtoi((std::string)cluster["nordugrid-queue-usedcpus"]);

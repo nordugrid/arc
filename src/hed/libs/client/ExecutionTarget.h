@@ -118,7 +118,7 @@ namespace Arc {
     Period EstimatedAverageWaitingTime;
     Period EstimatedWorstWaitingTime;
     int FreeSlots;
-    std::string FreeSlotsWithDuration;
+    std::map<Period, int> FreeSlotsWithDuration;
     int UsedSlots;
     int RequestedSlots;
     std::string ReservationPolicy;
