@@ -211,12 +211,6 @@ namespace Arc {
     }
     if(pos2 != std::string::npos) host.resize(pos2);
 
-    pos = path.find(':');
-    if(pos != std::string::npos) {
-      metadataoptions = ParseOptions(path.substr(pos+1), ':');
-      path = path.substr(0, pos);
-    }
-    
     if(port == -1) {
       if(protocol == "rc") port = RC_DEFAULT_PORT;
       if(protocol == "rls") port = RLS_DEFAULT_PORT;
@@ -228,6 +222,14 @@ namespace Arc {
       if(protocol == "ftp") port = FTP_DEFAULT_PORT;
       if(protocol == "gsiftp") port = GSIFTP_DEFAULT_PORT;
       if(protocol == "lfc") port = LFC_DEFAULT_PORT;
+    }
+
+    if(protocol != "ldap") {
+      pos = path.find(':');
+      if(pos != std::string::npos) {
+	metadataoptions = ParseOptions(path.substr(pos+1), ':');
+	path = path.substr(0, pos);
+      }
     }
 
     // if protocol = http, get the options after the ?
