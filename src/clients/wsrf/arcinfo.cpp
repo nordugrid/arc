@@ -96,6 +96,7 @@ int main(int argc, char *argv[]) {
     Arc::ClientSOAP client(cfg, url);
     Arc::InformationRequest inforequest;
     Arc::PayloadSOAP request(*(inforequest.SOAP()));
+    Arc::WSAHeader(request).To(url.str());
     Arc::PayloadSOAP *response;
     Arc::MCC_Status status = client.process(&request, &response);
     if (!status) {
