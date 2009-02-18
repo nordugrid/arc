@@ -8,7 +8,7 @@
 #include <arc/URL.h>
 #include <arc/client/ACC.h>
 #include <arc/client/Job.h>
-
+#include <arc/client/JobDescription.h>
 namespace Arc {
 
   class Logger;
@@ -51,6 +51,10 @@ namespace Arc {
     std::list<std::string> GetDownloadFiles(const URL& dir);
     bool CopyFile(const URL& src, const URL& dst);
 
+    std::list<std::pair<Job,JobDescription> > GetJobDescriptions(const std::list<std::string>& status,
+								 const bool getlocal,
+								 const int timeout);
+
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
     virtual bool GetJob(const Job& job, const std::string& downloaddir) = 0;
@@ -58,6 +62,7 @@ namespace Arc {
     virtual bool CancelJob(const Job& job) = 0;
     virtual URL GetFileUrlForJob(const Job& job,
 				 const std::string& whichfile) = 0;
+    virtual bool GetJobDescription(const Job& job, JobDescription& desc) = 0;
 
   protected:
     std::list<Job> jobstore;

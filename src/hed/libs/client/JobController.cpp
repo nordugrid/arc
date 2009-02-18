@@ -586,4 +586,43 @@ namespace Arc {
     return true;
   }
 
+  std::list<std::pair<Job,JobDescription> > JobController::GetJobDescriptions(const std::list<std::string>& status,
+									      const bool getlocal,
+									      const int timeout) {
+    
+    std::list<std::pair<Job,JobDescription> > jobpairs;
+    logger.msg(DEBUG, "Getting %s jobs", flavour);
+    
+    GetJobInformation();
+    // TODO: First get descriptions from sandbox
+
+    std::list<Job*> gettable;
+    for (std::list<Job>::iterator it = jobstore.begin();
+	 it != jobstore.end(); it++) {
+      if (it->State.empty()) {
+	logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+	continue;
+      }
+
+      if (!status.empty() && std::find(status.begin(), status.end(),
+				       it->State) == status.end())
+	continue;
+
+      gettable.push_back(&(*it));
+    }
+
+    bool ok = true;    
+    for (std::list<Job*>::iterator it = gettable.begin();
+	 it != gettable.end(); it++) {
+      JobDescription desc;
+      bool gotten = GetJobDescription(**it,desc);
+      if (!gotten) {
+	logger.msg(WARNING, "Failed getting job description for %s", (*it)->JobID.str());
+      } else {
+	logger.msg(DEBUG, "Got job description for %s", (*it)->JobID.str());
+	jobpairs.push_back(std::pair<Job, JobDescription>(**it,desc));
+      }
+    }
+    return jobpairs;
+  }
 } // namespace Arc
