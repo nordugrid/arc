@@ -20,7 +20,7 @@ def parse_url(url):
         port = 80
     return proto, host, int(port), path
 
-common_supported_protocols = ['http']
+common_supported_protocols = ['http', 'gridftp', 'srm']
 CHUNKSIZE = 2**20
 
 def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
@@ -30,6 +30,22 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     if protocol == 'byteio':
         from storage.client import ByteIOClient
         return ByteIOClient(turl).write(fobj)
+    elif protocol == 'gridftp':
+        try:            
+            import arc            
+            from arcom import datapoint_from_url            
+            use_hed = True
+        except:            
+            use_hed = False
+        if use_hed:
+
+            src = datapoint_from_url(fobj.name)
+            dst = datapoint_from_url(turl)            
+            dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', '') ,ssl_config.get('key_file', ''), ssl_config.get('ca_dir', ''))
+            mover = arc.DataMover()
+            mover.verbose(True)
+            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())            
+            return str(status)
     elif protocol == 'http':
         try:
             import arc
@@ -85,6 +101,23 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
     if protocol == 'byteio':
         from storage.client import ByteIOClient
         ByteIOClient(turl).read(file = f)
+    elif protocol == 'gridftp':
+        try:
+            import arc
+            from arcom import datapoint_from_url
+            use_hed = True
+        except:
+            use_hed = False
+        if use_hed:
+            src = datapoint_from_url(turl)
+            dst = datapoint_from_url(fobj.name)
+            src.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
+                ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
+            mover = arc.DataMover()
+            mover.verbose(True)
+            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            return str(status)
+
     elif protocol == 'http':
         try:
             import arc
@@ -1496,7 +1529,7 @@ else:
                 request = {'0' : (LN, ['http'])}
                 #print 'getFile', request
                 response = call_it('getFile', request)
-                #print response
+                print response
                 success, turl, protocol = response['0']
                 if success == 'done':
                     f = file(filename, 'wb')
@@ -1554,8 +1587,9 @@ else:
             request = {'0': (LN, metadata, ['http'])}
             #print 'putFile', request
             response = call_it('putFile', request)
-            #print response
+            print response
             success, turl, protocol = response['0']
+            
             if success == 'done':
                 print '- Got transfer URL:', turl
                 f = file(filename,'rb')
