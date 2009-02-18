@@ -85,6 +85,15 @@ namespace Arc {
      */
     bool sstat(XMLNode& status);
 
+    //! Query the description of a job.
+    /*! This method queries the A-REX service about the description of a
+       job.
+       @param jobid The Job ID of the job.
+       @param jobdesc The description of the job.
+       @return true on success
+     */
+    bool getdesc(const std::string& jobid, std::string& jobdesc);
+
     ClientSOAP* SOAP(void) {
       return client;
     }

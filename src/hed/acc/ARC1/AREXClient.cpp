@@ -569,4 +569,83 @@ namespace Arc {
     return true;
   }
 
+  bool AREXClient::getdesc(const std::string& jobid, std::string& jobdesc) {
+
+    std::string state, substate, faultstring;
+    logger.msg(INFO, "Creating and sending a job description request");
+
+    PayloadSOAP req(arex_ns);
+    XMLNode jobref =
+      req.NewChild("bes-factory:GetActivityDocuments").
+      NewChild(XMLNode(jobid));
+    set_bes_factory_action(req, "GetActivityDocuments");
+    WSAHeader(req).To(rurl.str());
+
+    // Send status request
+    PayloadSOAP *resp = NULL;
+
+    if (client) {
+      MCC_Status status =
+	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
+			"BESFactoryPortType/GetActivityDocuments", &req, &resp);
+      if (resp == NULL) {
+	logger.msg(ERROR, "There was no SOAP response");
+	return false;
+      }
+    }
+    else if (client_entry) {
+      Message reqmsg;
+      Message repmsg;
+      MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
+			 "bes-factory/BESFactoryPortType/GetActivityDocuments");
+      MessageAttributes attributes_rep;
+      MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      MCC_Status status = client_entry->process(reqmsg, repmsg);
+      if (!status) {
+	logger.msg(ERROR, "A status request failed");
+	return false;
+      }
+      logger.msg(INFO, "A status request succeed");
+      if (repmsg.Payload() == NULL) {
+	logger.msg(ERROR, "There was no response to a status request");
+	return false;
+      }
+      try {
+	resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      }
+      catch (std::exception&) {}
+      if (resp == NULL) {
+	logger.msg(ERROR,
+		   "The response of a status request was not a SOAP message");
+	delete repmsg.Payload();
+	return false;
+      }
+    } else {
+      logger.msg(ERROR, "There is no connection chain configured");
+      return false;
+    }
+
+    XMLNode st, fs;
+    (*resp)["GetActivityDocumentsResponse"]["Response"]
+    ["JobDefinition"].New(st);
+    st.GetDoc(jobdesc,true);
+    std::cout << "job def" << jobdesc << std::endl;
+    st.GetDoc(jobdesc);
+    // Check for faults
+    (*resp)["Fault"]["faultstring"].New(fs);
+    faultstring = (std::string)fs;
+    // delete resp;
+    if (faultstring != "") {
+      logger.msg(ERROR, faultstring);
+      return false;
+    } else {
+      return true;
+    }
+  }
 }
