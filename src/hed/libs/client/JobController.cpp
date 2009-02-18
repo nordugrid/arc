@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <unistd.h>
+#include <glibmm/fileutils.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
@@ -392,14 +393,14 @@ namespace Arc {
        */
 
       if (whichfile == "stdout" && it->StdOut.empty()) {
-	logger.msg(ERROR, "Can not determine the stdout location: %s",
-		   it->JobID.str());
-	continue;
+      	logger.msg(ERROR, "Can not determine the stdout location: %s",
+      	it->JobID.str());
+      	continue;
       }
       if (whichfile == "stderr" && it->StdErr.empty()) {
-	logger.msg(ERROR, "Can not determine the stderr location: %s",
-		   it->JobID.str());
-	continue;
+      	logger.msg(ERROR, "Can not determine the stderr location: %s",
+      	it->JobID.str());
+      	continue;
       }
 
       catable.push_back(&(*it));
@@ -409,11 +410,11 @@ namespace Arc {
     for (std::list<Job*>::iterator it = catable.begin();
 	 it != catable.end(); it++) {
       std::string filename("/tmp/arccat.XXXXXX");
-      int tmp_h = mkstemp(const_cast<char*>(filename.c_str()));
+      int tmp_h = Glib::mkstemp(filename);
       if (tmp_h == -1) {
-	logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
-	ok = false;
-	continue;
+      	logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
+      	ok = false;
+      	continue;
       }
       close(tmp_h);
 
