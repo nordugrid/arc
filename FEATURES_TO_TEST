@@ -15,15 +15,19 @@ When running arcslcs (SLCS client), the idp name "https://squark.uio.no/idp/shib
 needs to be specified.
 As result, a short-lived X.509 Credential will be generated.
 
-2009-02-12 Weizhong Qiang
-arcproxy utility with voms client functionality.
-
 
 
 ===========================================================================
 
 Features already included into testing framework
 ------------------------------------------------
+
+2009-02-12 Weizhong Qiang
+arcproxy utility with voms client functionality.
+(voms proxy certificates generated with arcproxy are now used for submission to 
+ARC0 in functionality tests. Since the proxy certificates are RFC compilant, they can 
+not be used for submission to Cream CE)
+
 
 2008-11-17 Aleksandr Konstantinov
 HTTP MCC now supports streaming. As result HTTP services based on MCC
