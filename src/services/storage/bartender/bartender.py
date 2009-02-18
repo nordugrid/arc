@@ -178,12 +178,14 @@ class Bartender:
         
     def _externalStore(self,auth, url, flag=''):
         """ This method calles the gateway backend class to get/check the full URL of the externally stored file"""
+        response = {}
         if flag == 'list':      
             response = self.gateway.list(auth,url,flag)
             #print 'response'   
             #print response     
         elif flag == 'getFile':
-            response = self.gateway.get(url)
+            print url
+            response = self.gateway.get(auth,url,flag)
         return response
 
     def getFile(self, auth, requests):
@@ -211,11 +213,17 @@ class Bartender:
                 if not wasComplete:
                     if metadata.get(('entry', 'type'), '') == 'mountpoint':
                         url = metadata[('mountpoint', 'externalURL')]
-                        turl,protocol = self._externalStore(url+restLN,'getFile')
-                        if not turl:
-                            success = 'not found'
+                        res = self._externalStore(auth ,url+'/'+restLN,'getFile')
+                        if res:
+                            for key in res.keys():
+                                turl = res[key]['turl']
+                                protocol = res[key]['protocol'] 
+                                if res[key]['status'] == 'successful':
+                                    success = 'done'
+                                else:
+                                    success = res[key]['status']  
                         else:   
-                            success = 'found in external store'
+                            success = 'not found'
                     else:       
                         success = 'not found'
                 else:
@@ -407,7 +415,11 @@ class Bartender:
                     if metadata.get(('entry','type'), '') == 'mountpoint':
                         url = metadata[('mountpoint','externalURL')] + '/' + restLN                
                         success = 'done'
-                        response[rID] = (success, url, 'external')
+                        if url[:6] == 'gsiftp':
+                            protocol = 'gridftp'
+                        elif url[:3] == 'srm':
+                            protocol = 'srm'  
+                        response[rID] = (success, url, protocol)
                         return response    
                     if wasComplete: # this means the LN already exists, so we couldn't put a new file there
                         success = 'LN exists'
