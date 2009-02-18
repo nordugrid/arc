@@ -159,4 +159,41 @@ namespace Arc {
   URL JobControllerARC1::GetFileUrlForJob(const Job& job,
 					  const std::string& whichfile) {}
 
+  bool JobControllerARC1::GetJobDescription(const Job& job, JobDescription& desc) {
+    MCCConfig cfg;
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
+    PathIterator pi(job.JobID.Path(), true);
+    URL url(job.JobID);
+    url.ChangePath(*pi);
+    AREXClient ac(url, cfg);
+    NS ns;
+    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+    ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
+    ns["wsa"] = "http://www.w3.org/2005/08/addressing";
+    ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+    ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+    XMLNode id(ns, "ActivityIdentifier");
+    id.NewChild("wsa:Address") = url.str();
+    id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
+    std::string idstr;
+    id.GetXML(idstr);
+    std::string desc_str;
+    if (ac.getdesc(idstr,desc_str)){
+      desc.setSource(desc_str);
+      if (desc.isValid()) std::cout << "Valid job description" << std::endl;
+      return true;
+    } else {
+      logger.msg(ERROR, "No job description");
+      return false;
+    }
+  }
 } // namespace Arc

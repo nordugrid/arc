@@ -128,4 +128,6 @@ namespace Arc {
   URL JobControllerUNICORE::GetFileUrlForJob(const Job& job,
 					  const std::string& whichfile) {}
 
+  bool JobControllerUNICORE::GetJobDescription(const Job& job, JobDescription& desc) {
+
 } // namespace Arc

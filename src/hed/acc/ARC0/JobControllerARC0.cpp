@@ -296,4 +296,6 @@ namespace Arc {
     return url;
   }
 
+  bool JobControllerARC0::GetJobDescription(const Job&, JobDescription& desc) {
+  }    
 } // namespace Arc
