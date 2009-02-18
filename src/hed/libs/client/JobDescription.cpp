@@ -1366,114 +1366,120 @@ namespace Arc {
         //nsList.insert(std::pair<std::string, std::string>("gin","http://"));
 
         //Meta
-        Arc::XMLNodeList meta;
-        Arc::XMLNode _meta;
+        Arc::XMLNode meta;
         Arc::OptionalElementType optional;
 
-        _meta = node["Meta"]["Author"];
-        if ( bool(_meta) && (std::string)(_meta) != "" ){
-           Optional_attribute_check(_meta, "//Meta/Author", innerRepresentation,optional);
-           innerRepresentation.Author = (std::string)(_meta);
+        meta = node["Meta"]["Author"];
+        if ( bool(meta) && (std::string)(meta) != "" ){
+           Optional_attribute_check(meta, "//Meta/Author", innerRepresentation,optional);
+           innerRepresentation.Author = (std::string)(meta);
         }
-        _meta.Destroy();
+        meta.Destroy();
 
-        _meta = node["Meta"]["DocumentExpiration"];
-        if ( bool(_meta) && (std::string)(_meta) != "" ){
-           Optional_attribute_check(_meta, "//Meta/DocumentExpiration", innerRepresentation,optional);
-           Time time((std::string)(_meta));
+        meta = node["Meta"]["DocumentExpiration"];
+        if ( bool(meta) && (std::string)(meta) != "" ){
+           Optional_attribute_check(meta, "//Meta/DocumentExpiration", innerRepresentation,optional);
+           Time time((std::string)(meta));
            innerRepresentation.DocumentExpiration = time;
         }
-        _meta.Destroy();
+        meta.Destroy();
 
-        meta = node.XPathLookup((std::string)"//Meta/Rank", nsList);
-           Optional_attribute_check(*(meta.begin()), "//Meta/Rank", innerRepresentation,optional);
-        if ( !meta.empty() )
-           innerRepresentation.Rank = (std::string)(*meta.begin());
-        meta.clear();
+        meta = node["Meta"]["Rank"];
+        if ( bool(meta) && (std::string)(meta) != "" ){
+           Optional_attribute_check(meta, "//Meta/Rank", innerRepresentation,optional);
+           innerRepresentation.Rank = (std::string)(meta);
+        }
+        meta.Destroy();
 
-        meta = node.XPathLookup((std::string)"//Meta/FuzzyRank", nsList);
-        if ( !meta.empty() )
-           Optional_attribute_check(*(meta.begin()), "//Meta/FuzzyRank", innerRepresentation,optional);
-           if ( (std::string)(*meta.begin()) == "true" ) {
+        meta = node["Meta"]["FuzzyRank"];
+        if ( bool(meta) && (std::string)(meta) != "" ){
+           Optional_attribute_check(meta, "//Meta/FuzzyRank", innerRepresentation,optional);
+           if ( (std::string)(meta) == "true" ) {
               innerRepresentation.FuzzyRank = true;
            }
-           else if ( (std::string)(*meta.begin()) == "false" ) {
+           else if ( (std::string)(meta) == "false" ) {
               innerRepresentation.FuzzyRank = false;
            }
            else {
-	      JobDescription::logger.msg(DEBUG, "Invalid \"/Meta/FuzzyRank\" value: %s", (std::string)(*meta.begin()));
+	      JobDescription::logger.msg(DEBUG, "Invalid \"/Meta/FuzzyRank\" value: %s", (std::string)(meta));
               return false;         
            }
-        meta.clear();
+        }
+        meta.Destroy();
 
         //Application         
-        Arc::XMLNodeList application;
-        application = node.XPathLookup((std::string)"//JobDescription/Application/Executable", nsList);
-        if ( !application.empty() )
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Executable", innerRepresentation,optional);
-           innerRepresentation.Executable = (std::string)(*application.begin());
-        application.clear();
-
-        application = node.XPathLookup((std::string)"//JobDescription/Application/LogDir", nsList);
-        if ( !application.empty() )
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/LogDir", innerRepresentation,optional);
-           innerRepresentation.LogDir = (std::string)(*application.begin());
-        application.clear();
-
-        application = node.XPathLookup( (std::string) "//JobDescription/Application/Argument", nsList);
-        for (std::list<Arc::XMLNode>::iterator it = application.begin(); it != application.end(); it++) {
-           Optional_attribute_check(*it, "//JobDescription/Application/Argument", innerRepresentation,optional, (std::string)(*it));
-            innerRepresentation.Argument.push_back( (std::string)(*it) );
+        Arc::XMLNode application;
+        application = node["JobDescription"]["Application"]["Executable"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/Executable", innerRepresentation,optional);
+           innerRepresentation.Executable = (std::string)(application);
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/Input", nsList);
-        if ( !application.empty() )
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Input", innerRepresentation,optional);
-           innerRepresentation.Input = (std::string)(*application.begin());
-        application.clear();
+        application = node["JobDescription"]["Application"]["LogDir"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/LogDir", innerRepresentation,optional);
+           innerRepresentation.LogDir = (std::string)(application);
+        }
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/Output", nsList);
-        if ( !application.empty() )
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Output", innerRepresentation,optional);
-           innerRepresentation.Output = (std::string)(*application.begin());
-        application.clear();
+        application = node["JobDescription"]["Application"]["Argument"];
+        for (int i=0; bool(application[i])&& (std::string)(application[i]) != ""; i++) {
+           Optional_attribute_check(application[i], "//JobDescription/Application/Argument", innerRepresentation,optional, (std::string)(application[i]));
+            innerRepresentation.Argument.push_back( (std::string)(application[i]) );
+        }
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/Error", nsList);
-        if ( !application.empty() )
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Error", innerRepresentation,optional);
-           innerRepresentation.Error = (std::string)(*application.begin());
-        application.clear();
+        application = node["JobDescription"]["Application"]["Input"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/Input", innerRepresentation,optional);
+           innerRepresentation.Input = (std::string)(application);
+        }
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/RemoteLogging", nsList);
-        if ( !application.empty() ) {
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/RemoteLogging", innerRepresentation,optional);
-           URL url((std::string)(*application.begin()));
+        application = node["JobDescription"]["Application"]["Output"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/Output", innerRepresentation,optional);
+           innerRepresentation.Output = (std::string)(application);
+        }
+        application.Destroy();
+
+        application = node["JobDescription"]["Application"]["Error"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/Error", innerRepresentation,optional);
+           innerRepresentation.Error = (std::string)(application);
+        }
+        application.Destroy();
+
+        application = node["JobDescription"]["Application"]["RemoteLogging"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/RemoteLogging", innerRepresentation,optional);
+           URL url((std::string)(application));
            innerRepresentation.RemoteLogging = url;
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup( (std::string) "//JobDescription/Application/Environment", nsList);
-        for (std::list<Arc::XMLNode>::iterator it = application.begin(); it != application.end(); it++) {
-           Optional_attribute_check(*it, "//JobDescription/Application/Environment", innerRepresentation,optional, (std::string)(*it));
+        application = node["JobDescription"]["Application"]["Environment"];
+        for (int i=0; bool(application[i])&& (std::string)(application[i]) != ""; i++) {
+           Optional_attribute_check(application[i], "//JobDescription/Application/Environment", innerRepresentation,optional, (std::string)(application[i]));
             Arc::EnvironmentType env;
-            env.name_attribute = (std::string)(*it).Attribute("name");
-            env.value = (std::string)(*it);
+            env.name_attribute = (std::string)(application[i].Attribute("name"));
+            env.value = (std::string)(application[i]);
             innerRepresentation.Environment.push_back( env );
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/LRMSReRun", nsList);
-        if ( !application.empty() ){
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/LRMSReRun", innerRepresentation,optional);
-           innerRepresentation.LRMSReRun = stringtoi(*application.begin());
+        application = node["JobDescription"]["Application"]["LRMSReRun"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/LRMSReRun", innerRepresentation,optional);
+           innerRepresentation.LRMSReRun = stringtoi(application);
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/Prologue", nsList);
-        if ( !application.empty() ) {
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Prologue", innerRepresentation,optional);
-           std::string source_prologue = (std::string)(*application.begin());
+        application = node["JobDescription"]["Application"]["Prologue"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application,"//JobDescription/Application/Prologue", innerRepresentation,optional);
+           std::string source_prologue = (std::string)(application);
            std::vector<std::string> parts = sm.split( source_prologue, " " );
            if ( !parts.empty() ) {
               Arc::XLogueType _prologue;
@@ -1484,12 +1490,12 @@ namespace Arc {
               innerRepresentation.Prologue = _prologue;
            }
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/Epilogue", nsList);
-        if ( !application.empty() ) {
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Epilogue", innerRepresentation,optional);
-           std::string source_epilogue = (std::string)(*application.begin());
+        application = node["JobDescription"]["Application"]["Epilogue"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/Epilogue", innerRepresentation,optional);
+           std::string source_epilogue = (std::string)(application);
            std::vector<std::string> parts = sm.split( source_epilogue, " " );
            if ( !parts.empty() ) {
               Arc::XLogueType _epilogue;
@@ -1500,390 +1506,395 @@ namespace Arc {
               innerRepresentation.Epilogue = _epilogue;
            }
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/SessionLifeTime", nsList);
-        if ( !application.empty() ) {
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/SessionLifeTime", innerRepresentation,optional);
-           Period time((std::string)(*application.begin()));
+        application = node["JobDescription"]["Application"]["SessionLifeTime"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/SessionLifeTime", innerRepresentation,optional);
+           Period time((std::string)(application));
            innerRepresentation.SessionLifeTime = time;
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/AccessControl", nsList);
-        if ( !application.empty() ){
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/AccessControl", innerRepresentation,optional);
-           ((Arc::XMLNode)(*application.begin())).Child(0).New(innerRepresentation.AccessControl);
+        application = node["JobDescription"]["Application"]["AccessControl"];
+        if ( bool(application) ){
+           Optional_attribute_check(application, "//JobDescription/Application/AccessControl", innerRepresentation,optional);
+           ((Arc::XMLNode)(application)).Child(0).New(innerRepresentation.AccessControl);
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/ProcessingStartTime", nsList);
-        if ( !application.empty() ) {
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/ProcessingStartTime", innerRepresentation,optional);
-           Time stime((std::string)*application.begin());
+        application = node["JobDescription"]["Application"]["ProcessingStartTime"];
+        if ( bool(application) && (std::string)(application) != "" ){
+          Optional_attribute_check(application, "//JobDescription/Application/ProcessingStartTime", innerRepresentation,optional);
+           Time stime((std::string)application);
            innerRepresentation.ProcessingStartTime = stime;
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup( (std::string) "//JobDescription/Application/Notification", nsList);
-        for (std::list<Arc::XMLNode>::iterator it = application.begin(); it != application.end(); it++) {
-           Optional_attribute_check(*it, "//JobDescription/Application/Notification", innerRepresentation,optional);
+        application = node["JobDescription"]["Application"]["Notification"];
+        for (int i=0; bool(application[i]); i++) {
+           Optional_attribute_check(application[i], "//JobDescription/Application/Notification", innerRepresentation,optional);
             Arc::NotificationType ntype;
-            Arc::XMLNodeList address = (*it).XPathLookup( (std::string) "//Address", nsList);
+            Arc::XMLNodeList address = (application[i]).XPathLookup( (std::string) "//Address", nsList);
             for (std::list<Arc::XMLNode>::iterator it_addr = address.begin(); it_addr != address.end(); it_addr++) {             
                 ntype.Address.push_back( (std::string)(*it_addr) );
             }
-            Arc::XMLNodeList state = (*it).XPathLookup( (std::string) "//State", nsList);
+            Arc::XMLNodeList state = (application[i]).XPathLookup( (std::string) "//State", nsList);
             for (std::list<Arc::XMLNode>::iterator it_state = state.begin(); it_state != state.end(); it_state++) {             
                 ntype.State.push_back( (std::string)(*it_state) );
             }
             innerRepresentation.Notification.push_back( ntype );
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/CredentialService", nsList);
-        if ( !application.empty() ) {
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/CredentialService", innerRepresentation,optional);
-           URL curl((std::string)*application.begin());
+        application = node["JobDescription"]["Application"]["CredentialService"];
+        if ( bool(application) && (std::string)(application) != "" ){
+           Optional_attribute_check(application, "//JobDescription/Application/CredentialService", innerRepresentation,optional);
+           URL curl((std::string)application);
            innerRepresentation.CredentialService = curl;
         }
-        application.clear();
+        application.Destroy();
 
-        application = node.XPathLookup((std::string)"//JobDescription/Application/Join", nsList);
-        if ( !application.empty() && Arc::upper((std::string)*application.begin()) == "TRUE" ){
-           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Join", innerRepresentation,optional);
+        application = node["JobDescription"]["Application"]["Join"];
+        if ( bool(application) && Arc::upper((std::string)application) == "TRUE" ){
+           Optional_attribute_check(application, "//JobDescription/Application/Join", innerRepresentation,optional);
            innerRepresentation.Join = true;
         }
-        application.clear();
+        application.Destroy();
 
         //JobIdentification
-        Arc::XMLNodeList jobidentification;
-        jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobName", nsList);
-        if ( !jobidentification.empty() ){
-           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobName", innerRepresentation,optional);
-           innerRepresentation.JobName = (std::string)(*jobidentification.begin());
+        Arc::XMLNode jobidentification;
+        jobidentification = node["JobDescription"]["JobIdentification"]["JobName"];
+        if ( bool(jobidentification) && (std::string)(jobidentification) != "" ){
+           Optional_attribute_check(jobidentification, "//JobDescription/JobIdentification/JobName", innerRepresentation,optional);
+           innerRepresentation.JobName = (std::string)(jobidentification);
         }
-        jobidentification.clear();
+        jobidentification.Destroy();
 
-        jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/Description", nsList);
-        if ( !jobidentification.empty() ){
-           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/Description", innerRepresentation,optional);
-           innerRepresentation.Description = (std::string)(*jobidentification.begin());
+        jobidentification = node["JobDescription"]["JobIdentification"]["Description"];
+        if ( bool(jobidentification) && (std::string)(jobidentification) != "" ){
+           Optional_attribute_check(jobidentification, "//JobDescription/JobIdentification/Description", innerRepresentation,optional);
+           innerRepresentation.Description = (std::string)(jobidentification);
         }
-        jobidentification.clear();
+        jobidentification.Destroy();
 
-        jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobProject", nsList);
-        if ( !jobidentification.empty() ){
-           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobProject", innerRepresentation,optional);
-           innerRepresentation.JobProject = (std::string)(*jobidentification.begin());
+        jobidentification = node["JobDescription"]["JobIdentification"]["JobProject"];
+        if ( bool(jobidentification) && (std::string)(jobidentification) != "" ){
+           Optional_attribute_check(jobidentification, "//JobDescription/JobIdentification/JobProject", innerRepresentation,optional);
+           innerRepresentation.JobProject = (std::string)(jobidentification);
         }
-        jobidentification.clear();
+        jobidentification.Destroy();
 
-        jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobType", nsList);
-        if ( !jobidentification.empty() ){
-           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobType", innerRepresentation,optional);
-           innerRepresentation.JobType = (std::string)(*jobidentification.begin());
+        jobidentification = node["JobDescription"]["JobIdentification"]["JobType"];
+        if ( bool(jobidentification) && (std::string)(jobidentification) != "" ){
+           Optional_attribute_check(jobidentification, "//JobDescription/JobIdentification/JobType", innerRepresentation,optional);
+           innerRepresentation.JobType = (std::string)(jobidentification);
         }
-        jobidentification.clear();
+        jobidentification.Destroy();
 
-        jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobCategory", nsList);
-        if ( !jobidentification.empty() ){
-           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobCategory", innerRepresentation,optional);
-           innerRepresentation.JobCategory = (std::string)(*jobidentification.begin());
+        jobidentification = node["JobDescription"]["JobIdentification"]["JobCategory"];
+        if ( bool(jobidentification) && (std::string)(jobidentification) != "" ){
+           Optional_attribute_check(jobidentification, "//JobDescription/JobIdentification/JobCategory", innerRepresentation,optional);
+           innerRepresentation.JobCategory = (std::string)(jobidentification);
         }
-        jobidentification.clear();
+        jobidentification.Destroy();
 
-        jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/UserTag", nsList);
-        for (std::list<Arc::XMLNode>::const_iterator it = jobidentification.begin(); it != jobidentification.end(); it++) {
-            Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/UserTag", innerRepresentation,optional, (std::string)(*it));
-            innerRepresentation.UserTag.push_back( (std::string)(*it));
+        jobidentification = node["JobDescription"]["JobIdentification"]["UserTag"];
+        for (int i=0; bool(jobidentification[i])&& (std::string)(jobidentification[i]) != ""; i++) {
+            Optional_attribute_check(jobidentification[i], "//JobDescription/JobIdentification/UserTag", innerRepresentation,optional, (std::string)jobidentification[i]);
+            innerRepresentation.UserTag.push_back( (std::string)jobidentification[i]);
         }
-        jobidentification.clear();
+        jobidentification.Destroy();
 
         //Resource
-        Arc::XMLNodeList resource;
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/TotalCPUTime", nsList);
-        if ( !resource.empty() ) {
-           Optional_attribute_check(*(resource.begin()),"//JobDescription/Resource/TotalCPUTime", innerRepresentation,optional);
-           Period time((std::string)(*resource.begin()));
+        Arc::XMLNode resource;
+        resource = node["JobDescription"]["Resource"]["TotalCPUTime"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource,"//JobDescription/Resource/TotalCPUTime", innerRepresentation,optional);
+           Period time((std::string)(resource));
            innerRepresentation.TotalCPUTime = time;
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualCPUTime", nsList);
-        if ( !resource.empty() ) {
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualCPUTime", innerRepresentation,optional);
-           Period time((std::string)(*resource.begin()));
+        resource = node["JobDescription"]["Resource"]["IndividualCPUTime"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/IndividualCPUTime", innerRepresentation,optional);
+           Period time((std::string)(resource));
            innerRepresentation.IndividualCPUTime = time;
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/TotalWallTime", nsList);
-        if ( !resource.empty() ) {
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/TotalWallTime", innerRepresentation,optional);
-           Period _walltime((std::string)(*resource.begin()));
+        resource = node["JobDescription"]["Resource"]["TotalWallTime"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/TotalWallTime", innerRepresentation,optional);
+           Period _walltime((std::string)(resource));
            innerRepresentation.TotalWallTime = _walltime;
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualWallTime", nsList);
-        if ( !resource.empty() ) {
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualWallTime", innerRepresentation,optional);
-           Period _indwalltime((std::string)(*resource.begin()));
+        resource = node["JobDescription"]["Resource"]["IndividualWallTime"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/IndividualWallTime", innerRepresentation,optional);
+           Period _indwalltime((std::string)(resource));
            innerRepresentation.IndividualWallTime = _indwalltime;
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/ReferenceTime", nsList);
-        if ( !resource.empty() ) {
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/ReferenceTime", innerRepresentation,optional);
+        resource = node["JobDescription"]["Resource"]["ReferenceTime"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/ReferenceTime", innerRepresentation,optional);
            Arc::ReferenceTimeType _reference;
-           _reference.value = (std::string)(*resource.begin());
-           _reference.benchmark_attribute = (std::string)((Arc::XMLNode)(*resource.begin()).Attribute("benchmark"));
-           _reference.value_attribute = (std::string)((Arc::XMLNode)(*resource.begin()).Attribute("value"));
+           _reference.value = (std::string)(resource);
+           _reference.benchmark_attribute = (std::string)((Arc::XMLNode)(resource).Attribute("benchmark"));
+           _reference.value_attribute = (std::string)((Arc::XMLNode)(resource).Attribute("value"));
            innerRepresentation.ReferenceTime = _reference;
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/ExclusiveExecution", nsList);
-        if ( !resource.empty() ) {
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/ExclusiveExecution", innerRepresentation,optional);
+        resource = node["JobDescription"]["Resource"]["ExclusiveExecution"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/ExclusiveExecution", innerRepresentation,optional);
            Arc::ReferenceTimeType _reference;
-           if ( Arc::upper((std::string)(*resource.begin())) == "TRUE" ) {
+           if ( Arc::upper((std::string)(resource)) == "TRUE" ) {
               innerRepresentation.ExclusiveExecution = true;
            }
-           else if ( Arc::upper((std::string)(*resource.begin())) == "FALSE" ) {
+           else if ( Arc::upper((std::string)(resource)) == "FALSE" ) {
               innerRepresentation.ExclusiveExecution = false;
            }
            else {
-	      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value: %s", (std::string)(*resource.begin()));
+	      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value: %s", (std::string)(resource));
               return false;
            }
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/NetworkInfo", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/NetworkInfo", innerRepresentation,optional);
-           innerRepresentation.NetworkInfo = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["NetworkInfo"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/NetworkInfo", innerRepresentation,optional);
+           innerRepresentation.NetworkInfo = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/OSFamily", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/OSFamily", innerRepresentation,optional);
-           innerRepresentation.OSFamily = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["OSFamily"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/OSFamily", innerRepresentation,optional);
+           innerRepresentation.OSFamily = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/OSName", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/OSName", innerRepresentation,optional);
-           innerRepresentation.OSName = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["OSName"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/OSName", innerRepresentation,optional);
+           innerRepresentation.OSName = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/OSVersion", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/OSVersion", innerRepresentation,optional);
-           innerRepresentation.OSVersion = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["OSVersion"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/OSVersion", innerRepresentation,optional);
+           innerRepresentation.OSVersion = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Platform", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Platform", innerRepresentation,optional);
-           innerRepresentation.Platform = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Platform"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Platform", innerRepresentation,optional);
+           innerRepresentation.Platform = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualPhysicalMemory", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualPhysicalMemory", innerRepresentation,optional);
-           innerRepresentation.IndividualPhysicalMemory = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["IndividualPhysicalMemory"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/IndividualPhysicalMemory", innerRepresentation,optional);
+           innerRepresentation.IndividualPhysicalMemory = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualVirtualMemory", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualVirtualMemory", innerRepresentation,optional);
-           innerRepresentation.IndividualVirtualMemory = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["IndividualVirtualMemory"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/IndividualVirtualMemory", innerRepresentation,optional);
+           innerRepresentation.IndividualVirtualMemory = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/DiskSpace/IndividualDiskSpace", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/DiskSpace/IndividualDiskSpace", innerRepresentation,optional);
-           innerRepresentation.IndividualDiskSpace = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["DiskSpace"]["IndividualDiskSpace"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/DiskSpace/IndividualDiskSpace", innerRepresentation,optional);
+           innerRepresentation.IndividualDiskSpace = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/DiskSpace", nsList);
-        if ( !resource.empty()){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/DiskSpace", innerRepresentation,optional);
-           innerRepresentation.DiskSpace = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["DiskSpace"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/DiskSpace", innerRepresentation,optional);
+           innerRepresentation.DiskSpace = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/CacheDiskSpace", nsList);
-        if ( !resource.empty()){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CacheDiskSpace", innerRepresentation,optional);
-           innerRepresentation.CacheDiskSpace = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["DiskSpace"]["CacheDiskSpace"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/DiskSpace/CacheDiskSpace", innerRepresentation,optional);
+           innerRepresentation.CacheDiskSpace = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/SessionDiskSpace", nsList);
-        if ( !resource.empty()){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/SessionDiskSpace", innerRepresentation,optional);
-           innerRepresentation.SessionDiskSpace = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["DiskSpace"]["SessionDiskSpace"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/DiskSpace/SessionDiskSpace", innerRepresentation,optional);
+           innerRepresentation.SessionDiskSpace = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/CandidateTarget/Alias", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CandidateTarget/Alias", innerRepresentation,optional);
-           innerRepresentation.Alias = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["CandidateTarget"]["Alias"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/CandidateTarget/Alias", innerRepresentation,optional);
+           innerRepresentation.Alias = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/CandidateTarget/EndPointURL", nsList);
-        if ( !resource.empty() ) {
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CandidateTarget/EndPointURL", innerRepresentation,optional);
-           URL url((std::string)(*resource.begin()));
+        resource = node["JobDescription"]["Resource"]["CandidateTarget"]["EndPointURL"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/CandidateTarget/EndPointURL", innerRepresentation,optional);
+           URL url((std::string)(resource));
            innerRepresentation.EndPointURL = url;
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/CandidateTarget/QueueName", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CandidateTarget/QueueName", innerRepresentation,optional);
-           innerRepresentation.QueueName = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["CandidateTarget"]["QueueName"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/CandidateTarget/QueueName", innerRepresentation,optional);
+           innerRepresentation.QueueName = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Country", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Country", innerRepresentation,optional);
-           innerRepresentation.Country = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Location"]["Country"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Location/Country", innerRepresentation,optional);
+           innerRepresentation.Country = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Place", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Place", innerRepresentation,optional);
-           innerRepresentation.Place = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Location"]["Place"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Location/Place", innerRepresentation,optional);
+           innerRepresentation.Place = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/PostCode", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/PostCode", innerRepresentation,optional);
-           innerRepresentation.PostCode = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Location"]["PostCode"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Location/PostCode", innerRepresentation,optional);
+           innerRepresentation.PostCode = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Latitude", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Latitude", innerRepresentation,optional);
-           innerRepresentation.Latitude = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Location"]["Latitude"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Location/Latitude", innerRepresentation,optional);
+           innerRepresentation.Latitude = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Longitude", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Longitude", innerRepresentation,optional);
-           innerRepresentation.Longitude = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Location"]["Longitude"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Location/Longitude", innerRepresentation,optional);
+           innerRepresentation.Longitude = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/CEType", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CEType", innerRepresentation,optional);
-           innerRepresentation.CEType = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["CEType"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/CEType", innerRepresentation,optional);
+           innerRepresentation.CEType = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots", innerRepresentation,optional);
-           innerRepresentation.Slots = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Slots"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Slots", innerRepresentation,optional);
+           innerRepresentation.Slots = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/ProcessPerHost", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/ProcessPerHost", innerRepresentation,optional);
-           innerRepresentation.ProcessPerHost = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Slots"]["ProcessPerHost"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Slots/ProcessPerHost", innerRepresentation,optional);
+           innerRepresentation.ProcessPerHost = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/NumberOfProcesses", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/NumberOfProcesses", innerRepresentation,optional);
-           innerRepresentation.NumberOfProcesses = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Slots"]["NumberOfProcesses"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Slots/NumberOfProcesses", innerRepresentation,optional);
+           innerRepresentation.NumberOfProcesses = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/ThreadPerProcesses", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/ThreadPerProcesses", innerRepresentation,optional);
-           innerRepresentation.ThreadPerProcesses = stringtoi(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Slots"]["ThreadPerProcesses"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Slots/ThreadPerProcesses", innerRepresentation,optional);
+           innerRepresentation.ThreadPerProcesses = stringtoi(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/SPMDVariation", nsList);
-        if ( !resource.empty() ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/SPMDVariation", innerRepresentation,optional);
-          innerRepresentation.SPMDVariation = (std::string)(*resource.begin());
+        resource = node["JobDescription"]["Resource"]["Slots"]["SPMDVariation"];
+        if ( bool(resource) && (std::string)(resource) != "" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Slots/SPMDVariation", innerRepresentation,optional);
+          innerRepresentation.SPMDVariation = (std::string)(resource);
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/RunTimeEnvironment", nsList);
-        for (std::list<Arc::XMLNode>::const_iterator it = resource.begin(); it != resource.end(); it++) {
+        resource = node["JobDescription"]["Resource"]["RunTimeEnvironment"];
+        for (int i=0; bool(resource[i]); i++) {
 //            Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/RunTimeEnvironment", innerRepresentation,optional, (std::string)(*it));
             Arc::RunTimeEnvironmentType _runtimeenv;
-            if ( (bool)((*it)["Name"]) )
-               _runtimeenv.Name = (std::string)(*it)["Name"];
-            Arc::XMLNodeList version = (*it).XPathLookup((std::string)"//Version", nsList);
+            if ( (bool)(resource[i]["Name"]) ){
+               _runtimeenv.Name = (std::string)resource[i]["Name"];
+               Optional_attribute_check(resource[i]["Name"], "//JobDescription/Resource/RunTimeEnvironment/Name", innerRepresentation,optional, (std::string)(resource[i]["Name"]));
+            }
+            else{
+	       JobDescription::logger.msg(DEBUG, "Not found  \"/JobDescription/Resource/RunTimeEnvironment/Name\" element");
+               return false;
+            }
+            Arc::XMLNodeList version = resource[i].XPathLookup((std::string)"//Version", nsList);
             for (std::list<Arc::XMLNode>::const_iterator it_v = version.begin(); it_v!= version.end(); it_v++) {
                 Optional_attribute_check(*it_v, "//JobDescription/Resource/RunTimeEnvironment/Version", innerRepresentation,optional, (std::string)(*it_v));
                 _runtimeenv.Version.push_back( (std::string)(*it_v) );
             }
             innerRepresentation.RunTimeEnvironment.push_back( _runtimeenv );
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Homogeneous", nsList);
-        if ( !resource.empty() &&
-             (std::string)(*resource.begin()) == "true" ){
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Homogeneous", innerRepresentation,optional);
+        resource = node["JobDescription"]["Resource"]["Homogeneous"];
+        if ( bool(resource) && (std::string)(resource) == "true" ){
+           Optional_attribute_check(resource, "//JobDescription/Resource/Homogeneous", innerRepresentation,optional);
            innerRepresentation.Homogeneous = true;
         }
         else {
-           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Homogeneous", innerRepresentation,optional);
+           Optional_attribute_check(resource, "//JobDescription/Resource/Homogeneous", innerRepresentation,optional);
            innerRepresentation.Homogeneous = false;
         }
-        resource.clear();
+        resource.Destroy();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/NodeAccess", nsList);
-        if ( (bool)((Arc::XMLNode)(*resource.begin())["InBound"]) && 
-             (std::string)((Arc::XMLNode)(*resource.begin())["InBound"]) == "true" )
+        resource = node["JobDescription"]["Resource"]["NodeAccess"];
+        if ( (bool)((Arc::XMLNode)(resource)["InBound"]) && 
+             (std::string)((Arc::XMLNode)(resource)["InBound"]) == "true" )
            innerRepresentation.InBound = true;
-        if ( (bool)((Arc::XMLNode)(*resource.begin())["OutBound"]) && 
-             (std::string)((Arc::XMLNode)(*resource.begin())["OutBound"]) == "true" )
+        if ( (bool)((Arc::XMLNode)(resource)["OutBound"]) && 
+             (std::string)((Arc::XMLNode)(resource)["OutBound"]) == "true" )
            innerRepresentation.OutBound = true;
-        resource.clear();
+        resource.Destroy();
 
 
         //DataStaging
-        Arc::XMLNodeList datastaging;
-        datastaging = node.XPathLookup((std::string)"//JobDescription/DataStaging/File", nsList);
-        for (std::list<Arc::XMLNode>::const_iterator it = datastaging.begin(); it != datastaging.end(); it++) {
-//           Optional_attribute_check(*(datastaging.begin()), "//JobDescription/DataStaging/File", innerRepresentation,optional);
+        Arc::XMLNode datastaging;
+        datastaging = node["JobDescription"]["DataStaging"]["File"];
+        for (int i=0; bool(datastaging[i]); i++) {
+//           Optional_attribute_check(datastaging[i], "//JobDescription/DataStaging/File", innerRepresentation,optional);
             Arc::FileType _file;
-            if ( (bool)((*it)["Name"]) )
-               _file.Name = (std::string)(*it)["Name"];
-            Arc::XMLNodeList source = (*it).XPathLookup((std::string)"//Source", nsList);
+            if ( (bool)(datastaging[i]["Name"]) )
+               _file.Name = (std::string)datastaging[i]["Name"];
+            Arc::XMLNodeList source = datastaging[i].XPathLookup((std::string)"//Source", nsList);
             for (std::list<Arc::XMLNode>::const_iterator it_source = source.begin(); it_source!= source.end(); it_source++) {
                 Arc::SourceType _source;
                 if ( (bool)((*it_source)["URI"]) ) {
@@ -1897,7 +1908,7 @@ namespace Arc {
                 }
                 _file.Source.push_back( _source );
             }
-            Arc::XMLNodeList target = (*it).XPathLookup((std::string)"//Target", nsList);
+            Arc::XMLNodeList target = datastaging[i].XPathLookup((std::string)"//Target", nsList);
             for (std::list<Arc::XMLNode>::const_iterator it_target = target.begin(); it_target!= target.end(); it_target++) {
                 Arc::TargetType _target;
                 if ( (bool)((*it_target)["URI"]) ) {
@@ -1931,47 +1942,47 @@ namespace Arc {
                 }
                 _file.Target.push_back( _target );
             }
-            if ( (bool)((*it)["KeepData"])) {
-                   if ( (std::string)(*it)["KeepData"] == "true" ) {
+            if ( (bool)(datastaging[i]["KeepData"])) {
+                   if ( (std::string)datastaging[i]["KeepData"] == "true" ) {
                       _file.KeepData = true;
                    }
-                   else if ( (std::string)(*it)["KeepData"] == "false" ) {
+                   else if ( (std::string)datastaging[i]["KeepData"] == "false" ) {
                       _file.KeepData = false;
                    }
                    else {
-                      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
+                      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/KeepData\" value: %s", (std::string)datastaging[i]["KeepData"]);
                    }
             }
             else {
                    _file.KeepData = false;
             }
-            if ( (bool)((*it)["IsExecutable"])) {
-                   if ( (std::string)(*it)["IsExecutable"] == "true" ) {
+            if ( (bool)(datastaging[i]["IsExecutable"])) {
+                   if ( (std::string)datastaging[i]["IsExecutable"] == "true" ) {
                       _file.IsExecutable = true;
                    }
-                   else if ( (std::string)(*it)["IsExecutable"] == "false" ) {
+                   else if ( (std::string)datastaging[i]["IsExecutable"] == "false" ) {
                       _file.IsExecutable = false;
                    }
                    else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value: %s", (std::string)datastaging[i]["IsExecutable"]);
                    }
             }
             else {
                    _file.IsExecutable = false;
             }
-            if ( (bool)((*it)["DataIndexingService"])) {
-               URL uri((std::string)((*it)["DataIndexingService"]));
+            if ( (bool)(datastaging[i]["DataIndexingService"])) {
+               URL uri((std::string)(datastaging[i]["DataIndexingService"]));
                _file.DataIndexingService = uri;
             }
-            if ( (bool)((*it)["DownloadToCache"])) {
-                   if ( (std::string)(*it)["DownloadToCache"] == "true" ) {
+            if ( (bool)(datastaging[i]["DownloadToCache"])) {
+                   if ( (std::string)datastaging[i]["DownloadToCache"] == "true" ) {
                       _file.DownloadToCache = true;
                    }
-                   else if ( (std::string)(*it)["DownloadToCache"] == "false" ) {
+                   else if ( (std::string)datastaging[i]["DownloadToCache"] == "false" ) {
                       _file.DownloadToCache = false;
                    }
                    else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value: %s", (std::string)datastaging[i]["DownloadToCache"]);
                    }
             }
             else {
@@ -1979,15 +1990,15 @@ namespace Arc {
             }
             innerRepresentation.File.push_back( _file );
         }
-        datastaging.clear();
+        datastaging.Destroy();
 
-        datastaging = node.XPathLookup((std::string)"//JobDescription/DataStaging/Directory", nsList);
-        for (std::list<Arc::XMLNode>::const_iterator it = datastaging.begin(); it != datastaging.end(); it++) {
-//           Optional_attribute_check(*(datastaging.begin()), "//JobDescription/DataStaging/Directory", innerRepresentation);
+        datastaging = node["JobDescription"]["DataStaging"]["Directory"];
+        for (int i=0; bool(datastaging[i]); i++) {
+//           Optional_attribute_check(datastaging[i], "//JobDescription/DataStaging/Directory", innerRepresentation,optional);
             Arc::DirectoryType _directory;
-            if ( (bool)((*it)["Name"]) )
-               _directory.Name = (std::string)(*it)["Name"];
-            Arc::XMLNodeList source = (*it).XPathLookup((std::string)"//Source", nsList);
+            if ( (bool)(datastaging[i]["Name"]) )
+               _directory.Name = (std::string)datastaging[i]["Name"];
+            Arc::XMLNodeList source = datastaging[i].XPathLookup((std::string)"//Source", nsList);
             for (std::list<Arc::XMLNode>::const_iterator it_source = source.begin(); it_source!= source.end(); it_source++) {
                 Arc::SourceType _source;
                 if ( (bool)((*it_source)["URI"]) ) {
@@ -2001,7 +2012,7 @@ namespace Arc {
                 }
                 _directory.Source.push_back( _source );
             }
-            Arc::XMLNodeList target = (*it).XPathLookup((std::string)"//Target", nsList);
+            Arc::XMLNodeList target = datastaging[i].XPathLookup((std::string)"//Target", nsList);
             for (std::list<Arc::XMLNode>::const_iterator it_target = target.begin(); it_target!= target.end(); it_target++) {
                 Arc::TargetType _target;
                 if ( (bool)((*it_target)["URI"]) ) {
@@ -2035,47 +2046,47 @@ namespace Arc {
                 }
                 _directory.Target.push_back( _target );
             }
-            if ( (bool)((*it)["KeepData"])) {
-                   if ( (std::string)(*it)["KeepData"] == "true" ) {
+            if ( (bool)(datastaging[i]["KeepData"])) {
+                   if ( (std::string)datastaging[i]["KeepData"] == "true" ) {
                       _directory.KeepData = true;
                    }
-                   else if ( (std::string)(*it)["KeepData"] == "false" ) {
+                   else if ( (std::string)datastaging[i]["KeepData"] == "false" ) {
                       _directory.KeepData = false;
                    }
                    else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value: %s", (std::string)datastaging[i]["KeepData"]);
                    }
             }
             else {
                    _directory.KeepData = false;
             }
-            if ( (bool)((*it)["IsExecutable"])) {
-                   if ( (std::string)(*it)["IsExecutable"] == "true" ) {
+            if ( (bool)(datastaging[i]["IsExecutable"])) {
+                   if ( (std::string)datastaging[i]["IsExecutable"] == "true" ) {
                       _directory.IsExecutable = true;
                    }
-                   else if ( (std::string)(*it)["IsExecutable"] == "false" ) {
+                   else if ( (std::string)datastaging[i]["IsExecutable"] == "false" ) {
                       _directory.IsExecutable = false;
                    }
                    else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value: %s", (std::string)datastaging[i]["IsExecutable"]);
                    }
             }
             else {
                    _directory.IsExecutable = false;
             }
-            if ( (bool)((*it)["DataIndexingService"])) {
-               URL uri((std::string)((*it)["DataIndexingService"]));
+            if ( (bool)(datastaging[i]["DataIndexingService"])) {
+               URL uri((std::string)(datastaging[i]["DataIndexingService"]));
                _directory.DataIndexingService = uri;
             }
-            if ( (bool)((*it)["DownloadToCache"])) {
-                   if ( (std::string)(*it)["DownloadToCache"] == "true" ) {
+            if ( (bool)(datastaging[i]["DownloadToCache"])) {
+                   if ( (std::string)datastaging[i]["DownloadToCache"] == "true" ) {
                       _directory.DownloadToCache = true;
                    }
-                   else if ( (std::string)(*it)["DownloadToCache"] == "false" ) {
+                   else if ( (std::string)datastaging[i]["DownloadToCache"] == "false" ) {
                       _directory.DownloadToCache = false;
                    }
                    else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value: %s", (std::string)datastaging[i]["DownloadToCache"]);
                    }
             }
             else {
@@ -2083,7 +2094,7 @@ namespace Arc {
             }
             innerRepresentation.Directory.push_back( _directory );
         }
-        datastaging.clear();
+        datastaging.Destroy();
 
         return true;
     }
@@ -3082,7 +3093,8 @@ namespace Arc {
             std::vector<std::string> inputfiles = listJDLvalue( attributeValue );
             for (std::vector<std::string>::const_iterator it=inputfiles.begin(); it<inputfiles.end(); it++) {
                 Arc::FileType file;
-                file.Name = (*it);
+                std::vector<std::string> parts = sm.split( (*it), "/" );
+                file.Name = parts.back();
                 Arc::SourceType source;
                 source.URI = *it;
                 source.Threads = -1;
