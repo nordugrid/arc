@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:deleg="http://www.nordugrid.org/schemas/ArcConfig/2007/deleg"
+>
+    <Server>
+        <Pidfile>/var/run/arched.pid</Pidfile>
+        <Logger level="ERROR">/home/sztoor/arc/tmp/logfile</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>/usr/local/lib/arc/</Path>
+	 <Path>/home/sztoor/arc/arc1/src/hed/mcc/http/.libs/</Path>
+        <Path>/home/sztoor/arc/arc1/src/hed/mcc/tls/.libs/</Path>
+        <Path>/home/sztoor/arc/arc1/src/hed/mcc/soap/.libs/</Path>
+        <Path>/home/sztoor/arc/arc1/src/hed/mcc/tcp/.libs/</Path>
+        <Path>/home/sztoor/arc/arc1/src/hed/pdc/.libs/</Path>
+        <Path>/home/sztoor/arc/arc1/src/services/delegation/.libs/</Path>
+
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arcpdc</Name></Plugins>
+    <Plugins><Name>delegation</Name></Plugins>
+	
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <!-- <next id="http"/> -->
+	     <next id="tls"/> 
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <KeyPath>/etc/grid-security/hostkey1.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert1.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+        </Component>
+
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+            <next id="plexer">GET</next>
+            <next id="plexer">PUT</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+
+            <next id="ahash">^/AHash$</next>
+            <next id="librarian">^/Librarian$</next>
+            <next id="gateway">^/Gateway$</next>
+	    <next id="bartender">^/Bartender$</next>
+            <next id="shepherd">^/Shepherd$</next>
+            <next id="hopi">^/hopi/</next>
+
+        </Plexer>
+        <Service name="pythonservice" id="ahash">
+            <ClassName>storage.ahash.ahash.AHashService</ClassName>
+            <LogLevel>VERBOSE</LogLevel>
+            <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
+            <StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
+            <StoreCfg><DataDir>/home/sztoor/arc/spool/ahash_data</DataDir></StoreCfg>
+        </Service>
+        <Service name="pythonservice" id="librarian">
+            <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+            <LogLevel>VERBOSE</LogLevel>
+            <AHashURL>https://localhost:60000/AHash</AHashURL>
+            
+	    <ClientSSLConfig>
+                <KeyPath>/etc/grid-security/hostkey1.pem</KeyPath>
+                <CertificatePath>/etc/grid-security/hostcert1.pem</CertificatePath>
+                <CACertificatePath>/etc/grid-security/certificates/1f0e8352.0</CACertificatePath>
+            </ClientSSLConfig>
+	    
+            <HeartbeatTimeout>30</HeartbeatTimeout>
+            <CheckPeriod>20</CheckPeriod>
+        </Service>
+        <Service name="pythonservice" id="bartender">
+            <ClassName>storage.bartender.bartender.BartenderService</ClassName>
+            <LogLevel>VERBOSE</LogLevel>
+            <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
+            <!-- <GatewayURL>https://localhost:60000/Gateway</GatewayURL> -->
+            <ProxyStore>/home/sztoor/arc/spool/proxy_store</ProxyStore>	    
+	<!--
+	    <ClientSSLConfig>
+                <KeyPath>./key.pem</KeyPath>
+                <CertificatePath>./cert.pem</CertificatePath>
+                <CACertificatePath>./ca.pem</CACertificatePath>
+            </ClientSSLConfig>
+            -->
+		 <ClientSSLConfig>
+                <KeyPath>/etc/grid-security/hostkey1.pem</KeyPath>
+                <CertificatePath>/etc/grid-security/hostcert1.pem</CertificatePath>
+                <CACertificatePath>/etc/grid-security/certificates/1f0e8352.0</CACertificatePath>
+		<CACertificatesDir>/etc/grid-security/certificates/</CACertificatesDir>
+            </ClientSSLConfig>
+
+        </Service>
+        <Service name="pythonservice" id="shepherd">
+            <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+            <LogLevel>VERBOSE</LogLevel>
+            <ServiceID>https://localhost:60000/Shepherd</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
+            <StoreCfg>
+                <DataDir>/home/sztoor/arc/spool/shepherd_data</DataDir>
+            </StoreCfg>
+            <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>/home/sztoor/arc/spool/shepherd_store</DataDir>
+                <TransferDir>/home/sztoor/arc/spool/shepherd_transfer</TransferDir>
+                <!-- Change this prefix to the external interface of your machine -->
+                <TURLPrefix>https://localhost:60000/hopi/</TURLPrefix>
+            </BackendCfg>
+            <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
+            <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
+           <!-- 
+	    <ClientSSLConfig>
+                <KeyPath>./key.pem</KeyPath>
+                <CertificatePath>./cert.pem</CertificatePath>
+                <CACertificatePath>./ca.pem</CACertificatePath>
+            </ClientSSLConfig>
+	    -->
+
+		 <ClientSSLConfig>
+                <KeyPath>/etc/grid-security/hostkey1.pem</KeyPath>
+                <CertificatePath>/etc/grid-security/hostcert1.pem</CertificatePath>
+                <CACertificatePath>/etc/grid-security/certificates/1f0e8352.0</CACertificatePath>
+            </ClientSSLConfig>
+
+        </Service>
+        <Service name="hopi" id="hopi">
+            <DocumentRoot>/home/sztoor/arc/spool/shepherd_transfer</DocumentRoot>
+            <SlaveMode>1</SlaveMode>
+        </Service>
+	<Service name="pythonservice" id="gateway">
+            <ClassName>storage.gateway.gateway.gateway.GatewayService</ClassName>
+	    <LogLevel>VERBOSE</LogLevel>	
+
+		<ClientSSLConfig>
+                <KeyPath>/etc/grid-security/hostkey1.pem</KeyPath>
+                <CertificatePath>/etc/grid-security/hostcert1.pem</CertificatePath>
+                <CACertificatePath>/etc/grid-security/certificates/1f0e8352.0</CACertificatePath>
+            </ClientSSLConfig>
+
+
+	</Service>
+	
+    </Chain>
+</ArcConfig>

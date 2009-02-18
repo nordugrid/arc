@@ -265,7 +265,8 @@ class BartenderClient(Client):
         e.g.
         
         In: {'frodo':'/', 'sam':'/testfile'}
-        Out: 
+        Out:rtender_uri = 'http://www.nordugrid.org/schemas/bartender'
+ 
             {'frodo': {('entry', 'type'): 'collection',
                        ('entries', 'testdir'): '4cabc8cb-599d-488c-a253-165f71d4e180',
                        ('entries', 'testfile'): 'cf05727b-73f3-4318-8454-16eaf10f302c',
@@ -574,6 +575,14 @@ class BartenderClient(Client):
                      'found'),
              'kirk': ({}, 'is a file')}
         """
+
+        if requests['0'] == "-deleg":
+            delegID = self.delegateCredentials()
+	    print delegID		
+            if delegID == 0:
+                return "cannot delegate Credentials, check the Env. variables"
+            del requests['0']
+
         tree = XMLTree(from_tree =
             ('bar:list', [
                 ('bar:listRequestList', [
@@ -652,6 +661,23 @@ class BartenderClient(Client):
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
+
+    def delegateCredentials(self):
+
+        #print "Inside delegateCredentials"
+	url = arc.URL("https://localhost:60000/Bartender")
+        cc = arc.MCCConfig()
+	cc.AddPrivateKey('/home/sztoor/.globus/userkey.pem')
+        cc.AddCertificate('/home/sztoor/.globus/usercert.pem')
+	cc.AddCADir('/etc/grid-security/certificates')
+	print "Protocol: "+str(url.Protocol()) 	
+	self.X509DelegationClient = arc.ClientX509Delegation(cc,url)
+        delegID = ""	
+        statusAndID = self.X509DelegationClient.createDelegation(arc.DELEG_ARC,delegID)	
+	if statusAndID[0]:
+            return statusAndID[1]
+        else:
+            return 0		
 class ShepherdClient(Client):
 
     def __init__(self, url, print_xml = False, ssl_config = {}):
@@ -802,7 +828,7 @@ class GatewayClient(Client):
         def __init__(self, url, print_xml = False, ssl_config = {}):
             ns = self.NS_class('gateway', gateway_uri)
             # calls the superclass' constructor
-            Client.__init__(self, url, ns, print_xml, ssl_config)
+            Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
         def get(self, request,flags=''):
             """request will come with the source and the destination URLS of the file. 
@@ -899,6 +925,8 @@ class GatewayClient(Client):
                 url = key
                 status = elements[key]['status']
                 list = elements[key]['info']
+		print "list"
+		print list
             
             return {url: (status, list.split(","))}              
 

@@ -11,7 +11,7 @@ else:
     print_xml = False
 try:
     bartender_url = os.environ['ARC_BARTENDER_URL']
-    # print '- The URL of the Bartender:', bartender_url
+    print '- The URL of the Bartender:', bartender_url
 except:
     bartender_url = 'http://localhost:60000/Bartender'
     print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
@@ -169,15 +169,19 @@ else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             print 'list', request
             response = bartender.list(request,[('entry','')])
-            print response
-            for rID, (entries, status) in response.items():
-                print
-                if status == 'found':
-                    print '%s:' % request[rID]
-                    for name, (GUID, metadata) in entries.items():
-                        print '\t%s\t<%s>' % (name, metadata.get(('entry', 'type'),'unknown'))
-                else:
-                    print '%s: %s' % (request[rID], status)
+            
+            if isinstance(response, str):
+                print response
+            else:	
+                print response    	
+                for rID, (entries, status) in response.items():
+                    print
+                    if status == 'found':
+                        print '%s:' % request[rID]
+                        for name, (GUID, metadata) in entries.items():
+                            print '\t%s\t<%s>' % (name, metadata.get(('entry', 'type'),'unknown'))
+                    else:
+                        print '%s: %s' % (request[rID], status)
     elif command == 'move':
         if len(args) < 2:
             print 'Usage: move <sourceLN> <targetLN> [preserve]'

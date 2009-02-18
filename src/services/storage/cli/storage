@@ -9,19 +9,19 @@ export ARC_CERT_FILE=/Users/zsombor/Development/arc/certs/usercert-john.pem
 if [ "$1" == "ahash" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/ahash_client.py $*
+    python /home/sztoor/arc/arc1/src/services/storage/cli/ahash_client.py $*
 elif [ "$1" == "librarian" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/librarian_client.py $*
+    python /home/sztoor/arc/arc1/src/services/storage/cli/librarian_client.py $*
 elif [ "$1" == "bartender" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/bartender_client.py $*
+    python /home/sztoor/arc/arc1/src/services/storage/cli/bartender_client.py $*
 elif [ "$1" == "shepherd" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/shepherd_client.py $*
+    python /home/sztoor/arc/arc1/src/services/storage/cli/shepherd_client.py $*
 else
     echo "USAGE:"
     echo "  storage ahash|librarian|bartender|shepherd <command> <arguments>"

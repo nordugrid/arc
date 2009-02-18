@@ -4,10 +4,10 @@ import arc
 import random
 import time
 import traceback
-
+import os
 from arcom import get_child_nodes
 from arcom.service import librarian_uri, bartender_uri, gateway_uri, true, parse_node, create_response, node_to_data
-
+from storage.bartender.gateway import gateway
 from arcom.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient, GatewayClient
 from storage.common import parse_metadata, create_metadata, splitLN, remove_trailing_slash, global_root_guid, serialize_ids, deserialize_ids, sestore_guid, make_decision_metadata
@@ -18,7 +18,7 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Bartender'))
 
 class Bartender:
 
-    def __init__(self, librarian, gateway, ssl_config):
+    def __init__(self, librarian, ssl_config, cfg):
         """ Constructor of the Bartender business-logic class.
         
         Bartender(librarian)
@@ -26,12 +26,9 @@ class Bartender:
         librarian is LibrarianClient object which can be used to access a Librarian service
         """
         self.librarian = librarian
-
-        # For the Gateway Service
-        self.gateway = gateway
-        
+        self.gateway = gateway.Gateway(cfg)
         self.ssl_config = ssl_config
-
+        self.cfg = cfg
     def stat(self, auth, requests):
         """ Returns stat information about entries.
         
@@ -179,10 +176,10 @@ class Bartender:
             log.msg()
             return 'internal error', None
         
-    def _externalStore(self, url, flag):
-        """ This method calles the gateway service to get the full URL of the externally stored file"""
+    def _externalStore(self,auth, url, flag=''):
+        """ This method calles the gateway backend class to get/check the full URL of the externally stored file"""
         if flag == 'list':      
-            response =  self.gateway.list(url)
+            response = self.gateway.list(auth,url,flag)
             #print 'response'   
             #print response     
         elif flag == 'getFile':
@@ -618,7 +615,9 @@ class Bartender:
         neededMetadata is a list of (section, property) where property could be empty which means all properties of that section
             if neededMetadata is empty it means we need everything
         """
+	
         auth_request = auth.get_request('read')
+        print 'ID: '+auth.get_identity()
         # do traverse the requested Logical Names
         requests, traverse_response = self._traverse(requests)
         response = {}
@@ -640,10 +639,11 @@ class Bartender:
                         status = 'is a file'
                         entries = {}
                     elif type == 'mountpoint':
-                        status = 'moutpoint'
-                        res = self._externalStore(metadata[('mountpoint', 'externalURL')], 'list')
-                        entries = dict([(url, (status, {('mountpoint','status'):stat,('external','list'):list})) for url,stat  in res.items()])
-                    else: # if it is not a file, it must be a collection (currently there is no other type)
+                        status = 'mountpointfound'
+                        res = self._externalStore(auth, metadata[('mountpoint', 'externalURL')], 'list')
+                        print res
+                        entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, (list, stat)  in res.items()])
+                    else: #if it is not a file, it must be a collection (currently there is no other type)
                         status = 'found'
                         # get all the properties and values from the 'entries' metadata section of the collection
                         #   these are the names and GUIDs: the contents of the collection
@@ -654,17 +654,21 @@ class Bartender:
                         # create a dictionary with the name of the entry as key and (GUID, metadata) as value
                         entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
             elif metadata.get(('entry', 'type'), '') == 'mountpoint':
-                status = 'file/collection in moutpoint'
-                res = self._externalStore(metadata[('mountpoint', 'externalURL')]+restLN, 'list')
-                for url,stat in res.items():
-                    if len(stat[1]) == 1:
+                type = metadata.get(('entry', 'type'), '') 
+                status = 'mountpointfound'
+                res = self._externalStore(auth ,metadata[('mountpoint', 'externalURL')]+'/'+restLN, 'list')
+                print res
+                for url,(list,stat) in res.items():
+                    print stat 
+                    if stat == 'failed':
                         status = 'not found'
                         entries = {}
                     else:       
-                        entries = dict([(url, (status, {('mountpoint','status'):stat})) for url,stat in res.items()])
+                        entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, (list, stat)  in res.items()])
+ 
             else:
                 entries = {}
-                status = 'not found'        
+                status = 'not found'
             response[requestID] = (entries, status)
         return response
 
@@ -806,8 +810,14 @@ class BartenderService(Service):
     def __init__(self, cfg):
         self.service_name = 'Bartender'
         # names of provided methods
-        # bar_request_names is the list of the names of the provided methods
-        bar_request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'unlink']
+#<<<<<<< .mine
+        #request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'DelegateCredentialsInit', 'UpdateCredentials' ]
+        # call the Service's constructor, 'Bartender' is the human-readable name of the service
+        # request_names is the list of the names of the provided methods
+#=======
+        #bar_request_names is the list of the names of the provided methods
+        bar_request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'unlink', 'removeCredentials']
+#>>>>>>> .r11747
         # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
         bar_request_type = {'request_names' : bar_request_names,
             'namespace_prefix': 'bar', 'namespace_uri': bartender_uri} 
@@ -821,14 +831,16 @@ class BartenderService(Service):
         Service.__init__(self, request_config, cfg)
         # get the URL of the Librarian from the config file
         librarian_url = str(cfg.Get('LibrarianURL'))
-        # get the URL of the Gateway from the config file
-        gateway_url = str(cfg.Get('GatewayURL'))
+        # get the list of the available proxies. 
+        self.proxy_store = str(cfg.Get('ProxyStore'))
+        #if self.proxy_store:
+        #    self.proxies = os.listdir(self.proxy_store)
+        
         # create a LibrarianClient from the URL
         librarian = LibrarianClient(librarian_url, ssl_config = self.ssl_config)
-        # create a GatewayClient from the URL
-        gateway = GatewayClient(gateway_url)
-        self.bartender = Bartender(librarian, gateway, self.ssl_config)
-
+        self.bartender = Bartender(librarian, self.ssl_config, cfg)
+        self.delegSOAP = arc.DelegationContainerSOAP()
+        
     def stat(self, inpayload):
         # incoming SOAP message example:
         #
@@ -1322,3 +1334,63 @@ class BartenderService(Service):
         response = self.bartender.modify(inpayload.auth, requests)
         return create_response('bar:modify', ['bar:changeID', 'bar:success'],
             response, self._new_soap_payload(), single = True)
+
+    def DelegateCredentialsInit(self,inpayload):
+        	
+        print inpayload.GetXML()
+	# Stupid hack for temprary fix for Delegation Credentials(WE NEED TO FIX IT)  
+        ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
+        outpayload = arc.PayloadSOAP(ns)
+        self.delegSOAP.DelegateCredentialsInit(inpayload,outpayload)
+	print "\n outpayload"
+        print outpayload.GetXML()
+        return outpayload
+        
+    def UpdateCredentials(self,inpayload):
+        
+        print inpayload.GetXML()
+	ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
+        outpayload = arc.PayloadSOAP(ns)
+        credAndid = self.delegSOAP.UpdateCredentials(inpayload,outpayload)
+        print "\n ---Delegated Credentials--- "
+        print credAndid[1]
+        if (os.path.isdir(self.proxy_store)):
+            print "ProxyStore: "+self.proxy_store 
+            filePath = self.proxy_store+'/'+str(abs(hash(credAndid[2])))+'.proxy'
+            proxyfile = open(filePath, 'w') 
+            proxyfile.write(credAndid[1])
+	    proxyfile.close()
+            os.system('chmod 600 '+filePath)
+        else:
+            print 'Cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>'
+
+        print "\n --------------------------- "
+        print "\n ---Identity--- "
+        print credAndid[2]
+        print "\n -------------- "
+        return outpayload
+    def removeCredentials(self, inpayload):
+        
+        print 'ID: '+inpayload.auth.get_identity()
+        response = {}
+        message = ''
+        if (os.path.isdir(self.proxy_store)):
+            print "ProxyStore: "+self.proxy_store
+            filePath = self.proxy_store+'/'+str(abs(hash(inpayload.auth.get_identity())))+'.proxy'
+            if (os.path.isfile(filePath)):    
+                os.system('rm '+filePath)
+                message = 'Credential removed successfully'
+                status = 'successful' 
+            else:
+                message =  'cannot access proxy file: '+filePath
+                status = 'failed'
+        else:
+            message = 'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>'
+            status = 'failed'
+        print message
+        response['message'] = message
+        response['status'] = status
+        return create_response('bar:removeCredentials', ['bar:message','bar:status'],response, self._new_soap_payload(), single = True) 
+
+ 
+        	

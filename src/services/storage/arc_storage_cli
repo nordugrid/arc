@@ -1188,6 +1188,54 @@ class BartenderClient(Client):
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
+        ### Created by Salman Toor ###
+    def makeMountpoint(self, requests):
+        """ Create a new Mountpoint.
+        
+        makeMountpoint(requests)
+
+        requests is a dictionary with requestID as key and (LN, metadata) as value, where
+            LN is the Logical Name
+            metadata is the metadata of the new collection, a dictionary with (section, property) as key
+        returns a dictionary with requestID as key and the state of the request as value
+        
+        In: {'b5':['/coloredcollection', {('metadata','color') : 'light blue'}]}
+        Out: {'b5': 'done'}
+        """
+        tree = XMLTree(from_tree =
+            ('bar:makeMountpoint', [
+                ('bar:makeMountpointRequestList', [
+                    ('bar:makeMountpointRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                        ('bar:URL', URL),
+                        ('bar:metadataList', create_metadata(metadata, 'bar'))
+                    ]) for rID, (LN,metadata,URL) in requests.items()
+                ])
+            ])
+        )
+
+        msg = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
+
+    def unmakeMountpoint(self, requests):
+        """docstring for unmakeMountpoint"""
+        tree = XMLTree(from_tree =
+            ('bar:unmakeMountpoint', [
+                ('bar:unmakeMountpointRequestList', [
+                    ('bar:unmakeMountpointRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                    ]) for rID, LN in requests.items()
+                ])
+            ])
+        )
+        msg = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
+        ###    ###
+
     def list(self, requests, neededMetadata = []):
         """ List the contents of a collection.
         
@@ -1229,6 +1277,7 @@ class BartenderClient(Client):
                 ])
             ])
         )
+
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         elements = parse_node(get_data_node(xml),
@@ -1251,7 +1300,6 @@ class BartenderClient(Client):
             targetLN is the target Logical Name
             preserverOriginal is True if we want to create a hardlink
         returns a dictionary with requestID as key and status as value
-        
         Example:
         In: {'shoo':['/testfile','/newname',False]}
         Out: {'shoo': ['moved']}
@@ -1291,10 +1339,34 @@ class BartenderClient(Client):
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
+    def credentialsDelegation(self,request):
 
+        #print "Inside delegateCredentials"
+        import arc
+        url = arc.URL("https://localhost:60000/Bartender")
+        print "Protocol: "+str(url.Protocol())
+        self.X509DelegationClient = arc.ClientX509Delegation(self.cfg,self.url)
+        delegID = ""
+        statusAndID = self.X509DelegationClient.createDelegation(arc.DELEG_ARC,delegID)
+        print statusAndID
+        if statusAndID[0]:
+            return statusAndID[1]
+        else:
+            return 0
+    def removeCredentials(self, request):
+
+        print "will removed the delegated Credentials -- "      
+        tree = XMLTree(from_tree = ('bar:removeCredentials', 'removeCredentials'))
+	print tree
+	msg = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(get_data_node(xml), ['message', 'status'], single = False) 
 # This part is copied from bartender_client.py but then changed
 
 args = sys.argv[1:]
+if len(sys.argv) > 1: 
+    func = sys.argv[1]
+    
 if len(args) > 0 and args[0] == '-x':
     args.pop(0)
     print_xml = True
@@ -1318,10 +1390,10 @@ def call_it(method_name, *args):
     print '- done in %0.2f seconds.' % (time.time()-start)
     return response
 
-if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl']:
+if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
     print '  arc_storage_cli <method> [<arguments>]'
-    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy], unlink'
+    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy], unlink, credentialsDelegation, removeCredentials'
     print 'Without arguments, each method prints its own help.'
 else:
     try:
@@ -1362,6 +1434,8 @@ else:
         print 'ERROR:', e
         sys.exit(-1)
     command = args.pop(0)[0:3]
+    print "args.pop(0)"
+    print args 
     if command in ['sta']:
         if len(args) < 1:
             print 'Usage: stat <LN> [<LN> ...]'
@@ -1385,7 +1459,17 @@ else:
                             print ' ', '  %s: %s' % (p, v)
                 else:
                     print 'not found'
+    # For Credential Delegation. 
+    elif command in ['cre','Cre']:
+        print command
+        request = {}
+        response = call_it('credentialsDelegation', request)
+    elif command in ['rem','Rem']:
+        print command
+        request = {}
+        response = call_it('removeCredentials', request)
     elif command in ['del', 'rm']:
+    # ----------------------- #
         if len(args) < 1:
             print 'Usage: delFile <LN> [<LN> ...]'
         else:
@@ -1490,23 +1574,41 @@ else:
             response = call_it('unlink', request)
             print "Unlinking '%s': %s" % (args[0], response['0'])
     elif command in ['unm', 'rmd']:
-        if len(args) < 1:
-            print 'Usage: unmakeCollection <LN>'
-        else:
+
+        if 'unmakeMountpoint'in func or 'unmakemount' in func or 'unMakeMount' in func:
+            if len(args) < 1:
+                print 'Usage: unmakeMountpoint <LN>'
+            else:
+                request = {'0': (args[0])}
+                response = call_it('unmakeMountpoint', request)
+                print "Removing mountpoint '%s': %s" % (args[0], response['0'])
+
+        else:    
+            if len(args) < 1:
+                print 'Usage: unmakeCollection <LN>'
             request = {'0': (args[0])}
             #print 'unmakeCollection', request
             response = call_it('unmakeCollection', request)
             #print response
             print "Removing collection '%s': %s" % (args[0], response['0'])
     elif command in ['mak','mkd']:
-        if len(args) < 1:
-            print 'Usage: makeCollection <LN>'
-        else:
-            request = {'0': (args[0], {})}
-            #print 'makeCollection', request
-            response = call_it('makeCollection', request)
-            #print response
-            print "Creating collection '%s': %s" % (args[0], response['0'])
+            
+            if 'point'in func or 'mount' in func or 'Mount' in func: 
+                if len(args) < 2:
+                    print 'Usage: makeMountpoint <LN> <URL>'
+                else:
+                    request = {'0': (args[0], {('states', 'closed') : false}, args[1])}
+                    response = call_it('makeMountpoint', request)
+                    print "Creating mountpoint '%s': %s" % (args[0], response['0']) 
+            else:
+                if len(args) < 1:
+                    print 'Usage: makeCollection <LN>'
+	        else:
+                    request = {'0': (args[0], {('states', 'closed') : false})}	
+                    #print 'Make collection:',request
+                    response = call_it('makeCollection', request)
+                    #print response
+                    print "Creating collection '%s': %s" % (args[0], response['0'])
     elif command in ['lis', 'ls']:
         if len(args) < 1:
             print 'Usage: list <LN> [<LN> ...]'
@@ -1514,15 +1616,21 @@ else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             #print 'list', request
             response = call_it('list', request, [('entry','')])
-            #print response
+            print response
+                       
             for rID, (entries, status) in response.items():
                 if status == 'found':
                     print "'%s':" % request[rID], 'collection'
                     if entries:
                         for name, (GUID, metadata) in entries.items():
                             print '  %s%s<%s>' % (name, ' '*(20-len(name)), metadata.get(('entry', 'type'),'unknown'))
-                    else:
-                        print '    empty.'                        
+                    else: 
+                        print '    empty.'
+                elif status == 'mountpointfound':
+                    if entries:
+                        for url, (type, list) in entries.items():
+                            print 'type:' , type
+                            print list[('external', 'list')]        
                 else:
                     print "'%s': %s" % (request[rID], status)
     elif command in ['mov', 'mv']:
