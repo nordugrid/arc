@@ -95,6 +95,7 @@ bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val)
 }
 
 Service_SP::Service_SP(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "SAML2SP") {
+/*
   Arc::XMLNode chain_node = (*cfg).Parent();
   Arc::XMLNode tls_node;
   for(int i = 0; ;i++) {
@@ -105,6 +106,9 @@ Service_SP::Service_SP(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLo
   }
   cert_file_ = (std::string)(tls_node["CertificatePath"]);
   privkey_file_ = (std::string)(tls_node["KeyPath"]);
+*/
+  cert_file_ = (std::string)((*cfg)["CertificatePath"]);
+  privkey_file_ = (std::string)((*cfg)["KeyPath"]);
   sp_name_ = (std::string)((*cfg)["ServiceProviderName"]);
   logger.msg(Arc::INFO, "SP Service name is %s", sp_name_);
   std::string metadata_file = (std::string)((*cfg)["MetaDataLocation"]);
@@ -217,16 +221,26 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   Arc::XMLNode nameid_policy = authn_request.NewChild("samlp:NameIDPolicy");
   nameid_policy.NewAttribute("AllowCreate") = std::string("1");
 
-  bool must_signed = true; //TODO: get the information from metadata
+  bool must_signed = false; //TODO: get the information from metadata
 
   std::string authnRequestQuery;
   std::string query = BuildDeflatedQuery(authn_request);
-  //std::cout<<"AuthnRequest after deflation: "<<query<<std::endl;
+  std::cout<<"AuthnRequest after deflation: "<<query<<std::endl;
   if(must_signed) {
     authnRequestQuery = SignQuery(query, Arc::RSA_SHA1, privkey_file_);
     //std::cout<<"After signature: "<<authnRequestQuery<<std::endl;
   }
   else authnRequestQuery = query;
+
+  //Verify the signature
+#if 0
+  std::string cert_str = get_cert_str(cert_file_.c_str());
+  std::cout<<"Cert to sign AuthnRequest: "<<cert_str<<std::endl;
+  if(VerifyQuery(authnRequestQuery, cert_str)) {
+    std::cout<<"Succeeded to verify the signature on AuthnRequest"<<std::endl;
+  }
+  else { std::cout<<"Failed to verify the signature on AuthnRequest"<<std::endl; }
+#endif
 
   std::string authnRequestUrl;
   authnRequestUrl = sso_url + "?SAMLRequest=" + authnRequestQuery;
