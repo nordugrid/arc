@@ -74,6 +74,12 @@ struct MigrationType {
     Arc::WSAEndpointReference MigrationID;
 };
 
+struct OptionalElementType {
+    std::string Name;
+    std::string Path;
+    std::string Value;
+};
+
   class JobInnerRepresentation {
 
   public:
@@ -95,7 +101,6 @@ struct MigrationType {
     bool getXML( Arc::XMLNode& jobTree) const;
 
     // Meta information
-    std::list<std::string> OptionalElement;
     std::string Author;
     Time DocumentExpiration;
     std::string Rank;
@@ -108,7 +113,6 @@ struct MigrationType {
     std::string JobType;
     std::string JobCategory;
     std::list<std::string> UserTag;
-    MigrationType Migration;
 
     // Application information
     std::string Executable;
@@ -148,8 +152,14 @@ struct MigrationType {
     int CacheDiskSpace;         //DiskSpace
     int SessionDiskSpace;       //DiskSpace
     int IndividualDiskSpace;    //DiskSpace
+    std::string Alias;          //CandidateTarget
     URL EndPointURL;            //CandidateTarget
     std::string QueueName;      //CandidateTarget
+    std::string Country;        //Location
+    std::string Place;          //Location
+    std::string PostCode;       //Location
+    std::string Latitude;       //Location
+    std::string Longitude;      //Location
     std::string CEType;
     int Slots;
     int NumberOfProcesses;      //Slots
@@ -165,14 +175,14 @@ struct MigrationType {
     // DataStaging information
     std::list<Arc::FileType> File;
     std::list<Arc::DirectoryType> Directory;
-    URL DataIndexingService;    //Defaults
-    URL StagingInBaseURI;       //Defaults
-    URL StagingOutBaseURI;      //Defaults
+
 
     //other specified elements
     std::map<std::string, std::string> XRSL_elements;
     std::map<std::string, std::string> JDL_elements;
-    bool cached;
+    bool cached;                // It used the XRSL parsing method.
+    std::list<Arc::OptionalElementType> OptionalElement;
+    MigrationType Migration;
 
   };
 

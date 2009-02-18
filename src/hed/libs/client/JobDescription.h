@@ -19,7 +19,6 @@ namespace Arc {
 
     // Define variables for the jobDescriptionOrderer
     #define DEFAULT_PRIORITY 0
-    #define TOP_PRIORITY 30
 
     #define EXACT_EXTENSION_MATCHING 10
     #define PARTIAL_EXTENSION_MATCHING 5
@@ -29,6 +28,24 @@ namespace Arc {
     #define NEGATIVE_TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES -6
     // End of jobDescriptionOrderer's define set
 
+    // GIN JSDL elements
+    #define GIN_ELEMENTS_NUMBER 43
+    static const char *GIN_elements[ GIN_ELEMENTS_NUMBER ] = { "Meta", "Author", "DocumentExpiration", "LogDir",
+          "LRMSReRun", "Notification", "Address", "Join", "IndividualWallTime", "ReferenceTime",
+          "NetworkInfo", "OSFamily", "OSName", "OSVersion", "Platform", "CacheDiskSpace", "SessionDiskSpace",
+          "Alias", "EndPointURL", "Location", "Country", "Place", "PostCode", "Latitude", "Longitude", "CEType",
+          "Slots", "NumberOfProcesses", "Slots", "ProcessPerHost", "ThreadPerProcesses", "SPMDVariation",
+          "Homogeneous", "NodeAccess", "InBound", "OutBound", "Threads", "Mandatory", "NeededReplicas", "KeepData",
+          "DataIndexingService", "File", ""}; 
+    // JSDL elements with ARC and POSIX extensions
+    #define JSDL_ELEMENTS_NUMBER 31
+    static const char *JSDL_elements[ JSDL_ELEMENTS_NUMBER ] = { "POSIXApplication", "CPUArchitectureType",
+          "CPUArchitectureName", "LocalLogging", "URL", "Reruns", "CPUTimeLimit",
+          "WallTimeLimit", "GridTimeLimit", "IndividualNetworkBandwidth", "OperatingSystem", "OperatingSystemName",
+          "OperatingSystemVersion", "MemoryLimit", "VirtualMemoryLimit", "Middleware", "ProcessCountLimit",
+          "TotalCPUCount", "ThreadCountLimit", "ApplicationName", "ApplicationVersion", "IndividualCPUSpeed",
+          "IndividualCPUCount", "TotalPhysicalMemory", "TotalVirtualMemory", "TotalDiskSpace", "TotalResourceCount",
+          "FileSystemName", "CreationFlag", "DeleteOnTermination", "" }; 
 
     class JobDescriptionError : public std::runtime_error {
         public:

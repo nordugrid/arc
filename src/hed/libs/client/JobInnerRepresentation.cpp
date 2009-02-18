@@ -10,7 +10,7 @@
 
 namespace Arc {
 
-  JobInnerRepresentation::JobInnerRepresentation():Join(false) { Reset(); }
+  JobInnerRepresentation::JobInnerRepresentation() { Reset(); }
 
   //JobInnerRepresentation::~JobInnerRepresentation() {}
 
@@ -52,9 +52,13 @@ namespace Arc {
       }
 
       if (!OptionalElement.empty()) {
-        std::list<std::string>::const_iterator iter;
-        for (iter = OptionalElement.begin(); iter != OptionalElement.end(); iter++)
-	  std::cout << Arc::IString(" OptionalElement: %s", *iter) << std::endl;
+        std::list<Arc::OptionalElementType>::const_iterator iter;
+        for (iter = OptionalElement.begin(); iter != OptionalElement.end(); iter++){
+	  std::cout << Arc::IString(" OptionalElement: %s, path: %s", (*iter).Name, (*iter).Path);
+          if ( (*iter).Value != "")
+             std::cout << Arc::IString(", value: %s", (*iter).Value);
+          std::cout << std::endl;
+        }
       }
       if (!Author.empty())
         std::cout << Arc::IString(" Author: %s", Author) << std::endl;
@@ -173,10 +177,22 @@ namespace Arc {
 	std::cout << Arc::IString(" SessionDiskSpace: %d", SessionDiskSpace) << std::endl;
       if (IndividualDiskSpace > -1)
 	std::cout << Arc::IString(" IndividualDiskSpace: %d", IndividualDiskSpace) << std::endl;
+      if (!Alias.empty())
+	std::cout << Arc::IString(" Alias: %s", Alias) << std::endl;
       if (bool(EndPointURL))
         std::cout << Arc::IString(" EndPointURL: %s", EndPointURL.str()) << std::endl;
       if (!QueueName.empty())
 	std::cout << Arc::IString(" QueueName: %s", QueueName) << std::endl;
+      if (!Country.empty())
+	std::cout << Arc::IString(" Country: %s", Country) << std::endl;
+      if (!Place.empty())
+	std::cout << Arc::IString(" Place: %s", Place) << std::endl;
+      if (!PostCode.empty())
+	std::cout << Arc::IString(" PostCode: %s", PostCode) << std::endl;
+      if (!Latitude.empty())
+	std::cout << Arc::IString(" Latitude: %s", Latitude) << std::endl;
+      if (!Longitude.empty())
+	std::cout << Arc::IString(" Longitude: %s", Longitude) << std::endl;
       if (!CEType.empty())
 	std::cout << Arc::IString(" CEType: %s", CEType) << std::endl;
       if (Slots > -1)
@@ -266,12 +282,6 @@ namespace Arc {
            if ((*iter).DownloadToCache)
 	      std::cout << Arc::IString("     DownloadToCache: true") << std::endl;
       }
-      if (bool(DataIndexingService))
-        std::cout << Arc::IString(" DataIndexingService: %s", DataIndexingService.fullstr()) << std::endl;
-      if (bool(StagingInBaseURI))
-        std::cout << Arc::IString(" StagingInBaseURI: %s", StagingInBaseURI.fullstr()) << std::endl;
-      if (bool(StagingOutBaseURI))
-        std::cout << Arc::IString(" StagingOutBaseURI: %s", StagingOutBaseURI.fullstr()) << std::endl;
     }
 
       if ( !XRSL_elements.empty() ) {
@@ -300,7 +310,6 @@ namespace Arc {
        JobType.clear();
        JobCategory.clear();
        UserTag.clear();
-       OptionalElement.clear();
        Author.clear();
        DocumentExpiration = -1;
        Rank.clear();
@@ -332,7 +341,6 @@ namespace Arc {
        CredentialService.ChangeLDAPScope(URL::base);
        CredentialService.ChangeProtocol("");
     }
-    if (Join)
        Join = false;
 
        TotalCPUTime = -1;
@@ -354,12 +362,18 @@ namespace Arc {
        CacheDiskSpace = -1;
        SessionDiskSpace = -1;
        IndividualDiskSpace = -1;
+       Alias.clear();
     if (!bool(EndPointURL)){
        EndPointURL.ChangePort(-1);		//TODO: reset the URL better
        EndPointURL.ChangeLDAPScope(URL::base);
        EndPointURL.ChangeProtocol("");
     }
        QueueName.clear();
+       Country.clear();
+       Place.clear();
+       PostCode.clear();
+       Latitude.clear();
+       Longitude.clear();
        CEType.clear();
        Slots = -1;
        NumberOfProcesses = -1;
@@ -373,21 +387,6 @@ namespace Arc {
 
        File.clear();
        Directory.clear();
-    if (!bool(DataIndexingService)){
-       DataIndexingService.ChangePort(-1);		//TODO: reset the URL better
-       DataIndexingService.ChangeLDAPScope(URL::base);
-       DataIndexingService.ChangeProtocol("");
-    }
-    if (!bool(StagingInBaseURI)){
-       StagingInBaseURI.ChangePort(-1);		//TODO: reset the URL better
-       StagingInBaseURI.ChangeLDAPScope(URL::base);
-       StagingInBaseURI.ChangeProtocol("");
-    }
-    if (!bool(StagingOutBaseURI)){
-       StagingOutBaseURI.ChangePort(-1);		//TODO: reset the URL better
-       StagingOutBaseURI.ChangeLDAPScope(URL::base);
-       StagingOutBaseURI.ChangeProtocol("");
-    }
 
     if ( !XRSL_elements.empty() )
        XRSL_elements.clear();
@@ -395,7 +394,8 @@ namespace Arc {
     if ( !JDL_elements.empty() )
        JDL_elements.clear();
 
-    cached = false;
+       cached = false;
+       OptionalElement.clear();
   } // end of Reset
 
     //Inner representation export to JSDL-GIN XML
@@ -466,14 +466,6 @@ namespace Arc {
         }
 
         //Meta
-        if (!OptionalElement.empty()){
-           if ( !bool( jobTree["Meta"] ) ) jobTree.NewChild("Meta");
-           for (std::list<std::string>::const_iterator it=OptionalElement.begin();
-                            it!=OptionalElement.end(); it++) {
-              Arc::XMLNode attribute = jobTree["Meta"].NewChild("OptionalElement");
-              attribute = (*it);
-           }
-        }
         if (!Author.empty()){
            if ( !bool( jobTree["Meta"] ) ) jobTree.NewChild("Meta");
            if ( !bool( jobTree["Meta"]["Author"] ) ) 
@@ -796,6 +788,16 @@ namespace Arc {
            oss << IndividualDiskSpace;
            jobTree["JobDescription"]["Resource"]["DiskSpace"]["IndividualDiskSpace"] = oss.str();
         }
+        if (!Alias.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["CandidateTarget"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("CandidateTarget");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["CandidateTarget"]["Alias"] ) ) 
+              jobTree["JobDescription"]["Resource"]["CandidateTarget"].NewChild("Alias") =
+                                                    Alias;
+        }
         if (bool(EndPointURL)){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
            if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
@@ -815,6 +817,56 @@ namespace Arc {
            if ( !bool( jobTree["JobDescription"]["Resource"]["CandidateTarget"]["QueueName"] ) ) 
               jobTree["JobDescription"]["Resource"]["CandidateTarget"].NewChild("QueueName") =
                                                     QueueName;
+        }
+        if (!Country.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Location");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"]["Country"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Location"].NewChild("Country") =
+                                                    Country;
+        }
+        if (!Place.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Location");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"]["Place"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Location"].NewChild("Place") =
+                                                    Place;
+        }
+        if (!PostCode.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Location");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"]["PostCode"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Location"].NewChild("PostCode") =
+                                                    PostCode;
+        }
+        if (!Latitude.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Location");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"]["Latitude"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Location"].NewChild("Latitude") =
+                                                    Latitude;
+        }
+        if (!Longitude.empty()){
+           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
+           if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
+              jobTree["JobDescription"].NewChild("Resource");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"] ) ) 
+              jobTree["JobDescription"]["Resource"].NewChild("Location");
+           if ( !bool( jobTree["JobDescription"]["Resource"]["Location"]["Longitude"] ) ) 
+              jobTree["JobDescription"]["Resource"]["Location"].NewChild("Longitude") =
+                                                    Longitude;
         }
         if (!CEType.empty()){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
@@ -1011,36 +1063,18 @@ namespace Arc {
  	         attribute.NewChild("DownloadToCache") = "true";
            }
         }
-        if (bool(DataIndexingService)){
-           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
-              jobTree["JobDescription"].NewChild("DataStaging");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"] ) ) 
-              jobTree["JobDescription"]["DataStaging"].NewChild("Defaults");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"]["DataIndexingService"] ) ) 
-              jobTree["JobDescription"]["DataStaging"]["Defaults"].NewChild("DataIndexingService") =
-                                         DataIndexingService.fullstr();
+        //set the "isoptional" attributes
+        if (!OptionalElement.empty()){
+           for (std::list<Arc::OptionalElementType>::const_iterator it=OptionalElement.begin();
+                            it!=OptionalElement.end(); it++) {
+               Arc::XMLNodeList attribute = jobTree.XPathLookup((*it).Path, gin_namespaces );
+               for (std::list<Arc::XMLNode>::iterator it_node=attribute.begin(); it_node!=attribute.end(); it_node++) {
+                   if ( (std::string)(*it_node) == (*it).Value || (*it).Value == "")
+                      (*it_node).NewAttribute("isoptional")="true";
+              }
+           }
         }
-        if (bool(StagingInBaseURI)){
-           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
-              jobTree["JobDescription"].NewChild("DataStaging");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"] ) ) 
-              jobTree["JobDescription"]["DataStaging"].NewChild("Defaults");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"]["StagingInBaseURI"] ) ) 
-              jobTree["JobDescription"]["DataStaging"]["Defaults"].NewChild("StagingInBaseURI") =
-                                         StagingInBaseURI.fullstr();
-        }
-        if (bool(StagingOutBaseURI)){
-           if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"] ) ) 
-              jobTree["JobDescription"].NewChild("DataStaging");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"] ) ) 
-              jobTree["JobDescription"]["DataStaging"].NewChild("Defaults");
-           if ( !bool( jobTree["JobDescription"]["DataStaging"]["Defaults"]["StagingOutBaseURI"] ) ) 
-              jobTree["JobDescription"]["DataStaging"]["Defaults"].NewChild("StagingOutBaseURI") =
-                                         StagingOutBaseURI.fullstr();
-        }
+
         return true;
     } //end of getXML
 
@@ -1053,7 +1087,6 @@ namespace Arc {
     JobCategory         = job.JobCategory;
     UserTag             = job.UserTag;
     
-    OptionalElement     = job.OptionalElement;
     Author              = job.Author;
     DocumentExpiration  = job.DocumentExpiration;
     Rank                = job.Rank;
@@ -1098,8 +1131,14 @@ namespace Arc {
     DiskSpace           = job.DiskSpace;
     CacheDiskSpace      = job.CacheDiskSpace;
     SessionDiskSpace    = job.SessionDiskSpace;
+    Alias               = job.Alias;
     EndPointURL         = job.EndPointURL;
     QueueName           = job.QueueName;
+    Country             = job.Country;
+    Place               = job.Place;
+    PostCode            = job.PostCode;
+    Latitude            = job.Latitude;
+    Longitude           = job.Longitude;
     CEType              = job.CEType;
     Slots               = job.Slots;
     NumberOfProcesses   = job.NumberOfProcesses;
@@ -1113,12 +1152,12 @@ namespace Arc {
 
     File                = job.File;
     Directory           = job.Directory;
-    DataIndexingService = job.DataIndexingService;
-    StagingInBaseURI    = job.StagingInBaseURI;
-    StagingOutBaseURI   = job.StagingOutBaseURI;
 
     XRSL_elements       = job.XRSL_elements;
     JDL_elements        = job.JDL_elements;
+    OptionalElement     = job.OptionalElement;
+    Migration           = job.Migration;
+    cached              = job.cached;
   } // end of copy constructor
 
   JobInnerRepresentation::JobInnerRepresentation(const long int addrptr) {

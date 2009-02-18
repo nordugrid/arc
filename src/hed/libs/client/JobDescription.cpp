@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <exception>
 
 #include <arc/StringConv.h>
 #include <arc/job/runtimeenvironment.h>
@@ -72,31 +73,63 @@ namespace Arc {
         candidate.extensions.clear();
         candidate.pattern.clear();
         candidate.negative_pattern.clear();
-        candidate.priority = DEFAULT_PRIORITY; //0 default value
+        candidate.priority = DEFAULT_PRIORITY; //Default value
         //End of setting defaults//
         candidate.typeName = "POSIXJSDL";
         candidate.extensions.push_back("posix");
         candidate.extensions.push_back("jsdl");
+        candidate.extensions.push_back("jsdl-arc");
         candidate.extensions.push_back("xml");
         candidate.pattern.push_back("<?xml ");
         candidate.pattern.push_back("<!--");
         candidate.pattern.push_back("-->");
-        candidate.pattern.push_back("<JobDefinition");
-        candidate.pattern.push_back("<JobDescription");
-        candidate.pattern.push_back("<JobIdentification");
-        candidate.pattern.push_back("<POSIXApplication");
-        candidate.pattern.push_back("<Description");
-        candidate.pattern.push_back("<Executable");
-        candidate.pattern.push_back("<Argument");
-//        candidate.pattern.push_back("<Input");
-//        candidate.pattern.push_back("<Output");
-//        candidate.pattern.push_back("<Error");
-//        candidate.pattern.push_back("<CPUArchitectureName");
-//        candidate.pattern.push_back("<DeleteOnTermination");
+        candidate.pattern.push_back("=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\"");
+        candidate.pattern.push_back("=\"http://schemas.ggf.org/jsdl/2005/11/jsdl-posix\"");
+        candidate.pattern.push_back("=\"http://www.nordugrid.org/ws/schemas/jsdl-arc\"");
+        candidate.pattern.push_back("JobDefinition");
+        candidate.pattern.push_back("JobDescription");
+        candidate.pattern.push_back("JobIdentification");
+        candidate.pattern.push_back("POSIXApplication");
+        candidate.pattern.push_back("Executable");
+        candidate.pattern.push_back("Argument");
+        candidate.pattern.push_back("LocalLogging");
+        candidate.pattern.push_back("RemoteLogging");
+        candidate.pattern.push_back("URL");
+        candidate.pattern.push_back("Reruns");
+        candidate.pattern.push_back("CPUTimeLimit");
+        candidate.pattern.push_back("WallTimeLimit");
+        candidate.pattern.push_back("GridTimeLimit");
+        candidate.pattern.push_back("IndividualNetworkBandwidth");
+        candidate.pattern.push_back("OperatingSystemName");
+        candidate.pattern.push_back("OperatingSystemVersion");
+        candidate.pattern.push_back("CPUArchitectureName");
+        candidate.pattern.push_back("MemoryLimit");
+        candidate.pattern.push_back("VirtualMemoryLimit");
+        candidate.pattern.push_back("Middleware");
+        candidate.pattern.push_back("ProcessCountLimit");
+        candidate.pattern.push_back("TotalCPUCount");
+        candidate.pattern.push_back("ThreadCountLimit");
+        candidate.pattern.push_back("ApplicationName");
+        candidate.pattern.push_back("ApplicationVersion");
+        candidate.pattern.push_back("IndividualCPUSpeed");
+        candidate.pattern.push_back("IndividualCPUCount");
+        candidate.pattern.push_back("TotalPhysicalMemory");
+        candidate.pattern.push_back("TotalVirtualMemory");
+        candidate.pattern.push_back("TotalDiskSpace");
+        candidate.pattern.push_back("TotalResourceCount");
+        candidate.pattern.push_back("FileSystemName");
+        candidate.pattern.push_back("CreationFlag");
+        candidate.pattern.push_back("DeleteOnTermination");
+        candidate.pattern.push_back("posix:");
+        candidate.pattern.push_back("arc:");
+
+        candidate.negative_pattern.push_back("Meta");
+        candidate.negative_pattern.push_back("OptionalElement");
+        candidate.negative_pattern.push_back("Author");
         //Save entry
         candidates.push_back(candidate);
         // End of POSIX JSDL
-/*
+
         // JSDL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -107,28 +140,66 @@ namespace Arc {
         candidate.typeName = "JSDL";
         candidate.extensions.push_back("jsdl");
         candidate.extensions.push_back("xml");
+        candidate.extensions.push_back("gin");
         candidate.pattern.push_back("<?xml ");
         candidate.pattern.push_back("<!--");
         candidate.pattern.push_back("-->");
-        candidate.pattern.push_back("<JobDefinition");
-        candidate.pattern.push_back("<JobDescription");
-        candidate.pattern.push_back("<Meta");
-        candidate.pattern.push_back("<JobIdentification");
-        candidate.pattern.push_back("<Application");
-        candidate.pattern.push_back("<Description");
-        candidate.pattern.push_back("<Executable");
-        candidate.pattern.push_back("<LogDir");
-        candidate.pattern.push_back("<Argument");
-//        candidate.pattern.push_back("<Input");
-//        candidate.pattern.push_back("<Output");
-//        candidate.pattern.push_back("<Error");
-        candidate.pattern.push_back("<OSName");
-        candidate.pattern.push_back("<File");
-        candidate.pattern.push_back("<Directory");
+        //candidate.pattern.push_back("=\"http://www. /schemas/gin\""); //here can the GIN schema URL
+        candidate.pattern.push_back("JobDefinition");
+        candidate.pattern.push_back("JobDescription");
+        candidate.pattern.push_back("Meta");
+        candidate.pattern.push_back("OptionalElement");
+        candidate.pattern.push_back("Author");
+        candidate.pattern.push_back("DocumentExpiration");
+        candidate.pattern.push_back("JobIdentification");
+        candidate.pattern.push_back("Application");
+        candidate.pattern.push_back("Executable");
+        candidate.pattern.push_back("LogDir");
+        candidate.pattern.push_back("Argument");
+        candidate.pattern.push_back("JobType");
+        candidate.pattern.push_back("JobCategory");
+        candidate.pattern.push_back("Notification");
+        candidate.pattern.push_back("IndividualWallTime");
+        candidate.pattern.push_back("ReferenceTime");
+        candidate.pattern.push_back("NetworkInfo");
+        candidate.pattern.push_back("OSFamily");
+        candidate.pattern.push_back("OSName");
+        candidate.pattern.push_back("OSVersion");
+        candidate.pattern.push_back("Platform");
+        candidate.pattern.push_back("CacheDiskSpace");
+        candidate.pattern.push_back("SessionDiskSpace");
+        candidate.pattern.push_back("Alias");
+        candidate.pattern.push_back("EndPointURL");
+        candidate.pattern.push_back("Location");
+        candidate.pattern.push_back("Country");
+        candidate.pattern.push_back("Place");
+        candidate.pattern.push_back("PostCode");
+        candidate.pattern.push_back("Latitude");
+        candidate.pattern.push_back("Longitude");
+        candidate.pattern.push_back("CEType");
+        candidate.pattern.push_back("Slots");
+        candidate.pattern.push_back("Homogeneous");
+        candidate.pattern.push_back("File");
+        candidate.pattern.push_back("Directory");
+
+        candidate.negative_pattern.push_back("arc:");
+        candidate.negative_pattern.push_back("posix:");
+        candidate.negative_pattern.push_back("UpperBound");
+        candidate.negative_pattern.push_back("LowerBound");
+        candidate.negative_pattern.push_back("Exact");
+        candidate.negative_pattern.push_back("Range");
+        candidate.negative_pattern.push_back("POSIXApplication");
+        candidate.negative_pattern.push_back("CPUArchitectureName");
+        candidate.negative_pattern.push_back("LocalLogging");
+        candidate.negative_pattern.push_back("Directory");
+        candidate.negative_pattern.push_back("URL");
+        candidate.negative_pattern.push_back("Reruns");
+        candidate.negative_pattern.push_back("CreationFlag");
+        candidate.negative_pattern.push_back("DeleteOnTermination");
         //Save entry  
         candidates.push_back(candidate);
         // End of JSDL
-*/
+
         // RSL attributes
         //Set defaults//
         candidate.extensions.clear();
@@ -162,7 +233,9 @@ namespace Arc {
         //End of setting defaults//
         candidate.typeName = "JDL";
         candidate.pattern.push_back("//");
+        candidate.pattern.push_back("/*");
         candidate.pattern.push_back(";");
+        candidate.pattern.push_back("[");
         candidate.pattern.push_back("{");
         candidate.pattern.push_back("=");
         //  candidate.extensions.push_back("jdl");
@@ -237,22 +310,22 @@ namespace Arc {
         for ( std::vector<Candidate>::iterator i = candidates.begin(); i != candidates.end(); i++ ) {
             for ( std::vector<std::string>::const_iterator j = (*i).pattern.begin(); j != (*i).pattern.end(); j++ ) {
                 if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
+		    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += TEXT_PATTERN_MATCHING;
                 } else {
                     if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
+		        JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }
                 }
             }
             for ( std::vector<std::string>::const_iterator j = (*i).negative_pattern.begin(); j != (*i).negative_pattern.end(); j++ ) {
                 if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
+		    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING;
                 } else {
                     if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-				    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
+	                JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }
                 }
@@ -299,7 +372,7 @@ namespace Arc {
         //
         // Get the candidate list of formats in the proper order
         if ( sourceString.empty() || sourceString.length() == 0 ){ 
-		   JobDescription::logger.msg(DEBUG, "There is nothing in the source. Cannot generate any product.");
+	   JobDescription::logger.msg(DEBUG, "There is nothing in the source. Cannot generate any product.");
            return false;
         }
 
@@ -310,7 +383,7 @@ namespace Arc {
         // (If not then just reset the jobTree variable and see the next one)
         for (std::vector<Candidate>::const_iterator it = candidates.begin(); it < candidates.end(); it++) {
             if ( sm.toLowerCase( (*it).typeName ) == "xrsl" ) {
-			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as XRSL");
+		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as XRSL");
                 XRSLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "xrsl";
@@ -319,7 +392,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "posixjsdl" ) {
-			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as POSIX JSDL");
+		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as POSIX JSDL");
                 PosixJSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "posixjsdl";
@@ -328,7 +401,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "jsdl" ) {
-			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JSDL");
+		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JSDL");
                 JSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "jsdl";
@@ -337,7 +410,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "jdl" ) {
-			    JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JDL");
+		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JDL");
                 JDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "jdl";
@@ -348,7 +421,7 @@ namespace Arc {
             }
         }
         if (sourceFormat.length() == 0){
-		   JobDescription::logger.msg(DEBUG, "The parsing of the source string was unsuccessful.");
+	   JobDescription::logger.msg(DEBUG, "The parsing of the source string was unsuccessful.");
            return false;
         }
         return true;
@@ -364,7 +437,7 @@ namespace Arc {
     bool JobDescription::getXML( Arc::XMLNode& jobTree) {
         if ( innerRepresentation == NULL ) return false;
         if ( !(*innerRepresentation).getXML(jobTree) ) {
-		   JobDescription::logger.msg(DEBUG, "Error during the XML generation!");
+	   JobDescription::logger.msg(DEBUG, "Error during the XML generation!");
            return false;
         }
         return true;
@@ -377,7 +450,7 @@ namespace Arc {
 
         // Generate the output text with the right parser class
         if ( innerRepresentation == NULL || !this->isValid() ) {
-		   JobDescription::logger.msg(DEBUG, "There is no successfully parsed source");
+	    JobDescription::logger.msg(DEBUG, "There is no successfully parsed source");
             return false;
         }
         if ( sm.toLowerCase( format ) == sm.toLowerCase( sourceFormat ) && 
@@ -386,46 +459,46 @@ namespace Arc {
             return true;
         }
         if ( sm.toLowerCase( format ) == "jdl" ) {
-		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JDL output");
+	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JDL output");
             JDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "xrsl" ) {
-		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate XRSL output");
+	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate XRSL output");
             XRSLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "posixjsdl" ) {
-		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate POSIX JSDL output");
+	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate POSIX JSDL output");
             PosixJSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "jsdl" ) {
-		    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JSDL output");
+	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JSDL output");
             JSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-			   JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
                return false;
             }
             return true;
         } else {
-		    JobDescription::logger.msg(DEBUG, "Unknown output format: %s", format) ;
+	    JobDescription::logger.msg(DEBUG, "Unknown output format: %s", format) ;
             return false;
         }
     }
 
     bool JobDescription::getSourceFormat( std::string& _sourceFormat ) {
         if (!isValid()) {
-		   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
+	   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
            return false;
          } else {
            _sourceFormat = sourceFormat;
@@ -435,7 +508,7 @@ namespace Arc {
 
     bool JobDescription::getUploadableFiles(std::vector< std::pair< std::string, std::string > >& sourceFiles ) {
         if (!isValid()) {
-		   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
+	   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
            return false;
         }
         // Get the URI's from the DataStaging/File/Source files
@@ -471,9 +544,55 @@ namespace Arc {
        return -1;
     } 
 
-    bool PosixJSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) { 
+    // This function is search all elements name of the input XMLNode.
+    // When one of them is in the other job description name set then the input XMNNode is not valid job description.
+    bool Element_Search( const Arc::XMLNode node, bool posix ){
+        std::string parser_name("[JSDLParser]");
+        if (posix) parser_name = "[PosixJSDLParser]";
+        // check all child nodes
+        for (int i=0; bool(node.Child(i)); i++) {
+            Arc::XMLNode it(node.Child(i));
+            if ( it.Size() > 0 ){
+               std::ostringstream message ;
+               message << parser_name << " " << it.Name() << " has " << it.Size() << " child(s).";
+	       JobDescription::logger.msg(DEBUG, message.str());
+            }
+            if ( i==0 || i>0 && node.Child(i).Name() != node.Child(i-1).Name() ){
+               JobDescription::logger.msg(DEBUG, parser_name+ " element: " + it.Name());
+               // The element is not valid in this job description.
+               if ( posix ){
+                  // POSIX-JSDL
+                  int size = sizeof(GIN_elements)/sizeof(std::string) ;
+                  if ( find(&GIN_elements[0],&GIN_elements[size-1],it.Name()) != &GIN_elements[size-1]){
+                     JobDescription::logger.msg(DEBUG, parser_name + " Not valid JSDL: \"" + it.Name() + "\" is GIN-JSDL element!");
+                     return false;
+                  }
+               }
+               else{
+                  // GIN-JSDL
+                  int size = sizeof(JSDL_elements)/sizeof(std::string) ;
+                  if ( find(&JSDL_elements[0],&JSDL_elements[size-1],it.Name()) != &JSDL_elements[size-1]){
+                     JobDescription::logger.msg(DEBUG, parser_name + " Not valid GIN-JSDL: \"" + it.Name() + "\" is POSIX-JSDL element!");
+                     return false;
+                  }
+               }
+            }
+            if ( !Element_Search(it, posix ) ) return false;
+        }
+        return true;
+    }
 
+
+    bool PosixJSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) { 
+        //Source checking
         Arc::XMLNode node(source);
+        if ( node.Size() == 0 ){
+	    JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML structure! ");
+            return false;
+        }
+        if ( !Arc::Element_Search(node, true ) ) return false;
+
+        // The source parsing start now.
         Arc::NS nsList;
         nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
         nsList.insert(std::pair<std::string, std::string>("jsdl-posix","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
@@ -483,8 +602,17 @@ namespace Arc {
 
         Arc::XMLNode jobdescription = node["JobDescription"];
 
-        if (bool(jobdescription["LocalLogging"]["Directory"])) {
-           innerRepresentation.LogDir = (std::string)jobdescription["LocalLogging"]["Directory"];
+        if (bool(jobdescription["LocalLogging"])) {
+           if (bool(jobdescription["LocalLogging"]["Directory"])) {
+              innerRepresentation.LogDir = (std::string)jobdescription["LocalLogging"]["Directory"];
+           }else {
+	      JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML: \"LocalLogging.Directory\" element missed!"); 
+              return false;
+           }
+           if (bool(jobdescription["LocalLogging"][1])){
+	      JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML: too many \"LocalLogging\" elements!"); 
+              return false;
+           }
         }
 
         if (bool(jobdescription["RemoteLogging"]["URL"])) {
@@ -512,8 +640,17 @@ namespace Arc {
         }
 
         if (bool(jobdescription["Notify"])) {
-//TODO:
-//           innerRepresentation.Notification.? = jobdescription["Notify"];
+           for (int i=0; bool(jobdescription["Notify"][i]); i++){
+               Arc::NotificationType notify;
+               for (int j=0; bool(jobdescription["Notify"][i]["Endpoint"][j]); j++){
+                    notify.Address.push_back((std::string)jobdescription["Notify"][i]["Endpoint"][j]);
+               } 
+
+               for (int j=0; bool(jobdescription["Notify"][i]["State"][j]); j++){
+                    notify.State.push_back((std::string)jobdescription["Notify"][i]["State"][j]);
+               } 
+               innerRepresentation.Notification.push_back(notify);
+           }
         }
 
         // JobIdentification
@@ -530,11 +667,6 @@ namespace Arc {
            }
            Arc::WSAEndpointReference migration_id(jobidentification["Migration"]["MigrationID"]);
            innerRepresentation.Migration.MigrationID = migration_id;
-        }
-
-        if (bool(jobidentification["Notify"])) {
-//TODO:
-//           innerRepresentation.Notification.? = jobidentification["Notify"];
         }
 
         if (bool(jobidentification["JobProject"])) {
@@ -570,7 +702,7 @@ namespace Arc {
            Arc::XMLNode env = application["Environment"][i];
            Arc::XMLNode name = env.Attribute("name");
            if(!name) {
-		       JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
+	       JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
                return false;
            } 
            Arc::EnvironmentType env_tmp;
@@ -724,13 +856,13 @@ namespace Arc {
         }
 
         if (bool(resource["RunTimeEnvironment"])) {
-		   StringManipulator sm;
-		   for( int i=0; (bool)(resource["RunTimeEnvironment"][i]); i++ ) {
+	   StringManipulator sm;
+	   for( int i=0; (bool)(resource["RunTimeEnvironment"][i]); i++ ) {
                Arc::RunTimeEnvironmentType rt;
-			   std::string version;
+               std::string version;
                rt.Name = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Name"]);
                version = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Version"]["Exact"]);
-		       rt.Version.push_back(version);
+               rt.Version.push_back(version);
                innerRepresentation.RunTimeEnvironment.push_back(rt);
            }
         }
@@ -1154,19 +1286,14 @@ namespace Arc {
                  it!=innerRepresentation.Notification.end(); it++) {
                 Arc::XMLNode notify = jobdescription.NewChild("jsdl-arc:Notify");
                 notify.NewChild("jsdl-arc:Type") = "Email";
-                std::string email = "";
                 for (std::list<std::string>::const_iterator it_address=(*it).Address.begin();
                                                 it_address!=(*it).Address.end(); it_address++) {
-                    if (it_address != (*it).Address.begin()) email += "; "; //separator character
-                    email += *it_address;
+                    if ( *it_address != "" ) notify.NewChild("jsdl-arc:Endpoint") = *it_address;
                 }
-                if ( email != "" ) notify.NewChild("jsdl-arc:Endpoint") = email;
                 for (std::list<std::string>::const_iterator it_state=(*it).State.begin();
                                                 it_state!=(*it).State.end(); it_state++) {
-                    notify.NewChild("jsdl-arc:State") = *it_state;
+                    if ( *it_state != "" ) notify.NewChild("jsdl-arc:State") = *it_state;
                 }
-
-                   
             }
         }
 
@@ -1210,41 +1337,63 @@ namespace Arc {
         return true;
     }
 
+    // Optional name attribute checker.
+    // When the node has "isoptional" attribute and it is "true", then add this node name to
+    // the list of OptionalElement.  
+    void Optional_attribute_check(Arc::XMLNode node, std::string path, Arc::JobInnerRepresentation& innerRepresentation, Arc::OptionalElementType& optional_element, std::string value=""){
+         StringManipulator sm;
+         if (node.AttributesSize() > 0 &&  sm.toLowerCase((std::string)node.Attribute("isoptional")) == "true"){
+            optional_element.Name = node.Name();
+            optional_element.Path = path;
+            optional_element.Value = value;
+            innerRepresentation.OptionalElement.push_back(optional_element);
+         }
+    }
+
     bool JSDLParser::parse( Arc::JobInnerRepresentation& innerRepresentation, const std::string source ) {
-        //TODO: wath is the new GIN namespace  (it is now temporary namespace)      
+        //Source checking
         Arc::XMLNode node(source);
+        if ( node.Size() == 0 ){
+	    JobDescription::logger.msg(DEBUG, "[JSDLParser] Wrong XML structure! ");
+            return false;
+        }
+        if ( !Arc::Element_Search(node, false ) ) return false;
+
+        // The source parsing start now.
         Arc::NS nsList;
         nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
-        nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
-        nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
+        //TODO: wath is the new GIN namespace  (it is now temporary namespace)      
+        //nsList.insert(std::pair<std::string, std::string>("gin","http://"));
 
         //Meta
         Arc::XMLNodeList meta;
-        meta = node.XPathLookup( (std::string) "//Meta/OptionalElement", nsList);
-        for (std::list<Arc::XMLNode>::iterator it = meta.begin(); it != meta.end(); it++) {
-                 innerRepresentation.OptionalElement.push_back( (std::string)(*it) );
+        Arc::XMLNode _meta;
+        Arc::OptionalElementType optional;
+
+        _meta = node["Meta"]["Author"];
+        if ( bool(_meta) && (std::string)(_meta) != "" ){
+           Optional_attribute_check(_meta, "//Meta/Author", innerRepresentation,optional);
+           innerRepresentation.Author = (std::string)(_meta);
         }
-        meta.clear();
+        _meta.Destroy();
 
-        meta = node.XPathLookup((std::string)"//Meta/Author", nsList);
-        if ( !meta.empty() )
-           innerRepresentation.Author = (std::string)(*meta.begin());
-        meta.clear();
-
-        meta = node.XPathLookup((std::string)"//Meta/DocumentExpiration", nsList);
-        if ( !meta.empty() ) {
-           Time time((std::string)(*meta.begin()));
+        _meta = node["Meta"]["DocumentExpiration"];
+        if ( bool(_meta) && (std::string)(_meta) != "" ){
+           Optional_attribute_check(_meta, "//Meta/DocumentExpiration", innerRepresentation,optional);
+           Time time((std::string)(_meta));
            innerRepresentation.DocumentExpiration = time;
         }
-        meta.clear();
+        _meta.Destroy();
 
         meta = node.XPathLookup((std::string)"//Meta/Rank", nsList);
+           Optional_attribute_check(*(meta.begin()), "//Meta/Rank", innerRepresentation,optional);
         if ( !meta.empty() )
            innerRepresentation.Rank = (std::string)(*meta.begin());
         meta.clear();
 
         meta = node.XPathLookup((std::string)"//Meta/FuzzyRank", nsList);
         if ( !meta.empty() )
+           Optional_attribute_check(*(meta.begin()), "//Meta/FuzzyRank", innerRepresentation,optional);
            if ( (std::string)(*meta.begin()) == "true" ) {
               innerRepresentation.FuzzyRank = true;
            }
@@ -1252,7 +1401,8 @@ namespace Arc {
               innerRepresentation.FuzzyRank = false;
            }
            else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/Meta/FuzzyRank\" value: %s", (std::string)(*meta.begin()));              
+	      JobDescription::logger.msg(DEBUG, "Invalid \"/Meta/FuzzyRank\" value: %s", (std::string)(*meta.begin()));
+              return false;         
            }
         meta.clear();
 
@@ -1260,37 +1410,44 @@ namespace Arc {
         Arc::XMLNodeList application;
         application = node.XPathLookup((std::string)"//JobDescription/Application/Executable", nsList);
         if ( !application.empty() )
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Executable", innerRepresentation,optional);
            innerRepresentation.Executable = (std::string)(*application.begin());
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/LogDir", nsList);
         if ( !application.empty() )
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/LogDir", innerRepresentation,optional);
            innerRepresentation.LogDir = (std::string)(*application.begin());
         application.clear();
 
         application = node.XPathLookup( (std::string) "//JobDescription/Application/Argument", nsList);
         for (std::list<Arc::XMLNode>::iterator it = application.begin(); it != application.end(); it++) {
-                innerRepresentation.Argument.push_back( (std::string)(*it) );
+           Optional_attribute_check(*it, "//JobDescription/Application/Argument", innerRepresentation,optional, (std::string)(*it));
+            innerRepresentation.Argument.push_back( (std::string)(*it) );
         }
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/Input", nsList);
         if ( !application.empty() )
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Input", innerRepresentation,optional);
            innerRepresentation.Input = (std::string)(*application.begin());
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/Output", nsList);
         if ( !application.empty() )
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Output", innerRepresentation,optional);
            innerRepresentation.Output = (std::string)(*application.begin());
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/Error", nsList);
         if ( !application.empty() )
-          innerRepresentation.Error = (std::string)(*application.begin());
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Error", innerRepresentation,optional);
+           innerRepresentation.Error = (std::string)(*application.begin());
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/RemoteLogging", nsList);
         if ( !application.empty() ) {
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/RemoteLogging", innerRepresentation,optional);
            URL url((std::string)(*application.begin()));
            innerRepresentation.RemoteLogging = url;
         }
@@ -1298,20 +1455,24 @@ namespace Arc {
 
         application = node.XPathLookup( (std::string) "//JobDescription/Application/Environment", nsList);
         for (std::list<Arc::XMLNode>::iterator it = application.begin(); it != application.end(); it++) {
-                Arc::EnvironmentType env;
-                env.name_attribute = (std::string)(*it).Attribute("name");
-                env.value = (std::string)(*it);
-                innerRepresentation.Environment.push_back( env );
+           Optional_attribute_check(*it, "//JobDescription/Application/Environment", innerRepresentation,optional, (std::string)(*it));
+            Arc::EnvironmentType env;
+            env.name_attribute = (std::string)(*it).Attribute("name");
+            env.value = (std::string)(*it);
+            innerRepresentation.Environment.push_back( env );
         }
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/LRMSReRun", nsList);
-        if ( !application.empty() )
+        if ( !application.empty() ){
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/LRMSReRun", innerRepresentation,optional);
            innerRepresentation.LRMSReRun = stringtoi(*application.begin());
+        }
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/Prologue", nsList);
         if ( !application.empty() ) {
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Prologue", innerRepresentation,optional);
            std::string source_prologue = (std::string)(*application.begin());
            std::vector<std::string> parts = sm.split( source_prologue, " " );
            if ( !parts.empty() ) {
@@ -1327,6 +1488,7 @@ namespace Arc {
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/Epilogue", nsList);
         if ( !application.empty() ) {
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Epilogue", innerRepresentation,optional);
            std::string source_epilogue = (std::string)(*application.begin());
            std::vector<std::string> parts = sm.split( source_epilogue, " " );
            if ( !parts.empty() ) {
@@ -1342,18 +1504,22 @@ namespace Arc {
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/SessionLifeTime", nsList);
         if ( !application.empty() ) {
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/SessionLifeTime", innerRepresentation,optional);
            Period time((std::string)(*application.begin()));
            innerRepresentation.SessionLifeTime = time;
         }
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/AccessControl", nsList);
-        if ( !application.empty() )
+        if ( !application.empty() ){
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/AccessControl", innerRepresentation,optional);
            ((Arc::XMLNode)(*application.begin())).Child(0).New(innerRepresentation.AccessControl);
+        }
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/ProcessingStartTime", nsList);
         if ( !application.empty() ) {
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/ProcessingStartTime", innerRepresentation,optional);
            Time stime((std::string)*application.begin());
            innerRepresentation.ProcessingStartTime = stime;
         }
@@ -1361,6 +1527,7 @@ namespace Arc {
 
         application = node.XPathLookup( (std::string) "//JobDescription/Application/Notification", nsList);
         for (std::list<Arc::XMLNode>::iterator it = application.begin(); it != application.end(); it++) {
+           Optional_attribute_check(*it, "//JobDescription/Application/Notification", innerRepresentation,optional);
             Arc::NotificationType ntype;
             Arc::XMLNodeList address = (*it).XPathLookup( (std::string) "//Address", nsList);
             for (std::list<Arc::XMLNode>::iterator it_addr = address.begin(); it_addr != address.end(); it_addr++) {             
@@ -1376,45 +1543,59 @@ namespace Arc {
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/CredentialService", nsList);
         if ( !application.empty() ) {
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/CredentialService", innerRepresentation,optional);
            URL curl((std::string)*application.begin());
            innerRepresentation.CredentialService = curl;
         }
         application.clear();
 
         application = node.XPathLookup((std::string)"//JobDescription/Application/Join", nsList);
-        if ( !application.empty() && Arc::upper((std::string)*application.begin()) == "TRUE" )
+        if ( !application.empty() && Arc::upper((std::string)*application.begin()) == "TRUE" ){
+           Optional_attribute_check(*(application.begin()), "//JobDescription/Application/Join", innerRepresentation,optional);
            innerRepresentation.Join = true;
+        }
         application.clear();
 
         //JobIdentification
         Arc::XMLNodeList jobidentification;
         jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobName", nsList);
-        if ( !jobidentification.empty() )
+        if ( !jobidentification.empty() ){
+           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobName", innerRepresentation,optional);
            innerRepresentation.JobName = (std::string)(*jobidentification.begin());
+        }
         jobidentification.clear();
 
         jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/Description", nsList);
-        if ( !jobidentification.empty() )
+        if ( !jobidentification.empty() ){
+           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/Description", innerRepresentation,optional);
            innerRepresentation.Description = (std::string)(*jobidentification.begin());
+        }
         jobidentification.clear();
 
         jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobProject", nsList);
-        if ( !jobidentification.empty() )
+        if ( !jobidentification.empty() ){
+           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobProject", innerRepresentation,optional);
            innerRepresentation.JobProject = (std::string)(*jobidentification.begin());
+        }
         jobidentification.clear();
 
         jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobType", nsList);
-        if ( !jobidentification.empty() )
+        if ( !jobidentification.empty() ){
+           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobType", innerRepresentation,optional);
            innerRepresentation.JobType = (std::string)(*jobidentification.begin());
+        }
         jobidentification.clear();
 
         jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/JobCategory", nsList);
-        if ( !jobidentification.empty() )
+        if ( !jobidentification.empty() ){
+           Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/JobCategory", innerRepresentation,optional);
            innerRepresentation.JobCategory = (std::string)(*jobidentification.begin());
+        }
         jobidentification.clear();
 
         jobidentification = node.XPathLookup((std::string)"//JobDescription/JobIdentification/UserTag", nsList);
         for (std::list<Arc::XMLNode>::const_iterator it = jobidentification.begin(); it != jobidentification.end(); it++) {
+            Optional_attribute_check(*(jobidentification.begin()), "//JobDescription/JobIdentification/UserTag", innerRepresentation,optional, (std::string)(*it));
             innerRepresentation.UserTag.push_back( (std::string)(*it));
         }
         jobidentification.clear();
@@ -1423,6 +1604,7 @@ namespace Arc {
         Arc::XMLNodeList resource;
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/TotalCPUTime", nsList);
         if ( !resource.empty() ) {
+           Optional_attribute_check(*(resource.begin()),"//JobDescription/Resource/TotalCPUTime", innerRepresentation,optional);
            Period time((std::string)(*resource.begin()));
            innerRepresentation.TotalCPUTime = time;
         }
@@ -1430,6 +1612,7 @@ namespace Arc {
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualCPUTime", nsList);
         if ( !resource.empty() ) {
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualCPUTime", innerRepresentation,optional);
            Period time((std::string)(*resource.begin()));
            innerRepresentation.IndividualCPUTime = time;
         }
@@ -1437,6 +1620,7 @@ namespace Arc {
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/TotalWallTime", nsList);
         if ( !resource.empty() ) {
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/TotalWallTime", innerRepresentation,optional);
            Period _walltime((std::string)(*resource.begin()));
            innerRepresentation.TotalWallTime = _walltime;
         }
@@ -1444,6 +1628,7 @@ namespace Arc {
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualWallTime", nsList);
         if ( !resource.empty() ) {
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualWallTime", innerRepresentation,optional);
            Period _indwalltime((std::string)(*resource.begin()));
            innerRepresentation.IndividualWallTime = _indwalltime;
         }
@@ -1451,6 +1636,7 @@ namespace Arc {
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/ReferenceTime", nsList);
         if ( !resource.empty() ) {
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/ReferenceTime", innerRepresentation,optional);
            Arc::ReferenceTimeType _reference;
            _reference.value = (std::string)(*resource.begin());
            _reference.benchmark_attribute = (std::string)((Arc::XMLNode)(*resource.begin()).Attribute("benchmark"));
@@ -1461,6 +1647,7 @@ namespace Arc {
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/ExclusiveExecution", nsList);
         if ( !resource.empty() ) {
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/ExclusiveExecution", innerRepresentation,optional);
            Arc::ReferenceTimeType _reference;
            if ( Arc::upper((std::string)(*resource.begin())) == "TRUE" ) {
               innerRepresentation.ExclusiveExecution = true;
@@ -1469,113 +1656,212 @@ namespace Arc {
               innerRepresentation.ExclusiveExecution = false;
            }
            else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value: %s", (std::string)(*resource.begin()));
+	      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value: %s", (std::string)(*resource.begin()));
+              return false;
            }
         }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/NetworkInfo", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/NetworkInfo", innerRepresentation,optional);
            innerRepresentation.NetworkInfo = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/OSFamily", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/OSFamily", innerRepresentation,optional);
            innerRepresentation.OSFamily = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/OSName", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/OSName", innerRepresentation,optional);
            innerRepresentation.OSName = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/OSVersion", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/OSVersion", innerRepresentation,optional);
            innerRepresentation.OSVersion = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/Platform", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Platform", innerRepresentation,optional);
            innerRepresentation.Platform = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualPhysicalMemory", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualPhysicalMemory", innerRepresentation,optional);
            innerRepresentation.IndividualPhysicalMemory = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualVirtualMemory", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/IndividualVirtualMemory", innerRepresentation,optional);
            innerRepresentation.IndividualVirtualMemory = stringtoi(*resource.begin());
+        }
         resource.clear();
 
-        resource = node.XPathLookup((std::string)"//JobDescription/Resource/IndividualDiskSpace", nsList);
-        if ( !resource.empty() )
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/DiskSpace/IndividualDiskSpace", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/DiskSpace/IndividualDiskSpace", innerRepresentation,optional);
            innerRepresentation.IndividualDiskSpace = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/DiskSpace", nsList);
-        if ( !resource.empty())
+        if ( !resource.empty()){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/DiskSpace", innerRepresentation,optional);
            innerRepresentation.DiskSpace = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/CacheDiskSpace", nsList);
-        if ( !resource.empty())
+        if ( !resource.empty()){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CacheDiskSpace", innerRepresentation,optional);
            innerRepresentation.CacheDiskSpace = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/SessionDiskSpace", nsList);
-        if ( !resource.empty())
+        if ( !resource.empty()){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/SessionDiskSpace", innerRepresentation,optional);
            innerRepresentation.SessionDiskSpace = stringtoi(*resource.begin());
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/CandidateTarget/Alias", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CandidateTarget/Alias", innerRepresentation,optional);
+           innerRepresentation.Alias = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/CandidateTarget/EndPointURL", nsList);
         if ( !resource.empty() ) {
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CandidateTarget/EndPointURL", innerRepresentation,optional);
            URL url((std::string)(*resource.begin()));
            innerRepresentation.EndPointURL = url;
         }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/CandidateTarget/QueueName", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CandidateTarget/QueueName", innerRepresentation,optional);
            innerRepresentation.QueueName = (std::string)(*resource.begin());
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Country", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Country", innerRepresentation,optional);
+           innerRepresentation.Country = (std::string)(*resource.begin());
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Place", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Place", innerRepresentation,optional);
+           innerRepresentation.Place = (std::string)(*resource.begin());
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/PostCode", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/PostCode", innerRepresentation,optional);
+           innerRepresentation.PostCode = (std::string)(*resource.begin());
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Latitude", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Latitude", innerRepresentation,optional);
+           innerRepresentation.Latitude = (std::string)(*resource.begin());
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Location/Longitude", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Location/Longitude", innerRepresentation,optional);
+           innerRepresentation.Longitude = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/CEType", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/CEType", innerRepresentation,optional);
            innerRepresentation.CEType = (std::string)(*resource.begin());
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots", nsList);
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots", innerRepresentation,optional);
+           innerRepresentation.Slots = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/ProcessPerHost", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/ProcessPerHost", innerRepresentation,optional);
            innerRepresentation.ProcessPerHost = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/NumberOfProcesses", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/NumberOfProcesses", innerRepresentation,optional);
            innerRepresentation.NumberOfProcesses = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/ThreadPerProcesses", nsList);
-        if ( !resource.empty() )
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/ThreadPerProcesses", innerRepresentation,optional);
            innerRepresentation.ThreadPerProcesses = stringtoi(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/Slots/SPMDVariation", nsList);
-        if ( !resource.empty() )
-           innerRepresentation.SPMDVariation = (std::string)(*resource.begin());
+        if ( !resource.empty() ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Slots/SPMDVariation", innerRepresentation,optional);
+          innerRepresentation.SPMDVariation = (std::string)(*resource.begin());
+        }
         resource.clear();
 
         resource = node.XPathLookup((std::string)"//JobDescription/Resource/RunTimeEnvironment", nsList);
         for (std::list<Arc::XMLNode>::const_iterator it = resource.begin(); it != resource.end(); it++) {
+//            Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/RunTimeEnvironment", innerRepresentation,optional, (std::string)(*it));
             Arc::RunTimeEnvironmentType _runtimeenv;
             if ( (bool)((*it)["Name"]) )
                _runtimeenv.Name = (std::string)(*it)["Name"];
             Arc::XMLNodeList version = (*it).XPathLookup((std::string)"//Version", nsList);
             for (std::list<Arc::XMLNode>::const_iterator it_v = version.begin(); it_v!= version.end(); it_v++) {
+                Optional_attribute_check(*it_v, "//JobDescription/Resource/RunTimeEnvironment/Version", innerRepresentation,optional, (std::string)(*it_v));
                 _runtimeenv.Version.push_back( (std::string)(*it_v) );
             }
             innerRepresentation.RunTimeEnvironment.push_back( _runtimeenv );
+        }
+        resource.clear();
+
+        resource = node.XPathLookup((std::string)"//JobDescription/Resource/Homogeneous", nsList);
+        if ( !resource.empty() &&
+             (std::string)(*resource.begin()) == "true" ){
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Homogeneous", innerRepresentation,optional);
+           innerRepresentation.Homogeneous = true;
+        }
+        else {
+           Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/Homogeneous", innerRepresentation,optional);
+           innerRepresentation.Homogeneous = false;
         }
         resource.clear();
 
@@ -1593,6 +1879,7 @@ namespace Arc {
         Arc::XMLNodeList datastaging;
         datastaging = node.XPathLookup((std::string)"//JobDescription/DataStaging/File", nsList);
         for (std::list<Arc::XMLNode>::const_iterator it = datastaging.begin(); it != datastaging.end(); it++) {
+//           Optional_attribute_check(*(datastaging.begin()), "//JobDescription/DataStaging/File", innerRepresentation,optional);
             Arc::FileType _file;
             if ( (bool)((*it)["Name"]) )
                _file.Name = (std::string)(*it)["Name"];
@@ -1630,7 +1917,7 @@ namespace Arc {
                       _target.Mandatory = false;
                    }
                    else {
-				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/Target/Mandatory\" value: %s", (std::string)(*it_target)["Mandatory"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/Target/Mandatory\" value: %s", (std::string)(*it_target)["Mandatory"]);
                    }
                 }
                 else {
@@ -1652,7 +1939,7 @@ namespace Arc {
                       _file.KeepData = false;
                    }
                    else {
-                       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
+                      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
                    }
             }
             else {
@@ -1666,15 +1953,15 @@ namespace Arc {
                       _file.IsExecutable = false;
                    }
                    else {
-				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
                    }
             }
             else {
                    _file.IsExecutable = false;
             }
             if ( (bool)((*it)["DataIndexingService"])) {
-                URL uri((std::string)((*it)["DataIndexingService"]));
-                _file.DataIndexingService = uri;
+               URL uri((std::string)((*it)["DataIndexingService"]));
+               _file.DataIndexingService = uri;
             }
             if ( (bool)((*it)["DownloadToCache"])) {
                    if ( (std::string)(*it)["DownloadToCache"] == "true" ) {
@@ -1684,7 +1971,7 @@ namespace Arc {
                       _file.DownloadToCache = false;
                    }
                    else {
-				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
                    }
             }
             else {
@@ -1696,6 +1983,7 @@ namespace Arc {
 
         datastaging = node.XPathLookup((std::string)"//JobDescription/DataStaging/Directory", nsList);
         for (std::list<Arc::XMLNode>::const_iterator it = datastaging.begin(); it != datastaging.end(); it++) {
+//           Optional_attribute_check(*(datastaging.begin()), "//JobDescription/DataStaging/Directory", innerRepresentation);
             Arc::DirectoryType _directory;
             if ( (bool)((*it)["Name"]) )
                _directory.Name = (std::string)(*it)["Name"];
@@ -1733,7 +2021,7 @@ namespace Arc {
                       _target.Mandatory = false;
                    }
                    else {
-				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/Target/Mandatory\" value: %s",  (std::string)(*it_target)["Mandatory"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/Target/Mandatory\" value: %s",  (std::string)(*it_target)["Mandatory"]);
                    }
                 }
                 else {
@@ -1755,7 +2043,7 @@ namespace Arc {
                       _directory.KeepData = false;
                    }
                    else {
-				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value: %s", (std::string)(*it)["KeepData"]);
                    }
             }
             else {
@@ -1769,15 +2057,15 @@ namespace Arc {
                       _directory.IsExecutable = false;
                    }
                    else {
-				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value: %s", (std::string)(*it)["IsExecutable"]);
                    }
             }
             else {
                    _directory.IsExecutable = false;
             }
             if ( (bool)((*it)["DataIndexingService"])) {
-                URL uri((std::string)((*it)["DataIndexingService"]));
-                _directory.DataIndexingService = uri;
+               URL uri((std::string)((*it)["DataIndexingService"]));
+               _directory.DataIndexingService = uri;
             }
             if ( (bool)((*it)["DownloadToCache"])) {
                    if ( (std::string)(*it)["DownloadToCache"] == "true" ) {
@@ -1787,34 +2075,13 @@ namespace Arc {
                       _directory.DownloadToCache = false;
                    }
                    else {
-				       JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
+		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value: %s", (std::string)(*it)["DownloadToCache"]);
                    }
             }
             else {
                    _directory.DownloadToCache = false;
             }
             innerRepresentation.Directory.push_back( _directory );
-        }
-        datastaging.clear();
-
-        datastaging = node.XPathLookup((std::string)"//JobDescription/DataStaging/Defaults/DataIndexingService", nsList);
-        if ( !datastaging.empty() ) {
-           URL url((std::string)*datastaging.begin());
-           innerRepresentation.DataIndexingService = url;
-        }
-        datastaging.clear();
-
-        datastaging = node.XPathLookup((std::string)"//JobDescription/DataStaging/Defaults/StagingInBaseURI", nsList);
-        if ( !datastaging.empty() ) {
-           URL url((std::string)*datastaging.begin());
-           innerRepresentation.StagingInBaseURI = url;
-        }
-        datastaging.clear();
-
-        datastaging = node.XPathLookup((std::string)"//JobDescription/DataStaging/Defaults/StagingOutBaseURI", nsList);
-        if ( !datastaging.empty() ) {
-           URL url((std::string)*datastaging.begin());
-           innerRepresentation.StagingOutBaseURI = url;
         }
         datastaging.clear();
 
@@ -1827,7 +2094,7 @@ namespace Arc {
             jobDescription.GetDoc( product, true );
             return true;
         } else {
-		    JobDescription::logger.msg(DEBUG, "[JSDLParser] Job inner representation's root element has not found.");
+	    JobDescription::logger.msg(DEBUG, "[JSDLParser] Job inner representation's root element has not found.");
             return false;
         }
     }
@@ -2055,8 +2322,7 @@ namespace Arc {
             innerRepresentation.RunTimeEnvironment.push_back( runtime );
             return true;
         } else if ( attributeName == "middleware" ) {
-            // Not supported yet, only store it
-            innerRepresentation.XRSL_elements["middleware"] = simpleXRSLvalue( attributeValue ); 
+            innerRepresentation.CEType = simpleXRSLvalue( attributeValue ); 
             return true;
         } else if ( attributeName == "opsys" ) {
             innerRepresentation.OSName = simpleXRSLvalue( attributeValue );
@@ -2107,8 +2373,8 @@ namespace Arc {
             node.New(innerRepresentation.AccessControl);
             return true;
         } else if ( attributeName == "cluster" ) {
-            // Not supported yet, only store it
-            innerRepresentation.XRSL_elements["cluster"] = simpleXRSLvalue( attributeValue ); 
+            URL url(simpleXRSLvalue( attributeValue ));
+            innerRepresentation.EndPointURL = url; 
             return true;
         } else if ( attributeName == "notify" ) {
             std::string value = simpleXRSLvalue( attributeValue );
@@ -2128,8 +2394,8 @@ namespace Arc {
                          case 'c': nofity.State.push_back( "CANCELLED" ); break;
                          case 'd': nofity.State.push_back( "DELETED" ); break;
                          default: 
-						    JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", (*it)[i]);
-							return false;
+			    JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", (*it)[i]);
+                            return false;
                      }
                  }
               }
@@ -2140,8 +2406,17 @@ namespace Arc {
             innerRepresentation.Notification.push_back( nofity );
             return true;
         } else if ( attributeName == "replicacollection" ) {
-            Arc::URL url(simpleXRSLvalue( attributeValue ));
-            innerRepresentation.DataIndexingService = url;
+            if ( simpleXRSLvalue( attributeValue ) != "" ){
+               Arc::URL url(simpleXRSLvalue( attributeValue ));
+               std::list<Arc::FileType>::iterator iter;
+               for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+                    (*iter).DataIndexingService = url;
+               }
+               std::list<Arc::DirectoryType>::iterator iter_d;
+               for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++){
+                    (*iter_d).DataIndexingService = url;
+               }
+            }
             return true;
         } else if ( attributeName == "rerun" ) {
             innerRepresentation.LRMSReRun = stringtoi(simpleXRSLvalue( attributeValue ));
@@ -2155,7 +2430,7 @@ namespace Arc {
             } else if ( simpleXRSLvalue( attributeValue ) == "outbound") {
                innerRepresentation.OutBound = true;
             } else {
-			   JobDescription::logger.msg(DEBUG, "Invalid NodeAccess value: %s", simpleXRSLvalue( attributeValue ));
+	       JobDescription::logger.msg(DEBUG, "Invalid NodeAccess value: %s", simpleXRSLvalue( attributeValue ));
                return false;
             }
             return true;
@@ -2209,7 +2484,7 @@ namespace Arc {
             innerRepresentation.CredentialService = url;
             return true;
         }
-		JobDescription::logger.msg(DEBUG, "[XRSLParser] Unknown XRSL attribute: %s", attributeName);
+	JobDescription::logger.msg(DEBUG, "[XRSLParser] Unknown XRSL attribute: %s", attributeName);
         return false;
     }
 
@@ -2241,19 +2516,20 @@ namespace Arc {
                         //Split the bracket's content by the equal sign & trim the two half
                         unsigned long eqpos = wattr.find_first_of("=");
                         if ( eqpos == std::string::npos ) {
-						    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)");
+			    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)");
                             return false;
                         }
                         if ( !handleXRSLattribute( sm.trim( wattr.substr(0,eqpos) ) , sm.trim( wattr.substr(eqpos+1) ) , innerRepresentation) ) return false;
                     } else actual_argument += next_char;
                 } else {
                     actual_argument += next_char;
+                    if ( pos == xrsl_text.size()-1 ) return false;
                 }
             }
         }
   
         if (depth != 0 ) {
-		    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (bracket mistake)");
+	    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (bracket mistake)");
             return false;
         }
         return true;
@@ -2331,7 +2607,7 @@ namespace Arc {
                 std::list<Arc::SourceType>::const_iterator it_source;
                 for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
                     if (first_time){
-                       product += "( inputfiles =";//TODO:
+                       product += "( inputfiles =";
                        first_time = false;
                     }
                     product += " ( \"" + (*iter).Name;
@@ -2359,8 +2635,8 @@ namespace Arc {
                        size_t ll = 0;
                        for(;;) {
                           if ((l=read(h,buffer,1024)) == -1) {
-						     JobDescription::logger.msg(DEBUG, "Error reading file: %s", (*it_source).URI.fullstr());
-							 JobDescription::logger.msg(DEBUG, "Could not read file to compute checksum.");
+			     JobDescription::logger.msg(DEBUG, "Error reading file: %s", (*it_source).URI.fullstr());
+			     JobDescription::logger.msg(DEBUG, "Could not read file to compute checksum.");
                           }
                           if(l==0) break; ll+=l;
                           crc.add(buffer,l);
@@ -2429,12 +2705,12 @@ namespace Arc {
             }
             else {
                if (!innerRepresentation.Output.empty() ||
-                   !innerRepresentation.Output.empty()) product += "( outputfiles =";
+                   !innerRepresentation.Error.empty()) product += "( outputfiles =";
                
                if (!innerRepresentation.Output.empty()) product += " ( \"" + innerRepresentation.Output + "\" \"\" )";
                if (!innerRepresentation.Error.empty())  product += " ( \"" + innerRepresentation.Error + "\" \"\" )";
                if (!innerRepresentation.Output.empty() ||
-                   !innerRepresentation.Output.empty()) product += " )\n";
+                   !innerRepresentation.Error.empty()) product += " )\n";
 
             }
         }
@@ -2532,8 +2808,8 @@ namespace Arc {
                      else if ( *iter == "CANCELLED" ) { product +=  "c"; }
                      else if ( *iter == "DELETED" ) { product +=  "d"; }
                      else { 
-					     JobDescription::logger.msg(DEBUG, "Invalid State [\"%s\"] in the Notification!", *iter );
-						 }
+		          JobDescription::logger.msg(DEBUG, "Invalid State [\"%s\"] in the Notification!", *iter );
+		     }
                 }
                 for (std::list<std::string>::const_iterator iter=(*it).Address.begin();
                             iter!=(*it).Address.end(); iter++) {
@@ -2643,10 +2919,27 @@ namespace Arc {
             oss << minimum;
             if ( set_Threads ) product += "( ftpthreads = \"" + oss.str() +"\" )\n" ;
         }
-        if (bool(innerRepresentation.DataIndexingService )) {
-            product += "( replicacollection = \"";
-            product +=  innerRepresentation.DataIndexingService .fullstr();
-            product += "\" )\n";
+        if (!innerRepresentation.File.empty() || !innerRepresentation.Directory.empty() ) {
+            std::vector<std::string> indexing_services;
+            indexing_services.clear();
+            // Indexin services searching
+            std::list<Arc::FileType>::const_iterator iter;
+            for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+                if ( find( indexing_services.begin(), indexing_services.end(),(*iter).DataIndexingService.fullstr() ) == indexing_services.end() )
+                   indexing_services.push_back((*iter).DataIndexingService.fullstr());
+            }
+            std::list<Arc::DirectoryType>::const_iterator iter_d;
+            for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++){
+                if ( find( indexing_services.begin(), indexing_services.end(),(*iter).DataIndexingService.fullstr() ) == indexing_services.end() )
+                   indexing_services.push_back((*iter_d).DataIndexingService.fullstr());
+            }
+            // XRSL output(s) generation
+            std::vector<std::string>::const_iterator i_url;
+            for (i_url = indexing_services.begin(); i_url != indexing_services.end(); i_url++){
+                product += "( replicacollection = \"";
+                product +=  *i_url;
+                product += "\" )\n";
+            }
         }
         if (innerRepresentation.InBound) {
             product += "( nodeaccess = \"inbound\")\n";//TODO:
@@ -2673,7 +2966,7 @@ namespace Arc {
               product += "\" )\n";
           }
         }
-	    JobDescription::logger.msg(DEBUG, "[XRSLParser] Converting to XRSL");
+        JobDescription::logger.msg(DEBUG, "[XRSLParser] Converting to XRSL");
         return true;
     }
 
@@ -2755,14 +3048,14 @@ namespace Arc {
             std::string value = sm.toLowerCase( simpleJDLvalue( attributeValue ) );
             if ( value == "job" ) return true;
             if ( value == "dag" ) {
-			    JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
+	        JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
                 return false; // This kind of JDL decriptor is not supported yet
             }
             if ( value == "collection" ) {
-			    JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
+                JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
                 return false; // This kind of JDL decriptor is not supported yet
             }
-			JobDescription::logger.msg(DEBUG, "[JDLParser] Attribute name: %s, has unknown value: %s", attributeName , value);
+            JobDescription::logger.msg(DEBUG, "[JDLParser] Attribute name: %s, has unknown value: %s", attributeName , value);
             return false; // Unknown attribute value - error
         } else if ( attributeName == "jobtype") {
             return true; // Skip this attribute
@@ -2802,8 +3095,24 @@ namespace Arc {
             }
             return true;
         } else if ( attributeName == "inputsandboxbaseuri" ) {
-            Arc::URL url(simpleJDLvalue( attributeValue ));
-            innerRepresentation.StagingInBaseURI = url;
+//            innerRepresentation.JDL_elements["inputsandboxbaseuri"] = simpleJDLvalue( attributeValue ); 
+
+            std::list<Arc::FileType>::iterator iter;
+            for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+                std::list<Arc::SourceType>::iterator i_source;
+                for (i_source = (*iter).Source.begin(); i_source != (*iter).Source.end(); i_source++){
+                    if ( (*i_source).URI.Host() == "" )
+                       (*i_source).URI.ChangeHost(simpleJDLvalue( attributeValue ));
+                }
+            }
+            std::list<Arc::DirectoryType>::iterator iter_d;
+            for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++){
+                std::list<Arc::SourceType>::iterator i_source;
+                for (i_source = (*iter).Source.begin(); i_source != (*iter).Source.end(); i_source++){
+                    if ( (*i_source).URI.Host() == "" )
+                       (*i_source).URI.ChangeHost(simpleJDLvalue( attributeValue ));
+                }
+            }
             return true;
         } else if ( attributeName == "outputsandbox" ) {
             std::vector<std::string> inputfiles = listJDLvalue( attributeValue );
@@ -2834,7 +3143,7 @@ namespace Arc {
                       i++;
                    }
                    else {
-				      JobDescription::logger.msg(DEBUG, "Not enought outputsandboxdesturi element!");
+		      JobDescription::logger.msg(DEBUG, "Not enought outputsandboxdesturi element!");
                       return false;
                    }
 
@@ -2842,8 +3151,24 @@ namespace Arc {
             }
             return true;
         } else if ( attributeName == "outputsandboxbaseuri" ) {
-            Arc::URL url(simpleJDLvalue( attributeValue ));
-            innerRepresentation.StagingOutBaseURI = url;
+//            innerRepresentation.JDL_elements["outputsandboxbaseuri"] = simpleJDLvalue( attributeValue ); 
+
+            std::list<Arc::FileType>::iterator iter;
+            for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+                std::list<Arc::TargetType>::iterator i_target;
+                for (i_target = (*iter).Target.begin(); i_target != (*iter).Target.end(); i_target++){
+                    if ( (*i_target).URI.Host() == "" )
+                       (*i_target).URI.ChangeHost(simpleJDLvalue( attributeValue ));
+                }
+            }
+            std::list<Arc::DirectoryType>::iterator iter_d;
+            for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++){
+                std::list<Arc::TargetType>::iterator i_target;
+                for (i_target = (*iter).Target.begin(); i_target != (*iter).Target.end(); i_target++){
+                    if ( (*i_target).URI.Host() == "" )
+                       (*i_target).URI.ChangeHost(simpleJDLvalue( attributeValue ));
+                }
+            }
             return true;
         } else if ( attributeName == "batchsystem" ) {
             // Not supported yet, only store it
@@ -2898,7 +3223,7 @@ namespace Arc {
                     env.value = (*it).substr( equal_pos+1, std::string::npos );
                     innerRepresentation.Environment.push_back(env);
                 } else {
-				    JobDescription::logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
+		    JobDescription::logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
                     return false;
                 }
             }
@@ -3027,7 +3352,7 @@ namespace Arc {
             innerRepresentation.JDL_elements["ShortDeadlineJob"] = simpleJDLvalue( attributeValue ); 
             return true;
         }
-		JobDescription::logger.msg(DEBUG, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
+	JobDescription::logger.msg(DEBUG, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
         return false;
     }
 
@@ -3035,7 +3360,7 @@ namespace Arc {
         unsigned long first = source.find_first_of( "[" );
         unsigned long last = source.find_last_of( "]" );
         if ( first == std::string::npos || last == std::string::npos ) {
-		    JobDescription::logger.msg(DEBUG, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
+	    JobDescription::logger.msg(DEBUG, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
             return false;
         }
         std::string input_text = source.substr( first+1, last-first-1 );
@@ -3062,11 +3387,11 @@ namespace Arc {
         }
   
         if ( !splitJDL(wcpy, lines) ) {
-		    JobDescription::logger.msg(DEBUG, "[JDLParser] Syntax error found during the split function.");
+	    JobDescription::logger.msg(DEBUG, "[JDLParser] Syntax error found during the split function.");
             return false;
         }
         if (lines.size() <= 0) {
-		    JobDescription::logger.msg(DEBUG, "[JDLParser] Lines count is zero or other funny error has occurred.");
+	    JobDescription::logger.msg(DEBUG, "[JDLParser] Lines count is zero or other funny error has occurred.");
             return false;
         }
         
@@ -3075,7 +3400,7 @@ namespace Arc {
             if ( equal_pos == std::string::npos ) {
                 if ( i == lines.size()-1 ) continue;
                 else {
-				    JobDescription::logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
+		    JobDescription::logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
                     return false;
                 }
             }    
@@ -3178,11 +3503,6 @@ namespace Arc {
             }
             product += "    };\n";
          }
-        if (bool(innerRepresentation.StagingInBaseURI)) {
-            product += "  InputSandboxBaseURI = \"";
-            product +=  innerRepresentation.StagingInBaseURI.fullstr();
-            product += "\";\n";
-        }
         if (!innerRepresentation.File.empty()) {
             std::list<Arc::FileType>::const_iterator iter;
             bool first = true;
@@ -3221,11 +3541,6 @@ namespace Arc {
             }
             if ( !first)
                product += "    };\n";
-        }
-        if (bool(innerRepresentation.StagingOutBaseURI)) {
-            product += "  OutputSandboxBaseURI = \"";
-            product +=  innerRepresentation.StagingOutBaseURI.fullstr();
-            product += "\";\n";
         }
         if (!innerRepresentation.QueueName.empty()) {
             product += "  QueueName = \"";
