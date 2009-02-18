@@ -982,8 +982,9 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out) {
   lock_.lock();
   std::string id = (std::string)(in["UpdateCredentials"]["DelegatedToken"]["Id"]);
+  std::cout<<"\nID: "<<id<<"\n"; 
   ConsumerIterator i = consumers_.find(id);
-  if(i == consumers_.end()) { lock_.unlock(); return false; };
+  if(i == consumers_.end()) { std::cout<<"\n\n Problem is here"; lock_.unlock(); return false; };
   if(!(i->second.deleg)) { lock_.unlock(); return false; };
   if(restricted_) {
 

@@ -16,6 +16,7 @@ class Client:
         print_xml is for debugging, prints all the SOAP messages to the screen
         """
         self.ns = ns
+	print "URL: "+url
         self.url = arc.URL(url)
         self.print_xml = print_xml
         self.xmlnode_class = xmlnode_class
