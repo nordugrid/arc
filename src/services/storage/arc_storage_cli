@@ -1431,22 +1431,40 @@ if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'li
     print 'Without arguments, each method prints its own help.'
 else:
     try:
-        bartender_url = os.environ['ARC_BARTENDER_URL']
-        print '- The URL of the Bartender:', bartender_url
+        import arc
+        user_config = arc.UserConfig('')
+        config_xml = user_config.ConfTree()
+        key_file = str(config_xml.Get('KeyPath'))
+        cert_file = str(config_xml.Get('CertificatePath'))
+        proxy_file = str(config_xml.Get('ProxyPath'))
+        ca_file = str(config_xml.Get('CACertificatePath'))
+        ca_dir = str(config_xml.Get('CACertificatesDir'))
+        bartender_url = str(config_xml.Get('BartenderURL'))
     except:
+        key_file = None
+        cert_file = None
+        proxy_file = None
+        ca_file = None
+        ca_dir = None
+        bartender_url = None
+    bartender_url = os.environ.get('ARC_BARTENDER_URL', bartender_url)
+    if bartender_url:
+        print '- The URL of the Bartender:', bartender_url
+    else:
         bartender_url = 'http://localhost:60000/Bartender'
-        print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
+        print '- The URL of the Bartender is not given, using', bartender_url
     try:
         needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
     except:
         needed_replicas = 1
     ssl_config = {}
+    
     if bartender_url.startswith('https'):
-        key_file = os.environ.get('ARC_KEY_FILE', None)
-        cert_file = os.environ.get('ARC_CERT_FILE', None)
-        proxy_file = os.environ.get('ARC_PROXY_FILE', None)
-        ca_file = os.environ.get('ARC_CA_FILE', None)
-        ca_dir = os.environ.get('ARC_CA_DIR', None)
+        key_file = os.environ.get('ARC_KEY_FILE', key_file)
+        cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
+        proxy_file = os.environ.get('ARC_PROXY_FILE', proxy_file)
+        ca_file = os.environ.get('ARC_CA_FILE', ca_file)
+        ca_dir = os.environ.get('ARC_CA_DIR', ca_dir)
         if proxy_file:
             ssl_config['proxy_file'] = proxy_file
             print '- The proxy certificate file:', ssl_config['proxy_file']
