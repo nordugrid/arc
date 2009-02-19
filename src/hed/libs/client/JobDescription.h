@@ -29,7 +29,7 @@ namespace Arc {
     // End of jobDescriptionOrderer's define set
 
     // GIN JSDL elements
-    #define GIN_ELEMENTS_NUMBER 43
+    #define GIN_ELEMENTS_NUMBER 42
     static const char *GIN_elements[ GIN_ELEMENTS_NUMBER ] = { "Meta", "Author", "DocumentExpiration", "LogDir",
           "LRMSReRun", "Notification", "Join", "IndividualWallTime", "ReferenceTime",
           "NetworkInfo", "OSFamily", "OSName", "OSVersion", "Platform", "CacheDiskSpace", "SessionDiskSpace",
