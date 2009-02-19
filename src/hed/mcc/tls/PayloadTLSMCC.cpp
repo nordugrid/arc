@@ -38,8 +38,13 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   unsigned long flag = get_flag_STORE_CTX(sctx);
   if(!(flag & FLAG_CRL_DISABLED)) {
     // Not sure if this will work
+#if OPENSSL_VERSION_NUMBER < 0x00908000 
     if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
       sctx->flags |= X509_V_FLAG_CRL_CHECK;
+#else
+    if(!(sctx->param->flags & X509_V_FLAG_CRL_CHECK)) {
+      sctx->param->flags |= X509_V_FLAG_CRL_CHECK;
+#endif
       ok=X509_verify_cert(sctx);
       return ok;
     };
@@ -77,7 +82,13 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
           if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
         };
 #else
+
+#if OPENSSL_VERSION_NUMBER < 0x00908000
         sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
+#else
+        sctx->param->flags &= ~X509_V_FLAG_CRL_CHECK;
+#endif
+
         set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) | FLAG_CRL_DISABLED);
         //ok=X509_verify_cert(sctx);
         //sctx->flags |= X509_V_FLAG_CRL_CHECK;
