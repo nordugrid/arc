@@ -1,0 +1,38 @@
+\documentclass[a4paper,10pt]{scrbook}
+
+\usepackage{geometry}
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+
+\input{tex_layout/layout}
+
+\hypersetup{
+  pdfauthor = {},
+  pdftitle = {Webservices},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {HED,ARC},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+
+\begin{document}
+
+
+%
+% You can use KILE to browse through these tex-files.
+% Just lookout for the tutorial.kilepr in the root directory.
+%
+
+
+\input{tex_titlepage/titlepage}
+\input{tex_introduction/introduction}
+\input{tex_timeservice/timeservice}
+\input{tex_echoservice/echoservice}
+\input{tex_tls_echoservice/tls_echoservice}
+\input{tex_sec_echoservice/sec_echoservice}
+\input{tex_pesistentservice/peristentservice}
+
+\bibliography{literature}
+\bibliographystyle{IEEEtran}                       % A nice bibliography style
+
+
+\end{document}

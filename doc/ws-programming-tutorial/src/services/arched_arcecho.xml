@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"  xmlns:echo="urn:echo_config">
+  <!-- Configuration of the server entities -->
+  <Server><!--(@*\label{lst_code:arched_arcecho_Server}*@)-->
+    <Pidfile>/var/run/arched.pid</Pidfile>
+    <Logger level="VERBOSE">/var/log/arched.log</Logger>
+  </Server>
+  <!-- Path to the module libraries -->
+  <ModuleManager><!--(@*\label{lst_code:arched_arcecho_ModuleManager}*@)-->
+    <Path>/usr/lib/arc/</Path>
+  </ModuleManager>
+  <!-- Plugins needed to run the server -->
+  <Plugins><Name>mcctcp</Name></Plugins><!--(@*\label{lst_code:arched_arcecho_Plugins}*@)-->
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>echo</Name></Plugins>
+  <!-- Structure of the Message Component Chain -->
+  <Chain><!--(@*\label{lst_code:arched_arcecho_Chain}*@)-->
+    <Component name="tcp.service" id="tcp">
+      <next id="http"/>
+      <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+    </Component>
+    <Component name="soap.service" id="soap">
+      <next id="plexer"/>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+      <next id="echo">^/Echo$</next>
+    </Plexer>
+    <Service name="echo" id="echo">
+      <echo:prefix>[ </echo:prefix>
+      <echo:suffix> ]</echo:suffix>
+    </Service>
+  </Chain>
+</ArcConfig>

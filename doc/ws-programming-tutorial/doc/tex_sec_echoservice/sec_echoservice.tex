@@ -1,0 +1,197 @@
+
+
+\chapter{SEC echoservice}
+
+\section{SecureHandler}
+And what are PDP's?
+
+Currently, the ARC1 comes in severalfour policy decision point implementations:
+\begin{itemize}
+ \item arc.pdp – Arc PDP\\
+The Arc PDP will organize the security attributes into the ARC specific authorization request, call the
+policy evaluator to evaluate the request against the policy (which is in ARC specific format) repository,
+and get back the evaluation result. See paragraph 3 for detail information about request schema and policy
+schema.
+\item delegtion.pdp – Delegation PDP\\
+The Delegation PDP is basically similar to Arc PDP, except it uses the delegation policy parsed from
+remote proxy credential by delegation.collector, and evaluates the request against delegation policy. See
+section 6for the design idea and use case of delegation policy in fine-grained identity delegation.
+\item simplelist.pdp – Simplelist PDP\\
+The Simplelist PDP is a simplest implementation of policy decision point. It will match the identity
+extracted from the remote credential (or proxy credential) with local list of permitted identities.
+\item pdpservice.invoker – PDP Service Invoker\\
+The PDP Service Invoker is a client which can be used to invoke the PDP Service which implements the
+same functionality as Arc PDP, except that the evaluation request and response are carried by SOAP
+message. The benefit of implementing PDP Service and PDP Service Invoker is that the policy evaluation
+engine can be accessed remotely and maintained centrally.
+ \item allow.pdp\\
+ Does something unknown!
+\end{itemize}
+
+Following Flavors:
+\subsection{arc.authz – Authorization SecHandler}
+The arc.authz is responsible for calling the interface of policy decision point and getting back the
+authorization result, and then making decision according to this authorization result. There is one simple
+interface (see Figure 4) defined in PDP, which will be called by arc.authz if configured inside once there
+is message (incoming or outgoing) need to be processed.
+
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:secHandler_arc.authz,
+language=XML,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+...
+<Service name="sececho" id="sececho">
+	<next id="sececho"/>
+	<echo:prefix>[ </echo:prefix>
+	<echo:suffix> ]</echo:suffix>
+	<SecHandler name="arc.authz" id="pdps" event="incoming">
+		<PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>
+	</SecHandler>
+</SecHandler>
+...
+\end{lstlisting}
+\end{minipage}
+
+\begin{lstlisting}[
+label=lst:invokation,
+language=ksh,
+frame=single,
+numbers=none,
+backgroundcolor=\color{lightgray},
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+$ tail -n5 /etc/grid-security/grid-mapfile
+"/C=Au/O=Science/OU=ARC/CN=Baldur Meier" griduser
+"/C=UK/O=MoreScience/OU=ARC/CN=Thor Schulz" griduser
+"/C=Au/O=Organelle/OU=ARC/CN=Loki Svensson" griduser
+"/C=SK/O=Grid.Org/OU=ARC/CN=Iduna Apple" griduser
+"/C=RU/O=MegaGrid/O=ARC/CN=Fenrir Wodaneater" griduser
+\end{lstlisting}
+Add your client certificate into that list!
+
+Latest: Policy.xsd
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Policy.xsd
+
+
+\subsection{identity.map – Identity Mapping SecHandler}
+
+The identity.map is a specific authorization oriented security handler. It will map the global identity in
+the message into local identity like system username based on the result returned by Policy Decision Point
+components.
+
+
+\subsection{delegation.collector – Delegation SecHandler}
+
+The delegation.collector is responsible for collecting the delegation policy information from the remote
+proxy credential (proxy certificate is compatible to RFC3820) inside the message, and putting this policy
+into message’s security attribute for the usage of other components, such as delegation.pdp.
+
+
+\subsection{ usernametoken.handler – UsernameToken SecHandler}
+
+The task of the usernametoken.handler is to generate the WS-Security Username-Token and add it into
+header of SOAP message which is the payload of outgoing message. It can also extract the WS-Security
+Username-Token from the header of SOAP message which is the payload of incoming message.
+
+
+
+
+\lstsetCPP
+\lstinputlisting
+	[
+	label=lst:arcecho_arched_xml,
+	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
+	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	]
+{../src/clients/secechoclient/secechoclient.cpp}
+
+\lstsetCPP
+
+\lstinputlisting
+	[
+	label=lst:arcecho_arched_xml,
+	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
+	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	]
+{../src/services/secechoservice/secechoservice.cpp}
+
+
+
+
+\lstsetARCHEDXML
+\begin{minipage}[t]{\textwidth}
+\lstinputlisting
+	[
+	label=lst:arcecho_arched_xml,
+	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
+	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	]
+{../src/services/secechoservice/arched_sec_echoservice.xml}
+\end{minipage}
+
+
+
+\lstsetKSH
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:invokation_arched_timeservice,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+$ rm -f /var/log/arched.log
+$ arched -c arched_echoservice.xml  && echo jo ||echo n
+$ tail -n100 -f /var/log/arched.log
+$ killall arched
+\end{lstlisting}
+\end{minipage}
+
+
+
+\lstsetKSH
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:invokation_arched_timeservice,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+$ ./echoclient
+Tue Feb 17 17:04:08 2009
+\end{lstlisting}
+\end{minipage}
+
+
+
+
+
+\lstsetJUSTXML
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:timeservice_cpp_source,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<soap-env:Body>
+		<echoRequest:echo>
+			<echo:say>Der_Berg_ruft</echo:say>
+		</echoRequest:echo>
+	</soap-env:Body>
+</soap-env:Envelope>
+\end{lstlisting}
+\end{minipage}
+
+
+\lstsetJUSTXML
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:timeservice_cpp_source,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap-env:Body>
+    <echo:echoResponse>
+      <echo:hear>[ Der_Berg_ruft ]</echo:hear>
+    </echo:echoResponse>
+  </soap-env:Body>
+</soap-env:Envelope>
+\end{lstlisting}
+\end{minipage}

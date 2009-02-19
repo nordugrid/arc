@@ -1,0 +1,138 @@
+\chapter{The time webservice}
+
+
+The first implementation of a Web Service which will be presented in this tutorial realises a simple time service.
+In case the service receives a request, it will respond with a string containing the systemtime.
+For simplicity the service will not parse the request but always return the current time.
+In the following subsections the C++ implementation first the service and than the client will be developed.
+
+
+\section{Service}
+
+In Arc-1 the services are implementated as plugins such that they can easily be included by modifiying the HED configuration file as it was to be seen in Listing~\ref{lst:arched_arcecho_xml}.
+The Listing~\ref{lst:time_arched_cpp}.shows the implementation of the time service plugin.
+The proper class definition is defined in the corresponding header file which isn't shown here.
+The key element for each plugin is the struct PluginDescriptor named PLUGINS\_TABLE\_NAME, see line\ref{lst_code:time_cpp_ptn}. 
+%The struct defines basic entities of the service and provides a pointer to the method which is able to create an instance of the time service plugin. 
+Within the struct a unique plugin name, the type of the plugin, its version and the pointer to the function which returns the time service instance has to be defined.
+The function which returns the pointer to an instance of the service needs to have the PluginArgument as a parameter. 
+The actual Time Web Service is implemented within the namespace ArcService. The constructor can be found in line~\ref{lst_code:time_cpp_constructor}, the deconstructor in line~\ref{lst_code:time_cpp_deconstructor} and the method required by the inherited class \textit{Service} file in line~\ref{lst_code:time_cpp_process}. For the Time service is very simple, only the function process needs to be implemented. It gets the incoming and the outgoing message as references and returns a class representing the status the service achieved. 
+\lstsetCPP
+\lstinputlisting
+	[
+	label=lst:time_arched_cpp,
+	caption={[C++ implementation of the time service. Filename: timeservice.cpp]
+	\textbf{C++ implementation of the time service. Filename: timeservice.cpp\textcolor{white}{hmf}}}
+	]
+{../src/services/timeservice/timeservice.cpp}
+The service first determines the current time and than creates a SOAP message using the object \textit{PayloadSOAP} on line~\ref{lst_code:time_cpp_process_payloadSOAP}. The class \textit{PayloadSOAP} is able to create a XML message which is conform to the SOAP protocol (The apperance of the generated request and response will be discussed later). I case of the presented time service the payload consists out of two elements nested into one another. The element \textit{text} holds the element child which again holds the string containing the current time.
+Within the line~\ref{lst_code:time_cpp_process_message_payload} the payload is passed to the message. 
+The message processing is now completed and the function returns its success status on line~\ref{lst_code:time_cpp_return}.\\
+
+
+After the service has been implemented, it needs to be loaded into the HED. A suitable HED configuration file is to be seen in Listing~\ref{lst:time_arched_xml}.
+
+
+
+
+\lstsetARCHEDXML
+\begin{minipage}[t]{\textwidth}
+\lstinputlisting
+	[
+	label=lst:time_arched_xml,
+	caption={[HED configuration for the time service. Filename: arched\_timeservice.xml]
+	\textbf{HED configuration for the time service. Filename: arched\_timeservice.xml\textcolor{white}{hmf}}}
+	]
+{../src/services/timeservice/arched_timeservice.xml}
+\end{minipage}
+
+
+\section{Client}
+
+\task{Hardcoded URL!!!}
+
+
+\lstsetCPP
+\lstinputlisting
+	[
+	label=lst:arcecho_arched_xml,
+	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
+	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	]
+{../src/clients/timeclient/timeclient.cpp}
+
+
+
+
+\lstsetKSH
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:invokation_arched_timeservice,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+$ arched -c arched_timeservice.xml  && echo jo ||echo n
+\end{lstlisting}
+\end{minipage}
+
+
+
+\lstsetKSH
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:invokation_arched_timeservice,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+$ ./timeclient
+Wed Feb 18 11:20:30 2009
+\end{lstlisting}
+\end{minipage}
+
+
+
+The data is enveloped by an element called \textit{Envelope} .. See german wiki
+
+\lstsetJUSTXML
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:timeservice_cpp_source,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+<soap-env:Envelope xmlns:time="urn:time" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap-env:Body>
+    <time>
+      <timeRequest></timeRequest>
+    </time>
+  </soap-env:Body>
+</soap-env:Envelope>
+\end{lstlisting}
+\end{minipage}
+
+
+\lstsetJUSTXML
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=lst:timeservice_cpp_source,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+<soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap-env:Body>
+    <time>
+      <timeResponse>Wed Feb 18 11:20:30 2009</timeResponse>
+    </time>
+  </soap-env:Body>
+</soap-env:Envelope>
+\end{lstlisting}
+\end{minipage}
+
+
+
+
+
+
+
+
+
+
+
+
+

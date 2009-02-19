@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+	<Rule RuleId="rule1" Effect="Permit">
+		<Description>
+			Easy permit rule. Depending on the subject, the echo service returns the string in order or in reverse order.
+		</Description>
+		<Subjects>
+		<!-- The subject are defined by substrings of the certificate description-->
+			<Subject Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+			<Subject>
+				<Attribute Type="string">/C=UK/ST=Germany</Attribute>
+				<Attribute Type="string">urn:localhost:shibboleth:examples</Attribute>
+			</Subject>
+      </Subjects>
+      <!-- The actions which are assigned to the subjects. Useful, if a new service version shall be tested
+	       while running the old one -->
+      <Actions Type="string">
+         <Action>ordinary</Action>
+         <Action>reversed</Action>
+      </Actions>
+      <!--Conditions>
+         <Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition>
+         <GroupIdRef Location="./conditiongroup.xml">normalcondition</GroupIdRef>
+      </Conditions-->
+	  <Conditions/>
+   </Rule>
+</Policy>

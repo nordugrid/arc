@@ -1,0 +1,260 @@
+\usepackage[pdftex]{graphicx}
+
+\usepackage{ifthen}
+
+
+
+% Macht beim fett schreiben auch das Mathe-Zeug fett
+%
+\newcommand{\allbf}[1]{\textbf{\boldmath#1\unboldmath}}
+
+% FANCY CAPTION
+% \caption[#1]{\textbf{#1}#1}
+\newcommand{\mycaption}[2]{\caption[#1]{\textbf{\boldmath#1\unboldmath} #2}}
+
+
+
+
+
+
+
+%%%
+%%% Now you can use \ifcolor as follows
+%%% \ifcolor
+%%%    Text parsed by PDFLaTeX
+%%% \else
+%%%    Text parsed if PDFLaTeX is not used
+%%% \fi
+%%% 
+\newif\ifcolor\colortrue
+
+
+
+%
+%   COLOR
+%
+%
+\usepackage{color}
+\definecolor{brightred}{rgb}{1,0.9,0.9}
+\definecolor{brightgreen}{rgb}{0.9,1,0.9}
+\definecolor{brightblue}{rgb}{0.9,0.9,1}
+\definecolor{brightyellow}{rgb}{1,1,0.85}
+
+\definecolor{lightred}{rgb}{1,0.75,0.75}
+\definecolor{lightgreen}{rgb}{0.75,1,0.75}
+\definecolor{lightblue}{rgb}{0.75,0.75,1}
+\definecolor{lightyellow}{rgb}{1,1,0.75}
+
+\definecolor{red}{rgb}{1,0,0}
+\definecolor{green}{rgb}{0,1,0}
+\definecolor{blue}{rgb}{0,0,1}
+
+\definecolor{darkred}{rgb}{.7,0,0}
+\definecolor{darkgreen}{rgb}{0,.7,0}
+\definecolor{darkblue}{rgb}{0,0,.7}
+
+\definecolor{white}{rgb}{1,1,1}
+\definecolor{lightgray}{rgb}{0.95,0.95,0.95}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{black}{rgb}{0,0,0}
+
+\definecolor{marker}{rgb}{0.9,0.9,0.9}
+\definecolor{urgent}{rgb}{1,0,0}
+\definecolor{discreeturgent}{rgb}{1,0.5,0.5}
+\definecolor{checked}{rgb}{0,.7,0}
+
+
+
+%\newif\ifshowtasks\showtaskstrue
+\newif\ifshowtasks\showtaskstrue
+\newcommand{\task}[1]{\ifshowtasks\textcolor{discreeturgent}{~#1~}\else\fi}
+
+
+
+%
+%    LISTINGS
+% \begin{lstlisting}[float,caption=A floating example]
+%    for i:=maxint to 0 do
+%    begin
+%      { do nothing }
+%    end;
+%    Write(Case insensitive );
+%    WritE(Pascal keywords.);
+% \end{lstlisting}
+%
+% for referencing line numbers use (*@\label{comment}@*)  inside the lstlistings enviroment
+\usepackage{listings}
+\ifcolor
+          \lstset{							% general command to set parameter(s)
+               escapeinside={(*@}{@*)},
+               xrightmargin=0.5cm,					% for centering
+               xleftmargin=1.5cm,					% .. \textwidth shrinks after the first time, which is stupid
+               framexleftmargin=20pt,					% for having the numbers beneath the h rules
+               framexrightmargin=0pt,
+               framextopmargin=2ex,					% draw good looking space between the lines
+               framexbottommargin=2ex,					%... and the listing
+               frame=single,						% h rules top and bottom
+               language=C,
+               tabsize=4,
+               numbers=left,
+               numberstyle=\footnotesize, 
+               numbersep=8pt,
+               basicstyle=\ttfamily\scriptsize, 		% print whole listing small
+               breaklines=true,
+               keywordstyle=\color{black}\bfseries,		% underlined bold black keywords
+               identifierstyle=,				% nothing happens
+               commentstyle=\color{darkblue}\itshape,		% white comments
+               stringstyle=\ttfamily, 				% typewriter type for strings
+               morekeywords=[2]{and,or,not},
+               emph={wichtiges,zeug},				% additional keywords
+               emphstyle=\underbar,
+               showstringspaces=false} 				% no special string spaces
+\else
+          \lstset{						% general command to set parameter(s)
+               escapeinside={(*@}{@*)},
+               xrightmargin=0.5cm,				% for centering
+               xleftmargin=1.5cm,
+               framexleftmargin=20pt,				% for having the numbers beneath the h rules
+               framexrightmargin=0pt,
+               framextopmargin=2ex,				% draw good looking space between the lines
+               framexbottommargin=2ex,				%... and the listing
+               frame=single,					% h rules top and bottom
+               language=C,
+               tabsize=4,
+               numbers=left,
+               numberstyle=\footnotesize, 
+               numbersep=8pt,
+               basicstyle=\scriptsize\ttfamily,			% print whole listing small
+               breaklines=true,
+               keywordstyle=\color{black}\bfseries,		% underlined bold black keywords
+               identifierstyle=,									% nothing happens
+               commentstyle=\color{black}\itshape,			% white comments
+               stringstyle=\ttfamily, 							% typewriter type for strings
+               morekeywords=[2]{and,or,not},
+               emph={wichtiges,zeug},								% additional keywords
+               emphstyle=\underbar,
+               showstringspaces=false} 						% no special string spaces
+\fi
+
+
+
+%
+%    HYPERREF
+%
+%    (depends on z_layout_settings color)
+%
+% NO HANDLING YET FOR NOT PDF!!!
+\ifcolor
+  \usepackage[pdftex,
+            colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue,
+            raiselinks=true,
+            bookmarks=false,
+            bookmarksopenlevel=1,
+            bookmarksopen=true,
+            bookmarksnumbered=true,
+            hyperindex=true,
+            plainpages=false,% correct hyperlinks
+            pdfpagelabels=true%,% view TeX pagenumber in PDF reader
+            %pdfborder={0 0 0.5}
+            ]{hyperref} % erzeuge Hyperlinks z.B. für pdflatex
+\else
+  \usepackage[pdftex,
+            colorlinks=true, linkcolor=black, urlcolor=black, citecolor=black,
+            raiselinks=true,
+            bookmarks=false,
+            bookmarksopenlevel=1,
+            bookmarksopen=true,
+            bookmarksnumbered=true,
+            hyperindex=true,
+            plainpages=false,% correct hyperlinks
+            pdfpagelabels=true%,% view TeX pagenumber in PDF reader
+            %pdfborder={0 0 0.5}
+            ]{hyperref} % erzeuge Hyperlinks z.B. für pdflatex
+\fi
+
+
+\usepackage{float}
+\newfloat{program}{thb}{lop} %http://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions#Custom_Floats
+\floatname{program}{Program}
+
+
+\newcommand{\lstsetCPP}{%
+\ifcolor%
+\lstset{
+	escapeinside={//(@*}{*@)},
+	language=C++,
+	frame=single,
+	numbers=left,
+	backgroundcolor=\color{brightblue}
+	}
+\else%
+\lstset{
+	escapeinside={//(@*}{*@)},
+	language=C++,
+	frame=single,
+	numbers=none,
+	backgroundcolor=\color{white}
+	}
+\fi%
+}
+
+\newcommand{\lstsetARCHEDXML}{%
+\lstset{
+	escapeinside={<!--(@*}{*@)-->},
+	language=XML,
+	frame=single,
+	numbers=left,
+	backgroundcolor=\color{lightyellow}
+	}%
+}
+
+\newcommand{\lstsetJUSTXML}{%
+\lstset{
+	escapeinside={<!--(@*}{*@)-->},  % <!--(*@\label{comment}@*)-->
+	language=XML,
+	frame=single,
+	numbers=left,
+	backgroundcolor=\color{brightyellow}
+	}%
+}
+
+
+\newcommand{\lstsetKSH}{%
+\lstset{
+	escapeinside={(@*}{*@)},
+	language=ksh,
+	frame=single,
+	numbers=none,
+	backgroundcolor=\color{lightgray}
+	}%
+}
+
+% Sometimes latex just won't accept a line break.
+% With this command you can do it anyway! HAR HAR HAR
+\newcommand{\forcelinebreak}{
+%\vspace{\bigskipamount}
+\hspace*{\fill} \\
+} 
+
+
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+%
+%----- DON'T CHANGE HEADER MATTER
