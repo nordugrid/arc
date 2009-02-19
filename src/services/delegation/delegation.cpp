@@ -11,7 +11,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
-//#include <arc/Thread.h>
+#include <arc/Thread.h>
 
 #include "delegation.h"
 
@@ -38,7 +38,7 @@ Arc::MCC_Status Service_Delegation::make_soap_fault(Arc::Message& outmsg) {
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
-/*
+
 class Service_Delegation::CredentialCache {
  public:
   time_t start_;
@@ -54,7 +54,7 @@ class Service_Delegation::CredentialCache {
     credential_=cred; start_=time(NULL); return *this;
   };
 }; 
-*/
+
 Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
 
@@ -92,7 +92,6 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
         return make_soap_fault(outmsg);
       }
       std::cout<<"Delegated credentials:\n"<<cred<<std::endl;
-	/*	 
       CredentialCache* cred_cache = NULL;
       std::string id = (std::string)((*inpayload)["UpdateCredentials"]["DelegatedToken"]["Id"]);
       std::string credential_delegator_ip = inmsg.Attributes()->get("TCP:REMOTEHOST");
@@ -102,12 +101,10 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       cred_cache->id_ = id;
       id2cred_.insert(std::pair<std::string,CredentialCache*>(id,cred_cache));  
       identity2cred_.insert(std::pair<std::string,CredentialCache*>(identity,cred_cache)); 
-	*/
+
       //Need some way to make other services get the proxy credential
 
-	
-    }  
-      /*else if((*inpayload)["AcquireCredentials"]) {
+    } else if((*inpayload)["AcquireCredentials"]) {
       CredentialCache* cred_cache = NULL;
       std::string cred;
       std::string id = (std::string)((*inpayload)["AcquireCredentials"]["DelegatedTokenLookup"]["Id"]);
@@ -136,16 +133,16 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       token.NewAttribute("deleg:Format") = std::string("x509");
  
       std::cout<<"Delegated credentials:\n"<<cred<<std::endl;
-    }*/
+    }
 
     //Compose response message
     outmsg.Payload(outpayload);
 
-    /*if(!ProcessSecHandlers(outmsg,"outgoing")) {
+    if(!ProcessSecHandlers(outmsg,"outgoing")) {
       logger_.msg(Arc::ERROR, "Security Handlers processing failed");
       delete outmsg.Payload(NULL);
       return Arc::MCC_Status();
-    };*/
+    };
 
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
@@ -164,8 +161,8 @@ Service_Delegation::Service_Delegation(Arc::Config *cfg):Service(cfg),
   ns_["delegation"]="http://www.nordugrid.org/schemas/delegation";
 
   deleg_service_ = new Arc::DelegationContainerSOAP;
- // max_crednum_ = 1000;
- // max_credlife_ = 43200;
+  max_crednum_ = 1000;
+  max_credlife_ = 43200;
 }
 
 Service_Delegation::~Service_Delegation(void) {

@@ -7,13 +7,7 @@
   xmlns:deleg="http://www.nordugrid.org/schemas/ArcConfig/2007/deleg"
 >
 
-<Server>
-        <Pidfile>/var/run/arched.pid</Pidfile>
-        <Logger level="VERBOSE">/home/sztoor/arc/tmp/logfile</Logger>
-    </Server>
-
     <ModuleManager>
-	<Path>/usr/local/lib/arc/</Path>
         <Path>.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
         <Path>../../hed/mcc/tls/.libs/</Path>
@@ -35,12 +29,10 @@
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
-	 
-	    <tls:KeyPath>/etc/grid-security/hostkey1.pem</tls:KeyPath>
-	    <tls:CertificatePath>/etc/grid-security/hostcert1.pem</tls:CertificatePath>
-            <tls:CACertificatesDir>/etc/grid-security/certificates</tls:CACertificatesDir>
-			   
-		<!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath-->
+	    <tls:KeyPath>testkey-nopass.pem</tls:KeyPath>
+	    <tls:CertificatePath>testcert.pem</tls:CertificatePath>
+            <tls:CACertificatesDir>certificates</tls:CACertificatesDir>
+	    <!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath-->
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>

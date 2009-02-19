@@ -106,7 +106,6 @@ namespace Arc {
         //Send UpdateCredentials request
         status = soap_client_->process(&request2, &response);
         if(status != Arc::STATUS_OK) {
-	  std::cout<<"\n status is false (Response form UpdateCredentials)";
           logger.msg(Arc::ERROR, "UpdateCredentials failed");
           return false;
         }

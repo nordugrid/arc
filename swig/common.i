@@ -1,6 +1,7 @@
 %{
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
+#include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/DateTime.h>
@@ -48,6 +49,7 @@
 %clear std::string& out_xml_str;
 
 %include "../src/hed/libs/common/ArcConfig.h"
+%include "../src/hed/libs/common/ArcLocation.h"
 %include "../src/hed/libs/common/IString.h"
 %rename(LogStream_ostream) LogStream;
 %include "../src/hed/libs/common/Logger.h"
