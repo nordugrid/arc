@@ -2534,7 +2534,7 @@ namespace Arc {
                     } else actual_argument += next_char;
                 } else {
                     actual_argument += next_char;
-                    if ( pos == xrsl_text.size()-1 ) return false;
+                    if ( pos == xrsl_text.size()-1 ) return true;
                 }
             }
         }
