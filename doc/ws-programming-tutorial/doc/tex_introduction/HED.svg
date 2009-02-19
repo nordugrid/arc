@@ -36,9 +36,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="336.41459"
-     inkscape:cy="116.18349"
+     inkscape:zoom="3.959798"
+     inkscape:cx="419.0081"
+     inkscape:cy="5.0667096"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -46,8 +46,8 @@
      guideopacity="0.49803922"
      inkscape:window-width="1280"
      inkscape:window-height="964"
-     inkscape:window-x="0"
-     inkscape:window-y="0">
+     inkscape:window-x="-5"
+     inkscape:window-y="-3">
     <inkscape:grid
        type="xygrid"
        id="grid2383"
@@ -449,28 +449,28 @@
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
        x="352.1442"
-       y="396.18106"
+       y="415.47336"
        id="text3396"><tspan
          sodipodi:role="line"
          id="tspan3398"
          x="352.1442"
-         y="396.18106"
+         y="415.47336"
          style="font-size:10px">Component Configuration</tspan><tspan
          sodipodi:role="line"
          x="352.1442"
-         y="408.68106"
+         y="427.97336"
          id="tspan3400"
          style="font-size:10px" /></text>
     <text
        id="text3487"
-       y="416.18106"
-       x="354.16452"
+       y="395.47336"
+       x="351.63919"
        style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
        xml:space="preserve"><tspan
          style="font-size:10px"
          id="tspan3491"
-         y="416.18106"
-         x="354.16452"
+         y="395.47336"
+         x="351.63919"
          sodipodi:role="line">Message Flow</tspan></text>
     <path
        style="fill:#f9f9f9;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"

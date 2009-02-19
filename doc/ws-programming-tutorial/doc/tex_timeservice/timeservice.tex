@@ -47,14 +47,15 @@ On line~\ref{lst_code:arched_time_plugin} the library is explict mentioned to be
 Another important change has been done within the \textit{Plexer} element in line~\ref{lst_code:arched_time_plexer_next}. A rule has been introduced which redirects the request to the Time Web Service, if the path of URL is \textit{time}.\\
 
 
-
+To run the service again the arched command shown in~\ref{lst:arched_timeservice_ksh} has to be used.
 \lstsetKSH
 \begin{program}
 \begin{lstlisting}[
-label=lst:invokation_arched_timeservice,
+label=lst:arched_timeservice_ksh,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 $ arched -c arched_timeservice.xml && echo Daemon started || echo Daemon start failed
+Daemon started
 \end{lstlisting}
 \end{program}
 
@@ -62,13 +63,22 @@ $ arched -c arched_timeservice.xml && echo Daemon started || echo Daemon start f
 
 \section{Client}
 
-\task{Hardcoded URL!!!}
-
+\task{\#ifdef HAVE\_CONFIG\_H\#include <config.h>\#endif - habe ich entfernt... macht keinen Sinn, da keine weiteren Macros im Source Code enthalten sind... oder?}
+In the next step a simple client needs to be implemented whose task is to interprete the returned message of the client.
+The client needs to have the same protocol stack as the daemon but in contrast to it, it does not need the ability to be loaded as a plugin. As one will see, the creation of this protocol stack on client side is very simple.
+The source code of the client consists primarily of the main function and is to be seen in Listing~\ref{lst:time_client_cpp}.
+In line~\ref{lst_code:time_client_cpp_logger} the logger is initialized and redirected to the standard error stream.
+For the components of the protocol stack are likewise loaded dynamically, one need to specify the installation directory in line~\ref{lst_code:time_client_cpp_init} too.
+\task{remark in \textbf{introduction}, what the plexer is for. In our case: to have several services running on one port!!!!!!!!}
+The URL of the service is defined in line~\ref{lst_code:time_client_cpp_url}. It fits to the HED configuration file which was shown in Listing~\ref{lst:time_arched_xml}. The daemon is listing on port 60000 and is running on the localhost. The service itself uses HTTP and can be reached by using the path \textit{time}.
+Line~\ref{lst_code:time_client_cpp_config} loads the standard config file which is usually almost empty. As a result, no additional security procedures will later be linked into the client sided stack. The protocol stack is created in line~\ref{lst_code:time_client_cpp_client}. Thanks to the URL the information for the configuration can be completed.
+The constructor of the class \textit{ClientSOAP} creates a SOAP client which uses HTTP, addresses the port 60000 on localhost. If i.e. HTTPS would have been used, the stack would have been extended by a TLS layer.
+Now the client stack is ready, one can create a request to the service. In line~\ref{lst_code:time_client_cpp_message_reqeust} a message which corresponds to the Listing~\ref{lst:time_client_request} is created. The message gets processed by the command in line~\ref{lst_code:time_client_cpp_message_response}. If everything was fine, the message will finally be send to the standard out in line~\ref{lst_code:time_client_cpp_message_answer}.
 
 \lstsetCPP
 \lstinputlisting
 	[
-	label=lst:arcecho_time_client_cpp,
+	label=lst:time_client_cpp,
 	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
@@ -78,27 +88,12 @@ $ arched -c arched_timeservice.xml && echo Daemon started || echo Daemon start f
 
 
 
-
-
-\lstsetKSH
-\begin{minipage}[t]{\textwidth}
-\begin{lstlisting}[
-label=lst:invokation_arched_timeservice,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ ./timeclient
-Wed Feb 18 11:20:30 2009
-\end{lstlisting}
-\end{minipage}
-
-
-
 The data is enveloped by an element called \textit{Envelope} .. See german wiki
 
 \lstsetJUSTXML
 \begin{minipage}[t]{\textwidth}
 \begin{lstlisting}[
-label=lst:arched_time_request,
+label=lst:time_client_request,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:time="urn:time" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -115,7 +110,7 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 \lstsetJUSTXML
 \begin{minipage}[t]{\textwidth}
 \begin{lstlisting}[
-label=lst:arched_time_response,
+label=lst:time_client_response,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -128,6 +123,19 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 \end{lstlisting}
 \end{minipage}
 
+
+
+
+\lstsetKSH
+\begin{minipage}[t]{\textwidth}
+\begin{lstlisting}[
+label=st:time_client_ksh,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+$ ./timeclient
+Wed Feb 18 11:20:30 2009
+\end{lstlisting}
+\end{minipage}
 
 
 
