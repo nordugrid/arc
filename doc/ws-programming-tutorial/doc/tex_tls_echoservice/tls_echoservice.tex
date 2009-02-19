@@ -24,6 +24,27 @@ Authorization:  The server on the other side takes an interest in limitate its r
 
 One can add the TLS in client and server by simply extending the arched configuration file and a small modification of the client.
 
+\begin{figure}[htb]
+	\centering%epstopdf async.eps
+	\subfloat[Texttext\label{fig:cgd}]
+		{\includegraphics[width=13cm]{tex_tls_echoservice/async.pdf}}\\
+	\subfloat[Texttext\label{fig:cgd}]
+		{\includegraphics[width=13cm]{tex_tls_echoservice/async2.pdf}}
+
+	\mycaption{specific}{general}
+\label{fig:HED_internal0}
+\end{figure}
+
+
+\begin{figure}[htb]
+	\centering%epstopdf certificates.eps
+ 	\includegraphics[width=13cm]{tex_tls_echoservice/certificates.pdf}
+	\mycaption{specific}{general}
+\label{fig:HED_internal2}
+\end{figure}
+
+
+
 
 clientCA   - Authority guarantee for identity
 clientCERT - Certificate given
@@ -33,7 +54,12 @@ serverCA   - Authority guarantee for cert. CA is known by the server. If not, th
 serverCERT - Certificate given by the CA. Contains a snippet which can be read by the Public key of the CA.
 serverKEY  - Secret key of the client to read messages, encrypted by the public key in the certificate!
 
-
+\begin{figure}[htb]
+	\centering%epstopdf verification.eps 
+	\includegraphics[width=13cm]{tex_tls_echoservice/verification.pdf}
+	\mycaption{specific}{general}
+\label{fig:HED_internal3}
+\end{figure}
 Server has got have:
 Its  serverCERT serverKEY and some kind of root CA knowing the client
 Client has got to have
@@ -52,7 +78,7 @@ Some of the currently implemented SecHandler components make use of pluggable an
 
 
 
-
+\begin{program}
 \lstsetCPP
 \lstinputlisting
 	[
@@ -61,9 +87,11 @@ Some of the currently implemented SecHandler components make use of pluggable an
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/clients/tlsechoclient/tlsechoclient.cpp}
+\end{program}
 
+
+\begin{program}
 \lstsetCPP
-
 \lstinputlisting
 	[
 	label=lst:arcecho_arched_xml,
@@ -71,12 +99,12 @@ Some of the currently implemented SecHandler components make use of pluggable an
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/services/tlsechoservice/tlsechoservice.cpp}
-
+\end{program}
 
 
 
 \lstsetARCHEDXML
-\begin{minipage}[t]{\textwidth}
+\begin{program}
 \lstinputlisting
 	[
 	label=lst:arcecho_arched_xml,
@@ -84,12 +112,12 @@ Some of the currently implemented SecHandler components make use of pluggable an
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/services/tlsechoservice/arched_tls_echoservice.xml}
-\end{minipage}
+\end{program}
 
 
 
 \lstsetKSH
-\begin{minipage}[t]{\textwidth}
+\begin{program}
 \begin{lstlisting}[
 label=lst:invokation_arched_timeservice,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
@@ -99,12 +127,12 @@ $ arched -c arched_echoservice.xml  && echo jo ||echo n
 $ tail -n100 -f /var/log/arched.log
 $ killall arched
 \end{lstlisting}
-\end{minipage}
+\end{program}
 
 
 
 \lstsetKSH
-\begin{minipage}[t]{\textwidth}
+\begin{program}
 \begin{lstlisting}[
 label=lst:invokation_arched_timeservice,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
@@ -112,14 +140,14 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 $ ./echoclient
 Tue Feb 17 17:04:08 2009
 \end{lstlisting}
-\end{minipage}
+\end{program}
 
 
 
 
 
 \lstsetJUSTXML
-\begin{minipage}[t]{\textwidth}
+\begin{program}
 \begin{lstlisting}[
 label=lst:timeservice_cpp_source,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
@@ -132,11 +160,11 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 	</soap-env:Body>
 </soap-env:Envelope>
 \end{lstlisting}
-\end{minipage}
+\end{program}
 
 
 \lstsetJUSTXML
-\begin{minipage}[t]{\textwidth}
+\begin{program}
 \begin{lstlisting}[
 label=lst:timeservice_cpp_source,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
@@ -149,4 +177,4 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
   </soap-env:Body>
 </soap-env:Envelope>
 \end{lstlisting}
-\end{minipage}
+\end{program}
