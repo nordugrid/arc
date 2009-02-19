@@ -138,8 +138,6 @@ class Service:
         try:
             # the first child of the payload should be the name of the request
             request_node = inpayload.Child()
-            request_name = request_node.FullName()
-            print request_name        
             # get the namespace of the request node
             request_namespace = request_node.Namespace()
             matched_request_types = [request_type for request_type in self.request_config if request_type['namespace_uri'] == request_namespace]
@@ -148,7 +146,6 @@ class Service:
             current_request_type = matched_request_types[0]
             # get the name of the request without the namespace prefix
             request_name = request_node.Name()
-	    	
             if request_name not in current_request_type['request_names']:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
