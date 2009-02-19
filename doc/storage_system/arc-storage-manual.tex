@@ -1,0 +1,284 @@
+\documentclass{book}
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{longtable}                             %for breaking tables
+%
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+\hypersetup{
+  pdfauthor = {Zsombor Nagy},
+  pdftitle = {User's manual of the ARC storage system},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {Paper,keyword,comma-separated},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+%
+%----- DON'T CHANGE HEADER MATTER
+\hyphenation{preserve-Original}
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+
+\begin{tabular}{rl}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+\end{tabular}
+
+\hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+
+{\raggedleft NORDUGRID-XXXXXXX-NN\par}
+
+{\raggedleft \today\par}
+
+\vspace*{2cm}
+
+%%%%---- The title ----
+{\centering \textsc{\Large User's manual of the ARC storage system}\Large \par}
+\vspace*{0.5cm}
+    
+%%%%---- A subtitle, if necessary ----
+%{\centering \textit{\large First prototype status and plans}\large \par}
+    
+\vspace*{1.5cm}
+%%%%---- A list of authors ----
+    {\centering \large Zsombor Nagy\footnote{zsombor@niif.hu} \large \par}
+    {\centering \large Jon Nilsen\footnote{j.k.nilsen@usit.uio.no} \large \par}
+    {\centering \large Salman Zubair Toor \footnote{salman.toor@it.uu.se} \large \par}
+\end{titlepage}
+
+\tableofcontents                          %Comment if use article style
+\newpage
+
+\renewcommand{\thefootnote}{\arabic{footnote}}
+
+\chapter{Quick start guide} % (fold)
+\label{cha:quick_start_guide}
+
+\section{Checking the code out from the subversion} % (fold)
+\label{sec:checking_the_code_out_from_the_subversion}
+
+% section checking_the_code_out_from_the_subversion (end)
+
+\section{Compiling and installing} % (fold)
+\label{sec:compiling_and_installing}
+
+% section compiling_and_installing (end)
+
+\section{Modifying the configuration template} % (fold)
+\label{sec:modifying_the_configuration_template}
+
+% section modifying_the_configuration_template (end)
+
+\section{Running the daemon} % (fold)
+\label{sec:running_the_daemon}
+
+% section running_the_daemon (end)
+
+\section{Using the CLI tool} % (fold)
+\label{sec:using_the_cli_tool}
+
+% section using_the_cli_tool (end)
+
+% chapter quick_start_guide (end)
+
+\chapter{Installing the system} % (fold)
+\label{cha:installing_the_system}
+
+\section{Getting the source code} % (fold)
+\label{sec:getting_the_source_code}
+
+% section getting_the_source_code (end)
+
+\section{Configuration} % (fold)
+\label{sec:configuration}
+
+\subsection{HED service config} % (fold)
+\label{sub:hed_service_config}
+
+% subsection hed_service_config (end)
+
+\subsection{Centralized A-Hash} % (fold)
+\label{sub:centralized_a_hash}
+
+% subsection centralized_a_hash (end)
+
+\subsection{Distributed A-Hash} % (fold)
+\label{sub:distributed_a_hash}
+
+% subsection distributed_a_hash (end)
+
+\subsection{Librarian} % (fold)
+\label{sub:librarian}
+
+% subsection librarian (end)
+
+\subsection{Shepherd} % (fold)
+\label{sub:shepherd}
+
+% subsection shepherd (end)
+
+\subsection{Hopi} % (fold)
+\label{sub:hopi}
+
+% subsection hopi (end)
+
+\subsection{Bartender} % (fold)
+\label{sub:bartender}
+
+% subsection bartender (end)
+
+\subsection{Configuring inter-service trust} % (fold)
+\label{sub:configuring_inter_service_trust}
+
+% subsection configuring_inter_service_trust (end)
+
+\subsection{Virtual organizations} % (fold)
+\label{sub:virtual_organizations}
+
+% subsection virtual_organizations (end)
+
+% section configuration (end)
+
+\section{Deployment scenarios} % (fold)
+\label{sec:deployment_scenarios}
+
+% section deployment_scenarios (end)
+
+\section{Single node} % (fold)
+\label{sec:single_node}
+
+% section single_node (end)
+
+\section{Centralized management} % (fold)
+\label{sec:centralized_management}
+
+% section centralized_management (end)
+
+\section{Simple distribution} % (fold)
+\label{sec:simple_distribution}
+
+% section simple_distribution (end)
+
+\section{One service per node} % (fold)
+\label{sec:one_service_per_node}
+
+% section one_service_per_node (end)
+
+% chapter installing_the_system (end)
+
+\chapter{Using the system} % (fold)
+\label{cha:using_the_system}
+
+\section{Prototype command line tool} % (fold)
+\label{sec:prototype_command_line_tool}
+
+\subsection{Configuring the command line tool} % (fold)
+\label{sub:configuring_the_command_line_tool}
+
+% subsection configuring_the_command_line_tool (end)
+
+\subsection{Creating the root collection} % (fold)
+\label{sub:creating_the_root_collection}
+
+% subsection creating_the_root_collection (end)
+
+\subsection{Uploading files} % (fold)
+\label{sub:uploading_files}
+
+% subsection uploading_files (end)
+
+\subsection{Creating collections} % (fold)
+\label{sub:creating_collections}
+
+% subsection creating_collections (end)
+
+\subsection{Moving files} % (fold)
+\label{sub:moving_files}
+
+% subsection moving_files (end)
+
+\subsection{Creating hardlinks} % (fold)
+\label{sub:creating_hardlinks}
+
+% subsection creating_hardlinks (end)
+
+\subsection{Removing files} % (fold)
+\label{sub:removing_files}
+
+% subsection removing_files (end)
+
+\subsection{Removing collections} % (fold)
+\label{sub:removing_collections}
+
+% subsection removing_collections (end)
+
+\subsection{Close collections} % (fold)
+\label{sub:close_collections}
+
+% subsection close_collections (end)
+
+\subsection{Modify access policies} % (fold)
+\label{sub:modify_access_policies}
+
+% subsection modify_access_policies (end)
+    
+\subsection{Working with mount points} % (fold)
+\label{sub:working_with_mount_points}
+
+% subsection working_with_mount_points (end)
+    
+% section prototype_command_line_tool (end)
+
+\section{Accessing the system with FUSE} % (fold)
+\label{sec:accessing_the_system_with_fuse}
+
+\subsection{Configuring the FUSE module} % (fold)
+\label{sub:configuring_the_fuse_module}
+
+% subsection configuring_the_fuse_module (end)
+
+\subsection{Mounting the storage system} % (fold)
+\label{sub:mounting_the_storage_system}
+
+% subsection mounting_the_storage_system (end)
+
+\subsection{Supported operations} % (fold)
+\label{sub:supported_operations}
+
+% subsection supported_operations (end)
+
+\subsection{Limitations} % (fold)
+\label{sub:limitations}
+
+% subsection limitations (end)
+
+% section accessing_the_system_with_fuse (end)
+
+% chapter using_the_system (end)
+
+% \bibliography{grid}
+\end{document}

@@ -10,7 +10,7 @@
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
   pdfauthor = {Zsombor Nagy},
-  pdftitle = {Documentation of the ARC1 storage system},
+  pdftitle = {Documentation of the ARC storage system},
   pdfsubject = {Paper subject},
   pdfkeywords = {Paper,keyword,comma-separated},
   pdfcreator = {PDFLaTeX with hyperref package},
@@ -57,7 +57,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large Documentation of the ARC1 storage system}\Large \par}
+{\centering \textsc{\Large Documentation of the ARC storage system}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -80,7 +80,7 @@
 \label{cha:overview}
 
 
-The ARC1 storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), \url{https://forge.gridforum.org/projects/byteio-wg/}}, etc.). For each storage node one of the services of the ARC1 storage system is needed to manage it and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC1 storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
+The ARC storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), \url{https://forge.gridforum.org/projects/byteio-wg/}}, etc.). For each storage node one of the services of the ARC storage system is needed to manage it and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
 \begin{itemize}
     \item the \textbf{A-Hash} service, which is a currently centralized, later distributed database;
     \item the \textbf{Librarian} service, which stores the metadata and hierarchy of collections and files, the location of replicas, and health data of the Shepherd services, using the A-Hash as database;
@@ -89,8 +89,8 @@ The ARC1 storage system is a distributed system for storing replicated \emph{fil
 \end{itemize}
 
 \begin{figure}[ht]
-\centering{{\scalebox{0.9}{\includegraphics{arc1-storage-services.pdf}}}
-\caption{\label{fig:services}The components of the ARC1 storage: the \textbf{A-H}ash service, the \textbf{L}ibrarian service, the \textbf{B}artender service and the \textbf{S}hepherd service.}}
+\centering{{\scalebox{0.9}{\includegraphics{arc-storage-services.pdf}}}
+\caption{\label{fig:services}The components of the ARC storage: the \textbf{A-H}ash service, the \textbf{L}ibrarian service, the \textbf{B}artender service and the \textbf{S}hepherd service.}}
 \end{figure}
 
 The descriptions in Chapter~\ref{cha:overview} and Chapter~\ref{cha:use_cases} are containing some elements which are not implemented yet in the first prototype. See Chapter~\ref{cha:technical_description_and_implementation_status} for the details about what is implemented and what is missing.
@@ -119,7 +119,7 @@ Each file and collection has a GUID which is globally unique, so they can be una
 A collection is basically just a list of entries, where each entry has a name unique within this collection, and an entry can be a file or a sub-collection, in which there are files and sub-sub-collections, etc.
 
 \begin{figure}[ht]
-\centering{{\scalebox{0.7}{\includegraphics{arc1-storage-namespace.pdf}}}
+\centering{{\scalebox{0.7}{\includegraphics{arc-storage-namespace.pdf}}}
 \caption{\label{fig:namespace}Example of the hierarchy of the global namespace} }
 \end{figure}
 
@@ -175,7 +175,7 @@ The Shepherds periodically ask the Librarian whether the files they store have e
 \section{Security} % (fold)
 \label{sec:security}
 
-The current version of the ARC1 storage system has no implemented solution for security issues. Designing and implementing a powerful, flexible, fine-grained solution for authentication and authorization is very important. Currently we have plans how to do that, and the design of the storage services makes it easy to integrate the chosen solution into the system.
+The current version of the ARC storage system has no implemented solution for security issues. Designing and implementing a powerful, flexible, fine-grained solution for authentication and authorization is very important. Currently we have plans how to do that, and the design of the storage services makes it easy to integrate the chosen solution into the system.
 
 For additional details, see Section~\ref{sec:plans_for_security}.
 
@@ -188,7 +188,7 @@ For additional details, see Section~\ref{sec:plans_for_security}.
 \section{Downloading a file} % (fold)
 \label{sec:downloading_a_file}
 \begin{figure}[ht]
-\centering{{\scalebox{0.7}{\includegraphics{arc1-storage-downloading.pdf}}}
+\centering{{\scalebox{0.7}{\includegraphics{arc-storage-downloading.pdf}}}
 \caption{\label{fig:downloading}Downloading a file} }
 \end{figure}
 
@@ -214,7 +214,7 @@ We want to download a file about which we know that it is somewhere in our home 
 \label{sec:uploading_a_file}
 
 \begin{figure}[ht]
-\centering{{\scalebox{0.7}{\includegraphics{arc1-storage-uploading.pdf}}}
+\centering{{\scalebox{0.7}{\includegraphics{arc-storage-uploading.pdf}}}
 \caption{\label{fig:uploading}Uploading a file} }
 \end{figure}
 
@@ -247,7 +247,7 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \label{sec:removing_a_file}
 
 \begin{figure}[ht]
-\centering{{\scalebox{0.7}{\includegraphics{arc1-storage-removing.pdf}}}
+\centering{{\scalebox{0.7}{\includegraphics{arc-storage-removing.pdf}}}
 \caption{\label{fig:removing}Removing a file} }
 \end{figure}
 \begin{enumerate}
@@ -643,7 +643,7 @@ All the backend modules should have this common interface which the Shepherd can
 
 \subsection{Functionality} % (fold)
 
-The Bartender provides an easy to use interface of the ARC1 storage system to the users. You can put, get and delete files using their logical names (\emph{LN}s) with the \emph{putFile}, \emph{getFile} and \emph{delFile} methods, create, remove and list collections with \emph{makeCollection}, \emph{unmakeCollection} and \emph{list}. The metadata of a file or collection (e.g.~whether the collection is closed, number of needed replicas, access policies) can be changed with \emph{modify}. A \emph{stat} call gives all the information about a file or collection, and you can move (or hardlink) collections and files within the namespace with \emph{move}. You can upload an entirely new replica to a file (e.g.~if the file lost all its replicas, or when a Shepherd service offers its replica for replications) with \emph{addReplica}.
+The Bartender provides an easy to use interface of the ARC storage system to the users. You can put, get and delete files using their logical names (\emph{LN}s) with the \emph{putFile}, \emph{getFile} and \emph{delFile} methods, create, remove and list collections with \emph{makeCollection}, \emph{unmakeCollection} and \emph{list}. The metadata of a file or collection (e.g.~whether the collection is closed, number of needed replicas, access policies) can be changed with \emph{modify}. A \emph{stat} call gives all the information about a file or collection, and you can move (or hardlink) collections and files within the namespace with \emph{move}. You can upload an entirely new replica to a file (e.g.~if the file lost all its replicas, or when a Shepherd service offers its replica for replications) with \emph{addReplica}.
 
 % subsection functionality (end)
 
@@ -778,7 +778,7 @@ This is a testfile.
 
 You can find more examples in the SVN\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage/README}}.
 
-There are plans to create more sophisticated CLI and GUI tools and to create a FUSE\footnote{Filesystem in Userspace, \url{http://fuse.sourceforge.net/}} module and Windows Shell Extensions\footnote{\url{http://msdn.microsoft.com/en-us/magazine/cc188741.aspx}} to be able to mount the ARC1 storage namespace into the local filesystem namespace, and use it with the commands of the operating system.
+There are plans to create more sophisticated CLI and GUI tools and to create a FUSE\footnote{Filesystem in Userspace, \url{http://fuse.sourceforge.net/}} module and Windows Shell Extensions\footnote{\url{http://msdn.microsoft.com/en-us/magazine/cc188741.aspx}} to be able to mount the ARC storage namespace into the local filesystem namespace, and use it with the commands of the operating system.
 
 % section client_tools (end)
 
@@ -786,7 +786,7 @@ There are plans to create more sophisticated CLI and GUI tools and to create a F
 \section{Integrating third-party storage solutions} % (fold)
 \label{sec:integrating_third_party_storage_solutions}
 
-To integrate existing files on a third-party storage system to our namespace thus make them accessible through the interface of the ARC1 storage, we need a service which provides a common interface to the Bartender services, and hides the details of accessing the different third-party storages. It should translate the method calls, the \emph{get}s, \emph{put}s and \emph{remove}s and the \emph{ACL}\footnote{Access Control Lists, policies} modifications, and try to create transform metadata according to the data model of the ARC1 storage (Section~\ref{sub:data_model}). The files here would be referenced by a path which is local in the namespace of the third-party storage. The interface could be something like this:
+To integrate existing files on a third-party storage system to our namespace thus make them accessible through the interface of the ARC storage, we need a service which provides a common interface to the Bartender services, and hides the details of accessing the different third-party storages. It should translate the method calls, the \emph{get}s, \emph{put}s and \emph{remove}s and the \emph{ACL}\footnote{Access Control Lists, policies} modifications, and try to create transform metadata according to the data model of the ARC storage (Section~\ref{sub:data_model}). The files here would be referenced by a path which is local in the namespace of the third-party storage. The interface could be something like this:
 \begin{description}
     \item[get(getRequest)] returns list of (\emph{requestID}, \emph{getResponseData})
 
