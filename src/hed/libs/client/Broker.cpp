@@ -123,8 +123,8 @@ namespace Arc {
                }
             }
 		    else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinWallTime is not defined", (std::string)(*target).url.str());
-			   continue;
+               //logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinWallTime is not defined", (std::string)(*target).url.str());
+			   //continue;
 		    }
        }
 
@@ -147,8 +147,8 @@ namespace Arc {
                }
             }
 		    else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinCPUTime is not defined", (std::string)(*target).url.str());
-			   continue;
+               //logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MinCPUTime is not defined", (std::string)(*target).url.str());
+			   //continue;
 		    }
        }
 
