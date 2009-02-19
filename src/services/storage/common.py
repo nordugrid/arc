@@ -4,6 +4,8 @@ import os, traceback
 global_root_guid = '0'
 # a special entity where the data about Shepherds are stored (SEStore)
 sestore_guid = '1'
+# a special entity where the list of A-Hashes is stored
+ahash_list_guid = '2'
 
 common_supported_protocols = ['http', 'byteio','external']
 CHUNKSIZE = 2**20
