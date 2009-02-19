@@ -1,0 +1,18 @@
+Tutorial on Programming Web Services with ARC-1
+===============================================
+
+A core technical advancement of ARC-1 over ARC-0 is the introduction
+of web services for the communication of units that cooperate on the
+grid. The concept established with ARC-1 is such generic, though, that
+it can be used not only for the services that define the functionality
+of the NorduGrid: anybody with an interest to offer anything with an
+interface to the internet can use the technology behind ARC-1 to
+
+ * setup a server that can be trusted by thei users
+ * select (if wanted) the users with access to the resources
+ * communiate with other services if needed
+
+Technically, there is not much to learn for anybody who has done dynamic
+web pages before. To build the LaTeX files, run ./autogen.sh && make .
+
+
