@@ -46,25 +46,28 @@
        <NetworkInfo>infiniband</NetworkInfo>
        <IndividualPhysicalMemory>2343</IndividualPhysicalMemory>
        <IndividualVirtualMemory>77</IndividualVirtualMemory>
-       <IndividualDiskSpace>333</IndividualDiskSpace>
        <IndividualCPUTime>333</IndividualCPUTime>
        <TotalCPUTime>555</TotalCPUTime> 
        <IndividualWallTime>534</IndividualWallTime>
        <TotalWallTime>324</TotalWallTime>
        <ReferenceTime benchmark="frequency" value="2.8Ghz">454</ReferenceTime>
        <Slots>
+          89
           <NumberOfProcesses>32</NumberOfProcesses>
           <ProcessPerHost>4</ProcessPerHost>
           <ThreadsPerProcesses>53</ThreadsPerProcesses>
           <SPMDVariation>http://www.ogf.org/jsdl/2007/02/jsdl-spmd/MPI</SPMDVariation>
        </Slots>
        <DiskSpace>
+          630
        	  <CacheDiskSpace>400</CacheDiskSpace>
           <SessionDiskSpace>200</SessionDiskSpace>
+          <IndividualDiskSpace>30</IndividualDiskSpace>
        </DiskSpace>
        <CandidateTarget>
           <EndPointURL>https://knowarc1.grid.niif.hu:60000/arex</EndPointURL>
           <QueueName>arc1</QueueName>
+          <Alias>TestCluster</Alias>
        </CandidateTarget>             
        <CEType>A-REX</CEType>
        <RuntimeEnvironment>
@@ -75,6 +78,14 @@
          <InBound/>
          <OutBound/>
        </NodeAccess>   
+       <Location>
+          <Place>Budapest</Place>
+          <Country>Hungary</Country>
+          <PostCode>1132</PostCode>
+          <Latitude>47.498403</Latitude>
+          <Longitude>19.040759</Longitude>
+       </Location>
+       <Homogeneous>true</Homogeneous>
     </Resources>
    <DataStaging>
       <File>
@@ -111,11 +122,6 @@
           <DownloadToCache>true</DownloadToCache>
           <DataIndexService>https://knowarc4.grid.niif.hu:60000/LFNResolver</DataIndexService>      
       </Directory>
-      <Defaults>
-          <DefaultIndexingService>https://knowarc3.grid.niif.hu:60000/DIS</DefaultIndexingService>
-          <StagingInBaseURI>http://knowarc3.grid.niif.hu/in/</StagingInBaseURI>
-          <StagingOutBaseURI>http://knowarc3.grid.niif.hu/out/</StagingOutBaseURI>
-      </Defaults>     
     </DataStaging>
  </JobDescription>
  <Meta>
