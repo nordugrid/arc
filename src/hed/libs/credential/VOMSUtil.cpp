@@ -28,7 +28,7 @@ int gethostname_mingw (char *name, size_t len) {
 int getdomainname_mingw (char *, size_t);
 int getdomainname_mingw (char *name, size_t len) {
   DWORD dlen = (len <= (DWORD)~0 ? len : (DWORD)~0);
-  return (GetComputerNameEx(ComputerNameDnsFullyQualified, name, &dlen) ? 0 : -1);
+  return (GetComputerNameEx(ComputerNameDnsDomain, name, &dlen) ? 0 : -1);
 }
 #define getdomainname getdomainname_mingw
 #endif
