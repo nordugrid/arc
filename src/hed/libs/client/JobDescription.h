@@ -31,7 +31,7 @@ namespace Arc {
     // GIN JSDL elements
     #define GIN_ELEMENTS_NUMBER 43
     static const char *GIN_elements[ GIN_ELEMENTS_NUMBER ] = { "Meta", "Author", "DocumentExpiration", "LogDir",
-          "LRMSReRun", "Notification", "Address", "Join", "IndividualWallTime", "ReferenceTime",
+          "LRMSReRun", "Notification", "Join", "IndividualWallTime", "ReferenceTime",
           "NetworkInfo", "OSFamily", "OSName", "OSVersion", "Platform", "CacheDiskSpace", "SessionDiskSpace",
           "Alias", "EndPointURL", "Location", "Country", "Place", "PostCode", "Latitude", "Longitude", "CEType",
           "Slots", "NumberOfProcesses", "Slots", "ProcessPerHost", "ThreadPerProcesses", "SPMDVariation",
