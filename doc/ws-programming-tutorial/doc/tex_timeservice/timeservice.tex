@@ -22,29 +22,42 @@ The actual Time Web Service is implemented within the namespace ArcService. The 
 	[
 	label=lst:time_arched_cpp,
 	caption={[C++ implementation of the time service. Filename: timeservice.cpp]
-	\textbf{C++ implementation of the time service. Filename: timeservice.cpp\textcolor{white}{hmf}}}
+	\textbf{C++ implementation of the time service. Filename: timeservice.cpp}}
 	]
 {../src/services/timeservice/timeservice.cpp}
 The service first determines the current time and than creates a SOAP message using the object \textit{PayloadSOAP} on line~\ref{lst_code:time_cpp_process_payloadSOAP}. The class \textit{PayloadSOAP} is able to create a XML message which is conform to the SOAP protocol (The apperance of the generated request and response will be discussed later). I case of the presented time service the payload consists out of two elements nested into one another. The element \textit{text} holds the element child which again holds the string containing the current time.
 Within the line~\ref{lst_code:time_cpp_process_message_payload} the payload is passed to the message. 
-The message processing is now completed and the function returns its success status on line~\ref{lst_code:time_cpp_return}.\\
+The message processing is now completed and the function returns its success status on line~\ref{lst_code:time_cpp_return}.
+The source code has to be compiled to a dynamic library named \textit{libtimeservice.so}.\\
 
 
-After the service has been implemented, it needs to be loaded into the HED. A suitable HED configuration file is to be seen in Listing~\ref{lst:time_arched_xml}.
-
-
-
-
+After the service has been implemented and compiled, it needs to be loaded into the HED. A suitable HED configuration file is to be seen in Listing~\ref{lst:time_arched_xml}. 
 \lstsetARCHEDXML
-\begin{minipage}[t]{\textwidth}
+\begin{program}
 \lstinputlisting
 	[
 	label=lst:time_arched_xml,
 	caption={[HED configuration for the time service. Filename: arched\_timeservice.xml]
-	\textbf{HED configuration for the time service. Filename: arched\_timeservice.xml\textcolor{white}{hmf}}}
+	\textbf{HED configuration for the time service. Filename: arched\_timeservice.xml}}
 	]
 {../src/services/timeservice/arched_timeservice.xml}
-\end{minipage}
+\end{program}
+A new path element has been introduced into the element \textit{ModuleMananger}, line~\ref{lst_code:arched_time_moduleManager}. It assigns the location to the compliled dynamic library. 
+On line~\ref{lst_code:arched_time_plugin} the library is explict mentioned to be loaded.
+Another important change has been done within the \textit{Plexer} element in line~\ref{lst_code:arched_time_plexer_next}. A rule has been introduced which redirects the request to the Time Web Service, if the path of URL is \textit{time}.\\
+
+
+
+\lstsetKSH
+\begin{program}
+\begin{lstlisting}[
+label=lst:invokation_arched_timeservice,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+$ arched -c arched_timeservice.xml && echo Daemon started || echo Daemon start failed
+\end{lstlisting}
+\end{program}
+
 
 
 \section{Client}
@@ -55,7 +68,7 @@ After the service has been implemented, it needs to be loaded into the HED. A su
 \lstsetCPP
 \lstinputlisting
 	[
-	label=lst:arcecho_arched_xml,
+	label=lst:arcecho_time_client_cpp,
 	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
@@ -64,15 +77,6 @@ After the service has been implemented, it needs to be loaded into the HED. A su
 
 
 
-\lstsetKSH
-\begin{minipage}[t]{\textwidth}
-\begin{lstlisting}[
-label=lst:invokation_arched_timeservice,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ arched -c arched_timeservice.xml  && echo jo ||echo n
-\end{lstlisting}
-\end{minipage}
 
 
 
@@ -94,7 +98,7 @@ The data is enveloped by an element called \textit{Envelope} .. See german wiki
 \lstsetJUSTXML
 \begin{minipage}[t]{\textwidth}
 \begin{lstlisting}[
-label=lst:timeservice_cpp_source,
+label=lst:arched_time_request,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:time="urn:time" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -111,7 +115,7 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 \lstsetJUSTXML
 \begin{minipage}[t]{\textwidth}
 \begin{lstlisting}[
-label=lst:timeservice_cpp_source,
+label=lst:arched_time_response,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

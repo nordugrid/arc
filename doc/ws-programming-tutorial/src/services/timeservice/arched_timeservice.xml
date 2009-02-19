@@ -4,7 +4,7 @@
 		<Pidfile>/var/run/arched.pid</Pidfile>
 		<Logger level="VERBOSE">/var/log/arched.log</Logger>
 	</Server>
-	<ModuleManager><!--(@*\label{lst_code:arched_time_}*@)-->
+	<ModuleManager><!--(@*\label{lst_code:arched_time_moduleManager}*@)-->
 		<!-- Own library path. The order is important!-->
 		<Path>/tmp/arcservices/lib/</Path>
 		<Path>/usr/lib/arc/</Path>
@@ -13,7 +13,7 @@
 	<Plugins><Name>mcctls</Name></Plugins>
 	<Plugins><Name>mcchttp</Name></Plugins>
 	<Plugins><Name>mccsoap</Name></Plugins>
-	<Plugins><Name>timeservice</Name></Plugins> 
+	<Plugins><Name>timeservice</Name></Plugins> <!--(@*\label{lst_code:arched_time_plugin}*@)-->
 	<Chain>
 		<Component name="tcp.service" id="tcp">
 			<next id="http"/>
@@ -26,7 +26,7 @@
 			<next id="plexer"/>
 		</Component>
 		<Plexer name="plexer.service" id="plexer">
-			<next id="time">^/time$</next>
+			<next id="time">^/time$</next><!--(@*\label{lst_code:arched_time_plexer_next}*@)-->
 		</Plexer>
 		<Service name="time" id="time">
 			<next id="time"/>

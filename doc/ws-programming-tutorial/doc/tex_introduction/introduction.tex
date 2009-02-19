@@ -90,7 +90,9 @@ Depending on the component certain additional tags may be defined inside of it.
 \task{Internet Protocol is required.}
 The first component of the chain is the \textit{tcp.service}. As to be seen the port 60000 gets assigned for the server to listen to.
 The stream which is received by this component is passed to the component defined by the \textit{next} tag.
-In that case the will be passed to the component with the \textit{id} atrribute named \textit{http}. According to this manner the message will be passed to higher layers until it reaches the \textit{Plexer}  Depending on the path of the URL which was demanded by the HTTP the Plexer multiplexes the request to the right Web Service. The path declared within the \textit{next} tag is a regular expression and leads to the service with the id named \textit{echo}. This service finally will process the message and create a new message which will be returned all the way back to the TCP layer. The Echo Web Service itself is provided by the ARC package. Additional fix parameters can be passed by assigning tags which have to be known to the Web Service.
+In that case the will be passed to the component with the \textit{id} atrribute named \textit{http}. According to this manner the message will be passed to higher layers until it reaches the \textit{Plexer}  Depending on the path of the URL which was demanded by the HTTP the Plexer multiplexes the request to the right Web Service. The path is declared within the \textit{next} tag is a regular expression and leads to the service with the id named \textit{echo}. 
+Which means that the service will be now reachable under URL \textit{http://localhost:60000/echo}.
+This service finally will process the message and create a new message which will be returned all the way back to the TCP layer. The Echo Web Service itself is provided by the ARC package. Additional fix parameters can be passed by assigning tags which have to be known to the Web Service.
 The tags \textit{echo:prefix} and \textit{echo:suffix} seen in this example are defining the characters which will enclose the echo  returned string.
 \task{The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - WEB SERVICE   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - WEB SERVICE}\\
 
@@ -104,7 +106,7 @@ label=lst:arcecho_arched_invokation,
 caption={[Invokation of the Arched Daemon.]
          \textbf{Invokation of the Arched Daemon.\textcolor{white}{hmf}}}]
 
-$ arched -c arcecho_no_ssl.xml  && echo Daemon started || echo Daemon start failed
+$ arched -c arcecho_no_ssl.xml && echo Daemon started || echo Daemon start failed
  Daemon started
 $
 \end{lstlisting}

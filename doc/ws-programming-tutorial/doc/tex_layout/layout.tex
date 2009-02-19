@@ -61,6 +61,7 @@
 \definecolor{marker}{rgb}{0.9,0.9,0.9}
 \definecolor{urgent}{rgb}{1,0,0}
 \definecolor{discreeturgent}{rgb}{1,0.5,0.5}
+\definecolor{discreetcomment}{rgb}{0.25,0.9,0.25}
 \definecolor{checked}{rgb}{0,.7,0}
 
 
@@ -68,7 +69,7 @@
 %\newif\ifshowtasks\showtaskstrue
 \newif\ifshowtasks\showtaskstrue
 \newcommand{\task}[1]{\ifshowtasks\textcolor{discreeturgent}{~#1~}\else\fi}
-
+\newcommand{\comment}[1]{\ifshowtasks\textcolor{discreetcomment}{~#1~}\else\fi}
 
 
 %
