@@ -1,15 +1,33 @@
 
 \chapter{Introduction}
 
-This guide gives a first inside in how to write a standalone webservice for KnowArc including a suited client.
-The practically oriented examples will be followed by explanations of the main architecture concepts.
-For being able to comprehense basic knowledge of the programming language C++, the file format XML and the shell is requried.
-Furthermore an installation of KnowArc 1 is needed.\\
+This document gently introduces to preparation of standalone webservices and cognate clients with the Advance Resource Connector (ARC).
+The reader is guided through a series of the practically oriented examples.
+Each are accompanied by explanations of the main concepts of the software architecture.
+No particular skills are required to follow the presented steps.
+It is however beneficial to have some basic comprehension of the programming language C++, the file format XML and any regular UNIX shell.
+To start, the user shall have an installation of ARC-1, as it is performed with current RPM or .deb packages\footnote{see http://wiki.nordugrid.org for explicit instructions for your setup}.
 
 
-The KnowArc server provides access to services which are used by clients. The services may cover computational tasks as well 
-as access to a database. % job submission
-Servers provide access to a certain service and are waiting for a client which demands it. The task of servers can be subdivided into:
+The ARC server provides access to services.
+These are executed on the same machine that the server is installed on.
+Some services, like the a-rex service, will delegate computational efforts to other machines
+via additional software like a local queueing system.
+But the a-rex service itself does not migrate away to other machines - at least this
+has not been implemented yet.
+Services may comprise computational tasks (e.g., some secret and strongly
+patented algorithm), allow arbitrary computations (like ARC's a-rex or
+Amazon's clouds) or provide access to other resources like a particular
+database or to arbitrary disk space (like ARC's hopi or bartender).
+
+
+The users of computational services are software tools, too.
+They are referred to as clients.
+It is those clients that perform the interactions with a human user.
+However, when a service requests a performance of another service at the same or another server, then this first service is in the role of a client, too.
+
+
+Servers provide access to a single service or a set of services. For ARC, there is one service, named Hosting Environment Demon (hed), more special than other services: hed organises the assignment of other services on the same server to the network. But this does not break the concept, it is only a commodity. If services are not busy reacting to a client's request, then they are waiting. The task of servers can be subdivided into:
 \begin{itemize}
  \item Wait for client request
  \item Receive the request
@@ -26,24 +44,25 @@ While the server waits passively for a request, the client acts actively:
  \end{itemize}
 \forcelinebreak
 
-In general the implementation of a client is easier to be done compared with the server. 
-KnowArc is designed as a middleware which encapsulates typical challenges of server-client infrastructures (security, exception handling, extensibility) and abstract from underlying architecture (heterogenous computer, computer location, protocols).
-The core of KnowArc is the HED (Hosting Environment Daemon). HED is model consisting of a variable amount of heavily configurable layers. 
+In general, the implementation of a client is easier that the implementation of the server. 
+ARC is designed as a middleware which encapsulates typical challenges of server-client infrastructures (security, exception handling, extensibility) and abstracts from underlying architecture (heterogeneity of computers, computer location, protocols).
+The core of KnowArc is the prior mentioned HED (Hosting Environment Daemon). To the administrator HED hed is mostly visible as the single binary that is started and by the configure file that describes the other services that shall be prepared by HED. Conceptionally, the HED determines how services shall be organised both as a principle, and for any given ARC-run server, HED determines the very explicit presence or absence of a service at a particular address. Its many configurable layers are described later in this tutorial. 
 %
-In the present case the endpoint of the HED will be a SOAP based Web Service. These Web Services exchange messages enveloped in the well known XML format. KnowArc abstracts from this format but nevertheless it is useful to be aware of the underlying message transport mechanism.\\
+At the time of writing, the endpoint of the HED will be a SOAP based webservice.
+SOAP is a long established XML-based standard for web service communication.
+ARC abstracts from this format, but nevertheless it is useful to be aware of
+the underlying message transport mechanism.
+
 %which implicate several advantages.
 %The XML file format is not restricted to a certain set of tags but can be expanded in such a way as to fit almost any kind of service. It is not a proprietary format and as a result many libraries in almost any language are capable in creating that kind of format.Likewise, XML is also suitable for the usage between heterogeneous platforms.However, while the client can be implemented very straight, the service has to fit a certain layout.In the present guide four kinds of webservices will be introduced: a simple time service, an echo service, a secure echo service and a service with a persistence state .\\
 
 
-The source code of the examples given in this tutorial are available in the directory \textit{src}.
-\task{All examples can be found in the source tree: URL}
-
-
+The source code of the examples given in this tutorial are available in the subdirectory \textit{src}\footnote{If this was not shipped with the document you are reading, then please inspect http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/ws-programming-tutorial}. 
 
 
 \section{Hosting Environment Daemon}
 
-The HED which was already mentioned in the section above is an essential part of the ARC middleware. It provides hosting of various services at application level, as well as a number of modules~\cite{QIANG_2005}. Figure~\ref{fig:HED_internal} illustrates a typical setup of a server sided HED. The HED consists of a few compononents called Message Chain Components (MCC) which are ordered within a layered structure and several \textcolor{urgent}{modules} which shall aid the programmer to simplify the development of the Web Services (Config, Loader, Logging, XMLNode).
+The HED which was already mentioned in the section above as an essential part of the ARC middleware. It provides hosting of various services at application level, as well as a number of modules~\cite{QIANG_2005}. Figure~\ref{fig:HED_internal} illustrates a typical setup of a server sided HED. The HED consists of a few compononents called Message Chain Components (MCC) which are ordered within a layered structure and several \textcolor{urgent}{modules} which shall aid the programmer to simplify the development of the Web Services (Config, Loader, Logging, XMLNode).
 %
 \begin{figure}
 	\centering
