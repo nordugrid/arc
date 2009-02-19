@@ -1,13 +1,13 @@
 lib_LTLIBRARIES = libarccredential.la
 noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms testeec
 
-if WIN32
-VOMS_HEADER =
-VOMS_SOURCE =
-else
+#if WIN32
+#VOMS_HEADER =
+#VOMS_SOURCE =
+#else
 VOMS_HEADER = VOMSUtil.h
 VOMS_SOURCE = VOMSUtil.cpp
-endif
+#endif
 
 libarccredential_ladir = $(pkgincludedir)/credential
 libarccredential_la_HEADERS  = Credential.h CertUtil.h Proxycertinfo.h VOMSAttribute.h $(VOMS_HEADER)
