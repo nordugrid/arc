@@ -27,6 +27,7 @@ import time
 import pickle
 import threading
 import copy
+import base64
 
 from arcom.threadpool import ThreadPool, ReadWriteLock
 from arcom.service import ahash_uri, node_to_data, get_child_nodes, parse_node, get_data_node
@@ -58,16 +59,22 @@ class ReplicatedAHash(CentralAHash):
         self.ahashes = {}
         self.store = ReplicationStore(cfg, self.sendMsg)
         self.public_request_names = ['processMsg']
+        # notify replication manager that communication is ready
+        self.store.repmgr.comm_ready = True
         
-
     def sendMsg(self, url, repmsg):
+        """
+        Function used for callbacks from the communication framework
+        of the replication manager
+        Sends repmsg to url using HED
+        """
         if not url in self.ahashes.keys():
             self.ahashes[url] = AHashClient(url, ssl_config=self.ssl_config,
                                             print_xml = False)
         ahash = self.ahashes[url]
         tree = XMLTree(from_tree = 
                        ('ahash:processMsg', [
-                           ('ahash:%s'%arg, value) for arg,value in repmsg.items()
+                           ('ahash:%s'%arg, base64.encodestring(value)) for arg,value in repmsg.items()
                            ]))
         log.msg(arc.DEBUG, "sending message to %s"%url)
         msg = ahash.call(tree)
@@ -82,23 +89,20 @@ class ReplicatedAHash(CentralAHash):
 
     def processMsg(self, inpayload):
         """
-        processing ahash msg
+        processing ahash replication message
         """
         log.msg(arc.DEBUG, "processing message...")
         # get the grandchild of the root node, which is the 'changeRequestList'
         request_node = inpayload.Child()
-        control = pickle.loads(str(request_node.Get('control')))
-        record = pickle.loads(str(request_node.Get('record')))
-        eid = pickle.loads(str(request_node.Get('eid')))
-        if eid != None:
-            eid = int(eid)
-        retlsn = pickle.loads(str(request_node.Get('lsn')))
-        sender = pickle.loads(str(request_node.Get('sender')))
-        msgID = int(pickle.loads(str(request_node.Get('msgID'))))
+        control = pickle.loads(base64.decodestring(str(request_node.Get('control'))))
+        record = pickle.loads(base64.decodestring(str(request_node.Get('record'))))
+        eid = pickle.loads(base64.decodestring(str(request_node.Get('eid'))))
+        retlsn = pickle.loads(base64.decodestring(str(request_node.Get('lsn'))))
+        sender = pickle.loads(base64.decodestring(str(request_node.Get('sender'))))
+        msgID = pickle.loads(base64.decodestring(str(request_node.Get('msgID'))))
 
         resp = self.store.repmgr.processMsg(control, record, eid, retlsn, 
                                             sender, msgID)
-
         # prepare the response payload
         out = self.newSOAPPayload()
         # create the 'changeResponse' node
@@ -107,6 +111,7 @@ class ReplicatedAHash(CentralAHash):
         tree = XMLTree(from_tree = ('ahash:success', resp))
         # add the XMLTree to the XMLNode
         tree.add_to_node(response_node)
+        log.msg(arc.DEBUG, "processing message... Finished")
         return out
 
 class ReplicationStore(TransDBStore):
@@ -155,8 +160,20 @@ class ReplicationStore(TransDBStore):
         self.eid = 1
         # and other eid is 2
         other_eid = 2
-        self.my_replica = Replica(self.my_url, self.eid, self.priority)
-        other_replica = Replica(self.other_url, other_eid, 0)
+
+        self.my_replica = {'url'      : self.my_url,
+                           'id'       : self.eid,
+                           'priority' : self.priority,
+                           'sentLsn'  : 0,
+                           'retLsn'   : 0,
+                           'status'   : 'online'}
+        other_replica =   {'url'      : self.other_url,
+                           'id'       : other_eid,
+                           'priority' : 0,
+                           'sentLsn'  : 0,
+                           'retLsn'   : 0,
+                           'status'   : 'online'}
+
         # start replication manager
         self.repmgr = ReplicationManager(ahash_send, self.dbenv, 
                                          self.my_replica, other_replica)
@@ -209,8 +226,8 @@ class ReplicationStore(TransDBStore):
         except:
             log.msg(arc.WARNING, "Bad cache size or no cache size configured, using 10MB")
             self.cachesize = 10*(1024**2)
-        #self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_ONE)
-        self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 5000000)
+        self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_ONE)
+        self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 500000)
         self.dbenv.rep_set_priority(self.priority)
 
 
@@ -229,6 +246,7 @@ class ReplicationStore(TransDBStore):
         ID = 'rephosts' # GUID of the replication host list in the DB
 
         while True:
+            log.msg(arc.DEBUG, ("Nisselue",period))
             # self.site_list is set in event_callback when elected to master
             # and deleted if not elected in the event of election
             try:
@@ -236,38 +254,24 @@ class ReplicationStore(TransDBStore):
                     # get list of all registered client sites
                     site_list = self.repmgr.getSiteList()
                     # if I have come this far I am the Master
-                    masterid = self.my_replica.id
+                    masterid = self.my_replica['id']
                     obj = {}
-                    url = self.my_replica.url
+                    url = self.my_replica['url']
                     obj[('master', "%s:%d"%(url,masterid))] = url
                     # we are only interested in connected clients here
-                    client_list = [(client.url, client.id)
+                    client_list = [(client['url'], client['id'])
                                    for id, client in site_list.items()
-                                   if client.status == 'online']
+                                   if client['status'] == 'online']
                     for (url, id) in client_list:
                         obj[('client', "%s:%d"%(url, id))] = url
                     # store the site list
                     self.set(ID, obj)
+                    log.msg(arc.DEBUG, ("Nisselue",ID,obj))
                 time.sleep(period)
             except:
                 log.msg()
                 time.sleep(period)
 
-class Replica:
-    """
-    class holding info about replica
-    """
-    def __init__(self, url, id, priority):
-        self.url = url
-        self.id = id
-        self.priority = priority
-        self.sentLsn = 0
-        self.retLsn = 0
-        self.status = "online"
-        
-    def __eq__(self, other):
-        return self.url == other.url
-        
 hostMap = {}
 
 FIRST_MESSAGE = 1
@@ -288,17 +292,19 @@ class ReplicationManager:
         global hostMap
         self.hostMap = hostMap
         self.locker.acquire_write()
-        self.hostMap[my_replica.id] = my_replica
-        self.hostMap[other_replica.id] = other_replica
+        self.hostMap[my_replica['id']] = my_replica
+        self.hostMap[other_replica['id']] = other_replica
         self.locker.release_write()
         self.my_replica = my_replica
-        self.eid = my_replica.id
-        self.url = my_replica.url
+        self.eid = my_replica['id']
+        self.url = my_replica['url']
         self.dbenv = dbenv
         # tell dbenv to uset our event callback function
         # to handle various events
         self.dbenv.set_event_notify(self.event_callback)
         self.pool = None
+        self.comm_ready = False
+        self.stop_electing = False
 
     def isMaster(self):
         self.locker.acquire_read()
@@ -327,12 +333,12 @@ class ReplicationManager:
         log.msg(arc.DEBUG, "entering start")
         self.pool = ThreadPool(nthreads)
         # should have a way to know when to start
-        #time.sleep(5)
+        while not self.comm_ready:
+            time.sleep(2)
         # todo: need some threading
         try:
             # send message to say I'm here first
             self.sendFirstMsg()
-            time.sleep(1)
             self.dbenv.rep_set_transport(self.eid, self.repSend)
             self.dbenv.rep_start(db.DB_REP_CLIENT)
             log.msg(arc.DEBUG, ("rep_start called with REP_CLIENT", self.hostMap))
@@ -345,18 +351,18 @@ class ReplicationManager:
     def startElection(self):
         log.msg(arc.DEBUG, "entering startElection")
         role = db.DB_EID_INVALID
-        
+        self.stop_electing = False  
         self.locker.acquire_read()
         num_reps = len(self.hostMap)
         self.locker.release_read()
         votes = num_reps/2 + 1
         
-        while role == db.DB_EID_INVALID:
+        while role == db.DB_EID_INVALID and not self.stop_electing:
             try:
                 self.dbenv.rep_elect(num_reps, votes)
                 # wait one second for election to finish
                 # should be some better way to do this...
-                time.sleep(1)
+                time.sleep(5)
                 role = self.getRole()
                 log.msg(arc.DEBUG, "%s: my role is now %d"%(self.url, role))
                 if self.elected:
@@ -373,7 +379,8 @@ class ReplicationManager:
             # check if role has changed, to avoid too much write blocking
             if self.getRole() != role:
                 self.setRole(role)
-            self.dbenv.rep_start(role)
+            self.dbenv.rep_start(role==db.DB_REP_MASTER and 
+                                 db.DB_REP_MASTER or db.DB_REP_CLIENT)
         except:
             log.msg(arc.ERROR, "Couldn't begin role")
             log.msg()
@@ -388,12 +395,12 @@ class ReplicationManager:
         # if bandwidth and latency is low
         log.msg(arc.DEBUG, "entering send")
         sender = self.my_replica
-        msg = {'control':pickle.dumps(control, protocol=0),
-               'record':pickle.dumps(record, protocol=0),
-               'lsn':pickle.dumps(lsn, protocol=0),
-               'eid':pickle.dumps(eid, protocol=0),
-               'msgID':pickle.dumps(msgID, protocol=0),
-               'sender':pickle.dumps(sender, protocol=0)}
+        msg = {'control':pickle.dumps(control, protocol=2),
+               'record':pickle.dumps(record, protocol=2),
+               'lsn':pickle.dumps(lsn, protocol=2),
+               'eid':pickle.dumps(eid, protocol=2),
+               'msgID':pickle.dumps(msgID, protocol=2),
+               'sender':pickle.dumps(sender, protocol=2)}
 
         retval = 1
         if msgID==FIRST_MESSAGE or msgID==NEWSITE_MESSAGE:
@@ -401,7 +408,7 @@ class ReplicationManager:
             eids = [id for id,rep in self.hostMap.items()]    
         elif eid == db.DB_EID_BROADCAST:
             # send to all we know are online
-            eids = [id for id,rep in self.hostMap.items() if rep.status=="online"]    
+            eids = [id for id,rep in self.hostMap.items() if rep['status']=="online"]    
         else:
             eids = [eid]
             if not self.hostMap.has_key(eid):
@@ -412,7 +419,7 @@ class ReplicationManager:
                 # no need to send to self
                 if id == self.eid:
                     resp = self.processMsg(control, record, id, lsn, sender, msgID)
-                resp = self.ahash_send(self.hostMap[id].url, msg)
+                resp = self.ahash_send(self.hostMap[id]['url'], msg)
                 if str(resp) == "processed":
                     # if at least one msg is sent, we're happy
                     retval = 0
@@ -421,7 +428,8 @@ class ReplicationManager:
                 log.msg(arc.ERROR, "failed to send to %d of %s"%(id,str(eids)))
                 log.msg()
                 self.locker.acquire_write()
-                self.hostMap[id].status = "offline"
+                #self.hostMap[id]['status'] = "offline"
+                self.hostMap.pop(id)
                 self.locker.release_write()
         return retval
     
@@ -430,7 +438,8 @@ class ReplicationManager:
         callback function for dbenv transport
         """
         log.msg(arc.DEBUG, "entering repSend")
-        return self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
+        res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
+        return res
     
     def sendFirstMsg(self):
         log.msg(arc.DEBUG, "entering sendFirstMsg")
@@ -438,7 +447,10 @@ class ReplicationManager:
 
     def sendNewSiteMsg(self, new_replica):
         log.msg(arc.DEBUG, "entering sendNewSiteMsg")
-        return self.send(None, None, new_replica, None, None, None, NEWSITE_MESSAGE)
+        self.locker.acquire_read()
+        hostMap = copy.deepcopy(self.hostMap)
+        self.locker.release_read()
+        return self.send(None, None, hostMap, None, None, None, NEWSITE_MESSAGE)
     
     def processMsg(self, control, record, eid, retlsn, sender, msgID):
         """
@@ -447,38 +459,54 @@ class ReplicationManager:
         """
         log.msg(arc.DEBUG, ("entering processMsg from ", sender))
 
-        if not sender in self.hostMap.values():
+        self.locker.acquire_read()
+        urls = [rep['url'] for id,rep in self.hostMap.items()]
+        self.locker.release_read()
+        if not sender['url'] in urls:
             log.msg(arc.DEBUG, "received from new sender")
             self.locker.acquire_write()
             # really new sender, appending to host map
             newid = len(self.hostMap)+1
-            sender.id = newid
+            sender['id'] = newid
             self.hostMap[newid] = sender
-            self.hostMap[newid].status = "online"
+            self.hostMap[newid]['status'] = "online"
             self.locker.release_write()
             # send sender to everyone
             self.sendNewSiteMsg(sender)
+        if msgID == NEWSITE_MESSAGE:
+            log.msg(arc.DEBUG, "received NEWSITE_MESSAGE, %s"%(str(record)))
+            for rep in record.values():
+                if  not rep['url'] in urls:
+                    self.locker.acquire_write()
+                    # really new sender, appending to host map
+                    newid = len(self.hostMap)+1
+                    rep['id'] = newid
+                    self.hostMap[newid] = rep
+                    self.hostMap[newid]['status'] = "online"
+                    self.locker.release_write()
+            return "processed"
 
         if msgID == FIRST_MESSAGE:
-            if sender.url == self.url:
+            if sender['url'] == self.url:
                 return "processed"
             log.msg(arc.DEBUG, "received FIRST_MESSAGE")
             self.locker.acquire_write()
             try:
-                newid = [id for id,rep in self.hostMap.items() if rep.url==sender.url][0]
+                newid = [id for id,rep in self.hostMap.items() if rep['url']==sender['url']][0]
                 # we know this one from before
-                self.hostMap[newid].status = "online"
+                self.hostMap[newid]['status'] = "online"
             except:
                 log.msg()
                 # really new sender, appending to host map
                 newid = len(self.hostMap)+1
-                sender.id = newid
+                sender['id'] = newid
                 self.hostMap[newid] = sender
-                self.hostMap[newid].status = "online"
+                self.hostMap[newid]['status'] = "online"
             self.locker.release_write()
-            log.msg(arc.DEBUG, ("FIRST_MESSAGE", self.url,  sender.url, self.hostMap))
+            log.msg(arc.DEBUG, ("FIRST_MESSAGE", self.url,  sender['url'], self.hostMap))
             return "processed"
 
+        eid = [id for id,rep in self.hostMap.items() if rep['url']==sender['url']][0]
         try:
             log.msg(arc.DEBUG, "processing message from %d"%eid)
             res, retlsn = self.dbenv.rep_process_message(control, record, eid)
@@ -490,41 +518,44 @@ class ReplicationManager:
         
         if res == db.DB_REP_NEWSITE:
             # assign eid to n_reps, since I have eid 1
-            if sender.url == self.url:
+            if sender['url'] == self.url:
                 return "processed"
             log.msg(arc.DEBUG, "received DB_REP_NEWSITE")
             self.locker.acquire_write()
             try:
-                newid = [id for id,rep in self.hostMap.items() if rep.url==sender.url][0]
+                newid = [id for id,rep in self.hostMap.items() if rep['url']==sender['url']][0]
                 # we know this one from before
-                self.hostMap[newid].status = "online"
+                self.hostMap[newid]['status'] = "online"
             except:
                 log.msg()
                 # really new sender, appending to host map
                 newid = len(self.hostMap)+1
-                sender.id = newid
+                sender['id'] = newid
                 self.hostMap[newid] = sender
-                self.hostMap[newid].status = "online"
+                self.hostMap[newid]['status'] = "online"
             self.locker.release_write()
-            urls = [rep.url for id,rep in self.hostMap.items()]
-            log.msg(arc.DEBUG, ("NEWSITE", self.url,  sender.url, urls))
+            urls = [rep['url'] for id,rep in self.hostMap.items()]
+            log.msg(arc.DEBUG, ("NEWSITE", self.url,  sender['url'], urls))
         elif res == db.DB_REP_HOLDELECTION:
             log.msg(arc.DEBUG, "received DB_REP_HOLDELECTION")
-            self.beginRole(db.DB_REP_CLIENT)
+            self.beginRole(db.DB_EID_INVALID)
+            self.stop_electing = True
             nthreads = self.pool.getThreadCount()
-            self.pool.joinAll(waitForTasks=False, waitForThreads=False)
+            self.pool.joinAll()
             self.pool = ThreadPool(nthreads)
             self.pool.queueTask(self.startElection)
         elif res == db.DB_REP_ISPERM:
             log.msg(arc.DEBUG, "REP_ISPERM returned for LSN %s"%str(retlsn))
         elif res == db.DB_REP_NOTPERM:
             log.msg(arc.DEBUG, "REP_NOTPERM returned for LSN %s"%str(retlsn))
+            self.dbenv.log_flush()
         elif res == db.DB_REP_DUPMASTER:
             log.msg(arc.DEBUG, "REP_DUPMASTER received, starting new election")
             # yield to revolution, switch to client
-            self.beginRole(db.DB_REP_CLIENT)
+            self.beginRole(db.DB_EID_INVALID)
+            self.stop_electing = True
             nthreads = self.pool.getThreadCount()
-            self.pool.joinAll(waitForTasks=False, waitForThreads=False)
+            self.pool.joinAll()
             self.pool = ThreadPool(nthreads)
             self.pool.queueTask(self.startElection)
         elif res == db.DB_REP_IGNORE:
@@ -548,18 +579,15 @@ class ReplicationManager:
         try:
             if which == db.DB_EVENT_REP_MASTER:
                 log.msg(arc.DEBUG, "I am now a master")
-                log.msg(arc.DEBUG, "received DB_REP_MASTER")
-                self.beginRole(db.DB_REP_MASTER)
+                log.msg(arc.DEBUG, "received DB_EVENT_REP_MASTER")
+                #self.beginRole(db.DB_REP_MASTER)
+                self.dbenv.rep_start(db.DB_REP_MASTER)
                 log.msg(arc.DEBUG, "New master is %d"%eid)
             elif which == db.DB_EVENT_REP_CLIENT:
                 log.msg(arc.DEBUG, "I am now a client")
                 self.beginRole(db.DB_REP_CLIENT)
             elif which == db.DB_EVENT_REP_STARTUPDONE:
-                log.msg(arc.DEBUG, "Replication startup done")
-                self.locker.acquire_write()
-                readyid = [id for id,rep in self.hostMap.items() if rep==sender][0]
-                self.hostMap[readyid].status = 'online'
-                self.locker.release_write()
+                log.msg(arc.DEBUG, ("Replication startup done",which,info))
             elif which == db.DB_EVENT_REP_PERM_FAILED:
                 #log.msg(arc.DEBUG, "Getting permission failed")
                 pass
