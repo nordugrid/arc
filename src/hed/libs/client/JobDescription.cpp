@@ -385,7 +385,8 @@ namespace Arc {
             if ( sm.toLowerCase( (*it).typeName ) == "xrsl" ) {
 		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as XRSL");
                 XRSLParser parser;
-                if ( parser.parse( *innerRepresentation, sourceString ) ) {
+                std::string parse_sourceString = sm.trim(sourceString);
+                if ( parser.parse( *innerRepresentation, parse_sourceString ) ) {
                     sourceFormat = "xrsl";
                     break;
                 }
@@ -2534,7 +2535,7 @@ namespace Arc {
                     } else actual_argument += next_char;
                 } else {
                     actual_argument += next_char;
-                    if ( pos == xrsl_text.size()-1 ) return true;
+                    if ( pos == xrsl_text.size()-1 ) return false;
                 }
             }
         }
