@@ -980,11 +980,15 @@ case "${host}" in
     mkdir -p ${PWD}/mingwlib
     cp ${SYSTEMROOT}/system32/ole32.dll ${PWD}/mingwlib/libole32.dll
     cp ${SYSTEMROOT}/system32/ws2_32.dll ${PWD}/mingwlib/libws2_32.dll
+    AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
     ;;
   *solaris*)
     SOCKET_LIBS="-lsocket"
     CFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS"
     CXXFLAGS="$CXXFLAGS -D_POSIX_PTHREAD_SEMANTICS"
+    ;;
+  *)
+    AC_DEFINE(HAVE_GETDOMAINNAME,,[let's suppose the unix-alike (except solaris) has gethostname method])
     ;;
 esac
 AC_SUBST(EXTRA_LIBS)
