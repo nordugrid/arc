@@ -24,14 +24,14 @@ Sample configuration:
 import arc
 import traceback
 import time
-import pickle
 import threading
 import copy
 import base64
+import zlib
 
 from arcom.threadpool import ThreadPool, ReadWriteLock
 from arcom.service import ahash_uri, node_to_data, get_child_nodes, parse_node, get_data_node
-from storage.common import create_metadata
+from storage.common import create_metadata, ahash_list_guid
 from storage.xmltree import XMLTree 
 from storage.ahash.ahash import CentralAHash
 from storage.client import AHashClient
@@ -72,11 +72,12 @@ class ReplicatedAHash(CentralAHash):
             self.ahashes[url] = AHashClient(url, ssl_config=self.ssl_config,
                                             print_xml = False)
         ahash = self.ahashes[url]
+        repmsg = base64.encodestring(str(repmsg))
         tree = XMLTree(from_tree = 
                        ('ahash:processMsg', [
-                           ('ahash:%s'%arg, base64.encodestring(value)) for arg,value in repmsg.items()
+                           ('ahash:msg', repmsg)
                            ]))
-        log.msg(arc.DEBUG, "sending message to %s"%url)
+        log.msg(arc.DEBUG, "sending message of length %d to %s"%(len(repmsg),url))
         msg = ahash.call(tree)
         log.msg(arc.DEBUG, "sendt message")
         xml = arc.XMLNode(msg)
@@ -94,12 +95,13 @@ class ReplicatedAHash(CentralAHash):
         log.msg(arc.DEBUG, "processing message...")
         # get the grandchild of the root node, which is the 'changeRequestList'
         request_node = inpayload.Child()
-        control = pickle.loads(base64.decodestring(str(request_node.Get('control'))))
-        record = pickle.loads(base64.decodestring(str(request_node.Get('record'))))
-        eid = pickle.loads(base64.decodestring(str(request_node.Get('eid'))))
-        retlsn = pickle.loads(base64.decodestring(str(request_node.Get('lsn'))))
-        sender = pickle.loads(base64.decodestring(str(request_node.Get('sender'))))
-        msgID = pickle.loads(base64.decodestring(str(request_node.Get('msgID'))))
+        msg = eval(base64.decodestring(str(request_node.Get('msg'))))
+        control = msg['control']
+        record = msg['record']
+        eid = msg['eid']
+        retlsn = msg['lsn']
+        sender = msg['sender']
+        msgID = msg['msgID']
 
         resp = self.store.repmgr.processMsg(control, record, eid, retlsn, 
                                             sender, msgID)
@@ -163,15 +165,9 @@ class ReplicationStore(TransDBStore):
 
         self.my_replica = {'url'      : self.my_url,
                            'id'       : self.eid,
-                           'priority' : self.priority,
-                           'sentLsn'  : 0,
-                           'retLsn'   : 0,
                            'status'   : 'online'}
         other_replica =   {'url'      : self.other_url,
                            'id'       : other_eid,
-                           'priority' : 0,
-                           'sentLsn'  : 0,
-                           'retLsn'   : 0,
                            'status'   : 'online'}
 
         # start replication manager
@@ -179,7 +175,7 @@ class ReplicationStore(TransDBStore):
                                          self.my_replica, other_replica)
         try:
             # start repmgr with 10 threads and always do election of master
-            threading.Thread(target = self.repmgr.start, args=[10, db.DB_REP_ELECTION]).start()
+            threading.Thread(target = self.repmgr.start, args=[1, db.DB_REP_ELECTION]).start()
         except:
             log.msg()
             log.msg(arc.ERROR, "Couldn't start replication manager.")
@@ -187,6 +183,7 @@ class ReplicationStore(TransDBStore):
 
         # thread for maintaining host list
         threading.Thread(target = self.checkingThread, args=[self.check_period]).start()
+
 
     def __configureReplication(self, storecfg):
         self.my_url = str(storecfg.Get('MyURL'))
@@ -243,10 +240,8 @@ class ReplicationStore(TransDBStore):
     def checkingThread(self, period):
         time.sleep(10)
 
-        ID = 'rephosts' # GUID of the replication host list in the DB
-
         while True:
-            log.msg(arc.DEBUG, ("Nisselue",period))
+            log.msg(arc.DEBUG, "checkingThread slept %d s"%period)
             # self.site_list is set in event_callback when elected to master
             # and deleted if not elected in the event of election
             try:
@@ -265,8 +260,8 @@ class ReplicationStore(TransDBStore):
                     for (url, id) in client_list:
                         obj[('client', "%s:%d"%(url, id))] = url
                     # store the site list
-                    self.set(ID, obj)
-                    log.msg(arc.DEBUG, ("Nisselue",ID,obj))
+                    self.set(ahash_list_guid, obj)
+                    log.msg(arc.DEBUG, "wrote ahash list %s"%str(obj))
                 time.sleep(period)
             except:
                 log.msg()
@@ -287,6 +282,7 @@ class ReplicationManager:
         # no master is found yet
         self.role = db.DB_EID_INVALID
         self.elected = False
+        self.stop_electing = False
         self.ahash_send = ahash_send
         self.locker = ReadWriteLock()
         global hostMap
@@ -304,7 +300,6 @@ class ReplicationManager:
         self.dbenv.set_event_notify(self.event_callback)
         self.pool = None
         self.comm_ready = False
-        self.stop_electing = False
 
     def isMaster(self):
         self.locker.acquire_read()
@@ -332,7 +327,6 @@ class ReplicationManager:
     def start(self, nthreads, flags):
         log.msg(arc.DEBUG, "entering start")
         self.pool = ThreadPool(nthreads)
-        # should have a way to know when to start
         while not self.comm_ready:
             time.sleep(2)
         # todo: need some threading
@@ -352,17 +346,17 @@ class ReplicationManager:
         log.msg(arc.DEBUG, "entering startElection")
         role = db.DB_EID_INVALID
         self.stop_electing = False  
-        self.locker.acquire_read()
-        num_reps = len(self.hostMap)
-        self.locker.release_read()
-        votes = num_reps/2 + 1
         
         while role == db.DB_EID_INVALID and not self.stop_electing:
             try:
+                self.locker.acquire_read()
+                num_reps = len(self.hostMap)
+                self.locker.release_read()
+                votes = num_reps/2 + 1
                 self.dbenv.rep_elect(num_reps, votes)
                 # wait one second for election to finish
                 # should be some better way to do this...
-                time.sleep(5)
+                time.sleep(2)
                 role = self.getRole()
                 log.msg(arc.DEBUG, "%s: my role is now %d"%(self.url, role))
                 if self.elected:
@@ -372,6 +366,7 @@ class ReplicationManager:
                 log.msg(arc.ERROR, "Couldn't run election")
                 log.msg(arc.DEBUG, "num_reps is %d, votes is %d"%(num_reps,votes))
                 log.msg()
+                time.sleep(2)
             log.msg(arc.DEBUG, "%s tried election with %d replicas"%(self.url, num_reps))
 
     def beginRole(self, role):
@@ -395,30 +390,29 @@ class ReplicationManager:
         # if bandwidth and latency is low
         log.msg(arc.DEBUG, "entering send")
         sender = self.my_replica
-        msg = {'control':pickle.dumps(control, protocol=2),
-               'record':pickle.dumps(record, protocol=2),
-               'lsn':pickle.dumps(lsn, protocol=2),
-               'eid':pickle.dumps(eid, protocol=2),
-               'msgID':pickle.dumps(msgID, protocol=2),
-               'sender':pickle.dumps(sender, protocol=2)}
-
+        msg = {'control':control,
+               'record':record,
+               'lsn':lsn,
+               'eid':eid,
+               'msgID':msgID,
+               'sender':sender}
+        
         retval = 1
         if msgID==FIRST_MESSAGE or msgID==NEWSITE_MESSAGE:
             # send to all we know about
-            eids = [id for id,rep in self.hostMap.items()]    
+            eids = [id for id,rep in self.hostMap.items() if id != self.eid]    
         elif eid == db.DB_EID_BROADCAST:
             # send to all we know are online
-            eids = [id for id,rep in self.hostMap.items() if rep['status']=="online"]    
+            eids = [id for id,rep in self.hostMap.items() if rep['status']=="online" and id != self.eid]    
         else:
             eids = [eid]
             if not self.hostMap.has_key(eid):
                 return retval
         for id in eids:
             try:
-                msg['eid'] = pickle.dumps(id)
+                msg['eid'] = id
                 # no need to send to self
-                if id == self.eid:
-                    resp = self.processMsg(control, record, id, lsn, sender, msgID)
+
                 resp = self.ahash_send(self.hostMap[id]['url'], msg)
                 if str(resp) == "processed":
                     # if at least one msg is sent, we're happy
@@ -429,7 +423,7 @@ class ReplicationManager:
                 log.msg()
                 self.locker.acquire_write()
                 #self.hostMap[id]['status'] = "offline"
-                self.hostMap.pop(id)
+                #self.hostMap.pop(id)
                 self.locker.release_write()
         return retval
     
@@ -548,7 +542,6 @@ class ReplicationManager:
             log.msg(arc.DEBUG, "REP_ISPERM returned for LSN %s"%str(retlsn))
         elif res == db.DB_REP_NOTPERM:
             log.msg(arc.DEBUG, "REP_NOTPERM returned for LSN %s"%str(retlsn))
-            self.dbenv.log_flush()
         elif res == db.DB_REP_DUPMASTER:
             log.msg(arc.DEBUG, "REP_DUPMASTER received, starting new election")
             # yield to revolution, switch to client
@@ -560,6 +553,7 @@ class ReplicationManager:
             self.pool.queueTask(self.startElection)
         elif res == db.DB_REP_IGNORE:
             log.msg(arc.DEBUG, "REP_IGNORE received")
+            log.msg(arc.ERROR, (control, record, eid, retlsn, sender, msgID))
         elif res == db.DB_REP_JOIN_FAILURE:
             log.msg(arc.ERROR, "JOIN_FAILIURE received")
         else:
@@ -575,32 +569,34 @@ class ReplicationManager:
         app = dbenv.get_private()
         """
 
+        log.msg("entering event_callback")
         info = None
         try:
             if which == db.DB_EVENT_REP_MASTER:
                 log.msg(arc.DEBUG, "I am now a master")
                 log.msg(arc.DEBUG, "received DB_EVENT_REP_MASTER")
-                #self.beginRole(db.DB_REP_MASTER)
-                self.dbenv.rep_start(db.DB_REP_MASTER)
-                log.msg(arc.DEBUG, "New master is %d"%eid)
+                self.setRole(db.DB_REP_MASTER)
             elif which == db.DB_EVENT_REP_CLIENT:
                 log.msg(arc.DEBUG, "I am now a client")
                 self.beginRole(db.DB_REP_CLIENT)
             elif which == db.DB_EVENT_REP_STARTUPDONE:
                 log.msg(arc.DEBUG, ("Replication startup done",which,info))
+                # I am now online, let others know about it
+                self.sendFirstMsg()
             elif which == db.DB_EVENT_REP_PERM_FAILED:
-                #log.msg(arc.DEBUG, "Getting permission failed")
-                pass
+                log.msg(arc.DEBUG, "Getting permission failed")
+                self.dbenv.log_flush()
             elif which == db.DB_EVENT_WRITE_FAILED:
                 log.msg(arc.DEBUG, "Write failed")
             elif which == db.DB_EVENT_REP_NEWMASTER:
                 # lost the election, delete site_list
                 log.msg(arc.DEBUG, "New master elected")
-                if hasattr(self, "site_list"):
-                    del self.site_list
+                log.msg(arc.DEBUG, (which, info))
+                self.beginRole(db.DB_REP_CLIENT)
             elif which == db.DB_EVENT_REP_ELECTED:
                 log.msg(arc.DEBUG, "I won the election: I am the MASTER")
                 self.elected = True
+                #self.beginRole(db.DB_REP_MASTER)
             elif which == db.DB_EVENT_PANIC:
                 log.msg(arc.ERROR, "Oops! Internal DB panic!")
                 raise db.DBRunRecoveryError, "Please run recovery."
