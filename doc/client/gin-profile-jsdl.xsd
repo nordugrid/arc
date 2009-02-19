@@ -288,7 +288,6 @@
 
    	<xsd:complexType name="Meta_Type">
 		<xsd:sequence>
-			<xsd:element name="OptionalElement" type="IsOptionalString_Type" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="Author" type="IsOptionalString_Type" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="DocumentExpiration" type="IsOptionalDateTime_Type" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="Rank" type="IsOptionalString_Type" minOccurs="0" maxOccurs="1"/>
