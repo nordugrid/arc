@@ -16,6 +16,24 @@
 #include <arc/credential/VOMSUtil.h>
 #include "listfunc.h"
 
+#ifdef WIN32
+#include <windows.h>
+int gethostname_mingw (char *, size_t);
+int gethostname_mingw (char *name, size_t len) {
+  DWORD dlen = (len <= (DWORD)~0 ? len : (DWORD)~0);
+  return (GetComputerNameEx(ComputerNameDnsHostname, name, &dlen) ? 0 : -1);
+}
+#define gethostname gethostname_mingw
+
+int getdomainname_mingw (char *, size_t);
+int getdomainname_mingw (char *name, size_t len) {
+  DWORD dlen = (len <= (DWORD)~0 ? len : (DWORD)~0);
+  return (GetComputerNameEx(ComputerNameDnsFullyQualified, name, &dlen) ? 0 : -1);
+}
+#define getdomainname getdomainname_mingw
+#endif
+
+
 using namespace ArcCredential;
 
 namespace Arc {
