@@ -60,7 +60,7 @@ class TransDBStore(BaseStore):
 
     def __configureDB(self, storecfg):
         try:
-            self.dbenv_flags = int(storecfg.Get("DBEnvFlags"))
+            self.dbenv_flags = int(str(storecfg.Get("DBEnvFlags")))
         except:
             self.dbenv_flags = db.DB_CREATE | \
                                db.DB_RECOVER | \
@@ -78,6 +78,11 @@ class TransDBStore(BaseStore):
         except:
             self.cachesize = 10 * 1024 * 1024
             log.msg(arc.WARNING, "couldn't find CacheSize, using %d as default"%self.cachesize)
+        try:
+            self.cachesize = int(str(storecfg.Get('SleepTime')))
+        except:
+            self.sleeptime = 2
+            log.msg(arc.WARNING, "couldn't find SleepTime, using %d as default"%self.cachesize)
 
     def __err(self):
         """
