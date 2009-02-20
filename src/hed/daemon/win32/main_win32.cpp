@@ -9,7 +9,7 @@
 #include <fstream>
 #include <signal.h>
 #include <arc/ArcConfig.h>
-#include <arc/messge/MCCLoader.h>
+#include <arc/message/MCCLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include "../options.h"
