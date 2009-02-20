@@ -152,10 +152,16 @@ class ThreadPoolThread(threading.Thread):
             if cmd is None:
                 sleep(ThreadPoolThread.threadSleepTime)
             elif callback is None:
-                cmd(args)
+                if args is None:
+                    cmd()
+                else:
+                    cmd(args)
             else:
-                callback(cmd(args))
-    
+                if args is None:
+                    callback(cmd()) 
+                else:
+                    callback(cmd(args))
+                    
     def goAway(self):
 
         """ Exit the run loop next time through."""
