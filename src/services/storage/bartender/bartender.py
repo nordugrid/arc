@@ -5,9 +5,10 @@ import random
 import time
 import traceback
 import os
-from arcom import get_child_nodes
+import base64
+from arcom import import_class_from_string, get_child_nodes
 from arcom.service import librarian_uri, bartender_uri, gateway_uri, true, parse_node, create_response, node_to_data
-from storage.bartender.gateway import gateway
+#from storage.bartender.gateway import gateway
 from arcom.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient, GatewayClient
 from storage.common import parse_metadata, create_metadata, splitLN, remove_trailing_slash, global_root_guid, serialize_ids, deserialize_ids, sestore_guid, make_decision_metadata
@@ -26,7 +27,15 @@ class Bartender:
         librarian is LibrarianClient object which can be used to access a Librarian service
         """
         self.librarian = librarian
-        self.gateway = gateway.Gateway(cfg)
+        gatewayclass = str(cfg.Get('GatewayClass'))
+        self.gateway = None
+        if gatewayclass :
+            cl = import_class_from_string(gatewayclass) 
+            gatewaycfg = cfg.Get('GatewayCfg')
+            self.gateway = cl(gatewaycfg)
+        else:
+            log.msg(arc.INFO, 'cannot import %s. Access third party store we need gateway.', gatewayclass)
+        
         self.ssl_config = ssl_config
         self.cfg = cfg
     def stat(self, auth, requests):
@@ -75,10 +84,10 @@ class Bartender:
         cat_mod_requests = {}
         check_again = []
         for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
-            #print metadata
             decision = make_decision_metadata(metadata, auth_request)
             if decision != arc.DECISION_PERMIT:
                 response[requestID] = 'denied'
+             
             elif wasComplete and metadata[('entry', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
                 # remove the file
                 cat_rem_requests[requestID] = GUID
@@ -89,6 +98,10 @@ class Bartender:
                     cat_mod_requests[requestID + '-' + parent] = (parent_GUID, 'unset', 'entries', child_name, GUID)
                     cat_mod_requests[requestID + '-' + parent + '-closed?'] = (parent_GUID, 'setifvalue=yes', 'states', 'closed', 'broken')
                 response[requestID] = 'deleted'
+            elif metadata.get(('entry', 'type'), '') == 'mountpoint' :
+                url = metadata[('mountpoint', 'externalURL')]
+                #print LN
+                #res = self._externalStore(auth ,url+'/'+LN,'delFile')    
             else: # if it was not complete, then we didn't find the entry, so metadata will be empty
                 response[requestID] = 'nosuchLN'
         #print cat_rem_requests
@@ -179,14 +192,26 @@ class Bartender:
     def _externalStore(self,auth, url, flag=''):
         """ This method calles the gateway backend class to get/check the full URL of the externally stored file"""
         response = {}
-        if flag == 'list':      
-            response = self.gateway.list(auth,url,flag)
-            #print 'response'   
-            #print response     
-        elif flag == 'getFile':
-            print url
-            response = self.gateway.get(auth,url,flag)
+        if self.gateway != None:
+            if flag == 'list':      
+                response = self.gateway.list(auth,url,flag)
+                #print 'response'   
+                #print response     
+            elif flag == 'getFile':
+                #print url
+                response = self.gateway.get(auth,url,flag)
+            elif flag == 'delFile':
+                response = self.gateway.remove(auth,url,flag)
+            elif flag == 'putFile': 
+                 response = self.gateway.put(auth,url,flag)
+        else:
+            if flag == 'list':
+                response[url]={'list':'','status':'gateway is not configured. check service.xml','protocol':''}            
+            else:
+                response[url]={'turl':'','status':'gateway is not configured. check service.xml','protocol':''}
         return response
+        
+
 
     def getFile(self, auth, requests):
         """ Get files from the storage.
@@ -414,12 +439,8 @@ class Bartender:
                     # if the traversing stopped at a mount point:
                     if metadata.get(('entry','type'), '') == 'mountpoint':
                         url = metadata[('mountpoint','externalURL')] + '/' + restLN                
-                        success = 'done'
-                        if url[:6] == 'gsiftp':
-                            protocol = 'gridftp'
-                        elif url[:3] == 'srm':
-                            protocol = 'srm'  
-                        response[rID] = (success, url, protocol)
+                        res = self._externalStore(auth, url, 'putFile') 
+                        response[rID] = (res[url]['status'],res[url]['turl'],res[url]['protocol']) 
                         return response    
                     if wasComplete: # this means the LN already exists, so we couldn't put a new file there
                         success = 'LN exists'
@@ -652,9 +673,11 @@ class Bartender:
                         entries = {}
                     elif type == 'mountpoint':
                         status = 'mountpointfound'
-                        res = self._externalStore(auth, metadata[('mountpoint', 'externalURL')], 'list')
+                        url = metadata[('mountpoint', 'externalURL')]
+                        res = self._externalStore(auth, url, 'list')
                         print res
-                        entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, (list, stat)  in res.items()])
+                        entries = dict([(url, (type, {('mountpoint','status'):res[url]['status'],('external','list'):res[url]['list']})) ]) 
+                        #entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, list, stat  in res.items()])
                     else: #if it is not a file, it must be a collection (currently there is no other type)
                         status = 'found'
                         # get all the properties and values from the 'entries' metadata section of the collection
@@ -666,18 +689,19 @@ class Bartender:
                         # create a dictionary with the name of the entry as key and (GUID, metadata) as value
                         entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
             elif metadata.get(('entry', 'type'), '') == 'mountpoint':
+                url = metadata[('mountpoint', 'externalURL')]+'/'+restLN
                 type = metadata.get(('entry', 'type'), '') 
                 status = 'mountpointfound'
-                res = self._externalStore(auth ,metadata[('mountpoint', 'externalURL')]+'/'+restLN, 'list')
+                res = self._externalStore(auth ,url, 'list')
                 print res
-                for url,(list,stat) in res.items():
-                    print stat 
-                    if stat == 'failed':
-                        status = 'not found'
-                        entries = {}
-                    else:       
-                        entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, (list, stat)  in res.items()])
- 
+                #for url,(list,stat) in res.items():
+                print stat 
+                if stat == 'failed':
+                    status = 'not found'
+                    entries = {}
+                else:       
+                    #entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, (list, stat)  in res.items()])
+                    entries = dict([(url, (type, {('mountpoint','status'):res[url]['status'],('external','list'):res[url]['list']})) ])
             else:
                 entries = {}
                 status = 'not found'
@@ -821,15 +845,8 @@ class BartenderService(Service):
 
     def __init__(self, cfg):
         self.service_name = 'Bartender'
-        # names of provided methods
-#<<<<<<< .mine
-        #request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'DelegateCredentialsInit', 'UpdateCredentials' ]
-        # call the Service's constructor, 'Bartender' is the human-readable name of the service
-        # request_names is the list of the names of the provided methods
-#=======
         #bar_request_names is the list of the names of the provided methods
         bar_request_names = ['stat','makeMountpoint','unmakeMountpoint', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify', 'unlink', 'removeCredentials']
-#>>>>>>> .r11747
         # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
         bar_request_type = {'request_names' : bar_request_names,
             'namespace_prefix': 'bar', 'namespace_uri': bartender_uri} 
@@ -851,7 +868,6 @@ class BartenderService(Service):
         # create a LibrarianClient from the URL
         librarian = LibrarianClient(librarian_url, ssl_config = self.ssl_config)
         self.bartender = Bartender(librarian, self.ssl_config, cfg)
-        self.delegSOAP = arc.DelegationContainerSOAP()
         
     def stat(self, inpayload):
         # incoming SOAP message example:
@@ -1348,14 +1364,18 @@ class BartenderService(Service):
             response, self._new_soap_payload(), single = True)
 
     def DelegateCredentialsInit(self,inpayload):
-        	
-        print inpayload.GetXML()
-	# Stupid hack for temprary fix for Delegation Credentials(WE NEED TO FIX IT)  
+        
         ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
         outpayload = arc.PayloadSOAP(ns)
-        self.delegSOAP.DelegateCredentialsInit(inpayload,outpayload)
-	print "\n outpayload"
-        print outpayload.GetXML()
+        if self.proxy_store:
+	
+            print inpayload.GetXML()
+	    # Delegation Credentials(NEED TO FIX IT)  
+            self.delegSOAP = arc.DelegationContainerSOAP()
+            self.delegSOAP.DelegateCredentialsInit(inpayload,outpayload)
+	    print "\n outpayload"
+            print outpayload.GetXML()
+            
         return outpayload
         
     def UpdateCredentials(self,inpayload):
@@ -1368,7 +1388,7 @@ class BartenderService(Service):
         print credAndid[1]
         if (os.path.isdir(self.proxy_store)):
             print "ProxyStore: "+self.proxy_store 
-            filePath = self.proxy_store+'/'+str(abs(hash(credAndid[2])))+'.proxy'
+            filePath = self.proxy_store+'/'+base64.b64encode(inpayload.auth.get_identity())+'.proxy'
             proxyfile = open(filePath, 'w') 
             proxyfile.write(credAndid[1])
 	    proxyfile.close()
@@ -1383,21 +1403,25 @@ class BartenderService(Service):
         return outpayload
     def removeCredentials(self, inpayload):
         
-        print 'ID: '+inpayload.auth.get_identity()
         response = {}
-        message = ''
-        if (os.path.isdir(self.proxy_store)):
-            print "ProxyStore: "+self.proxy_store
-            filePath = self.proxy_store+'/'+str(abs(hash(inpayload.auth.get_identity())))+'.proxy'
-            if (os.path.isfile(filePath)):    
-                os.system('rm '+filePath)
-                message = 'Credential removed successfully'
-                status = 'successful' 
+        if self.proxy_store:
+            print 'ID: '+inpayload.auth.get_identity()
+            message = ''
+            if (os.path.isdir(self.proxy_store)):
+                print "ProxyStore: "+self.proxy_store
+                filePath = self.proxy_store+'/'+base64.b64encode(inpayload.auth.get_identity())+'.proxy'
+                if (os.path.isfile(filePath)):    
+                    os.system('rm '+filePath)
+                    message = 'Credential removed successfully'
+                    status = 'successful' 
+                else:
+                    message =  'cannot access proxy file: '+filePath
+                    status = 'failed'
             else:
-                message =  'cannot access proxy file: '+filePath
+                message = 'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>'
                 status = 'failed'
-        else:
-            message = 'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>'
+        else: 
+            message = 'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>'                
             status = 'failed'
         print message
         response['message'] = message
