@@ -52,11 +52,13 @@ class CentralAHash:
         storecfg = cfg.Get('StoreCfg')
 
         try:
-            cl = import_class_from_string(storeclass)
+            if not hasattr(self, "store"):
+                cl = import_class_from_string(storeclass)
         except:
             log.msg(arc.ERROR, 'Error importing', storeclass)
             raise Exception, 'A-Hash cannot run without a store.'
-        self.store = cl(storecfg)
+        if not hasattr(self, "store"):
+            self.store = cl(storecfg)
 
     def get(self, ids, neededMetadata = []):
         """ Gets all data of the given IDs.
@@ -228,6 +230,7 @@ class AHashService(Service):
                 request_names.append(name)
         # call the Service's constructor
         Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'ahash', 'namespace_uri': ahash_uri}], cfg)
+        self.ahash.ns = self.ns
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
