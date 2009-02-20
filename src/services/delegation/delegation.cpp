@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <sys/types.h>
-#include <pwd.h>
 
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
