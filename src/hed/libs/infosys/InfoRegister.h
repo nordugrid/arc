@@ -89,7 +89,7 @@ class InfoRegistrar {
         operator bool(void) { return (bool)url_; };
         bool operator!(void) { return !url_; };
         /// Performs registartion in a loop.
-        /** Never exists unless there is a critical error or
+        /** Never exits unless there is a critical error or
            requested by destructor. */
         void registration(void);
         /// Adds new service to list of handled services.
