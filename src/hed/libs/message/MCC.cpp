@@ -96,9 +96,10 @@ namespace Arc {
 	      cfg.NewChild("Plugins").NewChild("Name") = "mcc" + name;
 	    }
 	  }
-          //Since the security handler could also be used by mcc like tls and soap,
-          //putting the libarcpdc here. Here we suppose all of the sec handlers are
-          //put in libarcpdp
+          //Since the security handler could also be used by mcc like 
+          // tls and soap, putting the libarcpdc here. Here we suppose 
+          // all of the sec handlers are put in libarcpdp
+          // TODO: Rewrite it to behave in generic way.
           if ((*file).substr(0, 9) == "libarcpdc") {
             cfg.NewChild("Plugins").NewChild("Name") = "arcpdc";
           }
@@ -107,6 +108,18 @@ namespace Arc {
       catch (Glib::FileError) {}
     }
     return mm;
+  }
+
+  SecHandlerConfig::SecHandlerConfig(XMLNode cfg) {
+    cfg.New(cfg_);
+    NS ns("cfg","http://www.nordugrid.org/schemas/ArcConfig/2007");
+    cfg_.Namespaces(ns);
+    cfg_.Name("cfg:SecHandler");
+  }
+
+  XMLNode SecHandlerConfig::MakeConfig(XMLNode cfg) const {
+    cfg.NewChild(cfg_);
+    return cfg;
   }
 
 } // namespace Arc

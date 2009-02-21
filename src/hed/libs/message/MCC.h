@@ -115,6 +115,15 @@ namespace Arc {
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 
+  class SecHandlerConfig {
+  private:
+    XMLNode cfg_;
+  public:
+    SecHandlerConfig(XMLNode cfg);
+    virtual ~SecHandlerConfig() {}
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+
   #define MCCPluginKind ("HED:MCC")
 
   class ChainContext;
