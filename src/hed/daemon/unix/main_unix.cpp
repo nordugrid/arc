@@ -23,7 +23,7 @@
 Arc::Daemon *main_daemon;
 Arc::Config config;
 Arc::MCCLoader *loader;
-Arc::Logger& logger=Arc::Logger::rootLogger;
+Arc::Logger& logger = Arc::Logger::rootLogger;
 
 static void shutdown(int)
 {
@@ -58,17 +58,23 @@ static std::string init_logger(Arc::Config& cfg)
 {   
     /* setup root logger */
     Arc::XMLNode log = cfg["Server"]["Logger"];
+    Arc::LogStream* sd = NULL; 
     std::string log_file = (std::string)log;
     std::string str = (std::string)log.Attribute("level");
-    Arc::LogLevel level = Arc::string_to_level(str);
-    Arc::Logger::rootLogger.setThreshold(level); 
-    std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::out | std::fstream::app);
-    if(!(*dest)) {
-      std::cerr<<"Failed to open log file: "<<log_file<<std::endl;
-      _exit(1);
+    if(!str.empty()) {
+      Arc::LogLevel level = Arc::string_to_level(str);
+      Arc::Logger::rootLogger.setThreshold(level); 
     }
-    Arc::LogStream* sd = new Arc::LogStream(*dest); 
-    Arc::Logger::rootLogger.addDestination(*sd);
+    if(!log_file.empty()) {
+      std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::out | std::fstream::app);
+      if(!(*dest)) {
+        logger.msg(Arc::ERROR,"Failed to open log file: %s",log_file);
+        _exit(1);
+      }
+      sd = new Arc::LogStream(*dest); 
+    }
+    Arc::Logger::rootLogger.removeDestinations();
+    if(sd) Arc::Logger::rootLogger.addDestination(*sd);
     if ((bool)cfg["Server"]["Foreground"]) {
       logger.msg(Arc::INFO, "Start foreground");
       Arc::LogStream *err = new Arc::LogStream(std::cerr);
@@ -79,9 +85,12 @@ static std::string init_logger(Arc::Config& cfg)
 
 int main(int argc, char **argv)
 {
-    // ignore some signal
+    // Ignore some signals
     signal(SIGTTOU,SIG_IGN);
     signal(SIGPIPE,SIG_IGN);
+    // Temporary stderr destination for error messages
+    Arc::LogStream logcerr(std::cerr);
+    Arc::Logger::getRootLogger().addDestination(logcerr);
     /* Create options parser */
     Arc::ServerOptions options;
 
@@ -93,11 +102,11 @@ int main(int argc, char **argv)
             /* Load and parse config file */
             config.parse(options.config_file.c_str());
             if(!config) {
-	      logger.msg(Arc::ERROR, "Failed to load service configuration");
+	      logger.msg(Arc::ERROR, "Failed to load service configuration from file %s",options.config_file);
 	      exit(1);
             };
             if(!MatchXMLName(config,"ArcConfig")) {
-              logger.msg(Arc::ERROR, "Configuration root element is not ArcConfig");
+              logger.msg(Arc::ERROR, "Configuration root element is not <ArcConfig>");
 	      exit(1);
             }
 
