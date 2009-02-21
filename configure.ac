@@ -783,6 +783,35 @@ AC_CHECK_FUNCS(globus_ftp_client_handleattr_set_gridftp2)
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
+globus_openssl_detected=
+PKG_CHECK_MODULES(GLOBUS_OPENSSL, [globus-openssl], [
+GLOBUS_OPENSSL_VERSION=`$PKG_CONFIG --modversion globus-openssl`], [
+GPT_PKG(globus_openssl)
+])
+if test ! "x$GLOBUS_OPENSSL_LIBS" = "x" ; then
+  globus_openssl_detected=`echo "$GLOBUS_OPENSSL_LIBS" | grep "lssl_$GPT_FLAVOR"`
+  if test ! "x$globus_openssl_detected" = "x" ; then
+    globus_openssl_detected="yes"
+  fi
+fi
+if test "x$globus_openssl_detected" = "xyes" ; then
+AC_MSG_RESULT([
+Globus own OpenSSL library detected.
+In order to avoid runtime conflicts following components will be disabled:
+RLS DMC,
+GridFTP DMC,
+SRM DMC,
+GSI MCC.
+To enable these components use Globus compiled for system OpenSSL.
+])
+GLOBUS_RLS_CLIENT_VERSION=
+GLOBUS_FTP_CLIENT_VERSION=
+GLOBUS_FTP_CONTROL_VERSION=
+GLOBUS_IO_VERSION=
+GLOBUS_GSSAPI_GSI_VERSION=
+# LFC ??
+fi
+
 if test "x$GLOBUS_IO_VERSION" = "x"; then
   IO_VERSION_MAJOR=0
 else
