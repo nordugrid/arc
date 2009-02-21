@@ -11,7 +11,7 @@
 
 namespace Arc {
 
-  Logger GSSCredential::logger(Logger::getRootLogger(), "GSSCredential");
+  static Logger logger(Logger::getRootLogger(), "GSSCredential");
 
   GSSCredential::GSSCredential(const std::string& proxyPath,
 			       const std::string& certificatePath,

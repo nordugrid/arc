@@ -20,7 +20,7 @@ namespace Arc {
     operator gss_cred_id_t*();
   private:
     gss_cred_id_t credential;
-    static Logger logger;
+    //static Logger logger;
   };
 
 } // namespace Arc
