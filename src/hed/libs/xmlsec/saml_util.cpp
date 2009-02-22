@@ -52,12 +52,12 @@ namespace Arc {
     switch (sign_method) {
       case RSA_SHA1:
         t = (char*)xmlURIEscapeStr(xmlSecHrefRsaSha1, NULL);
-        new_query.append("SAMLRequest=").append(query).append("&SigAlg=").append(t);
+        new_query.append(query).append("&SigAlg=").append(t);
 	xmlFree(t);
 	break;
       case DSA_SHA1:
 	t = (char*)xmlURIEscapeStr(xmlSecHrefDsaSha1, NULL);
-        new_query.append("SAMLRequest=").append(query).append("&SigAlg=").append(t);
+        new_query.append(query).append("&SigAlg=").append(t);
 	xmlFree(t);
 	break;
     }

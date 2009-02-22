@@ -221,14 +221,15 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   Arc::XMLNode nameid_policy = authn_request.NewChild("samlp:NameIDPolicy");
   nameid_policy.NewAttribute("AllowCreate") = std::string("1");
 
-  bool must_signed = false; //TODO: get the information from metadata
+  bool must_signed = true; //TODO: get the information from metadata
 
   std::string authnRequestQuery;
-  std::string query = BuildDeflatedQuery(authn_request);
+  std::string query = "SAMLRequest=" + BuildDeflatedQuery(authn_request);
   std::cout<<"AuthnRequest after deflation: "<<query<<std::endl;
   if(must_signed) {
     authnRequestQuery = SignQuery(query, Arc::RSA_SHA1, privkey_file_);
-    //std::cout<<"After signature: "<<authnRequestQuery<<std::endl;
+    std::cout<<"Private key file: "<<privkey_file_<<std::endl;
+    std::cout<<"After signature: "<<authnRequestQuery<<std::endl;
   }
   else authnRequestQuery = query;
 
@@ -243,7 +244,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 #endif
 
   std::string authnRequestUrl;
-  authnRequestUrl = sso_url + "?SAMLRequest=" + authnRequestQuery;
+  authnRequestUrl = sso_url + "?" + authnRequestQuery;
 
   //Return the composed url back to user agent through http
   Arc::PayloadRaw* outpayload = NULL;
