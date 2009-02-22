@@ -22,6 +22,19 @@ namespace Arc {
     DSA_SHA1
   } SignatureMethod;
 
+  std::string DeflateData(const std::string& data);
+  
+  std::string InflateData(const std::string& data);
+
+  std::string URIEscape(const std::string& data);
+
+  std::string URIUnEscape(const std::string& data);
+
+  std::string Base64Encode(const std::string& data);
+
+  std::string Base64Decode(const std::string& data);
+
+
   std::string SignQuery(std::string query, SignatureMethod sign_method, std::string& privkey_file);
 
   //bool VerifyQuery(const std::string query, const xmlSecKey *sender_public_key);

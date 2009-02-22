@@ -46,23 +46,23 @@ namespace Arc {
      return ret;
     }
 
-    /* add SigAlg */
+    /* Add SigAlg */
     char *t;
     std::string new_query; 
     switch (sign_method) {
       case RSA_SHA1:
         t = (char*)xmlURIEscapeStr(xmlSecHrefRsaSha1, NULL);
-        new_query.append(query).append("&SigAlg=").append(t);
+        new_query.append("SAMLRequest=").append(query).append("&SigAlg=").append(t);
 	xmlFree(t);
 	break;
       case DSA_SHA1:
 	t = (char*)xmlURIEscapeStr(xmlSecHrefDsaSha1, NULL);
-        new_query.append(query).append("&SigAlg=").append(t);
+        new_query.append("SAMLRequest=").append(query).append("&SigAlg=").append(t);
 	xmlFree(t);
 	break;
     }
 
-    /* build buffer digest */
+    /* Build buffer digest */
     if(new_query.empty()) return ret;
    
     xmlChar* md;
@@ -77,7 +77,7 @@ namespace Arc {
     char *b64_sigret = NULL, *e_b64_sigret = NULL;
     int status = 0;
 
-    /* calculate signature value */
+    /* Calculate signature value */
     if (sign_method == RSA_SHA1) {
       rsa = PEM_read_bio_RSAPrivateKey(key_bio, NULL, NULL, NULL);
       if (rsa == NULL) {
@@ -108,7 +108,7 @@ namespace Arc {
     /* escape b64_sigret */
     e_b64_sigret = (char*)xmlURIEscapeStr((xmlChar*)b64_sigret, NULL);
 
-    /* add signature */
+    /* Add signature */
     switch (sign_method) {
       case RSA_SHA1:
 	new_query.append("&Signature=").append(e_b64_sigret);
@@ -182,10 +182,8 @@ namespace Arc {
       return false;
     }
 
-    /* insure there is only the signature in str_split[1] */
     f = str1.find("&");
     std::string sig_str = str1.substr(0, f-1);   
-
 
     char *b64_signature = NULL;
     xmlSecByte *signature = NULL;
@@ -193,6 +191,7 @@ namespace Arc {
     /* get signature (unescape + base64 decode) */
     signature = (unsigned char*)(xmlMalloc(key_size+1));
     b64_signature = (char*)xmlURIUnescapeString(sig_str.c_str(), 0, NULL);
+
     xmlSecBase64Decode((xmlChar*)b64_signature, signature, key_size+1);
 
     /* compute signature digest */
@@ -218,6 +217,11 @@ namespace Arc {
 
     if (status == 0) {
       std::cout<<"Signature of the query is not valid"<<std::endl;
+      xmlFree(b64_signature);
+      xmlFree(signature);
+      xmlFree(digest);
+      xmlFree(usig_alg);
+      return false;
     }
 
     xmlFree(b64_signature);
@@ -241,18 +245,70 @@ namespace Arc {
     //Arc::XMLNode node1(query);
     //std::string query1;
     //node1.GetXML(query1, encoding);  
- 
-    std::cout<<"Query:  "<<query<<std::endl; 
 
+    //std::cout<<"Query:  "<<query<<std::endl;
+
+    std::string deflated_str = DeflateData(query);
+
+    std::string b64_str = Base64Encode(deflated_str);
+
+    std::string escaped_str = URIEscape(b64_str);
+
+    return escaped_str;
+  }
+
+  std::string Base64Encode(const std::string& data) {
     unsigned long len;
-    z_stream stream;
-    xmlChar *out;
-    len = query.length();
-    out = (xmlChar*)(malloc(len * 2));
+    xmlChar *b64_out = NULL;
+    len = data.length();
+    b64_out = xmlSecBase64Encode((xmlChar*)(data.c_str()), data.length(), 0);
+    std::string ret;
+    if(b64_out != NULL) {
+      ret.append((char*)b64_out);
+      xmlFree(b64_out);
+    }
+    return ret;
+  }
 
-    stream.next_in = (Bytef*)(query.c_str());
+  std::string Base64Decode(const std::string& data) {
+    unsigned long len;
+    xmlChar *out = NULL;
+    len = data.length();
+    out = (xmlChar*)(xmlMalloc(len*4));
+    len = xmlSecBase64Decode((xmlChar*)(data.c_str()), out, len*4);
+    std::string ret;
+    if(out != NULL) {
+      ret.append((char*)out, len);
+      xmlFree(out);
+    }
+    return ret;
+  }
+
+  std::string URIEscape(const std::string& data) {
+    xmlChar* out = xmlURIEscapeStr((xmlChar*)(data.c_str()), NULL);
+    std::string ret;
+    ret.append((char*)out);
+    xmlFree(out);
+    return ret;
+  }
+
+  std::string URIUnEscape(const std::string& data) {
+    xmlChar* out = (xmlChar*)xmlURIUnescapeString(data.c_str(), 0,  NULL);
+    std::string ret;
+    ret.append((char*)out);
+    xmlFree(out);
+    return ret;
+  }
+
+  std::string DeflateData(const std::string& data) {
+    unsigned long len;
+    char *out;
+    len = data.length();
+    out = (char*)(malloc(len * 2));
+    z_stream stream;
+    stream.next_in = (Bytef*)(data.c_str());
     stream.avail_in = len;
-    stream.next_out = out;
+    stream.next_out = (Bytef*)out;
     stream.avail_out = len * 2;
 
     stream.zalloc = NULL;
@@ -279,17 +335,54 @@ namespace Arc {
       std::cerr<<"Failed to deflate the data"<<std::endl;
       return std::string();
     }
+    std::string ret;
+    ret.append(out,stream.total_out);
 
-    xmlChar* b64_out;
-    b64_out = xmlSecBase64Encode(out, stream.total_out, 0);
     free(out);
-    out = xmlURIEscapeStr(b64_out, NULL);
-    std::string res((char*)out);
+    return ret;
+  }
 
-    xmlFree(b64_out);
-    xmlFree(out);
+  std::string InflateData(const std::string& data) {
+    unsigned long len;
+    char *out;
+    len = data.length();
+    out = (char*)(malloc(len * 10));
+    z_stream stream;
 
-    return res;
+    stream.zalloc = NULL;
+    stream.zfree = NULL;
+    stream.opaque = NULL;
+
+    stream.avail_in = len;
+    stream.next_in = (Bytef*)(data.c_str());
+    stream.total_in = 0;
+    stream.avail_out = len*10;
+    stream.total_out = 0;
+    stream.next_out = (Bytef*)out;
+
+    int rc;
+    rc = inflateInit2(&stream, -MAX_WBITS);
+    if (rc != Z_OK) {
+      std::cerr<<"inflateInit failed"<<std::endl;
+      free(out);
+      return std::string();
+    }
+
+    rc = inflate(&stream, Z_FINISH);
+    if (rc != Z_STREAM_END) {
+      std::cerr<<"Failed to inflate"<<std::endl;
+      inflateEnd(&stream);
+      free(out);
+      return std::string();
+    }
+    out[stream.total_out] = 0;
+    inflateEnd(&stream);
+
+    std::string ret;
+    ret.append(out);
+
+    free(out);
+    return ret;
   }
 
   static bool is_base64(const char *message) {
