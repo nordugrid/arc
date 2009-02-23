@@ -6,11 +6,10 @@ import time
 import traceback
 import os
 import base64
-from arcom import import_class_from_string, get_child_nodes
+from arcom import import_class_from_string, get_child_nodes, get_child_values_by_name
 from arcom.service import librarian_uri, bartender_uri, gateway_uri, true, parse_node, create_response, node_to_data
-#from storage.bartender.gateway import gateway
 from arcom.xmltree import XMLTree
-from storage.client import LibrarianClient, ShepherdClient, GatewayClient
+from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, create_metadata, splitLN, remove_trailing_slash, global_root_guid, serialize_ids, deserialize_ids, sestore_guid, make_decision_metadata
 import traceback
 
@@ -37,10 +36,9 @@ class Bartender:
         else:
             log.msg(arc.INFO, 'This bartender does not support gateway') 
             log.msg(arc.INFO, 'cannot connect to gateway. Access of third party store required gateway.')
-
-        
         self.ssl_config = ssl_config
         self.cfg = cfg
+        
     def stat(self, auth, requests):
         """ Returns stat information about entries.
         
@@ -90,7 +88,6 @@ class Bartender:
             decision = make_decision_metadata(metadata, auth_request)
             if decision != arc.DECISION_PERMIT:
                 response[requestID] = 'denied'
-             
             elif wasComplete and metadata[('entry', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
                 # remove the file
                 cat_rem_requests[requestID] = GUID
@@ -114,7 +111,6 @@ class Bartender:
         #print success
         #print modify_success
         return response
-            
 
     def _traverse(self, requests):
         """ Helper method which connects the librarian, and traverses the LNs of the requests.
@@ -135,7 +131,6 @@ class Bartender:
         # call the librarian service
         traverse_response = self.librarian.traverseLN(traverse_request)
         # return the requests as list (without the trailing slashes) and the traverse response from the librarian
-        
         return requests, traverse_response
 
 
@@ -214,8 +209,6 @@ class Bartender:
                 response[url]={'turl':'','status':'gateway is not configured. Bartender does not support mount points','protocol':''}
         log.msg(arc.DEBUG, '//// response from the external store:', response)
         return response
-        
-
 
     def getFile(self, auth, requests):
         """ Get files from the storage.
@@ -499,7 +492,6 @@ class Bartender:
             response[rID] = success
         return response
 
-
     def unmakeCollection(self, auth, requests):
         """docstring for unmakeCollection"""
         auth_request = auth.get_request('delete')
@@ -652,7 +644,6 @@ class Bartender:
         neededMetadata is a list of (section, property) where property could be empty which means all properties of that section
             if neededMetadata is empty it means we need everything
         """
-	
         auth_request = auth.get_request('read')
         print 'ID: '+auth.get_identity()
         # do traverse the requested Logical Names
@@ -862,8 +853,6 @@ class BartenderService(Service):
         request_config = [deleg_request_type, bar_request_type]
         # call the Service's constructor
         Service.__init__(self, request_config, cfg)
-        # get the URL of the Librarian from the config file
-        librarian_url = str(cfg.Get('LibrarianURL'))
         # get the list of the available proxies. 
         self.proxy_store = str(cfg.Get('ProxyStore'))
         if self.proxy_store:
@@ -872,9 +861,10 @@ class BartenderService(Service):
             log.msg(arc.DEBUG, '//// Proxy store not available:')  
         #if self.proxy_store:
         #    self.proxies = os.listdir(self.proxy_store)
-        
+        # get the URLs of the Librarians from the config file
+        librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
         # create a LibrarianClient from the URL
-        librarian = LibrarianClient(librarian_url, ssl_config = self.ssl_config)
+        librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
         self.bartender = Bartender(librarian, self.ssl_config, cfg)
         
     def stat(self, inpayload):
@@ -1372,24 +1362,20 @@ class BartenderService(Service):
             response, self._new_soap_payload(), single = True)
 
     def DelegateCredentialsInit(self,inpayload):
-        
         ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
         outpayload = arc.PayloadSOAP(ns)
         if self.proxy_store:
-	
             print inpayload.GetXML()
-	    # Delegation Credentials(NEED TO FIX IT)  
+            # Delegation Credentials(NEED TO FIX IT)  
             self.delegSOAP = arc.DelegationContainerSOAP()
             self.delegSOAP.DelegateCredentialsInit(inpayload,outpayload)
-	    #print "\n outpayload"
+            #print "\n outpayload"
             #print outpayload.GetXML()
-            
         return outpayload
         
     def UpdateCredentials(self,inpayload):
-        
         #print inpayload.GetXML()
-	ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
+        ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
         outpayload = arc.PayloadSOAP(ns)
         credAndid = self.delegSOAP.UpdateCredentials(inpayload,outpayload)
         print credAndid
@@ -1403,7 +1389,7 @@ class BartenderService(Service):
                 log.msg(arc.DEBUG,'creating proxy file : ', filePath)
                 proxyfile = open(filePath, 'w') 
                 proxyfile.write(credAndid[1])
-	        proxyfile.close()
+                proxyfile.close()
                 log.msg(arc.DEBUG,'created successfully, ID: %s',credAndid[2]) 
                 os.system('chmod 600 '+filePath)
             else:
@@ -1411,8 +1397,8 @@ class BartenderService(Service):
         else:
             log.msg(arc.INFO,'Delegation failed: ')
         return outpayload
-    def removeCredentials(self, inpayload):
         
+    def removeCredentials(self, inpayload):
         response = {}
         if self.proxy_store:
             log.msg(arc.INFO, 'ID: '+inpayload.auth.get_identity())
@@ -1439,6 +1425,3 @@ class BartenderService(Service):
         log.msg(arc.DEBUG, 'removeCredentials: %s', message)
         log.msg(arc.DEBUG, 'removeCredentials: %s', status)  
         return create_response('bar:removeCredentials', ['bar:message','bar:status'],response, self._new_soap_payload(), single = True) 
-
- 
-        	
