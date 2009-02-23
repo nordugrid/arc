@@ -27,6 +27,9 @@ def get_child_nodes(node):
     # the node.Size() method returns the number of children
     return [node.Child(i) for i in range(node.Size())]
 
+def get_child_values_by_name(node, name):
+    return [str(child) for child in get_child_nodes(node) if child.Name() == name]  
+
 # for DataHandle and DataPoint
 
 def datapoint_from_url(url_string):

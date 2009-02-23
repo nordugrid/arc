@@ -1,5 +1,6 @@
 import arc
 from arcom.xmltree import XMLTree
+import random
 
 class Client:
     """ Base Client class for sending SOAP messages to services """
@@ -11,18 +12,23 @@ class Client:
         
         Client(url, ns, print_xml = false)
         
-        url is the URL of the service
+        url is the URL of the service, it could be a list of multiple URLs
         ns contains the namespaces we want to use with each message
         print_xml is for debugging, prints all the SOAP messages to the screen
         """
         self.ns = ns
-        self.url = arc.URL(url)
+        if type(url) == list:
+            urls = url
+        else:
+            urls = [url]
+        self.urls = [arc.URL(url) for url in urls]
+        self.https = 'https' in [url.Protocol() for url in self.urls]
         self.print_xml = print_xml
         self.xmlnode_class = xmlnode_class
         self.connection = None
         self.ssl_config = {}
         self.cfg = arc.MCCConfig()
-        if self.url.Protocol() == 'https':
+        if self.https:
             self.ssl_config = ssl_config
             if ssl_config.has_key('proxy_file'):
                 self.cfg.AddProxy(self.ssl_config['proxy_file'])
@@ -79,7 +85,8 @@ class Client:
         outpayload is an XMLNode with the SOAP message
         """
         try:
-            s = arc.ClientSOAP(self.cfg, self.url)          
+            url = random.choice(self.urls)
+            s = arc.ClientSOAP(self.cfg, url)          
             resp, status = s.process(outpayload)
             resp = resp.GetXML()
             return resp
