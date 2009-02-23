@@ -6,7 +6,7 @@
 	</Server>
 	<ModuleManager><!--(@*\label{lst_code:arched_time_moduleManager}*@)-->
 		<!-- Own library path. The order is important!-->
-		<Path>/tmp/arcservices/lib/</Path>
+		<Path>/tmp/arc/tutorial/lib/</Path>
 		<Path>/usr/lib/arc/</Path>
 	</ModuleManager>
 	<Plugins><Name>mcctcp</Name></Plugins>

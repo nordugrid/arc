@@ -1,6 +1,6 @@
 \usepackage[pdftex]{graphicx}
 
-\usepackage{ifthen}
+%\usepackage{ifthen}
 
 
 
@@ -137,7 +137,10 @@
                showstringspaces=false} 						% no special string spaces
 \fi
 
-
+%
+\usepackage[labelfont={bf},font=small]{caption,subfig} 
+% justification=raggedright,format=hang,labelfont={bf},font=small
+% justification=justified,singlelinecheck=false
 
 %
 %    HYPERREF
@@ -174,9 +177,7 @@
 \fi
 
 
-\usepackage{float}
-\newfloat{program}{thb}{lop} %http://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions#Custom_Floats
-\floatname{program}{Program}
+
 
 
 \newcommand{\lstsetCPP}{%
@@ -187,7 +188,7 @@
 	frame=single,
 	numbers=left,
 	backgroundcolor=\color{brightblue}
-	}
+	}%
 \else%
 \lstset{
 	escapeinside={//(@*}{*@)},
@@ -195,7 +196,7 @@
 	frame=single,
 	numbers=none,
 	backgroundcolor=\color{white}
-	}
+	}%
 \fi%
 }
 

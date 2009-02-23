@@ -1,69 +1,89 @@
 \chapter{The time webservice}
 
 
-The first implementation of a Web Service which will be presented in this tutorial realises a simple time service.
-In case the service receives a request, it will respond with a string containing the systemtime.
+The first implementation of a Web Service will be a simple time service. 
+In case that the service receives a request of a client, it will respond with a string containing the system time.
 For simplicity the service will not parse the request but always return the current time.
-In the following subsections the C++ implementation first the service and than the client will be developed.
+In the following subsections the implementation of the service and the client will be presented. 
 
 
 \section{Service}
 
-In Arc-1 the services are implementated as plugins such that they can easily be included by modifiying the HED configuration file as it was to be seen in Listing~\ref{lst:arched_arcecho_xml}.
-The Listing~\ref{lst:time_arched_cpp}.shows the implementation of the time service plugin.
-The proper class definition is defined in the corresponding header file which isn't shown here.
-The key element for each plugin is the struct PluginDescriptor named PLUGINS\_TABLE\_NAME, see line\ref{lst_code:time_cpp_ptn}. 
-%The struct defines basic entities of the service and provides a pointer to the method which is able to create an instance of the time service plugin. 
-Within the struct a unique plugin name, the type of the plugin, its version and the pointer to the function which returns the time service instance has to be defined.
-The function which returns the pointer to an instance of the service needs to have the PluginArgument as a parameter. 
-The actual Time Web Service is implemented within the namespace ArcService. The constructor can be found in line~\ref{lst_code:time_cpp_constructor}, the deconstructor in line~\ref{lst_code:time_cpp_deconstructor} and the method required by the inherited class \textit{Service} file in line~\ref{lst_code:time_cpp_process}. For the Time service is very simple, only the function process needs to be implemented. It gets the incoming and the outgoing message as references and returns a class representing the status the service achieved. 
-\lstsetCPP
-\lstinputlisting
-	[
+In Arc the services are implementated as plugins such that they can easily be included or excluded by modifiying the HED configuration file as it was to be seen in Listing~\ref{lst:arched_arcecho_xml}.
+Listing~\ref{lst:time_arched_cpp} contains the C++ implementation of the time service plugin.
+The proper class definition of the object \textit{TimeService} is defined in the corresponding header file which is not shown here. It inherits from an object called \textit{Service} defined in the Arc library.
+The key element for each plugin is the struct \textit{PluginDescriptor} named \textit{PLUGINS\_TABLE\_NAME} to be seen in line~\ref{lst_code:time_cpp_ptn}. 
+%The struct defines basic entities of the service and provides a pointer to the method which is able to create an instance of the time service plugin.
+Within the struct a unique plugin name, the type of the plugin, its version and a pointer to a function which returns the instance of the time service has to be defined.
+The function which returns the pointer of the instance is desclared in line~\ref{lst_code:time_cpp_get_service}. 
+The interface demands an object \textit{PluginArgument} as a parameter but because we are writing a plugin which inherits from \textit{Service}, we are able to expect the \textit{PluginArgument} to be a \textit{ServicePluginArgument}.
+%	In the first line of the service the object is downcasted with the operator dynamic_cast
+The \textit{ServicePluginArgument} provides access to the HED configuration and the message chain of the service.
+%       operator Config* (void) { return config_; };
+%       operator ChainContext*   			an interface to manipulate chains stored in Loader
+%
+%
+%
+%
+The time service uses the namespace \textit{ArcService}. The constructor can be found in line~\ref{lst_code:time_cpp_constructor} and the deconstructor in line~\ref{lst_code:time_cpp_deconstructor}.%
+\lstsetCPP%
+\lstinputlisting[
 	label=lst:time_arched_cpp,
 	caption={[C++ implementation of the time service. Filename: timeservice.cpp]
 	\textbf{C++ implementation of the time service. Filename: timeservice.cpp}}
-	]
-{../src/services/timeservice/timeservice.cpp}
-The service first determines the current time and than creates a SOAP message using the object \textit{PayloadSOAP} on line~\ref{lst_code:time_cpp_process_payloadSOAP}. The class \textit{PayloadSOAP} is able to create a XML message which is conform to the SOAP protocol (The apperance of the generated request and response will be discussed later). I case of the presented time service the payload consists out of two elements nested into one another. The element \textit{text} holds the element child which again holds the string containing the current time.
-Within the line~\ref{lst_code:time_cpp_process_message_payload} the payload is passed to the message. 
-The message processing is now completed and the function returns its success status on line~\ref{lst_code:time_cpp_return}.
-The source code has to be compiled to a dynamic library named \textit{libtimeservice.so}.\\
+	]%
+{../src/services/timeservice/timeservice.cpp}%
+In the context of the simple service they don't contribute with any functionality.
+The method \textit{process} which is required by the inherited class \textit{Service} is defined in line~\ref{lst_code:time_cpp_process} and realises the desired service. 
+The parameters \textit{inmsg} and \textit{outmsg} are references to the incoming and outgoing messages. Furthermore the method \textit{process} returns the object \textit{MCCStatus} which is representing the result of the service achieved. 
+Within the method \textit{process}, the service first determines the current time and than creates a SOAP payload using the object \textit{PayloadSOAP} on line~\ref{lst_code:time_cpp_process_payloadSOAP}. 
+The object \textit{PayloadSOAP} provides enough functionality to create a XML message which is conform to the SOAP protocol 
+(The apperance of the generated request and response will be discussed later on page~\pageref{lst:time_client_request}). 
+%
+%
+In the current case the payload consists of two elements nested into one another. The element \textit{time} holds the element \textit{timeResponse} which again holds the string containing the current time.
+Within the line~\ref{lst_code:time_cpp_process_message_payload} the payload is stored in the message. 
+In case nothing unexpected happened during the message is processed, the function returns with an \textit{MCCStatus} set to \textit{OK} as to be seen in line~\ref{lst_code:time_cpp_return}.\\
 
 
-After the service has been implemented and compiled, it needs to be loaded into the HED. A suitable HED configuration file is to be seen in Listing~\ref{lst:time_arched_xml}. 
+%The service has to be compiled into a dynamic library named \textit{libtimeservice.so}, in order
+%To run the service, one has to compile the source code into a dynamic library named \textit{libtimeservice.so}.\\
+%After the service is shipped into the library \textit{libtimeservice.so} it needs to be copied into the directory \textit{/tmp/arc/tutorial/lib} so it can be found by the \textit{ModuleManager} of the HED. 
+
+In order to run the service, it has to be compiled into a dynamic library named \textit{libtimeservice.so}.
+The library has be to be copied into the directory \textit{/tmp/arc/tutorial/lib} such that it can be found by the \textit{ModuleManager} of the HED.
+A suitable HED configuration file which engages the time service is to be seen in Listing~\ref{lst:time_arched_xml}.A new path element has been introduced into the element \textit{ModuleMananger} in line~\ref{lst_code:arched_time_moduleManager}. It assigns the location of the created dynamic library.
+On line~\ref{lst_code:arched_time_plugin} the library is explict mentioned to be loaded as a plugin.
+Another important change has been done within the \textit{Plexer} element in line~\ref{lst_code:arched_time_plexer_next}. A rule has been introduced which redirects the request to the time service, if the path of URL is \textit{time}.\\ 
 \lstsetARCHEDXML
-\begin{program}
 \lstinputlisting
 	[
-	label=lst:time_arched_xml,
+	label=lst:time_arched_xml,float=htb,
 	caption={[HED configuration for the time service. Filename: arched\_timeservice.xml]
 	\textbf{HED configuration for the time service. Filename: arched\_timeservice.xml}}
 	]
 {../src/services/timeservice/arched_timeservice.xml}
-\end{program}
-A new path element has been introduced into the element \textit{ModuleMananger}, line~\ref{lst_code:arched_time_moduleManager}. It assigns the location to the compliled dynamic library. 
-On line~\ref{lst_code:arched_time_plugin} the library is explict mentioned to be loaded.
-Another important change has been done within the \textit{Plexer} element in line~\ref{lst_code:arched_time_plexer_next}. A rule has been introduced which redirects the request to the Time Web Service, if the path of URL is \textit{time}.\\
 
 
-To run the service again the arched command shown in~\ref{lst:arched_timeservice_ksh} has to be used.
+
+
+To start the service the \textit{arched} command which is shown in Listing~\ref{lst:arched_timeservice_ksh} has to be used.
+It is recommended to examine the log file \textit{/var/log/arched.log} if the HED configuration file has been modified in order to  assert the start was successful
+%To check the start of the HED it is recommended to examine the log file \textit{/var/log/arched.log}.\\
 \lstsetKSH
-\begin{program}
 \begin{lstlisting}[
-label=lst:arched_timeservice_ksh,
+label=lst:arched_timeservice_ksh,float=htb,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 $ arched -c arched_timeservice.xml && echo Daemon started || echo Daemon start failed
 Daemon started
 \end{lstlisting}
-\end{program}
 
 
 
 \section{Client}
 
-\task{\#ifdef HAVE\_CONFIG\_H\#include <config.h>\#endif - habe ich entfernt... macht keinen Sinn, da keine weiteren Macros im Source Code enthalten sind... oder?}
+%\task{\#ifdef HAVE\_CONFIG\_H\#include <config.h>\#endif - habe ich entfernt... macht keinen Sinn, da keine weiteren Macros im Source Code enthalten sind... oder?}
 In the next step a simple client needs to be implemented whose task is to interprete the returned message of the client.
 The client needs to have the same protocol stack as the daemon but in contrast to it, it does not need the ability to be loaded as a plugin. As one will see, the creation of this protocol stack on client side is very simple.
 The source code of the client consists primarily of the main function and is to be seen in Listing~\ref{lst:time_client_cpp}.
@@ -86,14 +106,13 @@ Now the client stack is ready, one can create a request to the service. In line~
 
 
 
-
+Once the HED is running, the service can 
 
 The data is enveloped by an element called \textit{Envelope} .. See german wiki
 
 \lstsetJUSTXML
-\begin{minipage}[t]{\textwidth}
 \begin{lstlisting}[
-label=lst:time_client_request,
+label=lst:time_client_request,float,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:time="urn:time" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -104,13 +123,11 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
   </soap-env:Body>
 </soap-env:Envelope>
 \end{lstlisting}
-\end{minipage}
 
 
 \lstsetJUSTXML
-\begin{minipage}[t]{\textwidth}
 \begin{lstlisting}[
-label=lst:time_client_response,
+label=lst:time_client_response,float,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -121,7 +138,7 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
   </soap-env:Body>
 </soap-env:Envelope>
 \end{lstlisting}
-\end{minipage}
+
 
 
 

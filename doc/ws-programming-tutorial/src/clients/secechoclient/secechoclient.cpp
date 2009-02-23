@@ -51,9 +51,9 @@ int main(int argc, char** argv) {
 		std::cout << "File " << argv[1] << " not found." << std::endl;
 		return -1;
 	}
-printf("sdfsdf");
+
 	std::string message(argv[2]);
-printf("sdfsdf");
+
 
 	// Initiate logger to get the output of ARC classes
 	Arc::Logger logger(Arc::Logger::getRootLogger(), "arcecho");
@@ -66,11 +66,10 @@ printf("sdfsdf");
 	std::string arclib("/usr/lib/arc");
 	Arc::ArcLocation::Init(arclib);  
 
-printf("sdfsdf");
 	// Loading client.xml file which is the counterpart of the arc 
 	// configuration file
 	Arc::XMLNode clientXml(xmlstring);
-printf("sdfsdf");
+
 	// Wrap the xml for hed client configuration
 	Arc::Config clientConfig(clientXml);
 	if(!clientConfig) {
@@ -78,7 +77,7 @@ printf("sdfsdf");
 	  return -1;
 	};
 
-printf("sdfsdf");
+
 	// Take XML configuration and perform configuration part
 	Arc::MCCLoader loader(clientConfig);
 	logger.msg(Arc::INFO, "Client side MCCs are loaded");
@@ -107,7 +106,9 @@ printf("sdfsdf");
 	reqmsg.Context(&context);
 	repmsg.Context(&context);  
 
-	request.NewChild("sececho:secechoRequest").NewChild("sececho:say") = message;
+	XMLNode sayNode = request.NewChild("secechoRequest").NewChild("say") = message;
+	sayNode.NewAttribute("operation") = "reverse";
+
 	reqmsg.Payload(&request);
 
 	request.GetXML(xml, true);
@@ -135,7 +136,7 @@ printf("sdfsdf");
 		return -1;
 	};
 
-	response->GetXML(xml);
+	response->GetXML(xml,true);
 	printf("Response:\n\n%s\n\n\n", xml.c_str());
 
 	std::string answer = (std::string)((*response)["secechoResponse"]["hear"]);//

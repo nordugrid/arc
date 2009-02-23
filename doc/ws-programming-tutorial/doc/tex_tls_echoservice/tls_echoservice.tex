@@ -43,7 +43,10 @@ One can add the TLS in client and server by simply extending the arched configur
 \label{fig:HED_internal2}
 \end{figure}
 
-
+4 types:
+                <KeyPath>./clientKey.pem</KeyPath>
+                <CertificatePath>./clientCert.pem</CertificatePath>
+                <CACertificatePath>./serviceCA.pem</CACertificatePath>
 
 
 clientCA   - Authority guarantee for identity
@@ -78,48 +81,43 @@ Some of the currently implemented SecHandler components make use of pluggable an
 
 
 
-\begin{program}
 \lstsetCPP
 \lstinputlisting
 	[
-	label=lst:arcecho_arched_xml,
+	label=lst:arcecho_arched_xml,float,
 	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/clients/tlsechoclient/tlsechoclient.cpp}
-\end{program}
 
 
-\begin{program}
+
 \lstsetCPP
 \lstinputlisting
 	[
-	label=lst:arcecho_arched_xml,
+	label=lst:arcecho_arched_xml,float,
 	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/services/tlsechoservice/tlsechoservice.cpp}
-\end{program}
+
 
 
 
 \lstsetARCHEDXML
-\begin{program}
 \lstinputlisting
 	[
-	label=lst:arcecho_arched_xml,
+	label=lst:arcecho_arched_xml,float,
 	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/services/tlsechoservice/arched_tls_echoservice.xml}
-\end{program}
 
 
 
 \lstsetKSH
-\begin{program}
 \begin{lstlisting}[
-label=lst:invokation_arched_timeservice,
+label=lst:invokation_arched_timeservice,float,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 $ rm -f /var/log/arched.log
@@ -127,29 +125,26 @@ $ arched -c arched_echoservice.xml  && echo jo ||echo n
 $ tail -n100 -f /var/log/arched.log
 $ killall arched
 \end{lstlisting}
-\end{program}
 
 
 
 \lstsetKSH
-\begin{program}
 \begin{lstlisting}[
-label=lst:invokation_arched_timeservice,
+label=lst:invokation_arched_timeservice,float,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 $ ./echoclient
 Tue Feb 17 17:04:08 2009
 \end{lstlisting}
-\end{program}
+
 
 
 
 
 
 \lstsetJUSTXML
-\begin{program}
 \begin{lstlisting}[
-label=lst:timeservice_cpp_source,
+label=lst:timeservice_cpp_source,float,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -160,13 +155,12 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 	</soap-env:Body>
 </soap-env:Envelope>
 \end{lstlisting}
-\end{program}
+
 
 
 \lstsetJUSTXML
-\begin{program}
 \begin{lstlisting}[
-label=lst:timeservice_cpp_source,
+label=lst:timeservice_cpp_source,float,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -177,4 +171,4 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
   </soap-env:Body>
 </soap-env:Envelope>
 \end{lstlisting}
-\end{program}
+

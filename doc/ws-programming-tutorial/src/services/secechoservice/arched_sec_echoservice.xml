@@ -12,7 +12,7 @@
 	<Logger level="VERBOSE">/var/log/arched.log</Logger>
 	</Server>
 	<ModuleManager>
-		<Path>/tmp/arcservices/lib/</Path>
+		<Path>/tmp/arc/tutorial/lib/</Path>
 		<Path>/usr/lib/arc/</Path>
 	</ModuleManager>
 	<Plugins><Name>mcctcp</Name></Plugins>
@@ -35,9 +35,11 @@
 		</Component>
 		<Component name="http.service" id="http">
 			<next id="soap">POST</next>
-<!--			<SecHandler name="arc.authz" id="auth" event="incoming">
+			<SecHandler name="arc.authz" id="auth" event="incoming">
 				<PDP name="simplelist.pdp" location="./clientlist.txt"/>
-			</SecHandler>-->
+			</SecHandler>
+
+				
 		</Component>
 		<Component name="soap.service" id="soap">
 			<next id="plexer"/>
@@ -53,13 +55,13 @@
 			
 			<!-- Evaluate requestor's identity into local identity.
 					Comment it if no user mapping is needed. -->
-			<!--<SecHandler name="identity.map" id="map" event="incoming">-->
+			<SecHandler name="identity.map" id="map" event="incoming">
 				<!-- Allow pdp always grants access        -->
 				<!-- Safe choice if all other rules failed -->
 				
-<!--				<PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>	
+				<PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>	
 		
-			</SecHandler>-->
+			</SecHandler>
 			
 			<!-- SecHandler below calls specified Policy Decision Point components.
 					In this example only one PDP is defined - simplelist.pdp. This
@@ -68,17 +70,19 @@
 					They may be enclosed in '"'. -->
 			<SecHandler name="arc.authz" id="auth" event="incoming">
 				<!--<PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>-->
-				<!--<PDP name="simplelist.pdp" location="./clientlist.txt"/>-->
+				<PDP name="simplelist.pdp" location="./clientlist.txt"/>
 
-				<PDP name="arc.pdp">
-					<PolicyStore>
-						<Location type="file">policy.xml</Location>
-					</PolicyStore>
-				</PDP>
+
 
 			</SecHandler>
 
-
+			<SecHandler  name="arc.authz" id="auth" event="incoming">
+				<PDP name="arc.pdp">
+				<PolicyStore>
+					<Location type="file">policy2.xml</Location>
+				</PolicyStore>
+				</PDP>
+			</SecHandler>
 			
 
 

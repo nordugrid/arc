@@ -15,7 +15,7 @@
  * 
  * Therefore the method initializes the time service and returns it.
  */
-static Arc::Plugin* get_service(Arc::PluginArgument* arg) 
+static Arc::Plugin* get_service(Arc::PluginArgument* arg) //(@*\label{lst_code:time_cpp_get_service}*@)
 {
 	// The dynamic cast can handle NULL
 	Arc::ServicePluginArgument* mccarg = dynamic_cast<Arc::ServicePluginArgument*>(arg);
@@ -58,7 +58,7 @@ namespace ArcService
 	/**
 	* Deconstructor. Nothing to be done here.
 	*/
-	TimeService::~TimeService(void)//(@*\label{lst_code:time_deconstructor_ptn}*@)
+	TimeService::~TimeService(void)//(@*\label{lst_code:time_cpp_deconstructor}*@)
 	{
 	}
 

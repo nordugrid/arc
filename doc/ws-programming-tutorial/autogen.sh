@@ -24,6 +24,6 @@ autoconf
 automake  --add-missing
 
 # Creates Makefile from Makefile.in
-./configure  --prefix=/tmp/arcservices/
+./configure  --prefix=/tmp/arc/tutorial/
  
 #make

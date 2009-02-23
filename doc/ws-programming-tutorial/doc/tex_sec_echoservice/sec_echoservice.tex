@@ -96,7 +96,17 @@ header of SOAP message which is the payload of outgoing message. It can also ext
 Username-Token from the header of SOAP message which is the payload of incoming message.
 
 
+POLICY STUFF:
+copy the request out of the LOGGEr and use that to write your policy.xml
+%/C=DE/ST=Germany/L=L\xFCbeck City/O=Instite of Neuro- and Bioinformatics/OU=Mitarbeiter
 
+Deny-Overrides - this is default if no algorithm specified.
+...
+Administrator of service can configure Authorization SecHandler - arc.authz - for each MCC and Service
+and define reasonable and meaningful policy. While defining policy the administrator must take into
+account that the attributes defined in the policy should be already collected by previous components in a
+chain. For instance, policy with AttributeId “http://www.nordugrid.org/schemas/policy-
+arc/types/http/path” should not be configured inside SecHandler attached to MCCTLS.
 
 \lstsetCPP
 \lstinputlisting

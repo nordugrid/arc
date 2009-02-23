@@ -53,6 +53,9 @@ class SecEchoService: public Arc::Service
 		*/
 		Arc::MCC_Status make_fault(Arc::Message& outmsg);
 
+		#define ECHO_TYPE_ORDINARY "ordinary"
+		#define ECHO_TYPE_REVERSE  "reverse"
+
 	public:
 
         	/**

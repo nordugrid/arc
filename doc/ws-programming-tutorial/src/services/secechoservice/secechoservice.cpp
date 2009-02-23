@@ -57,6 +57,7 @@ namespace ArcService
 	Arc::MCC_Status SecEchoService::make_fault(Arc::Message& outmsg) 
 	{
 
+		
 		// The boolean value in the constructur indicates a failure.
 		Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
 		Arc::SOAPFault* fault = outpayload->Fault();
@@ -72,6 +73,9 @@ namespace ArcService
 	Arc::MCC_Status SecEchoService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 	{
 		logger.msg(Arc::DEBUG, "Echoservice has been started...");
+
+		std::cout<<"DN of the client: =>"<<inmsg.Attributes()->get("TLS:PEERDN")<<"<="<<std::endl;
+
 
 		/* Processes the SecHandlers of the service */
 		if(!ProcessSecHandlers(inmsg,"incoming")) {
@@ -104,61 +108,50 @@ namespace ArcService
 		}; 
 
 
-		// Get operation defined in policy.xml
-		Arc::XMLNode op = inpayload->Child(0);
-		if(!op) {
-			logger.msg(Arc::ERROR, "Input doesn't define operation.");
-			return Arc::MCC_Status(Arc::GENERIC_ERROR);
-		};
-		logger.msg(Arc::DEBUG, "Process operation: %s",op.Name());
-		if(MatchXMLName(op, "ordinary")) {
-			inmsg.Attributes()->set("SECECHO:METHOD", "ordinary");
-		}
-		else if(MatchXMLName(op, "reverse")) {
-		  inmsg.Attributes()->set("SECECHO:METHOD", "reverse");
-		}
-		else { 
-			logger.msg(Arc::ERROR, "Method defined in policy.xml is undefined in the service!");
-			return make_fault(outmsg);
-		}
-
-		logger.msg(Arc::DEBUG, "Process operation detected: %s",inmsg.Attributes()->get("SECECHO:METHOD"));
-
-
-
-
 		// Analyzing request 
-		Arc::XMLNode echo_op = (*inpayload)["secechoRequest"];
-		if(!echo_op) {
-			logger.msg(Arc::ERROR, "Request is not supported - \n%s", echo_op.Name());
+		Arc::XMLNode requestNode  = (*inpayload)["secechoRequest"];
+		Arc::XMLNode sayNode      = requestNode["say"];
+		std::string operation = (std::string) sayNode.Attribute("operation");
+		std::string say       = (std::string) sayNode;
+		std::string hear      = "";
+
+		logger.msg(Arc::DEBUG, "Say: \"%s\"  Operation: \"%s\"",say,operation);
+
+		if(!sayNode) {
+			logger.msg(Arc::ERROR, "Request is not supported - \n%s", sayNode.Name());
 			return make_fault(outmsg);
 		};
-		std::string say = echo_op["say"];
-		std::string hear = "";
 
-		if(MatchXMLName(op, "ordinary")) {
+
+	
+		if(operation.compare(ECHO_TYPE_ORDINARY) == 0){
+
 			hear = prefix_+say+suffix_;
-		}
-		else if(MatchXMLName(op, "reverse")) {
+
+		}else if(operation.compare(ECHO_TYPE_REVERSE) == 0){
+
 			int len = say.length ();
 			int n;
 			std::string reverse = say;
 			for (n = 0;n < len; n++)
 			{
-				reverse[len - n] = say[n];
+				reverse[len - n - 1] = say[n];
 			}
 			hear = prefix_+ reverse +suffix_;
+
+		}else{
+			hear = "Operation was not specified";
 		}
 
 		outpayload = new Arc::PayloadSOAP(ns_);
-		outpayload->NewChild("sececho:secechoResponse").NewChild("sececho:hear")=hear;
-
+		outpayload->NewChild("secechoResponse").NewChild("hear")=hear;
 		outmsg.Payload(outpayload);
-		{
-			std::string str;
-			outpayload->GetDoc(str, true);
-			logger.msg(Arc::DEBUG, "process: response=%s",str);
-		}; 
+
+
+		std::string str;
+		outpayload->GetDoc(str, true);
+		logger.msg(Arc::DEBUG, "process: response=%s",str);
+
 
 		logger.msg(Arc::DEBUG, "Echoservice done...");
   		return Arc::MCC_Status(Arc::STATUS_OK);
