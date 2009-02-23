@@ -14,5 +14,5 @@ if SRM_DMC_ENABLED
 SRM_SD=srm
 endif
 
-SUBDIRS = http file $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD) $(SRM_SD)
-DIST_SUBDIRS = http file ldap gridftp rls lfc srm
+SUBDIRS = http file arc $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD) $(SRM_SD)
+DIST_SUBDIRS = http file arc ldap gridftp rls lfc srm
