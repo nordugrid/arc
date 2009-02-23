@@ -17,7 +17,7 @@
 #include <arc/data/DataHandle.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/URLMap.h>
-
+#include "Sandbox.h"
 #include "JobController.h"
 
 namespace Arc {
@@ -26,7 +26,8 @@ namespace Arc {
 
   JobController::JobController(Config *cfg, const std::string& flavour)
     : ACC(cfg, flavour),
-      joblist((*cfg)["JobList"]) {}
+      joblist((*cfg)["JobList"]),
+      usercfg((*cfg)["UserConfig"]){}
 
   JobController::~JobController() {}
 
@@ -595,35 +596,91 @@ namespace Arc {
     logger.msg(DEBUG, "Getting %s jobs", flavour);
     
     GetJobInformation();
-    // TODO: First get descriptions from sandbox
 
+    // Only selected jobs with specified status
     std::list<Job*> gettable;
     for (std::list<Job>::iterator it = jobstore.begin();
 	 it != jobstore.end(); it++) {
-      if (it->State.empty()) {
+      if (!status.empty() && it->State.empty()) {
 	logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
 	continue;
       }
-
+      
       if (!status.empty() && std::find(status.begin(), status.end(),
 				       it->State) == status.end())
 	continue;
-
       gettable.push_back(&(*it));
     }
 
-    bool ok = true;    
-    for (std::list<Job*>::iterator it = gettable.begin();
-	 it != gettable.end(); it++) {
-      JobDescription desc;
-      bool gotten = GetJobDescription(**it,desc);
-      if (!gotten) {
-	logger.msg(WARNING, "Failed getting job description for %s", (*it)->JobID.str());
-      } else {
-	logger.msg(DEBUG, "Got job description for %s", (*it)->JobID.str());
-	jobpairs.push_back(std::pair<Job, JobDescription>(**it,desc));
+    //First try to get descriptions from local job file
+    if (getlocal) {
+      logger.msg(INFO, "Getting job decriptions from local job file");
+      CheckLocalDescription(gettable,jobpairs);
+    } else
+      logger.msg(DEBUG, "Disregarding job decriptions from local job file");
+    
+    // Try to get description from cluster
+    if ( !gettable.empty())
+      for (std::list<Job*>::iterator it = gettable.begin();
+	   it != gettable.end(); it++) {
+	JobDescription desc;
+	if (!GetJobDescription(**it,desc)) {
+	  logger.msg(WARNING, "Failed getting job description for %s", (*it)->JobID.str());
+	} else {
+	  logger.msg(INFO, "Got job description for %s", (*it)->JobID.str());
+	  jobpairs.push_back(std::pair<Job, JobDescription>(**it,desc));
+	}
       }
-    }
     return jobpairs;
   }
+
+  void JobController::CheckLocalDescription(std::list<Job*>& jobs, 
+					    std::list<std::pair<Job, JobDescription> >& jobpairs) {
+    for (std::list<Job*>::iterator it = jobs.begin();
+	 it != jobs.end(); it++) {
+      // Search for jobids
+      XMLNodeList xmljobs =
+	jobstorage.XPathLookup("//Job[JobID='" + (*it)->JobID.str() + "']", NS());
+      
+      if (xmljobs.empty()) {
+	logger.msg(ERROR, "Job not found in job list: %s", (*it)->JobID.str() );
+	return;
+      } 
+      XMLNode& xmljob = *xmljobs.begin();
+
+      if ( xmljob["JobDescription"] ){
+	JobDescription jobdesc;
+	jobdesc.setSource((std::string) xmljob["JobDescription"]);
+	if (jobdesc.isValid())
+	  logger.msg(DEBUG, "Valid jobdescription found for: %s", (*it)->JobID.str());
+	else
+	  logger.msg(ERROR, "No valid jobdescription found for: %s", (*it)->JobID.str());
+	
+	// Check checksums of local input files
+	bool CKSUM = true;
+	int size = xmljob["LocalInputFiles"].Size();
+	for (int i=0;i<size;i++){
+	  const std::string file = (std::string) xmljob["LocalInputFiles"]["File"][i]["Source"];
+	  const std::string cksum_old = (std::string) xmljob["LocalInputFiles"]["File"][i]["CheckSum"];
+	  const std::string cksum_new=Sandbox::GetCksum(file);
+	  if ( cksum_old != cksum_new ) {
+	    logger.msg(WARNING, "Checksum of input file %s has changed.", file);
+	    CKSUM=false;
+	  } else {
+	    logger.msg(DEBUG, "Stored and new checksum of input file %s are identical.", file);
+	  }
+	}
+ 	// Push_back job and job descriptions
+	if (CKSUM){
+	  logger.msg(INFO, "Job description for %s retrieved locally", (*it)->JobID.str());
+	  jobpairs.push_back(std::pair<Job, JobDescription>((**it),jobdesc));
+	  it = jobs.erase(it);
+	} else
+	  logger.msg(WARNING, "Job description for %s could not be retrieved locally", (*it)->JobID.str());
+      } else
+	logger.msg(WARNING, "Job description for %s could not be retrieved locally", (*it)->JobID.str());
+    }//end loop over jobs
+    return;
+  }
+
 } // namespace Arc

@@ -2,10 +2,14 @@
 #include <config.h>
 #endif
 
+#include <fstream>
 #include <map>
 
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
+#include <arc/data/DataMover.h>
+#include <arc/data/URLMap.h>
+#include <arc/client/UserConfig.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 
@@ -296,6 +300,112 @@ namespace Arc {
     return url;
   }
 
-  bool JobControllerARC0::GetJobDescription(const Job&, JobDescription& desc) {
+  bool JobControllerARC0::GetJobDescription(const Job& job, JobDescription& desc) {
+
+    std::string jobid=job.JobID.str();
+    logger.msg(INFO,"Trying to retrieve job description"
+	       "of %s from cluster",jobid);
+    
+    NS ns;
+    XMLNode cred(ns, "cred");
+    //UserConfig usercfg(conffile);
+    usercfg.ApplySecurity(cred);
+
+    std::string::size_type pos = jobid.rfind("/");
+    if (pos == std::string::npos) {
+      logger.msg(ERROR,"invalid jobid: %s",jobid);
+      return false;
+    }
+    std::string cluster = jobid.substr(0,pos);
+    std::string shortid = jobid.substr (pos + 1);
+
+    // Transfer job description
+    DataMover mover;
+    mover.secure(false);
+    mover.passive(true);
+    mover.verbose(false);
+    mover.force_to_meta(false);
+    mover.retry(true);
+    User cache_user;
+    FileCache cache;
+    std::string failure;
+    URL source_url(cluster + "/info/" + shortid + "/description");
+    std::string localfile="/tmp/" + shortid +"/description";
+    URL dest_url(localfile);
+    DataHandle source(source_url);
+    DataHandle destination(dest_url);
+    source->AssignCredentials(cred);
+    source->SetTries(1);
+    destination->AssignCredentials(cred);
+    destination->SetTries(1);
+    if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+			0, 0, 0, 500, failure)) {
+      if (!failure.empty())
+	logger.msg(INFO, "Current transfer FAILED: %s", failure);
+      else
+	logger.msg(INFO, "Current transfer FAILED");
+      mover.Delete(*destination);
+      return false;
+    }
+    else
+      logger.msg(INFO, "Current transfer complete");
+    
+    // Read job description from file
+    std::ifstream descriptionfile(localfile.c_str());
+    
+    if (!descriptionfile) {
+      logger.msg(ERROR, "Can not open job description file: %s",localfile);
+	return false;
+    }
+    
+    descriptionfile.seekg(0, std::ios::end);
+    std::streamsize length = descriptionfile.tellg();
+    descriptionfile.seekg(0, std::ios::beg);
+    
+    char *buffer = new char[length + 1];
+    descriptionfile.read(buffer, length);
+    descriptionfile.close();
+    
+    buffer[length] = '\0';
+    
+    std::string string = (std::string) buffer;
+    //Cleaning up
+    delete[] buffer;
+    destination->Remove();
+    
+    // Extracting original client xrsl
+    pos = string.find("clientxrsl");
+    if (pos != std::string::npos) {
+      logger.msg(DEBUG,"clientxrsl found");
+      std::string::size_type pos1 = string.find("&",pos);
+      if (pos1 == std::string::npos) {
+	logger.msg(ERROR,"could not find start of clientxrsl");
+	return false;
+      }
+      std::string::size_type pos2 = string.find(")\"",pos1);
+      if (pos2 == std::string::npos) {
+	logger.msg(ERROR,"could not find end of clientxrsl");
+	return false;
+      }
+      string.erase(pos2+1);
+      string.erase(0,pos1);
+      for (std::string::size_type i=0; i!=std::string::npos;){
+	i=string.find("\"\"",i);
+	if (i!=std::string::npos)
+	  string.erase(i,1);
+      }
+      logger.msg(VERBOSE,"Job description:%s", string);
+    } else {
+      logger.msg(ERROR,"clientxrsl not found");
+      return false;
+    }
+    desc.setSource(string);
+    if (!desc.isValid()){
+      logger.msg(ERROR, "Invalid JobDescription:");
+      std::cout << string << std::endl;
+      return false;
+    }
+    logger.msg(INFO, "Valid JobDescription found");
+    return true;
   }    
 } // namespace Arc

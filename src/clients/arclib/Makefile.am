@@ -1,4 +1,5 @@
-bin_PROGRAMS = arcsub arcget arcstat arckill arcclean arccat arcsync
+bin_PROGRAMS = arcsub arcget arcstat arckill arcclean arccat arcsync \
+               arcresub
 
 man_MANS = arcsub.1 arcget.1 arcstat.1 arckill.1 arcclean.1 arccat.1 \
 	arcclient.xml.5
@@ -36,6 +37,10 @@ arccat_LDADD    = $(CLILIBS)
 arcsync_SOURCES  = arcsync.cpp
 arcsync_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcsync_LDADD    = $(CLILIBS)
+
+arcresub_SOURCES  = arcresub.cpp
+arcresub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcresub_LDADD    = $(CLILIBS)
 
 sysconf_DATA = arcclient.xml
 doc_DATA = client.xml.example

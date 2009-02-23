@@ -20,8 +20,10 @@
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
 #include <arc/client/Sandbox.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/JobController.h>
+#include <arc/client/JobSupervisor.h>
+#include <arc/client/TargetGenerator.h>
 #include <arc/client/UserConfig.h>
 #include <arc/client/ACC.h>
 #include <arc/client/Broker.h>
@@ -31,55 +33,19 @@ int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
-  Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
+  Arc::Logger logger(Arc::Logger::getRootLogger(), "arcresub");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[filename ...]"),
-			    istring("The arcsub command is used for "
-				    "submitting jobs to grid enabled "
-				    "computing\nresources."),
-			    istring("Argument to -i has the format "
-				    "Flavour:URL e.g.\n"
-				    "ARC0:ldap://grid.tsl.uu.se:2135/"
-				    "mds-vo-name=sweden,O=grid\n"
-				    "CREAM:ldap://cream.grid.upjs.sk:2170/"
-				    "o=grid\n"
-				    "\n"
-				    "Argument to -c has the format "
-				    "Flavour:URL e.g.\n"
-				    "ARC0:ldap://grid.tsl.uu.se:2135/"
-				    "nordugrid-cluster-name=grid.tsl.uu.se,"
-				    "Mds-Vo-name=local,o=grid"));
+  Arc::OptionParser options(istring("[job ...]\n"));
 
-  std::list<std::string> clusters;
-  options.AddOption('c', "cluster",
-		    istring("explicity select or reject a specific cluster"),
-		    istring("[-]name"),
-		    clusters);
-
-  std::list<std::string> indexurls;
-  options.AddOption('i', "index",
-		    istring("explicity select or reject an index server"),
-		    istring("[-]name"),
-		    indexurls);
-
-  std::list<std::string> jobdescriptionstrings;
-  options.AddOption('e', "jobdescrstring",
-		    istring("jobdescription string describing the job to "
-			    "be submitted"),
-		    istring("string"),
-		    jobdescriptionstrings);
-
-  std::list<std::string> jobdescriptionfiles;
-  options.AddOption('f', "jobdescrfile",
-		    istring("jobdescription file describing the job to "
-			    "be submitted"),
-		    istring("string"),
-		    jobdescriptionfiles);
+  bool all = false;
+  options.AddOption('a', "all",
+		    istring("all jobs"),
+		    all);
 
   std::string joblist;
   options.AddOption('j', "joblist",
@@ -87,16 +53,41 @@ int main(int argc, char **argv) {
 		    istring("filename"),
 		    joblist);
 
-  /*
-  bool dryrun = false;
-  options.AddOption('D', "dryrun", istring("add dryrun option"),
-		    dryrun);
+  std::list<std::string> clusters;
+  options.AddOption('c', "cluster",
+		    istring("explicity select or reject a specific cluster"),
+		    istring("[-]name"),
+		    clusters);
 
-  bool dumpdescription = false;
-  options.AddOption('x', "dumpdescription",
-		    istring("do not submit - dump job description"),
-		    dumpdescription);
-  */
+  std::list<std::string> qlusters;
+  options.AddOption('q', "qluster",
+		    istring("explicity select or reject a specific cluster "
+			    "for the new job"),
+		    istring("[-]name"),
+		    qlusters);
+  
+  std::list<std::string> indexurls;
+  options.AddOption('i', "index",
+		    istring("explicity select or reject an index server"),
+		    istring("[-]name"),
+		    indexurls);
+
+  std::list<std::string> status;
+  options.AddOption('s', "status",
+		    istring("only select jobs whose status is statusstr"),
+		    istring("statusstr"),
+		    status);
+
+  bool keep = false;
+  options.AddOption('k', "keep",
+		    istring("keep the files on the server (do not clean)"),
+		    keep);
+
+  bool same = false;
+  options.AddOption('m', "same",
+		    istring("resubmit to the same cluster"),
+		    same);
+
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
@@ -113,18 +104,19 @@ int main(int argc, char **argv) {
 
   std::string broker;
   options.AddOption('b', "broker",
-		    istring("select broker method (RandomBroker (default), FastestQueueBroker, or custom)"),
+		    istring("select broker method (Random (default), QueueBalance, or custom)"),
 		    istring("broker"), broker);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
 		    version);
 
-  std::list<std::string> params = options.Parse(argc, argv);
+
+  std::list<std::string> jobs = options.Parse(argc, argv);
 
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-
+  
   Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
@@ -137,112 +129,56 @@ int main(int argc, char **argv) {
   }
 
   if (version) {
-    std::cout << Arc::IString("%s version %s", "arcsub", VERSION)
+    std::cout << Arc::IString("%s version %s", "arcresub", VERSION)
 	      << std::endl;
     return 0;
   }
 
-  jobdescriptionfiles.insert(jobdescriptionfiles.end(),
-			     params.begin(), params.end());
-
+  if (jobs.empty() && !all) {
+    std::cout << Arc::IString("No jobs given")<< std::endl;
+    logger.msg(Arc::ERROR, "No jobs given");
+    return 1;
+  }
+      
   if (joblist.empty())
     joblist = usercfg.JobListFile();
-  else {
-    struct stat st;
-    if (stat(joblist.c_str(), &st) != 0) {
-      if (errno == ENOENT) {
-	Arc::NS ns;
-	Arc::Config(ns).SaveToFile(joblist);
-	logger.msg(Arc::INFO, "Created empty ARC job list file: %s", joblist);
-	stat(joblist.c_str(), &st);
-      }
-      else {
-	logger.msg(Arc::ERROR, "Can not access ARC job list file: %s (%s)",
-		   joblist, Arc::StrError());
-	return 1;
-      }
-    }
-    if (!S_ISREG(st.st_mode)) {
-      logger.msg(Arc::ERROR, "ARC job list file is not a regular file: %s",
-		 joblist);
-      return 1;
-    }
-  }
 
-  if (jobdescriptionfiles.empty() && jobdescriptionstrings.empty()) {
-    logger.msg(Arc::ERROR, "No job description input specified");
+  // Get jobs from sandbox
+  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, joblist);
+  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
+  if (jobcont.empty()) {
+    logger.msg(Arc::ERROR, "No job controllers loaded");
     return 1;
   }
-
-  std::list<Arc::JobDescription> jobdescriptionlist;
-
-  //Loop over input job description files
-  for (std::list<std::string>::iterator it = jobdescriptionfiles.begin();
-       it != jobdescriptionfiles.end(); it++) {
-
-    std::ifstream descriptionfile(it->c_str());
-
-    if (!descriptionfile) {
-      logger.msg(Arc::ERROR, "Can not open job description file: %s", *it);
-      return 1;
-    }
-
-    descriptionfile.seekg(0, std::ios::end);
-    std::streamsize length = descriptionfile.tellg();
-    descriptionfile.seekg(0, std::ios::beg);
-
-    char *buffer = new char[length + 1];
-    descriptionfile.read(buffer, length);
-    descriptionfile.close();
-
-    buffer[length] = '\0';
-    Arc::JobDescription jobdesc;
-    jobdesc.setSource((std::string) buffer);
-
-    if (jobdesc.isValid())
-      jobdescriptionlist.push_back(jobdesc);
-    else {
-      logger.msg(Arc::ERROR, "Invalid JobDescription:");
-      std::cout << buffer << std::endl;
-      delete[] buffer;
-      return 1;
-    }
-    delete[] buffer;
-  }
-
-  //Loop over job description input strings
-  for(std::list<std::string>::iterator it = jobdescriptionstrings.begin();
-      it != jobdescriptionstrings.end(); it++) {
-
-    Arc::JobDescription jobdesc;
-
-    jobdesc.setSource(*it);
-
-    if (jobdesc.isValid())
-      jobdescriptionlist.push_back(jobdesc);
-    else {
-      logger.msg(Arc::ERROR, "Invalid JobDescription:");
-      std::cout << *it << std::endl;
-      return 1;
-    }
-  }
-
-  Arc::TargetGenerator targen(usercfg, clusters, indexurls);
-  targen.GetTargets(0, 1);
-
-  if (targen.FoundTargets().empty()) {
-    std::cout << Arc::IString("Job submission aborted because no clusters returned any information")<< std::endl;
-    return 1;
-  }
-
-  std::map<int, std::string> notsubmitted;
   
-  int jobnr = 1;
-  std::list<std::string> jobids;
+  std::list<std::pair< Arc::Job, Arc::JobDescription> > jobpairs;
+  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
+       it != jobcont.end(); it++){
+    std::list<std::pair<Arc::Job, Arc::JobDescription> > jobcont_pairs;
+    jobcont_pairs = (*it)->GetJobDescriptions(status, true, timeout);
+    jobpairs.insert(jobpairs.begin(),jobcont_pairs.begin(),jobcont_pairs.end());
+  }
+  if (jobpairs.empty()){
+    logger.msg(Arc::ERROR, "No jobs to resubmit");
+    return 1;
+  }
 
+  /*
+  for (std::list<std::pair< Arc::Job, Arc::JobDescription> >::iterator it = jobpairs.begin();
+       it != jobpairs.end(); it++)
+    qlusters.push_back("-" + it->first.Cluster.str());
+  qlusters.sort();
+  qlusters.unique();
+  std::cout << "Size=" << qlusters.size() << std::endl;
+  for (std::list<std::string>::iterator it = qlusters.begin();
+       it != qlusters.end(); it++)
+    std::cout << "Qluster=" << *it << std::endl;
+  */
+
+  // Resubmit jobs
   Arc::NS ns;
   Arc::Config jobstorage(ns);
-
+  
   //prepare loader
   if(broker.empty())
     broker = "RandomBroker";
@@ -262,40 +198,71 @@ int main(int argc, char **argv) {
   Broker.NewAttribute("id") = "broker";
   
   usercfg.ApplySecurity(Broker);
-
+  
   Arc::ACCLoader loader(cfg);
   Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);  
-  
-  for (std::list<Arc::JobDescription>::iterator it =
-	 jobdescriptionlist.begin(); it != jobdescriptionlist.end();
-       it++, jobnr++) {
 
-    ChosenBroker->PreFilterTargets(targen, *it);
+  // Loop over jobs
+  for(std::list<std::pair<Arc::Job, Arc::JobDescription> >::iterator it = jobpairs.begin(); 
+      it != jobpairs.end(); it++){
+    
+    logger.msg(Arc::WARNING,"Got job with\n  JobID:%s\n"
+	       "  Flavour:%s\n"
+	       "  Cluster:%s\n"
+	       "  SubmissionEndpoint:%s\n"
+	       "  InfoEnpoint:%s",
+	       (std::string) it->first.JobID.str(),
+	       (std::string) it->first.Flavour,
+	       (std::string) it->first.Cluster.str(),
+	       (std::string) it->first.SubmissionEndpoint.str(),
+	       (std::string) it->first.InfoEndpoint.str());
+    // Pre-selecting qlusters
+    if (same) {
+      qlusters.clear();
+      qlusters.push_back(it->first.Flavour+":"+it->first.Cluster.str());
+      logger.msg(Arc::DEBUG, "Trying to resubmit job to %s",qlusters.front());
+    } else {
+      qlusters.remove(it->first.Flavour+":"+it->first.Cluster.str());
+      qlusters.push_back("-"+it->first.Flavour+":"+it->first.Cluster.str());
+      logger.msg(Arc::DEBUG, "Disregarding %s",qlusters.front());
+    }
+   
+    
+    Arc::TargetGenerator targen(usercfg, qlusters, indexurls);
+    targen.GetTargets(0, 1);
+    
+    if (targen.FoundTargets().empty()) {
+      std::cout << Arc::IString("Job submission aborted because no clusters returned any information")<< std::endl;
+      return 1;
+    }
+
+    //continue preparing broker
+    ChosenBroker->PreFilterTargets(targen, it->second);
     bool JobSubmitted = false;
     bool EndOfList = false;
-
+    
     while(!JobSubmitted){
-      
+	
       Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
       if(EndOfList){
 	std::cout << Arc::IString("Job submission failed, no more possible targets")<< std::endl;
+	// Erase job from jobs
 	break;
       }
-
-      Arc::Submitter *submitter = target.GetSubmitter(usercfg);
       
+      Arc::Submitter *submitter = target.GetSubmitter(usercfg);
+	
       Arc::NS ns;
       Arc::XMLNode info(ns, "Job");
-      //submit the job
-      if (!submitter->Submit(*it, info)) {
+      if (!submitter->Submit(it->second, info)) {
 	std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str())<< std::endl;
 	continue;
       }
-      
+
       //need to get the jobinnerrepresentation in order to get the number of slots
       Arc::JobInnerRepresentation jir;
-      it->getInnerRepresentation(jir);
+      it->second.getInnerRepresentation(jir);
       
       for(std::list<Arc::ExecutionTarget>::iterator target2 = targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); target2++){ 
 	if(target.url ==  (*target2).url){
@@ -310,7 +277,7 @@ int main(int argc, char **argv) {
 	}
       }
       Arc::XMLNode node;
-      if ( it->getXML(node) ){
+      if ( it->second.getXML(node) ){
 	if ( (bool)node["JobDescription"]["JobIdentification"]["JobName"] ){
 	  info.NewChild("Name") = (std::string)node["JobDescription"]["JobIdentification"]["JobName"];
 	}
@@ -318,23 +285,36 @@ int main(int argc, char **argv) {
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-      if (!Arc::Sandbox::Add(*it, info))
+      if (!Arc::Sandbox::Add(it->second, info))
 	logger.msg(Arc::ERROR,"Job not stored in sandbox");
       else
 	logger.msg(Arc::VERBOSE,"Job description succesfully stored in sandbox");
-      
+
       jobstorage.NewChild("Job").Replace(info);
-      
+
       std::cout << Arc::IString("Job submitted with jobid: %s",
 				(std::string) info["JobID"]) << std::endl;
       JobSubmitted = true;
       break;
-
     } //end loop over all possible targets
   } //end loop over all job descriptions
 
+  // Only kill and clean jobs that have been resubmitted
+  clusters.clear();
+  Arc::JobSupervisor killmaster(usercfg, jobs, clusters, joblist);
+  std::list<Arc::JobController*> killcont = killmaster.GetJobControllers();
+  if (killcont.empty()) {
+    logger.msg(Arc::ERROR, "No job controllers loaded");
+    return 1;
+  }
 
-  //now add info about all submitted jobs to the local xml file
+  for (std::list<Arc::JobController*>::iterator it = killcont.begin();
+       it != killcont.end(); it++)
+    if (!(*it)->Kill(status, keep, timeout) && !(*it)->Clean(status, true, timeout) ){
+      logger.msg(Arc::WARNING, "Job could not be killed/cleaned");
+    }
+  
+  //now add info about all resubmitted jobs to the local xml file
   {//start of file lock
     Arc::FileLock lock(joblist);
     Arc::Config jobs;
@@ -344,27 +324,19 @@ int main(int argc, char **argv) {
     }
     jobs.SaveToFile(joblist);
   }//end of file lock
-
-  if (jobdescriptionlist.size() > 1) {
+  
+  /*
+    if (jobpairs.size() > 1) {
     std::cout << std::endl << Arc::IString("Job submission summary:")
-	      << std::endl;
+    << std::endl;
     std::cout << "-----------------------" << std::endl;
     std::cout << Arc::IString("%d of %d jobs were submitted",
-			      jobdescriptionlist.size() - notsubmitted.size(),
-			      jobdescriptionlist.size()) << std::endl;
-    if (notsubmitted.size()) {
-      std::cout << Arc::IString("The following %d were not submitted",
-				notsubmitted.size()) << std::endl;
-      /*
-      std::map<int, std::string>::iterator it;
-      for (it = notsubmitted.begin(); it != notsubmitted.end(); it++) {
-      std::cout << _("Job nr.") << " " << it->first;
-	if (it->second.size()>0) std::cout << ": " << it->second;
-	std::cout << std::endl;
-      }
-      */
+    jobpairs.size() - notresubmitted.size(),
+    jobpairs.size()) << std::endl;
+    if (notresubmitted.size()) {
+    std::cout << Arc::IString("The following %d were not submitted",
+    notresubmitted.size()) << std::endl;
     }
-  }
-
+    }*/
   return 0;
 }

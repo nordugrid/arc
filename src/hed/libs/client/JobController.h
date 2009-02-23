@@ -9,6 +9,7 @@
 #include <arc/client/ACC.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
 namespace Arc {
 
   class Logger;
@@ -54,6 +55,8 @@ namespace Arc {
     std::list<std::pair<Job,JobDescription> > GetJobDescriptions(const std::list<std::string>& status,
 								 const bool getlocal,
 								 const int timeout);
+    void CheckLocalDescription(std::list<Job*>& jobs, 
+			       std::list<std::pair<Job, JobDescription> >& jobpairs);
 
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
@@ -69,6 +72,7 @@ namespace Arc {
     Config jobstorage;
     std::string joblist;
     static Logger logger;
+    UserConfig usercfg;
   };
 
 } // namespace Arc
