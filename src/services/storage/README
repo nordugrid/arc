@@ -5,7 +5,6 @@ ahash     - simple currently centralized metadata store used by the Librarian
 librarian - the Librarian service handling files and collection
 bartender - the Bartender service providing high-level storage namespace
 shepherd  - the Shepherd service and a byteio service
-gateway   - the Storage Gateway service and other services related to it
 cli       - small basic CLI clients for the storage services
 fuse      - FUSE interface to storage for mounting storage system
 

@@ -1,1 +1,1 @@
-the Bartender service providing high-level storage namespace
+the Bartender service, which provides a high-level interface of the ARC storage system for the users and for other services, and contains gateway modules to access third-party storages    
