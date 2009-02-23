@@ -17,7 +17,7 @@ import commands
 import os
 import base64
 from arcom.logger import Logger
-log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Gateway'))
+log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Bartender.gateway.Gateway'))
 
 class Gateway:
 
@@ -25,13 +25,18 @@ class Gateway:
         #print "Gateway constructor..."
         self.service_name = 'Gateway'
 	self.cfg = cfg
- 	self.proxy_store = str(self.cfg.Get('ProxyStore'))
+        self.proxy_store = str(self.cfg.Get('ProxyStore'))
         self.ca_dir = str(self.cfg.Get('CACertificatesDir'))
+        if len(self.proxy_store) == 0:
+           log.msg(arc.DEBUG,'proxy store is not accessable.')
+         
     def get(self, auth ,sourceURL, flags):
         response = {}  
         status = ''  
         protocol = ''
         proxyfile = base64.b64encode(auth.get_identity()) 
+        if len(self.proxy_store) == 0:
+           log.msg(arc.DEBUG,'proxy store is not accessable.')
         filepath = self.proxy_store+'/'+proxyfile+'.proxy'
         if os.path.isfile(filepath):
             url = arc.URL(sourceURL);
@@ -86,8 +91,12 @@ class Gateway:
             protocol = 'srm'
         else:
             protocol = 'unkonwn'
+        
+        if len(self.proxy_store) == 0:
+            log.msg(arc.DEBUG,'proxy store is not accessable.')
+        
         if protocol != 'unknown':
-
+          
             proxyfile = base64.b64encode(auth.get_identity())
             filepath = self.proxy_store+'/'+proxyfile+'.proxy'
             if os.path.isfile(filepath):
