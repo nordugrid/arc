@@ -57,7 +57,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large User's manual of the ARC storage system}\Large \par}
+{\centering \textsc{\Large Administrator's and user's manual of the ARC storage system}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -71,95 +71,123 @@
 \end{titlepage}
 
 \tableofcontents                          %Comment if use article style
+\begin{verbatim}
+    Administrator's and user's manual
+    ---------------------------------
+
+    Administrator's manual
+    - Quick start guide
+        - Checking the code out from the subversion
+        - Compiling and installing
+        - Modifying the configuration template
+        - Running the daemon
+        - Using the CLI tool
+    - Installation:
+        - Getting the source code from subversion
+        - Compilation details
+        - Installation
+    - Configuration:
+        - HED service config
+        - Centralized A-Hash
+        - Distributed A-Hash
+        - Librarian
+        - Shepherd
+        - Hopi
+        - Bartender
+        - Configuring inter-service trust: local listing of DNs, or using an A-Hash to store them
+        - Virtual organizations: how to configure HED to trust a VO
+    - Deployment scenarios:
+        - Single node: putting every service on one single node (including a storage node with Hopi)
+        - Centralized management: using seperate multiple storage nodes with Hopi, but leaving a central A-Hash, a Librarian and a Bartender on the central node
+        - Simple distribution: split the central node to three nodes, each of them has an A-Hash, a Librarian and a Bartender, and we have separate storage nodes
+        - One service per node: we have seperate nodes for all the services, any number of A-Hash nodes, any number of Librarian nodes, Bartender nodes, storage nodes
+
+    User's manual
+    - Overview: what do you need to access a running ARC storage system
+    - Prototype command line tool
+        - Configuring the command line tool
+        - Creating the root collection
+        - Uploading files
+        - Creating collections
+        - Moving files
+        - Creating hardlinks
+        - Removing files
+        - Removing collections
+        - Close collections
+        - Modify access policies
+        - Working with mount points
+    - Grid jobs
+        - Configuring the ARC storage DMC
+        - Specifying files in job descriptions
+    - Accessing the system with FUSE
+        - Configuring the FUSE module
+        - Mounting the storage system
+        - Supported operations
+        - Limitations
+    
+\end{verbatim}
+
 \newpage
 
 \renewcommand{\thefootnote}{\arabic{footnote}}
 
-\chapter{Quick start guide} % (fold)
-\label{cha:quick_start_guide}
 
-\section{Checking the code out from the subversion} % (fold)
-\label{sec:checking_the_code_out_from_the_subversion}
+\chapter{Administrator's manual} % (fold)
+\label{cha:administrator_s_manual}
 
-% section checking_the_code_out_from_the_subversion (end)
+\section{Quick start guide} % (fold)
+\label{sec:quick_start_guide}
 
-\section{Compiling and installing} % (fold)
-\label{sec:compiling_and_installing}
+\begin{verbatim}
+http://svn.nordugrid.org/
+svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1   
+README file for dependencies
+$ ./autogen.sh
+$ ./configure --disable-java --disable-a-rex-service --disable-isi-service --disable-charon-service --disable-compiler-service --disable-paul-service --disable-sched-service
+--prefix
 
-% section compiling_and_installing (end)
+Unit testing:       yes
+Java binding:       no
+Python binding:     yes (2.5)
 
-\section{Modifying the configuration template} % (fold)
-\label{sec:modifying_the_configuration_template}
+Available third-party features:
 
-% section modifying_the_configuration_template (end)
+RLS:                yes
+GridFTP:            yes
+LFC:                no
+RSL:                yes
+SAML:               yes
+MYSQL CLIENT LIB:   no
+gSOAP:              no
 
-\section{Running the daemon} % (fold)
-\label{sec:running_the_daemon}
+Included components:
+A-Rex service:      no
+ISI service:        no
+CHARON service:     no
+HOPI service:       yes
+SCHED service:      no
+STORAGE service:    yes
+PAUL service:       no
+SRM client (DMC):   no
+GSI channel (MCC):  yes
 
-% section running_the_daemon (end)
+$ make
 
-\section{Using the CLI tool} % (fold)
-\label{sec:using_the_cli_tool}
+$ sudo make install
 
-% section using_the_cli_tool (end)
 
-% chapter quick_start_guide (end)
+\end{verbatim}
 
-\chapter{Installing the system} % (fold)
-\label{cha:installing_the_system}
 
-\section{Getting the source code} % (fold)
-\label{sec:getting_the_source_code}
+% section quick_start_guide (end)
 
-% section getting_the_source_code (end)
+\section{Installation} % (fold)
+\label{sec:installation}
+
+% section installation (end)
 
 \section{Configuration} % (fold)
 \label{sec:configuration}
-
-\subsection{HED service config} % (fold)
-\label{sub:hed_service_config}
-
-% subsection hed_service_config (end)
-
-\subsection{Centralized A-Hash} % (fold)
-\label{sub:centralized_a_hash}
-
-% subsection centralized_a_hash (end)
-
-\subsection{Distributed A-Hash} % (fold)
-\label{sub:distributed_a_hash}
-
-% subsection distributed_a_hash (end)
-
-\subsection{Librarian} % (fold)
-\label{sub:librarian}
-
-% subsection librarian (end)
-
-\subsection{Shepherd} % (fold)
-\label{sub:shepherd}
-
-% subsection shepherd (end)
-
-\subsection{Hopi} % (fold)
-\label{sub:hopi}
-
-% subsection hopi (end)
-
-\subsection{Bartender} % (fold)
-\label{sub:bartender}
-
-% subsection bartender (end)
-
-\subsection{Configuring inter-service trust} % (fold)
-\label{sub:configuring_inter_service_trust}
-
-% subsection configuring_inter_service_trust (end)
-
-\subsection{Virtual organizations} % (fold)
-\label{sub:virtual_organizations}
-
-% subsection virtual_organizations (end)
 
 % section configuration (end)
 
@@ -168,117 +196,32 @@
 
 % section deployment_scenarios (end)
 
-\section{Single node} % (fold)
-\label{sec:single_node}
+% chapter administrator_s_manual (end)
 
-% section single_node (end)
+\chapter{User's manual} % (fold)
+\label{cha:user_s_manual}
 
-\section{Centralized management} % (fold)
-\label{sec:centralized_management}
+\section{Overview} % (fold)
+\label{sec:overview}
 
-% section centralized_management (end)
-
-\section{Simple distribution} % (fold)
-\label{sec:simple_distribution}
-
-% section simple_distribution (end)
-
-\section{One service per node} % (fold)
-\label{sec:one_service_per_node}
-
-% section one_service_per_node (end)
-
-% chapter installing_the_system (end)
-
-\chapter{Using the system} % (fold)
-\label{cha:using_the_system}
+% section overview (end)
 
 \section{Prototype command line tool} % (fold)
 \label{sec:prototype_command_line_tool}
 
-\subsection{Configuring the command line tool} % (fold)
-\label{sub:configuring_the_command_line_tool}
-
-% subsection configuring_the_command_line_tool (end)
-
-\subsection{Creating the root collection} % (fold)
-\label{sub:creating_the_root_collection}
-
-% subsection creating_the_root_collection (end)
-
-\subsection{Uploading files} % (fold)
-\label{sub:uploading_files}
-
-% subsection uploading_files (end)
-
-\subsection{Creating collections} % (fold)
-\label{sub:creating_collections}
-
-% subsection creating_collections (end)
-
-\subsection{Moving files} % (fold)
-\label{sub:moving_files}
-
-% subsection moving_files (end)
-
-\subsection{Creating hardlinks} % (fold)
-\label{sub:creating_hardlinks}
-
-% subsection creating_hardlinks (end)
-
-\subsection{Removing files} % (fold)
-\label{sub:removing_files}
-
-% subsection removing_files (end)
-
-\subsection{Removing collections} % (fold)
-\label{sub:removing_collections}
-
-% subsection removing_collections (end)
-
-\subsection{Close collections} % (fold)
-\label{sub:close_collections}
-
-% subsection close_collections (end)
-
-\subsection{Modify access policies} % (fold)
-\label{sub:modify_access_policies}
-
-% subsection modify_access_policies (end)
-    
-\subsection{Working with mount points} % (fold)
-\label{sub:working_with_mount_points}
-
-% subsection working_with_mount_points (end)
-    
 % section prototype_command_line_tool (end)
+
+\section{Grid jobs} % (fold)
+\label{sec:grid_jobs}
+
+% section grid_jobs (end)
 
 \section{Accessing the system with FUSE} % (fold)
 \label{sec:accessing_the_system_with_fuse}
 
-\subsection{Configuring the FUSE module} % (fold)
-\label{sub:configuring_the_fuse_module}
-
-% subsection configuring_the_fuse_module (end)
-
-\subsection{Mounting the storage system} % (fold)
-\label{sub:mounting_the_storage_system}
-
-% subsection mounting_the_storage_system (end)
-
-\subsection{Supported operations} % (fold)
-\label{sub:supported_operations}
-
-% subsection supported_operations (end)
-
-\subsection{Limitations} % (fold)
-\label{sub:limitations}
-
-% subsection limitations (end)
-
 % section accessing_the_system_with_fuse (end)
 
-% chapter using_the_system (end)
+% chapter user_s_manual (end)
 
 % \bibliography{grid}
 \end{document}
