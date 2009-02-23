@@ -33,8 +33,11 @@ class Bartender:
             cl = import_class_from_string(gatewayclass) 
             gatewaycfg = cfg.Get('GatewayCfg')
             self.gateway = cl(gatewaycfg)
+            log.msg(arc.INFO, 'accessing gateway: %s', gatewayclass)
         else:
-            log.msg(arc.INFO, 'cannot import %s. Access third party store we need gateway.', gatewayclass)
+            log.msg(arc.INFO, 'This bartender does not support gateway') 
+            log.msg(arc.INFO, 'cannot connect to gateway. Access of third party store required gateway.')
+
         
         self.ssl_config = ssl_config
         self.cfg = cfg
@@ -206,9 +209,10 @@ class Bartender:
                  response = self.gateway.put(auth,url,flag)
         else:
             if flag == 'list':
-                response[url]={'list':'','status':'gateway is not configured. check service.xml','protocol':''}            
+                response[url]={'list':'','status':'gateway is not configured. Bartender does not support mount points','protocol':''}            
             else:
-                response[url]={'turl':'','status':'gateway is not configured. check service.xml','protocol':''}
+                response[url]={'turl':'','status':'gateway is not configured. Bartender does not support mount points','protocol':''}
+        log.msg(arc.DEBUG, '//// response from the external store:', response)
         return response
         
 
@@ -862,6 +866,10 @@ class BartenderService(Service):
         librarian_url = str(cfg.Get('LibrarianURL'))
         # get the list of the available proxies. 
         self.proxy_store = str(cfg.Get('ProxyStore'))
+        if self.proxy_store:
+            log.msg(arc.DEBUG, '//// Proxy store:', self.proxy_store)
+        else:
+            log.msg(arc.DEBUG, '//// Proxy store not available:')  
         #if self.proxy_store:
         #    self.proxies = os.listdir(self.proxy_store)
         
@@ -1373,42 +1381,44 @@ class BartenderService(Service):
 	    # Delegation Credentials(NEED TO FIX IT)  
             self.delegSOAP = arc.DelegationContainerSOAP()
             self.delegSOAP.DelegateCredentialsInit(inpayload,outpayload)
-	    print "\n outpayload"
-            print outpayload.GetXML()
+	    #print "\n outpayload"
+            #print outpayload.GetXML()
             
         return outpayload
         
     def UpdateCredentials(self,inpayload):
         
-        print inpayload.GetXML()
+        #print inpayload.GetXML()
 	ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
         outpayload = arc.PayloadSOAP(ns)
         credAndid = self.delegSOAP.UpdateCredentials(inpayload,outpayload)
-        print "\n ---Delegated Credentials--- "
-        print credAndid[1]
-        if (os.path.isdir(self.proxy_store)):
-            print "ProxyStore: "+self.proxy_store 
-            filePath = self.proxy_store+'/'+base64.b64encode(inpayload.auth.get_identity())+'.proxy'
-            proxyfile = open(filePath, 'w') 
-            proxyfile.write(credAndid[1])
-	    proxyfile.close()
-            os.system('chmod 600 '+filePath)
+        print credAndid
+        if credAndid[0] == True:
+            #print "\n ---Delegated Credentials--- "
+            #print credAndid[1]
+            log.msg(arc.INFO,'Delegation status: ', credAndid[0])
+            if (os.path.isdir(self.proxy_store)):
+                #print "ProxyStore: "+self.proxy_store 
+                filePath = self.proxy_store+'/'+base64.b64encode(inpayload.auth.get_identity())+'.proxy'
+                log.msg(arc.DEBUG,'creating proxy file : ', filePath)
+                proxyfile = open(filePath, 'w') 
+                proxyfile.write(credAndid[1])
+	        proxyfile.close()
+                log.msg(arc.DEBUG,'created successfully, ID: %s',credAndid[2]) 
+                os.system('chmod 600 '+filePath)
+            else:
+                log.msg(arc.DEBUG,'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>')
         else:
-            print 'Cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>'
-
-        print "\n --------------------------- "
-        print "\n ---Identity--- "
-        print credAndid[2]
-        print "\n -------------- "
+            log.msg(arc.INFO,'Delegation failed: ')
         return outpayload
     def removeCredentials(self, inpayload):
         
         response = {}
         if self.proxy_store:
-            print 'ID: '+inpayload.auth.get_identity()
+            log.msg(arc.INFO, 'ID: '+inpayload.auth.get_identity())
             message = ''
             if (os.path.isdir(self.proxy_store)):
-                print "ProxyStore: "+self.proxy_store
+                log.msg(arc.DEBUG, 'ProxyStore: %s',self.proxy_store)
                 filePath = self.proxy_store+'/'+base64.b64encode(inpayload.auth.get_identity())+'.proxy'
                 if (os.path.isfile(filePath)):    
                     os.system('rm '+filePath)
@@ -1423,9 +1433,11 @@ class BartenderService(Service):
         else: 
             message = 'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>'                
             status = 'failed'
-        print message
+        #print message
         response['message'] = message
         response['status'] = status
+        log.msg(arc.DEBUG, 'removeCredentials: %s', message)
+        log.msg(arc.DEBUG, 'removeCredentials: %s', status)  
         return create_response('bar:removeCredentials', ['bar:message','bar:status'],response, self._new_soap_payload(), single = True) 
 
  
