@@ -2240,23 +2240,7 @@ namespace Arc {
             innerRepresentation.Error = simpleXRSLvalue( attributeValue );
             return true;
         } else if ( attributeName == "inputfiles" ) {
-            std::vector< std::vector<std::string> > attributesDoubleVector = doubleListXRSLvalue( attributeValue );
-            for (std::vector< std::vector<std::string> >::const_iterator it=attributesDoubleVector.begin(); it<attributesDoubleVector.end(); it++) {
-                Arc::FileType file;
-                file.Name = (*it)[0];
-                Arc::SourceType source;
-                if ( (*it)[1] != "" )
-                    source.URI = (*it)[1];
-                else
-                    source.URI = (*it)[0];
-                source.Threads = -1;
-                file.Source.push_back(source);
-                //initializing this variables
-                file.KeepData = false;
-                file.IsExecutable = false;
-                file.DownloadToCache = innerRepresentation.cached;
-                innerRepresentation.File.push_back(file);
-            }
+            input_files = attributeValue;
             return true;
         } else if ( attributeName == "executables" ) {
             std::vector<std::string> attributes = listXRSLvalue( attributeValue );
@@ -2277,23 +2261,7 @@ namespace Arc {
             }
             return true;
         } else if ( attributeName == "outputfiles" ) {
-            std::vector< std::vector<std::string> > attributesDoubleVector = doubleListXRSLvalue( attributeValue );
-            for (std::vector< std::vector<std::string> >::const_iterator it=attributesDoubleVector.begin(); it<attributesDoubleVector.end(); it++) {
-                Arc::FileType file;
-                file.Name = (*it)[0];
-                Arc::TargetType target;
-                if ( (*it)[1] != "" )
-                    target.URI = (*it)[1];
-                target.Threads = -1;
-                target.Mandatory = false;
-                target.NeededReplicas = -1;
-                file.Target.push_back(target);
-                //initializing this variables
-                file.KeepData = false;
-                file.IsExecutable = false;
-                file.DownloadToCache = false;
-                innerRepresentation.File.push_back(file);
-            }
+            output_files = attributeValue;
             return true;
         } else if ( attributeName == "queue" ) {
             innerRepresentation.QueueName = simpleXRSLvalue( attributeValue );
@@ -2458,28 +2426,8 @@ namespace Arc {
             innerRepresentation.XRSL_elements["dryrun"] = simpleXRSLvalue( attributeValue ); 
             return true;
         } else if ( attributeName == "rsl_substitution" ) {
-            // for example: (inputfiles=("myfile" $(ATLAS)/data/somefile))
-            std::vector< std::vector<std::string> > attributesDoubleVector = doubleListXRSLvalue( attributeValue );
-            for (std::vector< std::vector<std::string> >::const_iterator it=attributesDoubleVector.begin();
-                                       it<attributesDoubleVector.end(); it++) {
-                std::string internal_name = "$(" +(*it)[0] + ")";
-                std::string replace_value = (*it)[1];
-                size_t found;
-
-                std::list<Arc::FileType>::iterator iter;
-                for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
-                     std::list<Arc::SourceType>::iterator it_source;
-                     for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
-                          std::string uri = (*it_source).URI.fullstr();
-                          found=uri.find(internal_name);
-                          if (found != std::string::npos ) {
-                             //replace the URI with the new path
-                             uri.replace(found,internal_name.length(),replace_value);
-                             (*it_source).URI.ChangePath(uri);
-                          }
-                     }
-                }
-            }
+            std::vector< std::vector<std::string> > attributeVector = doubleListXRSLvalue( attributeValue );
+            rsl_substitutions["$(" +(*attributeVector.begin())[0] + ")"] = (*attributeVector.begin())[1];
             return true;
         } else if ( attributeName == "environment" ) {
             std::vector< std::vector<std::string> > attributesDoubleVector = doubleListXRSLvalue( attributeValue );
@@ -2550,6 +2498,60 @@ namespace Arc {
         if (depth != 0 ) {
 	    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (bracket mistake)");
             return false;
+        }
+
+        std::vector< std::vector<std::string> > attributesDoubleVector = doubleListXRSLvalue( input_files );
+        for (std::vector< std::vector<std::string> >::const_iterator it=attributesDoubleVector.begin(); it<attributesDoubleVector.end(); it++) {
+            Arc::FileType file;
+            file.Name = (*it)[0];
+            std::string uri;
+            Arc::SourceType source;
+            if ( (*it)[1] != "" )
+                uri = (*it)[1];
+            else
+                uri = (*it)[0];
+            for (std::map<std::string, std::string>::const_iterator iter = rsl_substitutions.begin(); iter != rsl_substitutions.end(); iter++) {
+                int pos = uri.find((*iter).first);
+                if ( pos!= std::string::npos ) {
+                    uri.replace(pos, (*iter).first.length(), (*iter).second);
+                    iter = rsl_substitutions.begin();
+                }
+            }
+            source.URI = uri;
+            source.Threads = -1;
+            file.Source.push_back(source);
+            //initializing this variables
+            file.KeepData = false;
+            file.IsExecutable = false;
+            file.DownloadToCache = innerRepresentation.cached;
+            innerRepresentation.File.push_back(file);
+        }
+
+        attributesDoubleVector = doubleListXRSLvalue( output_files );
+        for (std::vector< std::vector<std::string> >::const_iterator it=attributesDoubleVector.begin(); it<attributesDoubleVector.end(); it++) {
+            Arc::FileType file;
+            file.Name = (*it)[0];
+            std::string uri;
+            Arc::TargetType target;
+            if ( (*it)[1] != "" )
+                uri = (*it)[1];
+            else
+                uri = (*it)[0];
+            for (std::map<std::string, std::string>::const_iterator iter = rsl_substitutions.begin(); iter != rsl_substitutions.end(); iter++) {
+                int pos = uri.find((*iter).first);
+                if ( pos!= std::string::npos ) {
+                    uri.replace(pos, (*iter).first.length(), (*iter).second);
+                    iter = rsl_substitutions.begin();
+                }
+            }
+            target.URI = uri;
+            target.Threads = -1;
+            file.Target.push_back(target);
+            //initializing this variables
+            file.KeepData = false;
+            file.IsExecutable = false;
+            file.DownloadToCache = innerRepresentation.cached;
+            innerRepresentation.File.push_back(file);
         }
         return true;
     }

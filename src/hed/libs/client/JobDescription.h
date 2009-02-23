@@ -108,6 +108,9 @@ namespace Arc {
     class XRSLParser : public JobDescriptionParser {
         private:
             StringManipulator sm;
+            std::map<std::string, std::string> rsl_substitutions;
+            std::string input_files;
+            std::string output_files;
             bool handleXRSLattribute( std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation );
             std::string simpleXRSLvalue( std::string attributeValue );
             std::vector<std::string> listXRSLvalue( std::string attributeValue );
