@@ -634,8 +634,6 @@ namespace Arc {
     XMLNode st, fs;
     (*resp)["GetActivityDocumentsResponse"]["Response"]
     ["JobDefinition"].New(st);
-    st.GetDoc(jobdesc,true);
-    std::cout << "job def" << jobdesc << std::endl;
     st.GetDoc(jobdesc);
     // Check for faults
     (*resp)["Fault"]["faultstring"].New(fs);

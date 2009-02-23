@@ -189,7 +189,7 @@ namespace Arc {
     std::string desc_str;
     if (ac.getdesc(idstr,desc_str)){
       desc.setSource(desc_str);
-      if (desc.isValid()) std::cout << "Valid job description" << std::endl;
+      if (desc.isValid()) logger.msg(INFO,"Valid job description");
       return true;
     } else {
       logger.msg(ERROR, "No job description");
