@@ -18,14 +18,14 @@ Within the struct a unique plugin name, the type of the plugin, its version and 
 The function which returns the pointer of the instance is desclared in line~\ref{lst_code:time_cpp_get_service}. 
 The interface demands an object \textit{PluginArgument} as a parameter but because we are writing a plugin which inherits from \textit{Service}, we are able to expect the \textit{PluginArgument} to be a \textit{ServicePluginArgument}.
 %	In the first line of the service the object is downcasted with the operator dynamic_cast
-The \textit{ServicePluginArgument} provides access to the HED configuration and the message chain of the service.
+The \textit{ServicePluginArgument} provides access to the HED 
 %       operator Config* (void) { return config_; };
 %       operator ChainContext*   			an interface to manipulate chains stored in Loader
 %
 %
 %
 %
-The time service uses the namespace \textit{ArcService}. The constructor can be found in line~\ref{lst_code:time_cpp_constructor} and the deconstructor in line~\ref{lst_code:time_cpp_deconstructor}.%
+ \textcolor{white}{newline}
 \lstsetCPP%
 \lstinputlisting[
 	label=lst:time_arched_cpp,
@@ -33,7 +33,7 @@ The time service uses the namespace \textit{ArcService}. The constructor can be 
 	\textbf{C++ implementation of the time service. Filename: timeservice.cpp}}
 	]%
 {../src/services/timeservice/timeservice.cpp}%
-In the context of the simple service they don't contribute with any functionality.
+configuration and the message chain of the service. The time service uses the namespace \textit{ArcService}. The constructor can be found in line~\ref{lst_code:time_cpp_constructor} and the deconstructor in line~\ref{lst_code:time_cpp_deconstructor}. In the context of the simple service they don't contribute with any functionality. Only the constructor is defining the XML null-namespace for the time service.
 The method \textit{process} which is required by the inherited class \textit{Service} is defined in line~\ref{lst_code:time_cpp_process} and realises the desired service. 
 The parameters \textit{inmsg} and \textit{outmsg} are references to the incoming and outgoing messages. Furthermore the method \textit{process} returns the object \textit{MCCStatus} which is representing the result of the service achieved. 
 Within the method \textit{process}, the service first determines the current time and than creates a SOAP payload using the object \textit{PayloadSOAP} on line~\ref{lst_code:time_cpp_process_payloadSOAP}. 
@@ -84,17 +84,16 @@ Daemon started
 \section{Client}
 
 %\task{\#ifdef HAVE\_CONFIG\_H\#include <config.h>\#endif - habe ich entfernt... macht keinen Sinn, da keine weiteren Macros im Source Code enthalten sind... oder?}
-In the next step a simple client needs to be implemented whose task is to interprete the returned message of the client.
-The client needs to have the same protocol stack as the daemon but in contrast to it, it does not need the ability to be loaded as a plugin. As one will see, the creation of this protocol stack on client side is very simple.
-The source code of the client consists primarily of the main function and is to be seen in Listing~\ref{lst:time_client_cpp}.
-In line~\ref{lst_code:time_client_cpp_logger} the logger is initialized and redirected to the standard error stream.
-For the components of the protocol stack are likewise loaded dynamically, one need to specify the installation directory in line~\ref{lst_code:time_client_cpp_init} too.
-\task{remark in \textbf{introduction}, what the plexer is for. In our case: to have several services running on one port!!!!!!!!}
-The URL of the service is defined in line~\ref{lst_code:time_client_cpp_url}. It fits to the HED configuration file which was shown in Listing~\ref{lst:time_arched_xml}. The daemon is listing on port 60000 and is running on the localhost. The service itself uses HTTP and can be reached by using the path \textit{time}.
-Line~\ref{lst_code:time_client_cpp_config} loads the standard config file which is usually almost empty. As a result, no additional security procedures will later be linked into the client sided stack. The protocol stack is created in line~\ref{lst_code:time_client_cpp_client}. Thanks to the URL the information for the configuration can be completed.
-The constructor of the class \textit{ClientSOAP} creates a SOAP client which uses HTTP, addresses the port 60000 on localhost. If i.e. HTTPS would have been used, the stack would have been extended by a TLS layer.
-Now the client stack is ready, one can create a request to the service. In line~\ref{lst_code:time_client_cpp_message_reqeust} a message which corresponds to the Listing~\ref{lst:time_client_request} is created. The message gets processed by the command in line~\ref{lst_code:time_client_cpp_message_response}. If everything was fine, the message will finally be send to the standard out in line~\ref{lst_code:time_client_cpp_message_answer}.
-
+This section is introducing the implementation of the client whose main task is to interprete the returned message.
+In order to be able to communicate with the service providing daemon the client needs to use an identic protocol stack.
+Likewise to the HED it will also be created dynamically using the MCCs.
+But as one will see, the creation of the protocol stack on client side is very simple.
+%
+%
+%
+The source code of the client is to be seen in Listing~\ref{lst:time_client_cpp} and consists basically of one main function. Within the line~\ref{lst_code:time_client_cpp_logger} the object \textit{Logger} gets initialized. Due to the configuration of the the \textit{Logger} in the next lines, the messages passed to it will be redirected to the standard error stream.
+%
+For the components of the protocol stack are likewise loaded \textcolor{white}{newline}
 \lstsetCPP
 \lstinputlisting
 	[
@@ -103,19 +102,40 @@ Now the client stack is ready, one can create a request to the service. In line~
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/clients/timeclient/timeclient.cpp}
+ dynamically, one need to specify the installation directory of ARC in line~\ref{lst_code:time_client_cpp_init}.
+%
+The URL of the service is defined in line~\ref{lst_code:time_client_cpp_url}. It fits to the HED configuration file which was shown in Listing~\ref{lst:time_arched_xml}. 
+The daemon is listing on port 60000 and is running on the localhost. The service itself uses HTTP and can be reached by using the path \textit{time}.
+Line~\ref{lst_code:time_client_cpp_config} loads the standard config file which is usually almost empty. As a result, no additional security procedures will later be linked into the client sided stack. 
+The protocol stack is created in line~\ref{lst_code:time_client_cpp_client}. 
+Thanks to the service URL the information for the configuration is complete.
+The constructor of the class \textit{ClientSOAP} creates a SOAP client which uses HTTP and addresses the port 60000 on localhost. If i.e. HTTPS would have been used, the stack would have been extended by an additional TLS protocol.
+Once the client stack is ready, the request to the service can be created which is done in line~\ref{lst_code:time_client_cpp_message_reqeust}. Even the apperance of the message is unimportant to the service, the message is composed of two convoluted elements \textit{time} and \textit{timeReqest}.
+%
+The request will be processed in the next line by the method \textit{process} of the object \textit{client}.%in line~\ref{lst_code:time_client_cpp_message_response}. 
+The object \textit{MCCStatus} which is returned by the method indicates the success of the processing.
+After verifying the response, the message will passed to the standard out in line~\ref{lst_code:time_client_cpp_message_answer}.\\
 
 
-
-Once the HED is running, the service can 
-
-The data is enveloped by an element called \textit{Envelope} .. See german wiki
-
+The client has to be compilied to an ordinary binary so it can directly be executed from the command line.
+Assure the service is running and use the client as to be seen in Listing~\ref{lst:time_client_ksh}.
+\lstsetKSH
+\begin{lstlisting}[
+label=lst:time_client_ksh,float=htb,
+caption={[Invokation of the time client.]
+         \textbf{Invokation of the time client}}]
+$ ./timeclient
+Wed Feb 18 11:20:30 2009
+\end{lstlisting}
+The structure of the messages on SOAP level which are transmitted are shown in the Listings~\ref{lst:time_client_request} and \ref{lst:time_client_response}.
+The enclosing element is \textit{Envelope} which may contain an element \textit{Header} and must contain an element \textit{Body}. %The namespace \textit{soap-env} is defined by the element \textit{envelope}
+The data created by the object \textit{PayloadSOAP} is to be found within the \textit{Body}.
 \lstsetJUSTXML
 \begin{lstlisting}[
-label=lst:time_client_request,float,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-<soap-env:Envelope xmlns:time="urn:time" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+label=lst:time_client_request,float=htb,
+caption={[Request message created by the client.]
+         \textbf{Request message created by the client}}]
+<soap-env:Envelope xmlns="urn:time" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <soap-env:Body>
     <time>
       <timeRequest></timeRequest>
@@ -127,10 +147,10 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 
 \lstsetJUSTXML
 \begin{lstlisting}[
-label=lst:time_client_response,float,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-<soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+label=lst:time_client_response,float=htb,
+caption={[Responce message of the service.]
+         \textbf{Responce message of the service}}]
+<soap-env:Envelope xmlns="urn:time" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <soap-env:Body>
     <time>
       <timeResponse>Wed Feb 18 11:20:30 2009</timeResponse>
@@ -143,16 +163,7 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 
 
 
-\lstsetKSH
-\begin{minipage}[t]{\textwidth}
-\begin{lstlisting}[
-label=st:time_client_ksh,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ ./timeclient
-Wed Feb 18 11:20:30 2009
-\end{lstlisting}
-\end{minipage}
+
 
 
 

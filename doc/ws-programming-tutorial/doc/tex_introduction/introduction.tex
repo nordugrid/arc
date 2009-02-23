@@ -110,7 +110,7 @@ The stream which is received by this component is passed to the component define
 In the present case it will be passed to the component with the \textit{id} atrribute named \textit{http}. According to this manner the message will be passed to higher layers until it reaches the \textit{Plexer}  Depending on the path of the URL which was demanded by the HTTP the Plexer multiplexes the request to the right Web Service. The path, declared within the \textit{next} element, corresponds to a regular expression and leads to the service with the id named \textit{echo}. 
 Hence, the service will now be reachable under URL \textit{http://localhost:60000/echo}.
 It will finally process the message and create a new message which will be returned all the way back to the TCP component. The Echo Web Service itself is provided by the ARC package. Additional fix parameters are passed by the elements \textit{prefix} and \textit{suffix}. They set the characters which will enclose the echoed string. %returned 
-\task{The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - WEB SERVICE   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - WEB SERVICE}\\
+\task{The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - WEB SERVICE   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - WEB SERVICE}\task{remark in \textbf{introduction}, what the plexer is for. In our case: to have several services running on one port!!!!!!!!}\\
 
 
 To create the daemon corresponding to the defined HED configuration file ARC provides the program called \textit{arched}.

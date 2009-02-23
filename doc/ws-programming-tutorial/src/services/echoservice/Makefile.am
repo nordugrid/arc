@@ -11,11 +11,11 @@ AM_CPPFLAGS = -I/usr/include/glibmm-2.4/ -I/usr/include/glib-2.0 -I/usr/include/
 
 
 # BUILDING EXECUTABLES
-bin_PROGRAMS = echoservice
-echoservice_SOURCES = echoservice.h echoservice.cpp
-echoservice_LDFLAGS = -L/usr/lib/arc -lmcchttp 
-echoservice_CPPFLAGS = $(AM_CPPFLAGS) 			# -I@top_srcdir@/src/includes
-# echoservice_LDADD					# LIST OF LIBS TO BE CONNECTED WITH THE LIB.
+#bin_PROGRAMS = echoservice
+#echoservice_SOURCES = echoservice.h echoservice.cpp
+#echoservice_LDFLAGS = -L/usr/lib/arc -lmcchttp 
+#echoservice_CPPFLAGS = $(AM_CPPFLAGS) 			# -I@top_srcdir@/src/includes
+## echoservice_LDADD					# LIST OF LIBS TO BE CONNECTED WITH THE LIB.
 
 
 # BUILDING LIBRARIES

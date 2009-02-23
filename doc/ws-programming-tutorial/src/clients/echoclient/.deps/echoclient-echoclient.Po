@@ -1,5 +1,5 @@
-echoclient-echoclient.o: echoclient.cpp ../../../config.h \
-  /usr/include/arc/ArcLocation.h /usr/include/c++/4.3/string \
+echoclient-echoclient.o: echoclient.cpp /usr/include/arc/ArcLocation.h \
+  /usr/include/c++/4.3/string \
   /usr/include/c++/4.3/i486-linux-gnu/bits/c++config.h \
   /usr/include/c++/4.3/i486-linux-gnu/bits/os_defines.h \
   /usr/include/features.h /usr/include/sys/cdefs.h \
@@ -182,8 +182,6 @@ echoclient-echoclient.o: echoclient.cpp ../../../config.h \
   /usr/include/arc/message/PayloadSOAP.h \
   /usr/include/arc/message/SOAPEnvelope.h \
   /usr/include/arc/client/UserConfig.h /usr/include/arc/User.h
-
-../../../config.h:
 
 /usr/include/arc/ArcLocation.h:
 

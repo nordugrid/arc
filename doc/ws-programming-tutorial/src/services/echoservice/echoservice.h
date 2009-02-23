@@ -51,7 +51,10 @@ class EchoService: public Arc::Service
 		* @param outmsg outgoing message
 		* @return Status of the result achieved
 		*/
-		Arc::MCC_Status make_fault(Arc::Message& outmsg);
+		Arc::MCC_Status makeFault(Arc::Message& outmsg);
+
+		#define ECHO_TYPE_ORDINARY "ordinary"
+		#define ECHO_TYPE_REVERSE  "reverse"
 
 	public:
 

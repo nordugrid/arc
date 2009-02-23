@@ -40,19 +40,20 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {//(@*\label{lst_code:time_cpp_ptn}
 								/* with all components set to NULL*/
 };
 
-
 using namespace Arc;
 
 namespace ArcService
 {
 
 	/**
-	* Constructor. Nothing to be done here except calling the 
-	* super constructor and initializing the logger.
+	* Constructor. Calls the super constructor, initializing the logger and
+	* setting the namespace of the payload.
 	*/
 	TimeService::TimeService(Arc::Config *cfg) //(@*\label{lst_code:time_cpp_constructor}*@) 
 			: Service(cfg),logger(Logger::rootLogger, "Time")
 	{ 
+		// Setting the null-namespace for the outgoing payload
+		ns_[""]="urn:time";
 	}
 
 	/**

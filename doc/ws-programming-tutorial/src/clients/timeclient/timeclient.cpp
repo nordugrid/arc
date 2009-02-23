@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 {
 
 	// Initiate the Logger and set it to the standard error stream
-	Arc::Logger logger(Arc::Logger::getRootLogger(), "arcecho"); 		//(@*\label{lst_code:time_client_cpp_logger}*@)
+	Arc::Logger logger(Arc::Logger::getRootLogger(), "time"); 		//(@*\label{lst_code:time_client_cpp_logger}*@)
 	Arc::LogStream logcerr(std::cerr);
 	Arc::Logger::getRootLogger().addDestination(logcerr);
 	Arc::Logger::rootLogger.setThreshold(Arc::WARNING);
@@ -43,10 +43,11 @@ int main(int argc, char** argv)
 	Arc::ClientSOAP client(cfg, service);								//(@*\label{lst_code:time_client_cpp_client}*@)
 
 	// Defining the namespace and create a request
-	Arc::NS ns("time", "urn:time"); 									//(@*\label{lst_code:time_client_cpp_message_reqeust}*@)
+	Arc::NS ns("", "urn:time"); 									//(@*\label{lst_code:time_client_cpp_message_reqeust}*@)
 	Arc::PayloadSOAP request(ns);
 	request.NewChild("time").NewChild("timeRequest") = "";
 	//(@*\drain{std::string xml;  request.GetXML(xml, true); printf("Request message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
+
 	// Process request and get response
 	Arc::PayloadSOAP *response = NULL;								//(@*\label{lst_code:time_client_cpp_message_response}*@)
 	Arc::MCC_Status status = client.process(&request, &response);
@@ -58,11 +59,13 @@ int main(int argc, char** argv)
 			delete response;
 		return 1;
 	}
+
 	if (!response) {
 		printf("No SOAP response");
 		return 1;
 	}
-	//(@*\drain{response->GetXML(xml, true);  //printf("Response message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
+	//(@*\drain{response->GetXML(xml, true); printf("Response message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
+
 	// Extract answer out of the XML response and print it to the standard out
 	std::string answer = (std::string)((*response)["time"]["timeResponse"]);	//(@*\label{lst_code:time_client_cpp_message_answer}*@)
 	std::cout << answer << std::endl;
