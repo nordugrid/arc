@@ -46,6 +46,8 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
             mover.verbose(True)
             status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())            
             return str(status)
+        else:
+            return 'cannot upload file, import arc failed' 
     elif protocol == 'http':
         try:
             import arc
@@ -118,6 +120,8 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             #mover.passive(True)
             status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
+        else:
+            return 'cannot download file, import arc filed'
 
     elif protocol == 'http':
         try:
@@ -1513,13 +1517,20 @@ else:
                     print 'not found'
     # For Credential Delegation. 
     elif command in ['cre','Cre']:
-        print command
+        #print command
         request = {}
         response = call_it('credentialsDelegation', request)
+        if not response:
+            print 'cannot delegate credentials,\n check requested bartender supports the gateway ... '
     elif command in ['rem','Rem']:
-        print command
+        #print command
         request = {}
         response = call_it('removeCredentials', request)
+        
+        if 'cannot access proxy file' in response['message'][0]:
+            print 'cannot delegate credentials, ProxyStore problem at service side.'
+	else:    	
+            print response['message']
     elif command in ['del', 'rm']:
     # ----------------------- #
         if len(args) < 1:
