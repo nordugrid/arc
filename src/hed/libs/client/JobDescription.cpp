@@ -3507,10 +3507,18 @@ namespace Arc {
             }
             product += "\";\n";
         }
-        if (!innerRepresentation.File.empty()) {
+        if (!innerRepresentation.File.empty() ||
+            !innerRepresentation.Executable.empty() ||
+            !innerRepresentation.Input.empty()) {
+
+            bool executable = false;
+            bool input = false;
+            bool empty = true;
             product += "  InputSandbox = {\n";
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+                if ( (*iter).Name == innerRepresentation.Executable) executable = true;
+                if ( (*iter).Name == innerRepresentation.Input) input = true;
                 std::list<Arc::SourceType>::const_iterator it_source;
                 for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++){
                     product += "    \"" +  (*it_source).URI.fullstr() + "\"";
@@ -3519,14 +3527,32 @@ namespace Arc {
                        it_source--;
                     }
                     product += "\n";
+                    empty = false;
                 }
+            }
+            if (!innerRepresentation.Executable.empty() && !executable) {
+                if (!empty) product += ",";
+                empty = false;
+                product += "    \"" + innerRepresentation.Executable + "\"\n";
+            }
+            if (!innerRepresentation.Input.empty() && !input) {
+                if (!empty) product += ",";
+                empty = false;
+                product += "    \"" + innerRepresentation.Input + "\"\n";
             }
             product += "    };\n";
          }
-        if (!innerRepresentation.File.empty()) {
+        if (!innerRepresentation.File.empty() ||
+            !innerRepresentation.Error.empty() ||
+            !innerRepresentation.Output.empty()) {
+
             std::list<Arc::FileType>::const_iterator iter;
             bool first = true;
+            bool error = false;
+            bool output = false;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+                if ( (*iter).Name == innerRepresentation.Error) error = true;
+                if ( (*iter).Name == innerRepresentation.Output) output = true;
                 if ( !(*iter).Target.empty()) {
                    if (!first) {
                       product += ",";
@@ -3538,13 +3564,40 @@ namespace Arc {
                    product += " \"" +  (*iter).Name + "\"";
                 }
             }
+            if (!innerRepresentation.Error.empty() && !error) {
+                if ( first ) {
+                    product += "  OutputSandbox = {";
+                    first = false;
+                }
+                else {
+                    product += ", ";
+                }
+                product += " \"" + innerRepresentation.Error + "\"";
+            }
+            if (!innerRepresentation.Output.empty() && !output) {
+                if ( first ) {
+                    product += "  OutputSandbox = {";
+                    first = false;
+                }
+                else {
+                    product += ", ";
+                }
+                product += " \"" + innerRepresentation.Output + "\"";
+            }
             if ( !first )
                product += " };\n";
         }
-        if (!innerRepresentation.File.empty()) {
-            bool first = true;
+        if (!innerRepresentation.File.empty() ||
+            !innerRepresentation.Error.empty() ||
+            !innerRepresentation.Output.empty()) {
+
             std::list<Arc::FileType>::const_iterator iter;
+            bool first = true;
+            bool error = false;
+            bool output = false;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+                if ( (*iter).Name == innerRepresentation.Error) error = true;
+                if ( (*iter).Name == innerRepresentation.Output) output = true;
                 std::list<Arc::TargetType>::const_iterator it_target;
                 for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++){
                     if ( first ){
@@ -3558,6 +3611,28 @@ namespace Arc {
                     }
                     product += "\n";
                 }
+            }
+            if (!innerRepresentation.Error.empty() && !error) {
+                if ( first ) {
+                    product += "  OutputSandboxDestURI = {";
+                    first = false;
+                }
+                else {
+                    product += ", ";
+                }
+                Arc::URL errorURL("gsiftp://localhost/" + innerRepresentation.Error);
+                product += " \"" + errorURL.fullstr() + "\"";
+            }
+            if (!innerRepresentation.Output.empty() && !output) {
+                if ( first ) {
+                    product += "  OutputSandboxDestURI = {";
+                    first = false;
+                }
+                else {
+                    product += ", ";
+                }
+                Arc::URL outputURL("gsiftp://localhost/" + innerRepresentation.Output);
+                product += " \"" + outputURL.fullstr() + "\"";
             }
             if ( !first)
                product += "    };\n";
