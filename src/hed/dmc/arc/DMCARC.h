@@ -10,7 +10,7 @@ namespace Arc {
   public:
     DMCARC(Config *cfg);
     ~DMCARC();
-    static DMC *Instance(Config *cfg);
+    static Plugin *Instance(PluginArgument *arg);
     DataPoint *iGetDataPoint(const URL& url);
   protected:
     static Logger logger;
