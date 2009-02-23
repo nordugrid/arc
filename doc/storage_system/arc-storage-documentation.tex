@@ -80,12 +80,12 @@
 \label{cha:overview}
 
 
-The ARC storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), \url{https://forge.gridforum.org/projects/byteio-wg/}}, etc.). For each storage node one of the services of the ARC storage system is needed to manage it and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
+The ARC storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and a storage element service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), \url{https://forge.gridforum.org/projects/byteio-wg/}}, etc.). For each storage node one of the services of the ARC storage system is needed to manage it and to integrate it into the system. There is a way on the client side to access third-party storage solutions through the namespace of the ARC storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
 \begin{itemize}
-    \item the \textbf{A-Hash} service, which is a currently centralized, later distributed database;
-    \item the \textbf{Librarian} service, which stores the metadata and hierarchy of collections and files, the location of replicas, and health data of the Shepherd services, using the A-Hash as database;
+    \item the \textbf{A-Hash} service, which is a replicated database which is used by the Librarian to store metadata;
+    \item the \textbf{Librarian} service, which handles the metadata and hierarchy of collections and files, the location of replicas, and health data of the Shepherd services, using the A-Hash as database;
     \item the \textbf{Bartender} service, which provides a high-level interface for the users and for other services;
-    \item the \textbf{Shepherd} service, which provides a simple interface for storing files on storage nodes.
+    \item the \textbf{Shepherd} service, which manages storage element services, and provides a simple interface for storing files on storage nodes.
 \end{itemize}
 
 \begin{figure}[ht]
@@ -93,43 +93,43 @@ The ARC storage system is a distributed system for storing replicated \emph{file
 \caption{\label{fig:services}The components of the ARC storage: the \textbf{A-H}ash service, the \textbf{L}ibrarian service, the \textbf{B}artender service and the \textbf{S}hepherd service.}}
 \end{figure}
 
-The descriptions in Chapter~\ref{cha:overview} and Chapter~\ref{cha:use_cases} are containing some elements which are not implemented yet in the first prototype. See Chapter~\ref{cha:technical_description_and_implementation_status} for the details about what is implemented and what is missing.
+\section{Files and collections} % (fold)
+\label{sec:files_and_collections}
 
-\section{IDs used in the system}
-\label{sec:IDs}
+The storage system is capable of storing files which can be grouped in collections and sub-collections, etc.
+Every file and collection has a unique ID in the sysem called the \emph{GUID}. Compared to the well-known structure of local file systems, these GUIDs are very similar to the concept of \emph{inode}s. And as a directory on a local filesystem is basically just a list of name and inode pairs, a collection on the ARC storage is just a list of name and GUID pairs. There is a dedicated collection which is the \emph{root collection}. This makes the namespace of the ARC storage system a hierarchical namespace where you can start at the root collection, and go to sub-collections and sub-sub-collections to get to a file. This path is called the \emph{Logical Name} (LN). For example if there is a sub-collection called \verb!saturn! in the root collection, and there is a file called \verb!rings! in this sub-collection, then the LN of this file is \verb!/saturn/rings!.
 
-There are a number of IDs used in the ARC storage system, such as:
-\begin{itemize}
-    \item Each file and collection has a globally unique ID called \textbf{GUID}.
-    \item The files and collections are organized into a global hierarchical namespace and can be referred to using paths of this namespace called \textbf{Logical Name}s (\textbf{LN}s).
-    \item Each service has a unique \textbf{serviceID} which can be used to get an endpoint reference from the information system. We need an endpoint reference which is an address (URL) which we could connect to.
-    \item The Shepherds in the system identify their files using a \textbf{referenceID}.
-    \item The \textbf{location} of a replica consists of two IDs: the ID of the Shepherd and the ID of the file within the Shepherd: (serviceID, referenceID).
-\end{itemize}
+Besides the Logical Names we can refer to a file or collection by simply its GUID, or we can use GUIDs and Logical Names together, as seen on Figure~\ref{fig:namespace}.
 
-% section IDs (end)
-
-\section{GUIDs and Logical Names (LNs)} % (fold)
-\label{sec:GUIDsLNs}
-
-The syntax of Logical Names is \verb#/[path]# or \verb#<GUID>[/<path>]# where [...] indicates optional parts.
-
-Each file and collection has a GUID which is globally unique, so they can be unambiguously referred using this GUID, that's why a single GUID is a Logical Name itself.
-
-A collection is basically just a list of entries, where each entry has a name unique within this collection, and an entry can be a file or a sub-collection, in which there are files and sub-sub-collections, etc.
+The full syntax of Logical Names is \verb#/[path]# or \verb#<GUID>[/<path>]# where [...] indicates optional parts.
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.7}{\includegraphics{arc-storage-namespace.pdf}}}
 \caption{\label{fig:namespace}Example of the hierarchy of the global namespace} }
 \end{figure}
 
-Example on Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then we can refer to this file as \verb#/green/orange/huge# if we know the GUID of the starting collection, so let's prefix the path with it: \verb#1234/green/orange/huge#. This is the Logical Name of that file. If there is a well-known system-wide root collection (its GUID could be e.g.~\verb#0#), then if a LN starts with no GUID prefix, it is implicitly prefixed with the GUID of this well-known root collection, e.g.~\verb#/why/blue# means \verb#0/why/blue#.
+Example on Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then we can refer to this file with the Logical Name \verb#1234/green/orange/huge#, which means that from the collection called \verb!1234! we have to follow along the path: \verb!green!, \verb!orange!, \verb!huge!.
 
-If a client wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, so it's a hard link. To count the references (the number of hard links) of a file or collection, the GUID of the parent collection(s) is stored as a metadata for each file and collection.
+There is a dedicated root collection (which has the GUID \verb#0#), and if a LN starts with no GUID prefix, it is implicitly prefixed with the GUID of this well-known root collection, e.g.~\verb#/why/blue# means \verb#0/why/blue#. If a user wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, which concept is very similar to a hardlink in a regular local file system.
 
-One possible usage scenario would be if each VO (Virtual Organization)\footnote{Virtual Organization, \url{http://www.globus.org/grid\_software/security/voms.php}} would create a VO-wide root collection, and put it in the generic root collection, e.g.~if a VO called \verb#vo1# creates a collection called \verb#vo1# as a sub-collection of the root collection (which has the GUID \verb#0#), then it can be referred as \verb#0/vo1# or just \verb#/vo1#. Then this VO can create some files, and put them in this \verb#/vo1# collection, e.g.~\verb#/vo1/file1#, etc. Or sub-collections, e.g.~\verb#/vo1/col1#, \verb#/vo1/col2/file3#, etc. For this the VO does not need the install any service. These files and collections can be created using a Bartender service.
+% section files_and_collections (end)
 
-% section GUIDsLNs (end)
+\section{Storage nodes and replicas} % (fold)
+\label{sec:storage_nodes_and_replicas}
+
+The collections in the ARC storage are logical entities, the content of a collection is stored as metadata of the collection, which means the a collection actually has no physical data. A file however has both metadata and real physicial data (the actual bytes of the file). The metadata of a file is stored in the same database where the collections are stored, but the physical data of a file is stored on storage nodes as multiple replicated copies.
+
+A storage node consists of two things: a storage element service which is capable of storing and serving files through a specific protocol (e.g. a web server, an FTP server, a GridFTP server, etc.) and a Shepherd service which provides a simple interface to access the storage node, and which can initiate and manage file transfers through the storage element service. The Shepherd has different backends for the supported storage element services which made it possible the communicate with them.
+
+So we have logical files, which are part of the hierarchical namespace and have a GUID and other metadata, and a logical file has one or more physical replicas. The physical replicas stored on seperate storage nodes. In order to connect the logical file to its replicas, we need to have some pointers. Each storage node has a URL and each replica has a unique ID within the storage node called \emph{referenceID}, the URL and the referenceID together is called a \emph{Location}, a Location unambiguously points to one specific replica. So to connect the logical files to the physical ones, each logical file has a list of Locations.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+% section storage_nodes_and_replicas (end)
 
 \section{The Bartenders} % (fold)
 \label{sec:the_bartenders}
