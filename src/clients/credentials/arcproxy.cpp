@@ -86,8 +86,9 @@ int main(int argc, char* argv[]){
   options.AddOption('V', "vomses", istring("path to voms server configuration file"),
                     istring("path"), vomses_path);
 
-  std::string voms;
-  options.AddOption('S', "voms", istring("voms<:command>. Specify voms server. \n"
+  std::list<std::string> vomslist;
+  options.AddOption('S', "voms", istring("voms<:command>. Specify voms server (More than one voms server \n"
+                    "              can be specified like this: --voms VOa:command1 --voms VOb:command2). \n"
                     "              :command is optional, and is used to ask for specific attributes(e.g: roles)\n"
                     "              command option is:\n"
                     "              all --- put all of this DN's attributes into AC; \n"
@@ -97,7 +98,7 @@ int main(int argc, char* argv[]){
                     "              /voname/groupname/Role=yourRole --- specify the vo,group and role if this DN \n"
                     "                               has such a role, the role will be put into AC \n"
                     ),
-                    istring("string"), voms);
+                    istring("string"), vomslist);
 
   std::list<std::string> constraintlist;
   options.AddOption('c', "constraint", istring("proxy constraints"),
@@ -125,7 +126,7 @@ int main(int argc, char* argv[]){
   Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
-    return 1;
+    return EXIT_FAILURE;
   }
 
   if (debug.empty() && usercfg.ConfTree()["Debug"]) {
@@ -135,7 +136,7 @@ int main(int argc, char* argv[]){
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   std::map<std::string, std::string> constraints;
@@ -272,14 +273,23 @@ int main(int argc, char* argv[]){
       out_f.write(signing_cert_chain.c_str(), signing_cert_chain.size());
       out_f.close();
 
-      //Contact the voms server to retrieve attribute certificate
-      std::string voms_server;
-      std::string command;
-      size_t p;
-      p = voms.find(":");
-      voms_server = (p == std::string::npos) ? voms : voms.substr(0, p);
-      command = (p == std::string::npos) ? "" : voms.substr(p+1);
+      //Parse the voms server and command from command line
+      std::map<std::string, std::string> server_command_map;
+      for (std::list<std::string>::iterator it = vomslist.begin();
+        it != vomslist.end(); it++) {
+        size_t p;
+        std::string voms_server;
+        std::string command;
+        p = (*it).find(":");
+        voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
+        command = (p == std::string::npos) ? "" : (*it).substr(p+1);
+        server_command_map[voms_server] = command;
+      }
+
+      //Parse the 'vomses' file to find configure lines corresponding to 
+      //the information from the command line
       std::ifstream in_f(vomses_path.c_str());
+      std::map<std::string, std::string> matched_voms_line;
       std::string voms_line;
       while(true) {
         voms_line.clear();
@@ -291,102 +301,132 @@ int main(int argc, char* argv[]){
           pos = voms_line.rfind("\"");
           if(pos != std::string::npos) {
             std::string str = voms_line.substr(pos+1);
-            if(str == voms_server) break;
-          }
-        }
+            for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
+                 it != server_command_map.end(); it++) {
+              std::string voms_server = (*it).first;
+              if(str == voms_server) { matched_voms_line[voms_server] = voms_line; break; }
+            };
+          };
+        };
       };
-      if(voms_line.empty()) {
-        logger.msg(Arc::ERROR, "Can not get voms server information from file: %s ", vomses_path.c_str());
-        throw std::runtime_error("Can not get voms server information from file: " + vomses_path); 
-      }
-      p = 0;
-      for(int i=0; i<3; i++) {
-        p = voms_line.find("\"", p);
-        if(p == std::string::npos) {
-          logger.msg(Arc::ERROR, "Can not get voms server address information from voms line: %s\"", voms_line.c_str());
-          throw std::runtime_error("Can not get voms server address information from voms line:"+voms_line+"\"");
-        }
-        p = p+1;
-      }
-      size_t p1 = voms_line.find("\"",p+1);
-      std::string address = voms_line.substr(p, p1-p);
-      p = voms_line.find("\"",p1+1);
-      p1 = voms_line.find("\"",p+1);
-      std::string port = voms_line.substr(p+1, p1-p-1);
-      logger.msg(Arc::INFO, "Contacting to VOMS server (named %s): %s on port: %s",voms_server.c_str(),address.c_str(),port.c_str());
+      //Judge if we can not find any of the voms server in the command line from 'vomses' file
+      //if(matched_voms_line.empty()) {
+      //  logger.msg(Arc::ERROR, "Can not get voms server information from file: %s ", vomses_path.c_str());
+      // throw std::runtime_error("Can not get voms server information from file: " + vomses_path); 
+      //}
+      if(matched_voms_line.size() != server_command_map.size()) {
+        for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
+             it != server_command_map.end(); it++) {
+          if(matched_voms_line.find((*it).first) == matched_voms_line.end())
+            logger.msg(Arc::ERROR, "Can not get voms server %s information from file: %s ", 
+              (*it).first, vomses_path.c_str());
+        };
+      };
 
-      std::string send_msg;
-      send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms><command>");
-      std::string command_2server;
-      if(command.empty()) command_2server.append("G/").append(voms);
-      else if(command == "all" || command == "ALL") command_2server.append("A");
-      else if(command == "list") command_2server.append("N");
-      else {
-        std::string::size_type pos = command.find("/Role=");
-        if(pos == 0)
-          command_2server.append("R").append(command.substr(pos+6));
-        else if(pos != std::string::npos && pos > 0)
-          command_2server.append("B").append(command.substr(0,pos)).append(":").append(command.substr(pos+6));
-      }
-      send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
+      //Contact the voms server to retrieve attribute certificate
+      std::string voms_server;
+      std::string command;
+      ArcCredential::AC** aclist = NULL;
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
-      Arc::ClientTCP client(cfg, address, atoi(port.c_str()), Arc::GSISec);
-      Arc::PayloadRaw request;
-      request.Insert(send_msg.c_str(),0,send_msg.length());
-      Arc::PayloadStreamInterface *response = NULL;
-      Arc::MCC_Status status = client.process(&request, &response,true);
-      if (!status) {
-        logger.msg(Arc::ERROR, (std::string)status);
-        if (response)
-          delete response;
-        return 1;
-      }
-      if (!response) {
-        logger.msg(Arc::ERROR, "No stream response from voms server");
-        return 1;
-      }
-      std::string ret_str;
-      int length;
-      char ret_buf[1024];
-      memset(ret_buf,0,1024);
-      int len;
-      do {
-        len = 1024;
-        response->Get(&ret_buf[0], len);
-        ret_str.append(ret_buf,len);
+
+      for (std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
+             it !=  matched_voms_line.end(); it++) {
+        voms_server = (*it).first;
+        voms_line = (*it).second;
+        command = server_command_map[voms_server];
+        size_t p = 0;
+        for(int i=0; i<3; i++) {
+          p = voms_line.find("\"", p);
+          if(p == std::string::npos) {
+            logger.msg(Arc::ERROR, "Can not get voms server address information from voms line: %s\"", voms_line.c_str());
+            throw std::runtime_error("Can not get voms server address information from voms line:"+voms_line+"\"");
+          }
+          p = p+1;
+        }
+
+        size_t p1 = voms_line.find("\"",p+1);
+        std::string address = voms_line.substr(p, p1-p);
+        p = voms_line.find("\"",p1+1);
+        p1 = voms_line.find("\"",p+1);
+        std::string port = voms_line.substr(p+1, p1-p-1);
+        logger.msg(Arc::INFO, "Contacting to VOMS server (named %s): %s on port: %s",
+            voms_server.c_str(),address.c_str(),port.c_str());
+
+        std::string send_msg;
+        send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms><command>");
+        std::string command_2server;
+        if(command.empty()) command_2server.append("G/").append(voms_server);
+        else if(command == "all" || command == "ALL") command_2server.append("A");
+        else if(command == "list") command_2server.append("N");
+        else {
+          std::string::size_type pos = command.find("/Role=");
+          if(pos == 0)
+            command_2server.append("R").append(command.substr(pos+6));
+          else if(pos != std::string::npos && pos > 0)
+            command_2server.append("B").append(command.substr(0,pos)).append(":").append(command.substr(pos+6));
+        }
+        send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
+        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), Arc::GSISec);
+        Arc::PayloadRaw request;
+        request.Insert(send_msg.c_str(),0,send_msg.length());
+        Arc::PayloadStreamInterface *response = NULL;
+        Arc::MCC_Status status = client.process(&request, &response,true);
+        if (!status) {
+          logger.msg(Arc::ERROR, (std::string)status);
+          if (response)
+            delete response;
+            return EXIT_FAILURE;
+        }
+        if (!response) {
+          logger.msg(Arc::ERROR, "No stream response from voms server");
+          return EXIT_FAILURE;
+        }
+        std::string ret_str;
+        int length;
+        char ret_buf[1024];
         memset(ret_buf,0,1024);
-      }while(len == 1024);
-      logger.msg(Arc::DEBUG, "Returned msg from voms server: %s ", ret_str.c_str());
+        int len;
+        do {
+          len = 1024;
+          response->Get(&ret_buf[0], len);
+          ret_str.append(ret_buf,len);
+          memset(ret_buf,0,1024);
+        }while(len == 1024);
+        logger.msg(Arc::DEBUG, "Returned msg from voms server: %s ", ret_str.c_str());
 
-      //Put the return attribute certificate into proxy certificate as the extension part
-      Arc::XMLNode node(ret_str);
-      std::string codedac;
-      if(command == "list")
-        codedac = (std::string)(node["bitstr"]);
-      else 
-        codedac = (std::string)(node["ac"]);
-      //std::cout<<"Coded AC: "<<codedac<<std::endl;
-      std::string decodedac;
-      int size;
-      char* dec = NULL;
-      dec = Arc::VOMSDecode((char *)(codedac.c_str()), codedac.length(), &size);
-      decodedac.append(dec,size);
-      if(dec!=NULL) { free(dec); dec = NULL; }
-      //std::cout<<"Decoded AC: "<<decodedac<<std::endl;
+        //Put the return attribute certificate into proxy certificate as the extension part
+        Arc::XMLNode node(ret_str);
+        std::string codedac;
+        if(command == "list")
+          codedac = (std::string)(node["bitstr"]);
+        else 
+          codedac = (std::string)(node["ac"]);
+        //std::cout<<"Coded AC: "<<codedac<<std::endl;
+        std::string decodedac;
+        int size;
+        char* dec = NULL;
+        dec = Arc::VOMSDecode((char *)(codedac.c_str()), codedac.length(), &size);
+        decodedac.append(dec,size);
+        if(dec!=NULL) { free(dec); dec = NULL; }
+        //std::cout<<"Decoded AC: "<<decodedac<<std::endl;
 
-      if(command == "list") {
-        logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s", voms_server.c_str(), decodedac.c_str());
+        if(command == "list") {
+          logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s", 
+            voms_server.c_str(), decodedac.c_str());
+          if(response) delete response;
+          return EXIT_SUCCESS;  
+        }
+
         if(response) delete response;
-        return EXIT_SUCCESS;  
+
+        Arc::addVOMSAC(aclist, decodedac);
       }
 
-      ArcCredential::AC** aclist = NULL;
-      Arc::addVOMSAC(aclist, decodedac);
-
-      if(aclist != NULL)
-        cred_request.AddExtension("acseq", (char**) aclist);
+      //Put the returned attribute certificate into proxy certificate
+      if(aclist != NULL) { std::cout<<"AC not NULL"<<std::endl;
+        cred_request.AddExtension("acseq", (char**) aclist); }
       cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
       signer.SignRequest(&cred_request, proxy_path.c_str());
 
@@ -395,8 +435,6 @@ int main(int argc, char* argv[]){
       out_f1.write(signing_cert.c_str(), signing_cert.size());
       out_f1.write(signing_cert_chain.c_str(), signing_cert_chain.size());
       out_f1.close();
-
-      if(response) delete response;
 
       return EXIT_SUCCESS;
     }
