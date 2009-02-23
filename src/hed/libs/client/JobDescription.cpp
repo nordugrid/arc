@@ -670,6 +670,13 @@ namespace Arc {
            innerRepresentation.Migration.MigrationID = migration_id;
         }
 
+        if (bool(jobidentification["Resubmission"])) {
+           for ( int i=0; (bool)(jobidentification["OldJobID"][i]); i++ ) { 
+               Arc::WSAEndpointReference old_job_epr(jobidentification["OldJobID"][i]);
+               innerRepresentation.Resubmission.OldJobIDs.push_back(old_job_epr);
+           }
+        }
+
         if (bool(jobidentification["JobProject"])) {
            innerRepresentation.JobProject = (std::string)jobidentification["JobProject"];
         }

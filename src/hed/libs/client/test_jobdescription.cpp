@@ -5,7 +5,11 @@
 #include <arc/IString.h>
 #include <arc/ws-addressing/WSA.h>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
+
+   Arc::LogStream logcerr(std::cerr);
+   Arc::Logger::getRootLogger().addDestination(logcerr);
+   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 
 Arc::OptionParser options(istring("[job description ...]"),
   istring("This tiny tool can be used for testing"
@@ -24,11 +28,19 @@ bool show_original_description = false;
     istring("show the original job description"),
     show_original_description);
 
+  std::string debug;
+  options.AddOption('d', "debug",
+            istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+            istring("debuglevel"), debug);
+
 std::list<std::string> descriptions = options.Parse(argc, argv);
   if (descriptions.empty()) {
     std::cout << "Use --help option for detailed usage information" << std::endl;
     return 1;
   }
+
+if (!debug.empty())
+   Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
 std::cout << " [ JobDescription tester ] " << std::endl;
 
@@ -53,7 +65,7 @@ for (std::list< std::string >::iterator it = descriptions.begin(); it != descrip
     original_description = (*it);
   }
 
-  if (requested_format == "JDL" || requested_format == "JSDL" || requested_format == "") {
+  if (requested_format == "JDL" || requested_format == "JSDL" || requested_format == "XRSL" || requested_format == "POSIXJSDL" || requested_format == "") {
     Arc::JobDescription jd;
 
     if (show_original_description) {

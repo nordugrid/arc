@@ -74,6 +74,10 @@ struct MigrationType {
     Arc::WSAEndpointReference MigrationID;
 };
 
+struct ResubmissionType {
+    std::list<Arc::WSAEndpointReference> OldJobIDs;
+};
+
 struct OptionalElementType {
     std::string Name;
     std::string Path;
@@ -171,11 +175,9 @@ struct OptionalElementType {
     bool InBound;               //NodeAccess
     bool OutBound;              //NodeAccess
 
-
     // DataStaging information
     std::list<Arc::FileType> File;
     std::list<Arc::DirectoryType> Directory;
-
 
     //other specified elements
     std::map<std::string, std::string> XRSL_elements;
@@ -183,6 +185,7 @@ struct OptionalElementType {
     bool cached;                // It used the XRSL parsing method.
     std::list<Arc::OptionalElementType> OptionalElement;
     MigrationType Migration;
+    ResubmissionType Resubmission;
 
   };
 

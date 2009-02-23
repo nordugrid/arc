@@ -173,6 +173,15 @@
   </xsd:sequence>
  </xsd:complexType>
 
+ <xsd:complexType name="Resubmission_Type">
+  <xsd:annotation><xsd:documentation> For jsdl:JobIdentification_Type
+  </xsd:documentation></xsd:annotation>
+  <xsd:sequence>
+    <xsd:element name="OldJobID" minOccurs="1" maxOccurs="unbounded"
+type="wsa:EndpointReferenceType"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
  <!--=========================================================-->
  <xsd:element name="IsExecutable" type="IsExecutable_Type"/>
  <xsd:element name="FileParameters" type="FileParameters_Type"/>
@@ -191,5 +200,6 @@
  <xsd:element name="CandidateTarget" type="CandidateTarget_Type"/>
  <xsd:element name="ProcessingStartTime" type="Time_Type"/>
  <xsd:element name="Migration" type="Migration_Type"/>
+ <xsd:element name="Resubmission" type="Resubmision_Type"/>
 
 </xsd:schema>
