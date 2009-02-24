@@ -18,7 +18,7 @@
 namespace ArcService
 {
 
-class SecEchoService: public Arc::Service
+class TLSEchoService: public Arc::Service
 {
 
 	protected:
@@ -51,29 +51,32 @@ class SecEchoService: public Arc::Service
 		* @param outmsg outgoing message
 		* @return Status of the result achieved
 		*/
-		Arc::MCC_Status make_fault(Arc::Message& outmsg);
+		Arc::MCC_Status makeFault(Arc::Message& outmsg);
+
+		#define ECHO_TYPE_ORDINARY "ordinary"
+		#define ECHO_TYPE_REVERSE  "reverse"
 
 	public:
 
-        	/**
-        	* Constructor which is capable to extract prefix and suffix
+		/**
+		* Constructor which is capable to extract prefix and suffix
 		* for the echo service.
 		*/
-        	SecEchoService(Arc::Config *cfg);
+        	TLSEchoService(Arc::Config *cfg);
 
 		/**
 		* Destructor.
 		*/
-	        virtual ~SecEchoService(void);
+	        virtual ~TLSEchoService(void);
 
-	        /**
+		/**
 		* Implementation of the virtual method defined in MCCInterface
 		* (to be found in MCC.h). 
 		* @param inmsg incoming message
 		* @param inmsg outgoing message
 		* @return Status of the result achieved
 		*/
-	        virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
+		virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
 
 }; 
 

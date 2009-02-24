@@ -18,17 +18,24 @@ using namespace Arc;
 
 int main(int argc, char** argv) {
 
-	if(argc != 3){
+
+	/** Get arguments passed by the command line*/
+	if(argc != 4){
 		printf("Usage:\n");
-		printf("  tlsechoclient clientHED.xml message\n");
+		printf("  tlsechoclient configuration type message\n");
 		printf("\n");
-		printf("The first argument (clientHED.xml) specifies the HED of the client.\n");
-		printf("The argument message contains the text to be transmitted.\n");
+		printf("The first argument specifies the HED configuration file to be loaded\n");
+		printf("The second argument the type of echo which shall be performed (ordinary or reverse).\n");
+		printf("The third agrument holds the message to be transmitted.\n");
 		printf("\n");
 		printf("Example:\n");
-		printf("  ./tlsechoclient clientHED.xml text_to_be_transmitted\n");
+		printf("  ./tlsechoclient clientHED.xml ordinary text_to_be_transmitted\n");
 		return -1;
 	}
+	
+	std::string type(argv[2]);
+	std::string message(argv[3]);
+	/** */
 
 	std::string xmlstring;
 	std::ifstream file(argv[1]);
@@ -51,34 +58,27 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	std::string message(argv[2]);
 
 
-	// Initiate logger to get the output of ARC classes
+	// Initiate the Logger and set it to the standard error stream
 	Arc::Logger logger(Arc::Logger::getRootLogger(), "arcecho");
 	Arc::LogStream logcerr(std::cerr);
 	Arc::Logger::getRootLogger().addDestination(logcerr);
 	Arc::Logger::rootLogger.setThreshold(Arc::WARNING);
 
-	// Set ARC installation directory for being able to 
-	// loaded modules dynamically
+	// Set the ARC installation directory
 	std::string arclib("/usr/lib/arc");
 	Arc::ArcLocation::Init(arclib);  
 
-
-	// Loading client.xml file which is the counterpart of the arc 
-	// configuration file
+	// Load configuration 
 	Arc::XMLNode clientXml(xmlstring);
-
-	// Wrap the xml for hed client configuration
 	Arc::Config clientConfig(clientXml);
+
 	if(!clientConfig) {
 	  logger.msg(Arc::ERROR, "Failed to load client configuration");
 	  return -1;
 	};
 
-
-	// Take XML configuration and perform configuration part
 	Arc::MCCLoader loader(clientConfig);
 	logger.msg(Arc::INFO, "Client side MCCs are loaded");
 	Arc::MCC* clientEntry = loader["soap"];
@@ -87,14 +87,13 @@ int main(int argc, char** argv) {
 	  return -1;
 	};
 
-	//std::string xml;
+	//Prepare the payload
 	Arc::NS ns("tlsecho", "urn:tlsecho");
- 
 	Arc::PayloadSOAP  request(ns);
 	Arc::PayloadSOAP* response = NULL;
 
-	// It is a responsibility of code initiating first Message to
-	// provide Context and Attributes as well.
+	//Prepare the messages which will envelope the payload.
+	//(*@\drain{It is a responsibility of code initiating first Message to provide Context and Attributes as well.}@*)
 	Arc::Message reqmsg;
 	Arc::Message repmsg;
 	Arc::MessageAttributes attributes_req;
@@ -105,11 +104,12 @@ int main(int argc, char** argv) {
 	reqmsg.Context(&context);
 	repmsg.Context(&context);  
 
-	request.NewChild("tlsecho:tlsechoRequest").NewChild("tlsecho:say") = message;
-	reqmsg.Payload(&request);
+	XMLNode sayNode = request.NewChild("tlsecho:tlsechoRequest").NewChild("tlsecho:say") = message;
+	sayNode.NewAttribute("operation") = type;
 
-	//request.GetXML(xml, true);
-	//printf("Request:\n\n%s\n\n\n", xml.c_str());
+	reqmsg.Payload(&request);
+	//(@*\drain{std::string xml;  request.GetXML(xml, true); printf("Request message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
+std::string xml;  request.GetXML(xml, true); printf("Request message:\n%s\n\n\n", xml.c_str());
 
 	Arc::MCC_Status status = clientEntry->process(reqmsg,repmsg);
 
@@ -132,11 +132,9 @@ int main(int argc, char** argv) {
 		logger.msg(Arc::ERROR, "Response is not SOAP");
 		return -1;
 	};
-
-	//response->GetXML(xml);
-	//printf("Response:\n\n%s\n\n\n", xml.c_str());
-
-	std::string answer = (std::string)((*response)["tlsechoResponse"]["hear"]);//
+	//(@*\drain{response->GetXML(xml, true);  printf("Response message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
+(*response).GetXML(xml, true); printf("response message:\n%s\n\n\n", xml.c_str());
+	std::string answer = (std::string)((*response)["tlsecho:tlsechoResponse"]["tlsecho:hear"]);//
 	std::cout << answer << std::endl;
 
 	delete response;

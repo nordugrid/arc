@@ -1,7 +1,7 @@
 #include <arc/loader/Plugin.h>
 #include <arc/message/PayloadSOAP.h>
-#include <stdio.h>
 
+#include <stdio.h>
 
 #include "tlsechoservice.h"
 
@@ -16,7 +16,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg)
 	Arc::ServicePluginArgument* mccarg = dynamic_cast<Arc::ServicePluginArgument*>(arg);
 	// may be NULL in case dynamic cast fails
 	if(!mccarg) return NULL;
-	return new ArcService::SecEchoService((Arc::Config*)(*mccarg));
+	return new ArcService::TLSEchoService((Arc::Config*)(*mccarg));
 }
 
 /**
@@ -26,13 +26,13 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg)
  */
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 	{
-		"sececho",				/* Unique name of plugin in scope of its kind */
-		"HED:SERVICE",			/* Type/kind of plugin */
-		1,				/* Version of plugin (0 if not applicable) */
-		&get_service 			/* Pointer to constructor function */
+		"tlsecho",				/* Unique name of plugin in scope of its kind	*/
+		"HED:SERVICE",			/* Type/kind of plugin							*/
+		1,						/* Version of plugin (0 if not applicable)		*/
+		&get_service 			/* Pointer to constructor function				*/
 	},
-	{ NULL, NULL, 0, NULL }			/* The array is terminated by element */
-						/* with all components set to NULL*/
+	{ NULL, NULL, 0, NULL }		/* The array is terminated by element			*/
+								/* with all components set to NULL				*/
 };
 
 
@@ -41,25 +41,39 @@ using namespace Arc;
 namespace ArcService
 {
 
-	SecEchoService::SecEchoService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "Echo") 
+	/**
+	* Constructor. Calls the super constructor, initializing the logger and
+	* setting the namespace of the payload. Furthermore the prefix and suffix will
+	* extracted out of the Config object (Elements were declared inside the HED 
+	* configuration file).
+	*/
+	TLSEchoService::TLSEchoService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "Echo") 
 	{
-		// Setting the namespace of the incoming and outgoing payloads
+		// Setting the namespace of the outgoing payload
 		ns_["tlsecho"]="urn:tlsecho";
+
 		// Extract prefix and suffix out of the arched configuration file
 		prefix_=(std::string)((*cfg)["prefix"]);
 		suffix_=(std::string)((*cfg)["suffix"]); 
 	}
 
-	SecEchoService::~SecEchoService(void) 
+	/**
+	* Deconstructor. Nothing to be done here.
+	*/
+	TLSEchoService::~TLSEchoService(void) 
 	{
 	}
 
-	Arc::MCC_Status SecEchoService::make_fault(Arc::Message& outmsg) 
+	/**
+	* Method which creates a fault payload 
+	*/
+	Arc::MCC_Status TLSEchoService::makeFault(Arc::Message& outmsg) 
 	{
-		// The boolean value in the constructur indicates a failure.
+
+		// The boolean true indicates that inside of PayloadSOAP, 
+		// an object SOAPFault will be created inside.
 		Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
 		Arc::SOAPFault* fault = outpayload->Fault();
-
 		if(fault) {
 			fault->Code(Arc::SOAPFault::Sender);
 			fault->Reason("Failed processing request");
@@ -68,27 +82,32 @@ namespace ArcService
 		return Arc::MCC_Status(Arc::GENERIC_ERROR);
 	}
 
-	Arc::MCC_Status SecEchoService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
+	/**
+	* Processes the incoming message and generates an outgoing message.
+	* Returns the incoming string ordinary or reverse - depending on the operation 
+	* requested.
+	* @param inmsg incoming message
+	* @param inmsg outgoing message
+	* @return Status of the result achieved
+	*/
+	Arc::MCC_Status TLSEchoService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 	{
-		logger.msg(Arc::DEBUG, "Echoservice has been started...");
+		logger.msg(Arc::DEBUG, "TLS Echoservice has been started...");
 
-		// Both input and output are supposed to be SOAP 
+		/** Both input and output are supposed to be SOAP */
 		Arc::PayloadSOAP* inpayload  = NULL;
 		Arc::PayloadSOAP* outpayload = NULL;
+		/** */
 
-		// Extracting incoming payload
+		/**  Extracting incoming payload */
 		try {
 			inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
 		} catch(std::exception& e) { };
 		if(!inpayload) {
 			logger.msg(Arc::ERROR, "Input is not SOAP");
-			return make_fault(outmsg);
+			return makeFault(outmsg);
 		};
-		{
-			std::string str;
-			inpayload->GetDoc(str, true);
-			logger.msg(Arc::DEBUG, "process: request=\n%s",str);
-		}; 
+		/** */
 
 		/**Export the formated policy-decision request**/
 		MessageAuth* mauth = inmsg.Auth();
@@ -115,14 +134,36 @@ namespace ArcService
 		};
 		/** */
 
-		// Analyzing request 
-		Arc::XMLNode echo_op = (*inpayload)["tlsechoRequest"];
-		if(!echo_op) {
-			logger.msg(Arc::ERROR, "Request is not supported - \n%s", echo_op.Name());
-			return make_fault(outmsg);
-		};
-		std::string say = echo_op["say"];
-		std::string hear = prefix_+say+suffix_; // <----------------- PASSING DATA FROM THE ARCHED XML!!!!! COOOLLLLL!
+		/** Analyzing and execute request */
+		Arc::XMLNode requestNode  = (*inpayload)["tlsecho:tlsechoRequest"];
+		Arc::XMLNode sayNode      = requestNode["tlsecho:say"];
+		std::string operation = (std::string) sayNode.Attribute("operation");
+		std::string say       = (std::string) sayNode;
+		std::string hear      = "";
+		logger.msg(Arc::DEBUG, "Say: \"%s\"  Operation: \"%s\"",say,operation);
+
+		//Compare strings with constants defined in the header file
+		if(operation.compare(ECHO_TYPE_ORDINARY) == 0)
+		{
+			hear = prefix_+say+suffix_;
+		}
+		else if(operation.compare(ECHO_TYPE_REVERSE) == 0)
+		{
+			int len = say.length ();
+			int n;
+			std::string reverse = say;
+			for (n = 0;n < len; n++)
+			{
+				reverse[len - n - 1] = say[n];
+			}
+			hear = prefix_+ reverse +suffix_;
+		}
+		else
+		{
+			hear = "Unknown operation. Please use \"ordinary\" or \"reverse\"";
+		}
+		/** */
+
 		outpayload = new Arc::PayloadSOAP(ns_);
 		outpayload->NewChild("tlsecho:tlsechoResponse").NewChild("tlsecho:hear")=hear;
 
@@ -133,7 +174,7 @@ namespace ArcService
 			logger.msg(Arc::DEBUG, "process: response=%s",str);
 		}; 
 
-		logger.msg(Arc::DEBUG, "Echoservice done...");
+		logger.msg(Arc::DEBUG, "TLS Echoservice done...");
   		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 

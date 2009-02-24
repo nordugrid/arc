@@ -37,7 +37,6 @@ int main(int argc, char** argv)
 	Arc::Logger::getRootLogger().addDestination(logcerr);
 	Arc::Logger::rootLogger.setThreshold(Arc::WARNING);
 
-
 	// Set the ARC installation directory
 	Arc::ArcLocation::Init("/usr/lib/arc");
 	setlocale(LC_ALL, "");   

@@ -1,31 +1,73 @@
 \chapter{The echo service}
 
-The next service which will be presented is the echo service. It simply returns the received message back to the client.
-Depending on the operation requested by the client, the letters of the message will be reordered reverse or not.
-The goal of this chapter is to offer a deeper knowledge in message processing. Furthermore the \textit{WSDL} (Web Services Description Language) shall be introduced along with this example.
+The next service to be presented is the echo service which returns the received message back to the client.
+Furthermore the client has to choose between the operations ``ordinary'' or ``reverse''.
+Depending on that operation the message will be returned directly or its letters will be reordered reverse. % without manipulation
+The goal of this chapter is to offer a deeper knowledge about message processing. Furthermore the \textit{WSDL} (Web Services Description Language) shall be introduced along with this example.
 
 \section{Web Services Description Language}
 
-Web Services are often reachable for a large set of users in order to easily access complex information. In many cases the Web Service are capable to replace HTML pages i.e. access to databases like Pubmed or the NLM catalog.
+Web Services are often reachable for a large set of users in order to easily access complex information. In many cases the Web Service are capable to replace HTML pages i.e. to access to databases like Pubmed or the NLM catalog.
 % http://www.ncbi.nlm.nih.gov/entrez/query/static/esoap_help.html
-In contrary to HTML the interfaces of the data are well defined and easier to find for machines. bla...
-Due to that reason, the way to access the web service has to be defined in an own language: \textit{WSDL} (Web Services Description Language).
-WSDL is a meta language which determines the structure of the messages along with its permitted elements, the accepted operations, the supported protocols and the address to reach the service. 
-The WSDL for the echo service which shall be implemented in this chapter is to be seen in Listing~\ref{lst:echo_wsdl}. There are five main elements to describe a service:
+In contrary to HTML which describes a human readable document the interfaces of Web Services are well defined and easier to interpret for machines.
+In general the client is not familiar with the functionality of the service.
+Due to that reason, the access to a web service can be defined in a \textit{WSDL} (Web Services Description Language) file.
+WSDL is a meta language which describes the structure of the messages, the intended use of the message, the supported protocols and the endpoint of the service (URL).
+The WSDL file which specifies the echo service of this chapter is to be seen in Listing~\ref{lst:echo_wsdl}. 
+It consisits of five main WSDL elements:
+\newcommand{\parboxWidth}{13cm}
 \begin{itemize}
-	\item \textbf{Types} --- Definition of the data types used by the messages, line~\ref{lst_code:echo_wsdl_types}.
-	\item \textbf{Message} --- Assignments which data types are representing a message, line~\ref{lst_code:echo_wsdl_message1} and \ref{lst_code:echo_wsdl_message2}.
-	\item \textbf{Port type} --- \parbox[t]{13cm}{Assignment of the interface: One-way (input), request-response (input, output), solicit-response (input, output, fault), notification (output). The request-response interface is used in line~\ref{lst_code:echo_wsdl_portType}.}
-	\item \textbf{Binding} --- Defines the concret protocol and data format used for the message transmission, line~\ref{lst_code:echo_wsdl_binding}.
-	\item \textbf{Service} --- Specifies the address to bind a service, line~\ref{lst_code:echo_wsdl_service}.
+	\item \textbf{Types} --- The element \textit{types} contains the description of the message structures which is written in the language XSD (XML Schema Definition). The applicable data types of the echo service are defined in  line~\ref{lst_code:echo_wsdl_types}.
+
+	\item \textbf{Message} --- Within the element \textit{message} a subset of the previously defined types are assigned to be a message. In case of the echo service two messages are designated: echoRequest and echo Response, see lines line~\ref{lst_code:echo_wsdl_message1} and \ref{lst_code:echo_wsdl_message2}.
+
+	\item \textbf{Port type} --- The element \textit{portType} is used to assign the messages to an interface. Four interface types can be distinguished: One-way (input), request-response (input, output), solicit-response (input, output, fault) and notification (output).
+	The echo service realises a simple request-response interface which is declared subsequent line~\ref{lst_code:echo_wsdl_portType}. % in the lines followed by the line X
+
+	\item \textbf{Binding} --- The protocol and the data format used for the message transmission are denoted in the element \textit{binding}. Possible style attributes are \textit{document} or \textit{rpc} (Remote Procedure Call). The transport attribute defines the protocol which is regularly HTTP. For each operation a corresponding SOAP action has to be defined. Additionally the input and output has to be specified to be either \textit{literal} or \textit{encoded}~\cite{BUTEK_2009}. The service implemented in this chapter will use the binding \textit{document}/\textit{literal} and the protocol HTTP which is to be seen in line~\ref{lst_code:echo_wsdl_binding}.
+
+% The style attribute can be "rpc" or "document". In this case we use document. The transport attribute defines the SOAP protocol to use. In this case we use HTTP.
+%The operation element defines each operation that the port exposes.
+%For each operation the corresponding SOAP action has to be defined. You must also specify how the input and output are encoded. In this case we use "literal".
+%  http://www.ibm.com/developerworks/webservices/library/ws-whichwsdl/
+%   1. RPC/encoded    (Remote Procedure Call)
+%   2. RPC/literal
+%   3. Document/encoded
+%   4. Document/literal
+% The terminology here is very unfortunate: RPC versus document. These terms imply that the RPC style should be used for RPC programming models and that the document style should be used for document or messaging programming models. That is not the case at all. The style has nothing to do with a programming model. It merely dictates how to translate a WSDL binding to a SOAP message. Nothing more. You can use either style with any programming model.
+%
+% RPC/literal SOAP message for myMethod
+%
+%<soap:envelope>
+%    <soap:body>
+%        <myMethod>
+%            <x>5</x>
+%            <y>5.0</y>
+%        </myMethod>
+%    </soap:body>
+%</soap:envelope>
+%
+%  RPC/encoded SOAP message for myMethod
+% 
+% <soap:envelope>
+%     <soap:body>
+%         <myMethod>
+%             <x xsi:type="xsd:int">5</x>
+%             <y xsi:type="xsd:float">5.0</y>
+%         </myMethod>
+%     </soap:body>
+% </soap:envelope>
+
+	\item \textbf{Service} --- Within the last WSDL element the endpoint of the service is specified. As to be seen in line~\ref{lst_code:echo_wsdl_service} the endpoint of the echo service is assigned to \textit{http://localhost:60000/echo}.
+
 \end{itemize}
 %\textcolor{white}{newline}
 \lstsetJUSTXML
 \lstinputlisting
 	[
-	label=lst:echo_wsdl,
+	label=lst:echo_wsdl,float=p,
 	caption={[WSDL file describing the echo service. Filename: echo.wsdl]
-	\textbf{HWSDL file describing the echo service. Filename: echo.wsdl}}
+	\textbf{WSDL file describing the echo service. Filename: echo.wsdl}}
 	]
 {../src/services/echoservice/echo.wsdl}
 
@@ -45,11 +87,13 @@ More information about WSDL may be found at \href{http://www.w3.org/TR/wsdl}{htt
 
 %    * Quality-of-Service-Informationen
 %    * Taxonomien/Ontologien zur semantischen Einordnung des Services
+\clearpage
 
 \section{Service}
 
-The service defined by the WSDL file in the previous section shall now be implemented. The source code of the C++ file is shown in Listing~\ref{lst:echo_service_cpp}. Again the header file will be set aside for it contains to much redundant information.
+The implementation of the service defined in the WSDL file of the previous section will blub. The source code of the C++ file is shown in Listing~\ref{lst:echo_service_cpp}. Again the header file will be set aside for it contains to much redundant information.
 
+\lstsetCPP
 \lstinputlisting
 	[
 	label=lst:echo_service_cpp,

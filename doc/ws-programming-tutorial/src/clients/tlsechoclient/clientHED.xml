@@ -24,7 +24,7 @@
       <Component name='http.client' id='http'>
          <next id='tls'/>
          <Method>POST</Method>
-         <Endpoint>/sececho</Endpoint>
+         <Endpoint>/tlsecho</Endpoint>
       </Component>
       <Component name='soap.client' id='soap' entry='soap'>
          <next id='http'/>

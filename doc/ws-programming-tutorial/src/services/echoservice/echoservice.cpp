@@ -22,13 +22,13 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg)
  */
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {//(@*\label{lst_code:time_cpp_ptn}*@)
 	{
-		"echo",					/* Unique name of plugin in scope of its kind */
-		"HED:SERVICE",			/* Type/kind of plugin */
-		1,						/* Version of plugin (0 if not applicable) */
-		&get_service 			/* Pointer to constructor function */
+		"echo",					/* Unique name of plugin in scope of its kind	*/
+		"HED:SERVICE",			/* Type/kind of plugin							*/
+		1,						/* Version of plugin (0 if not applicable)		*/
+		&get_service 			/* Pointer to constructor function				*/
 	},
-	{ NULL, NULL, 0, NULL }		/* The array is terminated by element */
-								/* with all components set to NULL*/
+	{ NULL, NULL, 0, NULL }		/* The array is terminated by element			*/
+								/* with all components set to NULL				*/
 };
 
 

@@ -19,7 +19,7 @@
 	<Plugins><Name>mcctls</Name></Plugins>
 	<Plugins><Name>mcchttp</Name></Plugins>
 	<Plugins><Name>mccsoap</Name></Plugins>
-	<Plugins><Name>secechoservice</Name></Plugins>
+	<Plugins><Name>tlsechoservice</Name></Plugins>
 	<Chain>
 		<Component name="tcp.service" id="tcp">
 			<next id="tls"/>
@@ -42,8 +42,8 @@
 		</Plexer>
 		<Service name="tlsecho" id="tlsecho">
 			<next id="tlsecho"/>
-			<echo:prefix>[ </echo:prefix>
-			<echo:suffix> ]</echo:suffix>
+			<tlsecho:prefix>[ </tlsecho:prefix>
+			<tlsecho:suffix> ]</tlsecho:suffix>
 		</Service>
 	</Chain>
 </ArcConfig>
