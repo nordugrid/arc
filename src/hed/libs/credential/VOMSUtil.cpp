@@ -1233,7 +1233,37 @@ err:
     return true;
   }
 
-  static bool check_acinfo(X509* cert, X509* issuer, AC* ac, std::vector<std::string>& output) {
+  static time_t ASN1_GENERALIZEDTIME_get(const ASN1_GENERALIZEDTIME* const s) {
+    struct tm tm;
+    int offset;
+    memset(&tm,'\0',sizeof tm);
+
+#define g1(n) ((n)-'0')
+#define g2(p) (g1((p)[0])*10+g1((p)[1]))
+#define g4(p) g1((p)[0])*1000+g1((p)[1])*100+g2(p+2)
+
+    tm.tm_year=g4(s->data)-1900;
+    tm.tm_mon=g2(s->data+4)-1;
+    tm.tm_mday=g2(s->data+6);
+    tm.tm_hour=g2(s->data+8);
+    tm.tm_min=g2(s->data+10);
+    tm.tm_sec=g2(s->data+12);
+    if(s->data[14] == 'Z')
+      offset=0;
+    else {
+      offset=g2(s->data+15)*60+g2(s->data+17);
+      if(s->data[14] == '-')
+        offset= -offset;
+    }
+#undef g1
+#undef g2
+#undef g4
+
+    return timegm(&tm)-offset*60;
+  }
+
+  static bool check_acinfo(X509* cert, X509* issuer, AC* ac, 
+    std::vector<std::string>& output, std::string& period_left) {
     if(!ac || !cert || !(ac->acinfo) || !(ac->acinfo->version) || !(ac->acinfo->holder) 
        || (ac->acinfo->holder->digest) || !(ac->acinfo->form) || !(ac->acinfo->form->names) 
        || (ac->acinfo->form->is) || (ac->acinfo->form->digest) || !(ac->acinfo->serial) 
@@ -1266,6 +1296,7 @@ err:
       CredentialLogger.msg(ERROR,"VOMS: AC has expired");
       return false;
     }
+    period_left = (Arc::Time(ASN1_GENERALIZEDTIME_get(end)) - Arc::Time());
 
     STACK_OF(GENERAL_NAME) *names;
     GENERAL_NAME  *name;
@@ -1360,7 +1391,8 @@ err:
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         const VOMSTrustList& vomscert_trust_dn,
         //const std::vector<std::string>& vomscert_trust_dn,
-        X509* holder, std::vector<std::string>& output, bool verify) {
+        X509* holder, std::vector<std::string>& attr_output, 
+        std::string& vo_name, std::string& period_left, bool verify) {
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
@@ -1402,6 +1434,7 @@ err:
         return false;
       }
       voname = voname.substr(0, cpos);
+      vo_name = voname;
     }
     else {
       CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
@@ -1415,7 +1448,7 @@ err:
       return false; 
     }
 
-    if(check_acinfo(holder, issuer, ac, output)) return true;
+    if(check_acinfo(holder, issuer, ac, attr_output, period_left)) return true;
     else return false;
   }
 
@@ -1451,8 +1484,16 @@ err:
     int num = sk_AC_num(aclist->acs);
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
-      if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, holder, output, verify)) {
+      std::string vo_name;
+      std::string period_left;
+      if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, 
+          holder, output, vo_name, period_left, verify)) {
         verified = true;
+        std::cout<<"======AC extenstion information for VO "<<vo_name<<"======"<<std::endl;
+        for(int i = 0; i < output.size(); i++) {
+          std::cout<<"Attribute: "<<output[i]<<std::endl;
+        }
+        std::cout<<"Timeleft for AC: "<<period_left<<std::endl;
       }
       if (!verified) break;
     } 

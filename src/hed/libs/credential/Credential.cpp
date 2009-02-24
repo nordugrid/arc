@@ -1454,7 +1454,7 @@ err:
     }
 
     /*Set the serialNumber*/
-    cert_info->serialNumber = M_ASN1_INTEGER_dup(X509_get_serialNumber(proxy_cert));;
+    //cert_info->serialNumber = M_ASN1_INTEGER_dup(X509_get_serialNumber(proxy_cert));;
 
     /*Set the extension*/
     if(sk_X509_EXTENSION_num(proxy->extensions_)) {

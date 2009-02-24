@@ -100,7 +100,7 @@ int main(int argc, char* argv[]){
                     ),
                     istring("string"), vomslist);
 
-  bool info;
+  bool info = false;
   options.AddOption('I', "info", istring("print all information about this proxy. \n"
                     "              In order to show the Identity (DN without CN as subfix for proxy) \n"
                     "              of the certificate, the 'trusted certdir' is neede."
@@ -145,7 +145,6 @@ int main(int argc, char* argv[]){
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
     return EXIT_SUCCESS;
   }
-
 
   try{
     if (params.size()!=0)
@@ -193,20 +192,15 @@ int main(int argc, char* argv[]){
     bool res = false;
     
     Arc::Credential holder(proxy_path, "", ca_dir, "");
+    std::cout<<"Subject:  "<<holder.GetDN()<<std::endl;
+    std::cout<<"Identity: "<<holder.GetIdentityName()<<std::endl;
+    std::cout<<"Timeleft for proxy: "<<(holder.GetEndTime() - Arc::Time())<<std::endl;
+
     std::vector<std::string> voms_trust_dn;
     res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
     if(!res) {
       logger.msg(Arc::ERROR,"VOMS attribute parsing failed");
     };
- 
-    std::cout<<"Subject:  "<<holder.GetDN()<<std::endl;
-    std::cout<<"Identity: "<<holder.GetIdentityName()<<std::endl;
-    std::cout<<"Timeleft for proxy: "<<(holder.GetEndTime() - Arc::Time())<<std::endl;
-    std::cout<<"======Attributes from voms AC extension======"<<std::endl;
-    for(int i = 0; i < voms_attributes.size(); i++) {
-      std::cout<<"Attribute: "<<voms_attributes[i]<<std::endl;
-    }
-    
 
     return EXIT_SUCCESS;
   }
