@@ -4,16 +4,16 @@
 
 export ARC\_BARTENDER\_URL
 
-if bartender_url.startswith('https'):
-    key_file = os.environ.get('ARC_KEY_FILE', None)
-    cert_file = os.environ.get('ARC_CERT_FILE', None)
-    proxy_file = os.environ.get('ARC_PROXY_FILE', None)
-    ca_file = os.environ.get('ARC_CA_FILE', None)
-    ca_dir = os.environ.get('ARC_CA_DIR', None)
 
-export ARC_KEY_FILE=/local/glodek/clientKey.pem
-export ARC_CA_FILE=/local/glodek/clientCA.pem
-export ARC_CERT_FILE=/local/glodek/clientCert.pem
+    key\_file = os.environ.get('ARC\_KEY\_FILE', None)
+    cert\_file = os.environ.get('ARC\_CERT\_FILE', None)
+    proxy\_file = os.environ.get('ARC\_PROXY\_FILE', None)
+    ca\_file = os.environ.get('ARC\_CA\_FILE', None)
+    ca\_dir = os.environ.get('ARC\_CA\_DIR', None)
+
+export ARC\_KEY\_FILE=/local/glodek/clientKey.pem
+export ARC\_CA\_FILE=/local/glodek/clientCA.pem
+export ARC\_CERT\_FILE=/local/glodek/clientCert.pem
 
 does the daemon runs the service single threaded
 
