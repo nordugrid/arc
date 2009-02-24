@@ -17,7 +17,7 @@
 #include "listfunc.h"
 
 #ifdef WIN32
-#include <windows.h>
+#include <arc/win32.h>
 int gethostname_mingw (char *, size_t);
 int gethostname_mingw (char *name, size_t len) {
   DWORD dlen = (len <= (DWORD)~0 ? len : (DWORD)~0);
@@ -816,10 +816,16 @@ err:
       //Check if the DN/CA file is installed for a given VO.
       X509_EXTENSION* ext = sk_X509_EXTENSION_value(exts, pos);
       AC_CERTS* certs = (AC_CERTS *)X509V3_EXT_d2i(ext);
+      //The relatively new version of VOMS server is supposed to
+      //create AC which includes the certificate stack:
+      //the certificate of voms server; the non-CA certificate/s 
+      //(if there are) that signs the voms server' certificate.
       STACK_OF(X509)* certstack = certs->stackcert;
 
       bool success = false;
 
+      //Check if the DN of those certificates in the certificate stack
+      //corresponds to the trusted DN chain in the configuration 
       if(certstack) {
         for(int n = 0;n < vomscert_trust_dn.SizeChains();++n) {
           const VOMSTrustChain& chain = vomscert_trust_dn.GetChain(n);
@@ -837,91 +843,16 @@ err:
         }
       }
 
-      /*
-      bool success = false;
-      bool final = false;
-
-      unsigned int k=0;
-      do {
-        success = true;
-        for (int i = 0; i < sk_X509_num(certstack); i++) {
-          X509 *current = sk_X509_value(certstack, i);
-
-          
-
-          std::string subject_name;
-          std::string issuer_name;
-          subject_name = vomscert_trust_dn[k];
-          size_t pos = std::string::npos;
-          pos = subject_name.find_first_of("^");
-          std::string str;
-          if(k < vomscert_trust_dn.size()-1) {
-            str = vomscert_trust_dn[k+1];
-          }
- 
-          //If this line ("k"th line) is the last line in this chain, then this line should be regular expression,
-          //here only regex "^" is considered.
-          //And this line is also considered to check the issuer
-          //"k" will not be increased, then this line will be used for checking the next certificate
-          if((k >= (vomscert_trust_dn.size()-1) || str.find("NEXT CHAIN") != std::string::npos) 
-              && (pos != std::string::npos && pos == subject_name.find_first_not_of(" ")))
-            issuer_name = subject_name;
-          //If there is another line after this line, then that line ("k"+1) will be used to check the issuer.
-          //And the "k" line will not be used any more for the next certificate.
-          else if ((vomscert_trust_dn[k+1]).find("NEXT CHAIN") == std::string::npos) {
-            issuer_name = vomscert_trust_dn[++k];
-          }
-          //If "k" line is the last line, but it is not regular expression. 
-          else {
-            CredentialLogger.msg(ERROR,"VOMS: wrong definition in VOMS certificate DN");
-            return false;
-          }
-
-          *
-          if(subject_name.empty() || issuer_name.empty()) { 
-            success = false;
-            final = true;
-            break;
-          }
-          *
-
-          std::string realsubject(X509_NAME_oneline(X509_get_subject_name(current), NULL, 0));
-          std::string realissuer(X509_NAME_oneline(X509_get_issuer_name(current), NULL, 0));
-
-          bool sub_match=false, iss_match=false;
-          bool sub_isregex=false, iss_isregex=false;
-          if(pos != std::string::npos && pos == subject_name.find_first_not_of(" ")) {
-            sub_isregex = true;
-            sub_match = regex_match(subject_name, realsubject);
-          }
-          pos = issuer_name.find_first_of("^");
-          if(pos != std::string::npos && pos == issuer_name.find_first_not_of(" ")) {
-            iss_isregex = true;
-            iss_match = regex_match(issuer_name, realissuer);
-          }
-          if(!sub_isregex) sub_match = (subject_name == realsubject) ? true : false;
-          if(!iss_isregex) iss_match = (issuer_name == realissuer) ? true : false;          
-
-          if(!sub_match || !iss_match) {
-            do {
-              subject_name = vomscert_trust_dn[++k];
-            } while (k < vomscert_trust_dn.size() && subject_name.find("NEXT CHAIN") != std::string::npos);
-            success = false;
-            break;
-          }
-        }
-        if (success || k >= vomscert_trust_dn.size()) final = true;
-      } while (!final);
-      */
-
       if (!success) {
         AC_CERTS_free(certs);
         CredentialLogger.msg(ERROR,"VOMS: unable to match certificate chain against VOMS trusted DNs");
         return false;
       }
                   
-      /* check if able to find the DN in the vomscert_trust_dn which is corresponding to the signing certificate*/
-
+      //If the certificate stack does correspond to some of the trusted DN chain, 
+      //then check if the AC signature is valid by using the voms server 
+      //certificate (voms server certificate is supposed to be the first on
+      //in the certificate stack).
 #ifdef HAVE_OPENSSL_OLDRSA
       X509 *cert = (X509 *)ASN1_dup((int (*)())i2d_X509, 
         (char * (*)())d2i_X509, (char *)sk_X509_value(certstack, 0));
@@ -930,8 +861,8 @@ err:
         (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)sk_X509_value(certstack, 0));
 #endif
 
-   //for (int i=0; i <sk_X509_num(certstack); i ++)
-   //fprintf(stderr, "+++ stk[%i] = %d  %s\n", i , sk_X509_value(certstack, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(certstack, i)), NULL, 0));
+      //for (int i=0; i <sk_X509_num(certstack); i ++)
+      //fprintf(stderr, "+++ stk[%i] = %d  %s\n", i , sk_X509_value(certstack, i),  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(certstack, i)), NULL, 0));
 
       bool found = false;
 
@@ -939,7 +870,8 @@ err:
         found = true;
       else
         CredentialLogger.msg(ERROR,"VOMS: unable to verify AC signature");
-
+    
+      //Check if those certificate in the certificate stack are trusted.
       if (found) {
         if (!check_cert(certstack, ca_cert_dir, ca_cert_file)) {
           X509_free(cert);
@@ -956,8 +888,12 @@ err:
     }
 
 #if 0 
-    /* check if able to find the signing certificate 
-     *among those specific for the vo or else in the vomsdir
+    //For those old-stype voms configuration, there is no 
+    //certificate stack in the AC. So there should be a local
+    //directory which includes the voms server certificate.
+    //It is deprecated here.
+    /*check if able to find the signing certificate 
+     among those specific for the vo or else in the vomsdir
      *directory 
      */
     if(issuer == NULL){
@@ -1198,14 +1134,14 @@ err:
       return false;
     }
 
-    /* The only critical extension allowed is idceTargets. */
+    //Check if the target fqan matches idceTargets
     while (pos3 >=0) {
       X509_EXTENSION *ex;
       AC_TARGETS *targets;
       AC_TARGET *name;
 
       ex = sk_X509_EXTENSION_value(exts, pos3);
-      if (pos3 == pos4) {
+      if (pos3 == pos4) {     //The only critical extension allowed is idceTargets,
         std::string fqdn = getfqdn();
         int ok = 0;
         int i;
@@ -1225,7 +1161,7 @@ err:
           ASN1_STRING_free(fqdns);
         }
         if (!ok) {
-          CredentialLogger.msg(ERROR,"VOMS: FQDN of this host does not match that in AC");
+          CredentialLogger.msg(WARNING,"VOMS: FQDN of this host %s does not match any target in AC", fqdn);
           // return false;
         }
       }
@@ -1236,6 +1172,7 @@ err:
       pos3 = X509v3_get_ext_by_critical(exts, 1, pos3);
     }
 
+    //Parse the attributes
     if (pos5 >= 0) {
       X509_EXTENSION *ex = NULL;
       AC_FULL_ATTRIBUTES *full_attr = NULL;
@@ -1250,6 +1187,7 @@ err:
       AC_FULL_ATTRIBUTES_free(full_attr);
     }
 
+    //Check the authorityKeyIdentifier
     if (pos2 >= 0) {
       X509_EXTENSION *ex;
       bool keyerr = false; 

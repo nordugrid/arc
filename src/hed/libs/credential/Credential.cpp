@@ -1258,7 +1258,7 @@ err:
      
       serial_number = ASN1_INTEGER_new();
       ASN1_INTEGER_set(serial_number, sub_hash);
-       
+
       int length = ext_method->i2d(proxy->proxy_cert_info_, NULL);
       if(length < 0) {
         CredentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); 

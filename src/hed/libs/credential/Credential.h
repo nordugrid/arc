@@ -50,9 +50,6 @@ typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
 /**Logger to be used by all modules of credentials library*/
 extern Logger CredentialLogger;
 
-/* TODO: PROPERLY DEFINE ALL METHODS THROWING EXCEPTIONS. MAKE
-   ALL PUBLIC METHODS NOT TO THROW EXCEPTIONS. ALL EXCEPTIONS
-   THROWN IN PRIVATE METHODS MUST BE CAUGHT IN PUBLIC METHODS. */
 class Credential {
   public:
     /**Default constructor, only acts as a container for inquiring certificate request,
