@@ -662,25 +662,28 @@ namespace Arc {
         }
 
         if (bool(jobidentification["Migration"])) {
-           for ( int i=0; (bool)(jobidentification["OldJobID"][i]); i++ ) { 
-               Arc::WSAEndpointReference old_job_epr(jobidentification["OldJobID"][i]);
-               innerRepresentation.Migration.OldJobIDs.push_back(old_job_epr);
+           for ( int i=0; (bool)(jobidentification["Migration"]["OldJobID"][i]); i++ ) { 
+			   Arc::XMLNode &node = *(new XMLNode());
+			   jobidentification["Migration"]["OldJobID"][i].New(node);
+               innerRepresentation.Migration.OldJobIDs.push_back(node);
            }
-           Arc::WSAEndpointReference migration_id(jobidentification["Migration"]["MigrationID"]);
-           innerRepresentation.Migration.MigrationID = migration_id;
+
+		   Arc::XMLNode migrationid(jobidentification["Migration"]["MigrationID"]);
+           migrationid.Child(0).New(innerRepresentation.Migration.MigrationID);
         }
 
         if (bool(jobidentification["Resubmission"])) {
-           for ( int i=0; (bool)(jobidentification["OldJobID"][i]); i++ ) { 
-               Arc::WSAEndpointReference old_job_epr(jobidentification["OldJobID"][i]);
-               innerRepresentation.Resubmission.OldJobIDs.push_back(old_job_epr);
+           for ( int i=0; (bool)(jobidentification["Resubmission"]["OldJobID"][i]); i++ ) { 
+			   Arc::XMLNode &node = *(new XMLNode());
+			   jobidentification["Resubmission"]["OldJobID"][i].New(node);
+               innerRepresentation.Resubmission.OldJobIDs.push_back(node);
            }
         }
 
         if (bool(jobidentification["JobProject"])) {
            innerRepresentation.JobProject = (std::string)jobidentification["JobProject"];
         }
-        // end of JobIdentification
+        // end of JobIdentificatio
 
         // Application
         Arc::XMLNode application = node["JobDescription"]["Application"]["POSIXApplication"];

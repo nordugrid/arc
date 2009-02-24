@@ -36,29 +36,26 @@ namespace Arc {
 	  std::cout << Arc::IString(" UserTag: %s", *iter) << std::endl;
       }
 
-      if (!(Migration.MigrationID.Address()).empty()) {
-        std::list<Arc::WSAEndpointReference>::const_iterator m_iter;
+      if ((bool)Migration.MigrationID) {
+        std::list<Arc::XMLNode>::const_iterator m_iter;
         std::string str;
         int i = 1;
-        Arc::WSAEndpointReference epr_tmp;
+        std::cout << Arc::IString("Migration") << std::endl;
         for (m_iter = Migration.OldJobIDs.begin(); m_iter != Migration.OldJobIDs.end(); m_iter++, i++) {
-           epr_tmp = (*m_iter);
-           ((Arc::XMLNode)epr_tmp).GetXML(str, true);
+           (*m_iter).GetXML(str, true);
            std::cout << Arc::IString("%d. Old Job EPR: %s", i, str) << std::endl;
         }
-        epr_tmp = Migration.MigrationID;
-        ((Arc::XMLNode)epr_tmp).GetXML(str, true);
+        (Migration.MigrationID).GetXML(str, true);
         std::cout << Arc::IString("Migration EPR: %s", str) << std::endl;
       }
 
       if (!(Resubmission.OldJobIDs.empty())) {
-        std::list<Arc::WSAEndpointReference>::const_iterator m_iter;
+        std::list<Arc::XMLNode>::const_iterator m_iter;
         std::string str;
         int i = 1;
-        Arc::WSAEndpointReference epr_tmp;
-        for (m_iter = Migration.OldJobIDs.begin(); m_iter != Migration.OldJobIDs.end(); m_iter++, i++) {
-           epr_tmp = (*m_iter);
-           ((Arc::XMLNode)epr_tmp).GetXML(str, true);
+        std::cout << Arc::IString("Resubmission") << std::endl;
+        for (m_iter = Resubmission.OldJobIDs.begin(); m_iter != Resubmission.OldJobIDs.end(); m_iter++, i++) {
+           (*m_iter).GetXML(str, true);
            std::cout << Arc::IString("%d. Old Job EPR: %s", i, str) << std::endl;
         }
       }

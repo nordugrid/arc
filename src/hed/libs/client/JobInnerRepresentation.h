@@ -70,12 +70,12 @@ struct DirectoryType {
 };
 
 struct MigrationType {
-    std::list<Arc::WSAEndpointReference> OldJobIDs;
-    Arc::WSAEndpointReference MigrationID;
+    std::list<Arc::XMLNode> OldJobIDs;
+    Arc::XMLNode MigrationID;
 };
 
 struct ResubmissionType {
-    std::list<Arc::WSAEndpointReference> OldJobIDs;
+    std::list<Arc::XMLNode> OldJobIDs;
 };
 
 struct OptionalElementType {
