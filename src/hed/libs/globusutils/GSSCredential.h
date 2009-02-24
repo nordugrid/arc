@@ -18,6 +18,7 @@ namespace Arc {
     ~GSSCredential();
     operator gss_cred_id_t&();
     operator gss_cred_id_t*();
+    static std::string ErrorStr(OM_uint32 majstat, OM_uint32 minstat);
   private:
     gss_cred_id_t credential;
     //static Logger logger;
