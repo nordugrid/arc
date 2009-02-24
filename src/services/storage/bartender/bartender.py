@@ -84,7 +84,7 @@ class Bartender:
         cat_rem_requests = {}
         cat_mod_requests = {}
         check_again = []
-        for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
+        for requestID, (metadata, GUID, LN, restLN, wasComplete, traversedList) in traverse_response.items():
             decision = make_decision_metadata(metadata, auth_request)
             if decision != arc.DECISION_PERMIT:
                 response[requestID] = 'denied'
@@ -99,9 +99,15 @@ class Bartender:
                     cat_mod_requests[requestID + '-' + parent + '-closed?'] = (parent_GUID, 'setifvalue=yes', 'states', 'closed', 'broken')
                 response[requestID] = 'deleted'
             elif metadata.get(('entry', 'type'), '') == 'mountpoint' :
-                url = metadata[('mountpoint', 'externalURL')]
-                #print LN
-                #res = self._externalStore(auth ,url+'/'+LN,'delFile')    
+                url = metadata[('mountpoint', 'externalURL')]+'/'+restLN
+                #print url
+                res = self._externalStore(auth ,url,'delFile')
+                print res
+                print res[url]['status']  
+                if 'successfully' in res[url]['status']:
+                    response[requestID] = 'deleted'
+                else:
+                    response[requestID] = 'nosuchLN'       
             else: # if it was not complete, then we didn't find the entry, so metadata will be empty
                 response[requestID] = 'nosuchLN'
         #print cat_rem_requests
@@ -109,7 +115,8 @@ class Bartender:
         success = self.librarian.remove(cat_rem_requests)
         modify_success = self.librarian.modifyMetadata(cat_mod_requests)
         #print success
-        #print modify_success
+        #print modify_success 
+        print response
         return response
 
     def _traverse(self, requests):
@@ -670,7 +677,7 @@ class Bartender:
                         status = 'mountpointfound'
                         url = metadata[('mountpoint', 'externalURL')]
                         res = self._externalStore(auth, url, 'list')
-                        print res
+                        #print res
                         entries = dict([(url, (type, {('mountpoint','status'):res[url]['status'],('external','list'):res[url]['list']})) ]) 
                         #entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, list, stat  in res.items()])
                     else: #if it is not a file, it must be a collection (currently there is no other type)
@@ -688,15 +695,8 @@ class Bartender:
                 type = metadata.get(('entry', 'type'), '') 
                 status = 'mountpointfound'
                 res = self._externalStore(auth ,url, 'list')
-                print res
-                #for url,(list,stat) in res.items():
-                print stat 
-                if stat == 'failed':
-                    status = 'not found'
-                    entries = {}
-                else:       
-                    #entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, (list, stat)  in res.items()])
-                    entries = dict([(url, (type, {('mountpoint','status'):res[url]['status'],('external','list'):res[url]['list']})) ])
+                #print res
+                entries = dict([(url, (type, {('mountpoint','status'):res[url]['status'],('external','list'):res[url]['list']})) ])
             else:
                 entries = {}
                 status = 'not found'
@@ -1378,7 +1378,7 @@ class BartenderService(Service):
         ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
         outpayload = arc.PayloadSOAP(ns)
         credAndid = self.delegSOAP.UpdateCredentials(inpayload,outpayload)
-        print credAndid
+        #print credAndid
         if credAndid[0] == True:
             #print "\n ---Delegated Credentials--- "
             #print credAndid[1]

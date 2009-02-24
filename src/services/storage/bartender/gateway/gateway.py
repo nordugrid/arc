@@ -59,7 +59,8 @@ class Gateway:
         else:
             status = 'cannot find valid credentials'
             response[url] = {'turl':'','status': status,'protocol':''}
-        print response
+        #print response
+        log.msg(arc.DEBUG,'get response: %s',response)
         return response
             
     def put(self, auth, url, flags):
@@ -103,9 +104,6 @@ class Gateway:
             
                 externalURL = arc.URL(url)
                 handle = arc.DataHandle(externalURL)
-                #usercfg = arc.UserConfig("")
-                #cred = arc.Config(arc.NS())
-                #usercfg.ApplySecurity()
                 handle.__deref__().AssignCredentials(filepath,'','',self.ca_dir)
                 (files, stat) = handle.__deref__().ListFiles(True)
                 if files:
@@ -137,20 +135,39 @@ class Gateway:
                 status = 'failed: credentials not found'
         
 	response[url]={'list':''.join(tmpList),'status':status,'protocol':protocol}
-
+        #print response
+        log.msg(arc.DEBUG, 'list response: %s', response)
         return response
     def remove(self, auth, url, flags):
         
         """ remove file or direcotory """
-        response[url] = {'url':'','status':'','protocol': ''}
-        #url = arc.URL(sourceURL)
-        #handle = arc.DataHandle(url)
-        #usercfg = arc.UserConfig("")
-        #cred = arc.Config(arc.NS())
-        #usercfg.ApplySecurity(cred)
-        #handle.__deref__().AssignCredentials(cred)
-        #(files, status) = handle.__deref__().ListFiles(True)
-        
+        response = {}
+        protocol = ''
+        status = ''
+        if url[:6] == 'gsiftp':
+            protocol = 'gridftp'
+        elif url[:3] == 'srm':
+            protocol = 'srm'
+        else:
+            protocol = 'unkonwn'
+            
+        if len(self.proxy_store) == 0:
+            status = 'failed' 
+            log.msg(arc.DEBUG,'proxy store is not accessable.')
+
+        if protocol != 'unknown':
+            proxyfile = base64.b64encode(auth.get_identity())
+            filepath = self.proxy_store+'/'+proxyfile+'.proxy'
+            if os.path.isfile(filepath):
+            
+                externalURL = arc.URL(url)
+                handle = arc.DataHandle(externalURL)
+                handle.__deref__().AssignCredentials(filepath,'','',self.ca_dir)
+                status = handle.__deref__().Remove()
+                #status = 'successful'
+        else:
+            status = 'failed'  
+        response[url]={'status':str(status),'protocol':protocol}
         #print "File or directory removed"     
         return response 
-        
+       
