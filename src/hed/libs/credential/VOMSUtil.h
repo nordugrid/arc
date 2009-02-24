@@ -180,19 +180,31 @@ namespace Arc {
    *
    * 		some other redundant attributes is provided:
    * 		      voname=knowarc://squark.uio.no:15011
+   * @param verify  true: Verify the voms certificate is trusted based on the 
+   * 		    ca_cert_dir/ca_cert_file which specifies the CA certificates, 
+   * 		    and the vomscert_trust_dn which specifies the trusted DN chain
+   * 		    from voms server certificate to CA certificate.
    *
+   * 		    false: Not verify, which means the issuer of AC (voms server
+   * 		    certificate is supposed to be trusted by default).
+   * 		    In this case the parameters 'ca_cert_dir', 
+   * 		    'ca_cert_file' and 'vomscert_trust_dn' will not effect, and 
+   * 		    should be set as empty.
+   * 		    This case is specifically used by 'arcproxy --info' to list 
+   * 		    all of the attributes in AC, and not to need to verify if
+   * 		    the AC's issuer is trusted.
    */
   bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
                    const VOMSTrustList& vomscert_trust_dn,
-                   std::vector<std::string>& output);
+                   std::vector<std::string>& output, bool verify = true);
 
   /**Parse the certificate. The same as the above one */
   bool parseVOMSAC(Arc::Credential& holder_cred,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
                    const VOMSTrustList& vomscert_trust_dn,
-                   std::vector<std::string>& output);
+                   std::vector<std::string>& output, bool verify = true);
   
   /**Decode the data which is encoded by voms server. Since voms code uses some specific
   * coding method (not base64 encoding), we simply copy the method from voms code to here*/

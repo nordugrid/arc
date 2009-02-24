@@ -806,7 +806,7 @@ err:
     const std::string& ca_cert_dir, const std::string& ca_cert_file, 
     const VOMSTrustList& vomscert_trust_dn, 
     //const std::vector<std::string>& vomscert_trust_dn, 
-    X509** issuer_cert) {
+    X509** issuer_cert, bool verify) {
     X509* issuer = NULL;
 
     int nid = OBJ_txt2nid("certseq");
@@ -822,32 +822,34 @@ err:
       //(if there are) that signs the voms server' certificate.
       STACK_OF(X509)* certstack = certs->stackcert;
 
-      bool success = false;
+      if(verify) {
+        bool success = false;
 
-      //Check if the DN of those certificates in the certificate stack
-      //corresponds to the trusted DN chain in the configuration 
-      if(certstack) {
-        for(int n = 0;n < vomscert_trust_dn.SizeChains();++n) {
-          const VOMSTrustChain& chain = vomscert_trust_dn.GetChain(n);
-          if(check_trust(chain,certstack)) {
-            success = true;
-            break;
+        //Check if the DN of those certificates in the certificate stack
+        //corresponds to the trusted DN chain in the configuration 
+        if(certstack) {
+          for(int n = 0;n < vomscert_trust_dn.SizeChains();++n) {
+            const VOMSTrustChain& chain = vomscert_trust_dn.GetChain(n);
+            if(check_trust(chain,certstack)) {
+              success = true;
+              break;
+            }
+          }
+          if(!success) for(int n = 0;n < vomscert_trust_dn.SizeRegexs();++n) {
+            const RegularExpression& reg = vomscert_trust_dn.GetRegex(n);
+            if(check_trust(reg,certstack)) {
+              success = true;
+              break;
+            }
           }
         }
-        if(!success) for(int n = 0;n < vomscert_trust_dn.SizeRegexs();++n) {
-          const RegularExpression& reg = vomscert_trust_dn.GetRegex(n);
-          if(check_trust(reg,certstack)) {
-            success = true;
-            break;
-          }
-        }
-      }
 
-      if (!success) {
-        AC_CERTS_free(certs);
-        CredentialLogger.msg(ERROR,"VOMS: unable to match certificate chain against VOMS trusted DNs");
-        return false;
-      }
+        if (!success) {
+          AC_CERTS_free(certs);
+          CredentialLogger.msg(ERROR,"VOMS: unable to match certificate chain against VOMS trusted DNs");
+          return false;
+        }
+      };
                   
       //If the certificate stack does correspond to some of the trusted DN chain, 
       //then check if the AC signature is valid by using the voms server 
@@ -870,21 +872,23 @@ err:
         found = true;
       else
         CredentialLogger.msg(ERROR,"VOMS: unable to verify AC signature");
-    
-      //Check if those certificate in the certificate stack are trusted.
-      if (found) {
-        if (!check_cert(certstack, ca_cert_dir, ca_cert_file)) {
-          X509_free(cert);
-          cert = NULL;
-          CredentialLogger.msg(ERROR,"VOMS: unable to verify certificate chain");
+   
+      if(verify) { 
+        //Check if those certificate in the certificate stack are trusted.
+        if (found) {
+          if (!check_cert(certstack, ca_cert_dir, ca_cert_file)) {
+            X509_free(cert);
+            cert = NULL;
+            CredentialLogger.msg(ERROR,"VOMS: unable to verify certificate chain");
+          }
         }
-      }
-      else
-        CredentialLogger.msg(ERROR,"VOMS: cannot find certificate of AC issuer for VO %s",voname);
+        else
+          CredentialLogger.msg(ERROR,"VOMS: cannot find certificate of AC issuer for VO %s",voname);
+      }; 
  
       AC_CERTS_free(certs);
      
-      if(cert != NULL)issuer = cert;
+      if(cert != NULL) issuer = cert;
     }
 
 #if 0 
@@ -1356,7 +1360,7 @@ err:
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         const VOMSTrustList& vomscert_trust_dn,
         //const std::vector<std::string>& vomscert_trust_dn,
-        X509* holder, std::vector<std::string>& output) {
+        X509* holder, std::vector<std::string>& output, bool verify) {
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
@@ -1406,7 +1410,7 @@ err:
  
     X509* issuer = NULL;
 
-    if(!check_signature(ac, voname, hostname, ca_cert_dir, ca_cert_file, vomscert_trust_dn, &issuer)) {
+    if(!check_signature(ac, voname, hostname, ca_cert_dir, ca_cert_file, vomscert_trust_dn, &issuer, verify)) {
       CredentialLogger.msg(ERROR,"VOMS: cannt verify the signature of the AC");
       return false; 
     }
@@ -1419,7 +1423,7 @@ err:
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         const VOMSTrustList& vomscert_trust_dn,
         //const std::vector<std::string>& vomscert_trust_dn,
-        std::vector<std::string>& output) {
+        std::vector<std::string>& output, bool verify) {
 
     InitVOMSAttribute();
 
@@ -1447,7 +1451,7 @@ err:
     int num = sk_AC_num(aclist->acs);
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
-      if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, holder, output)) {
+      if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, holder, output, verify)) {
         verified = true;
       }
       if (!verified) break;
@@ -1462,7 +1466,7 @@ err:
          const std::string& ca_cert_dir, const std::string& ca_cert_file,
          const VOMSTrustList& vomscert_trust_dn,
          //const std::vector<std::string>& vomscert_trust_dn,
-         std::vector<std::string>& output) {
+         std::vector<std::string>& output, bool verify) {
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;
     bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output);
