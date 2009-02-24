@@ -59,7 +59,7 @@ static std::string init_logger(Arc::Config& cfg)
     }
 
 
--    Arc::Logger::rootLogger.addDestination(*sd);
+    Arc::Logger::rootLogger.addDestination(*sd);
     if(!log_file.empty()) {
       std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::out | std::fstream::app);
       if(!(*dest)) {
