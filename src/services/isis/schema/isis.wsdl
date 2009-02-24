@@ -18,7 +18,6 @@ Interface of Information Indexing Service
 -->
 
     <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
-    <!-- wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="./rpw-2.wsdl"/ -->
 
 
     <!-- ======= Type definitions ====== -->
@@ -54,22 +53,22 @@ Interface of Information Indexing Service
     <wsdl:part name="RemoveRegistrationsResponse" element="isis:RemoveRegistrationsResponse"/>
 </wsdl:message>
 
-<!-- ====== GetRegistrationStatuses ====== -->
-<wsdl:message name="GetRegistrationStatusesRequest">
-    <wsdl:part name="GetRegistrationStatuses" element="isis:GetRegistrationStatuses"/>
-</wsdl:message>
-
-<wsdl:message name="GetRegistrationStatusesResponse">
-    <wsdl:part name="GetRegistrationStatusesResponse" element="isis:GetRegistrationStatusesResponse"/>
-</wsdl:message>
-
-<!-- ====== GetRegistrationStatuses ====== -->
+<!-- ====== GetISISList ====== -->
 <wsdl:message name="GetISISListRequest">
     <wsdl:part name="GetISISList" element="isis:GetISISList"/>
 </wsdl:message>
 
 <wsdl:message name="GetISISListResponse">
     <wsdl:part name="GetISISListResponse" element="isis:GetISISListResponse"/>
+</wsdl:message>
+
+<!-- ====== Query ====== -->
+<wsdl:message name="QueryRequest">
+    <wsdl:part name="Query" element="isis:Query"/>
+</wsdl:message>
+
+<wsdl:message name="QueryResponse">
+    <wsdl:part name="QueryResponse" element="isis:QueryResponse"/>
 </wsdl:message>
 
 <!-- ====== PortType definitions ====== -->
@@ -82,20 +81,14 @@ Interface of Information Indexing Service
         <wsdl:input name="RemoveRegistrationsRequest" message="isis:RemoveRegistrationsRequest"/>
         <wsdl:output name="RemoveRegistrationsResponse" message="isis:RemoveRegistrationsResponse"/>
     </wsdl:operation>
-    <wsdl:operation name="GetRegistrationStatuses">
-        <wsdl:input name="GetRegistrationStatusesRequest" message="isis:GetRegistrationStatusesRequest"/>
-        <wsdl:output name="GetRegistrationStatusesResponse" message="isis:GetRegistrationStatusesResponse"/>
-    </wsdl:operation>
-        <wsdl:operation name="GetISISList">
+    <wsdl:operation name="GetISISList">
         <wsdl:input name="GetISISListRequest" message="isis:GetISISListRequest"/>
         <wsdl:output name="GetISISListResponse" message="isis:GetISISListResponse"/>
     </wsdl:operation>
-<!--
-    <wsdl:operation name="Get">
-        <wsdl:input name="GetRequest" message="isis:GetRequest"/>
-        <wsdl:output name="GetResponse" message="isis:GetResponse"/>
+    <wsdl:operation name="Query">
+        <wsdl:input name="QueryRequest" message="isis:QueryRequest"/>
+        <wsdl:output name="QueryResponse" message="isis:QueryResponse"/>
     </wsdl:operation>
--->
 </wsdl:portType>
 
 <!-- ====== Bindings ====== -->
@@ -120,21 +113,21 @@ Interface of Information Indexing Service
             <soap:body use="literal"/>
         </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="GetRegistrationStatuses">
-        <soap:operation soapAction="GetRegistrationStatuses"/>
-        <wsdl:input name="GetRegistrationStatusesRequest">
-            <soap:body use="literal"/>
-        </wsdl:input>
-        <wsdl:output name="GetRegistrationStatusesResponse">
-            <soap:body use="literal"/>
-        </wsdl:output>
-    </wsdl:operation>
     <wsdl:operation name="GetISISList">
         <soap:operation soapAction="GetISISList"/>
         <wsdl:input name="GetISISListRequest">
             <soap:body use="literal"/>
         </wsdl:input>
         <wsdl:output name="GetISISListResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Query">
+        <soap:operation soapAction="Query"/>
+        <wsdl:input name="QueryRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="QueryResponse">
             <soap:body use="literal"/>
         </wsdl:output>
     </wsdl:operation>
