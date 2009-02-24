@@ -108,7 +108,7 @@ char* PayloadRaw::Insert(int pos,int size) {
 }
 
 char* PayloadRaw::Insert(const char* s,int pos,int size) {
-  if(size <= 0) size=strlen(s);
+  if(size < 0) size=strlen(s);
   char* s_ = Insert(pos,size);
   if(s_) memcpy(s_,s,size);
   return s_;

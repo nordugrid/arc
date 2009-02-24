@@ -30,8 +30,8 @@ class PayloadRawInterface: virtual public MessagePayload {
   virtual char* Insert(int pos = 0,int size = 0) = 0;
   /** Create new buffer at global position 'pos' of size 'size'.
     Created buffer is filled with content of memory at 's'.
-    If 'size' is 0 content at 's' is expected to be null-terminated. */
-  virtual char* Insert(const char* s,int pos = 0,int size = 0) = 0;
+    If 'size' is negative content at 's' is expected to be null-terminated. */
+  virtual char* Insert(const char* s,int pos = 0,int size = -1) = 0;
   /** Returns pointer to num'th buffer */
   virtual char* Buffer(unsigned int num) = 0;
   /** Returns length of num'th buffer */
@@ -70,7 +70,7 @@ class PayloadRaw: virtual public PayloadRawInterface {
   virtual char* Content(int pos = -1);
   virtual int Size(void) const;
   virtual char* Insert(int pos = 0,int size = 0);
-  virtual char* Insert(const char* s,int pos = 0,int size = 0);
+  virtual char* Insert(const char* s,int pos = 0,int size = -1);
   virtual char* Buffer(unsigned int num = 0);
   virtual int BufferSize(unsigned int num = 0) const;
   virtual int BufferPos(unsigned int num = 0) const;

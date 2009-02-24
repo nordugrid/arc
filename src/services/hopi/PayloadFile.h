@@ -26,7 +26,7 @@ class PayloadFile: public Arc::PayloadRawInterface {
   virtual char* Content(int pos = -1);
   virtual int Size(void) const;
   virtual char* Insert(int pos = 0,int size = 0);
-  virtual char* Insert(const char* s,int pos = 0,int size = 0);
+  virtual char* Insert(const char* s,int pos = 0,int size = -1);
   virtual char* Buffer(unsigned int num);
   virtual int BufferSize(unsigned int num) const;
   virtual int BufferPos(unsigned int num) const;

@@ -109,7 +109,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   virtual char* Content(int pos = -1);
   virtual int Size(void) const;
   virtual char* Insert(int pos = 0,int size = 0);
-  virtual char* Insert(const char* s,int pos = 0,int size = 0);
+  virtual char* Insert(const char* s,int pos = 0,int size = -1);
   virtual char* Buffer(unsigned int num = 0);
   virtual int BufferSize(unsigned int num = 0) const;
   virtual int BufferPos(unsigned int num = 0) const;
