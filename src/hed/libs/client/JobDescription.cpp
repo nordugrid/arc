@@ -2367,6 +2367,11 @@ namespace Arc {
             std::string value = simpleXRSLvalue( attributeValue );
             std::vector<std::string> parts = sm.split( value, " " );
             Arc::NotificationType nofity;
+            // When the state or the e-mail address missed.
+            if ( parts.size() < 2 ){ 
+	       JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", attributeValue);
+               return false;
+            }
 
             for (std::vector< std::string >::const_iterator it=parts.begin(); it<parts.end(); it++) {
               //flags or e-mail address
