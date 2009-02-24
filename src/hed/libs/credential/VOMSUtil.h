@@ -171,15 +171,14 @@ namespace Arc {
    *		The AC_FULL_ATTRIBUTES will be like knowarc:Degree=PhD (qualifier::name=value)
    *            In order to make the output attribute values be identical, the voms server
    *            information is added as prefix of the original attributes in AC.
-   * 		for AC_FULL_ATTRIBUTES, the 'grantor' (voname + uri) is added:
-   * 		      grantor=knowarc://squark.uio.no:15011/knowarc:Degree=PhD
+   * 		for AC_FULL_ATTRIBUTES, the voname + hostname is added:
+   * 		      /voname=knowarc.eu/hostname=arthur.hep.lu.se:15001//knowarc.eu/coredev:attribute1=1
    * 		for AC_IETFATTR, the 'VO' (voname) is added:
-   *     	      VO=knowarc
-   * 		      VO=knowarc/Group=UiO
-   * 		      VO=knowarc/Group=UiO/Role=technician
+   * 		      /VO=knowarc.eu/Group=coredev/Role=NULL/Capability=NULL
+   * 		      /VO=knowarc.eu/Group=testers/Role=NULL/Capability=NULL
    *
    * 		some other redundant attributes is provided:
-   * 		      voname=knowarc://squark.uio.no:15011
+   * 		      voname=knowarc.eu/hostname=arthur.hep.lu.se:15001
    * @param verify  true: Verify the voms certificate is trusted based on the 
    * 		    ca_cert_dir/ca_cert_file which specifies the CA certificates, 
    * 		    and the vomscert_trust_dn which specifies the trusted DN chain

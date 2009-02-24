@@ -613,7 +613,8 @@ namespace Arc {
 
     InitVerification();
 
-    Verify();
+    if(!cacertfile_.empty() || !cacertdir_.empty())
+      Verify();
   }
 
   #ifdef HAVE_OPENSSL_OLDRSA
@@ -1452,6 +1453,10 @@ err:
       sk_X509_EXTENSION_pop_free(cert_info->extensions, X509_EXTENSION_free);
     }
 
+    /*Set the serialNumber*/
+    cert_info->serialNumber = M_ASN1_INTEGER_dup(X509_get_serialNumber(proxy_cert));;
+
+    /*Set the extension*/
     if(sk_X509_EXTENSION_num(proxy->extensions_)) {
       cert_info->extensions = sk_X509_EXTENSION_new_null();
     }    

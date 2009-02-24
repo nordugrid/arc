@@ -1111,7 +1111,7 @@ err:
         //attribute.append("/grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
         attribute.append("/voname=").append(voname).
                   append("/hostname=").append(uri).
-                  append("/").append(qualifier).append(":").append(name).
+                  append(qualifier).append(":").append(name).
                   append("=").append(value);
         attributes.push_back(attribute);
       }
@@ -1278,7 +1278,7 @@ err:
       }
 
       if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
-        CredentialLogger.msg(WARNING,"VOMS: the holder serial number %i is not the same as in AC - %i",
+        CredentialLogger.msg(WARNING,"VOMS: the holder serial number %i is not the same as the serial number in AC %i",
           ASN1_INTEGER_get(cert->cert_info->serialNumber),
           ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
         // return false;
@@ -1469,7 +1469,7 @@ err:
          std::vector<std::string>& output, bool verify) {
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;
-    bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output);
+    bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output, verify);
     X509_free(holder);
     return res;
   }

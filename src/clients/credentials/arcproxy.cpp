@@ -100,6 +100,13 @@ int main(int argc, char* argv[]){
                     ),
                     istring("string"), vomslist);
 
+  bool info;
+  options.AddOption('I', "info", istring("print all information about this proxy. \n"
+                    "              In order to show the Identity (DN without CN as subfix for proxy) \n"
+                    "              of the certificate, the 'trusted certdir' is neede."
+                    ),
+                    info);
+
   std::list<std::string> constraintlist;
   options.AddOption('c', "constraint", istring("proxy constraints"),
 		    istring("string"), constraintlist);
@@ -139,6 +146,71 @@ int main(int argc, char* argv[]){
     return EXIT_SUCCESS;
   }
 
+
+  try{
+    if (params.size()!=0)
+      throw std::invalid_argument("Wrong number of arguments!");
+
+    Arc::User user;
+
+    if (key_path.empty())
+      key_path = Arc::GetEnv("X509_USER_KEY");
+    if (key_path.empty())
+      key_path = (std::string)usercfg.ConfTree()["KeyPath"];
+    if (key_path.empty())
+      key_path = user.get_uid() == 0 ? "/etc/grid-security/hostkey.pem" :
+        user.Home() + "/.globus/userkey.pem";
+
+    if (cert_path.empty())
+      cert_path = Arc::GetEnv("X509_USER_CERT");
+    if (cert_path.empty())
+      cert_path = (std::string)usercfg.ConfTree()["CertificatePath"];
+    if (cert_path.empty())
+      cert_path = user.get_uid() == 0 ? "/etc/grid-security/hostcert.pem" :
+        user.Home() + "/.globus/usercert.pem";
+
+    if (proxy_path.empty())
+      proxy_path = Arc::GetEnv("X509_USER_PROXY");
+    if (proxy_path.empty())
+      proxy_path = (std::string)usercfg.ConfTree()["ProxyPath"];
+    if (proxy_path.empty())
+      proxy_path = "/tmp/x509up_u" + Arc::tostring(user.get_uid());
+
+    if (ca_dir.empty())
+      ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
+    if (ca_dir.empty())
+      ca_dir = user.get_uid() == 0 ? "/etc/grid-security/certificates" :
+        user.Home() + "/.globus/certificates";
+  }
+  catch (std::exception& err){
+    std::cerr << "ERROR: " << err.what() << std::endl;
+    tls_process_error();
+    return EXIT_FAILURE;
+  }
+
+  if(info) {
+    std::vector<std::string> voms_attributes;
+    bool res = false;
+    
+    Arc::Credential holder(proxy_path, "", ca_dir, "");
+    std::vector<std::string> voms_trust_dn;
+    res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
+    if(!res) {
+      logger.msg(Arc::ERROR,"VOMS attribute parsing failed");
+    };
+ 
+    std::cout<<"Subject:  "<<holder.GetDN()<<std::endl;
+    std::cout<<"Identity: "<<holder.GetIdentityName()<<std::endl;
+    std::cout<<"Timeleft for proxy: "<<(holder.GetEndTime() - Arc::Time())<<std::endl;
+    std::cout<<"======Attributes from voms AC extension======"<<std::endl;
+    for(int i = 0; i < voms_attributes.size(); i++) {
+      std::cout<<"Attribute: "<<voms_attributes[i]<<std::endl;
+    }
+    
+
+    return EXIT_SUCCESS;
+  }
+
   std::map<std::string, std::string> constraints;
   for (std::list<std::string>::iterator it = constraintlist.begin();
        it != constraintlist.end(); it++) {
@@ -174,40 +246,6 @@ int main(int argc, char* argv[]){
   SSL_library_init();
 
   try{
-    if (params.size()!=0)
-      throw std::invalid_argument("Wrong number of arguments!");
-
-    Arc::User user;
-
-    if (key_path.empty())
-      key_path = Arc::GetEnv("X509_USER_KEY");
-    if (key_path.empty())
-      key_path = (std::string)usercfg.ConfTree()["KeyPath"];
-    if (key_path.empty())
-      key_path = user.get_uid() == 0 ? "/etc/grid-security/hostkey.pem" :
-	user.Home() + "/.globus/userkey.pem";
-
-    if (cert_path.empty())
-      cert_path = Arc::GetEnv("X509_USER_CERT");
-    if (cert_path.empty())
-      cert_path = (std::string)usercfg.ConfTree()["CertificatePath"];
-    if (cert_path.empty())
-      cert_path = user.get_uid() == 0 ? "/etc/grid-security/hostcert.pem" :
-	user.Home() + "/.globus/usercert.pem";
-
-    if (proxy_path.empty())
-      proxy_path = Arc::GetEnv("X509_USER_PROXY");
-    if (proxy_path.empty())
-      proxy_path = (std::string)usercfg.ConfTree()["ProxyPath"];
-    if (proxy_path.empty())
-      proxy_path = "/tmp/x509up_u" + Arc::tostring(user.get_uid());
-
-    if (ca_dir.empty())
-      ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
-    if (ca_dir.empty())
-      ca_dir = user.get_uid() == 0 ? "/etc/grid-security/certificates" :
-        user.Home() + "/.globus/certificates";
-
     if (vomses_path.empty())
       vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
 
