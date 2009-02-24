@@ -153,6 +153,10 @@ namespace Arc {
 				       &ret_flags,
 				       &time_req,
 				       &delegated_cred);
+      if(GSS_ERROR(majstat)) {
+        logger.msg(ERROR, "GSS accept security context failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+        return MCC_Status();
+      }
 
       logger.msg(INFO, "GSS accept security context: %i/%i", majstat, minstat);
 
@@ -174,6 +178,10 @@ namespace Arc {
 			   &send_tok,
 			   NULL,
 			   GSS_C_QOP_DEFAULT);
+      if(GSS_ERROR(majstat)) {
+        logger.msg(ERROR, "GSS unwrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+        return MCC_Status();
+      }
 
       logger.msg(INFO, "GSS unwrap: %i/%i", majstat, minstat);
 
@@ -304,6 +312,10 @@ namespace Arc {
 			 &recv_tok,
 			 NULL,
 			 &send_tok);
+      if(GSS_ERROR(majstat)) {
+        logger.msg(ERROR, "GSS wrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+        return MCC_Status();
+      }
 
       logger.msg(INFO, "GSS wrap: %i/%i", majstat, minstat);
 
@@ -396,6 +408,10 @@ namespace Arc {
 
     majstat = gss_import_name(&minstat, &namebuf, GSS_C_NT_HOSTBASED_SERVICE,
 			      &target_name);
+    if(GSS_ERROR(majstat)) {
+      logger.msg(ERROR, "GSS import name failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+      return MCC_Status();
+    }
 
     do {
       majstat = gss_init_sec_context(&minstat,
@@ -412,6 +428,10 @@ namespace Arc {
 				     &send_tok,
 				     &ret_flags,
 				     NULL);
+      if(GSS_ERROR(majstat)) {
+        logger.msg(ERROR, "GSS init security context failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+        return MCC_Status();
+      }
 
       logger.msg(INFO, "GSS init security context: %i/%i", majstat, minstat);
 
