@@ -123,61 +123,96 @@ A storage node consists of two things: a storage element service which is capabl
 
 So we have logical files, which are part of the hierarchical namespace and have a GUID and other metadata, and a logical file has one or more physical replicas. The physical replicas stored on seperate storage nodes. In order to connect the logical file to its replicas, we need to have some pointers. Each storage node has a URL and each replica has a unique ID within the storage node called \emph{referenceID}, the URL and the referenceID together is called a \emph{Location}, a Location unambiguously points to one specific replica. So to connect the logical files to the physical ones, each logical file has a list of Locations.
 
+The user can specify for each file how many replicas are needed. The ARC storage system periodically checks the number of replicas, and automatically creates new replicas if there are fewer then needed, and removes replicas if there are more. 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
+The different replicas of a file could be in different states, e.g. the replica could be valid and alive or just in the process of creation or it could be corrupt or a whole storage node could be offline. This state is always stored as metadata next to the Location of the given replica. For each file there is a checksum calculated, and this checksum is used to detect if a replica gets corrupted. If a storage node (more precisely: the Shepherd service on the storage node) detects that a file is invalid, it reports this so the metadata will be in sync with the real state. And the storage nodes sends heartbeat messages periodically, and if a storage node goes offline, the missing heartbeat triggers the modification of metadata as well. 
 
 % section storage_nodes_and_replicas (end)
+
+\section{The A-Hash} % (fold)
+\label{sec:the_a_hash}
+
+The A-Hash is a replicated metadata store, which is capable of consistently storing `objects' where an object contains key-value pairs organized in sections. All metadata about files and collections are stored in the A-Hash, and some other information (e.g. about A-Hash replication, about Shepherd services, etc.) is stored in it as well. The A-Hash itself does not interpret the data, it basically just stores tuples of strings.
+
+% section the_a_hash (end)
+
+\section{The Librarians} % (fold)
+\label{sec:the_librarians}
+
+The Librarian is capable of managing the hierarchy and metadata of files and collections, and health information of the Shepherd services. It can traverse Logical Names and return the corresponding metadata. It can receive heartbeat messages from Shepherd services, and it automatically modify the states of files if needed. The Librarian itself is a stateless service, it uses the A-Hash to actually store and retrieve the metadata, that’s why there could be any number of independent Librarian services (all using the same A-Hashes) which provides high-availability and load-balancing.
+
+% section the_librarians (end)
 
 \section{The Bartenders} % (fold)
 \label{sec:the_bartenders}
 
-The Bartender service provides a high-level interface for the storage system to the clients. You can create and remove collections, create, get and remove files, move files and collections within the namespace using Logical Names. The Bartender communicates with the Librarian and Shepherd services to accomplish the client’s requests. The actual file data does not go through the Bartender; file transfers are directly performed between the storage nodes and the clients. There could be any number of independent Bartender services in the system which provides high-availability and load-balancing.
+The Bartender service provides a high-level interface for the storage system to the clients. Every interaction between a client and the ARC storage system begins with a request to a Bartender. You can create and remove collections, create, get and remove files, move files and collections within the namespace using Logical Names. The Bartender authorizes users and force access policies of files and collections. It communicates with the Librarian and Shepherd services to accomplish the client’s requests. The actual file data does not go through the Bartender; file transfers are directly performed between the storage nodes and the clients. There could be any number of independent Bartender services in the system which provides high-availability and load-balancing. The Bartender also provides a way to access files on third-party storage solutions through its interface by mounting the namespace of the third-party storage into the namespace of the ARC storage (this is accomplished by so called `gateway' modules). 
 
 % section the_bartenders (end)
 
-\section{The Librarians} % (fold)
-\label{sec:the_librarians}
-The Librarian is capable of managing the hierarchy and metadata of files and collections, and health information of the Shepherd services. Each file and collection in the Librarian has a globally unique ID (GUID). A collection contains files and other collections, and each of these entries has a name unique within the collection very much like entries in a usual directory on a local filesystem. Besides files and collections the Librarian stores a third type of entries called Mount Points which are references to external services which will be in the future used to mount the namespace of third-party storages to our global namespace and make the files on a third-party storage available through the interface of the ARC storage system.
-
-The Librarian also manages information about registered Shepherd services which are associated with a storage node, and receives heartbeat messages from them and change replica states automatically if needed.
-
-The Librarian uses the A-Hash as database, that’s why there could be any number of independent Librarian services (all using the same A-Hash) which provides high-availability and load-balancing.
-
-% section the_librarians (end)
-
-\section{The A-Hash} % (fold)
-\label{sec:the_a_hash}
-The A-Hash is a currently centralized, but later distributed service capable of consistently storing objects containing property-value pairs organized in sections. All metadata about files and collections are stored in the A-Hash, and some information about Shepherd services is stored in it as well. The A-Hash itself does not interpret the data, it just stores tuples of strings.
-
-% section the_a_hash (end)
-
 \section{The Shepherds} % (fold)
 \label{sec:the_shepherds}
-When a new file is put into the system the number of needed replicas is given for the file. The file replicas are stored on different storage nodes, for each storage node there is Shepherd service which manages the storage node, reports its health state to the Librarian and provides the interface for initiating file transfer.
 
-The file-naming used by a Shepherd has nothing to do with the the hierarchy of collections, or Logical Names. When a new replica upload is initiated, the Shepherd generates an ID which refers to it within that Shepherd. Each Shepherd has a unique ID itself, so with these IDs the replica can be unambiguously referenced, this is called a \emph{Location}. The namespace of these Locations has nothing to do with the namespace of GUIDs or the namespace of Logical Names. It consists of two IDs: the ID of the Shepherd and the ID of the file within the Shepherd: \verb!(serviceID, referenceID)!
+The files in the ARC storage system are usually replicated on different storage nodes. For each storage node there is a Shepherd service which manages the storage element service on the node, reports its health state to a Librarian and provides the interface for initiating file transfers. For each kind of storage element service (e.g. a HTTP server, an FTP server, a storage solution with a GridFTP interface, etc.) it is needed to have a Shepherd backend which is capable of managing the given storage element service. The Shepherd service periodically checks the health of the replicas based on their checksums, and if a replica is deleted or corrupted, the Shepherd tries to recover it by downloading a valid copy from an other storage node. The Shepherds also check if a file has fewer replicas in the system than needed, and they initiate replication if needed.
 
 % section the_shepherds (end)
-
-\section{Heartbeats and replication} % (fold)
-\label{sec:heartbeats_and_replication}
-Each Shepherd should periodically send heartbeats to a Librarian service with information about replicas whose state changed since the last heartbeat, the Librarian stores these file lists (which contains the GUIDs of the files as well), and if it doesn’t receive a heartbeat for a Shepherd in a given time, it invalidates all the replicas the Shepherd stores. This invalidating means that the state of that location will be \verb!offline!.
-
-If a Shepherd finds out that a file is missing or has a bad checksum, it reports that the file is \verb#invalid# to the Librarian immediately, and the Librarian alters the state of the given replica of the file. The Shepherd tries to recover its replica by downloading it from another Shepherd. In order to do this the Shepherd contacts a Bartender and asks for the file. The Bartender chooses a valid replica, initiate file transfer by a Shepherd having a valid replica, and returns the TURL to the Shepherd with the invalid replica. The Shepherd with the invalid replica downloads the file from the other Shepherd, and if everything is OK, signals to the Librarian that the replica is \verb!alive! again.
-
-The Shepherds periodically ask the Librarian whether the files they store have enough replicas. If a Shepherd finds that one of the files has not enough replica it turns to a Bartender offering replication. The Bartender chooses a Shepherd, initiates a put request then returns the TURL to the offering Shepherd which could upload the replica. The Shepherd who now has the new replica notifies the Librarian that the file is \verb!alive!. The Librarian sets the state of this new replica.
-
-% section heartbeats_and_replication (end)
 
 \section{Security} % (fold)
 \label{sec:security}
 
-The current version of the ARC storage system has no implemented solution for security issues. Designing and implementing a powerful, flexible, fine-grained solution for authentication and authorization is very important. Currently we have plans how to do that, and the design of the storage services makes it easy to integrate the chosen solution into the system.
+The ARC storage system consists of several services. Most of the services (A-Hash, Librarian, Shepherd) are `internal' services in a way that the end-user of the storage system never communicates with them directly. But these internal services are communicating with eachother, so they have to know who to trust. We call this aspect of the security architecture of the ARC storage `inter-service authorization'.
 
-For additional details, see Section~\ref{sec:plans_for_security}.
+The end users always connect to one of the Bartender services, which will decide if the user has permissions to do something or not. This is the `high-level authorization' part of the security architecture.
+
+For transfering the actual file data, the users have to connect to storage element services which are sitting on storage nodes. These services also have their own authentication and authorization methods. Managing these aspects is the `transfer-level authorization' part of the security architucture of the ARC storage.
+
+\subsection{Inter-service authorization} % (fold)
+\label{sub:inter_service_authorization}
+
+In a deployment of the ARC storage system, we could have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communciate with the Librarians, the Librarians talk with the A-Hashes. If any of these services get compromised or a new rouge service gets inserted in the system, we loose security completely. That's why it is vital for each service to authorize the services before sending or accepting requests. The services commincates via HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and they can examine the other service's certificates. Because of these X.509 certificates each service has Distinguish Name (DN). We can use these DNs to exactly specify which services we trust. We can configure a list of trusted DNs into each service, or we can store this list on a remote location. The services will only accept connections if the DN of the other end is listed in this list of trusted DNs. However the Bartender services will accept any incoming connection, which are from the users, because the users are authenticated differently.
+
+% subsection inter_service_authorization (end)
+
+\subsection{High-level authorization} % (fold)
+\label{sub:high_level_authorization}
+
+The Librarian component of the ARC storage system stores all the metadata about files and collections. For each file and collection there are access policies in the form of access control rules, and these are stored among these metadata. The users are identified by their DNs, and an access control rule specify the rights of the given user. One rule can be represented like this:
+
+\begin{verbatim}
+    DN +action +action -action
+\end{verbatim}
+
+This contains a list of actions, each prefixed with a \verb!+! or \verb!-! character which indicates that the given action is allowed or not allowed for the given DN.
+
+Besides specifying only one user with a DN, there are other types of access control rules: we can have a rule for a whole VO (Virtual Organization) or for ALL users, like this:
+
+\begin{verbatim}
+    ALL +action
+    VOMS:knowarc.eu +action -action 
+\end{verbatim}
+
+These are the actions which can be used for access control:
+\begin{itemize}
+    \item \emph{read}: user can get the list of entries in the collection; user can download the file
+    \item \emph{addEntry}: user can add a new entry to the collection;
+    \item \emph{removeEntry}: user can remove any entry from the collection 
+    \item \emph{delete}: user can delete the collection if it is empty; user can delete a file
+    \item \emph{modifyPolicy}: user can modify the policy of the file/collection
+    \item \emph{modifyStates}: user can modify some special metadata of the file/collection (close the collection, change the number of needed replica of the file)
+    \item \emph{modifyMetadata}: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
+\end{itemize}
+
+Additionaly, each file and collection has an `owner' which is a user who always can modify the access control rules.
+
+% subsection high_level_authorization (end)
+
+
+\subsection{Transfer-level authorization} % (fold)
+\label{sub:transfer_level_authorization}
+
+Currently the transfer-level authorization is kept very simple. When the Bartender decides that a user has permission to download a file, then the Bartender chooses a replica, and initiates the transfer. The result of this initiation is a URL which is colled the transfer URL (TURL). This TURL is unique for each request, even for request to the same replica, and this TURL is only valid for one download. Currently we configure the storage element services to not do any authorization, and we use these one-time URLs to ensure that only the authorized users can access the contents of the storage elements. 
+
+% subsection transfer_level_authorization (end)
 
 % section security (end)
 
