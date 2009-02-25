@@ -1,30 +1,29 @@
 \chapter{The echo service}
 
-The next service to be presented is the echo service which returns the received message back to the client.
-Furthermore the client has to choose between the operations ``ordinary'' or ``reverse''.
-Depending on that operation the message will be returned directly or its letters will be reordered reverse. % without manipulation
-The goal of this chapter is to offer a deeper knowledge about message processing. Furthermore the \textit{WSDL} (Web Services Description Language) shall be introduced along with this example.
+The next service to be presented is the echo service which's task is to return the received message back to the client.
+Furthermore the service provides two additional operations called ``ordinary'' and ``reverse''.
+Depending on the operation chosen by the client, the message will returned unmodified or its letters will be reordered reverse. % without manipulation
+The goal of this chapter is to offer a deeper knowledge about message processing. Furthermore the \textit{WSDL} (Web Services Description Language) shall be introduced.
 
 \section{Web Services Description Language}
 
-Web Services are often reachable for a large set of users in order to easily access complex information. In many cases the Web Service are capable to replace HTML pages i.e. to access to databases like Pubmed or the NLM catalog.
-% http://www.ncbi.nlm.nih.gov/entrez/query/static/esoap_help.html
-In contrary to HTML which describes a human readable document the interfaces of Web Services are well defined and easier to interpret for machines.
-In general the client is not familiar with the functionality of the service.
-Due to that reason, the access to a web service can be defined in a \textit{WSDL} (Web Services Description Language) file.
-WSDL is a meta language which describes the structure of the messages, the intended use of the message, the supported protocols and the endpoint of the service (URL).
-The WSDL file which specifies the echo service of this chapter is to be seen in Listing~\ref{lst:echo_wsdl}. 
-It consisits of five main WSDL elements:
+Web services can be specified by a meta language called \textit{WSDL} (Web Services Description Language). 
+Beside the description of the service, WSDL renders the possibility that services can be discovered by service brokers.
+The discovery of services may be useful for an automatic adaption of a running client i.e. if the endpoint of the service changes or to share the load of demands.
+Furthermore the service specification enables the programmer to implement a suitable client which interfaces the service in a proper way.\\
+WSDL describes the structure of the messages, the intended use of the messages, the supported protocols and the endpoint of the service (URL).
+The WSDL file which specifies the echo service presented in this chapter is to be seen in listing~\ref{lst:echo_wsdl}. 
+It is composed of five main elements:
 \newcommand{\parboxWidth}{13cm}
 \begin{itemize}
-	\item \textbf{Types} --- The element \textit{types} contains the description of the message structures which is written in the language XSD (XML Schema Definition). The applicable data types of the echo service are defined in  line~\ref{lst_code:echo_wsdl_types}.
+	\item \textbf{Types} --- The element \textit{types} contains the description of the message structures and is written in the language XSD (XML Schema Definition). The data types used for the messages of the echo service are defined starting with the  line~\ref{lst_code:echo_wsdl_types}.
 
-	\item \textbf{Message} --- Within the element \textit{message} a subset of the previously defined types are assigned to be a message. In case of the echo service two messages are designated: echoRequest and echo Response, see lines line~\ref{lst_code:echo_wsdl_message1} and \ref{lst_code:echo_wsdl_message2}.
+	\item \textbf{Message} --- Within the element \textit{message} a subset of the previously defined types are assigned to be a message. In case of the echo service two messages are designated: echoRequest and echoResponse, compare lines line~\ref{lst_code:echo_wsdl_message1} and \ref{lst_code:echo_wsdl_message2}.
 
 	\item \textbf{Port type} --- The element \textit{portType} is used to assign the messages to an interface. Four interface types can be distinguished: One-way (input), request-response (input, output), solicit-response (input, output, fault) and notification (output).
-	The echo service realises a simple request-response interface which is declared subsequent line~\ref{lst_code:echo_wsdl_portType}. % in the lines followed by the line X
+	The echo service realises a solicit-response interface which is declared subsequent to line~\ref{lst_code:echo_wsdl_portType}. % in the lines followed by the line X
 
-	\item \textbf{Binding} --- The protocol and the data format used for the message transmission are denoted in the element \textit{binding}. Possible style attributes are \textit{document} or \textit{rpc} (Remote Procedure Call). The transport attribute defines the protocol which is regularly HTTP. For each operation a corresponding SOAP action has to be defined. Additionally the input and output has to be specified to be either \textit{literal} or \textit{encoded}~\cite{BUTEK_2009}. The service implemented in this chapter will use the binding \textit{document}/\textit{literal} and the protocol HTTP which is to be seen in line~\ref{lst_code:echo_wsdl_binding}.
+	\item \textbf{Binding} --- The protocol and the data format used for the message transmission are denoted in the element \textit{binding}. Possible style attributes are \textit{document} or \textit{rpc} (Remote Procedure Call). The transport attribute defines the protocol which is regularly HTTP. For each operation a corresponding SOAP action has to be defined which assignes a messages to be either \textit{literal} or \textit{encoded}~\cite{BUTEK_2009}. The service implemented in this chapter will use the binding \textit{document}/\textit{literal} and the protocol HTTP which is to be seen in the lines followed by  line~\ref{lst_code:echo_wsdl_binding}.
 
 % The style attribute can be "rpc" or "document". In this case we use document. The transport attribute defines the SOAP protocol to use. In this case we use HTTP.
 %The operation element defines each operation that the port exposes.
@@ -58,7 +57,7 @@ It consisits of five main WSDL elements:
 %     </soap:body>
 % </soap:envelope>
 
-	\item \textbf{Service} --- Within the last WSDL element the endpoint of the service is specified. As to be seen in line~\ref{lst_code:echo_wsdl_service} the endpoint of the echo service is assigned to \textit{http://localhost:60000/echo}.
+	\item \textbf{Service} --- Within the last WSDL element \textit{service} the endpoint of the service gets specified. As to be seen in line~\ref{lst_code:echo_wsdl_service} the endpoint of the echo service is assigned to \textit{http://localhost:60000/echo}.
 
 \end{itemize}
 %\textcolor{white}{newline}
@@ -70,6 +69,40 @@ It consisits of five main WSDL elements:
 	\textbf{WSDL file describing the echo service. Filename: echo.wsdl}}
 	]
 {../src/services/echoservice/echo.wsdl}
+\task{Validate WSDL}
+
+
+The SOAP Fault Element
+
+The optional SOAP Fault element is used to indicate error messages.
+
+If a Fault element is present, it must appear as a child element of the Body element. A Fault element can only appear once in a SOAP message.
+
+The SOAP Fault element has the following sub elements:
+Sub Element 	Description
+<faultcode> 	A code for identifying the fault
+<faultstring> 	A human readable explanation of the fault
+<faultactor> 	Information about who caused the fault to happen
+<detail> 	
+
+Holds application specific error information related to the Body element
+SOAP Fault Codes
+
+The faultcode values defined below must be used in the faultcode element when describing faults:
+Error 	Description
+VersionMismatch 	Found an invalid namespace for the SOAP Envelope element
+MustUnderstand 	An immediate child element of the Header element, with the mustUnderstand attribute set to "1", was not understood
+Client 	The message was incorrectly formed or contained incorrect information
+Server 	There was a problem with the server so the message could not proceed
+
+
+
+
+
+
+
+
+
 
 
 More information about WSDL may be found at \href{http://www.w3.org/TR/wsdl}{http://www.w3.org/TR/wsdl}.
@@ -91,7 +124,12 @@ More information about WSDL may be found at \href{http://www.w3.org/TR/wsdl}{htt
 
 \section{Service}
 
-The implementation of the service defined in the WSDL file of the previous section will blub. The source code of the C++ file is shown in Listing~\ref{lst:echo_service_cpp}. Again the header file will be set aside for it contains to much redundant information.
+In the current section, the implementation of the service defined in the WSDL file of the previous section will be presented. The source code of the C++ file is shown in listing~\ref{lst:echo_service_cpp}. Again the header file will be set aside for it contains only redundant information. It can be reread in the source directory accompanying the tutorial.
+Within the source code of echo service basically three changes has been done. The first change concerns the constructor and is to be found in line~\ref{lst_code:echo_cpp_prefix}. Two strings will be extracted of the HED configuration file which are later used to envelope the message before it is returned.
+Furthermore a new method \textit{makeFault} in line~\ref{lst_code:echo_cpp_makeFault} has been introduced which is able to create fault messages and is called by the method \textit{process}.
+Within that method two new code fragments are now extracting and analyzing the incoming message, to be seen in line~\ref{lst_code:echo_cpp_extracting} and \ref{lst_code:echo_cpp_analyzing}.
+In case something unexpected happens both will create a SOAP fault message.\\
+% Vielleicht noch etwas über das extrahieren der Nachricht schreiben
 
 \lstsetCPP
 \lstinputlisting
@@ -103,13 +141,14 @@ The implementation of the service defined in the WSDL file of the previous secti
 {../src/services/echoservice/echoservice.cpp}
 
 
-\lstsetARCHEDXML
+Again the HED is configured by a XML file and have to be lunched as usual. The HED configuration file is shown in Listing~\ref{lst:echo_hed_configuration_xml}. The only change concerns the lines~\ref{lst_code:echo_hed_configuration_xml_pre} and \ref{lst_code:echo_hed_configuration_xml_pre} which are specifing the \textit{prefix} and \textit{suffix}. The parameters will be extracted in the constructor of the service and provide a good example how settings can be passed from the HED configuration file towards the service.
 
+\lstsetARCHEDXML
 \lstinputlisting
 	[
-	label=lst:arcecho_arched_xml, float=htb,
-	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
-	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	label=lst:echo_hed_configuration_xml, float=htb,
+	caption={[HED configuration file for the echo service. Filename: arched\_echoservice.xml]
+	\textbf{HED configuration file for the echo service. Filename: arched\_echoservice.xml}}
 	]
 {../src/services/echoservice/arched_echoservice.xml}
 
@@ -117,17 +156,21 @@ The implementation of the service defined in the WSDL file of the previous secti
 
 
 
-\lstsetKSH
-\begin{lstlisting}[
-label=lst:invokation_arched_timeservice,float=htb,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ arched -c arched_echoservice.xml  && echo jo ||echo n
-\end{lstlisting}
+%\lstsetKSH
+%\begin{lstlisting}[
+%label=lst:invokation_arched_timeservice,float=htb,
+%caption={[Transformation in eine uniforme konzentrische Verteilung.]
+%         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+%$ arched -c arched_echoservice.xml  && echo jo ||echo n
+%\end{lstlisting}
 
 
 
 \section{Client}
+
+Likewise the client has become also more complex. The parameters are now passed by the command line, to be seen in the lines followed by line~\ref{lst_code:echo_client_cpp_arguments}.
+The creation of the SOAP client is unchanged. The request is created in lines subsequent line~\ref{lst_code:echo_client_cpp_request}.
+It is processed in the code after line~\ref{lst_code:echo_client_cpp_response} in which also the response is received. The checks of the response have expanded by an addition condition which tests for a fault message, see line~\ref{lst_code:echo_client_cpp_fault}.
 
 
 \lstsetCPP
@@ -141,27 +184,31 @@ $ arched -c arched_echoservice.xml  && echo jo ||echo n
 
 \lstsetCPP
 
-
+The usage of the client is presented in Listing~\ref{lst:invokation_echoservice}. Three cases of echo service responses are displayed: ordinary operation, reverse operation and SOAP fault due to an unknown operation.
 
 
 \lstsetKSH
 \begin{lstlisting}[
-label=lst:invokation_arched_timeservice, float=htb,
+label=lst:invokation_echoservice, float=!htb,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 $ ./echoclient http://localhost:60000/echo ordinary text_to_be_transmitted
 [ text_to_be_transmitted ]
 $ ./echoclient http://localhost:60000/echo reverse text_to_be_transmitted
 [ dettimsnart_eb_ot_txet ]
+$ ./echoclient http://localhost:60000/echo re2verse text_to_be_transmitted
+A SOAP fault occured:
+  Fault code:   4
+  Fault string: "Unknown operation. Please use "ordinary" or "reverse""
 \end{lstlisting}
 
-
-
+A few examples of the exchanged messages are shown in the Listings~\ref{lst:echoservice_request}, \ref{lst:echoservice_response} and \ref{lst:echoservice_fault}. Listing~\ref{lst:echoservice_request} illustrates a request message using the operation \textit{reverse}.
+Listing~\ref{lst:echoservice_response} illustrates the corresponding response message. In case the operation requested by the client is unknown, the server replies with the fault message to be seen in Listing~\ref{lst:echoservice_fault}.
 
 
 \lstsetJUSTXML
 \begin{lstlisting}[
-label=lst:timeservice_cpp_source, float=htb,
+label=lst:echoservice_request, float=!htb,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -177,7 +224,7 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 
 \lstsetJUSTXML
 \begin{lstlisting}[
-label=lst:timeservice_cpp_source, float=htb,
+label=lst:echoservice_response, float=!htb,
 caption={[Transformation in eine uniforme konzentrische Verteilung.]
          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
 <soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -190,20 +237,23 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 \end{lstlisting}
 
 
+\lstsetJUSTXML
+\begin{lstlisting}[
+label=lst:echoservice_fault, float=!htb,
+caption={[Transformation in eine uniforme konzentrische Verteilung.]
+         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap-env:Body>
+    <soap-env:Fault>
+      <soap-env:faultcode>soap-env:Client</soap-env:faultcode>
+      <soap-env:faultstring>Unknown operation. Please use "ordinary" or "reverse"</soap-env:faultstring>
+    </soap-env:Fault>
+  </soap-env:Body>
+</soap-env:Envelope>
+\end{lstlisting}
 
 
 
 
 
 
-
-Folgender XML Aufruf und Antwort soll \textit{automatisch} generiert werden:
-
-%[caption={[]WegDamit},language=XML,basicstyle=\scriptsize,breaklines=true,label=lst:request] 
-
-
-
-
-
-Zertifikate
-Zustände (Nutzer wiedererkennen, arbeit aufnehmen)

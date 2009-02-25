@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 {
 
 	/** Get arguments passed by the command line*/
-	if(argc != 4){
+	if(argc != 4){//(@*\label{lst_code:echo_client_cpp_arguments}*@)
 		printf("Usage:\n");
 		printf("  echoclient url type message\n");
 		printf("\n");
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "");   
 
 	// Load user configuration (default ~/.arc/client.xml)
-	std::string conffile; 												//(@*\label{lst_code:time_client_cpp_config}*@)
+	std::string conffile;
 	Arc::UserConfig usercfg(conffile);
 	if (!usercfg) {
 		printf("Failed configuration initialization\n");
@@ -55,19 +55,36 @@ int main(int argc, char** argv)
 
 	// Creates a typical SOAP client based on the 
 	// MCCConfig and the service URL
-	Arc::ClientSOAP client(cfg, service);								//(@*\label{lst_code:time_client_cpp_client}*@)
+	Arc::ClientSOAP client(cfg, service);
 
 
 	// Defining the namespace and create a request
-	Arc::NS ns("echo", "urn:echo"); 										//(@*\label{lst_code:time_client_cpp_message_reqeust}*@)
+	Arc::NS ns("echo", "urn:echo");//(@*\label{lst_code:echo_client_cpp_request}*@)
 	Arc::PayloadSOAP request(ns);
 	XMLNode sayNode = request.NewChild("echo:echoRequest").NewChild("echo:say") = message;
 	sayNode.NewAttribute("operation") = type;
 	//(@*\drain{std::string xml;  request.GetXML(xml, true); printf("Request message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
 
 	// Process request and get response
-	Arc::PayloadSOAP *response = NULL;								//(@*\label{lst_code:time_client_cpp_message_response}*@)
+	Arc::PayloadSOAP *response = NULL;//(@*\label{lst_code:echo_client_cpp_response}*@)
 	Arc::MCC_Status status = client.process(&request, &response);
+
+	if (!response) {
+		printf("No SOAP response");
+		return 1;
+	}else if(response->IsFault()){//(@*\label{lst_code:echo_client_cpp_fault}*@)
+		printf("A SOAP fault occured:\n");
+        std::string hoff = (std::string) response->Fault()->Reason();
+		printf("  Fault code:   %d\n", (response->Fault()->Code()));
+		printf("  Fault string: \"%s\"\n", (response->Fault()->Reason()).c_str());
+		/** 0  undefined,             4  Sender,   // Client in SOAP 1.0 
+            1  unknown,               5  Receiver, // Server in SOAP 1.0 
+            2  VersionMismatch,       6  DataEncodingUnknown
+            3  MustUnderstand,                                            **/
+		//(@*\drain{std::string xmlFault;response->GetXML(xmlFault, true);  printf("\%s\n\n", xmlFault.c_str());}*@)
+		std::string xmlFault;response->GetXML(xmlFault, true);  printf("\%s\n\n", xmlFault.c_str());
+		return 1;
+	}
 
 	// Test for possible errors
 	if (!status) {
@@ -76,17 +93,22 @@ int main(int argc, char** argv)
 			delete response;
 		return 1;
 	}
-
-	if (!response) {
-		printf("No SOAP response");
-		return 1;
-	}
 	//(@*\drain{response->GetXML(xml, true);  printf("Response message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
 
 	std::string answer = (std::string)((*response)["echo:echoResponse"]["echo:hear"]);
-	std::cout << answer << std::endl;
+	std::cout << answer <<std::endl;
 
 	delete response;
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+

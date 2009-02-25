@@ -3,8 +3,6 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
-  xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
-  xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
   xmlns:echo="urn:echo_config"
 >
 	<Server>
@@ -36,8 +34,8 @@
 		</Plexer>
 		<Service name="echo" id="echo">
 			<next id="echo"/>
-			<echo:prefix>[ </echo:prefix>
-			<echo:suffix> ]</echo:suffix>
+			<echo:prefix>[ </echo:prefix><!--(@*\label{lst_code:echo_hed_configuration_xml_pre}*@)-->
+			<echo:suffix> ]</echo:suffix><!--(@*\label{lst_code:echo_hed_configuration_xml_suf}*@)-->
 		</Service>
 	</Chain>
 </ArcConfig>

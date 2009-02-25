@@ -30,8 +30,9 @@ race conditions
 \end{itemize}
 
 
+\chapter{Appendix}
 
-\section{Schlusswort}
+\section{More tutorials}
 
 Other tutorials are:\\
 \\
@@ -47,6 +48,38 @@ possibility of ETICS system to submit a job to ARC and Unicore will be
 presented. The ETICS team has not contacted so far.
 \end{itemize}
 
+
+\section{Important XSD files}
+
+
+Link to current XSD files.
+
+\task{Provide a list of modules to be loaded! Along with the implemented functionality which can be addressed with XML elements!!}
+    mcctcp\\
+\begin{verbatim}
+<tcp:Listen>
+	<tcp:Port>60000</tcp:Port>
+	<tcp:Version>4</tcp:Version>
+</tcp:Listen>
+\end{verbatim}
+    mcctls\\
+\begin{verbatim}
+ 			<KeyPath>./clientKey.pem</KeyPath>
+			<CertificatePath>./clientCert.pem</CertificatePath>
+			<CACertificatePath>./clientCA.pem</CACertificatePath><!-- CACertificatesDir Should be /etc/... blub mention that-->
+
+\end{verbatim}
+
+    mcchttp\\
+\begin{verbatim}
+                      <next id="soap">POST</next>
+                      <next id="plexer">GET</next>
+                      <next id="plexer">PUT</next>
+\end{verbatim}
+    mccsoap\\
+\begin{verbatim}
+	???<ClientSSLConfig FromFile='filename'/>  
+\end{verbatim}
 
 
 

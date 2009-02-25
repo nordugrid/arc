@@ -20,7 +20,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg)
  * This PLUGINS_TABLE_NAME is defining basic entities of the implemented .
  * service. It is used to get the correct entry point to the plugin.
  */
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {//(@*\label{lst_code:time_cpp_ptn}*@)
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 	{
 		"echo",					/* Unique name of plugin in scope of its kind	*/
 		"HED:SERVICE",			/* Type/kind of plugin							*/
@@ -48,8 +48,8 @@ namespace ArcService
 		// Setting the namespace of the outgoing payload
 		ns_["echo"]="urn:echo";
 
-		// Extract prefix and suffix out of the arched configuration file
-		prefix_=(std::string)((*cfg)["prefix"]);
+		// Extract prefix and suffix specified in the HED configuration file
+		prefix_=(std::string)((*cfg)["prefix"]);//(@*\label{lst_code:echo_cpp_prefix}*@)
 		suffix_=(std::string)((*cfg)["suffix"]); 
 	}
 
@@ -63,19 +63,20 @@ namespace ArcService
 	/**
 	* Method which creates a fault payload 
 	*/
-	Arc::MCC_Status EchoService::makeFault(Arc::Message& outmsg) 
+	Arc::MCC_Status EchoService::makeFault(Arc::Message& outmsg, const std::string &reason) //(@*\label{lst_code:echo_cpp_makeFault}*@)
 	{
-
+		logger.msg(Arc::WARNING, "Creating fault! Reason: \"%s\"",reason);
 		// The boolean true indicates that inside of PayloadSOAP, 
 		// an object SOAPFault will be created inside.
 		Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
 		Arc::SOAPFault* fault = outpayload->Fault();
 		if(fault) {
 			fault->Code(Arc::SOAPFault::Sender);
-			fault->Reason("Failed processing request");
+			fault->Reason(reason);
 		};
 		outmsg.Payload(outpayload);
-		return Arc::MCC_Status(Arc::GENERIC_ERROR);
+		
+		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 
 	/**
@@ -96,16 +97,17 @@ namespace ArcService
 		/** */
 
 		/**  Extracting incoming payload */
-		try {
+		try {//(@*\label{lst_code:echo_cpp_extracting}*@)
 			inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
 		} catch(std::exception& e) { };
+
 		if(!inpayload) {
 			logger.msg(Arc::ERROR, "Input is not SOAP");
-			return makeFault(outmsg);
+			return makeFault(outmsg, "Received message was not a valid SOAP message.");
 		};
 		/** */
 
-		/** Analyzing and execute request */
+		/** Analyzing and execute request *///(@*\label{lst_code:echo_cpp_analyzing}*@)
 		Arc::XMLNode requestNode  = (*inpayload)["echo:echoRequest"];
 		Arc::XMLNode sayNode      = requestNode["echo:say"];
 		std::string operation = (std::string) sayNode.Attribute("operation");
@@ -130,8 +132,8 @@ namespace ArcService
 			hear = prefix_+ reverse +suffix_;
 		}
 		else
-		{
-			hear = "Unknown operation. Please use \"ordinary\" or \"reverse\"";
+		{			
+			return makeFault(outmsg, "Unknown operation. Please use \"ordinary\" or \"reverse\"");
 		}
 		/** */
 

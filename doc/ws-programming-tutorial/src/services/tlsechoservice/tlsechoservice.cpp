@@ -52,7 +52,7 @@ namespace ArcService
 		// Setting the namespace of the outgoing payload
 		ns_["tlsecho"]="urn:tlsecho";
 
-		// Extract prefix and suffix out of the arched configuration file
+		// Extract prefix and suffix specified in the HED configuration file
 		prefix_=(std::string)((*cfg)["prefix"]);
 		suffix_=(std::string)((*cfg)["suffix"]); 
 	}
