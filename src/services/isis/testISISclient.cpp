@@ -17,6 +17,7 @@
 */
 #include <sys/stat.h>
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 
 #include <arc/OptionParser.h>
