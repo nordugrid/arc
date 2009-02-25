@@ -15,7 +15,7 @@ SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
 
 EXTRA_DIST = $(SWIG_OUTPUTS)
 
-CLEANFILES = $(JAVA_PATH)/*.class arc.jar arc_wrap.cpp
+CLEANFILES = $(JAVA_PATH)/*.class arc.jar $(SWIG_OUTPUTS)
 MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
 include ./$(DEPDIR)/arc_wrap.deps
