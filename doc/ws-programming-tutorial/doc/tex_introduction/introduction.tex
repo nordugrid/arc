@@ -81,6 +81,35 @@ The HTTP provides the client server architecture. It is stateless but offers sev
 The structure of the HED can be configured freely by modifying the HED configuration file. A first impression how the HED can be configured shall be given in the following example which corresponds to the HED shown in figure~\ref{fig:HED_internal}. It uses the internal ARC echo service~\cite{QIANG_2005}.
 
 \task{Provide a list of modules to be loaded! Along with the implemented functionality which can be addressed with XML elements!!}
+    mcctcp\\
+\begin{verbatim}
+<tcp:Listen>
+	<tcp:Port>60000</tcp:Port>
+	<tcp:Version>4</tcp:Version>
+</tcp:Listen>
+\end{verbatim}
+    mcctls\\
+\begin{verbatim}
+ 			<KeyPath>./clientKey.pem</KeyPath>
+			<CertificatePath>./clientCert.pem</CertificatePath>
+			<CACertificatePath>./clientCA.pem</CACertificatePath><!-- CACertificatesDir Should be /etc/... blub mention that-->
+
+\end{verbatim}
+
+    mcchttp\\
+\begin{verbatim}
+                      <next id="soap">POST</next>
+                      <next id="plexer">GET</next>
+                      <next id="plexer">PUT</next>
+\end{verbatim}
+    mccsoap\\
+\begin{verbatim}
+	???<ClientSSLConfig FromFile='filename'/>  
+\end{verbatim}
+
+
+
+
 
 \subsection{The arc echo service}
 
