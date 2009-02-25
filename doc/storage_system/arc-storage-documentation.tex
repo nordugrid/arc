@@ -220,6 +220,30 @@ Currently the transfer-level authorization is kept very simple. When the Bartend
 \chapter{Use cases} % (fold)
 \label{cha:use_cases}
 
+\section{Listing the contents of a collection} % (fold)
+\label{sec:listing_the_contents_of_a_collection}
+\begin{figure}[ht]
+\centering{{\scalebox{0.6}{\includegraphics{arc-storage-listing.pdf}}}
+\caption{\label{fig:listing}Listing the contents of a collection} }
+\end{figure}
+
+We want to list the contents of a collection, which has a Logical Name of \verb!/ourvo/users/we!. In order to do this, we have to contact a Bartender, and send a request to it containing the Logical Name we want to list, and the response from the Bartender will contain the list of entries. The steps are represented on Figure~\ref{fig:listing}.
+
+\begin{enumerate}
+    \item We need to know the URL of a Bartender. This could be preconfigured on the client side or in future releases it could be acquired from an information system. When we have the URL, we send a `list' request which contains the Logical Name \verb!/ourvo/users/we!.
+    \item The Bartender tries to get the metadata of the given LN by sending a `traverseLN' request to a Librarian.
+    \item The Librarian service starts the traversing by asking an A-Hash service about the first part of the LN, which is the \verb!/! root collection. The A-Hash service only knows about GUIDs and not about LNs, but the GUID of the root collection is well-known, so the A-Hash can return the metadata of it which contains the list of files and sub-collections in the root collection.
+    \item Hopefully the \verb!ourvo! collection can be found in the root collection, which means that new the Librarian knows its GUID, and can ask for its metadata from the A-Hash.
+    \item After the A-Hash returns the metadata of the \verb!/ourvo! collection, the Librarain finds the GUID of \verb!users! in it, then gets its metadata.
+    \item The A-Hash returns the metadata of \verb!/ourvo/users! which contains the GUID of \verb!we!, so the Librarian can ask for its metadata.
+    \item At last the A-Hash returns the metadata of \verb!/ourvo/users/we! to the Librarian, and the Librarian returns it to the Bartender. This metadata contains the list of entries within this collection, and it also contains the access policies for this collection.
+    \item The Bartender first checks if based on our DN (or our VO membership) and the access policies of this collection do we have rights to get the contents of this collection or not. If we are approved, then because the `list' request should return additional metadata about each entry in the collection, the Bartender send a `get' message to a Librarian requesting metadata of all the entries in this collection.
+    \item The Librarian gets the data from the A-Hash and returns it to the Bartender.
+    \item Now the Bartender has all the needed information, so it could return the proper response to us, the user. Our client tool formats and prints the results nicely.
+\end{enumerate}
+
+% section listing_the_contents_of_a_collection (end)
+
 \section{Downloading a file} % (fold)
 \label{sec:downloading_a_file}
 \begin{figure}[ht]
@@ -227,23 +251,42 @@ Currently the transfer-level authorization is kept very simple. When the Bartend
 \caption{\label{fig:downloading}Downloading a file} }
 \end{figure}
 
-We want to download a file about which we know that it is somewhere in our home collection on the storage (see Figure~\ref{fig:downloading}). The LN of our home collection is e.g.~\verb#/ourvo/users/we# (here a `home collection' could be just a collection which is given to us by our VO). We can get a list of entries in this collection from any Bartender.
+In this use case we want to download a file which has a Logical Name of \verb#/ourvo/users/we/thefilewewant# (see Figure~\ref{fig:downloading}).
 
 \begin{enumerate}
-\item We need to find a Bartender. Maybe we have a cached list of recently used Bartenders or we can get one from the information system. When we have an endpoint reference of a Bartender, we could call its list method with the LN \verb#/ourvo/users/we#.
-\item The Bartender has to find a Librarian service, again using its cache of recently used Librarian services or get a new one from the information system. When the Bartender has an endpoint reference of a Librarian service, it could ask the Librarian to traverse the LN \verb#/ourvo/users/we#.
-\item The Librarian needs the A-Hash service to access the stored data, when it has the endpoint reference of the A-Hash service, it could get the information about the root collection, which contains the GUID of the \verb#ourvo# sub-collection. Then the Librarian gets the entries of this \verb#ourvo# collection, and in it it can find the GUID of \verb#users#, and in the entries of \verb#users# there is the GUID of \verb#we#, which the Librarian returns to the Bartender with all the metadata.
-\item The Bartender now has the GUID and the metadata of the collection \verb#/ourvo/users/we#, including the list of its entries. This is returned to us.
-\item So we get the list of our \verb#/ourvo/users/we# collection, and now we realize that the file we want has the LN \verb#/ourvo/users/we/thefilewewant# and we know the GUID of it as well: e.g.~\verb#a4b2e#. (Of course we know the GUID of the \verb#/ourvo/users/we# collection too, which is e.g.~\verb#13245# and using this we could refer to our file as \verb#13245/thefilewewant# which means the entry called \verb#thefilewewant# in the collection with a GUID \verb#13245#.) We connect a Bartender again (the same one or maybe another one) to get the file with any of these LNs, the \verb#a4b2e# is the fastest solution because the Bartender need not to look up the whole LN again in the Librarian, a well-written client API should use this. With the get request we give the Bartender the list of transfer protocols we are able to use.
-\item The Bartender contacts the Librarian to get the locations of the replicas of this file.
-\item The Librarian returns all the metadata of the requested LN.
-\item The Bartender chooses a `location' which consists of the ID of a Shepherd, and the referenceID of the file within the Shepherd. Using the information system or its local cache it could get the endpoint reference of the Shepherd. The Bartender initiates a transfer by the Shepherd, if the Shepherd supports one of the transfer protocols we give, it can create a transfer URL (TURL) with a protocol we can download.
-\item The Shepherd returns the TURL to the Bartender.
-\item The Bartender returns the TURL to us.
-\item Now we have a TURL from which we can download it.
+    \item We connect a Bartender and send a `getFile' request with the LN of our file.
+    \item The Bartender contacts a Librarian to traverse the Logical Name and to get the metadata of our file.
+    \item The Librarian do the step by step traversing and gets all the data from the A-Hash and returns the metadata of our file to the Bartender. This metadata contains the location of the file's replicas and the access policies of this file.
+    \item The Bartender checks based on the access policies and our identity if we are allowed to get the file, and if we are good to go, then it chooses a replica location. A location consists of the URL of a Shepherd service, and the ID of the replica within that Shepherd (which is called a `referenceID'). The Bartender sends a `get' request to the chosen Shepherd.
+    \item The Shepherd prepares the file transfer by asking the storage element service to create a new one-time URL for this replica. This URL called the transfer URL, and it will only be valid for one download. The Shepherd returns the TURL to the Bartender.
+    \item The Bartender returns the TURL to us.
+    \item Now we use this TURL to get the file directly from the storage element service on the storage node.
 \end{enumerate}
 
 % section downloading_a_file (end)
+
+\section{Creating a collection} % (fold)
+\label{sec:creating_a_collection}
+\begin{figure}[ht]
+\centering{{\scalebox{0.7}{\includegraphics{arc-storage-makecollection.pdf}}}
+\caption{\label{fig:makecollection}Creating a collection} }
+\end{figure}
+
+We want to create a new (empty) collection as sub-collection of \verb#/ourvo/common#, and we want to call it \verb!docs! (see Figure~\ref{fig:makecollection})
+
+\begin{enumerate}
+    \item We contact a Bartender and send a `makeCollection' request with the LN \verb!/ourvo/common/docs!.
+    \item The Bartender asks a Librarian to traverse this LN.
+    \item The Librarian try to traverse the Logical Name and it stops at the last possible point and returns the metadata of the last element. Because we want to put our collection to a new path but into an existing collection, we expect that only the \verb#/ourvo/common# part of the LN can be traversed. If the Librarian could traverse the whole LN that would mean that there is already an existing file or collection by that name. If the parent collection does exist then the Librarian can traverse it which means that the parent collection's metadata is returned to the Bartender. 
+    \item The Bartender checks the access policies to decide if we have permissions to put something into this collection. Then it asks the Librarian to create a new collection.
+    \item The Librarian creates the collection, and returns its GUID. At this point this new collection has no real Logical Name yet, it only has a GUID, but it is not yet put into its parent collection.
+    \item The Bartender now asks the Librarian to add this new entry into the parent collection, which means that the new GUID and the name \verb!docs! are added as a pair.
+    \item The Librarian returns with a status message.
+    \item Finally the Bartender tells us if everything went OK or not.
+\end{enumerate}
+
+
+% section creating_a_collection (end)
 
 \section{Uploading a file} % (fold)
 \label{sec:uploading_a_file}
@@ -255,27 +298,22 @@ We want to download a file about which we know that it is somewhere in our home 
 
 We have a file on our local disk we want to upload to a collection called \verb#/ourvo/common/docs#. (See Figure~\ref{fig:uploading}.)
 \begin{enumerate}
-\item We contact a Bartender to put the file, we give the size and checksum and other metadata, and the transfer protocols we want to use. And of course we give the Logical Name we want to be the name of the file, which in this case will be \verb#/ourvo/common/docs/proposal.pdf#
-\item The Bartender ask a Librarian to traverse this LN.
-\item If the Librarian can traverse the whole LN then this LN is already exists, but if the LN is still available and the parent exists, the Librarian’s response contains the GUID and metadata of the parent collection.
-\item Then the Bartender creates a new file entry within the Librarian with all the information we gave. 
-\item The Librarian returns the GUID of this new entry.
-\item Then the Bartender add the name \verb#proposal.pdf# and the new GUID to the collection \verb#/ourvo/common/docs# and from now on there will be a valid LN \verb#/ourvo/common/docs/proposal.pdf# which points to a file which has no replica at all. If someone tried to download the file called \verb#/ourvo/common/docs/proposal.pdf# now, would get an error message `try again later'.
-\item The Bartender (using the information system) chooses a Shepherd and gets its endpoint reference. Then the Bartender initiates uploading of the file to the Shepherd: the request includes the size and checksum of the file, the GUID, and the protocols we are able to use.
-\item The Shepherd creates a transfer URL and a referenceID for this file and registers the GUID of the file in its own database and reports to the Librarian that there is a new replica with state \verb#creating#. The Librarian gets the message from the Shepherd and creates a new entry in the locations list of the given file with the serviceID and the referenceID the Shepherd have just reported. If someone tries to download this file now, still gets a `try again later' error message, because this new replica is still not \verb#alive#.
-\item The Shepherd returns the the TURL to the Bartender.
-\item The Bartender returns the TURL to us.
-\item Then we can upload the file to this TURL.
-\item The Shepherd detects that the file is arrived and reports the change of state to \verb#alive# to the  Librarian who alters the state in the given file-entry. At this point the file has only one replica. 
+    \item We contact a Bartender to put the file, we give the size and checksum and other metadata. And of course we give the Logical Name where we want to put the file, which in this case will be \verb#/ourvo/common/docs/proposal.pdf#
+    \item The Bartender ask a Librarian to traverse this LN.
+    \item The Librarian traverses the Logical Name, and we expect it to stop at the \verb#/ourvo/common/docs# part of the LN, because that means that the name is available and the parent collection exists. If everything is fine, the metadata of the parent collection is returned to the Bartender. 
+    \item The Bartender checks the access policies to decide if we have permissions to put something into this collection. Then it asks the Librarian to create a new file entry. 
+    \item The Librarian creates the entry and returns its GUID.
+    \item Then the Bartender add the name \verb#proposal.pdf# and the new GUID to the collection \verb#/ourvo/common/docs# and from now on there will be a valid LN \verb#/ourvo/common/docs/proposal.pdf#. However this LN points to a file which has currently no replica at all. If someone tried to download the file called \verb#/ourvo/common/docs/proposal.pdf# now, would get an error message.
+    \item The Bartender asks the Librarian about Shepherd services (which are sitting on storage nodes).
+    \item The Librarian returns a list of Shepherd services
+    \item The Bartender chooses a Shepherd service and sends it a `put' request to initiate the file upload. 
+    \item The Shepherd communicates with the storage element service on the same node to create a new transfer URL (TURL). Then it creates a `referenceID' for this file and then reports to the Librarian that there is a new replica in \verb#creating# state. The Librarian gets the message from the Shepherd and adds the new replica to our new file. Now the file has one replica, which is not uploaded yet into the system. If someone tries to download this file now, still gets an error message.
+    \item The Shepherd returns the the TURL to the Bartender.
+    \item The Bartender returns the TURL to us.
+    \item Then we can upload the file to this TURL.
+    \item The Shepherd detects that the file is arrived. It checks the checksum of the file, and if it is OK, then it reports to the Librarian, that this replica is now \verb#alive#. The Librarian alters the state of this location, and now finally the file has one valid replica. 
 \end{enumerate}
-\begin{itemize}
-\item The Shepherd periodically checks the Librarian if this is less than the needed replica number, and if it is then it initiates creating a new replica by a Bartender.
-\item The Bartender chooses another Shepherd, initiates the transfer then returns the TURL to the  first Shepherd which uploads the file to the new Shepherd.
-\item All the Shepherds check periodically whether their files have enough replica, and if any of them find that there is more replica needed, it initiates creating a new. If more than one Shepherd of course could cause that there will be more replicas than needed. If a Shepherd finds out that a file has more replicas than needed it notifies a Bartender about it.
-\item The Bartender ask the Librarian about all Shepherds this file has replicas on, flags this file as `removing a replica' which prevents other Bartenders to remove an other replica accidentally, then make a decision of which one is to be removed, then contacts the chosen Shepherd and asks it to remove the replica. The Shepherd then notify the Librarian, and the Librarian removes the replica, and removes the flag `removing a replica' as well.
-\item If the client cannot upload the file to the given TURL for some reason, it is possible to call \verb#addReplica# to get a new TURL without removing and recreating the file.
-\end{itemize}
-
+í
 % section uploading_a_file (end)
 
 \section{Removing a file} % (fold)
@@ -287,10 +325,11 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \end{figure}
 \begin{enumerate}
     \item If we want to remove a file, we should connect to a Bartender with the LN of the file we want to remove.
-    \item The Bartender asks the Librarian to traverse the LN and return the list of parent collections of this file.
-    \item The Librarian returns the data.
-    \item If the file has only parent, it asks the Librarian to remove the file entry itself, and the entry from the parent collection. If the file has more parent collections (hard links) the Bartender only removes the entry from the parent collection and removes the parent from the list of parent  collections of this file.
-    \item Next time the Shepherd does its periodic check, it asks the Librarian about each of its stored replicas, and finds out that one of them no longer exists, so it removes the replica from the storage node.
+    \item The Bartender asks the Librarian to traverse the LN.
+    \item The Librarian returns the metadata of the file. The metadata contains information about all the hardlinks which points to this file if there are more than one.
+    \item Now the Bartender asks the Librarian to remove the file.
+    \item After that, the Bartender asks the Librarian to remove the links to this file from all the parent collections.
+    \item Next time a Shepherd which has a replica of this file does its periodic check, it asks the Librarian about the file, and notices that the file does not exist anymore, so it removes the replica itself from the storage node.
 \end{enumerate}
 
 
