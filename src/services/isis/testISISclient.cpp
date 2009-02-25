@@ -11,7 +11,8 @@
 
     Usage examples:
         testISISclient Query "query string"
-        testISISclient RemoveRegistration "ServiceID"
+        testISISclient Register "ServiceID1,EPR1" "ServiceID2,EPR2" "ServiceID3,EPR3"
+        testISISclient RemoveRegistration "ServiceID1" "ServiceID2"
         etc.
 */
 #include <sys/stat.h>
@@ -260,14 +261,14 @@ std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceI
       return "-1";
     };
 
-    // Create and send Register request
+    // Create and send RemoveRegistration request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
     Arc::PayloadSOAP req(query_ns);
 
     Arc::XMLNode request = req.NewChild("RemoveRegistrations");
     for (std::vector<std::string>::const_iterator it = serviceID.begin(); it != serviceID.end(); it++){
-        request["RemoveRegistrations"].NewChild("ServiceID") = *it;
+        request.NewChild("ServiceID") = *it;
     }
     Arc::Message reqmsg;
     Arc::Message repmsg;
@@ -407,7 +408,7 @@ int main(int argc, char** argv) {
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           if ( bool(resp["Body"]["Fault"]) ){ 
-             std::cout << " The Registeration fauled!" << std::endl;
+             std::cout << " The Registeration failed!" << std::endl;
              std::cout << " The fault's name: " << (std::string)resp["Body"]["Fault"]["Name"] << std::endl;
              std::cout << " The fault's type: " << (std::string)resp["Body"]["Fault"]["Type"] << std::endl;
              std::cout << " The fault's description: " << (std::string)resp["Body"]["Fault"]["Description"] << std::endl;
@@ -428,16 +429,14 @@ int main(int argc, char** argv) {
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           int i=0;
-          while ( bool(resp["Body"]["RemoveRegistrationsResponse"][i]) ){ 
-             std::cout << " The RemoveRegistration fauled!" << std::endl;
-             std::cout << " The ServiceID: " <<
-                          (std::string)resp["Body"]["RemoveRegistrationsResponse"][i]["Name"] << std::endl;
-             std::cout << " The fault's name: " <<
-                          (std::string)resp["Body"]["RemoveRegistrationsResponse"][i]["Name"] << std::endl;
-             std::cout << " The fault's type: " <<
-                          (std::string)resp["Body"]["RemoveRegistrationsResponse"][i]["Type"] << std::endl;
-             std::cout << " The fault's description: " <<
-                          (std::string)resp["Body"]["RemoveRegistrationsResponse"][i]["Description"] << std::endl;
+          Arc::XMLNode responsElements = resp["Body"]["RemoveRegistrationsResponse"]["RemoveRegistrationResponseElement"];
+          while ( bool(responsElements[i]) ){
+             std::cout << " The RemoveRegistration failed!" << std::endl;
+             std::cout << " The ServiceID: " << (std::string)responsElements[i]["ServiceID"] << std::endl;
+             std::cout << " The fault's name: " << (std::string)responsElements[i]["Fault"]["Name"] << std::endl;
+             std::cout << " The fault's type: " << (std::string)responsElements[i]["Fault"]["Type"] << std::endl;
+             std::cout << " The fault's description: " << (std::string)responsElements[i]["Fault"]["Description"] << std::endl;
+             i++;
           }
 
           if (i == 0) {
