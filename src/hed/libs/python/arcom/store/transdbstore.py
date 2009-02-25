@@ -40,7 +40,7 @@ class TransDBStore(BaseStore):
         
         self.database  = "store.db"
         self.dbenv = db.DBEnv(0)
-
+        
         self.__configureDB(storecfg)
             
         self.dbenv.set_cachesize(0, self.cachesize, 0)
@@ -48,7 +48,7 @@ class TransDBStore(BaseStore):
         self.dbenv.set_get_returns_none(0) 
 
         self.__opendbenv()
-
+        self.dbenv_ready = True
         log.msg(arc.INFO, "db environment opened")
     
     def __del__(self):
@@ -114,6 +114,8 @@ class TransDBStore(BaseStore):
         """
         Open the db using dbp as db handle
         """
+        if not self.dbenv_ready:
+            return None
         while dbp == None:
             dbp = db.DB(self.dbenv,0)
                         
@@ -215,6 +217,8 @@ class TransDBStore(BaseStore):
         """
 
         self.dbp = self.__opendb(self.dbp)
+        if not self.dbp:
+            return
         try:
             object = self.dbp.keys()
             return object
@@ -236,6 +240,8 @@ class TransDBStore(BaseStore):
         """
 
         self.dbp = self.__opendb(self.dbp)
+        if not self.dbp:
+            return
         try:
             object = self.dbp.get(ID, txn=self.txn)
             try:
@@ -273,7 +279,8 @@ class TransDBStore(BaseStore):
             raise Exception, 'ID is empty'
 
         self.dbp = self.__opendb(self.dbp)
-
+        if not self.dbp:
+            return
         retry = True
         retry_count = 0
 
