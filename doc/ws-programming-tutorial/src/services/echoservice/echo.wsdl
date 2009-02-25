@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions targetNamespace="urn:echo"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+ xmlns="http://schemas.xmlsoap.org/wsdl/"
+ xmlns:echo="urn:echo">
+
+<!-- Definition of the types                                     -->
+<!-- Data types of the service                                   -->
+<wsdl:types><!--(@*\label{lst_code:echo_wsdl_types}*@)-->
+	<xsd:schema targetNamespace="urn:echo"<!--(@*\drain{xmlns="http://www.w3.org/2001/XMLSchema"  xsd:can be left out}*@)-->>
+		<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+		<!-- xsd definition of the request -->
+		<xsd:simpleType name="say">
+			<xsd:attribute name="operation" type="xsd:string" use="required"/>
+			<xsd:restriction base="xsd:string"/>
+		</xsd:simpleType>
+		<xsd:complexType name="echoRequest">
+			<xsd:sequence>
+				<xsd:element name="say" type="echo:say" minOccurs="1" maxOccurs="1"/>
+			</xsd:sequence>
+		</xsd:complexType>
+		
+		<!-- xsd definition of the response -->
+		<xsd:simpleType name="hear">
+			<xsd:restriction base="xsd:string"/>
+		</xsd:simpleType>
+		<xsd:complexType name="echoResponse">
+			<xsd:sequence>
+				<xsd:element name="hear" type="echo:hear" minOccurs="1" maxOccurs="1"/>
+			</xsd:sequence>
+		</xsd:complexType>
+		<xsd:element name="echoRequest" type="echo:echoRequest"/>
+		<xsd:element name="echoResponse" type="echo:echoResponse"/>
+
+		<!-- Empty message for the fault -->
+		<element name="echoFault" type="echoFault">
+			<complexType>
+				<sequence/>
+			</complexType>
+		</element>
+
+	</xsd:schema>
+</wsdl:types>
+
+<!-- Definition of the messages                                  -->
+<!-- Available messages of the service                           -->
+<wsdl:message name="echoRequest"><!--(@*\label{lst_code:echo_wsdl_message1}*@)-->
+	<wsdl:part name="body" element="echo:echo"/>
+</wsdl:message>
+<wsdl:message name="echoResponse"><!--(@*\label{lst_code:echo_wsdl_message2}*@)-->
+	<wsdl:part name="body" element="echo:echoResponse"/>
+</wsdl:message>
+
+<!-- Definition of the ports                                     -->
+<!-- The way to use the messages                                 -->
+<wsdl:portType name="echo"><!--(@*\label{lst_code:echo_wsdl_portType}*@)-->
+	<wsdl:operation name="echo">
+		<wsdl:input name="echoRequest" message="echo:echoRequest"/>
+		<wsdl:output name="echoResponse" message="echo:echoResponse"/>
+		<wsdl:fault message="echo:echoFault"/>
+	</wsdl:operation>
+</wsdl:portType>
+
+<!-- Definition of the binding                                   -->
+<!-- Specification of the message format and protocol to be used -->
+<wsdl:binding name="echo" type="echo:echo"><!--(@*\label{lst_code:echo_wsdl_binding}*@)-->
+	<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+	<wsdl:operation name="echo">
+		<soap:operation soapAction="echo"/>
+		<wsdl:input name="echoRequest">
+			<soap:body use="literal"/>
+		</wsdl:input>
+		<wsdl:output name="echoResponse">
+			<soap:body use="literal"/>
+		</wsdl:output>
+	</wsdl:operation>
+</wsdl:binding>
+
+<!-- Defines the endpoint of the service                         -->
+<wsdl:service name="echo"><!--(@*\label{lst_code:echo_wsdl_service}*@)-->
+	<wsdl:port name="echo" binding="echo:echo">
+		<soap:address location="http://localhost:60000/echo">
+	</wsdl:port>
+</wsdl:service>
+
+</definitions>

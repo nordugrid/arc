@@ -1,9 +1,8 @@
 \chapter{TLS echoservice}
 
-The web service presented in the previous chapter has the mayor drawback that the communication between the two endpoints is unsecure.
-Due to that reason the service  shall be extended by an additional layer called TLS (Transport Layer Security) to provide a certain degree of securtity on \task{Grid-level <-- explain that}.
-%
-In general the internet security is often subdivided into the following categories:~\cite{TANNENBAUM_2001}\task{verfiy citation}
+The web services which were presented in the previous chapters have one mayor drawback: the communication between the two endpoints is unsecure.
+Due to that reason the current and the next chapter will discuss how to create a secure web service.
+In general security in a network can be subdivided into the following categories:~\cite{TANNENBAUM_2001}\task{verfiy citation}
 \begin{itemize}
 	\item \textbf{Confidentiality} --- Protection of the data against passiv attacks (such as publicise message content)
 	
@@ -30,10 +29,13 @@ In general the internet security is often subdivided into the following categori
 %     Bestätigung des Ursprungs Privatsphäre
 %
 % Nach Sicherheit in verteilten Systemen, ITM Lübeck
-The TLS to be introduced provides: Confidentiality, authentication, integrity, non-repudiation and access control.
-It is introduced after the TCP layer. 
-%
-Before presenting the implementation of the new secure echo service the basic concept of a secure certifcate based connection shall be explained. Its not the goal to give an exact technical desciption but to give a first inside what is required to ensure the security of the layer.
+Ideally all six categories should have been achieved by such an application (though the last category, availability, is difficult to realise).
+In the present chapter, the security will be put into practice by extending the protocol stack with an additional security layer called TLS (Transport Layer Security). Due to the location after the TCP and the HTTP layer, the layer is only capable to limitate the access to the grid to a certain set of users.
+Nevertheless it provides the security categories: Confidentiality, authentication, integrity, non-repudiation and access control.\\
+
+
+In the next section gives a basic understanding of the working principale of the TLS. Emphasis is put on the security concept and not on an exact description of the technical realisation in order to enable newcomers an entry to  this area.
+
 
 % It is recommand to satifiy as much categories as possible. 
 %authentication , confidentiality and integrity protection of TCP-based communication --- non-repudiation due to private key, access control to our service.
@@ -42,17 +44,19 @@ Before presenting the implementation of the new secure echo service the basic co
 \section{Transport Layer Security}
 
 
-The TLS is a protocol which provides a secure connection between two endpoints. It is located directly upon the TCP/IP layers and uses typically an asymmetric encryption to establish the connection (alternatively a symmetric pre-shared key may be used). After the communication has successfully established, both participants are switching to another encryption method which is based on a new negotiated symmetric key.
+The TLS is a protocol which provides a secure connection between two endpoints. It is located directly upon the TCP/IP layers and uses typically an asymmetric encryption to establish the connection (alternatively a symmetric pre-shared key may be used). After the communication has successfully established, both participants are switching to another encryption method which is based on a new negotiated symmetric key.\\
 %    1. Peer negotiation for algorithm support
 %    2. Key exchange and authentication
 %    3. Symmetric cipher encryption and message authentication   - from wikipedia
 %
 %
+
+
 Symmetric and asymmetric encryption are the two main classes of cryptography algorithms.
 In case of a symmetric encryption both participants are holding the same secret key. 
-Symmetric encryption can be ranked as being very secure but its downside is the key distribution which is very difficult in practice. 
-Ideally the secret key is transmitted over a secure channel which is either a complete diffrent medium (i.e. a letter) or an channel encrypted with another secret key.
-Asymmetric encryption follows a diffrent functional principle. While the symmetric encryption utilise one shared secret, the asymmetric ecryption is based on two keys: a private key and public key. As the names imply the private key is kept secret and never shared while the public key is available for everyone. Messages encrypted with the public key can only be decrypted with the private key and the other way round, messages encrypted with the private key can only be decrypted with the public key. The figure~\ref{fig:asymmetric_encryption} illustrates the circumstances of the case.\\
+Symmetric encryption can be ranked as being very secure but its downside is that the key distribution is very difficult in practice.
+The key has to be shared previously, ideally over a secure channel which is may either be a complete diffrent medium (i.e. a letter, speech) or a channel which has been encrypted with another secret key.
+Asymmetric encryption follows a diffrent functional principle. While the symmetric encryption utilise one shared secret, the asymmetric ecryption is based on two keys: a private key and public key. As the names imply the private key is kept secret and is never shared while the public key is available to everyone. Messages encrypted with the public key can only be decrypted with the private key and the other way round, messages encrypted with the private key can only be decrypted with the public key. The Figure~\ref{fig:asymmetric_encryption} illustrates the circumstances of the case.\\
 \begin{figure}[htb]
 	\centering%epstopdf async.eps
 	\subfloat[Texttext\label{fig:cgd}]
@@ -66,19 +70,30 @@ Asymmetric encryption follows a diffrent functional principle. While the symmetr
 
 At startup of the communication process A (Alice) who desires a secure connection transmits her public key to B (Bob).
 Bob is now able to encrypt the messages such that only A is able to decrypt them.
-That way confidentiality and integrity of messages are easily realised.
+As one can see this first approach already provides confidentiality and integrity of messages.
+%
 Non-repudiation, authentication and due to that access control are not given because the identity of Alice is not proven.
-In order to be able to check identities so called certificates have been introduced.
-Certificates render the possibility to check the identity of its owner. They are signed by a certificate authority (CA) which's identity can be resolved to another CA or is  pre-configured to be trusted.
+In order to be able to check identities so called certificates must be introduced.
+Certificates render the possibility to validate the identity of its owner. They are signed by a certificate authority (CA) which's identity can be resolved to another CA or which is  pre-configured to be trusted.
 A certificate is composed of its owner's public key, his identity, the name of the signing CA and a signiture which is a hash-value of the certificate encrypted with the private key of the CA. 
-That way the CA confirms the identity of the certificate owner. 
-To obtain a certificate a request has to be submitted to a CA which verifies the identity of the requesting person and signs it, if it comes to the result that the authenticity is valid. Figure~\ref{fig:certificate_request} shows the procedure to gain a certificate.
+If a certificate can be resolved to a CA with is pre-configured to be trusted, the identity of the certificate owner is considered as to be proven. 
+In general a set of trusted CAs is already defined in the operation system.
+To obtain a certificate a certificate request has to be submitted to a CA.
+After the CA has verified the identity of the requesting person and the requested certificate will be signed.
+Figure~\ref{fig:certificate_request} shows the procedure of gaining a certificate.
 \begin{figure}[htb]
 	\centering%epstopdf certificates.eps
  	\includegraphics[width=13cm]{tex_tls_echoservice/certificates.pdf}
 	\mycaption{specific}{general}
 	\label{fig:certificate_request}
 \end{figure}
+A private and a public key is generated by the requester and a request containing an unsigned certificate is created. The unsigned certificate is submitted to a CA which validates the authentity. If the CA decides to sign the request, a hash will be created for the request with a negotiated algorithm. (A fixed-sized short string which is generated by an algorithm based on a given text. A small change in the text causes the hash value to change almost like a random function such that the hash value can be used a fingerprint of the text.) Than the certificate will be signed by encrypted the hash value with the private key.
+%
+%
+In case a third person wants to verify the certificate owner, the encrypted hash value have to be 
+
+
+
 Figure~\ref{fig:verification_of_certificates} shows a usecase where Alice wants to resolve the identity of Bob. Alice submitts her request to Bob along with a challange consisting of a random number $n$. Bob encrypts the number with his private key and returns it together with his certificate. With the usage of the public key, Alice is able to decrypt the challange which implies that, if the certificate is to be trusted, the identity of Bob is to be trusted. Unfortunately Alice is unable to verify the certificate because it is signed by an unknown CA called CA 1. She establishes the connection to CA 1 in order to resolve the identity of that certificate authority. Again Alice sends a challenge --- this time to the certificate authority CA 1. CA 1 encrypts the challange with its private key and submits the result along with its certificate. Again Alice validates the certificate sucessfully. 
 The certificate was signed by a CA called CA 2 which she is able to locate as a pre-configured certificate. Due to the reason she trusts CA 2, she can trust CA 1 and finally Bob. 
 

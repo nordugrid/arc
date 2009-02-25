@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"  xmlns:echo="urn:echo_config">
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"  xmlns:echo="urn:echo_config">
   <!-- Configuration of the server entities -->
   <Server><!--(@*\label{lst_code:arched_arcecho_Server}*@)-->
     <Pidfile>/var/run/arched.pid</Pidfile>
