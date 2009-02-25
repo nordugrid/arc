@@ -12,8 +12,12 @@ $(NAME).bbl: literature.bib
 clean:
 	find . -name '*.aux' -o -name '*.bbl' -o -name '*.log' -o -name '*.blg' -o -name '*.toc' | xargs -r rm 
 
+distclean: clean
+	rm -f $(NAME).pdf
+	
+
 look:	$(NAME).pdf
 	[ -x /usr/bin/kpdf ] && kpdf $< || [ -x /usr/bin/xpdf ] && xpdf $< || echo "Don't know how to open PDFs. Please edit this Makefile."
 
 
-.PHONY: clean look
+.PHONY: clean distclean look
