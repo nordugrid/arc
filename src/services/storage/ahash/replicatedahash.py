@@ -29,6 +29,7 @@ import copy
 import base64
 import errno
 
+from arcom import get_child_values_by_name
 from arcom.threadpool import ThreadPool, ReadWriteLock
 from arcom.service import ahash_uri, node_to_data, get_child_nodes, parse_node, get_data_node
 from storage.common import create_metadata, ahash_list_guid
@@ -150,7 +151,7 @@ class ReplicationStore(TransDBStore):
 
         # db environment is opened in TransDBStore.__init__
         TransDBStore.__init__(self, storecfg, non_existent_object)
-
+        self.dbReady(False)
         # configure replication prior to initializing TransDBStore
         self.__configureReplication(cfg)
 
@@ -159,19 +160,20 @@ class ReplicationStore(TransDBStore):
 
         # eid is a local environment id, so I will be number 1
         self.eid = 1
-        # and other eid is 2
-        other_eid = 2
-
         self.my_replica = {'url'      : self.my_url,
                            'id'       : self.eid,
                            'status'   : 'online'}
-        other_replica =   {'url'      : self.other_url,
-                           'id'       : other_eid,
-                           'status'   : 'online'}
+        other_replicas = []
+        other_eid = self.eid
+        for url in self.other_urls:
+            other_eid += 1
+            other_replicas +=  [{'url'      : url,
+                                 'id'       : other_eid,
+                                 'status'   : 'online'}]
 
         # start replication manager
         self.repmgr = ReplicationManager(ahash_send, self.dbenv, 
-                                         self.my_replica, other_replica)
+                                         self.my_replica, other_replicas, self.dbReady)
         try:
             # start repmgr with 10 threads and always do election of master
             threading.Thread(target = self.repmgr.start, args=[1, db.DB_REP_ELECTION]).start()
@@ -184,28 +186,28 @@ class ReplicationStore(TransDBStore):
         threading.Thread(target = self.checkingThread, args=[self.check_period]).start()
 
 
-    def __configureReplication(self, storecfg):
-        self.my_url = str(storecfg.Get('MyURL'))
-        self.other_url = str(storecfg.Get('OtherURL'))
+    def __configureReplication(self, cfg):
+        self.my_url = str(cfg.Get('MyURL'))
+        self.other_urls = get_child_values_by_name(cfg, 'OtherURL')
         try:
             # Priority used in elections: Higher priority means
             # higher chance of winning the master election
             # (i.e., becoming master)
-            self.priority = int(str(storecfg.Get('Priority')))
+            self.priority = int(str(cfg.Get('Priority')))
         except:
             log.msg(arc.ERROR, "Bad Priority value, using default 10")
             self.priority = 10
         try:
             # In seconds, how often should we check for connected nodes
-            self.check_period = float(str(storecfg.Get('CheckPeriod')))
+            self.check_period = float(str(cfg.Get('CheckPeriod')))
         except:
             log.msg(arc.ERROR, "Could not find checking period, using default 10s")
-            self.check_period = 10.0
+            self.check_period = 30.0
         try:
             # amount of db cached in memory
             # Must be integer. Optionally in order of kB, MB, GB, TB or PB,
             # otherwise bytes is used
-            cachesize = str(storecfg.Get('CacheSize'))
+            cachesize = str(cfg.Get('CacheSize'))
             cachemultiplier = {}
             cachemultiplier['kB']=1024            
             cachemultiplier['MB']=1024**2      
@@ -257,15 +259,29 @@ class ReplicationStore(TransDBStore):
                                    ]
                     for (url, status) in client_list:
                         new_obj[('client', "%s:%s"%(url, status))] = url
-#                    curr_obj = self.get(ahash_list_guid)
-#                    if curr_obj != new_obj:
-#                        # store the site list if there are changes
-                    self.set(ahash_list_guid, new_obj)
-                    log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
-                time.sleep(period)
+                    curr_obj = self.get(ahash_list_guid)
+                    if curr_obj != new_obj:
+                        # store the site list if there are changes
+                        self.set(ahash_list_guid, new_obj)
+                        log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
+                        log.msg(arc.DEBUG, "old ahash list %s"%str(curr_obj))
+                        if self.dbenv_ready:
+                            log.msg(arc.DEBUG, "but dbenv wasn't ready.")
             except:
                 log.msg()
-                time.sleep(period)
+            time.sleep(period)
+            
+    def dbReady(self, db_is_ready=True):
+        """
+        Callback function used by repmgr to notify me that I can accept requests
+        """
+        self.dbenv_ready = db_is_ready
+        
+    def getDBReady(self):
+        """
+        Overload of TransDBStore.getDBReady
+        """
+        return self.dbenv_ready
 
 hostMap = {}
 
@@ -278,7 +294,7 @@ class ReplicationManager:
     class managing replicas, elections and message handling
     """
     
-    def __init__(self, ahash_send, dbenv, my_replica, other_replica):
+    def __init__(self, ahash_send, dbenv, my_replica, other_replicas, dbReady):
         # no master is found yet
         self.role = db.DB_EID_INVALID
         self.elected = False
@@ -289,19 +305,21 @@ class ReplicationManager:
         self.hostMap = hostMap
         self.locker.acquire_write()
         self.hostMap[my_replica['id']] = my_replica
-        self.hostMap[other_replica['id']] = other_replica
+        for replica in other_replicas:
+            self.hostMap[replica['id']] = replica
         self.locker.release_write()
         self.my_replica = my_replica
         self.eid = my_replica['id']
         self.url = my_replica['url']
         self.dbenv = dbenv
+        self.dbReady = dbReady
         # tell dbenv to uset our event callback function
         # to handle various events
         self.dbenv.set_event_notify(self.event_callback)
         self.pool = None
         self.comm_ready = False
         threading.Thread(target=self.heartbeatThread, 
-                         args=[60]).start()
+                         args=[10]).start()
         self.last_heartbeat = time.time()
         self.check_heartbeat = False
         
@@ -374,6 +392,7 @@ class ReplicationManager:
         role = db.DB_EID_INVALID
         self.stop_electing = False  
         self.check_heartbeat = False
+        self.dbReady(False)
         while role == db.DB_EID_INVALID and not self.stop_electing:
             try:
                 self.locker.acquire_read()
@@ -381,7 +400,7 @@ class ReplicationManager:
                                 if rep['status'] == 'online'])
                 self.locker.release_read()
                 votes = num_reps/2 + 1
-                self.dbenv.rep_elect(num_reps, votes)
+                log.msg(arc.DEBUG, self.dbenv.rep_elect(num_reps, votes))
                 # wait one second for election to finish
                 # should be some better way to do this...
                 time.sleep(2)
@@ -434,13 +453,14 @@ class ReplicationManager:
             eids = [id for id,rep in self.hostMap.items()]
         elif eid == db.DB_EID_BROADCAST:
             # send to all we know are online
-            eids = [id for id,rep in self.hostMap.items() if rep['status']=="online"]    
+#            eids = [id for id,rep in self.hostMap.items() if rep['status']=="online"]    
+            eids = [id for id,rep in self.hostMap.items()]    
         else:
             eids = [eid]
             if not self.hostMap.has_key(eid):
                 return retval
-            elif self.hostMap[eid]['status'] != "online":
-                return retval
+#            elif self.hostMap[eid]['status'] != "online":
+#                return retval
         for id in eids:
             if id == self.eid:
                 continue
@@ -533,7 +553,7 @@ class ReplicationManager:
                 self.sendNewSiteMsg(sender)
         if msgID == HEARTBEAT_MESSAGE:
             log.msg(arc.DEBUG, "received HEARTBEAT_MESSAGE")
-            if self.isMaster():
+            if self.isMaster(): 
                 # this shouldn't happen
                 self.beginRole(db.DB_EID_INVALID)
                 self.stop_electing = True
@@ -587,18 +607,17 @@ class ReplicationManager:
             log.msg(arc.DEBUG, "received DB_REP_NEWSITE from %s"%str(sender))
         elif res == db.DB_REP_HOLDELECTION:
             log.msg(arc.DEBUG, "received DB_REP_HOLDELECTION")
-            if not self.isMaster():
-                self.beginRole(db.DB_EID_INVALID)
-                self.stop_electing = True
-                nthreads = self.pool.getThreadCount()
-                self.pool.joinAll()
-                self.pool = ThreadPool(nthreads)
-                self.pool.queueTask(self.startElection)
+            self.beginRole(db.DB_EID_INVALID)
+            self.stop_electing = True
+            nthreads = self.pool.getThreadCount()
+            self.pool.joinAll()
+            self.pool = ThreadPool(nthreads)
+            self.pool.queueTask(self.startElection)
         elif res == db.DB_REP_ISPERM:
             log.msg(arc.DEBUG, "REP_ISPERM returned for LSN %s"%str(retlsn))
+            self.dbReady(True)
         elif res == db.DB_REP_NOTPERM:
             log.msg(arc.DEBUG, "REP_NOTPERM returned for LSN %s"%str(retlsn))
-            return "failed"
         elif res == db.DB_REP_DUPMASTER:
             log.msg(arc.DEBUG, "REP_DUPMASTER received, starting new election")
             # yield to revolution, switch to client
@@ -633,11 +652,13 @@ class ReplicationManager:
                 log.msg(arc.DEBUG, "I am now a master")
                 log.msg(arc.DEBUG, "received DB_EVENT_REP_MASTER")
                 self.setRole(db.DB_REP_MASTER)
+                self.dbReady(True)
             elif which == db.DB_EVENT_REP_CLIENT:
                 log.msg(arc.DEBUG, "I am now a client")
                 self.setRole(db.DB_REP_CLIENT)
             elif which == db.DB_EVENT_REP_STARTUPDONE:
                 log.msg(arc.DEBUG, ("Replication startup done",which,info))
+                self.dbReady(True)
             elif which == db.DB_EVENT_REP_PERM_FAILED:
                 log.msg(arc.DEBUG, "Getting permission failed")
             elif which == db.DB_EVENT_WRITE_FAILED:
