@@ -2,249 +2,70 @@
 #include <config.h>
 #endif
 
-#include <string>
-#include <list>
-
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/DateTime.h>
-#include <arc/GUID.h>
-#include <arc/StringConv.h>
-#include <arc/ws-addressing/WSA.h>
 
 #include "isis.h"
 
 namespace ISIS
 {
-
-static Arc::Plugin *get_service(Arc::PluginArgument* arg) { 
-    Arc::ServicePluginArgument* srvarg =
-            arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
-    if(!srvarg) return NULL;
-    return new ISIService((Arc::Config*)(*srvarg));
-}
-
-Arc::MCC_Status
-ISIService::make_soap_fault(Arc::Message &outmsg)
-{
-    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
-    Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
-    if(fault) {
-        fault->Code(Arc::SOAPFault::Sender);
-        fault->Reason("Failed processing request");
+    ISIService::ISIService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "ISIS") {
+        service_id_ = "XXX";
+        ns_["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
+        std::cout << "\"ISIS OK\" by Ivan" << std::endl;
+        logger_.msg(Arc::DEBUG, "\"ISIS OK\" by Ivan");
     }
 
-    outmsg.Payload(outpayload);
-    return Arc::MCC_Status(Arc::STATUS_OK);
-}
+    ISIService::~ISIService(void){
+    }
 
-bool
-ISIService::loop_detection(Arc::XMLNode &in)
-{
-    std::string self_id = getID();
-    Arc::XMLNode source_path = in["Header"]["SourcePath"];
-    Arc::XMLNode sid;
-    int len = source_path.Size();
-    logger_.msg(Arc::DEBUG, "Source Path size: %d", len);
-    for (int i = 0; (sid = source_path["ID"][i]) != false; i++) {
-        std::string id = (std::string)sid;
-        if (self_id == id && len > 1) {
-            return true;
+    bool ISIService::RegistrationCollector(Arc::XMLNode &doc) {
+    }
+
+    Arc::MCC_Status ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
+        // Both input and output are supposed to be SOAP
+        // Extracting payload
+        Arc::PayloadSOAP* inpayload = NULL;
+        try {
+            inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
+        } catch(std::exception& e) { };
+        if(!inpayload) {
+            logger_.msg(Arc::ERROR, "input is not SOAP");
+            return make_soap_fault(outmsg);
         }
-    }
-    return false;
-}
 
-Arc::MCC_Status
-ISIService::Register(Arc::XMLNode &in, Arc::XMLNode &out)
-{
-    Arc::XMLNode ads = in["Advertisements"];
-    Arc::XMLNode ad;
-    Arc::NS lookup_ns;
-    lookup_ns["glue2"] = ns_["glue2"];
-    if (loop_detection(in) == true) {
-        logger_.msg(Arc::VERBOSE, "Advertisement dropped because loop detected");
+        Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
+        Arc::PayloadSOAP& res = *outpayload;
+        Arc::MCC_Status ret;
+
+        Arc::XMLNode r = res.NewChild("isis:QueryResponse");
+        r.NewChild((*inpayload).Child(0));
+
+        outmsg.Payload(outpayload);
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    for (int i = 0; (ad = ads["Advertisement"][i]) != false; i++) {
-        // lookup for any node which have type attribute equal 'Service'
-        // this lookup should find Service, ComputingService, StorageService etc. nodes.
-        std::list<Arc::XMLNode> services = ad.XPathLookup("//*[normalize-space(@BaseType)='Service']", lookup_ns);
-        std::list<Arc::XMLNode>::iterator it;
-        for (it = services.begin(); it != services.end(); it++) {
-            // save only the service part of the advertisement
-            Arc::XMLNode service;
-            (*it).New(service);
-            std::string id = (std::string)service["ID"];
-            if (!id.empty()) {
-                logger_.msg(Arc::DEBUG, "Registration for Service: %s", id);
-                // some filtering may come here
-                db_->put(id, service);
-                // Forward to peers
-            }
+    std::string ISIService::getID() {
+        return service_id_;
+    }
+
+    Arc::MCC_Status ISIService::make_soap_fault(Arc::Message &outmsg) {
+        Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
+        Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
+        if(fault) {
+            fault->Code(Arc::SOAPFault::Sender);
+            fault->Reason("Failed processing request");
         }
-    }
-    // pimp header
-    Arc::XMLNode source_path = in["Header"]["SourcePath"];
-    if ((bool)source_path == true) {
-        source_path.NewChild("ID") = getID();
-        router_.route(in);
+
+        outmsg.Payload(outpayload);
+        return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    return Arc::MCC_Status(Arc::STATUS_OK);
-}
-
-Arc::MCC_Status
-ISIService::Query(Arc::XMLNode &in, Arc::XMLNode &out)
-{
-    std::string xpath_query = (std::string)in["XPathQuery"];
-    logger_.msg(Arc::DEBUG, "Query: %s", xpath_query);
-    if (xpath_query.empty()) {
-        Arc::SOAPEnvelope fault(ns_, true);
-        if (fault) {
-            fault.Fault()->Code(Arc::SOAPFault::Sender);
-            fault.Fault()->Reason("Invalid query");
-            out.Replace(fault.Child());
-        }
-        return Arc::MCC_Status();
+    static Arc::Plugin *get_service(Arc::PluginArgument* arg) { 
+        Arc::ServicePluginArgument* srvarg = arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
+        if(!srvarg) return NULL;
+        return new ISIService((Arc::Config*)(*srvarg));
     }
-    
-    std::map<std::string, Arc::XMLNodeList> result;
-    db_->queryAll(xpath_query, result);
-    std::map<std::string, Arc::XMLNodeList>::iterator it;
-    for (it = result.begin(); it != result.end(); it++) {
-        logger_.msg(Arc::DEBUG, "S: %s", it->first);
-        if (it->second.size() == 0) {
-            continue;
-        }
-        std::string service_id = it->first;
-        // XXX XML database interface should improve 
-        // to eliminate twice XML parse
-        Arc::XMLNode service_data;
-        db_->get(service_id, service_data);
-        {
-            std::string s;
-            service_data.GetXML(s);
-            logger_.msg(Arc::DEBUG, s);
-        }
-        // check validity
-        Arc::XMLNode created = service_data.Attribute("Created");
-        Arc::XMLNode validity = service_data.Attribute("Validity");
-        if (!created || !validity) {
-            continue;
-        }
-        Arc::Time ct((std::string)created);
-        Arc::Period pt((std::string)validity);
-        Arc::Time now;
-        if (ct + pt < now) {
-            logger_.msg(Arc::DEBUG, "Outdated data: %s", service_id);
-            db_->del(service_id);
-            continue;
-        }
-        // add data to output
-        out.NewChild(service_data);
-    }
-    return Arc::MCC_Status(Arc::STATUS_OK);
-}
-
-Arc::MCC_Status
-ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg)
-{
-    // Both input and output are supposed to be SOAP
-    // Extracting payload
-    Arc::PayloadSOAP* inpayload = NULL;
-    try {
-        inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
-    } catch(std::exception& e) { };
-    if(!inpayload) {
-        logger_.msg(Arc::ERROR, "input is not SOAP");
-        return make_soap_fault(outmsg);
-    }
-    // Get operation
-    Arc::XMLNode op = inpayload->Child(0);
-    if(!op) {
-        logger_.msg(Arc::ERROR, "input does not define operation");
-        return make_soap_fault(outmsg);
-    }
-    logger_.msg(Arc::DEBUG, "process: operation: %s", op.Name());
-    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
-    Arc::PayloadSOAP& res = *outpayload;
-    Arc::MCC_Status ret;
-    if (MatchXMLName(op, "Register")) {
-        Arc::XMLNode r = res.NewChild("isis:RegisterResponse");
-        ret = Register(op, r);
-    } else if (MatchXMLName(op, "Query")) {
-        Arc::XMLNode r = res.NewChild("isis:QueryResponse");
-        ret = Query(op, r);
-
-    } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
-         // TODO: do not copy out_ to outpayload.
-         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
-         if(out_) {
-           *outpayload=*out_;
-           delete out_;
-         }
-  } else {
-        logger_.msg(Arc::ERROR, "SOAP operation not supported: %s", op.Name());
-        return make_soap_fault(outmsg);
-    } 
-    outmsg.Payload(outpayload);
-    return Arc::MCC_Status(Arc::STATUS_OK);
-}
-
-ISIService::ISIService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),reg_(NULL),router_(*cfg)
-{
-    ns_["isis"] = ISIS_NAMESPACE;
-    ns_["glue2"] = GLUE2_D42_NAMESPACE;
-    ns_["register"] = REGISTRATION_NAMESPACE;
-    
-    service_id_ = (std::string)(*cfg)["ID"];
-    if (service_id_.empty()) {
-        logger_.msg(Arc::ERROR, "You should specify service id!");
-        return;
-    }
-    std::string db_path = (std::string)(*cfg)["DBPath"];
-    if (db_path.empty()) {
-        logger_.msg(Arc::ERROR, "Invalid database path definition");
-        return;
-    }
-    // Init database
-    db_ = new Arc::XmlDatabase(db_path, "isis");
-
-    // Initialize Information Register
-    Arc::XMLNode r = (*cfg)["register:Register"];
-    reg_ = new Arc::InfoRegister(r, (Arc::Service *)this);
-}
-
-ISIService::~ISIService(void)
-{
-    if (db_ != NULL) {
-        delete db_;
-    }
-    if (reg_ != NULL) {
-        delete reg_;
-    }
-}
-
-std::string
-ISIService::getID()
-{
-    return service_id_;
-}
-
-bool
-ISIService::RegistrationCollector(Arc::XMLNode &doc)
-{
-    std::string created = Arc::TimeStamp(Arc::UTCTime);
-    std::string validity = Arc::tostring(600);
-    
-    Arc::XMLNode service = doc.NewChild("glue2:Service");
-    service.NewAttribute("Created") = created;
-    service.NewAttribute("Validity") = validity;
-    service.NewAttribute("BaseType") = "Service";
-    service.NewChild("ID") = getID();
-}
 
 } // namespace
 
@@ -252,3 +73,4 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "isis", "HED:SERVICE", 0, &ISIS::get_service },
     { NULL, NULL, 0, NULL }
 };
+
