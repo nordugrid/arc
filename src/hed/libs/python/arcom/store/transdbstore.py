@@ -48,7 +48,6 @@ class TransDBStore(BaseStore):
         self.dbenv.set_get_returns_none(0) 
 
         self.__opendbenv()
-        self.dbenv_ready = True
         log.msg(arc.INFO, "db environment opened")
     
     def __del__(self):
@@ -110,12 +109,16 @@ class TransDBStore(BaseStore):
         # automatically be enclosed in transactions
         return db.DB_CREATE | db.DB_AUTO_COMMIT
 
+    def getDBReady(self):
+        """
+        Dummy method always assuming db is ready
+        """
+        return True
+
     def __opendb(self, dbp):
         """
         Open the db using dbp as db handle
         """
-        if not self.dbenv_ready:
-            return None
         while dbp == None:
             dbp = db.DB(self.dbenv,0)
                         
@@ -216,9 +219,9 @@ class TransDBStore(BaseStore):
         Returns a list of IDs.
         """
 
-        self.dbp = self.__opendb(self.dbp)
-        if not self.dbp:
+        if not self.getDBReady():
             return
+        self.dbp = self.__opendb(self.dbp)
         try:
             object = self.dbp.keys()
             return object
@@ -239,9 +242,11 @@ class TransDBStore(BaseStore):
         If there is no object with this ID, returns the given non_existent_object value.
         """
 
-        self.dbp = self.__opendb(self.dbp)
-        if not self.dbp:
+        if not self.getDBReady():
             return
+
+        self.dbp = self.__opendb(self.dbp)
+
         try:
             object = self.dbp.get(ID, txn=self.txn)
             try:
@@ -278,9 +283,9 @@ class TransDBStore(BaseStore):
         if not ID:
             raise Exception, 'ID is empty'
 
-        self.dbp = self.__opendb(self.dbp)
-        if not self.dbp:
+        if not self.getDBReady():
             return
+        self.dbp = self.__opendb(self.dbp)
         retry = True
         retry_count = 0
 
