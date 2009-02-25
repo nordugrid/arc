@@ -1233,11 +1233,11 @@ err:
 
     if(proxy->cert_type_ == CERT_TYPE_GSI_2_LIMITED_PROXY){
       CN_name = const_cast<char*>("limited proxy");
-      serial_number = X509_get_serialNumber(issuer);
+      serial_number = M_ASN1_INTEGER_dup(X509_get_serialNumber(issuer));
     }
     else if(proxy->cert_type_ == CERT_TYPE_GSI_2_PROXY) {
       CN_name = const_cast<char*>("proxy");
-      serial_number = X509_get_serialNumber(issuer);
+      serial_number = M_ASN1_INTEGER_dup(X509_get_serialNumber(issuer));
     }
     else if (certinfo_NID != NID_undef) {
       unsigned char   md[SHA_DIGEST_LENGTH];
@@ -1257,8 +1257,11 @@ err:
       CN_name = (char*)malloc(sizeof(long)*4 + 1);
       sprintf(CN_name, "%ld", sub_hash);        
      
-      serial_number = ASN1_INTEGER_new();
-      ASN1_INTEGER_set(serial_number, sub_hash);
+      //serial_number = ASN1_INTEGER_new();
+      //ASN1_INTEGER_set(serial_number, sub_hash);
+      //Use the serial number in the certificate as the 
+      //serial number in the proxy certificate
+      serial_number = M_ASN1_INTEGER_dup(X509_get_serialNumber(issuer));
 
       int length = ext_method->i2d(proxy->proxy_cert_info_, NULL);
       if(length < 0) {
