@@ -103,7 +103,7 @@ int main(int argc, char* argv[]){
   bool info = false;
   options.AddOption('I', "info", istring("print all information about this proxy. \n"
                     "              In order to show the Identity (DN without CN as subfix for proxy) \n"
-                    "              of the certificate, the 'trusted certdir' is neede."
+                    "              of the certificate, the 'trusted certdir' is needed."
                     ),
                     info);
 
@@ -363,8 +363,9 @@ int main(int argc, char* argv[]){
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
 
-      for (std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
-             it !=  matched_voms_line.end(); it++) {
+      //for (std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
+      //       it !=  matched_voms_line.end(); it++) {
+        std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
         voms_server = (*it).first;
         voms_line = (*it).second;
         command = server_command_map[voms_server];
@@ -454,11 +455,11 @@ int main(int argc, char* argv[]){
         if(response) delete response;
 
         Arc::addVOMSAC(aclist, decodedac);
-      }
+      //}
 
       //Put the returned attribute certificate into proxy certificate
-      if(aclist != NULL) { std::cout<<"AC not NULL"<<std::endl;
-        cred_request.AddExtension("acseq", (char**) aclist); }
+      if(aclist != NULL)
+        cred_request.AddExtension("acseq", (char**) aclist);
       cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
       signer.SignRequest(&cred_request, proxy_path.c_str());
 
