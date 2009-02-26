@@ -121,8 +121,21 @@ namespace Arc {
 
      URL& url = thrarg->url;
 
+     ExecutionTarget target;
+
+     target.GridFlavour = "UNICORE";
+     target.Cluster = thrarg->url;
+     target.url = url;
+     target.InterfaceName = "BES";
+     target.Implementor = "Unicore";
+     target.ImplementationName = "Unicore";
+     target.HealthState = "ok";
+
+     target.DomainName = url.Host();
+
 
      delete thrarg;
+     mom.AddTarget(target);
      mom.RetrieverDone();
   }
 
