@@ -1,18 +1,22 @@
 \chapter{The echo service}
 
-The next service to be presented is the echo service which's task is to return the received message back to the client.
-Furthermore the service provides two additional operations called ``ordinary'' and ``reverse''.
-Depending on the operation chosen by the client, the message will returned unmodified or its letters will be reordered reverse. % without manipulation
-The goal of this chapter is to offer a deeper knowledge about message processing. Furthermore the \textit{WSDL} (Web Services Description Language) shall be introduced.
+The next service to be presented is the echo service.
+Its task is to return the content of the received message back to the client.
+Furthermore, the service provides two additional operations called ``ordinary'' and ``reverse''.
+Depending on the operation chosen by the client, the message will returned unmodified or it is shown with its reversed.
+The goal of this chapter is to offer a deeper knowledge about message processing.
+Also, the \textit{WSDL} (Web Services Description Language) will be introduced, with which the section now starts.
 
 \section{Web Services Description Language}
 
-Web services can be specified by a meta language called \textit{WSDL} (Web Services Description Language). 
+Web services can be specified (not implemented) by a meta language called \textit{WSDL} (Web Services Description Language). 
 Beside the description of the service, WSDL renders the possibility that services can be discovered by service brokers.
-The discovery of services may be useful for an automatic adaption of a running client i.e. if the endpoint of the service changes or to share the load of demands.
-Furthermore the service specification enables the programmer to implement a suitable client which interfaces the service in a proper way.\\
+The discovery of services may be useful for an automatic adaption of a running client, i.e. if the endpoint of the service changes or to share the load of demands.
+The WSDL service specification enables the programmer to implement a suitable client which interfaces the service in a proper way.
 WSDL describes the structure of the messages, the intended use of the messages, the supported protocols and the endpoint of the service (URL).
-The WSDL file which specifies the echo service presented in this chapter is to be seen in listing~\ref{lst:echo_wsdl}. 
+For that last reason, every instance of a service must be produced a distinct WSDL file for - or - it is automatically prepared from the information that the server has available once it is implemented.
+
+The WSDL file that specifies the here presented echo service is shown in listing~\ref{lst:echo_wsdl}. 
 It is composed of five main elements:
 \newcommand{\parboxWidth}{13cm}
 \begin{itemize}
@@ -72,38 +76,33 @@ It is composed of five main elements:
 \task{Validate WSDL}
 
 
-The SOAP Fault Element
+\subsection{The SOAP Fault Element}
 
 The optional SOAP Fault element is used to indicate error messages.
-
-If a Fault element is present, it must appear as a child element of the Body element. A Fault element can only appear once in a SOAP message.
+If a \textit{Fault} element is present, it must appear as a child element of the \textit{Body} element. A \textit{Fault} element can only appear once in a SOAP message.
 
 The SOAP Fault element has the following sub elements:
-Sub Element 	Description
-<faultcode> 	A code for identifying the fault
-<faultstring> 	A human readable explanation of the fault
-<faultactor> 	Information about who caused the fault to happen
-<detail> 	
+\begin{tabular}{lp{9cm}}
+Sub Element 	& Description \\
+<faultcode> 	& A code for identifying the fault \\
+<faultstring> 	& A human readable explanation of the fault \\
+<faultactor> 	& Information about who caused the fault to happen \\
+<detail> 	& Holds application specific error information related to the Body element\\
+\end{tabular}
 
-Holds application specific error information related to the Body element
+
 SOAP Fault Codes
 
 The faultcode values defined below must be used in the faultcode element when describing faults:
-Error 	Description
-VersionMismatch 	Found an invalid namespace for the SOAP Envelope element
-MustUnderstand 	An immediate child element of the Header element, with the mustUnderstand attribute set to "1", was not understood
-Client 	The message was incorrectly formed or contained incorrect information
-Server 	There was a problem with the server so the message could not proceed
+\begin{tabular}{lp{9cm}}
+Error &	Description \\
+VersionMismatch & Found an invalid namespace for the SOAP Envelope element \\
+MustUnderstand 	& n immediate child element of the Header element, with the mustUnderstand attribute set to "1", was not understood \\
+Client 	& he message was incorrectly formed or contained incorrect information \\
+Server 	& here was a problem with the server so the message could not proceed \\
+\end{tabular}
 
-
-
-
-
-
-
-
-
-
+\task{Source of the above two tables?}
 
 More information about WSDL may be found at \href{http://www.w3.org/TR/wsdl}{http://www.w3.org/TR/wsdl}.
 
