@@ -76,7 +76,7 @@
 \renewcommand{\thefootnote}{\arabic{footnote}}
 
 
-\chapter{Design Overview}
+\chapter{Design Overview} % (fold)
 \label{cha:overview}
 
 
@@ -216,6 +216,7 @@ Currently the transfer-level authorization is kept very simple. When the Bartend
 
 % section security (end)
 
+% chapter design_overview (end)
 
 \chapter{Use cases} % (fold)
 \label{cha:use_cases}
@@ -337,39 +338,157 @@ We have a file on our local disk we want to upload to a collection called \verb#
 
 % chapter use_cases (end)
 
-\chapter{Technical description and implementation status} % (fold)
-\label{cha:technical_description_and_implementation_status}
+\chapter{Technical description} % (fold)
+\label{cha:technical_description}
+
+\section{Framework and language} % (fold)
+\label{sec:framework_and_language}
 
 The services are written in Python and running in the HED\footnote{The ARC container - \url{https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf}} hosting environment. The HED itself is written in C++, but there are language bindings which allow us to write services in other languages, e.g.~in Python or Java. The source code of the storage services are in the NorduGrid Subversion repository\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}}.
 
-The current version of the prototype has no information system and no security, these are soon to be integrated to the system.
+Because the next-generation information system of ARC is currently under development, we cannot use it to discover services, that's why currently the URLs of almost all the services are hardcoded in the configuration files of the service. There is one exception: the Shepherd services are reporting their URLs to the Librarians, so a Bartender always could get a very current list of alive Shepherd services.
 
-The information system is needed to discover services, and to translate \emph{serviceID}s to endpoint references (URLs). Currently the URLs are written in the configuration files, and the Shepherd services are reporting their URLs to the Librarian, so the Bartender could ask for all alive Shepherds.
+The HED also has a security framework which the Bartenders use the make access policy decision . The details of this is described in section X.
 
-Some self-healing mechanisms are not implemented yet, e.g. the files and collections contains their parent-collections as their metadata, and of course a collection contains a list of its files and sub-collections, and if somehow this information became inconsistent, the system should detect and repair it. This is not implemented yet.
+% section framework_and_language (end)
 
-\section{Plans for security} % (fold)
-\label{sec:plans_for_security}
+\section{Data model} % (fold)
+\label{sec:data_model}
 
-Security is needed to do proper authorization of the users, and to manage access policies of files and collections. ARC has its own policy language, for each file and collection there will be a policy XML document stored as a metadata. The storage services will use these policies and the properties extracted from the communication channel to make authorization decisions. If the properties and the policies are present, the decision will be actually made by the security framework of HED.
+The ARC storage system stores different kinds of metadata about files, collections, mount point, Shepherd services, etc. Each of these has a unique ID which we call `GUID'.
 
-These are the planned actions which can be used for access control:
-\begin{itemize}
-    \item \emph{read}: user can get the list of entries in the collection; user can download the file
-    \item \emph{addEntry}: user can add a new entry to the collection;
-    \item \emph{removeEntry}: user can remove any entry from the collection 
-    \item \emph{delete}: user can delete the collection if it is empty; user can delete a file (if you want to remove a file/collection, then the Bartender needs to remove the entry from the parent collection, and then delete the file/collection itself, so you need to have both permissions)
-    \item \emph{modifyPolicy}: user can modify the policy of the file/collection
-    \item \emph{modifyStates}: user can modify some special metadata of the file/collection (close the collection, change the number of needed replica of the file)
-    \item \emph{modifyMetadata}: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
-\end{itemize}
-When a user has the permission in the Librarian to download a file then the user should have permission to access at least one of the file's replica, so there should be a Shepherd which allows the user the get the file. If the Bartender has permission to access the Shepherd, then the Bartender should create an assertion which allows the user to access the file. This could be a signed token which contain a policy defining access to particular file. But all these are currently just plans.
+The A-Hash services provide a functionality to store `objects', where each object has a unique ID, and contains key-value pairs organized in sections. The properties, the values and the section names too are simple character strings. The A-Hash services provide a simple interface to interact with these objects, e.g.~to do conditinal and atomic changes.
 
-% section plans_for_security (end)
+The Librarian services use the A-Hash services to store the metadata of all kinds, using the GUIDs as unique IDs. For this, we have to represent the metadata as key-value pairs organized in section. The files, the collections and the mount points have some common attributes: the GUID, the type and the owner which are in the \emph{entry} section; the creation and modification timestamps in the \emph{timestamps} section, a list of access control rules in the \emph{policy} section; the list of parent collections where this entry has a `hardlink'; and each entry could have arbitrary key-value pairs in the \emph{metadata} section.
 
-Further prototype statuses and plans can be found below within each section about the services.
+\begin{description}
+    \item [entry] section 
+    \begin{itemize}
+        \item \emph{type}: the type of the entry: `collection', `file' or `mountpoint'
+        \item \emph{GUID}: the unique ID of the entry
+        \item \emph{owner}: the DN of the user how ownes this entry
+    \end{itemize}
+    \item [timestamps] section 
+    \begin{itemize}
+        \item \emph{created}: timestamp of creation 
+        \item \emph{modified}: timestamp of last modification (the support for this is not implemented yet)
+    \end{itemize}
+    \item [policy] section 
+    \begin{itemize}
+        \item \emph{(identity, action list) pairs}: a list of allowed and not allowed actions for different identites (users, VOs, etc.). 
+    \end{itemize}
+    \item [parents] section
+    \begin{itemize}
+        \item list of GUIDs of collection where this entry is located, and the name of this entry within the given collections
+    \end{itemize}
+    \item [metadata] section 
+    \begin{itemize}
+        \item any other arbitrary key-value pairs
+    \end{itemize}
+\end{description}
 
-% chapter technical_description_and_implementation_status (end)
+\subsection{Files} % (fold)
+\label{sub:files}
+
+A file in the ARC storage has a logical entry in the namespace, and a couple of physical replicas on the storage nodes. We store the locations of the replicas in the \emph{location} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{thirdwheel}' (if the replica is marked for deletion because of too many replicas). We also store (in the \emph{states} section) the size of the file, the number of needed replicas, and a checksum of the file, which is created by some kind of checksuming algorithm (currently only md5 is supported).
+
+\begin{description}
+    \item [locations] section 
+    \begin{itemize}
+        \item \emph{(location, state) pairs}, where a location is a (\emph{URL}, \emph{referenceID}) pair serialized as a string, where \emph{URL} is the address of the Shepherd service storing this replica, \emph{referenceID} is the ID of the file within that Shepherd service.
+    \end{itemize}
+    \item [states] section 
+    \begin{itemize}
+        \item \emph{size}: the file size in bytes
+        \item \emph{checksum}: checksum of the file
+        \item \emph{checksumType}: the name of the checksum method
+        \item \emph{neededReplicas}: how many valid replicas should this file have 
+    \end{itemize}
+\end{description}
+
+
+% subsection files (end)
+
+
+% The Librarian uses the A-Hash to store all the data about files and collections. The A-Hash is capable of storing key-value pairs organized in sections, which actually means that it stores (\emph{section}, \emph{key}, \emph{value}) tuples where each member is simply a string, e.g.~(`entry', `type', `collection') or (`ACL', `johnsmith', `owner') or (`timestamps', `created', `1196265901') or (`locations', `64CDF45F-DDFA-4C1D-8D08-BCF7810CB2AB:9A293F27DC86', `sentenced'). There could be only one \emph{value} for a (\emph{section}, \emph{key}) pair.
+
+
+\subsection{Collections} % (fold)
+\label{sub:collections}
+
+A \emph{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-hierarchy. Each entry has a unique name within a collection and a GUID which points to corresponding file or collection, so a collection is basically a list of name-GUID pairs, which list is stored in the \emph{entries} section. The collections could be in a closed state, which means that its contents should not be changed. If you close a collection then it cannot be opened again. However it cannot be garanteed that the contents of a closed collection remains the same (e.g. if we include in our collection a file which we don't own, then the owner of the file could remove it nevertheless), but if a closed collection is changed, its state will be broken, and this state could never be changed again, which means you will always know if a closed collection is not intact anymore. This state is stored in the \emph{states} section, and its values could be `\textbf{no}' (if the collection is not closed), `\textbf{yes}' (if the collection is closed) and `\textbf{broken}' (if the collection was closed, but something happened, and its contents have been changed).
+
+\begin{description}
+    \item [entries] section 
+    \begin{itemize}
+        \item \emph{(name, GUID) pairs}: a collection is basically a list of name-GUID pairs. 
+    \end{itemize}
+    \item [states] section 
+    \begin{itemize}
+        \item \emph{closed}: this indicates if the collection is closed or broken. 
+    \end{itemize}
+\end{description}
+
+% subsection collections (end)
+
+\subsection{Mount Points} % (fold)
+\label{sub:mount_points}
+
+The mount point entry is a reference to an external third-party storage. Its metadata is basically just the URL of the external storage.
+
+\begin{description}
+    \item [mountpoint] section 
+    \begin{itemize}
+        \item \emph{externalURL}: the URL of the external storage.
+    \end{itemize}
+\end{description}
+
+
+% subsection mount_points (end)
+
+\subsection{Shepherds} % (fold)
+\label{sub:shepherds}
+
+The Librarian stores information about the registered Shepherd services. Each Shepherd reports its URL and the list of its files to a Librarian, and for each Shepherd a GUID is created. There is a special entry (with GUID `1' by default) which stores a list of the registered Shepherd services, storing their GUID and the timestamp of the last heartbeat message from them.
+
+\begin{description}
+	\item [nextHeartBeat] section
+	\begin{itemize}
+		\item (URL, timestamp) pairs contains when was the last heartbeat of this service
+	\end{itemize}
+	\item [serviceGUID] section
+    \begin{itemize}
+        \item (URL, GUID) pairs connects the URL of the Shepherd to the GUID where the information is stored about the Shepherd's stored files
+    \end{itemize}
+\end{description}
+
+And for each Shepherd there is a separate entry with the list of all files stored on the given storage nodes:
+
+\begin{description}
+	\item [entry] section
+    \begin{itemize}
+        \item \emph{type}: `shepherd'
+    \end{itemize}
+	\item [files] section
+	\begin{itemize}
+	    \item \emph{(referenceID, GUID) pairs} for each replica stored on the Shepherd
+	\end{itemize}
+\end{description}
+
+% subsection shepherds (end)
+
+
+% section data_model (end)
+
+\section{Security implementation} % (fold)
+\label{sec:security_implementation}
+
+The ARC HED hosting environment has a security framework, and it has its own policy language for describing access policies and requests. While the storage system use its own format to store the access policies, but one the time comes to make decision, it converts the stored policies and the incoming requests to this ARC native policy format, and uses the security framework to decide.
+
+%%%%%%%%%%%%%%%%
+
+% section security_implementation (end)
+
 \newpage
 
 \section{A-Hash} % (fold)
@@ -377,9 +496,9 @@ Further prototype statuses and plans can be found below within each section abou
 
 \subsection{Functionality} % (fold)
 
-The A-Hash will be a distributed service capable of storing tuples of strings in a scalable manner. Currently it only has a centralized implementation. It stores \emph{objects}, where each object has an arbitrary string \emph{ID}, and contains any number of \emph{property}-\emph{value} pairs grouped in \emph{section}s, where \emph{property}, \emph{value} and \emph{section} are arbitrary strings. There could only be a single \emph{value} for a \emph{property} in a \emph{section}.
+The A-Hash will be a distributed service capable of storing tuples of strings in a scalable manner. Currently it only has a centralized implementation. It stores \emph{objects}, where each object has an arbitrary string \emph{ID}, and contains any number of \emph{key}-\emph{value} pairs grouped in \emph{section}s, where \emph{key}, \emph{value} and \emph{section} are arbitrary strings. There could only be a single \emph{value} for a \emph{key} in a \emph{section}.
 
-If you have an ID, you can get all property-value pairs of the corresponding object with the \emph{get} method, or you could specify only which sections or properties do you need. You can add or remove property-value pairs of an object or delete all occurrences of a property or create a new object with the \emph{change} method, and you can specify conditions, which means the change is only applied if the given conditions are met.
+If you have an ID, you can get all key-value pairs of the corresponding object with the \emph{get} method, or you could specify only which sections or properties do you need. You can add or remove key-value pairs of an object or delete all occurrences of a key or create a new object with the \emph{change} method, and you can specify conditions, which means the change is only applied if the given conditions are met.
 
 % subsection functionality (end)
 
@@ -393,7 +512,7 @@ The A-Hash service currently implemented as a single central service, which stor
 
 \begin{itemize}
     \item \emph{ID} is an arbitrary string
-    \item \emph{object} contains property-value pairs in sections, technically it is a list of key-\emph{value} pairs where the key is a (\emph{section}, \emph{property}) tuple
+    \item \emph{object} contains key-value pairs in sections, technically it is a list of key-\emph{value} pairs where the key is a (\emph{section}, \emph{key}) tuple
 \end{itemize}
 
 % subsection data_model (end)
@@ -403,11 +522,11 @@ The A-Hash service currently implemented as a single central service, which stor
 \begin{description}
     \item [get(ids, neededMetadata)] returns \emph{getResponse} which is a list of (\emph{ID}, \emph{object}) pairs.
 
-    The \emph{ids} is a list of string \emph{ID}s, \emph{neededMetadata} is a list of (\emph{section}, \emph{property}) pairs. For each \emph{ID} it returns all the \emph{value}s for each \emph{property} in each \emph{section} (filtered by \emph{neededMetadata}), so \emph{object} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
+    The \emph{ids} is a list of string \emph{ID}s, \emph{neededMetadata} is a list of (\emph{section}, \emph{key}) pairs. For each \emph{ID} it returns all the \emph{value}s for each \emph{key} in each \emph{section} (filtered by \emph{neededMetadata}), so \emph{object} is a list of (\emph{section}, \emph{key}, \emph{value}) tuples.
 
     \item [change(changeRequest)] returns \emph{changeResponse} which is a list of (\emph{changeID}, \emph{success}, \emph{failedConditionID}) tuples.
 
-    \emph{changeRequest} is a tuple of (\emph{changeID}, \emph{ID}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}, \emph{conditions}), where \emph{changeID} is an arbitrary ID to identify in the response which change was successful; \emph{ID} points to the object we want to change; \emph{changeType} can be `\textbf{set}' (set the property within the section to value), `\textbf{unset}' (remove the property from the section regardless of the value), `\textbf{delete}' (removes the whole object), conditions is a list of (\emph{conditionID}, \emph{type}, \emph{section}, \emph{property}, \emph{value}) tuples, where \emph{type} could be `\textbf{is}' (the property in the section is set to the value), `\textbf{isnot}' (the property in the section is not set to the value), `\textbf{isset}' (the property of the section is set to any value), `\textbf{unset}' (the property of the section is not set at all).
+    \emph{changeRequest} is a tuple of (\emph{changeID}, \emph{ID}, \emph{changeType}, \emph{section}, \emph{key}, \emph{value}, \emph{conditions}), where \emph{changeID} is an arbitrary ID to identify in the response which change was successful; \emph{ID} points to the object we want to change; \emph{changeType} can be `\textbf{set}' (set the key within the section to value), `\textbf{unset}' (remove the key from the section regardless of the value), `\textbf{delete}' (removes the whole object), conditions is a list of (\emph{conditionID}, \emph{type}, \emph{section}, \emph{key}, \emph{value}) tuples, where \emph{type} could be `\textbf{is}' (the key in the section is set to the value), `\textbf{isnot}' (the key in the section is not set to the value), `\textbf{isset}' (the key of the section is set to any value), `\textbf{unset}' (the key of the section is not set at all).
     If all conditions are met, tries to apply changes to the objects, creates a new object if a previously non-existent ID is given. If one of the conditions is not met, returns the ID of the failed condition.
 \end{description}
     
@@ -433,120 +552,6 @@ The Librarian service currently implements all the methods below, but doesn't do
 
 \subsection{Data model} % (fold)
 \label{sub:data_model}
-Each librarian entry has a unique ID called \emph{GUID}.
-
-The Librarian uses the A-Hash to store all the data about files and collections. The A-Hash is capable of storing property-value pairs organized in sections, which actually means that it stores (\emph{section}, \emph{property}, \emph{value}) tuples where each member is simply a string, e.g.~(`entry', `type', `collection') or (`ACL', `johnsmith', `owner') or (`timestamps', `created', `1196265901') or (`locations', `64CDF45F-DDFA-4C1D-8D08-BCF7810CB2AB:9A293F27DC86', `sentenced'). There could be only one \emph{value} for a (\emph{section}, \emph{property}) pair.
-
-\begin{itemize}
-    \item A \textbf{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-hierarchy. Each entry has a name which is only valid within this collection, and it is unique within the collection. Each entry is referenced by its GUID. So the metadata sections of a collection are as follows: 
-    \begin{description}
-        \item [entry] section 
-        \begin{itemize}
-            \item \emph{type}: `collection' 
-        \end{itemize}
-        \item [entries] section 
-        \begin{itemize}
-            \item \emph{(name, GUID) pairs}: a Collection is basically a list of name-GUID pairs. 
-        \end{itemize}
-        \item [timestamps] section 
-        \begin{itemize}
-            \item \emph{created}: timestamp of creation 
-            \item \emph{modified}: timestamp of last modification 
-        \end{itemize}
-        \item [states] section 
-        \begin{itemize}
-            \item \emph{closed}: if the collection is closed, then nothing can be added to its contents 
-        \end{itemize}
-        \item [policies] section 
-        \begin{itemize}
-            \item XML representations of access policies 
-        \end{itemize}
-        \item [metadata] section 
-        \begin{itemize}
-            \item any other arbitrary metadata 
-        \end{itemize}
-    \end{description}
-    \item A \textbf{file} entry contains the following sections: 
-    \begin{description}
-        \item [entry] section 
-        \begin{itemize}
-            \item \emph{type}: `file' 
-        \end{itemize}
-        \item [locations] section 
-        \begin{itemize}
-            \item \emph{(location, state) pairs}, where a location is a (\emph{serviceID}, \emph{referenceID}) pair serialized as a  string, where \emph{serviceID} is the ID of the Shepherd service storing this replica, \emph{referenceID} is the ID of the file within that Shepherd service, and state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{sentenced}' (if the replica is marked for deletion) 
-        \end{itemize}
-        \item [timestamps] section 
-        \begin{itemize}
-            \item \emph{created}: timestamp of creation 
-            \item \emph{modified}: timestamp of last modification (e.g.~modification of metadata)
-        \end{itemize}
-        \item [states] section 
-        \begin{itemize}
-            \item \emph{size}: the file size in bytes
-            \item \emph{checksum}: checksum of the file
-            \item \emph{checksumType}: the name of the checksum method
-            \item \emph{neededReplicas}: how many valid replicas should this file have 
-        \end{itemize}
-        \item [policies] section 
-        \begin{itemize}
-            \item XML representations of access policies 
-        \end{itemize}
-        \item [metadata] section 
-        \begin{itemize}
-            \item any other arbitrary metadata 
-        \end{itemize}
-    \end{description}
-    \item There is one more type of Librarian entries called \textbf{mount point} which is a reference to a service which is capable of handling a subtree of the namespace. The properties of a mount point in sections:
-    \begin{description}
-        \item [entry] section 
-        \begin{itemize}
-            \item \emph{type}: `mountpoint' 
-        \end{itemize}
-        \item [mount] section 
-        \begin{itemize}
-            \item \emph{target}: the ID of the service
-            \item \emph{ID}: an ID within the service (optional)
-        \end{itemize}
-        \item [timestamps] section 
-        \begin{itemize}
-            \item \emph{created}: timestamp of creation 
-            \item \emph{modified}: timestamp of last modification (e.g.~modification of metadata)
-        \end{itemize}
-        \item [policies] section 
-        \begin{itemize}
-            \item XML representations of access policies 
-        \end{itemize}
-        \item [metadata] section 
-        \begin{itemize}
-            \item any other arbitrary metadata 
-        \end{itemize}
-    \end{description}
-
-    \item The Librarian stores information about the Shepherds, so each Shepherd has a GUID as well. There is an entry (with GUID `1' by default) which contains the GUID and the timestamp of the last heartbeat for each registered Shepherd:
-    \begin{description}
-    	\item [nextHeartBeat] section
-    	\begin{itemize}
-    		\item (ID, timestamp) pairs
-    	\end{itemize}
-    	\item [serviceGUID] section
-        \begin{itemize}
-            \item (ID, GUID) pairs
-        \end{itemize}
-    \end{description}
-
-    \item For each Shepherd there is a separate entry with the list of files:
-    \begin{description}
-    	\item [entry] section
-        \begin{itemize}
-            \item \emph{type}: `shepherd'
-        \end{itemize}
-    	\item [files] section
-    	\begin{itemize}
-    	    \item \emph{(referenceID, GUID) pairs} for each replica stored on the Shepherd
-    	\end{itemize}
-    \end{description}
-\end{itemize}
 
 % subsection data_model (end)
 
@@ -555,16 +560,16 @@ The Librarian uses the A-Hash to store all the data about files and collections.
  \begin{description}
     \item[new(newRequestList)] returns a list of (\emph{requestID}, \emph{GUID}, \emph{success})
     
-    \emph{newRequestList} is a list of (\emph{requestID}, \emph{metadata}) where \emph{requestID} is an arbitrary ID used to identify this request in the list of responses; \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
-    This method generates a \emph{GUID} for each request, and inserts the new entry (with the given metadata) into the A-Hash, then returns the GUIDs of the newly created entries. The (`entry', `type') property of the metadata contains whether it is a file or a collection.
+    \emph{newRequestList} is a list of (\emph{requestID}, \emph{metadata}) where \emph{requestID} is an arbitrary ID used to identify this request in the list of responses; \emph{metadata} is a list of (\emph{section}, \emph{key}, \emph{value}) tuples.
+    This method generates a \emph{GUID} for each request, and inserts the new entry (with the given metadata) into the A-Hash, then returns the GUIDs of the newly created entries. The (`entry', `type') key of the metadata contains whether it is a file or a collection.
     
     \item[modifyMetadata(modifyMetadataRequestList)] returns a list of (\emph{changeID}, \emph{success})
 
-    \emph{modifyMetadataRequestList} is a list of (\emph{changeID}, \emph{GUID}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the property in the section to value), `\textbf{unset}' (remove the property-value pair from the section), `\textbf{add}' (set the property in the section to value only if it is not exists already).
+    \emph{modifyMetadataRequestList} is a list of (\emph{changeID}, \emph{GUID}, \emph{changeType}, \emph{section}, \emph{key}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the key in the section to value), `\textbf{unset}' (remove the key-value pair from the section), `\textbf{add}' (set the key in the section to value only if it is not exists already).
     
     \item [get(GUIDs, neededMetadata)] returns \emph{getResponse}
     
-    \emph{GUIDs} is a list of GUIDs, \emph{neededMetadata} is a list of (\emph{section}, \emph{property}) pairs indicating only which properties we need, \emph{getResponse} is a list of (\emph{GUID}, \emph{metadata}) where metadata is a list of (\emph{section}, \emph{property}, \emph{value}) tuples. This method returns the metadata of all the \emph{GUID}s filtered with \emph{neededMetadata}.
+    \emph{GUIDs} is a list of GUIDs, \emph{neededMetadata} is a list of (\emph{section}, \emph{key}) pairs indicating only which properties we need, \emph{getResponse} is a list of (\emph{GUID}, \emph{metadata}) where metadata is a list of (\emph{section}, \emph{key}, \emph{value}) tuples. This method returns the metadata of all the \emph{GUID}s filtered with \emph{neededMetadata}.
     
     \item [remove(removeRequestList)] returns a list of (\emph{requestID}, \emph{success}) pairs
     
@@ -576,7 +581,7 @@ The Librarian uses the A-Hash to store all the data about files and collections.
     
     \emph{traverseResponseList} is a list of (\emph{requestID}, \emph{metadata}, \emph{GUID}, \emph{traversedLN}, \emph{restLN}, \emph{wasComplete}, \emph{traversedList}) where:
     \begin{description}
-        \item[metadata] is all the metadata of the of traversedLN in the form of (\emph{section}, \emph{property}, \emph{value}) tuples
+        \item[metadata] is all the metadata of the of traversedLN in the form of (\emph{section}, \emph{key}, \emph{value}) tuples
         \item[GUID] is the \emph{GUID} of the \emph{traversedLN}
         \item[traversedLN] is the part of the \emph{LN} which was traversed, if \emph{wasComplete} is true, this should be the full \emph{LN}
         \item[restLN] is the postfix of the \emph{LN} which was not traversed for some reason, if \emph{wasComplete} is true, this should be an empty string
@@ -640,17 +645,17 @@ A file of a Shepherd service is referenced by its \emph{referenceID}. Each file 
     
     \emph{getRequestList} is a list of (\emph{requestID}, \emph{getRequestData}) where \emph{requestID} is an arbitrary ID used in the reply
     
-    \emph{getRequestData} is a list of (\emph{property}, \emph{value}) pairs, where mandatory properties are: `\textbf{referenceID}' which refers to the file to get and `\textbf{protocol}' indicates a protocol the client can use (there could be multiple protocols in getRequestData).
+    \emph{getRequestData} is a list of (\emph{key}, \emph{value}) pairs, where mandatory properties are: `\textbf{referenceID}' which refers to the file to get and `\textbf{protocol}' indicates a protocol the client can use (there could be multiple protocols in getRequestData).
     
-    \emph{getResponseData} is a list of (\emph{property}, \emph{value}) pairs, such as: `\textbf{TURL}' is a transfer URL which can be used by the client to download the file; `\textbf{protocol}' is the protocol of the TURL; `\textbf{checksum}' is the checksum of the replica; `\textbf{checksumType}' is the name of the checksum method and `\textbf{error}' could contain an error message if there is one.
+    \emph{getResponseData} is a list of (\emph{key}, \emph{value}) pairs, such as: `\textbf{TURL}' is a transfer URL which can be used by the client to download the file; `\textbf{protocol}' is the protocol of the TURL; `\textbf{checksum}' is the checksum of the replica; `\textbf{checksumType}' is the name of the checksum method and `\textbf{error}' could contain an error message if there is one.
      
     \item[put(putRequestList)] returns a list of (\emph{requestID}, \emph{putResponseData})
     
     \emph{putRequestList} is a list of (\emph{requestID}, \emph{putRequestData}) where \emph{requestID} is an ID used for the response
     
-    \emph{putRequestData} is a list of (\emph{property}, \emph{value}) pairs such as `\textbf{GUID}', `\textbf{checksum}', `\textbf{checksumType}', `\textbf{size}' (the size of the file in bytes), `\textbf{protocol}' (a protocol the client can use, can be multiple) and `\textbf{acl}' (for additional access policy).
+    \emph{putRequestData} is a list of (\emph{key}, \emph{value}) pairs such as `\textbf{GUID}', `\textbf{checksum}', `\textbf{checksumType}', `\textbf{size}' (the size of the file in bytes), `\textbf{protocol}' (a protocol the client can use, can be multiple) and `\textbf{acl}' (for additional access policy).
     
-    \emph{putResponseData} is a list of (\emph{property}, \emph{value}) pairs such as: `\textbf{TURL}' is the transfer URL where the client can upload the file, `\textbf{protocol}' is the chosen protocol of the TURL and `\textbf{referenceID}' is the generated ID for this new replica, `\textbf{error}' could contain an error message.
+    \emph{putResponseData} is a list of (\emph{key}, \emph{value}) pairs such as: `\textbf{TURL}' is the transfer URL where the client can upload the file, `\textbf{protocol}' is the chosen protocol of the TURL and `\textbf{referenceID}' is the generated ID for this new replica, `\textbf{error}' could contain an error message.
     
     \item[delete(deleteRequestList)] returns a list of (\emph{requestID}, \emph{status})
     
@@ -730,7 +735,7 @@ The methods mentioned in the above section are all implemented, but need more er
 \subsection{Data model} % (fold)
 
 The Bartender interface uses mostly Logical Names (\emph{LN}s), which have the syntax of: \verb!<GUID>/<path>! where both sides can be omitted (and in the case of a sole GUID we don't need the slash either), e.g.~\verb!afg342/foo! is an entry called \verb!foo! in the collection with GUID \verb!afg342!; the LN \verb!f36a7481! refers to the a file or collection with GUID \verb!f36a7481!; \verb!/vo/dir/stg! points to the entry which is reachable from the root collection using the given path; and \verb!/! simply refers to the root collection.
-The term `\emph{metadata}' here refers to a list of property-value pairs organized in sections, see the data model description in Section~\ref{sub:data_model}.
+The term `\emph{metadata}' here refers to a list of key-value pairs organized in sections, see the data model description in Section~\ref{sub:data_model}.
 
 % subsection data_model (end)
 
@@ -739,7 +744,7 @@ The term `\emph{metadata}' here refers to a list of property-value pairs organiz
 \begin{description}
     \item[putFile(putFileRequestList)] returns a list of (\emph{requestID}, \emph{success}, \emph{TURL}, \emph{protocol})
     
-    \emph{putFileRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}, \emph{protocols}), where \emph{requestID} is an arbitrary ID which will be used in the response; \emph{LN} is the chosen Logical Name of the new file, \emph{protocols} is a list of protocols we can use for uploading, \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where properties could be in the `\textbf{states}' section: `\textbf{size}', `\textbf{checksum}', `\textbf{checksumType}', and  `\textbf{neededReplicas}', policy documents in the `\textbf{policies}' section and any other property-value pairs in the `\textbf{metadata}' section. The returned \emph{TURL} is a URL with a chosen \emph{protocol} to upload the file itself, the \emph{success} string could be `\textbf{done}', `\textbf{missing metadata}', `\textbf{parent does not exists}', `\textbf{internal error:} reason', etc.
+    \emph{putFileRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}, \emph{protocols}), where \emph{requestID} is an arbitrary ID which will be used in the response; \emph{LN} is the chosen Logical Name of the new file, \emph{protocols} is a list of protocols we can use for uploading, \emph{metadata} is a list of (\emph{section}, \emph{key}, \emph{value}) tuples where properties could be in the `\textbf{states}' section: `\textbf{size}', `\textbf{checksum}', `\textbf{checksumType}', and  `\textbf{neededReplicas}', policy documents in the `\textbf{policies}' section and any other key-value pairs in the `\textbf{metadata}' section. The returned \emph{TURL} is a URL with a chosen \emph{protocol} to upload the file itself, the \emph{success} string could be `\textbf{done}', `\textbf{missing metadata}', `\textbf{parent does not exists}', `\textbf{internal error:} reason', etc.
 
     \item[getFile(getFileRequestList)] returns a list of (\emph{requestID}, \emph{success}, \emph{TURL}, \emph{protocol})
 
@@ -752,20 +757,20 @@ The term `\emph{metadata}' here refers to a list of property-value pairs organiz
     
     \item[stat(statRequestList)] returns a list of (\emph{requestID}, \emph{metadata})
     
-    \emph{statRequestList} is a list of (\emph{requestID}, \emph{LN}) with the Logical Name of the file or collection we want to get information about, and it returns \emph{metadata} which is a list of (\emph{section}, \emph{property}, \emph{value}) tuples according to the data model of the Librarian (see Section~\ref{sub:data_model})
+    \emph{statRequestList} is a list of (\emph{requestID}, \emph{LN}) with the Logical Name of the file or collection we want to get information about, and it returns \emph{metadata} which is a list of (\emph{section}, \emph{key}, \emph{value}) tuples according to the data model of the Librarian (see Section~\ref{sub:data_model})
     
     \item[makeCollection(makeCollectionRequestList)] returns a list of (\emph{requestID}, \emph{success})
     
-    \emph{makeCollectionRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the `\textbf{entries}' section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUIDs with the given name), in the `\textbf{states}' section there is the `\textbf{closed}' property (if it is true then no more files can be added or removed later), in the `\textbf{policies}' section there could be some access policies, and in the `\textbf{metadata}' section there could be any other metadata in key-value pairs. The \emph{success} in the response could be `\textbf{done}', `\textbf{LN exists}', `\textbf{parent does not exist}', `\textbf{failed to create new catalog entry}', `\textbf{failed to add child to parent}', `\textbf{internal error}', etc.
+    \emph{makeCollectionRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{key}, \emph{value}) tuples where in the `\textbf{entries}' section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUIDs with the given name), in the `\textbf{states}' section there is the `\textbf{closed}' key (if it is true then no more files can be added or removed later), in the `\textbf{policies}' section there could be some access policies, and in the `\textbf{metadata}' section there could be any other metadata in key-value pairs. The \emph{success} in the response could be `\textbf{done}', `\textbf{LN exists}', `\textbf{parent does not exist}', `\textbf{failed to create new catalog entry}', `\textbf{failed to add child to parent}', `\textbf{internal error}', etc.
     \item[unmakeCollection(unmakeCollectionRequestList)] returns a list of (\emph{requestID}, \emph{success}).
     
     \emph{unmakeCollectionRequestList} is a list of (\emph{requestID}, \emph{LN}) with the Logical Names of the collections we want to remove. \emph{success} could be `\textbf{removed}', `\textbf{no such LN}', `\textbf{collection is not empty}', `\textbf{failed}: reason'.
     
     \item[list(listRequestList, neededMetadata)] returns \emph{listResponse}.
     
-    \emph{listRequestList} is a list of (\emph{requestID}, \emph{LN}) where \emph{LN} is the Logical Name of the collection (or file) we want to list, \emph{neededMetadata} is a list of (\emph{section}, \emph{property}) pairs which filters the returned metadata.
+    \emph{listRequestList} is a list of (\emph{requestID}, \emph{LN}) where \emph{LN} is the Logical Name of the collection (or file) we want to list, \emph{neededMetadata} is a list of (\emph{section}, \emph{key}) pairs which filters the returned metadata.
     
-    \emph{listResponse} is a list of (\emph{requestID}, \emph{entries}, \emph{status}) where entries is a list of (\emph{name}, \emph{GUID}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples according to the data model of the Librarian (Section~\ref{sub:data_model}), the \emph{status} could be `\textbf{found}', `\textbf{not found}', `\textbf{is a file}' (because only collections can be listed).
+    \emph{listResponse} is a list of (\emph{requestID}, \emph{entries}, \emph{status}) where entries is a list of (\emph{name}, \emph{GUID}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{key}, \emph{value}) tuples according to the data model of the Librarian (Section~\ref{sub:data_model}), the \emph{status} could be `\textbf{found}', `\textbf{not found}', `\textbf{is a file}' (because only collections can be listed).
     
     \item[move(moveRequestList)] returns a list of (\emph{requestID}, \emph{status}).
     
@@ -773,7 +778,7 @@ The term `\emph{metadata}' here refers to a list of property-value pairs organiz
     
     \item[modify(modifyRequestList)] returns a list of (\emph{changeID}, \emph{success})
 
-    \emph{modifyRequestList} is a list of (\emph{changeID}, \emph{LN}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the \emph{property} in the \emph{section} to \emph{value}), `\textbf{unset}' (remove the \emph{property}-\emph{value} pair from the \emph{section}), `\textbf{add}' (set the \emph{property} in the \emph{section} to \emph{value} only if it is not exists already). \emph{success} could be `\textbf{no such LN}', `\textbf{set}', `\textbf{unset}', `\textbf{entry exists}', `\textbf{failed}: reason'.
+    \emph{modifyRequestList} is a list of (\emph{changeID}, \emph{LN}, \emph{changeType}, \emph{section}, \emph{key}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the \emph{key} in the \emph{section} to \emph{value}), `\textbf{unset}' (remove the \emph{key}-\emph{value} pair from the \emph{section}), `\textbf{add}' (set the \emph{key} in the \emph{section} to \emph{value} only if it is not exists already). \emph{success} could be `\textbf{no such LN}', `\textbf{set}', `\textbf{unset}', `\textbf{entry exists}', `\textbf{failed}: reason'.
     
 \end{description}
 
@@ -889,6 +894,8 @@ To integrate existing files on a third-party storage system to our namespace thu
 \end{description}
 This interface has some methods similar to the Shepherd and some other methods similar to the Bartender.
 % section integrating_third_party_storage_solutions (end)
+
+% chapter technical_description (end)
 
 
 % \bibliography{grid}
