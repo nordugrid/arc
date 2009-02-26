@@ -1235,6 +1235,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/ARC0/Makefile
                  src/hed/acc/ARC1/Makefile
                  src/hed/acc/CREAM/Makefile
+                 src/hed/acc/UNICORE/Makefile
                  src/hed/acc/Broker/Makefile
                  src/hed/acc/PythonBroker/Makefile
                  src/hed/dmc/Makefile
