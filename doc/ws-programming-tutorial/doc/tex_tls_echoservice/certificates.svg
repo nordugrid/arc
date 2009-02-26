@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="750"
-   height="440"
+   height="400"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.46"
@@ -210,9 +210,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="340.95351"
-     inkscape:cy="304.25188"
+     inkscape:zoom="0.7"
+     inkscape:cx="599.805"
+     inkscape:cy="235.40512"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -241,7 +241,90 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(30,-92.362183)">
+     transform="translate(30.5,-122.86218)">
+    <g
+       id="g2694"
+       transform="translate(-240,0)">
+      <g
+         id="g2696"
+         transform="translate(0,20)">
+        <rect
+           y="472.36218"
+           x="410"
+           height="20"
+           width="130"
+           id="rect2698"
+           style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+        <text
+           id="text2700"
+           y="485.94861"
+           x="447.05444"
+           style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           xml:space="preserve"><tspan
+             y="485.94861"
+             x="447.05444"
+             id="tspan2702"
+             sodipodi:role="line">Signatur</tspan></text>
+      </g>
+      <g
+         id="g2704"
+         transform="translate(0,170)">
+        <rect
+           y="222.36218"
+           x="410"
+           height="100"
+           width="130"
+           id="rect2706"
+           style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+        <g
+           id="g2708">
+          <text
+             id="text2710"
+             y="245.94861"
+             x="432.8103"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               style="font-size:13px"
+               y="245.94861"
+               x="432.8103"
+               id="tspan2712"
+               sodipodi:role="line">User Identity</tspan></text>
+          <text
+             xml:space="preserve"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             x="441.44629"
+             y="265.94861"
+             id="text2714"><tspan
+               sodipodi:role="line"
+               id="tspan2716"
+               x="441.44629"
+               y="265.94861"
+               style="font-size:13px">Public Key</tspan></text>
+          <text
+             id="text2718"
+             y="305.94861"
+             x="419.52466"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               style="font-size:13px"
+               y="305.94861"
+               x="419.52466"
+               id="tspan2720"
+               sodipodi:role="line">Algorithm names</tspan></text>
+          <text
+             id="text2722"
+             y="285.94861"
+             x="428.06543"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               style="font-size:13px"
+               y="285.94861"
+               x="428.06543"
+               id="tspan2724"
+               sodipodi:role="line">Issuer Identity</tspan></text>
+        </g>
+      </g>
+    </g>
     <text
        id="text3462"
        y="385.98444"
@@ -253,75 +336,6 @@
          x="201.19873"
          sodipodi:role="line"
          id="tspan3535">Certificate</tspan></text>
-    <g
-       id="g3466"
-       transform="translate(0,160)">
-      <rect
-         style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect3468"
-         width="130"
-         height="100"
-         x="170"
-         y="232.36218" />
-      <g
-         id="g3470"
-         transform="translate(-80,5.0150146)">
-        <text
-           xml:space="preserve"
-           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           x="273.36493"
-           y="260.93359"
-           id="text3472"><tspan
-             sodipodi:role="line"
-             id="tspan3474"
-             x="273.36493"
-             y="260.93359"
-             style="font-size:13px">User Identity</tspan></text>
-        <text
-           id="text3476"
-           y="300.93359"
-           x="282.00092"
-           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           xml:space="preserve"><tspan
-             style="font-size:13px"
-             y="300.93359"
-             x="282.00092"
-             id="tspan3478"
-             sodipodi:role="line">Public Key</tspan></text>
-        <text
-           xml:space="preserve"
-           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           x="310.10834"
-           y="280.93359"
-           id="text3480"><tspan
-             sodipodi:role="line"
-             id="tspan3482"
-             x="310.10834"
-             y="280.93359"
-             style="font-size:13px">+</tspan></text>
-      </g>
-    </g>
-    <g
-       id="g3484"
-       transform="translate(-240,20)">
-      <rect
-         style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect3486"
-         width="130"
-         height="20"
-         x="410"
-         y="472.36218" />
-      <text
-         xml:space="preserve"
-         style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         x="447.05444"
-         y="485.94861"
-         id="text3488"><tspan
-           sodipodi:role="line"
-           id="tspan3490"
-           x="447.05444"
-           y="485.94861">Signatur</tspan></text>
-    </g>
     <g
        id="g3333"
        transform="translate(54.816956,-5.7142944)">
@@ -366,95 +380,54 @@
            x="459.84143"
            sodipodi:role="line">(Issuer)</tspan></text>
     </g>
-    <g
-       id="g3375">
-      <text
-         id="text3175"
-         y="225.98442"
+    <text
+       xml:space="preserve"
+       style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="174.7663"
+       y="225.98442"
+       id="text3175"><tspan
+         sodipodi:role="line"
+         id="tspan3177"
          x="174.7663"
-         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         xml:space="preserve"><tspan
-           style="font-size:13px"
-           y="225.98442"
-           x="174.7663"
-           id="tspan3177"
-           sodipodi:role="line">Certificate request</tspan></text>
-      <g
-         id="g3365">
-        <rect
-           style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-           id="rect3165"
-           width="130"
-           height="100"
-           x="170"
-           y="232.36218" />
-        <g
-           id="g3207"
-           transform="translate(-80,5.0150146)">
-          <text
-             xml:space="preserve"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             x="273.36493"
-             y="260.93359"
-             id="text3179"><tspan
-               sodipodi:role="line"
-               id="tspan3181"
-               x="273.36493"
-               y="260.93359"
-               style="font-size:13px">User Identity</tspan></text>
-          <text
-             id="text3183"
-             y="300.93359"
-             x="282.00092"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             xml:space="preserve"><tspan
-               style="font-size:13px"
-               y="300.93359"
-               x="282.00092"
-               id="tspan3185"
-               sodipodi:role="line">Public Key</tspan></text>
-          <text
-             xml:space="preserve"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             x="310.10834"
-             y="280.93359"
-             id="text3187"><tspan
-               sodipodi:role="line"
-               id="tspan3189"
-               x="310.10834"
-               y="280.93359"
-               style="font-size:13px">+</tspan></text>
-        </g>
-      </g>
-    </g>
+         y="225.98442"
+         style="font-size:13px">Certificate request</tspan></text>
+    <rect
+       style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect3165"
+       width="130"
+       height="100"
+       x="170"
+       y="232.36218" />
+    <text
+       id="text3179"
+       y="265.94861"
+       x="193.36493"
+       style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         style="font-size:13px"
+         y="265.94861"
+         x="193.36493"
+         id="tspan3181"
+         sodipodi:role="line">User Identity</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="202.00092"
+       y="305.94861"
+       id="text3183"><tspan
+         sodipodi:role="line"
+         id="tspan3185"
+         x="202.00092"
+         y="305.94861"
+         style="font-size:13px">Public Key</tspan></text>
     <path
        style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 110,258.36218 L 160,258.36218 L 160,254.36218 L 172,262.36218 L 160,270.36218 L 160,266.36218 L 110,266.36218 L 110,258.36218 z"
        id="path3229"
        sodipodi:nodetypes="cccccccc" />
     <g
-       id="g3447"
-       transform="translate(0,-30)">
-      <rect
-         y="472.36218"
-         x="410"
-         height="20"
-         width="130"
-         id="rect3438"
-         style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-      <text
-         id="text3287"
-         y="485.94861"
-         x="447.05444"
-         style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         xml:space="preserve"><tspan
-           y="485.94861"
-           x="447.05444"
-           id="tspan3289"
-           sodipodi:role="line">Signatur</tspan></text>
-    </g>
-    <g
-       id="g3455">
+       id="g3455"
+       transform="translate(-0.5,70.499997)">
       <rect
          style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="rect3396"
@@ -729,48 +702,192 @@
            id="path4059" />
       </g>
     </g>
-    <path
-       sodipodi:nodetypes="cccccccc"
-       id="path3255"
-       d="M 296,278.36218 L 402,278.36218 L 402,274.36218 L 414,282.36218 L 402,290.36218 L 402,286.36218 L 296,286.36218 L 296,278.36218 z"
-       style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
     <text
        xml:space="preserve"
        style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-       x="439.99585"
-       y="370.26199"
+       x="568.49585"
+       y="356.44861"
        id="text3279"><tspan
          sodipodi:role="line"
          id="tspan3281"
-         x="439.99585"
-         y="370.26199">Encryption</tspan></text>
+         x="568.49585"
+         y="356.44861">Encryption</tspan></text>
+    <rect
+       style="fill:#f4e3d7;fill-opacity:0.56281403;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4087"
+       width="750"
+       height="400"
+       x="-30.5"
+       y="-337.13782"
+       ry="4.2207789" />
+    <g
+       id="g2637">
+      <rect
+         style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect2537"
+         width="130"
+         height="100"
+         x="410"
+         y="222.36218" />
+      <g
+         id="g2627">
+        <text
+           xml:space="preserve"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="432.8103"
+           y="245.94861"
+           id="text2541"><tspan
+             sodipodi:role="line"
+             id="tspan2543"
+             x="432.8103"
+             y="245.94861"
+             style="font-size:13px">User Identity</tspan></text>
+        <text
+           id="text2545"
+           y="265.94861"
+           x="441.44629"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           xml:space="preserve"><tspan
+             style="font-size:13px"
+             y="265.94861"
+             x="441.44629"
+             id="tspan2547"
+             sodipodi:role="line">Public Key</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="419.52466"
+           y="305.94861"
+           id="text2549"><tspan
+             sodipodi:role="line"
+             id="tspan2551"
+             x="419.52466"
+             y="305.94861"
+             style="font-size:13px">Algorithm names</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="428.06543"
+           y="285.94861"
+           id="text2572"><tspan
+             sodipodi:role="line"
+             id="tspan2574"
+             x="428.06543"
+             y="285.94861"
+             style="font-size:13px">Issuer Identity</tspan></text>
+      </g>
+    </g>
     <path
-       style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 479,288.36218 L 479,340.36218 L 483,340.36218 L 475,352.36218 L 467,340.36218 L 471,340.36218 L 471,288.36218 L 479,288.36218 z"
+       style="fill:#ffe6d5;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 478.5,318.86218 L 478.5,332.86218 L 482.5,332.86218 L 474.5,344.86218 L 466.5,332.86218 L 470.5,332.86218 L 470.5,318.86218 L 478.5,318.86218 z"
        id="path3275"
        sodipodi:nodetypes="cccccccc" />
-    <path
-       sodipodi:nodetypes="cccccccccccc"
-       id="path4069"
-       d="M 554,362.36218 L 526,362.36218 L 526,358.36218 L 514,366.36218 L 526,374.36218 L 526,370.36218 L 562,370.36218 L 562,304.36218 L 578,304.36218 L 578,296.36218 L 554,296.36218 L 554,362.36218 z"
-       style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <g
+       id="g2677">
+      <g
+         transform="translate(0,20)"
+         id="g3447">
+        <rect
+           style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect3438"
+           width="130"
+           height="20"
+           x="410"
+           y="472.36218" />
+        <text
+           xml:space="preserve"
+           style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="447.05444"
+           y="485.94861"
+           id="text3287"><tspan
+             sodipodi:role="line"
+             id="tspan3289"
+             x="447.05444"
+             y="485.94861">Signatur</tspan></text>
+      </g>
+      <g
+         transform="translate(0,170)"
+         id="g2649">
+        <rect
+           style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect2651"
+           width="130"
+           height="100"
+           x="410"
+           y="222.36218" />
+        <g
+           id="g2653">
+          <text
+             xml:space="preserve"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             x="432.8103"
+             y="245.94861"
+             id="text2655"><tspan
+               sodipodi:role="line"
+               id="tspan2657"
+               x="432.8103"
+               y="245.94861"
+               style="font-size:13px">User Identity</tspan></text>
+          <text
+             id="text2659"
+             y="265.94861"
+             x="441.44629"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               style="font-size:13px"
+               y="265.94861"
+               x="441.44629"
+               id="tspan2661"
+               sodipodi:role="line">Public Key</tspan></text>
+          <text
+             xml:space="preserve"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             x="419.52466"
+             y="305.94861"
+             id="text2663"><tspan
+               sodipodi:role="line"
+               id="tspan2665"
+               x="419.52466"
+               y="305.94861"
+               style="font-size:13px">Algorithm names</tspan></text>
+          <text
+             xml:space="preserve"
+             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             x="428.06543"
+             y="285.94861"
+             id="text2667"><tspan
+               sodipodi:role="line"
+               id="tspan2669"
+               x="428.06543"
+               y="285.94861"
+               style="font-size:13px">Issuer Identity</tspan></text>
+        </g>
+      </g>
+    </g>
     <path
        sodipodi:nodetypes="cccccccc"
-       id="path4083"
-       d="M 479,382.36218 L 479,434.36218 L 483,434.36218 L 475,446.36218 L 467,434.36218 L 471,434.36218 L 471,382.36218 L 479,382.36218 z"
+       id="path2673"
+       d="M 535.5,348.86218 L 549.5,348.86218 L 549.5,344.86218 L 561.5,352.86218 L 549.5,360.86218 L 549.5,356.86218 L 535.5,356.86218 L 535.5,348.86218 z"
        style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
     <path
        style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 414,448.36218 L 308,448.36218 L 308,444.36218 L 296,452.36218 L 308,460.36218 L 308,456.36218 L 414,456.36218 L 414,448.36218 z"
        id="path4085"
        sodipodi:nodetypes="cccccccc" />
-    <rect
-       style="fill:#f4e3d7;fill-opacity:0.56281403;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect4087"
-       width="750"
-       height="440"
-       x="-30"
-       y="-407.63782"
-       ry="4.6428571" />
+    <path
+       sodipodi:nodetypes="cccccccc"
+       id="path3255"
+       d="M 296,278.36218 L 402,278.36218 L 402,274.36218 L 414,282.36218 L 402,290.36218 L 402,286.36218 L 296,286.36218 L 296,278.36218 z"
+       style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 607.5,316.86218 L 607.5,332.86218 L 611.5,332.86218 L 603.5,344.86218 L 595.5,332.86218 L 599.5,332.86218 L 599.5,316.86218 L 607.5,316.86218 z"
+       id="path2732"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       sodipodi:nodetypes="cccccccccc"
+       id="path2734"
+       d="M 607.5,506.86218 L 547.5,506.86218 L 547.5,510.86218 L 535.5,502.86218 L 547.5,494.86218 L 547.5,498.86218 L 599.5,498.86218 L 599.5,362.86218 L 607.5,362.86218 L 607.5,506.86218 z"
+       style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
   </g>
 </svg>
