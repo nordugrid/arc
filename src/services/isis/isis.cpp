@@ -21,8 +21,6 @@ namespace ISIS
 
         // Init database
         db_ = new Arc::XmlDatabase(db_path, "isis");
-
-        //db_->del("OtherSrv_ID1");
     }
 
     ISIService::~ISIService(void){
@@ -60,7 +58,7 @@ namespace ISIS
         while ((bool) request["ServiceID"][i]) {
             std::string service_id = (std::string) request["ServiceID"][i];
             logger_.msg(Arc::VERBOSE, "RemoveRegistration: ID=%s", service_id);
-            //db_->del(service_id);
+            db_->del(service_id);
             i++;
         }
         return Arc::MCC_Status(Arc::STATUS_OK);
