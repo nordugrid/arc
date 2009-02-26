@@ -44,7 +44,9 @@ Building ARC on Windows system using MinGW
   (http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/)
   TODO: We probably need to provide either mingwPORT or some other port which 
   includes only glibmm.
-  - Add mktime.m4 to C:\GTK\2.0\share\alocal   (https://svn.habolinux.de/filedetails.php?repname=tar&path=%2Fm4%2Fmktime.m4&rev=0&sc=0)
+  - Add mktime.m4 and functions.m4 to C:\GTK\2.0\share\alocal
+  	(https://svn.habolinux.de/filedetails.php?repname=tar&path=%2Fm4%2Fmktime.m4&rev=0&sc=0)
+  	(http://cvs.savannah.gnu.org/viewvc/*checkout*/autoconf/autoconf/lib/autoconf/functions.m4?revision=1.119)
 
 - Install OpenSSL. 
   (http://www.slproweb.com/products/Win32OpenSSL.html)
