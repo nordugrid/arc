@@ -1,0 +1,42 @@
+<ArcConfig
+   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
+  <ModuleManager><Path>/opt/arc1/lib/arc</Path></ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+<!--  <Plugins><Name>arcshc</Name></Plugins> -->
+  <Chain>
+
+    <Component name='tcp.client' id='tcp'>
+      <tcp:Connect>
+	<tcp:Host>localhost</tcp:Host>
+	<tcp:Port>8443</tcp:Port>
+      </tcp:Connect>
+    </Component>
+
+    <Component name='tls.client' id='tls'>  <next id='tcp'/>
+      <CertificatePath>/home/dp/.globus/usercert.pem</CertificatePath>
+      <KeyPath>/home/dp/.globus/usercert.pem/userkey.pem</KeyPath>
+      <ProxyPath>/tmp/x509up_u1000</ProxyPath>
+      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+    </Component> 
+
+    <Component name='http.client' id='http'>  <next id='tls'/>
+      <Method>POST</Method>
+      <Endpoint>/wsrf/services/sgas/LUTS</Endpoint>
+    </Component>
+
+    <Component name='soap.client' id='soap' entry='soap'>  <next id='http'/>
+    </Component> 
+
+  </Chain>
+
+  <Jarm>
+    <!-- Accounting related configuration -->
+    <ArexLogDir>/tmp/jobstatus/logs</ArexLogDir>
+    <MaxURSetSize>50</MaxURSetSize>
+  </Jarm>
+
+</ArcConfig>

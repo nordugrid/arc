@@ -1,0 +1,34 @@
+
+
+RecordIdentity:      nodename, ngjobid (hyphen-separated, with custom prefix)
+GlobalJobId:         ngjobid
+LocalJobId:          localjobid
+ProcessId:           [MISSING]
+GlobalUserName:      usersn
+LocalUserId:         localuser
+JobName:             jobname
+Charge:              [MISSING]
+Status:              status (no conversion yet!)
+WallDuration:        usedwalltime
+CpuDuration:         usedcputime
+StartTime:           submissiontime
+EndTime:             endtime
+MachineName:         nodename
+Host:                [MISSING]
+SubmitHost:          clienthost (port number removed)
+Queue:               lrms
+ProjectName:         [MISSING]
+
+Differentiated properties
+
+Network:             [MISSING]
+Disk:                [MISSING]
+Memory:              [MISSING] (usedmemory is always zero using fork scheduler)
+Swap:                [MISSING]
+NodeCount:           [MISSING]
+Processors:          [MISSING]
+
+TimeDuration:        [MISSING]
+TimeInstant:         [MISSING]
+ServiceLevel:        [MISSING]
+Extension:           [MISSING]

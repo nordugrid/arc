@@ -1365,6 +1365,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/arclib/arcclient.xml.5
                  src/clients/srm/Makefile
                  src/clients/srm/arcsrmping.1
+		 src/clients/arexjarm/Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
