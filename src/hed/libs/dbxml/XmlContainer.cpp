@@ -150,32 +150,30 @@ XmlContainer::del(const std::string &name)
     void *k = (void *)name.c_str();
     Dbt key(k, name.size() + 1);
     DbTxn *tid = NULL;
-    while (true) {
-        try {
-            env_->txn_begin(NULL, &tid, 0);
-            db_->del(tid, &key, 0);
-            tid->commit(0);
+    try {
+        env_->txn_begin(NULL, &tid, 0);
+        db_->del(tid, &key, 0);
+        tid->commit(0);
 #ifdef HAVE_DBDEADLOCKEXCEPTION
-        } catch (DbDeadlockException &e) {
-            try {
-                tid->abort();
-                logger_.msg(Arc::INFO, "del: deadlock handling, try again");
-            } catch (DbException &e) {
-                logger_.msg(Arc::ERROR, "del: cannot abort transaction: %s", e.what());
-                return;
-            }
-#endif
+    } catch (DbDeadlockException &e) {
+        try {
+            tid->abort();
+            logger_.msg(Arc::INFO, "del: deadlock handling, try again");
         } catch (DbException &e) {
-            logger_.msg(Arc::ERROR, "del: %s", e.what());
-            try {
-                tid->abort();
-            } catch (DbException &e) {
-                logger_.msg(Arc::ERROR, "del: cannot abort transaction: %s", e.what());
-            }
+            logger_.msg(Arc::ERROR, "del: cannot abort transaction: %s", e.what());
             return;
         }
+#endif
+    } catch (DbException &e) {
+        logger_.msg(Arc::ERROR, "del: %s", e.what());
+        try {
+            tid->abort();
+        } catch (DbException &e) {
+            logger_.msg(Arc::ERROR, "del: cannot abort transaction: %s", e.what());
+        }
+        return;
     }
-
+    return;
 }
 
 void
