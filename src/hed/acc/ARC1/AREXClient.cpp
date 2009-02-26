@@ -475,10 +475,10 @@ namespace Arc {
       return false;
     }
 
-    XMLNode cancelled, fs;
+    XMLNode terminated, fs;
     (*resp)["TerminateActivitiesResponse"]
-    ["Response"]["Cancelled"].New(cancelled);
-    result = (std::string)cancelled;
+    ["Response"]["Terminated"].New(terminated);
+    result = (std::string)terminated;
     (*resp)["Fault"]["faultstring"].New(fs);
     faultstring = (std::string)fs;
     // delete resp;
