@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <arc/globusutils/GSSCredential.h>
+
 #include "PayloadGSIStream.h"
 
 namespace Arc {
@@ -54,6 +56,7 @@ namespace Arc {
 			     &output_tok,
 			     NULL,
 			     GSS_C_QOP_DEFAULT);
+
 	logger.msg(INFO, "GSS unwrap: %i/%i", majstat, minstat);
       }
       else {
@@ -65,6 +68,10 @@ namespace Arc {
 			   NULL,
 			   &output_tok);
 	logger.msg(INFO, "GSS wrap: %i/%i", majstat, minstat);
+      }
+      if(GSS_ERROR(majstat)) {
+        logger.msg(ERROR, "GSS wrap/unwrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+        return false;
       }
 
       logger.msg(DEBUG, "Output token length: %i", output_tok.length);
