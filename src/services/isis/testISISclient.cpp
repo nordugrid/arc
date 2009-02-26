@@ -9,11 +9,17 @@
         attributes: The ServiceID for remove.
     (The GetISISList operation will be used in every other cases impicitly.)
 
-    Usage examples:
+    Usage:
         testISISclient Query "query string"
         testISISclient Register "ServiceID1,EPR1" "ServiceID2,EPR2" "ServiceID3,EPR3"
         testISISclient RemoveRegistration "ServiceID1" "ServiceID2"
         etc.
+
+    Examples:
+        testISISclient -m Register "Srv_ID1,EPR1"
+        testISISclient -m Query "/RegEntry/MetaSrcAdv/ServiceID[text()=\"Srv_ID1\"]"
+        testISISclient -m RemoveRegistration "Srv_ID1"
+
 */
 #include <sys/stat.h>
 #include <time.h>
@@ -188,14 +194,14 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     
     for (int i=0; i < serviceID.size(); i++){
         Arc::XMLNode srcAdv = request.NewChild("RegEntry").NewChild("SrcAdv");
-        //srcAdv.NewChild("Type");
+        srcAdv.NewChild("Type") = "org.nordugrid.test.testISISclient";
         srcAdv.NewChild("EPR") = epr[i];
         //srcAdv.NewChild("SSPair");
 
         Arc::XMLNode metaSrcAdv = request["RegEntry"][i].NewChild("MetaSrcAdv");
         metaSrcAdv.NewChild("ServiceID") = serviceID[i];
-        //metaSrcAdv.NewChild("GenTime");
-        //metaSrcAdv.NewChild("Expiration");
+        metaSrcAdv.NewChild("GenTime") = out.str();
+        metaSrcAdv.NewChild("Expiration") = "1";
     }
     Arc::Message reqmsg;
     Arc::Message repmsg;
@@ -387,7 +393,10 @@ int main(int argc, char** argv) {
        response = Query( BootstrapISIS, *parameters.begin() );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
-          std::cout << " The Query response: " << (std::string)resp["Body"]["QueryResponse"] << std::endl;
+          Arc::XMLNode queryresponse_;
+          resp["Body"]["QueryResponse"].New(queryresponse_);
+          queryresponse_.GetDoc(response, true);
+          std::cout << " The Query response: " << response << std::endl;
        }
     }
     //The method is Register

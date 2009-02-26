@@ -35,7 +35,31 @@ namespace ISIS
     Arc::MCC_Status ISIService::Query(Arc::XMLNode &request, Arc::XMLNode &response) {
         std::string querystring_ = request["QueryString"];
         logger_.msg(Arc::VERBOSE, "Query: %s", querystring_);
-        response = querystring_;
+        if (querystring_.empty()) {
+            Arc::SOAPEnvelope fault(ns_, true);
+            if (fault) {
+                fault.Fault()->Code(Arc::SOAPFault::Sender);
+                fault.Fault()->Reason("Invalid query");
+                response.Replace(fault.Child());
+            }
+            return Arc::MCC_Status();
+        }
+
+        std::map<std::string, Arc::XMLNodeList> result;
+        db_->queryAll(querystring_, result);
+        std::map<std::string, Arc::XMLNodeList>::iterator it;
+        // DEBUGING // logger_.msg(Arc::VERBOSE, "Result.size(): %d", result.size());
+        for (it = result.begin(); it != result.end(); it++) {
+            if (it->second.size() == 0) {
+                continue;
+            }
+            // DEBUGING // logger_.msg(Arc::VERBOSE, "ServiceID: %s", it->first);
+            Arc::XMLNode data_;
+            //db_->get(ServiceID, RegistrationEntry);
+            db_->get(it->first, data_);
+            // add data to output
+            response.NewChild(data_);
+        }
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
