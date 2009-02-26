@@ -27,7 +27,7 @@ import time
 import threading
 import copy
 import base64
-import errno
+import random
 
 from arcom import get_child_values_by_name
 from arcom.threadpool import ThreadPool, ReadWriteLock
@@ -202,7 +202,7 @@ class ReplicationStore(TransDBStore):
             self.check_period = float(str(cfg.Get('CheckPeriod')))
         except:
             log.msg(arc.ERROR, "Could not find checking period, using default 10s")
-            self.check_period = 30.0
+            self.check_period = 10.0
         try:
             # amount of db cached in memory
             # Must be integer. Optionally in order of kB, MB, GB, TB or PB,
@@ -227,7 +227,7 @@ class ReplicationStore(TransDBStore):
         self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_ONE)
         self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 500000)
         self.dbenv.rep_set_priority(self.priority)
-
+        #self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
 
     def getDBFlags(self):
             # only master can create db
@@ -288,6 +288,7 @@ hostMap = {}
 NEWSITE_MESSAGE = 1
 REP_MESSAGE = 2
 HEARTBEAT_MESSAGE = 3
+MASTER_MESSAGE = 4
 
 class ReplicationManager:
     """
@@ -295,6 +296,7 @@ class ReplicationManager:
     """
     
     def __init__(self, ahash_send, dbenv, my_replica, other_replicas, dbReady):
+        
         # no master is found yet
         self.role = db.DB_EID_INVALID
         self.elected = False
@@ -311,8 +313,11 @@ class ReplicationManager:
         self.my_replica = my_replica
         self.eid = my_replica['id']
         self.url = my_replica['url']
+        # assume no master yet
+        self.masterID = db.DB_EID_INVALID
         self.dbenv = dbenv
         self.dbReady = dbReady
+        self.dbenv.set_verbose(db.DB_VERB_REPLICATION, True)
         # tell dbenv to uset our event callback function
         # to handle various events
         self.dbenv.set_event_notify(self.event_callback)
@@ -322,6 +327,7 @@ class ReplicationManager:
                          args=[10]).start()
         self.last_heartbeat = time.time()
         self.check_heartbeat = False
+        self.time_since_master_message = 0
         
     def isMaster(self):
         self.locker.acquire_read()
@@ -334,26 +340,16 @@ class ReplicationManager:
         Thread for sending heartbeat messages
         Heartbeats are only sendt when master is elected and 
         running (i.e., when check_heartbeat is true)
-        Only master sends heartbeats
-        If client hasn't recieved a heartbeat in two periods
-        it assumes master has died and calls for election
+        Only clients sends heartbeats
+        If heartbeat is not answered, re-election will be initiated in send method
         """
-        time.sleep(10)
+        time.sleep(10+random.randint(0,10))
         while True:
-            if self.check_heartbeat:
-                if self.role == db.DB_REP_MASTER:
+            if self.masterID != db.DB_EID_INVALID:
+                if self.role == db.DB_REP_CLIENT:
                     self.sendHeartbeatMsg()
-                elif self.role == db.DB_REP_CLIENT:
-                    time_since_heartbeat = time.time() - self.last_heartbeat
-                    if time_since_heartbeat > 2*period:
-                        log.msg(arc.INFO, "No heartbeat from master, call for election!")
-                        self.beginRole(db.DB_EID_INVALID)
-                        self.stop_electing = True
-                        nthreads = self.pool.getThreadCount()
-                        self.pool.joinAll()
-                        self.pool = ThreadPool(nthreads)
-                        self.pool.queueTask(self.startElection)
-            time.sleep(period)
+            # add some randomness to avoid bugging the master too much
+            time.sleep(period+random.random()*period-period/2)
 
     def getRole(self):
         self.locker.acquire_read()
@@ -381,7 +377,7 @@ class ReplicationManager:
             self.dbenv.rep_set_transport(self.eid, self.repSend)
             self.dbenv.rep_start(db.DB_REP_CLIENT)
             log.msg(arc.DEBUG, ("rep_start called with REP_CLIENT", self.hostMap))
-            self.pool.queueTask(self.startElection)
+            self.startElection()
         except:
             log.msg(arc.ERROR, "Couldn't start replication framework")
             log.msg()
@@ -391,16 +387,17 @@ class ReplicationManager:
         log.msg(arc.DEBUG, "entering startElection")
         role = db.DB_EID_INVALID
         self.stop_electing = False  
-        self.check_heartbeat = False
         self.dbReady(False)
+        self.locker.acquire_read()
+        num_reps = len([id for id,rep in self.hostMap.items() 
+                        if rep['status'] != 'offline'])
+        self.locker.release_read()
+        votes = num_reps/2 + 1
+        elect_thread = threading.Thread(target=self.dbenv.rep_elect, args=[num_reps,votes])
+        elect_thread.start()
         while role == db.DB_EID_INVALID and not self.stop_electing:
             try:
-                self.locker.acquire_read()
-                num_reps = len([id for id,rep in self.hostMap.items() 
-                                if rep['status'] == 'online'])
-                self.locker.release_read()
-                votes = num_reps/2 + 1
-                log.msg(arc.DEBUG, self.dbenv.rep_elect(num_reps, votes))
+                #self.dbenv.rep_elect(num_reps, votes)
                 # wait one second for election to finish
                 # should be some better way to do this...
                 time.sleep(2)
@@ -415,6 +412,7 @@ class ReplicationManager:
                 log.msg()
                 time.sleep(2)
             log.msg(arc.DEBUG, "%s tried election with %d replicas"%(self.url, num_reps))
+        elect_thread.join()
 
     def beginRole(self, role):
         try:
@@ -445,22 +443,20 @@ class ReplicationManager:
                'msgID':msgID,
                'sender':sender}
         
+        
         retval = 1
         if msgID == NEWSITE_MESSAGE:
             eids = [control['id']]
             msg['control'] = None
         elif msgID == HEARTBEAT_MESSAGE:
-            eids = [id for id,rep in self.hostMap.items()]
+            eids = [self.masterID]
         elif eid == db.DB_EID_BROADCAST:
-            # send to all we know are online
-#            eids = [id for id,rep in self.hostMap.items() if rep['status']=="online"]    
+            # send to all
             eids = [id for id,rep in self.hostMap.items()]    
         else:
             eids = [eid]
             if not self.hostMap.has_key(eid):
                 return retval
-#            elif self.hostMap[eid]['status'] != "online":
-#                return retval
         for id in eids:
             if id == self.eid:
                 continue
@@ -472,11 +468,25 @@ class ReplicationManager:
                 if str(resp[0]) == "processed":
                     # if at least one msg is sent, we're happy
                     retval = 0
+                    # received message so sender cannot be offline
                     if self.hostMap[id]['status'] == 'offline':
                         self.locker.acquire_write()
                         self.hostMap[id]['status'] = 'online'
                         self.locker.release_write()
+                    if id == self.masterID:
+                        self.time_since_master_message = time.time()
                 elif str(resp[0]).startswith("soap-env"):
+                    # this usually means no contact at all but to be safe we
+                    # do nothing if there is less that 65 seconds since last message
+                    # from master (assumes 60 sec. timeout in HED)
+                    if id == self.masterID and (time.time() - self.time_since_master_message) > 65.0:
+                        log.msg(arc.INFO, "Master is offline, starting re-election")
+                        # in case more threads misses the master
+                        if self.masterID != db.DB_EID_INVALID:
+                            self.beginRole(db.DB_EID_INVALID)
+                            self.masterID = db.DB_EID_INVALID
+                            self.startElection()
+                        return 1
                     raise RuntimeError, "No connection to server"
             except:
                 # assume url is disconnected
@@ -484,7 +494,7 @@ class ReplicationManager:
                 log.msg()
                 self.locker.acquire_write()
                 # cannot have less than 2 online sites
-                if len([id for id,rep in self.hostMap.items() if rep['status']=="online"]) > 2:
+                if len([id2 for id2,rep in self.hostMap.items() if rep['status']=="online"]) > 2:
                     self.hostMap[id]['status'] = "offline"
                     if msgID == NEWSITE_MESSAGE:
                         record['status'] = "offline"
@@ -524,6 +534,13 @@ class ReplicationManager:
         log.msg(arc.DEBUG, "entering sendHeartbeatMsg")
         return self.send(None, None, None, None, None, None, HEARTBEAT_MESSAGE)
     
+    def sendNewMasterMsg(self, eid=db.DB_EID_BROADCAST):
+        """
+        If elected, broadcast master id to all clients
+        """
+        log.msg(arc.DEBUG, "entering sendNewMasterMsg")
+        return self.send(None, None, None, None, eid, None, MASTER_MESSAGE)
+    
     def processMsg(self, control, record, eid, retlsn, sender, msgID):
         """
         Function to process incoming messages, forwarding 
@@ -551,16 +568,14 @@ class ReplicationManager:
             # return hostMap to sender
             if really_new:
                 self.sendNewSiteMsg(sender)
+        if msgID == MASTER_MESSAGE:
+            # sender is master, find local id for sender and set as masterID
+            log.msg(arc.DEBUG, "received master id")
+            self.masterID = [id for id,rep in self.hostMap.items() if rep['url']==sender['url']][0]
+            self.time_since_master_message = time.time()
+            return "processed"
         if msgID == HEARTBEAT_MESSAGE:
             log.msg(arc.DEBUG, "received HEARTBEAT_MESSAGE")
-            if self.isMaster(): 
-                # this shouldn't happen
-                self.beginRole(db.DB_EID_INVALID)
-                self.stop_electing = True
-                nthreads = self.pool.getThreadCount()
-                self.pool.joinAll()
-                self.pool = ThreadPool(nthreads)
-                self.pool.queueTask(self.startElection)
             self.last_heartbeat = time.time()
             return "processed"
         if msgID == NEWSITE_MESSAGE:
@@ -589,6 +604,8 @@ class ReplicationManager:
             eid = [id for id,rep in self.hostMap.items() if rep['url']==sender['url']][0]
         except:
             return "notfound"
+        if eid == self.masterID:
+            self.time_since_master_message = time.time()
         try:
             log.msg(arc.DEBUG, "processing message from %d"%eid)
             res, retlsn = self.dbenv.rep_process_message(control, record, eid)
@@ -605,14 +622,12 @@ class ReplicationManager:
         
         if res == db.DB_REP_NEWSITE:
             log.msg(arc.DEBUG, "received DB_REP_NEWSITE from %s"%str(sender))
+            if self.isMaster():
+                self.sendNewMasterMsg(eid)
         elif res == db.DB_REP_HOLDELECTION:
             log.msg(arc.DEBUG, "received DB_REP_HOLDELECTION")
             self.beginRole(db.DB_EID_INVALID)
-            self.stop_electing = True
-            nthreads = self.pool.getThreadCount()
-            self.pool.joinAll()
-            self.pool = ThreadPool(nthreads)
-            self.pool.queueTask(self.startElection)
+            self.startElection()
         elif res == db.DB_REP_ISPERM:
             log.msg(arc.DEBUG, "REP_ISPERM returned for LSN %s"%str(retlsn))
             self.dbReady(True)
@@ -622,11 +637,7 @@ class ReplicationManager:
             log.msg(arc.DEBUG, "REP_DUPMASTER received, starting new election")
             # yield to revolution, switch to client
             self.beginRole(db.DB_EID_INVALID)
-            self.stop_electing = True
-            nthreads = self.pool.getThreadCount()
-            self.pool.joinAll()
-            self.pool = ThreadPool(nthreads)
-            self.pool.queueTask(self.startElection)
+            self.startElection()
         elif res == db.DB_REP_IGNORE:
             log.msg(arc.DEBUG, "REP_IGNORE received")
             log.msg(arc.ERROR, (control, record, eid, retlsn, sender, msgID))
@@ -653,12 +664,13 @@ class ReplicationManager:
                 log.msg(arc.DEBUG, "received DB_EVENT_REP_MASTER")
                 self.setRole(db.DB_REP_MASTER)
                 self.dbReady(True)
+                self.sendNewMasterMsg()
             elif which == db.DB_EVENT_REP_CLIENT:
                 log.msg(arc.DEBUG, "I am now a client")
                 self.setRole(db.DB_REP_CLIENT)
+                self.dbReady(True)
             elif which == db.DB_EVENT_REP_STARTUPDONE:
                 log.msg(arc.DEBUG, ("Replication startup done",which,info))
-                self.dbReady(True)
             elif which == db.DB_EVENT_REP_PERM_FAILED:
                 log.msg(arc.DEBUG, "Getting permission failed")
             elif which == db.DB_EVENT_WRITE_FAILED:
@@ -666,12 +678,10 @@ class ReplicationManager:
             elif which == db.DB_EVENT_REP_NEWMASTER:
                 log.msg(arc.DEBUG, "New master elected")
                 self.check_heartbeat = True
-                self.last_heartbeat = time.time()
+                # give master 30 seconds to celebrate victory
             elif which == db.DB_EVENT_REP_ELECTED:
                 log.msg(arc.DEBUG, "I won the election: I am the MASTER")
                 self.elected = True
-                self.check_heartbeat = True
-                self.last_heartbeat = time.time()
             elif which == db.DB_EVENT_PANIC:
                 log.msg(arc.ERROR, "Oops! Internal DB panic!")
                 raise db.DBRunRecoveryError, "Please run recovery."
