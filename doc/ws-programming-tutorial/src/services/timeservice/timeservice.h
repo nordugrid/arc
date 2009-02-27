@@ -31,7 +31,7 @@ class TimeService: public Arc::Service
 		Arc::Logger logger;
 
 		/**
-		* Class which specifies a XML namespace i.e. "echo".
+		* Class which specifies a XML namespace i.e. "time".
 		* Needed to extract the content out of the incoming message
 		*/
 		Arc::NS ns_;

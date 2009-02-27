@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-	<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:echo="urn:time_config">
+	<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:time="urn:time_config">
 	<Server>
 		<Pidfile>/var/run/arched.pid</Pidfile>
 		<Logger level="VERBOSE">/var/log/arched.log</Logger>

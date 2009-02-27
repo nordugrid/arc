@@ -52,11 +52,12 @@ The TLS is a protocol which provides a secure connection between two endpoints. 
 %
 
 
-Symmetric and asymmetric encryption are the two main classes of cryptography algorithms.
-In case of a symmetric encryption both participants are holding the same secret key. 
+Symmetric and asymmetric encryption are the two main classes of cryptographic algorithms.
+In case of symmetric encryption both participants are holding the same secret key to encrypt and decrypt a plain text. The principle is to reverse the process of encryption for decrypting the text.
 Symmetric encryption can be ranked as being very secure but its downside is that the key distribution is very difficult in practice.
 The key has to be shared previously, ideally over a secure channel which is may either be a complete diffrent medium (i.e. a letter, speech) or a channel which has been encrypted with another secret key.
-Asymmetric encryption follows a diffrent functional principle. While the symmetric encryption utilise one shared secret, the asymmetric ecryption is based on two keys: a private key and public key. As the names imply the private key is kept secret and is never shared while the public key is available to everyone. Messages encrypted with the public key can only be decrypted with the private key and the other way round, messages encrypted with the private key can only be decrypted with the public key. The Figure~\ref{fig:asymmetric_encryption} illustrates the circumstances of the case.\\
+Asymmetric encryption follows a diffrent functional principle. While the symmetric encryption utilise one shared secret, the asymmetric ecryption is based on two keys: a private key and public key. As the names imply the private key is kept secret and is never shared while the public key is available to everyone. Messages encrypted with the public key can only be decrypted with the private key and the other way round, messages encrypted with the private key can only be decrypted with the public key. 
+The Figure~\ref{fig:asymmetric_encryption} illustrates the circumstances of the case.\\
 \begin{figure}[htb]
 	\centering%epstopdf async.eps
 	\subfloat[Texttext\label{fig:cgd}]
@@ -66,20 +67,21 @@ Asymmetric encryption follows a diffrent functional principle. While the symmetr
 	\label{fig:asymmetric_encryption}
 	\mycaption{specific}{general}
 \end{figure}
-
+\task{Maybe the term service has to be replaced by server}
 
 At startup of the communication process A (Alice) who desires a secure connection transmits her public key to B (Bob).
-Bob is now able to encrypt the messages such that only A is able to decrypt them.
+Bob is now able to encrypt his messages such that only Alice is able to decrypt them.
 As one can see this first approach already provides confidentiality and integrity of messages.
 %
 Non-repudiation, authentication and due to that access control are not given because the identity of Alice is not proven.
-In order to be able to check identities so called certificates must be introduced.
-Certificates render the possibility to validate the identity of its owner. They are signed by a certificate authority (CA) which's identity can be resolved to another CA or which is  pre-configured to be trusted.
-A certificate is composed of its owner's public key, his identity, the name of the signing CA and a signiture which is a hash-value of the certificate encrypted with the private key of the CA. 
+In order to be able to check identities so called certificates have to be introduced.
+Certificates render the possibility to validate the identity of its owner. They are signed by a certificate authority (CA) which's identity can be verified by another CA or which is  pre-configured to be trusted.
+A certificate is composed of the identity of the owner, his public key, the name of the CA who signed the certificate and the signature of the CA which is a hash-value of the certificate encrypted with the private key of the CA. 
+Furthermore the algorithms used to create the certificate are added.
 If a certificate can be resolved to a CA with is pre-configured to be trusted, the identity of the certificate owner is considered as to be proven. 
 In general a set of trusted CAs is already defined in the operation system.
 To obtain a certificate a certificate request has to be submitted to a CA.
-After the CA has verified the identity of the requesting person and the requested certificate will be signed.
+The CA verifies the identity of the requesting person and the requested certificate will be signed.
 Figure~\ref{fig:certificate_request} shows the procedure of gaining a certificate.
 \begin{figure}[htb]
 	\centering%epstopdf certificates.eps
@@ -101,9 +103,12 @@ Bob encrypts the number with his private key and returns it together with his ce
 If the decrypted number is equal to the transmitted number, Alice can reason that the identity of Bob is to be trusted in case she is trusting the CA which has signed Bobs certificate. 
 %
 In the given example Alice only trusts the CA 2 but not CA 1.
-In order to resolve the identity, Alice establishes a connection to CA 1 and submits another random number $n$ as a challenge.
-The CA 1 encrypts the challange with its private key and send the result along with its certificate back to Alice. Alice succefully validates the certificate of CA 1. Due to the certificate was signed by CA 2 which is pre-configured to be trusted she can follow to trust CA 1 and in conclusion the identity of B. In summary, Alice knows she is talking to Bob. If Bob also wants to be sure how he's talking to the same procedure has to be done for the identity of Alice. The TLS mode in in which both endpoints are ensuring themself to whom they are talking to is called bilateral connection.
-Due to the client is aware of the service authentity, the confidential treatment of his data is given such that it won't be revealed to a third party (service sided confidentiality). Moreover the access to the service can be controled (access control) and the results are only passed back to the right person (client sided confidentiality). 
+To resolve the identity of CA 1, Alice establishes a connection to CA 1 and submits another random number $n$ as a challenge.
+The CA 1 encrypts the challange with its private key and send the result along with its certificate back to Alice. Alice succefully validates the certificate of CA 1. Due to the certificate was signed by CA 2 which is pre-configured to be trusted she can follow to trust CA 1 and in conclusion the identity of B. In summary, Alice knows she is talking to Bob. If Bob also wants to be sure how he's talking to the same procedure has to be done for the identity of Alice. The TLS mode in in which both endpoints are ensuring themself to whom they are talking to is called bilateral connection mode.\\
+
+
+In case the client is aware of the service authentity, the confidential treatment of his data is given such that one can be sure the data won't be revealed to a third party (service sided confidentiality). 
+On the other side, if the service is aware of the client authentity, the access to the service can be controlled (access control) and the service can verify that the results will only be passed back to the right person (client sided confidentiality). 
 As one can see confidentiality, authentication, integrity and non-repudiation are now given.\\
 \begin{figure}[htb]
 	\centering%epstopdf verification.eps 
@@ -114,35 +119,32 @@ As one can see confidentiality, authentication, integrity and non-repudiation ar
 
 
 
-Certificates have several advantages. They are scaling very good with the amount of users because CAs can create new sub-CAs such that the load is balanced (certificates of a CA may be cached). Furthermore no critical information is exchanged which may gets intercepted - in particular no secret key is shared. Instead a set of pre-configured CAs which will be in general provided by the operation system is needed.
-In respect of ARC it is obvious, that the access to the grid should be under control of its administrator. To do so, the administrator have to build up his own CA to be in charge of creating certificates for a set of users. 
-The created CA have to be shipped into the directory of pre-configured CAs.
-(Within the source code there are two shell scripts to create a CA and related certificates). Due to there's a bunch of tools for certificates (like \textit{openssl}) it is easy to maintain them. 
+Certificates have several advantages. They are scaling very good with the amount of users because CAs can create new sub-CAs such that the load is balanced (certificates of a CA may be cached). Furthermore no critical information is exchanged during the establishment of a connection (in particular no secret key is shared which may get intercepted),
+Instead a set of pre-configured CAs which will be in general provided by the operation system is needed.
+In respect of ARC it is obvious, that the access to the grid shall be under control of its administrator. To do so, the administrator have to build up his own CA such that he is in charge of creating certificates for a set of users. 
+The identity of the created CA have to be shipped into the directory of pre-configured CAs.
+(Within the source code there are two shell scripts to create a CA and related certificates). Due to there's a bunch of tools for certificates (like \textit{openssl}) they are easy to maintain.\\
+ % Root CAs are self-signed ... is that interesting?
 
 
-o Infrastructure is given and easily to maintain
-
-o In general the pre-configured organistion take money to sign certifcates, but they can also be created locally.
-
-o VOMs are realisable
-
-ARC:
-
-TLS also supports the more secure bilateral connection mode (typically used in enterprise applications), in which both ends of the "conversation" can be ensured with whom they are communicating
+A CA which controls the access to a grid can be considered as a virtual organsiation (VO). It may involve organisations close to the leading organisation as well as structure which are not formally associated with it. In most cases the basic idea is to share ressources.
 
 
 
+\clearpage
+\section{Service}
 
-o What do we need to get a service running
+In order to create a secure bilateral connection we hence need two certificates: a client certificate and a service certificate.
+The CA for the certificate has to be pre-configured on the counterpart and furthermore, the owner of the certificate has to hold the fitting private key. Altogether six files are needed:
+\begin{itemize}
+ \item clientCA   - The CA which guarantees for the identity of the client
+ \item clientCERT - The certificate of the client.
+ \item clientKEY  - Secret key of the client to read messages, encrypted by the public key in the certificate!
 
-clientCA   - Authority guarantee for identity
-clientCERT - Certificate given
-clientKEY  - Secret key of the client to read messages, encrypted by the public key in the certificate!
-
-serverCA   - Authority guarantee for cert. CA is known by the server. If not, the encrypted cert can be read be its CA.
-serverCERT - Certificate given by the CA. Contains a snippet which can be read by the Public key of the CA.
-serverKEY  - Secret key of the client to read messages, encrypted by the public key in the certificate!
-
+ \item serverCA   - The CA which guarantees for the identity of the server
+ \item serverCERT - The certificate of the server.
+ \item serverKEY  - Secret key of the client to read messages, encrypted by the public key in the certificate!
+\end{itemize}
 
 Server has got have:
 Its  serverCERT serverKEY and some kind of root CA knowing the client
@@ -171,8 +173,7 @@ Its  clientCERT clientKEY and some kind of root CA knowing the server
 %Authorization:  The server on the other side takes an interest in limitate its ressources to a close circle of users. Above all no %foreign clients shall be able to use the services.\\
 
 
-\clearpage
-\section{Service}
+
 
 One can add the TLS in client and server by simply extending the arched configuration file and a small modification of the client.
 
