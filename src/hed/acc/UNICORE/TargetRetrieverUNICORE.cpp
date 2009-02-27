@@ -126,11 +126,21 @@ namespace Arc {
      TargetGenerator& mom = *thrarg->mom;
 
      URL& url = thrarg->url;
+     MCCConfig cfg;
+     UNICOREClient uc(url, cfg);
+     std::string status;
+     if (!uc.sstat(status)) {
+       delete thrarg;
+       mom.RetrieverDone();
+       return;
+     }
+     //std::cout << status << std::endl;
+
 
      ExecutionTarget target;
 
      target.GridFlavour = "UNICORE";
-     target.Cluster = thrarg->url;
+     target.Cluster = url;
      target.url = url;
      target.InterfaceName = "BES";
      target.Implementor = "Unicore";
