@@ -37,8 +37,10 @@ class Librarian:
         try:
             ahash_list = self.ahash.get(ahash_list_guid)[ahash_list_guid]
             if ahash_list:
-                master = [url for type,url in ahash_list if 'master' in type]
-                clients = [url for type,url in ahash_list if 'client' in type]
+                master = [url for type,url in ahash_list.items() 
+                          if 'master' in type and type[1].endswith('online')]
+                clients = [url for type,url in ahash_list.items() 
+                           if 'client' in type and type[1].endswith('online')]
                 if master:
                     self.master_ahash = [arc.URL(master[0])]
                 if clients:
