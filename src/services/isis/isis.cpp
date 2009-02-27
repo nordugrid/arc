@@ -21,6 +21,12 @@ namespace ISIS
 
         // Init database
         db_ = new Arc::XmlDatabase(db_path, "isis");
+
+        // Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
+        int i=0;
+        while ((bool)(*cfg)["EndpointURL"][i]) {
+            neighbors_.push_back((std::string)(*cfg)["EndpointURL"][i++]);
+        }
     }
 
     ISIService::~ISIService(void){
@@ -97,19 +103,6 @@ namespace ISIS
     }
 
     Arc::MCC_Status ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
-        // Just for the simple ISIS and for testing purposes
-        // Get own Endpoint URL, and store it in the neighbors_ vector if it's not already there
-        std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
-        bool own_address_found = false;
-        for (std::vector<std::string>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
-            if ( (*it) == http_endpoint ) own_address_found = true;
-        }
-        if ( !own_address_found ) {
-            neighbors_.push_back(http_endpoint);
-            logger_.msg(Arc::DEBUG, "Neighbor address (%s) added.", http_endpoint);
-        }
-        neighbors_.push_back("http://knowarc2.grid.niif.hu:50000/isis1");
-        neighbors_.push_back("http://knowarc2.grid.niif.hu:50000/isis2");
         // Both input and output are supposed to be SOAP
         // Extracting payload
         Arc::PayloadSOAP* inpayload = NULL;
