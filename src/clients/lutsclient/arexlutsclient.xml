@@ -17,9 +17,8 @@
     </Component>
 
     <Component name='tls.client' id='tls'>  <next id='tcp'/>
-      <CertificatePath>/home/dp/.globus/usercert.pem</CertificatePath>
-      <KeyPath>/home/dp/.globus/usercert.pem/userkey.pem</KeyPath>
-      <ProxyPath>/tmp/x509up_u1000</ProxyPath>
+      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
     </Component> 
 
@@ -33,10 +32,10 @@
 
   </Chain>
 
-  <Jarm>
+  <LutsClient>
     <!-- Accounting related configuration -->
     <ArexLogDir>/tmp/jobstatus/logs</ArexLogDir>
     <MaxURSetSize>50</MaxURSetSize>
-  </Jarm>
+  </LutsClient>
 
 </ArcConfig>

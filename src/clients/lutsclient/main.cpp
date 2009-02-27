@@ -1,4 +1,4 @@
-#include "arexjarm.h"
+#include "arexlutsclient.h"
 
 //TODO cross-platform
 #include <dirent.h>
@@ -95,18 +95,18 @@ int main(int argc, char **argv)
   signal(SIGTTIN,SIG_IGN);
 
   //Initialize logger
-  Arc::Logger logger(Arc::Logger::rootLogger, "Jarm");
+  Arc::Logger logger(Arc::Logger::rootLogger, "Lutsclient");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
   logger.msg(Arc::INFO, 
-    "Accounting agent \"Job Account Reservation Manager\" (JARM) started.");
+    "Accounting agent (Lutsclient) started.");
 
   //Set up client environment
 
   //Default values:
-  std::string config_file = AREXJARM_DEFAULT_CONFIG_FILE;
-  std::string arex_joblog_dir = AREXJARM_DEFAULT_JOBLOG_DIR;
-  int max_ur_set_size = AREXJARM_DEFAULT_MAX_UR_SET_SIZE;
+  std::string config_file = AREXLUTSCLIENT_DEFAULT_CONFIG_FILE;
+  std::string arex_joblog_dir = AREXLUTSCLIENT_DEFAULT_JOBLOG_DIR;
+  int max_ur_set_size = AREXLUTSCLIENT_DEFAULT_MAX_UR_SET_SIZE;
   //First command line argument, if present, is the config file name
   if (argc>=2)
       config_file=argv[1];
@@ -115,10 +115,10 @@ int main(int argc, char **argv)
   logger.msg(Arc::VERBOSE, "Reading configuration file: %s",
 	     config_file.c_str());
   Arc::Config config(config_file.c_str());
-  if (Arc::XMLNode jarmconfig=config["Jarm"])
+  if (Arc::XMLNode lutsclientconfig=config["LutsClient"])
     {
-      Arc::XMLNode joblog_dir_node=jarmconfig["ArexLogDir"];
-      Arc::XMLNode max_ur_set_size_node=jarmconfig["MaxURSetSize"];
+      Arc::XMLNode joblog_dir_node=lutsclientconfig["ArexLogDir"];
+      Arc::XMLNode max_ur_set_size_node=lutsclientconfig["MaxURSetSize"];
       
       if (joblog_dir_node)
 	arex_joblog_dir=(std::string)joblog_dir_node;

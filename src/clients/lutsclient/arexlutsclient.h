@@ -1,5 +1,5 @@
-#ifndef _AREXJARM_H
-#define _AREXJARM_H
+#ifndef _AREXLUTSCLIENT_H
+#define _AREXLUTSCLIENT_H
 
 #include <string>
 #include <map>
@@ -19,8 +19,8 @@ typedef std::map<std::string, hashlist_t> jobmap_t;
 typedef std::list<std::string> joblist_t;
 
 //Default values for configuration:
-#define AREXJARM_DEFAULT_CONFIG_FILE     "/etc/arexjarm.xml"
-#define AREXJARM_DEFAULT_JOBLOG_DIR      "/tmp/jobstatus/logs"
-#define AREXJARM_DEFAULT_MAX_UR_SET_SIZE 50 //just like in original JARM
+#define AREXLUTSCLIENT_DEFAULT_CONFIG_FILE     "/etc/arexlutsclient.xml"
+#define AREXLUTSCLIENT_DEFAULT_JOBLOG_DIR      "/tmp/jobstatus/logs"
+#define AREXLUTSCLIENT_DEFAULT_MAX_UR_SET_SIZE 50 //just like in original JARM
 
 #endif
