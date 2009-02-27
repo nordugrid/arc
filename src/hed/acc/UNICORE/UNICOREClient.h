@@ -89,7 +89,7 @@ namespace Arc {
        be removed at some point as it is mainly for debugging.
        @return true on success
      */
-    bool listTargetSystemFactories(XMLNodeList& tsf, std::string& status);
+    bool listTargetSystemFactories(std::list<Arc::Config>& tsf, std::string& status);
     ClientSOAP* SOAP(void) {
       return client;
     }

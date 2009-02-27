@@ -62,6 +62,7 @@ namespace Arc {
 
     logger.msg(INFO, "Creating a UNICORE client");
     client = new ClientSOAP(cfg, url);
+    rurl = url;
     set_UNICORE_namespaces(unicore_ns);
   }
 
@@ -340,7 +341,7 @@ namespace Arc {
     }
   }
 
-  bool UNICOREClient::listTargetSystemFactories(XMLNodeList& tsf, std::string& status) {
+  bool UNICOREClient::listTargetSystemFactories(std::list<Arc::Config>& tsf, std::string& status) {
 
     std::string state, faultstring;
     logger.msg(INFO, "Creating and sending a service an index service query");
@@ -433,7 +434,7 @@ namespace Arc {
 	logger.msg(ERROR, "A service status request failed");
 	return false;
       }
-      logger.msg(INFO, "A service status request succeed");
+      logger.msg(INFO, "A service status request succeeded");
       if (repmsg.Payload() == NULL) {
 	logger.msg(ERROR,
 		   "There was no response to a service status request");
@@ -455,9 +456,10 @@ namespace Arc {
       return false;
     }
     XMLNode st;
+    logger.msg(VERBOSE, "Response:\n%s", (std::string)(*resp));
     (*resp)["GetFactoryAttributesDocumentResponse"]
     ["FactoryResourceAttributesDocument"].New(st);
-    st.GetDoc(state);
+    st.GetDoc(state, true);
     delete resp;
     if (state == "") {
       logger.msg(ERROR, "The service status could not be retrieved");
