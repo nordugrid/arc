@@ -154,11 +154,15 @@ class ThreadPoolThread(threading.Thread):
             elif callback is None:
                 if args is None:
                     cmd()
+                elif isinstance(args,list):
+                    cmd(*args)
                 else:
                     cmd(args)
             else:
                 if args is None:
                     callback(cmd()) 
+                elif isinstance(args,list):
+                    callback(cmd(*args))
                 else:
                     callback(cmd(args))
                     
@@ -279,3 +283,4 @@ if __name__ == "__main__":
     # When all tasks are finished, allow the threads to terminate
     pool.joinAll()
     print "after join", COUNTER
+
