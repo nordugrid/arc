@@ -5,13 +5,13 @@ import random
 import threading
 import time
 
-from arcom import get_child_nodes
+from arcom import get_child_nodes, get_child_values_by_name
 from arcom.security import parse_ssl_config
 from arcom.service import librarian_uri, true, false, parse_node, create_response, node_to_data
 
 from arcom.xmltree import XMLTree
 from storage.client import AHashClient
-from storage.common import global_root_guid, sestore_guid, parse_metadata, create_metadata, serialize_ids
+from storage.common import global_root_guid, sestore_guid, ahash_list_guid, parse_metadata, create_metadata, serialize_ids
 import traceback
 import copy
 
@@ -21,9 +21,10 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Librarian'))
 class Librarian:
     def __init__(self, cfg):
         # URL of the A-Hash
-        ahash_url = str(cfg.Get('AHashURL'))
+        ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
+        self.master_ahash = arc.URL(ahash_urls[0])
         ssl_config = parse_ssl_config(cfg)
-        self.ahash = AHashClient(ahash_url, ssl_config = ssl_config)
+        self.ahash = AHashClient(ahash_urls, ssl_config = ssl_config)
         try:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
@@ -32,11 +33,51 @@ class Librarian:
             raise
         threading.Thread(target = self.checkingThread, args = [period]).start()
         
+    def _update_ahash_urls(self):
+        try:
+            ahash_list = self.ahash.get(ahash_list_guid)[ahash_list_guid]
+            if ahash_list:
+                master = [url for type,url in ahash_list if 'master' in type]
+                clients = [url for type,url in ahash_list if 'client' in type]
+                if master:
+                    self.master_ahash = [arc.URL(master[0])]
+                if clients:
+                    self.ahash.urls = [arc.URL(url) for url in clients]
+        except:
+            log.msg()
+        
+    def ahash_get_tree(self, IDs, neededMetadata = []):
+        """
+        Wrapper for ahash.get_tree updating ahashes and calling ahash.get_tree
+        """
+        self._update_ahash_urls()
+        return self.ahash.get_tree(IDs, neededMetadata)
+
+    def ahash_get(self, IDs, neededMetadata = []):
+        """
+        Wrapper for ahash.get updating ahashes and calling ahash.get
+        """
+        self._update_ahash_urls()
+        return self.ahash.get(IDs, neededMetadata)
+
+    def ahash_change(self, changes):
+        """
+        Wrapper for ahash.change replacing ahash.urls with master ahash, calling
+        ahash.change, putting back ahash.urls
+        ahash.change can only call master ahash
+        """
+        self._update_ahash_urls()
+        ahash_urls = self.ahash.urls
+        self.ahash.urls = self.master_ahash
+        ret = self.ahash.change(changes)
+        self.ahash.urls = ahash_urls
+        return ret
+    
     def checkingThread(self, period):
         time.sleep(10)
         while True:
             try:
-                SEs = self.ahash.get([sestore_guid])[sestore_guid]
+                SEs = self.ahash_get([sestore_guid])[sestore_guid]
                 #print 'registered shepherds:', SEs
                 now = time.time()
                 late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now and nextHeartbeat != '-1']
@@ -44,7 +85,7 @@ class Librarian:
                 if late_SEs:
                     serviceGUIDs = dict([(serviceGUID, serviceID) for (serviceID, property), serviceGUID in SEs.items() if property == 'serviceGUID' and serviceID in late_SEs])
                     #print 'late shepherds serviceGUIDs', serviceGUIDs
-                    filelists = self.ahash.get(serviceGUIDs.keys())
+                    filelists = self.ahash_get(serviceGUIDs.keys())
                     changes = []
                     for serviceGUID, serviceID in serviceGUIDs.items():
                         filelist = filelists[serviceGUID]
@@ -74,14 +115,14 @@ class Librarian:
                     for GUID, location, state in with_locations
         ])
         #print '_change_states request', change_request
-        change_response = self.ahash.change(change_request)
+        change_response = self.ahash_change(change_request)
         #print '_change_states response', change_response
         return change_response
         
     def _set_next_heartbeat(self, serviceID, next_heartbeat):
         ahash_request = {'report' : (sestore_guid, 'set', serviceID, 'nextHeartbeat', next_heartbeat, {})}
         #print '_set_next_heartbeat request', ahash_request
-        ahash_response = self.ahash.change(ahash_request)
+        ahash_response = self.ahash_change(ahash_request)
         #print '_set_next_heartbeat response', ahash_response
         if ahash_response['report'][0] != 'set':
             log.msg(arc.DEBUG, 'ERROR setting next heartbeat time!')
@@ -89,7 +130,7 @@ class Librarian:
     def report(self, serviceID, filelist):
         # we got the ID of the shepherd service, and a filelist which contains (GUID, referenceID, state) tuples
         # here we get the list of registered services from the A-Hash (stored with the GUID 'sestore_guid')
-        ses = self.ahash.get([sestore_guid])[sestore_guid]
+        ses = self.ahash_get([sestore_guid])[sestore_guid]
         # we get the GUID of the shepherd
         serviceGUID = ses.get((serviceID,'serviceGUID'), None)
         # or this shepherd was not registered yet
@@ -100,13 +141,13 @@ class Librarian:
             # let's add the new shepherd-GUID to the list of shepherd-GUIDs but only if someone else not done that just now
             ahash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
             ## print 'report ahash_request', ahash_request
-            ahash_response = self.ahash.change(ahash_request)
+            ahash_response = self.ahash_change(ahash_request)
             ## print 'report ahash_response', ahash_response
             success, unmetConditionID = ahash_response['report']
             # if there was already a GUID for this service (which should have been created after we check it first but before we tried to create a new)
             if unmetConditionID:
                 # let's try to get the GUID of the shepherd once again
-                ses = self.ahash.get([sestore_guid])[sestore_guid]
+                ses = self.ahash_get([sestore_guid])[sestore_guid]
                 serviceGUID = ses.get((serviceID, 'serviceGUID'))
         # if the next heartbeat time of this shepherd is -1 or nonexistent, we will ask it to send all the file states, not just the changed
         please_send_all = int(ses.get((serviceID, 'nextHeartbeat'), -1)) == -1
@@ -117,7 +158,7 @@ class Librarian:
         # change the states of replicas in the metadata of the files to the just now reported values
         self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
         # get the metadata of the shepherd
-        se = self.ahash.get([serviceGUID])[serviceGUID]
+        se = self.ahash_get([serviceGUID])[serviceGUID]
         ## print 'report se before:', se
         # we want to know which files this shepherd stores, that's why we collect the GUIDs and referenceIDs of all the replicas the shepherd reports
         # we store this information in the A-Hash by the GUID of this shepherd (serviceGUID)
@@ -126,10 +167,10 @@ class Librarian:
         change_request = dict([(referenceID, (serviceGUID, (state == 'deleted') and 'unset' or 'set', 'file', referenceID, GUID, {}))
             for GUID, referenceID, state in filelist])
         ## print 'report change_request:', change_request
-        change_response = self.ahash.change(change_request)
+        change_response = self.ahash_change(change_request)
         # TODO: check the response and do something if something is wrong
         ## print 'report change_response:', change_response
-        ## se = self.ahash.get([serviceGUID])[serviceGUID]
+        ## se = self.ahash_get([serviceGUID])[serviceGUID]
         ## print 'report se after:', se
         # if we want the shepherd to send the state of all the files, not just the changed one, we return -1 as the next heartbeat's time
         if please_send_all:
@@ -155,7 +196,7 @@ class Librarian:
                     GUID = arc.UUID()
                     metadata[('entry', 'GUID')] = GUID
               
-		check = self.ahash.change(
+		check = self.ahash_change(
                       {'new': (GUID, 'set', 'entry', 'type', type, {'0' : ('unset','entry','type','')})}
                     )
 		
@@ -167,7 +208,7 @@ class Librarian:
                     for ((section, property), value) in metadata.items():
                         changes[changeID] = (GUID, 'set', section, property, value, {})
                         changeID += 1
-                    resp = self.ahash.change(changes)
+                    resp = self.ahash_change(changes)
                     for r in resp.keys():
                         if resp[r][0] != 'set':
                             success += ' (failed: %s - %s)' % (resp[r][0] + str(changes[r]))
@@ -179,7 +220,7 @@ class Librarian:
         return response
 
     def get(self, requests, neededMetadata = []):
-        return self.ahash.get_tree(requests, neededMetadata)
+        return self.ahash_get_tree(requests, neededMetadata)
 
     def _parse_LN(self, LN):
         try:
@@ -198,7 +239,7 @@ class Librarian:
                         child_metadata = metadata
                     else:
                         child_guid = metadata[('entries',path[0])]
-                        child_metadata = self.ahash.get([child_guid])[child_guid]
+                        child_metadata = self.ahash_get([child_guid])[child_guid]
 		    traversed.append(path.pop(0))
                     GUIDs.append(child_guid)
                     guid = child_guid
@@ -222,7 +263,7 @@ class Librarian:
             traversed = [guid0]
             GUIDs = [guid]
             path = copy.deepcopy(path0)
-            metadata0 = self.ahash.get([guid])[guid]
+            metadata0 = self.ahash_get([guid])[guid]
             if not metadata0.has_key(('entry','type')):
                 response[rID] = ([], False, '', guid0, None, '/'.join(path))
             else:
@@ -253,7 +294,7 @@ class Librarian:
                 changeType = 'set'
                 conditions = {'0': ('is', section, property, ifvalue)}
             changes[changeID] = (GUID, changeType, section, property, value, conditions)
-        ahash_response = self.ahash.change(changes)
+        ahash_response = self.ahash_change(changes)
         response = {}
         for changeID, (success, conditionID) in ahash_response.items():
             if success in ['set', 'unset']:
@@ -267,7 +308,7 @@ class Librarian:
     def remove(self, requests):
         ahash_request = dict([(requestID, (GUID, 'delete', '', '', '', {}))
             for requestID, GUID in requests.items()])
-        ahash_response = self.ahash.change(ahash_request)
+        ahash_response = self.ahash_change(ahash_request)
         response = {}
         for requestID, (success, _) in ahash_response.items():
             if success == 'deleted':
