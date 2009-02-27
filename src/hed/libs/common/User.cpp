@@ -13,6 +13,7 @@
 #endif
 
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 #include "User.h"
 
 namespace Arc
@@ -23,8 +24,8 @@ namespace Arc
 static uid_t get_user_id(void) {
   uid_t user_id = getuid();
   if(user_id != 0) return user_id;
-  char* user_s=getenv("USER_ID");
-  if(user_s == NULL) return 0;
+  std::string user_s=GetEnv("USER_ID");
+  if(user_s.empty()) return 0;
   user_id = stringtoui(user_s);
   return user_id;
 }
@@ -36,8 +37,9 @@ static uid_t get_group_id(void) {
 void User::set(struct passwd *pwd_p)
 {
     if (pwd_p == NULL) return;
+    home = GetEnv("HOME");
     name = pwd_p->pw_name;
-    home = pwd_p->pw_dir;
+    if(home.empty()) home = pwd_p->pw_dir;
     uid  = pwd_p->pw_uid;
     gid  = pwd_p->pw_gid;
 }
