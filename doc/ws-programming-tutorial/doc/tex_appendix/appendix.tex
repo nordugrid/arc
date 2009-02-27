@@ -1,0 +1,52 @@
+\chapter{Appendix}
+
+\section{More tutorials}
+
+Other tutorials are:\\
+\\
+%Oxana reported the status of OGF tutorials:
+\begin{itemize}
+ \item first tutorial will be given by Oxana and will deal with how to add the 
+resources to Nordugrid, .... (will be related mostly to production ARC)
+ \item second tutorial will be given by Gabor and he will show the 
+interoperability of ARC (video demo will be shown). A-REX - Unicore 
+interoperability.
+ \item there will be also a tutorial related to ETICS system where the 
+possibility of ETICS system to submit a job to ARC and Unicore will be 
+presented. The ETICS team has not contacted so far.
+\end{itemize}
+
+
+\section{Important XSD files}
+
+
+Link to current XSD files.
+
+\task{Provide a list of modules to be loaded! Along with the implemented functionality which can be addressed with XML elements!!}
+    mcctcp\\
+\begin{verbatim}
+<tcp:Listen>
+	<tcp:Port>60000</tcp:Port>
+	<tcp:Version>4</tcp:Version>
+</tcp:Listen>
+\end{verbatim}
+    mcctls\\
+\begin{verbatim}
+ 			<KeyPath>./clientKey.pem</KeyPath>
+			<CertificatePath>./clientCert.pem</CertificatePath>
+			<CACertificatePath>./clientCA.pem</CACertificatePath><!-- CACertificatesDir Should be /etc/... blub mention that-->
+
+\end{verbatim}
+
+    mcchttp\\
+\begin{verbatim}
+                      <next id="soap">POST</next>
+                      <next id="plexer">GET</next>
+                      <next id="plexer">PUT</next>
+\end{verbatim}
+    mccsoap\\
+\begin{verbatim}
+	???<ClientSSLConfig FromFile='filename'/>  
+\end{verbatim}
+
+

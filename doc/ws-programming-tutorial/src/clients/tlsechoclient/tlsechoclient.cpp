@@ -1,7 +1,3 @@
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/client/ClientInterface.h>
@@ -17,7 +13,6 @@
 using namespace Arc;
 
 int main(int argc, char** argv) {
-
 
 	/** Get arguments passed by the command line*/
 	if(argc != 4){
@@ -37,6 +32,7 @@ int main(int argc, char** argv) {
 	std::string message(argv[3]);
 	/** */
 
+	/** Load the client configuration file into a string *///(@*\label{lst_code:tls_echo_client_cpp_getfilecontent}*@)
 	std::string xmlstring;
 	std::ifstream file(argv[1]);
 	if (file.good())
@@ -57,8 +53,7 @@ int main(int argc, char** argv) {
 		std::cout << "File " << argv[1] << " not found." << std::endl;
 		return -1;
 	}
-
-
+	/** */
 
 	// Initiate the Logger and set it to the standard error stream
 	Arc::Logger logger(Arc::Logger::getRootLogger(), "arcecho");
@@ -70,10 +65,9 @@ int main(int argc, char** argv) {
 	std::string arclib("/usr/lib/arc");
 	Arc::ArcLocation::Init(arclib);  
 
-	// Load configuration 
+	/** Load the client configuration *///(@*\label{lst_code:tls_echo_client_cpp_loadconfiguration}*@)
 	Arc::XMLNode clientXml(xmlstring);
 	Arc::Config clientConfig(clientXml);
-
 	if(!clientConfig) {
 	  logger.msg(Arc::ERROR, "Failed to load client configuration");
 	  return -1;
@@ -81,19 +75,21 @@ int main(int argc, char** argv) {
 
 	Arc::MCCLoader loader(clientConfig);
 	logger.msg(Arc::INFO, "Client side MCCs are loaded");
-	Arc::MCC* clientEntry = loader["soap"];
+	Arc::MCC* clientEntry = loader["soap"];//(@*\label{lst_code:tls_echo_client_cpp_cliententry}*@)
 	if(!clientEntry) {
 	  logger.msg(Arc::ERROR, "Client chain does not have entry point");
 	  return -1;
 	};
+	/** */
 
-	//Prepare the payload
+
+	/** Create and process message *///(@*\label{lst_code:tls_echo_client_cpp_createandprocess}*@)
 	Arc::NS ns("tlsecho", "urn:tlsecho");
 	Arc::PayloadSOAP  request(ns);
 	Arc::PayloadSOAP* response = NULL;
-
-	//Prepare the messages which will envelope the payload.
-	//(*@\drain{It is a responsibility of code initiating first Message to provide Context and Attributes as well.}@*)
+	
+	// Due to the fact that the class ClientSOAP isn't used anymore,
+	// one has to prepare the messages which envelope the payload oneself.
 	Arc::Message reqmsg;
 	Arc::Message repmsg;
 	Arc::MessageAttributes attributes_req;
@@ -106,38 +102,42 @@ int main(int argc, char** argv) {
 
 	XMLNode sayNode = request.NewChild("tlsecho:tlsechoRequest").NewChild("tlsecho:say") = message;
 	sayNode.NewAttribute("operation") = type;
-
 	reqmsg.Payload(&request);
 	//(@*\drain{std::string xml;  request.GetXML(xml, true); printf("Request message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
-std::string xml;  request.GetXML(xml, true); printf("Request message:\n%s\n\n\n", xml.c_str());
 
 	Arc::MCC_Status status = clientEntry->process(reqmsg,repmsg);
+	response = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+	/** */
 
-	if(!status) {
-		logger.msg(Arc::ERROR, "Request failed");
-		std::cerr << "Status: " << std::string(status) << std::endl;
-		return -1;
-	};
+	if (!response) {
+		printf("No SOAP response");
+		return 1;
+	}else if(response->IsFault()){//(@*\label{lst_code:echo_client_cpp_fault}*@)
+		printf("A SOAP fault occured:\n");
+        std::string hoff = (std::string) response->Fault()->Reason();
+		printf("  Fault code:   %d\n", (response->Fault()->Code()));
+		printf("  Fault string: \"%s\"\n", (response->Fault()->Reason()).c_str());
+		/** 0  undefined,             4  Sender,   // Client in SOAP 1.0 
+            1  unknown,               5  Receiver, // Server in SOAP 1.0 
+            2  VersionMismatch,       6  DataEncodingUnknown
+            3  MustUnderstand,                                            **/
+		//(@*\drain{std::string xmlFault;response->GetXML(xmlFault, true);  printf("\%s\n\n", xmlFault.c_str());}*@)
+		std::string xmlFault;response->GetXML(xmlFault, true);  printf("\%s\n\n", xmlFault.c_str());
+		return 1;
+	}
 
-	if(repmsg.Payload() == NULL) {
-		logger.msg(Arc::ERROR, "There is no response");
-		return -1;
-	};
-
-	try {
-		response = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-	} catch(std::exception&) { };
-
-	if(response == NULL) {
-		logger.msg(Arc::ERROR, "Response is not SOAP");
-		return -1;
-	};
+	// Test for possible errors
+	if (!status) {
+		printf("Error %s",((std::string)status).c_str());
+		if (response)
+			delete response;
+		return 1;
+	}
 	//(@*\drain{response->GetXML(xml, true);  printf("Response message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
-(*response).GetXML(xml, true); printf("response message:\n%s\n\n\n", xml.c_str());
-	std::string answer = (std::string)((*response)["tlsecho:tlsechoResponse"]["tlsecho:hear"]);//
-	std::cout << answer << std::endl;
+
+	std::string answer = (std::string)((*response)["tlsecho:tlsechoResponse"]["tlsecho:hear"]);
+	std::cout << answer <<std::endl;
 
 	delete response;
-
-	return 0;
 }
+

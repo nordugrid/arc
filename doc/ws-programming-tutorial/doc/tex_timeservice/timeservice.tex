@@ -96,9 +96,9 @@ Daemon started
 
 
 
-\section{Client}
+\section{Client}\label{sec:timeservice_client}
 
-Up to now we have implemented a server program, the code that runs on a particular machine and waits for other programs that ask it for the time. What is still needed is the client. If the server spoke the http protocol, then we could use our web browser. But it does not - wait, stop - in a way it does, but the server's SOAP envelope renders the reply rather awkward to read. \task{someone please check - SM}  The server exists only once. But there may be many many clients requesting it in parallel - on the same machine or across the internet. The client may be directly controlled by a human (like the web browser) or be some cron job or other software initiating the request.
+Up to now we have implemented a server program, the code that runs on a particular machine and waits for other programs that ask it for the time. What is still needed is the client. If the server spoke the http protocol, then we could use our web browser. But it does not - wait, stop - in a way it does, but the server's SOAP envelope renders the reply rather awkward to read. \task{someone please check - SM; I think you are wrong (I like to read SOAP messages) :-) - MG}  The server exists only once. But there may be many many clients requesting it in parallel - on the same machine or across the internet. The client may be directly controlled by a human (like the web browser) or be some cron job or other software initiating the request.
 
 %\task{\#ifdef HAVE\_CONFIG\_H\#include <config.h>\#endif - habe ich entfernt... macht keinen Sinn, da keine weiteren Macros im Source Code enthalten sind... oder?}
 This section is introducing the implementation of the client.

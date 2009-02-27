@@ -161,70 +161,31 @@ In most cases the basic idea is to share ressources. \task{this para will need s
 
 \clearpage
 \section{Service}
+\task{RENAMING HED configuration file into~ARC service configuration file - proposed by Marek}
+\task{(echo service) client configuration file - proposed by Marek}
 
 In order to create a secure bilateral connection we hence need two certificates: a client certificate and a service certificate.
-The CA for the certificate has to be pre-configured on the counterpart and furthermore, the owner of the certificate has to hold the fitting private key. 
+The CA for the certificate has to be pre-configured on the counterpart and furthermore, the owner of the certificate has to hold the fitting private key.
+For the given example X.509-certificates will be used which are standardised by the ITU-T.
 Altogether six files are needed:
-\begin{tabular}{l@{-}p{9cm}}
-clientCA   & The CA which guarantees for the identity of the client \\
-clientCERT & The certificate of the client. \\
-clientKEY  & Secret key of the client to read messages, encrypted by the public key in the certificate! \\
+\begin{tabular}{l@{~---~}p{13cm}}
+\textbf{clientCA}   & The CA which guarantees for the identity of the client \\
+\textbf{clientCERT} & The certificate of the client. \\
+\textbf{clientKEY}  & The private key of the client (should be kept in safe custody).\\
 \\
-serverCA   & The CA which guarantees for the identity of the server \\
-serverCERT & The certificate of the server. \\
-serverKEY  & Secret key of the client to read messages, encrypted by the public key in the certificate! \\
+\textbf{serverCA}   & The CA which guarantees for the identity of the server \\
+\textbf{serverCERT} & The certificate of the server. \\
+\textbf{serverKEY}  & The private key of the server (should be kept in safe custody).\\
 \end{tabular}
+\forcelinebreak
+As one can see, PEM has been choosen for the file format.\\
 
-The server needs: its  serverCERT and serverKEY and some kind of root CA knowing the client.
-Client needs its clientCERT and clientKEY and some kind of root CA knowing the server.
-
-\task{RENAMING into~ARC service configuration file}
-\task{echo service client configuration file}
-
-%The first two goals can be reached by encrypting the channel/connection between client and server. An approach 
-%sich bewähren / behaupten
-%which stand the test of time is to introduce a TLS (Transport Layer Security) also known as SSL (Secure Sockets Layer).
-%Authenticity, Confidentiality, Integrity
-%The client wants to reassure himself to send his vulnerable data only to the server who can prove its correct identity.
-%Furthermore a prove of authenticity is needed. % Sich versichern, dass das Gegenüber der ist, für welchen er sich ausgibt
-%It .... does fancy stuff ...
-%
-%
-%Authorization:  The server on the other side takes an interest in limitate its ressources to a close circle of users. Above all no %foreign clients shall be able to use the services.\\
-
-One can add the TLS in client and server by simply extending the arched configuration file and a small modification of the client.
-
-WARNING: If the program fails, check if one of your certificates has expired.
-If so, create new one using the script files in the directory 'certFactory'.
-
-Chalked up to the modularity of HED, the security can easily be extend to our given example.
-Each Message Chain Component (MCC) or service has a common interface for implementing various pluggable components (plug-ins) called SecHandler.
-The SecHandler components provide a method for processing messages traveling through Message Chains of the HED. 
-
-Each MCC or Service usually implements two queues of SecHandlers – one for incoming messages and one for outgoing, which are called “incoming” and “outgoing”, respectively.
-All SecHandler components attached to the queue are executed sequentially. 
-If any of them fails, message processing fails as well. 
-Each SecHandler is configured inside the arched configuration file that is used for configuring whole chain of MCCs 
-Some of the currently implemented SecHandler components make use of pluggable and configurable sub-modules called Policy Decision Point (PDP).
-PDPs can process ARC specific Request and Policy documents which are also written in XML format~\cite{QIANG_2008}..
+To get this service running, the six files have to be distributed. The server should hold the files: serverCERT.pem, serverKEY.pem and clientCA.pem. The client on the other side should own the files: clientCERT.pem, clientKEY.pem and serverCA.pem.
+Within the source code directory certificates with corresponding names are prepared. Due to certificates have a limited period of validity, these certificates may no longer be accepted by the communication parter. In order to create a first basic set of certificates signed by a self created CA, the shell scripts \textit{createMasterCA.sh} and \textit{createSlaveCert.sh} to be found in the directory \textit{src/services/tlsechoservice/certFactory} may be used. The script \textit{createMasterCA.sh} will create a new CA and overwrite the old on which was stored in the directory. The script \textit{createSlaveCert.sh} create an arbitary amount of certificates signed by the CA which has been create by the other script.\\
+%WARNING: If the programm fails, check if one of your certifacte is expired. If so, create new one using the script files in the directory 'certFactory'
 
 
-4 types:
-                <KeyPath>./clientKey.pem</KeyPath>
-                <CertificatePath>./clientCert.pem</CertificatePath>
-                <CACertificatePath>./serviceCA.pem</CACertificatePath>
-
-\lstsetCPP
-\lstinputlisting
-	[
-	label=lst:tls_echo_service_cpp,
-	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
-	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
-	]
-{../src/services/tlsechoservice/tlsechoservice.cpp}
-
-
-
+The TLS echo service implementation is almost the same as the one presented in the chapter before. Merely the Class name and the namespace of the service has changed. The only modification has to be done within the ARC service configuration file which is displayed in Listing~\ref{lst:tls_echo_arched_xml}.
 
 \lstsetARCHEDXML
 \lstinputlisting
@@ -234,25 +195,51 @@ PDPs can process ARC specific Request and Policy documents which are also writte
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/services/tlsechoservice/arched_tls_echoservice.xml}
+The first change is to be found in lin~\ref{lst_code:tls_echo_arched_xml_plugin}. As to be seen, another plugin called \textit{mcctls} will be loaded by the \textit{ModuleManager}. The second change is the new element which has been placed between the TCP and the HTTP component, see line~\ref{lst_code:tls_echo_arched_xml_component}. Within the element the files are declared using the elements
+\begin{verbatim}
+<KeyPath>./clientKey.pem</KeyPath>
+<CertificatePath>./clientCert.pem</CertificatePath>
+<CACertificatePath>./serviceCA.pem</CACertificatePath>
+<CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+\end{verbatim}
+or
+\begin{verbatim}
+<ClientSSLConfig FromFile='filename'/>
+\end{verbatim}
+\task{You can put the ClientSSLConfig into a separate file, then use <ClientSSLConfig FromFile='filename'/> in each service, and then you don't need to change everywhere - proposed by Zsombor}
 
 
-\lstsetKSH
-\begin{lstlisting}[
-label=lst:tls_echo_arched_invoke,float=htb,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ rm -f /var/log/arched.log
-$ arched -c arched_echoservice.xml  && echo jo ||echo n
-$ tail -n100 -f /var/log/arched.log
-$ killall arched
-\end{lstlisting}
-
-
+%\lstsetCPP
+%\lstinputlisting
+%	[
+%	label=lst:tls_echo_service_cpp,
+%	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
+%	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+%	]
+%{../src/services/tlsechoservice/tlsechoservice.cpp}
+%
+% Lassen wir mal weg....
+%
+%
+% \lstsetKSH
+% \begin{lstlisting}[
+% label=lst:tls_echo_arched_invoke,float=htb,
+% caption={[Transformation in eine uniforme konzentrische Verteilung.]
+%          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+% $ rm -f /var/log/arched.log
+% $ arched -c arched_echoservice.xml  && echo jo ||echo n
+% $ tail -n100 -f /var/log/arched.log
+% $ killall arched
+% \end{lstlisting}
+% 
+%        ...das auch.....
 
 
 \clearpage
 \section{Client}
 
+In this section a new way to implement the client will be introduced. As already mentioned in section~\ref{sec:timeservice_client}, the protocol stack of the client is build up in almost the same way like the service. Indeed, the class~\textit{ClientSOAP} composes the stack with the same MCC used for the service. Once this is known, its self-evident to create the client in a simlar manner like the service with an own configuration file.
+Listing~\ref{lst:tls_echo_client_cpp} shows the C++ source code of the client implementation. The main difference between the simple echo client presented in the chapter before is that now the information about the client protocal stack is encapsulated within a configuration file.
 \lstsetCPP
 \lstinputlisting
 	[
@@ -261,67 +248,55 @@ $ killall arched
 	\textbf{HEC configuration file\textcolor{white}{hmf}}}
 	]
 {../src/clients/tlsechoclient/tlsechoclient.cpp}
-
-
-
-Folgender XML Aufruf und Antwort soll \textit{automatisch} generiert werden:
-
-%[caption={[]WegDamit},language=XML,basicstyle=\scriptsize,breaklines=true,label=lst:request] 
-
-
-
-
-
-Zertifikate
-Zustände (Nutzer wiedererkennen, arbeit aufnehmen)
+The file containing the client configuration is specified within the command line. 
+Its content will be loaded in the code fragment starting in line~\ref{lst_code:tls_echo_client_cpp_getfilecontent}. 
+Later, in line~\ref{lst_code:tls_echo_client_cpp_loadconfiguration}, the configuration will be parsed into XML and than transfered into a chain of component which is wrapped by the object \textit{loader}. In order to process a message, an entry point within the chain has to be disclosed. For we are implementing a SOAP client, we are looking for the SOAP component. 
+To get the proper component an operator of MCCLoader is used in line~\ref{lst_code:tls_echo_client_cpp_cliententry}.
+The previously used class \textit{ClientSOAP} has eased some workload which now has to be done within the method.
+The payload now have to be wrapped by the message class which have to be initialised with an \textit{MessageAttribute} object and a \textit{MessageContext} object. After the payload has been wrapped within the message it gets transmitted in almost the same way like before, see lines followed by line~\ref{lst_code:tls_echo_client_cpp_createandprocess}. The rest of the source code is identical to the echo client.\\
 
 
 
 
-\lstsetKSH
-\begin{lstlisting}[
-label=lst:tls_echo_client_invoke,float=htb,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ ./echoclient
-Tue Feb 17 17:04:08 2009
-\end{lstlisting}
+
+% Folgender XML Aufruf und Antwort soll \textit{automatisch} generiert werden:
 
 
 
 
 
 
-\lstsetJUSTXML
-\begin{lstlisting}[
-label=lst:tls_echo_request_XML,float=htb,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-<soap-env:Envelope xmlns:tlsecho="urn:tlsecho" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <soap-env:Body>
-    <tlsecho:tlsechoRequest>
-      <tlsecho:say operation="ordinary">text_to_be_transmitted</tlsecho:say>
-    </tlsecho:tlsechoRequest>
-  </soap-env:Body>
-</soap-env:Envelope>
-\end{lstlisting}
-
-
-
-
-
-
-\lstsetJUSTXML
-\begin{lstlisting}[
-label=lst:tls_echo_response_XML,float=htb,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-<soap-env:Envelope xmlns:tlsecho="urn:tlsecho" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <soap-env:Body>
-    <tlsecho:tlsechoResponse>
-      <tlsecho:hear>[ text_to_be_transmitted ]</tlsecho:hear>
-    </tlsecho:tlsechoResponse>
-  </soap-env:Body>
-</soap-env:Envelope>
-\end{lstlisting}
-
+% 
+% \lstsetJUSTXML
+% \begin{lstlisting}[
+% label=lst:tls_echo_request_XML,float=htb,
+% caption={[Transformation in eine uniforme konzentrische Verteilung.]
+%          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+% <soap-env:Envelope xmlns:tlsecho="urn:tlsecho" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+%   <soap-env:Body>
+%     <tlsecho:tlsechoRequest>
+%       <tlsecho:say operation="ordinary">text_to_be_transmitted</tlsecho:say>
+%     </tlsecho:tlsechoRequest>
+%   </soap-env:Body>
+% </soap-env:Envelope>
+% \end{lstlisting}
+% 
+% 
+% 
+% 
+% 
+% 
+% \lstsetJUSTXML
+% \begin{lstlisting}[
+% label=lst:tls_echo_response_XML,float=htb,
+% caption={[Transformation in eine uniforme konzentrische Verteilung.]
+%          \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+% <soap-env:Envelope xmlns:tlsecho="urn:tlsecho" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+%   <soap-env:Body>
+%     <tlsecho:tlsechoResponse>
+%       <tlsecho:hear>[ text_to_be_transmitted ]</tlsecho:hear>
+%     </tlsecho:tlsechoResponse>
+%   </soap-env:Body>
+% </soap-env:Envelope>
+% \end{lstlisting}
+% 

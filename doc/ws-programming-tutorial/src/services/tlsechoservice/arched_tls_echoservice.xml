@@ -5,7 +5,7 @@
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
   xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
   xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
-  xmlns:echo="urn:echo_config"
+  xmlns:tlsecho="urn:tlsecho_config"
 >
 	<Server>
 	<Pidfile>/var/run/arched.pid</Pidfile>
@@ -16,7 +16,7 @@
 		<Path>/usr/lib/arc/</Path>
 	</ModuleManager>
 	<Plugins><Name>mcctcp</Name></Plugins>
-	<Plugins><Name>mcctls</Name></Plugins>
+	<Plugins><Name>mcctls</Name></Plugins><!--(@*\label{lst_code:tls_echo_arched_xml_plugin}*@)-->
 	<Plugins><Name>mcchttp</Name></Plugins>
 	<Plugins><Name>mccsoap</Name></Plugins>
 	<Plugins><Name>tlsechoservice</Name></Plugins>
@@ -25,7 +25,7 @@
 			<next id="tls"/>
 			<tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
 		</Component>
-		<Component name="tls.service" id="tls">
+		<Component name="tls.service" id="tls"><!--(@*\label{lst_code:tls_echo_arched_xml_component}*@)-->
 			<next id="http"/>
 			<KeyPath>./serviceKey.pem</KeyPath>
 			<CertificatePath>./serviceCert.pem</CertificatePath>

@@ -79,7 +79,7 @@ namespace ArcService
 			fault->Reason("Failed processing request");
 		};
 		outmsg.Payload(outpayload);
-		return Arc::MCC_Status(Arc::GENERIC_ERROR);
+		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 
 	/**

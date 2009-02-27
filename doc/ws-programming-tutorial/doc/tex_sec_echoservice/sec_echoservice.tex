@@ -1,33 +1,142 @@
 \chapter{SEC echoservice}
 
-fine grained
+The TLS echo service, presented in the previous chapter enables the adminstrator the control the access to the grid. Due to a certificate owner may be a member of a large VO it is sometimes recommended to have a more fine grained security within the daemon. 
+The goal to be reached in this chapter is to enhance the possibilities to limitate the access to particular users and to narrow their rights on the workstation.\\
+
+
+The security framework of ARC is implemented based on the same concept of modularity as HED. 
+To extend the security of a MCC one only has to modify the service configuration file. This is to be done by including a \textit{SecHandler} element into a component or service which again has to contain a \textit{pdp} element. A small example of a chain component is shown in Listing~\ref{lst:sec_service_component_xml}. The \textit{SecHandler} is able to intervene the message flow
+by: manipulating the message content, the attributes or just disrupt the message. 
+% Attributes done by: identity.map, delegation.collector
+% manipulating content: usernametoken.handler
+% disrupt by: arc.authz
+\lstsetJUSTXML
+\begin{lstlisting}[
+label=lst:sec_service_component_xml,float=htb,
+caption={[Example of a SecHandler within the component \textit{http.service}.]
+         \textbf{Example of a SecHandler within the component \textit{http.service}}}]
+<Component name="http.service" id="http">
+	<next id="soap">POST</next>
+	<SecHandler name="arc.authz" id="auth" event="incoming">
+		<PDP name="simplelist.pdp" location="./clientlist.txt"/>
+	</SecHandler>
+</Component>
+\end{lstlisting}
+Each MCC or Service usually implement two queues of SecHandlers --- one for incoming messages and one for outgoing called
+``incoming'' and ``outgoing'' respectively. All SecHandler components attached to the queue are executed sequentially. If any of them fails, message processing fails as well~\cite{QIANG_2008}.
+In order to decide which message shall be modified by the \textit{SecHandler} so called PDP (Policy Decision Point) are used. They come in a bunch of flavours such that the variabilty of security which can be realised is big.\\
+
+
+In this tutorial only a small set of \textit{SecHandler}s and \textit{PDP} will be introduced. For further reading it is recommended to consult the document ``Security framework of ARC1'' written by Weizhong Qiang and Alexandr Konstantinov. The present chapter is closly related to it.\\
+
+  \begin{table}[htb]
+  \centering
+  \caption{List of SecHandlers}
+  \begin{tabular*}{\textwidth}[t]{lp{12cm}}
+	\hline
+ 	\textbf{identity.map}          & Maps the identity of the user to an identity of the workstation.\\
+ 	\textbf{arc.authz}             & Restricts the access to the next layer.\\
+ 	\textbf{delegation.collector}  & Collects the information for the delegation policy (Related to \textit{delegate.pdp}). \\
+ 	\textbf{usernametoken.handler} & Generates the WS-Security username-token and adds it into the SOAP header of outgoing
+					 messages. In case of incoming messages the SecHandler extracts the WS-Security username-token out of it. \task{Figure out what the username-token does...}\\
+	\hline
+  \end{tabular*}
+  \end{table}
+
+  \begin{table}[htb]
+  \centering
+  \caption{List of PDPs}
+  \begin{tabular*}{\textwidth}[t]{lp{12cm}}
+	\hline
+ 	\textbf{allow.pdp}           & bla \\
+ 	\textbf{simplelist.pdp}      & blub.\\
+ 	\textbf{arc.pdp}             &\\
+ 	\textbf{delegate.pdp}        & \task{Explain that well}\\
+ 	\textbf{pdpservice.invoker}  &\\
+	\hline
+  \end{tabular*}
+  \end{table}
+
+
+
+
+
+
+In order to realise security within an MCC 
+\begin{verbatim}
+SecHandler 
+==========
+	PDP
+	===	
+		elements/attributes required
+		============================
+identity.map						--- maps the identity of users to identity within the local workstation
+	allow.pdp					--- means concering all identities
+							  (I suppose it can be used in every MCC)
+		<LocalName>nobody</LocalName>		  (Due to the SecHandler within the PDP the local name has to be spechified)
+		???LocalList???
+		???LocalSimplePool???
+	simplelist.pdp					--- maps only persons listed within the file
+								(TLS identity is used here, thus it can be used only after the TLS)
+		<PDP name="simplelist.pdp" location="./clientlist.txt"/>
+	arc.pdp						--- Complexer policy to permit or deny someone. 
+		<PolicyStore>					(Is it possible to add parameters for the SOAP service here?)
+		<Location type="file">policy.xml</Location>
+		</PolicyStore>
+	[...]
+
+arc.authz					--- restricts access to next layer
+	arc.pdp					--- using policy.xml
+	simplelist.pdp				--- using a file with listed identities
+	delegate.pdp				--- like arc.pdp but poicy is parsed from a remote proxy
+	pdpservice.invoker			--- Is a client which can be used to invoke the PDP Service which 
+							implements the same functionality as Arc PDP, except that the
+							evaluation request and response are carried by SOAP
+							message. The benefit of implementing PDP Service and PDP Service 
+							Invoker is that the policy evaluation engine can be accessed remotely
+							and maintained centrally.
+							- wasn't that also possible with the delegate.pdp??
+
+delegation.collector 				--- Delegation SecHandler
+						--- is responsible for collecting the delegation policy information and 
+						putting this policy into message’s security attribute for the 
+						usage of other components, such as delegation.pdp
+usernametoken.handler				--- The task is to generate the WS-Security Username-Token and add it into
+						header of SOAP message which is the payload of outgoing message. 
+						It can also extract the WS-Security Username-Token from the header of 
+						SOAP message which is the payload of incoming message.
+						why should one want to do that???
+
+\end{verbatim}
+
+
+
+- have fine grained but complex authorization system (policy evaluator) which uses information stored on the server (arc.pdp) or an an proxy (delegation.pdp) or which is evaluated using a SOAP based service such that the request can be evaluated remotly (pdpservce.invoker). 
+- have a simple list which matches identities (simplelist.pdp)
+- map users to an identity within the local workstation
+
+
+have a smaller set of users,
+have a policy which may map certain users to certain settings
+
+
+
+For HED is build up to  % entsrprechend einer Mod Structur
+be modular, the security can easily be extend to our given example.
+Each Message Chain Component (MCC) or service has a common interface for implementing various pluggable components (plug-ins) called SecHandler. The SecHandler components provide a method for processing messages traveling through Message Chains of the HED. 
+Each MCC or Service usually implement two queues of SecHandlers – one for incoming messages and one for outgoing called “incoming” and “outgoing” respectively. All SecHandler components attached to the queue are executed sequentially. 
+If any of them fails, message processing fails as well. 
+Each SecHandler is configured inside the arched configuration file used for configuring whole chain of MCCs 
+Some of the currently implemented SecHandler components make use of pluggable and configurable sub-modules called Policy Decision Point (PDP). PDP can process ARC specific Request and Policy documents which are as well written in XML format~\cite{QIANG_2008}..
+
+
+
 
 
 \section{SecureHandler}
 And what are PDP's?
 
-Currently, the ARC1 comes in severalfour policy decision point implementations:
-\begin{itemize}
- \item arc.pdp – Arc PDP\\
-The Arc PDP will organize the security attributes into the ARC specific authorization request, call the
-policy evaluator to evaluate the request against the policy (which is in ARC specific format) repository,
-and get back the evaluation result. See paragraph 3 for detail information about request schema and policy
-schema.
-\item delegtion.pdp – Delegation PDP\\
-The Delegation PDP is basically similar to Arc PDP, except it uses the delegation policy parsed from
-remote proxy credential by delegation.collector, and evaluates the request against delegation policy. See
-section 6for the design idea and use case of delegation policy in fine-grained identity delegation.
-\item simplelist.pdp – Simplelist PDP\\
-The Simplelist PDP is a simplest implementation of policy decision point. It will match the identity
-extracted from the remote credential (or proxy credential) with local list of permitted identities.
-\item pdpservice.invoker – PDP Service Invoker\\
-The PDP Service Invoker is a client which can be used to invoke the PDP Service which implements the
-same functionality as Arc PDP, except that the evaluation request and response are carried by SOAP
-message. The benefit of implementing PDP Service and PDP Service Invoker is that the policy evaluation
-engine can be accessed remotely and maintained centrally.
- \item allow.pdp\\
- Does something unknown!
-\end{itemize}
+
 
 Following Flavors:
 \subsection{arc.authz – Authorization SecHandler}
@@ -206,3 +315,31 @@ caption={[Transformation in eine uniforme konzentrische Verteilung.]
 </soap-env:Envelope>
 \end{lstlisting}
 \end{minipage}
+
+
+
+
+
+\section{Other PDPs}
+
+In order the adminisitrator wants to maintain the grid access using one workstation the delegation.pdp can be used.
+The client requests access to a service. In case the request is valid a certificate will be deployed on the desired server such that it can be accessed now \task{Am I right?} \cite{QIANG_2008}\\
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
