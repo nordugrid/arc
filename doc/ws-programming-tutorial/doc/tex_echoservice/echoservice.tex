@@ -123,10 +123,15 @@ More information about WSDL may be found at \href{http://www.w3.org/TR/wsdl}{htt
 
 \section{Service}
 
-In the current section, the implementation of the service defined in the WSDL file of the previous section will be presented. The source code of the C++ file is shown in listing~\ref{lst:echo_service_cpp}. Again the header file will be set aside for it contains only redundant information. It can be reread in the source directory accompanying the tutorial.
-Within the source code of echo service basically three changes has been done. The first change concerns the constructor and is to be found in line~\ref{lst_code:echo_cpp_prefix}. Two strings will be extracted of the HED configuration file which are later used to envelope the message before it is returned.
-Furthermore a new method \textit{makeFault} in line~\ref{lst_code:echo_cpp_makeFault} has been introduced which is able to create fault messages and is called by the method \textit{process}.
-Within that method two new code fragments are now extracting and analyzing the incoming message, to be seen in line~\ref{lst_code:echo_cpp_extracting} and \ref{lst_code:echo_cpp_analyzing}.
+This section presents the implementation of the service defined in the WSDL file of the previous section.
+The source code of the C++ file is shown in listing~\ref{lst:echo_service_cpp}.
+Again, the header file will be set aside for it contains only redundant information.
+It can be reread in the source directory that is accompanying the tutorial.
+For the source code of echo service basically three changes are required for on the code for the timeservice webservice of the previous chapter.
+The first change concerns the constructor and is found at line~\ref{lst_code:echo_cpp_prefix}.
+Two strings will be extracted of the HED configuration file which are later used to envelope the message before it is returned.
+Furthermore, a new method \textit{makeFault} in line~\ref{lst_code:echo_cpp_makeFault} has been introduced which is able to create fault messages and is called by the method \textit{process}.
+Within that method two new code fragments are now extracting and analyzing the incoming message, to be seen at lines~\ref{lst_code:echo_cpp_extracting} and \ref{lst_code:echo_cpp_analyzing}.
 In case something unexpected happens both will create a SOAP fault message.\\
 % Vielleicht noch etwas über das extrahieren der Nachricht schreiben
 
@@ -140,7 +145,10 @@ In case something unexpected happens both will create a SOAP fault message.\\
 {../src/services/echoservice/echoservice.cpp}
 
 
-Again the HED is configured by a XML file and have to be lunched as usual. The HED configuration file is shown in Listing~\ref{lst:echo_hed_configuration_xml}. The only change concerns the lines~\ref{lst_code:echo_hed_configuration_xml_pre} and \ref{lst_code:echo_hed_configuration_xml_pre} which are specifing the \textit{prefix} and \textit{suffix}. The parameters will be extracted in the constructor of the service and provide a good example how settings can be passed from the HED configuration file towards the service.
+Again, the HED is configured by an XML file and is launched as introduced earlier.
+The HED configuration file is shown in Listing~\ref{lst:echo_hed_configuration_xml}.
+The only change concerns the lines~\ref{lst_code:echo_hed_configuration_xml_pre} and \ref{lst_code:echo_hed_configuration_xml_pre} which specify the \textit{prefix} and \textit{suffix}.
+The parameters will be extracted in the constructor of the service and explain nicely how settings can be passed from the HED configuration file towards the service.
 
 \lstsetARCHEDXML
 \lstinputlisting
@@ -167,23 +175,28 @@ Again the HED is configured by a XML file and have to be lunched as usual. The H
 
 \section{Client}
 
-Likewise the client has become also more complex. The parameters are now passed by the command line, to be seen in the lines followed by line~\ref{lst_code:echo_client_cpp_arguments}.
-The creation of the SOAP client is unchanged. The request is created in lines subsequent line~\ref{lst_code:echo_client_cpp_request}.
-It is processed in the code after line~\ref{lst_code:echo_client_cpp_response} in which also the response is received. The checks of the response have expanded by an addition condition which tests for a fault message, see line~\ref{lst_code:echo_client_cpp_fault}.
+With the interface of the server gaining complexity, so is the code for the client - for two reasons. Firstly, because the additional arguments need to be filled. Secondly, because of the extra effort to interact with the (here human) user to collect the data to forward to the echo service.
+The parameters are now passed by the command line, to be seen in the lines followed by line~\ref{lst_code:echo_client_cpp_arguments}.
+That code is independent from the ARC library.
+The creation of the SOAP client is unchanged.
+The request is created in lines subsequent line~\ref{lst_code:echo_client_cpp_request}.
+It is processed in the code after line~\ref{lst_code:echo_client_cpp_response} in which also the response is received.
+The checks of the response have expanded by an additional condition which tests for a fault message, see line~\ref{lst_code:echo_client_cpp_fault}.
 
 
 \lstsetCPP
 \lstinputlisting
 	[
 	label=lst:arcecho_arched_xml,
-	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
-	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	caption={[HED configuration file for the ARC echo service. Filename: arcecho\_no\_ssl.xml]
+	\textbf{HED configuration file for the ARC echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/clients/echoclient/echoclient.cpp}
 
 \lstsetCPP
 
-The usage of the client is presented in Listing~\ref{lst:invokation_echoservice}. Three cases of echo service responses are displayed: ordinary operation, reverse operation and SOAP fault due to an unknown operation.
+The usage of the client is presented in Listing~\ref{lst:invokation_echoservice}.
+Three cases of echo service responses are displayed: ordinary operation, reverse operation and SOAP fault due to an unknown operation.
 
 
 \lstsetKSH
@@ -201,8 +214,8 @@ A SOAP fault occured:
   Fault string: "Unknown operation. Please use "ordinary" or "reverse""
 \end{lstlisting}
 
-A few examples of the exchanged messages are shown in the Listings~\ref{lst:echoservice_request}, \ref{lst:echoservice_response} and \ref{lst:echoservice_fault}. Listing~\ref{lst:echoservice_request} illustrates a request message using the operation \textit{reverse}.
-Listing~\ref{lst:echoservice_response} illustrates the corresponding response message. In case the operation requested by the client is unknown, the server replies with the fault message to be seen in Listing~\ref{lst:echoservice_fault}.
+A few examples for the exchanged messages are shown in the Listings~\ref{lst:echoservice_request}, \ref{lst:echoservice_response} and \ref{lst:echoservice_fault}. Listing~\ref{lst:echoservice_request} illustrates a request message using the operation \textit{reverse}.
+Listing~\ref{lst:echoservice_response} illustrates the corresponding response message. When the operation requested by the client is unknown, then the server replies with the fault message shown in Listing~\ref{lst:echoservice_fault}.
 
 
 \lstsetJUSTXML

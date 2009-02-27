@@ -1,8 +1,8 @@
 \chapter{TLS echoservice}
 
-The web services which were presented in the previous chapters have one mayor drawback: the communication between the two endpoints is unsecure.
-Due to that reason the current and the next chapter will discuss how to create a secure web service.
-In general security in a network can be subdivided into the following categories:~\cite{TANNENBAUM_2001}\task{verfiy citation}
+The web services of the previous chapters have one mayor drawback: the communication between the two endpoints is insecure.
+For that reason the current and the next chapter will discuss how to create a secure web service.
+In general, security in a network can be subdivided into the following categories:~\cite{TANNENBAUM_2001}\task{verfiy citation}
 \begin{itemize}
 	\item \textbf{Confidentiality} --- Protection of the data against passiv attacks (such as publicise message content)
 	
@@ -29,9 +29,10 @@ In general security in a network can be subdivided into the following categories
 %     Bestätigung des Ursprungs Privatsphäre
 %
 % Nach Sicherheit in verteilten Systemen, ITM Lübeck
-Ideally all six categories should have been achieved by such an application (though the last category, availability, is difficult to realise).
-In the present chapter, the security will be put into practice by extending the protocol stack with an additional security layer called TLS (Transport Layer Security). Due to the location after the TCP and the HTTP layer, the layer is only capable to limitate the access to the grid to a certain set of users.
-Nevertheless it provides the security categories: Confidentiality, authentication, integrity, non-repudiation and access control.\\
+Ideally, all six categories should have been achieved by such an application (though the last category, availability, is difficult to realise).
+In the present chapter, the security will be put into practice by extending the protocol stack with an additional security layer called TLS (Transport Layer Security).
+Due to the location after the TCP and the HTTP layer, the layer is only capable to limit the access to the grid to a certain set of users.\task{What do you mean here? SM}
+Nevertheless, it provides the security categories: confidentiality, authentication, integrity, non-repudiation and access control.
 
 
 In the next section gives a basic understanding of the working principale of the TLS. Emphasis is put on the security concept and not on an exact description of the technical realisation in order to enable newcomers an entry to  this area.
@@ -44,7 +45,9 @@ In the next section gives a basic understanding of the working principale of the
 \section{Transport Layer Security}
 
 
-The TLS is a protocol which provides a secure connection between two endpoints. It is located directly upon the TCP/IP layers and uses typically an asymmetric encryption to establish the connection (alternatively a symmetric pre-shared key may be used). After the communication has successfully established, both participants are switching to another encryption method which is based on a new negotiated symmetric key.\\
+The TLS is a protocol which provides a secure connection between two endpoints.
+It is based directly on the TCP/IP layers and uses typically an asymmetric encryption to establish the connection (alternatively a symmetric pre-shared key may be used).
+After the communication has been successfully established, both participants are switching to another encryption method which is based on a new negotiated symmetric key.
 %    1. Peer negotiation for algorithm support
 %    2. Key exchange and authentication
 %    3. Symmetric cipher encryption and message authentication   - from wikipedia
@@ -53,11 +56,15 @@ The TLS is a protocol which provides a secure connection between two endpoints. 
 
 
 Symmetric and asymmetric encryption are the two main classes of cryptographic algorithms.
-In case of symmetric encryption both participants are holding the same secret key to encrypt and decrypt a plain text. The principle is to reverse the process of encryption for decrypting the text.
+In case of symmetric encryption, both participants are holding the same secret key to encrypt and decrypt a plain text.
+The principle is to reverse the process of encryption for decrypting the text.
 Symmetric encryption can be ranked as being very secure but its downside is that the key distribution is very difficult in practice.
 The key has to be shared previously, ideally over a secure channel which is may either be a complete diffrent medium (i.e. a letter, speech) or a channel which has been encrypted with another secret key.
-Asymmetric encryption follows a diffrent functional principle. While the symmetric encryption utilise one shared secret, the asymmetric ecryption is based on two keys: a private key and public key. As the names imply the private key is kept secret and is never shared while the public key is available to everyone. Messages encrypted with the public key can only be decrypted with the private key and the other way round, messages encrypted with the private key can only be decrypted with the public key. 
-The Figure~\ref{fig:asymmetric_encryption} illustrates the circumstances of the case.\\
+Asymmetric encryption follows a diffrent functional principle.
+While the symmetric encryption utilise one shared secret, the asymmetric ecryption is based on two keys: a private key and public key.
+As the names imply, the private key is kept secret and is never shared while the public key is available to everyone.
+Messages encrypted with the public key can only be decrypted with the private key and conversely, messages encrypted with the private key can only be decrypted with the public key. 
+The Figure~\ref{fig:asymmetric_encryption} illustrates the circumstances of the case.
 \begin{figure}[htb]
 	\centering%epstopdf async.eps
 	\subfloat[Texttext\label{fig:cgd}]
@@ -69,47 +76,63 @@ The Figure~\ref{fig:asymmetric_encryption} illustrates the circumstances of the 
 \end{figure}
 \task{Maybe the term service has to be replaced by server}
 
-At startup of the communication process A (Alice) who desires a secure connection transmits her public key to B (Bob).
+At startup of the communication process, A (Alice) who desires a secure connection transmits her public key to B (Bob).
 Bob is now able to encrypt his messages such that only Alice is able to decrypt them.
-As one can see this first approach already provides confidentiality and integrity of messages.
-%
-Non-repudiation, authentication and due to that access control are not given because the identity of Alice is not proven.
-In order to be able to check identities so called certificates have to be introduced.
-Certificates render the possibility to validate the identity of its owner. They are signed by a certificate authority (CA) which's identity can be verified by another CA or which is  pre-configured to be trusted.
+As one can see, this first approach already provides confidentiality and integrity of messages.
+
+Neither Non-repudiation, authentication and consequently nor access control are established because the identity of Alice is not proven.
+In order to be able to check identities, so called certificates have been introduced.
+Certificates render the possibility to validate the identity of its owner.
+They are signed by a certificate authority (CA), the identity of which can be verified by another CA or that is pre-configured to be trusted.
+
 A certificate is composed of the identity of the owner, his public key, the name of the CA who signed the certificate and the signature of the CA which is a hash-value of the certificate encrypted with the private key of the CA. 
-Furthermore the algorithms used to create the certificate are added.
-If a certificate can be resolved to a CA with is pre-configured to be trusted, the identity of the certificate owner is considered as to be proven. 
-In general a set of trusted CAs is already defined in the operation system.
-To obtain a certificate a certificate request has to be submitted to a CA.
+Furthermore, the algorithms used to create the certificate are added.
+If a certificate can be resolved to a trusted CA, the identity of the certificate owner is considered to be proven. 
+In general, a set of trusted CAs is already defined in the operation system.
+To obtain a certificate, a certificate request has to be submitted to a CA.
 The CA verifies the identity of the requesting person and the requested certificate will be signed.
 Figure~\ref{fig:certificate_request} shows the procedure of gaining a certificate.
+For instructions on the actual commands on the UNIX shell, you may follow instructions on \url{http://ca.nordugrid.org}.
 \begin{figure}[htb]
 	\centering%epstopdf certificates.eps
  	\includegraphics[width=13cm]{tex_tls_echoservice/certificates.pdf}
 	\mycaption{specific}{general}
 	\label{fig:certificate_request}
 \end{figure}
-In the first step, a private and a public key will be generated by the requester. The public key together with a textual description of the identity  depict the request which will be transmitted to a CA. After the CA successfully varified the validity of the request, the identity of the CA and the name of used the encryption algorithms are added.
-The collected data will represent the plain text of the certificate. In order to ensure the integrity of the text, 
-a hash value will be created. (A fixed-sized short string which is generated by an algorithm based on an arbitrary long given text. The algorithm is designed such that a small change in the text will cause the hash value to change almost like a random function. Thus, the hash value can be used a fingerprint of the text.) The CA signs the plain certificate by encrypting its hash value with its private key. Finally the signed certifcate will be returned to the requester.
-%
-%
-If an outside person wants to verify the certificate owner, the encrypted hash value has to be decrypted by the public key of the CA and a hash value has to be created with the same algorithm in order to compare them.\\
+In the first step, a private and a public key will be generated by the requester.
+The public key together with a textual description of the identity depict the request which will be transmitted to a CA.
+After the CA successfully verified the validity of the request, the identity of the CA and the name of the used encryption algorithms are added.
+The collected data will represent the plain text of the certificate.
+In order to ensure the integrity of the text, a hash value will be created.
+This is a fixed-sized short string which is generated by an algorithm based on an arbitrary long given text.
+The algorithm is designed such that a small change in the text will cause the hash value to change almost like a random function.
+Thus, the hash value can be used a fingerprint of the text.
+The CA signs the plain certificate by encrypting its hash value with its private key.
+Finally the signed certifcate will be returned to the requester.
+If an outside person wants to verify the certificate owner, the encrypted hash value has to be decrypted by the public key of the CA and a hash value has to be created with the same algorithm in order to compare them.
 
 
-Figure~\ref{fig:verification_of_certificates} shows a usecase in which Alice wants to resolve the identity of Bob. Alice submitts her request to Bob along with a challange consisting of a random number $n$. 
+Figure~\ref{fig:verification_of_certificates} shows a usecase in which Alice wants to resolve the identity of Bob.
+Alice submits her request to Bob along with a challange consisting of a random number $n$. 
 The random number ensures that it is not possible to repeat a message (integrity).
-Bob encrypts the number with his private key and returns it together with his certificate. Alice uses the public key of Bob to decrypt the challange. 
+Bob encrypts the number with his private key and returns it together with his certificate.
+Alice uses the public key of Bob to decrypt the challenge. 
 If the decrypted number is equal to the transmitted number, Alice can reason that the identity of Bob is to be trusted in case she is trusting the CA which has signed Bobs certificate. 
-%
-In the given example Alice only trusts the CA 2 but not CA 1.
+
+In the given example, Alice only trusts the CA 2 but not CA 1.
 To resolve the identity of CA 1, Alice establishes a connection to CA 1 and submits another random number $n$ as a challenge.
-The CA 1 encrypts the challange with its private key and send the result along with its certificate back to Alice. Alice succefully validates the certificate of CA 1. Due to the certificate was signed by CA 2 which is pre-configured to be trusted she can follow to trust CA 1 and in conclusion the identity of B. In summary, Alice knows she is talking to Bob. If Bob also wants to be sure how he's talking to the same procedure has to be done for the identity of Alice. The TLS mode in in which both endpoints are ensuring themself to whom they are talking to is called bilateral connection mode.\\
+The CA 1 encrypts the challenge with its private key and sends the result along with its certificate back to Alice.
+Alice successfully validates the certificate of CA 1.
+Since the certificate was signed by CA 2 which is pre-configured to be trusted, she als trusts CA 1 and in conclusion the identity of B.
+In summary, Alice knows she is talking to Bob.
+If Bob also wants to be sure who he's talking to, then the same procedure has to be done to confirm the identity of Alice.
+The TLS mode in which both endpoints are ensuring themselves to whom they are talking to is called \textit{bilateral connection mode}.
 
 
-In case the client is aware of the service authentity, the confidential treatment of his data is given such that one can be sure the data won't be revealed to a third party (service sided confidentiality). 
-On the other side, if the service is aware of the client authentity, the access to the service can be controlled (access control) and the service can verify that the results will only be passed back to the right person (client sided confidentiality). 
-As one can see confidentiality, authentication, integrity and non-repudiation are now given.\\
+When the client is aware of the service authentity, the confidential treatment of his data is given such that one can be sure the data won't be revealed to a third party (service-sided confidentiality). 
+On the other side, if the service is aware of the client authentity, the access to the service can be controlled (access control) and the service can verify that the results will only be passed back to the right person (client-sided confidentiality). 
+As one can see confidentiality, authentication, integrity and non-repudiation are now given.
+
 \begin{figure}[htb]
 	\centering%epstopdf verification.eps 
 	\includegraphics[width=13cm]{tex_tls_echoservice/verification.pdf}
@@ -117,49 +140,46 @@ As one can see confidentiality, authentication, integrity and non-repudiation ar
 	\label{fig:verification_of_certificates}
 \end{figure}
 
+Certificates have several advantages.
+They are scaling very good with the amount of users because CAs can create new sub-CAs such that the load is balanced (certificates of a CA may be cached).
+Furthermore no critical information is exchanged during the establishment of a connection (in particular no secret key is shared which may get intercepted).
+Instead, a set of pre-configured CAs which will be in general provided by the operation system is needed.
+In respect of ARC it is obvious that the access to the grid shall be under control of its administrator.
+To do so, the administrators have to establish their own CA such which is in charge of creating certificates for a set of users.
+Many universities have prepared local certificate authorities.
+And every user can establish his own. 
 
+The identity of the created CA have to be added to the directory of pre-configured CAs.
+The ARC source code comes with two shell scripts to create a CA and related certificates.
+Several publicly availble tools for certificate handling haven been prepared, e.g. (like \textit{openssl}),
+which allow the certificate handling also for the advanced UNIX users.
+Certificates in general, however, have found entry to regular computer users, for instance with the FernUniversity Hagen (https://ca.fernuni-hagen.de/) who use that technology for their remote students to hand in exercises.
 
-Certificates have several advantages. They are scaling very good with the amount of users because CAs can create new sub-CAs such that the load is balanced (certificates of a CA may be cached). Furthermore no critical information is exchanged during the establishment of a connection (in particular no secret key is shared which may get intercepted),
-Instead a set of pre-configured CAs which will be in general provided by the operation system is needed.
-In respect of ARC it is obvious, that the access to the grid shall be under control of its administrator. To do so, the administrator have to build up his own CA such that he is in charge of creating certificates for a set of users. 
-The identity of the created CA have to be shipped into the directory of pre-configured CAs.
-(Within the source code there are two shell scripts to create a CA and related certificates). Due to there's a bunch of tools for certificates (like \textit{openssl}) they are easy to maintain.\\
- % Root CAs are self-signed ... is that interesting?
-
-
-A CA which controls the access to a grid can be considered as a virtual organsiation (VO). It may involve organisations close to the leading organisation as well as structure which are not formally associated with it. In most cases the basic idea is to share ressources.
-
-
+A CA which controls the access to a grid can be considered as a virtual organsiation (VO).
+It may involve organisations close to the leading organisation as well as structure which are not formally associated with it.
+In most cases the basic idea is to share ressources. \task{this para will need some overhaul - SM}
 
 \clearpage
 \section{Service}
 
 In order to create a secure bilateral connection we hence need two certificates: a client certificate and a service certificate.
-The CA for the certificate has to be pre-configured on the counterpart and furthermore, the owner of the certificate has to hold the fitting private key. Altogether six files are needed:
-\begin{itemize}
- \item clientCA   - The CA which guarantees for the identity of the client
- \item clientCERT - The certificate of the client.
- \item clientKEY  - Secret key of the client to read messages, encrypted by the public key in the certificate!
+The CA for the certificate has to be pre-configured on the counterpart and furthermore, the owner of the certificate has to hold the fitting private key. 
+Altogether six files are needed:
+\begin{tabular}{l@{-}p{9cm}}
+clientCA   & The CA which guarantees for the identity of the client \\
+clientCERT & The certificate of the client. \\
+clientKEY  & Secret key of the client to read messages, encrypted by the public key in the certificate! \\
+\\
+serverCA   & The CA which guarantees for the identity of the server \\
+serverCERT & The certificate of the server. \\
+serverKEY  & Secret key of the client to read messages, encrypted by the public key in the certificate! \\
+\end{tabular}
 
- \item serverCA   - The CA which guarantees for the identity of the server
- \item serverCERT - The certificate of the server.
- \item serverKEY  - Secret key of the client to read messages, encrypted by the public key in the certificate!
-\end{itemize}
-
-Server has got have:
-Its  serverCERT serverKEY and some kind of root CA knowing the client
-Client has got to have
-Its  clientCERT clientKEY and some kind of root CA knowing the server
-
-
+The server needs: its  serverCERT and serverKEY and some kind of root CA knowing the client.
+Client needs its clientCERT and clientKEY and some kind of root CA knowing the server.
 
 \task{RENAMING into~ARC service configuration file}
 \task{echo service client configuration file}
-
-
-
-
-
 
 %The first two goals can be reached by encrypting the channel/connection between client and server. An approach 
 %sich bewähren / behaupten
@@ -172,24 +192,21 @@ Its  clientCERT clientKEY and some kind of root CA knowing the server
 %
 %Authorization:  The server on the other side takes an interest in limitate its ressources to a close circle of users. Above all no %foreign clients shall be able to use the services.\\
 
-
-
-
 One can add the TLS in client and server by simply extending the arched configuration file and a small modification of the client.
 
+WARNING: If the program fails, check if one of your certificates has expired.
+If so, create new one using the script files in the directory 'certFactory'.
 
+Chalked up to the modularity of HED, the security can easily be extend to our given example.
+Each Message Chain Component (MCC) or service has a common interface for implementing various pluggable components (plug-ins) called SecHandler.
+The SecHandler components provide a method for processing messages traveling through Message Chains of the HED. 
 
-WARNING: If the programm fails, check if one of your certifacte is expired. If so, create new one using the script files in the directory 'certFactory'
-
-For HED is build up to  % entsrprechend einer Mod Structur
-be modular, the security can easily be extend to our given example.
-Each Message Chain Component (MCC) or service has a common interface for implementing various pluggable components (plug-ins) called SecHandler. The SecHandler components provide a method for processing messages traveling through Message Chains of the HED. 
-Each MCC or Service usually implement two queues of SecHandlers – one for incoming messages and one for outgoing called “incoming” and “outgoing” respectively. All SecHandler components attached to the queue are executed sequentially. 
+Each MCC or Service usually implements two queues of SecHandlers – one for incoming messages and one for outgoing, which are called “incoming” and “outgoing”, respectively.
+All SecHandler components attached to the queue are executed sequentially. 
 If any of them fails, message processing fails as well. 
-Each SecHandler is configured inside the arched configuration file used for configuring whole chain of MCCs 
-Some of the currently implemented SecHandler components make use of pluggable and configurable sub-modules called Policy Decision Point (PDP). PDP can process ARC specific Request and Policy documents which are as well written in XML format~\cite{QIANG_2008}..
-
-
+Each SecHandler is configured inside the arched configuration file that is used for configuring whole chain of MCCs 
+Some of the currently implemented SecHandler components make use of pluggable and configurable sub-modules called Policy Decision Point (PDP).
+PDPs can process ARC specific Request and Policy documents which are also written in XML format~\cite{QIANG_2008}..
 
 
 4 types:
