@@ -1,5 +1,3 @@
-#include "/home/dp/src/arc1-bare/config.h"
-
 #include <stdexcept>
 #include <string>
 #include <map>
