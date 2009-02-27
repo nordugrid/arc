@@ -21,11 +21,13 @@
         testISISclient -m RemoveRegistration "Srv_ID1"
 
 */
+
 #include <sys/stat.h>
 #include <time.h>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <vector>
 
 #include <arc/OptionParser.h>
 #include <arc/IString.h>
@@ -117,15 +119,15 @@ std::string Query( Arc::URL url, std::string query ){
     repmsg.Context(&context);
 
     Arc::MCC_Status status;
-    std::cout << " Job Submitted. Waiting to the request message." << std::endl;
+    std::cout << " Request sent. Waiting for the response." << std::endl;
     status= client_entry->process(reqmsg,repmsg);
-  
+
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
       return "-1";
     };
-  
+
     Arc::PayloadSOAP* resp = NULL;
     if(repmsg.Payload() == NULL) {
       logger.msg(Arc::ERROR, "There is no response");
@@ -159,7 +161,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
        logger.msg(Arc::DEBUG, " Service_ID's number is not equivalent with the ERP's number!");
        return "-1";
     }
-       
+
     Arc::XMLNode client_doc(ChainConfigString(url));
     Arc::Config client_config(client_doc);
     if(!client_config) {
@@ -182,7 +184,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     Arc::XMLNode request = req.NewChild("Register");
     request.NewChild("Header");
     //request["Header"].NewChild("RequesterID");
-    
+
     std::time_t rawtime;
     std::time ( &rawtime );	//current time
     tm * ptm;
@@ -191,7 +193,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     std::stringstream out;
     out << ptm->tm_year+1900<<"-"<< ptm->tm_mon+1<<"-"<< ptm->tm_mday<<"T"<< ptm->tm_hour<<":"<< ptm->tm_min<<":"<< ptm->tm_sec;
     request["Header"].NewChild("MessageGenerationTime") = out.str();
-    
+
     for (int i=0; i < serviceID.size(); i++){
         Arc::XMLNode srcAdv = request.NewChild("RegEntry").NewChild("SrcAdv");
         srcAdv.NewChild("Type") = "org.nordugrid.test.testISISclient";
@@ -217,15 +219,15 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     repmsg.Context(&context);
 
     Arc::MCC_Status status;
-    std::cout << " Job Submitted. Waiting to the request message." << std::endl;
+    std::cout << " Request sent. Waiting for the response." << std::endl;
     status= client_entry->process(reqmsg,repmsg);
-  
+
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
       return "-1";
     };
-  
+
     Arc::PayloadSOAP* resp = NULL;
     if(repmsg.Payload() == NULL) {
       logger.msg(Arc::ERROR, "There is no response");
@@ -292,15 +294,15 @@ std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceI
     repmsg.Context(&context);
 
     Arc::MCC_Status status;
-    std::cout << " Job Submitted. Waiting to the request message." << std::endl;
+    std::cout << " Request sent. Waiting for the response." << std::endl;
     status= client_entry->process(reqmsg,repmsg);
-  
+
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
       return "-1";
     };
-  
+
     Arc::PayloadSOAP* resp = NULL;
     if(repmsg.Payload() == NULL) {
       logger.msg(Arc::ERROR, "There is no response");
@@ -326,6 +328,80 @@ std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceI
     return response;
 }
 
+// GetISISList function
+std::vector<std::string> GetISISList( Arc::URL url ){
+
+    //The response vector
+    std::vector<std::string> response;
+
+    Arc::XMLNode client_doc(ChainConfigString(url));
+    Arc::Config client_config(client_doc);
+    if(!client_config) {
+      logger.msg(Arc::ERROR, "Failed to load client configuration");
+      return response;
+    };
+    Arc::MCCLoader client_loader(client_config);
+    logger.msg(Arc::INFO, "Client side MCCs are loaded");
+    Arc::MCC* client_entry = client_loader["soap"];
+    if(!client_entry) {
+      logger.msg(Arc::ERROR, "Client chain does not have entry point");
+      return response;
+    };
+
+    // Create and send RemoveRegistration request
+    logger.msg(Arc::INFO, "Creating and sending request");
+    Arc::NS query_ns; query_ns["isis"]="urn:isis";
+    Arc::PayloadSOAP req(query_ns);
+
+    Arc::XMLNode request = req.NewChild("GetISISList");
+    Arc::Message reqmsg;
+    Arc::Message repmsg;
+    reqmsg.Payload(&req);
+    // It is a responsibility of code initiating first Message to
+    // provide Context and Attributes as well.
+    Arc::MessageAttributes attributes_req;
+    Arc::MessageAttributes attributes_rep;
+    Arc::MessageContext context;
+    reqmsg.Attributes(&attributes_req);
+    reqmsg.Context(&context);
+    repmsg.Attributes(&attributes_rep);
+    repmsg.Context(&context);
+
+    Arc::MCC_Status status;
+    std::cout << " Request sent. Waiting for the response." << std::endl;
+    status= client_entry->process(reqmsg,repmsg);
+
+    if(!status) {
+      logger.msg(Arc::ERROR, "Request failed");
+      std::cerr << "Status: " << std::string(status) << std::endl;
+      return response;
+    };
+
+    Arc::PayloadSOAP* resp = NULL;
+    if(repmsg.Payload() == NULL) {
+      logger.msg(Arc::ERROR, "There is no response");
+      return response;
+    };
+    try {
+      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+    } catch(std::exception&) { };
+    if(resp == NULL) {
+      logger.msg(Arc::ERROR, "Response is not SOAP");
+      return response;
+    };
+
+    // Construct the response vector
+    if (bool((*resp)["GetISISListResponse"]) ){
+        int i = 0;
+        while((bool)(*resp)["GetISISListResponse"]["EPR"][i]) {
+            response.push_back((std::string)(*resp)["GetISISListResponse"]["EPR"][i]);
+            i++;
+        }
+    }
+
+    return response;
+}
+
 // Split the given string by the given delimiter and return its parts
 std::vector<std::string> split( const std::string original_string, const std::string delimiter ) {
     std::vector<std::string> retVal;
@@ -341,7 +417,7 @@ std::vector<std::string> split( const std::string original_string, const std::st
 
 
 int main(int argc, char** argv) {
-	
+
     Arc::LogStream logcerr(std::cerr);
     Arc::Logger::getRootLogger().addDestination(logcerr);
     Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
@@ -351,14 +427,13 @@ int main(int argc, char** argv) {
               "the ISIS's abilities."),
       istring("The method are the folows: Query, Register, RemoveRegistration")
       );
- 	
+
     std::string method = "";
       options.AddOption('m', "method",
         istring("define which method are use (Query, Register, RemoveRegistration)"),
         istring("method"),
         method);
- 	
- 	
+
     std::string debug;
       options.AddOption('d', "debug",
                 istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
@@ -377,9 +452,14 @@ int main(int argc, char** argv) {
     logger.msg(Arc::INFO, "ISIS tester start!");
 
     Arc::URL BootstrapISIS("http://knowarc2.grid.niif.hu:50000/isis1");
-    // getISISList
-    // It is the getISISList place
-    // ...
+
+    // Get the a list of known ISIS's and choose one from them randomly
+    std::vector<std::string> neighbors_ = GetISISList( BootstrapISIS );
+
+    std::srand(time(NULL));
+    std::string contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
+    std::cout << "The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
+    Arc::URL ContactISIS(contactISIS_address_);
     // end of getISISList
 
     std::cout << " [ The selected method:  " << method << " ] " << std::endl;
@@ -390,7 +470,7 @@ int main(int argc, char** argv) {
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
            query_string += " " + *it;
        }
-       response = Query( BootstrapISIS, *parameters.begin() );
+       response = Query( ContactISIS, *parameters.begin() );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           Arc::XMLNode queryresponse_;
@@ -403,7 +483,7 @@ int main(int argc, char** argv) {
     else if (method == "Register"){
        std::vector<std::string> serviceID;
        std::vector<std::string> epr;
-       
+
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
            std::vector<std::string> Elements = split( *it, "," );
            if ( Elements.size() > 1) {
@@ -415,7 +495,7 @@ int main(int argc, char** argv) {
               return 1;
            }
        }
-       response = Register( BootstrapISIS, serviceID, epr );
+       response = Register( ContactISIS, serviceID, epr );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           if ( bool(resp["Body"]["Fault"]) ){ 
@@ -432,11 +512,11 @@ int main(int argc, char** argv) {
     //The method is RemoveRegistration
     else if (method == "RemoveRegistration"){
        std::vector<std::string> serviceID;
-       
+
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
               serviceID.push_back(*it);
        }
-       response = RemoveRegistration( BootstrapISIS, serviceID );
+       response = RemoveRegistration( ContactISIS, serviceID );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           int i=0;
@@ -465,7 +545,7 @@ int main(int argc, char** argv) {
        std::cout << " No response message or other error in the " << method << " process!" << std::endl;
        return 1;
     }
- 
+
     return 0;
 }
 

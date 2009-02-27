@@ -17,10 +17,14 @@ namespace ISIS {
             Arc::XmlDatabase *db_;
             Arc::NS ns_;
             Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
+            // List of known neighbor's endpoint URL in string
+            std::vector<std::string> neighbors_;
 
+            // Functions for the service specific interface
             Arc::MCC_Status Query(Arc::XMLNode &request, Arc::XMLNode &response);
             Arc::MCC_Status Register(Arc::XMLNode &request, Arc::XMLNode &response);
             Arc::MCC_Status RemoveRegistration(Arc::XMLNode &request, Arc::XMLNode &response);
+            Arc::MCC_Status GetISISList(Arc::XMLNode &request, Arc::XMLNode &response);
         public:
             ISIService(Arc::Config *cfg);
             virtual ~ISIService(void);
