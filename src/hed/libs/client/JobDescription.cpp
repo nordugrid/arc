@@ -313,22 +313,22 @@ namespace Arc {
         for ( std::vector<Candidate>::iterator i = candidates.begin(); i != candidates.end(); i++ ) {
             for ( std::vector<std::string>::const_iterator j = (*i).pattern.begin(); j != (*i).pattern.end(); j++ ) {
                 if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-		    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
+                    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += TEXT_PATTERN_MATCHING;
                 } else {
                     if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-		        JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
+                    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }
                 }
             }
             for ( std::vector<std::string>::const_iterator j = (*i).negative_pattern.begin(); j != (*i).negative_pattern.end(); j++ ) {
                 if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-		    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
+                    JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING;
                 } else {
                     if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
-	                JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
+                        JobDescription::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }
                 }
@@ -375,7 +375,7 @@ namespace Arc {
         //
         // Get the candidate list of formats in the proper order
         if ( sourceString.empty() || sourceString.length() == 0 ){ 
-	   JobDescription::logger.msg(DEBUG, "There is nothing in the source. Cannot generate any product.");
+            JobDescription::logger.msg(DEBUG, "There is nothing in the source. Cannot generate any product.");
            return false;
         }
 
@@ -386,7 +386,7 @@ namespace Arc {
         // (If not then just reset the jobTree variable and see the next one)
         for (std::vector<Candidate>::const_iterator it = candidates.begin(); it < candidates.end(); it++) {
             if ( sm.toLowerCase( (*it).typeName ) == "xrsl" ) {
-		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as XRSL");
+                JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as XRSL");
                 XRSLParser parser;
                 std::string parse_sourceString = sm.trim(sourceString);
                 if ( parser.parse( *innerRepresentation, parse_sourceString ) ) {
@@ -396,7 +396,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "posixjsdl" ) {
-		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as POSIX JSDL");
+                JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as POSIX JSDL");
                 PosixJSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "posixjsdl";
@@ -405,7 +405,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "jsdl" ) {
-		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JSDL");
+                JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JSDL");
                 JSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "jsdl";
@@ -414,7 +414,7 @@ namespace Arc {
                 //else
                 resetJobTree();
             } else if ( sm.toLowerCase( (*it).typeName ) == "jdl" ) {
-		JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JDL");
+                JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JDL");
                 JDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
                     sourceFormat = "jdl";
@@ -425,8 +425,8 @@ namespace Arc {
             }
         }
         if (sourceFormat.length() == 0){
-	   JobDescription::logger.msg(DEBUG, "The parsing of the source string was unsuccessful.");
-           return false;
+            JobDescription::logger.msg(DEBUG, "The parsing of the source string was unsuccessful.");
+            return false;
         }
         return true;
     }
@@ -441,8 +441,8 @@ namespace Arc {
     bool JobDescription::getXML( Arc::XMLNode& jobTree) {
         if ( innerRepresentation == NULL ) return false;
         if ( !(*innerRepresentation).getXML(jobTree) ) {
-	   JobDescription::logger.msg(DEBUG, "Error during the XML generation!");
-           return false;
+            JobDescription::logger.msg(DEBUG, "Error during the XML generation!");
+            return false;
         }
         return true;
     }
@@ -454,7 +454,7 @@ namespace Arc {
 
         // Generate the output text with the right parser class
         if ( innerRepresentation == NULL || !this->isValid() ) {
-	    JobDescription::logger.msg(DEBUG, "There is no successfully parsed source");
+            JobDescription::logger.msg(DEBUG, "There is no successfully parsed source");
             return false;
         }
         if ( sm.toLowerCase( format ) == sm.toLowerCase( sourceFormat ) && 
@@ -463,57 +463,57 @@ namespace Arc {
             return true;
         }
         if ( sm.toLowerCase( format ) == "jdl" ) {
-	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JDL output");
+            JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JDL output");
             JDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
-               return false;
+                JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "xrsl" ) {
-	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate XRSL output");
+            JobDescription::logger.msg(DEBUG, "[JobDescription] Generate XRSL output");
             XRSLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
-               return false;
+                JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "posixjsdl" ) {
-	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate POSIX JSDL output");
+            JobDescription::logger.msg(DEBUG, "[JobDescription] Generate POSIX JSDL output");
             PosixJSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
-               return false;
+                JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+                return false;
             }
             return true;
         } else if ( sm.toLowerCase( format ) == "jsdl" ) {
-	    JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JSDL output");
+            JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JSDL output");
             JSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
-	       JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
-               return false;
+                JobDescription::logger.msg(DEBUG, "Generating %s output was unsuccessful", format);
+                return false;
             }
             return true;
         } else {
-	    JobDescription::logger.msg(DEBUG, "Unknown output format: %s", format) ;
+            JobDescription::logger.msg(DEBUG, "Unknown output format: %s", format) ;
             return false;
         }
     }
 
     bool JobDescription::getSourceFormat( std::string& _sourceFormat ) {
         if (!isValid()) {
-	   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
-           return false;
-         } else {
-           _sourceFormat = sourceFormat;
-           return true;
-        } 
+            JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
+            return false;
+        } else {
+            _sourceFormat = sourceFormat;
+            return true;
+        }
     }
 
     bool JobDescription::getUploadableFiles(std::vector< std::pair< std::string, std::string > >& sourceFiles ) {
         if (!isValid()) {
-	   JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
-           return false;
+            JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
+            return false;
         }
         // Get the URI's from the DataStaging/File/Source files
         Arc::XMLNode xml_repr;
@@ -557,29 +557,29 @@ namespace Arc {
         for (int i=0; bool(node.Child(i)); i++) {
             Arc::XMLNode it(node.Child(i));
             if ( it.Size() > 0 ){
-               std::ostringstream message ;
-               message << parser_name << " " << it.Name() << " has " << it.Size() << " child(s).";
-	       JobDescription::logger.msg(DEBUG, message.str());
+                std::ostringstream message ;
+                message << parser_name << " " << it.Name() << " has " << it.Size() << " child(s).";
+                JobDescription::logger.msg(DEBUG, message.str());
             }
             if ( i==0 || i>0 && node.Child(i).Name() != node.Child(i-1).Name() ){
-               JobDescription::logger.msg(DEBUG, parser_name+ " element: " + it.Name());
-               // The element is not valid in this job description.
-               if ( posix ){
-                  // POSIX-JSDL
-                  int size = sizeof(GIN_elements)/sizeof(std::string) ;
-                  if ( find(&GIN_elements[0],&GIN_elements[size-1],it.Name()) != &GIN_elements[size-1]){
-                     JobDescription::logger.msg(DEBUG, parser_name + " Not valid JSDL: \"" + it.Name() + "\" is GIN-JSDL element!");
-                     return false;
-                  }
-               }
-               else{
-                  // GIN-JSDL
-                  int size = sizeof(JSDL_elements)/sizeof(std::string) ;
-                  if ( find(&JSDL_elements[0],&JSDL_elements[size-1],it.Name()) != &JSDL_elements[size-1]){
-                     JobDescription::logger.msg(DEBUG, parser_name + " Not valid GIN-JSDL: \"" + it.Name() + "\" is POSIX-JSDL element!");
-                     return false;
-                  }
-               }
+                JobDescription::logger.msg(DEBUG, parser_name+ " element: " + it.Name());
+                // The element is not valid in this job description.
+                if ( posix ){
+                    // POSIX-JSDL
+                    int size = sizeof(GIN_elements)/sizeof(std::string) ;
+                    if ( find(&GIN_elements[0],&GIN_elements[size-1],it.Name()) != &GIN_elements[size-1]){
+                        JobDescription::logger.msg(DEBUG, parser_name + " Not valid JSDL: \"" + it.Name() + "\" is GIN-JSDL element!");
+                        return false;
+                    }
+                }
+                else{
+                    // GIN-JSDL
+                    int size = sizeof(JSDL_elements)/sizeof(std::string) ;
+                    if ( find(&JSDL_elements[0],&JSDL_elements[size-1],it.Name()) != &JSDL_elements[size-1]){
+                        JobDescription::logger.msg(DEBUG, parser_name + " Not valid GIN-JSDL: \"" + it.Name() + "\" is POSIX-JSDL element!");
+                        return false;
+                    }
+                }
             }
             if ( !Element_Search(it, posix ) ) return false;
         }
@@ -591,7 +591,7 @@ namespace Arc {
         //Source checking
         Arc::XMLNode node(source);
         if ( node.Size() == 0 ){
-	    JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML structure! ");
+            JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML structure! ");
             return false;
         }
         if ( !Arc::Element_Search(node, true ) ) return false;
@@ -607,16 +607,16 @@ namespace Arc {
         Arc::XMLNode jobdescription = node["JobDescription"];
 
         if (bool(jobdescription["LocalLogging"])) {
-           if (bool(jobdescription["LocalLogging"]["Directory"])) {
-              innerRepresentation.LogDir = (std::string)jobdescription["LocalLogging"]["Directory"];
-           }else {
-	      JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML: \"LocalLogging.Directory\" element missed!"); 
-              return false;
-           }
-           if (bool(jobdescription["LocalLogging"][1])){
-	      JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML: too many \"LocalLogging\" elements!"); 
-              return false;
-           }
+            if (bool(jobdescription["LocalLogging"]["Directory"])) {
+                innerRepresentation.LogDir = (std::string)jobdescription["LocalLogging"]["Directory"];
+            } else {
+                JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML: \"LocalLogging.Directory\" element missed!");
+                return false;
+            }
+            if (bool(jobdescription["LocalLogging"][1])){
+                JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML: too many \"LocalLogging\" elements!");
+                return false;
+            }
         }
 
         if (bool(jobdescription["RemoteLogging"]["URL"])) {
@@ -665,32 +665,32 @@ namespace Arc {
         }
 
         if (bool(jobidentification["Migration"])) {
-           for ( int i=0; (bool)(jobidentification["Migration"]["OldJobID"][i]); i++ ) { 
-			   Arc::XMLNode &node = *(new XMLNode());
-			   jobidentification["Migration"]["OldJobID"][i].New(node);
-               innerRepresentation.Migration.OldJobIDs.push_back(node);
-           }
+            for ( int i=0; (bool)(jobidentification["Migration"]["OldJobID"][i]); i++ ) { 
+                Arc::XMLNode &node = *(new XMLNode());
+                jobidentification["Migration"]["OldJobID"][i].New(node);
+                innerRepresentation.Migration.OldJobIDs.push_back(node);
+            }
 
-		   Arc::XMLNode migrationid(jobidentification["Migration"]["MigrationID"]);
-           migrationid.Child(0).New(innerRepresentation.Migration.MigrationID);
+            Arc::XMLNode migrationid(jobidentification["Migration"]["MigrationID"]);
+            migrationid.Child(0).New(innerRepresentation.Migration.MigrationID);
         }
 
         if (bool(jobidentification["Resubmission"])) {
-           for ( int i=0; (bool)(jobidentification["Resubmission"]["OldJobID"][i]); i++ ) { 
-			   Arc::XMLNode &node = *(new XMLNode());
-			   jobidentification["Resubmission"]["OldJobID"][i].New(node);
-               innerRepresentation.Resubmission.OldJobIDs.push_back(node);
-           }
+            for ( int i=0; (bool)(jobidentification["Resubmission"]["OldJobID"][i]); i++ ) { 
+                Arc::XMLNode &node = *(new XMLNode());
+                jobidentification["Resubmission"]["OldJobID"][i].New(node);
+                innerRepresentation.Resubmission.OldJobIDs.push_back(node);
+            }
         }
 
         if (bool(jobidentification["JobProject"])) {
-           innerRepresentation.JobProject = (std::string)jobidentification["JobProject"];
+            innerRepresentation.JobProject = (std::string)jobidentification["JobProject"];
         }
         // end of JobIdentificatio
 
         // Application
         Arc::XMLNode application = node["JobDescription"]["Application"]["POSIXApplication"];
- 
+
         if (bool(application["Executable"])) {
            innerRepresentation.Executable = (std::string)application["Executable"];
         }
@@ -713,16 +713,16 @@ namespace Arc {
         }
 
         for (int i=0; (bool)(application["Environment"][i]); i++) {
-           Arc::XMLNode env = application["Environment"][i];
-           Arc::XMLNode name = env.Attribute("name");
-           if(!name) {
-	       JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
-               return false;
-           } 
-           Arc::EnvironmentType env_tmp;
-           env_tmp.name_attribute = (std::string)name;
-           env_tmp.value = (std::string)env;
-           innerRepresentation.Environment.push_back(env_tmp);
+            Arc::XMLNode env = application["Environment"][i];
+            Arc::XMLNode name = env.Attribute("name");
+            if(!name) {
+                JobDescription::logger.msg(DEBUG, "[PosixJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
+                return false;
+            }
+            Arc::EnvironmentType env_tmp;
+            env_tmp.name_attribute = (std::string)name;
+            env_tmp.value = (std::string)env;
+            innerRepresentation.Environment.push_back(env_tmp);
         }
 
         if (bool(application["VirtualMemoryLimit"])) {
@@ -870,21 +870,21 @@ namespace Arc {
         }
 
         if (bool(resource["RunTimeEnvironment"])) {
-	   StringManipulator sm;
-	   for( int i=0; (bool)(resource["RunTimeEnvironment"][i]); i++ ) {
-               Arc::RunTimeEnvironmentType rt;
-               std::string version;
-               rt.Name = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Name"]);
-               version = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Version"]["Exact"]);
-               rt.Version.push_back(version);
-               innerRepresentation.RunTimeEnvironment.push_back(rt);
-           }
+            StringManipulator sm;
+            for( int i=0; (bool)(resource["RunTimeEnvironment"][i]); i++ ) {
+                Arc::RunTimeEnvironmentType rt;
+                std::string version;
+                rt.Name = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Name"]);
+                version = sm.trim((std::string)resource["RunTimeEnvironment"][i]["Version"]["Exact"]);
+                rt.Version.push_back(version);
+                innerRepresentation.RunTimeEnvironment.push_back(rt);
+            }
         }
         // end of Resources
 
         // Datastaging
         Arc::XMLNode datastaging = node["JobDescription"]["DataStaging"];
-       
+
         for(int i=0; datastaging[i]; i++) {
            Arc::XMLNode ds = datastaging[i];
            Arc::XMLNode source_uri = ds["Source"]["URI"];
@@ -1041,29 +1041,29 @@ namespace Arc {
         for (std::list<Arc::FileType>::const_iterator it=innerRepresentation.File.begin();
                  it!=innerRepresentation.File.end(); it++) {
             Arc::XMLNode datastaging = jobdescription.NewChild("DataStaging");
-			StringManipulator sm;
+            StringManipulator sm;
             if ( !(*it).Name.empty())
-               datastaging.NewChild("FileName") = (*it).Name;
+                datastaging.NewChild("FileName") = (*it).Name;
             if ((*it).Source.size() != 0) {
-               std::list<Arc::SourceType>::const_iterator it2;
-               it2 = ((*it).Source).begin();
-			   if (sm.trim(((*it2).URI).fullstr()) != "" )
-                  datastaging.NewChild("Source").NewChild("URI") = ((*it2).URI).fullstr();
+                std::list<Arc::SourceType>::const_iterator it2;
+                it2 = ((*it).Source).begin();
+                if (sm.trim(((*it2).URI).fullstr()) != "" )
+                    datastaging.NewChild("Source").NewChild("URI") = ((*it2).URI).fullstr();
             }
             if ((*it).Target.size() != 0) {
-               std::list<Arc::TargetType>::const_iterator it3;
-               it3 = ((*it).Target).begin();
-			   if (sm.trim(((*it3).URI).fullstr()) != "" )
-                  datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
-           }      
-           if ((*it).IsExecutable || (*it).Name == innerRepresentation.Executable)
-              datastaging.NewChild("jsdl-arc:IsExecutable") = "true";
-           if ((*it).KeepData){
-              datastaging.NewChild("DeleteOnTermination") = "false";
-           }
-           else {
-              datastaging.NewChild("DeleteOnTermination") = "true";
-           }
+                std::list<Arc::TargetType>::const_iterator it3;
+                it3 = ((*it).Target).begin();
+                if (sm.trim(((*it3).URI).fullstr()) != "" )
+                    datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
+            }
+            if ((*it).IsExecutable || (*it).Name == innerRepresentation.Executable)
+                datastaging.NewChild("jsdl-arc:IsExecutable") = "true";
+            if ((*it).KeepData){
+                datastaging.NewChild("DeleteOnTermination") = "false";
+            }
+            else {
+                datastaging.NewChild("DeleteOnTermination") = "true";
+            }
         }
 
         // Resources
@@ -1368,7 +1368,7 @@ namespace Arc {
         //Source checking
         Arc::XMLNode node(source);
         if ( node.Size() == 0 ){
-	    JobDescription::logger.msg(DEBUG, "[JSDLParser] Wrong XML structure! ");
+            JobDescription::logger.msg(DEBUG, "[JSDLParser] Wrong XML structure! ");
             return false;
         }
         if ( !Arc::Element_Search(node, false ) ) return false;
@@ -1409,19 +1409,19 @@ namespace Arc {
         if ( bool(meta) && (std::string)(meta) != "" ){
            Optional_attribute_check(meta, "//Meta/FuzzyRank", innerRepresentation,optional);
            if ( (std::string)(meta) == "true" ) {
-              innerRepresentation.FuzzyRank = true;
+                innerRepresentation.FuzzyRank = true;
            }
            else if ( (std::string)(meta) == "false" ) {
-              innerRepresentation.FuzzyRank = false;
+                innerRepresentation.FuzzyRank = false;
            }
-           else {
-	      JobDescription::logger.msg(DEBUG, "Invalid \"/Meta/FuzzyRank\" value: %s", (std::string)(meta));
-              return false;         
-           }
+            else {
+                JobDescription::logger.msg(DEBUG, "Invalid \"/Meta/FuzzyRank\" value: %s", (std::string)(meta));
+                return false;
+            }
         }
         meta.Destroy();
 
-        //Application         
+        //Application
         Arc::XMLNode application;
         application = node["JobDescription"]["Application"]["Executable"];
         if ( bool(application) && (std::string)(application) != "" ){
@@ -1667,18 +1667,18 @@ namespace Arc {
 
         resource = node["JobDescription"]["Resource"]["ExclusiveExecution"];
         if ( bool(resource) && (std::string)(resource) != "" ){
-           Optional_attribute_check(resource, "//JobDescription/Resource/ExclusiveExecution", innerRepresentation,optional);
-           Arc::ReferenceTimeType _reference;
-           if ( Arc::upper((std::string)(resource)) == "TRUE" ) {
-              innerRepresentation.ExclusiveExecution = true;
-           }
-           else if ( Arc::upper((std::string)(resource)) == "FALSE" ) {
-              innerRepresentation.ExclusiveExecution = false;
-           }
-           else {
-	      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value: %s", (std::string)(resource));
-              return false;
-           }
+            Optional_attribute_check(resource, "//JobDescription/Resource/ExclusiveExecution", innerRepresentation,optional);
+            Arc::ReferenceTimeType _reference;
+            if ( Arc::upper((std::string)(resource)) == "TRUE" ) {
+                innerRepresentation.ExclusiveExecution = true;
+            }
+            else if ( Arc::upper((std::string)(resource)) == "FALSE" ) {
+                innerRepresentation.ExclusiveExecution = false;
+            }
+            else {
+                JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/Resource/ExclusiveExecution\" value: %s", (std::string)(resource));
+                return false;
+            }
         }
         resource.Destroy();
 
@@ -1863,12 +1863,12 @@ namespace Arc {
 //            Optional_attribute_check(*(resource.begin()), "//JobDescription/Resource/RunTimeEnvironment", innerRepresentation,optional, (std::string)(*it));
             Arc::RunTimeEnvironmentType _runtimeenv;
             if ( (bool)(resource[i]["Name"]) ){
-               _runtimeenv.Name = (std::string)resource[i]["Name"];
-               Optional_attribute_check(resource[i]["Name"], "//JobDescription/Resource/RunTimeEnvironment/Name", innerRepresentation,optional, (std::string)(resource[i]["Name"]));
+                _runtimeenv.Name = (std::string)resource[i]["Name"];
+                Optional_attribute_check(resource[i]["Name"], "//JobDescription/Resource/RunTimeEnvironment/Name", innerRepresentation,optional, (std::string)(resource[i]["Name"]));
             }
             else{
-	       JobDescription::logger.msg(DEBUG, "Not found  \"/JobDescription/Resource/RunTimeEnvironment/Name\" element");
-               return false;
+                JobDescription::logger.msg(DEBUG, "Not found  \"/JobDescription/Resource/RunTimeEnvironment/Name\" element");
+                return false;
             }
             Arc::XMLNodeList version = resource[i].XPathLookup((std::string)"//Version", nsList);
             for (std::list<Arc::XMLNode>::const_iterator it_v = version.begin(); it_v!= version.end(); it_v++) {
@@ -1935,15 +1935,15 @@ namespace Arc {
                    _target.Threads = -1;
                 }
                 if ( (bool)((*it_target)["Mandatory"])) {
-                   if ( (std::string)(*it_target)["Mandatory"] == "true" ) {
-                      _target.Mandatory = true;
-                   }
-                   else if ( (std::string)(*it_target)["Mandatory"] == "false" ) {
-                      _target.Mandatory = false;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/Target/Mandatory\" value: %s", (std::string)(*it_target)["Mandatory"]);
-                   }
+                    if ( (std::string)(*it_target)["Mandatory"] == "true" ) {
+                        _target.Mandatory = true;
+                    }
+                    else if ( (std::string)(*it_target)["Mandatory"] == "false" ) {
+                        _target.Mandatory = false;
+                    }
+                    else {
+                        JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/Target/Mandatory\" value: %s", (std::string)(*it_target)["Mandatory"]);
+                    }
                 }
                 else {
                    _target.Mandatory = false;
@@ -1971,36 +1971,34 @@ namespace Arc {
                    _file.KeepData = false;
             }
             if ( (bool)(datastaging[i]["IsExecutable"])) {
-                   if ( (std::string)datastaging[i]["IsExecutable"] == "true" ) {
-                      _file.IsExecutable = true;
-                   }
-                   else if ( (std::string)datastaging[i]["IsExecutable"] == "false" ) {
-                      _file.IsExecutable = false;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value: %s", (std::string)datastaging[i]["IsExecutable"]);
-                   }
+                if ( (std::string)datastaging[i]["IsExecutable"] == "true" ) {
+                    _file.IsExecutable = true;
+                }
+                else if ( (std::string)datastaging[i]["IsExecutable"] == "false" ) {
+                    _file.IsExecutable = false;
+                }
+                else {
+                    JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/IsExecutable\" value: %s", (std::string)datastaging[i]["IsExecutable"]);
+                }
             }
             else {
-                   _file.IsExecutable = false;
+                _file.IsExecutable = false;
             }
             if ( (bool)(datastaging[i]["DataIndexingService"])) {
-               URL uri((std::string)(datastaging[i]["DataIndexingService"]));
-               _file.DataIndexingService = uri;
+                URL uri((std::string)(datastaging[i]["DataIndexingService"]));
+                _file.DataIndexingService = uri;
             }
             if ( (bool)(datastaging[i]["DownloadToCache"])) {
-                   if ( (std::string)datastaging[i]["DownloadToCache"] == "true" ) {
-                      _file.DownloadToCache = true;
-                   }
-                   else if ( (std::string)datastaging[i]["DownloadToCache"] == "false" ) {
-                      _file.DownloadToCache = false;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value: %s", (std::string)datastaging[i]["DownloadToCache"]);
-                   }
-            }
-            else {
-                   _file.DownloadToCache = false;
+                if ( (std::string)datastaging[i]["DownloadToCache"] == "true" ) {
+                    _file.DownloadToCache = true;
+                }
+                else if ( (std::string)datastaging[i]["DownloadToCache"] == "false" ) {
+                    _file.DownloadToCache = false;
+                } else {
+                    JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/File/DownloadToCache\" value: %s", (std::string)datastaging[i]["DownloadToCache"]);
+                }
+            } else {
+                _file.DownloadToCache = false;
             }
             innerRepresentation.File.push_back( _file );
         }
@@ -2039,72 +2037,63 @@ namespace Arc {
                    _target.Threads = -1;
                 }
                 if ( (bool)((*it_target)["Mandatory"])) {
-                   if ( (std::string)(*it_target)["Mandatory"] == "true" ) {
-                      _target.Mandatory = true;
-                   }
-                   else if ( (std::string)(*it_target)["Mandatory"] == "false" ) {
-                      _target.Mandatory = false;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/Target/Mandatory\" value: %s",  (std::string)(*it_target)["Mandatory"]);
-                   }
+                    if ( (std::string)(*it_target)["Mandatory"] == "true" ) {
+                        _target.Mandatory = true;
+                    } else if ( (std::string)(*it_target)["Mandatory"] == "false" ) {
+                        _target.Mandatory = false;
+                    } else {
+                        JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/Target/Mandatory\" value: %s",  (std::string)(*it_target)["Mandatory"]);
+                    }
                 }
                 else {
-                   _target.Mandatory = false;
+                    _target.Mandatory = false;
                 }
                 if ( (bool)((*it_target)["NeededReplicas"])) {
-                   _target.NeededReplicas = stringtoi((std::string)(*it_target)["NeededReplicas"]);
-                }
-                else {
-                   _target.NeededReplicas = -1;
+                    _target.NeededReplicas = stringtoi((std::string)(*it_target)["NeededReplicas"]);
+                } else {
+                    _target.NeededReplicas = -1;
                 }
                 _directory.Target.push_back( _target );
             }
             if ( (bool)(datastaging[i]["KeepData"])) {
-                   if ( (std::string)datastaging[i]["KeepData"] == "true" ) {
-                      _directory.KeepData = true;
-                   }
-                   else if ( (std::string)datastaging[i]["KeepData"] == "false" ) {
-                      _directory.KeepData = false;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value: %s", (std::string)datastaging[i]["KeepData"]);
-                   }
+                if ( (std::string)datastaging[i]["KeepData"] == "true" ) {
+                    _directory.KeepData = true;
+                } else if ( (std::string)datastaging[i]["KeepData"] == "false" ) {
+                    _directory.KeepData = false;
+                } else {
+                    JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/KeepData\" value: %s", (std::string)datastaging[i]["KeepData"]);
+                }
             }
             else {
-                   _directory.KeepData = false;
+                _directory.KeepData = false;
             }
             if ( (bool)(datastaging[i]["IsExecutable"])) {
-                   if ( (std::string)datastaging[i]["IsExecutable"] == "true" ) {
-                      _directory.IsExecutable = true;
-                   }
-                   else if ( (std::string)datastaging[i]["IsExecutable"] == "false" ) {
-                      _directory.IsExecutable = false;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value: %s", (std::string)datastaging[i]["IsExecutable"]);
-                   }
+                if ( (std::string)datastaging[i]["IsExecutable"] == "true" ) {
+                    _directory.IsExecutable = true;
+                } else if ( (std::string)datastaging[i]["IsExecutable"] == "false" ) {
+                    _directory.IsExecutable = false;
+                } else {
+                    JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/IsExecutable\" value: %s", (std::string)datastaging[i]["IsExecutable"]);
+                }
             }
             else {
-                   _directory.IsExecutable = false;
+                _directory.IsExecutable = false;
             }
             if ( (bool)(datastaging[i]["DataIndexingService"])) {
-               URL uri((std::string)(datastaging[i]["DataIndexingService"]));
-               _directory.DataIndexingService = uri;
+                URL uri((std::string)(datastaging[i]["DataIndexingService"]));
+                _directory.DataIndexingService = uri;
             }
             if ( (bool)(datastaging[i]["DownloadToCache"])) {
-                   if ( (std::string)datastaging[i]["DownloadToCache"] == "true" ) {
-                      _directory.DownloadToCache = true;
-                   }
-                   else if ( (std::string)datastaging[i]["DownloadToCache"] == "false" ) {
-                      _directory.DownloadToCache = false;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value: %s", (std::string)datastaging[i]["DownloadToCache"]);
-                   }
+                if ( (std::string)datastaging[i]["DownloadToCache"] == "true" ) {
+                    _directory.DownloadToCache = true;
+                } else if ( (std::string)datastaging[i]["DownloadToCache"] == "false" ) {
+                    _directory.DownloadToCache = false;
+                } else {
+                    JobDescription::logger.msg(DEBUG, "Invalid \"/JobDescription/DataStaging/Directory/DownloadToCache\" value: %s", (std::string)datastaging[i]["DownloadToCache"]);
+                }
             }
             else {
-                   _directory.DownloadToCache = false;
+                _directory.DownloadToCache = false;
             }
             innerRepresentation.Directory.push_back( _directory );
         }
@@ -2119,7 +2108,7 @@ namespace Arc {
             jobDescription.GetDoc( product, true );
             return true;
         } else {
-	    JobDescription::logger.msg(DEBUG, "[JSDLParser] Job inner representation's root element has not found.");
+            JobDescription::logger.msg(DEBUG, "[JSDLParser] Job inner representation's root element has not found.");
             return false;
         }
     }
@@ -2375,8 +2364,8 @@ namespace Arc {
             Arc::NotificationType nofity;
             // When the state or the e-mail address missed.
             if ( parts.size() < 2 ){ 
-	       JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", attributeValue);
-               return false;
+                JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", attributeValue);
+                return false;
             }
 
             for (std::vector< std::string >::const_iterator it=parts.begin(); it<parts.end(); it++) {
@@ -2391,8 +2380,8 @@ namespace Arc {
                          case 'e': nofity.State.push_back( "FINISHED" ); break;
                          case 'c': nofity.State.push_back( "CANCELLED" ); break;
                          case 'd': nofity.State.push_back( "DELETED" ); break;
-                         default: 
-			    JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", (*it)[i]);
+                         default:
+                            JobDescription::logger.msg(DEBUG, "Invalid notify attribute: %s", (*it)[i]);
                             return false;
                      }
                  }
@@ -2428,8 +2417,8 @@ namespace Arc {
             } else if ( simpleXRSLvalue( attributeValue ) == "outbound") {
                innerRepresentation.OutBound = true;
             } else {
-	       JobDescription::logger.msg(DEBUG, "Invalid NodeAccess value: %s", simpleXRSLvalue( attributeValue ));
-               return false;
+                JobDescription::logger.msg(DEBUG, "Invalid NodeAccess value: %s", simpleXRSLvalue( attributeValue ));
+                return false;
             }
             return true;
         } else if ( attributeName == "dryrun" ) {
@@ -2462,7 +2451,7 @@ namespace Arc {
             innerRepresentation.CredentialService = url;
             return true;
         }
-	JobDescription::logger.msg(DEBUG, "[XRSLParser] Unknown XRSL attribute: %s", attributeName);
+        JobDescription::logger.msg(DEBUG, "[XRSLParser] Unknown XRSL attribute: %s", attributeName);
         return false;
     }
 
@@ -2494,7 +2483,7 @@ namespace Arc {
                         //Split the bracket's content by the equal sign & trim the two half
                         unsigned long eqpos = wattr.find_first_of("=");
                         if ( eqpos == std::string::npos ) {
-			    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)");
+                            JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)");
                             return false;
                         }
                         if ( !handleXRSLattribute( sm.trim( wattr.substr(0,eqpos) ) , sm.trim( wattr.substr(eqpos+1) ) , innerRepresentation) ) return false;
@@ -2505,9 +2494,9 @@ namespace Arc {
                 }
             }
         }
-  
+
         if (depth != 0 ) {
-	    JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (bracket mistake)");
+            JobDescription::logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (bracket mistake)");
             return false;
         }
 
@@ -2667,8 +2656,8 @@ namespace Arc {
                        size_t ll = 0;
                        for(;;) {
                           if ((l=read(h,buffer,1024)) == -1) {
-			     JobDescription::logger.msg(DEBUG, "Error reading file: %s", (*it_source).URI.fullstr());
-			     JobDescription::logger.msg(DEBUG, "Could not read file to compute checksum.");
+                            JobDescription::logger.msg(DEBUG, "Error reading file: %s", (*it_source).URI.fullstr());
+                            JobDescription::logger.msg(DEBUG, "Could not read file to compute checksum.");
                           }
                           if(l==0) break; ll+=l;
                           crc.add(buffer,l);
@@ -2779,7 +2768,7 @@ namespace Arc {
             std::list<std::string>::const_iterator viter;
             for (iter = innerRepresentation.RunTimeEnvironment.begin(); \
                  iter != innerRepresentation.RunTimeEnvironment.end(); iter++){
-			    viter = ((*iter).Version).begin(); 
+                viter = ((*iter).Version).begin(); 
                 product += "( runtimeenvironment = ";
                 product +=  (*iter).Name + "-" + (*viter);
                 product += " )\n";
@@ -2833,15 +2822,15 @@ namespace Arc {
                 product += "( notify = ";
                 for (std::list<std::string>::const_iterator iter=(*it).State.begin();
                             iter!=(*it).State.end(); iter++) {
-                     if ( *iter == "PREPARING" ) { product +=  "b"; }
-                     else if ( *iter == "INLRMS" ) { product +=  "q"; }
-                     else if ( *iter == "FINISHING" ) { product +=  "f"; }
-                     else if ( *iter == "FINISHED" ) { product +=  "e"; }
-                     else if ( *iter == "CANCELLED" ) { product +=  "c"; }
-                     else if ( *iter == "DELETED" ) { product +=  "d"; }
-                     else { 
-		          JobDescription::logger.msg(DEBUG, "Invalid State [\"%s\"] in the Notification!", *iter );
-		     }
+                    if ( *iter == "PREPARING" ) { product +=  "b"; }
+                    else if ( *iter == "INLRMS" ) { product +=  "q"; }
+                    else if ( *iter == "FINISHING" ) { product +=  "f"; }
+                    else if ( *iter == "FINISHED" ) { product +=  "e"; }
+                    else if ( *iter == "CANCELLED" ) { product +=  "c"; }
+                    else if ( *iter == "DELETED" ) { product +=  "d"; }
+                    else { 
+                        JobDescription::logger.msg(DEBUG, "Invalid State [\"%s\"] in the Notification!", *iter );
+                    }
                 }
                 for (std::list<std::string>::const_iterator iter=(*it).Address.begin();
                             iter!=(*it).Address.end(); iter++) {
@@ -3080,7 +3069,7 @@ namespace Arc {
             std::string value = sm.toLowerCase( simpleJDLvalue( attributeValue ) );
             if ( value == "job" ) return true;
             if ( value == "dag" ) {
-	        JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
+                JobDescription::logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
                 return false; // This kind of JDL decriptor is not supported yet
             }
             if ( value == "collection" ) {
@@ -3171,14 +3160,14 @@ namespace Arc {
             for (std::list<Arc::FileType>::iterator it=innerRepresentation.File.begin(); 
                                                           it!=innerRepresentation.File.end(); it++) {
                 if ( !(*it).Target.empty() ) {
-                   if ( i < value.size() ) {
-                      (*it).Target.begin()->URI = value[i];
-                      i++;
-                   }
-                   else {
-		      JobDescription::logger.msg(DEBUG, "Not enought outputsandboxdesturi element!");
-                      return false;
-                   }
+                    if ( i < value.size() ) {
+                        (*it).Target.begin()->URI = value[i];
+                        i++;
+                    }
+                    else {
+                        JobDescription::logger.msg(DEBUG, "Not enought outputsandboxdesturi element!");
+                        return false;
+                    }
 
                 }
             }
@@ -3256,7 +3245,7 @@ namespace Arc {
                     env.value = (*it).substr( equal_pos+1, std::string::npos );
                     innerRepresentation.Environment.push_back(env);
                 } else {
-		    JobDescription::logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
+                    JobDescription::logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
                     return false;
                 }
             }
@@ -3385,7 +3374,7 @@ namespace Arc {
             innerRepresentation.JDL_elements["ShortDeadlineJob"] = simpleJDLvalue( attributeValue ); 
             return true;
         }
-	JobDescription::logger.msg(DEBUG, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
+        JobDescription::logger.msg(DEBUG, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
         return false;
     }
 
@@ -3393,7 +3382,7 @@ namespace Arc {
         unsigned long first = source.find_first_of( "[" );
         unsigned long last = source.find_last_of( "]" );
         if ( first == std::string::npos || last == std::string::npos ) {
-	    JobDescription::logger.msg(DEBUG, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
+        JobDescription::logger.msg(DEBUG, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
             return false;
         }
         std::string input_text = source.substr( first+1, last-first-1 );
@@ -3420,11 +3409,11 @@ namespace Arc {
         }
   
         if ( !splitJDL(wcpy, lines) ) {
-	    JobDescription::logger.msg(DEBUG, "[JDLParser] Syntax error found during the split function.");
+            JobDescription::logger.msg(DEBUG, "[JDLParser] Syntax error found during the split function.");
             return false;
         }
         if (lines.size() <= 0) {
-	    JobDescription::logger.msg(DEBUG, "[JDLParser] Lines count is zero or other funny error has occurred.");
+            JobDescription::logger.msg(DEBUG, "[JDLParser] Lines count is zero or other funny error has occurred.");
             return false;
         }
         
@@ -3433,7 +3422,7 @@ namespace Arc {
             if ( equal_pos == std::string::npos ) {
                 if ( i == lines.size()-1 ) continue;
                 else {
-		    JobDescription::logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
+                    JobDescription::logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
                     return false;
                 }
             }    
