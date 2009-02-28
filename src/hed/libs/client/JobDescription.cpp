@@ -1,3 +1,6 @@
+//
+// TODO: Indentation fix
+//
 #include <cstring>
 #include <algorithm>
 #include <sys/stat.h>
@@ -2719,9 +2722,9 @@ namespace Arc {
                     product += " ( \"" + (*iter).Name;
                     if ( (*iter).Name == innerRepresentation.Output ) output = true;
                     if ( (*iter).Name == innerRepresentation.Error ) error = true;
-		    if ((*it_target).URI.fullstr().empty())
+                    if ((*it_target).URI.fullstr().empty()  || (*it_target).URI.Protocol() == "file")
                        product += "\" \"\" )";
-		    else 
+                    else 
                        product += "\" " +  (*it_target).URI.fullstr() + " )";
                 }
             }
