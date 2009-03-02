@@ -663,25 +663,10 @@ namespace Arc {
         if (bool(jobidentification["JobName"])) {
            innerRepresentation.JobName = (std::string)jobidentification["JobName"];
         }
-
-        if (bool(jobidentification["Migration"])) {
-            for ( int i=0; (bool)(jobidentification["Migration"]["OldJobID"][i]); i++ ) { 
-                Arc::XMLNode &node = *(new XMLNode());
-                jobidentification["Migration"]["OldJobID"][i].New(node);
-                innerRepresentation.Migration.OldJobIDs.push_back(node);
-            }
-
-            Arc::XMLNode migrationid(jobidentification["Migration"]["MigrationID"]);
-            migrationid.Child(0).New(innerRepresentation.Migration.MigrationID);
-        }
-
-        if (bool(jobidentification["Resubmission"])) {
-            for ( int i=0; (bool)(jobidentification["Resubmission"]["OldJobID"][i]); i++ ) { 
-                Arc::XMLNode &node = *(new XMLNode());
-                jobidentification["Resubmission"]["OldJobID"][i].New(node);
-                innerRepresentation.Resubmission.OldJobIDs.push_back(node);
-            }
-        }
+ 
+	for ( int i=0; (bool)(jobidentification["OldJobID"][i]); i++ ) { 
+	  innerRepresentation.OldJobIDs.push_back(URL( (std::string)jobidentification["OldJobID"][i]));
+	}
 
         if (bool(jobidentification["JobProject"])) {
             innerRepresentation.JobProject = (std::string)jobidentification["JobProject"];
@@ -947,6 +932,13 @@ namespace Arc {
            jobdescription["JobIdentification"].NewChild("JobName") = innerRepresentation.JobName;
         }
 
+        if (innerRepresentation.OldJobIDs.size() != 0){
+	  if ( !bool( jobdescription["JobIdentification"] ) ) jobdescription.NewChild("JobIdentification");
+	  for (std::list<URL>::const_iterator it = innerRepresentation.OldJobIDs.begin();
+	       it != innerRepresentation.OldJobIDs.end(); it++) {
+	    jobdescription["JobIdentification"].NewChild("jsdl-arc:OldJobID") = it->str();
+	  }
+	}
         if (!innerRepresentation.JobProject.empty()){
            if ( !bool( jobdescription["JobIdentification"] ) ) jobdescription.NewChild("JobIdentification");
            jobdescription["JobIdentification"].NewChild("JobProject") = innerRepresentation.JobProject;

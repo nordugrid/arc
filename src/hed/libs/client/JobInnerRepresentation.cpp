@@ -36,30 +36,14 @@ namespace Arc {
 	  std::cout << Arc::IString(" UserTag: %s", *iter) << std::endl;
       }
 
-      if ((bool)Migration.MigrationID) {
-        std::list<Arc::XMLNode>::const_iterator m_iter;
-        std::string str;
+      if ( !OldJobIDs.empty()) {
+        std::list<URL>::const_iterator m_iter;
         int i = 1;
-        std::cout << Arc::IString("Migration") << std::endl;
-        for (m_iter = Migration.OldJobIDs.begin(); m_iter != Migration.OldJobIDs.end(); m_iter++, i++) {
-           (*m_iter).GetXML(str, true);
-           std::cout << Arc::IString("%d. Old Job EPR: %s", i, str) << std::endl;
-        }
-        (Migration.MigrationID).GetXML(str, true);
-        std::cout << Arc::IString("Migration EPR: %s", str) << std::endl;
-      }
-
-      if (!(Resubmission.OldJobIDs.empty())) {
-        std::list<Arc::XMLNode>::const_iterator m_iter;
-        std::string str;
-        int i = 1;
-        std::cout << Arc::IString("Resubmission") << std::endl;
-        for (m_iter = Resubmission.OldJobIDs.begin(); m_iter != Resubmission.OldJobIDs.end(); m_iter++, i++) {
-           (*m_iter).GetXML(str, true);
-           std::cout << Arc::IString("%d. Old Job EPR: %s", i, str) << std::endl;
+        for (m_iter = OldJobIDs.begin(); m_iter != OldJobIDs.end(); m_iter++, i++) {
+	  std::cout << Arc::IString("%d. Old Job EPR: %s", i, m_iter->str()) << std::endl;
         }
       }
-
+      
       if (!OptionalElement.empty()) {
         std::list<Arc::OptionalElementType>::const_iterator iter;
         for (iter = OptionalElement.begin(); iter != OptionalElement.end(); iter++){
@@ -1165,8 +1149,7 @@ namespace Arc {
     XRSL_elements       = job.XRSL_elements;
     JDL_elements        = job.JDL_elements;
     OptionalElement     = job.OptionalElement;
-    Migration           = job.Migration;
-    Resubmission        = job.Resubmission;
+    OldJobIDs           = job.OldJobIDs;
     cached              = job.cached;
   } // end of copy constructor
 

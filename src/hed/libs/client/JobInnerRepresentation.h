@@ -69,15 +69,6 @@ struct DirectoryType {
     bool DownloadToCache;
 };
 
-struct MigrationType {
-    std::list<Arc::XMLNode> OldJobIDs;
-    Arc::XMLNode MigrationID;
-};
-
-struct ResubmissionType {
-    std::list<Arc::XMLNode> OldJobIDs;
-};
-
 struct OptionalElementType {
     std::string Name;
     std::string Path;
@@ -184,9 +175,7 @@ struct OptionalElementType {
     std::map<std::string, std::string> JDL_elements;
     bool cached;                // It used the XRSL parsing method.
     std::list<Arc::OptionalElementType> OptionalElement;
-    MigrationType Migration;
-    ResubmissionType Resubmission;
-
+    std::list<URL> OldJobIDs;
   };
 
 } // namespace Arc
