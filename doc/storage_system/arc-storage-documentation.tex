@@ -680,7 +680,8 @@ The end-user of the ARC storage system never communicates directly with a Librar
 
 The Librarian service uses the A-Hash to store all the metadata, and it uses the GUIDs as IDs in the database. It has the URL of one or more A-Hash services from its configuration, and it can acquire more A-Hash URLs from these first A-Hashes in case of a replicated A-Hash deployement.
 
-TODO: here comes some sentences about how the Librarian reads from any A-Hash and finds the master A-Hash for writing.
+%TODO: here comes some sentences about how the Librarian reads from any A-Hash and finds the master A-Hash for writing.
+The replicated A-Hash deployment is based on a single master, multiple clients scenario (see Section~\ref{sec:a_hash} for details). This means that the Librarian can read from any A-Hash, while it can only write to the master A-Hash. A list of A-Hashes, master and clients, is stored in an A-Hash object. The Librarian periodically gets this list to maintain its own list of A-Hash services. If the Librarian tries to write to the replicated A-Hash and the master is down, the Librarian will try to get a new list from one of the clients and retry the write request once before giving up. In case of reading from the replicated A-Hash, the Librarian will randomly loop through the list of clients until the read request is successful or until there are no more clients available.
 
 The Librarian also accepts report messages from Shepherds, and stores the contents of these messages in the A-Hash. There is one A-Hash object which contains the ID and the expected time of the next heartbeat of the registered Shepherds, and there is one A-Hash object for each Shepherd which stores the states and GUIDs of the files on the Shepherd's storage node (see Section~\ref{sub:shepherds} for details). The Librarian checks periodically if there is a Shepherd which is late with its heartbeat, and it changes the states of all the replicas if needed.
 
