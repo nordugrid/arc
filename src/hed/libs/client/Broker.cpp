@@ -111,8 +111,8 @@ namespace Arc {
                }
             }
             else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxWallTime is not defined", (std::string)(*target).url.str());
-               continue;
+               //logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxWallTime is not defined", (std::string)(*target).url.str());
+               //continue;
             }
 
             if ((int)(*target).MinWallTime.GetPeriod() != -1) { // Example: 123
@@ -135,8 +135,8 @@ namespace Arc {
                }
             }
             else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxCPUTime is not defined", (std::string)(*target).url.str());
-               continue;
+               //logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxCPUTime is not defined", (std::string)(*target).url.str());
+               //continue;
             }
 
             if ((int)(*target).MinCPUTime.GetPeriod() != -1) { // Example: 456
