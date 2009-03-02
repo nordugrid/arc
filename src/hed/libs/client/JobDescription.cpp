@@ -2799,7 +2799,7 @@ namespace Arc {
             product += "( join = true )\n";//TODO:
         }
         if (!innerRepresentation.LogDir.empty()) {
-            product += "( bmlog = ";
+            product += "( gmlog = ";
             product +=  innerRepresentation.LogDir;
             product += " )\n";
         }
