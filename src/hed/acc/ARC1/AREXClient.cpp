@@ -98,40 +98,19 @@ namespace Arc {
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
 
-    XMLNode ds =
-      act_doc["jsdl:JobDefinition"]["jsdl:JobDescription"]["jsdl:DataStaging"];
-    for (; (bool)ds; ds = ds[1]) {
-      // FilesystemName - ignore
-      // CreationFlag - ignore
-      // DeleteOnTermination - ignore
-      XMLNode source = ds["jsdl:Source"];
-      XMLNode target = ds["jsdl:Target"];
-      if ((bool)source) {
-	std::string s_name = ds["jsdl:FileName"];
-	if (!s_name.empty()) {
-	  XMLNode x_url = source["jsdl:URI"];
-	  std::string s_url = x_url;
-	  if (s_url.empty())
-	    s_url = "./" + s_name;
-	  else {
-	    URL u_url(s_url);
-	    if (!u_url) {
-	      if (s_url[0] != '/')
-		s_url = "./" + s_url;
-	    }
-	    else {
-	      if (u_url.Protocol() == "file") {
-		s_url = u_url.Path();
-		if (s_url[0] != '/')
-		  s_url = "./" + s_url;
-	      }
-	      else
-		s_url.resize(0);
-	    }
-	  }
-	  if (!s_url.empty())
-	    x_url.Destroy();
-	}
+    // Remove DataStaging/Source/URI elements from job description satisfying:
+    // * Invalid URLs
+    // * URIs with the file protocol
+    // * Empty URIs
+    for (XMLNode ds = act_doc["JobDefinition"]["JobDescription"]["DataStaging"];
+         ds; ++ds) {
+      if (ds["Source"] && !((std::string)ds["FileName"]).empty()) {
+        URL url((std::string)ds["Source"]["URI"]);
+        if (((std::string)ds["Source"]["URI"]).empty() ||
+            !url ||
+            url.Protocol() == "file") {
+          ds["Source"]["URI"].Destroy();
+        }
       }
     }
     act_doc.GetXML(jsdl_str);
