@@ -46,21 +46,33 @@ class Librarian:
                 if clients:
                     self.ahash.urls = [arc.URL(url) for url in clients]
         except:
-            log.msg()
+            pass
         
     def ahash_get_tree(self, IDs, neededMetadata = []):
         """
         Wrapper for ahash.get_tree updating ahashes and calling ahash.get_tree
         """
-        self._update_ahash_urls()
-        return self.ahash.get_tree(IDs, neededMetadata)
+        try:
+            ret = self.ahash.get_tree(IDs, neededMetadata)
+            return ret
+        except:
+            # if get_tree fails, there are no clients available, so there is
+            # nothing to do here
+            log.msg()
+            raise
 
     def ahash_get(self, IDs, neededMetadata = []):
         """
         Wrapper for ahash.get updating ahashes and calling ahash.get
         """
-        self._update_ahash_urls()
-        return self.ahash.get(IDs, neededMetadata)
+        try:
+            ret = self.ahash.get(IDs, neededMetadata)
+            return ret
+        except:
+            # if get fails, there are no clients available, so there is
+            # nothing to do here
+            log.msg()
+            raise
 
     def ahash_change(self, changes):
         """
@@ -68,12 +80,26 @@ class Librarian:
         ahash.change, putting back ahash.urls
         ahash.change can only call master ahash
         """
-        self._update_ahash_urls()
         ahash_urls = self.ahash.urls
         self.ahash.urls = self.master_ahash
-        ret = self.ahash.change(changes)
-        self.ahash.urls = ahash_urls
-        return ret
+        ret = None
+        try:
+            ret = self.ahash.change(changes)
+            self.ahash.urls = ahash_urls
+            return ret
+        except:
+            # retry, updating ahash urls in case master is outdated
+            self._update_ahash_urls()
+            self.ahash.urls = self.master_ahash
+            ahash_urls = self.ahash.urls
+            try:
+                ret = self.ahash.change(changes)
+                self.ahash.urls = ahash_urls
+                return ret
+            except:
+                # make sure ahash.urls are restored even is change failed
+                self.ahash.urls = ahash_urls
+                raise
     
     def checkingThread(self, period):
         time.sleep(10)
@@ -97,6 +123,8 @@ class Librarian:
                     change_response = self._change_states(changes)
                     for _, serviceID in serviceGUIDs.items():
                         self._set_next_heartbeat(serviceID, -1)
+                # update list of ahashes
+                self._update_ahash_urls()
                 time.sleep(period)
             except:
                 log.msg()
