@@ -67,7 +67,7 @@ namespace Arc {
     }; // End of template Compare
 
     // Initializing of the candidates vector / collection //
-    void JobDescriptionOrderer::determinizeCandidates( std::vector<Candidate>& candidates ) {
+    void JobDescriptionOrderer::determinizeCandidates( std::vector<Candidate>& candidates ) const {
 
         Candidate candidate;
 
@@ -249,7 +249,7 @@ namespace Arc {
     } // End of initiateCandidates
 
     // Generate a list of the possible source format the order them by the possibility with the help of a scoring algorithm 
-    std::vector<Candidate> JobDescriptionOrderer::getCandidateList() {
+    std::vector<Candidate> JobDescriptionOrderer::getCandidateList() const {
 
         std::vector<Candidate> candidates;
         determinizeCandidates( candidates );
@@ -438,7 +438,7 @@ namespace Arc {
     }
 
     // Returns with "true" and the jobTree XMLNode, or "false" if the innerRepresentation is emtpy.
-    bool JobDescription::getXML( Arc::XMLNode& jobTree) {
+    bool JobDescription::getXML( Arc::XMLNode& jobTree) const {
         if ( innerRepresentation == NULL ) return false;
         if ( !(*innerRepresentation).getXML(jobTree) ) {
             JobDescription::logger.msg(DEBUG, "Error during the XML generation!");
@@ -448,7 +448,7 @@ namespace Arc {
     }
     
     // Generate the output in the requested format
-    bool JobDescription::getProduct( std::string& product, std::string format ) {
+    bool JobDescription::getProduct( std::string& product, std::string format ) const {
         // Initialize the necessary variables
         product = "";
 
@@ -500,7 +500,7 @@ namespace Arc {
         }
     }
 
-    bool JobDescription::getSourceFormat( std::string& _sourceFormat ) {
+    bool JobDescription::getSourceFormat( std::string& _sourceFormat ) const {
         if (!isValid()) {
             JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
             return false;
@@ -510,7 +510,7 @@ namespace Arc {
         }
     }
 
-    bool JobDescription::getUploadableFiles(std::vector< std::pair< std::string, std::string > >& sourceFiles ) {
+    bool JobDescription::getUploadableFiles(std::vector< std::pair< std::string, std::string > >& sourceFiles ) const {
         if (!isValid()) {
             JobDescription::logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
             return false;
@@ -550,7 +550,7 @@ namespace Arc {
 
     // This function is search all elements name of the input XMLNode.
     // When one of them is in the other job description name set then the input XMNNode is not valid job description.
-    bool Element_Search( const Arc::XMLNode node, bool posix ){
+    bool Element_Search( const Arc::XMLNode node, bool posix ) {
         std::string parser_name("[JSDLParser]");
         if (posix) parser_name = "[PosixJSDLParser]";
         // check all child nodes
@@ -601,7 +601,7 @@ namespace Arc {
         nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
         nsList.insert(std::pair<std::string, std::string>("jsdl-posix","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
         nsList.insert(std::pair<std::string, std::string>("jsdl-arc","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
-      
+
         node.Namespaces(nsList);
 
         Arc::XMLNode jobdescription = node["JobDescription"];
@@ -928,7 +928,7 @@ namespace Arc {
         return true;
     }
 
-    bool PosixJSDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
+    bool PosixJSDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) const {
         Arc::NS nsList;        
         nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
         nsList.insert(std::pair<std::string, std::string>("jsdl-posix","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
@@ -2102,7 +2102,7 @@ namespace Arc {
         return true;
     }
 
-    bool JSDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
+    bool JSDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) const {
         Arc::XMLNode jobDescription;
         if ( innerRepresentation.getXML(jobDescription) ) {
             jobDescription.GetDoc( product, true );
@@ -2113,7 +2113,7 @@ namespace Arc {
         }
     }
 
-    std::string XRSLParser::simpleXRSLvalue(std::string attributeValue) {
+    std::string XRSLParser::simpleXRSLvalue(std::string attributeValue) const {
         std::string quote_mark = "";
         std::string first_char_of_attributeValue = attributeValue.substr(0,1);
 
@@ -2128,7 +2128,7 @@ namespace Arc {
         return attributeValue;
     }
 
-    std::vector<std::string> XRSLParser::listXRSLvalue(std::string attributeValue) {
+    std::vector<std::string> XRSLParser::listXRSLvalue(std::string attributeValue) const {
 
         std::string whitespaces (" \t\f\v\n\r");
 
@@ -2162,7 +2162,7 @@ namespace Arc {
         return attributes;
     }
 
-    std::vector< std::vector<std::string> > XRSLParser::doubleListXRSLvalue(std::string attributeValue ) {
+    std::vector< std::vector<std::string> > XRSLParser::doubleListXRSLvalue(std::string attributeValue ) const {
 
         std::vector< std::vector<std::string> > new_attributeValue;
         std::string whitespaces (" \t\f\v\n\r");
@@ -2555,7 +2555,7 @@ namespace Arc {
         return true;
     }
 
-    bool XRSLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
+    bool XRSLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) const {
         product = "&\n";
         if (!innerRepresentation.Executable.empty()) {
             product += "( executable = ";//TODO:
@@ -2992,7 +2992,7 @@ namespace Arc {
         return true;
     }
 
-    bool JDLParser::splitJDL(std::string original_string, std::vector<std::string>& lines) {
+    bool JDLParser::splitJDL(std::string original_string, std::vector<std::string>& lines) const {
 
         // Clear the return variable
         lines.clear();
@@ -3031,7 +3031,7 @@ namespace Arc {
         return true;
     }
 
-    std::string JDLParser::simpleJDLvalue(std::string attributeValue) {
+    std::string JDLParser::simpleJDLvalue(std::string attributeValue) const {
         std::string whitespaces (" \t\f\v\n\r");
         unsigned long last_pos = attributeValue.find_last_of( "\"" );
         // If the text is not between quotation marks, then return with the original form
@@ -3042,7 +3042,7 @@ namespace Arc {
             return attributeValue.substr( attributeValue.find_first_of( "\"" )+1,  last_pos - attributeValue.find_first_of( "\"" ) -1 );
     }
 
-    std::vector<std::string> JDLParser::listJDLvalue( std::string attributeValue ) {
+    std::vector<std::string> JDLParser::listJDLvalue( std::string attributeValue ) const {
         std::vector<std::string> elements;
         unsigned long first_bracket = attributeValue.find_first_of( "{" );
         if ( first_bracket == std::string::npos ) {
@@ -3062,7 +3062,7 @@ namespace Arc {
         return elements;
     }
 
-    bool JDLParser::handleJDLattribute(std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation) {
+    bool JDLParser::handleJDLattribute(std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation) const {
 
         // To do the attributes name case-insensitive do them lowercase and remove the quotiation marks
         attributeName = sm.toLowerCase( attributeName );
@@ -3432,7 +3432,7 @@ namespace Arc {
         return true;
     }
 
-    bool JDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) {
+    bool JDLParser::getProduct( const Arc::JobInnerRepresentation& innerRepresentation, std::string& product ) const {
         product = "[\n  Type = \"job\";\n";
         if (!innerRepresentation.Executable.empty()) {
             product += "  Executable = \"";
@@ -3706,7 +3706,7 @@ namespace Arc {
         return true;
     }
     
-    bool JobDescription::getInnerRepresentation( Arc::JobInnerRepresentation& job ){
+    bool JobDescription::getInnerRepresentation( Arc::JobInnerRepresentation& job ) const {
         if ( innerRepresentation == NULL) return false;
         job = *innerRepresentation;
         return true;
