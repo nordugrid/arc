@@ -48,7 +48,7 @@ class Service: public MCCInterface
 
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
-        Service(Arc::Config*) { };
+        Service(Arc::Config*);
 
         virtual ~Service(void) { };
 

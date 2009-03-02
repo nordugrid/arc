@@ -45,6 +45,7 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
       if(!id.empty()) ids.push_back(id);
     };
     InfoRegisterContainer::Instance().addService(this,ids,cfg);
+    std::cout << "InfoRegister - ready" << std::endl;
 }
 
 InfoRegister::~InfoRegister(void) {
