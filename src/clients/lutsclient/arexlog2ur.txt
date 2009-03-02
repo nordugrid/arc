@@ -1,34 +1,60 @@
 
+OGF-UR property	     A-REX log entry		  ARC-UR property
 
-RecordIdentity:      nodename, ngjobid (hyphen-separated, with custom prefix)
-GlobalJobId:         ngjobid
-LocalJobId:          localjobid
-ProcessId:           [MISSING]
-GlobalUserName:      usersn
-LocalUserId:         localuser
-JobName:             jobname
-Charge:              [MISSING]
-Status:              status (no conversion yet!)
-WallDuration:        usedwalltime
-CpuDuration:         usedcputime
-StartTime:           submissiontime
-EndTime:             endtime
-MachineName:         nodename
+RecordIdentity:      nodename, ngjobid 
+		     (hyphen-separated, 
+		     with custom prefix)
+GlobalJobId:         ngjobid			  globaljobid
+LocalJobId:          localjobid			  localjobid
+ProcessId:           [MISSING]			  processid
+GlobalUserName:      usersn			  globaluserid
+LocalUserId:         localuser			  localuserid
+JobName:             jobname			  jobname
+Charge:              [MISSING]			  charge
+Status:              status			  status
+		     (no conversion yet!)
+WallDuration:        usedwalltime		  usedwalltime
+CpuDuration:         usedcputime		  usedcputime
+StartTime:           submissiontime		  submissiontime
+EndTime:             endtime			  endtime
+MachineName:         nodename			  nodename
 Host:                [MISSING]
-SubmitHost:          clienthost (port number removed)
-Queue:               lrms
-ProjectName:         [MISSING]
+SubmitHost:          clienthost			  submithost
+                     (port number removed)
+Queue:               lrms			  queue (lrms)
+ProjectName:         [MISSING]			  projectname
 
 Differentiated properties
 
-Network:             [MISSING]
-Disk:                [MISSING]
-Memory:              [MISSING] (usedmemory is always zero using fork scheduler)
-Swap:                [MISSING]
-NodeCount:           [MISSING]
-Processors:          [MISSING]
+Network:             [MISSING]			  network
+Disk:                [MISSING]			  useddisk
+Memory:              [MISSING] 			  usedmemory
+                     (usedmemory is always 
+                     zero using fork scheduler)
+Swap:                [MISSING]			  usedswap
+NodeCount:           [MISSING]			  nodecount
+Processors:          [MISSING]			  processors
 
 TimeDuration:        [MISSING]
 TimeInstant:         [MISSING]
 ServiceLevel:        [MISSING]
 Extension:           [MISSING]
+
+Unmatched Logger ARC-UR properties
+
+						  cluster
+						  downloadtime
+						  exitcode
+						  failurestring
+						  jobdescription
+						  lrmsendtime
+						  lrmssubmissiontime
+						  requestedcputime
+						  requesteddisk
+						  requestedmemory
+						  requestedwalltime
+						  runtimeenvironment
+						  servicelevel
+						  stageindata
+						  stageoutdata
+						  uploadtime

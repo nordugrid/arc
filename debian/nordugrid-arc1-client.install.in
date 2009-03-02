@@ -17,6 +17,8 @@ usr/bin/arcdecision
 usr/bin/arcsync
 usr/bin/arcsrmping
 usr/bin/voms_assertion_init
+/usr/bin/arexlutsclient
+/usr/bin/arexlutsclient-wrapper.sh
 usr/share/man/man1/arcecho.1
 usr/share/man/man1/arcinfo.1
 usr/share/man/man1/arcproxy.1
