@@ -26,7 +26,7 @@ namespace Arc {
     return new SubmitterUNICORE((Arc::Config*)(*accarg));
   }
 
-  bool SubmitterUNICORE::Submit(JobDescription& jobdesc, XMLNode& info) {
+  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, XMLNode& info) {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);

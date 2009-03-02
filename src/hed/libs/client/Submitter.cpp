@@ -25,7 +25,7 @@ namespace Arc {
 
   Submitter::~Submitter() {}
 
-  bool Submitter::PutFiles(JobDescription& jobdesc, const URL& url) {
+  bool Submitter::PutFiles(const JobDescription& jobdesc, const URL& url) {
 
     FileCache cache;
     DataMover mover;

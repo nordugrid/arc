@@ -18,9 +18,9 @@ namespace Arc {
     Submitter(Config *cfg, const std::string& flavour);
   public:
     virtual ~Submitter();
-    virtual bool Submit(JobDescription& jobdesc, XMLNode& info) = 0;
+    virtual bool Submit(const JobDescription& jobdesc, XMLNode& info) = 0;
   protected:
-    bool PutFiles(JobDescription& jobdesc, const URL& url);
+    bool PutFiles(const JobDescription& jobdesc, const URL& url);
 
     URL submissionEndpoint;
     URL cluster;

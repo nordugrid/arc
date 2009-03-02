@@ -21,7 +21,7 @@ namespace Arc {
 
   public:
     static Plugin* Instance(PluginArgument* arg);
-    bool Submit(JobDescription& jobdesc, XMLNode& info);
+    bool Submit(const JobDescription& jobdesc, XMLNode& info);
   };
 
 } // namespace Arc

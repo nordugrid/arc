@@ -24,7 +24,7 @@ namespace Arc {
     return new SubmitterARC0((Arc::Config*)(*accarg));
   }
 
-  bool SubmitterARC0::Submit(JobDescription& jobdesc, XMLNode& info) {
+  bool SubmitterARC0::Submit(const JobDescription& jobdesc, XMLNode& info) {
 
     FTPControl ctrl;
 

@@ -26,7 +26,7 @@ namespace Arc {
     return new SubmitterARC1((Arc::Config*)(*accarg));
   }
 
-  bool SubmitterARC1::Submit(JobDescription& jobdesc, XMLNode& info) {
+  bool SubmitterARC1::Submit(const JobDescription& jobdesc, XMLNode& info) {
 
     MCCConfig cfg;
     if (!proxyPath.empty())

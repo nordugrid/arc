@@ -23,7 +23,7 @@ namespace Arc {
     return new SubmitterCREAM((Arc::Config*)(*accarg));
   }
 
-  bool SubmitterCREAM::Submit(JobDescription& jobdesc, XMLNode& info) {
+  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, XMLNode& info) {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
