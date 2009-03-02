@@ -59,15 +59,20 @@ Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::ro
 Service_Echo::~Service_Echo(void) {
 }
 
-Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
+Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg,const std::string& txtmsg) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
   Arc::SOAPFault* fault = outpayload->Fault();
   if(fault) {
     fault->Code(Arc::SOAPFault::Sender);
-    fault->Reason("Failed processing request");
+    if(txtmsg.empty()) {
+      fault->Reason("Failed processing request");
+    } else {
+      logger.msg(Arc::ERROR, txtmsg);
+      fault->Reason(txtmsg);
+    };
   };
   outmsg.Payload(outpayload);
-  return Arc::MCC_Status(Arc::GENERIC_ERROR);
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) {
@@ -85,8 +90,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
   } catch(std::exception& e) { };
   if(!inpayload) {
-    logger.msg(Arc::ERROR, "Input is not SOAP");
-    return make_fault(outmsg);
+    return make_fault(outmsg,"Input is not SOAP");
   };
   {
       std::string str;
@@ -128,8 +132,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   if(MatchXMLNamespace(inpayload->Child(0),"http://docs.oasis-open.org/wsrf/rp-2")) {
     Arc::SOAPEnvelope* outxml = infodoc.Process(*inpayload);
     if(!outxml) {
-      logger.msg(Arc::ERROR, "WSRF request failed");
-      return make_fault(outmsg);
+      return make_fault(outmsg,"WSRF request processing failed");
     };
     outpayload = new Arc::PayloadSOAP(*outxml);
     delete outxml;
@@ -137,8 +140,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     // Then it must be 'echo' operation requested
     Arc::XMLNode echo_op = (*inpayload)["echo"];
     if(!echo_op) {
-      logger.msg(Arc::ERROR, "Request is not supported - %s", echo_op.Name());
-      return make_fault(outmsg);
+      return make_fault(outmsg,"Request is not supported - "+echo_op.Name());
     };
     std::string say = echo_op["say"];
     std::string hear = prefix_+say+suffix_;

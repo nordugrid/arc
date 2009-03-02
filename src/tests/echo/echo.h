@@ -31,7 +31,7 @@ class Service_Echo: public Arc::Service
         std::string suffix_;
         std::string policylocation_;
         Arc::NS ns_;
-        Arc::MCC_Status make_fault(Arc::Message& outmsg);
+        Arc::MCC_Status make_fault(Arc::Message& outmsg,const std::string& txtmsg = "");
         Arc::Logger logger;
         Arc::InformationContainer infodoc;
     public:
