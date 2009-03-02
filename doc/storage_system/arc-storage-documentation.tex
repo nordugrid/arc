@@ -979,15 +979,43 @@ An example configuration:
 \section{Client tools} % (fold)
 \label{sec:client_tools}
 
-In the first prototype release there is one client tool called \verb!arc_storage_cli!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and uploading and downloading TURLs via HTTP.
+\subsection{Prototype CLI tool} % (fold)
+\label{sub:prototype_cli_tool}
 
-The methods can be listed with:
+In the first prototype release there is one client tool called \verb!arc_storage_cli!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and uploading and downloading TURLs via HTTP. However in order to use proxy certificates or to transfer files with GridFTP protocol, you need to have the ARC client libraries installed.
+
+The credentials of the user and the URL of the Bartender can be configured either with an XML file located at \verb!~/.arc/client.xml! or with environment variables.
+
+Example for the \verb!client.xml! file:
+
+\begin{verbatim}
+    <ArcConfig>
+      <ProxyPath>/Users/zsombor/Development/arc/proxy</ProxyPath>
+      <CACertificatesDir>/Users/zsombor/Development/arc/certs/CA</CACertificatesDir>
+      <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
+    </ArcConfig>
+\end{verbatim}
+
+Example for the environment variables:
+
+\begin{verbatim}
+    export ARC_BARTENDER_URL=https://localhost:60000/Bartender
+    export ARC_KEY_FILE=/Users/zsombor/Development/arc/certs/userkey-john.pem
+    export ARC_CERT_FILE=/Users/zsombor/Development/arc/certs/usercert-john.pem 
+    export ARC_CA_DIR=/Users/zsombor/Development/arc/certs/CA    
+\end{verbatim}
+
+You can specify the number of needed replicas for new file with the \verb!ARC_NEEDED_REPLICAS! environment variable.
+
+The \verb!arc_storage_cli! has its built-in help. The methods can be listed with:
+
 \begin{verbatim}
 $ arc_storage_cli
 Usage:
   arc_storage_cli <method> [<arguments>]
-Supported methods: stat, make[Collection], unmake[Collection], list, move,
-    put[File], get[File], del[File]
+  Supported methods: stat, make[Collection], unmake[Collection], list, move,
+    put[File], get[File], del[File], pol[icy], unlink,
+    credentialsDelegation, removeCredentials
 \end{verbatim}
 Without arguments, each method prints its own help:
 \begin{verbatim}
@@ -995,7 +1023,7 @@ $ arc_storage_cli move
 Usage: move <sourceLN> <targetLN>
 \end{verbatim}
 
-Uploading, downloading and stat files:
+Here is an example of uploading, downloading and stat files:
 
 \begin{verbatim}
 $ cat testfile 
@@ -1003,7 +1031,6 @@ This is a testfile.
 $ arc_storage_cli put testfile /tmp/
 - The size of the file is 20 bytes
 - The md5 checksum of the file is 9a9dffa22d227afe0f1959f936993a80
-- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's putFile method...
 - done in 0.08 seconds.
 - Got transfer URL: http://localhost:60000/hopi/d15900f5-34ee-4bba-bb10-73d60d1c0d75
@@ -1013,7 +1040,6 @@ Uploading 20 bytes... data sent, waiting... done.
 - done in 0.0042 seconds.
 'testfile' (20 bytes) uploaded as '/tmp/testfile'.
 $ arc_storage_cli stat /tmp/testfile
-- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's stat method...
 - done in 0.05 seconds.
 '/tmp/testfile': found
@@ -1031,7 +1057,6 @@ $ arc_storage_cli stat /tmp/testfile
   entry
     type: file
 $ arc_storage_cli get /tmp/testfile newfile
-- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's getFile method...
 - done in 0.05 seconds.
 - Got transfer URL: http://localhost:60000/hopi/dab911d0-110f-468e-b0c3-627af6e3af31
@@ -1044,48 +1069,25 @@ $ cat newfile
 This is a testfile.
 \end{verbatim}
 
-You can find more examples in the SVN\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage/README}}.
+% subsection prototype_cli_tool (end)
 
-There are plans to create more sophisticated CLI and GUI tools and to create a FUSE\footnote{Filesystem in Userspace, \url{http://fuse.sourceforge.net/}} module and Windows Shell Extensions\footnote{\url{http://msdn.microsoft.com/en-us/magazine/cc188741.aspx}} to be able to mount the ARC storage namespace into the local filesystem namespace, and use it with the commands of the operating system.
+\subsection{FUSE module} % (fold)
+\label{sub:fuse_module}
+
+TODO: what is the FUSE module, how does it work, how can we use it
+
+% subsection fuse_module (end)
 
 % section client_tools (end)
 
+\section{Grid integration} % (fold)
+\label{sec:grid_integration}
 
-\section{Integrating third-party storage solutions} % (fold)
-\label{sec:integrating_third_party_storage_solutions}
+TODO: what is the ARC DMC, how does it work
 
-To integrate existing files on a third-party storage system to our namespace thus make them accessible through the interface of the ARC storage, we need a service which provides a common interface to the Bartender services, and hides the details of accessing the different third-party storages. It should translate the method calls, the \emph{get}s, \emph{put}s and \emph{remove}s and the \emph{ACL}\footnote{Access Control Lists, policies} modifications, and try to create transform metadata according to the data model of the ARC storage (Section~\ref{sec:data_model}). The files here would be referenced by a path which is local in the namespace of the third-party storage. The interface could be something like this:
-\begin{description}
-    \item[get(getRequest)] returns list of (\emph{requestID}, \emph{getResponseData})
-
-    very similar to the \emph{get} method of the Shepherd
-
-    \item[put(putRequest)] returns a list of (\emph{requestID}, \emph{putResponseData})
-
-    very similar to the \emph{put} method of the Shepherd
-
-    \item[delete(deleteRequest)] returns a list of (\emph{requestID}, \emph{success})
-
-    very similar to the \emph{delete} method of the Shepherd
-
-    \item[stat(statRequest)] returns a list of (\emph{requestID}, \emph{statResponse})
-
-    very similar to the \emph{stat} method of the Shepherd
-
-    \item[list(listRequest)] returns \emph{listResponse}
-
-    very similar to the \emph{list} method of the Bartender
-
-    \item[move(moveRequest)] returns a list of (\emph{requestID}, \emph{status})
-
-    very similar to the \emph{move} method of the Bartender
-
-\end{description}
-This interface has some methods similar to the Shepherd and some other methods similar to the Bartender.
-% section integrating_third_party_storage_solutions (end)
+% section grid_integration (end)
 
 % chapter technical_description (end)
-
 
 % \bibliography{grid}
 \end{document}
