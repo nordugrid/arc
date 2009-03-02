@@ -2642,7 +2642,7 @@ namespace Arc {
                        product += "\" \"" + filesize + "\"";
                     }
                     else {
-                        product += "\" " +  (*it_source).URI.fullstr();
+                        product += "\" \"" +  (*it_source).URI.fullstr() + "\"";
                     }
 
                     // checksum added
