@@ -497,6 +497,29 @@ Then for each rule there is list of actions, each action is either allowed or de
 
 When there is an incoming connection to a Bartender, the security framework of the HED extract the identity information of the connecting client (DN of client, DN of the issuer CA, extended attributes, etc.), and all these information is accessible by the Bartender. When the given method of the Bartender gets to the point where the access rules are present, and it is clear that what kind of action the user wants to do, then either the request and the policy is converted to the native ARC policy language, and then the policy evaluator of the security framework is called to make the decision. Within the native ARC policy language XML representation of the requests and policies the storage actions are put into an `Attribute' element with the ID `\verb!http://www.nordugrid.org/schemas/policy-arc/types/storage/action!'.
 
+For inter-service authorization we can configure the services to only accept connections from trusted services. We trust a service if we know its DN. For each service we can write trusted DNs in the configuration, or we can periodically get the list from an A-Hash. This can be configured with a `\emph{TrustManager}' section in the service configuration, which contains these entries:
+
+\begin{description}
+    \item[DN] is a trusted DN
+    \item[CA] is a DN of a trusted CA: we will trust all certificates issued by this CA
+    \item[DNsFromAHash] is a list of A-Hash URLs (in \textbf{AHashURL}) from where we periodically get a list of trusted DNs (there can be multiple A-Hash URLs listed here in case of one is offline). This has some attributes: \textbf{CheckingInterval} specifies how frequently we should get the list from the A-Hash (default: 600); \textbf{ID} specifies the ID of the A-Hash objects, where the list is stored (default: `3').
+\end{description}
+
+The TrustManager section itself could have some attributes: \textbf{FromFile} could have a filename, if we want to get the whole TrustManager configuration from a separate file; and \textbf{Force} indicates (with `yes' or `no') that we want to ensure that our service does not even get the request if the client of the incoming connection is not trusted. 
+
+Example TrustManager configuration:
+
+\begin{verbatim}
+    <TrustManager Force="yes">
+        <DN>/DC=eu/DC=KnowARC/O=NIIFI/CN=host/epsilon</DN>
+        <DN>/DC=eu/DC=KnowARC/O=NIIFI/CN=host/phi</DN>
+        <CA>/DC=eu/DC=KnowARC/CN=storage-1233659377.11</CA>
+        <DNsFromAHash CheckingInterval="10">
+            <AHashURL>https://localhost:60000/AHash</AHashURL>
+        </DNsFromAHash>
+    </TrustManager>
+\end{verbatim}
+
 Because of the heavy use of X509 certificates, of course, all the services should have their own certificates, which they can use when connecting to other services. Currently it is needed to put the paths of the certificate and private key files (and the trusted CAs as well) into the configuration of each services, like this:
 
 \begin{verbatim}
@@ -506,6 +529,8 @@ Because of the heavy use of X509 certificates, of course, all the services shoul
         <CACertificatesDir>certs/CA</CACertificatesDir>
     </ClientSSLConfig>
 \end{verbatim}
+
+This can be put in a seperate file, and then use the \textbf{FromFile} attribute of the ClientSSLConfig section to specify where the file is.
 
 % section security_implementation (end)
 
@@ -657,13 +682,34 @@ The Librarian service uses the A-Hash to store all the metadata, and it uses the
 
 TODO: here comes some sentences about how the Librarian reads from any A-Hash and finds the master A-Hash for writing.
 
-The Librarian also accepts report messages from Shepherds, and stores the contents of these messages in the A-Hash. There is one A-Hash object which contains the ID and the expected time of the next heartbeat of the registered Shepherds, and there is one A-Hash object for each Shepherd which stores the states and GUIDs of the files on the Shepherd's storage node. The Librarian checks periodically if there is a Shepherd which is late with its heartbeat, and it changes the states of all the replicas if needed.
+The Librarian also accepts report messages from Shepherds, and stores the contents of these messages in the A-Hash. There is one A-Hash object which contains the ID and the expected time of the next heartbeat of the registered Shepherds, and there is one A-Hash object for each Shepherd which stores the states and GUIDs of the files on the Shepherd's storage node (see Section~\ref{sub:shepherds} for details). The Librarian checks periodically if there is a Shepherd which is late with its heartbeat, and it changes the states of all the replicas if needed.
 
 Because the Librarian services store everything in the A-Hash, the Librarian itself is a stateless service. We can deploy multiple Librarians, if we configure them to use the same replicated group of A-Hashes (or the same central A-Hash) then the Bartenders could use any Librarian to achieve the same results, and the Shepherds also could report to any of them. One Shepherd should only report to one Librarian, but if that Librarian is offline, it should find another. The reports will be registered in the A-Hash as well, so it does not matter which Librarian gets a report.
 
 % subsection implementation (end)
 
 \subsection{Configuration} % (fold)
+
+The Librarian has these configuration variables:
+
+\begin{description}
+    \item[AHashURL] is the URL of an A-Hash which the Librarian should use. There could be multiple URLs specified here.
+    \item[HeartbeatTimeout] specifies in seconds how frequently the Sheperds should send reports to the Librarian.
+    \item[CheckPeriod] specifies in seconds how frequently the Librarian should check for late heartbeats.
+\end{description}
+
+An example configuration:
+
+\begin{verbatim}
+    <Service name="pythonservice" id="librarian">
+        <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+        <AHashURL>https://localhost:60000/AHash</AHashURL>
+        <HeartbeatTimeout>30</HeartbeatTimeout>
+        <CheckPeriod>20</CheckPeriod>
+        <ClientSSLConfig FromFile="clientsslconfig.xml"/>
+        <TrustManager FromFile='librarian_trust_manager.xml'/>
+    </Service>
+\end{verbatim}
 
 % subsection configuration (end)
 
@@ -677,71 +723,56 @@ Because the Librarian services store everything in the A-Hash, the Librarian its
 
 A Shepherd service is capable of managing a storage node. It keeps track all the files it stores with their GUIDs and checksums. It periodically checks each file to detect corruption, and send reports to a Librarian indicating that the storage node is up and running, and whether some file's state has been changed. If a file goes missing or has a bad checksum then the Librarian is notified about the error (here the Shepherd refers to the file with its GUID, that's why it needs to store the GUIDs of its files). It periodically asks the Librarian how many replicas its files have, and if a file has fewer replicas than needed, the Shepherd offers its copy for replication by calling the Bartender.
 
-A Shepherd service is always connected to a file transfer service (e.g.~`HTTP(S)', `FTP(S)', `ByteIO', `GridFTP', etc.). For each supported file transfer service we need a backend module which makes the Shepherd capable of communicating with the file transfer service to initiate file transfers, to detect whether a transfer was successful or not, to generate local IDs and checksums, etc.
+A Shepherd service is always connected to a storage element service (e.g.~a web server). For each supported storage element service we need a backend module which makes the Shepherd capable of communicating with it to initiate file transfers, to detect whether a transfer was successful or not, to generate local IDs and checksums, etc.
 
-A file in a storage node could be identified with a \emph{referenceID} which is unique within that node. If we know the \emph{location} of a file, which is the ID of the Shepherd service (\emph{serviceID}) and the \emph{referenceID}, we could get the endpoint reference (URL) of the Shepherd from the information system, then we could call its \emph{get} method with the \emph{referenceID} and a list of transfer protocols we can use (e.g.~`HTTP', `FTP'), the Shepherd chooses a protocol from this list which it can provide, and create a transfer URL (\emph{TURL}) and returns it along with the \emph{checksum} of the file. We could download the file from this \emph{TURL}, and verify it with the \emph{checksum}. An end user of the storage system does not need to call this \emph{get} method, because the Bartender service will do it, the user just asks the Bartender and gets the TURL.
+A file in a storage node could be identified with a \emph{referenceID} which is unique within that node. If we know the \emph{location} of a file, which is the ID of the Shepherd service (\emph{serviceID}, currently the URL of the Shepherd) and the \emph{referenceID}, we could call the Shepherds \emph{get} method with the \emph{referenceID} and a list of transfer protocols we can use, the Shepherd chooses a protocol from this list which it can provide, and create a transfer URL (\emph{TURL}) and returns it along with the \emph{checksum} of the file. We could download the file from this \emph{TURL}, and verify it with the \emph{checksum}. An end user of the storage system does not need to call this \emph{get} method, because the Bartender service will do it, the user just asks the Bartender and gets the TURL.
 
 Storing a file starts with initiating the transfer with the \emph{put} method of the Shepherd, we should give the \emph{size} and \emph{checksum} of the file and its \emph{GUID} as well. We also specify a list of transfer protocols we are able to use, and the Shepherd chooses a \emph{protocol}, creates a \emph{TURL} for uploading and generates a \emph{referenceID}, then we can upload the file to the TURL. Again, the end user just asks the Bartender, and gets the TURL, the user does not need to call the \emph{put} method of the Shepherd directly.
 
 These \emph{TURL}s are one-time URLs which means that after the client uploads or downloads the file these \emph{TURL}s cannot be used again to do the same. If we want to download the same file twice, we have to initiate the transfer twice, and will get two different \emph{TURL}s.
 
-With the \emph{stat} method we can get some information about a replica, e.g.~checksum, GUID, state (`creating', `alive' or `invalid'), etc. The \emph{delete} method removes the file.
+With the \emph{stat} method we can get some information about a replica, e.g.~checksum, GUID, state, etc. The \emph{delete} method removes the replica.
 
 In normal operation the \emph{put} and \emph{get} calls is made by a Bartender but the actual uploading and downloading is done by the user's client. In the case of replication a Shepherd with a valid replica initiates the replication, this Shepherd asks the Bartender to choose a new Shepherd, the Bartender initiates putting the new replica on a chosen Shepherd and receives the TURL, then the Bartender returns the TURL to the initiator Shepherd, which uploads its replica to the given TURL.
 
+The replicas have a state, which could be `\textbf{creating}' when the transfer is initiated but the file is not uploaded yet, `\textbf{alive}' if the file is uploaded and has a proper checksum, or `\textbf{invalid}' if it does not exists anymore or has a bad checksum.
+
 % subsection functionality (end)
-
-\subsection{Prototype status and plans} % (fold)
-
-The current implementation of the Shepherd service has a working \emph{get}, \emph{put}, \emph{stat}, \emph{delete} methods, and a method called \emph{toggleReport} which can be used the simulate storage node failure with the Shepherd not reporting to a Librarian. 
-There is a separate service which provide a subset of the ByteIO interface, and there is an other separate service which is a basic HTTP server, these are both could be used as file transfer services, both have its backend module for the Shepherd. Currently both file transfer services have the problem of using too much memory while transferring files.
-Further plans include better file transfer services and backend modules for third-party file transfer services.
-
-% subsection prototype_status_and_plans (end)
-
-\subsection{Data model} % (fold)
-
-A file of a Shepherd service is referenced by its \emph{referenceID}. Each file has a \emph{state} which could be `\textbf{creating}' when the transfer is initiated but the file is not uploaded yet, `\textbf{alive}' if the file is uploaded and has a proper checksum, or `\textbf{invalid}' if it does not exists anymore or has a bad checksum. Each file has a \emph{localID} which is used in the backend modules.
-
-% subsection data_model (end)
-
-
 
 \subsection{Interface} % (fold)
 
 \begin{description}
-    \item[get(getRequestList)] returns list of (\emph{requestID}, \emph{getResponseData})
     
-    \emph{getRequestList} is a list of (\emph{requestID}, \emph{getRequestData}) where \emph{requestID} is an arbitrary ID used in the reply
+    \item[get(getRequestList)] initiates a download and returns the TURL
     
-    \emph{getRequestData} is a list of (\emph{property}, \emph{value}) pairs, where mandatory properties are: `\textbf{referenceID}' which refers to the file to get and `\textbf{protocol}' indicates a protocol the client can use (there could be multiple protocols in getRequestData).
+    The \emph{getRequestList} is a list of (\emph{requestID}, \emph{getRequestData}) where \emph{requestID} is an arbitrary ID used in the reply, \emph{getRequestData} is a list of (\emph{property}, \emph{value}) pairs, where mandatory properties are: `\textbf{referenceID}' which refers to the file to get and `\textbf{protocol}' indicates a protocol the client can use (there could be multiple protocols in getRequestData).
     
-    \emph{getResponseData} is a list of (\emph{property}, \emph{value}) pairs, such as: `\textbf{TURL}' is a transfer URL which can be used by the client to download the file; `\textbf{protocol}' is the protocol of the TURL; `\textbf{checksum}' is the checksum of the replica; `\textbf{checksumType}' is the name of the checksum method and `\textbf{error}' could contain an error message if there is one.
+    The response is a list of (\emph{requestID}, \emph{getResponseData}), where \emph{getResponseData} is a list of (\emph{property}, \emph{value}) pairs, such as: `\textbf{TURL}' is a transfer URL which can be used by the client to download the file; `\textbf{protocol}' is the protocol of the TURL; `\textbf{checksum}' is the checksum of the replica; `\textbf{checksumType}' is the name of the checksum method and `\textbf{error}' could contain an error message if there is one.
      
-    \item[put(putRequestList)] returns a list of (\emph{requestID}, \emph{putResponseData})
+    \item[put(putRequestList)] initiates an upload and returns the TURL
+        
+    The \emph{putRequestList} is a list of (\emph{requestID}, \emph{putRequestData}) where \emph{requestID} is an ID used for the response,     \emph{putRequestData} is a list of (\emph{property}, \emph{value}) pairs such as `\textbf{GUID}', `\textbf{checksum}', `\textbf{checksumType}', `\textbf{size}' (the size of the file in bytes), `\textbf{protocol}' (a protocol the client can use, can be multiple) and `\textbf{acl}' (which is currently not used).
     
-    \emph{putRequestList} is a list of (\emph{requestID}, \emph{putRequestData}) where \emph{requestID} is an ID used for the response
+    The response is a list of (\emph{requestID}, \emph{putResponseData}), where \emph{putResponseData} is a list of (\emph{property}, \emph{value}) pairs such as: `\textbf{TURL}' is the transfer URL where the client can upload the file, `\textbf{protocol}' is the chosen protocol of the TURL and `\textbf{referenceID}' is the generated ID for this new replica, `\textbf{error}' could contain an error message.
     
-    \emph{putRequestData} is a list of (\emph{property}, \emph{value}) pairs such as `\textbf{GUID}', `\textbf{checksum}', `\textbf{checksumType}', `\textbf{size}' (the size of the file in bytes), `\textbf{protocol}' (a protocol the client can use, can be multiple) and `\textbf{acl}' (for additional access policy).
+    \item[delete(deleteRequestList)] removes a replica.
     
-    \emph{putResponseData} is a list of (\emph{property}, \emph{value}) pairs such as: `\textbf{TURL}' is the transfer URL where the client can upload the file, `\textbf{protocol}' is the chosen protocol of the TURL and `\textbf{referenceID}' is the generated ID for this new replica, `\textbf{error}' could contain an error message.
+    The \emph{deleteRequestList} is a list of (\emph{requestID}, \emph{referenceID}) pairs containing the IDs of the files to remove.
     
-    \item[delete(deleteRequestList)] returns a list of (\emph{requestID}, \emph{status})
-    
-    \emph{deleteRequestList} is a list of (\emph{requestID}, \emph{referenceID}) pairs selecting the files to remove. The status could be `\textbf{deleted}' or `\textbf{nosuchfile}'
+    The response is a list of (\emph{requestID}, \emph{status}), where \emph{status} could be `\textbf{deleted}' or `\textbf{nosuchfile}'.
     .
-    \item[stat(statRequestList)] returns a list of (\emph{requestID}, \emph{referenceID}, \emph{state}, \emph{checksumType}, \emph{checksum}, \emph{acl}, \emph{size}, \emph{GUID}, \emph{localID})
+    \item[stat(statRequestList)] returns information about replicas.
+
+    The \emph{statRequestList} is a list of (\emph{requestID}, \emph{referenceID}) where \emph{referenceID} points to the file whose data we want to get. 
     
-    \emph{statRequestList} is a list of (\emph{requestID}, \emph{referenceID}) where \emph{referenceID} points to the file whose data we want to get. The method returns all the data the Shepherd know about the replica.
-     
+    The response is a list of (\emph{requestID}, \emph{referenceID}, \emph{state}, \emph{checksumType}, \emph{checksum}, \emph{acl}, \emph{size}, \emph{GUID}, \emph{localID})    
 \end{description}
 
 % subsection interface (end)
 
-\subsection{Backend modules} % (fold)
-\label{sub:backend_modules}
+\subsection{Implementation} % (fold)
 
-The Shepherd could communicate with the file transfer services via backend modules. Currently there are two kinds of backend modules, one for the \emph{byteio} service (which is a simple implementation of a subset of the ByteIO interface) and one for the \emph{Hopi} service (which is a simple HED-based HTTP server).
+The Shepherd is communicating with the storage element services via backend modules. Currently there are two backend modules implemented, one for the \emph{Hopi} service (which is a simple HED-based HTTP server), one for the \emph{apache} webserver.
 
 In both cases the Shepherd and the transfer services should have access to the same local filesystem where the Shepherd creates two separate directories: one for storing all the files (e.g.~\verb!./store!) and one for the file transfers (e.g.~\verb!./transfer!). The store directory always contains all the files the Shepherd manages, the transfer directory is empty at the beginning.
 
@@ -749,13 +780,8 @@ Let's see the scenario for the Hopi service which should be in a special `slave'
 
 If a client wants to upload a new file, then the Shepherd creates an empty file in the store directory, e.g.~\verb!./store/file2! and creates a hardlink into the transfer directory, e.g.~\verb!./transfer/oiu! and makes it writable, and now we have a URL \verb!http://localhost:60000/prb/oiu!, and the client is able to do a \verb!PUT! to this URL. When the client \verb!PUT!s the file there, the Hopi service immediately removes the uploaded file from the transfer directory, but because it has a hardlink in the store directory, the file is stored there as \verb!./store/file2!. The backend module for the Hopi service periodically checks whether a new file has two or just one hard links. If it has only one that means that a file is uploaded, so it could notify the Shepherd that the file is arrived. In order to do that, all the backend modules get a callback method `file\_arrived' from the Shepherd.
 
-In case of the byteio service, there is some small differences. The byteio service does not removes the files from the transfer directory, but it calls the backend module via SOAP to notify it that something is happened. The byteio backend has one SOAP method called `\textbf{notify}':
-\begin{description}
-    \item[notify(subject, state)] returns `\textbf{OK}' in \emph{notifyResponse}.
-\end{description}
-When this method is called, the byteio backend module notifies the Shepherd that the file is arrived.
+All the backend modules should have this common interface which the Shepherd can use to communicate with the storage element services:
 
-All the backend modules should have this common interface which the Shepherd can use to communicate with the file transfer service:
 \begin{description}
     \item[prepareToGet(referenceID, localID, protocol)] returns the \emph{TURL}.
     
@@ -777,11 +803,39 @@ All the backend modules should have this common interface which the Shepherd can
     \item[getAvailableSpace()] returns the available disk space in bytes.
     \item[generateLocalID()] returns a new unique \emph{localID}.
     \item[matchProtocols(protocols)] only leave that protocols in the list \emph{protocols} which are supported by this file transfer service.
-    \item[checksum(localID, checksumType)] returns the checksum of the file referenced by \emph{localID}, which checksum is generated by the method \emph{checksumType}.
-     
+    \item[checksum(localID, checksumType)] generates a \emph{checksumType} checksum of the file referenced by \emph{localID}.
 \end{description}
 
-% subsection backend_modules (end)
+% subsection implementation (end)
+
+\subsection{Configuration} % (fold)
+
+The Shepherd has these configuration variables:
+
+\begin{verbatim}
+    <Service name="pythonservice" id="shepherd">
+        <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+        <ServiceID>https://localhost:60000/Shepherd</ServiceID>
+        <CheckPeriod>20</CheckPeriod>
+        <MinCheckInterval>0.1</MinCheckInterval>
+        <StoreClass>storage.store.cachedpicklestore.CachedPickleStore</StoreClass>
+        <StoreCfg>
+            <DataDir>./shepherd_data1</DataDir>
+        </StoreCfg>
+        <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
+        <BackendCfg>
+            <DataDir>./shepherd_store</DataDir>
+            <TransferDir>./shepherd_transfer</TransferDir>
+            <TURLPrefix>https://localhost:60000/hopi/</TURLPrefix>
+        </BackendCfg>
+        <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
+        <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
+        <ClientSSLConfig FromFile="clientsslconfig.xml"/>
+    </Service>    
+\end{verbatim}
+
+
+% subsection configuration (end)
 
 % section shepherds (end)
 \newpage
