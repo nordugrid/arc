@@ -2945,11 +2945,13 @@ namespace Arc {
             // Indexin services searching
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
+	      if (iter->DataIndexingService)
                 if ( find( indexing_services.begin(), indexing_services.end(),(*iter).DataIndexingService.fullstr() ) == indexing_services.end() )
                    indexing_services.push_back((*iter).DataIndexingService.fullstr());
             }
             std::list<Arc::DirectoryType>::const_iterator iter_d;
             for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++){
+	      if (iter->DataIndexingService)
                 if ( find( indexing_services.begin(), indexing_services.end(),(*iter).DataIndexingService.fullstr() ) == indexing_services.end() )
                    indexing_services.push_back((*iter_d).DataIndexingService.fullstr());
             }
