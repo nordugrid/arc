@@ -2555,10 +2555,21 @@ namespace Arc {
             product += " )\n";
         }
         if (!innerRepresentation.Argument.empty()) {
+            bool first = true;
             for (std::list<std::string>::const_iterator it=innerRepresentation.Argument.begin();
                             it!=innerRepresentation.Argument.end(); it++) {
-                product += "( arguments = ";//TODO:
+                if (first){      
+                   product += "( arguments = ";
+                   if (!innerRepresentation.Executable.empty()) {
+                       product += innerRepresentation.Executable;
+                       product += " ";
+                   }
+                   first = false;
+                }
                 product += *it;
+                product += " ";
+            }
+            if (!first){      
                 product += " )\n";
             }
         }
@@ -2934,18 +2945,20 @@ namespace Arc {
         if (!innerRepresentation.File.empty() || !innerRepresentation.Directory.empty() ) {
             std::vector<std::string> indexing_services;
             indexing_services.clear();
-            // Indexin services searching
+            // Indexing services searching
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
 	      if (iter->DataIndexingService)
                 if ( find( indexing_services.begin(), indexing_services.end(),(*iter).DataIndexingService.fullstr() ) == indexing_services.end() )
-                   indexing_services.push_back((*iter).DataIndexingService.fullstr());
+                   if ((*iter).DataIndexingService.fullstr() != "")
+                      indexing_services.push_back((*iter).DataIndexingService.fullstr());
             }
             std::list<Arc::DirectoryType>::const_iterator iter_d;
             for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++){
-	      if (iter->DataIndexingService)
-                if ( find( indexing_services.begin(), indexing_services.end(),(*iter).DataIndexingService.fullstr() ) == indexing_services.end() )
-                   indexing_services.push_back((*iter_d).DataIndexingService.fullstr());
+	      if (iter_d->DataIndexingService)
+                if ( find( indexing_services.begin(), indexing_services.end(),(*iter_d).DataIndexingService.fullstr() ) == indexing_services.end() )
+                   if ((*iter_d).DataIndexingService.fullstr() != "")
+                      indexing_services.push_back((*iter_d).DataIndexingService.fullstr());
             }
             // XRSL output(s) generation
             std::vector<std::string>::const_iterator i_url;
