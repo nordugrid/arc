@@ -2166,7 +2166,6 @@ namespace Arc {
 
         std::vector< std::vector<std::string> > new_attributeValue;
         std::string whitespaces (" \t\f\v\n\r");
-        std::string letters ("abcdefghijklmnopqrstuvwxyz");
 
         unsigned long outer_start_pointer;
         unsigned long outer_end_pointer = 0;
