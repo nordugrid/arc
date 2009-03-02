@@ -653,6 +653,14 @@ The end-user of the ARC storage system never communicates directly with a Librar
 
 \subsection{Implementation} % (fold)
 
+The Librarian service uses the A-Hash to store all the metadata, and it uses the GUIDs as IDs in the database. It has the URL of one or more A-Hash services from its configuration, and it can acquire more A-Hash URLs from these first A-Hashes in case of a replicated A-Hash deployement.
+
+TODO: here comes some sentences about how the Librarian reads from any A-Hash and finds the master A-Hash for writing.
+
+The Librarian also accepts report messages from Shepherds, and stores the contents of these messages in the A-Hash. There is one A-Hash object which contains the ID and the expected time of the next heartbeat of the registered Shepherds, and there is one A-Hash object for each Shepherd which stores the states and GUIDs of the files on the Shepherd's storage node. The Librarian checks periodically if there is a Shepherd which is late with its heartbeat, and it changes the states of all the replicas if needed.
+
+Because the Librarian services store everything in the A-Hash, the Librarian itself is a stateless service. We can deploy multiple Librarians, if we configure them to use the same replicated group of A-Hashes (or the same central A-Hash) then the Bartenders could use any Librarian to achieve the same results, and the Shepherds also could report to any of them. One Shepherd should only report to one Librarian, but if that Librarian is offline, it should find another. The reports will be registered in the A-Hash as well, so it does not matter which Librarian gets a report.
+
 % subsection implementation (end)
 
 \subsection{Configuration} % (fold)
