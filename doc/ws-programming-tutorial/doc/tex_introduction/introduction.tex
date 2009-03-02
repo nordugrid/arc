@@ -6,7 +6,7 @@ The reader is guided through a series of the practically oriented examples.
 Each are accompanied by explanations of the main concepts of the software architecture.
 No particular skills are required to follow the presented steps.
 It is however beneficial to have some basic comprehension of the programming language C++, the file format XML and any regular UNIX shell.
-To start, the user shall have an installation of ARC-1, as it is performed with current RPM or .deb packages\footnote{see http://wiki.nordugrid.org for explicit instructions for your setup}.
+To start, the user shall have an installation of ARC-1, as it is performed with current RPM or .deb packages\footnote{see http://wiki.nordugrid.org for explicit instructions for setup}.
 
 
 The ARC server provides access to services.
@@ -52,7 +52,7 @@ Conceptionally, the HED determines how services shall be organised both as a pri
 HED determines the very explicit presence or absence of a service at a particular address. Its many configurable layers are described later in this tutorial. 
 %
 At the time of writing, the endpoint of the HED will be a SOAP based webservice.
-SOAP is a long established XML-based standard for web service communication.
+SOAP is a long established XML-based standard for Web Service communication.
 ARC abstracts from this format, but nevertheless it is useful to be aware of
 the underlying message transport mechanism.
 
@@ -65,47 +65,49 @@ The source code of the examples given in this tutorial are available in the subd
 
 \section{Hosting Environment Daemon}
 
-The HED which was already mentioned in the section above. As an essential part of the ARC middleware it provides the hosting of various services at the application level.
-Its modularity allows its dynamic extension.
+The HED which was already mentioned in the section above is an essential part of the ARC middleware. 
+Its task is to provide the hosting of various services at the application level and is based on the idea modularity.% allows its dynamic extension.
+The HED consists of compononents called Message Chain Components (MCC), services and several modules, which shall aid the programmer to simplify the development of the Web Services: Config, Loader, Logging, XMLNode.
+The MCCs are ordered within a layered structure. 
+Each MCC provides a certain functionality such as communication between two applications (MCC TCP), secure data transfer (MCC TLS) or client-server architecture (MCC HTTP).
 Figure~\ref{fig:HED_internal} illustrates a typical setup of a server-sided HED.
-The HED consists of a few compononents called Message Chain Components (MCC).
-These are ordered within a layered structure and several \textcolor{urgent}{modules}, which shall aid the programmer to simplify the development of the web services: Config, Loader, Logging, XMLNode.
 
 \begin{figure}[htb]
 	\centering
 	\includegraphics[width=14cm]{tex_introduction/HED.pdf}
-	\mycaption{Example of HED structure with an Arex service and a file service.\task{ Replace image by an easier one!} }{\task{Write more stuff}\task{The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - WEB SERVICE   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - WEB SERVICE}}
+	\mycaption{Example of HED structure with an Arex service and a file service.\task{ Replace image by an easier one!} }{\task{Write more stuff}\task{The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - Web Service   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - Web Service}}
 \label{fig:HED_internal}
 \end{figure}
 
-The MCCs are passing the incoming and outgoing messages to the upper or the respective lower layer. \task{which means? SM}
-The lowest layer has to be a transport protocol like TCP which enables the transmission between the two applications, the client and the server.
-Technically, there are lower leves, e.g. the Internet Protocol (IP) enables the transmission between two computers and is a technical requirement for the TCP layer.
-But IP is not directly modelled by the HED.
-TCP is well suited for the application because it provides a reliable and ordered delivery of a byte stream which is important to ensure security.
+As to be seen, the MCCs are connected which each other and passing incoming and outgoing message to the upper or the respective lower layer. In case of outgoing messages a MCC is wrapping the data of the upper layer as a payload into their own protocol (while incomming message will be unwrapped).
+The lowest layer has to be a transport protocol like TCP which enables the transmission between the two applications.
+Tehchnically there even lower layers required needed for the communication but they are realised within the operating system and the  network card
+TCP is well suited for the application because it provides a reliable and ordered delivery of a byte stream.
 Above the TCP layer is the Hypertext Transfer Protocol (HTTP). 
-In case a security layer is desired for authentication, the TLS (Transport Layer Security formerly known as SSL, Secure Sockets Layer) is inserted between the TCP and HTTP layers.
+In case a security layer is desired (i.e. for authentication), the TLS (Transport Layer Security formerly known as SSL, Secure Sockets Layer) has to be inserted between the TCP and HTTP layers.
 The HTTP provides the client-server architecture. It is stateless but offers several extensions for requests, header information and status codes. Furthermore HTTP enables the usage of Uniform Resource Locators (URL) which is used by ARC to multiplex between different services. The multiplexing layer can also be defined within the HED and is called Plexer.
-Depending on the path of the URL the Plexer passes messages to a defined SOAP service which again passes the message to the Web Service.
+Depending on the path of the URL the Plexer passes messages to a defined SOAP service which again passes the message to the Web Service~\cite{QIANG_2005}. \task{Add text here}\\
+%In my understanding (because plexer is not my initial idea), plexer (as a sort of hub) can be put at both after http or soap. If you put after soap,then you are doing switching for different web services. While I put it after http, because somehow, I need to switch the message after http-processing, in more detail, one branch for soap and then web service/s, one branch for a non-soap service/server (the SP Service is not a service based on SOAP, actually it is based on http, so it is kind of web application).
 
 
-The structure of the HED can be configured freely by modifying the HED configuration file.
+The structure of the HED can be configured freely by modifying the server configuration file.
 A first impression how the HED can be configured shall be given in the following example which corresponds to the HED shown in figure~\ref{fig:HED_internal}.
-It uses the ARC echo service~\cite{QIANG_2005} that is shipped for testing purposes with the ARC source code.
+It uses the ARC echo service that is shipped for testing purposes with the ARC source code.
 
 
 
 \subsection{The ARC echo service}
 
-\task{Where is the xsd file for HED configuration files??}
+
 The first example shall give a basic understanding in how to configure the HED for setting up a novel service.
 Here, the task is to setup the regular ARC Echo Web Service.
-On the command line, all that needs to be done is to invoking the \textit{arched}\footnote{read: arc-hed} daemon with a fitting HED configuration file.
-An example is shown in Listing~\ref{lst:arched_arcecho_xml}.
-It is written in XML and its structure is based on the \textcolor{urgent}{??} schema.
+On the command line, all that needs to be done is to invoking the \textit{arched}%
+\footnote{\task{refer to the appendix in which the documentation to arc-hed is specified}}
+daemon with a fitting server configuration file.
+Such a fitting server configuration file is shown in Listing~\ref{lst:arched_arcecho_xml}.
+It is written in XML and its structure is based on within the xsd-schema \textcolor{urgent}{URL?} .
 
 \lstsetARCHEDXML
-
 \lstinputlisting
 	[
 	label=lst:arched_arcecho_xml,float,
@@ -115,7 +117,7 @@ It is written in XML and its structure is based on the \textcolor{urgent}{??} sc
 {../src/services/arched_arcecho.xml}
 The first line of the XML file contains the XML declaration.
 Several attributes can be defined here but at least the XML version should be specified.
-The configuration as a whole is encapsulated by the \textit{<ArcConfig>} tag. It also performs the setting of namespace abbreviations, which are expected to be mostly invariant across all server installations.
+The configuration as a whole is encapsulated by the element \textit{ArcConfig}. It also performs the setting of namespace abbreviations, which are expected to be mostly invariant across all server installations.% ABBREVIATIONS?? - MG
 The \textit{Server} element, to be found at line~\ref{lst_code:arched_arcecho_Server}, provides basic settings for the daemon such as location of the Pid-file or the Log-file.
 The \textit{ModuleManager} holds the path to the plugin libraries.
 Several paths may be defined here.
@@ -124,36 +126,37 @@ The path should be at least assigned to the ARC installation directory.
 Otherwise, the standard set of MCC modules might not be found.
 The next set of elements are holding the name of the plugins to be loaded (line~\ref{lst_code:arched_arcecho_Plugins}).
 The names have to correspond to the name of the dynamic libraries within the path defined in the \textit{ModuleManager}.
-Finally, the chain of the components is declared within the element \textit{Chain}.
-Every component inside the chain is represented by an element called \textit{Component} which has at least a \textit{name} attribute.
-Its important that a plugin (*.so file found in the paths previously specified) has been loaded which provides the implementation of the component's functionality.
-The further configuration of the individual web service depends on the individual component's functionality.
-The \textit{Service} tag may be used to specify additional elements that the web service may then inspect.
-
-%\task{Internet Protocol is required.}
-
-We need to distinguish between the plugins and the components.
-The plugins refer to shared libraries that can be integrated as modules with the HED to extend its functionality.
-The Components refer to the implementation of web services within any of those libraries.
+Finally, the chain is declared within the element \textit{Chain} which creates the layered structure.
+It is composed out of the elements \textit{Component}, \textit{Plexer} and \textit{Service}.
+Every element inside has at least a \textit{name} attribute.
+Regarding the components and the services a plugin (*.so file found in the paths previously specified) has to be loaded which provides the implementation of its functionality. The further configuration depends on the individual functionality.\\
+%
+% within the chain ... 3 types of elements
+%
+%Its needed to distinguish between the plugins and the components.
+%The plugins refer to shared libraries that can be integrated as modules with the HED to extend its functionality.
+%The Components refer to the implementation of Web Services within any of those libraries.
+%
+%
 A \textit{Chain} will determine the path that an event takes to be noticed.
 The first component of the chain is the \textit{tcp.service}.
 As to be seen, the port 60000 is assigned to the server to listen to.
 The port can be an arbitrary number.
-However, the number 60000 is commonly used for a HED providing the A-REX web service (the one organising the computation on a site) and the number 50000 is found commonly used for a HED running web services for storage.
+However, the number 60000 is commonly used for a HED providing the A-REX Web Service (the one organising the computation on a site) and the number 50000 is found commonly used for a HED running Web Services for storage.
 This way, one can organise a single server to offer multiple HED instances.
-The stream which is received by this component is passed to the component defined by the \textit{next} tag.
+The stream which is received by this component is passed to the component defined by the \textit{next} attribute.
 In the present case, it will be passed to the component with the \textit{id} attribute named \textit{http}.
 In this way, the message is be passed to higher layers until it reaches the \textit{Plexer}.
-Depending on the path of the URL which was demanded by the HTTP, the Plexer multiplexes the request to the right web service, the right function to execute according to the component IDs and plugin names. The plexer will thus allow to have multiple web service listen to the same port.
-The path, declared within the \textit{next} element, corresponds to a regular expression and leads to the service with the id named \textit{echo}. 
+Depending on the path of the URL which was demanded by the HTTP, the Plexer multiplexes the request to the right Web Service, the right function to execute according to the component IDs and plugin names. The plexer will thus allow to have multiple Web Service listen to the same port.
+The path, declared within the \textit{next} attribute, corresponds to a regular expression and leads to the service with the id named \textit{echo}. 
 Hence, the service will now be reachable under URL \textit{http://localhost:60000/echo}.
 It will finally process the message and create a new message which will be returned all the way back to the TCP component.
 The Echo Web Service itself is provided by the ARC package.
 Additional invariant parameters are passed by the elements \textit{prefix} and \textit{suffix}.
 They set the characters which will enclose the echoed string.
-\task{The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - WEB SERVICE   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - WEB SERVICE}
+\task{The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - Web Service   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - Web Service}
 
-To create the daemon corresponding to the defined HED configuration file, ARC provides the program called \textit{arched}.
+To create the daemon corresponding to the defined server configuration file, ARC provides the program called \textit{arched}.
 The manner of invokation is to been seen in Listing~\ref{lst:arcecho_arched_invokation}.
 \lstsetKSH
 \begin{lstlisting}[
@@ -185,10 +188,10 @@ $ arcecho http://localhost:60000/Echo text
 \end{lstlisting}
 
 In this example, the server and the client are running on the same computer such that the hostname \textit{localhost} can be utilized. 
-For debugging it is advisable to check the logfile which was assigned inside the HED configuration file.
+For debugging it is advisable to check the logfile which was assigned inside the server configuration file.
 It is commonly found at /var/log/arched.log
 
-The following chapters explain how to develop custom web services.
+The following chapters explain how to develop custom Web Services.
 The first one will be the simple Time Web Service.
 
 

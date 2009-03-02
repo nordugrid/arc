@@ -1,17 +1,12 @@
 /**      
- * Implementation of a simple time service
+ * Header file of Time Web Service
  *
- * The time service will always reply with a message which contains
- * the current time of the service.
- *
+ * The task of the service is alway to reply with the
+ * current system time.
  */
 
 #ifndef __ARCSERVICE_TIME_H__
 #define __ARCSERVICE_TIME_H__
-
-#if HAVE_CONFIG_H
-	#include <config.h>
-#endif
 
 #include <arc/message/Service.h>
 #include <arc/Logger.h>
@@ -21,30 +16,28 @@ namespace ArcService
 
 class TimeService: public Arc::Service
 {
-
 	protected:
 
 		/**
-		*  Arc-intern logger. Generates output into the file specified 
-		*  in the arched configuration file used to invoke arched services.
+		*  Arc-intern logger. Redirects the log messages into the 
+		*  file specified within the server configuration file.
 		*/
 		Arc::Logger logger;
 
 		/**
-		* Class which specifies a XML namespace i.e. "time".
-		* Needed to extract the content out of the incoming message
+		* XML namespace of the outgoing SOAP message.
 		*/
 		Arc::NS ns_;
 
 	public:
 
 		/**
-		* Constructor getting the Arc-configuration.
+		* Constructor of the Time Web Service.
 		*/
 		TimeService(Arc::Config *cfg);
 
 		/**
-		* Destructor.
+		* Destructor of the Time Web Service.
 		*/
 		virtual ~TimeService(void);
 
@@ -53,10 +46,9 @@ class TimeService: public Arc::Service
 		* (to be found in MCC.h). 
 		* @param inmsg incoming message
 		* @param inmsg outgoing message
-		* @return Status of the result achieved
+		* @return Status of the achieved result 
 		*/
 		virtual Arc::MCC_Status process(Arc::Message& inmsg, Arc::Message& outmsg);
-
 }; 
 
 } //namespace ArcService

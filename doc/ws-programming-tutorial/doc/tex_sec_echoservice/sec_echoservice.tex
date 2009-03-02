@@ -1,12 +1,15 @@
-\chapter{SEC echoservice}
+\chapter{SEC Echo Web Service}
 
-The TLS echo service, presented in the previous chapter enables the adminstrator the control the access to the grid. Due to a certificate owner may be a member of a large VO it is sometimes recommended to have a more fine grained security within the daemon. 
+The TLS echo service, presented in the previous chapter enables the adminstrator to control the access to the grid. Due to a certificate owner may be a member of a large VO it is sometimes recommended to have a more fine grained security within the daemon. 
 The goal to be reached in this chapter is to enhance the possibilities to limitate the access to particular users and to narrow their rights on the workstation.\\
 
 
 The security framework of ARC is implemented based on the same concept of modularity as HED. 
-To extend the security of a MCC one only has to modify the service configuration file. This is to be done by including a \textit{SecHandler} element into a component or service which again has to contain a \textit{pdp} element. A small example of a chain component is shown in Listing~\ref{lst:sec_service_component_xml}. The \textit{SecHandler} is able to intervene the message flow
-by: manipulating the message content, the attributes or just disrupt the message. 
+To extend the security of a MCC one only has to modify the server configuration file. This is to be done by including a \textit{SecHandler} element into a component or service which again has to contain a \textit{PDP} element. A small example of a chain component is shown in Listing~\ref{lst:sec_service_component_xml}. The \textit{SecHandler} is able to intervene the message flow by: Verifying, parsing the message attribute, and using the attributes for authorization.
+
+%
+% Weizhong: Verifying, parsing the message attribute, and using the attributes for authorization
+%
 % Attributes done by: identity.map, delegation.collector
 % manipulating content: usernametoken.handler
 % disrupt by: arc.authz
@@ -22,8 +25,9 @@ caption={[Example of a SecHandler within the component \textit{http.service}.]
 	</SecHandler>
 </Component>
 \end{lstlisting}
-Each MCC or Service usually implement two queues of SecHandlers --- one for incoming messages and one for outgoing called
-``incoming'' and ``outgoing'' respectively. All SecHandler components attached to the queue are executed sequentially. If any of them fails, message processing fails as well~\cite{QIANG_2008}.
+Each MCC or Service usually implement two queues of SecHandlers --- one for incoming messages and one for outgoing messages.
+% called ``incoming'' and ``outgoing'' respectively. 
+All SecHandler components attached to the queue are executed sequentially. If any of them fails, message processing fails as well~\cite{QIANG_2008}.
 In order to decide which message shall be modified by the \textit{SecHandler} so called PDP (Policy Decision Point) are used. They come in a bunch of flavours such that the variabilty of security which can be realised is big.\\
 
 
@@ -34,23 +38,25 @@ In this tutorial only a small set of \textit{SecHandler}s and \textit{PDP} will 
   \caption{List of SecHandlers}
   \begin{tabular*}{\textwidth}[t]{lp{12cm}}
 	\hline
- 	\textbf{identity.map}          & Maps the identity of the user to an identity of the workstation.\\
- 	\textbf{arc.authz}             & Restricts the access to the next layer.\\
- 	\textbf{delegation.collector}  & Collects the information for the delegation policy (Related to \textit{delegate.pdp}). \\
- 	\textbf{usernametoken.handler} & Generates the WS-Security username-token and adds it into the SOAP header of outgoing
-					 messages. In case of incoming messages the SecHandler extracts the WS-Security username-token out of it. \task{Figure out what the username-token does...}\\
+ 	\textbf{identity.map}         & Maps the identity of the user to an identity of the workstation which is realised 
+					by a message attribut.\\
+ 	\textbf{arc.authz}            & Grants access to the next layer.\\
+ 	\textbf{delegation.collector} & Processes a request for another resource with proxy certificate that has delegation policy embedded i.e. a client establishes a connection to that service and requests access to a certain resource. In case the service is willing to grant the access, the delegation policy inside the proxy certificate from the client will be stored on the server which is providing the requested resource such that the client is now able to use it.\\% Question how does the client creates the request
+ 	\textbf{usernametoken.handler}& Generates the WS-Security username-token and adds it into the SOAP header of outgoing
+					 messages. In case of incoming messages the SecHandler extracts the WS-Security username-token out of it. WS-Security extends SOAP and describes i.e. how to attach signatures and encrypton header to SOAP messages.\\
 	\hline
   \end{tabular*}
   \end{table}
+% WS-Security describes how to attach signatures and encryption headers to SOAP messages. In addition, it describes how to attach security tokens, including binary security tokens such as X.509 certificates and Kerberos tickets, to messages.
 
   \begin{table}[htb]
   \centering
   \caption{List of PDPs}
   \begin{tabular*}{\textwidth}[t]{lp{12cm}}
 	\hline
- 	\textbf{allow.pdp}           & bla \\
- 	\textbf{simplelist.pdp}      & blub.\\
- 	\textbf{arc.pdp}             &\\
+ 	\textbf{allow.pdp}           & Always permits the underlying SecHandler to be applied.\\
+ 	\textbf{simplelist.pdp}      & Applies the SecHandler in case the identity corresponds with the listed ones.\\
+ 	\textbf{arc.pdp}             & \\
  	\textbf{delegate.pdp}        & \task{Explain that well}\\
  	\textbf{pdpservice.invoker}  &\\
 	\hline

@@ -16,9 +16,26 @@ possibility of ETICS system to submit a job to ARC and Unicore will be
 presented. The ETICS team has not contacted so far.
 \end{itemize}
 
+Questions:
+\begin{itemize}
+ \item The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - Web Service   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - Web Service
+ \item Does HED realises a replication Server which delegates incoming request to several threads which are communicating to the client on other free ports (I guess that not). i.e.  Front end server is running on port 60000. Request will be delegated to thread which creates a new socket on port 54305. The communication get delegated and the front end is ready for new requests.
+\end{itemize}
+
 
 \section{Important XSD files}
+\lstsetJUSTXML
+\lstinputlisting
+	[
+	label=lst:arched_arcecho_xml,
+	caption={[HED configuration. Filename: arcecho\_no\_ssl.xml]
+	\textbf{HED configuration. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	]
+{../../../src/hed/libs/loader/mcc.xsd}
 
+
+\task{RENAMING HED configuration file into~ARC service configuration file - proposed by Marek}
+\task{(echo service) client configuration file - proposed by Marek}
 
 Link to current XSD files.
 
