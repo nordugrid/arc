@@ -52,11 +52,11 @@ namespace Arc {
     std::list<std::string> GetDownloadFiles(const URL& dir);
     bool CopyFile(const URL& src, const URL& dst);
 
-    std::list<std::pair<Job,JobDescription> > GetJobDescriptions(const std::list<std::string>& status,
-								 const bool getlocal,
-								 const int timeout);
-    void CheckLocalDescription(std::list<Job*>& jobs, 
-			       std::list<std::pair<Job, JobDescription> >& jobpairs);
+    std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
+				       const bool getlocal,
+				       const int timeout);
+
+    void CheckLocalDescription(std::list<Job>& jobs);
 
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
@@ -65,7 +65,7 @@ namespace Arc {
     virtual bool CancelJob(const Job& job) = 0;
     virtual URL GetFileUrlForJob(const Job& job,
 				 const std::string& whichfile) = 0;
-    virtual bool GetJobDescription(const Job& job, JobDescription& desc) = 0;
+    virtual bool GetJobDescription(const Job& job, std::string& desc_str) = 0;
 
   protected:
     std::list<Job> jobstore;

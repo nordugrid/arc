@@ -159,7 +159,7 @@ namespace Arc {
   URL JobControllerARC1::GetFileUrlForJob(const Job& job,
 					  const std::string& whichfile) {}
 
-  bool JobControllerARC1::GetJobDescription(const Job& job, JobDescription& desc) {
+  bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -186,8 +186,8 @@ namespace Arc {
     id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
     std::string idstr;
     id.GetXML(idstr);
-    std::string desc_str;
     if (ac.getdesc(idstr,desc_str)){
+      JobDescription desc;
       desc.setSource(desc_str);
       if (desc.isValid()) logger.msg(INFO,"Valid job description");
       return true;

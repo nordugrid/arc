@@ -72,12 +72,6 @@ int main(int argc, char **argv) {
 		    istring("[-]name"),
 		    indexurls);
 
-  std::list<std::string> status;
-  options.AddOption('s', "status",
-		    istring("only select jobs whose status is statusstr"),
-		    istring("statusstr"),
-		    status);
-
   bool keep = false;
   options.AddOption('k', "keep",
 		    istring("keep the files on the server (do not clean)"),
@@ -87,6 +81,12 @@ int main(int argc, char **argv) {
   options.AddOption('m', "same",
 		    istring("resubmit to the same cluster"),
 		    same);
+
+  std::list<std::string> status;
+  options.AddOption('s', "status",
+		    istring("only select jobs whose status is statusstr"),
+		    istring("statusstr"),
+		    status);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -151,31 +151,42 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  std::list<std::pair< Arc::Job, Arc::JobDescription> > jobpairs;
+  std::list<Arc::Job> toberesubmitted;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++){
-    std::list<std::pair<Arc::Job, Arc::JobDescription> > jobcont_pairs;
-    jobcont_pairs = (*it)->GetJobDescriptions(status, true, timeout);
-    jobpairs.insert(jobpairs.begin(),jobcont_pairs.begin(),jobcont_pairs.end());
+    std::list<Arc::Job> cont_jobs;
+    cont_jobs = (*it)->GetJobDescriptions(status, true, timeout);
+    toberesubmitted.insert(toberesubmitted.begin(),cont_jobs.begin(),cont_jobs.end());
   }
-  if (jobpairs.empty()){
+  if (toberesubmitted.empty()){
     logger.msg(Arc::ERROR, "No jobs to resubmit");
     return 1;
   }
 
-  /*
-  for (std::list<std::pair< Arc::Job, Arc::JobDescription> >::iterator it = jobpairs.begin();
-       it != jobpairs.end(); it++)
-    qlusters.push_back("-" + it->first.Cluster.str());
+  // Preventing resubmitted jobs to be send to old clusters
+  if (same)
+    qlusters.clear();
+  for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();
+       it != toberesubmitted.end(); it++)
+    if (same) {
+      qlusters.push_back(it->Flavour+":"+it->Cluster.str());
+      logger.msg(Arc::DEBUG, "Trying to resubmit job to %s",qlusters.front());
+    } else {
+      qlusters.remove(it->Flavour+":"+it->Cluster.str());
+      qlusters.push_back("-"+it->Flavour+":"+it->Cluster.str());
+      logger.msg(Arc::DEBUG, "Disregarding %s",qlusters.front());
+    }
   qlusters.sort();
   qlusters.unique();
-  std::cout << "Size=" << qlusters.size() << std::endl;
-  for (std::list<std::string>::iterator it = qlusters.begin();
-       it != qlusters.end(); it++)
-    std::cout << "Qluster=" << *it << std::endl;
-  */
-
-  // Resubmit jobs
+ 
+  // Resubmitting jobs
+  Arc::TargetGenerator targen(usercfg, qlusters, indexurls);
+  targen.GetTargets(0, 1);
+    
+  if (targen.FoundTargets().empty()) {
+    std::cout << Arc::IString("Job submission aborted because no clusters returned any information")<< std::endl;
+    return 1;
+  }
   Arc::NS ns;
   Arc::Config jobstorage(ns);
   
@@ -204,41 +215,21 @@ int main(int argc, char **argv) {
   logger.msg(Arc::INFO, "Broker %s loaded", broker);  
 
   // Loop over jobs
-  for(std::list<std::pair<Arc::Job, Arc::JobDescription> >::iterator it = jobpairs.begin(); 
-      it != jobpairs.end(); it++){
+  for(std::list<Arc::Job>::iterator it = toberesubmitted.begin(); 
+      it != toberesubmitted.end(); it++){
     
-    logger.msg(Arc::WARNING,"Got job with\n  JobID:%s\n"
-	       "  Flavour:%s\n"
-	       "  Cluster:%s\n"
-	       "  SubmissionEndpoint:%s\n"
-	       "  InfoEnpoint:%s",
-	       (std::string) it->first.JobID.str(),
-	       (std::string) it->first.Flavour,
-	       (std::string) it->first.Cluster.str(),
-	       (std::string) it->first.SubmissionEndpoint.str(),
-	       (std::string) it->first.InfoEndpoint.str());
-    // Pre-selecting qlusters
-    if (same) {
-      qlusters.clear();
-      qlusters.push_back(it->first.Flavour+":"+it->first.Cluster.str());
-      logger.msg(Arc::DEBUG, "Trying to resubmit job to %s",qlusters.front());
-    } else {
-      qlusters.remove(it->first.Flavour+":"+it->first.Cluster.str());
-      qlusters.push_back("-"+it->first.Flavour+":"+it->first.Cluster.str());
-      logger.msg(Arc::DEBUG, "Disregarding %s",qlusters.front());
-    }
-   
-    
-    Arc::TargetGenerator targen(usercfg, qlusters, indexurls);
-    targen.GetTargets(0, 1);
-    
-    if (targen.FoundTargets().empty()) {
-      std::cout << Arc::IString("Job submission aborted because no clusters returned any information")<< std::endl;
-      return 1;
-    }
+    Arc::JobDescription jobdesc;
+    jobdesc.setSource(it->JobDescription);
+    Arc::XMLNode xmlDesc;
+    jobdesc.getXML(xmlDesc);
+    if (!xmlDesc["JobDescription"]["JobIdentification"]) xmlDesc["JobDescription"].NewChild("JobIdentification");
+    xmlDesc["JobDescription"]["JobIdentification"].NewChild("OldJobID") = it->JobID.str();
+    std::string jobdesc_str;
+    xmlDesc.GetXML(jobdesc_str,true);
+    jobdesc.setSource(jobdesc_str);
 
     //continue preparing broker
-    ChosenBroker->PreFilterTargets(targen, it->second);
+    ChosenBroker->PreFilterTargets(targen, jobdesc);
     bool JobSubmitted = false;
     bool EndOfList = false;
     
@@ -247,22 +238,23 @@ int main(int argc, char **argv) {
       Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
       if(EndOfList){
 	std::cout << Arc::IString("Job submission failed, no more possible targets")<< std::endl;
-	// Erase job from jobs
+	//Do not clean jobs that are not resubmitted
+	jobs.remove(it->JobID.str());
 	break;
       }
       
       Arc::Submitter *submitter = target.GetSubmitter(usercfg);
-	
+      
       Arc::NS ns;
       Arc::XMLNode info(ns, "Job");
-      if (!submitter->Submit(it->second, info)) {
+      if (!submitter->Submit(jobdesc, info)) {
 	std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str())<< std::endl;
 	continue;
       }
-
+      
       //need to get the jobinnerrepresentation in order to get the number of slots
       Arc::JobInnerRepresentation jir;
-      it->second.getInnerRepresentation(jir);
+      jobdesc.getInnerRepresentation(jir);
       
       for(std::list<Arc::ExecutionTarget>::iterator target2 = targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); target2++){ 
 	if(target.url ==  (*target2).url){
@@ -277,7 +269,7 @@ int main(int argc, char **argv) {
 	}
       }
       Arc::XMLNode node;
-      if ( it->second.getXML(node) ){
+      if ( jobdesc.getXML(node) ){
 	if ( (bool)node["JobDescription"]["JobIdentification"]["JobName"] ){
 	  info.NewChild("Name") = (std::string)node["JobDescription"]["JobIdentification"]["JobName"];
 	}
@@ -285,20 +277,20 @@ int main(int argc, char **argv) {
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-      if (!Arc::Sandbox::Add(it->second, info))
+      if (!Arc::Sandbox::Add(jobdesc, info))
 	logger.msg(Arc::ERROR,"Job not stored in sandbox");
       else
 	logger.msg(Arc::VERBOSE,"Job description succesfully stored in sandbox");
-
+      
       jobstorage.NewChild("Job").Replace(info);
-
-      std::cout << Arc::IString("Job submitted with jobid: %s",
+      
+      std::cout << Arc::IString("Job resubmitted with new jobid: %s",
 				(std::string) info["JobID"]) << std::endl;
       JobSubmitted = true;
       break;
     } //end loop over all possible targets
   } //end loop over all job descriptions
-
+  
   // Only kill and clean jobs that have been resubmitted
   clusters.clear();
   Arc::JobSupervisor killmaster(usercfg, jobs, clusters, joblist);
@@ -324,15 +316,15 @@ int main(int argc, char **argv) {
     }
     jobs.SaveToFile(joblist);
   }//end of file lock
-  
+
   /*
-    if (jobpairs.size() > 1) {
+    if (toberesubmitted.size() > 1) {
     std::cout << std::endl << Arc::IString("Job submission summary:")
     << std::endl;
     std::cout << "-----------------------" << std::endl;
     std::cout << Arc::IString("%d of %d jobs were submitted",
-    jobpairs.size() - notresubmitted.size(),
-    jobpairs.size()) << std::endl;
+    toberesubmitted.size() - notresubmitted.size(),
+    toberesubmitted.size()) << std::endl;
     if (notresubmitted.size()) {
     std::cout << Arc::IString("The following %d were not submitted",
     notresubmitted.size()) << std::endl;

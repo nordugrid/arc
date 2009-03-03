@@ -300,7 +300,7 @@ namespace Arc {
     return url;
   }
 
-  bool JobControllerARC0::GetJobDescription(const Job& job, JobDescription& desc) {
+  bool JobControllerARC0::GetJobDescription(const Job& job, std::string& desc_str) {
 
     std::string jobid=job.JobID.str();
     logger.msg(INFO,"Trying to retrieve job description"
@@ -368,41 +368,42 @@ namespace Arc {
     
     buffer[length] = '\0';
     
-    std::string string = (std::string) buffer;
+    desc_str = (std::string) buffer;
     //Cleaning up
     delete[] buffer;
     destination->Remove();
     
     // Extracting original client xrsl
-    pos = string.find("clientxrsl");
+    pos = desc_str.find("clientxrsl");
     if (pos != std::string::npos) {
       logger.msg(DEBUG,"clientxrsl found");
-      std::string::size_type pos1 = string.find("&",pos);
+      std::string::size_type pos1 = desc_str.find("&",pos);
       if (pos1 == std::string::npos) {
 	logger.msg(ERROR,"could not find start of clientxrsl");
 	return false;
       }
-      std::string::size_type pos2 = string.find(")\"",pos1);
+      std::string::size_type pos2 = desc_str.find(")\"",pos1);
       if (pos2 == std::string::npos) {
 	logger.msg(ERROR,"could not find end of clientxrsl");
 	return false;
       }
-      string.erase(pos2+1);
-      string.erase(0,pos1);
+      desc_str.erase(pos2+1);
+      desc_str.erase(0,pos1);
       for (std::string::size_type i=0; i!=std::string::npos;){
-	i=string.find("\"\"",i);
+	i=desc_str.find("\"\"",i);
 	if (i!=std::string::npos)
-	  string.erase(i,1);
+	  desc_str.erase(i,1);
       }
-      logger.msg(VERBOSE,"Job description:%s", string);
+      logger.msg(VERBOSE,"Job description:%s", desc_str);
     } else {
       logger.msg(ERROR,"clientxrsl not found");
       return false;
     }
-    desc.setSource(string);
+    JobDescription desc;
+    desc.setSource(desc_str);
     if (!desc.isValid()){
       logger.msg(ERROR, "Invalid JobDescription:");
-      std::cout << string << std::endl;
+      std::cout << desc_str << std::endl;
       return false;
     }
     logger.msg(INFO, "Valid JobDescription found");

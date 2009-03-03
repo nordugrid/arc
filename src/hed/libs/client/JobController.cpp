@@ -588,17 +588,15 @@ namespace Arc {
     return true;
   }
 
-  std::list<std::pair<Job,JobDescription> > JobController::GetJobDescriptions(const std::list<std::string>& status,
-									      const bool getlocal,
-									      const int timeout) {
+  std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
+						   const bool getlocal,
+						   const int timeout) {
     
-    std::list<std::pair<Job,JobDescription> > jobpairs;
     logger.msg(DEBUG, "Getting %s jobs", flavour);
-    
     GetJobInformation();
 
     // Only selected jobs with specified status
-    std::list<Job*> gettable;
+    std::list<Job> gettable;
     for (std::list<Job>::iterator it = jobstore.begin();
 	 it != jobstore.end(); it++) {
       if (!status.empty() && it->State.empty()) {
@@ -609,41 +607,39 @@ namespace Arc {
       if (!status.empty() && std::find(status.begin(), status.end(),
 				       it->State) == status.end())
 	continue;
-      gettable.push_back(&(*it));
+      gettable.push_back(*it);
     }
 
     //First try to get descriptions from local job file
     if (getlocal) {
       logger.msg(INFO, "Getting job decriptions from local job file");
-      CheckLocalDescription(gettable,jobpairs);
+      CheckLocalDescription(gettable);
     } else
       logger.msg(DEBUG, "Disregarding job decriptions from local job file");
-    
+
     // Try to get description from cluster
-    if ( !gettable.empty())
-      for (std::list<Job*>::iterator it = gettable.begin();
-	   it != gettable.end(); it++) {
-	JobDescription desc;
-	if (!GetJobDescription(**it,desc)) {
-	  logger.msg(WARNING, "Failed getting job description for %s", (*it)->JobID.str());
+    for (std::list<Job>::iterator it = gettable.begin();
+	 it != gettable.end(); it++) {
+      if (it->JobDescription.empty())
+	if (!GetJobDescription(*it,it->JobDescription)) {
+	  logger.msg(WARNING, "Failed getting job description for %s", it->JobID.str());
+	  it = gettable.erase(it);
 	} else {
-	  logger.msg(INFO, "Got job description for %s", (*it)->JobID.str());
-	  jobpairs.push_back(std::pair<Job, JobDescription>(**it,desc));
+	  logger.msg(INFO, "Got job description for %s", it->JobID.str());
 	}
-      }
-    return jobpairs;
+    }
+    return gettable;
   }
 
-  void JobController::CheckLocalDescription(std::list<Job*>& jobs, 
-					    std::list<std::pair<Job, JobDescription> >& jobpairs) {
-    for (std::list<Job*>::iterator it = jobs.begin();
+  void JobController::CheckLocalDescription(std::list<Job>& jobs) {
+    for (std::list<Job>::iterator it = jobs.begin();
 	 it != jobs.end(); it++) {
       // Search for jobids
       XMLNodeList xmljobs =
-	jobstorage.XPathLookup("//Job[JobID='" + (*it)->JobID.str() + "']", NS());
+	jobstorage.XPathLookup("//Job[JobID='" + it->JobID.str() + "']", NS());
       
       if (xmljobs.empty()) {
-	logger.msg(ERROR, "Job not found in job list: %s", (*it)->JobID.str() );
+	logger.msg(ERROR, "Job not found in job list: %s", it->JobID.str() );
 	return;
       } 
       XMLNode& xmljob = *xmljobs.begin();
@@ -652,9 +648,9 @@ namespace Arc {
 	JobDescription jobdesc;
 	jobdesc.setSource((std::string) xmljob["JobDescription"]);
 	if (jobdesc.isValid())
-	  logger.msg(DEBUG, "Valid jobdescription found for: %s", (*it)->JobID.str());
+	  logger.msg(DEBUG, "Valid jobdescription found for: %s", it->JobID.str());
 	else
-	  logger.msg(ERROR, "No valid jobdescription found for: %s", (*it)->JobID.str());
+	  logger.msg(ERROR, "No valid jobdescription found for: %s", it->JobID.str());
 	
 	// Check checksums of local input files
 	bool CKSUM = true;
@@ -672,15 +668,13 @@ namespace Arc {
 	}
  	// Push_back job and job descriptions
 	if (CKSUM){
-	  logger.msg(INFO, "Job description for %s retrieved locally", (*it)->JobID.str());
-	  jobpairs.push_back(std::pair<Job, JobDescription>((**it),jobdesc));
-	  it = jobs.erase(it);
+	  logger.msg(INFO, "Job description for %s retrieved locally", it->JobID.str());
+	  it->JobDescription = (std::string) xmljob["JobDescription"];
 	} else
-	  logger.msg(WARNING, "Job description for %s could not be retrieved locally", (*it)->JobID.str());
+	  logger.msg(WARNING, "Job description for %s could not be retrieved locally", it->JobID.str());
       } else
-	logger.msg(WARNING, "Job description for %s could not be retrieved locally", (*it)->JobID.str());
+	logger.msg(WARNING, "Job description for %s could not be retrieved locally", it->JobID.str());
     }//end loop over jobs
     return;
   }
-
 } // namespace Arc
