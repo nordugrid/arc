@@ -574,7 +574,13 @@ If you have an ID, you can get all property-value pairs of the corresponding obj
 
 The A-Hash service has a modular architecture which means that you can decide if you want to deploy it a centralized or a distributed way by simply specifying different modules in the service's configuration. There are different low-level modules for storing the data on disk, e.g. serialized into `pickle' format. And there is a module which stores the data replicated on multiple nodes.
 
-TODO: here comes a fairly detailed description of how the replicated A-Hash works.
+The replicated A-Hash module is built on Oracle Berkeley DB High Availability, an open source database library with a replication API. The replication is based on a single master, multiple clients framework where all clients can read from the database, while only the master is allowed to write to the database. This ensures that all database transactions are ACID (atomic, consistent, isolated and durable). The replicated A-Hash module consists of three modules, \verb!ReplicatedAHash!, \verb!ReplicationStore! and \verb!ReplicationManager!.
+
+\begin{description}
+    \item[ReplicatedAHash] TODO: describe ReplicatedAHash, sendMessage, processMessage
+    \item[ReplicationStore] TODO: describe ReplicationStore, connection with TransDBStore, config, etc.
+    \item[ReplicationManager] TODO: describe ReplicationManager, elections, communication (interservice communication, security, callback functions)
+\end{description}
 
 % subsection implementation (end)
 
@@ -585,11 +591,26 @@ The A-Hash has the following configuration variables:
 
 \begin{description}
     \item[AHashClass] tells the A-Hash service the name of the business-logic A-Hash class. Currently there are two implementation, the \verb!CentralAHash! is a centralized version, and the \verb!ReplicatedAHash! is a replicated version.
-    \item[StoreClass] specifies the name of the store class. This class is used to store the data on disk. Currently there are several versions (\verb!PickelStore!, \verb!CachedPickleStore!, \verb!StringStore!, \verb!ZODBStore!, \verb!TransDBStore!), however only the \verb!TransDBStore! is suitable for using in a replicated deployemant, all the others are only for a centralized deployement.
-    \item[StoreCfg] could contain some parameters for the different store classes, and it almost always contains a \emph{DataDir} parameter which specifies a directory on the (local) filesystem where the A-Hash should save its files.
+    \item[StoreClass] specifies the name of the store class. This class is used to store the data on disk. Currently there are several versions (\verb!PickelStore!, \verb!CachedPickleStore!, \verb!StringStore!, \verb!ZODBStore!, \verb!TransDBStore!), however only the \verb!TransDBStore! is suitable for using in a replicated deployemant, all the others are only for a centralized deployement. This variable is only configurable for the centralized deployement.
+    \item[StoreCfg] could contain some parameters for the different store classes, and it almost always contains a \emph{DataDir} parameter which specifies a directory on the (local) filesystem where the A-Hash should save its files. This variable is only configurable for the centralized deployement.
 \end{description}
 
-TODO: describe here the configuration needed for the replicated A-Hash.
+For the replicated A-Hash there are some additional required configuration variables:
+
+\begin{description}
+    \item[LocalDir] specifies a directory on the local filesystem where this A-Hash replica should be stored. This directory must be unique for this replica, i.e., no two A-Hash replicas can share the same \verb!LocalDir!, and doing so will most likely leave both replicas broken beyond repair.
+    \item[MyURL] is the URL to this A-Hash service and is used as an ID for this service in the replication group.
+    \item[OtherURL] is the URL of another A-Hash in the replication group. More than one URL can be specified here.
+\end{description}
+
+Even though the default settings are useable, there are some optional variables available for the replicated A-Hash:
+TODO: Put in more optional variables.
+\begin{description}
+    \item[Priority] is related to the master election. If a master dies, there will be an election to decide who will be the new master. Higher priority means a higher chance to be elected. A priority of 0 means that this replica can never be elected. Defaults to 10.
+    \item[CheckPeriod] specifies in seconds how frequently the A-Hash should update the replica list. Defaults to 10 seconds.
+    \item[CacheSize] configures the amount of the storage to be cached in memory. Defaults to 10MB
+\end{description}
+
 
 An example configuration:
 
@@ -601,6 +622,19 @@ An example configuration:
         <StoreCfg>
             <DataDir>ahash_data</DataDir>
         </StoreCfg>
+    </Service>
+\end{verbatim}
+
+Example of replicated A-Hash:
+\begin{verbatim}
+    <Service name="pythonservice" id="ahash1">
+        <ClassName>storage.ahash.ahash.AHashService</ClassName>
+        <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
+        <LocalDir>ahash_data1</LocalDir>
+        <MyURL>http://localhost:60000/AHash1</MyURL>
+        <OtherURL>http://localhost:60001/AHash2</OtherURL>
+        <Priority>50</Priority>
+        <ClientSSLConfig FromFile='clientsslconfig.xml'/>
     </Service>
 \end{verbatim}
 
