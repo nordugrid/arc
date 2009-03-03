@@ -81,7 +81,7 @@ class Librarian:
         ahash.change can only call master ahash
         """
         ahash_urls = self.ahash.urls
-        self.ahash.urls = self.master_ahash
+        self.ahash.urls = [self.master_ahash]
         ret = None
         try:
             ret = self.ahash.change(changes)
@@ -90,7 +90,7 @@ class Librarian:
         except:
             # retry, updating ahash urls in case master is outdated
             self._update_ahash_urls()
-            self.ahash.urls = self.master_ahash
+            self.ahash.urls = [self.master_ahash]
             ahash_urls = self.ahash.urls
             try:
                 ret = self.ahash.change(changes)
