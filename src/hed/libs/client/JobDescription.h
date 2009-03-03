@@ -182,6 +182,9 @@ namespace Arc {
 
             // Returns with the inner representation object.
             bool getInnerRepresentation( Arc::JobInnerRepresentation& job ) const;
+
+	    // Add an URL to OldJobIDs
+	    bool addOldJobID(const URL& oldjobid);
     };
 
 } // namespace Arc

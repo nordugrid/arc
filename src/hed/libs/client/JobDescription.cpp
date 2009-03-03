@@ -3716,4 +3716,10 @@ namespace Arc {
         job = *innerRepresentation;
         return true;
     }
+
+    bool JobDescription::addOldJobID(const URL& oldjobid){
+      if ( innerRepresentation == NULL) return false;
+      innerRepresentation->OldJobIDs.push_back(oldjobid);
+      return true;
+    }
 } // namespace Arc
