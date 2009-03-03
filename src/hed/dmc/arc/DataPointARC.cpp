@@ -13,6 +13,8 @@
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/data/DataHandle.h>
+
 
 #ifdef WIN32
 #include <arc/win32.h>
@@ -61,7 +63,12 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    return DataStatus::Success;
+	logger.msg(Arc::ERROR, "Received URL with protocol %s", url.Protocol());
+	url.ChangeProtocol("http");
+	// redirect actual reading to http dmc
+	logger.msg(Arc::ERROR, "URL is now %s", url.str());
+	Arc::DataHandle transfer(url);
+	return transfer->StartReading(buffer);
   }
 
   DataStatus DataPointARC::StopReading() {
