@@ -1,0 +1,753 @@
+BR { line-height: 2px; height: 2px;}
+
+BODY, P, DIV, TD, LI
+{
+  font-family: serif;
+  }
+
+@media screen, handheld, projection {
+BODY 
+{
+  padding-top: 10px;
+  padding-right: 10px;
+  background-color: #ffffff;
+  background-image: url("/styles/stripes.gif");
+  background-repeat: repeat;
+  background-attachment: scroll;
+  color:#000000;
+  font-size: 12pt;
+  height:900px;
+  }
+}
+
+@media print, tty {
+BODY 
+{
+  padding-top: 10px;
+  padding-right: 10px;
+  background-color: #ffffff;
+  color:#000000;
+  font-size: 10pt;
+  height:auto;
+  }
+}
+
+BODY.LONG 
+{
+  height:auto;
+  }
+
+BODY.MAIN 
+{
+  background-image: url("/styles/stripes-left.gif");
+  background-repeat: repeat-y;
+  }
+
+A         {text-decoration:none;}
+A:link    {color:#000099;}
+A:visited {color:#000099;}
+A:hover   {color:#990000;}
+
+@media print, tty {
+DIV.MAIN 
+{
+  background-color:white;text-align:left;color:#000000;
+  margin: 30px 30px 30px 30px;
+  padding-left: 5px; padding-right: 5px;
+  vertical-align: top;
+  }
+}
+
+@media screen, handheld, projection {
+DIV.MAIN 
+{
+  background-color:white;text-align:left;color:#000000;
+  margin: 30px 30px 30px 30px;
+  border: 1px solid #cccccc;
+  padding-left: 5px; padding-right: 5px;
+  vertical-align: top;
+  }
+}
+IMG.LEFT {float: left; margin-right: 10px;}
+
+/* sets default alignment to left-right justified */
+P, LI {text-align:justify;padding-left: 5px; padding-right: 5px;} 
+
+/* sets small green (no, deep purple) condenced monospace font for the PRE tag */
+PRE 
+{
+  font-size: 10pt; font-family:monospace;
+  font-stretch: condensed;
+  color:#660066;
+  }
+
+TT
+{   color:#660066; }
+
+FIELDSET 
+{ 
+  font-family: sans-serif;
+  margin-left:20px;
+  margin-right:20px;
+}
+
+LEGEND
+{ font-family: sans-serif; font-style:italic; }
+
+/* ==== various header styles ==== */
+
+H1 
+{
+  margin-left:40px; 
+  font-size: 14pt; font-weight:bold; font-style:normal; color:#000099;
+  font-family: sans-serif;
+  }
+
+H1.TITLE 
+{
+  text-align:left;
+  margin-left:0px;
+  padding-left:220px; padding-top: 30px; padding-bottom: 30px;
+  height: 30px;
+  background-image: url("/styles/logo-ng-sheared-web.gif");
+  background-repeat: no-repeat;
+  color:#000099; background-color: white;
+  border-bottom: 2px dotted #cccccc;
+  counter-reset: chapter;
+  }
+
+H2, H2.NUMBERED 
+{
+  font-size: 14pt; font-weight:bold; font-style:normal; color:#CC0000;
+  font-family: sans-serif;
+  }
+
+H3, H3.NUMBERED 
+{
+  font-size: 14pt; font-weight:normal; font-style:italic; color:#000099;
+  font-family: sans-serif;
+  }
+
+H3.DESCRIPTION 
+{
+  font-family: serif;
+  }
+
+H2.NUMBERED:before 
+{
+  content: counter(chapter, decimal) ". ";
+  counter-increment: chapter;
+  counter-reset: section;
+  }
+
+H3.NUMBERED:before 
+{
+  content: counter(chapter) "." counter(section) " ";
+  counter-increment: section;
+  }
+
+H4
+{
+  font-size: 12pt; font-weight:normal; font-style:italic; color:#990000;
+  font-family: sans-serif; text-decoration: underline;
+  }
+
+/* ==== list styles ==== */
+
+UL 
+{
+  list-style-image: url("/styles/bluedrop.gif");
+  }
+
+UL.SIMPLE 
+{
+  list-style-image: none;
+  list-style-type: disc;
+  }
+
+UL.ALPHA 
+{
+  list-style-image: none;
+  list-style-type: lower-latin;
+  }
+
+UL.ARROW 
+{
+  list-style-image: url("/styles/openarrow.gif"); 
+  }
+
+UL, UL.SIMPLE > UL 
+{
+  list-style-image: none;
+  list-style-type: circle;
+}
+
+/* ==== tables, rows, cells ==== */
+
+TABLE.CLASSIC
+{
+  empty-cells: show;
+  padding:0px;
+  border: none;
+  border-spacing: 0px 0px;
+  }
+
+TABLE.FIXED 
+{
+  empty-cells: show;
+  padding: 0px;
+  border-spacing: 0px;
+  border: none;
+  }
+
+TABLE.SUMMARY
+{
+  background-color: #99ccff;
+  color: #ffffff;
+  font-family: sans-serif;
+  empty-cells: show;
+  padding: 0px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-spacing: 4pt medium;
+  border: 1px solid #6600ff;
+  }
+
+TR.THEADER 
+{ 
+  background-color: #cccccc;
+  color: #ffffff;
+  }
+
+TD 
+{
+  vertical-align: bottom;
+  text-align: left;
+  }
+
+TD.SPACER 
+{ 
+  padding: 0px;
+  width: 1px; height: 0px;
+  color: none;
+  background-color: none;
+  font-size: 0px;
+  margin: 0px;
+  border-width: 0px;
+  border-color: none;
+  }
+
+TD.DASHB 
+{
+  border: none;
+  margin: 0px; padding: 2px;
+  border-bottom: 1px dashed #999999;
+  vertical-align: top;
+  font-family: sans-serif;
+  padding: 4px;
+  }
+
+TD.DASHT 
+{
+  border: none;
+  margin: 0px; padding: 2px;
+  border-top: 1px dashed #999999;
+  vertical-align: top;
+  font-family: sans-serif;
+  padding: 4px;
+  }
+
+TD.DASHLB 
+{
+  border: none;
+  margin: 0px; padding: 2px;
+  border-left: 1px dashed #999999;
+  border-bottom: 1px dashed #999999;
+  vertical-align: top;
+  font-family: sans-serif;
+  padding: 4px;
+  }
+
+TD.DASHLT 
+{
+  border: none;
+  margin: 0px; padding: 2px;
+  border-left: 1px dashed #999999;
+  border-top: 1px dashed #999999;
+  vertical-align: top;
+  font-family: sans-serif;
+  padding: 4px;
+  }
+
+TD.DLOAD 
+{
+  border: none;
+  color: #000000;
+  font-size: 12pt;
+  font-family: sans-serif;
+  text-align: center;
+  letter-spacing: 110%;
+  vertical-align: middle;
+  margin: 0px; padding: 2px;
+  border-left: 1px dashed white;
+  border-bottom: 1px dashed white;
+  }
+
+/* header cell with deep blue background, top and bottom white borders */
+TD.HEADER 
+{
+  border: none;
+  color: white;
+  font-weight: bold; font-size: 14pt; line-height: normal;
+  font-family: sans-serif;
+  background-color: #000099;
+  text-align: center; vertical-align: middle;
+  letter-spacing: 110%;
+  margin: 0px; padding: 4px;
+  border-top: 1px solid white;
+  border-right: 0px none #cccccc;
+  border-bottom: 1px double white;
+  border-left: 0px none 
+  }
+
+/* header cell with light grey background, no border */
+TD.SUBTITLE 
+{
+  border: none;
+  color: #000099;
+  font-weight: bold; 
+  font-size: 12pt;
+  font-family: sans-serif;
+  background-color: #cccccc;
+  text-align: left;
+  letter-spacing: 110%;
+  vertical-align: middle;
+  margin: 0px; padding: 2px 2px 2px 6px;
+  border: none 0px 
+}
+
+/* contents cell, serifed text, no left border */
+TD.LINKS 
+{
+  border: none;
+  color: black;
+  font-style: normal; font-weight: normal; font-size: 12pt;
+  font-family: serif;
+  background-color: #ffffff;
+  text-align: left; vertical-align: top;
+  margin: 0px; padding: 2px 6px;
+  border-top: 0px none #cccccc;
+  border-right: 0px none #cccccc;
+  border-bottom: 0px none #cccccc;
+  border-left: 0px none 
+  }
+
+/* contents cell, dark red italic text and dark blue dotted right border */
+TD.COMMENT 
+{
+  border: none;
+  color: #660000;
+  font-style: italic;
+  font-size: 10pt;
+  font-family: serif;
+  background-color: #ffffff;
+  text-align: left; vertical-align: top;
+  margin: 0px; padding: 2px 2px 2px 6px;
+  border-style: none none none dotted;
+  border-width: 0px 0px 0px 2px;
+  border-color: #cccccc #cccccc #cccccc #000099
+}
+
+/* ==== two very specific styles for the front page ==== */
+
+.DATE 
+{
+  background-color:#ffffff;
+  margin-left: 10px;
+  margin-top:10px;
+  margin-bottom:0px;
+/*  width: 540px; */
+  color:#cc0000; 
+  font-weight:bold;
+  }
+
+.NEWS 
+{
+  background-color:#ffffff;
+  margin-left: 20px;
+  margin-top:0px; 
+  margin-bottom:0px;
+/*  width: 540px; */
+  padding-left: 10px;
+  padding-right: 20px;
+  }
+
+/* ==== some enhancements: background and text effects ==== */
+
+.TOP { vertical-align: top; }
+
+.MIDDLE { vertical-align: middle;}
+
+/*.LEFT {text-align:left;}*/
+
+.LINX {text-align:left;}
+
+.RIGHT {text-align:right;}
+
+.CENTER {text-align:center;}
+
+.THIN { padding: 0px;}
+
+.BIG {font-size: 14pt;font-weight: bold;}
+
+.SMALL {font-size: 10pt;}
+
+.BF {font-weight:bold;}
+
+.UL {text-decoration:underline;}
+
+.FIX {font-family: monospace;}
+
+.STRAIGHT
+{   
+  font-family: serif;
+  color: #000000;
+  font-size: 12pt;
+  font-style: roman;
+  font-weight: none;
+}
+
+/* emphasised bold red text */
+.CRIMSON {color:#990000; font-weight:bold;}
+
+/* black sans serif text */
+.ARIAL
+{
+  color: #000000;
+  font-size: 12pt;
+  font-family: sans-serif;
+  text-align: left;
+  vertical-align: top;
+  }
+
+/* slanted sans-serif text */
+.SLANTED
+{
+  font-size: 12pt;
+  font-style: italic;
+  font-family: sans-serif;
+  }
+
+/* sets white text color (suitable for dark backgrounds) */
+.WHITETX {color:#ffffff;} 
+
+/* sets light grey background */
+.GREY {background-image:none; background-color:#cccccc;} 
+
+/* sets white background */
+.WHITE {background-image:none; background-color:#ffffff;}
+
+/* sets yellow background */
+.HILI {background-image:none; background-color:#ffffcc;}
+
+/* sets pink background */
+.PINK {background-image:none; background-color:#FFEEEE;}
+
+/* sets ugly grey dotted background pattern */
+.DOTBG
+{
+  background-color: #ffffff;
+  background-image: url("/styles/dot2px.gif");
+  background-repeat: repeat;
+  background-attachment: scroll;
+  }
+
+/* left-padded text */
+.LPADDED {padding-left: 30px; padding-right: 0px;} 
+
+/* ==== complex text decorations ==== */
+
+.TRANS {margin: 50px; background-color: #990000; filter:alpha(opacity=20); -moz-opacity:0.2; }
+.TRANS * {filter:alpha(opacity=100);  -moz-opacity:1.0; position: relative;}
+.OPAQUE {filter:alpha(opacity=100);  -moz-opacity:1.0; position: relative;}
+.TRANS DIV {margin: 20px;}
+
+/* right and left pads a la abstract*/
+.ABSTRACT 
+{
+  clear:both;
+  margin-left:15%; 
+  margin-right:15%;
+  font-size: 12pt;
+  }
+
+/* flushed to the right address */
+.ADDRESS 
+{
+  clear:both;
+  float: right;
+  width: 180px;
+  margin:20px;
+  font-size: 12pt;
+  text-align: justify;
+  display: inline;
+  }
+
+/* ugly green text and double border */
+.MESSAGE 
+{
+  text-align:justify;
+  color:#006600;
+  border: 6px double #ccff99;
+  padding-bottom: 10px;
+  vertical-align: middle;
+  }
+
+/* menu items basic style */
+.CLICK 
+{
+  font-size: 10pt;
+  font-family: sans-serif;
+  white-space: nowrap;
+  text-align: left;
+  vertical-align: middle;
+  padding-left:6px;
+  padding-right:6px;
+  padding-top:4px;
+  padding-bottom:5px;
+  margin: 1px;
+  border-left-width: 3px;
+  border-left-style: solid ;
+  border-left-color: #000099; 
+  display:inline;
+  float: left;
+}
+.CLICK:hover { 
+  border-left-color: #990000; 
+  background-image: none;
+  background-color: #cccccc;
+}
+.CLICK A { text-decoration: none;}
+.CLICK#FRAMED 
+{ 
+  display:inline;
+  text-align: center;
+  white-space: nowrap;
+/*  border-left-width: 1px;
+  border-left-style: solid ;
+  border-left-color: #cccccc; 
+  border-right-width: 1px;
+  border-right-style: solid ;
+  border-right-color: #cccccc;*/
+  border-left: none;
+  border-right: none;
+  border-top-width: 2px;
+  border-top-style: solid ;
+  border-top-color: #cccccc; 
+  border-bottom-width: 2px;
+  border-bottom-style: solid ;
+  border-bottom-color: #cccccc; 
+  float: none;
+}
+
+/*.CLICK A:link    {color:ffffff;}
+.CLICK A:visited {color:ffffff;}
+.CLICK A:hover   {color:ffffff;}*/
+
+/* vertical background stripes for buttons etc */
+.VSTRIPE
+{ 
+  color: #000099;
+  /*  background-color: #fcfcfc;*/
+  background-image: url("/styles/stripes-vert.gif");
+  background-repeat: repeat;  
+}   
+
+/* neat right-flushed blue box with dotted border */
+.TRUEBLUE 
+{
+  background-color:#ccddff;
+  font-family: sans-serif;
+  font-size: 12pt;
+  text-align: justify;
+  border: 1px dotted #6600FF;
+  float: right;
+  width: 260px;
+  margin:20px;
+  padding: 14px;
+  display:inline;
+  }
+
+/* neat blue background with dotted border */
+.JUSTBLUE 
+{
+  background-color:#ccddff;
+  font-family: sans-serif;
+  text-align: center;
+  border: 1px dotted #6600FF;
+/*  float: right; */
+/*  width: 260px; */
+  margin: 10px;
+  padding: 6px;
+/*  display:inline; */
+  }
+
+/* yellow padded background for any standing out text */
+.FLASH 
+{
+  background-color:#ffffcc;
+  font-weight: bold;
+  font-family: sans-serif;
+  padding: 10px;
+ }
+
+/* neat pink box with red dashed border */
+.REMARK 
+{
+  background-color:#FFEEEE;
+  margin-left: 60px;
+  margin-right: 60px;
+  margin-top:10px; 
+  margin-bottom:10px;
+  padding: 10px;
+  font-family: sans-serif;
+  font-style:normal;
+  border: 2px dashed #990000;
+  display:block;
+  }
+/* P.REMARK:before { content: ">>> " } */
+
+/* yellow background, monospace text, padded */
+.FORMULA 
+{
+  background-color:#ffffcc;
+  padding: 10px;
+  margin: 10px;
+  font-family: monospace;
+  border: none;
+  text-align: left;
+  display:block;
+  }
+
+/* dashed grey border, sans-serif slightly stretched text */
+.DASHED 
+{
+  border: 1px dashed #cccccc;
+  color: #000000;
+  font-size: 12pt;
+  font-family: sans-serif;
+  text-align: left;
+  letter-spacing: 110%;
+  vertical-align: top;
+  }
+
+/* dark grey dotted underlined division */
+.ULDOTTED
+{
+  border-bottom: 1px dotted #999999;
+  vertical-align: top;
+  }
+.ULDOTTED:hover   {background-color:#ffffff;}
+
+/* left and top solid black borders, pale yellow background */
+.PALE 
+{ 
+  background-color: #ffffcc;
+  color: #000000;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 14pt;
+  letter-spacing: 110%;
+  padding: 4px;
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  display: table-cell;
+  }
+
+/* left solid and top dashed black borders, white background  */
+.LRULE 
+{ 
+  background-color: #ffffff;
+  color: #000000;
+  font-family: sans-serif;
+  padding: 4px;
+  padding-left: 20px;
+  border-left: 1px solid #000000;
+  border-top: 1px dotted #000000;
+  display: table-cell;
+  }
+
+/* solid grey border, white background */
+.GREYWIN
+{ 
+  background-color: #ffffff;  
+  border: 1px solid #999999;
+  display: table-cell;
+ }
+
+/* solid red border, white background */
+.REDWIN
+{ 
+  background-color: #ffffff;  
+  border: 1px solid #990000;
+  padding: 4px;
+  display: table-cell;
+ }
+
+/* solid blue border, white background */
+.BLUEWIN 
+{ 
+  background-color: #ffffff;  
+  border: 1px solid #6600ff;
+  padding: 4px;
+  display: table-cell;
+ }
+
+/* code piece */
+.CODE
+{ 
+  background-color: #EEEEEE;  
+  border: 1px solid #999999;
+  display: block;
+  font-family:monospace;
+  font-stretch: condensed;
+  color:#000000;
+  margin: 10px;
+  padding: 10px;
+ }
+
+/* hidden popping-up on mouse over note */
+SPAN.NOTE SPAN
+{ 
+  color: #990000;
+  font--family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  display:none;
+  }
+SPAN.NOTE:before { display:inline; content:"(*" }
+SPAN.NOTE:after { display:inline; content:")" }
+SPAN.NOTE:hover SPAN { display:inline }
+
+/* ==== unsorted garbage ==== */
+
+#foot {
+position: relative;
+include-source: url("/styles/ngfooter.html");
+width: 100%;
+}
+
+.TOOLTIP 
+{ 
+  position:relative;
+  top:0px; left:0px; z-index:2;
+  width:380;
+  visibility:hidden;
+  font: arial, helvetica, sans-serif;
+  background-color: #FFFFCC;
+  padding: 8px;
+  border: 1px solid #ffcc66; 
+  }
+
+#G { background-color: #00ff00; }
+#Y { background-color: #00ffff; }
+#R { background-color: #ff0000; }
