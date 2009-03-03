@@ -13,7 +13,6 @@
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/data/DataHandle.h>
 
 
 #ifdef WIN32
@@ -33,7 +32,10 @@ namespace Arc {
 
 
   DataPointARC::DataPointARC(const URL& url)
-    : DataPointDirect(url) {}
+    : DataPointDirect(url),
+      transfer(NULL),
+      reading(false),
+      writing(false) {}
 
   DataPointARC::~DataPointARC() {
     StopReading();
@@ -53,7 +55,15 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointARC::StartReading(DataBuffer& buffer) {
+  DataStatus DataPointARC::StartReading(DataBuffer& buf) {
+    logger.msg(DEBUG, "StartReading");
+    if (reading)
+      return DataStatus::IsReadingError;
+    if (writing)
+      return DataStatus::IsWritingError;
+	
+	reading = true;
+	buffer = &buf;
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -64,19 +74,43 @@ namespace Arc {
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
 	logger.msg(Arc::ERROR, "Received URL with protocol %s", url.Protocol());
-	url.ChangeProtocol("http");
+	if(url.Protocol()=="arc"){
+      url.ChangeProtocol("http");
+    }
 	// redirect actual reading to http dmc
 	logger.msg(Arc::ERROR, "URL is now %s", url.str());
-	Arc::DataHandle transfer(url);
-	return transfer->StartReading(buffer);
+	transfer = new DataHandle(url);
+	if(!(*transfer)->StartReading(buf)){
+      if(transfer) { delete transfer; transfer = NULL; };
+      reading = false;
+      return DataStatus::ReadError;
+    }
+
+  	return DataStatus::Success;
   }
 
   DataStatus DataPointARC::StopReading() {
-    return DataStatus::Success;
+	if (!reading)
+      return DataStatus::ReadStopError;
+    reading = false;
+    if(!transfer) return DataStatus::Success;
+	DataStatus ret = (*transfer)->StopReading();	
+	delete transfer;
+	transfer = NULL;
+    return ret;
   }
 
-  DataStatus DataPointARC::StartWriting(DataBuffer& buffer,
-                                         DataCallback *) {
+  DataStatus DataPointARC::StartWriting(DataBuffer& buf,
+                                         DataCallback *callback) {
+    logger.msg(DEBUG, "StartWriting");
+    if (reading)
+      return DataStatus::IsReadingError;
+    if (writing)
+      return DataStatus::IsWritingError;
+
+    writing = true;
+    buffer = &buf;
+
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -87,10 +121,23 @@ namespace Arc {
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
     return DataStatus::Success;
+
+	if(!(*transfer)->StartWriting(buf, callback)){
+      if(transfer) { delete transfer; transfer = NULL; };
+      writing = false;
+      return DataStatus::WriteError;	  
+	}
   }
 
   DataStatus DataPointARC::StopWriting() {
-    return DataStatus::Success;
+	if (!writing)
+      return DataStatus::WriteStopError;
+    writing = false;
+    if(!transfer) return DataStatus::Success;
+	DataStatus ret = (*transfer)->StopWriting();	
+	delete transfer;
+	transfer = NULL;
+    return ret;
   }
 
   DataStatus DataPointARC::Check() {

@@ -6,6 +6,7 @@
 
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
+#include <arc/data/DataHandle.h>
 
 namespace Arc {
 
@@ -15,6 +16,9 @@ namespace Arc {
     : public DataPointDirect {
   private:
     static Logger logger;
+	DataHandle * transfer;
+	bool reading;
+	bool writing;
   public:
     DataPointARC(const URL& url);
     virtual ~DataPointARC();
