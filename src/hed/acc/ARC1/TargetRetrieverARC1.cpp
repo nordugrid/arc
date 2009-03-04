@@ -708,31 +708,28 @@ namespace Arc {
       mom.AddTarget(target);
     } else if (targetType == 1) {
 
-     Arc::DataHandle dir_url(url);
+     DataHandle dir_url(url);
       if (!dir_url) {
         logger.msg(Arc::ERROR, "Unsupported url given");
         return;
       }
  
-      Arc::NS ns;
-      Arc::XMLNode cred(ns, "cred");
-      Arc::UserConfig usercfg("/home/prosen/.arc/client.xml");
-      usercfg.ApplySecurity(cred);
-      dir_url->AssignCredentials(cred);
-      std::list<Arc::FileInfo> files;
+      dir_url->AssignCredentials(thrarg->proxyPath, thrarg->certificatePath, thrarg->keyPath, thrarg->caCertificatesDir);
       dir_url->SetSecure(false);
+      std::list<FileInfo> files;
       if (!dir_url->ListFiles(files,false,false)) {
         if (files.size() == 0) {
-          logger.msg(Arc::ERROR, "Failed listing metafiles");
+          logger.msg(ERROR, "Failed listing metafiles");
           return;
         }
-        logger.msg(Arc::INFO, "Warning: "
+        logger.msg(INFO, "Warning: "
                    "Failed listing metafiles but some information is obtained");
       }
 
-      for (std::list<Arc::FileInfo>::iterator file = files.begin();
+      NS ns;
+      for (std::list<FileInfo>::iterator file = files.begin();
            file != files.end(); file++) {
-        Arc::XMLNode info(ns, "Job");
+        XMLNode info(ns, "Job");
         info.NewChild("JobID") = 
           (std::string) url.str() + "/" + file->GetName();
         info.NewChild("Flavour") = "ARC1";
