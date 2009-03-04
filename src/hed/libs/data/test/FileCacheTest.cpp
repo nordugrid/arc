@@ -22,6 +22,7 @@ class FileCacheTest : public CppUnit::TestFixture {
   CPPUNIT_TEST (testCopyFile);
   CPPUNIT_TEST (testFile);
   CPPUNIT_TEST (testRelease);
+  CPPUNIT_TEST (testCheckDN);
   CPPUNIT_TEST (testTwoCaches);
   CPPUNIT_TEST (testCreationDate);
   CPPUNIT_TEST (testValidityDate);
@@ -42,6 +43,7 @@ public:
   void testCopyFile();
   void testFile();
   void testRelease();
+  void testCheckDN();
   void testTwoCaches();
   void testCreationDate();
   void testValidityDate();
@@ -137,7 +139,7 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat meta file "+meta_file, 0, stat( meta_file.c_str(), &fileStat) );
   std::string meta_url = _readFile(meta_file);
   CPPUNIT_ASSERT(meta_url != "");
-  CPPUNIT_ASSERT_EQUAL(std::string(_url), meta_url);
+  CPPUNIT_ASSERT_EQUAL(std::string(_url)+'\n', meta_url);
 
   // test calling Start() again is ok
   // waits for timeout so takes long time
@@ -274,7 +276,7 @@ void FileCacheTest::testStop() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat meta file "+meta_file, 0, stat( meta_file.c_str(), &fileStat) );
   std::string meta_url = _readFile(meta_file);
   CPPUNIT_ASSERT(meta_url != "");
-  CPPUNIT_ASSERT_EQUAL(std::string(_url), meta_url);
+  CPPUNIT_ASSERT_EQUAL(std::string(_url)+'\n', meta_url);
 
   // call with non-existent lock file
   CPPUNIT_ASSERT(!_fc1->Stop(_url));
@@ -557,6 +559,58 @@ void FileCacheTest::testRelease() {
   CPPUNIT_ASSERT(_fc1->Release());
 }
 
+void FileCacheTest::testCheckDN() {
+  
+  CPPUNIT_ASSERT(!_fc1->AddDN(_url, "", Arc::Time()));
+  CPPUNIT_ASSERT(!_fc1->CheckDN(_url, ""));
+  
+  // create meta file
+  std::string meta_file = _fc1->File(_url)+".meta";
+  CPPUNIT_ASSERT(_createFile(meta_file, _url+'\n'));
+  _files.push_back(meta_file);
+  
+  std::string dn1 = "/O=Grid/O=NorduGrid/OU=test.org/CN=Mr Tester";
+  CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn1));
+  
+  // add DN
+  Arc::Time now = Arc::Time();
+  Arc::Time futuretime = Arc::Time(time(NULL)+1000);
+  CPPUNIT_ASSERT(_fc1->AddDN(_url, dn1, futuretime));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
+  CPPUNIT_ASSERT_EQUAL(_url+"\n"+dn1+" "+futuretime.str(Arc::MDSTime)+'\n', _readFile(meta_file));
+  
+  // expired DN
+  Arc::Time pasttime = Arc::Time(time(NULL)-10);
+  CPPUNIT_ASSERT(_createFile(meta_file, _url+"\n"+dn1+" "+pasttime.str(Arc::MDSTime)+'\n'));
+  CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn1));
+  
+  // add again
+  futuretime = Arc::Time(time(NULL)+86400);
+  CPPUNIT_ASSERT(_fc1->AddDN(_url, dn1, futuretime));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
+  CPPUNIT_ASSERT_EQUAL(_url+"\n"+dn1+" "+futuretime.str(Arc::MDSTime)+'\n', _readFile(meta_file));
+  
+  // add another DN
+  std::string dn2 = "/O=Grid/O=NorduGrid/OU=test.org/CN=Mrs Tester";
+  CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn2));
+  
+  CPPUNIT_ASSERT(_fc1->AddDN(_url, dn2, futuretime));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn2));
+  CPPUNIT_ASSERT_EQUAL(_url+"\n"+dn2+" "+futuretime.str(Arc::MDSTime)+"\n"+dn1+" "+futuretime.str(Arc::MDSTime)+'\n', _readFile(meta_file));
+  
+  // create expired DN and check it gets removed
+  pasttime = Arc::Time(time(NULL)-86401);
+  CPPUNIT_ASSERT(_createFile(meta_file, _url+'\n'+dn2+" "+pasttime.str(Arc::MDSTime)+"\n"+dn1+" "+pasttime.str(Arc::MDSTime)+'\n'));
+  CPPUNIT_ASSERT(_fc1->AddDN(_url, dn1, futuretime));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
+  CPPUNIT_ASSERT_EQUAL(_url+"\n"+dn1+" "+futuretime.str(Arc::MDSTime)+'\n', _readFile(meta_file));
+  
+  // add with no specified expiry time
+  CPPUNIT_ASSERT(_fc1->AddDN(_url, dn2, Arc::Time(0)));
+  CPPUNIT_ASSERT_EQUAL(_url+"\n"+dn2+" "+futuretime.str(Arc::MDSTime)+"\n"+dn1+" "+futuretime.str(Arc::MDSTime)+'\n', _readFile(meta_file));
+}
+
 void FileCacheTest::testTwoCaches() {
   
   // set up two caches
@@ -709,7 +763,7 @@ void FileCacheTest::testValidityDate() {
   
   // look inside the meta file to check
   std::string meta_file = _fc1->File(_url)+".meta";
-  CPPUNIT_ASSERT_EQUAL(_url, _readFile(meta_file));
+  CPPUNIT_ASSERT_EQUAL(_url+'\n', _readFile(meta_file));
   
   // set validity time to now
   Arc::Time now;
@@ -849,7 +903,25 @@ bool FileCacheTest::_createFile(std::string filename, std::string text) {
   
   FILE * pFile;
   pFile = fopen ((char*)filename.c_str(), "w");
-  if (pFile == NULL) return false;
+  if (pFile == NULL) {
+    // try to create necessary dirs
+    std::string::size_type slashpos = filename.find("/", 1);
+    do {
+      std::string dirname = filename.substr(0, slashpos);
+      // list dir to see if it exists
+      struct stat statbuf;
+      if (stat(dirname.c_str(), &statbuf) == 0) {
+        slashpos = filename.find("/", slashpos+1);
+        continue;
+      };
+      if (mkdir(dirname.c_str(), S_IRWXU) != 0) {
+        if (errno != EEXIST) return false;
+      };
+      slashpos = filename.find("/", slashpos+1);
+    } while (slashpos != std::string::npos);
+    pFile = fopen ((char*)filename.c_str(), "w");
+    if (pFile == NULL) return false;
+  }
   fputs ((char*)text.c_str(), pFile);
   fclose (pFile);
   _files.push_back(filename);
@@ -859,13 +931,14 @@ bool FileCacheTest::_createFile(std::string filename, std::string text) {
 std::string FileCacheTest::_readFile(std::string filename) {
   
   FILE * pFile;
-  char mystring [1024]; // should be long enough for a pid or url...
+  char mystring [1024];
   pFile = fopen ((char*)filename.c_str(), "r");
   if (pFile == NULL) return "";
-  if (fgets (mystring, sizeof(mystring), pFile) == NULL) return "";
+  std::string data;
+  while (fgets (mystring, sizeof(mystring), pFile)) data += std::string(mystring);
   fclose (pFile);
-  
-  return std::string(mystring);  
+
+  return data;  
 }
 
 std::string FileCacheTest::_intToString(int i) {

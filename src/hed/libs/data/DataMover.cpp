@@ -16,6 +16,7 @@
 #include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
+#include <arc/credential/Credential.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataMover.h>
@@ -459,19 +460,35 @@ DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
             continue;
           }
           /* just need to check permissions */
-          logger.msg(INFO, "File is cached (%s) - checking permissions",
-              cache.File(canonic_url));
-          if (!source.Check()) {
-            logger.msg(ERROR, "Permission checking failed: %s", source.str());
-            cache.Stop(canonic_url);
-            source.NextLocation(); /* try another source */
-            logger.msg(DEBUG, "source.next_location");
-            res = DataStatus::ReadStartError;
-            break;
+          logger.msg(INFO, "File %s is cached (%s) - checking permissions",
+              canonic_url, cache.File(canonic_url));
+          // check the list of cached DNs
+          bool have_permission = false;
+          std::string dn;
+          Time exp_time(0);
+          try {
+            Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), GetEnv("X509_CERT_DIR"));
+            dn = ci.GetIdentityName();
+            if(cache.CheckDN(canonic_url, dn)) have_permission = true;
+            exp_time = ci.GetEndTime();
+          } catch (CredentialError e) {
+            logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
+          }
+          if(!have_permission) {
+            if (!source.Check()) {
+              logger.msg(ERROR, "Permission checking failed: %s", source.str());
+              cache.Stop(canonic_url);
+              source.NextLocation(); /* try another source */
+              logger.msg(DEBUG, "source.next_location");
+              res = DataStatus::ReadStartError;
+              break;
+            }
+            cache.AddDN(canonic_url, dn, exp_time);
           }
           logger.msg(DEBUG, "Permission checking passed");
           /* check if file is fresh enough */
           bool outdated = true;
+          if(have_permission) outdated = false; // cached DN means don't check creation date
           if (source.CheckCreated() && cache.CheckCreated(canonic_url)) {
             Time sourcetime = source.GetCreated();
             Time cachetime = cache.GetCreated(canonic_url);

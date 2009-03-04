@@ -109,6 +109,10 @@ class FileCache {
    */
   static const std::string CACHE_META_SUFFIX;
   /**
+   * Default validity time of cached DNs
+   */
+  static const int CACHE_DEFAULT_AUTH_VALIDITY;
+  /**
    * Common code for constuctors
    */
   bool _init(std::vector<std::string> caches,
@@ -263,6 +267,21 @@ class FileCache {
    * hard-links will be deleted.
    */
   bool Release();
+  /**
+   * Add the given DN to the list of cached DNs with the given expiry time
+   * @param url the url corresponding to the cache file to which we
+   * want to add a cached DN
+   * @param DN the DN of the user
+   * @param expiry_time the expiry time of this DN in the DN cache
+   */
+  bool AddDN(std::string url, std::string DN, Time expiry_time);
+  /**
+   * Check if the given DN is cached for authorisation.
+   * @param url the url corresponding to the cache file for which we
+   * want to check the cached DN
+   * @param DN the DN of the user 
+   */
+  bool CheckDN(std::string url, std::string DN);
   /**
    * Check if there is an information about creation time. Returns
    * true if the file exists in the cache, since the creation time

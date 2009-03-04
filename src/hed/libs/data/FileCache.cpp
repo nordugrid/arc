@@ -25,6 +25,7 @@ const int FileCache::CACHE_DIR_LENGTH = 2;
 const int FileCache::CACHE_DIR_LEVELS = 1;
 const std::string FileCache::CACHE_LOCK_SUFFIX = ".lock";
 const std::string FileCache::CACHE_META_SUFFIX = ".meta";
+const int FileCache::CACHE_DEFAULT_AUTH_VALIDITY = 86400; // 24 h
 
 Logger FileCache::logger(Logger::getRootLogger(), "FileCache");
 
@@ -332,8 +333,10 @@ bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
     fclose (pFile);
     
     std::string meta_str(mystring);
+    // get the first line
+    if (meta_str.find('\n') != std::string::npos) meta_str.resize(meta_str.find('\n'));
+    
     std::string::size_type space_pos = meta_str.find(' ', 0);
-    if (space_pos == std::string::npos) space_pos = meta_str.length(); 
     if (meta_str.substr(0, space_pos) != url) {
       logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached", url, filename, meta_str.substr(0, space_pos));
       remove(lock_file.c_str());
@@ -350,6 +353,7 @@ bool FileCache::Start(std::string url, bool &available, bool &is_locked) {
 	  	return false;
     }
 	  fputs ((char*)url.c_str(), pFile);
+    fputs ("\n", pFile);
 	  fclose (pFile);
 	  // make read/writeable only by GM user
 	  chmod(meta_file.c_str(), S_IRUSR | S_IWUSR);
@@ -622,6 +626,122 @@ bool FileCache::Release() {
   return true;
 }
 
+bool FileCache::AddDN(std::string url, std::string DN, Time expiry_time) {
+  
+  if (DN.empty()) return false;
+  if (expiry_time == Time(0)) expiry_time = Time(time(NULL) + CACHE_DEFAULT_AUTH_VALIDITY);
+  
+  // add DN to the meta file. If already there, renew the expiry time
+  std::string meta_file = _getMetaFileName(url);
+  struct stat fileStat;
+  int err = stat( meta_file.c_str(), &fileStat ); 
+  if (0 != err) {
+    logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, strerror(errno));
+    return false;
+  }
+  FILE * pFile;
+  char mystring [fileStat.st_size+1];
+  pFile = fopen (meta_file.c_str(), "r");
+  if (pFile == NULL) {
+    logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
+    return false;
+  }
+  // get the first line
+  fgets (mystring, sizeof(mystring), pFile);
+
+  // check for correct formatting and possible hash collisions between URLs
+  std::string first_line(mystring);
+  if (first_line.find('\n') == std::string::npos) first_line += '\n';
+  std::string::size_type space_pos = first_line.rfind(' ');
+  if (space_pos == std::string::npos) space_pos = first_line.length()-1;
+  
+  if (first_line.substr(0, space_pos) != url) {
+    logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - will not add DN to cached list", url, File(url), first_line.substr(0, space_pos));
+    fclose(pFile);
+    return false;
+  }
+
+  // read in list of DNs
+  std::vector<std::string> dnlist;
+  dnlist.push_back(DN + ' ' + expiry_time.str(MDSTime) + '\n');
+  
+  char * res = fgets (mystring, sizeof(mystring), pFile);
+  while (res) {
+    std::string dnstring(mystring);
+    space_pos = dnstring.rfind(' ');
+    if (space_pos == std::string::npos) {
+      logger.msg(WARNING, "Bad format detected in file %s, in line %s", meta_file, dnstring);
+      continue;
+    }
+    // remove expired DNs (after some grace period)
+    if (dnstring.substr(0, space_pos) != DN) {
+      if (dnstring.find('\n') != std::string::npos) dnstring.resize(dnstring.find('\n'));
+      Time exp_time(dnstring.substr(space_pos+1));
+      if (exp_time > Time(time(NULL) - CACHE_DEFAULT_AUTH_VALIDITY)) dnlist.push_back(dnstring+'\n');
+    }
+    res = fgets (mystring, sizeof(mystring), pFile);
+  }
+  fclose(pFile);
+
+  // write everything back to the file
+  pFile = fopen (meta_file.c_str(), "w");
+  if (pFile == NULL) {
+    logger.msg(ERROR, "Error opening meta file for writing %s: %s", meta_file, strerror(errno));
+    return false;
+  }
+  fputs ((char*)first_line.c_str(), pFile);
+  for (std::vector<std::string>::iterator i = dnlist.begin(); i != dnlist.end(); i++) {
+    fputs ((char*)i->c_str(), pFile);
+  }
+  fclose (pFile);
+  return true;
+}
+
+bool FileCache::CheckDN(std::string url, std::string DN) {
+  
+  if (DN.empty()) return false;
+  
+  std::string meta_file = _getMetaFileName(url);
+  struct stat fileStat;
+  int err = stat( meta_file.c_str(), &fileStat ); 
+  if (0 != err) {
+    if (errno != ENOENT) logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, strerror(errno));
+    return false;
+  }
+  FILE * pFile;
+  char mystring [fileStat.st_size+1];
+  pFile = fopen (meta_file.c_str(), "r");
+  if (pFile == NULL) {
+    logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
+    return false;
+  }
+  fgets (mystring, sizeof(mystring), pFile); // first line
+
+  // read in list of DNs
+  char * res = fgets (mystring, sizeof(mystring), pFile);
+  while (res) {
+    std::string dnstring(mystring);
+    std::string::size_type space_pos = dnstring.rfind(' ');
+    if (dnstring.substr(0, space_pos) == DN) {
+      if (dnstring.find('\n') != std::string::npos) dnstring.resize(dnstring.find('\n'));
+      std::string exp_time = dnstring.substr(space_pos+1);
+      if (Time(exp_time) > Time()) {
+        logger.msg(DEBUG, "DN %s is cached and is valid until %s for URL %s", DN, Time(exp_time).str(), url);
+        fclose(pFile);
+        return true;
+      }
+      else {
+        logger.msg(DEBUG, "DN %s is cached but has expired for URL %s", DN, url);
+        fclose(pFile);
+        return false;
+      }
+    }
+    res = fgets (mystring, sizeof(mystring), pFile);
+  }
+  fclose(pFile);
+  return false;
+}
+
 bool FileCache::CheckCreated(std::string url) {
   
   // check the cache file exists - if so we can get the creation date
@@ -669,6 +789,9 @@ Time FileCache::GetValid(std::string url) {
   fclose (pFile);
   
   std::string meta_str(mystring);
+  // get the first line
+  if (meta_str.find('\n') != std::string::npos) meta_str.resize(meta_str.find('\n'));
+  
   // if the file contains only the url, we don't have an expiry time
   if (meta_str == url) return Time(0);
 
