@@ -92,11 +92,13 @@ int main(int argc, char **argv) {
   options.AddOption('D', "dryrun", istring("add dryrun option"),
 		    dryrun);
 
+  */
   bool dumpdescription = false;
   options.AddOption('x', "dumpdescription",
-		    istring("do not submit - dump job description"),
+		    istring("do not submit - dump job description "
+		    "in the format matching the selected cluster."),
 		    dumpdescription);
-  */
+
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
@@ -115,6 +117,11 @@ int main(int argc, char **argv) {
   options.AddOption('b', "broker",
 		    istring("select broker method (RandomBroker (default), FastestQueueBroker, or custom)"),
 		    istring("broker"), broker);
+
+  bool dolocalsandbox = true;
+  options.AddOption('n', "dolocalsandbox",
+		    istring("store job descriptions in local sandbox."),
+		    dolocalsandbox);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
@@ -283,8 +290,27 @@ int main(int argc, char **argv) {
 	break;
       }
 
-      Arc::Submitter *submitter = target.GetSubmitter(usercfg);
+      if (dumpdescription){
+	std::string flavour = target.GridFlavour;
+	std::string jobdesc;
+	if ( flavour =="ARC1" || flavour =="UNICORE" )
+	  it->getProduct(jobdesc,"POSIXJSDL");
+	else if ( flavour =="ARC0")
+	  it->getProduct(jobdesc,"XRSL");
+	else if ( flavour =="CREAM")
+	  it->getProduct(jobdesc,"JDL");
+	else {
+	  std::cout << "Cluster" << target.Cluster.str() << "requires unknown format:" 
+		    << flavour <<std::endl;
+	  return 1;
+	}
+	std::cout << "Job description to be send to " << target.Cluster.str() << ":" << std::endl;
+	std::cout << jobdesc << std::endl;
+	return 0;
+      }
       
+      Arc::Submitter *submitter = target.GetSubmitter(usercfg);
+	
       Arc::NS ns;
       Arc::XMLNode info(ns, "Job");
       //submit the job
@@ -318,11 +344,11 @@ int main(int argc, char **argv) {
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-      if (!Arc::Sandbox::Add(*it, info))
-	logger.msg(Arc::ERROR,"Job not stored in sandbox");
-      else
-	logger.msg(Arc::VERBOSE,"Job description succesfully stored in sandbox");
-      
+      if (dolocalsandbox)
+	if (!Arc::Sandbox::Add(*it, info))
+	  logger.msg(Arc::ERROR,"Job not stored in sandbox");
+	else
+	  logger.msg(Arc::VERBOSE,"Job description succesfully stored in sandbox");
       jobstorage.NewChild("Job").Replace(info);
       
       std::cout << Arc::IString("Job submitted with jobid: %s",
