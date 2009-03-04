@@ -1,12 +1,12 @@
-DIST_SUBDIRS = test
-SUBDIRS = $(TEST_DIR)
+#DIST_SUBDIRS = test
+#SUBDIRS = $(TEST_DIR)
 
 noinst_LTLIBRARIES=libinfosys.la
 #noinst_PROGRAMS=test test_cache # test_register
 
 libinfosys_ladir = $(pkgincludedir)/infosys
-libinfosys_la_HEADERS  = InformationInterface.h InfoCache.h InfoRegister.h InfoFilter.h
-libinfosys_la_SOURCES  = InformationInterface.cpp InfoCache.cpp InfoRegister.cpp InfoFilter.cpp
+libinfosys_la_HEADERS  = InformationInterface.h InfoCache.h InfoRegister.h InfoFilter.h ServiceISIS.h
+libinfosys_la_SOURCES  = InformationInterface.cpp InfoCache.cpp InfoRegister.cpp InfoFilter.cpp ServiceISIS.cpp
 libinfosys_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libinfosys_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/wsrf/libwsrf.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la 
 
