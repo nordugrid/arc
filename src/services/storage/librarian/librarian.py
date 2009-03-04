@@ -42,7 +42,7 @@ class Librarian:
                 clients = [url for type,url in ahash_list.items() 
                            if 'client' in type and type[1].endswith('online')]
                 if master:
-                    self.master_ahash = [arc.URL(master[0])]
+                    self.master_ahash = arc.URL(master[0])
                 if clients:
                     self.ahash.urls = [arc.URL(url) for url in clients]
         except:
@@ -90,8 +90,8 @@ class Librarian:
         except:
             # retry, updating ahash urls in case master is outdated
             self._update_ahash_urls()
-            self.ahash.urls = [self.master_ahash]
             ahash_urls = self.ahash.urls
+            self.ahash.urls = [self.master_ahash]
             try:
                 ret = self.ahash.change(changes)
                 self.ahash.urls = ahash_urls
