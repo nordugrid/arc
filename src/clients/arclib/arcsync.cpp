@@ -75,6 +75,11 @@ int main(int argc, char **argv) {
                     istring("do not ask for verification"),
                     force);
   
+  bool merge = false;
+  options.AddOption('m', "merge",
+                    istring("merge the synced jobs with the joblist"),
+                    merge);
+  
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
@@ -171,9 +176,20 @@ int main(int argc, char **argv) {
     Arc::FileLock lock(joblist);
     Arc::NS ns;
     Arc::Config jobs(ns);
-    for (std::list<Arc::XMLNode*>::const_iterator job = targen.FoundJobs().begin(); 
-	 job != targen.FoundJobs().end(); job++){
-      jobs.NewChild(**job);
+
+    if (merge) jobs.ReadFromFile(joblist);
+    for (std::list<Arc::XMLNode*>::const_iterator itSyncedJob = targen.FoundJobs().begin(); 
+         itSyncedJob != targen.FoundJobs().end(); itSyncedJob++) {
+      if (merge) {
+        for (Arc::XMLNode j = jobs["Job"]; j; ++j) {
+          if ((std::string) j["JobID"] == (std::string)(**itSyncedJob)["JobID"]) {
+            j.Destroy();
+            break;
+          }
+        }
+      }
+      
+      jobs.NewChild(**itSyncedJob);
     }
     jobs.SaveToFile(joblist);
   }//end of file lock
