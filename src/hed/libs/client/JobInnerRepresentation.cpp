@@ -40,7 +40,7 @@ namespace Arc {
         std::list<URL>::const_iterator m_iter;
         int i = 1;
         for (m_iter = OldJobIDs.begin(); m_iter != OldJobIDs.end(); m_iter++, i++) {
-	  std::cout << Arc::IString("%d. Old Job EPR: %s", i, m_iter->str()) << std::endl;
+	  std::cout << Arc::IString(" %d. Old Job EPR: %s", i, m_iter->str()) << std::endl;
         }
       }
       

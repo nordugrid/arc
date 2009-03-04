@@ -457,11 +457,7 @@ namespace Arc {
             JobDescription::logger.msg(DEBUG, "There is no successfully parsed source");
             return false;
         }
-        if ( sm.toLowerCase( format ) == sm.toLowerCase( sourceFormat ) && 
-             sm.toLowerCase( sourceFormat ) != "xrsl" ) {
-            product = sourceString;
-            return true;
-        }
+
         if ( sm.toLowerCase( format ) == "jdl" ) {
             JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JDL output");
             JDLParser parser;
@@ -3718,8 +3714,8 @@ namespace Arc {
     }
 
     bool JobDescription::addOldJobID(const URL& oldjobid){
-      if ( innerRepresentation == NULL) return false;
-      innerRepresentation->OldJobIDs.push_back(oldjobid);
-      return true;
+        if ( innerRepresentation == NULL) return false;
+        innerRepresentation->OldJobIDs.push_back(oldjobid);
+        return true;
     }
 } // namespace Arc
