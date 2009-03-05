@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+>
+<Server>
+	<Pidfile>/var/run/arched_hopi.pid</Pidfile>
+	<Logger level="VERBOSE">/var/log/arched_hopi.log</Logger>
+</Server>
+<ModuleManager>
+	<Path>/usr/lib/arc</Path>
+</ModuleManager>
+<Plugins><Name>mcctcp</Name></Plugins>
+<Plugins><Name>mcctls</Name></Plugins>
+<Plugins><Name>mcchttp</Name></Plugins>
+<Plugins><Name>mccsoap</Name></Plugins>
+<Chain>
+	<Component name="tcp.service" id="tcp">
+		<next id="http"/>
+			<tcp:Listen>
+				<tcp:Port>60001</tcp:Port>
+				<tcp:Version>4</tcp:Version>
+			</tcp:Listen>
+		</Component>
+		<Component name="http.service" id="http">
+			<next id="soap">POST</next>
+			<next id="plexer">GET</next>
+			<next id="plexer">PUT</next>
+		</Component>
+		<Component name="soap.service" id="soap">
+			<next id="plexer"/>
+		</Component>
+			<Plexer name="plexer.service" id="plexer">
+			<next id="ahash">^/AHash$</next>
+			<next id="librarian">^/Librarian$</next>
+			<next id="bartender">^/Bartender$</next>
+			<next id="shepherd">^/Shepherd$</next>
+			<next id="hopi">^/hopi/</next>
+			<next id="httpd">^/httpd/</next>
+		</Plexer>
+		<Service name="pythonservice" id="ahash">
+			<ClassName>storage.ahash.ahash.AHashService</ClassName>
+			<LogLevel>VERBOSE</LogLevel>
+			<AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
+			<StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
+			<StoreCfg>
+				<DataDir>/tmp/arc/ahash_data</DataDir>
+			</StoreCfg>
+		</Service>
+		<Service name="pythonservice" id="librarian">
+		<ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+			<LogLevel>VERBOSE</LogLevel>
+			<AHashURL>http://localhost:60001/AHash</AHashURL>
+			<HeartbeatTimeout>30</HeartbeatTimeout>
+			<CheckPeriod>20</CheckPeriod>
+		</Service>
+		<Service name="pythonservice" id="bartender">
+			<ClassName>storage.bartender.bartender.BartenderService</ClassName>
+				<LogLevel>VERBOSE</LogLevel>
+				<LibrarianURL>http://localhost:60001/Librarian</LibrarianURL>
+		</Service>
+		<Service name="pythonservice" id="shepherd">
+			<ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+			<LogLevel>ERROR</LogLevel>
+			<ServiceID>http://localhost:60001/Shepherd</ServiceID>
+			<CheckPeriod>5</CheckPeriod>
+			<MinCheckInterval>0.1</MinCheckInterval>
+			<StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
+			<StoreCfg>
+				<DataDir>/tmp/arc/shepherd_data</DataDir>
+			</StoreCfg>
+			<BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
+			<BackendCfg>
+				<DataDir>/tmp/arc/shepherd_store</DataDir>
+				<TransferDir>/tmp/arc/shepherd_transfer</TransferDir>
+				<!-- Change this prefix to the external interface of your machine -->
+				<TURLPrefix>http://localhost:60001/httpd/</TURLPrefix>
+			</BackendCfg>
+			<LibrarianURL>http://localhost:60001/Librarian</LibrarianURL>
+			<BartenderURL>http://localhost:60001/Bartender</BartenderURL>
+			<LogLevel>VERBOSE</LogLevel>
+		</Service>
+    <Service name="hopi" id="httpd">
+      <DocumentRoot>/tmp/arc/shepherd_transfer</DocumentRoot>
+      <SlaveMode>1</SlaveMode>
+    </Service>
+    <Service name="hopi" id="hopi">
+      <DocumentRoot>/tmp/arc/httpd</DocumentRoot>
+    </Service>
+	</Chain>
+</ArcConfig>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
