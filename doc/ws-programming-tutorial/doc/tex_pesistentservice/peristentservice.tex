@@ -1,35 +1,105 @@
-\chapter{Persistent Webservice}
+\chapter{Persistent Echo Web Service}
 
 
-
-
-\task{Some more comments: the <LogLevel> thing is not working at service level, you can just remove those lines - proposed by Zsombor}
-export ARC\_BARTENDER\_URL
-
-
-    key\_file = os.environ.get('ARC\_KEY\_FILE', None)
-    cert\_file = os.environ.get('ARC\_CERT\_FILE', None)
-    proxy\_file = os.environ.get('ARC\_PROXY\_FILE', None)
-    ca\_file = os.environ.get('ARC\_CA\_FILE', None)
-    ca\_dir = os.environ.get('ARC\_CA\_DIR', None)
-
-export ARC\_KEY\_FILE=/local/glodek/clientKey.pem
-export ARC\_CA\_FILE=/local/glodek/clientCA.pem
-export ARC\_CERT\_FILE=/local/glodek/clientCert.pem
-
-does the daemon runs the service single threaded
-
-race conditions
 \begin{itemize}
- \item Transaktionen
- \item nur lesen
- \item jeder prozess schreibt in seine eigene Datei
- \item Gibt es einen     // andere Zugriffe abblocken
-    flock (\$fp, LOCK\_EX);  (atomare befehle)
- 	wie bei php??
- \item Peterson Algorithmus
- \item Was passiert beim Ausfall (Time out - Transaktion zurück nehmen)
+ \item Concept of the service: Each echo request will return the string of the previous echo request.
+ \item Security will not be regarded in this chapter
+ \item A brief explanation how to get the storage system running will be presented.
+ \item This chapter shall show the reader the problems of concurrent applications quite plainly.
+ \begin{itemize}
+ 	\item Race conditions (Request file containing the last echo message; Reading a file; Sned override file with latest echo message)\\
+	What happens if two clients using the same Service?
+	\item What kinds of accesses are the problem?\\
+        Read (no problem)\\
+        Read-Write own files (no problem)\\
+        Read-Write same file (problem)
+	\item Popular solutions:\\
+          File-lock (supported?)\\ 
+          User sessions (based on IP,PORT,Identity??)?\\ 
+          Transactions (supported?)...
 \end{itemize}
+\end{itemize}
+\forcelinebreak
+\forcelinebreak
+\textcolor{urgent}{This chapter is currently suspended, due to lack of time.}
+% And the reason, that I couldn't get the storage running *hrmlgrmpf*
+
+
+
+
+% Zsombor: 1. run python and do some imports:
+%
+% $ python
+% Python 2.5.2 (r252:60911, Jan  4 2009, 17:40:26)
+% [GCC 4.3.2] on linux2
+% Type "help", "copyright", "credits" or "license" for more information.
+% >>> import arc
+% >>> import storage.bartender.bartender
+% Traceback (most recent call last):
+%   File "<stdin>", line 1, in <module>
+%   File "/usr/lib/python2.5/site-packages/storage/bartender/bartender.py", line 10, in <module>
+%     from storage.bartender.gateway import gateway
+% ImportError: No module named gateway
+% >>>     
+%
+% Zsombor: 2. check the path of python packages:
+% 
+% $ set | grep PYTHONPATH
+% $
+% 
+% but should return:  PYTHONPATH=/usr/local/lib/python2.5/site-packages
+%
+%
+%
+% $ python
+% Python 2.5.2 (r252:60911, Sep 29 2008, 21:15:13) 
+% [GCC 4.3.2] on linux2
+% Type "help", "copyright", "credits" or "license" for more information.
+% >>> import sys
+% >>> sys.path
+%['', '/usr/lib/python2.5', '/usr/lib/python2.5/plat-linux2', '/usr/lib/python2.5/lib-tk', '/usr/lib/python2.5/lib-dynload', '/usr/local/lib/python2.5/site-packages', '/usr/lib/python2.5/site-packages', '/usr/lib/python2.5/site-packages/Numeric', '/usr/lib/python2.5/site-packages/PIL', '/var/lib/python-support/python2.5', '/var/lib/python-support/python2.5/gtk-2.0', '/usr/lib/python2.5/site-packages/wx-2.6-gtk2-unicode']
+%
+%  should return at least: ['', '/usr/local/lib/python2.5/site-packages', '/usr/lib/python2.5', '/usr/lib/python2.5/plat-linux2', '/usr/lib/python2.5/lib-tk', '/usr/lib/python2.5/lib-dynload', '/usr/lib/python2.5/site-packages', '/var/lib/python-support/python2.5']
+%
+%$ ls /usr/local/lib/python2.5/site-packages/storage/bartender/
+%bartender.py  __init__.py
+%
+%do these things seem OK?
+%
+%
+% Più o meno...
+
+
+
+
+
+% \task{Some more comments: the <LogLevel> thing is not working at service level, you can just remove those lines - proposed by Zsombor}
+% export ARC\_BARTENDER\_URL
+% 
+% 
+%     key\_file = os.environ.get('ARC\_KEY\_FILE', None)
+%     cert\_file = os.environ.get('ARC\_CERT\_FILE', None)
+%     proxy\_file = os.environ.get('ARC\_PROXY\_FILE', None)
+%     ca\_file = os.environ.get('ARC\_CA\_FILE', None)
+%     ca\_dir = os.environ.get('ARC\_CA\_DIR', None)
+% 
+% export ARC\_KEY\_FILE=/local/glodek/clientKey.pem
+% export ARC\_CA\_FILE=/local/glodek/clientCA.pem
+% export ARC\_CERT\_FILE=/local/glodek/clientCert.pem
+% 
+% does the daemon runs the service single threaded
+% 
+% race conditions
+% \begin{itemize}
+%  \item Transaktionen
+%  \item nur lesen
+%  \item jeder prozess schreibt in seine eigene Datei
+%  \item Gibt es einen     // andere Zugriffe abblocken
+%     flock (\$fp, LOCK\_EX);  (atomare befehle)
+%  	wie bei php??
+%  \item Peterson Algorithmus
+%  \item Was passiert beim Ausfall (Time out - Transaktion zurück nehmen)
+% \end{itemize}
 
 
 

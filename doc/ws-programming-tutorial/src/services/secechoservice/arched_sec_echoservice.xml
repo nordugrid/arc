@@ -5,7 +5,7 @@
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
   xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
   xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
-  xmlns:echo="urn:echo_config"
+  xmlns:sececho="urn:sececho_config"
 >
 	<Server>
 	<Pidfile>/var/run/arched.pid</Pidfile>
@@ -19,9 +19,10 @@
 	<Plugins><Name>mcctls</Name></Plugins>
 	<Plugins><Name>mcchttp</Name></Plugins>
 	<Plugins><Name>mccsoap</Name></Plugins>
+	<!-- Load PDPs and Security Handlers and identity.map-->
+	<Plugins><Name>arcshc</Name></Plugins><!--(@*\label{lst_code:arched_sec_conffile_plugins}*@)-->
+	<Plugins><Name>identitymap</Name></Plugins><!--(@*\label{lst_code:arched_sec_conffile_plugins2}*@)-->
 	<Plugins><Name>secechoservice</Name></Plugins>
-	<Plugins><Name>arcshc</Name></Plugins> <!-- Load PDPs and Security Handlers-->
-	<Plugins><Name>identitymap</Name></Plugins>
 	<Chain>
 		<Component name="tcp.service" id="tcp">
 			<next id="tls"/>
@@ -33,60 +34,37 @@
 			<CertificatePath>./serviceCert.pem</CertificatePath>
 			<CACertificatePath>./clientCA.pem</CACertificatePath>
 		</Component>
-		<Component name="http.service" id="http">
+		<Component name="http.service" id="http">		
 			<next id="soap">POST</next>
-			<SecHandler name="arc.authz" id="auth" event="incoming">
-				<PDP name="simplelist.pdp" location="./clientlist.txt"/>
+			<SecHandler name="identity.map" id="map" event="incoming"><!--(@*\label{lst_code:arched_sec_conffile_secH2}*@)-->
+				<PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>	
 			</SecHandler>
-
-				
 		</Component>
 		<Component name="soap.service" id="soap">
 			<next id="plexer"/>
+			<SecHandler name="arc.authz" id="auth" event="incoming"><!--(@*\label{lst_code:arched_sec_conffile_secH1}*@)-->
+				<PDP name="simplelist.pdp" location="./clientlist.txt"/>
+			</SecHandler>
 		</Component>
 		<Plexer name="plexer.service" id="plexer">
 			<next id="sececho">^/sececho$</next>
 		</Plexer>
 		<Service name="sececho" id="sececho">
 			<next id="sececho"/>
-			<echo:prefix>[ </echo:prefix>
-			<echo:suffix> ]</echo:suffix>
-			
-			
-			<!-- Evaluate requestor's identity into local identity.
-					Comment it if no user mapping is needed. -->
-			<SecHandler name="identity.map" id="map" event="incoming">
-				<!-- Allow pdp always grants access        -->
-				<!-- Safe choice if all other rules failed -->
-				
-				<PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>	
-		
-			</SecHandler>
-			
+			<sececho:prefix>[ </sececho:prefix>
+			<sececho:suffix> ]</sececho:suffix>
 			<!-- SecHandler below calls specified Policy Decision Point components.
 					In this example only one PDP is defined - simplelist.pdp. This
 					PDP compares Distinguished Name of connecting client against
 					list of allowed DNs. DNs are stored in external file one per line.
 					They may be enclosed in '"'. -->
-			<SecHandler name="arc.authz" id="auth" event="incoming">
-				<!--<PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>-->
-				<PDP name="simplelist.pdp" location="./clientlist.txt"/>
-
-
-
-			</SecHandler>
-
-			<SecHandler  name="arc.authz" id="auth" event="incoming">
+			<SecHandler  name="arc.authz" id="auth" event="incoming"><!--(@*\label{lst_code:arched_sec_conffile_secH3}*@)-->
 				<PDP name="arc.pdp">
 				<PolicyStore>
-					<Location type="file">policy2.xml</Location>
+					<Location type="file">policy.xml</Location>
 				</PolicyStore>
 				</PDP>
 			</SecHandler>
-			
-
-
-			
 		</Service>
 	</Chain>
 </ArcConfig>

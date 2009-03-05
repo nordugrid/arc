@@ -67,16 +67,14 @@ namespace ArcService
 	/**
 	* Method which creates a fault payload 
 	*/
-	Arc::MCC_Status TLSEchoService::makeFault(Arc::Message& outmsg) 
+	Arc::MCC_Status TLSEchoService::makeFault(Arc::Message& outmsg, const std::string &reason) 
 	{
-
-		// The boolean true indicates that inside of PayloadSOAP, 
-		// an object SOAPFault will be created inside.
+		logger.msg(Arc::WARNING, "Creating fault! Reason: \"%s\"",reason);
 		Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
 		Arc::SOAPFault* fault = outpayload->Fault();
 		if(fault) {
 			fault->Code(Arc::SOAPFault::Sender);
-			fault->Reason("Failed processing request");
+			fault->Reason(reason);
 		};
 		outmsg.Payload(outpayload);
 		return Arc::MCC_Status(Arc::STATUS_OK);
@@ -92,7 +90,8 @@ namespace ArcService
 	*/
 	Arc::MCC_Status TLSEchoService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 	{
-		logger.msg(Arc::DEBUG, "TLS Echoservice has been started...");
+		logger.msg(Arc::DEBUG, "TLS Echo Web Service has been started...");
+		logger.msg(Arc::DEBUG, "TLS Echo Web Service: Current Client has the DN: \"%s\"",inmsg.Attributes()->get("TLS:PEERDN"));//(@*\label{lst_code:TLS_service_cpp_DN}*@)
 
 		/** Both input and output are supposed to be SOAP */
 		Arc::PayloadSOAP* inpayload  = NULL;
@@ -105,32 +104,7 @@ namespace ArcService
 		} catch(std::exception& e) { };
 		if(!inpayload) {
 			logger.msg(Arc::ERROR, "Input is not SOAP");
-			return makeFault(outmsg);
-		};
-		/** */
-
-		/**Export the formated policy-decision request**/
-		MessageAuth* mauth = inmsg.Auth();
-		MessageAuth* cauth = inmsg.AuthContext();
-		if((!mauth) && (!cauth)) {
-			logger.msg(ERROR,"Missing security object in message");
-			return Arc::MCC_Status();
-		};
-		NS ns;
-		XMLNode requestxml(ns,"");
-		if(mauth) {
-			if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
-				delete mauth;
-				logger.msg(ERROR,"Failed to convert security information to ARC request");
-				return Arc::MCC_Status();
-			};
-		};
-		if(cauth) {
-			if(!cauth->Export(SecAttr::ARCAuth,requestxml)) {
-				delete mauth;
-				logger.msg(ERROR,"Failed to convert security information to ARC request");
-				return Arc::MCC_Status();
-			};
+			return makeFault(outmsg, "Received message was not a valid SOAP message.");
 		};
 		/** */
 
@@ -160,7 +134,7 @@ namespace ArcService
 		}
 		else
 		{
-			hear = "Unknown operation. Please use \"ordinary\" or \"reverse\"";
+			return makeFault(outmsg, "Unknown operation. Please use \"ordinary\" or \"reverse\"");
 		}
 		/** */
 
@@ -174,7 +148,7 @@ namespace ArcService
 			logger.msg(Arc::DEBUG, "process: response=%s",str);
 		}; 
 
-		logger.msg(Arc::DEBUG, "TLS Echoservice done...");
+		logger.msg(Arc::DEBUG, "TLS Echo Web Service done...");
   		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 

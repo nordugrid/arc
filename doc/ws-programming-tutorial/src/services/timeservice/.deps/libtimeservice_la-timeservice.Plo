@@ -169,7 +169,7 @@ libtimeservice_la-timeservice.lo: timeservice.cpp \
   /usr/include/arc/message/MessageAuth.h \
   /usr/include/arc/message/SecAttr.h /usr/include/c++/4.3/cstring \
   /usr/include/string.h /usr/include/arc/XMLNode.h \
-  /usr/include/arc/message/SOAPEnvelope.h timeservice.h ../../../config.h \
+  /usr/include/arc/message/SOAPEnvelope.h timeservice.h \
   /usr/include/arc/message/Service.h /usr/include/arc/message/MCC.h \
   /usr/include/arc/security/SecHandler.h \
   /usr/include/arc/message/Message.h \
@@ -636,8 +636,6 @@ libtimeservice_la-timeservice.lo: timeservice.cpp \
 /usr/include/arc/message/SOAPEnvelope.h:
 
 timeservice.h:
-
-../../../config.h:
 
 /usr/include/arc/message/Service.h:
 

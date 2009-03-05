@@ -1,4 +1,4 @@
-secechoclient-secechoclient.o: secechoclient.cpp ../../../config.h \
+secechoclient-secechoclient.o: secechoclient.cpp \
   /usr/include/arc/ArcConfig.h /usr/include/c++/4.3/string \
   /usr/include/c++/4.3/i486-linux-gnu/bits/c++config.h \
   /usr/include/c++/4.3/i486-linux-gnu/bits/os_defines.h \
@@ -190,8 +190,6 @@ secechoclient-secechoclient.o: secechoclient.cpp ../../../config.h \
   /usr/include/c++/4.3/i486-linux-gnu/bits/basic_file.h \
   /usr/include/c++/4.3/i486-linux-gnu/bits/c++io.h \
   /usr/include/c++/4.3/bits/fstream.tcc
-
-../../../config.h:
 
 /usr/include/arc/ArcConfig.h:
 

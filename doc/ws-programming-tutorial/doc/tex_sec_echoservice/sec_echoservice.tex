@@ -1,12 +1,18 @@
-\chapter{SEC Echo Web Service}
+\chapter{Secure Echo Web Service}
 
-The TLS echo service, presented in the previous chapter enables the adminstrator to control the access to the grid. Due to a certificate owner may be a member of a large VO it is sometimes recommended to have a more fine grained security within the daemon. 
-The goal to be reached in this chapter is to enhance the possibilities to limitate the access to particular users and to narrow their rights on the workstation.\\
+The TLS Echo Web Service, which was presented in the previous chapter, was able to control the access to the HED on a very low layer. 
+For the administration of a large VO the kind of security may be too general.
+Thus, it is recommended to have a more fine grained security. 
+This chapter will discuss how to install a more complex security such that it is possible to limitate the access of certain resources to particular users and to narrow their rights on the workstation.\\
 
 
 The security framework of ARC is implemented based on the same concept of modularity as HED. 
-To extend the security of a MCC one only has to modify the server configuration file. This is to be done by including a \textit{SecHandler} element into a component or service which again has to contain a \textit{PDP} element. A small example of a chain component is shown in Listing~\ref{lst:sec_service_component_xml}. The \textit{SecHandler} is able to intervene the message flow by: Verifying, parsing the message attribute, and using the attributes for authorization.
-
+To extend the security of a MCC or a service one only has to modify the server configuration file. That is done by including a \textit{SecHandler} element into the component or service which again has to contain a PDP element. A small example of a chain component containing a \textit{SecHandler} is shown in Listing~\ref{lst:sec_service_component_xml}. Within the element \textit{Component}, which realises a HTTP layer, an element \textit{SecHandler} is located. It contains three attributes. The  attribute \textit{name} is \textit{arc.authz}, the \textit{event} attribute is \textit{incoming} and the \textit{id} attribute which is \textit{auth}. 
+While \textit{id} is only an optional parameter, the attribute \textit{name} causes a certain \textit{SecHandler} to be loaded.%, which again has a certain functionality. 
+In case the attribute \textit{name} is assigned to \textit{arc.authz}, the SecHandler provides the functionality of authentication and is able to permit or to deny the access to the next layer. 
+Each MCC or Service usually implements two queues of \textit{SecHandlers} --- one for incoming messages and one for outgoing messages. The attribute \textit{event} attaches the present one to the incoming queue. \textit{SecHandlers} are able to intervene the message flow by: manipulating the message content, manipulating the message attributes or to disrupt messages.
+Within one component, \textit{SecHandlers} are executed sequentially in the order in which they were attached to the queue. If any of them fails, message processing fails as well~\cite{QIANG_2008}. In order to decide how the \textit{SecHandler} shall modify the message so called PDP (Policy Decision Point) are used. Within the example a PDP named \textit{simplelist.pdp} is inserted within the \textit{SecHandler} element. The mechanism of this PDP uses a file which contains a list of identities. If the current identity is on the list, the PDP returns a positive result to the \textit{SecHandler}. In general more than one PDP can be defined within one \textit{SecHandler}. The default behaviour in that case is to execute all PDPs sequentially until one fails such that a negativ result will be returned or all return a negativ result such that also a positive result will be passed to the \textit{SecHandler}.\\
+%
 %
 % Weizhong: Verifying, parsing the message attribute, and using the attributes for authorization
 %
@@ -20,319 +26,188 @@ caption={[Example of a SecHandler within the component \textit{http.service}.]
          \textbf{Example of a SecHandler within the component \textit{http.service}}}]
 <Component name="http.service" id="http">
 	<next id="soap">POST</next>
-	<SecHandler name="arc.authz" id="auth" event="incoming">
+	<SecHandler name="arc.authz" event="incoming" id="auth">
 		<PDP name="simplelist.pdp" location="./clientlist.txt"/>
 	</SecHandler>
 </Component>
 \end{lstlisting}
-Each MCC or Service usually implement two queues of SecHandlers --- one for incoming messages and one for outgoing messages.
-% called ``incoming'' and ``outgoing'' respectively. 
-All SecHandler components attached to the queue are executed sequentially. If any of them fails, message processing fails as well~\cite{QIANG_2008}.
-In order to decide which message shall be modified by the \textit{SecHandler} so called PDP (Policy Decision Point) are used. They come in a bunch of flavours such that the variabilty of security which can be realised is big.\\
 
 
-In this tutorial only a small set of \textit{SecHandler}s and \textit{PDP} will be introduced. For further reading it is recommended to consult the document ``Security framework of ARC1'' written by Weizhong Qiang and Alexandr Konstantinov. The present chapter is closly related to it.\\
+
 
   \begin{table}[htb]
   \centering
-  \caption{List of SecHandlers}
-  \begin{tabular*}{\textwidth}[t]{lp{12cm}}
+  \caption{List of buildin SecHandlers}
+  \label{tbl:list_of_sechandler}
+  \begin{tabular*}{\textwidth}[t]{p{4cm}p{11cm}}
 	\hline
- 	\textbf{identity.map}         & Maps the identity of the user to an identity of the workstation which is realised 
-					by a message attribut.\\
- 	\textbf{arc.authz}            & Grants access to the next layer.\\
- 	\textbf{delegation.collector} & Processes a request for another resource with proxy certificate that has delegation policy embedded i.e. a client establishes a connection to that service and requests access to a certain resource. In case the service is willing to grant the access, the delegation policy inside the proxy certificate from the client will be stored on the server which is providing the requested resource such that the client is now able to use it.\\% Question how does the client creates the request
+ 	\textbf{identity.map}         & Maps the identity of the user to an identity of the workstation.\\
+%					realised by a message attribut.\\
+ 	\textbf{arc.authz}            & Grants the access to the next layer.\\
+ 	\textbf{delegation.collector} & Processes a request for another service located on a different HED.
+                                        A certificate, which has a delegation policy embedded, is transfered to the service running that \textit{SecHandler}. Once the has been extracted and verified it will be transfered
+                                        to the requested service.
+                                        The policy is now available within the HED of the service such that the client is now able to access the service.\\
+                                        % Question how does the client creates the request - with the SecHandler?
  	\textbf{usernametoken.handler}& Generates the WS-Security username-token and adds it into the SOAP header of outgoing
-					 messages. In case of incoming messages the SecHandler extracts the WS-Security username-token out of it. WS-Security extends SOAP and describes i.e. how to attach signatures and encrypton header to SOAP messages.\\
+					 messages. In case of incoming messages the SecHandler extracts the WS-Security username-token out of it. The WS-Security standard extends SOAP and describes i.e. how to attach signatures and encryption header to SOAP messages.\\
 	\hline
   \end{tabular*}
   \end{table}
 % WS-Security describes how to attach signatures and encryption headers to SOAP messages. In addition, it describes how to attach security tokens, including binary security tokens such as X.509 certificates and Kerberos tickets, to messages.
-
+%
   \begin{table}[htb]
   \centering
-  \caption{List of PDPs}
-  \begin{tabular*}{\textwidth}[t]{lp{12cm}}
+  \caption{List of buildin PDPs}
+\label{tbl:list_of_pdps}
+  \begin{tabular*}{\textwidth}[t]{p{4cm}p{11cm}}
 	\hline
- 	\textbf{allow.pdp}           & Always permits the underlying SecHandler to be applied.\\
- 	\textbf{simplelist.pdp}      & Applies the SecHandler in case the identity corresponds with the listed ones.\\
- 	\textbf{arc.pdp}             & \\
- 	\textbf{delegate.pdp}        & \task{Explain that well}\\
- 	\textbf{pdpservice.invoker}  &\\
+ 	\textbf{allow.pdp}           & Always returns a positive result.\\
+	\textbf{deny.pdp}            & Always returns a negative result.\\
+ 	\textbf{simplelist.pdp}      & Renders a positive result in case the identity corresponds to the listed ones and additionally 
+                                       maps the identity to an user of the workstation.\\
+ 	\textbf{arc.pdp}             & Evaluates the result based on a policy XML file.\\
+ 	\textbf{delegate.pdp}        & Similar to \textit{arc.pdp} a policy file will be evaluated. But here, the policy document is 
+                                       extracted and transfered
+                                       by delegation.collector.\\
+ 	\textbf{pdpservice.invoker}  & Establishes a connection to special service in order to get a policy decision. The PDP service 
+                                       implements the same functionality as ARC PDP, except that the evaluation request and 
+                                       response is carried by SOAP messages. The benefit of the PDP Service and the PDP Service
+                                       Invoker is that the policy evaluation engine can be accessed remotely and maintained centrally.
+\\
 	\hline
   \end{tabular*}
   \end{table}
+%
+%
+Due to the fact, that presenting all \textit{SecHandlers} and PDPs would go beyond the scope of an introducing tutorial, only a small set of them will be introduced here in detail. 
+Nevertheless, the Tables~\ref{tbl:list_of_sechandler} and~\ref{tbl:list_of_pdps} shall give a first overview about existing \textit{SecHandlers} and \textit{PDPs}. For further reading it is recommended to consult the document ``Security framework of ARC1'' written by Weizhong Qiang and Alexandr Konstantinov. The present chapter is closly related to it.\\
 
 
+The Secure Echo Web Service which will be presented in this chapter, is using the \textit{SecHandlers}: \textit{indentity.map} and \textit{arc.authz}, and the \textit{PDPs}: \textit{allow.pdp}, \textit{simplelist.pdp} and \textit{arc.pdp}. \\
 
 
+\section{Service}
 
-
-In order to realise security within an MCC 
-\begin{verbatim}
-SecHandler 
-==========
-	PDP
-	===	
-		elements/attributes required
-		============================
-identity.map						--- maps the identity of users to identity within the local workstation
-	allow.pdp					--- means concering all identities
-							  (I suppose it can be used in every MCC)
-		<LocalName>nobody</LocalName>		  (Due to the SecHandler within the PDP the local name has to be spechified)
-		???LocalList???
-		???LocalSimplePool???
-	simplelist.pdp					--- maps only persons listed within the file
-								(TLS identity is used here, thus it can be used only after the TLS)
-		<PDP name="simplelist.pdp" location="./clientlist.txt"/>
-	arc.pdp						--- Complexer policy to permit or deny someone. 
-		<PolicyStore>					(Is it possible to add parameters for the SOAP service here?)
-		<Location type="file">policy.xml</Location>
-		</PolicyStore>
-	[...]
-
-arc.authz					--- restricts access to next layer
-	arc.pdp					--- using policy.xml
-	simplelist.pdp				--- using a file with listed identities
-	delegate.pdp				--- like arc.pdp but poicy is parsed from a remote proxy
-	pdpservice.invoker			--- Is a client which can be used to invoke the PDP Service which 
-							implements the same functionality as Arc PDP, except that the
-							evaluation request and response are carried by SOAP
-							message. The benefit of implementing PDP Service and PDP Service 
-							Invoker is that the policy evaluation engine can be accessed remotely
-							and maintained centrally.
-							- wasn't that also possible with the delegate.pdp??
-
-delegation.collector 				--- Delegation SecHandler
-						--- is responsible for collecting the delegation policy information and 
-						putting this policy into message’s security attribute for the 
-						usage of other components, such as delegation.pdp
-usernametoken.handler				--- The task is to generate the WS-Security Username-Token and add it into
-						header of SOAP message which is the payload of outgoing message. 
-						It can also extract the WS-Security Username-Token from the header of 
-						SOAP message which is the payload of incoming message.
-						why should one want to do that???
-
-\end{verbatim}
-
-
-
-- have fine grained but complex authorization system (policy evaluator) which uses information stored on the server (arc.pdp) or an an proxy (delegation.pdp) or which is evaluated using a SOAP based service such that the request can be evaluated remotly (pdpservce.invoker). 
-- have a simple list which matches identities (simplelist.pdp)
-- map users to an identity within the local workstation
-
-
-have a smaller set of users,
-have a policy which may map certain users to certain settings
-
-
-
-For HED is build up to  % entsrprechend einer Mod Structur
-be modular, the security can easily be extend to our given example.
-Each Message Chain Component (MCC) or service has a common interface for implementing various pluggable components (plug-ins) called SecHandler. The SecHandler components provide a method for processing messages traveling through Message Chains of the HED. 
-Each MCC or Service usually implement two queues of SecHandlers – one for incoming messages and one for outgoing called “incoming” and “outgoing” respectively. All SecHandler components attached to the queue are executed sequentially. 
-If any of them fails, message processing fails as well. 
-Each SecHandler is configured inside the arched configuration file used for configuring whole chain of MCCs 
-Some of the currently implemented SecHandler components make use of pluggable and configurable sub-modules called Policy Decision Point (PDP). PDP can process ARC specific Request and Policy documents which are as well written in XML format~\cite{QIANG_2008}..
-
-
-
-
-
-\section{SecureHandler}
-And what are PDP's?
-
-
-
-Following Flavors:
-\subsection{arc.authz – Authorization SecHandler}
-The arc.authz is responsible for calling the interface of policy decision point and getting back the
-authorization result, and then making decision according to this authorization result. There is one simple
-interface (see Figure 4) defined in PDP, which will be called by arc.authz if configured inside once there
-is message (incoming or outgoing) need to be processed.
-
-\begin{minipage}[t]{\textwidth}
-\begin{lstlisting}[
-label=lst:secHandler_arc.authz,
-language=XML,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-...
-<Service name="sececho" id="sececho">
-	<next id="sececho"/>
-	<echo:prefix>[ </echo:prefix>
-	<echo:suffix> ]</echo:suffix>
-	<SecHandler name="arc.authz" id="pdps" event="incoming">
-		<PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>
-	</SecHandler>
-</SecHandler>
-...
-\end{lstlisting}
-\end{minipage}
-
-\begin{lstlisting}[
-label=lst:invokation,
-language=ksh,
-frame=single,
-numbers=none,
-backgroundcolor=\color{lightgray},
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ tail -n5 /etc/grid-security/grid-mapfile
-"/C=Au/O=Science/OU=ARC/CN=Baldur Meier" griduser
-"/C=UK/O=MoreScience/OU=ARC/CN=Thor Schulz" griduser
-"/C=Au/O=Organelle/OU=ARC/CN=Loki Svensson" griduser
-"/C=SK/O=Grid.Org/OU=ARC/CN=Iduna Apple" griduser
-"/C=RU/O=MegaGrid/O=ARC/CN=Fenrir Wodaneater" griduser
-\end{lstlisting}
-Add your client certificate into that list!
-
-Latest: Policy.xsd
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Policy.xsd
-
-
-\subsection{identity.map – Identity Mapping SecHandler}
-
-The identity.map is a specific authorization oriented security handler. It will map the global identity in
-the message into local identity like system username based on the result returned by Policy Decision Point
-components.
-
-
-\subsection{delegation.collector – Delegation SecHandler}
-
-The delegation.collector is responsible for collecting the delegation policy information from the remote
-proxy credential (proxy certificate is compatible to RFC3820) inside the message, and putting this policy
-into message’s security attribute for the usage of other components, such as delegation.pdp.
-
-
-\subsection{ usernametoken.handler – UsernameToken SecHandler}
-
-The task of the usernametoken.handler is to generate the WS-Security Username-Token and add it into
-header of SOAP message which is the payload of outgoing message. It can also extract the WS-Security
-Username-Token from the header of SOAP message which is the payload of incoming message.
-
-
-POLICY STUFF:
-copy the request out of the LOGGEr and use that to write your policy.xml
-%/C=DE/ST=Germany/L=L\xFCbeck City/O=Instite of Neuro- and Bioinformatics/OU=Mitarbeiter
-
-Deny-Overrides - this is default if no algorithm specified.
-...
-Administrator of service can configure Authorization SecHandler - arc.authz - for each MCC and Service
-and define reasonable and meaningful policy. While defining policy the administrator must take into
-account that the attributes defined in the policy should be already collected by previous components in a
-chain. For instance, policy with AttributeId “http://www.nordugrid.org/schemas/policy-
-arc/types/http/path” should not be configured inside SecHandler attached to MCCTLS.
-
+Listing~\ref{lst:sececho_service_cpp} contains the source code of the Secure Echo Web Service. As one can see, the only diffrence, compared to the source code of the previous section, is the additional code to process the \textit{SecHandler} starting at line~\ref{lst_code:sececho_service_cpp_process_secH}. Obviously only the incoming queue is processed and in case the SecHandler fails, the SOAP service returns a fault message. The file, which is revealing a lot more information, is the server configuration file which is shown in Listing~\ref{lst:sececho_server_configuration_file_xml}. 
+In order to be able to have \textit{SecHandlers} working with identies, it is almost essential to utilise the TLS layer.
+% Fixed IP are also possible but not recommended..
+The TLS layer extracts the identity such that it later can be used to process the \textit{SecHandler}.
+In line~\ref{lst_code:arched_sec_conffile_plugins} and line~\ref{lst_code:arched_sec_conffile_plugins2} two additional plugins 
+are named to be loaded which are implementing of the \textit{SecHandlers} and \textit{PDPs}.
+%
+%  FIRST ONE
+%
+The first \textit{SecHandler} is declared within line~\ref{lst_code:arched_sec_conffile_secH2}. 
+Due to the PDP \textit{allow.pdp} returns always a positive result, everyone who passes the \textit{SecHandler} is mapped to the user \textit{nobody}. 
+%
+% SECOND ONE
+%
+The second \textit{SecHandler} limits the access to the SOAP services using the \textit{arc.authz} \textit{SecHandler} and the \textit{simplelist} policy, see line~\ref{lst_code:arched_sec_conffile_secH1}. (A similar example was already shown in Listing~\ref{lst:sec_service_component_xml}). The \textit{simplelist} policy returns a positive result if the identity of the certificate corresponds to an identity within the file \textit{clientlist.txt}. A small example of such a file is displayed in Listing~\ref{lst:simplelist_example}.
 \lstsetCPP
 \lstinputlisting
 	[
-	label=lst:arcecho_arched_xml,
-	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
-	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
-	]
-{../src/clients/secechoclient/secechoclient.cpp}
-
-\lstsetCPP
-
-\lstinputlisting
-	[
-	label=lst:arcecho_arched_xml,
-	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
-	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	label=lst:sececho_service_cpp,
+	caption={[Source code of the Secure Echo Service.]
+	\textbf{Source code of the Secure Echo Service.}}
 	]
 {../src/services/secechoservice/secechoservice.cpp}
-
-
-
-
+%
+%
+The first part of an entry needs to be the distinguished name (DN) of the current client. A DN is a string which represents a user uniquely and is created using the identity of the certificate. To get the correct DN of a client one can use the TLS Echo Web Service and check the log-file. The second part of an entry specifies the user the identity shall be mapped to. In the present case, the identity will be mapped to \textit{griduser}. In case the policy is unable to match the identity, the PDP returns a negativ result.
+The \textit{SecHandler} within the SOAP component limits the access of SOAP to a certain group of users.
+%
+%
+% The third ONE
+The last \textit{SecHandler}, used in the server configuration file, is to be seen starting with line~\ref{lst_code:arched_sec_conffile_secH3}. The \textit{SecHandler} is chosen to be \textit{arc.authz} which leads to the fact that the access to the Echo Web Service will be limited one more time to a subset of the group. The policy \textit{arc.pdp} returns a positive result in case the rules encapsulated within the file \textit{policy.xml} will return a positive result.\\
 \lstsetARCHEDXML
-\begin{minipage}[t]{\textwidth}
 \lstinputlisting
 	[
-	label=lst:arcecho_arched_xml,
+	label=lst:sececho_server_configuration_file_xml, float=htb
 	caption={[HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml]
 	\textbf{HED configuration file for the Arc intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
 	]
 {../src/services/secechoservice/arched_sec_echoservice.xml}
-\end{minipage}
 
 
 
 \lstsetKSH
-\begin{minipage}[t]{\textwidth}
 \begin{lstlisting}[
-label=lst:invokation_arched_timeservice,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ rm -f /var/log/arched.log
-$ arched -c arched_echoservice.xml  && echo jo ||echo n
-$ tail -n100 -f /var/log/arched.log
-$ killall arched
+label=lst:simplelist_example, float=htb,
+caption={[Appearence of the file used by \textit{simplelist.pdp}.]
+         \textbf{Appearence of the file used by \textit{simplelist.pdp}.}}]
+$ cat clientlist.txt
+"/C=US/S=Maine/OU=Literary character/O=Ka-Tet Corp./CN=Roland Deschain" griduser
+"/C=US/S=Maine/OU=Literary character/O=Ka-Tet Corp./CN=Susannah Dean" griduser
+$
 \end{lstlisting}
-\end{minipage}
+
+If the PDP \textit{arc.authz} is used, a bunch of requests will be generated for the client. The requests are compared with the rules defined in the policy and for each rule a decision is made.
+A sample policy is shown in Listing~\ref{lst:sececho_policy_xml}. The main element is \textit{policy} which encloses three elements called \textit{Rule}\footnote{The latest XML schema for defining an \textit{arc.pdp} policy can be found at \url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Policy.xsd}}. 
+Two types of rules are possible: a permitting or a denying rule.
+A Rule may have four different decision states:
+\begin{itemize}
+ \item PERMIT --- A permitting rule returns the decision permit if one request fits to the rule and 
+the request is fullfilled by the rule. (A denying rule would return deny in that case)
+ \item DENY --- A permitting rule returns the decision deny if one request fits to the rule  and the request is not fullfilled by the rule. (A denying rule would return permit that case)
+ \item INDETERMINATE --- Requests and rule have some parts which not fits
+(i.e. shibboleth identity is checked, but user has identified himself via X.509 and additionally an existing resource is requested)
+ \item NOT\_APPLICABLE --- If the request doesn't fit with the rule at all. (i.e. if the 
+request is for the HTTP method GET, but the rule checks the method POST)
+\end{itemize}
+\forcelinebreak
+
+Once all rules are evaluated, a decision for the policy has to be generated which will depend on the results of the rules.
+The policy element attribute \textit{CombiningAlg} determines how the final result will be generated. Two possibility are given:
+\begin{itemize}
+ \item \textbf{Deny-Overrides} (default) 
+ \begin{itemize}
+	\item If there is at least one DENY in results final result is DENY. 
+	\item Otherwise if there is at least one PERMIT, the final result is PERMIT.
+	\item Otherwise if there is at least one NOT\_APPLICABLE final result is NOT\_APPLICABLE.
+	\item Otherwise final result is INDETERMINATE.
+ \end{itemize}
+  \item \textbf{Permit-Overrides}
+ \begin{itemize}
+ 	\item If there is at least one PERMIT in results final result is PERMIT.
+ 	\item Otherwise if there is at least one DENY the final result is DENY.
+ 	\item Otherwise if there is at least one NOT\_APPLICABLE final result is NOT\_APPLICABLE.
+ 	\item Otherwise final result is INDETERMINATE.
+ \end{itemize}
+\end{itemize}
+\forcelinebreak
+
+A rule is devided into four sub-elements: \textit{Subjects}, \textit{Resources}, \textit{Actions} and \textit{Conditions}. 
+The element \textit{Subjects} defines who shall be affected by that rule.
+The identities can be specified using the DN of the certificate.
+The second element determines the \textit{Resources} which shall be examined by the rule (i.e. using a certain HTTP path).
+The \textit{Actions} are specifing the intended usage of the resource the rule shall survey.
+The last element \textit{Condition} defines somewhat like Time, Duration, namespace of a SOAP message etc. which is needed to be fulfilled.
+For the description of conditions is complicated, they will not be explained in this tutorial.\\
 
 
-
-\lstsetKSH
-\begin{minipage}[t]{\textwidth}
-\begin{lstlisting}[
-label=lst:invokation_arched_timeservice,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-$ ./echoclient
-Tue Feb 17 17:04:08 2009
-\end{lstlisting}
-\end{minipage}
-
-
-
-
-
+Within the sample policy, which was shown in Listing~\ref{lst:sececho_policy_xml}, three different examples of rule states are prepared: PERMIT, INDETERMINATE and NOT APPLICABLE.
+The first rule, to be seen starting at line~\ref{lst_code:policy.xml_rule1}, is fitting to the server configuration file such that a user with a suitable identity will produce the state PERMIT. 
+Due to there is no rule within the policy which will have the DENY state, this rule let the client pass the PDP.
+The second rule, begins after line~\ref{lst_code:policy.xml_rule2}. It is arranged in a manner such that the state INDETERMINATE will be induced. Two things are checked within it: The identity based on Shibboleth authentication and the path of the requested HTTP URL. Due to the fact, that the HTTP path is fitting to the requested one, but the authentication was not done by Shibboleth, the rule is not able to decide for a DENY or a PERMIT state --- the rule produces an INDETERMINATE state.
+The last rule is defined in line~\ref{lst_code:policy.xml_rule3}. It is constructed such that is permits the access to the HTTP method GET. 
+One can see, that within the server configuration file the Web Service uses the method POST. If a client wants to access the Service and reaches the PDP, a couple of requests are generated which are describing the manner the client wants to access the serivice. Some of these request will concern the HTTP method GET. In these cases, the rule returns NOT APPLICABLE. In the cases where the requests for a HTTP method is missing (i.e. in the request which only concerns the SOAP access) the state of the rule will be INDETERMINATE.\\
 \lstsetJUSTXML
-\begin{minipage}[t]{\textwidth}
-\begin{lstlisting}[
-label=lst:timeservice_cpp_source,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<soap-env:Body>
-		<echoRequest:echo>
-			<echo:say>Der_Berg_ruft</echo:say>
-		</echoRequest:echo>
-	</soap-env:Body>
-</soap-env:Envelope>
-\end{lstlisting}
-\end{minipage}
+\lstinputlisting
+	[
+	label=lst:sececho_policy_xml, float=htb,
+	caption={[Policy file for the \textit{arc.pdp} policy decision point.]
+	\textbf{Policy file for the \textit{arc.pdp} policy decision point.}}
+	]
+{../src/services/secechoservice/policy_example.xml}
 
 
-\lstsetJUSTXML
-\begin{minipage}[t]{\textwidth}
-\begin{lstlisting}[
-label=lst:timeservice_cpp_source,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
-<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <soap-env:Body>
-    <echo:echoResponse>
-      <echo:hear>[ Der_Berg_ruft ]</echo:hear>
-    </echo:echoResponse>
-  </soap-env:Body>
-</soap-env:Envelope>
-\end{lstlisting}
-\end{minipage}
+To get an impression in how the requests look like, one can check the log-file (the log level needs to set to VERBOSE).
 
 
+\section{Client}
 
-
-
-\section{Other PDPs}
-
-In order the adminisitrator wants to maintain the grid access using one workstation the delegation.pdp can be used.
-The client requests access to a service. In case the request is valid a certificate will be deployed on the desired server such that it can be accessed now \task{Am I right?} \cite{QIANG_2008}\\
-
-
-
+The security introduced to the server has no effect on the client, such that the source code is absolutly identical. Even the client configuration file doesn't need to be changed.
 
 
 

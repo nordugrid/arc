@@ -45,13 +45,15 @@ class SecEchoService: public Arc::Service
 		*/
 		std::string suffix_;
 
+
 		/**
 		* Method to return an error. 
 		* Creates a fault message and returns a status.
 		* @param outmsg outgoing message
 		* @return Status of the result achieved
 		*/
-		Arc::MCC_Status make_fault(Arc::Message& outmsg);
+		Arc::MCC_Status makeFault(Arc::Message& outmsg, const std::string &reason);
+
 
 		#define ECHO_TYPE_ORDINARY "ordinary"
 		#define ECHO_TYPE_REVERSE  "reverse"

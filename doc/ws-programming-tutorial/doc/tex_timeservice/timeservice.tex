@@ -4,23 +4,23 @@
 The first implementation of a Web Service will be a simple time service. 
 When the service receives a request of a client, it will respond with a string containing the system time.
 For simplicity the service will not parse the request but always return the current time.
-It is therefore easier than the example of an Echo Web Service, that also needs to learn (by interpreting the request)
-about what should be echoed.
-In the following subsections the implementation of the service and the client will be presented. 
+It is therefore easier than the example of an Echo Web Service which additionally has to extract the incoming message in order to get the string which shall be echoed.
+In the following subsections the implementation of the service and the client will be presented.\\
 
+The source code of the examples given in this tutorial are available in the subdirectory \textit{src}\footnote{If this was not shipped with the document you are reading, then please inspect\\ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/ws-programming-tutorial}.
 
 \section{Service}
 
-In ARC the services are implementated as plugins such that they can easily be included or excluded by modifiying the HED configuration file as it was to be seen in Listing~\ref{lst:arched_arcecho_xml}.
+In ARC the services are implementated as plugins such that they can easily be included or excluded by modifiying the server configuration file as it was seen in Listing~\ref{lst:arched_arcecho_xml}.
 The class which is needs to be implemented for the Web Service inherits from the class \textit{Service} which itself is defined in the ARC library. The proper class definition of the object \textit{TimeService} is defined in the corresponding header file which is shown in Listing~\ref{lst:time_arched_h}.
 \lstsetCPP%
 \lstinputlisting[
 	label=lst:time_arched_h,
-	caption={[Header file of the Time Web Service. Filename: timeservice.h]
-	\textbf{Header file of the Time Web Service. Filename: timeservice.h}}
+	caption={[Header file of the Time Web Service.]
+	\textbf{Header file of the Time Web Service.}}
 	]%
 {../src/services/timeservice/timeservice.h}%
-As to be seen, the class \textit{Service} renders the possibility to implement the method \textit{process}.
+The class \textit{Service} renders the possibility to implement the method \textit{process}.
 Listing~\ref{lst:time_arched_cpp} contains the C++ implementation of the Time Web Service plugin.
 The key element for each plugin is the struct \textit{PluginDescriptor} named \textit{PLUGINS\_TABLE\_NAME} to be seen in line~\ref{lst_code:time_cpp_ptn}. 
 %The struct defines basic entities of the service and provides a pointer to the method which is able to create an instance of the time service plugin.
@@ -32,7 +32,7 @@ But since the plugin that is now written inherits from the class \textit{Service
 The \textit{ServicePluginArgument} provides access to the server configuration and to the message chain of the service which later may be useful.\\ 
 
 
-The Time Web Service uses the namespace \textit{ArcService}.
+The Time Web Service is implemented using the namespace \textit{ArcService}.
 The constructor can be found in line~\ref{lst_code:time_cpp_constructor} and the deconstructor in line~\ref{lst_code:time_cpp_deconstructor}.
 In the context of the simple service they don't contribute any functionality.
 Only the constructor is defining the XML null-namespace for the time service.
@@ -43,25 +43,24 @@ Only the constructor is defining the XML null-namespace for the time service.
 \lstsetCPP%
 \lstinputlisting[
 	label=lst:time_arched_cpp,
-	caption={[Implementation of the Time Web Service. Filename: timeservice.cpp]
-	\textbf{Implementation of the Time Web Service. Filename: timeservice.cpp}}
+	caption={[Implementation of the Time Web Service.]
+	\textbf{Implementation of the Time Web Service.}}
 	]%
 {../src/services/timeservice/timeservice.cpp}%
 
 
-The method \textit{process} is defined in line~\ref{lst_code:time_cpp_process} and realises the desired service,
-here: the calling of functions provided by system libraries to determine the current time. 
+The method \textit{process}, defined in line~\ref{lst_code:time_cpp_process}, realises the desired service. 
 The parameters \textit{inmsg} and \textit{outmsg} are references to the incoming and outgoing messages.
 Furthermore, the method \textit{process} returns the object \textit{MCCStatus} that is representing the result of the service achieved. 
-Within the method \textit{process}, the service first determines the current time and then creates a SOAP payload using the object \textit{PayloadSOAP} on line~\ref{lst_code:time_cpp_process_payloadSOAP}. 
-The object \textit{PayloadSOAP} provides enough functionality to create an XML message that is conform to the SOAP protocol.
+Within the method \textit{process}, the service first determines the current time using a system library and then creates a SOAP payload using the object \textit{PayloadSOAP} on line~\ref{lst_code:time_cpp_process_payloadSOAP}. 
+The object \textit{PayloadSOAP} provides enough functionality to create a XML message that is conform to the SOAP protocol.
 The appearance of the generated request and its response will be discussed later on page~\pageref{lst:time_client_request}.\\
 
 
 In the current case, the payload consists of two elements, one nested into the other.
 The element \textit{time} holds the element \textit{timeResponse} which again holds the string containing the current time.
 Within the line~\ref{lst_code:time_cpp_process_message_payload} the payload is stored in the message. 
-When nothing unexpected happened while the message is processed, the function returns an \textit{MCCStatus} set to \textit{OK} as seen in line~\ref{lst_code:time_cpp_return}.\\
+When nothing unexpected happened while the message is processed, the function returns an \textit{MCCStatus} which was instanciated with the state \textit{OK}, as to be seen in line~\ref{lst_code:time_cpp_return}.\\
 
 
 %The service has to be compiled into a dynamic library named \textit{libtimeservice.so}, in order
@@ -85,19 +84,19 @@ Please note that the URL setting is case sensitive and corresponds to a regular 
 \lstinputlisting
 	[
 	label=lst:time_arched_xml,float=htb,
-	caption={[HED configuration for the time service. Filename: arched\_timeservice.xml]
-	\textbf{HED configuration for the time service. Filename: arched\_timeservice.xml}}
+	caption={[Configuration for the Time Web Service.]
+	\textbf{Configuration for the Time Web Service.}}
 	]
 {../src/services/timeservice/arched_timeservice.xml}
 
-In order to start the service, the \textit{arched} command which as shown in Listing~\ref{lst:arched_timeservice_ksh} has to be used.
-It is recommended to examine the log file \textit{/var/log/arched.log} if the server configuration file has been modified to  assert the start was successful
+In order to start the service, the \textit{arched} command, shown in Listing~\ref{lst:arched_timeservice_ksh}, has to be used.
+It is recommended to examine the log file \textit{/var/log/arched.log} if the server configuration file has been modified to  assert the start was successful.
 
 \lstsetKSH
 \begin{lstlisting}[
 label=lst:arched_timeservice_ksh,float=htb,
-caption={[Transformation in eine uniforme konzentrische Verteilung.]
-         \textbf{Transformation in eine uniforme konzentrische Verteilung.\textcolor{white}{hmf}}}]
+caption={[Invokation if the arched daemon containing the Time Web Service.]
+         \textbf{Invokation if the arched daemon containing the Time Web Service}}]
 $ arched -c arched_timeservice.xml && echo Daemon started || echo Daemon start failed
 Daemon started
 \end{lstlisting}
@@ -120,17 +119,17 @@ But as one will see, the creation of the protocol stack on client side is very s
 
 The source code of the client is to be seen in Listing~\ref{lst:time_client_cpp} and consists basically of one main function.
 Within the line~\ref{lst_code:time_client_cpp_logger} the object \textit{Logger} is initialized.
-Due to the configuration of the the \textit{Logger} in the next lines, the messages passed to it will be redirected to the standard error stream.  For the components of the protocol stack, which  are likewise loaded
+Due to the configuration of the the \textit{Logger} in the next lines, the messages passed to it will be redirected to the standard error stream.  For the components of the protocol stack, which  are likewise loaded dynamically, one needs to specify the installation directory of ARC in line~\ref{lst_code:time_client_cpp_init}.\\
 %\textcolor{white}{newline}
 \lstsetCPP
 \lstinputlisting
 	[
 	label=lst:time_client_cpp,
-	caption={[HED configuration file for the ARC intern echo service. Filename: arcecho\_no\_ssl.xml]
-	\textbf{HED configuration file for the ARC intern echo service. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
+	caption={[Souce code of the client program.]
+	\textbf{Souce code of the client program}}
 	]
 {../src/clients/timeclient/timeclient.cpp}
- dynamically, one needs to specify the installation directory of ARC in line~\ref{lst_code:time_client_cpp_init}.
+ 
 
 The URL of the service is defined in line~\ref{lst_code:time_client_cpp_url}.
 It fits to the server configuration file which was shown in Listing~\ref{lst:time_arched_xml}.
@@ -138,22 +137,21 @@ The daemon is listing on port 60000 and is running on the localhost. The service
 Line~\ref{lst_code:time_client_cpp_config} loads the standard configuration file, which is usually almost empty.
 As a result, no additional security procedures will later be linked into the client-sided stack. 
 The protocol stack is created in line~\ref{lst_code:time_client_cpp_client}. 
-Thanks to the service URL the information for the configuration is complete.\\
+Thanks to the service URL the information for the configuration is completed.\\
 
 
 The constructor of the class \textit{ClientSOAP} creates a SOAP client which uses HTTP and addresses the port 60000 on localhost.
-If HTTPS would have been used, the stack would have been extended by an additional TLS protocol.
+If HTTPS would have been denoted within the URL, the stack would have been extended by an additional TLS protocol.
 Once the client stack is ready, the request to the service can be created.
 This is done in line~\ref{lst_code:time_client_cpp_message_reqeust}.
-Even the appearance of the message is unimportant to the service, the message is composed of two convoluted elements \textit{time} and \textit{timeReqest}.
-%
-The request will be processed in the next line by the method \textit{process} of the object \textit{client}.%in line~\ref{lst_code:time_client_cpp_message_response}. 
+Even the appearance of the message is unimportant to the service, the message is composed of two convoluted elements \textit{time} and \textit{timeReqest}. 
+The request will be processed in the next line by the method \textit{process} of the object \textit{client}. %in line~\ref{lst_code:time_client_cpp_message_response}. 
 The object of the class \textit{MCCStatus} which is returned by the method indicates the success of the processing.
 After verifying the response, the message will be passed to the standard out in line~\ref{lst_code:time_client_cpp_message_answer}. \\
 
 
-The client has to be compilied to an ordinary binary so it can directly be executed from the command line.
-Assure that the service is running and use the client as to be seen in Listing~\ref{lst:time_client_ksh}.
+The client program has to be compilied to an ordinary binary such that it can directly be executed from the command line.
+Assure that the service is running and use the client like in Listing~\ref{lst:time_client_ksh}.
 \lstsetKSH
 \begin{lstlisting}[
 label=lst:time_client_ksh,float=htb,
@@ -162,7 +160,7 @@ caption={[Invokation of the time client.]
 $ ./timeclient
 Wed Feb 18 11:20:30 2009
 \end{lstlisting}
-The messages are transmitted in SOAP format and thus reach the SOAP level of the server. They are shown in the Listings~\ref{lst:time_client_request} and \ref{lst:time_client_response}.
+the transmitted messages are shown in the Listings~\ref{lst:time_client_request} and \ref{lst:time_client_response}.
 The enclosing element is \textit{Envelope} which may contain an element \textit{Header} and must contain an element \textit{Body}. %The namespace \textit{soap-env} is defined by the element \textit{envelope}
 The data created by the object \textit{PayloadSOAP} is to be found within the \textit{Body}.
 \lstsetJUSTXML

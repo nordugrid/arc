@@ -1,27 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
-	<Rule RuleId="rule1" Effect="Permit">
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" CombiningAlg="Deny-Overrides">
+	<Rule Effect="Permit"> 
 		<Description>
-			Easy permit rule. Depending on the subject, the echo service returns the string in order or in reverse order.
+		  Example of a policy file.
 		</Description>
 		<Subjects>
-		<!-- The subject are defined by substrings of the certificate description-->
-			<Subject Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
 			<Subject>
-				<Attribute Type="string">/C=UK/ST=Germany</Attribute>
-				<Attribute Type="string">urn:localhost:shibboleth:examples</Attribute>
-			</Subject>
+				<!--which CA is accepted -->
+				<Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=University of L\xFCbeck/OU=Instite of Neuro- and Bioinformatics</Attribute>
+				
+				<!-- which Identity is accepted -->			
+				<Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=Instite of Neuro- and Bioinformatics/OU=Mitarbeiter</Attribute>
+				
+         </Subject>
       </Subjects>
-      <!-- The actions which are assigned to the subjects. Useful, if a new service version shall be tested
-	       while running the old one -->
-      <Actions Type="string">
-         <Action>ordinary</Action>
-         <Action>reversed</Action>
+      <Resources>
+	  
+		<!-- which Ressource is affected by that rule -->
+		<Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" Type="string">/sececho</Resource>
+      </Resources>
+	  
+		<!-- which Actions are affected by that rule -->
+      <Actions>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">POST</Action>
       </Actions>
-      <!--Conditions>
-         <Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition>
-         <GroupIdRef Location="./conditiongroup.xml">normalcondition</GroupIdRef>
-      </Conditions-->
-	  <Conditions/>
+      <Conditions/>
+   </Rule>
+   
+   <Rule Effect="Permit">
+     <Description>
+       example policy for soap
+     </Description>
+      <Subjects>
+         <Subject>
+			<!--which CA is accepted -->
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" 
+			  Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=University of L\xFCbeck/OU=Instite of Neuro- and Bioinformatics</Attribute>
+			<!-- which Identity is accepted -->			
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" 
+			  Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=Instite of Neuro- and Bioinformatics/OU=Mitarbeiter</Attribute>
+         </Subject>
+      </Subjects>
+      <Actions>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">sececho</Action>
+      </Actions>
+      <Conditions>
+         <Condition AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace" Type="string">http://schemas.xmlsoap.org/soap/envelope/</Condition>
+      </Conditions>
    </Rule>
 </Policy>

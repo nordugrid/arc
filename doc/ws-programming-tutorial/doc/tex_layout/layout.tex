@@ -67,9 +67,9 @@
 
 
 %\newif\ifshowtasks\showtaskstrue
-\newif\ifshowtasks\showtaskstrue
-\newcommand{\task}[1]{\ifshowtasks\textcolor{discreeturgent}{~#1~}\else\fi}
-\newcommand{\comment}[1]{\ifshowtasks\textcolor{discreetcomment}{~#1~}\else\fi}
+
+\newcommand{\task}[1]{\ifshowtasks\textcolor{discreeturgent}{#1}\else\fi}
+\newcommand{\comment}[1]{\ifshowtasks\textcolor{discreetcomment}{#1}\else\fi}
 \newcommand{\drain}[1]{}
 
 %

@@ -5,7 +5,6 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/message/MCC.h>
 
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -44,7 +43,6 @@ int main(int argc, char** argv) {
 		std::ifstream::char_type *buf = new std::ifstream::char_type[size];
 		file.read(buf,size);
 		xmlstring = buf;
-		//f("%s",xmlstring.c_str());
 		delete []buf; 
 		file.close(); 
 	}
@@ -104,7 +102,6 @@ int main(int argc, char** argv) {
 	sayNode.NewAttribute("operation") = type;
 	reqmsg.Payload(&request);
 	//(@*\drain{std::string xml;  request.GetXML(xml, true); printf("Request message:\n\%s\n\n\n", xml.c_str());/*Remove backslashes and drain*/}*@)
-
 	Arc::MCC_Status status = clientEntry->process(reqmsg,repmsg);
 	response = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
 	/** */
@@ -112,7 +109,7 @@ int main(int argc, char** argv) {
 	if (!response) {
 		printf("No SOAP response");
 		return 1;
-	}else if(response->IsFault()){//(@*\label{lst_code:echo_client_cpp_fault}*@)
+	}else if(response->IsFault()){//(@*\label{lst_code:tls_echo_client_cpp_fault}*@)
 		printf("A SOAP fault occured:\n");
         std::string hoff = (std::string) response->Fault()->Reason();
 		printf("  Fault code:   %d\n", (response->Fault()->Code()));

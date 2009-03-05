@@ -1,69 +1,99 @@
 \chapter{Appendix}
 
-\section{More tutorials}
+\section{Useful tutorials and documentations}
 
-Other tutorials are:\\
-\\
-%Oxana reported the status of OGF tutorials:
+In order to learn more about ARC several other tutorials and documentations have been written:
 \begin{itemize}
- \item first tutorial will be given by Oxana and will deal with how to add the 
-resources to Nordugrid, .... (will be related mostly to production ARC)
- \item second tutorial will be given by Gabor and he will show the 
-interoperability of ARC (video demo will be shown). A-REX - Unicore 
-interoperability.
- \item there will be also a tutorial related to ETICS system where the 
-possibility of ETICS system to submit a job to ARC and Unicore will be 
-presented. The ETICS team has not contacted so far.
-\end{itemize}
+ \item ARC Web Services Quick Usage Guide~\cite{2008_UNKNOWN}
+ \item The Hosting Environment of the Advanced Resource Connector middleware~\cite{2008_Cameron}.
+ \item Security framework of ARC1~\cite{QIANG_2008}.
+ \item Documentation of the ARC storage system~\cite{Nagy_2008}.
+ 
 
-Questions:
-\begin{itemize}
- \item The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - Web Service   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - Web Service
- \item Does HED realises a replication Server which delegates incoming request to several threads which are communicating to the client on other free ports (I guess that not). i.e.  Front end server is running on port 60000. Request will be delegated to thread which creates a new socket on port 54305. The communication get delegated and the front end is ready for new requests.
+
 \end{itemize}
 
 
-\section{Important XSD files}
+
+
+\section{Important XSD files}\label{sec:impXSD}
+
 \lstsetJUSTXML
 \lstinputlisting
 	[
-	label=lst:arched_arcecho_xml,
-	caption={[HED configuration. Filename: arcecho\_no\_ssl.xml]
-	\textbf{HED configuration. Filename: arcecho\_no\_ssl.xml\textcolor{white}{hmf}}}
-	]
-{../../../src/hed/libs/loader/mcc.xsd}
+	label=lst:mcc.xsd,
+	caption={[XML schema of configuration files.]\textbf{XML schema of configuration files.}}
+	]{../../../src/hed/libs/loader/mcc.xsd}
+
+\lstsetJUSTXML
+\lstinputlisting
+	[
+	label=lst:tcp.xsd,
+	caption={[XML schema of the TCP component.]\textbf{XML schema of the TCP component.}}
+	]{../../../src/hed/mcc/tcp/tcp.xsd}
+
+\lstsetJUSTXML
+\lstinputlisting
+	[
+	label=lst:tls.xssd,
+	caption={[XML schema of the TLS component.]\textbf{XML schema of  the TLS component.}}
+	]{../../../src/hed/mcc/tls/tls.xsd}
+
+\lstsetJUSTXML
+\lstinputlisting
+	[
+	label=lst:http_xsd,
+	caption={[XML schema of the HTTP component.]\textbf{XML schema of the HTTP component.}}
+	]{../../../src/hed/mcc/http/http.xsd}
 
 
-\task{RENAMING HED configuration file into~ARC service configuration file - proposed by Marek}
-\task{(echo service) client configuration file - proposed by Marek}
 
-Link to current XSD files.
 
-\task{Provide a list of modules to be loaded! Along with the implemented functionality which can be addressed with XML elements!!}
-    mcctcp\\
-\begin{verbatim}
-<tcp:Listen>
-	<tcp:Port>60000</tcp:Port>
-	<tcp:Version>4</tcp:Version>
-</tcp:Listen>
-\end{verbatim}
-    mcctls\\
-\begin{verbatim}
- 			<KeyPath>./clientKey.pem</KeyPath>
-			<CertificatePath>./clientCert.pem</CertificatePath>
-			<CACertificatePath>./clientCA.pem</CACertificatePath><!-- CACertificatesDir Should be /etc/... blub mention that-->
 
-\end{verbatim}
 
-    mcchttp\\
-\begin{verbatim}
-                      <next id="soap">POST</next>
-                      <next id="plexer">GET</next>
-                      <next id="plexer">PUT</next>
-\end{verbatim}
-    mccsoap\\
-\begin{verbatim}
-	???<ClientSSLConfig FromFile='filename'/>  
-\end{verbatim}
+
+
+
+% 
+% Questions:
+% \begin{itemize}
+%  \item The images of the HED structure always are ordered like: TCP - TLS - HTTP - PLEXER - SOAP - Web Service   but the source code examples are: TCP - TLS - HTTP - SOAP - PLEXER - Web Service\\
+% --- ANSWER BY WEIZHONG: In my understanding (because plexer is not my initial idea), plexer (as a sort of hub) can be put at both after http or soap. If you put after soap,then you are doing switching for different web services. While I put it after http, because somehow, I need to switch the message after http-processing, in more detail, one branch for soap and then web service/s,
+%  one branch for a non-soap service/server (the SP Service is not a service based on SOAP, actually it is based on http, so it is kind of web application).
+% 
+% \item The HED does not act as a front end server which delegates its task to new instances acting on a diffrent port such that the daemon is always available. 
+% \end{itemize}
+
+% 
+% 
+ \task{RENAMING HED configuration file into~ARC service configuration file - proposed by Marek}
+ \task{(echo service) client configuration file - proposed by Marek}
+ \task{Check commas using \url{http://leo.stcloudstate.edu/punct/comma.html}}
+
+ \task{Bisher noch nicht beachtet: \\
+\\\textcolor{urgent}{
+In general, a comma is used when the
+subordinate clause precedes the main clause, like this:\\
+\\
+``When subjects were aware of the purpose of the experiment, no effect was
+observed.''\\
+\\
+Furthermore:\\
+\\
+      ``We discarded specimens that had become contaminated.''\\
+\\
+In this case, the relative clause is restrictive because it deﬁnes exactly which specimens
+were discarded. Restrictive clauses should not be preceded by a comma.\\
+\\
+  In contrast, a non-restrictive clause gives additional information about an object that
+has already been identiﬁed; for example:\\
+\\
+      ``The ﬁle server uses the XFS ﬁle system, which supports journaling and pro-
+      vides excellent performance.''\\
+\\
+In this case, the relative clause does not restrict or deﬁne the particular ﬁle system being
+talked about, but merely provides additional information. Non-restrictive clauses should
+be preceded by a comma.}}
+
 
 
