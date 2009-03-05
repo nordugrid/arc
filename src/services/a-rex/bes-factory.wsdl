@@ -99,6 +99,24 @@
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
       </xsd:complexType>
 
+      <xsd:complexType name="MigrateActivityType">
+        <xsd:sequence>
+	  <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
+          <xsd:element ref="bes-factory:ActivityDocument"/>
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>        
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+      </xsd:complexType>
+
+      <xsd:complexType name="MigrateActivityResponseType">
+        <xsd:sequence>
+          <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
+          <xsd:element ref="bes-factory:ActivityDocument" minOccurs="0"/>
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>        
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+      </xsd:complexType>
+
       <!-- Fault Types  -->
       <xsd:complexType name="NotAuthorizedFaultType">
         <xsd:sequence>
@@ -178,6 +196,10 @@
         type="bes-factory:GetFactoryAttributesDocumentType"/>
       <xsd:element name="GetFactoryAttributesDocumentResponse"
         type="bes-factory:GetFactoryAttributesDocumentResponseType"/>
+      <xsd:element name="MigrateActivity"
+        type="bes-factory:MigrateActivityType"/>
+      <xsd:element name="MigrateActivityResponse"
+        type="bes-factory:MigrateActivityResponseType"/>
 
       <!-- Fault Elements -->
       <xsd:element name="NotAuthorizedFault"
@@ -246,6 +268,16 @@
   <wsdl:message name="GetFactoryAttributesDocumentResponse">
     <wsdl:part name="parameters"
         element="bes-factory:GetFactoryAttributesDocumentResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="MigrateActivityRequest">
+    <wsdl:part name="parameters"
+        element="bes-factory:MigrateActivity"/>
+  </wsdl:message>
+
+  <wsdl:message name="MigrateActivityResponse">
+    <wsdl:part name="parameters"
+        element="bes-factory:MigrateActivityResponse"/>
   </wsdl:message>
 
   <!-- Fault Messages -->
@@ -365,6 +397,29 @@
         message="bes-factory:InvalidRequestMessageFault"
         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
     </wsdl:operation> 
+
+    <wsdl:operation name="MigrateActivity">
+      <wsdl:input 
+         name="MigrateActivity"
+         message="bes-factory:MigrateActivityRequest"  
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/MigrateActivity"/>
+      <wsdl:output
+         name="MigrateActivityResponse"
+         message="bes-factory:MigrateActivityResponse"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/MigrateActivityResponse"/>
+      <wsdl:fault name="NotAuthorizedFault" 
+        message="bes-factory:NotAuthorizedFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="NotAcceptingNewActivitiesFault" 
+         message="bes-factory:NotAcceptingNewActivitiesFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="UnsupportedFeatureFault" 
+         message="bes-factory:UnsupportedFeatureFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="InvalidRequestMessageFault"
+         message="bes-factory:InvalidRequestMessageFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+    </wsdl:operation>
   </wsdl:portType>
 
   <!-- Bindings -->
@@ -444,5 +499,27 @@
         <soap:fault name="InvalidRequestMessageFault" use="literal" />
       </wsdl:fault>
     </wsdl:operation>
+
+    <wsdl:operation name="MigrateActivity">
+      <soap:operation soapAction="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/MigrateActivity" /> 
+      <wsdl:input name="MigrateActivity">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="MigrateActivityResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="NotAuthorizedFault">
+        <soap:fault name="NotAuthorizedFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="NotAcceptingNewActivitiesFault">
+        <soap:fault name="NotAcceptingNewActivitiesFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="UnsupportedFeatureFault">
+        <soap:fault name="UnsupportedFeatureFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="InvalidRequestMessageFault">
+        <soap:fault name="InvalidRequestMessageFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation> 
   </wsdl:binding>
 </wsdl:definitions>
