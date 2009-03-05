@@ -2,14 +2,14 @@
 #include <config.h>
 #endif
 
-#include "ServiceISIS.h"
+#include "RegisteredService.h"
 
 #include <arc/infosys/InfoRegister.h>
 
 
 namespace Arc {
 
-  ServiceISIS::ServiceISIS(Arc::Config* cfg):Service(cfg) {
+  RegisteredService::RegisteredService(Arc::Config* cfg):Service(cfg) {
       // Register to the ISIS
       Arc::InfoRegister inforeg((Arc::XMLNode&)(*cfg), this);
   }

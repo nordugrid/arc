@@ -1,7 +1,7 @@
 #include <typeinfo>
 #include <fstream>
 
-#include "../ServiceISIS.h"
+#include "../RegisteredService.h"
 
 #include <arc/ArcConfig.h>
 #include <arc/message/SOAPEnvelope.h>
@@ -42,11 +42,11 @@ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><SOAP-ENV:Body><bes-fact
 
 namespace Arc {
 
-  class MyServiceISIS: public Arc::ServiceISIS
+  class MyRegisteredService: public Arc::RegisteredService
   {
       public:
           /** Example contructor - Server takes at least it's configuration subtree */
-          MyServiceISIS(Arc::Config* cfg):ServiceISIS(cfg) 
+          MyRegisteredService(Arc::Config* cfg):RegisteredService(cfg) 
                       { std::cout << "My Service called!" << std::endl;
                         // DEBUG                    
                         std::string config_str;
@@ -54,14 +54,14 @@ namespace Arc {
                         logger.msg(Arc::DEBUG, "The config: \n%s \n", config_str);
                       };
 
-          virtual ~MyServiceISIS(void) { };
+          virtual ~MyRegisteredService(void) { };
           virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&) {};
   };
 }
 
 
 int main(void) {
-  Arc::Logger logger(Arc::Logger::rootLogger, "ServiceISIS-Test");
+  Arc::Logger logger(Arc::Logger::rootLogger, "RegisteredService-Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
 
@@ -99,7 +99,7 @@ int main(void) {
   cfg_str +="    </ArcConfig>";
   
   Arc::Config cfg(cfg_str);
-  Arc::MyServiceISIS myservice(&cfg);
+  Arc::MyRegisteredService myservice(&cfg);
 
   return 0;
 }

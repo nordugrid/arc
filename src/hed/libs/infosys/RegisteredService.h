@@ -31,13 +31,13 @@ namespace Arc {
   The way to write client couterpart of corresponding service is 
  undefined yet. For example see /src/tests/echo/test.cpp .
  */
-class ServiceISIS: public Service
+class RegisteredService: public Service
 {
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
-        ServiceISIS(Arc::Config*);
+        RegisteredService(Arc::Config*);
 
-        virtual ~ServiceISIS(void) { };
+        virtual ~RegisteredService(void) { };
 };
 
 
