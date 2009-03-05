@@ -75,6 +75,9 @@ namespace Arc {
         return ss.str();
     }
     
+    /// This method converts to lower case of the string
+    std::string lower(const std::string &s);
+    
     /// This method converts to upper case of the string
     std::string upper(const std::string &s);
     

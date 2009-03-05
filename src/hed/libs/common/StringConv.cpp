@@ -11,6 +11,13 @@ namespace Arc {
 
 Logger stringLogger(Logger::getRootLogger(), "StringConv");
     
+std::string lower(const std::string &s) 
+{
+    std::string ret = s;
+    std::transform(ret.begin(), ret.end(), ret.begin(), (int(*)(int)) std::tolower);
+    return ret;
+}
+
 std::string upper(const std::string &s) 
 {
     std::string ret = s;
