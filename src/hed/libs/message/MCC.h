@@ -115,6 +115,7 @@ namespace Arc {
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 
+/*
   class SecHandlerConfig {
   private:
     XMLNode cfg_;
@@ -123,6 +124,7 @@ namespace Arc {
     virtual ~SecHandlerConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
+*/
 
   #define MCCPluginKind ("HED:MCC")
 

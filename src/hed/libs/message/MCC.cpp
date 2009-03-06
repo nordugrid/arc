@@ -110,6 +110,7 @@ namespace Arc {
     return mm;
   }
 
+/*
   SecHandlerConfig::SecHandlerConfig(XMLNode cfg) {
     cfg.New(cfg_);
     NS ns("cfg","http://www.nordugrid.org/schemas/ArcConfig/2007");
@@ -121,5 +122,6 @@ namespace Arc {
     cfg.NewChild(cfg_);
     return cfg;
   }
+*/
 
 } // namespace Arc
