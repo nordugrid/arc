@@ -694,6 +694,10 @@ bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc
   write_pair(f,"failedstate",job_desc.failedstate);
   write_pair(f,"fullaccess",job_desc.fullaccess);
   write_pair(f,"credentialserver",job_desc.credentialserver);
+  for(std::list<std::string>::iterator act_id=job_desc.activityid.begin();
+      act_id != job_desc.activityid.end(); ++act_id) {
+    write_pair(f,"activityid",(*act_id));
+  };
   f.close();
   return true;
 }
@@ -767,6 +771,10 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
       unsigned long long int n;
       if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
       job_desc.diskspace = n;
+    }
+    else if(name == "activityid") { 
+      std::string temp_s(buf+p);
+      job_desc.activityid.push_back(temp_s);
     }
   };
   f.close();

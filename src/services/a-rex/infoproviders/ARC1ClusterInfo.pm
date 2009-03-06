@@ -782,6 +782,8 @@ sub _collect($$) {
         # TODO: add link
         $cact->{Associations}{ExecutionEnvironmentID} = [];
         $cact->{Associations}{ComputingEndpointID} = [ $cepID ];
+        
+        $cact->{Associations}{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
 
         my $shareid = $cshaLIDs{$share} || '';
         $cact->{Associations}{ComputingShareLocalID} = [ $shareid ] if $shareid;

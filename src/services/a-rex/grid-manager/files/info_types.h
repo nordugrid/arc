@@ -118,6 +118,7 @@ class JobLocalDescription {
                                 during gsiftp down/uploads */
   bool   dryrun;             /* if true, this is test job */
   unsigned long long int diskspace;  /* anount of requested space on disk */
+  std::list<std::string> activityid;     /* ID of activity */
 };
 
 /* Information stored in job.#.lrms_done file */

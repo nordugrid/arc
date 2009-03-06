@@ -56,6 +56,7 @@ class JSDLJob {
   bool get_credentialserver(std::string& url);
   void print_to_grami(std::ostream &o);
   double get_limit(Arc::XMLNode range);
+  bool get_activityid(std::list<std::string>& activityid);
  public:
   JSDLJob(void);
   JSDLJob(const char* str);

@@ -278,6 +278,7 @@ my $comp_activity_t = {
                 'ComputingShareLocalID'  => [ '' ],
                 'ComputingEndpointID'    => [ '' ],
                 'ExecutionEnvironmentID' => [ '' ],
+                'ActivityID'             => [ '' ],
              }
     };
 

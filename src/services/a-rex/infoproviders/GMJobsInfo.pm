@@ -31,6 +31,7 @@ our $gmjobs_info_schema = {
             delegexpiretime    => '*',
             clientname         => '',
             clientsoftware     => '*',
+            activityid         => [ '*' ],
             sessiondir         => '',
             diskspace          => '',
             failedstate        => '*',
@@ -261,8 +262,15 @@ sub get_gmjobs_info($) {
 
         # parse the content of the job.ID.local into the %gmjobs hash
         foreach my $line (@local_allines) {
-            $gmjobs{$ID}{$1}=$2 if $line=~m/^(\w+)=(.+)$/;
-        }
+	    if ($line=~m/^(\w+)=(.+)$/) {
+		if ($1 eq "activityid") {
+		    push @{$gmjobs{$ID}{activityid}}, $2;
+		}
+		else {
+		    $gmjobs{$ID}{$1}=$2;
+		}
+	    }
+	}
         close GMJOB_LOCAL;
 
         # OBS: assume now share=queue. Longer term modify GM to save share name

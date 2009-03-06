@@ -624,6 +624,14 @@ bool JSDLJob::get_reruns(int& n) {
   return true;
 }
 
+// Set OldJobID as activityID
+bool JSDLJob::get_activityid(std::list<std::string>& activityid) {
+
+  for ( int i=0; (bool)jsdl_document["JobDescription"]["JobIdentification"]["OldJobID"][i]; i++)
+    activityid.push_back( (std::string)jsdl_document["JobDescription"]["JobIdentification"]["OldJobID"][i]);
+  return true;
+}
+
 bool JSDLJob::check(void) {
   if(!jsdl_document) {
     failure="JSDL: document is missing";
@@ -706,6 +714,7 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   if(!get_fullaccess(job_desc.fullaccess)) return false;
   if(acl) if(!get_acl(*acl)) return false;
   if(!get_arguments(l)) return false;
+  if(!get_activityid(job_desc.activityid)) return false;
   if(l.size() == 0) return false; // Normally this should not happen
   c=l.begin()->c_str()[0];
 
