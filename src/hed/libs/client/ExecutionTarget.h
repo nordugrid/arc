@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 
+#include <arc/client/JobDescription.h>
 #include <arc/DateTime.h>
 #include <arc/URL.h>
 
@@ -37,6 +38,7 @@ namespace Arc {
 
   public:
     Submitter* GetSubmitter(const UserConfig& ucfg) const;
+    void Update(const JobDescription& jobdesc);
     void Print(bool longlist) const;
 
     // Attributes from 5.3 Location

@@ -241,6 +241,65 @@ namespace Arc {
 
     return dynamic_cast<Submitter*>(loader->getACC("submitter"));
   }
+  
+  void ExecutionTarget::Update(const JobDescription& jobdesc){
+    
+    Arc::JobInnerRepresentation jir;
+    jobdesc.getInnerRepresentation(jir);
+  
+    //WorkingAreaFree
+    if(jir.DiskSpace){
+      WorkingAreaFree -= (int) (jir.DiskSpace / 10E9);
+      if(WorkingAreaFree < 0){
+	WorkingAreaFree = 0;
+      }
+    }
+    
+    // FreeSlotsWithDuration
+    if(!FreeSlotsWithDuration.empty()){
+      std::map<Period,int>::iterator cpuit, cpuit2;
+      cpuit = FreeSlotsWithDuration.lower_bound(jir.TotalCPUTime);
+      if (cpuit != FreeSlotsWithDuration.end()){
+	if (jir.Slots>=cpuit->second) {
+	  cpuit->second = 0;
+	} else {
+	  for (cpuit2 = FreeSlotsWithDuration.begin();
+	       cpuit2 != FreeSlotsWithDuration.end(); cpuit2++) {
+	    if (cpuit2->first <= cpuit->first) {
+	      cpuit2->second -= jir.Slots;
+	    } else if (cpuit2->second >= cpuit->second) {
+	      cpuit2->second = cpuit->second;
+	      Period oldkey = cpuit->first;
+	      cpuit++;
+	      FreeSlotsWithDuration.erase(oldkey);
+	    }
+	  }
+	}
+	
+	if (cpuit->second==0) FreeSlotsWithDuration.erase(cpuit->first);
+	
+	if (FreeSlotsWithDuration.empty()) {
+	  if (MaxWallTime != -1) {
+	    FreeSlotsWithDuration[MaxWallTime] = 0;
+	  } else {
+	    FreeSlotsWithDuration[LONG_MAX] = 0;
+	  }
+	}
+      }
+    }
+    
+    //FreeSlots, UsedSlots, WaitingJobs 
+    if(FreeSlots >= abs(jir.Slots)){ //The job will start directly
+      FreeSlots -= abs(jir.Slots);
+      if(UsedSlots != -1)
+	UsedSlots += abs(jir.Slots);
+    } else if (WaitingJobs != -1){ //The job will enter the queue (or the cluster doesn't report FreeSlots)
+      WaitingJobs += abs(jir.Slots);
+    }
+
+    return;
+
+  }
 
   void ExecutionTarget::Print(bool longlist) const {
 
@@ -580,5 +639,7 @@ namespace Arc {
     std::cout << std::endl;
 
   } // end print
+
+
 
 } // namespace Arc
