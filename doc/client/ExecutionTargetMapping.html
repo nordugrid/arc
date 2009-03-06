@@ -778,6 +778,11 @@ limit is hit, then the LRMS could kill the job</td>
 <td colspan="3">The maximum disk space that a job MAY use in the
 working area</td>
 </tr>
+<tr class="ARC0">
+<th></th>
+<td>(objectClass=nordugrid-authuser)</td>
+<td>0.001 × nordugrid-authuser-diskspace</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::URL</span> DefaultStorageService</th>
@@ -887,7 +892,7 @@ managers (i.e. LRMSs) submitted via any type of interface (local and
 Grid)</td>
 </tr>
 <tr class="ARC0">
-<th rowspan="2"></th>
+<th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-gridqueued + nordugrid-queue-localqueued</td>
 </tr>
@@ -1215,7 +1220,7 @@ across all the execution environment instances
 <tr class="ARC0">
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
-<td>nordugrid-cluster-sessiondir-total</td>
+<td>0.001 × nordugrid-cluster-sessiondir-total</td>
 </tr>
 
 <tr class="Attribute">
@@ -1236,7 +1241,7 @@ area, the free area equals the total area</td>
 <tr class="ARC0">
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
-<td>nordugrid-cluster-sessiondir-free</td>
+<td>0.001 × nordugrid-cluster-sessiondir-free</td>
 </tr>
 
 <tr class="Attribute">
@@ -1268,7 +1273,7 @@ algorithm</td>
 <tr class="ARC0">
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
-<td>nordugrid-cluster-cache-total</td>
+<td>0.001 × nordugrid-cluster-cache-total</td>
 </tr>
 
 <tr class="Attribute">
@@ -1284,7 +1289,7 @@ are not claimed by any job MAY be considered as deleted</td>
 <tr class="ARC0">
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
-<td>nordugrid-cluster-cache-free</td>
+<td>0.001 × nordugrid-cluster-cache-free</td>
 </tr>
 
 </table>
