@@ -17,6 +17,7 @@
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/Utils.h>
+#include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
 #include <arc/client/Sandbox.h>
@@ -220,19 +221,14 @@ int main(int argc, char **argv) {
     
     Arc::JobDescription jobdesc;
     jobdesc.setSource(it->JobDescription);
-    Arc::XMLNode xmlDesc;
-    jobdesc.getXML(xmlDesc);
-    if (!xmlDesc["JobDescription"]["JobIdentification"]) xmlDesc["JobDescription"].NewChild("JobIdentification");
-    xmlDesc["JobDescription"]["JobIdentification"].NewChild("OldJobID") = it->JobID.str();
-    std::string jobdesc_str;
-    xmlDesc.GetXML(jobdesc_str,true);
-    jobdesc.setSource(jobdesc_str);
-
-    //continue preparing broker
+    // Checking for previous OldJobIDs and adding this JobID
+    for (std::list<Arc::URL>::iterator oldjob = it->OldJobIDs.begin(); 
+	 oldjob != it->OldJobIDs.end(); oldjob++)
+      jobdesc.addOldJobID(*oldjob);
+    jobdesc.addOldJobID(it->JobID);
     ChosenBroker->PreFilterTargets(targen, jobdesc);
     bool JobSubmitted = false;
     bool EndOfList = false;
-    
     while(!JobSubmitted){
 	
       Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
@@ -284,8 +280,8 @@ int main(int argc, char **argv) {
       
       jobstorage.NewChild("Job").Replace(info);
       
-      std::cout << Arc::IString("Job resubmitted with new jobid: %s",
-				(std::string) info["JobID"]) << std::endl;
+      logger.msg(Arc::INFO,"Job resubmitted with new jobid: %s\n",
+		 (std::string) info["JobID"]);
       JobSubmitted = true;
       break;
     } //end loop over all possible targets
@@ -302,9 +298,10 @@ int main(int argc, char **argv) {
 
   for (std::list<Arc::JobController*>::iterator it = killcont.begin();
        it != killcont.end(); it++)
-    if (!(*it)->Kill(status, keep, timeout) && !(*it)->Clean(status, true, timeout) ){
-      logger.msg(Arc::WARNING, "Job could not be killed/cleaned");
-    }
+    if (!(*it)->Kill(status, keep, timeout))
+      if (!(*it)->Clean(status, true, timeout) ){
+	logger.msg(Arc::WARNING, "Job could not be killed or cleaned");
+      }
   
   //now add info about all resubmitted jobs to the local xml file
   {//start of file lock
@@ -313,6 +310,8 @@ int main(int argc, char **argv) {
     jobs.ReadFromFile(joblist);
     for (Arc::XMLNode j = jobstorage["Job"]; j; ++j) {
       jobs.NewChild(j);
+      std::cout << Arc::IString("Job resubmitted with new jobid: %s\n",
+				(std::string) j["JobID"]) << std::endl;
     }
     jobs.SaveToFile(joblist);
   }//end of file lock

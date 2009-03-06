@@ -13,6 +13,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataBuffer.h>
@@ -29,18 +30,24 @@ namespace Arc {
   {
     logger.msg(DEBUG,"Adding job info to sandbox");
     // Create sandbox XML node
-    NS ns;
-    std::string format, rep;
-    jobdesc.getSourceFormat(format);
-    //For now always store in posixjsdl
-    //jobdesc.getProduct(rep,format);
-    jobdesc.getProduct(rep,"posixjsdl");
+    JobInnerRepresentation jir;
+    if (jobdesc.getInnerRepresentation(jir)){
+      for (std::list<URL>::iterator it=jir.OldJobIDs.begin();
+	   it != jir.OldJobIDs.end(); it++)
+	info.NewChild("OldJobID")= it->str();
+    } else {
+      logger.msg(INFO,"Unable to get inner representation of job");
+    }
+    // Store original job description string
+    std::string rep;
+    jobdesc.getSourceString(rep);
     info.NewChild("JobDescription") = (std::string) rep;
     
     // Getting cksum of input files
     std::vector<std::pair<std::string, std::string> > FileList;
     jobdesc.getUploadableFiles(FileList);
     
+    NS ns;
     XMLNode LocalInput(ns,"LocalInputFiles"); 
     // Loop over input files
     for (std::vector<std::pair<std::string, std::string> >::iterator file = FileList.begin(); 

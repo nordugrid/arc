@@ -185,6 +185,9 @@ namespace Arc {
 
 	    // Add an URL to OldJobIDs
 	    bool addOldJobID(const URL& oldjobid);
+
+	    // Return sourceString
+	    bool getSourceString(std::string& string) const;
     };
 
 } // namespace Arc

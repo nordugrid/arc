@@ -76,6 +76,9 @@ namespace Arc {
 	  job.AuxURL = (std::string)xmljob["AuxURL"];
 	  job.AuxInfo = (std::string)xmljob["AuxInfo"];
 	  job.LocalSubmissionTime = (std::string)xmljob["LocalSubmissionTime"];
+	  for (int i=0; (bool)xmljob["OldJobID"][i];i++){
+	    job.OldJobIDs.push_back( URL((std::string)xmljob["OldJobID"][i]));
+	  }
 	  jobstore.push_back(job);
 	}
       }
@@ -108,6 +111,9 @@ namespace Arc {
 	  job.AuxURL = (std::string)(*it)["AuxURL"];
 	  job.AuxInfo = (std::string)(*it)["AuxInfo"];
 	  job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
+	  for (int i=0; (bool)(*it)["OldJobID"][i];i++){
+	    job.OldJobIDs.push_back( URL((std::string)(*it)["OldJobID"][i]));
+	  }
 	  jobstore.push_back(job);
 	}
       }
@@ -157,6 +163,9 @@ namespace Arc {
 	  job.AuxURL = (std::string)(*it)["AuxURL"];
 	  job.AuxInfo = (std::string)(*it)["AuxInfo"];
 	  job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
+	  for (int i=0; (bool)(*it)["OldJobID"][i];i++){
+	    job.OldJobIDs.push_back( URL((std::string)(*it)["OldJobID"][i]));
+	  }
 	  jobstore.push_back(job);
 	}
       }

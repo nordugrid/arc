@@ -3718,4 +3718,8 @@ namespace Arc {
         innerRepresentation->OldJobIDs.push_back(oldjobid);
         return true;
     }
+
+    bool JobDescription::getSourceString(std::string& string) const{
+	 string=sourceString;
+    }
 } // namespace Arc

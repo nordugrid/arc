@@ -75,6 +75,7 @@ namespace Arc {
     //Associations
     URL JobManagementEndpoint;
     URL DataStagingEndpoint;
+    std::list<URL> OldJobIDs;
     //ExecutionEnvironment (condensed)
     bool VirtualMachine;
     std::string UsedCPUType;
