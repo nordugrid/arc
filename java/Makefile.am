@@ -15,7 +15,7 @@ SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
 
 EXTRA_DIST = $(SWIG_OUTPUTS)
 
-CLEANFILES = $(JAVA_PATH)/*.class arc.jar $(SWIG_OUTPUTS)
+CLEANFILES = $(JAVA_PATH)/*.class arc.jar
 MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
 include ./$(DEPDIR)/arc_wrap.deps
@@ -23,6 +23,7 @@ include ./$(DEPDIR)/arc_wrap.deps
 arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
 	grep -h '^#' $(top_srcdir)/swig/*.i | \
 	$(CXXCOMPILE) $(libjarc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT $(JAVA_PATH)/arc.java -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
+	rm -rf $(JAVA_PATH)
 	mkdir -p $(JAVA_PATH)
 	$(SWIG) -v -c++ -java -nodefault -module arc \
 		-package nordugrid.arc -o arc_wrap.cpp \

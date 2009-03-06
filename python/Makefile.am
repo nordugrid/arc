@@ -12,7 +12,7 @@ SWIG_OUTPUTS = arc_wrap.cpp arc.py
 
 EXTRA_DIST = $(SWIG_OUTPUTS)
 
-CLEANFILES = arc.pyc $(SWIG_OUTPUTS)
+CLEANFILES = arc.pyc
 MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
 include ./$(DEPDIR)/arc_wrap.deps
