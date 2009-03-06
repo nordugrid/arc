@@ -77,6 +77,8 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
   XMLNode policy_store = (*cfg)["PolicyStore"];
   XMLNode policy_location = policy_store["Location"];
   for(;(bool)policy_location;++policy_location) policy_locations.push_back((std::string)policy_location);
+  XMLNode policy = (*cfg)["Policy"];
+  for(;(bool)policy;++policy) policies.AddNew(policy);
   policy_combining_alg = (std::string)((*cfg)["PolicyCombiningAlg"]);
 }
 
@@ -115,6 +117,9 @@ bool ArcPDP::isPermitted(Message *msg){
         //}
         for(std::list<std::string>::iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
           eval->addPolicy(SourceFile(*it));
+        }
+        for(int n = 0;n<policies.Size();++n) {
+          eval->addPolicy(Source(policies[n]));
         }
         if(!policy_combining_alg.empty()) {
           if(policy_combining_alg == "EvaluatorFailsOnDeny") {

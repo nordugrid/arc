@@ -25,6 +25,7 @@ class ArcPDP : public PDP {
   std::list<std::string> select_attrs;
   std::list<std::string> reject_attrs;
   std::list<std::string> policy_locations;
+  Arc::XMLNodeContainer policies;
   std::string policy_combining_alg;
  protected:
   static Arc::Logger logger;
