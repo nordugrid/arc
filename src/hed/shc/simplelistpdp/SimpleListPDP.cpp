@@ -27,6 +27,9 @@ Plugin* SimpleListPDP::get_simplelist_pdp(PluginArgument* arg) {
 SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
   location = (std::string)(cfg->Attribute("location"));
   logger.msg(INFO, "Access list location: %s", location);
+  for(XMLNode dn = (*cfg)["DN"];(bool)dn;++dn) {
+    dns.push_back((std::string)dn);
+  }
 }
 
 bool SimpleListPDP::isPermitted(Message *msg){

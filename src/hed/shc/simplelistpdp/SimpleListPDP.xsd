@@ -12,7 +12,9 @@
       Name of client's certificate produced by TLS MCC) to list of 
       identities stored in local file. Those are stored one per
       line and may be enclosed in '"' and any amount of space
-      characters. -->
+      characters.
+      Alternatively DNs may be directly listed as DN XML elements
+      in configuration of PDP. -->
  
   <xsd:attribute name="location">
     <!-- This attribute is to be used in top (and only) element of 
@@ -22,5 +24,7 @@
       <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
   </xsd:attribute>
+
+  <xsd:element name="DN" type="xsd:string"/>
 
 </xsd:schema>

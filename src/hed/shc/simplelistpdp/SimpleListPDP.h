@@ -22,6 +22,7 @@ class SimpleListPDP : public PDP {
   virtual bool isPermitted(Arc::Message *msg);
  private:
   std::string location;
+  std::list<std::string> dns;
  protected:
   static Arc::Logger logger;
 };
