@@ -41,7 +41,8 @@ namespace Arc {
     MCCLoader *loader;
     MessageContext context;
     static Logger logger;
-    void AddHandler(XMLNode mcccfg,XMLNode handlercfg);
+    static void AddSecHandler(XMLNode mcccfg,XMLNode handlercfg);
+    static void AddPlugin(XMLNode mcccfg,const std::string& libname,const std::string& libpath = "");
   };
 
   enum SecurityLayer { NoSec, TLSSec, GSISec };
@@ -62,7 +63,7 @@ namespace Arc {
       return tls_entry ? tls_entry : tcp_entry;
     }
     virtual void Load();
-    void AddHandler(XMLNode handlercfg,SecurityLayer sec);
+    void AddSecHandler(XMLNode handlercfg,SecurityLayer sec,const std::string& libanme = "",const std::string& libpath = "");
   protected:
     MCC *tcp_entry;
     MCC *tls_entry;
@@ -110,7 +111,7 @@ namespace Arc {
     MCC* GetEntry() {
       return http_entry;
     }
-    void AddHandler(XMLNode handlercfg);
+    void AddSecHandler(XMLNode handlercfg,const std::string& libanme = "",const std::string& libpath = "");
     virtual void Load();
   protected:
     MCC *http_entry;
@@ -141,11 +142,32 @@ namespace Arc {
       return soap_entry;
     }
     /** Adds security handler to configuration of SOAP MCC */
-    void AddHandler(XMLNode handlercfg);
+    void AddSecHandler(XMLNode handlercfg,const std::string& libanme = "",const std::string& libpath = "");
     /** Instantiates pluggable elements according to generated configuration */
     virtual void Load();
   protected:
     MCC *soap_entry;
+  };
+
+  // Convenience base class for creating configuration 
+  // security handlers.
+  class SecHandlerConfig: public XMLNode {
+  public:
+    SecHandlerConfig(const std::string& name,const std::string& event = "incoming");
+  };
+
+  class DNListHandlerConfig: public SecHandlerConfig {
+  public:
+    DNListHandlerConfig(const std::list<std::string>& dns,const std::string& event = "incoming");
+    void AddDN(const std::string& dn);
+  };
+
+  class ARCPolicyHandlerConfig: public SecHandlerConfig {
+  public:
+    ARCPolicyHandlerConfig(const std::string& event = "incoming");
+    ARCPolicyHandlerConfig(XMLNode policy,const std::string& event = "incoming");
+    void AddPolicy(XMLNode policy);
+    void AddPolicy(const std::string& policy);
   };
 
 } // namespace Arc

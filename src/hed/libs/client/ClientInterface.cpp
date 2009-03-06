@@ -93,10 +93,27 @@ namespace Arc {
     xml_add_elements(xmlcfg, cfg);
   }
 
-  void ClientInterface::AddHandler(XMLNode mcccfg,XMLNode handlercfg) {
+  void ClientInterface::AddSecHandler(XMLNode mcccfg,XMLNode handlercfg) {
     // Insert SecHandler configuration into MCC configuration block
     // Make sure namespaces and names are correct
     mcccfg.NewChild(handlercfg).Name("SecHandler");
+  }
+
+  void ClientInterface::AddPlugin(XMLNode mcccfg,const std::string& libname,const std::string& libpath) {
+    if(!libpath.empty()) {
+      XMLNode mm = mcccfg["ModuleManager"];
+      if(!mm) mcccfg.NewChild("ModuleManager",0);
+      XMLNode mp = mm["Path"];
+      for(;(bool)mp;++mp) if(mp == libpath) break;
+      if(!mp) mm.NewChild("Path")=libpath;
+    }
+    if(!libname.empty()) {
+      XMLNode pl = mcccfg["Plugins"];
+      for(;(bool)pl;++pl) {
+        if(pl["Name"] == libname) break;
+      }
+      if(!pl) mcccfg.NewChild("Plugins",0).NewChild("Name")=libname;
+    }
   }
 
   ClientTCP::ClientTCP(const BaseConfig& cfg, const std::string& host,
@@ -188,20 +205,21 @@ namespace Arc {
     return r;
   }
 
-  void ClientTCP::AddHandler(XMLNode handlercfg,SecurityLayer sec) {
+  void ClientTCP::AddSecHandler(XMLNode handlercfg,SecurityLayer sec,const std::string& libname,const std::string& libpath) {
     if (sec == TLSSec) {
-      ClientInterface::AddHandler(
+      ClientInterface::AddSecHandler(
           ConfigFindComponent(xmlcfg["Chain"], "tls.client", "tls"),
           handlercfg);
     } else if (sec == GSISec) {
-      ClientInterface::AddHandler(
+      ClientInterface::AddSecHandler(
           ConfigFindComponent(xmlcfg["Chain"], "gsi.client", "gsi"),
           handlercfg);
     } else {
-      ClientInterface::AddHandler(
+      ClientInterface::AddSecHandler(
           ConfigFindComponent(xmlcfg["Chain"], "tcp.client", "tcp"),
           handlercfg);
     }
+    AddPlugin(xmlcfg,libname,libpath);
   }
 
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url)
@@ -337,10 +355,11 @@ namespace Arc {
     return r;
   }
 
-  void ClientHTTP::AddHandler(XMLNode handlercfg) {
-    ClientInterface::AddHandler(
+  void ClientHTTP::AddSecHandler(XMLNode handlercfg,const std::string& libname,const std::string& libpath) {
+    ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "http.client", "http"),
         handlercfg);
+    AddPlugin(xmlcfg,libname,libpath);
   }
 
   ClientSOAP::ClientSOAP(const BaseConfig& cfg, const URL& url)
@@ -409,10 +428,56 @@ namespace Arc {
     return r;
   }
 
-  void ClientSOAP::AddHandler(XMLNode handlercfg) {
-    ClientInterface::AddHandler(
+  void ClientSOAP::AddSecHandler(XMLNode handlercfg,const std::string& libname,const std::string& libpath) {
+    ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "soap.client", "soap"),
         handlercfg);
+    AddPlugin(xmlcfg,libname,libpath);
   }
 
+  SecHandlerConfig::SecHandlerConfig(const std::string& name,const std::string& event):XMLNode("<?xml version=\"1.0\"?><SecHandler/>") {
+    NewAttribute("name")=name;
+    if(!event.empty()) NewAttribute("event")=event;
+  }
+
+  DNListHandlerConfig::DNListHandlerConfig(const std::list<std::string>& dns,const std::string& event):SecHandlerConfig("arc.authz",event) {
+    // Loading PDP which deals with DN lists
+    NewChild("Plugins").NewChild("Name")="arcshc";
+    XMLNode pdp = NewChild("PDP");
+    pdp.NewAttribute("name")="simplelist.pdp";
+    for(std::list<std::string>::const_iterator dn = dns.begin();
+                                 dn != dns.end();++dn) {
+      pdp.NewChild("DN")=(*dn);
+    }
+  }
+
+  void DNListHandlerConfig::AddDN(const std::string& dn) {
+    XMLNode pdp = operator[]("PDP");
+    pdp.NewChild("DN")=dn;
+  }
+
+  ARCPolicyHandlerConfig::ARCPolicyHandlerConfig(const std::string& event):SecHandlerConfig("arc.authz",event) {
+  }
+
+  ARCPolicyHandlerConfig::ARCPolicyHandlerConfig(XMLNode policy,const std::string& event):SecHandlerConfig("arc.authz",event) {
+    // Loading PDP which deals with ARC policies
+    NewChild("Plugins").NewChild("Name")="arcshc";
+    XMLNode pdp = NewChild("PDP");
+    pdp.NewAttribute("name")="arc.pdp";
+    pdp.NewChild(policy);
+  }
+
+  void ARCPolicyHandlerConfig::AddPolicy(XMLNode policy) {
+    XMLNode pdp = operator[]("PDP");
+    pdp.NewChild(policy);
+  }
+
+  void ARCPolicyHandlerConfig::AddPolicy(const std::string& policy) {
+    XMLNode p(policy);
+    XMLNode pdp = operator[]("PDP");
+    pdp.NewChild(p);
+  }
+
+
 } // namespace Arc
+
