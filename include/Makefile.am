@@ -1,1 +1,15 @@
-EXTRA_DIST = $(shell find . -name *.h | sort)
+HEADERFILESCHECK:
+
+HEADERFILES: HEADERFILESCHECK
+	echo "HEADERFILELIST = \\" > HEADERFILES.2
+	find . -name *.h -print | sort | sed 's/$$/ \\/' >> HEADERFILES.2
+	echo "HEADERFILES" >> HEADERFILES.2
+	if diff HEADERFILES HEADERFILES.2 >/dev/null 2>&1 ; then \
+		rm -f HEADERFILES.2 ; \
+	else \
+		mv HEADERFILES.2 HEADERFILES ; \
+	fi
+
+include HEADERFILES
+
+EXTRA_DIST = $(HEADERFILELIST)
