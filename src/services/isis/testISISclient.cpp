@@ -185,8 +185,8 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     request.NewChild("Header");
     //request["Header"].NewChild("RequesterID");
 
-    std::time_t rawtime;
-    std::time ( &rawtime );	//current time
+    time_t rawtime;
+    time ( &rawtime );	//current time
     tm * ptm;
     ptm = gmtime ( &rawtime );
 
