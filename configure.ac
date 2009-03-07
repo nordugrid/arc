@@ -42,11 +42,9 @@ AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
 
 # gettext
-gettext_available="yes"
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.11.4])
 [[ -e po/POTFILES.in ]] || touch po/POTFILES.in
-AM_CONDITIONAL([GETTEXT_ENABLED],[test "x$gettext_available" = "xyes"])
 
 # Portable 64bit file offsets
 AC_SYS_LARGEFILE
