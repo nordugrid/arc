@@ -11,12 +11,12 @@ To start, the user shall have an installation of ARC-1, as it is performed with 
 
 The ARC server provides access to services.
 These are executed on the same machine that the server is installed on.
-Some services, like the a-rex service, will delegate computational efforts to other machines
+Some services, like the A-REX service, will delegate computational efforts to other machines
 via additional software like a local queueing system.
-But the a-rex service itself does not migrate away to other machines - at least this
+But the A-REX service itself does not migrate away to other machines - at least this
 has not been implemented yet.
 Services may comprise computational tasks (e.g., some secret and strongly
-patented algorithm), allow arbitrary computations (like ARC's a-rex or
+patented algorithm), allow arbitrary computations (like ARC's A-REX or
 Amazon's clouds) or provide access to other resources like a particular
 database or to arbitrary disk space (like ARC's hopi or bartender).
 
@@ -27,7 +27,7 @@ It is those clients that perform the interactions with a human user.
 However, when a service requests a performance of another service at the same or another server, then this first service is in the role of a client, too.
 
 
-Servers provide access to a single service or a set of services. For ARC, there is one service, named Hosting Environment Demon (HED), more special than other services: HED organises the assignment of other services on the same server to the network. But this does not break the concept, it is only a commodity. If services are not busy reacting to a client's request, then they are waiting. The task of servers can be subdivided into:
+Servers provide access to a single service or a set of services. For ARC, there is one service, named Hosting Environment Demon (HED), that is more special than other services: HED organises the assignment of other services on the same server to the network. But this does not break the concept, it is only a commodity. If services are not busy reacting to a client's request, then they are waiting. The task of servers can be subdivided into:
 \begin{itemize}
  \item Wait for client request
  \item Receive the request
@@ -48,7 +48,7 @@ While the server waits passively for a request, the client acts actively:
 In general, the implementation of a client is easier than the implementation of the server. 
 ARC is designed as a middleware which encapsulates typical challenges of server-client infrastructures (security, exception handling, extensibility) and abstracts from the underlying computer architecture (heterogeneity of computers, computer location, protocols).
 The core of ARC is the prior mentioned HED (Hosting Environment Daemon).
-To the administrator HED is mostly visible as the single binary that is started and configured by a file that describes services that shall be prepared by HED. 
+To the administrator HED is mostly visible as the single binary that is started and configured by a file that describes services' that shall be prepared by HED. 
 Conceptionally, the HED determines how services shall be organised both as a principle, and for any given ARC-run server.
 HED determines the very explicit presence or absence of a service at a particular address. Its many configurable layers are described later in this tutorial. 
 %
@@ -75,14 +75,14 @@ Figure~\ref{fig:HED_internal} illustrates a typical setup of a server-sided HED.
 
 \begin{figure}[htb]
 	\centering
-	\includegraphics[width=14cm]{tex_introduction/HED2.pdf}
+	\includegraphics[width=13cm]{tex_introduction/HED2.pdf}
 	\mycaption{Example of a HED structure providing a Web Service}{The HED consists of several layers which are connected with each other. The arrow indicate the message flow of the used configuration. The MCCs and Services may hold a SecHandler in order to give additional security. Additional modules (on the left) are used within the HED. \task{Why is the Web Service in all images outside of the HED?}}
 \label{fig:HED_internal}
 \end{figure}
 
 As to be seen, the MCCs are connected which each other and passing incoming and outgoing message to the upper or the respective lower layer. In case of outgoing messages a MCC is wrapping the data of the upper layer as a payload into their own protocol (while incomming message will be unwrapped).
 The lowest layer has to be a transport protocol like TCP which enables the transmission between two applications.
-Technically there even lower layers required needed for the communication but they are already realised within the operating system and the  network card.
+Technically there are even lower layers required needed for the communication but they are already realised within the operating system and the  network card.
 TCP is well suited for the application because it provides a reliable and ordered delivery of a byte stream.
 Above the TCP layer is the Hypertext Transfer Protocol (HTTP). 
 In case a security layer is desired (i.e. for authentication), the TLS (Transport Layer Security formerly known as SSL, Secure Sockets Layer) has to be inserted between the TCP and HTTP layers.
@@ -98,12 +98,12 @@ It uses the ARC echo service that is shipped for testing purposes with the ARC s
 
 
 
-\subsection{The ARC echo service}
+\subsection{The ARC Echo Web Service}
 
 
 The first example shall give a basic understanding in how to configure the HED for setting up a novel service.
-The task will be to setup the regular ARC Echo Web Service.
-On the command line, all that needs to be done is to invoking the \textit{arched} daemon with a fitting server configuration file.
+The task is to setup the regular ARC Echo Web Service.
+On the command line, all that needs to be done is to invoke the \textit{arched} daemon with a suitable server configuration file.
 Such a fitting server configuration file is shown in Listing~\ref{lst:arched_arcecho_xml}.
 It is written in XML. Its structure is based on the XSD schema listed in~\ref{sec:impXSD} in Listing~\ref{lst:mcc.xsd}.\\ 
 
@@ -115,27 +115,28 @@ It is written in XML. Its structure is based on the XSD schema listed in~\ref{se
 {../src/services/arched_arcecho.xml}
 The first line of the XML file contains the XML declaration.
 Several attributes can be defined here but at least the XML version should be specified.
-The configuration as a whole is encapsulated by the element \textit{ArcConfig}. It also performs the setting of namespace abbreviations, which are expected to be mostly invariant across all server installations.% ABBREVIATIONS?? - MG
-The \textit{Server} element, to be found at line~\ref{lst_code:arched_arcecho_Server}, provides basic settings for the daemon such as location of the Pid-file or the Log-file.
-The \textit{ModuleManager} holds the path to the plugin libraries.
+The configuration as a whole is encapsulated by the element \textit{ArcConfig}. It also performs the setting of namespaces, which are expected to be mostly invariant across all server installations. % ABBREVIATIONS?? - MG
+The \textit{Server} element, to be found at line~\ref{lst_code:arched_arcecho_Server}, provides basic settings for the daemon such as the location of the Pid-file or ofthe Log-file.
+The \textit{ModuleManager} holds the \textit{path} to the plugin libraries.
 Several paths may be defined here.
-Due to the fact that the first library fitting to the plugin name is loaded, the order is relevant.
+Due to the fact that the first library matching the plugin name is loaded, the order is relevant.
 The path should be at least assigned to the ARC installation directory.
-Otherwise, the standard set of MCC modules might not be found.
-The next set of elements are holding the name of the plugins to be loaded (line~\ref{lst_code:arched_arcecho_Plugins}).
-The names have to correspond to the name of the dynamic libraries within the path defined in the \textit{ModuleManager}.
-Finally, the chain is declared within the element \textit{Chain} which creates the layered structure.
+Otherwise, the set of ARC MCC plugins might not be found.
+The next elements are holding the name of the plugins to be loaded (line~\ref{lst_code:arched_arcecho_Plugins}).
+The names have to correspond to the names of the dynamic libraries within the path defined in the \textit{ModuleManager}.
+Finally, the chain, which creates the layered structure, is declared within the element \textit{Chain}.
 It is composed of the elements \textit{Component}, \textit{Plexer} and \textit{Service}.
-Every element inside has at least a \textit{name} attribute.
-Regarding the components and the services a plugin (*.so file found in the paths previously specified) has to be loaded which provides the implementation of its functionality. The further configuration depends on the individual functionality.\\
+Due to a MCC plugin may contain several components, one has to specify more exact which one to load. This is to be done using the \textit{name} attribute i.e. the plugin \textit{mcchttp} realises two components: \textit{http.service} and \textit{http.client}. Since we are defining a configuration file for a service, the \textit{http.service} should be used.
+Furthermore the elements may have the attribute \textit{id} as a unique identifier within the file.
+Regarding the components and the services a plugin (implemented as a *.so file that is searched in the paths previously specified) has to be loaded which provides the implementation of its functionality. The further configuration depends on the plugin's individual functionality.\\
 %
 % within the chain ... 3 types of elements
 %
 %Its needed to distinguish between the plugins and the components.
 %The plugins refer to shared libraries that can be integrated as modules with the HED to extend its functionality.
 %The Components refer to the implementation of Web Services within any of those libraries.
-%
-%
+
+
 A \textit{Chain} will determine the path that an event takes to be noticed.
 The first component of the chain is the \textit{tcp.service}.
 As to be seen, the port 60000 is assigned to the server to listen to.
@@ -163,7 +164,7 @@ label=lst:arcecho_arched_invokation,float=htb,
 caption={[Invokation of the arched daemon in order to start the ARC Echo Web Service.]
          \textbf{Invokation of the Arched Daemon.\textcolor{white}{hmf}}}]
 
-$ arched -c arcecho_no_ssl.xml && echo Daemon started || echo Daemon start failed
+$ arched -c arcecho_no_ssl.xml && echo Daemon started || echo Daemon failed
  Daemon started
 $
 \end{lstlisting}
@@ -175,7 +176,7 @@ $
 %
 %
 The name of the program is followed by the parameter \textit{-c}.
-The string following that argument contains the full path of configuration file.
+The string following that argument contains the path to the configuration file.
 Once the server is running, the client can be used as described in Listing~\ref{lst:arcecho_client_invokation}.
 \lstsetKSH
 \begin{lstlisting}[
@@ -188,7 +189,7 @@ $ arcecho http://localhost:60000/Echo text
 
 In this example, the server and the client are running on the same computer such that the hostname \textit{localhost} can be utilized. 
 For debugging it is advisable to check the logfile which was assigned inside the server configuration file.
-It is commonly found at /var/log/arched.log
+It is commonly found at /var/log/arched.log.
 
 The following chapters explain how to develop custom Web Services.
 The first one will be the simple Time Web Service.
