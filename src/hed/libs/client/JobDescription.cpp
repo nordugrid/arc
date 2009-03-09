@@ -2257,11 +2257,11 @@ namespace Arc {
             innerRepresentation.SessionLifeTime = time;
             return true;
         } else if ( attributeName == "cputime" ) {
-            Period time(simpleXRSLvalue( attributeValue ) );
+            Period time(simpleXRSLvalue( attributeValue ), Arc::PeriodMinutes );
             innerRepresentation.TotalCPUTime = time;
             return true;
         } else if ( attributeName == "walltime" ) {
-            Period time(simpleXRSLvalue( attributeValue ) );
+            Period time(simpleXRSLvalue( attributeValue ), Arc::PeriodMinutes);
             innerRepresentation.TotalWallTime = time;
             return true;
         } else if ( attributeName == "gridtime" ) {
@@ -2589,7 +2589,7 @@ namespace Arc {
             std::stringstream ss;
             ss << innerRepresentation.TotalCPUTime.GetPeriod();
             ss >> outputValue;
-            product += "( cputime = ";//TODO:
+            product += "( cputime = ";
             product += outputValue;
             product += " )\n";
         }
@@ -2598,7 +2598,7 @@ namespace Arc {
             std::stringstream ss;
             ss << innerRepresentation.TotalWallTime.GetPeriod();
             ss >> outputValue;
-            product += "( walltime = ";//TODO:
+            product += "( walltime = ";
             product += outputValue;
             product += " )\n";
         }
@@ -2662,7 +2662,7 @@ namespace Arc {
                        }
                        close(h);
                        crc.end();
-                       /* //it is not working now!
+                       /* //TODO: it is not working now!
                        unsigned char *buf;
                        unsigned int len;
                        crc.result(buf,len);
@@ -2754,21 +2754,24 @@ namespace Arc {
             product += outputValue;
             product += " )\n";
         }
-        if (innerRepresentation.DiskSpace > -1) {
-            product += "( disk = ";//TODO:
+        // disk is not support on the GM side.
+        // in question attribute
+        /*if (innerRepresentation.DiskSpace > -1) {
+            product += "( disk = ";
             std::ostringstream oss;
             oss << innerRepresentation.DiskSpace;
             product += oss.str();
             product += " )\n";
-        }
+        }*/
         if (!innerRepresentation.RunTimeEnvironment.empty()) {
             std::list<Arc::RunTimeEnvironmentType>::const_iterator iter;
-            std::list<std::string>::const_iterator viter;
             for (iter = innerRepresentation.RunTimeEnvironment.begin(); \
                  iter != innerRepresentation.RunTimeEnvironment.end(); iter++){
-                viter = ((*iter).Version).begin(); 
                 product += "( runtimeenvironment = ";
-                product +=  (*iter).Name + "-" + (*viter);
+                product +=  (*iter).Name;
+                if ( (*iter).Version.begin() != (*iter).Version.end() ){
+                   product +=  "-" + *(*iter).Version.begin();
+                }
                 product += " )\n";
             }
         }
@@ -2777,11 +2780,13 @@ namespace Arc {
             product +=  innerRepresentation.OSName;
             product += " )\n";
         }
-        if (!innerRepresentation.Platform.empty()) {
-            product += "( architecture = ";//TODO:
+        // architecture is not support on the GM side.
+        // in question attribute
+        /*if (!innerRepresentation.Platform.empty()) {
+            product += "( architecture = ";
             product +=  innerRepresentation.Platform;
             product += " )\n";
-        }
+        }*/
         if (innerRepresentation.ProcessPerHost > -1) {
             product += "( count = ";
             std::ostringstream oss;
@@ -2794,9 +2799,11 @@ namespace Arc {
             product += innerRepresentation.ProcessingStartTime.str(Arc::MDSTime);
             product += " )\n";
         }
-        if (innerRepresentation.Join) {
-            product += "( join = true )\n";//TODO:
-        }
+        // join is not support on the GM side.
+        // in question attribute
+        /*if (innerRepresentation.Join) {
+            product += "( join = true )\n";
+        }*/
         if (!innerRepresentation.LogDir.empty()) {
             product += "( gmlog = ";
             product +=  innerRepresentation.LogDir;
@@ -2864,8 +2871,10 @@ namespace Arc {
                 product += "( cahce = \"true\" )\n";
             }
         }
-        if (!innerRepresentation.ReferenceTime.value.empty()) {
-            product += "( benchmarks = ( \"";//TODO:
+        // benchmarks is not support on the GM side.
+        // in question attribute
+        /*if (!innerRepresentation.ReferenceTime.value.empty()) {
+            product += "( benchmarks = ( \"";
             if ( !innerRepresentation.ReferenceTime.benchmark_attribute.empty() && 
                  !innerRepresentation.ReferenceTime.value_attribute.empty()) {
                 product += innerRepresentation.ReferenceTime.benchmark_attribute;
@@ -2876,7 +2885,7 @@ namespace Arc {
                 product += "frequency\" \"2,8GHz\" \"" + innerRepresentation.ReferenceTime.value;
             }
             product += "\") )\n";
-        }
+        }*/
         if (!innerRepresentation.File.empty() || !innerRepresentation.Directory.empty()) {
             bool set_Threads = false;
             int minimum;
@@ -2964,21 +2973,25 @@ namespace Arc {
                 product += "\" )\n";
             }
         }
-        if (innerRepresentation.InBound) {
-            product += "( nodeaccess = \"inbound\")\n";//TODO:
+        // nodeaccess is not support on the GM side.
+        // in question attribute
+        /*if (innerRepresentation.InBound) {
+            product += "( nodeaccess = \"inbound\")\n";
         }
         if (innerRepresentation.OutBound) {
-            product += "( nodeaccess = \"outbound\")\n";//TODO:
-        }
-        if (!innerRepresentation.ReferenceTime.value.empty() && 
+            product += "( nodeaccess = \"outbound\")\n";
+        }*/
+        // gridTime is not support on the GM side.
+        // in question attribute
+        /*if (!innerRepresentation.ReferenceTime.value.empty() && 
              innerRepresentation.ReferenceTime.value_attribute.empty() && 
              innerRepresentation.ReferenceTime.benchmark_attribute.empty() && 
              innerRepresentation.TotalCPUTime == -1 && 
              innerRepresentation.TotalWallTime == -1 ) {
-            product += "( gridtime = \"";//TODO:
+            product += "( gridtime = \"";
             product += innerRepresentation.ReferenceTime.value;
             product += "\" )\n";
-        }
+        }*/
         if ( !innerRepresentation.XRSL_elements.empty() ) {
           std::map<std::string, std::string>::const_iterator it;
           for ( it = innerRepresentation.XRSL_elements.begin(); it != innerRepresentation.XRSL_elements.end(); it++ ) {
