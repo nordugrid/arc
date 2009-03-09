@@ -3,12 +3,12 @@
     Data types of Information Indexing Service
 -->
 
-<xsd:schema 
+<xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
   xmlns:wsa="http://www.w3.org/2005/08/addressing"
   targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
-  elementFormDefault="qualified" attributeFormDefault="unqualified" 
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
 >
 
     <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="http://www.w3.org/2006/03/addressing/ws-addr.xsd"/>
@@ -35,16 +35,10 @@
     <xsd:element name="RegisterResponse" type="isis:RegisterResponseType"/>
 
     <!-- Input type for RemoveRegistrations operation -->
-    <xsd:complexType name="RegistrationEntryIDListType">
+    <xsd:complexType name="RemoveRegistrationsType">
         <xsd:sequence>
             <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="RemoveRegistrationsType">
-        <xsd:complexContent>
-            <xsd:restriction base="isis:RegistrationEntryIDListType"/>
-        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="RemoveRegistrations" type="isis:RemoveRegistrationsType"/>
 
