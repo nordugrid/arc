@@ -1,15 +1,15 @@
 HEADERFILESCHECK:
 
-HEADERFILES: HEADERFILESCHECK
-	echo "HEADERFILELIST = \\" > HEADERFILES.2
-	find . -name *.h -print | sort | sed 's/$$/ \\/' >> HEADERFILES.2
-	echo "HEADERFILES" >> HEADERFILES.2
-	if diff HEADERFILES HEADERFILES.2 >/dev/null 2>&1 ; then \
-		rm -f HEADERFILES.2 ; \
+./$(DEPDIR)/HEADERFILES: HEADERFILESCHECK
+	echo "HEADERFILES = \\" > HEADERFILES
+	find . -name *.h -print | sort | sed 's/$$/ \\/' >> HEADERFILES
+	echo "./$(DEPDIR)/HEADERFILES" >> HEADERFILES
+	if diff ./$(DEPDIR)/HEADERFILES HEADERFILES >/dev/null 2>&1 ; then \
+		rm -f HEADERFILES ; \
 	else \
-		mv HEADERFILES.2 HEADERFILES ; \
+		mv HEADERFILES ./$(DEPDIR)/HEADERFILES ; \
 	fi
 
-include HEADERFILES
+include ./$(DEPDIR)/HEADERFILES
 
-EXTRA_DIST = $(HEADERFILELIST)
+EXTRA_DIST = $(HEADERFILES)

@@ -30,8 +30,6 @@ AC_SUBST(pkglibexecdir)
 
 ARC_RELATIVE_PATHS
 
-[[ -e include/HEADERFILES ]] || touch include/HEADERFILES
-
 # TODO: where to put init scripts on OS X?
 AC_ARG_WITH(sysv-scripts-location,
   AC_HELP_STRING([--with-sysv-scripts-location=<PATH>], [Location of the SYSV init scripts. [[autodetect]]]),
