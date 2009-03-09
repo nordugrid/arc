@@ -2,7 +2,7 @@
 #define __ARC_ECHO_H__
 
 #include <map>
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/Logger.h>
 #include <arc/security/PDP.h>
 #include <arc/infosys/InformationInterface.h>
@@ -24,7 +24,7 @@ namespace Echo {
      The "policylocation" attribute is for the configuration of ArcPDP's policy 
 */
 
-class Service_Echo: public Arc::Service
+class Service_Echo: public Arc::RegisteredService
 {
     protected:
         std::string prefix_;

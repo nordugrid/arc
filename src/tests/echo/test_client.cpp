@@ -41,14 +41,14 @@ int main(void) {
      <Plugins><Name>mccsoap</Name></Plugins>\
      <Plugins><Name>arcshc</Name></Plugins>\
      <Chain>\
-      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
+      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>50000</tcp:Port></tcp:Connect></Component>\
       <Component name='tls.client' id='tls'><next id='tcp'/>\
         <!--For proxy certificate, KeyPath and CertificatePath are supposed to be the same-->\
         <KeyPath>./testkey-nopass.pem</KeyPath>\
         <CertificatePath>./testcert.pem</CertificatePath>\
         <CACertificatePath>./cacert.pem</CACertificatePath>\
       </Component>\
-      <Component name='http.client' id='http'><next id='tls'/>\
+      <Component name='http.client' id='http'><next id='tcp'/>\
         <Method>POST</Method>\
         <Endpoint>/echo</Endpoint>\
       </Component>\

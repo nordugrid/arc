@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include <arc/message/MCCLoader.h>
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/security/SecHandler.h>
 
@@ -27,7 +27,7 @@ using namespace Arc;
 
 namespace Echo {
 
-Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "Echo") {
+Service_Echo::Service_Echo(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logger::rootLogger, "Echo") {
   ns_["echo"]="urn:echo";
   prefix_=(std::string)((*cfg)["prefix"]);
   suffix_=(std::string)((*cfg)["suffix"]);  
