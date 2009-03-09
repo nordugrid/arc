@@ -1329,7 +1329,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/storage/cli/Makefile 
                  src/services/storage/shepherd/Makefile 
                  src/services/storage/ahash/Makefile 
-                 src/services/storage/bartender/Makefile 
+                 src/services/storage/bartender/Makefile
+                 src/services/storage/bartender/gateway/Makefile 
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
                  src/tests/echo/echo_service.xml.example
