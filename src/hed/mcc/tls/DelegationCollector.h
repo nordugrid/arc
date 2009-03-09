@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_DELEGATIONSH_H__
-#define __ARC_SEC_DELEGATIONSH_H__
+#ifndef __ARC_SEC_DELEGATIONCOLLECTOR_H__
+#define __ARC_SEC_DELEGATIONCOLLECTOR_H__
 
 #include <stdlib.h>
 
@@ -9,15 +9,15 @@
 
 namespace ArcSec {
 
-class DelegationSH : public SecHandler {
+class DelegationCollector : public SecHandler {
  public:
-  DelegationSH(Arc::Config *cfg);
-  virtual ~DelegationSH(void);
+  DelegationCollector(Arc::Config *cfg);
+  virtual ~DelegationCollector(void);
   virtual bool Handle(Arc::Message* msg);  
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
 };
 
 } // namespace ArcSec
 
-#endif /* __ARC_SEC_DELEGATIONSH_H__ */
+#endif /* __ARC_SEC_DELEGATIONCOLLECTOR_H__ */
 

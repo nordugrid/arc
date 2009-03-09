@@ -31,7 +31,7 @@
 #include "PayloadTLSStream.h"
 #include "PayloadTLSMCC.h"
 
-#include "DelegationSH.h"
+#include "DelegationCollector.h"
 
 #include "MCCTLS.h"
 
@@ -89,7 +89,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "tls.service", "HED:MCC", 0, &get_mcc_service },
     { "tls.client",  "HED:MCC", 0, &get_mcc_client  },
-    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationSH::get_sechandler},
+    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationCollector::get_sechandler},
     { NULL, NULL, 0, NULL }
 };
 

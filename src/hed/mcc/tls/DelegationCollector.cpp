@@ -8,18 +8,18 @@
 #include "PayloadTLSStream.h"
 #include "DelegationSecAttr.h"
 
-#include "DelegationSH.h"
+#include "DelegationCollector.h"
 
 namespace ArcSec {
 
 using namespace Arc;
 
-static Arc::Logger logger(Arc::Logger::getRootLogger(),"DelegationSH");
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"DelegationCollector");
 
-DelegationSH::DelegationSH(Config *cfg):SecHandler(cfg) {
+DelegationCollector::DelegationCollector(Config *cfg):SecHandler(cfg) {
 }
 
-DelegationSH::~DelegationSH(void) {
+DelegationCollector::~DelegationCollector(void) {
 }
 
 
@@ -71,7 +71,7 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
   return result;
 }
 
-bool DelegationSH::Handle(Arc::Message* msg){
+bool DelegationCollector::Handle(Arc::Message* msg){
   DelegationMultiSecAttr* sattr = NULL;
   try {
     MessagePayload* mpayload = msg->Payload();
@@ -108,17 +108,17 @@ bool DelegationSH::Handle(Arc::Message* msg){
 }
 
 
-Arc::Plugin* DelegationSH::get_sechandler(Arc::PluginArgument* arg) {
+Arc::Plugin* DelegationCollector::get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg =
             arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
     if(!shcarg) return NULL;
-    return new DelegationSH((Arc::Config*)(*shcarg));
+    return new DelegationCollector((Arc::Config*)(*shcarg));
 }
 
 }
 
 //Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-//    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationSH::get_sechandler},
+//    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationCollector::get_sechandler},
 //    { NULL, NULL, 0, NULL }
 //};
 
