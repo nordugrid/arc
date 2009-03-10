@@ -10,6 +10,10 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
+
+#else // WIN32
+#include <arc/win32.h>
+#include <glibmm/miscutils.h>
 #endif
 
 #include <arc/StringConv.h>
@@ -146,21 +150,83 @@ int User::check_file_access(const std::string& path, int flags)
 #else
 
 // Win32 implementation
+
+static uid_t get_user_id(void) {
+  return 0; // TODO: The user id is not used on windows for file permissions etc.
+}
+
+static uid_t get_group_id(void) {
+  return 0; // TODO: The user id is not used on windows for file permissions etc.
+}
+
+void User::set(struct passwd *pwd_p)
+  {
+    if (pwd_p == NULL) return;
+    name = pwd_p->pw_name;
+    home = pwd_p->pw_dir;
+    uid  = pwd_p->pw_uid;
+    gid  = pwd_p->pw_gid;
+  }
+	
 User::User(void)
 {
-    // XXX NOP
+    int uid = get_user_id();
+    int gid = get_group_id();
+    bool found;
+
+    struct passwd pwd_p;
+    
+    std::string name = Glib::getenv("USERNAME", found);
+    if(!found) name = "";
+    std::string home = g_get_user_config_dir();
+
+    pwd_p.pw_name = strdup(name.c_str());
+    pwd_p.pw_uid = uid;
+    pwd_p.pw_gid = gid;
+    pwd_p.pw_dir = strdup(home.c_str());
+    
+    set(&pwd_p);
 }
 
 User::User(std::string name)
 {
-    // XXX NOP
+    this->name = name;
+    int uid = get_user_id();
+    int gid = get_group_id();
+    bool found;
+
+    struct passwd pwd_p;
+
+    std::string home = g_get_user_config_dir();
+
+    pwd_p.pw_name = strdup(name.c_str());
+    pwd_p.pw_uid = uid;
+    pwd_p.pw_gid = gid;
+    pwd_p.pw_dir = strdup(home.c_str());
+    
+    set(&pwd_p);
 }
 
 User::User(int uid)
 {
-    // XXX NOP
-}
+    this->uid = uid;
+    this->gid = 0;
 
+    bool found;
+
+    struct passwd pwd_p;
+    
+    std::string name = Glib::getenv("USERNAME", found);
+    if(!found) name = "";
+    std::string home = g_get_user_config_dir();
+
+    pwd_p.pw_name = strdup(name.c_str());
+    pwd_p.pw_uid = uid;
+    pwd_p.pw_gid = gid;
+    pwd_p.pw_dir = strdup(home.c_str());
+    
+    set(&pwd_p);
+}
 bool User::RunAs(std::string cmd)
 {
     // XXX NOP
