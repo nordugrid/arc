@@ -101,6 +101,7 @@ std::string Query( Arc::URL url, std::string query ){
     // Create and send Query request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
+    query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
     Arc::PayloadSOAP req(query_ns);
 
     Arc::XMLNode request = req.NewChild("Query");
@@ -179,6 +180,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     // Create and send Register request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
+    query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
     Arc::PayloadSOAP req(query_ns);
 
     Arc::XMLNode request = req.NewChild("Register");
@@ -274,6 +276,7 @@ std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceI
     // Create and send RemoveRegistration request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
+    query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
     Arc::PayloadSOAP req(query_ns);
 
     Arc::XMLNode request = req.NewChild("RemoveRegistrations");
@@ -351,6 +354,7 @@ std::vector<std::string> GetISISList( Arc::URL url ){
     // Create and send RemoveRegistration request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
+    query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
     Arc::PayloadSOAP req(query_ns);
 
     Arc::XMLNode request = req.NewChild("GetISISList");
