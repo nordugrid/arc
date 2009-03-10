@@ -52,6 +52,7 @@ static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "msg.validator.service", "HED:MCC", 0, &get_mcc_service },
+    { "msg.validator.client", "HED:MCC", 0, &get_mcc_service },
     { NULL, NULL, 0, NULL }
 };
 
