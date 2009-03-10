@@ -97,7 +97,7 @@ The ARC storage system is a distributed system for storing replicated \emph{file
 \label{sec:files_and_collections}
 
 The storage system is capable of storing files which can be grouped in collections and sub-collections, etc.
-Every file and collection has a unique ID in the sysem called the \emph{GUID}. Compared to the well-known structure of local file systems, these GUIDs are very similar to the concept of \emph{inode}s. And as a directory on a local filesystem is basically just a list of name and inode pairs, a collection on the ARC storage is just a list of name and GUID pairs. There is a dedicated collection which is the \emph{root collection}. This makes the namespace of the ARC storage system a hierarchical namespace where you can start at the root collection, and go to sub-collections and sub-sub-collections to get to a file. This path is called the \emph{Logical Name} (LN). For example if there is a sub-collection called \verb!saturn! in the root collection, and there is a file called \verb!rings! in this sub-collection, then the LN of this file is \verb!/saturn/rings!.
+Every file and collection has a unique ID in the system called the \emph{GUID}. Compared to the well-known structure of local file systems, these GUIDs are very similar to the concept of \emph{inode}s. And as a directory on a local filesystem is basically just a list of name and inode pairs, a collection on the ARC storage is just a list of name and GUID pairs. There is a dedicated collection which is the \emph{root collection}. This makes the namespace of the ARC storage system a hierarchical namespace where you can start at the root collection, and go to sub-collections and sub-sub-collections to get to a file. This path is called the \emph{Logical Name} (LN). For example if there is a sub-collection called \verb!saturn! in the root collection, and there is a file called \verb!rings! in this sub-collection, then the LN of this file is \verb!/saturn/rings!.
 
 Besides the Logical Names we can refer to a file or collection by simply its GUID, or we can use GUIDs and Logical Names together, as seen on Figure~\ref{fig:namespace}.
 
@@ -117,11 +117,11 @@ There is a dedicated root collection (which has the GUID \verb#0#), and if a LN 
 \section{Storage nodes and replicas} % (fold)
 \label{sec:storage_nodes_and_replicas}
 
-The collections in the ARC storage are logical entities, the content of a collection is stored as metadata of the collection, which means the a collection actually has no physical data. A file however has both metadata and real physicial data (the actual bytes of the file). The metadata of a file is stored in the same database where the collections are stored, but the physical data of a file is stored on storage nodes as multiple replicated copies.
+The collections in the ARC storage are logical entities, the content of a collection is stored as metadata of the collection, which means the a collection actually has no physical data. A file however has both metadata and real physical data (the actual bytes of the file). The metadata of a file is stored in the same database where the collections are stored, but the physical data of a file is stored on storage nodes as multiple replicated copies.
 
 A storage node consists of two things: a storage element service which is capable of storing and serving files through a specific protocol (e.g. a web server, an FTP server, a GridFTP server, etc.) and a Shepherd service which provides a simple interface to access the storage node, and which can initiate and manage file transfers through the storage element service. The Shepherd has different backends for the supported storage element services which made it possible the communicate with them.
 
-So we have logical files, which are part of the hierarchical namespace and have a GUID and other metadata, and a logical file has one or more physical replicas. The physical replicas stored on seperate storage nodes. In order to connect the logical file to its replicas, we need to have some pointers. Each storage node has a URL and each replica has a unique ID within the storage node called \emph{referenceID}, the URL and the referenceID together is called a \emph{Location}, a Location unambiguously points to one specific replica. So to connect the logical files to the physical ones, each logical file has a list of Locations.
+So we have logical files, which are part of the hierarchical namespace and have a GUID and other metadata, and a logical file has one or more physical replicas. The physical replicas stored on separate storage nodes. In order to connect the logical file to its replicas, we need to have some pointers. Each storage node has a URL and each replica has a unique ID within the storage node called \emph{referenceID}, the URL and the referenceID together is called a \emph{Location}, a Location unambiguously points to one specific replica. So to connect the logical files to the physical ones, each logical file has a list of Locations.
 
 The user can specify for each file how many replicas are needed. The ARC storage system periodically checks the number of replicas, and automatically creates new replicas if there are fewer then needed, and removes replicas if there are more. 
 
@@ -160,16 +160,16 @@ The files in the ARC storage system are usually replicated on different storage 
 \section{Security} % (fold)
 \label{sec:security}
 
-The ARC storage system consists of several services. Most of the services (A-Hash, Librarian, Shepherd) are `internal' services in a way that the end-user of the storage system never communicates with them directly. But these internal services are communicating with eachother, so they have to know who to trust. We call this aspect of the security architecture of the ARC storage `inter-service authorization'.
+The ARC storage system consists of several services. Most of the services (A-Hash, Librarian, Shepherd) are `internal' services in a way that the end-user of the storage system never communicates with them directly. But these internal services are communicating with each other, so they have to know who to trust. We call this aspect of the security architecture of the ARC storage `inter-service authorization'.
 
 The end users always connect to one of the Bartender services, which will decide if the user has permissions to do something or not. This is the `high-level authorization' part of the security architecture.
 
-For transfering the actual file data, the users have to connect to storage element services which are sitting on storage nodes. These services also have their own authentication and authorization methods. Managing these aspects is the `transfer-level authorization' part of the security architucture of the ARC storage.
+For transferring the actual file data, the users have to connect to storage element services which are sitting on storage nodes. These services also have their own authentication and authorization methods. Managing these aspects is the `transfer-level authorization' part of the security architecture of the ARC storage.
 
 \subsection{Inter-service authorization} % (fold)
 \label{sub:inter_service_authorization}
 
-In a deployment of the ARC storage system, we could have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communciate with the Librarians, the Librarians talk with the A-Hashes. If any of these services get compromised or a new rouge service gets inserted in the system, we loose security completely. That's why it is vital for each service to authorize the services before sending or accepting requests. The services commincates via HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and they can examine the other service's certificates. Because of these X.509 certificates each service has Distinguish Name (DN). We can use these DNs to exactly specify which services we trust. We can configure a list of trusted DNs into each service, or we can store this list on a remote location. The services will only accept connections if the DN of the other end is listed in this list of trusted DNs. However the Bartender services will accept any incoming connection, which are from the users, because the users are authenticated differently.
+In a deployment of the ARC storage system, we could have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communicate with the Librarians, the Librarians talk with the A-Hashes. If any of these services get compromised or a new rouge service gets inserted in the system, we loose security completely. That's why it is vital for each service to authorize the services before sending or accepting requests. The services communicates via HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and they can examine the other service's certificates. Because of these X.509 certificates each service has Distinguish Name (DN). We can use these DNs to exactly specify which services we trust. We can configure a list of trusted DNs into each service, or we can store this list on a remote location. The services will only accept connections if the DN of the other end is listed in this list of trusted DNs. However the Bartender services will accept any incoming connection, which are from the users, because the users are authenticated differently.
 
 % subsection inter_service_authorization (end)
 
@@ -202,7 +202,7 @@ These are the actions which can be used for access control:
     \item \emph{modifyMetadata}: user can modify the arbitrary metadata section of the file/collection (these are property-value pairs)
 \end{itemize}
 
-Additionaly, each file and collection has an `owner' which is a user who always can modify the access control rules.
+Additionally, each file and collection has an `owner' which is a user who always can modify the access control rules.
 
 % subsection high_level_authorization (end)
 
@@ -210,7 +210,7 @@ Additionaly, each file and collection has an `owner' which is a user who always 
 \subsection{Transfer-level authorization} % (fold)
 \label{sub:transfer_level_authorization}
 
-Currently the transfer-level authorization is kept very simple. When the Bartender decides that a user has permission to download a file, then the Bartender chooses a replica, and initiates the transfer. The result of this initiation is a URL which is colled the transfer URL (TURL). This TURL is unique for each request, even for request to the same replica, and this TURL is only valid for one download. Currently we configure the storage element services to not do any authorization, and we use these one-time URLs to ensure that only the authorized users can access the contents of the storage elements. 
+Currently the transfer-level authorization is kept very simple. When the Bartender decides that a user has permission to download a file, then the Bartender chooses a replica, and initiates the transfer. The result of this initiation is a URL which is called the transfer URL (TURL). This TURL is unique for each request, even for request to the same replica, and this TURL is only valid for one download. Currently we configure the storage element services to not do any authorization, and we use these one-time URLs to ensure that only the authorized users can access the contents of the storage elements. 
 
 % subsection transfer_level_authorization (end)
 
@@ -235,7 +235,7 @@ We want to list the contents of a collection, which has a Logical Name of \verb!
     \item The Bartender tries to get the metadata of the given LN by sending a `traverseLN' request to a Librarian.
     \item The Librarian service starts the traversing by asking an A-Hash service about the first part of the LN, which is the \verb!/! root collection. The A-Hash service only knows about GUIDs and not about LNs, but the GUID of the root collection is well-known, so the A-Hash can return the metadata of it which contains the list of files and sub-collections in the root collection.
     \item Hopefully the \verb!ourvo! collection can be found in the root collection, which means that new the Librarian knows its GUID, and can ask for its metadata from the A-Hash.
-    \item After the A-Hash returns the metadata of the \verb!/ourvo! collection, the Librarain finds the GUID of \verb!users! in it, then gets its metadata.
+    \item After the A-Hash returns the metadata of the \verb!/ourvo! collection, the Librarian finds the GUID of \verb!users! in it, then gets its metadata.
     \item The A-Hash returns the metadata of \verb!/ourvo/users! which contains the GUID of \verb!we!, so the Librarian can ask for its metadata.
     \item At last the A-Hash returns the metadata of \verb!/ourvo/users/we! to the Librarian, and the Librarian returns it to the Bartender. This metadata contains the list of entries within this collection, and it also contains the access policies for this collection.
     \item The Bartender first checks if based on our DN (or our VO membership) and the access policies of this collection do we have rights to get the contents of this collection or not. If we are approved, then because the `list' request should return additional metadata about each entry in the collection, the Bartender send a `get' message to a Librarian requesting metadata of all the entries in this collection.
@@ -346,7 +346,7 @@ We have a file on our local disk we want to upload to a collection called \verb#
 
 The services are written in Python and running in the HED\footnote{The ARC container - \url{https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf}} hosting environment. The HED itself is written in C++, but there are language bindings which allow us to write services in other languages, e.g.~in Python or Java. The source code of the storage services are in the NorduGrid Subversion repository\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}}.
 
-Because the next-generation information system of ARC is currently under development, we cannot use it to discover services, that's why currently the URLs of almost all the services are hardcoded in the configuration files of the service. There is one exception: the Shepherd services are reporting their URLs to the Librarians, so a Bartender always could get a very current list of alive Shepherd services.
+Because the next-generation information system of ARC is currently under development, we cannot use it to discover services, that's why currently the URLs of almost all the services are hard-coded in the configuration files of the service. There is one exception: the Shepherd services are reporting their URLs to the Librarians, so a Bartender always could get a very current list of alive Shepherd services.
 
 The HED also has a security framework which the Bartenders use the make access policy decision . The details of this is described in section X.
 
@@ -357,7 +357,7 @@ The HED also has a security framework which the Bartenders use the make access p
 
 The ARC storage system stores different kinds of metadata about files, collections, mount point, Shepherd services, etc. Each of these has a unique ID which we call `GUID'.
 
-The A-Hash services provide a functionality to store `objects', where each object has a unique ID, and contains property-value pairs organized in sections. The properties, the values and the section names too are simple character strings. The A-Hash services provide a simple interface to interact with these objects, e.g.~to do conditinal and atomic changes.
+The A-Hash services provide a functionality to store `objects', where each object has a unique ID, and contains property-value pairs organized in sections. The properties, the values and the section names too are simple character strings. The A-Hash services provide a simple interface to interact with these objects, e.g.~to do conditional and atomic changes.
 
 The Librarian services use the A-Hash services to store the metadata of all kinds, using the GUIDs as unique IDs. For this, we have to represent the metadata as property-value pairs organized in section. The files, the collections and the mount points have some common attributes: the GUID, the type and the owner which are in the \emph{entry} section; the creation and modification timestamps in the \emph{timestamps} section, a list of access control rules in the \emph{policy} section; the list of parent collections where this entry has a `hardlink'; and each entry could have arbitrary property-value pairs in the \emph{metadata} section.
 
@@ -366,7 +366,7 @@ The Librarian services use the A-Hash services to store the metadata of all kind
     \begin{itemize}
         \item \emph{type}: the type of the entry: `collection', `file' or `mountpoint'
         \item \emph{GUID}: the unique ID of the entry
-        \item \emph{owner}: the DN of the user how ownes this entry
+        \item \emph{owner}: the DN of the user how owns this entry
     \end{itemize}
     \item [timestamps] section 
     \begin{itemize}
@@ -375,7 +375,7 @@ The Librarian services use the A-Hash services to store the metadata of all kind
     \end{itemize}
     \item [policy] section 
     \begin{itemize}
-        \item \emph{(identity, action list) pairs}: a list of allowed and not allowed actions for different identites (users, VOs, etc.). 
+        \item \emph{(identity, action list) pairs}: a list of allowed and not allowed actions for different identities (users, VOs, etc.). 
     \end{itemize}
     \item [parents] section
     \begin{itemize}
@@ -390,7 +390,7 @@ The Librarian services use the A-Hash services to store the metadata of all kind
 \subsection{Files} % (fold)
 \label{sub:files}
 
-A file in the ARC storage has a logical entry in the namespace, and a couple of physical replicas on the storage nodes. We store the locations of the replicas in the \emph{location} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{thirdwheel}' (if the replica is marked for deletion because of too many replicas). We also store (in the \emph{states} section) the size of the file, the number of needed replicas, and a checksum of the file, which is created by some kind of checksuming algorithm (currently only md5 is supported).
+A file in the ARC storage has a logical entry in the namespace, and a couple of physical replicas on the storage nodes. We store the locations of the replicas in the \emph{location} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{thirdwheel}' (if the replica is marked for deletion because of too many replicas). We also store (in the \emph{states} section) the size of the file, the number of needed replicas, and a checksum of the file, which is created by some kind of checksumming algorithm (currently only md5 is supported).
 
 \begin{description}
     \item [locations] section 
@@ -416,7 +416,7 @@ A file in the ARC storage has a logical entry in the namespace, and a couple of 
 \subsection{Collections} % (fold)
 \label{sub:collections}
 
-A \emph{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-hierarchy. Each entry has a unique name within a collection and a GUID which points to corresponding file or collection, so a collection is basically a list of name-GUID pairs, which list is stored in the \emph{entries} section. The collections could be in a closed state, which means that its contents should not be changed. If you close a collection then it cannot be opened again. However it cannot be garanteed that the contents of a closed collection remains the same (e.g. if we include in our collection a file which we don't own, then the owner of the file could remove it nevertheless), but if a closed collection is changed, its state will be broken, and this state could never be changed again, which means you will always know if a closed collection is not intact anymore. This state is stored in the \emph{states} section, and its values could be `\textbf{no}' (if the collection is not closed), `\textbf{yes}' (if the collection is closed) and `\textbf{broken}' (if the collection was closed, but something happened, and its contents have been changed).
+A \emph{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-hierarchy. Each entry has a unique name within a collection and a GUID which points to corresponding file or collection, so a collection is basically a list of name-GUID pairs, which list is stored in the \emph{entries} section. The collections could be in a closed state, which means that its contents should not be changed. If you close a collection then it cannot be opened again. However it cannot be guaranteed that the contents of a closed collection remains the same (e.g. if we include in our collection a file which we don't own, then the owner of the file could remove it nevertheless), but if a closed collection is changed, its state will be broken, and this state could never be changed again, which means you will always know if a closed collection is not intact anymore. This state is stored in the \emph{states} section, and its values could be `\textbf{no}' (if the collection is not closed), `\textbf{yes}' (if the collection is closed) and `\textbf{broken}' (if the collection was closed, but something happened, and its contents have been changed).
 
 \begin{description}
     \item [entries] section 
@@ -530,7 +530,7 @@ Because of the heavy use of X509 certificates, of course, all the services shoul
     </ClientSSLConfig>
 \end{verbatim}
 
-This can be put in a seperate file, and then use the \textbf{FromFile} attribute of the ClientSSLConfig section to specify where the file is.
+This can be put in a separate file, and then use the \textbf{FromFile} attribute of the ClientSSLConfig section to specify where the file is.
 
 % section security_implementation (end)
 
@@ -577,9 +577,16 @@ The A-Hash service has a modular architecture which means that you can decide if
 The replicated A-Hash module is built on Oracle Berkeley DB High Availability, an open source database library with a replication API. The replication is based on a single master, multiple clients framework where all clients can read from the database, while only the master is allowed to write to the database. This ensures that all database transactions are ACID (atomic, consistent, isolated and durable). The replicated A-Hash module consists of three modules, \verb!ReplicatedAHash!, \verb!ReplicationStore! and \verb!ReplicationManager!.
 
 \begin{description}
-    \item[ReplicatedAHash] TODO: describe ReplicatedAHash, sendMessage, processMessage
-    \item[ReplicationStore] TODO: describe ReplicationStore, connection with TransDBStore, config, etc.
-    \item[ReplicationManager] TODO: describe ReplicationManager, elections, communication (interservice communication, security, callback functions)
+    \item[ReplicatedAHash] %TODO: describe ReplicatedAHash, sendMessage, processMessage
+	is a subclass of the \verb!CentralizedAHash! business logic class and implements the extra logic needed for communication between A-Hash instances. The \verb!ReplicatedAHash! adds the method \verb!sendMessage! to the A-Hash interface and has a method \verb!processMessage! for processing messages from \verb!sendMessage!. These two methods are needed for the communication framework of the \verb!ReplicationManager!. The actual replication is managed by the \verb!ReplicationStore! and \verb!ReplicationManager!, meaning that the \verb!ReplicatedAHash!, with the exception of the above mentioned methods, is actually just a centralized A-Hash with a specific storage module.
+    \item[ReplicationStore] %TODO: describe ReplicationStore, connection with TransDBStore, config, etc.
+	is a specialized replicated DB. It is a subclass of \verb!TransDBStore!\footnote{A module for storing data on disk transactionally using the Berkeley DB library.} with some additional features for handling replication. The \verb!ReplicationStore! periodically updates an A-Hash object containing information about the current master A-Hash and available clients. In addition it contains a \verb!ReplicationManager! object which governs the replication framework.
+    \item[ReplicationManager] %TODO: describe ReplicationManager, elections, communication (interservice communication, security, callback functions)
+	handles all aspects of the Berkeley DB API and takes care of replicas, elections and replication messages.
+	\begin{itemize}
+	\item The replicated A-Hash consists of a set of replicas; one master and multiple clients. This means that the entire database is fully replicated on all replicas. When the master receives a write message, it will broadcast this message to all clients. To make sure that the db is consistent and that there will always be possible to elect a master, the master requires an acknowledgement message from a quorum of clients before continuing.
+	\item In the replicated A-Hash there is one master and multiple clients. When the A-Hash starts up or if a master goes offline, we need to find a new master. This is solved by the clients holding an election, according to the Paxos algorithm. Simply told, all clients sends a vote to all other clients, and the eligible client that gets the most votes wins the election. An eligible client is a client which has received the latest updates. (See the Berkeley DB documentation for more details.) There are cases where some servers are more suitable to be master than others (better hardware, faster Ethernet, etc.). In such cases you can influence the election by setting a higher priority on the best servers. While an election is being held, it is not possible to write or read from the A-Hash, as consistency cannot be guaranteed without a master.
+	\item As the replicas in the replicated A-Hash are services running within HED, the replication messages needs to be sent through the communication framework of HED. To be able to use this framework, the Berkeley DB needs a callback function for sending messages and the \verb!ReplicationManager! needs to call Berkeley DB to process incoming messages. The \verb!ReplicationMessage! takes a send function as one of the initialization arguments, and calls this function in the callback method. By providing the \verb!ReplicatedAHash.sendMessage! to the \verb!ReplicationManager! messages will be sent through the HED communication services just as in regular inter service communication. When \verb!ReplicatedAHash! receives a replication message from \verb!sendMessage! it will call \verb!ReplicationManager.processMessage! which in turn will call the Berkeley DB processMessage. This communication framework is both used by Berkeley DB and directly by the \verb!ReplicationManager! for, e.g., bootstrapping the A-Hash replicas and to communicate newly discovered clients.
 \end{description}
 
 % subsection implementation (end)
@@ -591,7 +598,7 @@ The A-Hash has the following configuration variables:
 
 \begin{description}
     \item[AHashClass] tells the A-Hash service the name of the business-logic A-Hash class. Currently there are two implementation, the \verb!CentralAHash! is a centralized version, and the \verb!ReplicatedAHash! is a replicated version.
-    \item[StoreClass] specifies the name of the store class. This class is used to store the data on disk. Currently there are several versions (\verb!PickelStore!, \verb!CachedPickleStore!, \verb!StringStore!, \verb!ZODBStore!, \verb!TransDBStore!), however only the \verb!TransDBStore! is suitable for using in a replicated deployemant, all the others are only for a centralized deployement. This variable is only configurable for the centralized deployement.
+    \item[StoreClass] specifies the name of the store class. This class is used to store the data on disk. Currently there are several versions (\verb!PickelStore!, \verb!CachedPickleStore!, \verb!StringStore!, \verb!ZODBStore!, \verb!TransDBStore!), however only the \verb!TransDBStore! is suitable for using in a replicated deployment, all the others are only for a centralized deployement. This variable is only configurable for the centralized deployement.
     \item[StoreCfg] could contain some parameters for the different store classes, and it almost always contains a \emph{DataDir} parameter which specifies a directory on the (local) filesystem where the A-Hash should save its files. This variable is only configurable for the centralized deployement.
 \end{description}
 
@@ -959,7 +966,7 @@ The high-level authorization is done by the Bartender. It makes decisions based 
     
     The response is a list of (\emph{requestID}, \emph{status}), where status could be `\textbf{moved}', `\textbf{nosuchLN}', `\textbf{targetexists}', `\textbf{invalidtarget}', `\textbf{failed adding child to parent}', `\textbf{failed removing child from parent}'.
     
-    \item[modify(modifyRequestList)] modifies the metadata of files, collections and mount poins. Only the `states', the `policy' and the `metadata' sections can be modified, and there are seperate access control actions for the three.
+    \item[modify(modifyRequestList)] modifies the metadata of files, collections and mount poins. Only the `states', the `policy' and the `metadata' sections can be modified, and there are separate access control actions for the three.
     
     The \emph{modifyRequestList} is a list of (\emph{changeID}, \emph{LN}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the \emph{property} in the \emph{section} to \emph{value}), `\textbf{unset}' (remove the \emph{property}-\emph{value} pair from the \emph{section}), `\textbf{add}' (set the \emph{property} in the \emph{section} to \emph{value} only if it is not exists already). 
 
