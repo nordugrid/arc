@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <sstream>
 
 #include <arc/message/MCCLoader.h>
 #include <arc/infosys/RegisteredService.h>
