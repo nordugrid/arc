@@ -260,6 +260,8 @@ sub get_gmjobs_info($) {
         }
         my @local_allines = <GMJOB_LOCAL>;
 
+        $gmjobs{$ID}{activityid} = [];
+
         # parse the content of the job.ID.local into the %gmjobs hash
         foreach my $line (@local_allines) {
 	    if ($line=~m/^(\w+)=(.+)$/) {

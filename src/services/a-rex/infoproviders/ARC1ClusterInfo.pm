@@ -165,9 +165,13 @@ sub _collect($$) {
         }
 
         my $share = $job->{share} ||= '';
-        # A share which is not defined in the configuration is invalid
-        $share = '' unless exists $config->{shares}{$share};
-        $job->{share} = $share;
+
+        # Group jobs not belonging to any known share
+        # into a catch-all share named ''
+        unless (exists $config->{shares}{$share}) {
+            $log->warning("Job $jobid belongs to an invalid share");
+            $share = $job->{share} = '';
+        }
 
         my $gmstatus = $job->{status};
 
@@ -281,11 +285,7 @@ sub _collect($$) {
     for my $jobid (keys %$gmjobs_info) {
         my $share = $gmjobs_info->{$jobid}{share};
         my $gridid = "https://$arexhostport/arex/$jobid";
-        if ($cshaLIDs{$share}) {
-            $cactIDs{$share}{$jobid} = $gridid;
-        } else {
-            $log->warning("Job $jobid belongs to invalid share ($share)");
-        }
+        $cactIDs{$share}{$jobid} = $gridid;
     }
 
     my $csv = {};
@@ -782,11 +782,8 @@ sub _collect($$) {
         # TODO: add link
         $cact->{Associations}{ExecutionEnvironmentID} = [];
         $cact->{Associations}{ComputingEndpointID} = [ $cepID ];
-        
         $cact->{Associations}{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
-
-        my $shareid = $cshaLIDs{$share} || '';
-        $cact->{Associations}{ComputingShareLocalID} = [ $shareid ] if $shareid;
+        $cact->{Associations}{ComputingShareLocalID} = [ $cshaLIDs{$share} || 'UNDEFINEDVALUE' ];
 
         if ( $gmjob->{status} eq "INLRMS" ) {
             my $lrmsid = $gmjob->{localid};

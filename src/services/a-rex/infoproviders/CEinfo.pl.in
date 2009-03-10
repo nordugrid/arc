@@ -122,7 +122,7 @@ sub main {
 	# There must be at least one share section that references this queue.
 	# If there isn't one, create a new share section.
         unless (grep { $qname eq $_->{qname} } values %{$config{shares}}) {
-            $log->info("Adding implicit share for LRMS queue $qname");
+            $log->info("Adding implicit share for queue '$qname'");
             my $sname = $qname;
             $config{shares}{$sname} = { qname => $qname };
         }
