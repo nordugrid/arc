@@ -181,6 +181,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
     query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
+    query_ns["wsa"] = "http://www.w3.org/2005/08/addressing";
     Arc::PayloadSOAP req(query_ns);
 
     Arc::XMLNode request = req.NewChild("Register");
@@ -192,20 +193,26 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     tm * ptm;
     ptm = gmtime ( &rawtime );
 
+    std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+    std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+    std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+    std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+    std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
     std::stringstream out;
-    out << ptm->tm_year+1900<<"-"<< ptm->tm_mon+1<<"-"<< ptm->tm_mday<<"T"<< ptm->tm_hour<<":"<< ptm->tm_min<<":"<< ptm->tm_sec;
+    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
     request["Header"].NewChild("MessageGenerationTime") = out.str();
 
     for (int i=0; i < serviceID.size(); i++){
         Arc::XMLNode srcAdv = request.NewChild("RegEntry").NewChild("SrcAdv");
         srcAdv.NewChild("Type") = "org.nordugrid.test.testISISclient";
-        srcAdv.NewChild("EPR") = epr[i];
+        Arc::XMLNode epr = srcAdv.NewChild("EPR");
+        epr.NewChild("wsa:Address") = epr[i];
         //srcAdv.NewChild("SSPair");
 
         Arc::XMLNode metaSrcAdv = request["RegEntry"][i].NewChild("MetaSrcAdv");
         metaSrcAdv.NewChild("ServiceID") = serviceID[i];
         metaSrcAdv.NewChild("GenTime") = out.str();
-        metaSrcAdv.NewChild("Expiration") = "1";
+        metaSrcAdv.NewChild("Expiration") = "P30M";
     }
     Arc::Message reqmsg;
     Arc::Message repmsg;
