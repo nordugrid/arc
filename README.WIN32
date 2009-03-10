@@ -55,6 +55,9 @@ Building ARC on Windows system using MinGW
 - After all installs are completed reopen MSYS shell to make it 
   acquire new environment variables.
   
+- Set the following PATH variable to point to where the libraries for regular expressions have been installed; e.g.:
+  - export ARC_WIN_REGEX_LIBS_PATH=/usr/local/lib
+
 - If You have other GNU/POSIX-like environments it could be a good idea to adjust PATH 
   variable to make sure there are no conflicting utilities picked.
 
