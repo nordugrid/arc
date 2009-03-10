@@ -995,17 +995,11 @@ WIN32=""
 case "${host}" in
   *-*-mingw32)
     WIN32="yes"
-    REGEX_LIBS="-lgnurx"
-    SOCKET_LIBS="-L${PWD}/mingwlib -lws2_32"
-    EXTRA_LIBS="-L${PWD}/mingwlib -lole32"
+    REGEX_LIBS="-L$ARC_WIN_REGEX_LIBS_PATH -lgnurx -lregex"
+    SOCKET_LIBS="-lws2_32"
+    EXTRA_LIBS="-lole32"
     # its required to libtool generate .dlls on win32 using mingw
     LDFLAGS="$LDFLAGS -no-undefined"
-    # libtool hack. libtool which comes with mingw does not 
-    # recognize {name}.dll libraries - it always reqires lib prefix.
-    rm -rf ${PWD}/mingwlib
-    mkdir -p ${PWD}/mingwlib
-    cp ${SYSTEMROOT}/system32/ole32.dll ${PWD}/mingwlib/libole32.dll
-    cp ${SYSTEMROOT}/system32/ws2_32.dll ${PWD}/mingwlib/libws2_32.dll
     AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
     ;;
   *solaris*)
