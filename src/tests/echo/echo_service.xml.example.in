@@ -56,6 +56,9 @@
     <Service name="echo" id="echo">
       <echo:prefix>[ </echo:prefix>
       <echo:suffix> ]</echo:suffix>
+      <echo:serviceid>echo_service_id</echo:serviceid>
+      <echo:endpoint>127.0.0.1</echo:endpoint>
+      <echo:expiration>P15M</echo:expiration>
     </Service>
   </Chain>
 </ArcConfig>
