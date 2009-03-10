@@ -545,9 +545,12 @@ XMLNodeList XMLNode::Path(const std::string& path) const {
     std::string node_name = path.substr(name_s,name_e-name_s);
     int nodes_num = res.size();
     for(int n=0;n<nodes_num;++n) {
-      XMLNode cnode = (*node)[node_name];
-      for(;(bool)cnode;++cnode) {
-        res.push_back(cnode);
+      for(int cn = 0;;++cn) {
+        XMLNode cnode = (*node).Child(cn);
+        if(!cnode) break;
+        if(MatchXMLName(cnode,node_name)) {
+          res.push_back(cnode);
+        };
       };
       ++node;
     };
