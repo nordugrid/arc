@@ -14,7 +14,7 @@ libarcdata2_la_SOURCES  = DMC.cpp DMCLoader.cpp DataPoint.cpp DataPointDirect.cp
                           DataPointIndex.cpp DataBuffer.cpp CheckSum.cpp DataSpeed.cpp \
                           DataMover.cpp URLMap.cpp DataStatus.cpp \
                           MkDirRecursive.cpp FileCache.cpp FileCacheHash.cpp
-libarcdata2_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libarcdata2_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/credential/libarccredential.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(GLIBMM_LIBS) $(OPENSSL_LIBS)
+libarcdata2_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(GTHREAD_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
+libarcdata2_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/credential/libarccredential.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) $(OPENSSL_LIBS)
 
 man_MANS = cache-clean.1 cache-list.1
