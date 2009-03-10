@@ -126,7 +126,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
       if(delegation_role_ == delegation_service) {
         //Try to get the delegation service and delegation ID
         //information from incoming message
-        logger.msg(Arc::INFO,"+++++++++ Delegation handler with service role starts to process +++++++++");
+        logger.msg(Arc::INFO,"Delegation handler with service role starts to process");
         std::string method = (*msg).Attributes()->get("HTTP:METHOD");
         if(method == "POST") {
           logger.msg(Arc::DEBUG, "process: POST");
@@ -177,7 +177,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
             //used by the client functionality in this service (intemidiate 
             //service) to contact the next service. 
             std::string deleg_cred_path="/tmp/";
-            char text[8];
+            char text[20];
             sprintf(text, "%08lx", hash_value);
             deleg_cred_path.append(text).append(".pem");
             logger.msg(INFO,"Delegated credential identity: %s",cred_identity.c_str());
@@ -198,7 +198,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
             return false;
           }
         };
-        logger.msg(Arc::INFO,"+++++++++ Delegation handler with service role ends +++++++++");
+        logger.msg(Arc::INFO,"Delegation handler with service role ends");
         return true;
       }
       else if(delegation_role_ == delegation_client) {
@@ -230,12 +230,12 @@ bool DelegationSH::Handle(Arc::Message* msg){
         //Credential delegation will only be triggered once for each connection
         if(deleg_ctx->have_delegated_) return true;
 
-        logger.msg(Arc::INFO,"+++++++++ Delegation handler with client role starts to process +++++++++");
+        logger.msg(Arc::INFO,"Delegation handler with client role starts to process");
         std::string proxy_path;
         if(!delegation_cred_identity_.empty()) {
           unsigned long hash_value = string_hash(delegation_cred_identity_);
           proxy_path="/tmp/";
-          char text[8];
+          char text[20];
           sprintf(text, "%08lx", hash_value);
           proxy_path.append(text).append(".pem");
           logger.msg(INFO,"Delegated credential identity: %s",delegation_cred_identity_.c_str());
@@ -310,7 +310,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
         deleg_ctx->have_delegated_=true;      
 
         logger.msg(Arc::INFO, "Succeeded to send DelegationService: %s and DelegationID: %s info to peer service",ds_endpoint_.c_str(),delegation_id.c_str());
-        logger.msg(Arc::INFO,"+++++++++ Delegation handler with service role ends +++++++++");
+        logger.msg(Arc::INFO,"Delegation handler with service role ends");
         return true;     
       }
 
