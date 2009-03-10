@@ -29,6 +29,9 @@ class Service_Echo: public Arc::RegisteredService
     protected:
         std::string prefix_;
         std::string suffix_;
+        std::string serviceid_;
+        std::string endpoint_;
+        std::string expiration_;
         std::string policylocation_;
         Arc::NS ns_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg,const std::string& txtmsg = "");
@@ -40,6 +43,8 @@ class Service_Echo: public Arc::RegisteredService
         virtual ~Service_Echo(void);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&);
+
+        bool RegistrationCollector(Arc::XMLNode &doc);
 };
 
 } // namespace Echo
