@@ -57,13 +57,15 @@ int main(void) {
         <SecHandler name='delegation.handler' id='delegation' event='outgoing'>\
           <Type>x509</Type>\
           <Role>client</Role>\
-          <DelegationServiceEndpoint>https://glueball.uio.no:60000/delegation</DelegationServiceEndpoint>\
+          <!--DelegationServiceEndpoint>https://glueball.uio.no:60000/delegation</DelegationServiceEndpoint-->\
+          <DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</DelegationServiceEndpoint>\
           <PeerServiceEndpoint>https://127.0.0.1:60000/echo</PeerServiceEndpoint>\
-          <!--KeyPath>../echo/testkey-nopass.pem</KeyPath>\
-          <CertificatePath>../echo/testcert.pem</CertificatePath-->\
+          <KeyPath>../echo/testkey-nopass.pem</KeyPath>\
+          <CertificatePath>../echo/testcert.pem</CertificatePath>\
           <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\
-          <DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity>\
-          <CACertificatePath>../echo/cacert.pem</CACertificatePath>\
+          <!--DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity-->\
+          <!--CACertificatePath>../echo/cacert.pem</CACertificatePath-->\
+          <CACertificatesDir>../echo/certificates</CACertificatesDir>\
         </SecHandler>\
       </Component>\
      </Chain>\
@@ -117,7 +119,7 @@ int main(void) {
   reqmsg.Context(&context);
   repmsg.Attributes(&attributes_rep);
   repmsg.Context(&context);
-  for(int i=0; i<2; i++) {
+//  for(int i=0; i<1; i++) {
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
@@ -141,6 +143,6 @@ int main(void) {
     std::cout << "XML: "<< xml << std::endl;
     std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
     if(resp) delete resp;
-  }    
+//  }    
   return 0;
 }

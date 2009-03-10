@@ -7,6 +7,10 @@
   xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
   xmlns:echo="urn:echo_config"
 >
+    <Server>
+      <Pidfile>/var/run/arched.pid</Pidfile>
+      <Logger level="INFO">./arched.log</Logger>
+    </Server>
 
     <ModuleManager>
         <Path>../../hed/mcc/http/.libs/</Path>
@@ -33,7 +37,7 @@
             <next id="http"/>
 	    <tls:KeyPath>../echo/testkey-nopass.pem</tls:KeyPath>
 	    <tls:CertificatePath>../echo/testcert.pem</tls:CertificatePath>
-	    <tls:CACertificatePath>../echo/cacert.pem</tls:CACertificatePath>
+	    <tls:CACertificatesDir>../echo/certificates</tls:CACertificatesDir>
             <!--delegation.collector must be inside tls MCC-->
             <!--SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler-->
 	</Component>
@@ -57,7 +61,7 @@
               <deleg:DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</deleg:DelegationServiceEndpoint>
               <deleg:KeyPath>../echo/testkey-nopass.pem</deleg:KeyPath>
               <deleg:CertificatePath>../echo/testcert.pem</deleg:CertificatePath>
-              <deleg:CACertificatePath>../echo/cacert.pem</deleg:CACertificatePath>
+              <deleg:CACertificatesDir>../echo/certificates</deleg:CACertificatesDir>
             </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
