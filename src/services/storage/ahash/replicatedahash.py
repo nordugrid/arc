@@ -27,7 +27,7 @@ import time
 import threading
 import copy
 import base64
-
+import sys
 from arcom import get_child_values_by_name
 from arcom.threadpool import ThreadPool, ReadWriteLock
 from arcom.service import ahash_uri, node_to_data, get_child_nodes, parse_node, get_data_node
@@ -57,12 +57,12 @@ class ReplicatedAHash(CentralAHash):
         self.store = None
         CentralAHash.__init__(self, cfg)
         self.ahashes = {}
-        self.store = ReplicationStore(cfg, self.sendMsg)
-        self.public_request_names = ['processMsg']
+        self.store = ReplicationStore(cfg, self.sendMessage)
+        self.public_request_names = ['processMessage']
         # notify replication manager that communication is ready
         self.store.repmgr.comm_ready = True
 
-    def sendMsg(self, url, repmsg):
+    def sendMessage(self, url, repmsg):
         """
         Function used for callbacks from the communication framework
         of the replication manager
@@ -74,7 +74,7 @@ class ReplicatedAHash(CentralAHash):
         ahash = self.ahashes[url]
         repmsg = base64.encodestring(str(repmsg))
         tree = XMLTree(from_tree = 
-                       ('ahash:processMsg', [
+                       ('ahash:processMessage', [
                            ('ahash:msg', repmsg)
                            ]))
         log.msg(arc.DEBUG, "sending message of length %d to %s"%(len(repmsg),url))
@@ -87,7 +87,7 @@ class ReplicatedAHash(CentralAHash):
     def newSOAPPayload(self):
         return arc.PayloadSOAP(self.ns)
 
-    def processMsg(self, inpayload):
+    def processMessage(self, inpayload):
         """
         processing ahash replication message
         """
@@ -102,7 +102,7 @@ class ReplicatedAHash(CentralAHash):
         sender = msg['sender']
         msgID = msg['msgID']
 
-        resp = self.store.repmgr.processMsg(control, record, eid, retlsn, 
+        resp = self.store.repmgr.processMessage(control, record, eid, retlsn, 
                                             sender, msgID)
         # prepare the response payload
         out = self.newSOAPPayload()
@@ -124,7 +124,7 @@ class ReplicationStore(TransDBStore):
                  non_existent_object = {}):
         """ Constructor of ReplicationStore.
 
-        RepDBStore(cfg, sendMsg, processMsg)
+        RepDBStore(cfg, sendMessage, processMessage)
 
         """
         
@@ -223,10 +223,10 @@ class ReplicationStore(TransDBStore):
         except:
             log.msg(arc.WARNING, "Bad cache size or no cache size configured, using 10MB")
             self.cachesize = 10*(1024**2)
-        self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_ONE_PEER)
+        self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_QUORUM)
         self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 500000)
         self.dbenv.rep_set_priority(self.priority)
-        #self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
+        self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
 
     def getDBFlags(self):
             # only master can create db
@@ -549,12 +549,12 @@ class ReplicationManager:
         log.msg(arc.DEBUG, "entering sendNewMasterMsg")
         return self.send(None, None, None, None, eid, None, MASTER_MESSAGE)
     
-    def processMsg(self, control, record, eid, retlsn, sender, msgID):
+    def processMessage(self, control, record, eid, retlsn, sender, msgID):
         """
         Function to process incoming messages, forwarding 
         them to self.dbenv.rep_process_message()
         """
-        log.msg(arc.DEBUG, ("entering processMsg from ", sender))
+        log.msg(arc.DEBUG, ("entering processMessage from ", sender))
 
         self.locker.acquire_read()
         urls = [rep['url'] for id,rep in self.hostMap.items() if rep['status']=='online']
@@ -701,5 +701,7 @@ class ReplicationManager:
             elif which == db.DB_EVENT_PANIC:
                 log.msg(arc.ERROR, "Oops! Internal DB panic!")
                 raise db.DBRunRecoveryError, "Please run recovery."
+        except db.DBRunRecoveryError:
+            sys.exit(1)      
         except:
             log.msg()
