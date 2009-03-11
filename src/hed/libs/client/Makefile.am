@@ -26,7 +26,7 @@ libarcclient_la_SOURCES  = ACC.cpp ACCLoader.cpp Broker.cpp ExecutionTarget.cpp 
 	ClientInterface.cpp $(SOURCE_WITH_XMLSEC) ClientX509Delegation.cpp UserConfig.cpp \
 	Sandbox.cpp RSLParser.h
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
+	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
@@ -35,7 +35,7 @@ libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
 	$(top_srcdir)/src/hed/libs/job/libarcjob.la \
     $(top_srcdir)/src/hed/libs/ws-addressing/libwsaddressing.la \
-	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
+	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS)
 
 test_jobdescription_SOURCES  = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
