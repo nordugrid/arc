@@ -34,7 +34,8 @@ static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
 // This callback implements additional verification
 // algorithms not present in OpenSSL
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
-#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
+/*
+#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
   unsigned long flag = get_flag_STORE_CTX(sctx);
   if(!(flag & FLAG_CRL_DISABLED)) {
     // Not sure if this will work
@@ -50,6 +51,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     };
   };
 #endif
+*/
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
     switch(err) {
