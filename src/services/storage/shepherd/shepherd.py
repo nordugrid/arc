@@ -6,7 +6,7 @@ import threading
 import random
 
 import arc
-from arcom import get_child_nodes
+from arcom import get_child_nodes, get_child_values_by_name
 from arcom import import_class_from_string
 from arcom.security import parse_ssl_config
 from arcom.service import shepherd_uri, true, parse_node, create_response
