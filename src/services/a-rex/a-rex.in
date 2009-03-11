@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Init file for the NorduGrid grid-manager
+# Init file for the A-REX service
 #
 # chkconfig: - 55 25
 # description: NorduGrid grid-manager
@@ -9,7 +9,17 @@
 # config: /etc/sysconfig/nordugrid
 # config: @arc_location@/etc/arc.conf
 # config: /etc/arc.conf
-
+#
+#  This startup script takes ARC0 configuration file as
+# its input and generates ARC1 arched configuration file
+# which contains commands to start A-REX service. Service
+# is either run isolated or with WS interface enabled.
+#  To enable WS interface ARC0 configuration file must 
+# contain undocumented option in [grid-manager] section:
+#
+#    arex_mount_point="a_rex_url"
+#  
+#
 # source function library
 if [ -f @initddir@/functions ]; then
   . @initddir@/functions
