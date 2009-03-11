@@ -17,8 +17,7 @@ namespace Arc {
     // When the node has "isoptional" attribute and it is "true", then add this node name to
     // the list of OptionalElement.  
     void Optional_attribute_check(Arc::XMLNode node, std::string path, Arc::JobInnerRepresentation& innerRepresentation, Arc::OptionalElementType& optional_element, std::string value=""){
-         StringManipulator sm;
-         if (node.AttributesSize() > 0 &&  sm.toLowerCase((std::string)node.Attribute("isoptional")) == "true"){
+         if (node.AttributesSize() > 0 && lower((std::string)node.Attribute("isoptional")) == "true"){
             optional_element.Name = node.Name();
             optional_element.Path = path;
             optional_element.Value = value;
@@ -156,7 +155,8 @@ namespace Arc {
         if ( bool(application) && (std::string)(application) != "" ){
            Optional_attribute_check(application,"//JobDescription/Application/Prologue", innerRepresentation,optional);
            std::string source_prologue = (std::string)(application);
-           std::vector<std::string> parts = sm.split( source_prologue, " " );
+           std::vector<std::string> parts;
+           tokenize(source_prologue, parts);
            if ( !parts.empty() ) {
               Arc::XLogueType _prologue;
               _prologue.Name = parts[0];
@@ -172,7 +172,8 @@ namespace Arc {
         if ( bool(application) && (std::string)(application) != "" ){
            Optional_attribute_check(application, "//JobDescription/Application/Epilogue", innerRepresentation,optional);
            std::string source_epilogue = (std::string)(application);
-           std::vector<std::string> parts = sm.split( source_epilogue, " " );
+           std::vector<std::string> parts;
+           tokenize(source_epilogue, parts);
            if ( !parts.empty() ) {
               Arc::XLogueType _epilogue;
               _epilogue.Name = parts[0];

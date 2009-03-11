@@ -12,7 +12,6 @@ namespace Arc {
 
     class JDLParser : public  JobDescriptionParser {
         private:
-            StringManipulator sm;
             bool splitJDL(std::string original_string, std::vector<std::string>& lines) const;
             bool handleJDLattribute( std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation ) const;
             std::string simpleJDLvalue( std::string attributeValue ) const;

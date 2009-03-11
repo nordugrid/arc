@@ -3,28 +3,18 @@
 
 #include <string>
 #include <vector>
-#include <sstream>
-#include <time.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/client/JobInnerRepresentation.h>
 #include <arc/Logger.h>
 
-#include "PosixJSDLParser.h"
-#include "JSDLParser.h"
-#include "JDLParser.h"
-#include "XRSLParser.h"
-
-
 namespace Arc {
 
     class JobDescription {
         private:
-            Arc::StringManipulator sm;
             Arc::XMLNode jobTree;
             std::string sourceString;
             std::string sourceFormat;
-            JobDescriptionOrderer jdOrderer;
             Arc::JobInnerRepresentation* innerRepresentation;
             void resetJobTree();
         public:

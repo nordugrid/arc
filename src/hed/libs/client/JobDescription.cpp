@@ -13,6 +13,10 @@
 
 #include "JobDescription.h"
 
+#include "XRSLParser.h"
+#include "JSDLParser.h"
+#include "PosixJSDLParser.h"
+#include "JDLParser.h"
 
 namespace Arc {
 
@@ -56,23 +60,24 @@ namespace Arc {
            return false;
         }
 
+        JobDescriptionOrderer jdOrderer;
         jdOrderer.setSource( sourceString );
         std::vector<Candidate> candidates = jdOrderer.getCandidateList();
 
         // Try to parse the input string in the right order until it once success
         // (If not then just reset the jobTree variable and see the next one)
         for (std::vector<Candidate>::const_iterator it = candidates.begin(); it < candidates.end(); it++) {
-            if ( sm.toLowerCase( (*it).typeName ) == "xrsl" ) {
+            if ( lower( (*it).typeName ) == "xrsl" ) {
                 JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as XRSL");
                 XRSLParser parser;
-                std::string parse_sourceString = sm.trim(sourceString);
+                std::string parse_sourceString = trim(sourceString);
                 if ( parser.parse( *innerRepresentation, parse_sourceString ) ) {
                     sourceFormat = "xrsl";
                     break;
                 }
                 //else
                 resetJobTree();
-            } else if ( sm.toLowerCase( (*it).typeName ) == "posixjsdl" ) {
+            } else if ( lower( (*it).typeName ) == "posixjsdl" ) {
                 JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as POSIX JSDL");
                 PosixJSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
@@ -81,7 +86,7 @@ namespace Arc {
                 }
                 //else
                 resetJobTree();
-            } else if ( sm.toLowerCase( (*it).typeName ) == "jsdl" ) {
+            } else if ( lower( (*it).typeName ) == "jsdl" ) {
                 JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JSDL");
                 JSDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
@@ -90,7 +95,7 @@ namespace Arc {
                 }
                 //else
                 resetJobTree();
-            } else if ( sm.toLowerCase( (*it).typeName ) == "jdl" ) {
+            } else if ( lower( (*it).typeName ) == "jdl" ) {
                 JobDescription::logger.msg(DEBUG, "[JobDescription] Try to parse as JDL");
                 JDLParser parser;
                 if ( parser.parse( *innerRepresentation, sourceString ) ) {
@@ -135,7 +140,7 @@ namespace Arc {
             return false;
         }
 
-        if ( sm.toLowerCase( format ) == "jdl" ) {
+        if ( lower( format ) == "jdl" ) {
             JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JDL output");
             JDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
@@ -143,7 +148,7 @@ namespace Arc {
                 return false;
             }
             return true;
-        } else if ( sm.toLowerCase( format ) == "xrsl" ) {
+        } else if ( lower( format ) == "xrsl" ) {
             JobDescription::logger.msg(DEBUG, "[JobDescription] Generate XRSL output");
             XRSLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
@@ -151,7 +156,7 @@ namespace Arc {
                 return false;
             }
             return true;
-        } else if ( sm.toLowerCase( format ) == "posixjsdl" ) {
+        } else if ( lower( format ) == "posixjsdl" ) {
             JobDescription::logger.msg(DEBUG, "[JobDescription] Generate POSIX JSDL output");
             PosixJSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {
@@ -159,7 +164,7 @@ namespace Arc {
                 return false;
             }
             return true;
-        } else if ( sm.toLowerCase( format ) == "jsdl" ) {
+        } else if ( lower( format ) == "jsdl" ) {
             JobDescription::logger.msg(DEBUG, "[JobDescription] Generate JSDL output");
             JSDLParser parser;
             if ( !parser.getProduct( *innerRepresentation, product ) ) {

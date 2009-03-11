@@ -4,8 +4,11 @@
 
 #include <string.h>
 #include <algorithm>
+
+#include <arc/StringConv.h>
+
 #include "FastestCPUBroker.h"
-#include <arc/client/JobDescription.h>
+
 namespace Arc {
  
   bool CheckCPUSpeeds(const ExecutionTarget& T1, const ExecutionTarget& T2){
@@ -13,17 +16,15 @@ namespace Arc {
     double T2performance = 0;
     std::map<std::string, double>::const_iterator iter;
 
-    StringManipulator sm;
-
     for(iter = T1.Benchmarks.begin(); iter != T1.Benchmarks.end(); iter++) {
-      if(sm.toLowerCase(iter->first) ==  "specint2000"){
+      if(lower(iter->first) ==  "specint2000") {
 	T1performance = iter->second;
 	break;
       }
     }
 
     for(iter = T2.Benchmarks.begin(); iter != T2.Benchmarks.end(); iter++) {
-      if(sm.toLowerCase(iter->first) ==  "specint2000"){
+      if(lower(iter->first) ==  "specint2000") {
 	T1performance = iter->second;
 	break;
       }
@@ -46,8 +47,6 @@ namespace Arc {
 
   void FastestCPUBroker::SortTargets() {
     
-    StringManipulator sm;
-  
     //Remove clusters with incomplete information for target sorting
     std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
     while(iter != PossibleTargets.end()){
@@ -60,7 +59,7 @@ namespace Arc {
 	bool ok = false;
 	for(iter2 = iter->Benchmarks.begin();
 	    iter2 != iter->Benchmarks.end(); iter2++) {
-	  if(sm.toLowerCase(iter2->first) == "specint2000"){
+	  if(lower(iter2->first) == "specint2000") {
 	    ok = true;
 	    break;
 	  }

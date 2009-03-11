@@ -48,11 +48,6 @@ namespace Arc {
           "IndividualCPUCount", "TotalPhysicalMemory", "TotalVirtualMemory", "TotalDiskSpace", "TotalResourceCount",
           "FileSystemName", "CreationFlag", "DeleteOnTermination", "" }; 
 
-    class JobDescriptionError : public std::runtime_error {
-        public:
-            JobDescriptionError(const std::string& what="");
-    };
-
     // The candidate's data structure contains every important attribute //
     struct Candidate {
         // The candidate Type written by text
@@ -72,13 +67,6 @@ namespace Arc {
         // Impossible text pattern
         std::vector<std::string> negative_pattern;
     }; // End of struct CandidateType
-
-    class StringManipulator {
-        public:
-            std::string trim( const std::string original_string ) const;
-            std::string toLowerCase( const std::string original_string ) const;
-            std::vector<std::string> split( const std::string original_string, const std::string delimiter ) const;
-    };
 
     //Abstract class for the different parsers
     class JobDescriptionParser {

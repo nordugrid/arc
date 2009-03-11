@@ -12,39 +12,6 @@
 namespace Arc {
     Arc::Logger JobDescriptionParser::logger(Arc::Logger::getRootLogger(), "jobdescription");
 
-    JobDescriptionError::JobDescriptionError(const std::string& what) : std::runtime_error(what){  }
-
-
-    // Remove the whitespace characters from the begin and end of the string then return with this "naked" one
-    std::string StringManipulator::trim( const std::string original_string ) const {
-        std::string whitespaces (" \t\f\v\n\r");
-        if (original_string.length() == 0) return original_string;
-        unsigned long first = original_string.find_first_not_of( whitespaces );
-        unsigned long last = original_string.find_last_not_of( whitespaces );
-        if ( first == std::string::npos || last == std::string::npos ) return ""; 
-        return original_string.substr( first, last-first+1 );
-    }
-
-    // Return the given string in lower case
-    std::string StringManipulator::toLowerCase( const std::string original_string ) const {
-        std::string retVal = original_string;
-        std::transform( original_string.begin(), original_string.end(), retVal.begin(), ::tolower );
-        return retVal;
-    }
-
-    // Split the given string by the given delimiter and return its parts
-    std::vector<std::string> StringManipulator::split( const std::string original_string, const std::string delimiter ) const{
-        std::vector<std::string> retVal;
-        unsigned long start=0;
-        unsigned long end;
-        while ( ( end = original_string.find( delimiter, start ) ) != std::string::npos ) {
-            retVal.push_back( original_string.substr( start, end-start ) );
-            start = end + 1;
-        }
-        retVal.push_back( original_string.substr( start ) );
-        return retVal;
-    }
-
     // Set the sourceString variable of the JobDescriptionOrderer instance
     void JobDescriptionOrderer::setSource( const std::string source ) {
         sourceString = source;
@@ -288,9 +255,7 @@ namespace Arc {
         jobDescriptionFile.close();
         */
 
-        StringManipulator sm;
-
-        std::string jobDescription = sm.toLowerCase(sourceString);
+        std::string jobDescription = lower(sourceString);
 
         //Creating the whitespace-free version of the jobDescription
         std::string jobDescriptionWithoutWhitespaces = jobDescription;
@@ -306,22 +271,22 @@ namespace Arc {
         //Examining the file's content for patterns
         for ( std::vector<Candidate>::iterator i = candidates.begin(); i != candidates.end(); i++ ) {
             for ( std::vector<std::string>::const_iterator j = (*i).pattern.begin(); j != (*i).pattern.end(); j++ ) {
-                if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
+                if ( jobDescription.find( lower(*j) ) != std::string::npos ) {
                     JobDescriptionParser::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += TEXT_PATTERN_MATCHING;
                 } else {
-                    if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
+                    if ( jobDescriptionWithoutWhitespaces.find( lower(*j) ) != std::string::npos ) {
                     JobDescriptionParser::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }
                 }
             }
             for ( std::vector<std::string>::const_iterator j = (*i).negative_pattern.begin(); j != (*i).negative_pattern.end(); j++ ) {
-                if ( jobDescription.find( sm.toLowerCase(*j) ) != std::string::npos ) {
+                if ( jobDescription.find( lower(*j) ) != std::string::npos ) {
                     JobDescriptionParser::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
                     (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING;
                 } else {
-                    if ( jobDescriptionWithoutWhitespaces.find( sm.toLowerCase(*j) ) != std::string::npos ) {
+                    if ( jobDescriptionWithoutWhitespaces.find( lower(*j) ) != std::string::npos ) {
                         JobDescriptionParser::logger.msg(DEBUG, "[JobDescriptionOrderer]\tText negative_pattern matching: \"%s\" to %s", *j, (*i).typeName);
                         (*i).priority += NEGATIVE_TEXT_PATTERN_MATCHING_WITHOUT_WHITESPACES;
                     }

@@ -438,9 +438,8 @@ namespace Arc {
 
           // TODO: we need a better walltime calculation algorithm
 
-          StringManipulator sm;
-          std::string benchmark_attribute = sm.toLowerCase(jir.ReferenceTime.benchmark_attribute);
-          std::string value_attribute = sm.toLowerCase(jir.ReferenceTime.value_attribute);
+          std::string benchmark_attribute = lower(jir.ReferenceTime.benchmark_attribute);
+          std::string value_attribute = lower(jir.ReferenceTime.value_attribute);
 
           if (benchmark_attribute == "frequency" && value_attribute == "2.8ghz") {
 

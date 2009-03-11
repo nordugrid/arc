@@ -27,13 +27,7 @@ int main() {
   node.GetDoc(test, true);
   std::cout << std::endl << " [ jd.getXML() ] " << std::endl << std::endl << test << std::endl;
 
-  try {
-    std::string jobdescstring;
-    jd.getProduct(jobdescstring, "JDL");
-    std::cout << std::endl << " [ jd.getProduct(var, \"JDL\") ] " << std::endl << std::endl << jobdescstring << std::endl;
-  } catch( Arc::JobDescriptionError jde ) {
-    std::cout << jde.what() << std::endl;
-    exit(1);
-  }
-
+  std::string jobdescstring;
+  jd.getProduct(jobdescstring, "JDL");
+  std::cout << std::endl << " [ jd.getProduct(var, \"JDL\") ] " << std::endl << std::endl << jobdescstring << std::endl;
 }

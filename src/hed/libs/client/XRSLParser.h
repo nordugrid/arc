@@ -13,7 +13,6 @@ namespace Arc {
 
     class XRSLParser : public JobDescriptionParser {
         private:
-            StringManipulator sm;
             std::map<std::string, std::string> rsl_substitutions;
             std::string input_files;
             std::string output_files;

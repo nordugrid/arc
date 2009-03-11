@@ -120,7 +120,7 @@ namespace Arc {
     bool XRSLParser::handleXRSLattribute(std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation) {
 
         // To do the attributes name case-insensitive do them lowercase and remove the quotiation marks
-        attributeName = simpleXRSLvalue( sm.toLowerCase( attributeName ) );  
+        attributeName = simpleXRSLvalue( lower( attributeName ) );  
 
         if ( attributeName == "executable" ) {
             innerRepresentation.Executable = simpleXRSLvalue( attributeValue );
@@ -266,7 +266,8 @@ namespace Arc {
             return true;
         } else if ( attributeName == "notify" ) {
             std::string value = simpleXRSLvalue( attributeValue );
-            std::vector<std::string> parts = sm.split( value, " " );
+            std::vector<std::string> parts;
+            tokenize ( value, parts );
             Arc::NotificationType nofity;
             // When the state or the e-mail address missed.
             if ( parts.size() < 2 ){ 
@@ -385,14 +386,14 @@ namespace Arc {
                     if ( depth == 0 ) {
                         //Third step: You can handle the different attribute blocks here.
                         //Trim the unnecassary whitespaces
-                        std::string wattr = sm.trim( actual_argument );
+                        std::string wattr = trim( actual_argument );
                         //Split the bracket's content by the equal sign & trim the two half
                         unsigned long eqpos = wattr.find_first_of("=");
                         if ( eqpos == std::string::npos ) {
                             logger.msg(DEBUG, "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)");
                             return false;
                         }
-                        if ( !handleXRSLattribute( sm.trim( wattr.substr(0,eqpos) ) , sm.trim( wattr.substr(eqpos+1) ) , innerRepresentation) ) return false;
+                        if ( !handleXRSLattribute( trim( wattr.substr(0,eqpos) ) , trim( wattr.substr(eqpos+1) ) , innerRepresentation) ) return false;
                     } else actual_argument += next_char;
                 } else {
                     actual_argument += next_char;
@@ -872,14 +873,14 @@ namespace Arc {
             // Indexing services searching
             std::list<Arc::FileType>::const_iterator iter;
             for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++){
-	      if (iter->DataIndexingService)
+              if (iter->DataIndexingService)
                 if ( find( indexing_services.begin(), indexing_services.end(),(*iter).DataIndexingService.fullstr() ) == indexing_services.end() )
                    if ((*iter).DataIndexingService.fullstr() != "")
                       indexing_services.push_back((*iter).DataIndexingService.fullstr());
             }
             std::list<Arc::DirectoryType>::const_iterator iter_d;
             for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++){
-	      if (iter_d->DataIndexingService)
+              if (iter_d->DataIndexingService)
                 if ( find( indexing_services.begin(), indexing_services.end(),(*iter_d).DataIndexingService.fullstr() ) == indexing_services.end() )
                    if ((*iter_d).DataIndexingService.fullstr() != "")
                       indexing_services.push_back((*iter_d).DataIndexingService.fullstr());

@@ -84,41 +84,25 @@ for (std::list< std::string >::iterator it = descriptions.begin(); it != descrip
     }
 
     if (requested_format == "JSDL" || requested_format == "") {
-      try {
-        jd.getProduct( test, "JSDL" );
-        Arc::XMLNode jsdl(test);
-        jsdl.GetXML(test, true);
-        std::cout << std::endl << " [ JSDL ] " << std::endl << test << std::endl;
-      } catch (Arc::JobDescriptionError jde) {
-        std::cout << std::endl << " " << jde.what() << std::endl;
-      }
+      jd.getProduct( test, "JSDL" );
+      Arc::XMLNode jsdl(test);
+      jsdl.GetXML(test, true);
+      std::cout << std::endl << " [ JSDL ] " << std::endl << test << std::endl;
     }
 
     if (requested_format == "JDL" || requested_format == "") {
-      try {
-        jd.getProduct( test, "JDL" );
-        std::cout << std::endl << " [ JDL ] " << std::endl << test << std::endl;
-      } catch (Arc::JobDescriptionError jde) {
-        std::cout << std::endl << " " << jde.what() << std::endl;
-      }
+      jd.getProduct( test, "JDL" );
+      std::cout << std::endl << " [ JDL ] " << std::endl << test << std::endl;
     }
 
     if (requested_format == "XRSL" || requested_format == "") {
-      try {
-    jd.getProduct( test, "XRSL" );
-    std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
-      } catch (Arc::JobDescriptionError jde) {
-        std::cout << std::endl << " " << jde.what() << std::endl;
-      }
+      jd.getProduct( test, "XRSL" );
+      std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
     }
 
     if (requested_format == "POSIXJSDL" || requested_format == "") {
-      try {
-    jd.getProduct( test, "POSIXJSDL" );
-    std::cout << std::endl << " [ POSIXJSDL ] " << std::endl << test << std::endl;
-      } catch (Arc::JobDescriptionError jde) {
-        std::cout << std::endl << " " << jde.what() << std::endl;
-      }
+      jd.getProduct( test, "POSIXJSDL" );
+      std::cout << std::endl << " [ POSIXJSDL ] " << std::endl << test << std::endl;
     }
   }
 }

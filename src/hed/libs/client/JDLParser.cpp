@@ -58,7 +58,7 @@ namespace Arc {
         unsigned long last_pos = attributeValue.find_last_of( "\"" );
         // If the text is not between quotation marks, then return with the original form
         if (attributeValue.substr( attributeValue.find_first_not_of( whitespaces ), 1 ) != "\"" || last_pos == std::string::npos )
-            return sm.trim( attributeValue );
+            return trim( attributeValue );
         // Else remove the marks and return with the quotation's content
         else 
             return attributeValue.substr( attributeValue.find_first_of( "\"" )+1,  last_pos - attributeValue.find_first_of( "\"" ) -1 );
@@ -77,7 +77,8 @@ namespace Arc {
             return elements;
         }
         attributeValue = attributeValue.substr(first_bracket+1, last_bracket - first_bracket - 1 );
-        std::vector<std::string> listElements = sm.split( attributeValue, "," );
+        std::vector<std::string> listElements;
+        tokenize( attributeValue, listElements , "," );
         for (std::vector<std::string>::const_iterator it=listElements.begin(); it<listElements.end(); it++) {
             elements.push_back( simpleJDLvalue( *it ) );
         }
@@ -87,9 +88,9 @@ namespace Arc {
     bool JDLParser::handleJDLattribute(std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation) const {
 
         // To do the attributes name case-insensitive do them lowercase and remove the quotiation marks
-        attributeName = sm.toLowerCase( attributeName );
+        attributeName = lower( attributeName );
         if ( attributeName == "type" ) {
-            std::string value = sm.toLowerCase( simpleJDLvalue( attributeValue ) );
+            std::string value = lower( simpleJDLvalue( attributeValue ) );
             if ( value == "job" ) return true;
             if ( value == "dag" ) {
                 logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
@@ -108,7 +109,8 @@ namespace Arc {
             return true;
         } else if ( attributeName == "arguments" ) {
             std::string value = simpleJDLvalue( attributeValue );
-            std::vector<std::string> parts = sm.split( value, " " );
+            std::vector<std::string> parts;
+            tokenize ( value, parts );
             for ( std::vector<std::string>::const_iterator it = parts.begin(); it < parts.end(); it++ ) {
                 innerRepresentation.Argument.push_back( (*it) );
             }
@@ -126,7 +128,8 @@ namespace Arc {
             std::vector<std::string> inputfiles = listJDLvalue( attributeValue );
             for (std::vector<std::string>::const_iterator it=inputfiles.begin(); it<inputfiles.end(); it++) {
                 Arc::FileType file;
-                std::vector<std::string> parts = sm.split( (*it), "/" );
+                std::vector<std::string> parts;
+                tokenize ( (*it), parts, "/" );
                 file.Name = parts.back();
                 Arc::SourceType source;
                 source.URI = *it;
@@ -224,7 +227,8 @@ namespace Arc {
             return true;
         } else if ( attributeName == "prologuearguments" ) {
             std::string value = simpleJDLvalue( attributeValue );
-            std::vector<std::string> parts = sm.split( value, " " );
+            std::vector<std::string> parts;
+            tokenize ( value, parts );
             for ( std::vector<std::string>::const_iterator it = parts.begin(); it < parts.end(); it++ ) {
                 innerRepresentation.Prologue.Arguments.push_back( *it );
             }
@@ -234,7 +238,8 @@ namespace Arc {
             return true;    
         } else if ( attributeName == "epiloguearguments" ) {
             std::string value = simpleJDLvalue( attributeValue );
-            std::vector<std::string> parts = sm.split( value, " " );
+            std::vector<std::string> parts;
+            tokenize ( value, parts );
             for ( std::vector<std::string>::const_iterator it = parts.begin(); it < parts.end(); it++ ) {
                 innerRepresentation.Epilogue.Arguments.push_back( *it );
             }
@@ -417,10 +422,11 @@ namespace Arc {
         }
 
         std::string wcpy = "";
-        std::vector<std::string> lines = sm.split(input_text, "\n");
+        std::vector<std::string> lines;
+        tokenize (input_text, lines, "\n");
         for ( unsigned long i=0; i < lines.size(); ) {
             // Remove empty lines
-            std::string trimmed_line = sm.trim(lines[i]);
+            std::string trimmed_line = trim(lines[i]);
             if ( trimmed_line.length() == 0) lines.erase(lines.begin() +i);
             // Remove lines starts with '#' - Comments
             else if ( trimmed_line.length() >= 1 && trimmed_line.substr(0,1) == "#") lines.erase(lines.begin() +i);
@@ -449,7 +455,7 @@ namespace Arc {
                     return false;
                 }
             }    
-            if (!handleJDLattribute( sm.trim( lines[i].substr(0, equal_pos) ), sm.trim( lines[i].substr(equal_pos+1, std::string::npos) ), innerRepresentation)) return false;
+            if (!handleJDLattribute( trim( lines[i].substr(0, equal_pos) ), trim( lines[i].substr(equal_pos+1, std::string::npos) ), innerRepresentation)) return false;
         }
         return true;
     }
