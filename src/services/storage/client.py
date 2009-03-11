@@ -265,7 +265,7 @@ class BartenderClient(Client):
         e.g.
         
         In: {'frodo':'/', 'sam':'/testfile'}
-        Out:rtender_uri = 'http://www.nordugrid.org/schemas/bartender'
+        Out:
  
             {'frodo': {('entry', 'type'): 'collection',
                        ('entries', 'testdir'): '4cabc8cb-599d-488c-a253-165f71d4e180',

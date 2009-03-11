@@ -46,10 +46,10 @@ class Shepherd:
             log.msg(arc.DEBUG, 'Cannot import store class', storeclass)
             raise
         try:
-            librarianURL = str(cfg.Get('LibrarianURL'))
-            self.librarian = LibrarianClient(librarianURL, ssl_config = ssl_config)
-            bartenderURL = str(cfg.Get('BartenderURL'))
-            self.bartender = BartenderClient(bartenderURL, ssl_config = ssl_config)
+            librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
+            self.librarian = LibrarianClient(librarian_urls, ssl_config = ssl_config)
+            bartender_urls =  get_child_values_by_name(cfg, 'BartenderURL')
+            self.bartender = BartenderClient(bartender_urls, ssl_config = ssl_config)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
             log.msg(arc.DEBUG, 'Cannot get LibrarianURL, BartenderURL or serviceID')

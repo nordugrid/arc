@@ -210,7 +210,7 @@ class Librarian:
 
     def new(self, requests):
         response = {}
-	for rID, metadata in requests.items():
+        for rID, metadata in requests.items():
             #print 'Processing new request:', metadata
             try:
                 type = metadata[('entry','type')]
@@ -226,10 +226,10 @@ class Librarian:
                     GUID = arc.UUID()
                     metadata[('entry', 'GUID')] = GUID
               
-		check = self.ahash_change(
+                check = self.ahash_change(
                       {'new': (GUID, 'set', 'entry', 'type', type, {'0' : ('unset','entry','type','')})}
                     )
-		
+                
                 status, failedCondition = check['new']
                 if status == 'set':
                     success = 'success'
@@ -270,7 +270,7 @@ class Librarian:
                     else:
                         child_guid = metadata[('entries',path[0])]
                         child_metadata = self.ahash_get([child_guid])[child_guid]
-		    traversed.append(path.pop(0))
+                    traversed.append(path.pop(0))
                     GUIDs.append(child_guid)
                     guid = child_guid
                     metadata = child_metadata
@@ -299,8 +299,8 @@ class Librarian:
             else:
                 try:
                     metadata = self._traverse(guid, metadata0, path, traversed, GUIDs)
-		    traversedList = [(traversed[i], GUIDs[i]) for i in range(len(traversed))]
-	            wasComplete = len(path) == 0
+                    traversedList = [(traversed[i], GUIDs[i]) for i in range(len(traversed))]
+                    wasComplete = len(path) == 0
                     traversedLN = guid0 + '/' + '/'.join(traversed[1:])
                     GUID = GUIDs[-1]
                     restLN = '/'.join(path)
@@ -309,7 +309,7 @@ class Librarian:
                     log.msg()
                     response[rID] = ([], False, '', guid0, None, '/'.join(path))
             #print '?\n? traversedList, wasComplete, traversedLN, GUID, metadata, restLN\n? ', response
-	return response
+        return response
 
     def modifyMetadata(self, requests):
         changes = {}
