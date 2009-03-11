@@ -1490,8 +1490,8 @@ else:
         print 'ERROR:', e
         sys.exit(-1)
     command = args.pop(0)[0:3]
-    print "args.pop(0)"
-    print args 
+    # print "args.pop(0)"
+    # print args 
     if command in ['sta']:
         if len(args) < 1:
             print 'Usage: stat <LN> [<LN> ...]'
