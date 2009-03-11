@@ -544,6 +544,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
       addrlen=sizeof(addr);
       if (getsockname(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
 	get_host_port(&addr, host_attr, port_attr);
+      addrlen=sizeof(addr);
       if (getpeername(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
 	if (get_host_port(&addr, remotehost_attr, remoteport_attr))
 	  endpoint_attr = "://"+remotehost_attr+":"+remoteport_attr;
