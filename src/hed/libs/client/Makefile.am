@@ -16,11 +16,13 @@ endif
 libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS  = ACC.h ACCLoader.h Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
-	Job.h JobController.h JobSupervisor.h JobDescription.h  JobInnerRepresentation.h\
+	Job.h JobController.h JobSupervisor.h JobDescription.h JobDescriptionParser.h  JobInnerRepresentation.h\
+        PosixJSDLParser.h JSDLParser.h JDLParser.h XRSLParser.h \
 	ClientInterface.h $(HEADER_WITH_XMLSEC) ClientX509Delegation.h UserConfig.h Sandbox.h RSLParser.h
 libarcclient_la_SOURCES  = ACC.cpp ACCLoader.cpp Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
-	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp JobInnerRepresentation.cpp \
+	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp JobDescriptionParser.cpp JobInnerRepresentation.cpp \
+        PosixJSDLParser.cpp JSDLParser.cpp JDLParser.cpp XRSLParser.cpp \
 	ClientInterface.cpp $(SOURCE_WITH_XMLSEC) ClientX509Delegation.cpp UserConfig.cpp \
 	Sandbox.cpp RSLParser.h
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
