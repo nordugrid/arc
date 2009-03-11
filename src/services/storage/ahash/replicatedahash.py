@@ -32,7 +32,7 @@ from arcom import get_child_values_by_name
 from arcom.threadpool import ThreadPool, ReadWriteLock
 from arcom.service import ahash_uri, node_to_data, get_child_nodes, parse_node, get_data_node
 from storage.common import create_metadata, ahash_list_guid
-from storage.xmltree import XMLTree 
+from arcom.xmltree import XMLTree 
 from storage.ahash.ahash import CentralAHash
 from storage.client import AHashClient
 from arcom.store.transdbstore import TransDBStore
