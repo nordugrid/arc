@@ -31,6 +31,10 @@ static const std::string BES_MANAGEMENT_NPREFIX("bes-management");
 static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-management");
 
 static const std::string BES_ARC_NPREFIX("a-rex");
+static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-rex");
+
+static const std::string BES_GLUE_NPREFIX("glue");
+static const std::string BES_GLUE_NAMESPACE("http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01");
 
 
 static Arc::XMLNode BESFactoryResponse(Arc::PayloadSOAP& res,const char* opname) {
@@ -359,7 +363,8 @@ static void thread_starter(void* arg) {
 ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),inforeg_(*cfg,this),gm_(NULL) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
-  ns_[BES_ARC_NPREFIX]="http://www.nordugrid.org/schemas/a-rex";
+  ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
+  ns_[BES_GLUE_NPREFIX]=BES_GLUE_NAMESPACE;
   ns_[BES_FACTORY_NPREFIX]=BES_FACTORY_NAMESPACE;
   ns_[BES_MANAGEMENT_NPREFIX]=BES_MANAGEMENT_NAMESPACE;
   ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";

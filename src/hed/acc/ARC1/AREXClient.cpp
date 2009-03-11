@@ -37,6 +37,7 @@ namespace Arc {
 
   static void set_arex_namespaces(NS& ns) {
     ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+    ns["glue"] = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
     ns["wsa"] = "http://www.w3.org/2005/08/addressing";
     ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
@@ -234,7 +235,7 @@ namespace Arc {
 
   bool AREXClient::stat(const std::string& jobid, std::string& status) {
 
-    std::string state, substate, faultstring;
+    std::string state, substate, lrmsstate, gluestate, faultstring;
     logger.msg(INFO, "Creating and sending a status request");
 
     PayloadSOAP req(arex_ns);
@@ -294,16 +295,18 @@ namespace Arc {
       logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
-    XMLNode st, fs;
-    (*resp)["GetActivityStatusesResponse"]["Response"]
-    ["ActivityStatus"].New(st);
+    (*resp).Namespaces(arex_ns);
+    XMLNode st = (*resp)["GetActivityStatusesResponse"]
+                        ["Response"]["ActivityStatus"];
     state = (std::string)st.Attribute("state");
-    XMLNode sst;
-    (*resp)["GetActivityStatusesResponse"]["Response"]
-    ["ActivityStatus"]["state"].New(sst);
-    substate = (std::string)sst;
-    (*resp)["Fault"]["faultstring"].New(fs);
-    faultstring = (std::string)fs;
+    substate = (std::string)(st["a-rex:State"]);
+    lrmsstate = (std::string)(st["a-rex:LRMSState"]);
+    gluestate = (std::string)(st["glue:State"]);
+    SOAPFault* fs = (*resp).Fault();
+    if(fs) {
+      faultstring = fs->Reason();
+      if(faultstring.empty()) faultstring="Undefined error";
+    };
     // delete resp;
     if (faultstring != "") {
       logger.msg(ERROR, faultstring);
@@ -315,6 +318,7 @@ namespace Arc {
     }
     else {
       status = state + "/" + substate;
+      if(lrmsstate != "") status += "/" + lrmsstate;
       return true;
     }
   }

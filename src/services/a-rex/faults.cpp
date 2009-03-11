@@ -73,7 +73,7 @@ void ARexService::UnsupportedFeatureFault(Arc::SOAPFault& fault,const std::strin
 
 void ARexService::CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
   fault.Name("bes-factory:CantApplyOperationToCurrentStateFault");
-  addActivityStatus(fault,gm_state,failed);
+  addActivityStatus(fault,gm_state,"",failed);
   fault.NewChild("bes-factory:Message")=message;
   return;
 }
@@ -85,7 +85,7 @@ void ARexService::CantApplyOperationToCurrentStateFault(Arc::SOAPFault& fault,co
 
 void ARexService::OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
   fault.Name("bes-factory:OperationWillBeAppliedEventuallyFault");
-  addActivityStatus(fault,gm_state,failed);
+  addActivityStatus(fault,gm_state,"",failed);
   fault.NewChild("bes-factory:Message")=message;
   return;
 }

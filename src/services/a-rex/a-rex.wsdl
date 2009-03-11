@@ -46,6 +46,7 @@
         </xsd:restriction>
       </xsd:simpleType>
       <xsd:element name="State" type="a-rex:ActivitySubStateType"/>
+      <xsd:element name="LRMSState" type="xsd:string"/>
 		
       <xsd:complexType name="Glue2ResourceType">
         <xsd:sequence>

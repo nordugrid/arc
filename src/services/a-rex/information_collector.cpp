@@ -12,6 +12,8 @@
 
 namespace ARex {
 
+static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>& states);
+
 void ARexService::InformationCollector(void) {
   for(;;) {
     std::string lrms;
@@ -74,9 +76,11 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Cluster information provider result: %i",r);
       logger_.msg(Arc::DEBUG,"Cluster information provider error: %s",stderr_str);
     };
-    logger_.msg(Arc::DEBUG,"Obtained XML: %s",xml_str);
+    logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str);
     Arc::XMLNode root(xml_str);
     if(root) {
+      // Collect job states
+      GetGlueStates(root,glue_states_);
       // Put result into container
       infodoc_.Assign(root,true);
       logger_.msg(Arc::INFO,"Assigned new informational document");
@@ -99,6 +103,26 @@ bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
 
 std::string ARexService::getID() {
   return "ARC:AREX";
+}
+
+static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>& states) {
+  std::string path = "Domains/AdminDomain/Services/Service/ComputingActivities/ComputingActivity";
+  // Obtaining all job descriptions
+  Arc::XMLNodeList nodes = infodoc.Path(path);
+  // Pulling ids and states
+  for(Arc::XMLNodeList::iterator node = nodes.begin();node!=nodes.end();++node) {
+    // Exract ID of job
+    std::string id = (*node)["IDFromEndpoint"];
+    if(id.empty()) id = (std::string)((*node)["ID"]);
+    if(id.empty()) continue;
+    std::string::size_type p = id.rfind('/');
+    if(p != std::string::npos) id.erase(0,p+1);
+    if(id.empty()) continue;
+    std::string state  = (std::string)((*node)["State"]);
+    if(state.empty()) continue;
+    // Store state under id
+    states[id] = state;
+  };
 }
 
 }
