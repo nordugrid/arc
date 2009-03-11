@@ -304,7 +304,8 @@ namespace Arc {
     }
   }
 
-  static int proxy_init_ = 0;
+  static bool proxy_init_ = false;
+
   void Credential::InitProxyCertInfo(void) {
     #define PROXYCERTINFO_V3      "1.3.6.1.4.1.3536.1.222"
     #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.14"
@@ -330,6 +331,7 @@ namespace Arc {
     OBJ_create(INDEPENDENT_PROXY_OID, INDEPENDENT_PROXY_SN, INDEPENDENT_PROXY_LN);
     OBJ_create(ANYLANGUAGE_PROXY_OID, ANYLANGUAGE_PROXY_SN, ANYLANGUAGE_PROXY_LN);
     OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
+    proxy_init_=true;
   }
 
   void Credential::AddCertExtObj(std::string& sn, std::string& oid) {
