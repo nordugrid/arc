@@ -913,7 +913,6 @@ class Client:
         
         outpayload is an XMLNode with the SOAP message
         """
-        # TODO: use the client-side libs of ARCHED
         import httplib
         if self.https:
             h = httplib.HTTPSConnection(self.host, self.port, key_file = self.ssl_config.get('key_file', None), cert_file = self.ssl_config.get('cert_file', None))

@@ -102,7 +102,7 @@ class Shepherd:
                     last_report = time.time()
                     # if the next report time is below zero it means:
                     if next_report < 0: # 'please send all'
-                        log.msg(arc.DEBUG, '\nreporting - asked to send all file data again')
+                        log.msg(arc.DEBUG, 'reporting - asked to send all file data again')
                         # add the full list of stored files to the changed_state list - all the files will be reported next time (which is immediately, see below)
                         self.changed_states.extend(self.store.list())
                     # let's wait until there is any changed file or the reporting time is up - we need to do report even if no file changed (as a heartbeat)
