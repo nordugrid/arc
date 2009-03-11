@@ -14,6 +14,7 @@
 #include <termios.h>
 #endif
 #include <glibmm/stringutils.h>
+#include <glibmm/fileutils.h>
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -146,11 +147,11 @@ int main(int argc, char* argv[]){
     return EXIT_SUCCESS;
   }
 
+  Arc::User user;
+
   try{
     if (params.size()!=0)
       throw std::invalid_argument("Wrong number of arguments!");
-
-    Arc::User user;
 
     if (key_path.empty())
       key_path = Arc::GetEnv("X509_USER_KEY");
@@ -242,6 +243,13 @@ int main(int argc, char* argv[]){
   try{
     if (vomses_path.empty())
       vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
+
+    if(vomses_path.empty()) {
+      vomses_path = user.Home() + "/.vomses";
+      if(!Glib::file_test(vomses_path,Glib::FILE_TEST_IS_REGULAR)) {
+        vomses_path.resize(0);
+      }
+    }
 
     if(vomses_path.empty()) {
 #ifndef WIN32
