@@ -10,6 +10,12 @@
 #include <arc/ArcLocation.h>
 #include <arc/User.h>
 
+#ifdef WIN32
+#define FILE_SEPERATOR "\\"
+#else
+#define FILE_SEPERATOR "/"
+#endif
+
 namespace Arc {
 
   Config::Config(const char *filename)
@@ -27,12 +33,12 @@ namespace Arc {
       std::cout << " ";
     std::string content = (std::string)node;
     std::cout << "* " << node.Name() << "(" << node.Size() << ")"
-	      << " = " << content << std::endl;
+              << " = " << content << std::endl;
     for (n = 0;; n++) {
       XMLNode _node = node.Child(n);
       if (!_node)
-	break;
-      _print(_node, skip + 2);
+        break;
+        _print(_node, skip + 2);
     }
   }
 
@@ -74,17 +80,17 @@ namespace Arc {
       std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
       std::string::size_type pos = 0;
       while (pos != std::string::npos) {
-	std::string::size_type pos2 = arcpluginpath.find(separator, pos);
-	AddPluginsPath(pos2 == std::string::npos ?
-		       arcpluginpath.substr(pos) :
-		       arcpluginpath.substr(pos, pos2 - pos));
-	pos = pos2;
-	if (pos != std::string::npos)
-	  pos++;
+        std::string::size_type pos2 = arcpluginpath.find(separator, pos);
+        AddPluginsPath(pos2 == std::string::npos ?
+                        arcpluginpath.substr(pos) :
+                          arcpluginpath.substr(pos, pos2 - pos));
+        pos = pos2;
+        if (pos != std::string::npos)
+          pos++;
       }
     }
     else
-      AddPluginsPath(ArcLocation::Get() + '/' + PKGLIBSUBDIR);
+      AddPluginsPath(ArcLocation::Get() + FILE_SEPERATOR + PKGLIBSUBDIR);
   }
 
   void BaseConfig::AddPluginsPath(const std::string& path) {
@@ -94,9 +100,9 @@ namespace Arc {
   XMLNode BaseConfig::MakeConfig(XMLNode cfg) const {
     XMLNode mm = cfg.NewChild("ModuleManager");
     for (std::list<std::string>::const_iterator p = plugin_paths.begin();
-	 p != plugin_paths.end(); ++p)
+            p != plugin_paths.end(); ++p)
       mm.NewChild("Path") = *p;
-    return mm;
+      return mm;
   }
 
   void BaseConfig::AddPrivateKey(const std::string& path) {
@@ -137,9 +143,9 @@ namespace Arc {
     if (fname.empty()) {
       const char *fname_str = getenv("ARC_CLIENT_CONFIG");
       if (fname_str)
-	fname = fname_str;
+        fname = fname_str;
       else
-	fname = Arc::User().Home() + "/.arc/client.xml";
+        fname = Arc::User().Home() + FILE_SEPERATOR + ".arc" + FILE_SEPERATOR + "client.xml";
     }
     if (fname.empty())
       return;
