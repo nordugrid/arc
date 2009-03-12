@@ -56,6 +56,7 @@
 \newcommand{\Logger}{\texttt{Logger}}
 \newcommand{\TargetGenerator}{\texttt{TargetGenerator}}
 \newcommand{\TargetRetriever}{\texttt{TargetRetriever}}
+\newcommand{\Sandbox}{\texttt{Sandbox}}
 \newcommand{\Submitter}{\texttt{Submitter}}
 \newcommand{\URL}{\texttt{URL}}
 \newcommand{\UserConfig}{\texttt{UserConfig}}
@@ -273,7 +274,7 @@ description of each step is given:
 \section{Job Management}
 
 Once a job is submitted job related information (job identification
-string, cluster etc) is stored in a local XML file which stores this 
+string, cluster etc.) is stored in a local XML file which stores this 
 information for all active jobs. This file may contain jobs running on
 completely different grid flavours, and thus job management should be
 handled using plugins similar to resource discovery and job
@@ -486,7 +487,7 @@ information needed by the {\Submitter}.
 
 The {\Broker} inherits from the {\ACC} base class in order to be loadable by the ARC \texttt{Loader}. It is the base class of the 
 specialized {\Broker} and it implements the method for reducing a list of resources found by resource discovery (the list of 
-{\ExecutionTarget}s residing witin the {\TargetGenerator}) to a list of resources capable of running a certain job:
+{\ExecutionTarget}s residing within the {\TargetGenerator}) to a list of resources capable of running a certain job:
 
 \begin{shaded}
 \begin{verbatim}
@@ -495,7 +496,7 @@ void PreFilterTargets(Arc::TargetGenerator& targen, Arc::JobDescription jd);
 \end{shaded}
 
 The {\texttt PreFilterTargets} method compares every hardware and software requirement given in the job description against the 
-computing resource (cluster) specifications stored in the {\ExecutionTarget}. If the{\ExecutionTarget} doesn't fulfill 
+computing resource (cluster) specifications stored in the {\ExecutionTarget}. If the{\ExecutionTarget} doesn't fulfil 
 the requirements imposed by the job description, or it is impossible to carry out the matchmaking due to incomplete information 
 published by the computing resource, the {\ExecutionTarget} will be removed from the list of possible targets. A detailed overview 
 of the matchmaking between {\JobDescription} and {\ExecutionTarget} attributes is given in Appendix~\ref{sec:broker-mapping}. 
@@ -545,7 +546,7 @@ module for parsing and translation (if needed) of the job descriptions.
 
 Once the job description language required by the {\ExecutionTarget} chosen 
 for job submission is known the parsed and (if needed) translated job description 
-can be retrieved through the {\texttt GetProduct} funcion as shown below:
+can be retrieved through the {\texttt GetProduct} function as shown below:
 
 \begin{shaded}
 \begin{verbatim}
@@ -553,22 +554,27 @@ bool getProduct(std::string& product, std::string format = "POSIXJSDL")
 \end{verbatim}
 \end{shaded}
 
-If the inner representation is empty or the source job descrition is not
+If the inner representation is empty or the source job description is not
 valid, then the {\texttt GetProduct} output is empty too and the method 
-returns with false. When the product format is the same as the source format 
-and not XRSL, than the product string is set to the source string. The XRSL 
-output is always generated from the inner representation, as it includes 
-automatic job description modifications similar to those of the production 
-ARC client. If the product format differs from the source format the 
-{\texttt GetProduct} method calls upon the \texttt{JobDescriptionOrderer} 
-class to carry out the translation.
+returns with false.  In order to obtain the automatic job description 
+modifications similar to those of the production ARC client, the 
+{\texttt GetProduct} output is always generated from the internal 
+representation using the \texttt{JobDescriptionOrderer} class to carry 
+out the translation. The original source string can be regained by
+calling the \texttt{getSourceString} method:
+
+\begin{shaded}
+\begin{verbatim}
+bool getSourceString(std::string source) const;
+\end{verbatim}
+\end{shaded}
 
 The translation of a job description basically means a syntactical transformation 
 of the job description from one language to another. Thus the {\JobDescription}
 class can do nothing in those cases where there is not enough data is available 
 to assemble a given attribute or when information can be lost because the received 
 attribute has no equivalent in the output language. In these events the {\texttt GetProduct} 
-method returns with a false and an empty product stringt. For limitations in the translation
+method returns with a false and an empty product string. For limitations in the translation
 see Section~\ref{sec:jobinnerrepresentation}.
 
 For the JSDL output generation the {\JobDescription} class uses
@@ -579,6 +585,17 @@ such an output.
 For the JDL generation the latest version of JDL specification was
 used (v0.9) \cite{jdl}. Deprecated and backward compatibility
 attributes are not implemented.
+
+In case of job resubmission the internal representation will contain a list of 
+the jobid's of the previous jobs. This element will only be parsed to the 
+actually job description in case JSDL-POSIX output is requested. A new URL 
+can be added to the list of old jobid's by using the method:
+
+\begin{shaded}
+\begin{verbatim}
+bool addOldJobID(const URL& oldjobid);
+\end{verbatim}
+\end{shaded}
 
 \subsection{{\Submitter}}
 
@@ -683,7 +700,7 @@ following rules are observed when filling the \texttt{JobStore}:
 
 The steps above completes the initialization of the {\JobController}
 which is now ready for handling jobs. The public functions of the
-{\JobController} offer to get (download), clean, cancel, etc one or
+{\JobController} offer to get (download), clean, cancel, etc. one or
 more jobs and uses the private specializations for issuing the
 command. Here exemplified by the \texttt{Stat} command:
 
@@ -725,6 +742,72 @@ declared as a private virtual method within the {\JobController} base
 class. For details about the flavour specific implementations see
 Section~\ref{sec:plugins}.
 
+The other public functions of the {\JobController} class are:
+The \texttt{Get} which is used to download jobs
+\begin{shaded}
+\begin{verbatim}
+bool Get(const std::list<std::string>& status, const std::string& downloaddir,
+         const bool keep, const int timeout);
+\end{verbatim}
+\end{shaded}
+\begin{shaded}
+\begin{verbatim}
+bool Kill(const std::list<std::string>& status, const bool keep, const int timeout);
+\end{verbatim}
+\end{shaded}
+\begin{shaded}
+\begin{verbatim}
+bool Clean(const std::list<std::string>& status, const bool force, const int timeout);
+\end{verbatim}
+\end{shaded}
+\begin{shaded}
+\begin{verbatim}
+bool Cat(const std::list<std::string>& status, const std::string& whichfile, 
+         const int timeout);
+\end{verbatim}
+\end{shaded}
+\begin{shaded}
+\begin{verbatim}
+bool RemoveJobs(const std::list<URL>& jobids);
+\end{verbatim}
+\end{shaded}
+\begin{shaded}
+\begin{verbatim}
+std::list<std::string> GetDownloadFiles(const URL& dir);
+\end{verbatim}
+\end{shaded}
+\begin{shaded}
+\begin{verbatim}
+bool CopyFile(const URL& src, const URL& dst);
+\end{verbatim}
+\end{shaded}
+The \texttt{GetJobDescriptions} method 
+\begin{shaded}
+\begin{verbatim}
+std::list<Job> GetJobDescriptions(const std::list<std::string>& status, 
+                                  const bool getlocal, const int timeout);
+\end{verbatim}
+\end{shaded}
+which is used to get the job descriptions of {\Job}s in the \texttt{JobStore} 
+with the specified status'. In case \texttt{getlocal} is true the job description 
+will first be searched for the users local XML file. If a local copy of 
+the job description is found the checksum of the local input files will be 
+computed and compared with the ones listed in the users local XML file. If 
+all checksums match the job description is returned.\\
+In case \texttt{getlocal} is false or the retrieval of the local job description 
+fails the job description will be tried retrieved from the cluster. This has 
+currently only been implemented for ARC(both generations) clusters. Note 
+that the job descriptions retried from a cluster might will most likely have 
+been changed since the submission either by the cluster\footnote{For both 
+generations of ARC it is possible to recover the initial job description send 
+to the cluster. However modifications can still have been made to the 
+job description before sending it to the cluster.} or by the submission 
+client. Therefore the only way of retrieving the original job description is 
+through the users local XML file.\\
+The \texttt{GetJobDescriptions} returns a list of the  {\Job}s where job description 
+have been found. The found job descriptions are kept in the 
+{\Job}.\texttt{JobDescription} attribute.
+
 \subsection{{\Job}}
 
 The {\Job} is a generic job class for storing all job related
@@ -761,7 +844,7 @@ The {\UserConfig} has three main public methods
 \begin{shaded}
 \begin{verbatim}
 const std::string& JobListFile() const;
-const XMLNode& ConfTree() const;
+const & ConfTree() const;
 bool ApplySecurity(XMLNode& ccfg) const;
 \end{verbatim}
 \end{shaded}
@@ -863,6 +946,24 @@ The {\ClientSOAP} class inherits from the {\ClientHTTP} class and adds
 a SOAP MCC to the chain. Specializations of the {\TargetRetriever},
 {\Submitter} and {\JobController} classes that communicate with SOAP
 based services make use of this class.
+
+\subsection{{\Sandbox}}
+The {\Sandbox} class, consisting of the two methods \texttt{Add} and 
+\texttt{GetCkSum}, have been created to assure a reliable resubmission 
+of jobs. 
+\begin{shaded}
+\begin{verbatim}
+static bool Add(JobDescription& jobdesc, XMLNode& info);
+static std::string GetCksum(const std::string& file);
+\end{verbatim}
+\end{shaded}
+The \texttt{Add} method  adds the job description and the checksum of 
+the local input files to a {\XMLNode}. Currently this {\XMLNode} is the one 
+stored in the user's local XML file upon job submission. The job 
+description which is stored is the initial job description before any 
+parsing has been performed. To calculate the checksum of the input 
+files the \texttt{GetCkSum} method is used. The \texttt{GetCkSum} 
+method returns the MD5 checksum of a given file 
 
 \section{Specialized Classes (Grid Flavour and Broker plugins)}
 \label{sec:plugins}
@@ -975,7 +1076,7 @@ as it is impossible to determine their queue length and perform load balancing.}
 {\ExecutionTarget}s is ranked top.}
 \item{If more than one {\ExecutionTarget} has zero queue the targets are randomly reshuffled based upon how many free slots 
 they have. E.g. if two {\ExecutionTarget}s have zero queue and they have 90 and 10 free slots respectively, then the first
-{\ExecutionTarget} has a 90\% propability of becoming the top ranked cluster.}
+{\ExecutionTarget} has a 90\% probability of becoming the top ranked cluster.}
 \end{enumerate}
 
 \subsubsection{\DataBroker}
@@ -1102,6 +1203,12 @@ management. {\libarcclient} offers the following native commands:
   including all contents}
 \item{\texttt{arccat} - for performing the \texttt{cat} command to a
   running grid job's std out or std error file.}
+\item{\texttt{arcsync} - for synchronising the information in the user's
+  local XML file about active jobs.}
+\item{\texttt{arcresub} - for redoing an entire job on the same or a new
+  computing resource.}
+\item{\texttt{arcmigrate} - for moving a queuing job from an ARC1 
+  computing resource to another.}
 \end{enumerate}
 
 Each of the commands above are encoded within one C++ file with the
