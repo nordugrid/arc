@@ -362,7 +362,7 @@ namespace Arc {
       return false;
     }
     resp->GetDoc(status, true);
-    XMLNodeList memberServices = (resp->Body()).Path("QueryResourcePropertiesResponse/ServiceGroupRP"
+    XMLNodeList memberServices = (resp->Body()).Path("QueryResourcePropertiesResponse"
 			"/Entry/MemberServiceEPR");
 
     //debugging
@@ -371,7 +371,13 @@ namespace Arc {
     status += ss.str();
     //end debugging
     for (XMLNodeList::iterator it = memberServices.begin(); it != memberServices.end(); it++) {
+      std::string tmpStr;
+      it->GetXML(tmpStr);
+      status += "\nXMLnode:\n";
+      status += tmpStr;
+      status += "\niName:\n";
       std::string iName = (*it)["Metadata"]["InterfaceName"];
+      status += iName;
       if (iName.find("BESFactoryPortType") != std::string::npos){
         std::string urlstr = (*it)["Address"];
         status += "\nFound a BESFactory at " + urlstr; //Temp debugging
