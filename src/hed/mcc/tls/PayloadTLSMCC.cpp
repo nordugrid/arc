@@ -9,6 +9,13 @@
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
 
+#ifdef WIN32
+#define FILE_SEPERATOR "\\"
+#include <direct.h>
+#else
+#define FILE_SEPERATOR "/"
+#endif
+
 namespace Arc {
 
 static void* ex_data_id = (void*)"ARC_MCC_Payload_TLS";
@@ -165,8 +172,8 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
   globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   if(!client) {
-    if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
-    if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
+    if(cert_file_.empty()) cert_file_= FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostcert.pem";
+    if(key_file_.empty()) key_file_= FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostkey.pem";
     // Use VOMS trust DN of server certificates specified in configuration
     config_VOMS_add(cfg,vomscert_trust_dn_);
     // Look for those configured in separate files
@@ -194,7 +201,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
     //side should not require client authentication
     if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
   };
-  if(ca_dir_.empty() && ca_file_.empty()) ca_dir_="/etc/grid-security/certificates";
+  if(ca_dir_.empty() && ca_file_.empty()) ca_dir_= FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "certificates";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
 
