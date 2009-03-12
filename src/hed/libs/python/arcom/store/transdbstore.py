@@ -161,7 +161,7 @@ class TransDBStore(BaseStore):
                     except db.DBErr, (errnum2, strerror2):
                         log.msg()
                         log.msg(arc.ERROR, "unexpected error closing after failed open")
-                        self.__del__()
+                        #self.__del__()
                         
                         raise db.DBErr, strerror2
                     dbp = None
@@ -169,10 +169,12 @@ class TransDBStore(BaseStore):
                     continue
                 else:
                     log.msg()
-                    self.__del__()                    
+                    return None
+                    #self.__del__()                    
             except:
                 log.msg()
-                self.__del__()
+                return None
+                #self.__del__()
                 
         return dbp
 
@@ -195,6 +197,7 @@ class TransDBStore(BaseStore):
             return False
         except:
             log.msg()
+            return False
     
     def unlock(self):
         """ Ends transaction.
@@ -208,6 +211,7 @@ class TransDBStore(BaseStore):
         except:
             log.msg(arc.ERROR, "Error on txn.commit()")
             log.msg()
+            self.txn = None
         return
  
     
@@ -220,7 +224,7 @@ class TransDBStore(BaseStore):
         """
 
         if not self.getDBReady():
-            return
+            return copy.deepcopy(self.non_existent_object)
         self.dbp = self.__opendb(self.dbp)
         try:
             object = self.dbp.keys()
@@ -243,7 +247,7 @@ class TransDBStore(BaseStore):
         """
 
         if not self.getDBReady():
-            return
+            return copy.deepcopy(self.non_existent_object)
 
         self.dbp = self.__opendb(self.dbp)
 
