@@ -4,6 +4,10 @@
 
 #include <string>
 
+#ifdef WIN32
+#include <sstream>
+#endif
+
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
