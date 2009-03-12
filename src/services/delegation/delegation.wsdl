@@ -39,6 +39,7 @@
       <xsd:complexType name="TokenRequestType">
         <xsd:sequence>
           <xsd:element name="Id" type="xsd:string"/>
+          <!--The X509 request-->
           <xsd:element name="Value" type="xsd:string"/>
         </xsd:sequence>
         <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"/>
@@ -52,8 +53,15 @@
            the credential in delegation service's credential cache -->
           <xsd:element name="CredIdentity" type="xsd:string"/>
           <xsd:element name="CredDelegatorIP" type="xsd:string"/>
-          <!--Id of the credential-->
+          <!--Id of the proxy credential which is sent and stored
+          into delegation service, when the client delegates its
+          credential to delegation service-->
           <xsd:element name="Id" type="xsd:string" minOccurs="0"/>
+          <!--The X509 request, the delegation service will signs
+          a proxy certificate based on this request, by using the 
+          corresponding proxy certificate stored in delegation 
+          service's repository-->
+          <xsd:element name="Value" type="xsd:string"/>
         </xsd:sequence>
         <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"/>
       </xsd:complexType>

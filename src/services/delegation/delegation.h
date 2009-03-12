@@ -22,6 +22,7 @@ class Service_Delegation: public Arc::Service {
   Glib::Mutex lock_;
   int max_crednum_;
   int max_credlife_;
+  std::string trusted_cadir;
  protected:
   Arc::NS ns_;
   Arc::Logger logger_;

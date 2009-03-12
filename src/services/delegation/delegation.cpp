@@ -6,10 +6,12 @@
 
 #include <sys/types.h>
 
+#include <arc/DateTime.h>
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
+#include <arc/credential/Credential.h>
 #include <arc/Thread.h>
 
 #include "delegation.h"
@@ -109,6 +111,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       std::string id = (std::string)((*inpayload)["AcquireCredentials"]["DelegatedTokenLookup"]["Id"]);
       std::string cred_identity = (std::string)((*inpayload)["AcquireCredentials"]["DelegatedTokenLookup"]["CredIdentity"]);
       std::string cred_delegator_ip = (std::string)((*inpayload)["AcquireCredentials"]["DelegatedTokenLookup"]["CredDelegatorIP"]);
+      std::string x509req_value = (std::string)((*inpayload)["AcquireCredentials"]["DelegatedTokenLookup"]["Value"]);
       if(!id.empty()) cred_cache = id2cred_.find(id)->second;
       else if(!cred_identity.empty() && !cred_delegator_ip.empty()) {
         Identity2CredMapReturn ret;
@@ -124,13 +127,34 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
         return make_soap_fault(outmsg);
       }; 
       cred = cred_cache->credential_;
+
       Arc::NS ns; ns["deleg"]=ARC_DELEGATION_NAMESPACE;
       Arc::XMLNode cred_resp = (*outpayload).NewChild("deleg:AcquireCredentialsResponse");
       Arc::XMLNode token = cred_resp.NewChild("deleg:DelegatedToken");
       token.NewChild("deleg:Id") = cred_cache->id_;
-      token.NewChild("deleg:Value") = cred_cache->credential_;
       token.NewAttribute("deleg:Format") = std::string("x509");
- 
+
+      //Sign the proxy certificate
+      Arc::Time start;
+      //Set proxy path length to be -1, which means infinit length
+      Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritAll","",-1);
+      Arc::Credential signer(cred, "", trusted_cadir, "");
+
+      std::string signedcert;
+      proxy.InquireRequest(x509req_value);
+      if(!(signer.SignRequest(&proxy, signedcert))) {
+        logger.msg(Arc::ERROR, "Signing proxy on delegation service failed");
+        return Arc::MCC_Status();;
+      }
+      std::string signercert_str;
+      std::string signercertchain_str;
+      signer.OutputCertificate(signercert_str);
+      signer.OutputCertificateChain(signercertchain_str);
+      signedcert.append(signercert_str);
+      signedcert.append(signercertchain_str);
+
+      token.NewChild("deleg:Value") = signedcert;
+
       std::cout<<"Delegated credentials:\n"<<cred<<std::endl;
     }
 
@@ -162,6 +186,8 @@ Service_Delegation::Service_Delegation(Arc::Config *cfg):Service(cfg),
   deleg_service_ = new Arc::DelegationContainerSOAP;
   max_crednum_ = 1000;
   max_credlife_ = 43200;
+
+  trusted_cadir = (std::string)((*cfg)["CACertificatesDir"]);
 }
 
 Service_Delegation::~Service_Delegation(void) {

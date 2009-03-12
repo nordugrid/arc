@@ -13,7 +13,7 @@
         <Path>../../hed/mcc/tls/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
-        <Path>../../hed/pdc/.libs/</Path>
+        <Path>../../hed/shc/.libs/</Path>
         <Path>../../services/delegation/.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
