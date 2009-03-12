@@ -1,6 +1,5 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
-#include <arc/client/AREXClient.h>
 #include "../../hed/acc/ARC1/AREXClient.h"
 #include "../../hed/libs/client/JobDescription.h"
 #include "job.h"
