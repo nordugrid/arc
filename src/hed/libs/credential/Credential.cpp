@@ -581,16 +581,36 @@ namespace Arc {
     BIO* certbio = NULL, *keybio = NULL; 
 
     try {
-      certbio = BIO_new_file(certfile.c_str(), "r"); 
-      if(!certbio){
-        CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile); LogError(); 
-        throw CredentialError("Can not read certificate file");
+      if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {
+        //if the cert is a file
+        certbio = BIO_new_file(certfile.c_str(), "r"); 
+        if(!certbio){
+          CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile); LogError(); 
+          throw CredentialError("Can not read certificate file");
+        }
       }
+      else { //Otherwise the content of certificate is also acceptable
+        certbio = BIO_new_mem_buf((void*)(certfile.c_str()), certfile.length());
+        if(!certbio){
+          CredentialLogger.msg(ERROR,"Can not read certificate string: %s", certfile); LogError();
+          throw CredentialError("Can not read certificate string");
+        }
+      }
+
       if(!keyfile.empty()) {
-        keybio = BIO_new_file(keyfile.c_str(), "r");
-        if(!keybio){
-          CredentialLogger.msg(ERROR,"Can not read key file: %s", keyfile); LogError();
-          throw CredentialError("Can not read key file");
+        if(Glib::file_test(keyfile,Glib::FILE_TEST_EXISTS)) {
+          keybio = BIO_new_file(keyfile.c_str(), "r");
+          if(!keybio){
+            CredentialLogger.msg(ERROR,"Can not read key file: %s", keyfile); LogError();
+            throw CredentialError("Can not read key file");
+          }
+        }
+        else {
+          keybio = BIO_new_mem_buf((void*)(keyfile.c_str()), keyfile.length());
+          if(!keybio){
+            CredentialLogger.msg(ERROR,"Can not read key string: %s", keyfile); LogError();
+            throw CredentialError("Can not read key string");
+          }
         }
       }
 
