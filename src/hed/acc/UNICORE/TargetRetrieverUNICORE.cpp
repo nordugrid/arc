@@ -38,6 +38,8 @@ namespace Arc {
     arg->proxyPath = proxyPath;
     arg->certificatePath = certificatePath;
     arg->keyPath = keyPath;
+    std::cout<<"******  "<<certificatePath<<"  "<<keyPath<<std::endl;
+
     arg->caCertificatesDir = caCertificatesDir;
     arg->url = url;
     arg->targetType = targetType;
@@ -68,7 +70,7 @@ namespace Arc {
     if (serviceType == "computing") {
       bool added = mom.AddService(url);
       if (added) {
-	ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
+	ThreadArg* arg = CreateThreadArg(mom, targetType, detailLevel);
 	if (!CreateThreadFunction(&InterrogateTarget, arg)) {
 	  delete arg;
 	  mom.RetrieverDone();
@@ -79,7 +81,7 @@ namespace Arc {
     else if (serviceType == "index") {
       bool added = mom.AddIndexServer(url);
       if (added) {
-	ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
+	ThreadArg* arg = CreateThreadArg(mom, targetType, detailLevel);
 	if (!CreateThreadFunction(&QueryIndex, arg)) {
 	  delete arg;
 	  mom.RetrieverDone();
@@ -105,6 +107,8 @@ namespace Arc {
       cfg.AddPrivateKey(thrarg->keyPath);
     if (!thrarg->caCertificatesDir.empty())
       cfg.AddCADir(thrarg->caCertificatesDir);
+    std::cout<<"Cert: "<<thrarg->certificatePath<<"  Key: "<<thrarg->keyPath<<std::endl;
+
     UNICOREClient uc(url, cfg);
     std::string thePayload;
     std::list<Arc::Config> beses;
@@ -128,13 +132,20 @@ namespace Arc {
      URL& url = thrarg->url;
      MCCConfig cfg;
 /*    if (!thrarg->proxyPath.empty())
-      cfg.AddProxy(thrarg->proxyPath);*/  //Normally proxies should not be used, possibly some provisions should be made if the user insists.
-     if (!thrarg->certificatePath.empty())
-       cfg.AddCertificate(thrarg->certificatePath);
-     if (!thrarg->keyPath.empty())
-       cfg.AddPrivateKey(thrarg->keyPath);
-     if (!thrarg->caCertificatesDir.empty())
-       cfg.AddCADir(thrarg->caCertificatesDir);
+           cfg.AddProxy(thrarg->proxyPath);*/  //Normally proxies should not be used, possibly some provisions should be made if the user insists.
+    if (!thrarg->certificatePath.empty())
+      cfg.AddCertificate(thrarg->certificatePath);
+    if (!thrarg->keyPath.empty())
+      cfg.AddPrivateKey(thrarg->keyPath);
+    if (!thrarg->caCertificatesDir.empty())
+      cfg.AddCADir(thrarg->caCertificatesDir);
+
+      cfg.AddCertificate("/home/wzqiang/arc-0.9/src/clients/arclib/test-cert-UNICORE.090302/usercert.pem");
+      cfg.AddPrivateKey("/home/wzqiang/arc-0.9/src/clients/arclib/test-cert-UNICORE.090302/userkey.pem");
+      cfg.AddCADir("/home/wzqiang/arc-0.9/src/clients/arclib/test-cert-UNICORE.090302/CA");
+
+     std::cout<<" Cert: "<<thrarg->certificatePath<<"  Key: "<<thrarg->keyPath<<std::endl;
+
      UNICOREClient uc(url, cfg);
      std::string status;
      if (!uc.sstat(status)) {
