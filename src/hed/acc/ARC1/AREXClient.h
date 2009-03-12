@@ -93,6 +93,18 @@ namespace Arc {
        @return true on success
      */
     bool getdesc(const std::string& jobid, std::string& jobdesc);
+    
+    
+    //! Migrate a job.
+    /*! This method submits a migrate request and the corresponding job
+      to the AREX-service.
+      
+      @param jobid The Job ID of the job to migrate.
+      @param jobdesc The job description of the job to migrate.
+      @param newjobid The Job ID of returned by the AREX-client on success.
+      @return true on success
+     */
+    bool migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate = false);
 
     ClientSOAP* SOAP(void) {
       return client;

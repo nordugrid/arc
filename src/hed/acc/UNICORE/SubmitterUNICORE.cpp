@@ -26,7 +26,7 @@ namespace Arc {
     return new SubmitterUNICORE((Arc::Config*)(*accarg));
   }
 
-  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, XMLNode& info) {
+  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, XMLNode& info) const {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -107,4 +107,8 @@ namespace Arc {
     return true;
   }
 
+  bool SubmitterUNICORE::Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const {
+    logger.msg(ERROR, "Migration to a UNICORE cluster is not supported.");
+    return false;
+  }
 } // namespace Arc

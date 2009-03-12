@@ -629,4 +629,167 @@ namespace Arc {
       return true;
     }
   }
+  
+  bool AREXClient::migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate) {
+    std::string faultstring;
+
+    logger.msg(INFO, "Creating and sending request");
+
+    // Create migrate request
+    /*
+      bes-factory:MigrateActivity
+        bes-factory:ActivityIdentifier
+        bes-factory:ActivityDocument
+          jsdl:JobDefinition
+     */
+
+    PayloadSOAP req(arex_ns);
+    XMLNode op = req.NewChild("a-rex:MigrateActivity");
+    XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
+    op.NewChild(XMLNode(jobid));
+    op.NewChild("a-rex:ForceMigration") = (forcemigration ? "true" : "false");
+    set_bes_factory_action(req, "MigrateActivity");
+    WSAHeader(req).To(rurl.str());
+    act_doc.NewChild(XMLNode(jobdesc));
+    act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
+    PayloadSOAP *resp = NULL;
+
+
+    // Remove DataStaging/Source/URI elements from job description satisfying:
+    // * Invalid URLs
+    // * URIs with the file protocol
+    // * Empty URIs
+    for (XMLNode ds = act_doc["JobDefinition"]["JobDescription"]["DataStaging"];
+         ds; ++ds) {
+      if (ds["Source"] && !((std::string)ds["FileName"]).empty()) {
+        URL url((std::string)ds["Source"]["URI"]);
+        if (((std::string)ds["Source"]["URI"]).empty() ||
+            !url ||
+            url.Protocol() == "file") {
+          ds["Source"]["URI"].Destroy();
+        }
+      }
+    }
+    
+    {
+      std::string logJobdesc;
+      act_doc.GetXML(logJobdesc);
+      logger.msg(VERBOSE, "Job description to be sent: %s", logJobdesc);
+    }
+
+    // Try to figure out which credentials are used
+    // TODO: Method used is unstable beacuse it assumes some predefined
+    // structure of configuration file. Maybe there should be some
+    // special methods of ClientTCP class introduced.
+    std::string deleg_cert;
+    std::string deleg_key;
+    if (delegate) {
+      client->Load(); // Make sure chain is ready
+      XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
+                                      "Component", "name", "tls.client");
+      if (tls_cfg) {
+        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
+        if (deleg_cert.empty()) {
+          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
+          deleg_key = (std::string)(tls_cfg["KeyPath"]);
+        }
+        else {
+          deleg_key = deleg_cert;
+        }
+      }
+      if (deleg_cert.empty() || deleg_key.empty()) {
+        logger.msg(ERROR, "Failed to find delegation credentials in "
+                          "client configuration");
+        return false;
+      }
+    }
+    // Send migration request + delegation
+    if (client) {
+      if (delegate) {
+        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+        logger.msg(INFO, "Initiating delegation procedure");
+        if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
+                                           &(client->GetContext()))) {
+          logger.msg(ERROR, "Failed to initiate delegation");
+          return false;
+        }
+        deleg.DelegatedToken(op);
+      }
+      MCC_Status status =
+        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
+                        "BESFactoryPortType/MigrateActivity", &req, &resp);
+      if (!status) {
+        logger.msg(ERROR, "Migration request failed");
+        return false;
+      }
+      if (resp == NULL) {
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
+      }
+    }
+    else if (client_entry) {
+      Message reqmsg;
+      Message repmsg;
+      MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
+                                        "bes-factory/BESFactoryPortType/MigrateActivity");
+      MessageAttributes attributes_rep;
+      MessageContext context;
+
+      if (delegate) {
+        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+        logger.msg(INFO, "Initiating delegation procedure");
+        if (!deleg.DelegateCredentialsInit(*client_entry, &context)) {
+          logger.msg(ERROR, "Failed to initiate delegation");
+          return false;
+        }
+        deleg.DelegatedToken(op);
+      }
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      MCC_Status status = client_entry->process(reqmsg, repmsg);
+      if (!status) {
+        logger.msg(ERROR, "Migration request failed");
+        return false;
+      }
+      logger.msg(INFO, "Migration request succeed");
+      if (repmsg.Payload() == NULL) {
+        logger.msg(ERROR, "There was no response to a migration request");
+        return false;
+      }
+      try {
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
+      if (resp == NULL) {
+        logger.msg(ERROR, "A response to a submission request was not "
+                          "a SOAP message");
+        delete repmsg.Payload();
+        return false;
+      }
+    }
+    else {
+      logger.msg(ERROR, "There is no connection chain configured");
+      return false;
+    }
+    XMLNode id;
+    SOAPFault fs(*resp);
+    if (!fs) {
+      (*resp)["MigrateActivityResponse"]["ActivityIdentifier"].New(id);
+      id.GetDoc(newjobid);
+      // delete resp;
+      return true;
+    }
+    else {
+      faultstring = fs.Reason();
+      std::string s;
+      resp->GetXML(s);
+      // delete resp;
+      logger.msg(VERBOSE, "Migration returned failure: %s", s);
+      logger.msg(ERROR, "Migration failed, service returned: %s", faultstring);
+      return false;
+    }
+  }
 }

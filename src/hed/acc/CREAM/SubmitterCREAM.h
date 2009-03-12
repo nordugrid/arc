@@ -16,7 +16,8 @@ namespace Arc {
 
   public:
     static Plugin* Instance(PluginArgument* arg);
-    bool Submit(const JobDescription& jobdesc, XMLNode& info);
+    bool Submit(const JobDescription& jobdesc, XMLNode& info) const;
+    bool Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const;
   };
 
 } // namespace Arc

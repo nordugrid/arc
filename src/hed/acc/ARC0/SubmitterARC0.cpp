@@ -24,7 +24,7 @@ namespace Arc {
     return new SubmitterARC0((Arc::Config*)(*accarg));
   }
 
-  bool SubmitterARC0::Submit(const JobDescription& jobdesc, XMLNode& info) {
+  bool SubmitterARC0::Submit(const JobDescription& jobdesc, XMLNode& info) const {
 
     FTPControl ctrl;
 
@@ -84,6 +84,11 @@ namespace Arc {
     info.NewChild("InfoEndpoint") = infoEndpoint.str();
 
     return true;
+  }
+
+  bool SubmitterARC0::Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const {
+    logger.msg(ERROR, "Migration to a ARC0 cluster is not supported.");
+    return false;
   }
 
 } // namespace Arc

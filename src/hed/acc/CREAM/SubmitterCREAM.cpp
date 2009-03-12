@@ -23,7 +23,7 @@ namespace Arc {
     return new SubmitterCREAM((Arc::Config*)(*accarg));
   }
 
-  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, XMLNode& info) {
+  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, XMLNode& info) const {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -69,4 +69,8 @@ namespace Arc {
     return true;
   }
 
+  bool SubmitterCREAM::Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const {
+    logger.msg(ERROR, "Migration to a CREAM cluster is not supported.");
+    return false;
+  }
 } // namespace Arc

@@ -3,6 +3,7 @@
 
 #include <arc/client/Submitter.h>
 #include <arc/XMLNode.h>
+#include <arc/URL.h>
 #include <arc/loader/Loader.h>
 #include <arc/client/ClientInterface.h>
 
@@ -21,8 +22,9 @@ namespace Arc {
 
   public:
     static Plugin* Instance(PluginArgument* arg);
-    bool Submit(const JobDescription& jobdesc, XMLNode& info);
-  };
+    bool Submit(const JobDescription& jobdesc, XMLNode& info) const;
+    bool Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const;
+ };
 
 } // namespace Arc
 
