@@ -834,6 +834,9 @@ class Client:
         self.xmlnode_class = FakeXMLNode
         try:
             import arc
+            root_logger = arc.Logger_getRootLogger()
+            root_logger.addDestination(arc.LogStream(sys.stdout))
+            root_logger.setThreshold(arc.ERROR)
             self.call_raw = self.call_raw_hed
             self.cfg = arc.MCCConfig()
             if self.https:
@@ -948,6 +951,9 @@ class Client:
         """
         try:
             import arc
+            x = arc.XMLNode('<dummy/>')
+            self.cfg.MakeConfig(x)
+            print x.GetXML()
             s = arc.ClientSOAP(self.cfg, self.url)          
             resp, status = s.process(outpayload)
             if not status.isOk():
