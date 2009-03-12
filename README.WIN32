@@ -51,6 +51,12 @@ Building ARC on Windows system using MinGW
 - Install OpenSSL. 
   (http://www.slproweb.com/products/Win32OpenSSL.html)
   - export OPENSSL_BIN=/bin/openssl
+    - From the Openssl documentation:
+      The Win32 OpenSSL Installation Project builds MinGW .a and .def files as part of the project. So, it is a matter of copying files to the proper locations.
+      Assuming a default installation (C:\OpenSSL), go to 'C:\OpenSSL\lib\MinGW' and copy all of the files to your MinGW 'lib' directory.
+      Next, copy everything in the 'C:\OpenSSL\include' directory to your MinGW 'include' directory.
+
+That's it! You are ready to go write OpenSSL-capable code!
 
 - After all installs are completed reopen MSYS shell to make it 
   acquire new environment variables.
