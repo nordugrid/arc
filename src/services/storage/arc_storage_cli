@@ -951,9 +951,9 @@ class Client:
         """
         try:
             import arc
-            x = arc.XMLNode('<dummy/>')
-            self.cfg.MakeConfig(x)
-            print x.GetXML()
+            #x = arc.XMLNode('<dummy/>')
+            #self.cfg.MakeConfig(x)
+            #print x.GetXML()
             s = arc.ClientSOAP(self.cfg, self.url)          
             resp, status = s.process(outpayload)
             if not status.isOk():
