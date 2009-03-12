@@ -74,7 +74,8 @@ class JobLocalDescription {
                            cleanuptime(),expiretime(),
                            failedstate(""),fullaccess(false),
                            credentialserver(""),gsiftpthreads(1),
-                           dryrun(false),diskspace(0)
+                           dryrun(false),diskspace(0), migrateactivityid(""),
+                           forcemigration(false)
   {
   };
   std::string jobid;         /* job's unique identificator */
@@ -119,6 +120,8 @@ class JobLocalDescription {
   bool   dryrun;             /* if true, this is test job */
   unsigned long long int diskspace;  /* anount of requested space on disk */
   std::list<std::string> activityid;     /* ID of activity */
+  std::string migrateactivityid;     /* ID of activity that is being migrated*/
+  bool forcemigration;      /* Ignore if killing of old job fails */
 };
 
 /* Information stored in job.#.lrms_done file */

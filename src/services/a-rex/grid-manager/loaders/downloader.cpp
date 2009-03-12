@@ -3,6 +3,7 @@
 #endif
 /*
   Download files specified in job.ID.input and check if user uploaded files.
+  Additionally check if this is a migrated job and if so kill the job on old cluster.
   result: 0 - ok, 1 - unrecoverable error, 2 - potentially recoverable,
   3 - certificate error, 4 - should retry.
 */
@@ -13,15 +14,18 @@
 #include <pwd.h>
 #include <errno.h>
 
+#include <arc/XMLNode.h>
 #include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataMover.h>
+#include <arc/message/MCC.h>
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/User.h>
+#include <arc/Utils.h>
 
 #include "../jobs/job.h"
 #include "../jobs/users.h"
@@ -32,6 +36,7 @@
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
+#include "../../../../hed/acc/ARC1/AREXClient.h"
 
 #define olog std::cerr
 #define odlog(LEVEL) std::cerr
@@ -606,6 +611,49 @@ int main(int argc,char** argv) {
   if(!job_input_write_file(desc,user,job_files_)) {
     olog << "WARNING: Failed writing changed input file." << std::endl;
   };
+
+
+  if (res == 0) {
+    desc.GetLocalDescription(user);
+
+    // Kill job on old cluster, only for migrated jobs.
+    if (desc.get_local()->migrateactivityid != "") {
+      const size_t found = desc.get_local()->migrateactivityid.rfind("/");
+
+      if (found != std::string::npos) {
+	Arc::MCCConfig cfg;
+	cfg.AddProxy(Arc::GetEnv("X509_USER_PROXY"));
+	
+	Arc::AREXClient ac(desc.get_local()->migrateactivityid.substr(0, found), cfg);
+	
+	olog << "Address: " << desc.get_local()->migrateactivityid.substr(0, found) << std::endl;
+	olog << "ReferenceParameters: " << desc.get_local()->migrateactivityid.substr(found+1) << std::endl;
+
+	Arc::NS ns;
+	ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+	ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
+	ns["wsa"] = "http://www.w3.org/2005/08/addressing";
+	ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+	ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+	ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+	ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+
+	Arc::XMLNode id(ns, "ActivityIdentifier");
+	id.NewChild("wsa:Address") = desc.get_local()->migrateactivityid.substr(0, found);
+	id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = desc.get_local()->migrateactivityid.substr(found+1);
+	std::string idstr;
+	id.GetXML(idstr);
+
+	const bool migratekillsuccess =  ac.kill(idstr); // Try to kill job at old cluster, do not care if we do not succeed.
+	if (!desc.get_local()->forcemigration && !migratekillsuccess) {
+	  res = 1;
+	  failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
+	}
+	desc.get_local()->migrateactivityid = "";
+      }
+    }
+  }
+
 exit:
   olog << "Leaving downloader ("<<res<<")"<<std::endl;
   // clean unfinished files here 

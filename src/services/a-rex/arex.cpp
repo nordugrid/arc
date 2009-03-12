@@ -282,6 +282,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         StartAcceptingNewActivities(*config,op,BESManagementResponse(res,"StartAcceptingNewActivities"));
       } else if(MatchXMLName(op,"ChangeActivityStatus")) {
         ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
+      } else if(MatchXMLName(op,"MigrateActivity")) {
+        MigrateActivity(*config,op,BESFactoryResponse(res,"MigrateActivity"),clientid);
       } else if(MatchXMLName(op,"CacheCheck")) {
         CacheCheck(*config,*inpayload,*outpayload);
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {

@@ -698,6 +698,10 @@ bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc
       act_id != job_desc.activityid.end(); ++act_id) {
     write_pair(f,"activityid",(*act_id));
   };
+  if (job_desc.migrateactivityid != "") {
+    write_pair(f,"migrateactivityid",job_desc.migrateactivityid);
+    write_pair(f,"forcemigration",job_desc.forcemigration);
+  }
   f.close();
   return true;
 }
@@ -712,6 +716,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
   std::ifstream f(fname.c_str());
   if(! f.is_open() ) return false; /* can't open file */
   std::string name;
+  job_desc.activityid.clear();
   for(;!f.eof();) {
     istream_readline(f,buf,sizeof(buf));
     name.erase();
@@ -776,7 +781,13 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
       std::string temp_s(buf+p);
       job_desc.activityid.push_back(temp_s);
     }
-  };
+    else if(name == "migrateactivityid") { job_desc.migrateactivityid = buf+p; }
+    else if(name == "forcemigration") { 
+      if(strcasecmp("yes",buf+p) == 0) { job_desc.forcemigration = true; }
+      else if(strcasecmp("true",buf+p) == 0) { job_desc.forcemigration = true; }
+      else job_desc.forcemigration = false;
+    };
+  }
   f.close();
   return true;
 }

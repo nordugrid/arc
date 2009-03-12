@@ -283,7 +283,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid,Arc::Logger& logger):id_(""),config_(config),logger_(logger) {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, const Arc::XMLNode& migration):id_(""),config_(config),logger_(logger) {
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
@@ -359,6 +359,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.starttime=time(NULL);
   job_.DN=config_.GridName();
   job_.clientname=clientid;
+  job_.migrateactivityid=(std::string)migration["ActivityIdentifier"];
+  job_.forcemigration=(migration["ForceMigration"]=="true");
   // Try to create proxy
   if(!update_credentials(credentials)) {
     failure_="Failed to store credentials";

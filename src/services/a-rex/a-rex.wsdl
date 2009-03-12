@@ -136,6 +136,30 @@
 
       <xsd:element name="CacheCheckResponse" type="a-rex:CacheCheckResponseType"/>
 
+      <xsd:complexType name="MigrateActivityType">
+        <xsd:sequence>
+	  <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="1"/>
+          <xsd:element ref="bes-factory:ActivityDocument" minOccurs="0"/>
+	  <xsd:element name="ForceMigration" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>    
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>        
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+      </xsd:complexType>
+
+      <xsd:complexType name="MigrateActivityResponseType">
+        <xsd:sequence>
+          <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
+          <xsd:element ref="bes-factory:ActivityDocument" minOccurs="0"/>
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>        
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+      </xsd:complexType>
+
+      <xsd:element name="MigrateActivity"
+        type="a-rex:MigrateActivityType"/>
+      <xsd:element name="MigrateActivityResponse"
+        type="a-rex:MigrateActivityResponseType"/>
+      
     </xsd:schema>
   </wsdl:types>
 
@@ -153,6 +177,16 @@
 
   <wsdl:message name="CacheCheckResponse">
     <wsdl:part name="CacheCheckResponse" element="a-rex:CacheCheckResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="MigrateActivityRequest">
+    <wsdl:part name="MigrateActivityRequest" 
+	element="a-rex:MigrateActivity"/>
+  </wsdl:message>
+
+  <wsdl:message name="MigrateActivityResponse">
+    <wsdl:part name="MigrateActivityResponse" 
+        element="a-rex:MigrateActivityResponse"/>
   </wsdl:message>
 
   <wsdl:portType name="a-rex">
@@ -282,7 +316,26 @@
         message="a-rex:CacheDisabledFault"
         wsa:Action="http://www.nordugrid.org/schemas/a-rex/fault"/>
     </wsdl:operation>
-
+    <wsdl:operation name="MigrateActivity">
+      <wsdl:input 
+         name="MigrateActivity"
+         message="a-rex:MigrateActivityRequest"  
+      <wsdl:output
+         name="MigrateActivityResponse"
+         message="a-rex:MigrateActivityResponse"
+      <wsdl:fault name="NotAuthorizedFault" 
+         message="bes-factory:NotAuthorizedFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="NotAcceptingNewActivitiesFault" 
+         message="bes-factory:NotAcceptingNewActivitiesFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="UnsupportedFeatureFault" 
+         message="bes-factory:UnsupportedFeatureFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="InvalidRequestMessageFault"
+         message="bes-factory:InvalidRequestMessageFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+    </wsdl:operation>
   </wsdl:portType>
 
   <wsdl:binding name="a-rex" type="a-rex:a-rex">
@@ -401,6 +454,27 @@
         <soap:fault name="CacheDisabledFault" use="literal" />
       </wsdl:fault>
     </wsdl:operation>
+    <wsdl:operation name="MigrateActivity">
+      <soap:operation soapAction="MigrateActivity" /> 
+      <wsdl:input name="MigrateActivity">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="MigrateActivityResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="NotAuthorizedFault">
+        <soap:fault name="NotAuthorizedFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="NotAcceptingNewActivitiesFault">
+        <soap:fault name="NotAcceptingNewActivitiesFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="UnsupportedFeatureFault">
+        <soap:fault name="UnsupportedFeatureFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="InvalidRequestMessageFault">
+        <soap:fault name="InvalidRequestMessageFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation> 
   </wsdl:binding>
 
   <wsdl:service name="a-rex">
