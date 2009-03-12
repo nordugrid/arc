@@ -246,7 +246,7 @@ namespace Arc {
       logger.msg(INFO, "Using key file: %s", path);
       ccfg.NewChild("KeyPath") = path;
     }
-    else if (stat((path = "/tmp/x509up_u" + tostring(user.get_uid())).c_str(), &st) == 0) {
+    else if (stat((path = FILE_SEPERATOR + std::string("tmp") + FILE_SEPERATOR + "x509up_u" + tostring(user.get_uid())).c_str(), &st) == 0) {
         if (!S_ISREG(st.st_mode)) {
           logger.msg(ERROR, "Proxy is not a file: %s", path);
           return false;
@@ -258,9 +258,9 @@ namespace Arc {
       logger.msg(WARNING, "Default proxy file does not exist: %s "
           "trying default certificate and key", path);
       if (user.get_uid() == 0)
-        path = "/etc/grid-security/hostcert.pem";
+        path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostcert.pem";
       else
-        path = user.Home() + "/.globus/usercert.pem";
+        path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR+ "usercert.pem";
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access certificate file: %s (%s)", path, StrError());
         return false;
@@ -273,9 +273,9 @@ namespace Arc {
       ccfg.NewChild("CertificatePath") = path;
 
       if (user.get_uid() == 0)
-        path = "/etc/grid-security/hostkey.pem";
+        path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostkey.pem";
       else
-        path = user.Home() + "/.globus/userkey.pem";
+        path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR + "userkey.pem";
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access key file: %s (%s)",
             path, StrError());
@@ -315,7 +315,7 @@ namespace Arc {
       ccfg.NewChild("CACertificatesDir") = path;
     }
     else if (user.get_uid() != 0 &&
-      stat((path = user.Home() + "/.globus/certificates").c_str(), &st) == 0) {
+      stat((path = user.Home() + FILE_SEPERATOR + ".globus" +FILE_SEPERATOR + "certificates").c_str(), &st) == 0) {
       if (!S_ISDIR(st.st_mode)) {
         logger.msg(ERROR, "CA certificate directory is not a directory: %s", path);
         return false;
@@ -324,7 +324,7 @@ namespace Arc {
       ccfg.NewChild("CACertificatesDir") = path;
     }
     else {
-      path = "/etc/grid-security/certificates";
+      path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "certificates";
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
             path, StrError());
