@@ -15,6 +15,11 @@
 #include <arc/Logger.h>
 #include <arc/ArcRegex.h>
 #include <arc/XMLNode.h>
+
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 #include "ArexLogParser.h"
 #include "LUTSClient.h"
 
