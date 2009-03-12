@@ -79,11 +79,11 @@ namespace Arc {
           return false;
         };
    
-        std::cout<<"X509 Request: \n"<<x509request<<std::endl;
+        //std::cout<<"X509 Request: \n"<<x509request<<std::endl;
  
         //Sign the proxy certificate
         Arc::Time start;
-        Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritall","",-1);
+        Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritAll","",-1);
         //Set proxy path length to be -1, which means infinit length
         std::string signedcert;
         proxy.InquireRequest(x509request);
@@ -166,7 +166,7 @@ namespace Arc {
       //Sign the proxy certificate
       Arc::Credential proxy;
       std::string signedcert;
-      std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
+      //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
       if(!(signer_->SignRequest(&proxy, signedcert))) {
         logger.msg(ERROR, "DelegateProxy failed");
@@ -234,6 +234,13 @@ namespace Arc {
           tokenlookup.NewChild("deleg:CredIdentity")=cred_identity;
           tokenlookup.NewChild("deleg:CredDelegatorIP")=cred_delegator_ip;
         }
+        //Generate a X509 request
+        std::string x509req_str;
+        Arc::Time start;
+        int keybits = 1024;
+        Arc::Credential cred_request(start,Arc::Period(),keybits);
+        cred_request.GenerateRequest(x509req_str);
+        tokenlookup.NewChild("deleg:Value")=x509req_str;
 
         PayloadSOAP* response = NULL;
         //Send AcquireCredentials request
@@ -262,7 +269,7 @@ namespace Arc {
           logger.msg(Arc::ERROR, "There is no Id or X509 token value in the response");
           return false;
         };
-        std::cout<<"Get delegated X509 Token: \n"<<delegation_cred<<std::endl;
+        //std::cout<<"Get delegated X509 Token: \n"<<delegation_cred<<std::endl;
         return true;
       }
       else {
