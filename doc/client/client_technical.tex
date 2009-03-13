@@ -109,15 +109,15 @@
 \chapter{Preface}
 \label{sec:intro}
 
-This document describes from a technical viewpoint a plugin based
+This document describes from a technical viewpoint a plugin-based
 client library for the new Web Service (WS) based Advanced Resource
 Connector~\cite{arc} (ARC) middleware. The library consists of a set
 of C++ classes for
 
 \begin{itemize}
 \item{handling proxy, user and host certificates,}
-\item{performing resource discovery and information retrieval,}
-\item{filtering and brokering of found resources,}
+\item{performing computing resource discovery and information retrieval,}
+\item{filtering and brokering of found computing resources,}
 \item{job submission and management and}
 \item{data handling.}
 \end{itemize}
@@ -126,7 +126,7 @@ All capabilities are enabled for three different grid flavours
 (Production ARC, ARC1 and gLite~\cite{glite}) through a modular design
 using plugins specialized for each supported middleware. Future
 extensions to support additional middlewares involve plugin
-compilation only i.e.\ no recompilation of main libraries or clients
+compilation only i.e., no recompilation of main libraries or clients
 is necessary.
 
 Using the library, a set of command line tools have been built which
@@ -138,7 +138,7 @@ the client user manual~\cite{ui}.
 In the following we will give a functionality overview in
 Section~\ref{sec:FuncOver} while all technical details will be given
 in Section~\ref{sec:Implementation}. Section~\ref{sec:cli} will
-through examples show how command line interfaces can be built upon
+show through examples how command line interfaces can be built upon
 the library.
 
 \chapter{Functionality Overview}
@@ -206,7 +206,7 @@ information server. Below a description of each step is given:
   once. Index servers often register at more than one index server,
   thus different {\TargetRetriever}s may discover the same server.}
 \item{If while processing the query result the {\TargetRetriever}
-  finds an other registered index server or a registered computing
+  finds another registered index server or a registered computing
   service it creates a new {\TargetRetriever} for the found server or
   service and forwards the call for targets to the new
   {\TargetRetriever}.}
@@ -232,7 +232,7 @@ information server. Below a description of each step is given:
 
 Job submission starts with the resource discovery and target
 preparation as outlined in the Section~\ref{sec:TargetDiscovery}. Not
-until a list of possible targets (which allows the user) is available
+until a list of possible targets (which authorize the user) is available
 is the job description read in order to enable bulk job submission of
 widely different jobs without having to reperform the resource
 discovery. In addition to the classes mentioned above the job
@@ -273,7 +273,7 @@ description of each step is given:
 
 \section{Job Management}
 
-Once a job is submitted job related information (job identification
+Once a job is submitted, job related information (job identification
 string, cluster etc.) is stored in a local XML file which stores this 
 information for all active jobs. This file may contain jobs running on
 completely different grid flavours, and thus job management should be
@@ -424,8 +424,8 @@ PrintTargetInfo(bool longlist) const;
 
 \subsection{{\TargetRetriever}}
 
-The {\TargetRetriever} is base class for {\TargetRetriever} grid
-middleware specializations and inherits from the {\ACC} base class in
+The {\TargetRetriever} is the base class for grid middleware specialized 
+{\TargetRetriever}s and inherits from the {\ACC} base class in
 order to be loadable by the ARC \texttt{Loader}. It is designed to
 work in conjunction with the {\TargetGenerator} and contains the pure
 virtual method
@@ -468,11 +468,8 @@ void Print(bool longlist) const;
 \end{verbatim}
 \end{shaded}
 
-Following a broker ranking jobs are to be submitted. Since all
-information about the selected computing service resides within the
-selected {\ExecutionTarget}, the {\ExecutionTarget} is capable of
-returning a {\Submitter} capable of submitting a job to the service it
-represents.
+All information needed to submit a job is stored in the {\ExecutionTarget}, 
+and the {\ExecutionTarget}'s method
 
 \begin{shaded}
 \begin{verbatim}
@@ -480,8 +477,8 @@ Submitter *GetSubmitter(const UserConfig& ucfg) const;
 \end{verbatim}
 \end{shaded}
 
-The {\UserConfig} object is used to configure the security related
-information needed by the {\Submitter}.
+returns a {\Submitter} which is used to submit jobs. The {\UserConfig} object 
+is used to configure the security related information needed by the {\Submitter}.
 
 \subsection{{\Broker}}
 
@@ -499,9 +496,9 @@ The {\texttt PreFilterTargets} method compares every hardware and software requi
 computing resource (cluster) specifications stored in the {\ExecutionTarget}. If the{\ExecutionTarget} doesn't fulfil 
 the requirements imposed by the job description, or it is impossible to carry out the matchmaking due to incomplete information 
 published by the computing resource, the {\ExecutionTarget} will be removed from the list of possible targets. A detailed overview 
-of the matchmaking between {\JobDescription} and {\ExecutionTarget} attributes is given in Appendix~\ref{sec:broker-mapping}. 
+of the matchmaking between {\JobDescription} and {\ExecutionTarget} attributes is given in Appendix~\ref{app:broker-mapping}. 
  
-Once prefiltered the remaining {\ExecutionTarget}s should be ranked in order to return the ``best'' {\ExecutionTarget} for 
+Once prefiltered, the remaining {\ExecutionTarget}s should be ranked in order to return the ``best'' {\ExecutionTarget} for 
 job submission. Different ranking methods are implemented by the specialized brokers, but for usability and consistency reasons 
 these methods are encapsulated by the {\Broker} base class method
 
@@ -523,7 +520,7 @@ description languages by translating them automatically. In the
 {\libarcclient} library this functionality is implemented in the
 {\JobDescription} class which parses job descriptions given in the 
 XRSL~\cite{xrsl}, JDL~\cite{jdl} or JSDL~\cite{jsdl} formats into an 
-internal representation based upon the upcoming PGI-JSDL proposal. 
+internal representation based upon the upcoming PGI-JSDL proposal.
 
 \begin{shaded}
 \begin{verbatim}
@@ -531,11 +528,11 @@ bool setSource(const std::string source);
 \end{verbatim}
 \end{shaded}
 
-The identification of the source description format is internally handled by a 
-\texttt{JobDescriptionOrderer} class which identifies the format by pattern matching.
-Once the format is determined from the elements are mapped from the original format (XRSL, JDL or JSDL) 
-into the internal representation (the \texttt{JobInnerRepresentation} class). Mapping details 
-are given in Section~\ref{sec:jobinnerrepresentation}. 
+The setSource method takes a source job description string as input and identifies it's format 
+(language) through pattern matching (the \texttt{JobDescriptionOrderer} class).
+Once the format is known, the source elements are mapped from the original format (XRSL, JDL or JSDL) 
+into an internal representation (the \texttt{JobInnerRepresentation} class). Mapping details 
+are given in Section~\ref{app:jobinnerrepresentation}. 
 
 The {\JobDescription} class has three back-end classes, sometimes
 referred to as back-end or translator modules, corresponding to the
@@ -545,7 +542,7 @@ performed by the \texttt{JobDescriptionOrderer}, and uses the back-end
 module for parsing and translation (if needed) of the job descriptions.
 
 Once the job description language required by the {\ExecutionTarget} chosen 
-for job submission is known the parsed and (if needed) translated job description 
+for job submission is known, the parsed and (if needed) translated job description 
 can be retrieved through the {\texttt GetProduct} function as shown below:
 
 \begin{shaded}
@@ -571,11 +568,11 @@ bool getSourceString(std::string source) const;
 
 The translation of a job description basically means a syntactical transformation 
 of the job description from one language to another. Thus the {\JobDescription}
-class can do nothing in those cases where there is not enough data is available 
+class can do nothing in those cases where there is not enough data available 
 to assemble a given attribute or when information can be lost because the received 
-attribute has no equivalent in the output language. In these events the {\texttt GetProduct} 
-method returns with a false and an empty product string. For limitations in the translation
-see Section~\ref{sec:jobinnerrepresentation}.
+attribute has no equivalent in the output language. In these cases the {\texttt GetProduct} 
+method returns with a false value and an empty product string. For limitations in the translation
+see Section~\ref{app:jobinnerrepresentation}.
 
 For the JSDL output generation the {\JobDescription} class uses
 the core JSDL's capabilities amended with the JSDL-POSIX and JSDL-ARC
@@ -599,9 +596,9 @@ bool addOldJobID(const URL& oldjobid);
 
 \subsection{{\Submitter}}
 
-{\Submitter} is base class for grid specific specializations (plugin).
-It submits job(s) to the service it represents and uploads (by the job
-needed) local input files.
+{\Submitter} is the base class for grid middleware specialized {\Submitter}s (plugins).
+It submits job(s) to the service it represents and uploads (needed by the job) local 
+input files.
 
 \begin{shaded}
 \begin{verbatim}
@@ -626,7 +623,7 @@ or on groups of jobs (e.g.\ all jobs running on certain cluster or all
 jobs with job state ``FINISHED''), and in order to translate the
 information given by the user into a set of loadable {\JobController}s
 the {\JobSupervisor} makes extensive use of the local joblist file
-housing information about all active jobs. Thus the {\JobSupervisor}
+which house information about all active jobs. Thus the {\JobSupervisor}
 constructor becomes
 
 \begin{shaded}
@@ -644,10 +641,10 @@ services in the same format as described above for the
 {\TargetGenerator}, \texttt{joblist} is a string containing the name
 of the joblist file.
 
-Although being loaded by the {\JobSupervisor} the {\JobController}
-objects truly resides within the ARC {\Loader} which is a member of
+Although loaded by the {\JobSupervisor} the {\JobController}
+objects actually reside within the ARC {\Loader} which is a member of
 the {\JobSupervisor} class. In order to get handles on the
-{\JobController}s the inline method
+{\JobController}s, the inline method
 
 \begin{shaded}
 \begin{verbatim}
@@ -668,7 +665,7 @@ of the {\JobController} are private. The initialization of a
 loaded by the ARC {\Loader}, which sees to that the {\JobController}
 receives information about its flavour (grid) and the local joblist
 file containing information about all active jobs (flavour
-independent). Next step is the filling of the {\JobController}'s job
+independent). The next step is the filling of the {\JobController}'s job
 pool \texttt{JobStore} which is the pool of jobs that the
 {\JobController} can manage.
 
@@ -687,22 +684,23 @@ following rules are observed when filling the \texttt{JobStore}:
 
 \begin{enumerate}
 \item{If the \texttt{jobids} list has entries, fill \texttt{JobStore}
-  with the by user requested jobs.}
+  with the jobs requested by the user.}
 \item{If the \texttt{clusterselect} list has entries, fill
   \texttt{JobStore} with the jobs running on the selected clusters.}
 \item{If clusters are rejected and \texttt{JobStore} has entries,
   remove from \texttt{JobStore} all jobs running on rejected
   clusters.}
-\item{If \texttt{jobs} and \texttt{clusterselect} are both empty
+\item{If \texttt{jobids} and \texttt{clusterselect} are both empty
   lists, fill \texttt{JobStore} with all jobs except those running on
-  possible rejected clusters.}
+  rejected clusters if there are any.}
 \end{enumerate}
 
-The steps above completes the initialization of the {\JobController}
+The steps above complete the initialization of the {\JobController}
 which is now ready for handling jobs. The public functions of the
 {\JobController} offer to get (download), clean, cancel, etc. one or
-more jobs and uses the private specializations for issuing the
-command. Here exemplified by the \texttt{Stat} command:
+more jobs and use the virutal methods implemented by the grid middleware 
+specialized {\JobController}s for issuing the command. Here exemplified 
+by the \texttt{Stat} command:
 
 \begin{shaded}
 \begin{small}
@@ -813,9 +811,9 @@ have been found. The found job descriptions are kept in the
 The {\Job} is a generic job class for storing all job related
 information. Attributes are derived from the Glue2 information model
 and thus a mapping is needed for non Glue2 compliant grid middlewares.
-Appendix~\ref{app:job} shows the present mapping schema.
 
-All attributes of the {\Job} can be printed by the method
+All attributes of the {\Job} can be printed by the method (longlist = true 
+will give more details (long listing))
 
 \begin{shaded}
 \begin{verbatim}
@@ -828,7 +826,7 @@ void Print(bool longlist) const;
 The {\UserConfig} class handles the client setup i.e. proxy,
 certificate and key location, user and system configuration and local
 joblist location. Upon initialization (constructor) the {\UserConfig}
-locates the user files
+locates and reads the user files
 
 \begin{shaded}
 \begin{verbatim}
@@ -862,7 +860,7 @@ configuration. This proceeds through the following chain of actions:
 \item{If the previous step failed try reading system configuration
   from \texttt{/etc/arcclient.xml}}
 \item{Merge system and user configuration by adding all system
-  configuration not already listed in the user configuration to the
+  configuration not already listed in the user configuration items to the
   latter.}
 \end{enumerate}
 
@@ -871,37 +869,37 @@ ccfg {\XMLNode} as follows:
 
 \begin{itemize}
 \item{If the \texttt{\$X509\_USER\_PROXY} environment variable is set,
-  use its value to define a \texttt{ProxyPath} tag in \texttt{cfg}. If
+  use its value to define a \texttt{ProxyPath} tag in \texttt{ccfg}. If
   the file does not exist or can't be read exit with an error.}
 \item{Otherwise, if the \texttt{\$X509\_USER\_CERT} environment
   variable is set, use its value and the value of the
   \texttt{\$X509\_USER\_KEY} environment variable to define
-  \texttt{CertificatePath} and \texttt{KeyPath} tags in \texttt{cfg}.
+  \texttt{CertificatePath} and \texttt{KeyPath} tags in \texttt{ccfg}.
   If \texttt{\$X509\_USER\_KEY} is not set or either file does not
   exist or can't be read exit with an error.}
 \item{Otherwise, if the merged user configuration tree (see
-  \texttt{ConfTree} contains a \texttt{ProxyPath} tag, copy it to
-  \texttt{cfg}. If the file does not exist or can't be read exit with
+  \texttt{ConfTree}) contains a \texttt{ProxyPath} tag, copy it to
+  \texttt{ccfg}. If the file does not exist or can't be read exit with
   an error.}
 \item{Otherwise, if the merged user configuration tree contains a
-  \texttt{CertificatePath} tag, copy it to \texttt{cfg} along with the
+  \texttt{CertificatePath} tag, copy it to \texttt{ccfg} along with the
   accompanying \texttt{KeyPath} tag. If the \texttt{KeyPath} tag is
   undefined or either file does not exist or can't be read exit with
   an error.}
 \item{Otherwise, if the file \texttt{/tmp/x509up\_u + userid} exists
-  add a \texttt{ProxyPath} tag in \texttt{cfg} pointing to it.}
+  add a \texttt{ProxyPath} tag in \texttt{ccfg} pointing to it.}
 \item{Otherwise, add \texttt{CertificatePath} and \texttt{KeyPath}
-  tags to \texttt{cfg} pointing to
+  tags to \texttt{ccfg} pointing to
   \texttt{\$HOME/.globus/usercert.pem} and
   \texttt{\$HOME/.globus/userkey.pem}, respectively. If either file
   does not exist exit with error.}
 \item{If the \texttt{\$X509\_CERT\_DIR} environment variable is set,
   use its value to define a \texttt{CACertificatesDir} tag in
-  \texttt{cfg}. If the directory does not exist, exit with an error.}
+  \texttt{ccfg}. If the directory does not exist, exit with an error.}
 \item{Otherwise, if the user ID is not zero and the directory
   \texttt{\$HOME/.globus/certificates} exists add a
-  \texttt{CACertificatesDir} tag in \texttt{cfg} pointing to it.}
-\item{Otherwise, add a \texttt{CACertificatesDir} tag in \texttt{cfg}
+  \texttt{CACertificatesDir} tag in \texttt{ccfg} pointing to it.}
+\item{Otherwise, add a \texttt{CACertificatesDir} tag in \texttt{ccfg}
   pointing to \texttt{/etc/grid-security/certificates}. If the
   directory does not exist, exit with an error.}
 \end{itemize}
@@ -974,8 +972,8 @@ The ARC0 plugins enables support for the interfaces used by computing
 elements running ARC version 0.x.
 
 The ARC 0.x local information system uses the {\GT}~\cite{globus} GRIS
-with a purpose made ARC schema. The information index server used is the
-{\GT} GIIS. Both these servers are using the LDAP~\cite{ldap}
+with a custom made ARC schema. The information index server used is the
+{\GT} GIIS. Both these servers use the LDAP~\cite{ldap}
 protocol. The specialization of the {\TargetRetriever} class for ARC0
 is implemented using the ARC LDAP Data Management Component (DMC) (see
 \cite{hed} for technical details).
@@ -996,12 +994,12 @@ The computing element in ARC version 1.x is the A-Rex~\cite{arex}
 service running in a HED~\cite{hed} container.
 
 A-Rex implements the BES~\cite{ogsa-bes} standard interface. Since
-this is a SOAP~\cite{soap} based interface the specializations of the
+this is a SOAP-based~\cite{soap} interface, the specializations of the
 {\TargetRetriever}, {\Submitter} and {\JobController} classes make use
 of a chain of ARC Message Chain Components (MCC~\cite{hed}) ending
 with the SOAP client MCC.
 
-The A-Rex service uses the https protocol put and get methods for
+The A-Rex service uses the https protocol \texttt{put} and \texttt{get} methods for
 stage-in and stage-out of input and output files. Therefore, the ARC1
 plugins requires the http DMC.
 
@@ -1014,7 +1012,7 @@ version 2) has been chosen for implementation within {\libarcclient} for the
 following reasons:
 
 \begin{itemize}
-\item CREAM2 has a Web Service interface that fits the Web Service
+\item CREAM2 has a Web Service interface that is very similar to the Web Service
   based ARC.
 \item CREAM2 enables direct access to the gLite computing element
   without having to go via the gLite workload management system.
@@ -1029,7 +1027,7 @@ gLite resources are registered in top level and site BDIIs. The CREAM
 specialization of the {\TargetRetriever} therefore makes use of the
 LDAP DMC similarly to the ARC0 plugins.
 
-CREAM has its own SOAP based interface. The CREAM
+CREAM has its own SOAP-based interface. The CREAM
 specializations of the {\Submitter} and {\JobController} classes
 therefore use an MCC chain ending with the SOAP client MCC the same 
 way the ARC1 plugin does.
@@ -1073,9 +1071,9 @@ The {\texttt SortTargets} method has three steps:
 \item{{\ExecutionTarget}s not publishing WaitingJobs, TotalSlots and FreeSlots are removed from the list of possible targets 
 as it is impossible to determine their queue length and perform load balancing.}
 \item{The {\ExecutionTarget}s are ranked according to their queue length relative to the number of slots/CPUs. Zero queue 
-{\ExecutionTarget}s is ranked top.}
-\item{If more than one {\ExecutionTarget} has zero queue the targets are randomly reshuffled based upon how many free slots 
-they have. E.g. if two {\ExecutionTarget}s have zero queue and they have 90 and 10 free slots respectively, then the first
+{\ExecutionTarget}s is ranked first.}
+\item{If more than one {\ExecutionTarget} has zero queue, the targets are randomly reshuffled based upon how many free slots 
+they have, e.g. if two {\ExecutionTarget}s have zero queue and they have 90 and 10 free slots respectively, then the first
 {\ExecutionTarget} has a 90\% probability of becoming the top ranked cluster.}
 \end{enumerate}
 
@@ -1086,26 +1084,17 @@ stored in the cache of the computing resource the {\ExecutionTarget} represents.
 be submitted to {\ExecutionTarget}s where the data already is, thus reducing the network load on both the computing resource 
 and client side. The ranking method is based upon the A-REX\footnote{http://www.knowarc.eu/download/D1.2-3\_documentation.pdf} 
 interface {\texttt CacheCheck} for querying for the presence of the file in the cache directory. This interface has a limitation 
-in the current implementation as it can only use cache directory of format
-
-\begin{shaded}
-\begin{verbatim}
-cachedir="/tmp/cache"
-\end{verbatim}
-\end{shaded}
-
-If the cachedir parameter involves {\%}U or other substitute element then the {\texttt CacheCheck} will not work.
+in the current implementation and does not support per user caches.
 
 The {\texttt SortTargets} method has four steps:
 
 \begin{enumerate}
-\item{Only the A-REX service has {\texttt CacheCheck} method, thus {\ExecutionTarget}s not running A-REX are removed.
-therefore the other clusters will be ignored.}
-\item{Information about input files is collected from the JobInnerRepresentation.}
+\item{Only the A-REX service has {\texttt CacheCheck} method, thus {\ExecutionTarget}s not running A-REX are removed.}
+\item{Information about input files requested in the job description is collected from the \texttt{JobInnerRepresentation.}}
 \item{Each {\ExecutionTarget} is queried (through the {\texttt CacheCheck} method) for the existence of input files. 
-A single query is used for achieving all the necessary information and file sizes are summarized. If there is problems 
+A single query is used for achieving all the necessary information and file sizes are summarized. If there are problems 
 determining file sizes, then the summarized size will be zero.}
-\item{The possible {\ExecutionTarget}s are ranked in a descending order according to the amount of input data they have in cache.}
+\item{The possible {\ExecutionTarget}s are ranked in a descending order according to the amount of input data they have in their cache.}
 \end{enumerate}
 
 Example of a CacheCheck request that can be sent to an A-REX service:
@@ -1195,12 +1184,12 @@ management. {\libarcclient} offers the following native commands:
 \begin{enumerate}
 \item{\texttt{arcstat} - for computing resource or grid job status
   queries.}
-\item{\texttt{arcsub} - for grid job submission}
+\item{\texttt{arcsub} - for grid job submission.}
 \item{\texttt{arcget} - for downloading output of finished, cancelled
   or failed grid jobs.}
 \item{\texttt{arckill} - for terminating grid jobs.}
 \item{\texttt{arcclean} - for removing a grid job's session directory
-  including all contents}
+  including all contents.}
 \item{\texttt{arccat} - for performing the \texttt{cat} command to a
   running grid job's std out or std error file.}
 \item{\texttt{arcsync} - for synchronising the information in the user's
