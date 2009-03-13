@@ -38,8 +38,6 @@ namespace Arc {
     arg->proxyPath = proxyPath;
     arg->certificatePath = certificatePath;
     arg->keyPath = keyPath;
-    std::cout<<"******  "<<certificatePath<<"  "<<keyPath<<std::endl;
-
     arg->caCertificatesDir = caCertificatesDir;
     arg->url = url;
     arg->targetType = targetType;
@@ -117,6 +115,14 @@ namespace Arc {
     std::cout << thePayload << std::endl;//debug remove!
     //The following loop should work even for mixed lists of index and computing services
     for (std::list<Arc::Config>::iterator it=beses.begin(); it != beses.end(); it++){
+      if (!thrarg->certificatePath.empty())
+        (*it).NewChild("CertificatePath") = thrarg->certificatePath;
+      if (!thrarg->keyPath.empty())
+        (*it).NewChild("KeyPath") = thrarg->keyPath;
+      if (!thrarg->caCertificatesDir.empty())
+        (*it).NewChild("CACertificatesDir") = thrarg->caCertificatesDir;
+      if (!thrarg->proxyPath.empty())
+        (*it).NewChild("ProxyPath") = thrarg->proxyPath;
       TargetRetrieverUNICORE r(&(*it));
       r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
@@ -133,19 +139,12 @@ namespace Arc {
      MCCConfig cfg;
 /*    if (!thrarg->proxyPath.empty())
            cfg.AddProxy(thrarg->proxyPath);*/  //Normally proxies should not be used, possibly some provisions should be made if the user insists.
-    if (!thrarg->certificatePath.empty())
-      cfg.AddCertificate(thrarg->certificatePath);
-    if (!thrarg->keyPath.empty())
-      cfg.AddPrivateKey(thrarg->keyPath);
-    if (!thrarg->caCertificatesDir.empty())
-      cfg.AddCADir(thrarg->caCertificatesDir);
-
-      cfg.AddCertificate("/home/wzqiang/arc-0.9/src/clients/arclib/test-cert-UNICORE.090302/usercert.pem");
-      cfg.AddPrivateKey("/home/wzqiang/arc-0.9/src/clients/arclib/test-cert-UNICORE.090302/userkey.pem");
-      cfg.AddCADir("/home/wzqiang/arc-0.9/src/clients/arclib/test-cert-UNICORE.090302/CA");
-
-     std::cout<<" Cert: "<<thrarg->certificatePath<<"  Key: "<<thrarg->keyPath<<std::endl;
-
+     if (!thrarg->certificatePath.empty())
+       cfg.AddCertificate(thrarg->certificatePath);
+     if (!thrarg->keyPath.empty())
+       cfg.AddPrivateKey(thrarg->keyPath);
+     if (!thrarg->caCertificatesDir.empty())
+       cfg.AddCADir(thrarg->caCertificatesDir);
      UNICOREClient uc(url, cfg);
      std::string status;
      if (!uc.sstat(status)) {
