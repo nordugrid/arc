@@ -45,6 +45,12 @@ namespace Arc {
     }
 
     // Set the sourceString variable of the JobDescription instance and parse it with the right parser
+    bool JobDescription::setSource( const XMLNode& xmlSource ) {
+      std::string strSource;
+      xmlSource.GetXML(strSource);
+      return setSource(strSource);
+    }
+    
     bool JobDescription::setSource( const std::string source ) {
         sourceFormat = "";
         sourceString = source;

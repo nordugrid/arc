@@ -31,6 +31,7 @@ namespace Arc {
             // Try to parse the source string and store it in an inner job description representation.
             // If there is some syntax error then it throws an exception.
             bool setSource( const std::string source );
+            bool setSource( const XMLNode& source );
 
             // Transform the inner job description representation into a given format, if it's known as a parser (JSDL as default)
             // If there is some error during this method, then return with false.
