@@ -29,7 +29,7 @@ namespace Arc {
         \param targen TargetGenerator content the Execution Target candidates 
         \param jd Job Description of the actual job
     */
-    void PreFilterTargets(Arc::TargetGenerator& targen, 
+    void PreFilterTargets(const Arc::TargetGenerator& targen, 
 			  Arc::JobDescription jd);
   protected:
     Broker(Config *cfg);

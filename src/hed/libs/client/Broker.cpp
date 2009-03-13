@@ -19,7 +19,7 @@ namespace Arc {
 
   Broker::~Broker() {}
 
-  void Broker::PreFilterTargets(Arc::TargetGenerator& targen,  Arc::JobDescription jd) {
+  void Broker::PreFilterTargets(const Arc::TargetGenerator& targen,  Arc::JobDescription jd) {
     jd.getInnerRepresentation(jir);
 
     for (std::list<Arc::ExecutionTarget>::const_iterator target =    \
