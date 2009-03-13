@@ -46,7 +46,7 @@ int main(void) {
         <!--For proxy certificate, KeyPath and CertificatePath are supposed to be the same-->\
         <KeyPath>./testkey-nopass.pem</KeyPath>\
         <CertificatePath>./testcert.pem</CertificatePath>\
-        <CACertificatePath>./cacert.pem</CACertificatePath>\
+        <CACertificatePath>./testcacert.pem</CACertificatePath>\
       </Component>\
       <Component name='http.client' id='http'><next id='tcp'/>\
         <Method>POST</Method>\

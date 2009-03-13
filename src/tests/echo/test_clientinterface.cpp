@@ -34,7 +34,7 @@ int main(void) {
   Arc::MCCConfig mcc_cfg;
   mcc_cfg.AddPrivateKey("testkey-nopass.pem");
   mcc_cfg.AddCertificate("testcert.pem");
-  mcc_cfg.AddCAFile("cacert.pem");
+  mcc_cfg.AddCAFile("testcacert.pem");
   mcc_cfg.AddCADir("certificates");
 
   //Arc::WSSInfo wssinfo;
@@ -156,9 +156,9 @@ int main(void) {
   std::string arc_deleg_url_str("https://127.0.0.1:60000/delegation");
   Arc::URL arc_deleg_url(arc_deleg_url_str);
   Arc::MCCConfig arc_deleg_mcc_cfg;
-  arc_deleg_mcc_cfg.AddPrivateKey("userkey-nopass.pem");
-  arc_deleg_mcc_cfg.AddCertificate("usercert.pem");
-  //arc_deleg_mcc_cfg.AddCAFile("cacert.pem");
+  arc_deleg_mcc_cfg.AddPrivateKey("testuserkey-nopass.pem");
+  arc_deleg_mcc_cfg.AddCertificate("testusercert.pem");
+  //arc_deleg_mcc_cfg.AddCAFile("testcacert.pem");
   arc_deleg_mcc_cfg.AddCADir("certificates");
   //Create a delegation SOAP client 
   logger.msg(Arc::INFO, "Creating a delegation soap client");

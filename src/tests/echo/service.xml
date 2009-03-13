@@ -33,7 +33,7 @@
             <next id="http"/>
             <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
             <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
-            <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+            <tls:CACertificatePath>./testcacert.pem</tls:CACertificatePath>
             <!--tls:ClientAuthn>false</tls:ClientAuthn-->
             <tls:VOMSCertTrustDNChain>
               <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang</tls:VOMSCertTrustDN>
@@ -63,7 +63,7 @@
             </SecHandler-->
             <!--SecHandler name="x509token.handler" id="x509token" event="incoming">
                 <Process>extract</Process>
-                <CACertificatePath>cacert.pem</CACertificatePath>
+                <CACertificatePath>./testcacert.pem</CACertificatePath>
             </SecHandler-->
             <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
@@ -82,7 +82,7 @@
                 <ServiceEndpoint>https://127.0.0.1:60001/pdp.service</ServiceEndpoint>
                 <KeyPath>./testkey-nopass.pem</KeyPath>
                 <CertificatePath>./testcert.pem</CertificatePath>
-                <CACertificatePath>./cacert.pem</CACertificatePath>
+                <CACertificatePath>./testcacert.pem</CACertificatePath>
               </PDP-->
               <!--PDP name="delegation.pdp"/-->
             <!-- /SecHandler -->
