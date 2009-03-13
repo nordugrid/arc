@@ -24,7 +24,6 @@
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
-#include <arc/User.h>
 #include <arc/Utils.h>
 
 #include "../jobs/job.h"
@@ -53,6 +52,19 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 #define MAX_USER_TIME 600
 
 class PointPair;
+
+static bool CollectCredentials(std::string& proxy,std::string& cert,std::string& key,std::string& cadir) {
+  proxy=Arc::GetEnv("X509_USER_PROXY");
+  if(proxy.empty()) {
+    cert=Arc::GetEnv("X509_USER_CERT");
+    key=Arc::GetEnv("X509_USER_KEY");
+  };
+  if(proxy.empty() && cert.empty()) {
+    proxy="/tmp/x509_up"+Arc::tostring(getuid());
+  };
+  cadir=Arc::GetEnv("X509_CERT_DIR");
+  if(cadir.empty()) cadir="/etc/grid-security/certificates";
+}
 
 class FileDataEx : public FileData {
  public:
@@ -249,6 +261,7 @@ int main(int argc,char** argv) {
   bool userfiles_only = false;
   bool passive = false;
   std::string failure_reason("");
+  std::string x509_proxy, x509_cert, x509_key, x509_cadir;
 
   // process optional arguments
   for(;;) {
@@ -430,6 +443,7 @@ int main(int argc,char** argv) {
   if(min_average_speed != 0) { olog<<"Minimal average speed: "<<min_average_speed<<" B/s"<<std::endl; };
   if(max_inactivity_time != 0) { olog<<"Maximal inactivity time: "<<max_inactivity_time<<" s"<<std::endl; };
 
+  CollectCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
   prepare_proxy();
 
   if(n_threads > 10) {
@@ -517,6 +531,7 @@ int main(int argc,char** argv) {
             failure_reason+=std::string("Can't accept URL ")+destination.c_str()+"\n";
             olog<<"FATAL ERROR: can't accept URL: "<<destination<<std::endl; res=1; goto exit;
           };
+          pair->source->AssignCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
           i->pair=pair;
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
