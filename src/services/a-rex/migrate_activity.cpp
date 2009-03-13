@@ -70,7 +70,7 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
     };
   };
 
-  if( !(bool)in["ActivityDocument"]["JobDefinition"]) {
+  if( !(in["ActivityDocument"]["JobDefinition"])) {
     // First try to get job desc from old cluster
     logger_.msg(Arc::DEBUG, "MigrateActivity: no job description found try to get it from old cluster");
     Arc::MCCConfig cfg;
@@ -107,8 +107,8 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
       Arc::JobDescription desc;
       desc.setSource(desc_str);
       if (desc.isValid()) {
-	logger_.msg(Arc::INFO,"Valid job description gotton");
-	if ( !bool( in["ActivityDocument"] ) ) in.NewChild("bes-factory:ActivityDocument");
+	logger_.msg(Arc::INFO,"Valid job description obtained");
+	if ( !( in["ActivityDocument"] ) ) in.NewChild("bes-factory:ActivityDocument");
 	Arc::XMLNode XMLdesc;
 	desc.getXML(XMLdesc);
 	in["ActivityDocument"].NewChild(XMLdesc);
