@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
     }
 
     if (!(*itJobCont)->Migrate(targetGen, chosenBroker, forcemigration, timeout)) {
-      retVal = 1;
+      retval = 1;
     }
   } // Loop over job controllers
 
