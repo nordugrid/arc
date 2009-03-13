@@ -52,6 +52,66 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
+
+	if(url.Protocol()=="arc"){
+      url.ChangeProtocol("https");
+    }
+	URL bartender_url(url.ConnectionURL()+"/Bartender");
+
+    Arc::ClientSOAP client(cfg, bartender_url);
+    std::string xml;
+	
+    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    Arc::PayloadSOAP request(ns);
+    request.NewChild("bar:list").NewChild("bar:listRequestList").NewChild("bar:listRequestElement").NewChild("bar:requestID") = "0";
+    request["bar:list"]["bar:listRequestList"]["bar:listRequestElement"].NewChild("bar:LN") = "/"+url.Path();
+	request["bar:list"].NewChild("bar:neededMetadataList").NewChild("bar:neededMetadataElement").NewChild("bar:section") = "entry";
+	request["bar:list"]["bar:neededMetadatList"]["bar:neededMetadataElement"].NewChild("bar:property") = "";
+    request.GetXML(xml, true);
+    logger.msg(Arc::INFO, "Request:\n%s", xml);
+	
+    Arc::PayloadSOAP *response = NULL;
+	
+    Arc::MCC_Status status = client.process(&request, &response);
+	
+    if (!status) {
+      logger.msg(Arc::ERROR, (std::string)status);
+      if (response)
+        delete response;
+        return DataStatus::ListError;
+    }
+	
+    if (!response) {
+      logger.msg(Arc::ERROR, "No SOAP response");
+      return DataStatus::ListError;
+    }
+	
+    response->Child().GetXML(xml, true);
+    logger.msg(Arc::INFO, "Response:\n%s", xml);
+	
+	XMLNode nd = (*response).Child()["listResponseList"]["listResponseElement"]["entries"]["entry"];
+	nd.GetXML(xml,true);
+	logger.msg(Arc::INFO, "nd:\n%s", xml); 
+	
+	for(int i=0;;i++){
+	  XMLNode cnd = nd[i];
+	  if(!cnd) break;
+      std::string name = cnd["name"];
+      std::string type;
+      for(int j=0;;j++){
+        XMLNode ccnd = cnd["metadataList"]["metadata"][j];
+        if(!ccnd) break;
+	    if(ccnd["property"] == "type") type = (std::string) ccnd["value"];
+      }
+	  logger.msg(Arc::INFO, "cnd:\n%s is a %s", name, type);  
+	}
+		
+    std::string answer = (std::string)((*response).Child().Name());
+	
+    delete response;
+	
+   	logger.msg(Arc::INFO, answer);
+
     return DataStatus::Success;
   }
 
@@ -75,7 +135,7 @@ namespace Arc {
       cfg.AddCADir(caCertificatesDir);
 	logger.msg(Arc::ERROR, "Received URL with protocol %s", url.Protocol());
 	if(url.Protocol()=="arc"){
-      url.ChangeProtocol("http");
+      url.ChangeProtocol("https");
     }
 	// redirect actual reading to http dmc
 	logger.msg(Arc::ERROR, "URL is now %s", url.str());
