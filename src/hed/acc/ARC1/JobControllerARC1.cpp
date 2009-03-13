@@ -25,17 +25,18 @@ namespace Arc {
   }
 
   void JobControllerARC1::GetJobInformation() {
+    MCCConfig cfg;
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
+
     for (std::list<Job>::iterator iter = jobstore.begin();
-	 iter != jobstore.end(); iter++) {
-      MCCConfig cfg;
-      if (!proxyPath.empty())
-	cfg.AddProxy(proxyPath);
-      if (!certificatePath.empty())
-	cfg.AddCertificate(certificatePath);
-      if (!keyPath.empty())
-	cfg.AddPrivateKey(keyPath);
-      if (!caCertificatesDir.empty())
-	cfg.AddCADir(caCertificatesDir);
+         iter != jobstore.end(); iter++) {
       PathIterator pi(iter->JobID.Path(), true);
       URL url(iter->JobID);
       url.ChangePath(*pi);
@@ -50,12 +51,11 @@ namespace Arc {
       ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
       XMLNode id(ns, "ActivityIdentifier");
       id.NewChild("wsa:Address") = url.str();
-      id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") =
-	pi.Rest();
+      id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
       std::string idstr;
       id.GetXML(idstr);
       if (!ac.stat(idstr, iter->State))
-	logger.msg(ERROR, "Failed retrieving job status information");
+        logger.msg(ERROR, "Failed retrieving job status information");
     }
   }
 
@@ -154,6 +154,34 @@ namespace Arc {
     std::string idstr;
     id.GetXML(idstr);
     return ac.kill(idstr);
+  }
+
+  bool JobControllerARC1::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
+    XMLNode xmlDesc(job.JobDescription);
+      
+    // Set OldJobID to current JobID.
+    xmlDesc["JobDescription"]["JobIdentification"].NewChild("jsdl-arc:OldJobID") = job.JobID.str();
+      
+    const XMLNode xPosixApp = xmlDesc["JobDescription"]["Application"]["POSIXApplication"];
+    const std::string outputfilename = (xPosixApp["Output"] ? xPosixApp["Output"] : "");
+    const std::string errorfilename  = (xPosixApp["Error"]  ? xPosixApp["Error"] : "");
+      
+    // Loop over data stagging elements in XML file.
+      
+    for (XMLNode files = xmlDesc["JobDescription"]["DataStaging"]; files; ++files) {
+      const std::string filename = files["FileName"];
+      // Do not modify the DataStaging element of the output and error files.
+      const bool isOutputOrError = (filename != "" && (filename == outputfilename || filename == errorfilename));
+      if (!isOutputOrError && !files["Source"]["URI"]) {
+        if (!files["Source"]) files.NewChild("Source");
+        files["Source"].NewChild("URI") = job.JobID.str() + "/" + filename;
+      }
+    }
+
+    // Parse and set JobDescription.
+    jobDesc.setSource(xmlDesc);
+
+    return true;
   }
 
   URL JobControllerARC1::GetFileUrlForJob(const Job& job,

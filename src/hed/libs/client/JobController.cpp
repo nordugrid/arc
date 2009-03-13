@@ -13,6 +13,8 @@
 #include <arc/FileLock.h>
 #include <arc/IString.h>
 #include <arc/XMLNode.h>
+#include <arc/client/ExecutionTarget.h>
+#include <arc/client/Submitter.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/FileCache.h>
@@ -472,6 +474,107 @@ namespace Arc {
     return true;
   }
 
+  bool JobController::Migrate(Arc::TargetGenerator& targetGen,
+                              Arc::Broker* broker,
+                              const bool forcemigration,
+                              const int timeout)
+  {
+    bool retVal = true;
+
+    std::list<URL> migratedJobIDs;
+
+    GetJobInformation();
+    // Loop over job descriptions.
+    for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); itJob++) {
+      if (itJob->State != "Running/Executing/Queuing") {
+        logger.msg(Arc::WARNING, "Cannot migrate job %s, it is not queuing in the batch system.", itJob->JobID.str());
+        continue;
+      }
+
+      Arc::JobDescription jobDesc;
+      if (!GetJobDescription(*itJob, itJob->JobDescription)) {
+        continue;
+      }
+      if (!PatchInputFileLocation(*itJob, jobDesc)) {
+        continue;
+      }
+
+      XMLNode info(NS(), "Job");
+      
+      bool endOfList = false;
+      broker->PreFilterTargets(targetGen, jobDesc);
+      // Try to submit modified JSDL. Only to ARC1 clusters.
+      while (true) {
+        ExecutionTarget& currentTarget = broker->GetBestTarget(endOfList);
+        if (endOfList) {
+          logger.msg(Arc::ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.str());
+          retVal = false;
+          break;;
+        }
+
+        if (currentTarget.GridFlavour != "ARC1") {
+          logger.msg(Arc::WARNING, "Cannot migrate to a %s cluster.", currentTarget.GridFlavour);
+          logger.msg(Arc::INFO, "Note: Migration is currently only supported between ARC1 clusters.");
+          continue;
+        }
+        
+        if (!currentTarget.GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, info)) {
+          logger.msg(Arc::WARNING, "Migration to %s failed, trying next target", currentTarget.url.str());
+          continue;
+        }
+
+        // Need to get the JobInnerRepresentation in order to get the number of slots
+        JobInnerRepresentation jir;
+        jobDesc.getInnerRepresentation(jir);
+        // Change number of slots or waiting jobs
+        for (std::list<ExecutionTarget>::iterator itTarget = targetGen.ModifyFoundTargets().begin();
+             itTarget != targetGen.ModifyFoundTargets().end();
+             itTarget++) {
+          if (currentTarget.url == itTarget->url) {
+            if (itTarget->FreeSlots >= abs(jir.Slots)) { // The job will start directly
+              itTarget->FreeSlots -= abs(jir.Slots);
+              if (itTarget->UsedSlots != -1) {
+                itTarget->UsedSlots += abs(jir.Slots);
+              }
+            }
+            else { //The job will be queued
+              if (itTarget->WaitingJobs != -1) {
+                itTarget->WaitingJobs += abs(jir.Slots);
+              }
+            }
+          }
+        }
+
+        XMLNode xmlDesc;
+        jobDesc.getXML(xmlDesc);
+        if (xmlDesc["JobDescription"]["JobIdentification"]["JobName"]){
+          info.NewChild("Name") = (std::string)xmlDesc["JobDescription"]["JobIdentification"]["JobName"];
+        }
+          
+        info.NewChild("Flavour") = currentTarget.GridFlavour;
+        info.NewChild("Cluster") = currentTarget.Cluster.str();
+        info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
+      
+        jobstorage.NewChild("Job").Replace(info);
+
+        migratedJobIDs.push_back(URL(itJob->JobID.str()));
+      
+        std::cout << Arc::IString("Job migrated with jobid: %s", (std::string) info["JobID"]) << std::endl;
+        break;
+      } // Loop over all possible targets
+    } // Loop over jobs
+
+    if (migratedJobIDs.size() > 0) {
+      {
+        FileLock lock(joblist);
+        jobstorage.SaveToFile(joblist);
+      }
+      RemoveJobs(migratedJobIDs); // Saves file aswell.
+    }
+
+    return retVal;
+  }
+
   std::list<std::string> JobController::GetDownloadFiles(const URL& dir) {
 
     std::list<std::string> files;
@@ -562,36 +665,34 @@ namespace Arc {
     jobstorage.ReadFromFile(joblist);
 
     for (std::list<URL>::const_iterator it = jobids.begin();
-	 it != jobids.end(); it++) {
+         it != jobids.end(); it++) {
 
-      XMLNodeList xmljobs =
-	jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+      XMLNodeList xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
 
       if (xmljobs.empty())
-	logger.msg(ERROR, "Job %s has been deleted (i.e. was in job store), "
-		   "but is not listed in job list", it->str());
+        logger.msg(ERROR, "Job %s has been deleted (i.e. was in job store), "
+                          "but is not listed in job list", it->str());
       else {
-	XMLNode& xmljob = *xmljobs.begin();
-	if (xmljob) {
-	  logger.msg(DEBUG, "Removing job %s from job list file", it->str());
-	  xmljob.Destroy();
-	}
+        XMLNode& xmljob = *xmljobs.begin();
+        if (xmljob) {
+          logger.msg(DEBUG, "Removing job %s from job list file", it->str());
+          xmljob.Destroy();
+        }
       }
 
       std::list<Job>::iterator it2 = jobstore.begin();
       while (it2 != jobstore.end()) {
-	if (it2->JobID == *it) {
-	  it2 = jobstore.erase(it2);
-	  break;
-	}
-	it2++;
+        if (it2->JobID == *it) {
+          it2 = jobstore.erase(it2);
+          break;
+        }
+        it2++;
       }
     }
 
     jobstorage.SaveToFile(joblist);
 
-    logger.msg(DEBUG, "Job store for %s now contains %d jobs",
-	       flavour, jobstore.size());
+    logger.msg(DEBUG, "Job store for %s now contains %d jobs", flavour, jobstore.size());
     logger.msg(DEBUG, "Finished removing jobs from job list and job store");
 
     return true;

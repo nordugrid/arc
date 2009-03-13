@@ -7,9 +7,12 @@
 #include <arc/ArcConfig.h>
 #include <arc/URL.h>
 #include <arc/client/ACC.h>
+#include <arc/client/Broker.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/UserConfig.h>
+#include <arc/client/TargetGenerator.h>
+
 namespace Arc {
 
   class Logger;
@@ -47,6 +50,11 @@ namespace Arc {
 	      const bool longlist,
 	      const int timeout);
 
+    bool Migrate(Arc::TargetGenerator& targetGen,
+                 Arc::Broker* broker,
+                 const bool forcemigration,
+                 const int timeout);
+
     bool RemoveJobs(const std::list<URL>& jobids);
 
     std::list<std::string> GetDownloadFiles(const URL& dir);
@@ -66,6 +74,7 @@ namespace Arc {
     virtual URL GetFileUrlForJob(const Job& job,
 				 const std::string& whichfile) = 0;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) = 0;
+    virtual bool PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const = 0;
 
   protected:
     std::list<Job> jobstore;

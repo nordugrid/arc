@@ -25,6 +25,7 @@ namespace Arc {
     bool CancelJob(const Job& job);
     URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
     bool GetJobDescription(const Job& job, std::string& desc_str);
+    bool PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const;
 
     static Logger logger;
   };
