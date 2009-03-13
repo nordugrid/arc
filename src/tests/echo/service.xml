@@ -14,7 +14,7 @@
         <Path>../../hed/mcc/tls/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
-	<Path>../../hed/shc/.libs/</Path>
+        <Path>../../hed/shc/.libs/</Path>
         <!--Path>../../services/saml/.libs/</Path-->
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
@@ -29,11 +29,11 @@
             <next id="tls"/>
             <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
-	<Component name="tls.service" id="tls">
+        <Component name="tls.service" id="tls">
             <next id="http"/>
-	    <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
-	    <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
-	    <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
+            <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
+            <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
             <!--tls:ClientAuthn>false</tls:ClientAuthn-->
             <tls:VOMSCertTrustDNChain>
               <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang</tls:VOMSCertTrustDN>
@@ -46,7 +46,7 @@
 
             <!--delegation.collector must be inside tls MCC-->
             <!--SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler-->
-	</Component>
+        </Component>
         <Component name="http.service" id="http">
             <next id="plexer">POST</next>
             <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
@@ -56,7 +56,7 @@
             <next id="soap">/echo</next>
         </Plexer>
         <Component name="soap.service" id="soap">
-	    <next id="echo"/>
+        <next id="echo"/>
             <!--SecHandler name="usernametoken.handler" id="usernametoken" event="incoming">
                 <Process>extract</Process>
                 <PasswordSource>password.txt</PasswordSource>
@@ -69,7 +69,7 @@
         </Component>
         <!--Service name='saml.sp' id='samlsp'/-->
         <Service name="echo" id="echo">
-            <!--SecHandler name="arc.authz" id="authz" event="incoming"-->
+            <SecHandler name="arc.authz" id="authz" event="incoming">
               <!--PDP name="simplelist.pdp" location="simplelist"/-->
               <!--PDP name="arc.pdp">
                 <PolicyStore>
@@ -85,10 +85,10 @@
                 <CACertificatePath>./cacert.pem</CACertificatePath>
               </PDP-->
               <!--PDP name="delegation.pdp"/-->
-            <!--/SecHandler-->
+            </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
-	    <echo:suffix> ]</echo:suffix>
+            <echo:suffix> ]</echo:suffix>
         </Service>
     </Chain>
 </ArcConfig>
