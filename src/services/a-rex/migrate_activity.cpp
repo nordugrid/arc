@@ -71,20 +71,19 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
   };
 
   if( !(in["ActivityDocument"]["JobDefinition"])) {
+    /*
     // First try to get job desc from old cluster
     logger_.msg(Arc::DEBUG, "MigrateActivity: no job description found try to get it from old cluster");
     Arc::MCCConfig cfg;
     // TODO:
     //if (!proxyPath.empty())
     cfg.AddProxy(delegation);
-    /*
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
-    */
+    //if (!certificatePath.empty())
+      //cfg.AddCertificate(certificatePath);
+    //if (!keyPath.empty())
+      //cfg.AddPrivateKey(keyPath);
+    //if (!caCertificatesDir.empty())
+      //cfg.AddCADir(caCertificatesDir);
     Arc::URL url(migrateid);
     Arc::PathIterator pi(url.Path(), true);
     url.ChangePath(*pi);
@@ -107,27 +106,30 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
       Arc::JobDescription desc;
       desc.setSource(desc_str);
       if (desc.isValid()) {
-	logger_.msg(Arc::INFO,"Valid job description obtained");
-	if ( !( in["ActivityDocument"] ) ) in.NewChild("bes-factory:ActivityDocument");
-	Arc::XMLNode XMLdesc;
-	desc.getXML(XMLdesc);
-	in["ActivityDocument"].NewChild(XMLdesc);
+        logger_.msg(Arc::INFO,"Valid job description obtained");
+        if ( !( in["ActivityDocument"] ) ) in.NewChild("bes-factory:ActivityDocument");
+        Arc::XMLNode XMLdesc;
+        desc.getXML(XMLdesc);
+        in["ActivityDocument"].NewChild(XMLdesc);
       } else {
-	// Wrongly formatted job description
-	logger_.msg(Arc::ERROR, "MigrateActivity: job description could not be fetch from old cluster");
-	Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find JobDefinition element in request");
-	InvalidRequestMessageFault(fault,"jsdl:JobDefinition","Element is missing");
-	out.Destroy();
-	return Arc::MCC_Status();
+        // Wrongly formatted job description
+        logger_.msg(Arc::ERROR, "MigrateActivity: job description could not be fetch from old cluster");
+        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find JobDefinition element in request");
+        InvalidRequestMessageFault(fault,"jsdl:JobDefinition","Element is missing");
+        out.Destroy();
+        return Arc::MCC_Status();
       }
-    } else {
+    }
+    */
+    //else {
       // Not able to get job description
-      logger_.msg(Arc::ERROR, "MigrateActivity: job description could not be fetch from old cluster");
+      logger_.msg(Arc::ERROR, "MigrateActivity: no job description found");
+      //logger_.msg(Arc::ERROR, "MigrateActivity: job description could not be fetch from old cluster");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find JobDefinition element in request");
       InvalidRequestMessageFault(fault,"jsdl:JobDefinition","Element is missing");
       out.Destroy();
       return Arc::MCC_Status();
-    }
+    //}
   };
 
   Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
