@@ -69,7 +69,7 @@
         </Component>
         <!--Service name='saml.sp' id='samlsp'/-->
         <Service name="echo" id="echo">
-            <SecHandler name="arc.authz" id="authz" event="incoming">
+            <!-- SecHandler name="arc.authz" id="authz" event="incoming" -->
               <!--PDP name="simplelist.pdp" location="simplelist"/-->
               <!--PDP name="arc.pdp">
                 <PolicyStore>
@@ -85,7 +85,7 @@
                 <CACertificatePath>./cacert.pem</CACertificatePath>
               </PDP-->
               <!--PDP name="delegation.pdp"/-->
-            </SecHandler>
+            <!-- /SecHandler -->
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
             <echo:suffix> ]</echo:suffix>

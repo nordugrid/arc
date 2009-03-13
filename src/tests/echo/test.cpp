@@ -40,7 +40,11 @@ int main(void) {
   client_cfg.AddPluginsPath("../../hed/mcc/soap/.libs");
   client_cfg.AddPluginsPath("../../hed/mcc/tls/.libs");
   client_cfg.AddPluginsPath("../../hed/mcc/tcp/.libs");
-  Arc::ClientSOAP client(client_cfg,Arc::URL("https://127.0.0.1:60000/echo1"));
+  client_cfg.AddPrivateKey("./testkey-nopass.pem");
+  client_cfg.AddCertificate("./testcert.pem");
+  client_cfg.AddCAFile("./cacert.pem");
+
+  Arc::ClientSOAP client(client_cfg,Arc::URL("https://127.0.0.1:60000/echo"));
   logger.msg(Arc::INFO, "Client side MCCs are loaded");
 
   for(int n = 0;n<1;n++) {
