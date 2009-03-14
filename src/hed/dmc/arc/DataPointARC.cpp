@@ -160,13 +160,57 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-	logger.msg(Arc::ERROR, "Received URL with protocol %s", url.Protocol());
-	if(url.Protocol()=="arc"){
-      url.ChangeProtocol("https");
+
+    // get TURL from bartender
+    Arc::ClientSOAP client(cfg, bartender_url);
+    std::string xml;
+	
+    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    Arc::PayloadSOAP request(ns);
+    request.NewChild("bar:getFile").NewChild("bar:getFileRequestList").NewChild("bar:getFileRequestElement").NewChild("bar:requestID") = "0";
+    request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:LN") = "/"+url.Path();
+    // only supports http protocol:
+    request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:protocol") = "http";
+    request.GetXML(xml, true);
+    logger.msg(Arc::INFO, "Request:\n%s", xml);
+	
+    Arc::PayloadSOAP *response = NULL;
+	
+    Arc::MCC_Status status = client.process(&request, &response);
+	
+    if (!status) {
+      logger.msg(Arc::ERROR, (std::string)status);
+      if (response)
+        delete response;
+        return DataStatus::ReadError;
     }
-	// redirect actual reading to http dmc
-	logger.msg(Arc::ERROR, "URL is now %s", url.str());
-	transfer = new DataHandle(url);
+	
+    if (!response) {
+      logger.msg(Arc::ERROR, "No SOAP response");
+      return DataStatus::ReadError;
+    }
+	
+    response->Child().GetXML(xml, true);
+    logger.msg(Arc::INFO, "Response:\n%s", xml);
+	
+	XMLNode nd = (*response).Child()["getFileResponseList"]["getFileResponseElement"];
+	nd.GetXML(xml,true);
+	
+	logger.msg(Arc::INFO, "nd:\n%s", xml); 
+    
+	if(nd["success"]!="done" || !nd["TURL"])
+	  return DataStatus::ReadError;
+    
+	logger.msg(Arc::INFO, "Recieved transfer URL: %s", (std::string) nd["TURL"]);
+	
+	URL turl(nd["TURL"]);
+    // redirect actual reading to http dmc
+	DataHandle tmp_transfer(turl);
+	transfer = new DataHandle(turl);
+    (*transfer)->AssignCredentials(proxyPath,
+    							  certificatePath,
+    							  keyPath,
+    							  caCertificatesDir);
 	if(!(*transfer)->StartReading(buf)){
       if(transfer) { delete transfer; transfer = NULL; };
       reading = false;
