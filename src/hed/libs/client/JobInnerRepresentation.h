@@ -12,9 +12,9 @@
 namespace Arc {
 
 struct ReferenceTimeType {
-    std::string benchmark_attribute;
-    std::string value_attribute;
-    std::string value; // TODO: this should be number
+    std::string benchmark;
+    double value;
+    Period time;
 };
 
 struct EnvironmentType {
@@ -134,7 +134,7 @@ struct OptionalElementType {
     Period IndividualCPUTime;
     Period TotalWallTime;
     Period IndividualWallTime;
-    Arc::ReferenceTimeType ReferenceTime;
+    std::list<ReferenceTimeType> ReferenceTime;
     bool ExclusiveExecution;
     std::string NetworkInfo;
     std::string OSFamily;

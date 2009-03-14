@@ -434,36 +434,10 @@ namespace Arc {
             }
        }
 
-       if (!jir.ReferenceTime.value.empty()) {
+       if (!jir.ReferenceTime.empty()) {
 
           // TODO: we need a better walltime calculation algorithm
 
-          std::string benchmark_attribute = lower(jir.ReferenceTime.benchmark_attribute);
-          std::string value_attribute = lower(jir.ReferenceTime.value_attribute);
-
-          if (benchmark_attribute == "frequency" && value_attribute == "2.8ghz") {
-
-            // ExecutionTarget: CPUClockSpeed unit is MHz ((*target).CPUClockSpeed)
-            // JobInnerRepresentation: ReferenceTime value unit is secundum (jir.ReferenceTime.value)
-            // JobInnerRepresentation: ReferenceTime frequence unit is GHz (jir.ReferenceTime.value_attribute)
-            // Ratio:
-            //
-            //     jir.ReferenceTime.value / 28000000 ~=  Counted walltime / (1000000 * (*target).CPUClockSpeed)
-            //
-            // We need this computed Walltime value which can be compare with the MaxWallTime value
-            //
-
-            double value = Arc::stringto<double>(jir.ReferenceTime.value);
-            if ((int)(*target).MaxWallTime.GetPeriod() != -1 && (*target).CPUClockSpeed != -1) { // Example: 123
-               if (!((int)(*target).MaxWallTime.GetPeriod() >= (int)(value / (1000000.0 * (double)(*target).CPUClockSpeed)) * 28000000.0 )) {
-                    continue;
-               }
-           }
-           else {
-               logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxWallTime and CPUClockSpeed are not defined", (std::string)(*target).url.str() );
-               continue;
-          }
-         }
        }
 
       PossibleTargets.push_back(*target);

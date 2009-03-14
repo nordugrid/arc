@@ -6,6 +6,7 @@
 
 #include <arc/IString.h>
 #include <arc/ArcConfig.h>
+#include <arc/StringConv.h>
 #include <arc/client/JobInnerRepresentation.h>
 
 namespace Arc {
@@ -140,12 +141,12 @@ namespace Arc {
       if (IndividualWallTime != -1)
 	std::cout << Arc::IString(" Individual Wall Time: %s",
 				  (std::string)IndividualWallTime) << std::endl;
-      if (!ReferenceTime.benchmark_attribute.empty())
-	std::cout << Arc::IString(" ReferenceTime.benchmark: %s", ReferenceTime.benchmark_attribute) << std::endl;
-      if (!ReferenceTime.value_attribute.empty())
-	std::cout << Arc::IString(" ReferenceTime.value: %s", ReferenceTime.value_attribute) << std::endl;
-      if (!ReferenceTime.value.empty())
-	std::cout << Arc::IString(" ReferenceTime: %s", ReferenceTime.value) << std::endl;
+      for (std::list<ReferenceTimeType>::const_iterator it = ReferenceTime.begin();
+	   it != ReferenceTime.end(); it++) {
+	std::cout << Arc::IString(" Benchmark: %s", it->benchmark) << std::endl;
+	std::cout << Arc::IString("  value: %d", it->value) << std::endl;
+	std::cout << Arc::IString("  time: %s", (std::string)it->time) << std::endl;
+      }
       if (ExclusiveExecution)
         std::cout << " ExclusiveExecution: true" << std::endl;
       if (!NetworkInfo.empty())
@@ -340,9 +341,7 @@ namespace Arc {
        IndividualCPUTime = -1;
        TotalWallTime = -1;
        IndividualWallTime = -1;
-       ReferenceTime.benchmark_attribute = "frequency";
-       ReferenceTime.value_attribute = "2.8Ghz" ;
-       ReferenceTime.value.clear();
+       ReferenceTime.clear();
        ExclusiveExecution = false;
        NetworkInfo.clear();
        OSFamily.clear();
@@ -658,21 +657,17 @@ namespace Arc {
            if ( !bool( jobTree["JobDescription"]["Resource"]["IndividualWallTime"] ) ) 
               jobTree["JobDescription"]["Resource"].NewChild("IndividualWallTime") = (std::string)IndividualWallTime;
         }
-        if (!ReferenceTime.value.empty()){
+        if (!ReferenceTime.empty()){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
            if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
               jobTree["JobDescription"].NewChild("Resource");
            Arc::XMLNode attribute;
            if ( !bool( jobTree["JobDescription"]["Resource"]["ReferenceTime"] ) ) 
               attribute = jobTree["JobDescription"]["Resource"].NewChild("ReferenceTime");
-           attribute = ReferenceTime.value;
-           if (!ReferenceTime.benchmark_attribute.empty()){
-              attribute.NewAttribute("benchmark") = ReferenceTime.benchmark_attribute;
-           }
-           if (!ReferenceTime.value_attribute.empty()){
-              attribute.NewAttribute("value") = ReferenceTime.value_attribute;
-           }
-        }
+           attribute = (std::string)ReferenceTime.begin()->time;
+           attribute.NewAttribute("benchmark") = ReferenceTime.begin()->benchmark;
+	   attribute.NewAttribute("value") = tostring(ReferenceTime.begin()->value);
+	}
         if (ExclusiveExecution){
            if ( !bool( jobTree["JobDescription"] ) ) jobTree.NewChild("JobDescription");
            if ( !bool( jobTree["JobDescription"]["Resource"] ) ) 
@@ -1109,9 +1104,7 @@ namespace Arc {
     IndividualCPUTime   = job.IndividualCPUTime;
     TotalWallTime       = job.TotalWallTime;
     IndividualWallTime  = job.IndividualWallTime;
-    ReferenceTime.benchmark_attribute = job.ReferenceTime.benchmark_attribute;
-    ReferenceTime.value_attribute     = job.ReferenceTime.value_attribute;
-    ReferenceTime.value               = job.ReferenceTime.value;
+    ReferenceTime       = job.ReferenceTime;
     ExclusiveExecution  = job.ExclusiveExecution;
     NetworkInfo         = job.NetworkInfo;
     OSFamily            = job.OSFamily;

@@ -321,10 +321,10 @@ namespace Arc {
         if ( bool(resource) && (std::string)(resource) != "" ){
            Optional_attribute_check(resource, "//JobDescription/Resource/ReferenceTime", innerRepresentation,optional);
            Arc::ReferenceTimeType _reference;
-           _reference.value = (std::string)(resource);
-           _reference.benchmark_attribute = (std::string)((Arc::XMLNode)(resource).Attribute("benchmark"));
-           _reference.value_attribute = (std::string)((Arc::XMLNode)(resource).Attribute("value"));
-           innerRepresentation.ReferenceTime = _reference;
+           _reference.time = (std::string)(resource);
+           _reference.benchmark = (std::string)resource.Attribute("benchmark");
+           _reference.value = stringtod((std::string)resource.Attribute("value"));
+           innerRepresentation.ReferenceTime.push_back(_reference);
         }
         resource.Destroy();
 

@@ -217,7 +217,11 @@ namespace Arc {
         }
 
         if (bool(resource["GridTimeLimit"])) {
-           innerRepresentation.ReferenceTime.value = (std::string)resource["GridTimeLimit"];
+	  ReferenceTimeType rt;
+	  rt.benchmark = "gridtime";
+	  rt.value = 2800;
+	  rt.time = (std::string)resource["GridTimeLimit"];
+	  innerRepresentation.ReferenceTime.push_back(rt);
         }
 
         if (bool(resource["ExclusiveExecution"])) {
@@ -520,16 +524,8 @@ namespace Arc {
             jobdescription["Resources"]["SessionLifeTime"] = outputValue;
         }
 
-        if ( !innerRepresentation.ReferenceTime.value.empty()) {
-            if ( innerRepresentation.ReferenceTime.benchmark_attribute.empty() && 
-                 innerRepresentation.ReferenceTime.value_attribute.empty() &&
-                 isdigit(innerRepresentation.ReferenceTime.value[1])){
-              if ( !bool( jobdescription["Resources"] ) ) jobdescription.NewChild("Resources");
-              if ( !bool( jobdescription["Resources"]["GridTimeLimit"] ) ) 
-                 jobdescription["Resources"].NewChild("jsdl-arc:GridTimeLimit");
-              jobdescription["Resources"]["GridTimeLimit"] = innerRepresentation.ReferenceTime.value;
-            }
-            //TODO: what is the mapping, when the bechmark and the value attribute are not empty?
+        if ( !innerRepresentation.ReferenceTime.empty()) {
+            // TODO: what is the mapping
         }
 
         if (bool(innerRepresentation.EndPointURL)) {

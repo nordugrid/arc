@@ -24,7 +24,7 @@ libarcclient_la_SOURCES  = ACC.cpp ACCLoader.cpp Broker.cpp ExecutionTarget.cpp 
 	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp JobDescriptionParser.cpp JobInnerRepresentation.cpp \
         PosixJSDLParser.cpp JSDLParser.cpp JDLParser.cpp XRSLParser.cpp \
 	ClientInterface.cpp $(SOURCE_WITH_XMLSEC) ClientX509Delegation.cpp UserConfig.cpp \
-	Sandbox.cpp RSLParser.h
+	Sandbox.cpp RSLParser.cpp
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
