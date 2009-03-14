@@ -371,8 +371,8 @@ int main(int argc, char* argv[]){
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
 
-      //for (std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
-      //       it !=  matched_voms_line.end(); it++) {
+      for (std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
+             it !=  matched_voms_line.end(); it++) {
         std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
         voms_server = (*it).first;
         voms_line = (*it).second;
@@ -463,7 +463,7 @@ int main(int argc, char* argv[]){
         if(response) delete response;
 
         Arc::addVOMSAC(aclist, decodedac);
-      //}
+      }
 
       //Put the returned attribute certificate into proxy certificate
       if(aclist != NULL)
