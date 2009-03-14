@@ -14,7 +14,6 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
 
-
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
@@ -35,13 +34,23 @@ namespace Arc {
     : DataPointDirect(url),
       transfer(NULL),
       reading(false),
-      writing(false) {}
+      writing(false),
+      usercfg(""),
+      bartender_url(""){
+	  //BartenderURL taken from ~/.arc/client.xml
+	  std::string bartender_str = (std::string)usercfg.ConfTree()["BartenderURL"];
+	  //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
+      if(bartender_str.empty()) bartender_str = "http://localhost:60000/Bartender";
+      //URL bartender_url(url.ConnectionURL()+"/Bartender");
+      bartender_url = URL(bartender_str);
+
+  }
 
   DataPointARC::~DataPointARC() {
     StopReading();
     StopWriting();
   }
-
+    
   DataStatus DataPointARC::ListFiles(std::list<FileInfo>& files, bool, bool) {
     MCCConfig cfg;
     if (!proxyPath.empty())
@@ -52,11 +61,6 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-
-	if(url.Protocol()=="arc"){
-      url.ChangeProtocol("https");
-    }
-	URL bartender_url(url.ConnectionURL()+"/Bartender");
 
     Arc::ClientSOAP client(cfg, bartender_url);
     std::string xml;
@@ -89,23 +93,46 @@ namespace Arc {
     response->Child().GetXML(xml, true);
     logger.msg(Arc::INFO, "Response:\n%s", xml);
 	
-	XMLNode nd = (*response).Child()["listResponseList"]["listResponseElement"]["entries"]["entry"];
+	XMLNode nd = (*response).Child()["listResponseList"]["listResponseElement"];
 	nd.GetXML(xml,true);
-	logger.msg(Arc::INFO, "nd:\n%s", xml); 
 	
-	for(int i=0;;i++){
-	  XMLNode cnd = nd[i];
-	  if(!cnd) break;
-      std::string name = cnd["name"];
-      std::string type;
-      for(int j=0;;j++){
-        XMLNode ccnd = cnd["metadataList"]["metadata"][j];
-        if(!ccnd) break;
-	    if(ccnd["property"] == "type") type = (std::string) ccnd["value"];
+	logger.msg(Arc::INFO, "nd:\n%s", xml); 
+
+	if(nd["status"]=="not found") return DataStatus::ListError;
+	
+	if(nd["status"]=="found")
+      for(int i=0;; i++){
+        XMLNode cnd = nd["entries"]["entry"][i];
+        if(!cnd) break;
+        std::string file_name = cnd["name"];
+        std::string type;
+        for(int j=0;;j++){
+          XMLNode ccnd = cnd["metadataList"]["metadata"][j];
+          if(!ccnd) break;
+          if(ccnd["property"] == "type") type = (std::string) ccnd["value"];
+        }
+        logger.msg(Arc::INFO, "cnd:\n%s is a %s", file_name, type);  
+        std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(file_name.c_str()));    
+        if(type=="collection")
+          f->SetType(FileInfo::file_type_dir);
+        else
+          f->SetType(FileInfo::file_type_file);
       }
-	  logger.msg(Arc::INFO, "cnd:\n%s is a %s", name, type);  
+	else{
+      // its a file or something
+      // we know it exists so we use file name from url
+      char sep = '/';
+
+      #ifdef _WIN32
+        sep = '\\';
+      #endif
+      std::string path = url.Path();
+      size_t i = path.rfind(sep, path.length( ));
+      std::string file_name = path.substr(i+1, path.length( ) - i);
+      std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(file_name.c_str()));
+      f->SetType(FileInfo::file_type_file);
 	}
-		
+
     std::string answer = (std::string)((*response).Child().Name());
 	
     delete response;

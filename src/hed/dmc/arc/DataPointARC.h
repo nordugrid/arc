@@ -7,6 +7,7 @@
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
 #include <arc/data/DataHandle.h>
+#include <arc/client/UserConfig.h>
 
 namespace Arc {
 
@@ -19,6 +20,8 @@ namespace Arc {
 	DataHandle * transfer;
 	bool reading;
 	bool writing;
+	UserConfig usercfg;
+	URL bartender_url;
   public:
     DataPointARC(const URL& url);
     virtual ~DataPointARC();
