@@ -310,7 +310,7 @@ namespace Arc {
     #define PROXYCERTINFO_V3      "1.3.6.1.4.1.3536.1.222"
     #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.14"
     #define OBJC(c,n) OBJ_create(c,n,#c)
-    X509V3_EXT_METHOD *pci_x509v3_ext_meth;
+    X509V3_EXT_METHOD *pci_x509v3_ext_meth = NULL;
 
     /* Proxy Certificate Extension's related objects */
     OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
@@ -811,10 +811,14 @@ namespace Arc {
                 //if(proxy_cert_info_->version == 3)         
 
                 if(!(certinfo_sn.empty())) {
-                  X509V3_EXT_METHOD*  ext_method;
+                  X509V3_EXT_METHOD*  ext_method = NULL;
                   unsigned char* data = NULL;
                   int length;
                   ext_method = X509V3_EXT_get_nid(OBJ_sn2nid(certinfo_sn.c_str()));
+                  if(ext_method == NULL) {
+                    CredentialLogger.msg(ERROR, "Can get X509V3_EXT_METHOD for %s",certinfo_sn.c_str());
+                    LogError(); return false;
+                  }
                   length = ext_method->i2d(proxy_cert_info_, NULL);
                   if(length < 0) { 
                     CredentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); 
@@ -1265,9 +1269,13 @@ err:
       unsigned char   md[SHA_DIGEST_LENGTH];
       long  sub_hash;
       unsigned int   len;
-      X509V3_EXT_METHOD* ext_method;
-
+      X509V3_EXT_METHOD* ext_method = NULL;
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
+      if(ext_method == NULL) {
+        CredentialLogger.msg(ERROR, "Can get X509V3_EXT_METHOD for %s",OBJ_nid2sn(certinfo_NID));
+        LogError(); goto err;
+      }
+
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       ASN1_digest((int (*)(void*, unsigned char**))i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
 #else
