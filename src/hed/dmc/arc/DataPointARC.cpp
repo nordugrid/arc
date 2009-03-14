@@ -205,7 +205,6 @@ namespace Arc {
 	
 	URL turl(nd["TURL"]);
     // redirect actual reading to http dmc
-	DataHandle tmp_transfer(turl);
 	transfer = new DataHandle(turl);
     (*transfer)->AssignCredentials(proxyPath,
     							  certificatePath,
@@ -238,7 +237,7 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
-
+    
     writing = true;
     buffer = &buf;
 
@@ -253,6 +252,58 @@ namespace Arc {
       cfg.AddCADir(caCertificatesDir);
     return DataStatus::Success;
 
+	return DataStatus::WriteError;
+
+    
+    // get TURL from bartender
+    Arc::ClientSOAP client(cfg, bartender_url);
+    std::string xml;
+	
+    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    Arc::PayloadSOAP request(ns);
+    request.NewChild("bar:putFile").NewChild("bar:putFileRequestList").NewChild("bar:putFileRequestElement").NewChild("bar:requestID") = "0";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:LN") = "/"+url.Path();
+    // only supports http protocol:
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:protocol") = "http";
+    request.GetXML(xml, true);
+    logger.msg(Arc::INFO, "Request:\n%s", xml);
+	
+    Arc::PayloadSOAP *response = NULL;
+	
+    Arc::MCC_Status status = client.process(&request, &response);
+	
+    if (!status) {
+      logger.msg(Arc::ERROR, (std::string)status);
+      if (response)
+        delete response;
+        return DataStatus::WriteError;
+    }
+	
+    if (!response) {
+      logger.msg(Arc::ERROR, "No SOAP response");
+      return DataStatus::WriteError;
+    }
+	
+    response->Child().GetXML(xml, true);
+    logger.msg(Arc::INFO, "Response:\n%s", xml);
+	
+	XMLNode nd = (*response).Child()["putFileResponseList"]["putFileResponseElement"];
+	nd.GetXML(xml,true);
+	
+	logger.msg(Arc::INFO, "nd:\n%s", xml); 
+    
+	if(nd["success"]!="done" || !nd["TURL"])
+	  return DataStatus::WriteError;
+    
+	logger.msg(Arc::INFO, "Recieved transfer URL: %s", (std::string) nd["TURL"]);
+	
+	URL turl(nd["TURL"]);
+    // redirect actual writing to http dmc
+	transfer = new DataHandle(turl);
+    (*transfer)->AssignCredentials(proxyPath,
+    							  certificatePath,
+    							  keyPath,
+    							  caCertificatesDir);
 	if(!(*transfer)->StartWriting(buf, callback)){
       if(transfer) { delete transfer; transfer = NULL; };
       writing = false;
@@ -272,15 +323,6 @@ namespace Arc {
   }
 
   DataStatus DataPointARC::Check() {
-    MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
     return DataStatus::Success;
   }
 
@@ -294,7 +336,42 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    return DataStatus::DeleteError;
+
+    Arc::ClientSOAP client(cfg, bartender_url);
+    std::string xml;
+	
+    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    Arc::PayloadSOAP request(ns);
+    request.NewChild("bar:delFile").NewChild("bar:delFileRequestList").NewChild("bar:delFileRequestElement").NewChild("bar:requestID") = "0";
+    request["bar:delFile"]["bar:delFileRequestList"]["bar:delFileRequestElement"].NewChild("bar:LN") = "/"+url.Path();
+
+    request.GetXML(xml, true);
+    logger.msg(Arc::INFO, "Request:\n%s", xml);
+	
+    Arc::PayloadSOAP *response = NULL;
+	
+    Arc::MCC_Status status = client.process(&request, &response);
+	
+    if (!status) {
+      logger.msg(Arc::ERROR, (std::string)status);
+      if (response)
+        delete response;
+        return DataStatus::DeleteError;
+    }
+	
+    if (!response) {
+      logger.msg(Arc::ERROR, "No SOAP response");
+      return DataStatus::DeleteError;
+    }
+	
+    response->Child().GetXML(xml, true);
+    logger.msg(Arc::INFO, "Response:\n%s", xml);
+
+	XMLNode nd = (*response).Child()["delFileResponseList"]["delFileResponseElement"];
+
+	if(nd["success"] == "deleted")
+      logger.msg(Arc::INFO, "Deleted %s", url.Path());
+    return DataStatus::Success;
   }
 
 } // namespace Arc
