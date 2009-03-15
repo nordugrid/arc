@@ -175,7 +175,7 @@ int main(int argc, char **argv) {
     } else {
       qlusters.remove(it->Flavour+":"+it->Cluster.str());
       qlusters.push_back("-"+it->Flavour+":"+it->Cluster.str());
-      logger.msg(Arc::DEBUG, "Disregarding %s",qlusters.front());
+      logger.msg(Arc::DEBUG, "Disregarding %s",it->Cluster.str());
     }
   qlusters.sort();
   qlusters.unique();
@@ -299,9 +299,10 @@ int main(int argc, char **argv) {
   for (std::list<Arc::JobController*>::iterator it = killcont.begin();
        it != killcont.end(); it++)
     if (!(*it)->Kill(status, keep, timeout))
-      if (!(*it)->Clean(status, true, timeout) ){
+      if (!keep)
+	if (!(*it)->Clean(status, true, timeout) ){
 	logger.msg(Arc::WARNING, "Job could not be killed or cleaned");
-      }
+	}
   
   //now add info about all resubmitted jobs to the local xml file
   {//start of file lock
