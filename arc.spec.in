@@ -251,7 +251,7 @@ exit 0
 %{_bindir}/arcsync
 #%doc %{_mandir}/man1/arcsync.1*
 %{_bindir}/arcresub
-#%doc %{_mandir}/man1/arcresub.1*
+%doc %{_mandir}/man1/arcresub.1*
 %{_bindir}/arcget
 %doc %{_mandir}/man1/arcget.1*
 %{_bindir}/arcclean

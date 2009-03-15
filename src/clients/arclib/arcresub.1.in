@@ -1,0 +1,163 @@
+.\" -*- nroff -*-
+.TH ARCRESUB 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcresub \- ARC Resubmission
+
+.SH DESCRIPTION
+
+The
+.B arcresub
+command is used for resubmitting jobs to grid enabled computing resources.
+
+.SH SYNOPSIS
+
+.B arcresub [options] [jobid ...]
+
+.SH OPTIONS
+
+.IP "\fB-a\fR, \fB--all\fR"
+all jobs
+.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
+file containing a list of jobs
+.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
+explicitly select or reject jobs from a specific cluster
+.IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
+explicitly select or reject a specific cluster for the new cluster
+.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+explicitly select or reject jobs from an index server
+.IP "\fB-k\fR, \fB--keep\fR"
+keep the files on the server (do not clean)
+.IP "\fB-m\fR, \fB--same\fR"
+resubmit on the same cluster
+.IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
+only select jobs whose status is statusstr
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-b\fR, \fB--broker\fR"
+selected broker (default  Random)
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBjobid\fR ..."
+jobid or job name of jobs to be resubmitted
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcresub
+command is used for resubmitting jobs on grid enabled computing
+resources to the same or new resources. The job can be referred to 
+either by the jobid that was returned by
+.BR arcsub (1)
+at submission time or by its jobname if the job description that was
+submitted contained a jobname attribute.
+
+More than one jobid and/or jobname can be given. If several jobs were
+submitted with the same jobname all those jobs will be resubmitted.
+
+Upon resubmission of a job the corresponding job description will be 
+fetched from the local joblist file along with the checksum of local 
+input files. If the checksums does not match the current ones the 
+job no longer remains the same job an will therefore not be 
+resubmitted.
+
+In case the job description is not found in the joblist, it will 
+be retrieved from the cluster holding the job. This description 
+however might differ from the one originally used to submit the job, 
+since both the submission client and the cluster can have made 
+modifications to the job description.
+
+Upon resubmision the job will receive a new jobid. Hence the old 
+jobid will also be stored in the local joblist file enabling 
+future back tracing of the resubmitted job.
+
+The name of the local joblist file can used specified by the
+.B --joblist
+option. By specifying the
+.B --all
+option, all active jobs appearing the in joblist file will be 
+resubmitted.
+
+The
+.B --cluster
+option can be used to select or reject jobs at specific clusters to be
+resubmitted. See
+.BR arcsub (1)
+for a discussion of the format of arguments to this option. 
+The
+.B --qluster
+option can be used to force the jobs to be resubmitted to a particular
+cluster, or to reject resubmission to a particular cluster. Againg see
+.BR arcsub (1)
+for a discussion of the format of arguments to this option. 
+The
+.B --status
+option can be used to select jobs in a specific state. These options
+can be repeated several times.
+Which servers to query can be specified by giving the
+.B --index
+option to the command. See
+.BR arcsub (1)
+for a discussion of the format of arguments to this option.
+
+The
+.B --same
+option can be used to force jobs to be resubmitted to the same cluster 
+as where they were initial run.
+If the old job was successfully killed the job will be removed from the
+remote cluster unless the
+.B --keep
+option was specified.
+
+.SH FILES
+
+.TP
+.B ~/.arc/client.xml
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.TP
+.B ~/.arc/jobs.xml
+This a local list of the user's active jobs. When a job is
+successfully submitted it is added to this list and when it is removed
+from the remote cluster it is removed from this list. This list is
+used as the list of all active jobs when the user specifies the
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.SH AUTHOR
+
+Peter Rosendahl <prosen@nbi.dk>
+
+.SH SEE ALSO
+
+.BR arcsub (1),
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcstat (1),
+.BR arcmigrate (1),
+.BR arccp (1),
+.BR arcls (1),
+.BR arcrm (1),
+.BR arcclient.xml (5).
