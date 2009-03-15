@@ -7,6 +7,7 @@
 #include <stdint.h>
 #endif
 #include <unistd.h>
+#include <sstream>
 
 #include <arc/Logger.h>
 #include <arc/data/DataBuffer.h>
@@ -37,13 +38,14 @@ namespace Arc {
       writing(false),
       usercfg(""),
       bartender_url(""){
-	  //BartenderURL taken from ~/.arc/client.xml
-	  std::string bartender_str = (std::string)usercfg.ConfTree()["BartenderURL"];
-	  //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
-      if(bartender_str.empty()) bartender_str = "http://localhost:60000/Bartender";
-      //URL bartender_url(url.ConnectionURL()+"/Bartender");
-      bartender_url = URL(bartender_str);
-
+        //BartenderURL taken from ~/.arc/client.xml
+        std::string bartender_str = (std::string)usercfg.ConfTree()["BartenderURL"];
+        //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
+        if(bartender_str.empty()) bartender_str = "http://localhost:60000/Bartender";
+        //URL bartender_url(url.ConnectionURL()+"/Bartender");
+        bartender_url = URL(bartender_str);
+        md5sum = MD5Sum();
+        md5sum.start();
   }
 
   DataPointARC::~DataPointARC() {
@@ -250,21 +252,31 @@ namespace Arc {
       cfg.AddPrivateKey(keyPath);
     if (!caCertificatesDir.empty())
       cfg.AddCADir(caCertificatesDir);
-    return DataStatus::Success;
-
-	return DataStatus::WriteError;
-
     
     // get TURL from bartender
     Arc::ClientSOAP client(cfg, bartender_url);
     std::string xml;
-	
+	std::stringstream out;
+	out << this->GetSize();
+	std::string size_str = out.str();
     Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
     Arc::PayloadSOAP request(ns);
     request.NewChild("bar:putFile").NewChild("bar:putFileRequestList").NewChild("bar:putFileRequestElement").NewChild("bar:requestID") = "0";
     request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:LN") = "/"+url.Path();
     // only supports http protocol:
     request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:protocol") = "http";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:metadataList").NewChild("bar:metadata").NewChild("bar:section") = "states";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"].NewChild("bar:property") = "checksum";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"].NewChild("bar:value") = this->GetCheckSum();
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"].NewChild("bar:metadata").NewChild("bar:section") = "states";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][1].NewChild("bar:property") = "checksumType";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][1].NewChild("bar:value") = "md5";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"].NewChild("bar:metadata").NewChild("bar:section") = "states";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][2].NewChild("bar:property") = "neededReplicas";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][2].NewChild("bar:value") = "1";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"].NewChild("bar:metadata").NewChild("bar:section") = "states";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][3].NewChild("bar:property") = "size";
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][3].NewChild("bar:value") = size_str;
     request.GetXML(xml, true);
     logger.msg(Arc::INFO, "Request:\n%s", xml);
 	
@@ -309,6 +321,10 @@ namespace Arc {
       writing = false;
       return DataStatus::WriteError;	  
 	}
+	logger.msg(Arc::INFO, "Checksum? %d", buf.buffer_size());
+	md5sum.add(&buf, size);
+	return DataStatus::Success;
+
   }
 
   DataStatus DataPointARC::StopWriting() {
@@ -316,7 +332,19 @@ namespace Arc {
       return DataStatus::WriteStopError;
     writing = false;
     if(!transfer) return DataStatus::Success;
-	DataStatus ret = (*transfer)->StopWriting();	
+	DataStatus ret = (*transfer)->StopWriting();
+	// update checksum and size
+	md5sum.end();
+	unsigned char* md5res = new unsigned char(16);
+	unsigned int length = 0;
+	md5sum.result(md5res, length);
+	std::string md5str = "";
+	for(int i=0; i<length; i++){
+      char tmpChar[2];
+      sprintf(tmpChar, "%.2x", md5res[i]);
+      md5str.insert(i*2, tmpChar);
+	}
+	std::cout << "CheckSum: " << md5str << " number " << length << std::endl;
 	delete transfer;
 	transfer = NULL;
     return ret;

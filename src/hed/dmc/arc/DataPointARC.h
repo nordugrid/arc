@@ -7,6 +7,7 @@
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
 #include <arc/data/DataHandle.h>
+#include <arc/data/CheckSum.h>
 #include <arc/client/UserConfig.h>
 
 namespace Arc {
@@ -22,6 +23,7 @@ namespace Arc {
 	bool writing;
 	UserConfig usercfg;
 	URL bartender_url;
+	MD5Sum md5sum;
   public:
     DataPointARC(const URL& url);
     virtual ~DataPointARC();
