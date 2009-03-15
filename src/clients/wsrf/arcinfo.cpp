@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -32,17 +34,17 @@ int main(int argc, char *argv[]) {
 
   std::string conffile;
   options.AddOption('z', "conffile",
-		    istring("configuration file (default ~/.arc/client.xml)"),
-		    istring("filename"), conffile);
+                    istring("configuration file (default ~/.arc/client.xml)"),
+                    istring("filename"), conffile);
 
   std::string debug;
   options.AddOption('d', "debug",
-		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
-		    istring("debuglevel"), debug);
+                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("debuglevel"), debug);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
-		    version);
+                    version);
 
   std::list<std::string> params = options.Parse(argc, argv);
 
@@ -67,7 +69,7 @@ int main(int argc, char *argv[]) {
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcstat", VERSION)
-	      << std::endl;
+              << std::endl;
     return 0;
   }
 
@@ -101,7 +103,7 @@ int main(int argc, char *argv[]) {
     Arc::MCC_Status status = client.process(&request, &response);
     if (!status) {
       if (response)
-	delete response;
+        delete response;
       throw std::runtime_error("Request failed");
     }
     if (!response)
@@ -116,14 +118,13 @@ int main(int argc, char *argv[]) {
     }
     std::list<Arc::XMLNode> results = inforesponse.Result();
     for (std::list<Arc::XMLNode>::iterator r = results.begin();
-	 r != results.end(); ++r) {
+         r != results.end(); ++r) {
       std::string s;
       r->GetXML(s, true);
       std::cout << "\n" << s << std::endl;
     }
     return EXIT_SUCCESS;
-  }
-  catch (std::exception& err) {
+  } catch (std::exception& err) {
     std::cerr << "ERROR: " << err.what() << std::endl;
     return EXIT_FAILURE;
   }

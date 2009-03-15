@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTLFC_H__
 #define __ARC_DATAPOINTLFC_H__
 

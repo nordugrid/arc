@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTDIRECT_H__
 #define __ARC_DATAPOINTDIRECT_H__
 
@@ -49,7 +51,7 @@ namespace Arc {
     virtual void Passive(bool v);
 
     virtual void Range(unsigned long long int start = 0,
-		       unsigned long long int end = 0);
+                       unsigned long long int end = 0);
 
     // Not supported for direct data points:
     virtual DataStatus Resolve(bool source);

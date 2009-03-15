@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef FILE_CACHE_HASH_H_
 #define FILE_CACHE_HASH_H_
 
@@ -27,7 +29,9 @@ public:
   /**
    * Return the maximum length of a hash string.
    */
-  static int maxLength() {return MAX_SHA1_LENGTH;};
+  static int maxLength() {
+    return MAX_SHA1_LENGTH;
+  }
 };
 
 #endif /*FILE_CACHE_HASH_H_*/

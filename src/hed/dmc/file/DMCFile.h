@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DMCFILE_H__
 #define __ARC_DMCFILE_H__
 
@@ -10,8 +12,8 @@ namespace Arc {
   public:
     DMCFile(Config *cfg);
     virtual ~DMCFile();
-    static Plugin *Instance(PluginArgument* arg);
-    virtual DataPoint *iGetDataPoint(const URL& url);
+    static Plugin* Instance(PluginArgument *arg);
+    virtual DataPoint* iGetDataPoint(const URL& url);
   protected:
     static Logger logger;
   };

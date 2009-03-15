@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -24,7 +26,7 @@ namespace Arc {
   DMCGridFTP::DMCGridFTP(Config *cfg)
     : DMC(cfg) {
     globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
-    if(!proxy_initialized) 
+    if (!proxy_initialized)
       proxy_initialized = GlobusRecoverProxyOpenSSL();
     Register(this);
   }
@@ -34,19 +36,19 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
   }
 
-  Plugin* DMCGridFTP::Instance(PluginArgument* arg) {
-    Arc::DMCPluginArgument* dmcarg =
-            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
-    if(!dmcarg) return NULL;
+  Plugin* DMCGridFTP::Instance(PluginArgument *arg) {
+    Arc::DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    if (!dmcarg)
+      return NULL;
     openssl_lock.lock();
-    if(!openssl_initialized) {
+    if (!openssl_initialized) {
       SSL_load_error_strings();
-      if(!SSL_library_init()){
+      if (!SSL_library_init())
         logger.msg(ERROR, "SSL_library_init failed");
-      } else {
+      else
         openssl_initialized = true;
-      };
-    };
+    }
     openssl_lock.unlock();
     return new DMCGridFTP((Arc::Config*)(*dmcarg));
   }

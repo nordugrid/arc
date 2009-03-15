@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -16,10 +18,11 @@ namespace Arc {
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
-  Plugin* SubmitterCREAM::Instance(Arc::PluginArgument* arg) {
-    ACCPluginArgument* accarg =
-            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
-    if(!accarg) return NULL;
+  Plugin* SubmitterCREAM::Instance(Arc::PluginArgument *arg) {
+    ACCPluginArgument *accarg =
+      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
+    if (!accarg)
+      return NULL;
     return new SubmitterCREAM((Arc::Config*)(*accarg));
   }
 

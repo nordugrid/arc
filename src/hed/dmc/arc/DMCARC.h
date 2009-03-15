@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DMCARC_H__
 #define __ARC_DMCARC_H__
 
@@ -10,8 +12,8 @@ namespace Arc {
   public:
     DMCARC(Config *cfg);
     ~DMCARC();
-    static Plugin *Instance(PluginArgument *arg);
-    DataPoint *iGetDataPoint(const URL& url);
+    static Plugin* Instance(PluginArgument *arg);
+    DataPoint* iGetDataPoint(const URL& url);
   protected:
     static Logger logger;
   };

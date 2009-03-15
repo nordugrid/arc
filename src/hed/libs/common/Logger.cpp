@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -17,55 +19,55 @@
 namespace Arc {
 
   std::ostream& operator<<(std::ostream& os, LogLevel level) {
-    if(level == VERBOSE)
+    if (level == VERBOSE)
       os << "VERBOSE";
-    else if(level == DEBUG)
+    else if (level == DEBUG)
       os << "DEBUG";
-    else if(level == INFO)
+    else if (level == INFO)
       os << "INFO";
-    else if(level == WARNING)
+    else if (level == WARNING)
       os << "WARNING";
-    else if(level == ERROR)
+    else if (level == ERROR)
       os << "ERROR";
-    else if(level == FATAL)
+    else if (level == FATAL)
       os << "FATAL";
     // There should be no more alternative!
     return os;
   }
 
   LogLevel string_to_level(const std::string& str) {
-    if(str == "VERBOSE")
+    if (str == "VERBOSE")
       return VERBOSE;
-    else if(str == "DEBUG")
+    else if (str == "DEBUG")
       return DEBUG;
-    else if(str == "INFO")
+    else if (str == "INFO")
       return INFO;
-    else if(str == "WARNING")
+    else if (str == "WARNING")
       return WARNING;
-    else if(str == "ERROR")
+    else if (str == "ERROR")
       return ERROR;
-    else if(str == "FATAL")
+    else if (str == "FATAL")
       return FATAL;
     else  // should not happen...
       return FATAL;
   }
 
   LogMessage::LogMessage(LogLevel level,
-                         const IString& message) :
-    time(TimeStamp()),
-    level(level),
-    domain("---"),
-    identifier(getDefaultIdentifier()),
-    message(message) {}
+                         const IString& message)
+    : time(TimeStamp()),
+      level(level),
+      domain("---"),
+      identifier(getDefaultIdentifier()),
+      message(message) {}
 
   LogMessage::LogMessage(LogLevel level,
                          const IString& message,
-                         const std::string& identifier) :
-    time(TimeStamp()),
-    level(level),
-    domain("---"),
-    identifier(identifier),
-    message(message) {}
+                         const std::string& identifier)
+    : time(TimeStamp()),
+      level(level),
+      domain("---"),
+      identifier(identifier),
+      message(message) {}
 
   LogLevel LogMessage::getLevel() const {
     return level;
@@ -79,9 +81,9 @@ namespace Arc {
     std::ostringstream sout;
 #ifdef HAVE_GETPID
     sout << getpid() << "/"
-         << (unsigned long int)(void*)Glib::Thread::self();
+         << (unsigned long int)(void*) Glib::Thread::self();
 #else
-    sout << (unsigned long int)(void*)Glib::Thread::self();
+    sout << (unsigned long int)(void*) Glib::Thread::self();
 #endif
     return sout.str();
   }
@@ -92,18 +94,17 @@ namespace Arc {
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
     os << "[" << message.time << "] "
-       << "[" << message.domain << "] "
-       << "[" << message.level << "] "
-       << "[" << message.identifier << "] "
-       << message.message;
+                        << "[" << message.domain << "] "
+                        << "[" << message.level << "] "
+                        << "[" << message.identifier << "] "
+                        << message.message;
     return os;
   }
 
-  LogDestination::LogDestination() {
-}
+  LogDestination::LogDestination() {}
 
-  LogDestination::LogDestination(const std::string& locale) : locale(locale) {
-}
+  LogDestination::LogDestination(const std::string& locale)
+    : locale(locale) {}
 
   LogDestination::LogDestination(const LogDestination&) {
     // Executing this code should be impossible!
@@ -115,22 +116,25 @@ namespace Arc {
     exit(EXIT_FAILURE);
   }
 
-  LogStream::LogStream(std::ostream& destination) : destination(destination) {}
+  LogStream::LogStream(std::ostream& destination)
+    : destination(destination) {}
 
   LogStream::LogStream(std::ostream& destination,
-                       const std::string& locale) : LogDestination(locale),
-                                                    destination(destination) {}
+                       const std::string& locale)
+    : LogDestination(locale),
+      destination(destination) {}
 
   void LogStream::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
-    char* loc = setlocale(LC_ALL, NULL);
+    char *loc = setlocale(LC_ALL, NULL);
     setlocale(LC_ALL, locale.c_str());
     destination << message << std::endl;
     setlocale(LC_ALL, loc);
   }
 
-  LogStream::LogStream(const LogStream&) : LogDestination(),
-                                           destination(std::cerr) {
+  LogStream::LogStream(const LogStream&)
+    : LogDestination(),
+      destination(std::cerr) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
@@ -140,11 +144,11 @@ namespace Arc {
     exit(EXIT_FAILURE);
   }
 
-  Logger* Logger::rootLogger = NULL;
+  Logger*Logger::rootLogger = NULL;
   unsigned int Logger::rootLoggerMark = ~rootLoggerMagic;
 
   Logger& Logger::getRootLogger(void) {
-    if((rootLogger == NULL) || (rootLoggerMark != rootLoggerMagic)) {
+    if ((rootLogger == NULL) || (rootLoggerMark != rootLoggerMagic)) {
       rootLogger = new Logger();
       rootLoggerMark = rootLoggerMagic;
     }
@@ -154,19 +158,19 @@ namespace Arc {
   // LogStream Logger::cerr(std::cerr);
 
   Logger::Logger(Logger& parent,
-                 const std::string& subdomain) :
-    parent(&parent),
-    domain(parent.getDomain() + "." + subdomain),
-    threshold(parent.getThreshold()) {
+                 const std::string& subdomain)
+    : parent(&parent),
+      domain(parent.getDomain() + "." + subdomain),
+      threshold(parent.getThreshold()) {
     // Nothing else needs to be done.
   }
 
   Logger::Logger(Logger& parent,
                  const std::string& subdomain,
-                 LogLevel threshold) :
-    parent(&parent),
-    domain(parent.getDomain() + "." + subdomain),
-    threshold(threshold) {
+                 LogLevel threshold)
+    : parent(&parent),
+      domain(parent.getDomain() + "." + subdomain),
+      threshold(threshold) {
     // Nothing else needs to be done.
   }
 
@@ -191,10 +195,10 @@ namespace Arc {
     log(message);
   }
 
-  Logger::Logger() :
-    parent(0),
-    domain("Arc"),
-    threshold(VERBOSE) {
+  Logger::Logger()
+    : parent(0),
+      domain("Arc"),
+      threshold(VERBOSE) {
     // addDestination(cerr);
   }
 
@@ -213,16 +217,14 @@ namespace Arc {
   }
 
   void Logger::log(const LogMessage& message) {
-    if(message.getLevel() >= threshold) {
+    if (message.getLevel() >= threshold) {
       std::list<LogDestination*>::iterator dest;
       std::list<LogDestination*>::iterator begin = destinations.begin();
       std::list<LogDestination*>::iterator end = destinations.end();
-      for(dest = begin; dest != end; ++dest) {
+      for (dest = begin; dest != end; ++dest)
         (*dest)->log(message);
-      }
-      if(parent != 0) {
+      if (parent != 0)
         parent->log(message);
-      }
     }
   }
 

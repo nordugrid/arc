@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_LDAPQUERY_H__
 #define __ARC_LDAPQUERY_H__
 
@@ -16,8 +18,8 @@
  * LDAP callback type. Your ldap callbacks should be of same structure.
  */
 typedef void (*ldap_callback)(const std::string& attr,
-			      const std::string& value,
-			      void *ref);
+                              const std::string& value,
+                              void *ref);
 
 namespace Arc {
 
@@ -32,10 +34,10 @@ namespace Arc {
      * The connection is first established when calling Query.
      */
     LDAPQuery(const std::string& ldaphost,
-	      int ldapport,
-	      bool anonymous = true,
-	      const std::string& usersn = "",
-	      int timeout = TIMEOUT);
+              int ldapport,
+              bool anonymous = true,
+              const std::string& usersn = "",
+              int timeout = TIMEOUT);
 
     /**
      * Destructor. Will disconnect from the ldapserver if still connected.
@@ -46,24 +48,24 @@ namespace Arc {
      * Queries the ldap server.
      */
     bool Query(const std::string& base,
-	       const std::string& filter = "(objectclass=*)",
-	       const std::list<std::string>& attributes =
-		 std::list<std::string>(),
-	       URL::Scope scope = URL::subtree);
+               const std::string& filter = "(objectclass=*)",
+               const std::list<std::string>& attributes =
+                 std::list<std::string>(),
+               URL::Scope scope = URL::subtree);
 
     /**
      * Retrieves the result of the query from the ldap-server.
      */
     bool Result(ldap_callback callback,
-		void *ref);
+                void *ref);
 
   private:
     bool Connect();
     bool SetConnectionOptions(int version);
     bool HandleResult(ldap_callback callback, void *ref);
     void HandleSearchEntry(LDAPMessage *msg,
-			   ldap_callback callback,
-			   void *ref);
+                           ldap_callback callback,
+                           void *ref);
 
     std::string host;
     int port;
@@ -76,7 +78,7 @@ namespace Arc {
 
     static Logger logger;
 
-    friend int my_sasl_interact(ldap *, unsigned int, void *, void *);
+    friend int my_sasl_interact(ldap*, unsigned int, void*, void*);
   };
 
 } // end namespace

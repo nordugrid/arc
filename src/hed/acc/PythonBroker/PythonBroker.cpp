@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -5,17 +7,17 @@
 #include "PythonBroker.h"
 
 extern "C" {
-  typedef struct {
-    PyObject_HEAD
-    void *ptr;
-    // There are more members in this stuct, but they are not needed here...
-  } PySwigObject;
+typedef struct {
+  PyObject_HEAD
+  void *ptr;
+  // There are more members in this stuct, but they are not needed here...
+} PySwigObject;
 }
 
 namespace Arc {
 
   Logger PythonBroker::logger(Broker::logger, "PythonBroker");
-  PyThreadState *PythonBroker::tstate = NULL;
+  PyThreadState*PythonBroker::tstate = NULL;
   int PythonBroker::refcount = 0;
   Glib::Mutex PythonBroker::lock;
 
@@ -36,8 +38,8 @@ namespace Arc {
     PyObjectP(PyObject *obj)
       : obj(obj) {}
     ~PyObjectP() {
-      if(obj)
-	Py_DECREF(obj);
+      if (obj)
+        Py_DECREF(obj);
     }
     operator bool() {
       return obj;
@@ -66,14 +68,14 @@ namespace Arc {
       PyEval_InitThreads();          // Main thread created and lock acquired
       tstate = PyThreadState_Get();  // Get current thread
       if (!tstate) {
-	logger.msg(ERROR, "Failed to initialize main Python thread");
-	return NULL;
+        logger.msg(ERROR, "Failed to initialize main Python thread");
+        return NULL;
       }
     }
     else {
       if (!tstate) {
-	logger.msg(ERROR, "Main Python thread was not initialized");
-	return NULL;
+        logger.msg(ERROR, "Main Python thread was not initialized");
+        return NULL;
       }
       PyEval_AcquireThread(tstate);
     }
@@ -127,7 +129,7 @@ namespace Arc {
     if (!py_arc_module_name) {
       logger.msg(ERROR, "Cannot convert arc module name to Python string");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -135,7 +137,7 @@ namespace Arc {
     if (!arc_module) {
       logger.msg(ERROR, "Cannot import arc module");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -144,7 +146,7 @@ namespace Arc {
     if (!arc_dict) {
       logger.msg(ERROR, "Cannot get dictionary of arc module");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -153,7 +155,7 @@ namespace Arc {
     if (!arc_config_klass) {
       logger.msg(ERROR, "Cannot find arc Config class");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -165,11 +167,11 @@ namespace Arc {
 
     // Get the JobInnerRepresentation class (borrowed reference)
     arc_jobrepr_klass = PyDict_GetItemString(arc_dict,
-					     "JobInnerRepresentation");
+                                             "JobInnerRepresentation");
     if (!arc_jobrepr_klass) {
       logger.msg(ERROR, "Cannot find arc JobInnerRepresentation class");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -184,7 +186,7 @@ namespace Arc {
     if (!arc_xtarget_klass) {
       logger.msg(ERROR, "Cannot find arc ExecutionTarget class");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -199,7 +201,7 @@ namespace Arc {
     if (!py_module_name) {
       logger.msg(ERROR, "Cannot convert module name to Python string");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -207,7 +209,7 @@ namespace Arc {
     if (!module) {
       logger.msg(ERROR, "Cannot import module");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -216,7 +218,7 @@ namespace Arc {
     if (!dict) {
       logger.msg(ERROR, "Cannot get dictionary of custom broker module");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -225,7 +227,7 @@ namespace Arc {
     if (!klass) {
       logger.msg(ERROR, "Cannot find custom broker class");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -239,15 +241,15 @@ namespace Arc {
     if (!carg) {
       logger.msg(ERROR, "Cannot create config argument");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
-    PyObject* py_cfg = PyObject_CallObject(arc_config_klass, carg);
+    PyObject *py_cfg = PyObject_CallObject(arc_config_klass, carg);
     if (!py_cfg) {
       logger.msg(ERROR, "Cannot convert config to python object");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -255,7 +257,7 @@ namespace Arc {
     if (!arg) {
       logger.msg(ERROR, "Cannot create argument of the constructor");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -264,7 +266,7 @@ namespace Arc {
     if (!object) {
       logger.msg(ERROR, "Cannot create instance of python class");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -302,16 +304,16 @@ namespace Arc {
     if (!arg) {
       logger.msg(ERROR, "Cannot create JobInnerRepresentation argument");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
     PyObjectP py_jir = PyObject_CallObject(arc_jobrepr_klass, arg);
     if (!py_jir) {
       logger.msg(ERROR,
-		 "Cannot convert JobInnerRepresentation to python object");
+                 "Cannot convert JobInnerRepresentation to python object");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -320,39 +322,39 @@ namespace Arc {
     if (!py_list) {
       logger.msg(ERROR, "Cannot create python list");
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
     for (std::vector<ExecutionTarget>::iterator it = PossibleTargets.begin();
-	 it != PossibleTargets.end(); it++) {
+         it != PossibleTargets.end(); it++) {
 
       PyObjectP arg = Py_BuildValue("(l)", (long int)&*it);
       if (!arg) {
-	logger.msg(ERROR, "Cannot create ExecutionTarget argument");
-	if (PyErr_Occurred())
-	  PyErr_Print();
-	return;
+        logger.msg(ERROR, "Cannot create ExecutionTarget argument");
+        if (PyErr_Occurred())
+          PyErr_Print();
+        return;
       }
 
       PyObject *py_xtarget = PyObject_CallObject(arc_xtarget_klass, arg);
       if (!py_xtarget) {
-	logger.msg(ERROR, "Cannot convert ExecutionTarget to python object");
-	if (PyErr_Occurred())
-	  PyErr_Print();
-	return;
+        logger.msg(ERROR, "Cannot convert ExecutionTarget to python object");
+        if (PyErr_Occurred())
+          PyErr_Print();
+        return;
       }
 
       PyList_Append(py_list, py_xtarget);
     }
 
     PyObjectP py_status = PyObject_CallMethod(object, (char*)"SortTargets",
-					      (char*)"(OO)",
-					      (PyObject*)py_list,
-					      (PyObject*)py_jir);
+                                              (char*)"(OO)",
+                                              (PyObject*)py_list,
+                                              (PyObject*)py_jir);
     if (!py_status) {
       if (PyErr_Occurred())
-	PyErr_Print();
+        PyErr_Print();
       return;
     }
 
@@ -362,10 +364,10 @@ namespace Arc {
       PyObject *obj = PyList_GetItem(py_list, i);
       char this_str[] = "this";
       if (!PyObject_HasAttrString(obj, this_str))
-	return;
+        return;
       PyObject *thisattr = PyObject_GetAttrString(obj, this_str);
       if (!thisattr)
-	return;
+        return;
       void *ptr = ((PySwigObject*)thisattr)->ptr;
       PossibleTargets.push_back(*((ExecutionTarget*)ptr));
       Py_DECREF(thisattr);

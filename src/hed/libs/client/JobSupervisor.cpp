@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -21,9 +23,9 @@ namespace Arc {
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
-			       const std::list<std::string>& jobs,
-			       const std::list<std::string>& clusters,
-			       const std::string& joblist)
+                               const std::list<std::string>& jobs,
+                               const std::list<std::string>& clusters,
+                               const std::string& joblist)
     : loader(NULL) {
 
     URLListMap jobids;
@@ -46,69 +48,69 @@ namespace Arc {
     if (!jobs.empty()) {
 
       logger.msg(DEBUG, "Identifying needed job controllers according to "
-		 "specified jobs");
+                 "specified jobs");
 
       for (std::list<std::string>::const_iterator it = jobs.begin();
-	   it != jobs.end(); it++) {
+           it != jobs.end(); it++) {
 
-	XMLNodeList xmljobs =
-	  jobstorage.XPathLookup("//Job[JobID='" + *it + "' or "
-				 "Name='" + *it + "']", NS());
+        XMLNodeList xmljobs =
+          jobstorage.XPathLookup("//Job[JobID='" + *it + "' or "
+                                 "Name='" + *it + "']", NS());
 
-	if (xmljobs.empty()) {
-	  logger.msg(WARNING, "Job not found in job list: %s", *it);
-	  continue;
-	}
+        if (xmljobs.empty()) {
+          logger.msg(WARNING, "Job not found in job list: %s", *it);
+          continue;
+        }
 
-	for (XMLNodeList::iterator xit = xmljobs.begin();
-	     xit != xmljobs.end(); xit++) {
+        for (XMLNodeList::iterator xit = xmljobs.begin();
+             xit != xmljobs.end(); xit++) {
 
-	  URL jobid = (std::string)(*xit)["JobID"];
-	  std::string flavour = (std::string)(*xit)["Flavour"];
+          URL jobid = (std::string)(*xit)["JobID"];
+          std::string flavour = (std::string)(*xit)["Flavour"];
 
-	  jobids[flavour].push_back(jobid);
+          jobids[flavour].push_back(jobid);
 
-	  if (std::find(controllers.begin(), controllers.end(),
-			flavour) == controllers.end()) {
-		logger.msg(DEBUG, "Need job controller for grid flavour %s",
-			   flavour);
-		controllers.push_back(flavour);
-	  }
-	}
+          if (std::find(controllers.begin(), controllers.end(),
+                        flavour) == controllers.end()) {
+            logger.msg(DEBUG, "Need job controller for grid flavour %s",
+                       flavour);
+            controllers.push_back(flavour);
+          }
+        }
       }
     }
 
     if (!clusterselect.empty()) {
 
       logger.msg(DEBUG, "Identifying needed job controllers according to "
-		 "specified clusters");
+                 "specified clusters");
 
       for (URLListMap::iterator it = clusterselect.begin();
-	   it != clusterselect.end(); it++)
-	if (std::find(controllers.begin(), controllers.end(),
-		      it->first) == controllers.end()) {
-	  logger.msg(DEBUG, "Need job controller for grid flavour %s",
-		     it->first);
-	  controllers.push_back(it->first);
-	}
+           it != clusterselect.end(); it++)
+        if (std::find(controllers.begin(), controllers.end(),
+                      it->first) == controllers.end()) {
+          logger.msg(DEBUG, "Need job controller for grid flavour %s",
+                     it->first);
+          controllers.push_back(it->first);
+        }
     }
 
     if (jobs.empty() && clusterselect.empty()) {
 
       logger.msg(DEBUG, "Identifying needed job controllers according to "
-		 "all jobs present in job list");
+                 "all jobs present in job list");
 
       XMLNodeList xmljobs = jobstorage.XPathLookup("/ArcConfig/Job", NS());
 
       for (XMLNodeList::iterator it = xmljobs.begin();
-	   it != xmljobs.end(); it++)
-	if (std::find(controllers.begin(), controllers.end(),
-		      (std::string)(*it)["Flavour"]) == controllers.end()) {
-	  std::string flavour = (*it)["Flavour"];
-	  logger.msg(DEBUG, "Need job controller for grid flavour %s",
-		     flavour);
-	  controllers.push_back(flavour);
-	}
+           it != xmljobs.end(); it++)
+        if (std::find(controllers.begin(), controllers.end(),
+                      (std::string)(*it)["Flavour"]) == controllers.end()) {
+          std::string flavour = (*it)["Flavour"];
+          logger.msg(DEBUG, "Need job controller for grid flavour %s",
+                     flavour);
+          controllers.push_back(flavour);
+        }
     }
 
     ACCConfig acccfg;
@@ -118,7 +120,7 @@ namespace Arc {
     int ctrlnum = 0;
 
     for (std::list<std::string>::iterator it = controllers.begin();
-	 it != controllers.end(); it++) {
+         it != controllers.end(); it++) {
 
       XMLNode jobctrl = cfg.NewChild("ArcClientComponent");
       jobctrl.NewAttribute("name") = "JobController" + (*it);
@@ -132,13 +134,13 @@ namespace Arc {
 
     for (int i = 0; i < ctrlnum; i++) {
       JobController *jobctrl =
-	dynamic_cast<JobController*>(loader->getACC("controller" +
-						    tostring(i)));
+        dynamic_cast<JobController*>(loader->getACC("controller" +
+                                                    tostring(i)));
       if (jobctrl) {
-	jobctrl->FillJobStore(jobids[jobctrl->Flavour()],
-			      clusterselect[jobctrl->Flavour()],
-			      clusterreject[jobctrl->Flavour()]);
-	jobcontrollers.push_back(jobctrl);
+        jobctrl->FillJobStore(jobids[jobctrl->Flavour()],
+                              clusterselect[jobctrl->Flavour()],
+                              clusterreject[jobctrl->Flavour()]);
+        jobcontrollers.push_back(jobctrl);
       }
     }
   }

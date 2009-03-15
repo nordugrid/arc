@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -22,14 +24,15 @@ namespace Arc {
     Unregister(this);
   }
 
-  Plugin* DMCHTTP::Instance(PluginArgument* arg) {
-    Arc::DMCPluginArgument* dmcarg =
-            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
-    if(!dmcarg) return NULL;
+  Plugin* DMCHTTP::Instance(PluginArgument *arg) {
+    Arc::DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    if (!dmcarg)
+      return NULL;
     return new DMCHTTP((Arc::Config*)(*dmcarg));
   }
 
-  DataPoint *DMCHTTP::iGetDataPoint(const URL& url) {
+  DataPoint* DMCHTTP::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "http" &&
         url.Protocol() != "https" &&
         url.Protocol() != "httpg")
@@ -40,6 +43,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  {"http", "HED:DMC", 0, &Arc::DMCHTTP::Instance},
-  {NULL, NULL, 0, NULL}
+  { "http", "HED:DMC", 0, &Arc::DMCHTTP::Instance },
+  { NULL, NULL, 0, NULL }
 };

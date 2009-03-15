@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -9,17 +11,17 @@
 
 #include "FileCacheHash.h"
 
-int FileCacheHash::MAX_MD5_LENGTH=32;
-int FileCacheHash::MAX_SHA1_LENGTH=40;
+int FileCacheHash::MAX_MD5_LENGTH = 32;
+int FileCacheHash::MAX_SHA1_LENGTH = 40;
 
 std::string FileCacheHash::getHash(std::string url) {
-  
+
   /*
    * example borrowed from http://www.openssl.org/docs/crypto/EVP_DigestInit.html
    */
   EVP_MD_CTX mdctx;
   const EVP_MD *md = EVP_sha1(); // change to EVP_md5() for md5 hashes
-  char * mess1 = (char*)url.c_str();
+  char *mess1 = (char*)url.c_str();
   unsigned char md_value[EVP_MAX_MD_SIZE];
   unsigned int md_len, i;
 
@@ -33,8 +35,8 @@ std::string FileCacheHash::getHash(std::string url) {
 
   char result[3];
   std::string res("");
-  for(i = 0; i < md_len; i++) {
-    snprintf(result, 3, "%02x", md_value[i]); 
+  for (i = 0; i < md_len; i++) {
+    snprintf(result, 3, "%02x", md_value[i]);
     res.append(result);
   }
   return res;

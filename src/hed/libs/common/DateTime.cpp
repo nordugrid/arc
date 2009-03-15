@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -12,7 +14,7 @@
 
 
 #ifndef HAVE_TIMEGM
-time_t timegm (struct tm *tm) {
+time_t timegm(struct tm *tm) {
   char *tz = getenv("TZ");
 #ifdef HAVE_SETENV
   setenv("TZ", "", 1);
@@ -21,7 +23,7 @@ time_t timegm (struct tm *tm) {
 #endif
   tzset();
   time_t ret = mktime(tm);
-  if(tz) {
+  if (tz) {
 #ifdef HAVE_SETENV
     setenv("TZ", tz, 1);
 #else
@@ -45,7 +47,7 @@ time_t timegm (struct tm *tm) {
 
 #ifndef HAVE_LOCALTIME_R
 struct tm* localtime_r(const time_t *timep, struct tm *result) {
-  struct tm* TM = localtime(timep);
+  struct tm *TM = localtime(timep);
   *result = *TM;
   return result;
 }
@@ -54,7 +56,7 @@ struct tm* localtime_r(const time_t *timep, struct tm *result) {
 
 #ifndef HAVE_GMTIME_R
 struct tm* gmtime_r(const time_t *timep, struct tm *result) {
-  struct tm* TM = gmtime(timep);
+  struct tm *TM = gmtime(timep);
   *result = *TM;
   return result;
 }
@@ -74,216 +76,216 @@ namespace Arc {
   }
 
 
-  Time::Time(const time_t& time) : gtime(time) {}
+  Time::Time(const time_t& time)
+    : gtime(time) {}
 
 
-  Time::Time(const std::string& timestring) : gtime(-1) {
+  Time::Time(const std::string& timestring)
+    : gtime(-1) {
 
     if (timestring.empty()) {
       dateTimeLogger.msg(ERROR, "Empty string");
       return;
     }
 
-    if(isdigit(timestring[0])) {
+    if (isdigit(timestring[0])) {
       tm timestr;
       std::string::size_type pos = 0;
 
-      if(sscanf(timestring.substr(pos, 10).c_str(),
-		"%4d-%2d-%2d",
-		&timestr.tm_year,
-		&timestr.tm_mon,
-		&timestr.tm_mday) == 3)
-	pos += 10;
-      else if(sscanf(timestring.substr(pos, 8).c_str(),
-		     "%4d%2d%2d",
-		     &timestr.tm_year,
-		     &timestr.tm_mon,
-		     &timestr.tm_mday) == 3)
-	pos += 8;
+      if (sscanf(timestring.substr(pos, 10).c_str(),
+                 "%4d-%2d-%2d",
+                 &timestr.tm_year,
+                 &timestr.tm_mon,
+                 &timestr.tm_mday) == 3)
+        pos += 10;
+      else if (sscanf(timestring.substr(pos, 8).c_str(),
+                      "%4d%2d%2d",
+                      &timestr.tm_year,
+                      &timestr.tm_mon,
+                      &timestr.tm_mday) == 3)
+        pos += 8;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse date: %s", timestring);
-	return;
+        dateTimeLogger.msg(ERROR, "Can not parse date: %s", timestring);
+        return;
       }
 
       timestr.tm_year -= 1900;
       timestr.tm_mon--;
 
-      if(timestring[pos] == 'T' || timestring[pos] == ' ') pos++;
+      if (timestring[pos] == 'T' || timestring[pos] == ' ')
+        pos++;
 
-      if(sscanf(timestring.substr(pos, 8).c_str(),
-		"%2d:%2d:%2d",
-		&timestr.tm_hour,
-		&timestr.tm_min,
-		&timestr.tm_sec) == 3)
-	pos += 8;
-      else if(sscanf(timestring.substr(pos, 6).c_str(),
-		     "%2d%2d%2d",
-		     &timestr.tm_hour,
-		     &timestr.tm_min,
-		     &timestr.tm_sec) == 3)
-	pos += 6;
+      if (sscanf(timestring.substr(pos, 8).c_str(),
+                 "%2d:%2d:%2d",
+                 &timestr.tm_hour,
+                 &timestr.tm_min,
+                 &timestr.tm_sec) == 3)
+        pos += 8;
+      else if (sscanf(timestring.substr(pos, 6).c_str(),
+                      "%2d%2d%2d",
+                      &timestr.tm_hour,
+                      &timestr.tm_min,
+                      &timestr.tm_sec) == 3)
+        pos += 6;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse time: %s", timestring);
-	return;
+        dateTimeLogger.msg(ERROR, "Can not parse time: %s", timestring);
+        return;
       }
 
       // skip fraction of second
-      if(timestring[pos] == '.') {
-	pos++;
-	while(isdigit(timestring[pos])) pos++;
+      if (timestring[pos] == '.') {
+        pos++;
+        while (isdigit(timestring[pos]))
+          pos++;
       }
 
-      if(timestring[pos] == 'Z') {
-	pos++;
-	gtime = timegm(&timestr);
+      if (timestring[pos] == 'Z') {
+        pos++;
+        gtime = timegm(&timestr);
       }
+      else if (timestring[pos] == '+' || timestring[pos] == '-') {
+        bool tzplus = (timestring[pos] == '+');
+        pos++;
+        int tzh, tzm;
+        if (sscanf(timestring.substr(pos, 5).c_str(),
+                   "%2d:%2d",
+                   &tzh,
+                   &tzm) == 2)
+          pos += 5;
+        else if (sscanf(timestring.substr(pos, 4).c_str(),
+                        "%2d%2d",
+                        &tzh,
+                        &tzm) == 2)
+          pos += 4;
+        else {
+          dateTimeLogger.msg(ERROR, "Can not parse time zone offset: %s",
+                             timestring);
+          return;
+        }
 
-      else if(timestring[pos] == '+' || timestring[pos] == '-') {
-	bool tzplus = (timestring[pos] == '+');
-	pos++;
-	int tzh, tzm;
-	if(sscanf(timestring.substr(pos, 5).c_str(),
-		  "%2d:%2d",
-		  &tzh,
-		  &tzm) == 2)
-	  pos += 5;
-	else if(sscanf(timestring.substr(pos, 4).c_str(),
-		       "%2d%2d",
-		       &tzh,
-		       &tzm) == 2)
-	  pos += 4;
-	else {
-	  dateTimeLogger.msg(ERROR, "Can not parse time zone offset: %s",
-			     timestring);
-	  return;
-	}
+        gtime = timegm(&timestr);
 
-	gtime = timegm(&timestr);
-
-	if(gtime != -1) {
-	  if(tzplus)
-	    gtime -= tzh * 3600 + tzm * 60;
-	  else
-	    gtime += tzh * 3600 + tzm * 60;
-	}
+        if (gtime != -1) {
+          if (tzplus)
+            gtime -= tzh * 3600 + tzm * 60;
+          else
+            gtime += tzh * 3600 + tzm * 60;
+        }
       }
-
       else
-	gtime = mktime(&timestr);
+        gtime = mktime(&timestr);
 
-      if(timestring.size() != pos) {
-	dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
-	return;
+      if (timestring.size() != pos) {
+        dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
+        return;
       }
     }
-
     else if (timestring.length() == 24) {
       // C time
       tm timestr;
       char day[4];
       char month[4];
 
-      if(sscanf(timestring.c_str(),
-		"%3s %3s %2d %2d:%2d:%2d %4d",
-		day,
-		month,
-		&timestr.tm_mday,
-		&timestr.tm_hour,
-		&timestr.tm_min,
-		&timestr.tm_sec,
-		&timestr.tm_year) != 7) {
-	dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
-	return;
+      if (sscanf(timestring.c_str(),
+                 "%3s %3s %2d %2d:%2d:%2d %4d",
+                 day,
+                 month,
+                 &timestr.tm_mday,
+                 &timestr.tm_hour,
+                 &timestr.tm_min,
+                 &timestr.tm_sec,
+                 &timestr.tm_year) != 7) {
+        dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
+        return;
       }
 
       timestr.tm_year -= 1900;
 
-      if(strncmp(month, "Jan", 3) == 0)
-	timestr.tm_mon = 0;
-      else if(strncmp(month, "Feb", 3) == 0)
-	timestr.tm_mon = 1;
-      else if(strncmp(month, "Mar", 3) == 0)
-	timestr.tm_mon = 2;
-      else if(strncmp(month, "Apr", 3) == 0)
-	timestr.tm_mon = 3;
-      else if(strncmp(month, "May", 3) == 0)
-	timestr.tm_mon = 4;
-      else if(strncmp(month, "Jun", 3) == 0)
-	timestr.tm_mon = 5;
-      else if(strncmp(month, "Jul", 3) == 0)
-	timestr.tm_mon = 6;
-      else if(strncmp(month, "Aug", 3) == 0)
-	timestr.tm_mon = 7;
-      else if(strncmp(month, "Sep", 3) == 0)
-	timestr.tm_mon = 8;
-      else if(strncmp(month, "Oct", 3) == 0)
-	timestr.tm_mon = 9;
-      else if(strncmp(month, "Nov", 3) == 0)
-	timestr.tm_mon = 10;
-      else if(strncmp(month, "Dec", 3) == 0)
-	timestr.tm_mon = 11;
+      if (strncmp(month, "Jan", 3) == 0)
+        timestr.tm_mon = 0;
+      else if (strncmp(month, "Feb", 3) == 0)
+        timestr.tm_mon = 1;
+      else if (strncmp(month, "Mar", 3) == 0)
+        timestr.tm_mon = 2;
+      else if (strncmp(month, "Apr", 3) == 0)
+        timestr.tm_mon = 3;
+      else if (strncmp(month, "May", 3) == 0)
+        timestr.tm_mon = 4;
+      else if (strncmp(month, "Jun", 3) == 0)
+        timestr.tm_mon = 5;
+      else if (strncmp(month, "Jul", 3) == 0)
+        timestr.tm_mon = 6;
+      else if (strncmp(month, "Aug", 3) == 0)
+        timestr.tm_mon = 7;
+      else if (strncmp(month, "Sep", 3) == 0)
+        timestr.tm_mon = 8;
+      else if (strncmp(month, "Oct", 3) == 0)
+        timestr.tm_mon = 9;
+      else if (strncmp(month, "Nov", 3) == 0)
+        timestr.tm_mon = 10;
+      else if (strncmp(month, "Dec", 3) == 0)
+        timestr.tm_mon = 11;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse month: %s", month);
-	return;
+        dateTimeLogger.msg(ERROR, "Can not parse month: %s", month);
+        return;
       }
 
       gtime = mktime(&timestr);
     }
-
     else if (timestring.length() == 29) {
       // RFC 1123 time (used by HTTP protoccol)
       tm timestr;
       char day[4];
       char month[4];
 
-      if(sscanf(timestring.c_str(),
-		"%3s, %2d %3s %4d %2d:%2d:%2d GMT",
-		day,
-		&timestr.tm_mday,
-		month,
-		&timestr.tm_year,
-		&timestr.tm_hour,
-		&timestr.tm_min,
-		&timestr.tm_sec) != 7) {
-	dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
-	return;
+      if (sscanf(timestring.c_str(),
+                 "%3s, %2d %3s %4d %2d:%2d:%2d GMT",
+                 day,
+                 &timestr.tm_mday,
+                 month,
+                 &timestr.tm_year,
+                 &timestr.tm_hour,
+                 &timestr.tm_min,
+                 &timestr.tm_sec) != 7) {
+        dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
+        return;
       }
 
       timestr.tm_year -= 1900;
 
-      if(strncmp(month, "Jan", 3) == 0)
-	timestr.tm_mon = 0;
-      else if(strncmp(month, "Feb", 3) == 0)
-	timestr.tm_mon = 1;
-      else if(strncmp(month, "Mar", 3) == 0)
-	timestr.tm_mon = 2;
-      else if(strncmp(month, "Apr", 3) == 0)
-	timestr.tm_mon = 3;
-      else if(strncmp(month, "May", 3) == 0)
-	timestr.tm_mon = 4;
-      else if(strncmp(month, "Jun", 3) == 0)
-	timestr.tm_mon = 5;
-      else if(strncmp(month, "Jul", 3) == 0)
-	timestr.tm_mon = 6;
-      else if(strncmp(month, "Aug", 3) == 0)
-	timestr.tm_mon = 7;
-      else if(strncmp(month, "Sep", 3) == 0)
-	timestr.tm_mon = 8;
-      else if(strncmp(month, "Oct", 3) == 0)
-	timestr.tm_mon = 9;
-      else if(strncmp(month, "Nov", 3) == 0)
-	timestr.tm_mon = 10;
-      else if(strncmp(month, "Dec", 3) == 0)
-	timestr.tm_mon = 11;
+      if (strncmp(month, "Jan", 3) == 0)
+        timestr.tm_mon = 0;
+      else if (strncmp(month, "Feb", 3) == 0)
+        timestr.tm_mon = 1;
+      else if (strncmp(month, "Mar", 3) == 0)
+        timestr.tm_mon = 2;
+      else if (strncmp(month, "Apr", 3) == 0)
+        timestr.tm_mon = 3;
+      else if (strncmp(month, "May", 3) == 0)
+        timestr.tm_mon = 4;
+      else if (strncmp(month, "Jun", 3) == 0)
+        timestr.tm_mon = 5;
+      else if (strncmp(month, "Jul", 3) == 0)
+        timestr.tm_mon = 6;
+      else if (strncmp(month, "Aug", 3) == 0)
+        timestr.tm_mon = 7;
+      else if (strncmp(month, "Sep", 3) == 0)
+        timestr.tm_mon = 8;
+      else if (strncmp(month, "Oct", 3) == 0)
+        timestr.tm_mon = 9;
+      else if (strncmp(month, "Nov", 3) == 0)
+        timestr.tm_mon = 10;
+      else if (strncmp(month, "Dec", 3) == 0)
+        timestr.tm_mon = 11;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse month: %s", month);
-	return;
+        dateTimeLogger.msg(ERROR, "Can not parse month: %s", month);
+        return;
       }
 
       gtime = timegm(&timestr);
     }
 
-    if(gtime == -1)
+    if (gtime == -1)
       dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
   }
 
@@ -315,130 +317,134 @@ namespace Arc {
 
   std::string Time::str(const TimeFormat& format) const {
 
-    const char* day[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    const char *day[] = {
+      "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
     // C week starts on Sunday - just live with it...
-    const char* month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-			   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    
-    switch(format) {
+    const char *month[] = {
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
+    switch (format) {
 
     case ASCTime:  // Day Mon DD HH:MM:SS YYYY
       {
-	tm tmtime;
-	localtime_r(&gtime, &tmtime);
+        tm tmtime;
+        localtime_r(&gtime, &tmtime);
 
-	std::stringstream ss;
+        std::stringstream ss;
 
-	ss << std::setfill('0');
+        ss << std::setfill('0');
 
-	ss << day[tmtime.tm_wday] << ' '
-	   << month[tmtime.tm_mon] << ' '
-	   << std::setw(2) << tmtime.tm_mday << ' '
-	   << std::setw(2) << tmtime.tm_hour << ':'
-	   << std::setw(2) << tmtime.tm_min << ':'
-	   << std::setw(2) << tmtime.tm_sec << ' '
-	   << std::setw(4) << tmtime.tm_year + 1900;
+        ss << day[tmtime.tm_wday] << ' '
+           << month[tmtime.tm_mon] << ' '
+           << std::setw(2) << tmtime.tm_mday << ' '
+           << std::setw(2) << tmtime.tm_hour << ':'
+           << std::setw(2) << tmtime.tm_min << ':'
+           << std::setw(2) << tmtime.tm_sec << ' '
+           << std::setw(4) << tmtime.tm_year + 1900;
 
-	return ss.str();
+        return ss.str();
       }
 
     case UserTime:
       {
-	tm tmtime;
-	localtime_r(&gtime, &tmtime);
+        tm tmtime;
+        localtime_r(&gtime, &tmtime);
 
-	std::stringstream ss;
+        std::stringstream ss;
 
-	ss << std::setfill('0');
+        ss << std::setfill('0');
 
-	ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
-	   << std::setw(2) << tmtime.tm_mon + 1 << '-'
-	   << std::setw(2) << tmtime.tm_mday << ' '
-	   << std::setw(2) << tmtime.tm_hour << ':'
-	   << std::setw(2) << tmtime.tm_min << ':'
-	   << std::setw(2) << tmtime.tm_sec;
+        ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
+           << std::setw(2) << tmtime.tm_mon + 1 << '-'
+           << std::setw(2) << tmtime.tm_mday << ' '
+           << std::setw(2) << tmtime.tm_hour << ':'
+           << std::setw(2) << tmtime.tm_min << ':'
+           << std::setw(2) << tmtime.tm_sec;
 
-	return ss.str();
+        return ss.str();
       }
 
     case MDSTime:
       {
-	tm tmtime;
-	gmtime_r(&gtime, &tmtime);
+        tm tmtime;
+        gmtime_r(&gtime, &tmtime);
 
-	std::stringstream ss;
+        std::stringstream ss;
 
-	ss << std::setfill('0');
+        ss << std::setfill('0');
 
-	ss << std::setw(4) << tmtime.tm_year + 1900
-	   << std::setw(2) << tmtime.tm_mon + 1
-	   << std::setw(2) << tmtime.tm_mday
-	   << std::setw(2) << tmtime.tm_hour
-	   << std::setw(2) << tmtime.tm_min
-	   << std::setw(2) << tmtime.tm_sec << 'Z';
+        ss << std::setw(4) << tmtime.tm_year + 1900
+           << std::setw(2) << tmtime.tm_mon + 1
+           << std::setw(2) << tmtime.tm_mday
+           << std::setw(2) << tmtime.tm_hour
+           << std::setw(2) << tmtime.tm_min
+           << std::setw(2) << tmtime.tm_sec << 'Z';
 
-	return ss.str();
+        return ss.str();
       }
 
     case ISOTime:
       {
-	tm tmtime;
-	localtime_r(&gtime, &tmtime);
-	time_t tzoffset = timegm(&tmtime) - gtime;
+        tm tmtime;
+        localtime_r(&gtime, &tmtime);
+        time_t tzoffset = timegm(&tmtime) - gtime;
 
-	std::stringstream ss;
+        std::stringstream ss;
 
-	ss << std::setfill('0');
+        ss << std::setfill('0');
 
-	ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
-	   << std::setw(2) << tmtime.tm_mon + 1 << '-'
-	   << std::setw(2) << tmtime.tm_mday << 'T'
-	   << std::setw(2) << tmtime.tm_hour << ':'
-	   << std::setw(2) << tmtime.tm_min << ':'
-	   << std::setw(2) << tmtime.tm_sec << (tzoffset < 0 ? '-' : '+')
-	   << std::setw(2) << abs(tzoffset) / 3600 << ':'
-	   << std::setw(2) << (abs(tzoffset) % 3600) / 60;
+        ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
+           << std::setw(2) << tmtime.tm_mon + 1 << '-'
+           << std::setw(2) << tmtime.tm_mday << 'T'
+           << std::setw(2) << tmtime.tm_hour << ':'
+           << std::setw(2) << tmtime.tm_min << ':'
+           << std::setw(2) << tmtime.tm_sec << (tzoffset < 0 ? '-' : '+')
+           << std::setw(2) << abs(tzoffset) / 3600 << ':'
+           << std::setw(2) << (abs(tzoffset) % 3600) / 60;
 
-	return ss.str();
+        return ss.str();
       }
 
     case UTCTime:
       {
-	tm tmtime;
-	gmtime_r(&gtime, &tmtime);
+        tm tmtime;
+        gmtime_r(&gtime, &tmtime);
 
-	std::stringstream ss;
+        std::stringstream ss;
 
-	ss << std::setfill('0');
+        ss << std::setfill('0');
 
-	ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
-	   << std::setw(2) << tmtime.tm_mon + 1 << '-'
-	   << std::setw(2) << tmtime.tm_mday << 'T'
-	   << std::setw(2) << tmtime.tm_hour << ':'
-	   << std::setw(2) << tmtime.tm_min << ':'
-	   << std::setw(2) << tmtime.tm_sec << 'Z';
+        ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
+           << std::setw(2) << tmtime.tm_mon + 1 << '-'
+           << std::setw(2) << tmtime.tm_mday << 'T'
+           << std::setw(2) << tmtime.tm_hour << ':'
+           << std::setw(2) << tmtime.tm_min << ':'
+           << std::setw(2) << tmtime.tm_sec << 'Z';
 
-	return ss.str();
+        return ss.str();
       }
 
     case RFC1123Time:
       {
-	tm tmtime;
-	gmtime_r(&gtime, &tmtime);
+        tm tmtime;
+        gmtime_r(&gtime, &tmtime);
 
-	std::stringstream ss;
+        std::stringstream ss;
 
-	ss << std::setfill('0');
+        ss << std::setfill('0');
 
-	ss << day[tmtime.tm_wday] << ", "
-	   << std::setw(2) << tmtime.tm_mday << ' '
-	   << month[tmtime.tm_mon] << ' '
-	   << std::setw(4) << tmtime.tm_year + 1900 << ' '
-	   << std::setw(2) << tmtime.tm_hour << ':'
-	   << std::setw(2) << tmtime.tm_min << ':'
-	   << std::setw(2) << tmtime.tm_sec << " GMT";
+        ss << day[tmtime.tm_wday] << ", "
+           << std::setw(2) << tmtime.tm_mday << ' '
+           << month[tmtime.tm_mon] << ' '
+           << std::setw(4) << tmtime.tm_year + 1900 << ' '
+           << std::setw(2) << tmtime.tm_hour << ':'
+           << std::setw(2) << tmtime.tm_min << ':'
+           << std::setw(2) << tmtime.tm_sec << " GMT";
 
-	return ss.str();
+        return ss.str();
       }
 
     }
@@ -478,19 +484,19 @@ namespace Arc {
   Time Time::operator+(const Period& duration) const {
     time_t t;
     t = gtime + duration.GetPeriod();
-    return(Time(t));
-  } 
+    return (Time(t));
+  }
 
   Time Time::operator-(const Period& duration) const {
     time_t t;
     t = gtime - duration.GetPeriod();
-    return(Time(t));
+    return (Time(t));
   }
 
   Period Time::operator-(const Time& other) const {
     time_t t;
     t = gtime - other.GetTime();
-    return(Period(t));
+    return (Period(t));
   }
 
   Time& Time::operator=(const time_t& newtime) {
@@ -498,7 +504,7 @@ namespace Arc {
     return *this;
   }
 
-  Time& Time::operator=(const Time& newtime){
+  Time& Time::operator=(const Time& newtime) {
     gtime = newtime.GetTime();
     return *this;
   }
@@ -519,13 +525,16 @@ namespace Arc {
   }
 
 
-  Period::Period() : seconds(0) {}
+  Period::Period()
+    : seconds(0) {}
 
 
-  Period::Period(const time_t& length) : seconds(length) {}
+  Period::Period(const time_t& length)
+    : seconds(length) {}
 
 
-  Period::Period(const std::string& period, PeriodBase base) : seconds(0) {
+  Period::Period(const std::string& period, PeriodBase base)
+    : seconds(0) {
 
     if (period.empty()) {
       dateTimeLogger.msg(ERROR, "Empty string");
@@ -537,137 +546,153 @@ namespace Arc {
       std::string::size_type pos = 1;
       bool min = false; // months or minutes?
       while (pos < period.size()) {
-	if (period[pos] == 'T') {
-	  min = true;
-	}
-	else {
-	  std::string::size_type pos2 = pos;
-	  while (pos2 < period.size() && isdigit(period[pos2])) pos2++;
-	  if (pos2 == pos || pos2 == period.size()) {
-	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
-			       period);
-	    seconds = 0;
-	    return;
-	  }
-	  int num = stringtoi(period.substr(pos, pos2 - pos));
-	  pos = pos2;
-	  switch (period[pos]) {
-	  case 'Y':
-	    seconds += num * (365 * 24 * 60 * 60);
-	    break;
-	  case 'W':
-	    seconds += num * (7 * 24 * 60 * 60);
-	    min = true;
-	    break;
-	  case 'D':
-	    seconds += num * (24 * 60 * 60);
-	    min = true;
-	    break;
-	  case 'H':
-	    seconds += num * (60 * 60);
-	    min = true;
-	    break;
-	  case 'M':
-	    if (min)
-	      seconds += num * 60;
-	    else {
-	      seconds += num * (30 * 24 * 60 * 60);
-	      min = true;
-	    }
-	    break;
-	  case 'S':
-	    seconds += num;
-	    break;
+        if (period[pos] == 'T')
+          min = true;
+        else {
+          std::string::size_type pos2 = pos;
+          while (pos2 < period.size() && isdigit(period[pos2]))
+            pos2++;
+          if (pos2 == pos || pos2 == period.size()) {
+            dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
+                               period);
+            seconds = 0;
+            return;
+          }
+          int num = stringtoi(period.substr(pos, pos2 - pos));
+          pos = pos2;
+          switch (period[pos]) {
+          case 'Y':
+            seconds += num * (365 * 24 * 60 * 60);
+            break;
+
+          case 'W':
+            seconds += num * (7 * 24 * 60 * 60);
+            min = true;
+            break;
+
+          case 'D':
+            seconds += num * (24 * 60 * 60);
+            min = true;
+            break;
+
+          case 'H':
+            seconds += num * (60 * 60);
+            min = true;
+            break;
+
+          case 'M':
+            if (min)
+              seconds += num * 60;
+            else {
+              seconds += num * (30 * 24 * 60 * 60);
+              min = true;
+            }
+            break;
+
+          case 'S':
+            seconds += num;
+            break;
+
           default:
-	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
-			       period);
-	    seconds = 0;
-	    return;
-	    break;
-	  }
-	}
-	pos++;
+            dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
+                               period);
+            seconds = 0;
+            return;
+            break;
+          }
+        }
+        pos++;
       }
     }
-
     else {
-      // "free" format 
+      // "free" format
       std::string::size_type pos = std::string::npos;
       int len = 0;
 
-      for(std::string::size_type i = 0; i != period.length(); i++) {
-	if(isdigit(period[i])) {
-	  if(pos == std::string::npos) {
-	    pos = i;
-	    len = 0;
-	  }
-	  len++;
-	}
-	else if(pos != std::string::npos) {
-	  switch(period[i]) {
+      for (std::string::size_type i = 0; i != period.length(); i++) {
+        if (isdigit(period[i])) {
+          if (pos == std::string::npos) {
+            pos = i;
+            len = 0;
+          }
+          len++;
+        }
+        else if (pos != std::string::npos) {
+          switch (period[i]) {
           case 'w':
           case 'W':
-	    seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24 * 7;
-	    pos = std::string::npos;
-	    base = PeriodDays;
-	    break;
+            seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24 * 7;
+            pos = std::string::npos;
+            base = PeriodDays;
+            break;
+
           case 'd':
           case 'D':
-	    seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24;
-	    pos = std::string::npos;
-	    base = PeriodHours;
-	    break;
+            seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24;
+            pos = std::string::npos;
+            base = PeriodHours;
+            break;
+
           case 'h':
           case 'H':
-	    seconds += stringtoi(period.substr(pos, len)) * 60 * 60;
-	    pos = std::string::npos;
-	    base = PeriodMinutes;
-	    break;
+            seconds += stringtoi(period.substr(pos, len)) * 60 * 60;
+            pos = std::string::npos;
+            base = PeriodMinutes;
+            break;
+
           case 'm':
           case 'M':
-	    seconds += stringtoi(period.substr(pos, len)) * 60;
-	    pos = std::string::npos;
-	    base = PeriodSeconds;
-	    break;
+            seconds += stringtoi(period.substr(pos, len)) * 60;
+            pos = std::string::npos;
+            base = PeriodSeconds;
+            break;
+
           case 's':
           case 'S':
-	    seconds += stringtoi(period.substr (pos, len));
-	    pos = std::string::npos;
-	    base = PeriodMiliseconds;
-	    break;
+            seconds += stringtoi(period.substr(pos, len));
+            pos = std::string::npos;
+            base = PeriodMiliseconds;
+            break;
+
           case ' ':
-	    break;
+            break;
+
           default:
-	    dateTimeLogger.msg(ERROR, "Invalid period string: %s", period);
-	    seconds = 0;
-	    return;
-	    break;
-	  }
-	}
+            dateTimeLogger.msg(ERROR, "Invalid period string: %s", period);
+            seconds = 0;
+            return;
+            break;
+          }
+        }
       }
 
-      if(pos != std::string::npos) {
-	int n = stringtoi(period.substr(pos, len));
-	switch (base) {
-	  case PeriodMiliseconds:
-	    n /= 1000;
-	    break;
-	  case PeriodSeconds:
-	    break;
-	  case PeriodMinutes:
-	    n *= 60;
-	    break;
-	  case PeriodHours:
-	    n *= 60 * 60;
-	    break;
-	  case PeriodDays:
-	    n *= 60 * 60 * 24;
-	    break;
-	  case PeriodWeeks:
-	    n *= 60 * 60 * 24 * 7;
-	    break;
-	}
-	seconds += n;
+      if (pos != std::string::npos) {
+        int n = stringtoi(period.substr(pos, len));
+        switch (base) {
+        case PeriodMiliseconds:
+          n /= 1000;
+          break;
+
+        case PeriodSeconds:
+          break;
+
+        case PeriodMinutes:
+          n *= 60;
+          break;
+
+        case PeriodHours:
+          n *= 60 * 60;
+          break;
+
+        case PeriodDays:
+          n *= 60 * 60 * 24;
+          break;
+
+        case PeriodWeeks:
+          n *= 60 * 60 * 24 * 7;
+          break;
+        }
+        seconds += n;
       }
     }
   }
@@ -722,7 +747,7 @@ namespace Arc {
       remain %= 60;
     }
     if (remain >= 1)
-      ss << remain  << 'S';
+      ss << remain << 'S';
 
     return ss.str();
   }
@@ -759,7 +784,7 @@ namespace Arc {
 
 
   std::ostream& operator<<(std::ostream& out, const Period& period) {
-    return (out << (std::string) period);
+    return (out << (std::string)period);
   }
 
 } // namespace Arc

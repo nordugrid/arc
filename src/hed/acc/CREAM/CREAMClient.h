@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_CREAMCLIENT_H__
 #define __ARC_CREAMCLIENT_H__
 
@@ -28,7 +30,7 @@ namespace Arc {
       this->delegationId = delegId;
     }
     bool createDelegation(const std::string& delegation_id,
-			  const std::string& proxy);
+                          const std::string& proxy);
     bool destroyDelegation(const std::string& delegation_id);
     bool registerJob(const std::string& jdl_text, creamJobInfo& info);
     bool startJob(const std::string& jobid);

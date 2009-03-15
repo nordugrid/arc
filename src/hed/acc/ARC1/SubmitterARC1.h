@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_SUBMITTERARC1_H__
 #define __ARC_SUBMITTERARC1_H__
 
@@ -21,10 +23,10 @@ namespace Arc {
     ~SubmitterARC1();
 
   public:
-    static Plugin* Instance(PluginArgument* arg);
+    static Plugin* Instance(PluginArgument *arg);
     bool Submit(const JobDescription& jobdesc, XMLNode& info) const;
     bool Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const;
- };
+  };
 
 } // namespace Arc
 

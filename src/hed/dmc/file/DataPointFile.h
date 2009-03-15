@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTFILE_H__
 #define __ARC_DATAPOINTFILE_H__
 
@@ -15,7 +17,7 @@ namespace Arc {
     virtual ~DataPointFile();
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
-				    DataCallback *space_cb = NULL);
+                                    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual DataStatus Check();

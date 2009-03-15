@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #include <sstream>
 
 #include <cppunit/extensions/HelperMacros.h>

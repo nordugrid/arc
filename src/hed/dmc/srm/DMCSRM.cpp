@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -22,14 +24,15 @@ namespace Arc {
     Unregister(this);
   }
 
-  Plugin *DMCSRM::Instance(PluginArgument* arg) {
-    Arc::DMCPluginArgument* dmcarg =
-            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
-    if(!dmcarg) return NULL;
+  Plugin* DMCSRM::Instance(PluginArgument *arg) {
+    Arc::DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    if (!dmcarg)
+      return NULL;
     return new DMCSRM((Arc::Config*)(*dmcarg));
   }
 
-  DataPoint *DMCSRM::iGetDataPoint(const URL& url) {
+  DataPoint* DMCSRM::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "srm")
       return NULL;
     return new DataPointSRM(url);
@@ -38,6 +41,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  {"srm", "HED:DMC", 0, &Arc::DMCSRM::Instance},
-  {NULL, NULL, 0, NULL}
+  { "srm", "HED:DMC", 0, &Arc::DMCSRM::Instance },
+  { NULL, NULL, 0, NULL }
 };

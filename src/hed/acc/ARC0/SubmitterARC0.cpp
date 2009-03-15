@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -17,10 +19,10 @@ namespace Arc {
 
   SubmitterARC0::~SubmitterARC0() {}
 
-  Plugin* SubmitterARC0::Instance(Arc::PluginArgument* arg) {
-    ACCPluginArgument* accarg =
-            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
-    if(!accarg) return NULL;
+  Plugin* SubmitterARC0::Instance(Arc::PluginArgument *arg) {
+    ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
+    if (!accarg)
+      return NULL;
     return new SubmitterARC0((Arc::Config*)(*accarg));
   }
 
@@ -29,7 +31,7 @@ namespace Arc {
     FTPControl ctrl;
 
     if (!ctrl.Connect(submissionEndpoint,
-		      proxyPath, certificatePath, keyPath, 500)) {
+                      proxyPath, certificatePath, keyPath, 500)) {
       logger.msg(ERROR, "Submit: Failed to connect");
       return false;
     }
@@ -77,7 +79,7 @@ namespace Arc {
     // Prepare contact url for information about this job
     URL infoEndpoint(cluster);
     infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
-				  jobid.str() + ")");
+                                  jobid.str() + ")");
     infoEndpoint.ChangeLDAPScope(URL::subtree);
 
     info.NewChild("JobID") = jobid.str();

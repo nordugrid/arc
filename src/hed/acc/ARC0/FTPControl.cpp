@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -18,8 +20,8 @@ struct cbarg {
 };
 
 static void ControlCallback(void *arg, globus_ftp_control_handle_t*,
-			    globus_object_t *error,
-			    globus_ftp_control_response_t *response) {
+                            globus_object_t *error,
+                            globus_ftp_control_response_t *response) {
   cbarg *cb = (cbarg*)arg;
   if (error != GLOBUS_SUCCESS) {
     cb->response = Arc::globus_object_to_string(error);
@@ -28,8 +30,8 @@ static void ControlCallback(void *arg, globus_ftp_control_handle_t*,
   if (response && response->response_buffer) {
     int len = response->response_length;
     while (len > 0 && (response->response_buffer[len - 1] == '\r' ||
-		       response->response_buffer[len - 1] == '\n' ||
-		       response->response_buffer[len - 1] == '\0'))
+                       response->response_buffer[len - 1] == '\n' ||
+                       response->response_buffer[len - 1] == '\0'))
       len--;
     cb->response.assign((const char*)response->response_buffer, len);
     switch (response->response_class) {
@@ -49,15 +51,15 @@ static void ControlCallback(void *arg, globus_ftp_control_handle_t*,
 }
 
 static void ConnectCallback(void *arg, globus_ftp_control_handle_t*,
-			    unsigned int, globus_bool_t, globus_object_t*) {
+                            unsigned int, globus_bool_t, globus_object_t*) {
   cbarg *cb = (cbarg*)arg;
   cb->data = true;
   cb->cond.signal();
 }
 
 static void ReadWriteCallback(void *arg, globus_ftp_control_handle_t*,
-			      globus_object_t*, globus_byte_t*, globus_size_t,
-			      globus_off_t, globus_bool_t) {
+                              globus_object_t*, globus_byte_t*, globus_size_t,
+                              globus_off_t, globus_bool_t) {
   cbarg *cb = (cbarg*)arg;
   cb->data = true;
   cb->cond.signal();
@@ -80,10 +82,10 @@ namespace Arc {
   }
 
   bool FTPControl::Connect(const URL& url,
-			   const std::string& proxyPath,
-			   const std::string& certificatePath,
-			   const std::string& keyPath,
-			   int timeout) {
+                           const std::string& proxyPath,
+                           const std::string& certificatePath,
+                           const std::string& keyPath,
+                           int timeout) {
 
     cbarg cb;
     bool timedin;
@@ -97,8 +99,8 @@ namespace Arc {
 
     cb.ctrl = false;
     result = globus_ftp_control_connect(&control_handle,
-					const_cast<char*>(url.Host().c_str()),
-					url.Port(), &ControlCallback, &cb);
+                                        const_cast<char*>(url.Host().c_str()),
+                                        url.Port(), &ControlCallback, &cb);
     if (!result) {
       logger.msg(ERROR, "Connect: Failed to connect: %s", result.str());
       return false;
@@ -106,9 +108,9 @@ namespace Arc {
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "Connect: Connecting timed out after %d ms",
-		   timeout * 1000);
-	return false;
+        logger.msg(ERROR, "Connect: Connecting timed out after %d ms",
+                   timeout * 1000);
+        return false;
       }
     }
     if (!cb.responseok) {
@@ -120,19 +122,19 @@ namespace Arc {
 
     globus_ftp_control_auth_info_t auth;
     result = globus_ftp_control_auth_info_init(&auth, handle, GLOBUS_TRUE,
-					       const_cast<char*>("ftp"),
-					       const_cast<char*>("user@"),
-					       GLOBUS_NULL, GLOBUS_NULL);
+                                               const_cast<char*>("ftp"),
+                                               const_cast<char*>("user@"),
+                                               GLOBUS_NULL, GLOBUS_NULL);
     if (!result) {
       logger.msg(ERROR, "Connect: Failed to init auth info handle: %s",
-		 result.str());
+                 result.str());
       return false;
     }
 
     cb.ctrl = false;
     result = globus_ftp_control_authenticate(&control_handle, &auth,
-					     GLOBUS_TRUE,
-					     &ControlCallback, &cb);
+                                             GLOBUS_TRUE,
+                                             &ControlCallback, &cb);
     if (!result) {
       logger.msg(ERROR, "Connect: Failed authentication: %s", result.str());
       return false;
@@ -140,9 +142,9 @@ namespace Arc {
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "Connect: Authentication timed out after %d ms",
-		   timeout * 1000);
-	return false;
+        logger.msg(ERROR, "Connect: Authentication timed out after %d ms",
+                   timeout * 1000);
+        return false;
       }
     }
     if (!cb.responseok) {
@@ -162,7 +164,7 @@ namespace Arc {
 
     cb.ctrl = false;
     result = globus_ftp_control_send_command(&control_handle, cmd.c_str(),
-					     &ControlCallback, &cb);
+                                             &ControlCallback, &cb);
     if (!result) {
       logger.msg(ERROR, "SendCommand: Failed: %s", result.str());
       return false;
@@ -170,8 +172,8 @@ namespace Arc {
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "SendCommand: Timed out after %d ms", timeout * 1000);
-	return false;
+        logger.msg(ERROR, "SendCommand: Timed out after %d ms", timeout * 1000);
+        return false;
       }
     }
     if (!cb.responseok) {
@@ -184,7 +186,7 @@ namespace Arc {
   } // end SendCommand
 
   bool FTPControl::SendCommand(const std::string& cmd, std::string& response,
-			       int timeout) {
+                               int timeout) {
 
     cbarg cb;
     bool timedin;
@@ -192,7 +194,7 @@ namespace Arc {
 
     cb.ctrl = false;
     result = globus_ftp_control_send_command(&control_handle, cmd.c_str(),
-					     &ControlCallback, &cb);
+                                             &ControlCallback, &cb);
     if (!result) {
       logger.msg(ERROR, "SendCommand: Failed: %s", result.str());
       return false;
@@ -200,8 +202,8 @@ namespace Arc {
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "SendCommand: Timed out after %d ms", timeout * 1000);
-	return false;
+        logger.msg(ERROR, "SendCommand: Timed out after %d ms", timeout * 1000);
+        return false;
       }
     }
     if (!cb.responseok) {
@@ -216,7 +218,7 @@ namespace Arc {
   } // end SendCommand
 
   bool FTPControl::SendData(const std::string& data,
-			    const std::string& filename, int timeout) {
+                            const std::string& filename, int timeout) {
 
     cbarg cb;
     bool timedin;
@@ -246,13 +248,13 @@ namespace Arc {
     passive_addr.port = 0;
     unsigned short port_low, port_high;
     if (sscanf(response.substr(pos1 + 1, pos2 - pos1 - 1).c_str(),
-	       "%i,%i,%i,%i,%hu,%hu",
-	       &passive_addr.host[0],
-	       &passive_addr.host[1],
-	       &passive_addr.host[2],
-	       &passive_addr.host[3],
-	       &port_high,
-	       &port_low) == 6)
+               "%i,%i,%i,%i,%hu,%hu",
+               &passive_addr.host[0],
+               &passive_addr.host[1],
+               &passive_addr.host[2],
+               &passive_addr.host[3],
+               &port_high,
+               &port_low) == 6)
       passive_addr.port = 256 * port_high + port_low;
 
     result = globus_ftp_control_local_port(&control_handle, &passive_addr);
@@ -262,44 +264,44 @@ namespace Arc {
     }
 
     result = globus_ftp_control_local_type(&control_handle,
-					   GLOBUS_FTP_CONTROL_TYPE_IMAGE, 0);
+                                           GLOBUS_FTP_CONTROL_TYPE_IMAGE, 0);
     if (!result) {
       logger.msg(ERROR, "SendData: Local type failed: %s", result.str());
       return false;
     }
 
     result = globus_ftp_control_send_command(&control_handle,
-					     ("STOR " + filename).c_str(),
-					     &ControlCallback, &cb);
+                                             ("STOR " + filename).c_str(),
+                                             &ControlCallback, &cb);
     if (!result) {
       logger.msg(ERROR, "SendData: Failed sending STOR command: %s",
-		 result.str());
+                 result.str());
       return false;
     }
 
     cb.data = false;
     cb.ctrl = false;
     result = globus_ftp_control_data_connect_write(&control_handle,
-						   &ConnectCallback, &cb);
+                                                   &ConnectCallback, &cb);
     if (!result) {
       logger.msg(ERROR, "SendData: Data connect write failed: %s",
-		 result.str());
+                 result.str());
       return false;
     }
     while (!cb.data) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "SendData: Data connect write timed out after %d ms",
-		   timeout * 1000);
-	return false;
+        logger.msg(ERROR, "SendData: Data connect write timed out after %d ms",
+                   timeout * 1000);
+        return false;
       }
     }
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "SendData: Data connect write timed out after %d ms",
-		   timeout * 1000);
-	return false;
+        logger.msg(ERROR, "SendData: Data connect write timed out after %d ms",
+                   timeout * 1000);
+        return false;
       }
     }
     if (!cb.responseok) {
@@ -310,9 +312,9 @@ namespace Arc {
     cb.data = false;
     cb.ctrl = false;
     result = globus_ftp_control_data_write(&control_handle,
-					   (globus_byte_t*)data.c_str(),
-					   data.size(), 0, GLOBUS_TRUE,
-					   &ReadWriteCallback, &cb);
+                                           (globus_byte_t*)data.c_str(),
+                                           data.size(), 0, GLOBUS_TRUE,
+                                           &ReadWriteCallback, &cb);
     if (!result) {
       logger.msg(ERROR, "SendData: Data write failed: %s", result.str());
       return false;
@@ -320,17 +322,17 @@ namespace Arc {
     while (!cb.data) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "SendData: Data write timed out after %d ms",
-		   timeout * 1000);
-	return false;
+        logger.msg(ERROR, "SendData: Data write timed out after %d ms",
+                   timeout * 1000);
+        return false;
       }
     }
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "SendData: Data write timed out after %d ms",
-		   timeout * 1000);
-	return false;
+        logger.msg(ERROR, "SendData: Data write timed out after %d ms",
+                   timeout * 1000);
+        return false;
       }
     }
     if (!cb.responseok) {
@@ -357,16 +359,16 @@ namespace Arc {
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-	logger.msg(ERROR, "Disconnect: Quitting timed out after %d ms",
-		   timeout * 1000);
-	return false;
+        logger.msg(ERROR, "Disconnect: Quitting timed out after %d ms",
+                   timeout * 1000);
+        return false;
       }
     }
 
     result = globus_ftp_control_handle_destroy(&control_handle);
     if (!result) {
       logger.msg(ERROR, "Disconnect: Failed to destroy handle: %s",
-		 result.str());
+                 result.str());
       return false;
     }
 

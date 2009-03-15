@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_FTPCONTROL_H__
 #define __ARC_FTPCONTROL_H__
 
@@ -16,13 +18,13 @@ namespace Arc {
     ~FTPControl();
 
     bool Connect(const URL& url, const std::string& proxyPath,
-		 const std::string& certificatePath,
-		 const std::string& keyPath, int timeout);
+                 const std::string& certificatePath,
+                 const std::string& keyPath, int timeout);
     bool SendCommand(const std::string& cmd, int timeout);
     bool SendCommand(const std::string& cmd, std::string& response,
-		     int timeout);
+                     int timeout);
     bool SendData(const std::string& data, const std::string& filename,
-		  int timeout);
+                  int timeout);
     bool Disconnect(int timeout);
 
   private:

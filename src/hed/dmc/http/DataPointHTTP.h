@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTHTTP_H__
 #define __ARC_DATAPOINTHTTP_H__
 

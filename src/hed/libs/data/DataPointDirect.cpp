@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -98,7 +100,7 @@ namespace Arc {
   }
 
   void DataPointDirect::Range(unsigned long long int start,
-			      unsigned long long int end) {
+                              unsigned long long int end) {
     range_start = start;
     range_end = end;
   }

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAMOVER_H__
 #define __ARC_DATAMOVER_H__
 
@@ -34,8 +36,8 @@ namespace Arc {
     DataSpeed::show_progress_t show_progress;
     static Logger logger;
   public:
-    typedef void (*callback)(DataMover *, DataStatus, const std::string&,
-			     void *);
+    typedef void (*callback)(DataMover*, DataStatus, const std::string&,
+                             void*);
     /// Constructor
     DataMover();
     /// Destructor
@@ -53,10 +55,10 @@ namespace Arc {
     /// \param prefix if 'verbose' is activated this information will be
     /// printed before each line representing current transfer status.
     DataStatus Transfer(DataPoint& source, DataPoint& destination,
-			FileCache& cache, const URLMap& map,
-			std::string& failure_description,
-			callback cb = NULL, void *arg = NULL,
-			const char *prefix = NULL);
+                        FileCache& cache, const URLMap& map,
+                        std::string& failure_description,
+                        callback cb = NULL, void *arg = NULL,
+                        const char *prefix = NULL);
     /// Initiates transfer from 'source' to 'destination'.
     /// \param min_speed minimal allowed current speed.
     /// \param min_speed_time time for which speed should be less than
@@ -65,14 +67,14 @@ namespace Arc {
     /// \param max_inactivity_time time for which should be no activity
     /// before transfer fails.
     DataStatus Transfer(DataPoint& source, DataPoint& destination,
-			FileCache& cache, const URLMap& map,
-			unsigned long long int min_speed,
-			time_t min_speed_time,
-			unsigned long long int min_average_speed,
-			time_t max_inactivity_time,
-			std::string& failure_description,
-			callback cb = NULL, void *arg = NULL,
-			const char *prefix = NULL);
+                        FileCache& cache, const URLMap& map,
+                        unsigned long long int min_speed,
+                        time_t min_speed_time,
+                        unsigned long long int min_average_speed,
+                        time_t max_inactivity_time,
+                        std::string& failure_description,
+                        callback cb = NULL, void *arg = NULL,
+                        const char *prefix = NULL);
     DataStatus Delete(DataPoint& url, bool errcont = false);
     /// Check if printing information about transfer status is activated.
     bool verbose();
@@ -105,7 +107,7 @@ namespace Arc {
     /// If speed drops below for time longer than 'min_speed_time' error
     /// is raised. For more information see description of DataSpeed class.
     void set_default_min_speed(unsigned long long int min_speed,
-			       time_t min_speed_time) {
+                               time_t min_speed_time) {
       default_min_speed = min_speed;
       default_min_speed_time = min_speed_time;
     }
@@ -113,7 +115,7 @@ namespace Arc {
     /// over whole time of transfer. For more information see description
     /// of DataSpeed class.
     void set_default_min_average_speed(unsigned long long int
-				       min_average_speed) {
+                                       min_average_speed) {
       default_min_average_speed = min_average_speed;
     }
     /// Set maximal allowed time for waiting for any data. For more

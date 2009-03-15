@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -102,7 +104,7 @@ namespace Arc {
   void CRC32Sum::add(void *buf, unsigned long long int len) {
     for (unsigned long long int i = 0; i < len; i++) {
       unsigned char c = (r >> 24);
-      r = ((r << 8) | ((unsigned char *)buf)[i]) ^ gtable[c];
+      r = ((r << 8) | ((unsigned char*)buf)[i]) ^ gtable[c];
     }
     count += len;
   }
@@ -113,11 +115,11 @@ namespace Arc {
     unsigned long long l = count;
     for (; l;) {
       unsigned char c = (l & 0xFF);
-      ((CheckSum *)this)->add(&c, 1);
+      ((CheckSum*)this)->add(&c, 1);
       l >>= 8;
     }
     uint32_t u = 0;
-    ((CheckSum *)this)->add(&u, 4);
+    ((CheckSum*)this)->add(&u, 4);
     r = ((~r) & 0xFFFFFFFF);
     computed = true;
   }
@@ -125,7 +127,7 @@ namespace Arc {
   int CRC32Sum::print(char *buf, int len) const {
     if (!computed) {
       if (len > 0)
-	buf[0] = 0;
+        buf[0] = 0;
       return 0;
     }
     return snprintf(buf, len, "cksum: %08x", r);
@@ -143,19 +145,19 @@ namespace Arc {
       int i;
       l = 0;
       for (i = 0; buf[i]; i++)
-	if (!isdigit(buf[i]))
-	  break;
+        if (!isdigit(buf[i]))
+          break;
       if (!(buf[i]))
-	l = sscanf(buf, "%u", &r);
+        l = sscanf(buf, "%u", &r);
       else {
-	for (i = 0; buf[i]; i++)
-	  if (!isxdigit(buf[i]))
-	    break;
-	if (!(buf[i])) {
-	  unsigned long long rr;
-	  l = sscanf(buf, "%llx", &rr);
-	  r = rr;
-	}
+        for (i = 0; buf[i]; i++)
+          if (!isxdigit(buf[i]))
+            break;
+        if (!(buf[i])) {
+          unsigned long long rr;
+          l = sscanf(buf, "%llx", &rr);
+          r = rr;
+        }
       }
     }
     if (l != 1)
@@ -174,22 +176,22 @@ namespace Arc {
 #define H(X, Y, Z) ((X) ^ (Y) ^ (Z))
 #define I(X, Y, Z) ((Y) ^ ((X) | (~(Z))))
 
-#define OP1(a, b, c, d, k, s, i) {\
+#define OP1(a, b, c, d, k, s, i) { \
     uint32_t t = ((a) + F(b, c, d) + X[k] + T[i - 1]); \
     (a) = (b) + (((t) << (s)) | ((t) >> (32 - s))); \
 }
 
-#define OP2(a, b, c, d, k, s, i) {\
+#define OP2(a, b, c, d, k, s, i) { \
     uint32_t t = ((a) + G(b, c, d) + X[k] + T[i - 1]); \
     (a) = (b) + (((t) << (s)) | ((t) >> (32 - s))); \
 }
 
-#define OP3(a, b, c, d, k, s, i) {\
+#define OP3(a, b, c, d, k, s, i) { \
     uint32_t t = ((a) + H(b, c, d) + X[k] + T[i - 1]); \
     (a) = (b) + (((t) << (s)) | ((t) >> (32 - s))); \
 }
 
-#define OP4(a, b, c, d, k, s, i) {\
+#define OP4(a, b, c, d, k, s, i) { \
     uint32_t t = ((a) + I(b, c, d) + X[k] + T[i - 1]); \
     (a) = (b) + (((t) << (s)) | ((t) >> (32 - s))); \
 }
@@ -235,20 +237,20 @@ namespace Arc {
   }
 
   void MD5Sum::add(void *buf, unsigned long long int len) {
-    u_char *buf_ = (u_char *)buf;
+    u_char *buf_ = (u_char*)buf;
     for (; len;) {
       if (Xlen < 64) { // 16 words = 64 bytes
-	u_int l = 64 - Xlen;
-	if (len < l)
-	  l = len;
-	memcpy(((u_char *)X) + Xlen, buf_, l);
-	Xlen += l;
-	count += l;
-	len -= l;
-	buf_ += l;
+        u_int l = 64 - Xlen;
+        if (len < l)
+          l = len;
+        memcpy(((u_char*)X) + Xlen, buf_, l);
+        Xlen += l;
+        count += l;
+        len -= l;
+        buf_ += l;
       }
       if (Xlen < 64)
-	return;
+        return;
 
       uint32_t AA = A;
       uint32_t BB = B;
@@ -365,16 +367,16 @@ namespace Arc {
   int MD5Sum::print(char *buf, int len) const {
     if (!computed) {
       if (len > 0)
-	buf[0] = 0;
+        buf[0] = 0;
       return 0;
     }
     return snprintf(buf, len,
-		    "md5: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		    ((u_char *)&A)[0], ((u_char *)&A)[1], ((u_char *)&A)[2], ((u_char *)&A)[3],
-		    ((u_char *)&B)[0], ((u_char *)&B)[1], ((u_char *)&B)[2], ((u_char *)&B)[3],
-		    ((u_char *)&C)[0], ((u_char *)&C)[1], ((u_char *)&C)[2], ((u_char *)&C)[3],
-		    ((u_char *)&D)[0], ((u_char *)&D)[1], ((u_char *)&D)[2], ((u_char *)&D)[3]
-		    );
+                    "md5: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                    ((u_char*)&A)[0], ((u_char*)&A)[1], ((u_char*)&A)[2], ((u_char*)&A)[3],
+                    ((u_char*)&B)[0], ((u_char*)&B)[1], ((u_char*)&B)[2], ((u_char*)&B)[3],
+                    ((u_char*)&C)[0], ((u_char*)&C)[1], ((u_char*)&C)[2], ((u_char*)&C)[3],
+                    ((u_char*)&D)[0], ((u_char*)&D)[1], ((u_char*)&D)[2], ((u_char*)&D)[3]
+                    );
   }
 
   void MD5Sum::scan(const char *buf) {
@@ -382,13 +384,13 @@ namespace Arc {
     if (strncasecmp("md5:", buf, 4) != 0)
       return;
     int l = sscanf(buf + 4,
-		   "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
-		   "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
-		   ((u_char *)&A) + 0, ((u_char *)&A) + 1, ((u_char *)&A) + 2, ((u_char *)&A) + 3,
-		   ((u_char *)&B) + 0, ((u_char *)&B) + 1, ((u_char *)&B) + 2, ((u_char *)&B) + 3,
-		   ((u_char *)&C) + 0, ((u_char *)&C) + 1, ((u_char *)&C) + 2, ((u_char *)&C) + 3,
-		   ((u_char *)&D) + 0, ((u_char *)&D) + 1, ((u_char *)&D) + 2, ((u_char *)&D) + 3
-		   );
+                   "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+                   "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
+                   ((u_char*)&A) + 0, ((u_char*)&A) + 1, ((u_char*)&A) + 2, ((u_char*)&A) + 3,
+                   ((u_char*)&B) + 0, ((u_char*)&B) + 1, ((u_char*)&B) + 2, ((u_char*)&B) + 3,
+                   ((u_char*)&C) + 0, ((u_char*)&C) + 1, ((u_char*)&C) + 2, ((u_char*)&C) + 3,
+                   ((u_char*)&D) + 0, ((u_char*)&D) + 1, ((u_char*)&D) + 2, ((u_char*)&D) + 3
+                   );
     if (l != 16)
       return;
     computed = true;
@@ -439,10 +441,10 @@ namespace Arc {
       p = crc + strlen(crc);
       int i;
       for (i = 0; crc[i]; i++)
-	if (!isxdigit(crc[i]))
-	  break;
+        if (!isxdigit(crc[i]))
+          break;
       if (!(crc[i]))
-	return cksum;
+        return cksum;
     }
     if (((p - crc) == 5) && (strncasecmp(crc, "cksum", 5) == 0))
       return cksum;

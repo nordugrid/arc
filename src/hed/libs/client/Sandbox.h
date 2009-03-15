@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_SANDBOX_H__
 #define __ARC_SANDBOX_H__
 
@@ -10,14 +12,14 @@
 namespace Arc {
 
   class Logger;
-  
+
   class Sandbox {
   public:
     /* Add jobdescription of job to XMLNode which is
        stored in the sandbox
-    */
-    static bool Add(JobDescription& jobdesc, 
-		   XMLNode& info);
+     */
+    static bool Add(JobDescription& jobdesc,
+                    XMLNode& info);
 
     /* Calculate checksum of file */
     static std::string GetCksum(const std::string& file);

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTGRIDFTP_H__
 #define __ARC_DATAPOINTGRIDFTP_H__
 
@@ -35,29 +37,29 @@ namespace Arc {
     bool ftp_eof_flag;
 
     static void ftp_complete_callback(void *arg,
-				      globus_ftp_client_handle_t *handle,
-				      globus_object_t *error);
+                                      globus_ftp_client_handle_t *handle,
+                                      globus_object_t *error);
     static void ftp_get_complete_callback(void *arg,
-					  globus_ftp_client_handle_t *handle,
-					  globus_object_t *error);
+                                          globus_ftp_client_handle_t *handle,
+                                          globus_object_t *error);
     static void ftp_put_complete_callback(void *arg,
-					  globus_ftp_client_handle_t *handle,
-					  globus_object_t *error);
+                                          globus_ftp_client_handle_t *handle,
+                                          globus_object_t *error);
     static void ftp_read_callback(void *arg,
-				  globus_ftp_client_handle_t *handle,
-				  globus_object_t *error,
-				  globus_byte_t *buffer, globus_size_t length,
-				  globus_off_t offset, globus_bool_t eof);
+                                  globus_ftp_client_handle_t *handle,
+                                  globus_object_t *error,
+                                  globus_byte_t *buffer, globus_size_t length,
+                                  globus_off_t offset, globus_bool_t eof);
     static void ftp_check_callback(void *arg,
-				   globus_ftp_client_handle_t *handle,
-				   globus_object_t *error,
-				   globus_byte_t *buffer, globus_size_t length,
-				   globus_off_t offset, globus_bool_t eof);
+                                   globus_ftp_client_handle_t *handle,
+                                   globus_object_t *error,
+                                   globus_byte_t *buffer, globus_size_t length,
+                                   globus_off_t offset, globus_bool_t eof);
     static void ftp_write_callback(void *arg,
-				   globus_ftp_client_handle_t *handle,
-				   globus_object_t *error,
-				   globus_byte_t *buffer, globus_size_t length,
-				   globus_off_t offset, globus_bool_t eof);
+                                   globus_ftp_client_handle_t *handle,
+                                   globus_object_t *error,
+                                   globus_byte_t *buffer, globus_size_t length,
+                                   globus_off_t offset, globus_bool_t eof);
     static void* ftp_read_thread(void *arg);
     static void* ftp_write_thread(void *arg);
 
@@ -71,7 +73,7 @@ namespace Arc {
     virtual ~DataPointGridFTP();
     virtual DataStatus StartReading(DataBuffer& buf);
     virtual DataStatus StartWriting(DataBuffer& buf,
-				    DataCallback *space_cb = NULL);
+                                    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual DataStatus Check();

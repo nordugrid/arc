@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTSRM_H__
 #define __ARC_DATAPOINTSRM_H__
 
@@ -18,18 +20,18 @@ namespace Arc {
     virtual ~DataPointSRM();
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
-				    DataCallback *space_cb = NULL);
+                                    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
     virtual DataStatus ListFiles(std::list<FileInfo>& files,
-				 bool long_list = false,
-				 bool resolve = false);
+                                 bool long_list = false,
+                                 bool resolve = false);
   private:
-    SRMClientRequest * srm_request;
+    SRMClientRequest *srm_request;
     static Logger logger;
-    DataHandle * r_handle; /* handle used for redirected operations */
+    DataHandle *r_handle;  /* handle used for redirected operations */
     bool reading;
     bool writing;
   };

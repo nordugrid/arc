@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTLDAP_H__
 #define __ARC_DATAPOINTLDAP_H__
 
@@ -18,7 +20,7 @@ namespace Arc {
     virtual ~DataPointLDAP();
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
-				    DataCallback *space_cb = NULL);
+                                    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
@@ -28,7 +30,7 @@ namespace Arc {
     XMLNode node;
     XMLNode entry;
     static void CallBack(const std::string& attr,
-			 const std::string& value, void *arg);
+                         const std::string& value, void *arg);
     static void ReadThread(void *arg);
     static Logger logger;
   };

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAPOINTARC_H__
 #define __ARC_DATAPOINTARC_H__
 
@@ -18,12 +20,12 @@ namespace Arc {
     : public DataPointDirect {
   private:
     static Logger logger;
-	DataHandle * transfer;
-	bool reading;
-	bool writing;
-	UserConfig usercfg;
-	URL bartender_url;
-	MD5Sum md5sum;
+    DataHandle *transfer;
+    bool reading;
+    bool writing;
+    UserConfig usercfg;
+    URL bartender_url;
+    MD5Sum md5sum;
   public:
     DataPointARC(const URL& url);
     virtual ~DataPointARC();

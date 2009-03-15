@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -33,13 +35,13 @@ namespace Arc {
 
     if (stat(user.Home().c_str(), &st) != 0) {
       logger.msg(ERROR, "Can not access user's home directory: %s (%s)",
-          user.Home(), StrError());
+                 user.Home(), StrError());
       return;
     }
 
     if (!S_ISDIR(st.st_mode)) {
       logger.msg(ERROR, "User's home directory is not a directory: %s",
-          user.Home());
+                 user.Home());
       return;
     }
 
@@ -50,30 +52,30 @@ namespace Arc {
         #ifndef WIN32
         if (mkdir(confdir.c_str(), S_IRWXU) != 0) {
           logger.msg(ERROR, "Can not create ARC user config directory: %s (%s)",
-              confdir, StrError());
+                     confdir, StrError());
           return;
         }
         #else
-        if (mkdir(confdir.c_str()) !=0 ){  // Create the directory
+        if (mkdir(confdir.c_str()) != 0) { // Create the directory
           logger.msg(ERROR, "Can not create ARC user config directory: %s (%s)",
-              confdir, StrError());
+                     confdir, StrError());
           return;
         }
         #endif
-        
+
         logger.msg(INFO, "Created ARC user config directory: %s", confdir);
         stat(confdir.c_str(), &st);
       }
       else {
         logger.msg(ERROR, "Can not access ARC user config directory: "
-            "%s (%s)", confdir, StrError());
+                   "%s (%s)", confdir, StrError());
         return;
       }
     }
 
     if (!S_ISDIR(st.st_mode)) {
       logger.msg(ERROR, "ARC user config directory is not a directory: %s",
-          confdir);
+                 confdir);
       return;
     }
 
@@ -89,14 +91,14 @@ namespace Arc {
       }
       else {
         logger.msg(ERROR, "Can not access ARC user config file: %s (%s)",
-            conffile, StrError());
+                   conffile, StrError());
         return;
       }
     }
 
     if (!S_ISREG(st.st_mode)) {
       logger.msg(ERROR, "ARC user config file is not a regular file: %s",
-          conffile);
+                 conffile);
       return;
     }
 
@@ -111,20 +113,20 @@ namespace Arc {
       }
       else {
         logger.msg(ERROR, "Can not access ARC job list file: %s (%s)",
-            joblistfile, StrError());
+                   joblistfile, StrError());
         return;
       }
     }
 
     if (!S_ISREG(st.st_mode)) {
       logger.msg(ERROR, "ARC job list file is not a regular file: %s",
-          joblistfile);
+                 joblistfile);
       return;
     }
 
     cfg.ReadFromFile(conffile);
 
-    std::string arcclientconf =  FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "arcclient.xml";
+    std::string arcclientconf = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "arcclient.xml";
 
     syscfg.ReadFromFile(ArcLocation::Get() + arcclientconf);
     if (!syscfg)
@@ -137,8 +139,8 @@ namespace Arc {
     for (int i = 0; (child = syscfg.Child(i)); i++)
       if (!cfg[child.Name()])
         for (XMLNode n = child; n; ++n)
-        cfg.NewChild(n);
-        ok = true;
+          cfg.NewChild(n);
+    ok = true;
   }
 
   UserConfig::~UserConfig() {}
@@ -163,7 +165,7 @@ namespace Arc {
     if (!(path = GetEnv("X509_USER_PROXY")).empty()) {
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access proxy file: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISREG(st.st_mode)) {
@@ -176,7 +178,7 @@ namespace Arc {
     else if (!(path = GetEnv("X509_USER_CERT")).empty()) {
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access certificate file: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISREG(st.st_mode)) {
@@ -193,7 +195,7 @@ namespace Arc {
       }
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access key file: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISREG(st.st_mode)) {
@@ -206,7 +208,7 @@ namespace Arc {
     else if (!(path = (std::string)cfg["ProxyPath"]).empty()) {
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access proxy file: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISREG(st.st_mode)) {
@@ -219,7 +221,7 @@ namespace Arc {
     else if (!(path = (std::string)cfg["CertificatePath"]).empty()) {
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access certificate file: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISREG(st.st_mode)) {
@@ -236,7 +238,7 @@ namespace Arc {
       }
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access key file: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISREG(st.st_mode)) {
@@ -247,20 +249,20 @@ namespace Arc {
       ccfg.NewChild("KeyPath") = path;
     }
     else if (stat((path = FILE_SEPERATOR + std::string("tmp") + FILE_SEPERATOR + "x509up_u" + tostring(user.get_uid())).c_str(), &st) == 0) {
-        if (!S_ISREG(st.st_mode)) {
-          logger.msg(ERROR, "Proxy is not a file: %s", path);
-          return false;
-        }
-        logger.msg(INFO, "Using proxy file: %s", path);
-        ccfg.NewChild("ProxyPath") = path;
+      if (!S_ISREG(st.st_mode)) {
+        logger.msg(ERROR, "Proxy is not a file: %s", path);
+        return false;
+      }
+      logger.msg(INFO, "Using proxy file: %s", path);
+      ccfg.NewChild("ProxyPath") = path;
     }
     else {
       logger.msg(WARNING, "Default proxy file does not exist: %s "
-          "trying default certificate and key", path);
+                 "trying default certificate and key", path);
       if (user.get_uid() == 0)
         path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostcert.pem";
       else
-        path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR+ "usercert.pem";
+        path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR + "usercert.pem";
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access certificate file: %s (%s)", path, StrError());
         return false;
@@ -278,7 +280,7 @@ namespace Arc {
         path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR + "userkey.pem";
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access key file: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISREG(st.st_mode)) {
@@ -292,7 +294,7 @@ namespace Arc {
     if (!(path = GetEnv("X509_CERT_DIR")).empty()) {
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISDIR(st.st_mode)) {
@@ -304,7 +306,7 @@ namespace Arc {
     else if (!(path = (std::string)cfg["CACertificatesDir"]).empty()) {
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISDIR(st.st_mode)) {
@@ -315,7 +317,7 @@ namespace Arc {
       ccfg.NewChild("CACertificatesDir") = path;
     }
     else if (user.get_uid() != 0 &&
-      stat((path = user.Home() + FILE_SEPERATOR + ".globus" +FILE_SEPERATOR + "certificates").c_str(), &st) == 0) {
+             stat((path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR + "certificates").c_str(), &st) == 0) {
       if (!S_ISDIR(st.st_mode)) {
         logger.msg(ERROR, "CA certificate directory is not a directory: %s", path);
         return false;
@@ -327,7 +329,7 @@ namespace Arc {
       path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "certificates";
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
-            path, StrError());
+                   path, StrError());
         return false;
       }
       if (!S_ISDIR(st.st_mode)) {
@@ -352,13 +354,13 @@ namespace Arc {
       std::string flavour = (std::string)node.Attribute("Flavour");
       if (flavour.empty()) {
         logger.msg(ERROR, "URL entry in default services has no "
-            "\"Flavour\" attribute");
+                   "\"Flavour\" attribute");
         return false;
       }
       std::string serviceType = (std::string)node.Attribute("ServiceType");
       if (flavour.empty()) {
         logger.msg(ERROR, "URL entry in default services has no "
-            "\"ServiceType\" attribute");
+                   "\"ServiceType\" attribute");
         return false;
       }
       std::string urlstr = (std::string)node;
@@ -369,22 +371,22 @@ namespace Arc {
       URL url(urlstr);
       if (!url) {
         logger.msg(ERROR, "URL entry in default services is not a "
-            "valid URL: %s", urlstr);
+                   "valid URL: %s", urlstr);
         return false;
       }
       if (serviceType == "computing") {
         logger.msg(INFO, "Default services contain a computing service of "
-            "flavour %s: %s", flavour, url.str());
+                   "flavour %s: %s", flavour, url.str());
         cluster[flavour].push_back(url);
       }
       else if (serviceType == "index") {
         logger.msg(INFO, "Default services contain an index service of "
-            "flavour %s: %s", flavour, url.str());
+                   "flavour %s: %s", flavour, url.str());
         index[flavour].push_back(url);
       }
       else {
         logger.msg(ERROR, "URL entry in default services contains "
-            "unknown ServiceType: %s", serviceType);
+                   "unknown ServiceType: %s", serviceType);
         return false;
       }
     }
@@ -411,7 +413,7 @@ namespace Arc {
     logger.msg(INFO, "Resolving alias: %s", alias);
 
     XMLNodeList aliaslist = cfg.XPathLookup("//Alias[@name='" +
-        alias + "']", NS());
+                                            alias + "']", NS());
 
     if (aliaslist.empty()) {
       logger.msg(ERROR, "Alias \"%s\" requested but not defined", alias);
@@ -424,13 +426,13 @@ namespace Arc {
       std::string flavour = (std::string)node.Attribute("Flavour");
       if (flavour.empty()) {
         logger.msg(ERROR, "URL entry in alias definition \"%s\" has no "
-            "\"Flavour\" attribute", alias);
+                   "\"Flavour\" attribute", alias);
         return false;
       }
       std::string serviceType = (std::string)node.Attribute("ServiceType");
       if (flavour.empty()) {
         logger.msg(ERROR, "URL entry in alias definition \"%s\" has no "
-            "\"ServiceType\" attribute", alias);
+                   "\"ServiceType\" attribute", alias);
         return false;
       }
       std::string urlstr = (std::string)node;
@@ -441,22 +443,22 @@ namespace Arc {
       URL url(urlstr);
       if (!url) {
         logger.msg(ERROR, "URL entry in alias definition \"%s\" is not a "
-            "valid URL: %s", alias, urlstr);
+                   "valid URL: %s", alias, urlstr);
         return false;
       }
       if (serviceType == "computing") {
         logger.msg(INFO, "Alias %s contains a computing service of "
-            "flavour %s: %s", alias, flavour, url.str());
+                   "flavour %s: %s", alias, flavour, url.str());
         cluster[flavour].push_back(url);
       }
       else if (serviceType == "index") {
         logger.msg(INFO, "Alias %s contains an index service of "
-            "flavour %s: %s", alias, flavour, url.str());
+                   "flavour %s: %s", alias, flavour, url.str());
         index[flavour].push_back(url);
       }
       else {
         logger.msg(ERROR, "URL entry in alias definition \"%s\" contains "
-            "unknown ServiceType: %s", alias, serviceType);
+                   "unknown ServiceType: %s", alias, serviceType);
         return false;
       }
     }
@@ -482,7 +484,7 @@ namespace Arc {
                                 URLListMap& indexreject) const {
 
     for (std::list<std::string>::const_iterator it = clusters.begin();
-          it != clusters.end(); it++) {
+         it != clusters.end(); it++) {
       bool select = true;
       std::string cluster = *it;
       if (cluster[0] == '-')
@@ -499,24 +501,24 @@ namespace Arc {
         else
           if (!ResolveAlias(cluster, clusterreject, indexreject))
             return false;
+      }
+      else {
+        std::string flavour = cluster.substr(0, colon);
+        std::string urlstr = cluster.substr(colon + 1);
+        URL url(urlstr);
+        if (!url) {
+          logger.msg(ERROR, "%s is not a valid URL", urlstr);
+          return false;
         }
-        else {
-          std::string flavour = cluster.substr(0, colon);
-          std::string urlstr = cluster.substr(colon + 1);
-          URL url(urlstr);
-          if (!url) {
-            logger.msg(ERROR, "%s is not a valid URL", urlstr);
-            return false;
-          }
-          if (select)
-            clusterselect[flavour].push_back(url);
-          else
-            clusterreject[flavour].push_back(url);
-        }
+        if (select)
+          clusterselect[flavour].push_back(url);
+        else
+          clusterreject[flavour].push_back(url);
+      }
     }
 
     for (std::list<std::string>::const_iterator it = indices.begin();
-          it != indices.end(); it++) {
+         it != indices.end(); it++) {
       bool select = true;
       std::string index = *it;
       if (index[0] == '-')
@@ -559,7 +561,7 @@ namespace Arc {
     URLListMap indexselect;
     URLListMap indexreject;
     return ResolveAlias(clusters, indices, clusterselect,
-        clusterreject, indexselect, indexreject);
+                        clusterreject, indexselect, indexreject);
   }
 
   UserConfig::operator bool() const {

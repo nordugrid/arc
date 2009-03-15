@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_TARGETGENERATOR_H__
 #define __ARC_TARGETGENERATOR_H__
 
@@ -21,15 +23,15 @@ namespace Arc {
   class TargetGenerator {
   public:
     TargetGenerator(const UserConfig& usercfg,
-		    const std::list<std::string>& clusters,
-		    const std::list<std::string>& indexurls);
+                    const std::list<std::string>& clusters,
+                    const std::list<std::string>& indexurls);
     ~TargetGenerator();
 
     void GetTargets(int targetType, int detailLevel);
     const std::list<ExecutionTarget>& FoundTargets() const;
     std::list<ExecutionTarget>& ModifyFoundTargets();
     const std::list<XMLNode*>& FoundJobs() const;
-    
+
     bool AddService(const URL& url);
     bool AddIndexServer(const URL& url);
     void AddTarget(const ExecutionTarget& target);

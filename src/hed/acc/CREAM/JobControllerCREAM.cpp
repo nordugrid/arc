@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -18,36 +20,37 @@ namespace Arc {
 
   JobControllerCREAM::~JobControllerCREAM() {}
 
-  Plugin* JobControllerCREAM::Instance(PluginArgument* arg) {
-    ACCPluginArgument* accarg =
-            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
-    if(!accarg) return NULL;
+  Plugin* JobControllerCREAM::Instance(PluginArgument *arg) {
+    ACCPluginArgument *accarg =
+      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
+    if (!accarg)
+      return NULL;
     return new JobControllerCREAM((Arc::Config*)(*accarg));
   }
 
   void JobControllerCREAM::GetJobInformation() {
     for (std::list<Job>::iterator iter = jobstore.begin();
-	 iter != jobstore.end(); iter++) {
+         iter != jobstore.end(); iter++) {
       MCCConfig cfg;
       if (!proxyPath.empty())
-	cfg.AddProxy(proxyPath);
+        cfg.AddProxy(proxyPath);
       if (!certificatePath.empty())
-	cfg.AddCertificate(certificatePath);
+        cfg.AddCertificate(certificatePath);
       if (!keyPath.empty())
-	cfg.AddPrivateKey(keyPath);
+        cfg.AddPrivateKey(keyPath);
       if (!caCertificatesDir.empty())
-	cfg.AddCADir(caCertificatesDir);
+        cfg.AddCADir(caCertificatesDir);
       PathIterator pi(iter->JobID.Path(), true);
       URL url(iter->JobID);
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg);
       if (!gLiteClient.stat(pi.Rest(), (*iter)))
-	logger.msg(ERROR, "Could not retrieve job information");
+        logger.msg(ERROR, "Could not retrieve job information");
     }
   }
 
   bool JobControllerCREAM::GetJob(const Job& job,
-				  const std::string& downloaddir) {
+                                  const std::string& downloaddir) {
 
     logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
 
@@ -71,12 +74,12 @@ namespace Arc {
     bool ok = true;
 
     for (std::list<std::string>::iterator it = files.begin();
-	 it != files.end(); it++) {
+         it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
       if (!CopyFile(src, dst)) {
-	logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
-	ok = false;
+        logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+        ok = false;
       }
     }
 
@@ -140,7 +143,7 @@ namespace Arc {
   }
 
   URL JobControllerCREAM::GetFileUrlForJob(const Job& job,
-					   const std::string& whichfile) {}
+                                           const std::string& whichfile) {}
   bool JobControllerCREAM::GetJobDescription(const Job& job, std::string& desc_str) {}
 
 } // namespace Arc

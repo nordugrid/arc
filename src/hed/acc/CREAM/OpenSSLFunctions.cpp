@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -71,7 +73,7 @@ namespace Arc {
     else {
       offset = g2(s->data + 13) * 60 + g2(s->data + 15);
       if (s->data[12] == '-')
-	offset = -offset;
+        offset = -offset;
     }
 #undef g2
     return timegm(&tm) - offset * 60;
@@ -85,15 +87,15 @@ namespace Arc {
     if (in) {
       BIO_set_close(in, BIO_CLOSE);
       if (BIO_read_filename(in, pxfile.c_str()) > 0) {
-	x = PEM_read_bio_X509(in, NULL, 0, NULL);
-	if (x)
-	  timeleft =
-	    (ASN1_UTCTIME_get(X509_get_notAfter(x)) - time(NULL)) / 60;
-	else
-	  std::cerr << "unable to read X509 proxy file: " << pxfile;
+        x = PEM_read_bio_X509(in, NULL, 0, NULL);
+        if (x)
+          timeleft =
+            (ASN1_UTCTIME_get(X509_get_notAfter(x)) - time(NULL)) / 60;
+        else
+          std::cerr << "unable to read X509 proxy file: " << pxfile;
       }
       else
-	std::cerr << "unable to open X509 proxy file: " << pxfile;
+        std::cerr << "unable to open X509 proxy file: " << pxfile;
       BIO_free(in);
       free(x);
     }
@@ -113,25 +115,25 @@ namespace Arc {
       return 0;
 
     if ((len == 13) &&
-	((sscanf(asn1time, "%02d%02d%02d%02d%02d%02d%c",
-		 &(time_tm.tm_year),
-		 &(time_tm.tm_mon),
-		 &(time_tm.tm_mday),
-		 &(time_tm.tm_hour),
-		 &(time_tm.tm_min),
-		 &(time_tm.tm_sec),
-		 &zone) != 7) || (zone != 'Z')))
+        ((sscanf(asn1time, "%02d%02d%02d%02d%02d%02d%c",
+                 &(time_tm.tm_year),
+                 &(time_tm.tm_mon),
+                 &(time_tm.tm_mday),
+                 &(time_tm.tm_hour),
+                 &(time_tm.tm_min),
+                 &(time_tm.tm_sec),
+                 &zone) != 7) || (zone != 'Z')))
       return 0;
 
     if ((len == 15) &&
-	((sscanf(asn1time, "20%02d%02d%02d%02d%02d%02d%c",
-		 &(time_tm.tm_year),
-		 &(time_tm.tm_mon),
-		 &(time_tm.tm_mday),
-		 &(time_tm.tm_hour),
-		 &(time_tm.tm_min),
-		 &(time_tm.tm_sec),
-		 &zone) != 7) || (zone != 'Z')))
+        ((sscanf(asn1time, "20%02d%02d%02d%02d%02d%02d%c",
+                 &(time_tm.tm_year),
+                 &(time_tm.tm_mon),
+                 &(time_tm.tm_mday),
+                 &(time_tm.tm_hour),
+                 &(time_tm.tm_min),
+                 &(time_tm.tm_sec),
+                 &zone) != 7) || (zone != 'Z')))
       return 0;
 
     /* time format fixups */
@@ -146,7 +148,7 @@ namespace Arc {
   //modified version of gridsite makeproxy.
   //must be cleaned up.
   int makeProxyCert(char **proxychain, char *reqtxt,
-		    char *cert, char *key, int minutes) {
+                    char *cert, char *key, int minutes) {
     char *ptr, *certchain;
     int i, ncerts;
     long serial = 1234, ptrlen;
@@ -182,7 +184,7 @@ namespace Arc {
 
     if (X509_REQ_verify(req, pkey) != 1) {
       std::cerr <<
-	"MakeProxyCert(): error verifying signature on certificate\n";
+      "MakeProxyCert(): error verifying signature on certificate\n";
 
       X509_REQ_free(req);
       return -1;
@@ -198,7 +200,7 @@ namespace Arc {
 
     for (ncerts = 1; ncerts < 9; ++ncerts)
       if ((certs[ncerts] = PEM_read_X509(fp, NULL, NULL, NULL)) == NULL)
-	break;
+        break;
 
     if (ncerts == 1) { /* zeroth cert with be new proxy cert */
       std::cerr << "MakeProxyCert(): error reading signing certificate file\n";
@@ -221,7 +223,7 @@ namespace Arc {
 
     if (!(CApkey = PEM_read_PrivateKey(fp, NULL, NULL, NULL))) {
       std::cerr <<
-	"MakeProxyCert(): error reading signing private key in file\n";
+      "MakeProxyCert(): error reading signing private key in file\n";
 
       X509_REQ_free(req);
       return -1;
@@ -232,7 +234,7 @@ namespace Arc {
     /* get subject name */
     if (!(name = X509_REQ_get_subject_name(req))) {
       std::cerr <<
-	"MakeProxyCert(): error getting subject name from request\n";
+      "MakeProxyCert(): error getting subject name from request\n";
 
       X509_REQ_free(req);
       return -1;
@@ -259,7 +261,7 @@ namespace Arc {
 
     if (!(name = X509_get_subject_name(certs[1]))) {
       std::cerr <<
-	"MakeProxyCert(): error getting subject name from CA certificate\n";
+      "MakeProxyCert(): error getting subject name from CA certificate\n";
 
       X509_REQ_free(req);
       return -1;
@@ -267,7 +269,7 @@ namespace Arc {
 
     if (X509_set_issuer_name(certs[0], name) != 1) {
       std::cerr <<
-	"MakeProxyCert(): error setting issuer name of certificate\n";
+      "MakeProxyCert(): error setting issuer name of certificate\n";
 
       X509_REQ_free(req);
       return -1;
@@ -275,8 +277,8 @@ namespace Arc {
 
     /* set issuer and subject name of the cert from the req and the CA */
     ent = X509_NAME_ENTRY_create_by_NID(NULL, OBJ_txt2nid("commonName"),
-					MBSTRING_ASC,
-					(unsigned char*)"proxy", -1);
+                                        MBSTRING_ASC,
+                                        (unsigned char*)"proxy", -1);
 
     newsubject = X509_NAME_dup(CAsubject);
 
@@ -284,7 +286,7 @@ namespace Arc {
 
     if (X509_set_subject_name(certs[0], newsubject) != 1) {
       std::cerr <<
-	"MakeProxyCert(): error setting subject name of certificate\n";
+      "MakeProxyCert(): error setting subject name of certificate\n";
 
       X509_REQ_free(req);
       return -1;
@@ -296,7 +298,7 @@ namespace Arc {
     /* set public key in the certificate */
     if (X509_set_pubkey(certs[0], pkey) != 1) {
       std::cerr <<
-	"MakeProxyCert(): error setting public key of the certificate\n";
+      "MakeProxyCert(): error setting public key of the certificate\n";
 
       X509_REQ_free(req);
       return -1;
@@ -305,7 +307,7 @@ namespace Arc {
     /* set duration for the certificate */
     if (!(X509_gmtime_adj(X509_get_notBefore(certs[0]), -300))) {
       std::cerr <<
-	"MakeProxyCert(): error setting beginning time of the certificate\n";
+      "MakeProxyCert(): error setting beginning time of the certificate\n";
 
       X509_REQ_free(req);
       return -1;
@@ -313,7 +315,7 @@ namespace Arc {
 
     if (!(X509_gmtime_adj(X509_get_notAfter(certs[0]), 60 * minutes))) {
       std::cerr <<
-	"MakeProxyCert(): error setting ending time of the certificate\n";
+      "MakeProxyCert(): error setting ending time of the certificate\n";
 
       X509_REQ_free(req);
       return -1;
@@ -325,9 +327,9 @@ namespace Arc {
 
     for (i = 1; i < ncerts; ++i)
       if (notAfter > GRSTasn1TimeToTimeT((char*)ASN1_STRING_data(X509_get_notAfter(certs[i])), 0)) {
-	notAfter = GRSTasn1TimeToTimeT((char*)ASN1_STRING_data(X509_get_notAfter(certs[i])), 0);
+        notAfter = GRSTasn1TimeToTimeT((char*)ASN1_STRING_data(X509_get_notAfter(certs[i])), 0);
 
-	ASN1_UTCTIME_set(X509_get_notAfter(certs[0]), notAfter);
+        ASN1_UTCTIME_set(X509_get_notAfter(certs[0]), notAfter);
       }
 
     /* sign the certificate with the signing private key */
@@ -335,7 +337,7 @@ namespace Arc {
       digest = EVP_md5();
     else {
       std::cerr <<
-	"MakeProxyCert(): error checking signing private key for a valid digest\n";
+      "MakeProxyCert(): error checking signing private key for a valid digest\n";
 
       X509_REQ_free(req);
       return -1;
@@ -356,11 +358,11 @@ namespace Arc {
       certmem = BIO_new(BIO_s_mem());
 
       if (PEM_write_bio_X509(certmem, certs[i]) != 1) {
-	std::cerr <<
-	  "MakeProxyCert(): error writing certificate to memory BIO\n";
+        std::cerr <<
+        "MakeProxyCert(): error writing certificate to memory BIO\n";
 
-	X509_REQ_free(req);
-	return -1;
+        X509_REQ_free(req);
+        return -1;
       }
 
       ptrlen = BIO_get_mem_data(certmem, &ptr);

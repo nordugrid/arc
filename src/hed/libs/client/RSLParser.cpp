@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #include <exception>
 #include <sstream>
 
@@ -27,40 +29,40 @@ namespace Arc {
     else if ((c = dynamic_cast<const RSLConcat*>(this))) {
       RSLValue *left = c->Left()->Evaluate(vars);
       if (!left) {
-	std::stringstream ss;
-	ss << *c->Left();
-	logger.msg(ERROR, "Can't evaluate left operand for RSL "
-		   "concatenation: %s", ss.str());
-	return NULL;
+        std::stringstream ss;
+        ss << *c->Left();
+        logger.msg(ERROR, "Can't evaluate left operand for RSL "
+                   "concatenation: %s", ss.str());
+        return NULL;
       }
       RSLValue *right = c->Right()->Evaluate(vars);
       if (!right) {
-	std::stringstream ss;
-	ss << *c->Right();
-	logger.msg(ERROR, "Can't evaluate right operand for RSL "
-		   "concatenation: %s", ss.str());
-	delete left;
-	return NULL;
+        std::stringstream ss;
+        ss << *c->Right();
+        logger.msg(ERROR, "Can't evaluate right operand for RSL "
+                   "concatenation: %s", ss.str());
+        delete left;
+        return NULL;
       }
       RSLLiteral *nleft = dynamic_cast<RSLLiteral*>(left);
       if (!nleft) {
-	std::stringstream ss;
-	ss << *left;
-	logger.msg(ERROR, "Left operand for RSL concatenation does not "
-		   "evaluate to a literal: %s", ss.str());
-	delete left;
-	delete right;
-	return NULL;
+        std::stringstream ss;
+        ss << *left;
+        logger.msg(ERROR, "Left operand for RSL concatenation does not "
+                   "evaluate to a literal: %s", ss.str());
+        delete left;
+        delete right;
+        return NULL;
       }
       RSLLiteral *nright = dynamic_cast<RSLLiteral*>(right);
       if (!nright) {
-	std::stringstream ss;
-	ss << *right;
-	logger.msg(ERROR, "Right operand for RSL concatenation does not "
-		   "evaluate to a literal: %s", ss.str());
-	delete left;
-	delete right;
-	return NULL;
+        std::stringstream ss;
+        ss << *right;
+        logger.msg(ERROR, "Right operand for RSL concatenation does not "
+                   "evaluate to a literal: %s", ss.str());
+        delete left;
+        delete right;
+        return NULL;
       }
       RSLLiteral *result = new RSLLiteral(nleft->Value() + nright->Value());
       delete left;
@@ -70,32 +72,32 @@ namespace Arc {
     else if ((l = dynamic_cast<const RSLList*>(this))) {
       RSLList *result = new RSLList;
       for (std::list<RSLValue*>::const_iterator it = l->begin();
-	   it != l->end(); it++) {
-	RSLValue *value = (*it)->Evaluate(vars);
-	if (!value) {
-	  std::stringstream ss;
-	  ss << **it;
-	  logger.msg(ERROR, "Can't evaluate RSL list member: %s", ss.str());
-	  delete result;
-	  return NULL;
-	}
-	result->Add(value);
+           it != l->end(); it++) {
+        RSLValue *value = (*it)->Evaluate(vars);
+        if (!value) {
+          std::stringstream ss;
+          ss << **it;
+          logger.msg(ERROR, "Can't evaluate RSL list member: %s", ss.str());
+          delete result;
+          return NULL;
+        }
+        result->Add(value);
       }
       return result;
     }
     else if ((s = dynamic_cast<const RSLSequence*>(this))) {
       RSLList *result = new RSLList;
       for (std::list<RSLValue*>::const_iterator it = s->begin();
-	   it != s->end(); it++) {
-	RSLValue *value = (*it)->Evaluate(vars);
-	if (!value) {
-	  std::stringstream ss;
-	  ss << **it;
-	  logger.msg(ERROR, "Can't evaluate RSL sequence member: %s", ss.str());
-	  delete result;
-	  return NULL;
-	}
-	result->Add(value);
+           it != s->end(); it++) {
+        RSLValue *value = (*it)->Evaluate(vars);
+        if (!value) {
+          std::stringstream ss;
+          ss << **it;
+          logger.msg(ERROR, "Can't evaluate RSL sequence member: %s", ss.str());
+          delete result;
+          return NULL;
+        }
+        result->Add(value);
       }
       return new RSLSequence(result);
     }
@@ -159,9 +161,9 @@ namespace Arc {
 
   void RSLList::Print(std::ostream& os) const {
     for (std::list<RSLValue*>::const_iterator it = begin();
-	 it != end(); it++) {
+         it != end(); it++) {
       if (it != begin())
-	os << " ";
+        os << " ";
       os << **it;
     }
   }
@@ -187,17 +189,17 @@ namespace Arc {
     if (b && (b->Op() == RSLMulti)) {
       RSLBoolean *result = new RSLBoolean(RSLMulti);
       for (std::list<RSL*>::const_iterator it = b->begin();
-	   it != b->end(); it++) {
-	RSL *rsl = (*it)->Evaluate();
-	if (!rsl) {
-	  std::stringstream ss;
-	  ss << **it;
-	  logger.msg(ERROR, "RLS (inside multi) could not be evaluated: %s",
-		     ss.str());
-	  delete rsl;
-	  return NULL;
-	}
-	result->Add(rsl);
+           it != b->end(); it++) {
+        RSL *rsl = (*it)->Evaluate();
+        if (!rsl) {
+          std::stringstream ss;
+          ss << **it;
+          logger.msg(ERROR, "RLS (inside multi) could not be evaluated: %s",
+                     ss.str());
+          delete rsl;
+          return NULL;
+        }
+        result->Add(rsl);
       }
       return result;
     }
@@ -205,10 +207,10 @@ namespace Arc {
       std::map<std::string, std::string> vars;
       RSL *result = Evaluate(vars);
       if (!result) {
-	std::stringstream ss;
-	ss << *this;
-	logger.msg(ERROR, "RLS could not be evaluated: %s", ss.str());
-	return NULL;
+        std::stringstream ss;
+        ss << *this;
+        logger.msg(ERROR, "RLS could not be evaluated: %s", ss.str());
+        return NULL;
       }
       return result;
     }
@@ -219,112 +221,112 @@ namespace Arc {
     const RSLCondition *c;
     if ((b = dynamic_cast<const RSLBoolean*>(this))) {
       if (b->Op() == RSLMulti) {
-	logger.msg(ERROR, "RSL multi operator not at top level");
-	return NULL;
+        logger.msg(ERROR, "RSL multi operator not at top level");
+        return NULL;
       }
       else {
-	RSLBoolean *result = new RSLBoolean(b->Op());
-	std::map<std::string, std::string> vars2(vars);
-	for (std::list<RSL*>::const_iterator it = b->begin();
-	     it != b->end(); it++) {
-	  RSL *rsl = (*it)->Evaluate(vars2);
-	  if (!rsl) {
-	    std::stringstream ss;
-	    ss << **it;
-	    logger.msg(ERROR, "Can't evaluate RLS fragment: %s", ss.str());
-	    delete rsl;
-	    return NULL;
-	  }
-	  result->Add(rsl);
-	}
-	return result;
+        RSLBoolean *result = new RSLBoolean(b->Op());
+        std::map<std::string, std::string> vars2(vars);
+        for (std::list<RSL*>::const_iterator it = b->begin();
+             it != b->end(); it++) {
+          RSL *rsl = (*it)->Evaluate(vars2);
+          if (!rsl) {
+            std::stringstream ss;
+            ss << **it;
+            logger.msg(ERROR, "Can't evaluate RLS fragment: %s", ss.str());
+            delete rsl;
+            return NULL;
+          }
+          result->Add(rsl);
+        }
+        return result;
       }
     }
     else if ((c = dynamic_cast<const RSLCondition*>(this))) {
       RSLList *l = new RSLList;
       if (c->Attr() == "rslsubstitution")
-	for (std::list<RSLValue*>::const_iterator it = c->begin();
-	     it != c->end(); it++) {
-	  const RSLSequence *s = dynamic_cast<const RSLSequence*>(*it);
-	  if (!s) {
-	    std::stringstream ss;
-	    ss << **it;
-	    logger.msg(ERROR, "RLS substitution is not a sequence: %s",
-		       ss.str());
-	    delete l;
-	    return NULL;
-	  }
-	  if (s->size() != 2) {
-	    std::stringstream ss;
-	    ss << *s;
-	    logger.msg(ERROR, "RLS substitution sequence is not of "
-		       "length 2: %s", ss.str());
-	    delete l;
-	    return NULL;
-	  }
-	  std::list<RSLValue*>::const_iterator it2 = s->begin();
-	  RSLValue *var = (*it2)->Evaluate(vars);
-	  if (!var) {
-	    std::stringstream ss;
-	    ss << **it2;
-	    logger.msg(ERROR, "Can't evaluate RLS substitution variable "
-		       "name: %s", ss.str());
-	    delete l;
-	    return NULL;
-	  }
-	  it2++;
-	  RSLValue *val = (*it2)->Evaluate(vars);
-	  if (!val) {
-	    std::stringstream ss;
-	    ss << **it2;
-	    logger.msg(ERROR, "Can't evaluate RLS substitution variable "
-		       "value: %s", ss.str());
-	    delete l;
-	    delete var;
-	    return NULL;
-	  }
-	  RSLLiteral *nvar = dynamic_cast<RSLLiteral*>(var);
-	  if (!nvar) {
-	    std::stringstream ss;
-	    ss << *var;
-	    logger.msg(ERROR, "RLS substitution variable name does not "
-		       "evaluate to a literal: %s", ss.str());
-	    delete l;
-	    delete var;
-	    delete val;
-	    return NULL;
-	  }
-	  RSLLiteral *nval = dynamic_cast<RSLLiteral*>(val);
-	  if (!nval) {
-	    std::stringstream ss;
-	    ss << *val;
-	    logger.msg(ERROR, "RLS substitution variable value does not "
-		       "evaluate to a literal: %s", ss.str());
-	    delete l;
-	    delete var;
-	    delete val;
-	    return NULL;
-	  }
-	  vars[nvar->Value()] = nval->Value();
-	  RSLList *seq = new RSLList;
-	  seq->Add(var);
-	  seq->Add(val);
-	  l->Add(new RSLSequence(seq));
-	}
+        for (std::list<RSLValue*>::const_iterator it = c->begin();
+             it != c->end(); it++) {
+          const RSLSequence *s = dynamic_cast<const RSLSequence*>(*it);
+          if (!s) {
+            std::stringstream ss;
+            ss << **it;
+            logger.msg(ERROR, "RLS substitution is not a sequence: %s",
+                       ss.str());
+            delete l;
+            return NULL;
+          }
+          if (s->size() != 2) {
+            std::stringstream ss;
+            ss << *s;
+            logger.msg(ERROR, "RLS substitution sequence is not of "
+                       "length 2: %s", ss.str());
+            delete l;
+            return NULL;
+          }
+          std::list<RSLValue*>::const_iterator it2 = s->begin();
+          RSLValue *var = (*it2)->Evaluate(vars);
+          if (!var) {
+            std::stringstream ss;
+            ss << **it2;
+            logger.msg(ERROR, "Can't evaluate RLS substitution variable "
+                       "name: %s", ss.str());
+            delete l;
+            return NULL;
+          }
+          it2++;
+          RSLValue *val = (*it2)->Evaluate(vars);
+          if (!val) {
+            std::stringstream ss;
+            ss << **it2;
+            logger.msg(ERROR, "Can't evaluate RLS substitution variable "
+                       "value: %s", ss.str());
+            delete l;
+            delete var;
+            return NULL;
+          }
+          RSLLiteral *nvar = dynamic_cast<RSLLiteral*>(var);
+          if (!nvar) {
+            std::stringstream ss;
+            ss << *var;
+            logger.msg(ERROR, "RLS substitution variable name does not "
+                       "evaluate to a literal: %s", ss.str());
+            delete l;
+            delete var;
+            delete val;
+            return NULL;
+          }
+          RSLLiteral *nval = dynamic_cast<RSLLiteral*>(val);
+          if (!nval) {
+            std::stringstream ss;
+            ss << *val;
+            logger.msg(ERROR, "RLS substitution variable value does not "
+                       "evaluate to a literal: %s", ss.str());
+            delete l;
+            delete var;
+            delete val;
+            return NULL;
+          }
+          vars[nvar->Value()] = nval->Value();
+          RSLList *seq = new RSLList;
+          seq->Add(var);
+          seq->Add(val);
+          l->Add(new RSLSequence(seq));
+        }
       else
-	for (std::list<RSLValue*>::const_iterator it = c->begin();
-	     it != c->end(); it++) {
-	  RSLValue *v = (*it)->Evaluate(vars);
-	  if (!v) {
-	    std::stringstream ss;
-	    ss << **it;
-	    logger.msg(ERROR, "Can't evaluate RSL condition value: %s",
-		       ss.str());
-	    delete l;
-	    return NULL;
-	  }
-	  l->Add(v);
-	}
+        for (std::list<RSLValue*>::const_iterator it = c->begin();
+             it != c->end(); it++) {
+          RSLValue *v = (*it)->Evaluate(vars);
+          if (!v) {
+            std::stringstream ss;
+            ss << **it;
+            logger.msg(ERROR, "Can't evaluate RSL condition value: %s",
+                       ss.str());
+            delete l;
+            return NULL;
+          }
+          l->Add(v);
+        }
       return new RSLCondition(c->Attr(), c->Op(), l);
     }
     else {
@@ -353,7 +355,7 @@ namespace Arc {
   }
 
   RSLCondition::RSLCondition(const std::string& attr,
-			     RSLRelOp op, RSLList *values)
+                             RSLRelOp op, RSLList *values)
     : RSL(),
       attr(attr),
       op(op),
@@ -392,25 +394,25 @@ namespace Arc {
     if (n == 0) {
       std::string::size_type pos = 0;
       while ((pos = s.find("(*", pos)) != std::string::npos) {
-	std::string::size_type pos2 = s.find("*)", pos);
-	if (pos2 == std::string::npos) {
-	  logger.msg(ERROR, "End of comment not found at position %ld", pos);
-	  return NULL;
-	}
-	s.replace(pos, pos2 - pos + 2, 1, ' ');
+        std::string::size_type pos2 = s.find("*)", pos);
+        if (pos2 == std::string::npos) {
+          logger.msg(ERROR, "End of comment not found at position %ld", pos);
+          return NULL;
+        }
+        s.replace(pos, pos2 - pos + 2, 1, ' ');
       }
       parsed = ParseRSL();
       if (!parsed)
-	logger.msg(DEBUG, "RSL parsing failed at position %ld", n);
+        logger.msg(DEBUG, "RSL parsing failed at position %ld", n);
       else {
-	SkipWS();
-	if (n != std::string::npos) {
-	  logger.msg(ERROR, "Junk at end of RSL at position %ld", n);
-	  delete parsed;
-	}
+        SkipWS();
+        if (n != std::string::npos) {
+          logger.msg(ERROR, "Junk at end of RSL at position %ld", n);
+          delete parsed;
+        }
       }
       if (parsed)
-	evaluated = parsed->Evaluate();
+        evaluated = parsed->Evaluate();
     }
     return evaluate ? evaluated : parsed;
   }
@@ -451,8 +453,8 @@ namespace Arc {
 
     case '!':
       if (s[n + 1] == '=') {
-	n += 2;
-	return RSLNotEqual;
+        n += 2;
+        return RSLNotEqual;
       }
       return RSLRelError;
       break;
@@ -460,8 +462,8 @@ namespace Arc {
     case '<':
       n++;
       if (s[n] == '=') {
-	n++;
-	return RSLLessOrEqual;
+        n++;
+        return RSLLessOrEqual;
       }
       return RSLLess;
       break;
@@ -469,8 +471,8 @@ namespace Arc {
     case '>':
       n++;
       if (s[n] == '=') {
-	n++;
-	return RSLGreaterOrEqual;
+        n++;
+        return RSLGreaterOrEqual;
       }
       return RSLGreater;
       break;
@@ -486,17 +488,17 @@ namespace Arc {
     if (s[n] == '\'') {
       std::string str;
       do {
-	std::string::size_type pos = s.find('\'', n + 1);
-	if (pos == std::string::npos) {
-	  logger.msg(ERROR, "End of single quoted string not found "
-		     "at position %ld", n);
-	  status = -1;
-	  return "";
-	}
-	str += s.substr(n + 1, pos - n - 1);
-	n = pos + 1;
-	if (s[n] == '\'')
-	  str += '\'';
+        std::string::size_type pos = s.find('\'', n + 1);
+        if (pos == std::string::npos) {
+          logger.msg(ERROR, "End of single quoted string not found "
+                     "at position %ld", n);
+          status = -1;
+          return "";
+        }
+        str += s.substr(n + 1, pos - n - 1);
+        n = pos + 1;
+        if (s[n] == '\'')
+          str += '\'';
       } while (s[n] == '\'');
       status = 1;
       return str;
@@ -504,17 +506,17 @@ namespace Arc {
     else if (s[n] == '"') {
       std::string str;
       do {
-	std::string::size_type pos = s.find('"', n + 1);
-	if (pos == std::string::npos) {
-	  logger.msg(ERROR, "End of double quoted string not found "
-		     "at position %ld", n);
-	  status = -1;
-	  return "";
-	}
-	str += s.substr(n + 1, pos - n - 1);
-	n = pos + 1;
-	if (s[n] == '"')
-	  str += '"';
+        std::string::size_type pos = s.find('"', n + 1);
+        if (pos == std::string::npos) {
+          logger.msg(ERROR, "End of double quoted string not found "
+                     "at position %ld", n);
+          status = -1;
+          return "";
+        }
+        str += s.substr(n + 1, pos - n - 1);
+        n = pos + 1;
+        if (s[n] == '"')
+          str += '"';
       } while (s[n] == '"');
       status = 1;
       return str;
@@ -524,27 +526,27 @@ namespace Arc {
       char delim = s[n];
       std::string str;
       do {
-	std::string::size_type pos = s.find(delim, n + 1);
-	if (pos == std::string::npos) {
-	  logger.msg(ERROR, "End of user delimiter quoted string not found "
-		     "at position %ld", n);
-	  status = -1;
-	  return "";
-	}
-	str += s.substr(n + 1, pos - n - 1);
-	n = pos + 1;
-	if (s[n] == delim)
-	  str += delim;
+        std::string::size_type pos = s.find(delim, n + 1);
+        if (pos == std::string::npos) {
+          logger.msg(ERROR, "End of user delimiter quoted string not found "
+                     "at position %ld", n);
+          status = -1;
+          return "";
+        }
+        str += s.substr(n + 1, pos - n - 1);
+        n = pos + 1;
+        if (s[n] == delim)
+          str += delim;
       } while (s[n] == delim);
       status = 1;
       return str;
     }
     else {
       std::string::size_type pos =
-	s.find_first_of("+&|()=<>!\"'^#$ \t\n\v\f\r", n);
+        s.find_first_of("+&|()=<>!\"'^#$ \t\n\v\f\r", n);
       if (pos == n) {
-	status = 0;
-	return "";
+        status = 0;
+        return "";
       }
       std::string str = s.substr(n, pos - n);
       n = pos;
@@ -562,104 +564,103 @@ namespace Arc {
     try {
       int concat = 0; // 0 = No, 1 = Explicit, 2 = Implicit
       do {
-	right = NULL;
-	int nextconcat = 0;
-	std::string::size_type nsave = n;
-	SkipWS();
-	if (n != nsave)
-	  concat = 0;
-	if (s[n] == '#') {
-	  n++;
-	  SkipWS();
-	  concat = 1;
-	}
-	if (s[n] == '(') {
-	  n++;
-	  RSLList *seq = ParseList();
-	  SkipWS();
-	  if (s[n] != ')') {
-	    logger.msg(ERROR, "Expected ) at position %ld", n);
-	    throw std::exception();
-	  }
-	  n++;
-	  right = new RSLSequence(seq);
-	}
-	else if (s[n] == '$') {
-	  n++;
-	  SkipWS();
-	  if (s[n] != '(') {
-	    logger.msg(ERROR, "Expected ( at position %ld", n);
-	    throw std::exception();
-	  }
-	  n++;
-	  SkipWS();
-	  int status;
-	  std::string var = ParseString(status);
-	  if (status != 1) {
-	    logger.msg(ERROR, "Expected variable name at position %ld", n);
-	    throw std::exception();
-	  }
-	  if (var.find_first_of("+&|()=<>!\"'^#$") != std::string::npos) {
-	    logger.msg(ERROR, "Variable name contains invalid character "
-		       "at position %ld", n);
-	    throw std::exception();
-	  }
-	  SkipWS();
-	  if (s[n] != ')') {
-	    logger.msg(ERROR, "Expected ) at position %ld", n);
-	    throw std::exception();
-	  }
-	  n++;
-	  right = new RSLVariable(var);
-	  nextconcat = 2;
-	}
-	else {
-	  int status;
-	  std::string val = ParseString(status);
-	  if (status == -1) {
-	    logger.msg(ERROR, "Broken string at position %ld", n);
-	    throw std::exception();
-	  }
-	  right = (status == 1) ? new RSLLiteral(val) : NULL;
-	  nextconcat = right ? 2 : 0;
-	}
-	if (concat == 0) {
-	  if (left)
-	    values->Add(left);
-	  left = right;
-	}
-	else if (concat == 1) {
-	  if (!left) {
-	    logger.msg(ERROR, "no left operand for concatenation operator "
-		       "at position %ld", n);
-	    throw std::exception();
-	  }
-	  if (!right) {
-	    logger.msg(ERROR, "no right operand for concatenation operator "
-		       "at position %ld", n);
-	    throw std::exception();
-	  }
-	  left = new RSLConcat(left, right);
-	}
-	else if (concat == 2) {
-	  if (left) {
-	    if (right)
-	      left = new RSLConcat(left, right);
-	  }
-	  else
-	    left = right;
-	}
-	concat = nextconcat;
+        right = NULL;
+        int nextconcat = 0;
+        std::string::size_type nsave = n;
+        SkipWS();
+        if (n != nsave)
+          concat = 0;
+        if (s[n] == '#') {
+          n++;
+          SkipWS();
+          concat = 1;
+        }
+        if (s[n] == '(') {
+          n++;
+          RSLList *seq = ParseList();
+          SkipWS();
+          if (s[n] != ')') {
+            logger.msg(ERROR, "Expected ) at position %ld", n);
+            throw std::exception();
+          }
+          n++;
+          right = new RSLSequence(seq);
+        }
+        else if (s[n] == '$') {
+          n++;
+          SkipWS();
+          if (s[n] != '(') {
+            logger.msg(ERROR, "Expected ( at position %ld", n);
+            throw std::exception();
+          }
+          n++;
+          SkipWS();
+          int status;
+          std::string var = ParseString(status);
+          if (status != 1) {
+            logger.msg(ERROR, "Expected variable name at position %ld", n);
+            throw std::exception();
+          }
+          if (var.find_first_of("+&|()=<>!\"'^#$") != std::string::npos) {
+            logger.msg(ERROR, "Variable name contains invalid character "
+                       "at position %ld", n);
+            throw std::exception();
+          }
+          SkipWS();
+          if (s[n] != ')') {
+            logger.msg(ERROR, "Expected ) at position %ld", n);
+            throw std::exception();
+          }
+          n++;
+          right = new RSLVariable(var);
+          nextconcat = 2;
+        }
+        else {
+          int status;
+          std::string val = ParseString(status);
+          if (status == -1) {
+            logger.msg(ERROR, "Broken string at position %ld", n);
+            throw std::exception();
+          }
+          right = (status == 1) ? new RSLLiteral(val) : NULL;
+          nextconcat = right ? 2 : 0;
+        }
+        if (concat == 0) {
+          if (left)
+            values->Add(left);
+          left = right;
+        }
+        else if (concat == 1) {
+          if (!left) {
+            logger.msg(ERROR, "no left operand for concatenation operator "
+                       "at position %ld", n);
+            throw std::exception();
+          }
+          if (!right) {
+            logger.msg(ERROR, "no right operand for concatenation operator "
+                       "at position %ld", n);
+            throw std::exception();
+          }
+          left = new RSLConcat(left, right);
+        }
+        else if (concat == 2) {
+          if (left) {
+            if (right)
+              left = new RSLConcat(left, right);
+          }
+          else
+            left = right;
+        }
+        concat = nextconcat;
       } while (left || right);
       return values;
-    }
-    catch (std::exception e) {
+    } catch (std::exception e) {
       if (values)
-	delete values;
+        delete values;
       if (left)
-	delete left;
+        delete left;
       if (right)
-	delete right;
+        delete right;
       return NULL;
     }
   }
@@ -671,28 +672,28 @@ namespace Arc {
       SkipWS();
       RSLBoolean *b = new RSLBoolean(op);
       do {
-	if (s[n] != '(') {
-	  logger.msg(ERROR, "Expected ( at position %ld", n);
-	  delete b;
-	  return NULL;
-	}
-	n++;
-	SkipWS();
-	RSL *rsl = ParseRSL();
-	if (!rsl) {
-	  logger.msg(ERROR, "RSL parsing error at position %ld", n);
-	  delete b;
-	  return NULL;
-	}
-	b->Add(rsl);
-	SkipWS();
-	if (s[n] != ')') {
-	  logger.msg(ERROR, "Expected ) at position %ld", n);
-	  delete b;
-	  return NULL;
-	}
-	n++;
-	SkipWS();
+        if (s[n] != '(') {
+          logger.msg(ERROR, "Expected ( at position %ld", n);
+          delete b;
+          return NULL;
+        }
+        n++;
+        SkipWS();
+        RSL *rsl = ParseRSL();
+        if (!rsl) {
+          logger.msg(ERROR, "RSL parsing error at position %ld", n);
+          delete b;
+          return NULL;
+        }
+        b->Add(rsl);
+        SkipWS();
+        if (s[n] != ')') {
+          logger.msg(ERROR, "Expected ) at position %ld", n);
+          delete b;
+          return NULL;
+        }
+        n++;
+        SkipWS();
       } while (s[n] == '(');
       return b;
     }
@@ -700,25 +701,25 @@ namespace Arc {
       int status;
       std::string attr = ParseString(status);
       if (status != 1) {
-	logger.msg(ERROR, "Expected attribute name at position %ld", n);
-	return NULL;
+        logger.msg(ERROR, "Expected attribute name at position %ld", n);
+        return NULL;
       }
       if (attr.find_first_of("+&|()=<>!\"'^#$") != std::string::npos) {
-	logger.msg(ERROR, "Attribute name contains invalid character "
-		   "at position %ld", n);
-	return NULL;
+        logger.msg(ERROR, "Attribute name contains invalid character "
+                   "at position %ld", n);
+        return NULL;
       }
       SkipWS();
       RSLRelOp op = ParseRelOp();
       if (op == RSLRelError) {
-	logger.msg(ERROR, "Expected relation operator at position %ld", n);
-	return NULL;
+        logger.msg(ERROR, "Expected relation operator at position %ld", n);
+        return NULL;
       }
       SkipWS();
       RSLList *values = ParseList();
       if (!values) {
-	logger.msg(ERROR, "RSL parsing error at position %ld", n);
-	return NULL;
+        logger.msg(ERROR, "RSL parsing error at position %ld", n);
+        return NULL;
       }
       RSLCondition *c = new RSLCondition(attr, op, values);
       return c;

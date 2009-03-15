@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -16,18 +18,18 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
 void arcrm(const Arc::URL& file_url,
-	   Arc::XMLNode credentials,
-	   bool errcont,
-	   int timeout) {
+           Arc::XMLNode credentials,
+           bool errcont,
+           int timeout) {
   if (file_url.Protocol() == "filelist") {
     std::list<Arc::URL> files = Arc::ReadURLList(file_url);
     if (files.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
-		 file_url.Path());
+                 file_url.Path());
       return;
     }
     for (std::list<Arc::URL>::iterator file = files.begin();
-	 file != files.end(); file++)
+         file != files.end(); file++)
       arcrm(*file, credentials, errcont, timeout);
     return;
   }
@@ -44,7 +46,7 @@ void arcrm(const Arc::URL& file_url,
   if (!url->Resolve(true))
     if (remove_lfn)
       logger.msg(Arc::INFO,
-		 "No locations found - probably no more physical instances");
+                 "No locations found - probably no more physical instances");
   /* go through all locations and try to remove files
      physically and their metadata */
   std::list<Arc::URL> removed_urls; // list of physical removed urls
@@ -57,34 +59,34 @@ void arcrm(const Arc::URL& file_url,
       // or access is not allowed, avoid duplicated delete attempts.
       bool url_was_deleted = false;
       for (std::list<Arc::URL>::iterator u = removed_urls.begin();
-	   u != removed_urls.end(); u++)
-	if (url->CurrentLocation() == (*u)) {
-	  url_was_deleted = true;
-	  break;
-	}
+           u != removed_urls.end(); u++)
+        if (url->CurrentLocation() == (*u)) {
+          url_was_deleted = true;
+          break;
+        }
       if (url_was_deleted)
-	logger.msg(Arc::ERROR, "This instance was already deleted");
+        logger.msg(Arc::ERROR, "This instance was already deleted");
       else {
-	url->SetSecure(false);
-	if (!url->Remove()) {
-	  logger.msg(Arc::ERROR, "Failed to delete physical file");
-	  if (!errcont) {
-	    url->NextLocation();
-	    continue;
-	  }
-	}
-	else
-	  removed_urls.push_back(url->CurrentLocation());
+        url->SetSecure(false);
+        if (!url->Remove()) {
+          logger.msg(Arc::ERROR, "Failed to delete physical file");
+          if (!errcont) {
+            url->NextLocation();
+            continue;
+          }
+        }
+        else
+          removed_urls.push_back(url->CurrentLocation());
       }
       if (!url->IsIndex())
-	break;
+        break;
       else {
-	logger.msg(Arc::INFO, "Removing metadata in %s",
-		   url->CurrentLocationMetadata());
-	if (!url->Unregister(false)) {
-	  logger.msg(Arc::ERROR, "Failed to delete meta-information");
-	  url->NextLocation();
-	}
+        logger.msg(Arc::INFO, "Removing metadata in %s",
+                   url->CurrentLocationMetadata());
+        if (!url->Unregister(false)) {
+          logger.msg(Arc::ERROR, "Failed to delete meta-information");
+          url->NextLocation();
+        }
       }
     }
   if (url->IsIndex()) {
@@ -94,10 +96,10 @@ void arcrm(const Arc::URL& file_url,
     }
     if (remove_lfn) {
       logger.msg(Arc::INFO, "Removing logical file from metadata %s",
-		 url->str());
+                 url->str());
       if (!url->Unregister(true)) {
-	logger.msg(Arc::ERROR, "Failed to delete logical file");
-	return;
+        logger.msg(Arc::ERROR, "Failed to delete logical file");
+        return;
       }
     }
   }
@@ -114,33 +116,33 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("url"), 
-			    istring("The arcrm command deletes files and on "
-				    "grid storage elements."));
+  Arc::OptionParser options(istring("url"),
+                            istring("The arcrm command deletes files and on "
+                                    "grid storage elements."));
 
   bool force = false;
   options.AddOption('f', "force",
-		    istring("remove logical file name registration even "
-			    "if not all physical instances were removed"),
-		    force);
+                    istring("remove logical file name registration even "
+                            "if not all physical instances were removed"),
+                    force);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-		    istring("seconds"), timeout);
+                    istring("seconds"), timeout);
 
   std::string conffile;
   options.AddOption('z', "conffile",
-		    istring("configuration file (default ~/.arc/client.xml)"),
-		    istring("filename"), conffile);
+                    istring("configuration file (default ~/.arc/client.xml)"),
+                    istring("filename"), conffile);
 
   std::string debug;
   options.AddOption('d', "debug",
-		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
-		    istring("debuglevel"), debug);
+                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("debuglevel"), debug);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
-		    version);
+                    version);
 
   std::list<std::string> params = options.Parse(argc, argv);
 

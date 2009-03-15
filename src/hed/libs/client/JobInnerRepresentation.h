@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_JOBINNERREPRESENTATION_H__
 #define __ARC_JOBINNERREPRESENTATION_H__
 
@@ -11,45 +13,45 @@
 
 namespace Arc {
 
-struct ReferenceTimeType {
+  struct ReferenceTimeType {
     std::string benchmark;
     double value;
     Period time;
-};
+  };
 
-struct EnvironmentType {
+  struct EnvironmentType {
     std::string name_attribute;
     std::string value;
-};
+  };
 
-struct XLogueType {
+  struct XLogueType {
     std::string Name;
     std::list<std::string> Arguments;
-};
+  };
 
-struct RunTimeEnvironmentType {
+  struct RunTimeEnvironmentType {
     std::string Name;
     std::list<std::string> Version;
-};
+  };
 
-struct NotificationType {
+  struct NotificationType {
     std::list<std::string> Address;
     std::list<std::string> State;
-};
+  };
 
-struct SourceType {
+  struct SourceType {
     URL URI;
     int Threads;
-};
+  };
 
-struct TargetType {
+  struct TargetType {
     URL URI;
     int Threads;
     bool Mandatory;
     int NeededReplicas;
-};
+  };
 
-struct FileType {
+  struct FileType {
     std::string Name;
     std::list<Arc::SourceType> Source;
     std::list<Arc::TargetType> Target;
@@ -57,9 +59,9 @@ struct FileType {
     bool IsExecutable;
     URL DataIndexingService;
     bool DownloadToCache;
-};
+  };
 
-struct DirectoryType {
+  struct DirectoryType {
     std::string Name;
     std::list<Arc::SourceType> Source;
     std::list<Arc::TargetType> Target;
@@ -67,13 +69,13 @@ struct DirectoryType {
     bool IsExecutable;
     URL DataIndexingService;
     bool DownloadToCache;
-};
+  };
 
-struct OptionalElementType {
+  struct OptionalElementType {
     std::string Name;
     std::string Path;
     std::string Value;
-};
+  };
 
   class JobInnerRepresentation {
 
@@ -93,7 +95,7 @@ struct OptionalElementType {
     void Reset();
 
     // Export the inner representation into the jobTree XMLNode.
-    bool getXML( Arc::XMLNode& jobTree) const;
+    bool getXML(Arc::XMLNode& jobTree) const;
 
     // Meta information
     std::string Author;
@@ -127,7 +129,7 @@ struct OptionalElementType {
     std::list<Arc::NotificationType> Notification;
     URL CredentialService;
     bool Join;
-   
+
 
     // Resource information
     Period TotalCPUTime;
@@ -158,7 +160,7 @@ struct OptionalElementType {
     std::string CEType;
     int Slots;
     int NumberOfProcesses;      //Slots
-    int ProcessPerHost;	        //Slots
+    int ProcessPerHost;         //Slots
     int ThreadPerProcesses;     //Slots
     std::string SPMDVariation;  //Slots
     std::list<Arc::RunTimeEnvironmentType> RunTimeEnvironment;

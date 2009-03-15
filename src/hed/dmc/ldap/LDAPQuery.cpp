@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -45,17 +47,17 @@ namespace Arc {
     std::string usersn;
   };
 
-  static void *ldap_bind_with_timeout(void *arg);
+  static void* ldap_bind_with_timeout(void *arg);
 
 #if defined (HAVE_SASL_H) || defined (HAVE_SASL_SASL_H)
   class sasl_defaults {
   public:
     sasl_defaults(ldap *ld,
-		  const std::string& mech,
-		  const std::string& realm,
-		  const std::string& authcid,
-		  const std::string& authzid,
-		  const std::string& passwd);
+                  const std::string& mech,
+                  const std::string& realm,
+                  const std::string& authcid,
+                  const std::string& authzid,
+                  const std::string& passwd);
     ~sasl_defaults() {}
 
   private:
@@ -66,17 +68,17 @@ namespace Arc {
     std::string p_passwd;
 
     friend int my_sasl_interact(ldap *ld,
-				unsigned int flags,
-				void *defaults_,
-				void *interact_);
+                                unsigned int flags,
+                                void *defaults_,
+                                void *interact_);
   };
 
   sasl_defaults::sasl_defaults(ldap *ld,
-			       const std::string& mech,
-			       const std::string& realm,
-			       const std::string& authcid,
-			       const std::string& authzid,
-			       const std::string& passwd)
+                               const std::string& mech,
+                               const std::string& realm,
+                               const std::string& authcid,
+                               const std::string& authzid,
+                               const std::string& passwd)
     : p_mech(mech),
       p_realm(realm),
       p_authcid(authcid),
@@ -87,44 +89,44 @@ namespace Arc {
       char *temp;
       ldap_get_option(ld, LDAP_OPT_X_SASL_MECH, &temp);
       if (temp) {
-	p_mech = temp;
-	free(temp);
+        p_mech = temp;
+        free(temp);
       }
     }
     if (p_realm.empty()) {
       char *temp;
       ldap_get_option(ld, LDAP_OPT_X_SASL_REALM, &temp);
       if (temp) {
-	p_realm = temp;
-	free(temp);
+        p_realm = temp;
+        free(temp);
       }
     }
     if (p_authcid.empty()) {
       char *temp;
       ldap_get_option(ld, LDAP_OPT_X_SASL_AUTHCID, &temp);
       if (temp) {
-	p_authcid = temp;
-	free(temp);
+        p_authcid = temp;
+        free(temp);
       }
     }
     if (p_authzid.empty()) {
       char *temp;
       ldap_get_option(ld, LDAP_OPT_X_SASL_AUTHZID, &temp);
       if (temp) {
-	p_authzid = temp;
-	free(temp);
+        p_authzid = temp;
+        free(temp);
       }
     }
   }
 
 
-  int my_sasl_interact(ldap *,
-		       unsigned int flags,
-		       void *defaults_,
-		       void *interact_) {
+  int my_sasl_interact(ldap*,
+                       unsigned int flags,
+                       void *defaults_,
+                       void *interact_) {
 
-    sasl_interact_t *interact = (sasl_interact_t *)interact_;
-    sasl_defaults *defaults = (sasl_defaults *)defaults_;
+    sasl_interact_t *interact = (sasl_interact_t*)interact_;
+    sasl_defaults *defaults = (sasl_defaults*)defaults_;
 
     if (flags == LDAP_SASL_INTERACTIVE)
       LDAPQuery::logger.msg(VERBOSE, "SASL Interaction");
@@ -137,80 +139,80 @@ namespace Arc {
 
       switch (interact->id) {
       case SASL_CB_GETREALM:
-	if (defaults && !defaults->p_realm.empty())
-	  interact->defresult = strdup(defaults->p_realm.c_str());
-	break;
+        if (defaults && !defaults->p_realm.empty())
+          interact->defresult = strdup(defaults->p_realm.c_str());
+        break;
 
       case SASL_CB_AUTHNAME:
-	if (defaults && !defaults->p_authcid.empty())
-	  interact->defresult = strdup(defaults->p_authcid.c_str());
-	break;
+        if (defaults && !defaults->p_authcid.empty())
+          interact->defresult = strdup(defaults->p_authcid.c_str());
+        break;
 
       case SASL_CB_USER:
-	if (defaults && !defaults->p_authzid.empty())
-	  interact->defresult = strdup(defaults->p_authzid.c_str());
-	break;
+        if (defaults && !defaults->p_authzid.empty())
+          interact->defresult = strdup(defaults->p_authzid.c_str());
+        break;
 
       case SASL_CB_PASS:
-	if (defaults && !defaults->p_passwd.empty())
-	  interact->defresult = strdup(defaults->p_passwd.c_str());
-	noecho = true;
-	break;
+        if (defaults && !defaults->p_passwd.empty())
+          interact->defresult = strdup(defaults->p_passwd.c_str());
+        noecho = true;
+        break;
 
       case SASL_CB_NOECHOPROMPT:
-	noecho = true;
-	challenge = true;
-	break;
+        noecho = true;
+        challenge = true;
+        break;
 
       case SASL_CB_ECHOPROMPT:
-	challenge = true;
-	break;
+        challenge = true;
+        break;
       }
 
       if (flags != LDAP_SASL_INTERACTIVE &&
-	  (interact->defresult || interact->id == SASL_CB_USER))
-	use_default = true;
+          (interact->defresult || interact->id == SASL_CB_USER))
+        use_default = true;
       else {
-	if (flags == LDAP_SASL_QUIET)
-	  return 1;
+        if (flags == LDAP_SASL_QUIET)
+          return 1;
 
-	if (challenge && interact->challenge)
-	  LDAPQuery::logger.msg(VERBOSE, "Challenge: %s",
-				interact->challenge);
+        if (challenge && interact->challenge)
+          LDAPQuery::logger.msg(VERBOSE, "Challenge: %s",
+                                interact->challenge);
 
-	if (interact->defresult)
-	  LDAPQuery::logger.msg(VERBOSE, "Default: %s",
-				interact->defresult);
+        if (interact->defresult)
+          LDAPQuery::logger.msg(VERBOSE, "Default: %s",
+                                interact->defresult);
 
-	std::string prompt;
-	std::string input;
+        std::string prompt;
+        std::string input;
 
-	prompt = interact->prompt ?
-		 std::string(interact->prompt) + ": " : "Interact: ";
+        prompt = interact->prompt ?
+                 std::string(interact->prompt) + ": " : "Interact: ";
 
-	if (noecho)
-	  input = getpass(prompt.c_str());
-	else {
-	  std::cout << prompt;
-	  std::cin >> input;
-	}
-	if (input.empty())
-	  use_default = true;
-	else {
-	  interact->result = strdup(input.c_str());
-	  interact->len = input.length();
-	}
+        if (noecho)
+          input = getpass(prompt.c_str());
+        else {
+          std::cout << prompt;
+          std::cin >> input;
+        }
+        if (input.empty())
+          use_default = true;
+        else {
+          interact->result = strdup(input.c_str());
+          interact->len = input.length();
+        }
       }
 
       if (use_default) {
-	interact->result = strdup(interact->defresult ?
-				  interact->defresult : "");
-	interact->len = strlen((char *)interact->result);
+        interact->result = strdup(interact->defresult ?
+                                  interact->defresult : "");
+        interact->len = strlen((char*)interact->result);
       }
 
       if (defaults && interact->id == SASL_CB_PASS)
-	// clear default password after first use
-	defaults->p_passwd = "";
+        // clear default password after first use
+        defaults->p_passwd = "";
 
       interact++;
     }
@@ -220,10 +222,10 @@ namespace Arc {
 
 
   LDAPQuery::LDAPQuery(const std::string& ldaphost,
-		       int ldapport,
-		       bool anonymous,
-		       const std::string& usersn,
-		       int timeout)
+                       int ldapport,
+                       bool anonymous,
+                       const std::string& usersn,
+                       int timeout)
     : host(ldaphost),
       port(ldapport),
       anonymous(anonymous),
@@ -247,7 +249,7 @@ namespace Arc {
     const int version = LDAP_VERSION3;
 
     logger.msg(DEBUG, "LDAPQuery: Initializing connection to %s:%d",
-	       host, port);
+               host, port);
 
     if (connection) {
       logger.msg(ERROR, "LDAP connection already open to %s", host);
@@ -256,7 +258,7 @@ namespace Arc {
 
 #ifdef HAVE_LDAP_INITIALIZE
     ldap_initialize(&connection,
-		    ("ldap://" + host + ':' + tostring(port)).c_str());
+                    ("ldap://" + host + ':' + tostring(port)).c_str());
 #else
     connection = ldap_init(host.c_str(), port);
 #endif
@@ -319,41 +321,41 @@ namespace Arc {
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
     // solaris does not have LDAP_OPT_NETWORK_TIMEOUT
     if (ldap_set_option(connection, LDAP_OPT_NETWORK_TIMEOUT, &tout) !=
-	LDAP_OPT_SUCCESS) {
+        LDAP_OPT_SUCCESS) {
       logger.msg(ERROR,
-		 "Could not set LDAP network timeout (%s)", host);
+                 "Could not set LDAP network timeout (%s)", host);
       return false;
     }
 #endif
 
     if (ldap_set_option(connection, LDAP_OPT_TIMELIMIT, &timeout) !=
-	LDAP_OPT_SUCCESS) {
+        LDAP_OPT_SUCCESS) {
       logger.msg(ERROR,
-		 "Could not set LDAP timelimit (%s)", host);
+                 "Could not set LDAP timelimit (%s)", host);
       return false;
     }
 
     if (ldap_set_option(connection, LDAP_OPT_PROTOCOL_VERSION, &version) !=
-	LDAP_OPT_SUCCESS) {
+        LDAP_OPT_SUCCESS) {
       logger.msg(ERROR,
-		 "Could not set LDAP protocol version (%s)", host);
+                 "Could not set LDAP protocol version (%s)", host);
       return false;
     }
 
     return true;
   }
 
-  static void *ldap_bind_with_timeout(void *arg_) {
+  static void* ldap_bind_with_timeout(void *arg_) {
 
-    ldap_bind_arg *arg = (ldap_bind_arg *)arg_;
+    ldap_bind_arg *arg = (ldap_bind_arg*)arg_;
 
     int ldresult = 0;
     if (arg->anonymous) {
       BerValue cred = {
-	0, const_cast<char *>("")
+        0, const_cast<char*>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
-				  &cred, NULL, NULL, NULL);
+                                  &cred, NULL, NULL, NULL);
     }
     else {
 #if defined (HAVE_SASL_H) || defined (HAVE_SASL_SASL_H)
@@ -361,28 +363,28 @@ namespace Arc {
 #ifdef LDAP_SASL_AUTOMATIC
       // solaris does not have LDAP_SASL_AUTOMATIC
       if (arg->loglevel >= DEBUG)
-	ldapflag = LDAP_SASL_AUTOMATIC;
+        ldapflag = LDAP_SASL_AUTOMATIC;
 #endif
       sasl_defaults defaults = sasl_defaults(arg->connection,
-					     SASLMECH,
-					     "",
-					     "",
-					     arg->usersn,
-					     "");
+                                             SASLMECH,
+                                             "",
+                                             "",
+                                             arg->usersn,
+                                             "");
       ldresult = ldap_sasl_interactive_bind_s(arg->connection,
-					      NULL,
-					      SASLMECH,
-					      NULL,
-					      NULL,
-					      ldapflag,
-					      my_sasl_interact,
-					      &defaults);
+                                              NULL,
+                                              SASLMECH,
+                                              NULL,
+                                              NULL,
+                                              ldapflag,
+                                              my_sasl_interact,
+                                              &defaults);
 #else
       BerValue cred = {
-	0, const_cast<char *>("")
+        0, const_cast<char*>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
-				  &cred, NULL, NULL, NULL);
+                                  &cred, NULL, NULL, NULL);
 #endif
     }
 
@@ -397,9 +399,9 @@ namespace Arc {
 
 
   bool LDAPQuery::Query(const std::string& base,
-			const std::string& filter,
-			const std::list<std::string>& attributes,
-			URL::Scope scope) {
+                        const std::string& filter,
+                        const std::list<std::string>& attributes,
+                        URL::Scope scope) {
 
     if (!Connect())
       return false;
@@ -412,39 +414,39 @@ namespace Arc {
     if (!attributes.empty()) {
       logger.msg(VERBOSE, "  attributes:");
       for (std::list<std::string>::const_iterator vs = attributes.begin();
-	   vs != attributes.end(); vs++)
-	logger.msg(VERBOSE, "    %s", *vs);
+           vs != attributes.end(); vs++)
+        logger.msg(VERBOSE, "    %s", *vs);
     }
 
     timeval tout;
     tout.tv_sec = timeout;
     tout.tv_usec = 0;
 
-    char *filt = (char *)filter.c_str();
+    char *filt = (char*)filter.c_str();
 
     char **attrs;
     if (attributes.empty())
       attrs = NULL;
     else {
-      attrs = new char *[attributes.size() + 1];
+      attrs = new char*[attributes.size() + 1];
       int i = 0;
       for (std::list<std::string>::const_iterator vs = attributes.begin();
-	   vs != attributes.end(); vs++, i++)
-	attrs[i] = (char *)vs->c_str();
+           vs != attributes.end(); vs++, i++)
+        attrs[i] = (char*)vs->c_str();
       attrs[i] = NULL;
     }
 
     int ldresult = ldap_search_ext(connection,
-				   base.c_str(),
-				   scope,
-				   filt,
-				   attrs,
-				   0,
-				   NULL,
-				   NULL,
-				   &tout,
-				   0,
-				   &messageid);
+                                   base.c_str(),
+                                   scope,
+                                   filt,
+                                   attrs,
+                                   0,
+                                   NULL,
+                                   NULL,
+                                   &tout,
+                                   0,
+                                   &messageid);
 
     if (attrs)
       delete[] attrs;
@@ -490,22 +492,22 @@ namespace Arc {
     LDAPMessage *res = NULL;
 
     while (!done && (ldresult = ldap_result(connection,
-					    messageid,
-					    LDAP_MSG_ONE,
-					    &tout,
-					    &res)) > 0) {
+                                            messageid,
+                                            LDAP_MSG_ONE,
+                                            &tout,
+                                            &res)) > 0) {
       for (LDAPMessage *msg = ldap_first_message(connection, res); msg;
-	   msg = ldap_next_message(connection, msg)) {
+           msg = ldap_next_message(connection, msg)) {
 
-	switch (ldap_msgtype(msg)) {
-	case LDAP_RES_SEARCH_ENTRY:
-	  HandleSearchEntry(msg, callback, ref);
-	  break;
+        switch (ldap_msgtype(msg)) {
+        case LDAP_RES_SEARCH_ENTRY:
+          HandleSearchEntry(msg, callback, ref);
+          break;
 
-	case LDAP_RES_SEARCH_RESULT:
-	  done = true;
-	  break;
-	}                 // switch
+        case LDAP_RES_SEARCH_RESULT:
+          done = true;
+          break;
+        }                 // switch
       }           // for
       ldap_msgfree(res);
     }
@@ -525,8 +527,8 @@ namespace Arc {
 
 
   void LDAPQuery::HandleSearchEntry(LDAPMessage *msg,
-				    ldap_callback callback,
-				    void *ref) {
+                                    ldap_callback callback,
+                                    void *ref) {
     char *dn = ldap_get_dn(connection, msg);
     callback("dn", dn, ref);
     if (dn)
@@ -534,12 +536,12 @@ namespace Arc {
 
     BerElement *ber = NULL;
     for (char *attr = ldap_first_attribute(connection, msg, &ber);
-	 attr; attr = ldap_next_attribute(connection, msg, ber)) {
+         attr; attr = ldap_next_attribute(connection, msg, ber)) {
       BerValue **bval;
       if ((bval = ldap_get_values_len(connection, msg, attr))) {
-	for (int i = 0; bval[i]; i++)
-	  callback(attr, (bval[i]->bv_val ? bval[i]->bv_val : ""), ref);
-	ber_bvecfree(bval);
+        for (int i = 0; bval[i]; i++)
+          callback(attr, (bval[i]->bv_val ? bval[i]->bv_val : ""), ref);
+        ber_bvecfree(bval);
       }
       ldap_memfree(attr);
     }

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATASPEED_H__
 #define __ARC_DATASPEED_H__
 
@@ -36,9 +38,9 @@ namespace Arc {
 
   public:
     typedef void (*show_progress_t)(FILE *o, const char *s, unsigned int t,
-				    unsigned long long int all,
-				    unsigned long long int max,
-				    double instant, double average);
+                                    unsigned long long int all,
+                                    unsigned long long int max,
+                                    double instant, double average);
   private:
     show_progress_t show_progress;
     void print_statistics(FILE *o, time_t t);
@@ -57,9 +59,9 @@ namespace Arc {
     /// \param max_inactivity_time - if no data is passing for specified
     /// amount of time (seconds), error is triggered.
     DataSpeed(unsigned long long int min_speed, time_t min_speed_time,
-	      unsigned long long int min_average_speed,
-	      time_t max_inactivity_time,
-	      time_t base = DATASPEED_AVERAGING_PERIOD);
+              unsigned long long int min_average_speed,
+              time_t max_inactivity_time,
+              time_t base = DATASPEED_AVERAGING_PERIOD);
     /// Destructor
     ~DataSpeed(void);
     /// Activate printing information about current time speeds, amount
@@ -76,7 +78,7 @@ namespace Arc {
     /// is triggered.
     /// \param min_speed_time
     void set_min_speed(unsigned long long int min_speed,
-		       time_t min_speed_time);
+                       time_t min_speed_time);
     /// Set minmal avaerage speed.
     /// \param min_average_speed_ minimal average speed (Bytes per second)
     /// to trigger error. Averaged over whole current transfer time.

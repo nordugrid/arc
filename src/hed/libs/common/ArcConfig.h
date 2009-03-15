@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_CONFIG_H__
 #define __ARC_CONFIG_H__
 
@@ -36,8 +38,8 @@ namespace Arc {
     Config(const std::string& xml_str)
       : XMLNode(xml_str) {}
     /** Acquire existing XML (sub)tree.
-       	Content is not copied. Make sure XML tree is not destroyed
-       	while in use by this object. */
+        Content is not copied. Make sure XML tree is not destroyed
+        while in use by this object. */
     Config(Arc::XMLNode xml)
       : XMLNode(xml) {}
     Config(Arc::XMLNode xml, const std::string& filename)
@@ -50,26 +52,26 @@ namespace Arc {
     /** Copy constructor used by language bindings */
     Config(const Config& cfg);
     /** Print structure of document.
-       	For debuging purposes. Printed content is not an XML document. */
+        For debuging purposes. Printed content is not an XML document. */
     void print(void);
     /** Parse configuration document from file 'filename' */
     void parse(const char *filename);
     /** Gives back file name of config file or empty string if it was
-       	generared from the XMLNode subtree */
+        generared from the XMLNode subtree */
     const std::string& getFileName(void) {
       return file_name_;
     }
     /** Set the file name of config file */
-    void setFileName(const std::string &filename) {
-      file_name_ = filename;  
+    void setFileName(const std::string& filename) {
+      file_name_ = filename;
     }
     /** Save to file */
     void save(const char *filename);
   };
 
   /**Configuration information for WS-Security, including WS-Security
-  profile type, and the information which will be used by the specific
-  WS-Security profile.*/
+     profile type, and the information which will be used by the specific
+     WS-Security profile.*/
   typedef enum {
     NONETOKEN,
     USERNAMETOKEN,
@@ -99,7 +101,7 @@ namespace Arc {
     std::string cafile;
     std::string cadir;
     WSSType wsstype;
-    WSSInfo wssinfo; 
+    WSSInfo wssinfo;
     XMLNode overlay;
     BaseConfig();
     virtual ~BaseConfig() {}
@@ -124,7 +126,7 @@ namespace Arc {
     /** Read overlay from file */
     void GetOverlay(std::string fname);
     /** Adds configuration part corresponding to stored information into
-       	common configuration tree supplied in 'cfg' argument. */
+        common configuration tree supplied in 'cfg' argument. */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_SUBMITTERCREAM_H__
 #define __ARC_SUBMITTERCREAM_H__
 
@@ -15,7 +17,7 @@ namespace Arc {
     ~SubmitterCREAM();
 
   public:
-    static Plugin* Instance(PluginArgument* arg);
+    static Plugin* Instance(PluginArgument *arg);
     bool Submit(const JobDescription& jobdesc, XMLNode& info) const;
     bool Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const;
   };

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_SUBMITTERARC0_H__
 #define __ARC_SUBMITTERARC0_H__
 
@@ -16,7 +18,7 @@ namespace Arc {
     static Logger logger;
 
   public:
-    static Plugin* Instance(PluginArgument* arg);
+    static Plugin* Instance(PluginArgument *arg);
     bool Submit(const JobDescription& jobdesc, XMLNode& info) const;
     bool Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const;
   };

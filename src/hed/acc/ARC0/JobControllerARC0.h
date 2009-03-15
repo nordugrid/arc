@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_JOBCONTROLLERARC0_H__
 #define __ARC_JOBCONTROLLERARC0_H__
 
@@ -17,7 +19,7 @@ namespace Arc {
     ~JobControllerARC0();
 
     void GetJobInformation();
-    static Plugin* Instance(PluginArgument* arg);
+    static Plugin* Instance(PluginArgument *arg);
 
   private:
     bool GetJob(const Job& job, const std::string& downloaddir);

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -10,7 +12,8 @@
 
 namespace Arc {
 
-  PrintFBase::PrintFBase() : refcount(1) {}
+  PrintFBase::PrintFBase()
+    : refcount(1) {}
 
   PrintFBase::~PrintFBase() {}
 
@@ -23,10 +26,10 @@ namespace Arc {
     return (refcount == 0);
   }
 
-  const char* FindTrans(const char* p) {
+  const char* FindTrans(const char *p) {
 #ifdef ENABLE_NLS
     return dgettext(PACKAGE, p ? *p ? p : istring("(empty)") :
-		    istring("(null)"));
+                    istring("(null)"));
 #else
     return p ? *p ? p : "(empty)" : "(null)";
 #endif
@@ -44,7 +47,7 @@ namespace Arc {
 
   IString& IString::operator=(const IString& istr) {
     if (p->Release())
-      delete p;    
+      delete p;
     p = istr.p;
     p->Retain();
     return *this;

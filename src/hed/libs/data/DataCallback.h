@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATACALLBACK_H__
 #define __ARC_DATACALLBACK_H__
 

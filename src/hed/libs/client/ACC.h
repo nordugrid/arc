@@ -1,9 +1,10 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_ACC_H__
 #define __ARC_ACC_H__
 
 #include <arc/ArcConfig.h>
 #include <arc/loader/Plugin.h>
-#include <arc/credential/Credential.h>
 
 namespace Arc {
 
@@ -13,7 +14,9 @@ namespace Arc {
     ACC(Config *cfg, const std::string& flavour = "");
   public:
     virtual ~ACC();
-    const std::string& Flavour(){return flavour;}
+    const std::string& Flavour() {
+      return flavour;
+    }
   protected:
     std::string flavour;
     std::string proxyPath;
@@ -33,13 +36,17 @@ namespace Arc {
 
   #define ACCPluginKind ("HED:ACC")
 
-  class ACCPluginArgument: public PluginArgument {
-   private:
-    Config* config_;
-   public:
-    ACCPluginArgument(Config* config):config_(config) { };
-    virtual ~ACCPluginArgument(void) { };
-    operator Config* (void) { return config_; };
+  class ACCPluginArgument
+    : public PluginArgument {
+  public:
+    ACCPluginArgument(Config *config)
+      : config(config) {}
+    virtual ~ACCPluginArgument() {}
+    operator Config*() {
+      return config;
+    };
+  private:
+    Config *config;
   };
 
 } // namespace Arc

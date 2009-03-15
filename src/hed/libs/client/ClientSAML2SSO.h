@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_CLIENTSAML2SSO_H__
 #define __ARC_CLIENTSAML2SSO_H__
 
@@ -33,9 +35,9 @@ namespace Arc {
                        const std::string& idp_name, const std::string& username,
                        const std::string& password);
   private:
-    ClientHTTP* http_client_;
+    ClientHTTP *http_client_;
     bool authn_;
-    //Credential and trusted certificates used to contact IdP 
+    //Credential and trusted certificates used to contact IdP
     std::string cert_file_;
     std::string privkey_file_;
     std::string ca_file_;
@@ -50,7 +52,7 @@ namespace Arc {
     ClientSOAPwithSAML2SSO(const BaseConfig& cfg, const URL& url);
     virtual ~ClientSOAPwithSAML2SSO();
     /** Send SOAP request and receive response. */
-    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response, 
+    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response,
                        const std::string& idp_name, const std::string& username,
                        const std::string& password);
     /** Send SOAP request with specified SOAP action and receive response. */
@@ -59,7 +61,7 @@ namespace Arc {
                        const std::string& idp_name, const std::string& username,
                        const std::string& password);
   private:
-    ClientSOAP* soap_client_;
+    ClientSOAP *soap_client_;
     bool authn_;
     //Credential and trusted certificates used to contact IdP
     std::string cert_file_;

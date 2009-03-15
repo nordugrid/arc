@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -18,20 +20,20 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
 void arcls(const Arc::URL& dir_url,
-	   Arc::XMLNode credentials,
-	   bool show_details,
-	   bool show_urls,
-	   int recursion,
-	   int timeout) {
+           Arc::XMLNode credentials,
+           bool show_details,
+           bool show_urls,
+           int recursion,
+           int timeout) {
   if (dir_url.Protocol() == "urllist") {
     std::list<Arc::URL> dirs = Arc::ReadURLList(dir_url);
     if (dirs.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
-		 dir_url.Path());
+                 dir_url.Path());
       return;
     }
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
-	 dir != dirs.end(); dir++)
+         dir != dirs.end(); dir++)
       arcls(*dir, credentials, show_details, show_urls, recursion, timeout);
     return;
   }
@@ -50,7 +52,7 @@ void arcls(const Arc::URL& dir_url,
       return;
     }
     logger.msg(Arc::INFO, "Warning: "
-	       "Failed listing metafiles but some information is obtained");
+               "Failed listing metafiles but some information is obtained");
   }
   for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
@@ -58,52 +60,52 @@ void arcls(const Arc::URL& dir_url,
     if (show_details) {
       switch (i->GetType()) {
       case Arc::FileInfo::file_type_file:
-	std::cout << " file";
-	break;
+        std::cout << " file";
+        break;
 
       case Arc::FileInfo::file_type_dir:
-	std::cout << " dir";
-	break;
+        std::cout << " dir";
+        break;
 
       default:
-	std::cout << " unknown";
-	break;
+        std::cout << " unknown";
+        break;
       }
       if (i->CheckSize())
-	std::cout << " " << i->GetSize();
+        std::cout << " " << i->GetSize();
       else
-	std::cout << " *";
+        std::cout << " *";
       if (i->CheckCreated())
-	std::cout << " " << i->GetCreated();
+        std::cout << " " << i->GetCreated();
       else
-	std::cout << " *";
+        std::cout << " *";
       if (i->CheckValid())
-	std::cout << " " << i->GetValid();
+        std::cout << " " << i->GetValid();
       else
-	std::cout << " *";
+        std::cout << " *";
       if (i->CheckCheckSum())
-	std::cout << " " << i->GetCheckSum();
+        std::cout << " " << i->GetCheckSum();
       else
-	std::cout << " *";
+        std::cout << " *";
       if (i->CheckLatency())
-  std::cout << " " << i->GetLatency();
+        std::cout << " " << i->GetLatency();
     }
     std::cout << std::endl;
     if (show_urls)
       for (std::list<Arc::URL>::const_iterator u = i->GetURLs().begin();
-	   u != i->GetURLs().end(); u++)
-	std::cout << "\t" << *u << std::endl;
+           u != i->GetURLs().end(); u++)
+        std::cout << "\t" << *u << std::endl;
     // Do recursion
     if (recursion > 0)
       if (i->GetType() == Arc::FileInfo::file_type_dir) {
-	Arc::URL suburl = dir_url;
-	if (suburl.Path()[suburl.Path().length() - 1] != '/')
-	  suburl.ChangePath(suburl.Path() + "/" + i->GetName());
-	else
-	  suburl.ChangePath(suburl.Path() + i->GetName());
-	std::cout << suburl.str() << ":" << std::endl;
-	arcls(suburl, credentials, show_details, show_urls, recursion - 1, timeout);
-	std::cout << std::endl;
+        Arc::URL suburl = dir_url;
+        if (suburl.Path()[suburl.Path().length() - 1] != '/')
+          suburl.ChangePath(suburl.Path() + "/" + i->GetName());
+        else
+          suburl.ChangePath(suburl.Path() + i->GetName());
+        std::cout << suburl.str() << ":" << std::endl;
+        arcls(suburl, credentials, show_details, show_urls, recursion - 1, timeout);
+        std::cout << std::endl;
       }
   }
   return;
@@ -120,40 +122,40 @@ int main(int argc, char **argv) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(istring("url"),
-			    istring("The arcls command is used for listing "
-				    "files in grid storage elements "
-				    "and file\nindex catalogues."));
+                            istring("The arcls command is used for listing "
+                                    "files in grid storage elements "
+                                    "and file\nindex catalogues."));
 
   bool longlist = false;
   options.AddOption('l', "long", istring("long format (more information)"),
-		    longlist);
+                    longlist);
 
   bool locations = false;
   options.AddOption('L', "locations", istring("show URLs of file locations"),
-		    locations);
+                    locations);
 
   int recursion = 0;
   options.AddOption('r', "recursive",
-		    istring("operate recursively up to specified level"),
-		    istring("level"), recursion);
+                    istring("operate recursively up to specified level"),
+                    istring("level"), recursion);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-		    istring("seconds"), timeout);
+                    istring("seconds"), timeout);
 
   std::string conffile;
   options.AddOption('z', "conffile",
-		    istring("configuration file (default ~/.arc/client.xml)"),
-		    istring("filename"), conffile);
+                    istring("configuration file (default ~/.arc/client.xml)"),
+                    istring("filename"), conffile);
 
   std::string debug;
   options.AddOption('d', "debug",
-		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
-		    istring("debuglevel"), debug);
+                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("debuglevel"), debug);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
-		    version);
+                    version);
 
   std::list<std::string> params = options.Parse(argc, argv);
 

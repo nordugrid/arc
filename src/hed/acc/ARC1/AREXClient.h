@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __AREX_CLIENT__
 #define __AREX_CLIENT__
 
@@ -50,7 +52,7 @@ namespace Arc {
        @return true on success
      */
     bool submit(std::istream& jsdl_file, std::string& jobid,
-		bool delegate = false);
+                bool delegate = false);
 
     //! Query the status of a job.
     /*! This method queries the A-REX service about the status of a
@@ -93,16 +95,16 @@ namespace Arc {
        @return true on success
      */
     bool getdesc(const std::string& jobid, std::string& jobdesc);
-    
-    
+
+
     //! Migrate a job.
     /*! This method submits a migrate request and the corresponding job
-      to the AREX-service.
-      
-      @param jobid The Job ID of the job to migrate.
-      @param jobdesc The job description of the job to migrate.
-      @param newjobid The Job ID of returned by the AREX-client on success.
-      @return true on success
+       to the AREX-service.
+
+       @param jobid The Job ID of the job to migrate.
+       @param jobdesc The job description of the job to migrate.
+       @param newjobid The Job ID of returned by the AREX-client on success.
+       @return true on success
      */
     bool migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate = false);
 

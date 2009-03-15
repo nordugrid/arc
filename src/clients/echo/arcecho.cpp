@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -14,7 +16,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/UserConfig.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -28,10 +30,10 @@ int main(int argc, char** argv) {
   Arc::OptionParser options(istring("service message"),
                             istring("The arcecho command is a client for "
                                     "the ARC echo service."),
-			    istring("The service argument is a URL to an ARC "
-				    "echo service.\n"
-				    "The message argument is the message the "
-				    "service should return."));
+                            istring("The service argument is a URL to an ARC "
+                                    "echo service.\n"
+                                    "The message argument is the message the "
+                                    "service should return."));
 
   std::string conffile;
   options.AddOption('z', "conffile",
@@ -72,7 +74,7 @@ int main(int argc, char** argv) {
   if (args.size() != 2) {
     logger.msg(Arc::ERROR, "Wrong number of arguments!");
     return 1;
-  } 
+  }
 
   std::list<std::string>::iterator it = args.begin();
 

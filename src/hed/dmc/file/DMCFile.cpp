@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -22,14 +24,15 @@ namespace Arc {
     Unregister(this);
   }
 
-  Plugin *DMCFile::Instance(PluginArgument* arg) {
-    Arc::DMCPluginArgument* dmcarg =
-            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
-    if(!dmcarg) return NULL;
+  Plugin* DMCFile::Instance(PluginArgument *arg) {
+    Arc::DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    if (!dmcarg)
+      return NULL;
     return new DMCFile((Arc::Config*)(*dmcarg));
   }
 
-  DataPoint *DMCFile::iGetDataPoint(const URL& url) {
+  DataPoint* DMCFile::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "file")
       return NULL;
     return new DataPointFile(url);
@@ -38,6 +41,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  {"file", "HED:DMC", 0, &Arc::DMCFile::Instance},
-  {NULL, NULL, 0, NULL}
+  { "file", "HED:DMC", 0, &Arc::DMCFile::Instance },
+  { NULL, NULL, 0, NULL }
 };

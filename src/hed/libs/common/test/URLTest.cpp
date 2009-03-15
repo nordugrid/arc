@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #include <string>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -258,7 +260,7 @@ void URLTest::TestLfcUrl() {
   CPPUNIT_ASSERT_EQUAL(5010, lfcurl->Port());
   CPPUNIT_ASSERT_EQUAL(std::string("/grid/atlas/file1"), lfcurl->Path());
   CPPUNIT_ASSERT(lfcurl->HTTPOptions().empty());
-  
+
   std::map<std::string, std::string> options = lfcurl->Options();
   CPPUNIT_ASSERT_EQUAL(1, (int)options.size());
 
@@ -269,7 +271,7 @@ void URLTest::TestLfcUrl() {
   CPPUNIT_ASSERT(lfcurl->CommonLocOptions().empty());
 
   CPPUNIT_ASSERT(lfcurl->Locations().empty());
-  
+
   CPPUNIT_ASSERT_EQUAL(3, (int)lfcurl->MetaDataOptions().size());
   CPPUNIT_ASSERT_EQUAL(std::string("7d36da04-430f-403c-adfb-540b27506cfa"), lfcurl->MetaDataOption("guid"));
   CPPUNIT_ASSERT_EQUAL(std::string("ad"), lfcurl->MetaDataOption("checksumtype"));

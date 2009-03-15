@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -21,12 +23,12 @@ namespace Arc {
   class OptionBase {
   public:
     OptionBase(char shortOpt, const std::string& longOpt,
-	       const std::string& optDesc, const std::string& argDesc) {
+               const std::string& optDesc, const std::string& argDesc) {
       entry.set_short_name(shortOpt);
       entry.set_long_name(longOpt);
       entry.set_description(optDesc);
       if (!argDesc.empty())
-	entry.set_arg_description(argDesc);
+        entry.set_arg_description(argDesc);
     }
     virtual ~OptionBase() {}
     virtual void AddEntry(Glib::OptionGroup& grp) = 0;
@@ -39,11 +41,11 @@ namespace Arc {
   class OptionBase {
   public:
     OptionBase(char shortOpt, const std::string& longOpt,
-	       const std::string& optDesc, const std::string& argDesc)
+               const std::string& optDesc, const std::string& argDesc)
       : shortOpt(shortOpt),
-	longOpt(longOpt),
-	optDesc(optDesc),
-	argDesc(argDesc) {}
+        longOpt(longOpt),
+        optDesc(optDesc),
+        argDesc(argDesc) {}
     virtual ~OptionBase() {}
     virtual bool Set(const std::string& val) = 0;
 
@@ -62,10 +64,10 @@ namespace Arc {
     : public OptionBase {
   public:
     BoolOption(char shortOpt, std::string longOpt,
-	       std::string optDesc, std::string argDesc,
-	       bool& value)
+               std::string optDesc, std::string argDesc,
+               bool& value)
       : OptionBase(shortOpt, longOpt, optDesc, argDesc),
-	value(value) {}
+        value(value) {}
     ~BoolOption() {}
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
     void AddEntry(Glib::OptionGroup& grp) {
@@ -86,10 +88,10 @@ namespace Arc {
     : public OptionBase {
   public:
     IntOption(char shortOpt, std::string longOpt,
-	      std::string optDesc, std::string argDesc,
-	      int& value)
+              std::string optDesc, std::string argDesc,
+              int& value)
       : OptionBase(shortOpt, longOpt, optDesc, argDesc),
-	value(value) {}
+        value(value) {}
     ~IntOption() {}
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
     void AddEntry(Glib::OptionGroup& grp) {
@@ -99,8 +101,8 @@ namespace Arc {
     bool Set(const std::string& val) {
       bool ok = stringto(val, value);
       if (!ok)
-	std::cout << IString("Cannot parse integer value '%s' for -%c",
-			     val, shortOpt) << std::endl;
+        std::cout << IString("Cannot parse integer value '%s' for -%c",
+                             val, shortOpt) << std::endl;
       return ok;
     }
 #endif
@@ -113,10 +115,10 @@ namespace Arc {
     : public OptionBase {
   public:
     StringOption(char shortOpt, std::string longOpt,
-		 std::string optDesc, std::string argDesc,
-		 std::string& value)
+                 std::string optDesc, std::string argDesc,
+                 std::string& value)
       : OptionBase(shortOpt, longOpt, optDesc, argDesc),
-	value(value) {}
+        value(value) {}
     ~StringOption() {}
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
     void AddEntry(Glib::OptionGroup& grp) {
@@ -124,7 +126,7 @@ namespace Arc {
     }
     void Result() {
       if (!gvalue.empty())
-	value = gvalue;
+        value = gvalue;
     }
 #else
     bool Set(const std::string& val) {
@@ -144,10 +146,10 @@ namespace Arc {
     : public OptionBase {
   public:
     StringListOption(char shortOpt, std::string longOpt,
-		     std::string optDesc, std::string argDesc,
-		     std::list<std::string>& value)
+                     std::string optDesc, std::string argDesc,
+                     std::list<std::string>& value)
       : OptionBase(shortOpt, longOpt, optDesc, argDesc),
-	value(value) {}
+        value(value) {}
     ~StringListOption() {}
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
     void AddEntry(Glib::OptionGroup& grp) {
@@ -171,51 +173,51 @@ namespace Arc {
   };
 
   OptionParser::OptionParser(const std::string& arguments,
-			     const std::string& summary,
-			     const std::string& description)
+                             const std::string& summary,
+                             const std::string& description)
     : arguments(arguments),
       summary(summary),
       description(description) {}
 
   OptionParser::~OptionParser() {
-    for (std::list<OptionBase *>::iterator it = options.begin();
-	 it != options.end(); it++)
+    for (std::list<OptionBase*>::iterator it = options.begin();
+         it != options.end(); it++)
       delete *it;
   }
 
   void OptionParser::AddOption(const char shortOpt,
-			       const std::string& longOpt,
-			       const std::string& optDesc,
-			       bool& value) {
+                               const std::string& longOpt,
+                               const std::string& optDesc,
+                               bool& value) {
     options.push_back(new BoolOption(shortOpt, longOpt,
-				     optDesc, "", value));
+                                     optDesc, "", value));
   }
 
   void OptionParser::AddOption(const char shortOpt,
-			       const std::string& longOpt,
-			       const std::string& optDesc,
-			       const std::string& argDesc,
-			       int& value) {
+                               const std::string& longOpt,
+                               const std::string& optDesc,
+                               const std::string& argDesc,
+                               int& value) {
     options.push_back(new IntOption(shortOpt, longOpt,
-				    optDesc, argDesc, value));
+                                    optDesc, argDesc, value));
   }
 
   void OptionParser::AddOption(const char shortOpt,
-			       const std::string& longOpt,
-			       const std::string& optDesc,
-			       const std::string& argDesc,
-			       std::string& value) {
+                               const std::string& longOpt,
+                               const std::string& optDesc,
+                               const std::string& argDesc,
+                               std::string& value) {
     options.push_back(new StringOption(shortOpt, longOpt,
-				       optDesc, argDesc, value));
+                                       optDesc, argDesc, value));
   }
 
   void OptionParser::AddOption(const char shortOpt,
-			       const std::string& longOpt,
-			       const std::string& optDesc,
-			       const std::string& argDesc,
-			       std::list<std::string>& value) {
+                               const std::string& longOpt,
+                               const std::string& optDesc,
+                               const std::string& argDesc,
+                               std::list<std::string>& value) {
     options.push_back(new StringListOption(shortOpt, longOpt,
-					   optDesc, argDesc, value));
+                                           optDesc, argDesc, value));
   }
 
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
@@ -230,22 +232,21 @@ namespace Arc {
     Glib::OptionGroup grp("main", "Main Group");
     grp.set_translation_domain(PACKAGE);
 
-    for (std::list<OptionBase *>::iterator it = options.begin();
-	 it != options.end(); it++)
+    for (std::list<OptionBase*>::iterator it = options.begin();
+         it != options.end(); it++)
       (*it)->AddEntry(grp);
 
     ctx.set_main_group(grp);
 
     try {
       ctx.parse(argc, argv);
-    }
-    catch (Glib::OptionError err) {
+    } catch (Glib::OptionError err) {
       std::cout << err.what() << std::endl;
       exit(1);
     }
 
-    for (std::list<OptionBase *>::iterator it = options.begin();
-	 it != options.end(); it++)
+    for (std::list<OptionBase*>::iterator it = options.begin();
+         it != options.end(); it++)
       (*it)->Result();
 
     std::list<std::string> params;
@@ -255,10 +256,10 @@ namespace Arc {
   }
 #else
   static inline void setopt(struct option& opt,
-			    const char *name,
-			    int has_arg,
-			    int *flag,
-			    int val) {
+                            const char *name,
+                            int has_arg,
+                            int *flag,
+                            int val) {
     opt.name = name;
     opt.has_arg = has_arg;
     opt.flag = flag;
@@ -270,14 +271,14 @@ namespace Arc {
     struct option *longoptions = new struct option[options.size() + 2];
     int i = 0;
     std::string optstring;
-    for (std::list<OptionBase *>::iterator it = options.begin();
-	 it != options.end(); it++) {
+    for (std::list<OptionBase*>::iterator it = options.begin();
+         it != options.end(); it++) {
       setopt(longoptions[i++], (*it)->longOpt.c_str(),
-	     (*it)->argDesc.empty() ? no_argument : required_argument,
-	     NULL, (*it)->shortOpt);
+             (*it)->argDesc.empty() ? no_argument : required_argument,
+             NULL, (*it)->shortOpt);
       optstring += (*it)->shortOpt;
       if (!(*it)->argDesc.empty())
-	optstring += ':';
+        optstring += ':';
     }
     setopt(longoptions[i++], "help", no_argument, NULL, '?');
     optstring += '?';
@@ -299,47 +300,47 @@ namespace Arc {
 #endif
 
       if (opt == -1)
-	continue;
+        continue;
       if (opt == '?') {
-	if (optopt) {
-	  delete longoptions;
-	  exit(1);
-	}
-	std::cout << IString("Usage:") << std::endl;
-	std::cout << "  " << argv[0];
-	if (!options.empty())
-	  std::cout << " [" << IString("OPTION...") << "]";
-	if (!arguments.empty())
-	  std::cout << " " << IString(arguments);
-	std::cout << std::endl << std::endl;
-	if (!summary.empty())
-	  std::cout << IString(summary) << std::endl << std::endl;
-	std::cout << IString("Help Options:") << std::endl;
-	std::cout << "  -?, --help    " << IString("Show help options")
-		  << std::endl << std::endl;
-	std::cout << IString("Application Options:") << std::endl;
-	for (std::list<OptionBase *>::iterator it = options.begin();
-	     it != options.end(); it++) {
-	  std::cout << "  -" << (*it)->shortOpt << ", --" << (*it)->longOpt;
-	  if (!(*it)->argDesc.empty())
-	    std::cout << "=" << IString((*it)->argDesc);
-	  std::cout << "    " << IString((*it)->optDesc) << std::endl;
-	}
-	std::cout << std::endl;
-	if (!description.empty())
-	  std::cout << IString(description) << std::endl;
-	delete longoptions;
-	exit(0);
+        if (optopt) {
+          delete longoptions;
+          exit(1);
+        }
+        std::cout << IString("Usage:") << std::endl;
+        std::cout << "  " << argv[0];
+        if (!options.empty())
+          std::cout << " [" << IString("OPTION...") << "]";
+        if (!arguments.empty())
+          std::cout << " " << IString(arguments);
+        std::cout << std::endl << std::endl;
+        if (!summary.empty())
+          std::cout << IString(summary) << std::endl << std::endl;
+        std::cout << IString("Help Options:") << std::endl;
+        std::cout << "  -?, --help    " << IString("Show help options")
+                  << std::endl << std::endl;
+        std::cout << IString("Application Options:") << std::endl;
+        for (std::list<OptionBase*>::iterator it = options.begin();
+             it != options.end(); it++) {
+          std::cout << "  -" << (*it)->shortOpt << ", --" << (*it)->longOpt;
+          if (!(*it)->argDesc.empty())
+            std::cout << "=" << IString((*it)->argDesc);
+          std::cout << "    " << IString((*it)->optDesc) << std::endl;
+        }
+        std::cout << std::endl;
+        if (!description.empty())
+          std::cout << IString(description) << std::endl;
+        delete longoptions;
+        exit(0);
       }
-      for (std::list<OptionBase *>::iterator it = options.begin();
-	   it != options.end(); it++)
-	if (opt == (*it)->shortOpt) {
-	  if (!(*it)->Set(optarg ? optarg : "")) {
-	    delete longoptions;
-	    exit(1);
-	  }
-	  break;
-	}
+      for (std::list<OptionBase*>::iterator it = options.begin();
+           it != options.end(); it++)
+        if (opt == (*it)->shortOpt) {
+          if (!(*it)->Set(optarg ? optarg : "")) {
+            delete longoptions;
+            exit(1);
+          }
+          break;
+        }
     }
 
     delete[] longoptions;

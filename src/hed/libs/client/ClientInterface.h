@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_CLIENTINTERFACE_H__
 #define __ARC_CLIENTINTERFACE_H__
 
@@ -41,11 +43,13 @@ namespace Arc {
     MCCLoader *loader;
     MessageContext context;
     static Logger logger;
-    static void AddSecHandler(XMLNode mcccfg,XMLNode handlercfg);
-    static void AddPlugin(XMLNode mcccfg,const std::string& libname,const std::string& libpath = "");
+    static void AddSecHandler(XMLNode mcccfg, XMLNode handlercfg);
+    static void AddPlugin(XMLNode mcccfg, const std::string& libname, const std::string& libpath = "");
   };
 
-  enum SecurityLayer { NoSec, TLSSec, GSISec };
+  enum SecurityLayer {
+    NoSec, TLSSec, GSISec
+  };
 
   // Also supports TLS & GSI
   class ClientTCP
@@ -53,17 +57,17 @@ namespace Arc {
   public:
     ClientTCP()
       : tcp_entry(NULL),
-	tls_entry(NULL) {}
+        tls_entry(NULL) {}
     ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
-	      SecurityLayer sec);
+              SecurityLayer sec);
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
-		       PayloadStreamInterface **response, bool tls);
+                       PayloadStreamInterface **response, bool tls);
     MCC* GetEntry() {
       return tls_entry ? tls_entry : tcp_entry;
     }
     virtual void Load();
-    void AddSecHandler(XMLNode handlercfg,SecurityLayer sec,const std::string& libanme = "",const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, SecurityLayer sec, const std::string& libanme = "", const std::string& libpath = "");
   protected:
     MCC *tcp_entry;
     MCC *tls_entry;
@@ -86,32 +90,32 @@ namespace Arc {
       : http_entry(NULL) {}
     ClientHTTP(const BaseConfig& cfg, const URL& url);
     virtual ~ClientHTTP();
-    MCC_Status process(const std::string& method, PayloadRawInterface *request, 
-		       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method,
-		       std::map<std::string, std::string>& attributes,
-		       PayloadRawInterface *request,
-		       HTTPClientInfo *info, PayloadRawInterface **response);
-    MCC_Status process(const std::string& method, const std::string& path, 
-		       PayloadRawInterface *request,
-		       HTTPClientInfo *info, PayloadRawInterface **response);
-    MCC_Status process(const std::string& method, const std::string& path, 
-		       std::map<std::string, std::string>& attributes,
-		       PayloadRawInterface *request,
-		       HTTPClientInfo *info, PayloadRawInterface **response);
+                       std::map<std::string, std::string>& attributes,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-		       uint64_t range_start, uint64_t range_end,
-		       PayloadRawInterface *request,
-		       HTTPClientInfo *info, PayloadRawInterface **response);
-    MCC_Status process(const std::string& method, const std::string& path, 
-		       std::map<std::string, std::string>& attributes,
-		       uint64_t range_start, uint64_t range_end,
-		       PayloadRawInterface *request,
-		       HTTPClientInfo *info, PayloadRawInterface **response);
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, const std::string& path,
+                       std::map<std::string, std::string>& attributes,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, const std::string& path,
+                       uint64_t range_start, uint64_t range_end,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const std::string& method, const std::string& path,
+                       std::map<std::string, std::string>& attributes,
+                       uint64_t range_start, uint64_t range_end,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC* GetEntry() {
       return http_entry;
     }
-    void AddSecHandler(XMLNode handlercfg,const std::string& libanme = "",const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
     virtual void Load();
   protected:
     MCC *http_entry;
@@ -135,37 +139,40 @@ namespace Arc {
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action, PayloadSOAP *request,
-		       PayloadSOAP **response);
+                       PayloadSOAP **response);
     /** Returns entry point to SOAP MCC in configured chain.
        To initialize entry point Load() method must be called. */
     MCC* GetEntry() {
       return soap_entry;
     }
     /** Adds security handler to configuration of SOAP MCC */
-    void AddSecHandler(XMLNode handlercfg,const std::string& libanme = "",const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
     /** Instantiates pluggable elements according to generated configuration */
     virtual void Load();
   protected:
     MCC *soap_entry;
   };
 
-  // Convenience base class for creating configuration 
+  // Convenience base class for creating configuration
   // security handlers.
-  class SecHandlerConfig: public XMLNode {
+  class SecHandlerConfig
+    : public XMLNode {
   public:
-    SecHandlerConfig(const std::string& name,const std::string& event = "incoming");
+    SecHandlerConfig(const std::string& name, const std::string& event = "incoming");
   };
 
-  class DNListHandlerConfig: public SecHandlerConfig {
+  class DNListHandlerConfig
+    : public SecHandlerConfig {
   public:
-    DNListHandlerConfig(const std::list<std::string>& dns,const std::string& event = "incoming");
+    DNListHandlerConfig(const std::list<std::string>& dns, const std::string& event = "incoming");
     void AddDN(const std::string& dn);
   };
 
-  class ARCPolicyHandlerConfig: public SecHandlerConfig {
+  class ARCPolicyHandlerConfig
+    : public SecHandlerConfig {
   public:
     ARCPolicyHandlerConfig(const std::string& event = "incoming");
-    ARCPolicyHandlerConfig(XMLNode policy,const std::string& event = "incoming");
+    ARCPolicyHandlerConfig(XMLNode policy, const std::string& event = "incoming");
     void AddPolicy(XMLNode policy);
     void AddPolicy(const std::string& policy);
   };

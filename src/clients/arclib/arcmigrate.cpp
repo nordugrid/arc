@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -38,68 +40,68 @@ int main(int argc, char **argv) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(istring("[job ...]"),
-          istring("The arcmigrate command is used for "
-            "migrating queud jobs to another cluster.\n"
-            "Note that migration is only supported "
-            "between ARC1 clusters."),
-          istring(""));
+                            istring("The arcmigrate command is used for "
+                                    "migrating queud jobs to another cluster.\n"
+                                    "Note that migration is only supported "
+                                    "between ARC1 clusters."),
+                            istring(""));
 
   bool all = false;
   options.AddOption('a', "all",
-        istring("all jobs"),
-        all);
+                    istring("all jobs"),
+                    all);
 
   bool forcemigration = false;
   options.AddOption('f', "force",
-        istring("force migration, ignore kill failure"),
-        forcemigration);
-  
+                    istring("force migration, ignore kill failure"),
+                    forcemigration);
+
   std::string joblist;
   options.AddOption('j', "joblist",
-        istring("file containing a list of jobs"),
-        istring("filename"),
-        joblist);
+                    istring("file containing a list of jobs"),
+                    istring("filename"),
+                    joblist);
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-        istring("explicitly select or reject a cluster holding queued jobs"),
-        istring("[-]name"),
-        clusters);
+                    istring("explicitly select or reject a cluster holding queued jobs"),
+                    istring("[-]name"),
+                    clusters);
 
   std::list<std::string> qlusters;
   options.AddOption('q', "qluster",
-        istring("explicitly select or reject a cluster to migrate to"),
-        istring("[-]name"),
-        qlusters);
+                    istring("explicitly select or reject a cluster to migrate to"),
+                    istring("[-]name"),
+                    qlusters);
 
   std::list<std::string> indexurls;
   options.AddOption('i', "index",
-        istring("explicitly select or reject an index server"),
-        istring("[-]name"),
-        indexurls);
+                    istring("explicitly select or reject an index server"),
+                    istring("[-]name"),
+                    indexurls);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-        istring("seconds"), timeout);
+                    istring("seconds"), timeout);
 
   std::string conffile;
   options.AddOption('z', "conffile",
-        istring("configuration file (default ~/.arc/client.xml)"),
-        istring("filename"), conffile);
+                    istring("configuration file (default ~/.arc/client.xml)"),
+                    istring("filename"), conffile);
 
   std::string debug;
   options.AddOption('d', "debug",
-        istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
-        istring("debuglevel"), debug);
+                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("debuglevel"), debug);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
-        version);
+                    version);
 
   std::string broker;
   options.AddOption('b', "broker",
-        istring("select broker method (RandomBroker (default), FastestQueueBroker, or custom)"),
-        istring("broker"), broker);
+                    istring("select broker method (RandomBroker (default), FastestQueueBroker, or custom)"),
+                    istring("broker"), broker);
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
@@ -119,7 +121,7 @@ int main(int argc, char **argv) {
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcmigrate", VERSION)
-        << std::endl;
+              << std::endl;
     return 0;
   }
 
@@ -128,12 +130,11 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (joblist.empty()) {
+  if (joblist.empty())
     joblist = usercfg.JobListFile();
-  }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, joblist);
-  std::list<Arc::JobController *> jobcont = jobmaster.GetJobControllers();
+  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
   if (jobcont.empty()) {
     logger.msg(Arc::ERROR, "No job controllers loaded");
@@ -144,14 +145,13 @@ int main(int argc, char **argv) {
   targetGen.GetTargets(0, 1);
 
   if (targetGen.FoundTargets().empty()) {
-    std::cout << Arc::IString("Job migration aborted because no clusters returned any information")<< std::endl;
+    std::cout << Arc::IString("Job migration aborted because no clusters returned any information") << std::endl;
     return 1;
   }
 
   // Prepare loader
-  if(broker.empty()) {
+  if (broker.empty())
     broker = "RandomBroker";
-  }
 
   Arc::NS ns;
   Arc::Config cfg(ns);
@@ -164,9 +164,8 @@ int main(int argc, char **argv) {
     Broker.NewAttribute("name") = broker.substr(0, pos);
     Broker.NewChild("Arguments") = broker.substr(pos + 1);
   }
-  else {
+  else
     Broker.NewAttribute("name") = broker;
-  }
   Broker.NewAttribute("id") = "broker";
 
   usercfg.ApplySecurity(Broker);
@@ -174,7 +173,7 @@ int main(int argc, char **argv) {
   Arc::ACCLoader loader(cfg);
   Arc::Broker *chosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);
-  
+
   int retval = 0;
   // Loop over job controllers - arcmigrate should only support ARC-1 thus no loop...?
   for (std::list<Arc::JobController*>::iterator itJobCont = jobcont.begin(); itJobCont != jobcont.end(); itJobCont++) {
@@ -184,9 +183,8 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, forcemigration, timeout)) {
+    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, forcemigration, timeout))
       retval = 1;
-    }
   } // Loop over job controllers
 
   return retval;

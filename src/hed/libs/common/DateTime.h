@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef ARCLIB_TIME
 #define ARCLIB_TIME
 
@@ -27,7 +29,7 @@ namespace Arc {
   };
 
   class Period {
-   public:
+  public:
     /** Default constructor. The period is set to 0 length. */
     Period();
 
@@ -70,7 +72,7 @@ namespace Arc {
     /** Comparing two Period objects. */
     bool operator!=(const Period&) const;
 
-   private:
+  private:
     /** The duration of the period */
     time_t seconds;
   };
@@ -82,7 +84,7 @@ namespace Arc {
 
   /// A class for storing and manipulating times.
   class Time {
-   public:
+  public:
     /** Default constructor. The time is put equal the current time. */
     Time();
 
@@ -105,11 +107,11 @@ namespace Arc {
     time_t GetTime() const;
 
     /** Returns a string representation of the time,
-       	using the default format. */
+        using the default format. */
     operator std::string() const;
 
     /** Returns a string representation of the time,
-       	using the specified format. */
+        using the specified format. */
     std::string str(const TimeFormat& = time_format) const;
 
     /** Sets the default format for time strings. */
@@ -145,7 +147,7 @@ namespace Arc {
     /** Subtracting Time object from the other Time object. */
     Period operator-(const Time&) const;
 
-   private:
+  private:
     /** The time stored -- by default it is equal to the current time. */
     time_t gtime;
 

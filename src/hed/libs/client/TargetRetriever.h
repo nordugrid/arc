@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_TARGETRETRIEVER_H__
 #define __ARC_TARGETRETRIEVER_H__
 
@@ -19,7 +21,7 @@ namespace Arc {
   public:
     virtual ~TargetRetriever();
     virtual void GetTargets(TargetGenerator& mom, int targetType,
-			    int detailLevel) = 0;
+                            int detailLevel) = 0;
 
   protected:
     URL url;

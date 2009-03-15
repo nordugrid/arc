@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_MCCGSI_H__
 #define __ARC_MCCGSI_H__
 
@@ -13,7 +15,7 @@ namespace Arc {
   class MCC_GSI_Service
     : public MCC {
   public:
-    MCC_GSI_Service(Config& cfg,ModuleManager& mm);
+    MCC_GSI_Service(Config& cfg, ModuleManager& mm);
     virtual ~MCC_GSI_Service();
     virtual MCC_Status process(Message&, Message&);
   private:
@@ -26,7 +28,7 @@ namespace Arc {
   class MCC_GSI_Client
     : public MCC {
   public:
-    MCC_GSI_Client(Config& cfg,ModuleManager& mm);
+    MCC_GSI_Client(Config& cfg, ModuleManager& mm);
     virtual ~MCC_GSI_Client();
     virtual MCC_Status process(Message&, Message&);
     virtual void Next(MCCInterface *next, const std::string& label = "");

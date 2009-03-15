@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_EXECUTIONTARGET_H__
 #define __ARC_EXECUTIONTARGET_H__
 

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_CHECKSUM_H__
 #define __ARC_CHECKSUM_H__
 
@@ -17,10 +19,10 @@ namespace Arc {
     virtual void start(void) = 0;
     virtual void add(void *buf, unsigned long long int len) = 0;
     virtual void end(void) = 0;
-    virtual void result(unsigned char *& res, unsigned int& len) const = 0;
+    virtual void result(unsigned char*& res, unsigned int& len) const = 0;
     virtual int print(char *buf, int len) const {
       if (len > 0)
-	buf[0] = 0;
+        buf[0] = 0;
       return 0;
     }
     virtual void scan(const char *buf) = 0;
@@ -45,8 +47,8 @@ namespace Arc {
     virtual void start(void);
     virtual void add(void *buf, unsigned long long int len);
     virtual void end(void);
-    virtual void result(unsigned char *& res, unsigned int& len) const {
-      res = (unsigned char *)&r;
+    virtual void result(unsigned char*& res, unsigned int& len) const {
+      res = (unsigned char*)&r;
       len = 4;
     }
     virtual int print(char *buf, int len) const;
@@ -80,8 +82,8 @@ namespace Arc {
     virtual void start(void);
     virtual void add(void *buf, unsigned long long int len);
     virtual void end(void);
-    virtual void result(unsigned char *& res, unsigned int& len) const {
-      res = (unsigned char *)&A;
+    virtual void result(unsigned char*& res, unsigned int& len) const {
+      res = (unsigned char*)&A;
       len = 16;
     }
     virtual int print(char *buf, int len) const;
@@ -113,51 +115,51 @@ namespace Arc {
   public:
     CheckSumAny(CheckSum *c = NULL)
       : cs(c),
-	tp(none) {}
+        tp(none) {}
     CheckSumAny(type type);
     CheckSumAny(const char *type);
     virtual ~CheckSumAny(void) {
       if (cs)
-	delete cs;
+        delete cs;
     }
     virtual void start(void) {
       if (cs)
-	cs->start();
+        cs->start();
     }
     virtual void add(void *buf, unsigned long long int len) {
       if (cs)
-	cs->add(buf, len);
+        cs->add(buf, len);
     }
     virtual void end(void) {
       if (cs)
-	cs->end();
+        cs->end();
     }
-    virtual void result(unsigned char *& res, unsigned int& len) const {
+    virtual void result(unsigned char*& res, unsigned int& len) const {
       if (cs) {
-	cs->result(res, len);
-	return;
+        cs->result(res, len);
+        return;
       }
       len = 0;
     }
     virtual int print(char *buf, int len) const {
       if (cs)
-	return cs->print(buf, len);
+        return cs->print(buf, len);
       if (len > 0)
-	buf[0] = 0;
+        buf[0] = 0;
       return 0;
     }
     virtual void scan(const char *buf) {
       if (cs)
-	cs->scan(buf);
+        cs->scan(buf);
     }
     virtual operator bool(void) const {
       if (!cs)
-	return false;
+        return false;
       return *cs;
     }
     virtual bool operator!(void) const {
       if (!cs)
-	return true;
+        return true;
       return !(*cs);
     }
     bool active(void) {

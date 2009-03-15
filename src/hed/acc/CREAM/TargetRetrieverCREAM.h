@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_TARGETRETRIEVERCREAM_H__
 #define __ARC_TARGETRETRIEVERCREAM_H__
 
@@ -19,14 +21,14 @@ namespace Arc {
   public:
     ~TargetRetrieverCREAM();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
-    static Plugin* Instance(PluginArgument* arg);
+    static Plugin* Instance(PluginArgument *arg);
 
   private:
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
 
     ThreadArg* CreateThreadArg(TargetGenerator& mom,
-			       int targetType, int detailLevel);
+                               int targetType, int detailLevel);
 
     static Logger logger;
   };

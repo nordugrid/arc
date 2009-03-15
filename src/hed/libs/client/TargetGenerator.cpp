@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -21,18 +23,18 @@ namespace Arc {
   Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
 
   TargetGenerator::TargetGenerator(const UserConfig& usercfg,
-				   const std::list<std::string>& clusters,
-				   const std::list<std::string>& indexurls)
+                                   const std::list<std::string>& clusters,
+                                   const std::list<std::string>& indexurls)
     : loader(NULL),
       threadCounter(0) {
 
     if (!usercfg.ResolveAlias(clusters, indexurls, clusterselect,
-			      clusterreject, indexselect, indexreject))
+                              clusterreject, indexselect, indexreject))
       return;
 
     if (clusterselect.empty() && indexselect.empty())
       if (!usercfg.DefaultServices(clusterselect, indexselect))
-	return;
+        return;
 
     ACCConfig acccfg;
     NS ns;
@@ -41,31 +43,31 @@ namespace Arc {
     int targetcnt = 0;
 
     for (URLListMap::iterator it = clusterselect.begin();
-	 it != clusterselect.end(); it++)
+         it != clusterselect.end(); it++)
       for (std::list<URL>::iterator it2 = it->second.begin();
-	   it2 != it->second.end(); it2++) {
+           it2 != it->second.end(); it2++) {
 
-	XMLNode retriever = cfg.NewChild("ArcClientComponent");
-	retriever.NewAttribute("name") = "TargetRetriever" + it->first;
-	retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-	usercfg.ApplySecurity(retriever); // check return value ?
-	XMLNode url = retriever.NewChild("URL") = it2->str();
-	url.NewAttribute("ServiceType") = "computing";
-	targetcnt++;
+        XMLNode retriever = cfg.NewChild("ArcClientComponent");
+        retriever.NewAttribute("name") = "TargetRetriever" + it->first;
+        retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
+        usercfg.ApplySecurity(retriever); // check return value ?
+        XMLNode url = retriever.NewChild("URL") = it2->str();
+        url.NewAttribute("ServiceType") = "computing";
+        targetcnt++;
       }
 
     for (URLListMap::iterator it = indexselect.begin();
-	 it != indexselect.end(); it++)
+         it != indexselect.end(); it++)
       for (std::list<URL>::iterator it2 = it->second.begin();
-	   it2 != it->second.end(); it2++) {
+           it2 != it->second.end(); it2++) {
 
-	XMLNode retriever = cfg.NewChild("ArcClientComponent");
-	retriever.NewAttribute("name") = "TargetRetriever" + it->first;
-	retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-	usercfg.ApplySecurity(retriever); // check return value ?
-	XMLNode url = retriever.NewChild("URL") = it2->str();
-	url.NewAttribute("ServiceType") = "index";
-	targetcnt++;
+        XMLNode retriever = cfg.NewChild("ArcClientComponent");
+        retriever.NewAttribute("name") = "TargetRetriever" + it->first;
+        retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
+        usercfg.ApplySecurity(retriever); // check return value ?
+        XMLNode url = retriever.NewChild("URL") = it2->str();
+        url.NewAttribute("ServiceType") = "index";
+        targetcnt++;
       }
 
     loader = new ACCLoader(cfg);
@@ -85,17 +87,17 @@ namespace Arc {
 
     TargetRetriever *TR;
     for (int i = 0;
-	 (TR = dynamic_cast<TargetRetriever*>(loader->getACC("retriever" +
-							     tostring(i))));
-	 i++)
+         (TR = dynamic_cast<TargetRetriever*>(loader->getACC("retriever" +
+                                                             tostring(i))));
+         i++)
       TR->GetTargets(*this, targetType, detailLevel);
     while (threadCounter > 0)
       threadCond.wait(threadMutex);
 
     logger.msg(INFO, "Found %ld targets", foundTargets.size());
 
-    for(std::list<ExecutionTarget>::iterator iter = foundTargets.begin();
-	iter != foundTargets.end(); iter++){
+    for (std::list<ExecutionTarget>::iterator iter = foundTargets.begin();
+         iter != foundTargets.end(); iter++) {
       logger.msg(DEBUG, "Cluster: %s", iter->DomainName);
       logger.msg(DEBUG, "Health State: %s", iter->HealthState);
     }
@@ -117,17 +119,17 @@ namespace Arc {
   bool TargetGenerator::AddService(const URL& url) {
 
     for (URLListMap::iterator it = clusterreject.begin();
-	 it != clusterreject.end(); it++)
+         it != clusterreject.end(); it++)
       if (std::find(it->second.begin(), it->second.end(), url) !=
-	  it->second.end()) {
-	logger.msg(INFO, "Rejecting service: %s", url.str());
-	return false;
+          it->second.end()) {
+        logger.msg(INFO, "Rejecting service: %s", url.str());
+        return false;
       }
 
     bool added = false;
     Glib::Mutex::Lock serviceLock(serviceMutex);
     if (std::find(foundServices.begin(), foundServices.end(), url) ==
-	foundServices.end()) {
+        foundServices.end()) {
       foundServices.push_back(url);
       added = true;
       Glib::Mutex::Lock threadLock(threadMutex);
@@ -139,17 +141,17 @@ namespace Arc {
   bool TargetGenerator::AddIndexServer(const URL& url) {
 
     for (URLListMap::iterator it = indexreject.begin();
-	 it != indexreject.end(); it++)
+         it != indexreject.end(); it++)
       if (std::find(it->second.begin(), it->second.end(), url) !=
-	  it->second.end()) {
-	logger.msg(INFO, "Rejecting service: %s", url.str());
-	return false;
+          it->second.end()) {
+        logger.msg(INFO, "Rejecting service: %s", url.str());
+        return false;
       }
 
     bool added = false;
     Glib::Mutex::Lock indexServerLock(indexServerMutex);
     if (std::find(foundIndexServers.begin(), foundIndexServers.end(), url) ==
-	foundIndexServers.end()) {
+        foundIndexServers.end()) {
       foundIndexServers.push_back(url);
       added = true;
       Glib::Mutex::Lock threadLock(threadMutex);
@@ -181,7 +183,7 @@ namespace Arc {
 
   void TargetGenerator::PrintTargetInfo(bool longlist) const {
     for (std::list<ExecutionTarget>::const_iterator cli = foundTargets.begin();
-	 cli != foundTargets.end(); cli++)
+         cli != foundTargets.end(); cli++)
       cli->Print(longlist);
   }
 

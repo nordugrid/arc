@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATABUFFER_H__
 #define __ARC_DATABUFFER_H__
 
@@ -84,9 +86,9 @@ namespace Arc {
     /// \param cksum object which will compute checksum. Should not be
     /// destroyed till DataBuffer itself.
     bool set(CheckSum *cksum = NULL, unsigned int size = 65536,
-	     int blocks = 3);
+             int blocks = 3);
     /// Direct access to buffer by number.
-    char *operator[](int n);
+    char* operator[](int n);
     /// Request buffer for READING INTO it.
     /// \param handle returns buffer's number.
     /// \param length returns size of buffer
@@ -103,20 +105,20 @@ namespace Arc {
     /// \param length amount of data.
     /// \param offset offset in stream, file, etc.
     bool is_read(int handle, unsigned int length,
-		 unsigned long long int offset);
+                 unsigned long long int offset);
     /// Informs object that data was read into buffer.
     /// \param buf - address of buffer
     /// \param length amount of data.
     /// \param offset offset in stream, file, etc.
     bool is_read(char *buf, unsigned int length,
-		 unsigned long long int offset);
+                 unsigned long long int offset);
     /// Request buffer for WRITING FROM it.
     /// \param handle returns buffer's number.
     /// \param length returns size of buffer
     /// \param wait if true and there are no free buffers, method will wait
     /// for one.
     bool for_write(int& handle, unsigned int& length,
-		   unsigned long long int& offset, bool wait);
+                   unsigned long long int& offset, bool wait);
     /// Check if there are buffers which can be taken by for_write(). This
     /// function checks only for buffers and does not take eof and error
     /// conditions into account.
@@ -170,7 +172,7 @@ namespace Arc {
     /// Returns true if checksum was successfully computed.
     bool checksum_valid();
     /// Returns CheckSum object specified in constructor.
-    const CheckSum *checksum_object();
+    const CheckSum* checksum_object();
     /// Wait till end of transfer happens on 'read' side.
     bool wait_eof_read();
     /// Wait till end of transfer or error happens on 'read' side.

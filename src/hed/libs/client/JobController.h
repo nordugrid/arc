@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_JOBCONTROLLER_H__
 #define __ARC_JOBCONTROLLER_H__
 
@@ -26,32 +28,32 @@ namespace Arc {
 
     // Base class implementation
     void FillJobStore(const std::list<URL>& jobids,
-		      const std::list<URL>& clusterselect,
-		      const std::list<URL>& cluterreject);
+                      const std::list<URL>& clusterselect,
+                      const std::list<URL>& cluterreject);
 
     bool Get(const std::list<std::string>& status,
-	     const std::string& downloaddir,
-	     const bool keep,
-	     const int timeout);
+             const std::string& downloaddir,
+             const bool keep,
+             const int timeout);
 
     bool Kill(const std::list<std::string>& status,
-	      const bool keep,
-	      const int timeout);
+              const bool keep,
+              const int timeout);
 
     bool Clean(const std::list<std::string>& status,
-	       const bool force,
-	       const int timeout);
+               const bool force,
+               const int timeout);
 
     bool Cat(const std::list<std::string>& status,
-	     const std::string& whichfile,
-	     const int timeout);
+             const std::string& whichfile,
+             const int timeout);
 
     bool Stat(const std::list<std::string>& status,
-	      const bool longlist,
-	      const int timeout);
+              const bool longlist,
+              const int timeout);
 
     bool Migrate(Arc::TargetGenerator& targetGen,
-                 Arc::Broker* broker,
+                 Arc::Broker *broker,
                  const bool forcemigration,
                  const int timeout);
 
@@ -61,8 +63,8 @@ namespace Arc {
     bool CopyFile(const URL& src, const URL& dst);
 
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
-				       const bool getlocal,
-				       const int timeout);
+                                      const bool getlocal,
+                                      const int timeout);
 
     void CheckLocalDescription(std::list<Job>& jobs);
 
@@ -72,7 +74,7 @@ namespace Arc {
     virtual bool CleanJob(const Job& job, bool force) = 0;
     virtual bool CancelJob(const Job& job) = 0;
     virtual URL GetFileUrlForJob(const Job& job,
-				 const std::string& whichfile) = 0;
+                                 const std::string& whichfile) = 0;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) = 0;
     virtual bool PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const = 0;
 

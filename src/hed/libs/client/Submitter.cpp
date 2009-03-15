@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -37,9 +39,9 @@ namespace Arc {
     //std::vector<std::pair<std::string, std::string> > fileList =
     //  jobdesc.getUploadableFiles();
     std::vector<std::pair<std::string, std::string> > fileList;
-    if ( !jobdesc.getUploadableFiles( fileList ) ){
-	std::cerr << "No uploadable files." << std::endl;
-        return false;
+    if (!jobdesc.getUploadableFiles(fileList)) {
+      std::cerr << "No uploadable files." << std::endl;
+      return false;
     }
 
     std::vector<std::pair<std::string, std::string> >::iterator file;
@@ -49,20 +51,20 @@ namespace Arc {
       std::string dst = url.str() + '/' + file->first;
       DataHandle source(src);
       source->AssignCredentials(proxyPath, certificatePath,
-				keyPath, caCertificatesDir);
+                                keyPath, caCertificatesDir);
       DataHandle destination(dst);
       destination->AssignCredentials(proxyPath, certificatePath,
-				     keyPath, caCertificatesDir);
+                                     keyPath, caCertificatesDir);
 
       std::string failure;
       int timeout = 300;
       if (!mover.Transfer(*source, *destination, cache, URLMap(),
-			  0, 0, 0, timeout, failure)) {
-	if (!failure.empty())
-	  logger.msg(ERROR, "Failed uploading file: %s", failure);
-	else
-	  logger.msg(ERROR, "Failed uploading file");
-	return false;
+                          0, 0, 0, timeout, failure)) {
+        if (!failure.empty())
+          logger.msg(ERROR, "Failed uploading file: %s", failure);
+        else
+          logger.msg(ERROR, "Failed uploading file");
+        return false;
       }
     }
 

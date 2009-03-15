@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATASTATUS_H__
 #define __ARC_DATASTATUS_H__
 

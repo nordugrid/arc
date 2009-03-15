@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __UNICORE_CLIENT__
 #define __UNICORE_CLIENT__
 
@@ -46,7 +48,7 @@ namespace Arc {
        @return true on success
      */
     bool submit(std::istream& jsdl_file, std::string& jobid,
-		bool delegate = false);
+                bool delegate = false);
 
     //! Query the status of a job.
     /*! This method queries the UNICORE service about the status of a

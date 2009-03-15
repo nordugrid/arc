@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -10,98 +12,93 @@
 
 namespace Arc {
 
-  const Glib::TimeVal ETERNAL(G_MAXLONG,0);
-  const Glib::TimeVal HISTORIC(G_MINLONG,0);
+  const Glib::TimeVal ETERNAL(G_MAXLONG, 0);
+  const Glib::TimeVal HISTORIC(G_MINLONG, 0);
 
-  Counter::Counter(){
+  Counter::Counter() {
     // Nothing needs to be done.
   }
 
-  Counter::Counter(const Counter&){
+  Counter::Counter(const Counter&) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
 
-  Counter::~Counter(){
+  Counter::~Counter() {
     // Nothing needs to be done.
   }
 
-  void Counter::operator=(const Counter&){
+  void Counter::operator=(const Counter&) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
 
-  Glib::TimeVal Counter::getCurrentTime(){
+  Glib::TimeVal Counter::getCurrentTime() {
     Glib::TimeVal currentTime;
     currentTime.assign_current_time();
     return currentTime;
   }
-  
-  Glib::TimeVal Counter::getExpiryTime(Glib::TimeVal duration){
-    if (duration<ETERNAL)
-      return getCurrentTime()+duration;
+
+  Glib::TimeVal Counter::getExpiryTime(Glib::TimeVal duration) {
+    if (duration < ETERNAL)
+      return getCurrentTime() + duration;
     else
       return ETERNAL;
   }
 
   CounterTicket Counter::getCounterTicket(Counter::IDType reservationID,
-				 Glib::TimeVal expiryTime,
-				 Counter* counter)
-  {
+                                          Glib::TimeVal expiryTime,
+                                          Counter *counter) {
     return CounterTicket(reservationID, expiryTime, counter);
   }
 
   ExpirationReminder Counter::getExpirationReminder(Glib::TimeVal expTime,
-					   Counter::IDType resID)
-  {
+                                                    Counter::IDType resID) {
     return ExpirationReminder(expTime, resID);
   }
 
-  CounterTicket::CounterTicket() :
-    reservationID(0),
-    expiryTime(HISTORIC),
-    counter(0)
-  {
+  CounterTicket::CounterTicket()
+    : reservationID(0),
+      expiryTime(HISTORIC),
+      counter(0) {
     // Nothing else needs to be done.
   }
 
   CounterTicket::CounterTicket(Counter::IDType reservationID,
-			       Glib::TimeVal expiryTime,
-			       Counter* counter) :
-    reservationID(reservationID),
-    expiryTime(expiryTime),
-    counter(counter)
-  {
+                               Glib::TimeVal expiryTime,
+                               Counter *counter)
+    : reservationID(reservationID),
+      expiryTime(expiryTime),
+      counter(counter) {
     // Nothing else needs to be done.
   }
 
-  bool CounterTicket::isValid(){
-    return expiryTime>counter->getCurrentTime();
+  bool CounterTicket::isValid() {
+    return expiryTime > counter->getCurrentTime();
   }
 
-  void CounterTicket::extend(Glib::TimeVal duration){
+  void CounterTicket::extend(Glib::TimeVal duration) {
     counter->extend(reservationID, expiryTime, duration);
   }
 
-  void CounterTicket::cancel(){
+  void CounterTicket::cancel() {
     counter->cancel(reservationID);
-    reservationID=0;
-    expiryTime=HISTORIC;
-    counter=0;
+    reservationID = 0;
+    expiryTime = HISTORIC;
+    counter = 0;
   }
 
   ExpirationReminder::ExpirationReminder(Glib::TimeVal expiryTime,
-					 Counter::IDType reservationID) :
-    expiryTime(expiryTime), reservationID(reservationID)
-  {
+                                         Counter::IDType reservationID)
+    : expiryTime(expiryTime),
+      reservationID(reservationID) {
     // Nothing else needs to be done.
   }
 
   bool ExpirationReminder::operator<
-    (const ExpirationReminder& other) const
-  {
+                (const ExpirationReminder& other) const {
     // Smaller time has higher priority!
-    return expiryTime>other.expiryTime;
+    return expiryTime > other.expiryTime;
   }
 
   Glib::TimeVal ExpirationReminder::getExpiryTime() const {

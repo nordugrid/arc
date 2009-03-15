@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -107,24 +109,24 @@ namespace Arc {
   bool DataPoint::CompareMeta(const DataPoint& p) const {
     if (CheckSize() && p.CheckSize())
       if (GetSize() != p.GetSize())
-	return false;
+        return false;
     if (CheckCheckSum() && p.CheckCheckSum())
       // TODO: compare checksums properly
       if (strcasecmp(GetCheckSum().c_str(), p.GetCheckSum().c_str()))
-	return false;
+        return false;
     if (CheckCreated() && p.CheckCreated())
       if (GetCreated() != p.GetCreated())
-	return false;
+        return false;
     if (CheckValid() && p.CheckValid())
       if (GetValid() != p.GetValid())
-	return false;
+        return false;
     return true;
   }
 
   void DataPoint::AssignCredentials(const std::string& proxyPath,
-				    const std::string& certificatePath,
-				    const std::string& keyPath,
-				    const std::string& caCertificatesDir) {
+                                    const std::string& certificatePath,
+                                    const std::string& keyPath,
+                                    const std::string& caCertificatesDir) {
     this->proxyPath = proxyPath;
     this->certificatePath = certificatePath;
     this->keyPath = keyPath;

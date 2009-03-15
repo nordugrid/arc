@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -6,7 +8,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
-// headers for debugging 
+// headers for debugging
 #include <sstream>
 // end headers for debugging
 #include "UNICOREClient.h"
@@ -17,17 +19,17 @@ namespace Arc {
   static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
 
   static XMLNode find_xml_node(const XMLNode& node,
-			       const std::string& el_name,
-			       const std::string& attr_name,
-			       const std::string& attr_value) {
+                               const std::string& el_name,
+                               const std::string& attr_name,
+                               const std::string& attr_value) {
     if (MatchXMLName(node, el_name) &&
-	(((std::string)node.Attribute(attr_name)) == attr_value))
+        (((std::string)node.Attribute(attr_name)) == attr_value))
       return node;
     XMLNode cn = node[el_name];
     while (cn) {
       XMLNode fn = find_xml_node(cn, el_name, attr_name, attr_value);
       if (fn)
-	return fn;
+        return fn;
       cn = cn[1];
     }
     return XMLNode();
@@ -41,8 +43,8 @@ namespace Arc {
     ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
     ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
     ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-    ns["ns0"]="urn:oasis:names:tc:SAML:2.0:assertion";
-    ns["rp"]="http://docs.oasis-open.org/wsrf/rp-2";
+    ns["ns0"] = "urn:oasis:names:tc:SAML:2.0:assertion";
+    ns["rp"] = "http://docs.oasis-open.org/wsrf/rp-2";
   }
 
   static void set_bes_factory_action(SOAPEnvelope& soap, const char *op) {
@@ -54,7 +56,7 @@ namespace Arc {
   // }
 
   UNICOREClient::UNICOREClient(const URL& url,
-			 const MCCConfig& cfg)
+                               const MCCConfig& cfg)
     : client_config(NULL),
       client_loader(NULL),
       client(NULL),
@@ -76,7 +78,7 @@ namespace Arc {
   }
 
   bool UNICOREClient::submit(std::istream& jsdl_file, std::string& jobid,
-			  bool delegate) {
+                             bool delegate) {
 
     std::string faultstring;
 
@@ -85,8 +87,8 @@ namespace Arc {
     // Create job request
     /*
        bes-factory:CreateActivity
-	 bes-factory:ActivityDocument
-	   jsdl:JobDefinition
+         bes-factory:ActivityDocument
+           jsdl:JobDefinition
      */
     PayloadSOAP req(unicore_ns);
     XMLNode op = req.NewChild("bes-factory:CreateActivity");
@@ -108,31 +110,31 @@ namespace Arc {
       XMLNode source = ds["jsdl:Source"];
       XMLNode target = ds["jsdl:Target"];
       if ((bool)source) {
-	std::string s_name = ds["jsdl:FileName"];
-	if (!s_name.empty()) {
-	  XMLNode x_url = source["jsdl:URI"];
-	  std::string s_url = x_url;
-	  if (s_url.empty())
-	    s_url = "./" + s_name;
-	  else {
-	    URL u_url(s_url);
-	    if (!u_url) {
-	      if (s_url[0] != '/')
-		s_url = "./" + s_url;
-	    }
-	    else {
-	      if (u_url.Protocol() == "file") {
-		s_url = u_url.Path();
-		if (s_url[0] != '/')
-		  s_url = "./" + s_url;
-	      }
-	      else
-		s_url.resize(0);
-	    }
-	  }
-	  if (!s_url.empty())
-	    x_url.Destroy();
-	}
+        std::string s_name = ds["jsdl:FileName"];
+        if (!s_name.empty()) {
+          XMLNode x_url = source["jsdl:URI"];
+          std::string s_url = x_url;
+          if (s_url.empty())
+            s_url = "./" + s_name;
+          else {
+            URL u_url(s_url);
+            if (!u_url) {
+              if (s_url[0] != '/')
+                s_url = "./" + s_url;
+            }
+            else {
+              if (u_url.Protocol() == "file") {
+                s_url = u_url.Path();
+                if (s_url[0] != '/')
+                  s_url = "./" + s_url;
+              }
+              else
+                s_url.resize(0);
+            }
+          }
+          if (!s_url.empty())
+            x_url.Destroy();
+        }
       }
     }
     act_doc.GetXML(jsdl_str);
@@ -147,44 +149,44 @@ namespace Arc {
     if (delegate) {
       client->Load(); // Make sure chain is ready
       XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
-				      "Component", "name", "tls.client");
+                                      "Component", "name", "tls.client");
       if (tls_cfg) {
-	deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
-	if (deleg_cert.empty()) {
-	  deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
-	  deleg_key = (std::string)(tls_cfg["KeyPath"]);
-	}
-	else
-	  deleg_key = deleg_cert;
+        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
+        if (deleg_cert.empty()) {
+          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
+          deleg_key = (std::string)(tls_cfg["KeyPath"]);
+        }
+        else
+          deleg_key = deleg_cert;
       }
       if (deleg_cert.empty() || deleg_key.empty()) {
-	logger.msg(ERROR, "Failed to find delegation credentials in "
-		   "client configuration");
-	return false;
+        logger.msg(ERROR, "Failed to find delegation credentials in "
+                   "client configuration");
+        return false;
       }
     }
     // Send job request + delegation
     if (client) {
       if (delegate) {
-	DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-	logger.msg(INFO, "Initiating delegation procedure");
-	if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
-					   &(client->GetContext()))) {
-	  logger.msg(ERROR, "Failed to initiate delegation");
-	  return false;
-	}
-	deleg.DelegatedToken(op);
+        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+        logger.msg(INFO, "Initiating delegation procedure");
+        if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
+                                           &(client->GetContext()))) {
+          logger.msg(ERROR, "Failed to initiate delegation");
+          return false;
+        }
+        deleg.DelegatedToken(op);
       }
       MCC_Status status =
-	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-			"BESFactoryPortType/CreateActivity", &req, &resp);
+        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
+                        "BESFactoryPortType/CreateActivity", &req, &resp);
       if (!status) {
-	logger.msg(ERROR, "Submission request failed");
-	return false;
+        logger.msg(ERROR, "Submission request failed");
+        return false;
       }
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response");
-	return false;
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
       }
     }
     else if (client_entry) {
@@ -192,18 +194,18 @@ namespace Arc {
       Message repmsg;
       MessageAttributes attributes_req;
       attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-			 "bes-factory/BESFactoryPortType/CreateActivity");
+                         "bes-factory/BESFactoryPortType/CreateActivity");
       MessageAttributes attributes_rep;
       MessageContext context;
 
       if (delegate) {
-	DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-	logger.msg(INFO, "Initiating delegation procedure");
-	if (!deleg.DelegateCredentialsInit(*client_entry, &context)) {
-	  logger.msg(ERROR, "Failed to initiate delegation");
-	  return false;
-	}
-	deleg.DelegatedToken(op);
+        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+        logger.msg(INFO, "Initiating delegation procedure");
+        if (!deleg.DelegateCredentialsInit(*client_entry, &context)) {
+          logger.msg(ERROR, "Failed to initiate delegation");
+          return false;
+        }
+        deleg.DelegatedToken(op);
       }
       reqmsg.Payload(&req);
       reqmsg.Attributes(&attributes_req);
@@ -212,23 +214,22 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "Submission request failed");
-	return false;
+        logger.msg(ERROR, "Submission request failed");
+        return false;
       }
       logger.msg(INFO, "Submission request succeed");
       if (repmsg.Payload() == NULL) {
-	logger.msg(ERROR, "There was no response to a submission request");
-	return false;
+        logger.msg(ERROR, "There was no response to a submission request");
+        return false;
       }
       try {
-	resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      }
-      catch (std::exception&) {}
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
       if (resp == NULL) {
-	logger.msg(ERROR, "A response to a submission request was not "
-		   "a SOAP message");
-	delete repmsg.Payload();
-	return false;
+        logger.msg(ERROR, "A response to a submission request was not "
+                   "a SOAP message");
+        delete repmsg.Payload();
+        return false;
       }
     }
     else {
@@ -271,11 +272,11 @@ namespace Arc {
 
     if (client) {
       MCC_Status status =
-	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-			"BESFactoryPortType/GetActivityStatuses", &req, &resp);
+        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
+                        "BESFactoryPortType/GetActivityStatuses", &req, &resp);
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response");
-	return false;
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
       }
     }
     else if (client_entry) {
@@ -283,7 +284,7 @@ namespace Arc {
       Message repmsg;
       MessageAttributes attributes_req;
       attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-			 "bes-factory/BESFactoryPortType/GetActivityStatuses");
+                         "bes-factory/BESFactoryPortType/GetActivityStatuses");
       MessageAttributes attributes_rep;
       MessageContext context;
       reqmsg.Payload(&req);
@@ -293,23 +294,22 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A status request failed");
-	return false;
+        logger.msg(ERROR, "A status request failed");
+        return false;
       }
       logger.msg(INFO, "A status request succeed");
       if (repmsg.Payload() == NULL) {
-	logger.msg(ERROR, "There was no response to a status request");
-	return false;
+        logger.msg(ERROR, "There was no response to a status request");
+        return false;
       }
       try {
-	resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      }
-      catch (std::exception&) {}
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
       if (resp == NULL) {
-	logger.msg(ERROR,
-		   "The response of a status request was not a SOAP message");
-	delete repmsg.Payload();
-	return false;
+        logger.msg(ERROR,
+                   "The response of a status request was not a SOAP message");
+        delete repmsg.Payload();
+        return false;
       }
     }
     else {
@@ -348,12 +348,12 @@ namespace Arc {
     PayloadSOAP req(unicore_ns);
     XMLNode query = req.NewChild("rp:QueryResourceProperties");
     XMLNode exp = query.NewChild("rp:QueryExpression");
-    exp.NewAttribute("Dialect")="http://www.w3.org/TR/1999/REC-xpath-19991116";
-    exp="//*";
+    exp.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
+    exp = "//*";
     PayloadSOAP *resp = NULL;
     MCC_Status rrstatus = client->process("http://docs.oasis-open.org/wsrf/rpw-2"
-			"/QueryResourceProperties/QueryResourcePropertiesRequest",
-			&req, &resp);
+                                          "/QueryResourceProperties/QueryResourcePropertiesRequest",
+                                          &req, &resp);
     //Check lots of different things that could have gone wrong
     //Report these through logger with suitable loglevel
     //React and recover from these problems in suitable ways
@@ -363,7 +363,7 @@ namespace Arc {
     }
     resp->GetDoc(status, true);
     XMLNodeList memberServices = (resp->Body()).Path("QueryResourcePropertiesResponse"
-			"/Entry/MemberServiceEPR");
+                                                     "/Entry/MemberServiceEPR");
 
     //debugging
     std::stringstream ss;
@@ -378,7 +378,7 @@ namespace Arc {
       status += "\niName:\n";
       std::string iName = (*it)["Metadata"]["InterfaceName"];
       status += iName;
-      if (iName.find("BESFactoryPortType") != std::string::npos){
+      if (iName.find("BESFactoryPortType") != std::string::npos) {
         std::string urlstr = (*it)["Address"];
         status += "\nFound a BESFactory at " + urlstr; //Temp debugging
 
@@ -413,12 +413,12 @@ namespace Arc {
     PayloadSOAP *resp = NULL;
     if (client) {
       MCC_Status status =
-	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-			"BESFactoryPortType/GetFactoryAttributesDocument",
-			&req, &resp);
+        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
+                        "BESFactoryPortType/GetFactoryAttributesDocument",
+                        &req, &resp);
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response");
-	return false;
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
       }
     }
     else if (client_entry) {
@@ -426,8 +426,8 @@ namespace Arc {
       Message repmsg;
       MessageAttributes attributes_req;
       attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-			 "bes-factory/BESFactoryPortType/"
-			 "GetFactoryAttributesDocument");
+                         "bes-factory/BESFactoryPortType/"
+                         "GetFactoryAttributesDocument");
       MessageAttributes attributes_rep;
       MessageContext context;
       reqmsg.Payload(&req);
@@ -437,24 +437,23 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A service status request failed");
-	return false;
+        logger.msg(ERROR, "A service status request failed");
+        return false;
       }
       logger.msg(INFO, "A service status request succeeded");
       if (repmsg.Payload() == NULL) {
-	logger.msg(ERROR,
-		   "There was no response to a service status request");
-	return false;
+        logger.msg(ERROR,
+                   "There was no response to a service status request");
+        return false;
       }
       try {
-	resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      }
-      catch (std::exception&) {}
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
       if (resp == NULL) {
-	logger.msg(ERROR, "The response of a service status request was "
-		   "not a SOAP message");
-	delete repmsg.Payload();
-	return false;
+        logger.msg(ERROR, "The response of a service status request was "
+                   "not a SOAP message");
+        delete repmsg.Payload();
+        return false;
       }
     }
     else {
@@ -493,11 +492,11 @@ namespace Arc {
     PayloadSOAP *resp = NULL;
     if (client) {
       MCC_Status status =
-	client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-			"BESFactoryPortType/TerminateActivities", &req, &resp);
+        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
+                        "BESFactoryPortType/TerminateActivities", &req, &resp);
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response");
-	return false;
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
       }
     }
     else if (client_entry) {
@@ -505,7 +504,7 @@ namespace Arc {
       Message repmsg;
       MessageAttributes attributes_req;
       attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-			 "bes-factory/BESFactoryPortType/TerminateActivities");
+                         "bes-factory/BESFactoryPortType/TerminateActivities");
       MessageAttributes attributes_rep;
       MessageContext context;
       reqmsg.Payload(&req);
@@ -515,24 +514,23 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A job termination request failed");
-	return false;
+        logger.msg(ERROR, "A job termination request failed");
+        return false;
       }
       logger.msg(INFO, "A job termination request succeed");
       if (repmsg.Payload() == NULL) {
-	logger.msg(ERROR,
-		   "There was no response to a job termination request");
-	return false;
+        logger.msg(ERROR,
+                   "There was no response to a job termination request");
+        return false;
       }
       try {
-	resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      }
-      catch (std::exception&) {}
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
       if (resp == NULL) {
-	logger.msg(ERROR, "The response of a job termination request was "
-		   "not a SOAP message");
-	delete repmsg.Payload();
-	return false;
+        logger.msg(ERROR, "The response of a job termination request was "
+                   "not a SOAP message");
+        delete repmsg.Payload();
+        return false;
       }
     }
     else {
@@ -574,8 +572,8 @@ namespace Arc {
     if (client) {
       MCC_Status status = client->process("", &req, &resp);
       if (resp == NULL) {
-	logger.msg(ERROR, "There was no SOAP response");
-	return false;
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
       }
     }
     else if (client_entry) {
@@ -591,24 +589,23 @@ namespace Arc {
       repmsg.Context(&context);
       MCC_Status status = client_entry->process(reqmsg, repmsg);
       if (!status) {
-	logger.msg(ERROR, "A job cleaning request failed");
-	return false;
+        logger.msg(ERROR, "A job cleaning request failed");
+        return false;
       }
       logger.msg(INFO, "A job cleaning request succeed");
       if (repmsg.Payload() == NULL) {
-	logger.msg(ERROR,
-		   "There was no response to a job cleaning request");
-	return false;
+        logger.msg(ERROR,
+                   "There was no response to a job cleaning request");
+        return false;
       }
       try {
-	resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      }
-      catch (std::exception&) {}
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
       if (resp == NULL) {
-	logger.msg(ERROR, "The response of a job cleaning request was not "
-		   "a SOAP message");
-	delete repmsg.Payload();
-	return false;
+        logger.msg(ERROR, "The response of a job cleaning request was not "
+                   "a SOAP message");
+        delete repmsg.Payload();
+        return false;
       }
     }
     else {
@@ -622,12 +619,12 @@ namespace Arc {
       (*resp)["Fault"]["faultstring"].New(fs);
       faultstring = (std::string)fs;
       if (faultstring != "") {
-	logger.msg(ERROR, faultstring);
-	return false;
+        logger.msg(ERROR, faultstring);
+        return false;
       }
       if (result != "true") {
-	logger.msg(ERROR, "Job termination failed");
-	return false;
+        logger.msg(ERROR, "Job termination failed");
+        return false;
       }
     }
     delete resp;

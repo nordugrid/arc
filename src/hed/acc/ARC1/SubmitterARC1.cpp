@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -20,10 +22,11 @@ namespace Arc {
 
   SubmitterARC1::~SubmitterARC1() {}
 
-  Plugin* SubmitterARC1::Instance(Arc::PluginArgument* arg) {
-    ACCPluginArgument* accarg =
-            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
-    if(!accarg) return NULL;
+  Plugin* SubmitterARC1::Instance(Arc::PluginArgument *arg) {
+    ACCPluginArgument *accarg =
+      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
+    if (!accarg)
+      return NULL;
     return new SubmitterARC1((Arc::Config*)(*accarg));
   }
 
@@ -98,7 +101,7 @@ namespace Arc {
     id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
     std::string idstr;
     id.GetXML(idstr);
-    
+
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "POSIXJSDL");
 
@@ -125,5 +128,5 @@ namespace Arc {
 
     return true;
   }
-  
+
 } // namespace Arc

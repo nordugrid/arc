@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #include <arc/loader/Plugin.h>
 #include <arc/client/ACCLoader.h>
 
@@ -11,4 +13,3 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "JobControllerARC0", "HED:ACC", 0, &Arc::JobControllerARC0::Instance },
   { NULL, NULL, 0, NULL }
 };
-

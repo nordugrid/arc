@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_MKDIRRECURSIVE_H__
 #define __ARC_MKDIRRECURSIVE_H__
 
@@ -13,6 +15,6 @@
    down to 'base_path'.
  */
 int mkdir_recursive(const std::string& base_path, const std::string& path,
-		    mode_t mode, const Arc::User& user);
+                    mode_t mode, const Arc::User& user);
 
 #endif // __ARC_MKDIRRECURSIVE_H__

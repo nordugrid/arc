@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_DATAHANDLE_H__
 #define __ARC_DATAHANDLE_H__
 
@@ -20,29 +22,29 @@ namespace Arc {
       : p(DMC::GetDataPoint(url)) {}
     ~DataHandle() {
       if (p)
-	delete p;
+        delete p;
     }
     DataHandle& operator=(const URL& url) {
       if (p)
-	delete p;
+        delete p;
       p = DMC::GetDataPoint(url);
       return *this;
     }
     void Clear() {
       if (p)
-	delete p;
+        delete p;
       p = NULL;
     }
-    DataPoint *operator->() {
+    DataPoint* operator->() {
       return p;
     }
-    const DataPoint *operator->() const {
+    const DataPoint* operator->() const {
       return p;
     }
-    DataPoint& operator *() {
+    DataPoint& operator*() {
       return *p;
     }
-    const DataPoint& operator *() const {
+    const DataPoint& operator*() const {
       return *p;
     }
     bool operator!() const {

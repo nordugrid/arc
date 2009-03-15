@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_FILEINFO_H__
 #define __ARC_FILEINFO_H__
 
@@ -22,11 +24,11 @@ namespace Arc {
 
     FileInfo(const std::string& name = "")
       : name(name),
-	size((unsigned long long int)(-1)),
-	created((time_t)(-1)),
-	valid((time_t)(-1)),
-	type(file_type_unknown),
-	latency("") {}
+        size((unsigned long long int)(-1)),
+        created((time_t)(-1)),
+        valid((time_t)(-1)),
+        type(file_type_unknown),
+        latency("") {}
 
     ~FileInfo() {}
 
@@ -37,9 +39,9 @@ namespace Arc {
     std::string GetLastName() const {
       std::string::size_type pos = name.rfind('/');
       if (pos != std::string::npos)
-	return name.substr(pos + 1);
+        return name.substr(pos + 1);
       else
-	return name;
+        return name;
     }
 
     const std::list<URL>& GetURLs() const {
@@ -109,7 +111,7 @@ namespace Arc {
     void SetType(const Type t) {
       type = t;
     }
-    
+
     bool CheckLatency() const {
       return (!latency.empty());
     }
@@ -117,11 +119,11 @@ namespace Arc {
     std::string GetLatency() const {
       return latency;
     }
-    
+
     void SetLatency(const std::string l) {
       latency = l;
     }
-    
+
   private:
 
     std::string name;

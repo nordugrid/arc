@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -19,7 +21,7 @@ namespace Arc {
 
   Plugin* JobControllerARC1::Instance(PluginArgument *arg) {
     ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
-    if(!accarg)
+    if (!accarg)
       return NULL;
     return new JobControllerARC1((Config*)(*accarg));
   }
@@ -60,7 +62,7 @@ namespace Arc {
   }
 
   bool JobControllerARC1::GetJob(const Job& job,
-				 const std::string& downloaddir) {
+                                 const std::string& downloaddir) {
 
     logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
 
@@ -84,12 +86,12 @@ namespace Arc {
     bool ok = true;
 
     for (std::list<std::string>::iterator it = files.begin();
-	 it != files.end(); it++) {
+         it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
       if (!CopyFile(src, dst)) {
-	logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
-	ok = false;
+        logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+        ok = false;
       }
     }
 
@@ -158,22 +160,23 @@ namespace Arc {
 
   bool JobControllerARC1::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
     XMLNode xmlDesc(job.JobDescription);
-      
+
     // Set OldJobID to current JobID.
     xmlDesc["JobDescription"]["JobIdentification"].NewChild("jsdl-arc:OldJobID") = job.JobID.str();
-      
+
     const XMLNode xPosixApp = xmlDesc["JobDescription"]["Application"]["POSIXApplication"];
     const std::string outputfilename = (xPosixApp["Output"] ? xPosixApp["Output"] : "");
-    const std::string errorfilename  = (xPosixApp["Error"]  ? xPosixApp["Error"] : "");
-      
+    const std::string errorfilename = (xPosixApp["Error"]  ? xPosixApp["Error"] : "");
+
     // Loop over data stagging elements in XML file.
-      
+
     for (XMLNode files = xmlDesc["JobDescription"]["DataStaging"]; files; ++files) {
       const std::string filename = files["FileName"];
       // Do not modify the DataStaging element of the output and error files.
       const bool isOutputOrError = (filename != "" && (filename == outputfilename || filename == errorfilename));
       if (!isOutputOrError && !files["Source"]["URI"]) {
-        if (!files["Source"]) files.NewChild("Source");
+        if (!files["Source"])
+          files.NewChild("Source");
         files["Source"].NewChild("URI") = job.JobID.str() + "/" + filename;
       }
     }
@@ -185,7 +188,7 @@ namespace Arc {
   }
 
   URL JobControllerARC1::GetFileUrlForJob(const Job& job,
-					  const std::string& whichfile) {}
+                                          const std::string& whichfile) {}
 
   bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) {
     MCCConfig cfg;
@@ -214,12 +217,14 @@ namespace Arc {
     id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
     std::string idstr;
     id.GetXML(idstr);
-    if (ac.getdesc(idstr,desc_str)){
+    if (ac.getdesc(idstr, desc_str)) {
       JobDescription desc;
       desc.setSource(desc_str);
-      if (desc.isValid()) logger.msg(INFO,"Valid job description");
+      if (desc.isValid())
+        logger.msg(INFO, "Valid job description");
       return true;
-    } else {
+    }
+    else {
       logger.msg(ERROR, "No job description");
       return false;
     }

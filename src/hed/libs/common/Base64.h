@@ -1,4 +1,6 @@
-/* Base64 encoding and decoding, borrowed from Axis2c project. 
+// -*- indent-tabs-mode: nil -*-
+
+/* Base64 encoding and decoding, borrowed from Axis2c project.
  * Below is the license which is required by Axis2c.
  */
 
@@ -24,7 +26,7 @@
 #include <string>
 
 namespace Arc {
-  class Base64{
+  class Base64 {
   public:
     Base64();
     ~Base64();
@@ -34,7 +36,5 @@ namespace Arc {
     static int decode(char *bufplain, const char *bufcoded);
   };
 } // namespace Arc
-    
+
 #endif // ARCLIB_BASE64
-
-

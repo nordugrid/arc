@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -19,10 +21,11 @@ namespace Arc {
 
   SubmitterUNICORE::~SubmitterUNICORE() {}
 
-  Plugin* SubmitterUNICORE::Instance(Arc::PluginArgument* arg) {
-    ACCPluginArgument* accarg =
-            arg?dynamic_cast<ACCPluginArgument*>(arg):NULL;
-    if(!accarg) return NULL;
+  Plugin* SubmitterUNICORE::Instance(Arc::PluginArgument *arg) {
+    ACCPluginArgument *accarg =
+      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
+    if (!accarg)
+      return NULL;
     return new SubmitterUNICORE((Arc::Config*)(*accarg));
   }
 
@@ -63,7 +66,7 @@ namespace Arc {
     WSAHeader(req).Action("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
     WSAHeader(req).To(submissionEndpoint.str());
     std::string jsdl_str;
-    jobdesc.getProduct(jsdl_str,"POSIXJSDL");
+    jobdesc.getProduct(jsdl_str, "POSIXJSDL");
     act_doc.NewChild(XMLNode(jsdl_str));
     //act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
@@ -71,7 +74,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Job description to be sent: %s", jsdl_str);
     MCC_Status status =
       client.process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-                      "BESFactoryPortType/CreateActivity", &req, &resp);
+                     "BESFactoryPortType/CreateActivity", &req, &resp);
     if (!status) {
       logger.msg(ERROR, "Submission request failed");
       return false;

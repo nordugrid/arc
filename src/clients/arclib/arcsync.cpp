@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -33,73 +35,73 @@ int main(int argc, char **argv) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
-  
+
   Arc::ArcLocation::Init(argv[0]);
-  
+
   Arc::OptionParser options(istring("[filename ...]"),
-			    istring("The command is used for "
-				    "jobid synchronization"),
-			    istring("Argument to -i has the format "
-				    "Flavour:URL e.g.\n"
-				    "ARC0:ldap://grid.tsl.uu.se:2135/"
-				    "mds-vo-name=sweden,O=grid\n"
-				    "CREAM:ldap://cream.grid.upjs.sk:2170/"
-				    "o=grid\n"
-				    "\n"
-				    "Argument to -c has the format "
-				    "Flavour:URL e.g.\n"
-				    "ARC0:ldap://grid.tsl.uu.se:2135/"
-				    "nordugrid-cluster-name=grid.tsl.uu.se,"
-				    "Mds-Vo-name=local,o=grid"));
-  
+                            istring("The command is used for "
+                                    "jobid synchronization"),
+                            istring("Argument to -i has the format "
+                                    "Flavour:URL e.g.\n"
+                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
+                                    "mds-vo-name=sweden,O=grid\n"
+                                    "CREAM:ldap://cream.grid.upjs.sk:2170/"
+                                    "o=grid\n"
+                                    "\n"
+                                    "Argument to -c has the format "
+                                    "Flavour:URL e.g.\n"
+                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
+                                    "nordugrid-cluster-name=grid.tsl.uu.se,"
+                                    "Mds-Vo-name=local,o=grid"));
+
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-		    istring("explicity select or reject a specific cluster"),
-		    istring("[-]name"),
-		    clusters);
-  
+                    istring("explicity select or reject a specific cluster"),
+                    istring("[-]name"),
+                    clusters);
+
   std::list<std::string> indexurls;
   options.AddOption('i', "index",
-		    istring("explicity select or reject an index server"),
-		    istring("[-]name"),
-		    indexurls);
-  
+                    istring("explicity select or reject an index server"),
+                    istring("[-]name"),
+                    indexurls);
+
   std::string joblist;
   options.AddOption('j', "joblist",
-		    istring("file where the jobs will be stored"),
-		    istring("filename"),
-		    joblist);
-  
+                    istring("file where the jobs will be stored"),
+                    istring("filename"),
+                    joblist);
+
   bool force = false;
   options.AddOption('f', "force",
                     istring("do not ask for verification"),
                     force);
-  
+
   bool merge = false;
   options.AddOption('m', "merge",
                     istring("merge the synced jobs with the joblist"),
                     merge);
-  
+
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-		    istring("seconds"), timeout);
-  
+                    istring("seconds"), timeout);
+
   std::string conffile;
   options.AddOption('z', "conffile",
-		    istring("configuration file (default ~/.arc/client.xml)"),
-		    istring("filename"), conffile);
-  
+                    istring("configuration file (default ~/.arc/client.xml)"),
+                    istring("filename"), conffile);
+
   std::string debug;
   options.AddOption('d', "debug",
-		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
-		    istring("debuglevel"), debug);
-  
+                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("debuglevel"), debug);
+
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
-		    version);
-  
+                    version);
+
   std::list<std::string> params = options.Parse(argc, argv);
-  
+
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
@@ -116,29 +118,29 @@ int main(int argc, char **argv) {
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcsync", VERSION)
-	      << std::endl;
+              << std::endl;
     return 0;
   }
 
   //sanity check
   if (!force) {
     std::cout << Arc::IString("Synchronizing the local list of active jobs with the information in the MDS\n"
-			      "can result in some inconsistencies. Very recently submitted jobs might not\n"
-			      "yet be present in the MDS information, whereas jobs very recently scheduled\n"
-			      "for deletion can still be present."
-			      ) << std::endl;
+                              "can result in some inconsistencies. Very recently submitted jobs might not\n"
+                              "yet be present in the MDS information, whereas jobs very recently scheduled\n"
+                              "for deletion can still be present."
+                              ) << std::endl;
     std::cout << Arc::IString("Are you sure you want to synchronize your local job list?") << " ["
-	      << Arc::IString("y") << "/" << Arc::IString("n") << "] ";
+              << Arc::IString("y") << "/" << Arc::IString("n") << "] ";
     std::string response;
     std::cin >> response;
     /*
-    if (response != Arc::IString("y")) {
-      std::cout << Arc::IString("Cancelling synchronization request") << std::endl;
-      return;
-    }
-    */
+       if (response != Arc::IString("y")) {
+       std::cout << Arc::IString("Cancelling synchronization request") << std::endl;
+       return;
+       }
+     */
   }
-  
+
   //Setting the joblist file (or creating a new one if not already existing)
   if (joblist.empty())
     joblist = usercfg.JobListFile();
@@ -146,24 +148,24 @@ int main(int argc, char **argv) {
     struct stat st;
     if (stat(joblist.c_str(), &st) != 0) {
       if (errno == ENOENT) {
-	Arc::NS ns;
-	Arc::Config(ns).SaveToFile(joblist);
-	logger.msg(Arc::INFO, "Created empty ARC job list file: %s", joblist);
-	stat(joblist.c_str(), &st);
+        Arc::NS ns;
+        Arc::Config(ns).SaveToFile(joblist);
+        logger.msg(Arc::INFO, "Created empty ARC job list file: %s", joblist);
+        stat(joblist.c_str(), &st);
       }
       else {
-	logger.msg(Arc::ERROR, "Can not access ARC job list file: %s (%s)",
-		   joblist, Arc::StrError());
-	return 1;
+        logger.msg(Arc::ERROR, "Can not access ARC job list file: %s (%s)",
+                   joblist, Arc::StrError());
+        return 1;
       }
     }
     if (!S_ISREG(st.st_mode)) {
       logger.msg(Arc::ERROR, "ARC job list file is not a regular file: %s",
-		 joblist);
+                 joblist);
       return 1;
     }
   }
-  
+
   //Find all jobs
   Arc::TargetGenerator targen(usercfg, clusters, indexurls);
   targen.GetTargets(1, 1);
@@ -172,27 +174,26 @@ int main(int argc, char **argv) {
   std::cout << "Found number of jobs: " << targen.FoundJobs().size() << std::endl;
 
   //Write extracted job info to joblist (overwrite the file)
-  {//start of file lock
+  { //start of file lock
     Arc::FileLock lock(joblist);
     Arc::NS ns;
     Arc::Config jobs(ns);
 
-    if (merge) jobs.ReadFromFile(joblist);
-    for (std::list<Arc::XMLNode*>::const_iterator itSyncedJob = targen.FoundJobs().begin(); 
+    if (merge)
+      jobs.ReadFromFile(joblist);
+    for (std::list<Arc::XMLNode*>::const_iterator itSyncedJob = targen.FoundJobs().begin();
          itSyncedJob != targen.FoundJobs().end(); itSyncedJob++) {
-      if (merge) {
-        for (Arc::XMLNode j = jobs["Job"]; j; ++j) {
-          if ((std::string) j["JobID"] == (std::string)(**itSyncedJob)["JobID"]) {
+      if (merge)
+        for (Arc::XMLNode j = jobs["Job"]; j; ++j)
+          if ((std::string)j["JobID"] == (std::string)(**itSyncedJob)["JobID"]) {
             j.Destroy();
             break;
           }
-        }
-      }
-      
+
       jobs.NewChild(**itSyncedJob);
     }
     jobs.SaveToFile(joblist);
-  }//end of file lock
+  } //end of file lock
 
   return 0;
 

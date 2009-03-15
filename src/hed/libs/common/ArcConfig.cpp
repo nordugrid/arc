@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -38,12 +40,12 @@ namespace Arc {
       XMLNode _node = node.Child(n);
       if (!_node)
         break;
-        _print(_node, skip + 2);
+      _print(_node, skip + 2);
     }
   }
 
   void Config::print(void) {
-    _print(*((XMLNode *)this), 0);
+    _print(*((XMLNode*)this), 0);
   }
 
   void Config::parse(const char *filename) {
@@ -52,7 +54,7 @@ namespace Arc {
   }
 
   Config::Config(long cfg_ptr_addr) {
-    Config *cfg = (Config *)cfg_ptr_addr;
+    Config *cfg = (Config*)cfg_ptr_addr;
     cfg->New(*this);
   }
 
@@ -68,7 +70,7 @@ namespace Arc {
     out << str;
     out.close();
   }
-  
+
   BaseConfig::BaseConfig() {
     wsstype = NONETOKEN;
 #ifdef WIN32
@@ -82,8 +84,8 @@ namespace Arc {
       while (pos != std::string::npos) {
         std::string::size_type pos2 = arcpluginpath.find(separator, pos);
         AddPluginsPath(pos2 == std::string::npos ?
-                        arcpluginpath.substr(pos) :
-                          arcpluginpath.substr(pos, pos2 - pos));
+                       arcpluginpath.substr(pos) :
+                       arcpluginpath.substr(pos, pos2 - pos));
         pos = pos2;
         if (pos != std::string::npos)
           pos++;
@@ -100,9 +102,9 @@ namespace Arc {
   XMLNode BaseConfig::MakeConfig(XMLNode cfg) const {
     XMLNode mm = cfg.NewChild("ModuleManager");
     for (std::list<std::string>::const_iterator p = plugin_paths.begin();
-            p != plugin_paths.end(); ++p)
+         p != plugin_paths.end(); ++p)
       mm.NewChild("Path") = *p;
-      return mm;
+    return mm;
   }
 
   void BaseConfig::AddPrivateKey(const std::string& path) {

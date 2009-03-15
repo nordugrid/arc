@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_USERCONFIG_H__
 #define __ARC_USERCONFIG_H__
 
@@ -30,22 +32,22 @@ namespace Arc {
     bool ApplySecurity(XMLNode& ccfg) const;
 
     bool DefaultServices(URLListMap& cluster,
-			 URLListMap& index) const;
+                         URLListMap& index) const;
 
     bool ResolveAlias(const std::string alias,
-		      URLListMap& cluster,
-		      URLListMap& index) const;
+                      URLListMap& cluster,
+                      URLListMap& index) const;
 
     bool ResolveAlias(const std::list<std::string>& clusters,
-		      const std::list<std::string>& indices,
-		      URLListMap& clusterselect,
-		      URLListMap& clusterreject,
-		      URLListMap& indexselect,
-		      URLListMap& indexreject) const;
+                      const std::list<std::string>& indices,
+                      URLListMap& clusterselect,
+                      URLListMap& clusterreject,
+                      URLListMap& indexselect,
+                      URLListMap& indexreject) const;
 
     bool ResolveAlias(const std::list<std::string>& clusters,
-		      URLListMap& clusterselect,
-		      URLListMap& clusterreject) const;
+                      URLListMap& clusterselect,
+                      URLListMap& clusterreject) const;
 
     operator bool() const;
     bool operator!() const;

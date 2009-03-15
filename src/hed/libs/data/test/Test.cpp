@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
@@ -6,8 +8,8 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "libarcdatatest");
 
-int main(int argc, char** argv) {
-  
+int main(int argc, char **argv) {
+
   Arc::LogStream logcerr(std::cerr);
 
   if (argc > 1 && strcmp(argv[1], "-v") == 0) {
@@ -15,7 +17,7 @@ int main(int argc, char** argv) {
     Arc::Logger::getRootLogger().addDestination(logcerr);
     Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
   }
-  
+
   CppUnit::TextUi::TestRunner runner;
   runner.addTest(CppUnit::TestFactoryRegistry::getRegistry().makeTest());
 

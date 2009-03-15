@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_URLMAP_H__
 #define __ARC_URLMAP_H__
 
@@ -17,9 +19,9 @@ namespace Arc {
       URL access;
       map_entry() {}
       map_entry(const URL& templ, const URL& repl, const URL& accs = URL())
-	: initial(templ),
-	  replacement(repl),
-	  access(accs) {}
+        : initial(templ),
+          replacement(repl),
+          access(accs) {}
     };
     std::list<map_entry> entries;
     static Logger logger;

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_URL_H__
 #define __ARC_URL_H__
 
@@ -34,7 +36,7 @@ namespace Arc {
      treated as path to file containing list of URLs.*/
   class URL {
 
-   public:
+  public:
     /** Empty constructor. Necessary when the class is part of
         another class and the like. */
     URL();
@@ -46,7 +48,9 @@ namespace Arc {
     virtual ~URL();
 
     /** Scope for LDAP URLs */
-    enum Scope { base, onelevel, subtree };
+    enum Scope {
+      base, onelevel, subtree
+    };
 
     /** Returns the protocol of the URL. */
     const std::string& Protocol() const;
@@ -85,9 +89,9 @@ namespace Arc {
     const std::map<std::string, std::string>& HTTPOptions() const;
 
     /** Returns the value of an HTTP option.
-	\param option     The option whose value is returned.
-	\param undefined  This value is returned if the HTTP option is
-				not defined. */
+        \param option     The option whose value is returned.
+        \param undefined  This value is returned if the HTTP option is
+                                not defined. */
     const std::string& HTTPOption(const std::string& option,
                                   const std::string& undefined = "") const;
 
@@ -113,9 +117,9 @@ namespace Arc {
     const std::map<std::string, std::string>& Options() const;
 
     /** Returns the value of a URL option.
-	\param option     The option whose value is returned.
-	\param undefined  This value is returned if the URL option is
-				not defined. */
+        \param option     The option whose value is returned.
+        \param undefined  This value is returned if the URL option is
+                                not defined. */
     const std::string& Option(const std::string& option,
                               const std::string& undefined = "") const;
 
@@ -123,8 +127,8 @@ namespace Arc {
     const std::map<std::string, std::string>& MetaDataOptions() const;
 
     /** Returns the value of a metadata option.
-  \param option     The option whose value is returned.
-  \param undefined  This value is returned if the metadata option is
+       \param option     The option whose value is returned.
+       \param undefined  This value is returned if the metadata option is
         not defined. */
     const std::string& MetaDataOption(const std::string& option,
                                       const std::string& undefined = "") const;
@@ -140,12 +144,12 @@ namespace Arc {
     const std::map<std::string, std::string>& CommonLocOptions() const;
 
     /** Returns the value of a common location option.
-	\param option     The option whose value is returned.
-	\param undefined  This value is returned if the common location
-				option is not defined. */
+        \param option     The option whose value is returned.
+        \param undefined  This value is returned if the common location
+                                option is not defined. */
     const std::string& CommonLocOption(const std::string& option,
                                        const std::string&
-                                         undefined = "") const;
+                                       undefined = "") const;
 
     /** Returns a string representation of the URL. */
     virtual std::string str() const;
@@ -165,12 +169,12 @@ namespace Arc {
     /** Check if instance holds valid URL */
     operator bool() const;
     bool operator!() const;
-    
+
     /** Returns a string representation of the options given in the options map */
     static std::string OptionString(const std::map<std::string,
-                                      std::string>& options, char separator);
+                                                   std::string>& options, char separator);
 
-   protected:
+  protected:
     /** the url protocol. */
     std::string protocol;
 
@@ -194,7 +198,7 @@ namespace Arc {
 
     /** Meta data options */
     std::map<std::string, std::string> metadataoptions;
-    
+
     /** LDAP attributes of the url. */
     std::list<std::string> ldapattributes;
 
@@ -226,9 +230,10 @@ namespace Arc {
 
   /// Class to hold a resolved URL location.
   /** It is specific to file indexing service registrations. */
-  class URLLocation : public URL {
+  class URLLocation
+    : public URL {
 
-   public:
+  public:
     /** Creates a URLLocation from a string representaion. */
     URLLocation(const std::string& url);
 
@@ -257,7 +262,7 @@ namespace Arc {
     /** Returns a string representation including options and locations */
     virtual std::string fullstr() const;
 
-   protected:
+  protected:
     /** the URLLocation name as registered in the indexing service. */
     std::string name;
   };

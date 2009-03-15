@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __ARC_PAYLOADGSISTREAM_H__
 #define __ARC_PAYLOADGSISTREAM_H__
 
@@ -15,9 +17,9 @@ namespace Arc {
     : public PayloadStreamInterface {
   public:
     PayloadGSIStream(PayloadStreamInterface *stream,
-		     gss_ctx_id_t& ctx,
-		     Logger& logger,
-		     bool client);
+                     gss_ctx_id_t& ctx,
+                     Logger& logger,
+                     bool client);
     virtual ~PayloadGSIStream();
 
     virtual bool Get(char *buf, int& size);

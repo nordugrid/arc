@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -14,7 +16,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/UserConfig.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -70,7 +72,7 @@ int main(int argc, char** argv) {
   if (args.size() != 1) {
     logger.msg(Arc::ERROR, "Wrong number of arguments!");
     return 1;
-  } 
+  }
 
   std::list<std::string>::iterator it = args.begin();
 
@@ -129,10 +131,9 @@ int main(int argc, char** argv) {
 
   std::cout << "SRM version: " << srmversion << std::endl;
 
-  for(Arc::XMLNode n = pingresponse["otherInfo"]["extraInfoArray"]; n; ++n) {
+  for (Arc::XMLNode n = pingresponse["otherInfo"]["extraInfoArray"]; n; ++n)
     std::cout << "  " << (std::string)n["key"]
               << ": " << (std::string)n["value"] << std::endl;
-  }
 
   delete response;
 

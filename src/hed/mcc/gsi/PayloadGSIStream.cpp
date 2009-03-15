@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -9,9 +11,9 @@
 namespace Arc {
 
   PayloadGSIStream::PayloadGSIStream(PayloadStreamInterface *stream,
-				     gss_ctx_id_t& ctx,
-				     Logger& logger,
-				     bool client)
+                                     gss_ctx_id_t& ctx,
+                                     Logger& logger,
+                                     bool client)
     : timeout(60),
       stream(stream),
       buffer(NULL),
@@ -34,7 +36,7 @@ namespace Arc {
       stream->Get(&readbuf[0], len);
 
       input_tok.length = (unsigned char)readbuf[3] * 256 +
-			 (unsigned char)readbuf[4] + 5;
+                         (unsigned char)readbuf[4] + 5;
       input_tok.value = malloc(input_tok.length);
       memcpy(input_tok.value, readbuf, 5);
 
@@ -42,34 +44,34 @@ namespace Arc {
 
       int pos = len;
       while (input_tok.length > pos) {
-	len = input_tok.length - pos;
-	stream->Get(&((char*)input_tok.value)[pos], len);
-	pos += len;
+        len = input_tok.length - pos;
+        stream->Get(&((char*)input_tok.value)[pos], len);
+        pos += len;
       }
 
       OM_uint32 majstat, minstat;
 
       if (client) {
-	majstat = gss_unwrap(&minstat,
-			     ctx,
-			     &input_tok,
-			     &output_tok,
-			     NULL,
-			     GSS_C_QOP_DEFAULT);
+        majstat = gss_unwrap(&minstat,
+                             ctx,
+                             &input_tok,
+                             &output_tok,
+                             NULL,
+                             GSS_C_QOP_DEFAULT);
 
-	logger.msg(INFO, "GSS unwrap: %i/%i", majstat, minstat);
+        logger.msg(INFO, "GSS unwrap: %i/%i", majstat, minstat);
       }
       else {
-	majstat = gss_wrap(&minstat,
-			   ctx,
-			   0,
-			   GSS_C_QOP_DEFAULT,
-			   &input_tok,
-			   NULL,
-			   &output_tok);
-	logger.msg(INFO, "GSS wrap: %i/%i", majstat, minstat);
+        majstat = gss_wrap(&minstat,
+                           ctx,
+                           0,
+                           GSS_C_QOP_DEFAULT,
+                           &input_tok,
+                           NULL,
+                           &output_tok);
+        logger.msg(INFO, "GSS wrap: %i/%i", majstat, minstat);
       }
-      if(GSS_ERROR(majstat)) {
+      if (GSS_ERROR(majstat)) {
         logger.msg(ERROR, "GSS wrap/unwrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
         return false;
       }
@@ -85,7 +87,7 @@ namespace Arc {
       majstat = gss_release_buffer(&minstat, &output_tok);
     }
 
-    if(size > bufferlen - bufferpos)
+    if (size > bufferlen - bufferpos)
       size = bufferlen - bufferpos;
 
     memcpy(buf, &buffer[bufferpos], size);

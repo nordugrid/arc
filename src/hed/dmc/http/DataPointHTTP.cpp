@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -63,7 +65,7 @@ namespace Arc {
                     uint64_t offset,
                     unsigned int length,
                     uint64_t size = 0)
-      : buffer_((char *)buffer),
+      : buffer_((char*)buffer),
         begin_(offset),
         end_(offset + length),
         size_(size) {}
@@ -77,7 +79,7 @@ namespace Arc {
         return 0;
       return buffer_[pos - begin_];
     }
-    virtual char *Content(int pos = -1) {
+    virtual char* Content(int pos = -1) {
       if (!buffer_)
         return NULL;
       if (pos < begin_)
@@ -85,18 +87,18 @@ namespace Arc {
       if (pos >= end_)
         return NULL;
       return
-             buffer_ + (pos - begin_);
+        buffer_ + (pos - begin_);
     }
     virtual int Size() const {
       return size_;
     }
-    virtual char *Insert(int /* pos */ = 0, int /* size */ = 0) {
+    virtual char* Insert(int /* pos */ = 0, int /* size */ = 0) {
       return NULL;
     }
-    virtual char *Insert(const char * /* s */, int /* pos */ = 0, int /* size */ = 0) {
+    virtual char* Insert(const char* /* s */, int /* pos */ = 0, int /* size */ = 0) {
       return NULL;
     }
-    virtual char *Buffer(unsigned int num) {
+    virtual char* Buffer(unsigned int num) {
       if (num != 0)
         return NULL;
       return buffer_;
@@ -107,7 +109,7 @@ namespace Arc {
       if (num != 0)
         return 0;
       return
-             end_ - begin_;
+        end_ - begin_;
     }
     virtual int BufferPos(unsigned int num) const {
       if (!buffer_)
@@ -272,62 +274,64 @@ namespace Arc {
       delete chunks;
   }
 
-  static bool html2list(const char* html, const URL &base,
-			std::list<FileInfo> &files) {
-    for(const char* pos = html;;) {
+  static bool html2list(const char *html, const URL& base,
+                        std::list<FileInfo>& files) {
+    for (const char *pos = html;;) {
       // Looking for tag
-      const char* tag_start = strchr(pos,'<');
-      if(!tag_start) break; // No more tags
+      const char *tag_start = strchr(pos, '<');
+      if (!tag_start)
+        break;              // No more tags
       // Looking for end of tag
-      const char* tag_end = strchr(tag_start+1,'>');
-      if(!tag_end) return false; // Broken html?
+      const char *tag_end = strchr(tag_start + 1, '>');
+      if (!tag_end)
+        return false;            // Broken html?
       // 'A' tag?
-      if(strncasecmp(tag_start,"<A ",3) == 0) {
-	// Lookig for HREF
-	const char* href = strstr(tag_start+3, "href=");
-	if (!href)
-	  href = strstr(tag_start+3, "HREF=");
-	if (href) {
-	  const char* url_start = href+5;
-	  const char* url_end = NULL;
-	  if ((*url_start) == '"') {
-	    ++url_start;
-	    url_end = strchr(url_start,'"');
-	    if ((!url_end) || (url_end > tag_end))
-	      url_end = NULL;
-	  }
-	  else if ((*url_start) == '\'') {
-	    ++url_start;
-	    url_end = strchr(url_start,'\'');
-	    if ((!url_end) || (url_end > tag_end))
-	      url_end = NULL;
-	  }
-	  else {
-	    url_end=strchr(url_start,' ');
-	    if ((!url_end) || (url_end > tag_end))
-	      url_end = tag_end;
-	  }
-	  if (!url_end)
-	    return false; // Broken HTML
-	  std::string url(url_start, url_end - url_start);
-	  if (url.find("://") != std::string::npos) {
-	    URL u(url);
-	    std::string b = base.str();
-	    if (b[b.size() - 1] != '/')
-	      b += '/';
-	    if (u.str().substr(0, b.size()) == b)
-	      url = u.str().substr(b.size());
-	  }
-	  if (url[0] != '?' && url[0] != '/')
-	    if (url.find('/') == url.size() - 1) {
-	      std::list<FileInfo>::iterator f = files.insert(files.end(), url);
-	      f->SetType(FileInfo::file_type_dir);
-	    }
-	    else if (url.find('/') == std::string::npos) {
-	      std::list<FileInfo>::iterator f = files.insert(files.end(), url);
-	      f->SetType(FileInfo::file_type_file);
-	    }
-	}
+      if (strncasecmp(tag_start, "<A ", 3) == 0) {
+        // Lookig for HREF
+        const char *href = strstr(tag_start + 3, "href=");
+        if (!href)
+          href = strstr(tag_start + 3, "HREF=");
+        if (href) {
+          const char *url_start = href + 5;
+          const char *url_end = NULL;
+          if ((*url_start) == '"') {
+            ++url_start;
+            url_end = strchr(url_start, '"');
+            if ((!url_end) || (url_end > tag_end))
+              url_end = NULL;
+          }
+          else if ((*url_start) == '\'') {
+            ++url_start;
+            url_end = strchr(url_start, '\'');
+            if ((!url_end) || (url_end > tag_end))
+              url_end = NULL;
+          }
+          else {
+            url_end = strchr(url_start, ' ');
+            if ((!url_end) || (url_end > tag_end))
+              url_end = tag_end;
+          }
+          if (!url_end)
+            return false; // Broken HTML
+          std::string url(url_start, url_end - url_start);
+          if (url.find("://") != std::string::npos) {
+            URL u(url);
+            std::string b = base.str();
+            if (b[b.size() - 1] != '/')
+              b += '/';
+            if (u.str().substr(0, b.size()) == b)
+              url = u.str().substr(b.size());
+          }
+          if (url[0] != '?' && url[0] != '/')
+            if (url.find('/') == url.size() - 1) {
+              std::list<FileInfo>::iterator f = files.insert(files.end(), url);
+              f->SetType(FileInfo::file_type_dir);
+            }
+            else if (url.find('/') == std::string::npos) {
+              std::list<FileInfo>::iterator f = files.insert(files.end(), url);
+              f->SetType(FileInfo::file_type_file);
+            }
+        }
       }
       pos = tag_end + 1;
     }
@@ -367,7 +371,7 @@ namespace Arc {
       DataBuffer buffer;
 
       if (!StartReading(buffer))
-	return DataStatus::ListError;
+        return DataStatus::ListError;
 
       int handle;
       unsigned int length;
@@ -375,46 +379,45 @@ namespace Arc {
       std::string result;
 
       while (buffer.for_write() || !buffer.eof_read())
-	if (buffer.for_write(handle, length, offset, true)) {
-	  result.append(buffer[handle], length);
-	  buffer.is_written(handle);
-	}
+        if (buffer.for_write(handle, length, offset, true)) {
+          result.append(buffer[handle], length);
+          buffer.is_written(handle);
+        }
 
       if (!StopReading())
-	return DataStatus::ListError;
+        return DataStatus::ListError;
 
       std::string::size_type tagstart = 0;
       std::string::size_type tagend = 0;
       std::string::size_type titlestart = std::string::npos;
       std::string::size_type titleend = std::string::npos;
       do {
-	tagstart = result.find('<', tagend);
-	if (tagstart == std::string::npos)
-	  break;
-	tagend = result.find('>', tagstart);
-	if (tagend == std::string::npos)
-	  break;
-	std::string tag = result.substr(tagstart + 1, tagend - tagstart - 1);
-	if (strcasecmp(tag.c_str(), "title") == 0)
-	  titlestart = tagend + 1;
-	if (strcasecmp(tag.c_str(), "/title") == 0)
-	  titleend = tagstart - 1;
-      }
-      while (titlestart == std::string::npos || titleend == std::string::npos);
+        tagstart = result.find('<', tagend);
+        if (tagstart == std::string::npos)
+          break;
+        tagend = result.find('>', tagstart);
+        if (tagend == std::string::npos)
+          break;
+        std::string tag = result.substr(tagstart + 1, tagend - tagstart - 1);
+        if (strcasecmp(tag.c_str(), "title") == 0)
+          titlestart = tagend + 1;
+        if (strcasecmp(tag.c_str(), "/title") == 0)
+          titleend = tagstart - 1;
+      } while (titlestart == std::string::npos || titleend == std::string::npos);
 
       std::string title;
       if (titlestart != std::string::npos && titleend != std::string::npos)
-	title = result.substr(titlestart, titleend - titlestart + 1);
+        title = result.substr(titlestart, titleend - titlestart + 1);
 
       // should maybe find a better way to do this...
       if (title.substr(0, 10) == "Index of /" ||
-	  title.substr(0, 5) == "ARex:")
-	html2list (result.c_str(), url, files);
+          title.substr(0, 5) == "ARex:")
+        html2list(result.c_str(), url, files);
       else {
-	std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
-	f->SetType(FileInfo::file_type_file);
-	f->SetSize(info.size);
-	f->SetCreated(info.lastModified);
+        std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
+        f->SetType(FileInfo::file_type_file);
+        f->SetSize(info.size);
+        f->SetCreated(info.lastModified);
       }
     }
     else {
@@ -495,7 +498,7 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::StartWriting(DataBuffer& buffer,
-                                         DataCallback *) {
+                                         DataCallback*) {
     if (transfers_started != 0)
       return DataStatus::WriteStartError;
     int transfer_streams = 1;
@@ -571,7 +574,7 @@ namespace Arc {
   }
 
   void DataPointHTTP::read_thread(void *arg) {
-    HTTPInfo_t& info = *((HTTPInfo_t *)arg);
+    HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
     ClientHTTP *client = info.client;
     bool transfer_failure = false;
@@ -604,7 +607,7 @@ namespace Arc {
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
         // TODO: report failure.
-        if((++retries) > 10) {
+        if ((++retries) > 10) {
           transfer_failure = true;
           break;
         }
@@ -628,7 +631,7 @@ namespace Arc {
         client = new ClientHTTP(cfg, point.url);
         continue;
       }
-      retries=0;
+      retries = 0;
       if (transfer_info.code == 416) { // EOF
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
@@ -650,10 +653,10 @@ namespace Arc {
         transfer_failure = true;
         break;
       }
-      bool whole = (inbuf && 
-                       ( (transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0) ) || 
-                       ( inbuf->Size() == -1 )
-                   );
+      bool whole = (inbuf &&
+                    ((transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0)) ||
+                    (inbuf->Size() == -1)
+                    );
       // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset, chunk_length);
@@ -689,13 +692,14 @@ namespace Arc {
           transfer_handle = -1;
         }
       }
-      if(transfer_handle != -1) 
+      if (transfer_handle != -1)
         point.buffer->is_read(transfer_handle, 0, 0);
       if (inbuf)
         delete inbuf;
       //  If server returned chunk which is not overlaping requested one - seems
       // like server has nothing to say any more.
-      if(transfer_pos <= transfer_offset) whole = true;
+      if (transfer_pos <= transfer_offset)
+        whole = true;
       point.transfer_lock.unlock();
       if (whole)
         break;
@@ -709,12 +713,12 @@ namespace Arc {
       point.buffer->eof_read(true);
     if (client)
       delete client;
-    delete & info;
+    delete &info;
     point.transfer_lock.unlock();
   }
 
   void DataPointHTTP::write_thread(void *arg) {
-    HTTPInfo_t& info = *((HTTPInfo_t *)arg);
+    HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
     ClientHTTP *client = info.client;
     bool transfer_failure = false;
@@ -747,7 +751,7 @@ namespace Arc {
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
         // TODO: report failure.
-        if((++retries) > 10) {
+        if ((++retries) > 10) {
           transfer_failure = true;
           break;
         }
@@ -768,10 +772,10 @@ namespace Arc {
         client = new ClientHTTP(cfg, point.url);
         continue;
       }
-      retries=0;
-      if( (transfer_info.code != 201) &&
+      retries = 0;
+      if ((transfer_info.code != 201) &&
           (transfer_info.code != 200) &&
-          (transfer_info.code != 204) ) { // HTTP error - retry?
+          (transfer_info.code != 204)) {  // HTTP error - retry?
         point.buffer->is_notwritten(transfer_handle);
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
@@ -791,7 +795,7 @@ namespace Arc {
       point.buffer->eof_write(true);
     if (client)
       delete client;
-    delete & info;
+    delete &info;
     point.transfer_lock.unlock();
   }
 

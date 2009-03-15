@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -22,11 +24,11 @@ int main() {
   Retriever1a.NewAttribute("ServiceType") = "index";
 
   /*
-  Arc::XMLNode Retriever2 = mcfg.NewChild("ArcClientComponent");
-  Retriever2.NewAttribute("name") = "TargetRetrieverCREAM";
-  Retriever2.NewAttribute("id") = "retriever2";
-  Retriever2.NewChild("URL") = "ldap://cream.grid.upjs.sk:2170/o=grid??sub?(|(GlueServiceType=bdii_site)(GlueServiceType=bdii_top))";
-  */
+     Arc::XMLNode Retriever2 = mcfg.NewChild("ArcClientComponent");
+     Retriever2.NewAttribute("name") = "TargetRetrieverCREAM";
+     Retriever2.NewAttribute("id") = "retriever2";
+     Retriever2.NewChild("URL") = "ldap://cream.grid.upjs.sk:2170/o=grid??sub?(|(GlueServiceType=bdii_site)(GlueServiceType=bdii_top))";
+   */
 
   mcfg.SaveToStream(std::cout);
 

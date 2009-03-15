@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #include <arc/data/DataStatus.h>
 #include <arc/IString.h>
 

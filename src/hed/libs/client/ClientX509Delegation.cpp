@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -21,8 +23,9 @@ namespace Arc {
 #define GS_DELEGATION_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
 
   ClientX509Delegation::ClientX509Delegation(const BaseConfig& cfg,
-                                                 const URL& url)
-    : soap_client_(NULL), signer_(NULL) {
+                                             const URL& url)
+    : soap_client_(NULL),
+      signer_(NULL) {
     soap_client_ = new ClientSOAP(cfg, url);
 
     //Use the certificate and key in the main chain to delegate
@@ -31,63 +34,68 @@ namespace Arc {
     proxy_file_ = cfg.proxy;
     trusted_ca_dir_ = cfg.cadir;
     trusted_ca_file_ = cfg.cafile;
-    if(!cert_file_.empty() && !privkey_file_.empty())
+    if (!cert_file_.empty() && !privkey_file_.empty())
       signer_ = new Arc::Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_);
-    else if(!proxy_file_.empty())
+    else if (!proxy_file_.empty())
       signer_ = new Arc::Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_);
   }
 
-  ClientX509Delegation::~ClientX509Delegation() { 
-    if(soap_client_) delete soap_client_;
-    if(signer_) delete signer_;
+  ClientX509Delegation::~ClientX509Delegation() {
+    if (soap_client_)
+      delete soap_client_;
+    if (signer_)
+      delete signer_;
   }
 
   bool ClientX509Delegation::createDelegation(DelegationType deleg, std::string& delegation_id) {
 
-    if(deleg == DELEG_ARC) {
+    if (deleg == DELEG_ARC) {
       //Use the DelegationInterface class for ARC delegation service
       logger.msg(INFO, "Creating delegation credential to ARC delegation service");
-      if(soap_client_ != NULL) {
-        NS ns; ns["deleg"]=ARC_DELEGATION_NAMESPACE;
+      if (soap_client_ != NULL) {
+        NS ns;
+        ns["deleg"] = ARC_DELEGATION_NAMESPACE;
         PayloadSOAP request(ns);
         request.NewChild("deleg:DelegateCredentialsInit");
-        PayloadSOAP* response = NULL;
+        PayloadSOAP *response = NULL;
         //Send DelegateCredentialsInit request
         MCC_Status status = soap_client_->process(&request, &response);
-        if(status != Arc::STATUS_OK) { 
-          logger.msg(Arc::ERROR, "DelegateCredentialsInit failed"); 
+        if (status != Arc::STATUS_OK) {
+          logger.msg(Arc::ERROR, "DelegateCredentialsInit failed");
           return false;
         }
-        if(!response) {
+        if (!response) {
           logger.msg(Arc::ERROR, "There is no SOAP response");
           return false;
         }
         XMLNode token = (*response)["DelegateCredentialsInitResponse"]["TokenRequest"];
-        if(!token) { 
-          logger.msg(Arc::ERROR, "There is no X509 request in the response"); 
-          delete response; return false; 
-        };
-        if(((std::string)(token.Attribute("Format"))) != "x509") { 
+        if (!token) {
+          logger.msg(Arc::ERROR, "There is no X509 request in the response");
+          delete response;
+          return false;
+        }
+        if (((std::string)(token.Attribute("Format"))) != "x509") {
           logger.msg(Arc::ERROR, "There is no Format request in the response");
-          delete response; return false; 
-        };
+          delete response;
+          return false;
+        }
         delegation_id = (std::string)(token["Id"]);
         std::string x509request = (std::string)(token["Value"]);
         delete response;
-        if(delegation_id.empty() || x509request.empty()) {
+        if (delegation_id.empty() || x509request.empty()) {
           logger.msg(Arc::ERROR, "There is no Id or X509 request value in the response");
           return false;
-        };
-   
+        }
+
         //std::cout<<"X509 Request: \n"<<x509request<<std::endl;
- 
+
         //Sign the proxy certificate
         Arc::Time start;
-        Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritAll","",-1);
+        Arc::Credential proxy(start, Arc::Period(12 * 3600), 0, "rfc", "inheritAll", "", -1);
         //Set proxy path length to be -1, which means infinit length
         std::string signedcert;
         proxy.InquireRequest(x509request);
-        if(!(signer_->SignRequest(&proxy, signedcert))) {
+        if (!(signer_->SignRequest(&proxy, signedcert))) {
           logger.msg(ERROR, "DelegateProxy failed");
           return false;
         }
@@ -100,22 +108,23 @@ namespace Arc {
 
         PayloadSOAP request2(ns);
         XMLNode token2 = request2.NewChild("deleg:UpdateCredentials").NewChild("deleg:DelegatedToken");
-        token2.NewAttribute("deleg:Format")="x509";
-        token2.NewChild("deleg:Id")=delegation_id;
-        token2.NewChild("deleg:Value")=signedcert;
+        token2.NewAttribute("deleg:Format") = "x509";
+        token2.NewChild("deleg:Id") = delegation_id;
+        token2.NewChild("deleg:Value") = signedcert;
         //Send UpdateCredentials request
         status = soap_client_->process(&request2, &response);
-        if(status != Arc::STATUS_OK) {
+        if (status != Arc::STATUS_OK) {
           logger.msg(Arc::ERROR, "UpdateCredentials failed");
           return false;
         }
-        if(!response) {
+        if (!response) {
           logger.msg(Arc::ERROR, "There is no SOAP response");
           return false;
         }
-        if(!(*response)["UpdateCredentialsResponse"]) {
+        if (!(*response)["UpdateCredentialsResponse"]) {
           logger.msg(Arc::ERROR, "There is no UpdateCredentialsResponse in response");
-          delete response; return false;
+          delete response;
+          return false;
         }
         delete response;
         return true;
@@ -125,11 +134,12 @@ namespace Arc {
         return false;
       }
     }
-    else if(deleg == DELEG_GRIDSITE) {
-      //Move the current delegation related code in CREAMClient class to here 
+    else if (deleg == DELEG_GRIDSITE) {
+      //Move the current delegation related code in CREAMClient class to here
       logger.msg(INFO, "Creating delegation to CREAM delegation service");
 
-      NS ns; ns["deleg"]=GS_DELEGATION_NAMESPACE;
+      NS ns;
+      ns["deleg"] = GS_DELEGATION_NAMESPACE;
       PayloadSOAP request(ns);
       XMLNode getProxyReqRequest = request.NewChild("deleg:getProxyReq");
       XMLNode delegid = getProxyReqRequest.NewChild("deleg:delegationID");
@@ -154,7 +164,7 @@ namespace Arc {
       std::string getProxyReqReturnValue;
       if ((bool)(*response) &&
           (bool)((*response)["getProxyReqResponse"]["getProxyReqReturn"]) &&
-          ((std::string)(*response)["getProxyReqResponse"]["getProxyReqReturn"]!= ""))
+          ((std::string)(*response)["getProxyReqResponse"]["getProxyReqReturn"] != ""))
         getProxyReqReturnValue =
           (std::string)(*response)["getProxyReqResponse"]["getProxyReqReturn"];
       else {
@@ -168,10 +178,10 @@ namespace Arc {
       std::string signedcert;
       //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
-      if(!(signer_->SignRequest(&proxy, signedcert))) {
+      if (!(signer_->SignRequest(&proxy, signedcert))) {
         logger.msg(ERROR, "DelegateProxy failed");
         return false;
-      } 
+      }
 
       std::string signerstr;
       signer_->OutputCertificate(signerstr);
@@ -207,68 +217,69 @@ namespace Arc {
       }
       delete response;
     }
-    else  if(deleg == DELEG_MYPROXY) {
+    else if (deleg == DELEG_MYPROXY) {}
 
-    }
-
-    return true; 
+    return true;
   }
 
   bool ClientX509Delegation::acquireDelegation(DelegationType deleg, std::string& delegation_cred, std::string& delegation_id,
-            const std::string cred_identity, const std::string cred_delegator_ip,
-            const std::string username, const std::string password) {
-    if(deleg == DELEG_ARC) {
+                                               const std::string cred_identity, const std::string cred_delegator_ip,
+                                               const std::string username, const std::string password) {
+    if (deleg == DELEG_ARC) {
       //Use the DelegationInterface class for ARC delegation service
       logger.msg(INFO, "Getting delegation credential from ARC delegation service");
-      if(soap_client_ != NULL) {
-        NS ns; ns["deleg"]=ARC_DELEGATION_NAMESPACE;
+      if (soap_client_ != NULL) {
+        NS ns;
+        ns["deleg"] = ARC_DELEGATION_NAMESPACE;
         PayloadSOAP request(ns);
         XMLNode tokenlookup = request.NewChild("deleg:AcquireCredentials").NewChild("deleg:DelegatedTokenLookup");
-        //Use delegation ID to acquire delegation credential from 
+        //Use delegation ID to acquire delegation credential from
         //delegation service, if the delegation ID is presented;
-        if(!delegation_id.empty())
-          tokenlookup.NewChild("deleg:Id")=delegation_id;
+        if (!delegation_id.empty())
+          tokenlookup.NewChild("deleg:Id") = delegation_id;
         //If delegation ID is not presented, use the credential identity
-        //credential delegator's IP to acquire delegation credential 
+        //credential delegator's IP to acquire delegation credential
         else {
-          tokenlookup.NewChild("deleg:CredIdentity")=cred_identity;
-          tokenlookup.NewChild("deleg:CredDelegatorIP")=cred_delegator_ip;
+          tokenlookup.NewChild("deleg:CredIdentity") = cred_identity;
+          tokenlookup.NewChild("deleg:CredDelegatorIP") = cred_delegator_ip;
         }
         //Generate a X509 request
         std::string x509req_str;
         Arc::Time start;
         int keybits = 1024;
-        Arc::Credential cred_request(start,Arc::Period(),keybits);
+        Arc::Credential cred_request(start, Arc::Period(), keybits);
         cred_request.GenerateRequest(x509req_str);
-        tokenlookup.NewChild("deleg:Value")=x509req_str;
+        tokenlookup.NewChild("deleg:Value") = x509req_str;
 
-        PayloadSOAP* response = NULL;
+        PayloadSOAP *response = NULL;
         //Send AcquireCredentials request
         MCC_Status status = soap_client_->process(&request, &response);
-        if(status != Arc::STATUS_OK) {
+        if (status != Arc::STATUS_OK) {
           logger.msg(Arc::ERROR, "DelegateCredentialsInit failed");
           return false;
         }
-        if(!response) {
+        if (!response) {
           logger.msg(Arc::ERROR, "There is no SOAP response");
           return false;
         }
         XMLNode token = (*response)["AcquireCredentialsResponse"]["DelegatedToken"];
-        if(!token) {
+        if (!token) {
           logger.msg(Arc::ERROR, "There is no Delegated X509 token in the response");
-          delete response; return false;
-        };
-        if(((std::string)(token.Attribute("Format"))) != "x509") {
+          delete response;
+          return false;
+        }
+        if (((std::string)(token.Attribute("Format"))) != "x509") {
           logger.msg(Arc::ERROR, "There is no Format delegated token in the response");
-          delete response; return false;
-        };
+          delete response;
+          return false;
+        }
         delegation_id = (std::string)(token["Id"]);
         delegation_cred = (std::string)(token["Value"]);
         delete response;
-        if(delegation_id.empty() || delegation_cred.empty()) {
+        if (delegation_id.empty() || delegation_cred.empty()) {
           logger.msg(Arc::ERROR, "There is no Id or X509 token value in the response");
           return false;
-        };
+        }
         //std::cout<<"Get delegated X509 Token: \n"<<delegation_cred<<std::endl;
         return true;
       }
@@ -277,9 +288,7 @@ namespace Arc {
         return false;
       }
     }
-    else {
-
-    }
+    else {}
   }
 
 

@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -25,7 +27,7 @@ namespace Arc {
     globus_module_activate(GLOBUS_COMMON_MODULE);
     globus_module_activate(GLOBUS_IO_MODULE);
     globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
-    if(!proxy_initialized)
+    if (!proxy_initialized)
       proxy_initialized = GlobusRecoverProxyOpenSSL();
     Register(this);
   }
@@ -37,14 +39,15 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_COMMON_MODULE);
   }
 
-  Plugin *DMCRLS::Instance(PluginArgument* arg) {
-    Arc::DMCPluginArgument* dmcarg =
-            arg?dynamic_cast<Arc::DMCPluginArgument*>(arg):NULL;
-    if(!dmcarg) return NULL;
+  Plugin* DMCRLS::Instance(PluginArgument *arg) {
+    Arc::DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    if (!dmcarg)
+      return NULL;
     return new DMCRLS((Arc::Config*)(*dmcarg));
   }
 
-  DataPoint *DMCRLS::iGetDataPoint(const URL& url) {
+  DataPoint* DMCRLS::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "rls")
       return NULL;
     return new DataPointRLS(url);
@@ -53,6 +56,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  {"rls", "HED:DMC", 0, &Arc::DMCRLS::Instance},
-  {NULL, NULL, 0, NULL}
+  { "rls", "HED:DMC", 0, &Arc::DMCRLS::Instance },
+  { NULL, NULL, 0, NULL }
 };

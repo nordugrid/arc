@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -26,7 +28,7 @@
 static int mkdir_force(const char *path, mode_t mode);
 
 int mkdir_recursive(const std::string& base_path, const std::string& path,
-		    mode_t mode, const Arc::User& user) {
+                    mode_t mode, const Arc::User& user) {
   std::string name = base_path;
 #ifndef WIN32
   if (path[0] != '/')
@@ -39,28 +41,28 @@ int mkdir_recursive(const std::string& base_path, const std::string& path,
   /* go down */
   for (;;) {
     if ((mkdir_force(name.substr(0, name_end).c_str(), mode) == 0) ||
-	(errno == EEXIST)) {
+        (errno == EEXIST)) {
       if (errno != EEXIST)
-	(lchown(name.substr(0, name_end).c_str(), user.get_uid(),
-		user.get_gid()) != 0);
+        (lchown(name.substr(0, name_end).c_str(), user.get_uid(),
+                user.get_gid()) != 0);
       /* go up */
       for (;;) {
-	if (name_end >= name.length())
-	  return 0;
-	name_end = name.find(DIR_SEPARATOR, name_end + 1);
-	if (mkdir(name.substr(0, name_end).c_str(), mode) != 0) {
-	  if (errno == EEXIST)
-	    continue;
-	  return -1;
-	}
-	chmod(name.substr(0, name_end).c_str(), mode);
-	(lchown(name.substr(0, name_end).c_str(), user.get_uid(),
-		user.get_gid()) != 0);
+        if (name_end >= name.length())
+          return 0;
+        name_end = name.find(DIR_SEPARATOR, name_end + 1);
+        if (mkdir(name.substr(0, name_end).c_str(), mode) != 0) {
+          if (errno == EEXIST)
+            continue;
+          return -1;
+        }
+        chmod(name.substr(0, name_end).c_str(), mode);
+        (lchown(name.substr(0, name_end).c_str(), user.get_uid(),
+                user.get_gid()) != 0);
       }
     }
     /* if(errno == EEXIST) { free(name); errno=EEXIST; return -1; } */
     if ((name_end = name.rfind(DIR_SEPARATOR, name_end - 1)) ==
-	std::string::npos)
+        std::string::npos)
       break;
     if (name_end == name_start)
       break;

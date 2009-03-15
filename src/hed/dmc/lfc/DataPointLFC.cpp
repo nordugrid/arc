@@ -1,3 +1,5 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -13,13 +15,13 @@
 extern "C" {
 /* See http://goc.grid.sinica.edu.tw/gocwiki/UsingLiblfcWithThreads
  * for LFC threading info */
-  
+
 /* use POSIX standard threads library */
 #include <pthread.h>
 extern int Cthread_init(); /* from <Cthread_api.h> */
 #define thread_t      pthread_t
-#define thread_create(tid_p,func,arg)  pthread_create(tid_p,NULL,func,arg)
-#define thread_join(tid)               pthread_join(tid,NULL)
+#define thread_create(tid_p, func, arg)  pthread_create(tid_p, NULL, func, arg)
+#define thread_join(tid)               pthread_join(tid, NULL)
 
 #include <lfc_api.h>
 
@@ -42,7 +44,8 @@ namespace Arc {
   Logger DataPointLFC::logger(DataPoint::logger, "LFC");
 
   DataPointLFC::DataPointLFC(const URL& url)
-    : DataPointIndex(url), guid("") {
+    : DataPointIndex(url),
+      guid("") {
     // set retry env variables (don't overwrite if set already)
     // connection timeout
     SetEnv("LFC_CONNTIMEOUT", "30");
@@ -59,22 +62,22 @@ namespace Arc {
 
   /* perform resolve operation, which can take long time */
   DataStatus DataPointLFC::Resolve(bool source) {
-     
-#ifndef WITH_CTHREAD    
+
+#ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 !=  Cthread_init()) {
+    if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
       return DataStatus::ReadResolveError;
     }
 #endif
-    
-    if(lfc_startsess(const_cast<char *>(url.Host().c_str()),
-                     const_cast<char *>("ARC")) != 0) {
+
+    if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
+                      const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       lfc_endsess();
       return DataStatus::ReadResolveError;
     }
-  
+
     if (source && !resolveGUIDToLFN()) {
       lfc_endsess();
       return DataStatus::ReadResolveError;
@@ -83,7 +86,7 @@ namespace Arc {
       guid = url.MetaDataOption("guid");
       logger.msg(DEBUG, "Using supplied guid %s", guid);
     }
-  
+
     resolved = false;
     registered = false;
     if (source) {
@@ -113,17 +116,17 @@ namespace Arc {
       nbentries = 0;
       entries = NULL;
     }
-    else registered = true;
-    
-    if (url.Locations().size() == 0) {
+    else
+      registered = true;
+
+    if (url.Locations().size() == 0)
       for (int n = 0; n < nbentries; n++) {
         locations.push_back(URLLocation(entries[n].sfn, url.ConnectionURL()));
         logger.msg(DEBUG, "Adding location: %s - %s", url.ConnectionURL(), entries[n].sfn);
       }
-    }
-    else {
-      for (std::list<URLLocation>::const_iterator loc = url.Locations().begin(); loc != url.Locations().end(); ++loc) {
-        for (int n = 0; n < nbentries; n++) {
+    else
+      for (std::list<URLLocation>::const_iterator loc = url.Locations().begin(); loc != url.Locations().end(); ++loc)
+        for (int n = 0; n < nbentries; n++)
           if (strncmp(entries[n].sfn, loc->Name().c_str(), loc->Name().length()) == 0) {
             logger.msg(DEBUG, "Adding location: %s - %s", url.ConnectionURL(), entries[n].sfn);
             if (source)
@@ -132,11 +135,9 @@ namespace Arc {
               locations.push_back(URLLocation(*loc, url.ConnectionURL()));
             break;
           }
-        }
-      }
-    }
-    if (entries) free(entries);
-    
+    if (entries)
+      free(entries);
+
     struct lfc_filestatg st;
     if (lfc_statg(url.Path().c_str(), NULL, &st) == 0) {
       registered = true;
@@ -144,7 +145,8 @@ namespace Arc {
       SetCreated(st.mtime);
       if (st.csumtype[0] && st.csumvalue[0]) {
         std::string csum = st.csumtype;
-        if (csum == "MD") csum = "md5";
+        if (csum == "MD")
+          csum = "md5";
         csum += ":";
         csum += st.csumvalue;
         SetCheckSum(csum);
@@ -160,11 +162,13 @@ namespace Arc {
       // Make pfns
       for (std::list<URLLocation>::iterator loc = locations.begin(); loc != locations.end(); loc++) {
         std::string u = loc->str();
-        if (u.find_last_of("/") != u.length()-1) { u+="/"; }
-        // take off leading dirs of LFN
-        std::string::size_type slash_index = url.Path().rfind("/", url.Path().length()+1);
-        if (slash_index != std::string::npos) u += url.Path().substr(slash_index+1);
-        else u += url.Path();
+        if (u.find_last_of("/") != u.length() - 1)
+          u += "/"; // take off leading dirs of LFN
+        std::string::size_type slash_index = url.Path().rfind("/", url.Path().length() + 1);
+        if (slash_index != std::string::npos)
+          u += url.Path().substr(slash_index + 1);
+        else
+          u += url.Path();
         *loc = URLLocation(u, loc->Name());
         logger.msg(DEBUG, "Using location: %s - %s", loc->Name(), loc->str());
       }
@@ -172,31 +176,28 @@ namespace Arc {
     logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
     logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
     logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
-    
+
     // add any url options
-    if (!url.CommonLocOptions().empty()) {
-      for (std::list<URLLocation>::iterator loc = locations.begin(); loc != locations.end(); ++loc) {
-        for (std::map<std::string, std::string>::const_iterator i =  url.CommonLocOptions().begin();
-             i != url.CommonLocOptions().end(); i++) {
+    if (!url.CommonLocOptions().empty())
+      for (std::list<URLLocation>::iterator loc = locations.begin(); loc != locations.end(); ++loc)
+        for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
+             i != url.CommonLocOptions().end(); i++)
           loc->AddOption(i->first, i->second, false);
-        }
-      }
-    }
     location = locations.begin();
     resolved = true;
     return DataStatus::Success;
   }
 
   DataStatus DataPointLFC::PreRegister(bool replication, bool force) {
-    
-#ifndef WITH_CTHREAD    
+
+#ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 !=  Cthread_init()) {
+    if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
       return DataStatus::PreRegisterError;
     }
 #endif
-  
+
     if (replication) { /* replicating inside same lfn */
       if (!registered) {
         logger.msg(ERROR, "LFN is missing in LFC (needed for replication)");
@@ -211,21 +212,20 @@ namespace Arc {
       }
       return DataStatus::Success;
     }
-    if (lfc_startsess(const_cast<char *>(url.Host().c_str()),
-                      const_cast<char *>("ARC")) != 0) {
+    if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
+                      const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::PreRegisterError;
     }
-    if (guid.empty()) {
+    if (guid.empty())
       GUID(guid);
-    }
     else if (!url.MetaDataOption("guid").empty()) {
       guid = url.MetaDataOption("guid");
       logger.msg(DEBUG, "Using supplied guid %s", guid);
     }
     if (lfc_creatg(url.Path().c_str(), guid.c_str(),
                    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
-      
+
       // check error - if it is no such file or directory, try to create the
       // required dirs
       if (serrno == ENOENT) {
@@ -235,22 +235,21 @@ namespace Arc {
           // list dir to see if it exists
           struct lfc_filestat statbuf;
           if (lfc_stat(dirname.c_str(), &statbuf) == 0) {
-            slashpos = url.Path().find("/", slashpos+1);
+            slashpos = url.Path().find("/", slashpos + 1);
             continue;
           }
-          
+
           logger.msg(DEBUG, "Creating LFC directory %s", dirname);
-          if (lfc_mkdir(dirname.c_str(), 0775) != 0) {
+          if (lfc_mkdir(dirname.c_str(), 0775) != 0)
             if (serrno != EEXIST) {
               logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
               lfc_endsess();
               return DataStatus::PreRegisterError;
             }
-          }
-          slashpos = url.Path().find("/", slashpos+1);
+          slashpos = url.Path().find("/", slashpos + 1);
         }
-        if(lfc_creatg(url.Path().c_str(),guid.c_str(),
-                      S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
+        if (lfc_creatg(url.Path().c_str(), guid.c_str(),
+                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
           logger.msg(ERROR, "Error creating LFC entry: %s", sstrerror(serrno));
           lfc_endsess();
           return DataStatus::PreRegisterError;
@@ -273,9 +272,9 @@ namespace Arc {
         cksumvalue = cksumvalue.substr(p + 1);
       }
       if (CheckSize())
-        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
+        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
       else
-        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
+        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
     }
     else if (CheckSize())
       lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
@@ -285,10 +284,10 @@ namespace Arc {
   }
 
   DataStatus DataPointLFC::PostRegister(bool replication) {
-    
-#ifndef WITH_CTHREAD    
+
+#ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 !=  Cthread_init()) {
+    if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
       return DataStatus::PostRegisterError;
     }
@@ -299,7 +298,7 @@ namespace Arc {
       return DataStatus::PostRegisterError;
     }
     std::string pfn(location->str());
-    if (lfc_startsess(const_cast<char *>(url.Host().c_str()), const_cast<char *>("ARC")) != 0) {
+    if (lfc_startsess(const_cast<char*>(url.Host().c_str()), const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::PostRegisterError;
     }
@@ -316,15 +315,17 @@ namespace Arc {
         ckstype = "cksum";
       else {
         ckstype = cksumvalue.substr(0, p);
-        if (ckstype=="md5") ckstype = "MD";
-        if (ckstype=="ad") ckstype = "AD";
+        if (ckstype == "md5")
+          ckstype = "MD";
+        if (ckstype == "ad")
+          ckstype = "AD";
         cksumvalue = cksumvalue.substr(p + 1);
         logger.msg(DEBUG, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
       }
       if (CheckSize())
-        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
+        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
       else
-        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char *>(cksumvalue.c_str()));
+        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
     }
     else if (CheckSize())
       lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
@@ -337,16 +338,16 @@ namespace Arc {
 
 #ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 !=  Cthread_init()) {
+    if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
       return DataStatus::UnregisterError;
     }
 #endif
-    
+
     if (replication)
       return DataStatus::Success;
-    if (lfc_startsess(const_cast<char *>(url.Host().c_str()),
-                      const_cast<char *>("ARC")) != 0) {
+    if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
+                      const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::UnregisterError;
     }
@@ -354,33 +355,32 @@ namespace Arc {
       lfc_endsess();
       return DataStatus::UnregisterError;
     }
-    if (lfc_unlink(url.Path().c_str()) != 0) {
+    if (lfc_unlink(url.Path().c_str()) != 0)
       if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
         logger.msg(ERROR, "Failed to remove LFN in LFC - You may need to do it by hand");
         lfc_endsess();
         return DataStatus::UnregisterError;
       }
-    }
     lfc_endsess();
     return DataStatus::Success;
   }
 
   DataStatus DataPointLFC::Unregister(bool all) {
-    
+
 #ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 !=  Cthread_init()) {
+    if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
       return DataStatus::UnregisterError;
     }
 #endif
-    
+
     if (!all && (location == locations.end())) {
       logger.msg(ERROR, "Location is missing");
       return DataStatus::UnregisterError;
     }
-    if (lfc_startsess(const_cast<char *>(url.Host().c_str()),
-                      const_cast<char *>("ARC")) != 0) {
+    if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
+                      const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::UnregisterError;
     }
@@ -402,18 +402,18 @@ namespace Arc {
         logger.msg(ERROR, "Error getting replicas: %s", sstrerror(serrno));
         return DataStatus::UnregisterError;
       }
-      for (int n = 0; n < nbentries; n++) {
+      for (int n = 0; n < nbentries; n++)
         if (lfc_delreplica(guid.c_str(), NULL, entries[n].sfn) != 0) {
-          if (serrno == ENOENT) continue;
+          if (serrno == ENOENT)
+            continue;
           lfc_endsess();
           logger.msg(ERROR, "Failed to remove location from LFC");
           return DataStatus::UnregisterError;
         }
-      }
       if (lfc_unlink(url.Path().c_str()) != 0) {
-        if(serrno == EPERM) { // we have a directory
-          if(lfc_rmdir(url.Path().c_str()) != 0) {
-            if(serrno == EEXIST) { // still files in the directory
+        if (serrno == EPERM) { // we have a directory
+          if (lfc_rmdir(url.Path().c_str()) != 0) {
+            if (serrno == EEXIST) { // still files in the directory
               logger.msg(ERROR, "Failed to remove LFC directory: directory is not empty");
               lfc_endsess();
               return DataStatus::UnregisterError;
@@ -423,7 +423,7 @@ namespace Arc {
             return DataStatus::UnregisterError;
           }
         }
-        else if((serrno != ENOENT) && (serrno != ENOTDIR)) {
+        else if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
           logger.msg(ERROR, "Failed to remove LFN in LFC: %s", sstrerror(serrno));
           lfc_endsess();
           return DataStatus::UnregisterError;
@@ -444,19 +444,19 @@ namespace Arc {
 
 
   DataStatus DataPointLFC::ListFiles(std::list<FileInfo>& files,
-                                     bool long_list, 
+                                     bool long_list,
                                      bool resolve) {
-    
+
 #ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 !=  Cthread_init()) {
+    if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
       return DataStatus::ListError;
     }
 #endif
-    
-    if (lfc_startsess(const_cast<char *>(url.Host().c_str()),
-                      const_cast<char *>("ARC")) != 0) {
+
+    if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
+                      const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       return DataStatus::ListError;
     }
@@ -474,7 +474,7 @@ namespace Arc {
 
     // if it's a directory, list entries
     if (st.filemode & S_IFDIR) {
-      lfc_DIR * dir = lfc_opendirxg(const_cast<char *>(url.Host().c_str()), url.Path().c_str(), NULL);
+      lfc_DIR *dir = lfc_opendirxg(const_cast<char*>(url.Host().c_str()), url.Path().c_str(), NULL);
       if (dir == NULL) {
         logger.msg(ERROR, "Error opening directory: %s", sstrerror(serrno));
         lfc_endsess();
@@ -484,15 +484,14 @@ namespace Arc {
       // list entries. If not long list use readdir
       // does funny things with pointers, so always use long listing for now
       if (false) { // if (!long_list) {
-        struct dirent * direntry;
-        while ((direntry = lfc_readdir(dir))) {
-          std::list<FileInfo>::iterator f = files.insert(files.end(),FileInfo(direntry->d_name));
-        }
+        struct dirent *direntry;
+        while ((direntry = lfc_readdir(dir)))
+          std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(direntry->d_name));
       }
       else { // for long list use readdirg
-        struct lfc_direnstatg * direntry;
-        while ((direntry = lfc_readdirg(dir))) {      
-          std::list<FileInfo>::iterator f = files.insert(files.end(),FileInfo(direntry->d_name));
+        struct lfc_direnstatg *direntry;
+        while ((direntry = lfc_readdirg(dir))) {
+          std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(direntry->d_name));
 
           f->SetSize(direntry->filesize);
           if (strcmp(direntry->csumtype, "") != 0 && strcmp(direntry->csumvalue, "") != 0) {
@@ -514,24 +513,21 @@ namespace Arc {
         lfc_endsess();
         return DataStatus::ListError;
       }
-      
+
       // if we want to resolve replicas call readdirxr
       if (resolve) {
         lfc_rewinddir(dir);
-        struct lfc_direnrep * direntry;
+        struct lfc_direnrep *direntry;
 
-        while ((direntry = lfc_readdirxr(dir, NULL))) {
+        while ((direntry = lfc_readdirxr(dir, NULL)))
           for (std::list<FileInfo>::iterator f = files.begin();
                f != files.end();
-               f++) {
+               f++)
             if (f->GetName() == direntry->d_name) {
-              for (int n=0; n<direntry->nbreplicas; n++) {
+              for (int n = 0; n < direntry->nbreplicas; n++)
                 f->AddURL(URL(std::string(direntry->rep[n].sfn)));
-              }
               break;
             }
-          }
-        }
         if (serrno) {
           logger.msg(ERROR, "Error listing directory: %s", sstrerror(serrno));
           lfc_closedir(dir);
@@ -542,7 +538,7 @@ namespace Arc {
       lfc_closedir(dir);
     } // if (dir)
     else {
-      std::list<FileInfo>::iterator f = files.insert(files.end(),FileInfo(url.Path().c_str()));
+      std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(url.Path().c_str()));
       f->SetSize(st.filesize);
       if (st.csumvalue[0]) {
         std::string csum = st.csumtype;
@@ -554,40 +550,41 @@ namespace Arc {
       f->SetType((st.filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
       if (resolve) {
         int nbentries = 0;
-        struct lfc_filereplica* entries = NULL;
+        struct lfc_filereplica *entries = NULL;
 
         if (lfc_getreplica(url.Path().c_str(), NULL, NULL, &nbentries, &entries) != 0) {
           logger.msg(ERROR, "Error listing replicas: %s", sstrerror(serrno));
           lfc_endsess();
           return DataStatus::ListError;
         }
-        for (int n=0; n<nbentries; n++) {
+        for (int n = 0; n < nbentries; n++)
           f->AddURL(URL(std::string(entries[n].sfn)));
-        }
       }
     }
     lfc_endsess();
     return DataStatus::Success;
   }
-  
+
   bool DataPointLFC::resolveGUIDToLFN() {
-  
+
     // check if guid is already defined
-    if (!guid.empty()) return true;
-      
+    if (!guid.empty())
+      return true;
+
     // check for guid in the attributes
-    if (url.MetaDataOption("guid").empty()) return true;
+    if (url.MetaDataOption("guid").empty())
+      return true;
     guid = url.MetaDataOption("guid");
 
     lfc_list listp;
-    struct lfc_linkinfo * info = lfc_listlinks (NULL, (char*)guid.c_str(), CNS_LIST_BEGIN, &listp);
+    struct lfc_linkinfo *info = lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_BEGIN, &listp);
     if (!info) {
       logger.msg(ERROR, "Error finding LFN from guid %s: %s", guid, sstrerror(serrno));
       return false;
     }
-    url = URL(url.Protocol()+"://"+url.Host()+"/"+std::string(info[0].path));
+    url = URL(url.Protocol() + "://" + url.Host() + "/" + std::string(info[0].path));
     logger.msg(DEBUG, "guid %s resolved to LFN %s", guid, url.Path());
-    lfc_listlinks (NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
+    lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
     return true;
   }
 
