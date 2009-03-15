@@ -226,8 +226,8 @@ namespace Arc {
     : MCC(&cfg) {
     //globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_openldap_lock(mm);
-    //if(!proxy_initialized)
-    //  proxy_initialized = GlobusRecoverProxyOpenSSL();
+    if(!proxy_initialized)
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
@@ -272,8 +272,8 @@ namespace Arc {
       ctx(GSS_C_NO_CONTEXT) {
     //globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_openldap_lock(mm);
-    //if(!proxy_initialized)
-    //  proxy_initialized = GlobusRecoverProxyOpenSSL();
+    if(!proxy_initialized)
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
     proxyPath = (std::string)cfg["ProxyPath"];
     certificatePath = (std::string)cfg["CertificatePath"];
     keyPath = (std::string)cfg["KeyPath"];
