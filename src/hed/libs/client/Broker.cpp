@@ -22,10 +22,10 @@ namespace Arc {
 
   Broker::~Broker() {}
 
-  void Broker::PreFilterTargets(const Arc::TargetGenerator& targen, Arc::JobDescription jd) {
+  void Broker::PreFilterTargets(const TargetGenerator& targen,  const JobDescription& jd) {
     jd.getInnerRepresentation(jir);
 
-    for (std::list<Arc::ExecutionTarget>::const_iterator target =    \
+    for (std::list<ExecutionTarget>::const_iterator target =    \
            targen.FoundTargets().begin(); target != targen.FoundTargets().end(); \
          target++) {
       logger.msg(DEBUG, "Matchmaking, ExecutionTarget URL:  %s ", (std::string)(*target).url.fullstr());
@@ -466,7 +466,7 @@ namespace Arc {
       current = PossibleTargets.begin();
     }
 
-    std::vector<Arc::ExecutionTarget>::iterator ret_pointer;
+    std::vector<ExecutionTarget>::iterator ret_pointer;
     ret_pointer = current;
     current++;
 

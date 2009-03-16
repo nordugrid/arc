@@ -52,8 +52,8 @@ namespace Arc {
               const bool longlist,
               const int timeout);
 
-    bool Migrate(Arc::TargetGenerator& targetGen,
-                 Arc::Broker *broker,
+    bool Migrate(TargetGenerator& targetGen,
+                 Broker* broker,
                  const bool forcemigration,
                  const int timeout);
 

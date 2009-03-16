@@ -31,9 +31,9 @@ namespace Arc {
         to the PossibleTargets vector.
         \param targen TargetGenerator content the Execution Target candidates
         \param jd Job Description of the actual job
-     */
-    void PreFilterTargets(const Arc::TargetGenerator& targen,
-                          Arc::JobDescription jd);
+    */
+    void PreFilterTargets(const TargetGenerator& targen, 
+                          const JobDescription& jd);
   protected:
     Broker(Config *cfg);
     virtual ~Broker();
@@ -47,16 +47,16 @@ namespace Arc {
     /** If an Execution Tartget has enought memory, CPU, diskspace, etc. for the
         actual job requirement than it will be added to the PossibleTargets vector
      */
-    std::vector<Arc::ExecutionTarget> PossibleTargets;
+    std::vector<ExecutionTarget> PossibleTargets;
     /// It is true if "custom" sorting is done
     bool TargetSortingDone;
-    Arc::JobInnerRepresentation jir;
+    JobInnerRepresentation jir;
 
     static Logger logger;
 
   private:
     /// This is a pointer for the actual Execution Target in the PossibleTargets vector
-    std::vector<Arc::ExecutionTarget>::iterator current;
+    std::vector<ExecutionTarget>::iterator current;
     /// It is true if the prefiltering is ready
     bool PreFilteringDone;
   };

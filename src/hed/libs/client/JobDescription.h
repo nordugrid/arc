@@ -14,10 +14,10 @@ namespace Arc {
 
   class JobDescription {
   private:
-    Arc::XMLNode jobTree;
+    XMLNode jobTree;
     std::string sourceString;
     std::string sourceFormat;
-    Arc::JobInnerRepresentation *innerRepresentation;
+    JobInnerRepresentation *innerRepresentation;
     void resetJobTree();
   public:
     static Logger logger;
@@ -47,13 +47,13 @@ namespace Arc {
 
     // Returns with the XML representation of the job description. This inner representation is very similar
     // to the JSDL structure and exactly the same in cases, which are defined in the JSDL specification.
-    bool getXML(Arc::XMLNode& node) const;
+    bool getXML(XMLNode& node) const;
 
     // Returns with true and the uploadable local files list, if the source has been setted up and is valid, else return with false.
     bool getUploadableFiles(std::vector<std::pair<std::string, std::string> >& sourceFiles) const;
 
     // Returns with the inner representation object.
-    bool getInnerRepresentation(Arc::JobInnerRepresentation& job) const;
+    bool getInnerRepresentation(JobInnerRepresentation& job) const;
 
     // Add an URL to OldJobIDs
     bool addOldJobID(const URL& oldjobid);

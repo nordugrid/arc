@@ -24,14 +24,14 @@ namespace Arc {
 
     ~JobSupervisor();
 
-    const std::list<Arc::JobController*>& GetJobControllers() {
+    const std::list<JobController*>& GetJobControllers() {
       return jobcontrollers;
     }
 
   private:
     static Logger logger;
     ACCLoader *loader;
-    std::list<Arc::JobController*> jobcontrollers;
+    std::list<JobController*> jobcontrollers;
   };
 
 } //namespace ARC

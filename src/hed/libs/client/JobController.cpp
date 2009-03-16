@@ -473,8 +473,8 @@ namespace Arc {
     return true;
   }
 
-  bool JobController::Migrate(Arc::TargetGenerator& targetGen,
-                              Arc::Broker *broker,
+  bool JobController::Migrate(TargetGenerator& targetGen,
+                              Broker* broker,
                               const bool forcemigration,
                               const int timeout) {
     bool retVal = true;
@@ -489,7 +489,7 @@ namespace Arc {
         continue;
       }
 
-      Arc::JobDescription jobDesc;
+      JobDescription jobDesc;
       if (!GetJobDescription(*itJob, itJob->JobDescription))
         continue;
       if (!PatchInputFileLocation(*itJob, jobDesc))
