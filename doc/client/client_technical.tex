@@ -624,17 +624,20 @@ virtual bool Migrate(const URL& url,
 \end{verbatim}
 \end{shaded}
 
-The \texttt{Migrate} method behave in much the same way as the \texttt{Submit}
-method, but is conceptually different from that method. The \texttt{Migrate}
-method takes two additional arguments. A {\URL} \texttt{url} which is
-the jobid of a job which should be migrated, and a boolean
-\texttt{forcemigration} which will indicate if the job, specified in the
-{\JobDescription} \texttt{jobdesc}, should persist if the cluster
-({\ExecutionTarget}) does not succeed submitting a kill/terminate request
-for the job specified by \texttt{url}. The \texttt{Migrate} method will
-also fill the {\XMLNode} \texttt{info} variable with information about the
-job for later job management, which additionally include the old jobid
-(\texttt{url}) of the migrated job.
+The \texttt{Migrate} method behaves in much the same way as the \texttt{Submit}
+method, but instead of sending a new job request to the cluster it sends a 
+migration request of a given job, currently this request is only supported 
+for ARC1 clusters. The \texttt{url} and \texttt{jobdesc} specifies the job-id 
+and {\JobDescription} of the job which should be migrated.\\
+The migration request will create a new job where the local input files are 
+transferred from old cluster. Once the input files have been transferred the 
+new cluster will send a request to kill the old job. If the kill request is 
+unsuccessful the new job will be terminated unless the \texttt{forcemigration} 
+boolean is \texttt{true}.\\
+The \texttt{Migrate} method will also fill the \texttt{info} {\XMLNode} with 
+information about the job the same way as the \texttt{Submit} method. However 
+for the \texttt{Migrate} method this \texttt{XMLNode} also contain the job-id 
+of the migrated job.
 
 \subsection{{\JobSupervisor}}
 
@@ -842,8 +845,8 @@ will be migrated to the targets specified in {\TargetGenerator} \texttt{targetGe
 by using the broker specified by {\Broker} \texttt{broker}. The boolean
 \texttt{forcemigration} specifies whether a migrated job should persist if the
 new cluster ({\ExecutionTarget}) chosen by the {\TargetGenerator} does not
-succeed submitting a kill/terminate request for the job. The integer
-\texttt{timeout} argument have not yet been implemented.
+succeed sending a kill/terminate request for the job. The integer
+\texttt{timeout} argument has not yet been implemented.
 
 
 
