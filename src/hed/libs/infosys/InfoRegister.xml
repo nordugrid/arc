@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iregc:InfoRegister period="10"
+    xmlns:iregc="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008">
+        <iregc:Registrar period="5">xxx</iregc:Registrar>
+        <iregc:Registrar>xxx</iregc:Registrar>
+</iregc:InfoRegister>

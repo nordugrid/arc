@@ -11,27 +11,34 @@
             document. Each instance if such element instatiates one instance
             of Information Registrant active element. -->
         <xsd:sequence>
-            <!-- Period specifies how often registration to be done in seconds.
-                The missing or 0 value means single registration. -->
-            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0"/>
-            <!-- URL specifies contact endpoint of Information Registration service. -->
             <!-- URL specifies contact endpoint of a bootstrap Information 
                 Registration service. Further ISIS adresses will be queried 
                 from this service. -->
             <xsd:element name="URL" type="xsd:string"/> <!-- maxOccurs="unbounded" -->
             <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
                 paths to files storing X509 credentials used for establishing connections. -->
-            <xsd:element name="KeyPath" type="xsd:string" minOccurs="0">
-            <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0">
-            <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0">
-            <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0">
+            <xsd:element name="KeyPath" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
         <!-- Attribute id may be used to refer to this element -->
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
-    <xsd:element name="InfoRegistrar" type="icc:InfoRegistrar_Type"/>
+    <xsd:element name="InfoRegistrar" type="iregc:InfoRegistrar_Type"/>
 
-    <xsd:complexType name="InfoRegistration_Type">
+    <xsd:complexType name="Registrar_Type">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <!-- Period specifies how often registration to be done in minutes.
+                     The 0 value means single registration. Missing value means
+                     that the default value will be used. -->
+                <xsd:attribute name="period" type="xsd:nonNegativeInteger" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InfoRegister_Type">
     <!-- Element for Service element to link it to InfoRegistrar 
         elements. It may also override some configuration parameters.
         Presence of this element means that service will be registered
@@ -40,13 +47,13 @@
             <!-- This elements specify which registrars must be used
                 for registering services. If there is no such element
                 then registration is done using all registrars. -->
-            <xsd:element name="Registrar" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- Period specifies how often registration to be done in seconds.
-                The 0 value means single registration. -->
-            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0"/>
+            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <!-- Default period specifies how often registration to be done in minutes.
+            The 0 value means single registration. -->
+        <xsd:attribute name="period" type="xsd:nonNegativeInteger" use="required"/>
     </xsd:complexType>
-    <xsd:element name="InfoRegistration" type="icc:InfoRegistration_Type"/>
+    <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
 
 </xsd:schema>
 
