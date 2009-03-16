@@ -972,7 +972,31 @@ The high-level authorization is done by the Bartender. It makes decisions based 
     The \emph{modifyRequestList} is a list of (\emph{changeID}, \emph{LN}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the \emph{property} in the \emph{section} to \emph{value}), `\textbf{unset}' (remove the \emph{property}-\emph{value} pair from the \emph{section}), `\textbf{add}' (set the \emph{property} in the \emph{section} to \emph{value} only if it is not exists already). 
 
     The response is a list of (\emph{changeID}, \emph{success}), where \emph{success} could be  `\textbf{set}', `\textbf{unset}', `\textbf{entry exists}' (for an `add' request), `\textbf{denied}', `\textbf{no such LN}', `\textbf{failed}: reason'.
+   
+    \item[makeMountpoint(makeMountpointRequestList)] used to create the mountpoint
+
+    \emph{makeMountpointRequestList}, list of (\emph{requestID}, \emph{status})
+
+    \emph{makeMountpoint} is quite similar to the \emph{makeCollection}. It is used to provide the access of the external storage system within the global namespace. \emph{makeMountpointRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{URL}, \emph{metadata} ) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUIDs with the given name). \emph{LN} will be requested Logical name and the \emph{URL} is the path to the external point that is required to access. In the policies section there could be some access policies, and in the metadata section there could be any other \emph{metadata} in key-value pairs. 
+
+    The \emph{status} in the response could be \emph{done}, \emph{mountpoint exists}, \emph{parent does not exist}, \emph{internal error}, \emph{'failed: credentials not found'}, \emph{'cannot create anything in mountpoint'}
+
+    \item[unmakeMountPoint(unmakeMountpointRequestList)] delete the mountpoint
+
+    \emph{unmakeMountpointRequestList}, list of (\emph{requestID}, \emph{status})	
+
+    \emph{unmakeMountpointRequestList} is a list of (requestID, LN) with the Logical Names of the mountpoints. \emph{status} could be \emph{removed}, \emph{no such LN}, \emph{Failed: Credential not available}. 
+
+    \item[CredentialDelegation(CredentialDelegationRequest)] returns (\emph{status}, \emph{ID})
     
+    This interface is use to pass the user's limited credentials to the system in order to access the \emph{third-party} store for methods like \emph{get}, \emph{put} and \emph{list}. For listing files and directories, \emph{gateway} uses the user credential, whereas in the \emph{get} and \emph{put} methods system only uses the credentials to check the validity of the URLs before sending it to the user. 
+
+    From the client side \emph{createDelegation()} is called which interns initiate the \emph{CredentialDelegationInitRequest} for the service. After the successful handshake this method initiates an other request of \emph{UpdateCredentials( )}, which completes this process. Response from this interface could be \emph{done}, \emph{cannot delegate credentials, requested bartender does not supports the gateway}
+
+    \item[RemoveCredentials(RemoveCredentialRequest)] returns (\emph{message}, \emph{status})
+
+    \emph{RemoveCredentialRequest} initiates the process of deleting the user credential from the service side. The response could be \emph{Credential removed successfully}, \emph{cannot access proxyFile or ProxyStore problem at service side} 
+
 \end{description}
 
 % subsection interface (end)
