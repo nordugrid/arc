@@ -224,7 +224,7 @@ class TransDBStore(BaseStore):
         """
 
         if not self.getDBReady():
-            return copy.deepcopy(self.non_existent_object)
+            raise db.DBError, "db not ready"
         self.dbp = self.__opendb(self.dbp)
         try:
             object = self.dbp.keys()
@@ -232,10 +232,12 @@ class TransDBStore(BaseStore):
         except db.DBLockDeadlockError:
             log.msg(arc.INFO, "Got deadlock error")            
             log.msg()
+            raise db.DBError, "db deadlock"
         except db.DBError:
             self.__del__()
             log.msg()
             log.msg(arc.ERROR, "Error listing db")
+            raise db.DBError, "Error listing db"
 
     def get(self, ID):
         """ Returns the object with the given ID.
@@ -247,7 +249,7 @@ class TransDBStore(BaseStore):
         """
 
         if not self.getDBReady():
-            return copy.deepcopy(self.non_existent_object)
+            raise db.DBError, "db not ready"
 
         self.dbp = self.__opendb(self.dbp)
 
@@ -269,10 +271,12 @@ class TransDBStore(BaseStore):
         except db.DBLockDeadlockError:
             log.msg(arc.INFO, "Got deadlock error")            
             log.msg()
+            raise db.DBError, "db deadlock"
         except db.DBError, msg:
-            self.__del__()            
+            self.__del__()       
             log.msg()
             log.msg(arc.ERROR, "Error getting %s"%ID)
+            raise db.DBError, "Error listing db"
         
     def set(self, ID, object):
         """ Stores an object with the given ID..
