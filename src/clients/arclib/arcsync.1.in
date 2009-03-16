@@ -1,0 +1,115 @@
+.\" -*- nroff -*-
+.TH ARCSYNC 1 "@DATE" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcsync \- ARC Synchronize
+
+.SH DESCRIPTION
+
+The \fBarcsync\fR command synchronizes your local jobs list with the
+information at a given cluster or index server.
+
+.SH SYNOPSIS
+
+.B arcsync [options]
+
+.SH OPTIONS
+
+.IP "\fB-c\fR [-]\fIname\fR, \fB--cluster\fR [-]\fIname\fR"
+explicitly select or reject a specific cluster
+.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+explicitly select or reject an index server
+.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
+file containing a list of jobs
+.IP "\fB-f\fR, \fB--force\fR"
+don't ask for verification
+.IP "\fB-m\fR, \fB--merge\fR"
+merge the found jobs with the jobs already in the joblist
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+.LP
+
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The ARC user interface keeps a local list of active jobs in the users 
+home directory (see \fBarcsub\fR(1)). If this file is lost, or the user 
+wants to recreate the file on a different computer,the \fBarcsync\fR 
+command can be used to recreate the file from the information available 
+the specified cluster or index server.
+
+Since the information about a job retrieved from a clsuter can be 
+slightly out of date if the user very recently submitted or removed a 
+job a warning is issued when this command is run. The \fB-force\fR 
+option disables this warning.
+
+The 
+.B --cluster
+options can be used to select or reject clusters that should be 
+considered in the synchronization. This options can be repeated several 
+times.  See
+.BR arcsub (1)
+for a discussion of the format of arguments to this option.
+
+If a specific cluster is selected for the syncronisation while the joblist 
+contains jobs on a different cluster, running the arcsync command will 
+remove the old jobs from the joblist, unless the
+.B --merge
+option is given, in which case the new found jobs are merge with the 
+jobs already in the joblist.
+
+.SH FILES
+
+.TP
+.B ~/.arc/client.xml
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.TP
+.B ~/.arc/jobs.xml
+This a local list of the user's active jobs. When a job is
+successfully submitted it is added to this list and when it is removed
+from the remote cluster it is removed from this list. This list is
+used as the list of all active jobs when the user specifies the
+.B --all
+option to the various NorduGrid ARC user interface commands. By using the
+.B --joblist
+option a different file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcmigrate (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arcresub (1),
+.BR arccp (1),
+.BR arcls (1),
+.BR arcrm (1),
+.BR arcclient.xml (5).

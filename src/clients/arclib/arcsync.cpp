@@ -39,20 +39,21 @@ int main(int argc, char **argv) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(istring("[filename ...]"),
-                            istring("The command is used for "
-                                    "jobid synchronization"),
-                            istring("Argument to -i has the format "
-                                    "Flavour:URL e.g.\n"
-                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
-                                    "mds-vo-name=sweden,O=grid\n"
-                                    "CREAM:ldap://cream.grid.upjs.sk:2170/"
-                                    "o=grid\n"
-                                    "\n"
-                                    "Argument to -c has the format "
-                                    "Flavour:URL e.g.\n"
-                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
-                                    "nordugrid-cluster-name=grid.tsl.uu.se,"
-                                    "Mds-Vo-name=local,o=grid"));
+			    istring("The command synchronized your local job"
+				    "list with the information at a given "
+				    "cluster or index server"),
+			    istring("Argument to -i has the format "
+				    "Flavour:URL e.g.\n"
+				    "ARC0:ldap://grid.tsl.uu.se:2135/"
+				    "mds-vo-name=sweden,O=grid\n"
+				    "CREAM:ldap://cream.grid.upjs.sk:2170/"
+				    "o=grid\n"
+				    "\n"
+				    "Argument to -c has the format "
+				    "Flavour:URL e.g.\n"
+				    "ARC0:ldap://grid.tsl.uu.se:2135/"
+				    "nordugrid-cluster-name=grid.tsl.uu.se,"
+				    "Mds-Vo-name=local,o=grid"));
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
 
   bool merge = false;
   options.AddOption('m', "merge",
-                    istring("merge the synced jobs with the joblist"),
+                    istring("merge the found jobs with the jobs in the joblist"),
                     merge);
 
   int timeout = 20;
