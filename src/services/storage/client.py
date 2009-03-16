@@ -65,6 +65,9 @@ class AHashClient(Client):
         )
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
+        error = str(xml.Get('Body').Child().Get('error'))
+        if error:
+            raise Exception, error
         objects = parse_node(get_data_node(xml), ['ID', 'metadataList'], single = True, string = False)
         return dict([(str(ID), parse_metadata(metadataList)) for ID, metadataList in objects.items()])
 

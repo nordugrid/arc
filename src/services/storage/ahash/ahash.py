@@ -129,7 +129,7 @@ class CentralAHash:
             # prepare the 'conditionID' for an unmet condition
             unmetConditionID = ''
             try:
-                # get the current content of the object
+                # get the current content of the object2
                 obj = self.store.get(ID)
                 # now check all the conditions if there is any
                 ok = True
@@ -252,12 +252,17 @@ class AHashService(Service):
         except:
             log.msg()
             neededMetadata = []
-        # gets the result from the business logic class
-        objects = self.ahash.get(ids, neededMetadata)
         # create the response payload
         out = self._new_soap_payload()
         # create the 'getResponse' node
         response_node = out.NewChild('ahash:getResponse')
+        # gets the result from the business logic class
+        try:
+            objects = self.ahash.get(ids, neededMetadata)
+        except:
+            error_node = response_node.NewChild('ahash:error')
+            error_node.Set('ahash is not ready')
+            return out
         # create an XMLTree from the results
         tree = XMLTree(from_tree = 
             ('ahash:objects', [
@@ -303,12 +308,17 @@ class AHashService(Service):
             change.append(conditions)
             # put this change request into the changes dictionary
             changes[changeID] = change
-        # call the business logic class
-        resp = self.ahash.change(changes)
         # prepare the response payload
         out = self._new_soap_payload()
         # create the 'changeResponse' node
         response_node = out.NewChild('ahash:changeResponse')
+        # call the business logic class
+        try:
+            resp = self.ahash.change(changes)
+        except:
+            error_node = response_node.NewChild('ahash:error')
+            error_node.Set('ahash is not ready')
+            return out
         # create an XMLTree for the response
         tree = XMLTree(from_tree = 
             ('ahash:changeResponseList', [
