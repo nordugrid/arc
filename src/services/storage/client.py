@@ -36,6 +36,9 @@ class AHashClient(Client):
         )
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
+        error = str(xml.Get('Body').Child().Get('error'))
+        if error:
+            raise Exception, error
         ahash_prefix = xml.NamespacePrefix(ahash_uri)
         rewrite = {
             ahash_prefix + ':objects' : 'lbr:getResponseList',

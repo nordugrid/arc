@@ -129,7 +129,7 @@ class CentralAHash:
             # prepare the 'conditionID' for an unmet condition
             unmetConditionID = ''
             try:
-                # get the current content of the object2
+                # get the current content of the object
                 obj = self.store.get(ID)
                 # now check all the conditions if there is any
                 ok = True
