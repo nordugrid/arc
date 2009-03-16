@@ -11,7 +11,7 @@
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
-  pdfauthor = {KnorARC collaboration},
+  pdfauthor = {KnowARC collaboration},
   pdftitle = {libarcclient},
   pdfsubject = {A Client Library for ARC},
   pdfkeywords = {ARC,client,library},
@@ -488,7 +488,7 @@ specialized {\Broker} and it implements the method for reducing a list of resour
 
 \begin{shaded}
 \begin{verbatim}
-void PreFilterTargets(Arc::TargetGenerator& targen, Arc::JobDescription jd);
+void PreFilterTargets(const TargetGenerator& targen, const JobDescription& jd);
 \end{verbatim}
 \end{shaded}
 
@@ -525,6 +525,7 @@ internal representation based upon the upcoming PGI-JSDL proposal.
 \begin{shaded}
 \begin{verbatim}
 bool setSource(const std::string source);
+bool setSource(const XMLNode& source);
 \end{verbatim}
 \end{shaded}
 
@@ -547,7 +548,7 @@ can be retrieved through the {\texttt GetProduct} function as shown below:
 
 \begin{shaded}
 \begin{verbatim}
-bool getProduct(std::string& product, std::string format = "POSIXJSDL")
+bool getProduct(std::string& product, std::string format = "POSIXJSDL") const;
 \end{verbatim}
 \end{shaded}
 
@@ -602,7 +603,7 @@ input files.
 
 \begin{shaded}
 \begin{verbatim}
-virtual bool Submit(JobDescription& jobdesc, XMLNode& info) = 0;
+virtual bool Submit(const JobDescription& jobdesc, XMLNode& info) const = 0;
 \end{verbatim}
 \end{shaded}
 
@@ -613,6 +614,27 @@ execution and thus the {\ExecutionTarget} populates (through its
 {\XMLNode} config element) the {\Submitter} with information about
 submission endpoint ({\URL}) and job description languages understood
 by the target.
+
+\begin{shaded}
+\begin{verbatim}
+virtual bool Migrate(const URL& url,
+                     const JobDescription& jobdesc,
+                     bool forcemigration,
+                     XMLNode& info) const = 0;
+\end{verbatim}
+\end{shaded}
+
+The \texttt{Migrate} method behave in much the same way as the \texttt{Submit}
+method, but is conceptually different from that method. The \texttt{Migrate}
+method takes two additional arguments. A {\URL} \texttt{url} which is
+the jobid of a job which should be migrated, and a boolean
+\texttt{forcemigration} which will indicate if the job, specified in the
+{\JobDescription} \texttt{jobdesc}, should persist if the cluster
+({\ExecutionTarget}) does not succeed submitting a kill/terminate request
+for the job specified by \texttt{url}. The \texttt{Migrate} method will
+also fill the {\XMLNode} \texttt{info} variable with information about the
+job for later job management, which additionally include the old jobid
+(\texttt{url}) of the migrated job.
 
 \subsection{{\JobSupervisor}}
 
@@ -648,7 +670,7 @@ the {\JobSupervisor} class. In order to get handles on the
 
 \begin{shaded}
 \begin{verbatim}
-const std::list<Arc::JobController*>& GetJobControllers();
+const std::list<JobController*>& GetJobControllers();
 \end{verbatim}
 \end{shaded}
 
@@ -740,7 +762,7 @@ declared as a private virtual method within the {\JobController} base
 class. For details about the flavour specific implementations see
 Section~\ref{sec:plugins}.
 
-The other public functions of the {\JobController} class are:
+The other public methods of the {\JobController} class are:
 The \texttt{Get} which is used to download jobs
 \begin{shaded}
 \begin{verbatim}
@@ -805,6 +827,25 @@ through the users local XML file.\\
 The \texttt{GetJobDescriptions} returns a list of the  {\Job}s where job description 
 have been found. The found job descriptions are kept in the 
 {\Job}.\texttt{JobDescription} attribute.
+
+The \texttt{Migrate} method:
+\begin{shaded}
+\begin{verbatim}
+bool Migrate(TargetGenerator& targetGen,
+             Broker* broker,
+             const bool forcemigration,
+             const int timeout);
+\end{verbatim}
+\end{shaded}
+will try to migrate the jobs contained in the object ({\JobController}). The jobs
+will be migrated to the targets specified in {\TargetGenerator} \texttt{targetGen}
+by using the broker specified by {\Broker} \texttt{broker}. The boolean
+\texttt{forcemigration} specifies whether a migrated job should persist if the
+new cluster ({\ExecutionTarget}) chosen by the {\TargetGenerator} does not
+succeed submitting a kill/terminate request for the job. The integer
+\texttt{timeout} argument have not yet been implemented.
+
+
 
 \subsection{{\Job}}
 

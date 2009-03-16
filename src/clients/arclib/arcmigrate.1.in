@@ -1,0 +1,163 @@
+.\" -*- nroff -*-
+.TH ARCMIGRATE 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcmigrate \- ARC Migration
+
+.SH DESCRIPTION
+
+The
+.B arcmigrate
+command is used for migrating queued jobs from one ARC1 cluster to another ARC1 cluster.
+
+.SH SYNOPSIS
+
+.B arcmigrate [options] [jobid ...]
+
+.SH OPTIONS
+
+.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
+explicitly select or reject a specific cluster holding queued jobs
+.IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
+explicitly select or reject a specific cluster which queued jobs should/shouldn't be migrated to
+.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+explicitly select or reject an index server
+.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
+file where the jobs will be stored
+.IP "\fB-a\fR, \fB--all\fR"
+all jobs specified in the jobfile will be tried migrated
+.IP "\fB-f\fR, \fB--forcemigration\fR"
+force migration, ignore kill failure
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.xml)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-b\fR, \fB--broker\fR"
+selected broker (default  Random)
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBjobid\fR ..."
+id of a queued job which should be migrated
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcmigrate
+command is used for migrating jobs which are queuing in the batch
+system. Currently only jobs having the status Running/Executing/Queuing
+can be migrated, and the command is only supported for migration
+between ARC1 clusters.
+
+The
+.B --qluster
+option can be used to force the job to be migrated to a particular
+cluster, or to reject migration to a particular cluster. The
+.B --qluster
+option can be repeated several times. The name of the cluster should
+be given in the format
+
+.B ARC1:protocol://hostname[:port]/path
+
+.IR Examples :
+.IP "\fBarcmigrate -q ARC1:https://knowarc1.grid.niif.hu:60000/arex ..."
+will migrate a  to knowarc1.grid.niif.hu.
+.IP "\fBarcmigrate -q -ARC1:https://knowarc1.grid.niif.hu:60000/arex ..."
+will migrate a job to some other cluster than knowarc1.grid.niif.hu.
+.LP
+
+Jobs to be migrated can be specified in serveral ways. Job IDs can be
+specified as arguments on the command line, clusters holding queued
+jobs can be specified with the
+.B --cluster
+option, and to migrate all jobs in the jobfile the
+.B --all
+option can be given.
+
+If the job(s) is successfully migrated a jobid(s) is printed to
+stdout. This jobid uniquely identifies the job while it is being
+executed.
+
+Information about active jobs, including the old job id of the
+migrated job, are stored in a local joblist file. By using the
+.B --joblist
+option a customized location for this file can be defined. If this
+option is used when migrating a job using
+.BR arcmigrate ,
+the same joblist
+file must be specified using the
+.B --joblist
+option for all subsequent handling of the job using
+.BR arcstat (1),
+.BR arcget (1),
+etc.
+
+The
+.B arcmigrate
+command locates the available clusters by querying information index
+servers. Which servers to query can be specified by giving the
+.B --index
+option to the command. The name of the index server should be given in
+the format
+
+.B Flavor:protocol://hostname[:port]/path
+
+.IR Example :
+.IP "\fBarcmigrate -i ARC0:ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid ..."
+use the NorduGrid index at index1.nordugrid.org
+.IP "\fBarcmigrate -i -ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid ..."
+do not use the Sweden index at grid.tsl.uu.se
+
+.SH FILES
+
+.TP
+.B ~/.arc/client.xml
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.TP
+.B ~/.arc/jobs.xml
+This a local list of the user's active jobs. When a job is
+successfully migrated the old jobid is removed and the new is added
+to this list. This list is used as the list of all active jobs when
+the user specifies the
+.B --all
+option to the various NorduGrid ARC user interface commands. By using the
+.B --joblist
+option a different file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcresub (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arccp (1),
+.BR arcls (1),
+.BR arcrm (1),
+.BR arcclient.xml (5).
