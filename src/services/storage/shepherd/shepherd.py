@@ -12,7 +12,7 @@ from arcom.security import parse_ssl_config
 from arcom.service import shepherd_uri, true, parse_node, create_response
 
 from arcom.xmltree import XMLTree
-from storage.common import common_supported_protocols
+from storage.common import common_supported_protocols, serialize_ids
 from storage.client import LibrarianClient, BartenderClient
 
 from arcom.logger import Logger
@@ -212,8 +212,10 @@ class Shepherd:
                                 if state == ALIVE:
                                     # check the number of needed replicasa
                                     needed_replicas = int(metadata.get(('states','neededReplicas'),-1))
+                                    #print metadata.items()
                                     # find myself among the locations
-                                    myself = [value for (s, p), v in metadata.items() if s == 'locations' and p == serialize_ids([self.serviceID, referenceID])]
+                                    myself = [v for (s, p), v in metadata.items() if s == 'locations' and p == serialize_ids([self.serviceID, referenceID])]
+                                    #print myself
                                     if not myself or myself[0] != ALIVE:
                                         # if the state of this replica is not proper in the Librarian, fix it
                                         self.changeState(referenceID, ALIVE)
