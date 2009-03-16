@@ -15,9 +15,10 @@ class ByteIOBackend:
     public_request_names = ['notify']
     supported_protocols = ['byteio']
 
-    def __init__(self, backendcfg, ns_uri, file_arrived):
+    def __init__(self, backendcfg, ns_uri, file_arrived, ssl_config):
         self.file_arrived = file_arrived
         self.ns = arc.NS('she', ns_uri)
+        self.ssl_config = ssl_config
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
@@ -35,14 +36,14 @@ class ByteIOBackend:
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
         log.msg(arc.DEBUG, self.turlprefix, 'Uploading file to', turl)
-        upload_to_turl(turl, protocol, f)
+        upload_to_turl(turl, protocol, self.ssl_config)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
         log.msg(arc.DEBUG, self.turlprefix, 'Downloading file from', turl)
-        download_from_turl(turl, protocol, f)
+        download_from_turl(turl, protocol, f, self.ssl_config)
         f.close()
 
     def prepareToGet(self, referenceID, localID, protocol):
@@ -107,6 +108,7 @@ class ByteIOBackend:
     def checksum(self, localID, checksumType):
         return create_checksum(file(os.path.join(self.datadir, localID), 'rb'), checksumType)
 
+from arcom.security import parse_ssl_config
 from arcom.service import Service
 
 class ByteIOService(Service):
@@ -119,7 +121,8 @@ class ByteIOService(Service):
         Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'rb', 'namespace_uri': rbyteio_uri}], cfg)
         self.transferdir = str(cfg.Get('TransferDir'))
         log.msg(arc.DEBUG, "ByteIOService transfer dir:", self.transferdir)
-        self.notify = NotifyClient(str(cfg.Get('NotifyURL')))
+        ssl_config = parse_ssl_config(cfg)
+        self.notify = NotifyClient(str(cfg.Get('NotifyURL')), ssl_config = ssl_config)
 
     def _filename(self, subject):
         return os.path.join(self.transferdir, subject)

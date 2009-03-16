@@ -20,16 +20,16 @@ def parse_url(url):
         port = 80
     return proto, host, int(port), path
 
-common_supported_protocols = ['http', 'gridftp', 'srm']
+supported_protocols = ['http', 'byteio', 'gridftp', 'srm']
 CHUNKSIZE = 2**20
 
 def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     """docstring for upload_to_turl"""
-    if protocol not in common_supported_protocols:
+    if protocol not in supported_protocols:
         raise Exception, 'Unsupported protocol'
     if protocol == 'byteio':
         from storage.client import ByteIOClient
-        return ByteIOClient(turl).write(fobj)
+        return ByteIOClient(turl, ssl_config = ssl_config).write(fobj)
     elif protocol == 'gridftp':
         try:            
             import arc            
@@ -98,11 +98,11 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
 
 def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
     """docstring for download_from_turl"""
-    if protocol not in common_supported_protocols:
+    if protocol not in supported_protocols:
         raise Exception, 'Unsupported protocol'
     if protocol == 'byteio':
         from storage.client import ByteIOClient
-        ByteIOClient(turl).read(file = f)
+        ByteIOClient(turl, ssl_config = ssl_config).read(file = f)
     elif protocol == 'gridftp':
         try:
             import arc
@@ -1561,7 +1561,7 @@ else:
             if os.path.exists(filename):
                 print "ERROR: local path '%s'" % filename, 'already exists!'
             else:
-                request = {'0' : (LN, ['http'])}
+                request = {'0' : (LN, supported_protocols)}
                 #print 'getFile', request
                 response = call_it('getFile', request)
                 print response
@@ -1619,7 +1619,7 @@ else:
                 LN = LN + filename.split('/')[-1]
             metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
                     ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : needed_replicas}
-            request = {'0': (LN, metadata, ['http'])}
+            request = {'0': (LN, metadata, supported_protocols)}
             #print 'putFile', request
             response = call_it('putFile', request)
             print response
