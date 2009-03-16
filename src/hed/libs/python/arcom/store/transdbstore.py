@@ -145,12 +145,12 @@ class TransDBStore(BaseStore):
                     log.msg()
                     try:
                         dbp.close(0)
-                    except db.DBErr, (errnum2, strerror2):
+                    except db.DBError, (errnum2, strerror2):
                         self.__del__()
                         
                         log.msg()
                         log.msg(arc.ERROR, "unexpected error closing after failed open")
-                        raise db.DBErr, strerror2
+                        raise db.DBError, strerror2
                     dbp = None
                     time.sleep(self.sleeptime)
                     continue
@@ -158,12 +158,12 @@ class TransDBStore(BaseStore):
                     log.msg(arc.DEBUG, "got deadlock - retrying")
                     try:
                         dbp.close(0)
-                    except db.DBErr, (errnum2, strerror2):
+                    except db.DBError, (errnum2, strerror2):
                         log.msg()
                         log.msg(arc.ERROR, "unexpected error closing after failed open")
                         #self.__del__()
                         
-                        raise db.DBErr, strerror2
+                        raise db.DBError, strerror2
                     dbp = None
                     time.sleep(self.sleeptime)
                     continue
