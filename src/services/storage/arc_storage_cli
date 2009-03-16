@@ -1685,7 +1685,7 @@ else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             #print 'list', request
             response = call_it('list', request, [('entry','')])
-            print response
+            #print response
                        
             for rID, (entries, status) in response.items():
                 if status == 'found':
