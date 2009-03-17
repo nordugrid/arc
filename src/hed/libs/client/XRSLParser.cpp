@@ -132,27 +132,28 @@ namespace Arc {
     const RSLCondition *c;
 
     if ((b = dynamic_cast<const RSLBoolean*>(r))) {
-      if (b->Op() == RSLAnd)
+      if (b->Op() == RSLAnd) {
         for (std::list<RSL*>::const_iterator it = b->begin();
              it != b->end(); it++)
           if (!parse(*it, j)) {
             logger.msg(ERROR, "XRSL parsing problem");
             return false;
           }
-          else if (b->Op() == RSLOr) {
-            if (b->size() != 1) {
-              logger.msg(ERROR, "RSL conditionals currentsly not yet supported");
-              return false;
-            }
-            if (!parse(*b->begin(), j)) {
-              logger.msg(ERROR, "XRSL parsing problem");
-              return false;
-            }
-          }
-          else {
-            logger.msg(ERROR, "Unexpected RSL type");
-            return false;
-          }
+      }
+      else if (b->Op() == RSLOr) {
+        if (b->size() != 1) {
+          logger.msg(ERROR, "RSL conditionals currentsly not yet supported");
+          return false;
+        }
+        if (!parse(*b->begin(), j)) {
+          logger.msg(ERROR, "XRSL parsing problem");
+          return false;
+        }
+      }
+      else {
+        logger.msg(ERROR, "Unexpected RSL type");
+        return false;
+      }
     }
     else if ((c = dynamic_cast<const RSLCondition*>(r))) {
 
