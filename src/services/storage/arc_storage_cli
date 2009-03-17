@@ -38,7 +38,6 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
         except:            
             use_hed = False
         if use_hed:
-
             src = datapoint_from_url(fobj.name)
             dst = datapoint_from_url(turl)            
             dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', '') ,ssl_config.get('key_file', ''), ssl_config.get('ca_dir', ''))

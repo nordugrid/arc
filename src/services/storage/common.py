@@ -16,7 +16,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
         raise Exception, 'Unsupported protocol'
     if protocol == 'byteio':
         from storage.client import ByteIOClient
-        return ByteIOClient(turl).write(fobj)
+        return ByteIOClient(turl, ssl_config = ssl_config).write(fobj)
     elif protocol == 'external':
         return 
     elif protocol == 'http':
@@ -59,7 +59,7 @@ def download_from_turl(turl, protocol, fobj, ssl_config = {}):
         raise Exception, 'Unsupported protocol'
     if protocol == 'byteio':
         from storage.client import ByteIOClient
-        ByteIOClient(turl).read(file = f)
+        ByteIOClient(turl, ssl_config = ssl_config).read(file = f)
     elif protocol == 'http':
         from arcom import parse_url
         proto, host, port, path = parse_url(turl)

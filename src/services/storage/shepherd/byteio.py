@@ -36,14 +36,14 @@ class ByteIOBackend:
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
         log.msg(arc.DEBUG, self.turlprefix, 'Uploading file to', turl)
-        upload_to_turl(turl, protocol, self.ssl_config)
+        upload_to_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
         log.msg(arc.DEBUG, self.turlprefix, 'Downloading file from', turl)
-        download_from_turl(turl, protocol, f, self.ssl_config)
+        download_from_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
 
     def prepareToGet(self, referenceID, localID, protocol):
@@ -93,9 +93,9 @@ class ByteIOBackend:
         return [protocol for protocol in protocols if protocol in self.supported_protocols]
 
     def notify(self, inpayload):
-        request_node = inpayload.Get('Body')
+        request_node = inpayload.Get('notify')
         subject = str(request_node.Get('subject'))
-        referenceID = self.idstore.get(subject,None)
+        referenceID = self.idstore.get(subject, None)
         state = str(request_node.Get('state'))
         path = os.path.join(self.transferdir, subject)
         log.msg(arc.DEBUG, self.turlprefix, 'Removing', path)
