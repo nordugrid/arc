@@ -467,6 +467,7 @@ namespace Arc {
           if((policy_object = OBJ_nid2obj(OBJ_sn2nid(IMPERSONATION_PROXY_SN))) != NULL) {
             PROXYPOLICY_set_policy_language(ppolicy, policy_object); 
           }
+else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
           break;
 
         case CERT_TYPE_GSI_3_INDEPENDENT_PROXY:
@@ -961,10 +962,16 @@ namespace Arc {
     return true;
   }
 
-  bool Credential::OutputCertificate(std::string &content) {
+  bool Credential::OutputCertificate(std::string &content, bool format) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
-    if(!PEM_write_bio_X509(out,cert_)) { BIO_free_all(out); return false; };
+    if(format == false) {
+      if(!PEM_write_bio_X509(out,cert_)) { BIO_free_all(out); return false; };
+    }
+    else {
+      if(!i2d_X509_bio(out,cert_)) { BIO_free_all(out); return false; };
+    }
+
     for(;;) {
       char s[256];
       int l = BIO_read(out,s,sizeof(s));
@@ -975,7 +982,7 @@ namespace Arc {
     return true;
   }
 
-  bool Credential::OutputCertificateChain(std::string &content) {
+  bool Credential::OutputCertificateChain(std::string &content, bool format) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     X509 *cert;
@@ -984,7 +991,13 @@ namespace Arc {
     //Out put the cert chain, except the CA certificate and this certificate itself
     for (int n = 1; n < sk_X509_num(cert_chain_) - 1; n++) {
       cert = sk_X509_value(cert_chain_, n);
-      if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
+      if(format == false) {
+        if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
+      }
+      else {
+        if(!i2d_X509_bio(out,cert)) { BIO_free_all(out); return false; };
+      }
+
       for(;;) {
         char s[256];
         int l = BIO_read(out,s,sizeof(s));
@@ -997,13 +1010,17 @@ namespace Arc {
   }
 
   //Inquire the input request bio to get PROXYCERTINFO, certType
-  bool Credential::InquireRequest(BIO* &reqbio, bool if_eec){
+  bool Credential::InquireRequest(BIO* &reqbio, bool if_eec, bool req_format){
     bool res = false;
     if(reqbio == NULL) { CredentialLogger.msg(ERROR, "NULL BIO passed to InquireRequest"); return false; }
     if(req_) {X509_REQ_free(req_); req_ = NULL; }
-    if(!(PEM_read_bio_X509_REQ(reqbio, &req_, NULL, NULL))) {  
-      CredentialLogger.msg(ERROR, "PEM_read_bio_X509_REQ failed"); 
-      LogError(); return false; 
+    if((req_format == false) && (!(PEM_read_bio_X509_REQ(reqbio, &req_, NULL, NULL)))) { 
+      CredentialLogger.msg(ERROR, "PEM_read_bio_X509_REQ failed");
+      LogError(); return false;
+    }
+    else if((req_format == true) && (!(d2i_X509_REQ_bio(reqbio, &req_)))) {
+      CredentialLogger.msg(ERROR, "d2i_X509_REQ_bio failed"); 
+      LogError(); return false;
     }
 
     //if(!(d2i_X509_REQ_bio(reqbio, &req_))) {
@@ -1016,23 +1033,27 @@ namespace Arc {
     PROXYPOLICY*  policy = NULL;
     ASN1_OBJECT*  policy_lang = NULL;
     ASN1_OBJECT*  extension_oid = NULL;
-    int certinfo_v3_NID, certinfo_v4_NID, nid = NID_undef;
+    int certinfo_v3_NID, certinfo_v4_NID, certinfo_old_NID, certinfo_NID, nid = NID_undef;
     int i;
 
     //Get the PROXYCERTINFO from request' extension
     req_extensions = X509_REQ_get_extensions(req_);
     certinfo_v3_NID = OBJ_sn2nid("PROXYCERTINFO_V3");
+    certinfo_old_NID = OBJ_sn2nid("OLD_PROXYCERTINFO");
     certinfo_v4_NID = OBJ_sn2nid("PROXYCERTINFO_V4");
+    certinfo_NID = OBJ_sn2nid("PROXYCERTINFO");
     for(i=0;i<sk_X509_EXTENSION_num(req_extensions);i++) {
       ext = sk_X509_EXTENSION_value(req_extensions,i);
       extension_oid = X509_EXTENSION_get_object(ext);
       nid = OBJ_obj2nid(extension_oid);
-      if(nid == certinfo_v3_NID || nid == certinfo_v4_NID) {
+
+std::cout<<"NID:  "<<nid<<" SN: "<<OBJ_nid2sn(nid)<<std::endl;
+      if(nid == certinfo_v3_NID || nid == certinfo_v4_NID ||
+         nid == certinfo_old_NID || nid == certinfo_NID) {
         if(proxy_cert_info_) {
           PROXYCERTINFO_free(proxy_cert_info_);
           proxy_cert_info_ = NULL;
         }   
-
         if((proxy_cert_info_ = (PROXYCERTINFO*)X509V3_EXT_d2i(ext)) == NULL) {
            CredentialLogger.msg(ERROR, "Can not convert DER encoded PROXYCERTINFO extension to internal format"); 
            LogError(); goto err;
@@ -1051,7 +1072,7 @@ namespace Arc {
         LogError(); goto err;
       }    
       int policy_nid = OBJ_obj2nid(policy_lang);
-      if(nid == certinfo_v3_NID) { 
+      if(nid == certinfo_v3_NID || nid == certinfo_old_NID) { 
         if(policy_nid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { cert_type_= CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
         else if(policy_nid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
         else if(policy_nid == OBJ_sn2nid(LIMITED_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY; }
@@ -1070,6 +1091,10 @@ namespace Arc {
     else if(if_eec == false) { cert_type_ =  CERT_TYPE_RFC_INDEPENDENT_PROXY; } //CERT_TYPE_GSI_2_PROXY; }
     else { cert_type_ = CERT_TYPE_EEC; }
 
+std::cout<<"Cert type: +++++++++++++  "<<cert_type_<<std::endl;
+if(cert_type_ == CERT_TYPE_RFC_INDEPENDENT_PROXY) std::cout<<"CERT_TYPE_RFC_INDEPENDENT_PROXY"<<std::endl;
+cert_type_ = CERT_TYPE_RFC_INDEPENDENT_PROXY;  
+
     res = true;
 
 err:
@@ -1078,14 +1103,14 @@ err:
     return res;
   }
 
-  bool Credential::InquireRequest(std::string &content, bool if_eec) {
+  bool Credential::InquireRequest(std::string &content, bool if_eec, bool req_format) {
     BIO *in;
     if(!(in = BIO_new_mem_buf((void*)(content.c_str()), content.length()))) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for parsing request"); 
       LogError(); return false;
     }
 
-    if(InquireRequest(in)) {
+    if(InquireRequest(in,if_eec,req_format)) {
       CredentialLogger.msg(INFO, "Read request from a string");
     }
     else {
@@ -1097,7 +1122,7 @@ err:
     return true;
   }
 
-  bool Credential::InquireRequest(const char* filename, bool if_eec) {
+  bool Credential::InquireRequest(const char* filename, bool if_eec, bool req_format) {
     BIO *in = BIO_new(BIO_s_file());
     if(!in) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for parsing request"); 
@@ -1108,7 +1133,7 @@ err:
       LogError(); BIO_free_all(in); return false;
     }
 
-    if(InquireRequest(in)) {
+    if(InquireRequest(in,if_eec,req_format)) {
       CredentialLogger.msg(INFO, "Read request from a file");
     }
     else {
@@ -1446,7 +1471,7 @@ err:
     return res;
   }
 
-  bool Credential::SignRequest(Credential* proxy, BIO* outputbio){
+  bool Credential::SignRequest(Credential* proxy, BIO* outputbio, bool format){
     bool res = false;
     if(proxy == NULL) {CredentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
     if(outputbio == NULL) { CredentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
@@ -1536,13 +1561,23 @@ err:
     else CredentialLogger.msg(INFO, "Succeeded to verify the signed certificate");
 
     /*Output the signed certificate into BIO*/
-    //if(i2d_X509_bio(outputbio, proxy_cert)) {
-    if(PEM_write_bio_X509(outputbio, proxy_cert)) {
-      CredentialLogger.msg(INFO, "Output the proxy certificate"); res = true;
+    if(format == false) {
+      if(PEM_write_bio_X509(outputbio, proxy_cert)) {
+        CredentialLogger.msg(INFO, "Output the proxy certificate"); res = true;
+      }
+      else { 
+        CredentialLogger.msg(ERROR, "Can not convert signed proxy cert into PEM format"); 
+        LogError();
+      }
     }
-    else { 
-      CredentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format"); 
-      LogError();
+    else {
+      if(i2d_X509_bio(outputbio, proxy_cert)) {
+        CredentialLogger.msg(INFO, "Output the proxy certificate"); res = true;
+      }
+      else {
+        CredentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format");
+        LogError();
+      }
     }
    
 err:
@@ -1553,14 +1588,14 @@ err:
     return res;
   }
 
-  bool Credential::SignRequest(Credential* proxy, std::string &content) {
+  bool Credential::SignRequest(Credential* proxy, std::string &content, bool format) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); 
       LogError(); return false;
     }
               
-    if(SignRequest(proxy, out)) {
+    if(SignRequest(proxy, out, format)) {
       for(;;) { 
         char s[256];
         int l = BIO_read(out,s,sizeof(s));
@@ -1573,7 +1608,7 @@ err:
     return true;    
   }               
                   
-  bool Credential::SignRequest(Credential* proxy, const char* filename) {
+  bool Credential::SignRequest(Credential* proxy, const char* filename, bool format) {
     BIO *out = BIO_new(BIO_s_file());
     if(!out) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); 
@@ -1584,7 +1619,7 @@ err:
       LogError(); BIO_free_all(out); return false;
     }     
           
-    if(SignRequest(proxy, out)) {
+    if(SignRequest(proxy, out, format)) {
       CredentialLogger.msg(INFO, "Wrote signed proxy certificate into a file");
     }
     else {

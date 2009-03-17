@@ -420,13 +420,15 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          nid != NID_subject_key_identifier &&
          nid != NID_authority_key_identifier &&
          nid != OBJ_sn2nid("PROXYCERTINFO_V3") &&
-         nid != OBJ_sn2nid("PROXYCERTINFO_V4")
+         nid != OBJ_sn2nid("PROXYCERTINFO_V4") &&
+         nid != OBJ_sn2nid("OLD_PROXYCERTINFO") &&
+         nid != OBJ_sn2nid("PROXYCERTINFO")
 #if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
          && nid != NID_proxyCertInfo
 #endif
         ) {
         store_ctx->error = X509_V_ERR_CERT_REJECTED;
-        std::cerr<<"Certificate has unknown extension with numeric ID: "<<nid<<std::endl;
+        std::cerr<<"Certificate has unknown extension with numeric ID: "<<nid<<" and SN: "<<OBJ_nid2sn(nid)<<std::endl;
         return (0);
       }
 

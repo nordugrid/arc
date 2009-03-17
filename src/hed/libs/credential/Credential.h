@@ -197,11 +197,15 @@ class Credential {
     /**Output the public key into string*/
     bool OutputPublickey(std::string &content);
 
-    /**Output the certificate into string*/
-    bool OutputCertificate(std::string &content);
+    /**Output the certificate into string
+     * @param format false for PEM, true for DER
+     */
+    bool OutputCertificate(std::string &content, bool format=false);
 
-    /**Output the certificate chain into string*/
-    bool OutputCertificateChain(std::string &content);
+    /**Output the certificate chain into string
+     * @param format false for PEM, true for DER
+     */
+    bool OutputCertificateChain(std::string &content, bool format=false);
 
     /**Returns lifetime of certificate or proxy*/
     Arc::Period GetLifeTime(void);
@@ -261,24 +265,29 @@ class Credential {
     * and parse the certificate type from the PROXYCERTINFO 
     * of request' extension
     */
-    bool InquireRequest(BIO* &reqbio, bool if_eec = false);
+    bool InquireRequest(BIO* &reqbio, bool if_eec = false, bool req_format = false /*false for PEM; true for DER*/);
    
     /**Inquire the certificate request from a string*/
-    bool InquireRequest(std::string &content, bool if_eec = false);
+    bool InquireRequest(std::string &content, bool if_eec = false, bool req_format = false);
 
     /**Inquire the certificate request from a file*/
-    bool InquireRequest(const char* filename, bool if_eec = false);
+    bool InquireRequest(const char* filename, bool if_eec = false, bool req_format = false);
 
     /**Sign request based on the information inside proxy, and 
      * output the signed certificate to output BIO
+     * @param format false for PEM, true for DER
      */
-    bool SignRequest(Credential* proxy, BIO* outputbio);
+    bool SignRequest(Credential* proxy, BIO* outputbio, bool format = false);
 
-    /**Sign request and output the signed certificate to a string*/
-    bool SignRequest(Credential* proxy, std::string &content);
+    /**Sign request and output the signed certificate to a string
+     * @param format false for PEM, true for DER
+     */
+    bool SignRequest(Credential* proxy, std::string &content, bool format = false);
 
-    /**Sign request and output the signed certificate to a file*/
-    bool SignRequest(Credential* proxy, const char* filename);
+    /**Sign request and output the signed certificate to a file
+     * @param format false for PEM, true for DER
+     */
+    bool SignRequest(Credential* proxy, const char* filename, bool foamat = false);
 
     //The following three methods is about signing an EEC certificate by implementing the same 
     //functionality as a normal CA
