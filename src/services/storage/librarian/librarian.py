@@ -323,6 +323,8 @@ class Librarian:
                 ifvalue = changeType[11:]
                 changeType = 'set'
                 conditions = {'0': ('is', section, property, ifvalue)}
+            else:
+                continue
             changes[changeID] = (GUID, changeType, section, property, value, conditions)
         ahash_response = self.ahash_change(changes)
         response = {}

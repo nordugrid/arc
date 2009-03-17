@@ -1554,10 +1554,14 @@ else:
             LN = args[0]
             try:
                 filename = args[1]
+                if os.path.isdir(filename):
+                    _, _, LN_name = splitLN(LN)
+                    filename = os.path.join(filename, LN_name)
             except:
                 filename = '.'
             if filename == '.':
                 _, _, filename = splitLN(LN)
+                
             if os.path.exists(filename):
                 print "ERROR: local path '%s'" % filename, 'already exists!'
             else:
@@ -1762,7 +1766,7 @@ else:
             if identity:
                 identity = identity[:-1]
             if changeType not in ['set', 'change', 'clear']:
-                print 'wrong change type!'
+                print 'wrong change type! possible change types: set, change, clear'
             else:
                 wrong_args = [arg[1:] for arg in args if arg[1:] not in storage_actions]
                 if wrong_args:
