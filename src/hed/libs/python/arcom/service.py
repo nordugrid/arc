@@ -118,6 +118,13 @@ class Service:
                     #print DN, 'is listed as trusted in these AHashes:', ', '.join(entry['URLs'])
                     trusted = True
         return trusted
+        
+    def _get_trusted_dns(self):
+        dns = []
+        for entry in self._trust_manager:
+            if entry['type'] in ['DN' or 'DNsFromAHash']:
+                dns.extend(entry['DNs'])
+        return dns
     
     def _new_soap_payload(self):
         return arc.PayloadSOAP(self.ns)

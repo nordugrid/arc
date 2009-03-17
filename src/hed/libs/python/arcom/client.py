@@ -28,6 +28,7 @@ class Client:
         self.connection = None
         self.ssl_config = {}
         self.cfg = arc.MCCConfig()
+        self.get_trusted_dns_method = ssl_config.get('get_trusted_dns_method', None)
         if self.https:
             self.ssl_config = ssl_config
             if ssl_config.has_key('proxy_file'):
@@ -44,6 +45,7 @@ class Client:
                 self.cfg.AddCADir(self.ssl_config['ca_dir'])
             else:
                 raise Exception, 'no CA file or CA dir found!'
+                
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.
@@ -89,7 +91,11 @@ class Client:
         for url in self.urls:
             #print "trying URL", url.fullstr()
             try:
-                s = arc.ClientSOAP(self.cfg, url)          
+                s = arc.ClientSOAP(self.cfg, url)
+                if self.get_trusted_dns_method:
+                    dnlistconf = arc.DNListHandlerConfig(self.get_trusted_dns_method(), 'outgoing')
+                    # _s points to the superclass, but not the object, so it needs the object as first argument
+                    s._s._s.AddSecHandler(s, dnlistconf, arc.TLSSec)
                 resp, status = s.process(outpayload)
                 if not status.isOk():
                     raise Exception, str(status)
