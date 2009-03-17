@@ -146,26 +146,26 @@ class Shepherd:
                 self.changeState(referenceID, ALIVE)
                 state = ALIVE
             # now the state of the file is ALIVE, let's return it with the GUID and the localID (which will be needed later by checkingThread )
-            return state, localData['GUID'], localData['localID']
+            return state
         else:
             # or if the checksum is not the same - we have a corrupt file, or a not-fully-uploaded one
             if state == CREATING:
                 # if the file's local state is CREATING, that's OK, the file is still being uploaded
-                return CREATING, localData['GUID'], localData['localID']
+                return CREATING
             if state == DELETED:
                 # if the file is DELETED we don't care if the checksum is wrong
-                return DELETED, localData['GUID'], localData['localID']
+                return DELETED
             if state != INVALID:
                 # but if it is not INVALID, not CREATING and not DELETED - so it's ALIVE: its state should be changed to INVALID
                 log.msg(arc.DEBUG, '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
                 self.changeState(referenceID, INVALID)
-            return INVALID, localData['GUID'], localData['localID']
+            return INVALID
         
     def _file_arrived(self, referenceID):
         # this is called usually by the backend when a file arrived (gets fully uploaded)
         # call the checksum checker which will change the state to ALIVE if its checksum is OK, but leave it as CREATING if the checksum is wrong
         # TODO: either this checking should be in seperate thread, or the backend's should call this in a seperate thread?
-        state, _, _ = self._checking_checksum(referenceID)
+        state = self._checking_checksum(referenceID)
         # if _checking_checksum haven't change the state to ALIVE: the file is corrupt
         if state == CREATING:
             self.changeState(referenceID, INVALID)
@@ -193,15 +193,35 @@ class Shepherd:
                     # start checking the first one
                     for referenceID in referenceIDs:
                         try:
-                            # check the checksum: if the checksum is OK or not, it changes the state of the replica as well
+                            localData = self.store.get(referenceID)
+                            print localData
+                            GUID, localID = localData['GUID'], localData['localID']
+                            checksum, checksumType = localData['checksum'], localData['checksumType']
+                            # first we get the file's metadata from the librarian
+                            metadata = self.librarian.get([GUID])[GUID]
+                            # check if the cheksum changed in the Librarian
+                            if checksum != metadata[('states','checksum')] or checksumType != metadata[('states','checksumType')]:
+                                # refresh the checksum
+                                self.store.lock()
+                                try:
+                                    if not localData: # what?
+                                        self.store.unlock()
+                                    else:
+                                        localData['checksum'] = metadata[('states','checksum')]
+                                        localData['checksumType'] = metadata[('states','checksumType')]
+                                        print 'checksum refreshed', localData
+                                        self.store.set(referenceID, localData)
+                                        self.store.unlock()
+                                except:
+                                    log.msg()
+                                    self.store.unlock()
+                            # check the real checksum of the file: if the checksum is OK or not, it changes the state of the replica as well
                             # and it returns the state and the GUID and the localID of the file
                             #   if _checking_checksum changed the state then the new state is returned here:
-                            state, GUID, localID = self._checking_checksum(referenceID)
+                            state = self._checking_checksum(referenceID)
                             # now the file's state is according to its checksum
                             # if it is CREATING or ALIVE:
                             if state == CREATING or state == ALIVE:
-                                # first we get the file's metadata from the librarian
-                                metadata = self.librarian.get([GUID])[GUID]
                                 # if this metadata is not a valid file then the file must be already removed
                                 if metadata.get(('entry', 'type'), '') != 'file':
                                     # it seems this is not a real file anymore
@@ -240,8 +260,6 @@ class Shepherd:
                                         self.changeState(referenceID, THIRDWHEEL)
                             # or if this replica is not needed
                             elif state == THIRDWHEEL:
-                                # first we get the file's metadata from the librarian
-                                metadata = self.librarian.get([GUID])[GUID]
                                 # get the number of THIRDWHEELS not on this Shepherd (self.serviceID)
                                 thirdwheels = len([property for (section, property), value in metadata.items()
                                                    if section == 'locations' and value == THIRDWHEEL and not property.startswith(self.serviceID)])
