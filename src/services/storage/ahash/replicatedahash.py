@@ -168,7 +168,7 @@ class ReplicationStore(TransDBStore):
             other_eid += 1
             other_replicas +=  [{'url'      : url,
                                  'id'       : other_eid,
-                                 'status'   : 'online'}]
+                                 'status'   : 'offline'}]
 
         # start replication manager
         self.repmgr = ReplicationManager(ahash_send, self.dbenv, 
@@ -223,7 +223,7 @@ class ReplicationStore(TransDBStore):
         except:
             log.msg(arc.WARNING, "Bad cache size or no cache size configured, using 10MB")
             self.cachesize = 10*(1024**2)
-        self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_ONE)
+        self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_ALL)
         self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 500000)
         self.dbenv.rep_set_priority(self.priority)
         self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
@@ -259,12 +259,12 @@ class ReplicationStore(TransDBStore):
                     for (url, status) in client_list:
                         new_obj[('client', "%s:%s"%(url, status))] = url
                     curr_obj = self.get(ahash_list_guid)
-                    if curr_obj != new_obj:
+                    if True: #curr_obj != new_obj:
                         # store the site list if there are changes
                         self.set(ahash_list_guid, new_obj)
                         log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
                         log.msg(arc.DEBUG, "old ahash list %s"%str(curr_obj))
-                        if self.dbenv_ready:
+                        if not self.dbenv_ready:
                             log.msg(arc.DEBUG, "but dbenv wasn't ready.")
             except:
                 log.msg()
@@ -391,7 +391,7 @@ class ReplicationManager:
         try:
             log.msg(arc.DEBUG, "entered election thread")
             self.locker.acquire_read()
-            num_reps = len([id for id,rep in self.hostMap.items()])
+            num_reps = len([id for id,rep in self.hostMap.items() if rep["status"] != "offline"])
             self.locker.release_read()
             votes = num_reps/2 + 1
             log.msg(arc.DEBUG, "%s: my role is %d"%(self.url, role))
@@ -502,6 +502,13 @@ class ReplicationManager:
                     self.hostMap[id]['status'] = "offline"
                     if msgID == NEWSITE_MESSAGE:
                         record['status'] = "offline"
+                    if id == self.masterID:
+                        log.msg(arc.INFO, "Master is offline, starting re-election")
+                        # in case more threads misses the master
+                        if self.masterID != db.DB_EID_INVALID:
+                            self.beginRole(db.DB_EID_INVALID)
+                            self.masterID = db.DB_EID_INVALID
+                            self.startElection()
                 self.locker.release_write()
         return retval
     
