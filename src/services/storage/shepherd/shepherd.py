@@ -194,7 +194,7 @@ class Shepherd:
                     for referenceID in referenceIDs:
                         try:
                             localData = self.store.get(referenceID)
-                            print localData
+                            #print localData
                             GUID, localID = localData['GUID'], localData['localID']
                             checksum, checksumType = localData['checksum'], localData['checksumType']
                             # first we get the file's metadata from the librarian

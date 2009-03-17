@@ -19,11 +19,10 @@ from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Librarian'))
 
 class Librarian:
-    def __init__(self, cfg):
+    def __init__(self, cfg, ssl_config):
         # URL of the A-Hash
         ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
         self.master_ahash = arc.URL(ahash_urls[0])
-        ssl_config = parse_ssl_config(cfg)
         self.ahash = AHashClient(ahash_urls, ssl_config = ssl_config)
         try:
             period = float(str(cfg.Get('CheckPeriod')))
@@ -367,7 +366,9 @@ class LibrarianService(Service):
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
         Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'lbr', 'namespace_uri': librarian_uri}], cfg)
-        self.librarian = Librarian(cfg)
+        ssl_config = parse_ssl_config(cfg)
+        ssl_config['get_trusted_dns_method'] = self._get_trusted_dns
+        self.librarian = Librarian(cfg, ssl_config)
     
     def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),
