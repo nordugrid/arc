@@ -85,13 +85,18 @@ class Client:
         outpayload is an XMLNode with the SOAP message
         """
         random.shuffle(self.urls)
+        #print "available URLs", [url.fullstr() for url in self.urls]
         for url in self.urls:
+            #print "trying URL", url.fullstr()
             try:
                 s = arc.ClientSOAP(self.cfg, url)          
                 resp, status = s.process(outpayload)
+                if not status.isOk():
+                    raise Exception, str(status)
                 resp = resp.GetXML()
                 return resp
             except:
+                print "ERROR connecting to", url.fullstr()
                 pass
-        #TODO: print "ERROR connecting to '%s%s:%s%s'" % (self.ssl_config and 'https://' or 'http://', self.host, self.port, self.path)
+        print "ERROR connecting to any of these:", ', '.join([url.fullstr() for url in self.urls])
         raise
