@@ -443,6 +443,21 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status();
+   // Collecting security attributes
+   // TODO: keep them or redo same for incoming message
+   PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream_);
+   if(tstream) {
+      TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, logger);
+      inmsg.Auth()->set("TLS",sattr);
+      //Getting the subject name of peer(client) certificate
+      logger.msg(DEBUG, "Peer name: %s", sattr->Subject());
+      inmsg.Attributes()->set("TLS:PEERDN",sattr->Subject());
+      logger.msg(DEBUG, "Identity name: %s", sattr->Identity());
+      inmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
+      logger.msg(DEBUG, "CA name: %s", sattr->CA());
+      inmsg.Attributes()->set("TLS:CADN",sattr->CA());
+   }
+
    //Checking authentication and authorization;
    if(!ProcessSecHandlers(inmsg,"outgoing")) {
       logger.msg(ERROR, "Security check failed in TLS MCC for outgoing message");
