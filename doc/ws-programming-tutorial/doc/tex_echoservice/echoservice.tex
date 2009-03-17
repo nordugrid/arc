@@ -27,7 +27,7 @@ It is composed of five main elements:
 	\item \textbf{Port type} --- The element \textit{portType} is used to assign the messages to an interface. Four interface types can be distinguished: One-way (input), request-response (input, output), solicit-response (input, output, fault) and notification (output).
 	The Echo Web Service realises a solicit-response interface which is declared subsequent to line~\ref{lst_code:echo_wsdl_portType}. % in the lines followed by the line X
 
-	\item \textbf{Binding} --- The protocol and the data format used for the message transmission are denoted in the element \textit{binding}. Possible style attributes are \textit{document} or \textit{rpc} (Remote Procedure Call). The transport attribute defines the protocol which is regularly HTTP. For each operation a corresponding SOAP action has to be defined which assignes a messages to be either \textit{literal} or \textit{encoded}~\cite{BUTEK_2009}. The service implemented in this chapter will use the binding \textit{document}/\textit{literal} and the protocol HTTP which is to be seen in the lines followed by  line~\ref{lst_code:echo_wsdl_binding}.
+	\item \textbf{Binding} --- The protocol and the data format used for the message transmission are denoted in the element \textit{binding}. Possible style attributes are \textit{document} or \textit{rpc} (Remote Procedure Call). The transport attribute defines the protocol which is regularly HTTP. For each operation a corresponding SOAP action has to be defined which assignes a messages to be either \textit{literal} or \textit{encoded}~\cite{BUTEK_2009}. The service implemented in this chapter will use the binding \textit{document}/\textit{literal} and the protocol HTTP which is to be seen in the lines follow line~\ref{lst_code:echo_wsdl_binding}.
 
 % The style attribute can be "rpc" or "document". In this case we use document. The transport attribute defines the SOAP protocol to use. In this case we use HTTP.
 %The operation element defines each operation that the port exposes.
@@ -78,9 +78,9 @@ It is composed of five main elements:
 
 \subsection{The SOAP Fault Message}
 
-A SOAP fault message is always located within the body element and can appear only one time. 
+A SOAP fault message is always located within the body element and can appear only once. 
 It indicates error messages in case the port type \textit{solicit-response} (input, output, fault) has been chosen.
-An element called \textit{fault} encapsulates diffrent types of elements which are describing the fault.
+An element called \textit{fault} encapsulates different types of elements that describe the fault.
 These elements are listed in Table~\ref{tbl:fault_elements}.
 \begin{table}[h]
  \centering
@@ -118,7 +118,7 @@ The fault code along with its description is described within the Table~\ref{tbl
 	\end{tabular*}
 \end{table}
 
-For morde information about WSDL it is recommended to check the internet address~\href{http://www.w3.org/TR/wsdl}{http://www.w3.org/TR/wsdl}.
+For more information additional tutorials can be found in the appendix or check the internet address~\href{http://www.w3.org/TR/wsdl}{http://www.w3.org/TR/wsdl}.
 
 % a valid service request and the  
 
@@ -139,14 +139,14 @@ For morde information about WSDL it is recommended to check the internet address
 
 This section presents the implementation of the service defined in the WSDL file of the previous section.
 The source code is shown in Listing~\ref{lst:echo_service_cpp}.
-The header file will be set aside for it contains only redundant information. 
+The header file will be set aside since it contains only redundant information. 
 It can be reread in the source directory that is accompanying the tutorial.
-Regarding to the source code of the Echo Web Service basically three changes of the Time Web Service source code are required.
+In comparsion with Time Web Service, basically three changes are required.
 The first change concerns the constructor and can be found at line~\ref{lst_code:echo_cpp_prefix}.
 Two strings are extracted of the server configuration file which are later used to envelope the message before it is returned.
 Furthermore, a new method \textit{makeFault} in line~\ref{lst_code:echo_cpp_makeFault} has been introduced which is able to create a fault messages.
 Within the method \textit{process} two new code fragments are now extracting and analyzing the incoming message, to be seen at line~\ref{lst_code:echo_cpp_extracting} and \ref{lst_code:echo_cpp_analyzing}.
-In case something unexpected happens both will create a SOAP fault message.\\
+In case something unexpected happens either will create a SOAP fault message.\\
 % Vielleicht noch etwas über das extrahieren der Nachricht schreiben
 
 \lstsetCPP
@@ -161,7 +161,7 @@ In case something unexpected happens both will create a SOAP fault message.\\
 
 Again, the HED is configured by an XML file and launched in the same manner as introduced before.
 The server configuration file is shown in Listing~\ref{lst:echo_hed_configuration_xml}.
-The only change concerns the lines~\ref{lst_code:echo_hed_configuration_xml_pre} and \ref{lst_code:echo_hed_configuration_xml_pre} which specify the \textit{prefix} and \textit{suffix}.
+The only change concerns the lines~\ref{lst_code:echo_hed_configuration_xml_pre} and \ref{lst_code:echo_hed_configuration_xml_suf} which specify the \textit{prefix} and \textit{suffix}.
 The parameters will be extracted in the constructor of the service and explain nicely how settings can be passed from the server configuration file towards the service.
 
 \lstsetARCHEDXML
@@ -190,10 +190,10 @@ The parameters will be extracted in the constructor of the service and explain n
 \section{Client}
 
 With the interface of the server gaining complexity, so is the code for the client - for two reasons. Firstly, because the additional arguments need to be filled. Secondly, because of the extra effort to interact with the (here human) user to collect the data which needs to be forwarded to the Echo Web Service. The source code of the client is shown Listing~\ref{lst:client_echo_cpp}.
-The parameters are now passed by the command line, to be seen in the lines followed by line~\ref{lst_code:echo_client_cpp_arguments}.
+The parameters are now passed by the command line, to be seen in the lines following line~\ref{lst_code:echo_client_cpp_arguments}.
 That code is independent from the ARC library.
-The creation of the SOAP client is unchanged and the request is created in the lines subsequent to line~\ref{lst_code:echo_client_cpp_request}.
-It is processed in the code after line~\ref{lst_code:echo_client_cpp_response} in which is also the response is received.
+The creation of the SOAP client is unchanged from the Echo client's implementation and the request to the server is created in the lines subsequent to line~\ref{lst_code:echo_client_cpp_request}.
+It is processed in the code after line~\ref{lst_code:echo_client_cpp_response} in which also the response is received.
 The checks of the response have expanded by an additional condition which tests for a fault message, see line~\ref{lst_code:echo_client_cpp_fault}.
 
 

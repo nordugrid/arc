@@ -5,8 +5,8 @@
  * current system time.
  */
 
-#ifndef __ARCSERVICE_TIME_H__
-#define __ARCSERVICE_TIME_H__
+#ifndef __TIMESERVICE_H__
+#define __TIMESERVICE_H__
 
 #include <arc/message/Service.h>
 #include <arc/Logger.h>

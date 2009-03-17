@@ -1,12 +1,12 @@
 
 \chapter{Introduction}
 
-This document gently introduces to the preparation of standalone Web Services and cognate clients with the Advance Resource Connector (ARC).
+This document gently introduces to the preparation of standalone Web Services and cognated clients with the Advance Resource Connector (ARC).
 The reader is guided through a series of practically oriented examples.
 Each is accompanied by explanations of the main concepts of the software architecture.
 No particular skills are required to follow the presented steps.
 It is however beneficial to have some basic comprehension of the programming language C++, the file format XML and any regular UNIX shell.
-To start, the user shall have an installation of ARC-1, as it is performed with current RPM or .deb packages\footnote{see http://wiki.nordugrid.org for explicit instructions for setup}.
+To start, the user shall have an installation of ARC-1, as it is performed with current RPM or .deb packages\footnote{see http://wiki.nordugrid.org for explicit instructions for setup}.\\
 
 
 The ARC server provides access to services.
@@ -18,16 +18,12 @@ has not been implemented yet.
 Services may comprise computational tasks (e.g., some secret and strongly
 patented algorithm), allow arbitrary computations (like ARC's A-REX or
 Amazon's clouds) or provide access to other resources like a particular
-database or to arbitrary disk space (like ARC's hopi or bartender).
+database or to arbitrary disk space (like ARC's hopi or bartender).\\
 
 
-The users of computational services are software tools, too.
-They are referred to as clients.
-It is those clients that perform the interactions with a human user.
-However, when a service requests a performance of another service at the same or another server, then this first service is in the role of a client, too.
-
-
-Servers provide access to a single service or a set of services. For ARC, there is one service, named Hosting Environment Demon (HED), that is more special than other services: HED organises the assignment of other services on the same server to the network. But this does not break the concept, it is only a commodity. If services are not busy reacting to a client's request, then they are waiting. The task of servers can be subdivided into:
+Services are invoked using software programs, which are referred to as clients. 
+These programs may directly perform the interactions of human users or request a performance of other services of another server (here the first service is in the role of a client, too).
+The tasks of servers and clients are well defined. If servers are not busy reacting to a client's request, then they are waiting. The task of servers can be subdivided into:
 \begin{itemize}
  \item Wait for client request
  \item Receive the request
@@ -43,6 +39,7 @@ While the server waits passively for a request, the client acts actively:
  \item Wait for the reply
  \item Receive the response from the server.
  \end{itemize}
+Servers provide access to a single or a set of services. In ARC services are provided by the Hosting Environment Demon (HED) which enables the installation of several services on one network access point. 
 \forcelinebreak
 
 In general, the implementation of a client is easier than the implementation of the server. 
@@ -76,11 +73,11 @@ Figure~\ref{fig:HED_internal} illustrates a typical setup of a server-sided HED.
 \begin{figure}[htb]
 	\centering
 	\includegraphics[width=13cm]{tex_introduction/HED2.pdf}
-	\mycaption{Example of a HED structure providing a Web Service}{The HED consists of several layers which are connected with each other. The arrow indicate the message flow of the used configuration. The MCCs and Services may hold a SecHandler in order to give additional security. Additional modules (on the left) are used within the HED. \task{Why is the Web Service in all images outside of the HED?}}
+	\mycaption{Example of a HED structure providing a Web Service}{The HED consists of several layers which are connected with each other. The arrow indicate the message flow of the used configuration. The MCCs and Services may hold a SecHandler in order to give additional security. Additional modules (on the left) are used within the HED. \task{Why is the Web Service in all images outside of the HED?} } % TODO: Reverse order of layers, s.t. the highest layers are above and the lowest layer are at the bottom
 \label{fig:HED_internal}
 \end{figure}
 
-As to be seen, the MCCs are connected which each other and passing incoming and outgoing message to the upper or the respective lower layer. In case of outgoing messages a MCC is wrapping the data of the upper layer as a payload into their own protocol (while incomming message will be unwrapped).
+The MCCs are connected which each other and passing incoming and outgoing message to the upper or the respective lower layer. In case of outgoing messages a MCC is wrapping the data of the upper layer as a payload into their own protocol (while incomming message will be unwrapped).
 The lowest layer has to be a transport protocol like TCP which enables the transmission between two applications.
 Technically there are even lower layers required needed for the communication but they are already realised within the operating system and the  network card.
 TCP is well suited for the application because it provides a reliable and ordered delivery of a byte stream.

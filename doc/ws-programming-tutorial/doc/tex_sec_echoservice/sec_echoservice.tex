@@ -2,16 +2,19 @@
 
 The TLS Echo Web Service, which was presented in the previous chapter, was able to control the access to the HED on a very low layer. 
 For the administration of a large VO the kind of security may be too general.
-Thus, it is recommended to have a more fine grained security. 
-This chapter will discuss how to install a more complex security such that it is possible to limitate the access of certain resources to particular users and to narrow their rights on the workstation.\\
+Thus, it is recommended to have a more fine-grained security. 
+This chapter discusses how to install a more complex security such that it is possible to limit the access of certain resources to particular users and to constrain their rights on the workstation.\\
 
 
-The security framework of ARC is implemented based on the same concept of modularity as HED. 
-To extend the security of a MCC or a service one only has to modify the server configuration file. That is done by including a \textit{SecHandler} element into the component or service which again has to contain a PDP element. A small example of a chain component containing a \textit{SecHandler} is shown in Listing~\ref{lst:sec_service_component_xml}. Within the element \textit{Component}, which realises a HTTP layer, an element \textit{SecHandler} is located. It contains three attributes. The  attribute \textit{name} is \textit{arc.authz}, the \textit{event} attribute is \textit{incoming} and the \textit{id} attribute which is \textit{auth}. 
-While \textit{id} is only an optional parameter, the attribute \textit{name} causes a certain \textit{SecHandler} to be loaded.%, which again has a certain functionality. 
+The security framework of ARC is based on the same concept of modularity as HED. 
+To extend the security of a MCC or a service one only needs to modify the server configuration file. That is done by including a \textit{SecHandler} element into the component or service which contains a PDP element. A small example of a chain component containing a \textit{SecHandler} is shown in Listing~\ref{lst:sec_service_component_xml}. Within the element \textit{Component}, which realises a HTTP layer, an element \textit{SecHandler} is located. It contains three attributes. The  attribute \textit{name} is \textit{arc.authz}, the \textit{event} attribute is \textit{incoming} and the \textit{id} attribute which is \textit{auth}. 
+While \textit{id} is only an optional parameter, the attribute \textit{name} causes a certain \textit{SecHandler} to be loaded. %, which again has a certain functionality. 
 In case the attribute \textit{name} is assigned to \textit{arc.authz}, the SecHandler provides the functionality of authentication and is able to permit or to deny the access to the next layer. 
 Each MCC or Service usually implements two queues of \textit{SecHandlers} --- one for incoming messages and one for outgoing messages. The attribute \textit{event} attaches the present one to the incoming queue. \textit{SecHandlers} are able to intervene the message flow by: manipulating the message content, manipulating the message attributes or to disrupt messages.
-Within one component, \textit{SecHandlers} are executed sequentially in the order in which they were attached to the queue. If any of them fails, message processing fails as well~\cite{QIANG_2008}. In order to decide how the \textit{SecHandler} shall modify the message so called PDP (Policy Decision Point) are used. Within the example a PDP named \textit{simplelist.pdp} is inserted within the \textit{SecHandler} element. The mechanism of this PDP uses a file which contains a list of identities. If the current identity is on the list, the PDP returns a positive result to the \textit{SecHandler}. In general more than one PDP can be defined within one \textit{SecHandler}. The default behaviour in that case is to execute all PDPs sequentially until one fails such that a negativ result will be returned or all return a negativ result such that also a positive result will be passed to the \textit{SecHandler}.\\
+Within one component, \textit{SecHandlers} are executed sequentially in the order in which they were attached to the queue. If any of them fails, message processing fails as well~\cite{QIANG_2008}.\\
+
+
+In order to decide how the \textit{SecHandler} shall modify the message, so called PDP (Policy Decision Point) are used. Within the example a PDP named \textit{simplelist.pdp} is inserted within the \textit{SecHandler} element. The mechanism of this PDP uses a file which contains a list of identities. If the current identity is on the list, the PDP returns a positive result to the \textit{SecHandler}. In general more than one PDP can be defined within one \textit{SecHandler}. The default behaviour in that case is to execute all PDPs sequentially until one fails such that a negativ result will be returned or all return a negativ result such that also a positive result will be passed to the \textit{SecHandler}.\\
 %
 %
 % Weizhong: Verifying, parsing the message attribute, and using the attributes for authorization
@@ -37,17 +40,17 @@ caption={[Example of a SecHandler within the component \textit{http.service}.]
 
   \begin{table}[htb]
   \centering
-  \caption{List of buildin SecHandlers}
+  \caption{List of built-in SecHandlers}
   \label{tbl:list_of_sechandler}
   \begin{tabular*}{\textwidth}[t]{p{4cm}p{11cm}}
 	\hline
  	\textbf{identity.map}         & Maps the identity of the user to an identity of the workstation.\\
 %					realised by a message attribut.\\
- 	\textbf{arc.authz}            & Grants the access to the next layer.\\
+ 	\textbf{arc.authz}            & Grants access to the next layer.\\
  	\textbf{delegation.collector} & Processes a request for another service located on a different HED.
                                         A certificate, which has a delegation policy embedded, is transfered to the service running that \textit{SecHandler}. Once the has been extracted and verified it will be transfered
                                         to the requested service.
-                                        The policy is now available within the HED of the service such that the client is now able to access the service.\\
+                                        The policy is now available within the HED of the service such that the client is enabled to access the service.\\
                                         % Question how does the client creates the request - with the SecHandler?
  	\textbf{usernametoken.handler}& Generates the WS-Security username-token and adds it into the SOAP header of outgoing
 					 messages. In case of incoming messages the SecHandler extracts the WS-Security username-token out of it. The WS-Security standard extends SOAP and describes i.e. how to attach signatures and encryption header to SOAP messages.\\
@@ -58,7 +61,7 @@ caption={[Example of a SecHandler within the component \textit{http.service}.]
 %
   \begin{table}[htb]
   \centering
-  \caption{List of buildin PDPs}
+  \caption{List of built-in PDPs}
 \label{tbl:list_of_pdps}
   \begin{tabular*}{\textwidth}[t]{p{4cm}p{11cm}}
 	\hline
@@ -89,8 +92,8 @@ The Secure Echo Web Service which will be presented in this chapter, is using th
 
 \section{Service}
 
-Listing~\ref{lst:sececho_service_cpp} contains the source code of the Secure Echo Web Service. As one can see, the only diffrence, compared to the source code of the previous section, is the additional code to process the \textit{SecHandler} starting at line~\ref{lst_code:sececho_service_cpp_process_secH}. Obviously only the incoming queue is processed and in case the SecHandler fails, the SOAP service returns a fault message. The file, which is revealing a lot more information, is the server configuration file which is shown in Listing~\ref{lst:sececho_server_configuration_file_xml}. 
-In order to be able to have \textit{SecHandlers} working with identies, it is almost essential to utilise the TLS layer.
+Listing~\ref{lst:sececho_service_cpp} contains the source code of the Secure Echo Web Service. As one can see, the only difference, compared to the source code of the previous section, is the additional code to process the \textit{SecHandler} starting at line~\ref{lst_code:sececho_service_cpp_process_secH}. Obviously only the incoming queue is processed and in case the \textit{SecHandler} fails, the SOAP service returns a fault message. The file, which is revealing a lot more information, is the server configuration file which is shown in Listing~\ref{lst:sececho_server_configuration_file_xml}. 
+To enable \textit{SecHandlers} to work with identities, it is almost essential to utilise the TLS layer.
 % Fixed IP are also possible but not recommended..
 The TLS layer extracts the identity such that it later can be used to process the \textit{SecHandler}.
 In line~\ref{lst_code:arched_sec_conffile_plugins} and line~\ref{lst_code:arched_sec_conffile_plugins2} two additional plugins 
@@ -98,12 +101,12 @@ are named to be loaded which are implementing of the \textit{SecHandlers} and \t
 %
 %  FIRST ONE
 %
-The first \textit{SecHandler} is declared within line~\ref{lst_code:arched_sec_conffile_secH2}. 
-Due to the PDP \textit{allow.pdp} returns always a positive result, everyone who passes the \textit{SecHandler} is mapped to the user \textit{nobody}. 
+The first \textit{SecHandler} is declared at line~\ref{lst_code:arched_sec_conffile_secH2}. 
+The PDP \textit{allow.pdp} always returns a positive result, such that everyone who passes the \textit{SecHandler} is mapped to the user \textit{nobody}. 
 %
 % SECOND ONE
 %
-The second \textit{SecHandler} limits the access to the SOAP services using the \textit{arc.authz} \textit{SecHandler} and the \textit{simplelist} policy, see line~\ref{lst_code:arched_sec_conffile_secH1}. (A similar example was already shown in Listing~\ref{lst:sec_service_component_xml}). The \textit{simplelist} policy returns a positive result if the identity of the certificate corresponds to an identity within the file \textit{clientlist.txt}. A small example of such a file is displayed in Listing~\ref{lst:simplelist_example}.
+The second \textit{SecHandler} limits the access to the SOAP services using the \textit{arc.authz} \textit{SecHandler} and the \textit{simplelist} policy, see line~\ref{lst_code:arched_sec_conffile_secH1}. A similar example was already shown in Listing~\ref{lst:sec_service_component_xml}. The \textit{simplelist} policy returns a positive result if the identity of the certificate corresponds to an identity within the file \textit{clientlist.txt}. A small example of such a file is displayed in Listing~\ref{lst:simplelist_example}.
 \lstsetCPP
 \lstinputlisting
 	[
@@ -158,7 +161,7 @@ request is for the HTTP method GET, but the rule checks the method POST)
 \forcelinebreak
 
 Once all rules are evaluated, a decision for the policy has to be generated which will depend on the results of the rules.
-The policy element attribute \textit{CombiningAlg} determines how the final result will be generated. Two possibility are given:
+The policy element attribute \textit{CombiningAlg} determines how the final result will be generated. Two possibilities are given:
 \begin{itemize}
  \item \textbf{Deny-Overrides} (default) 
  \begin{itemize}
@@ -182,14 +185,14 @@ The element \textit{Subjects} defines who shall be affected by that rule.
 The identities can be specified using the DN of the certificate.
 The second element determines the \textit{Resources} which shall be examined by the rule (i.e. using a certain HTTP path).
 The \textit{Actions} are specifing the intended usage of the resource the rule shall survey.
-The last element \textit{Condition} defines somewhat like Time, Duration, namespace of a SOAP message etc. which is needed to be fulfilled.
-For the description of conditions is complicated, they will not be explained in this tutorial.\\
+The last element \textit{Condition} defines somewhat like Time, Duration, namespace of a SOAP message etc. which are needed to be fulfilled. The detailed description of these conditions is rather extensive and beyond the scope of this tutorial. Please refer to the further going tutorials which are listed in the appendix of this tutorial.\\
 
 
 Within the sample policy, which was shown in Listing~\ref{lst:sececho_policy_xml}, three different examples of rule states are prepared: PERMIT, INDETERMINATE and NOT APPLICABLE.
-The first rule, to be seen starting at line~\ref{lst_code:policy.xml_rule1}, is fitting to the server configuration file such that a user with a suitable identity will produce the state PERMIT. 
-Due to there is no rule within the policy which will have the DENY state, this rule let the client pass the PDP.
-The second rule, begins after line~\ref{lst_code:policy.xml_rule2}. It is arranged in a manner such that the state INDETERMINATE will be induced. Two things are checked within it: The identity based on Shibboleth authentication and the path of the requested HTTP URL. Due to the fact, that the HTTP path is fitting to the requested one, but the authentication was not done by Shibboleth, the rule is not able to decide for a DENY or a PERMIT state --- the rule produces an INDETERMINATE state.
+The first rule, starting at line~\ref{lst_code:policy.xml_rule1}, is fitting to the server configuration file such that a user with a suitable identity will produce the state PERMIT. 
+Since there is no rule within the policy which will have the DENY state, in particular no rule that could have matched earlier, this rule lets the client pass the PDP.
+The second rule begins after line~\ref{lst_code:policy.xml_rule2}. It is arranged in a manner such that the state INDETERMINATE will be induced. Two things are checked within it: the identity based on authentication method Shibboleth\footnote{Shibboleth is an open-source implementation for authentication and authorization based on the XML standard SAML (Security Assertion Markup Language).} 
+and the path of the requested HTTP URL. Due to the fact, that the HTTP path is fitting to the requested one, but the authentication was not done by Shibboleth, the rule is not able to decide for a DENY or a PERMIT state --- the rule produces an INDETERMINATE state.
 The last rule is defined in line~\ref{lst_code:policy.xml_rule3}. It is constructed such that is permits the access to the HTTP method GET. 
 One can see, that within the server configuration file the Web Service uses the method POST. If a client wants to access the Service and reaches the PDP, a couple of requests are generated which are describing the manner the client wants to access the serivice. Some of these request will concern the HTTP method GET. In these cases, the rule returns NOT APPLICABLE. In the cases where the requests for a HTTP method is missing (i.e. in the request which only concerns the SOAP access) the state of the rule will be INDETERMINATE.\\
 \lstsetJUSTXML
@@ -202,12 +205,12 @@ One can see, that within the server configuration file the Web Service uses the 
 {../src/services/secechoservice/policy_example.xml}
 
 
-To get an impression in how the requests look like, one can check the log-file (the log level needs to set to VERBOSE).
+To get an impression in how the requests look like, one can check the log-file (the log level needs to be set to VERBOSE).
 
 
 \section{Client}
 
-The security introduced to the server has no effect on the client, such that the source code is absolutly identical. Even the client configuration file doesn't need to be changed.
+The security introduced to the server has no effect on the client, such that the source code is completely identical. Even the client configuration file doesn't need to be changed.
 
 
 

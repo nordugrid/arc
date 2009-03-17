@@ -210,16 +210,16 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="599.805"
-     inkscape:cy="235.40512"
+     inkscape:zoom="1.4"
+     inkscape:cx="514.09071"
+     inkscape:cy="-78.880594"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1280"
-     inkscape:window-height="964"
-     inkscape:window-x="-5"
-     inkscape:window-y="-3">
+     inkscape:window-width="1272"
+     inkscape:window-height="948"
+     inkscape:window-x="0"
+     inkscape:window-y="0">
     <inkscape:grid
        type="xygrid"
        id="grid2391"
@@ -242,87 +242,79 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(30.5,-122.86218)">
+    <rect
+       y="492.36218"
+       x="170"
+       height="20"
+       width="130"
+       id="rect2698"
+       style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <text
+       id="text2700"
+       y="505.94861"
+       x="203.53467"
+       style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         y="505.94861"
+         x="203.53467"
+         id="tspan2702"
+         sodipodi:role="line">Signature</tspan></text>
     <g
-       id="g2694"
-       transform="translate(-240,0)">
+       transform="translate(-240,170)"
+       id="g2704">
+      <rect
+         style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect2706"
+         width="130"
+         height="100"
+         x="410"
+         y="222.36218" />
       <g
-         id="g2696"
-         transform="translate(0,20)">
-        <rect
-           y="472.36218"
-           x="410"
-           height="20"
-           width="130"
-           id="rect2698"
-           style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         id="g2708">
         <text
-           id="text2700"
-           y="485.94861"
-           x="447.05444"
-           style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           xml:space="preserve"><tspan
-             y="485.94861"
-             x="447.05444"
-             id="tspan2702"
-             sodipodi:role="line">Signatur</tspan></text>
-      </g>
-      <g
-         id="g2704"
-         transform="translate(0,170)">
-        <rect
-           y="222.36218"
-           x="410"
-           height="100"
-           width="130"
-           id="rect2706"
-           style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-        <g
-           id="g2708">
-          <text
-             id="text2710"
-             y="245.94861"
+           xml:space="preserve"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="432.8103"
+           y="245.94861"
+           id="text2710"><tspan
+             sodipodi:role="line"
+             id="tspan2712"
              x="432.8103"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             xml:space="preserve"><tspan
-               style="font-size:13px"
-               y="245.94861"
-               x="432.8103"
-               id="tspan2712"
-               sodipodi:role="line">User Identity</tspan></text>
-          <text
-             xml:space="preserve"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             x="441.44629"
+             y="245.94861"
+             style="font-size:13px">User Identity</tspan></text>
+        <text
+           id="text2714"
+           y="265.94861"
+           x="441.44629"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           xml:space="preserve"><tspan
+             style="font-size:13px"
              y="265.94861"
-             id="text2714"><tspan
-               sodipodi:role="line"
-               id="tspan2716"
-               x="441.44629"
-               y="265.94861"
-               style="font-size:13px">Public Key</tspan></text>
-          <text
-             id="text2718"
-             y="305.94861"
+             x="441.44629"
+             id="tspan2716"
+             sodipodi:role="line">Public Key</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="419.52466"
+           y="305.94861"
+           id="text2718"><tspan
+             sodipodi:role="line"
+             id="tspan2720"
              x="419.52466"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             xml:space="preserve"><tspan
-               style="font-size:13px"
-               y="305.94861"
-               x="419.52466"
-               id="tspan2720"
-               sodipodi:role="line">Algorithm names</tspan></text>
-          <text
-             id="text2722"
-             y="285.94861"
+             y="305.94861"
+             style="font-size:13px">Algorithm names</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="428.06543"
+           y="285.94861"
+           id="text2722"><tspan
+             sodipodi:role="line"
+             id="tspan2724"
              x="428.06543"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             xml:space="preserve"><tspan
-               style="font-size:13px"
-               y="285.94861"
-               x="428.06543"
-               id="tspan2724"
-               sodipodi:role="line">Issuer Identity</tspan></text>
-        </g>
+             y="285.94861"
+             style="font-size:13px">Issuer Identity</tspan></text>
       </g>
     </g>
     <text
@@ -782,87 +774,77 @@
        d="M 478.5,318.86218 L 478.5,332.86218 L 482.5,332.86218 L 474.5,344.86218 L 466.5,332.86218 L 470.5,332.86218 L 470.5,318.86218 L 478.5,318.86218 z"
        id="path3275"
        sodipodi:nodetypes="cccccccc" />
+    <rect
+       style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect3438"
+       width="130"
+       height="20"
+       x="410"
+       y="492.36218" />
+    <text
+       xml:space="preserve"
+       style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="443.53467"
+       y="505.94861"
+       id="text3287"><tspan
+         sodipodi:role="line"
+         id="tspan3289"
+         x="443.53467"
+         y="505.94861">Signature</tspan></text>
+    <rect
+       style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect2651"
+       width="130"
+       height="100"
+       x="410"
+       y="392.36218" />
     <g
-       id="g2677">
-      <g
-         transform="translate(0,20)"
-         id="g3447">
-        <rect
-           style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-           id="rect3438"
-           width="130"
-           height="20"
-           x="410"
-           y="472.36218" />
-        <text
-           xml:space="preserve"
-           style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           x="447.05444"
-           y="485.94861"
-           id="text3287"><tspan
-             sodipodi:role="line"
-             id="tspan3289"
-             x="447.05444"
-             y="485.94861">Signatur</tspan></text>
-      </g>
-      <g
-         transform="translate(0,170)"
-         id="g2649">
-        <rect
-           style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-           id="rect2651"
-           width="130"
-           height="100"
-           x="410"
-           y="222.36218" />
-        <g
-           id="g2653">
-          <text
-             xml:space="preserve"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             x="432.8103"
-             y="245.94861"
-             id="text2655"><tspan
-               sodipodi:role="line"
-               id="tspan2657"
-               x="432.8103"
-               y="245.94861"
-               style="font-size:13px">User Identity</tspan></text>
-          <text
-             id="text2659"
-             y="265.94861"
-             x="441.44629"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             xml:space="preserve"><tspan
-               style="font-size:13px"
-               y="265.94861"
-               x="441.44629"
-               id="tspan2661"
-               sodipodi:role="line">Public Key</tspan></text>
-          <text
-             xml:space="preserve"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             x="419.52466"
-             y="305.94861"
-             id="text2663"><tspan
-               sodipodi:role="line"
-               id="tspan2665"
-               x="419.52466"
-               y="305.94861"
-               style="font-size:13px">Algorithm names</tspan></text>
-          <text
-             xml:space="preserve"
-             style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-             x="428.06543"
-             y="285.94861"
-             id="text2667"><tspan
-               sodipodi:role="line"
-               id="tspan2669"
-               x="428.06543"
-               y="285.94861"
-               style="font-size:13px">Issuer Identity</tspan></text>
-        </g>
-      </g>
+       id="g2653"
+       transform="translate(0,170)">
+      <text
+         xml:space="preserve"
+         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         x="432.8103"
+         y="245.94861"
+         id="text2655"><tspan
+           sodipodi:role="line"
+           id="tspan2657"
+           x="432.8103"
+           y="245.94861"
+           style="font-size:13px">User Identity</tspan></text>
+      <text
+         id="text2659"
+         y="265.94861"
+         x="441.44629"
+         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         xml:space="preserve"><tspan
+           style="font-size:13px"
+           y="265.94861"
+           x="441.44629"
+           id="tspan2661"
+           sodipodi:role="line">Public Key</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         x="419.52466"
+         y="305.94861"
+         id="text2663"><tspan
+           sodipodi:role="line"
+           id="tspan2665"
+           x="419.52466"
+           y="305.94861"
+           style="font-size:13px">Algorithm names</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         x="428.06543"
+         y="285.94861"
+         id="text2667"><tspan
+           sodipodi:role="line"
+           id="tspan2669"
+           x="428.06543"
+           y="285.94861"
+           style="font-size:13px">Issuer Identity</tspan></text>
     </g>
     <path
        sodipodi:nodetypes="cccccccc"

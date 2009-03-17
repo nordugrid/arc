@@ -5,8 +5,8 @@
  * was send to it.
  */
 
-#ifndef __ARCSERVICE_ECHO_H__
-#define __ARCSERVICE_ECHO_H__
+#ifndef __SECECHOSERVICE_H__
+#define __SECECHOSERVICE_H__
 
 #if HAVE_CONFIG_H
 	#include <config.h>

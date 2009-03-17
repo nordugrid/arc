@@ -211,15 +211,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="197.02386"
-     inkscape:cy="343.94765"
+     inkscape:cx="435.04331"
+     inkscape:cy="263.13545"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1280"
-     inkscape:window-height="964"
-     inkscape:window-x="-5"
-     inkscape:window-y="-3">
+     inkscape:window-width="1272"
+     inkscape:window-height="948"
+     inkscape:window-x="0"
+     inkscape:window-y="0">
     <inkscape:grid
        type="xygrid"
        id="grid2391"
@@ -673,82 +673,78 @@
        height="50"
        x="-90"
        y="488.07654" />
+    <text
+       id="text3462"
+       y="221.48718"
+       x="466.71973"
+       style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         style="font-size:13px"
+         y="221.48718"
+         x="466.71973"
+         sodipodi:role="line"
+         id="tspan3535">Certificate of B</tspan></text>
+    <rect
+       style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect3468"
+       width="130"
+       height="100"
+       x="450.26343"
+       y="225.59229" />
     <g
-       id="g3004"
-       transform="translate(0.26343,-12.32577)">
+       id="g2968"
+       transform="translate(0.26343,-16.413569)">
       <text
          xml:space="preserve"
          style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         x="466.4563"
-         y="233.81296"
-         id="text3462"><tspan
-           id="tspan3535"
+         x="475.04468"
+         y="265.59229"
+         id="text3472"><tspan
            sodipodi:role="line"
-           x="466.4563"
-           y="233.81296"
-           style="font-size:13px">Certificate of B</tspan></text>
-      <rect
-         y="237.91806"
-         x="450"
-         height="100"
-         width="130"
-         id="rect3468"
-         style="fill:#ffffdb;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-      <g
-         transform="translate(0,-4.0877991)"
-         id="g2968">
-        <text
-           id="text3472"
-           y="265.59229"
+           id="tspan3474"
            x="475.04468"
-           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           xml:space="preserve"><tspan
-             style="font-size:13px"
-             y="265.59229"
-             x="475.04468"
-             id="tspan3474"
-             sodipodi:role="line">Identity of B</tspan></text>
-        <text
-           xml:space="preserve"
-           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           x="466.8562"
+           y="265.59229"
+           style="font-size:13px">Identity of B</tspan></text>
+      <text
+         id="text3476"
+         y="295.59229"
+         x="466.8562"
+         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         xml:space="preserve"><tspan
+           style="font-size:13px"
            y="295.59229"
-           id="text3476"><tspan
-             sodipodi:role="line"
-             id="tspan3478"
-             x="466.8562"
-             y="295.59229"
-             style="font-size:13px">Public Key of B</tspan></text>
-        <text
-           id="text3480"
-           y="325.59229"
-           x="464.45044"
-           style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-           xml:space="preserve"><tspan
-             style="font-size:13px"
-             y="325.59229"
-             x="464.45044"
-             id="tspan3482"
-             sodipodi:role="line">Identity of CA 1</tspan></text>
-      </g>
-      <rect
-         style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect3486"
-         width="130"
-         height="20"
-         x="450"
-         y="337.91806" />
+           x="466.8562"
+           id="tspan3478"
+           sodipodi:role="line">Public Key of B</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         x="462.05737"
-         y="351.50449"
-         id="text3488"><tspan
+         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         x="464.45044"
+         y="325.59229"
+         id="text3480"><tspan
            sodipodi:role="line"
-           id="tspan3490"
-           x="462.05737"
-           y="351.50449">Signatur of CA 1</tspan></text>
+           id="tspan3482"
+           x="464.45044"
+           y="325.59229"
+           style="font-size:13px">Identity of CA 1</tspan></text>
     </g>
+    <rect
+       y="325.59229"
+       x="450.26343"
+       height="20"
+       width="130"
+       id="rect3486"
+       style="fill:#d5e5ff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <text
+       id="text3488"
+       y="339.17871"
+       x="458.46143"
+       style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         y="339.17871"
+         x="458.46143"
+         id="tspan3490"
+         sodipodi:role="line">Signature of CA 1</tspan></text>
     <path
        id="path3325"
        d="M 130.52686,133.23768 L 330.52686,133.23768 L 330.52686,183.23768 L 130.52686,183.23768 L 130.52686,133.23768 z"
@@ -932,13 +928,13 @@
     <text
        xml:space="preserve"
        style="font-size:13px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-       x="702.3208"
+       x="698.51221"
        y="529.17871"
        id="text4393"><tspan
          sodipodi:role="line"
          id="tspan4395"
-         x="702.3208"
-         y="529.17871">Signatur of CA 2</tspan></text>
+         x="698.51221"
+         y="529.17871">Signature of CA 2</tspan></text>
     <path
        sodipodi:nodetypes="cccccccc"
        id="path4439"

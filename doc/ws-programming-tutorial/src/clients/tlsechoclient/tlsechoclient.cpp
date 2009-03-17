@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 	Arc::PayloadSOAP* response = NULL;
 	
 	// Due to the fact that the class ClientSOAP isn't used anymore,
-	// one has to prepare the messages which envelope the payload oneself.
+	// one has to prepare the messages which envelope the payload themselves.
 	Arc::Message reqmsg;
 	Arc::Message repmsg;
 	Arc::MessageAttributes attributes_req;
