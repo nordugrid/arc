@@ -5,7 +5,7 @@ SLCS_CLIENT_PROGRAM =
 endif
 bin_PROGRAMS = arcproxy $(SLCS_CLIENT_PROGRAM)
 
-noinst_PROGRAMS = test2vomsserver test2myproxyserver
+noinst_PROGRAMS = test2vomsserver test2myproxyserver_put test2myproxyserver_get
 
 arcproxy_SOURCES  = arcproxy.cpp
 arcproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include 
@@ -33,10 +33,19 @@ test2vomsserver_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                            $(top_srcdir)/src/hed/libs/credential/libarccredential.la
 
-test2myproxyserver_SOURCES  = test2myproxyserver.cpp
-test2myproxyserver_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test2myproxyserver_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-test2myproxyserver_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+test2myproxyserver_put_SOURCES  = test2myproxyserver_put.cpp
+test2myproxyserver_put_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+test2myproxyserver_put_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+test2myproxyserver_put_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                           $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+                           $(top_srcdir)/src/hed/libs/client/libarcclient.la \
+                           $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                           $(top_srcdir)/src/hed/libs/credential/libarccredential.la
+
+test2myproxyserver_get_SOURCES  = test2myproxyserver_get.cpp
+test2myproxyserver_get_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+test2myproxyserver_get_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+test2myproxyserver_get_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                            $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                            $(top_srcdir)/src/hed/libs/message/libarcmessage.la \

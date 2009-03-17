@@ -61,13 +61,15 @@ int main(void) {
   //Contact the myproxy server to delegate a certificate into that server
 
   // The message which will be sent to myproxy server
-  std::string send_msg("VERSION=MYPROXYv2\n COMMAND=1\n USERNAME=mytest\n PASSPHRASE=123456\n LIFETIME=43200\n");
+  //"GET" command
+  std::string send_msg("VERSION=MYPROXYv2\n COMMAND=0\n USERNAME=mytest\n PASSPHRASE=123456\n LIFETIME=43200\n");
 
   std::cout<<"Send message to peer end through GSS communication: "<<send_msg<<" Size: "<<send_msg.length()<<std::endl;
 
+  //For "GET" command, client authentication is optional
   Arc::MCCConfig cfg;
   cfg.AddProxy(out_file);
-  cfg.AddCADir("/home/qiangwz/.globus/certificates/");
+  cfg.AddCADir("$HOME/.globus/certificates/");
 
   //Arc::ClientTCP client(cfg, "127.0.0.1", 7512, Arc::GSISec);
   Arc::ClientTCP client(cfg, "knowarc1.grid.niif.hu", 7512, Arc::GSISec);
@@ -103,71 +105,18 @@ int main(void) {
 
   logger.msg(Arc::INFO, "Returned msg from myproxy server: %s   %d", ret_str.c_str(), ret_str.length());
 
-  //Myproxy server will send back another message which includes 
-  //the certificate request in DER format
-  std::string x509ret_str;
-  memset(ret_buf,0,1024);
-  do {
-    len = 1024;
-    response->Get(&ret_buf[0], len);
-    x509ret_str.append(ret_buf,len);
-    memset(ret_buf,0,1024);
-  }while(len == 1024);
-
-  logger.msg(Arc::INFO, "Returned msg from myproxy server: %s   %d", x509ret_str.c_str(), x509ret_str.length());
-
   if(response) { delete response; response = NULL; }
 
-  std::string tmp_req_file("myproxy_req.pem");
-  std::ofstream tmp_req_out(tmp_req_file.c_str());
-  tmp_req_out.write(x509ret_str.c_str(), x509ret_str.size());
-  tmp_req_out.close();
 
+  //Generate a certificate request,
+  //and send it to myproxy server
+  std::string x509_req_str;
+  Arc::Time start;
+  Arc::Credential x509_request(start, Arc::Period(), 1024);
+  x509_request.GenerateRequest(x509_req_str, true);
 
-  Arc::Credential signer1(out_file, "", cadir, "");
-
-  Arc::Credential proxy1;
-  std::string signedcert1, signing_cert1, signing_cert_chain1;
-  proxy1.InquireRequest(x509ret_str,false,true);
-  if(!(signer1.SignRequest(&proxy1, signedcert1, true))) {
-    logger.msg(Arc::ERROR, "Delegate proxy failed");
-    return 1;
-  }
-
-  signer1.OutputCertificate(signing_cert1, true);
-  signer1.OutputCertificateChain(signing_cert_chain1, true);
-  signedcert1.append(signing_cert1).append(signing_cert_chain1);
-  //std::cout<<"Signing cert: "<<signing_cert1<<std::endl;
-  //std::cout<<"Chain: "<<signing_cert_chain1<<std::endl;
-
-
-  //logger.msg(Arc::INFO, "Generated proxy certificate: %s", signedcert1.c_str());
-
-  std::string tmp_cert_file("myproxy_cert.pem");
-  std::ofstream tmp_cert_out(tmp_cert_file.c_str());
-  tmp_cert_out.write(signedcert1.c_str(), signedcert1.size());
-  tmp_cert_out.close();
-
-
-  //Send back the proxy certificate to myproxy server
   Arc::PayloadRaw request1;
-
-  //Caculate the numbers of certifictes as the beginning of the message
-  unsigned char number_of_certs;
-  number_of_certs = 3;
-  BIO* bio = BIO_new(BIO_s_mem());
-  std::cout<<BIO_write(bio, &number_of_certs, sizeof(number_of_certs))<<std::endl;
-  std::string start;
-  for(;;) {
-    char s[256];
-    int l = BIO_read(bio,s,sizeof(s));
-    if(l <= 0) break;
-    start.append(s,l);
-  }
-  BIO_free_all(bio);
-  signedcert1.insert(0,start);
-
-  request1.Insert(signedcert1.c_str(),0,signedcert1.length());
+  request1.Insert(x509_req_str.c_str(),0,x509_req_str.length());
   status = client.process(&request1, &response,true);
   if (!status) {
     logger.msg(Arc::ERROR, (std::string)status);
@@ -189,6 +138,37 @@ int main(void) {
     memset(ret_buf,0,1024);
   }while(len == 1024);
   logger.msg(Arc::INFO, "Returned msg from myproxy server: %s   %d", ret_str1.c_str(), ret_str1.length());
+
+  BIO* bio = BIO_new(BIO_s_mem());
+  BIO_write(bio,(unsigned char *)(ret_str1.c_str()),ret_str1.length());
+  unsigned char number_of_certs;
+  BIO_read(bio, &number_of_certs, sizeof(number_of_certs));
+  logger.msg(Arc::INFO, "There are %d certificates in the returned msg",number_of_certs);
+  std::string proxy_cert_str;
+  for(;;) {
+    char s[256];
+    int l = BIO_read(bio,s,sizeof(s));
+    if(l <= 0) break;
+    proxy_cert_str.append(s,l);
+  }
+  BIO_free_all(bio);
+
+  //Output the DER formated proxy certificate
+  std::string proxy_file("proxyfrommyproxy.pem");
+  std::ofstream proxy_f(proxy_file.c_str());
+  proxy_f.write(proxy_cert_str.c_str(), proxy_cert_str.size());
+  proxy_f.close();
+  
+  //Myproxy server will then return a standard response message
+  std::string ret_str2;
+  memset(ret_buf,0,1024);
+  do {
+    len = 1024;
+    response->Get(&ret_buf[0], len);
+    ret_str2.append(ret_buf,len);
+    memset(ret_buf,0,1024);
+  }while(len == 1024);
+  logger.msg(Arc::INFO, "Returned msg from myproxy server: %s   %d", ret_str2.c_str(), ret_str2.length());
 
   if(response) { delete response; response = NULL; }
 
