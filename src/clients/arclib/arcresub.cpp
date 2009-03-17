@@ -137,12 +137,11 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  if (jobs.empty() && !all) {
-    std::cout << Arc::IString("No jobs given") << std::endl;
+  if (jobs.empty() && joblist.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
-
+   
   if (joblist.empty())
     joblist = usercfg.JobListFile();
 
