@@ -36,15 +36,30 @@ int main(void) {
 
   logger.msg(Arc::INFO, "Creating client interface");
   Arc::MCCConfig client_cfg;
+  // Paths to plugins in source tree
   client_cfg.AddPluginsPath("../../hed/mcc/http/.libs");
   client_cfg.AddPluginsPath("../../hed/mcc/soap/.libs");
   client_cfg.AddPluginsPath("../../hed/mcc/tls/.libs");
   client_cfg.AddPluginsPath("../../hed/mcc/tcp/.libs");
+  client_cfg.AddPluginsPath("../../hed/shc/.libs");
+  // Specify credentials
   client_cfg.AddPrivateKey("./testkey-nopass.pem");
   client_cfg.AddCertificate("./testcert.pem");
   client_cfg.AddCAFile("./testcacert.pem");
-
+  // Create client instance for contacting echo service
   Arc::ClientSOAP client(client_cfg,Arc::URL("https://127.0.0.1:60000/echo"));
+  // Add SecHandler to chain at TLS location to accept only
+  // connection to server with specified DN
+  std::list<std::string> dns;
+  // Making a list of allowed hosts. To make this test
+  // fail change DN below.
+  dns.push_back("/O=Grid/O=Test/CN=localhost");
+  // Creating SecHandler configuration with allowed DNs
+  Arc::DNListHandlerConfig dncfg(dns,"outgoing");
+  // Adding SecHandler to client at TLS level.
+  // We have to explicitely specify method of ClientTCP 
+  // class to attach SecHandler at proper location.
+  client.Arc::ClientTCP::AddSecHandler(dncfg,Arc::TLSSec); 
   logger.msg(Arc::INFO, "Client side MCCs are loaded");
 
   for(int n = 0;n<1;n++) {
