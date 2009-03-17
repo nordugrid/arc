@@ -198,14 +198,14 @@ class Credential {
     bool OutputPublickey(std::string &content);
 
     /**Output the certificate into string
-     * @param format false for PEM, true for DER
+     * @param is_der false for PEM, true for DER
      */
-    bool OutputCertificate(std::string &content, bool format=false);
+    bool OutputCertificate(std::string &content, bool is_der=false);
 
     /**Output the certificate chain into string
-     * @param format false for PEM, true for DER
+     * @param is_der false for PEM, true for DER
      */
-    bool OutputCertificateChain(std::string &content, bool format=false);
+    bool OutputCertificateChain(std::string &content, bool is_der=false);
 
     /**Returns lifetime of certificate or proxy*/
     Arc::Period GetLifeTime(void);
@@ -252,40 +252,41 @@ class Credential {
     * algorithm information inside this object
     * output the certificate request to output BIO
     */
-    bool GenerateRequest(BIO* &bio);
+    bool GenerateRequest(BIO* &bio, bool if_der = false);
 
     /**Generate a proxy request, output the certificate request to a string*/
-    bool GenerateRequest(std::string &content);
+    bool GenerateRequest(std::string &content, bool if_der = false);
    
     /**Generate a proxy request, output the certificate request to a file*/
-    bool GenerateRequest(const char* filename);
+    bool GenerateRequest(const char* filename, bool if_der = false);
 
     /**Inquire the certificate request from BIO, and put the request 
     * information to X509_REQ inside this object,
     * and parse the certificate type from the PROXYCERTINFO 
     * of request' extension
+    * @param if_der false for PEM; true for DER
     */
-    bool InquireRequest(BIO* &reqbio, bool if_eec = false, bool req_format = false /*false for PEM; true for DER*/);
+    bool InquireRequest(BIO* &reqbio, bool if_eec = false, bool if_der = false);
    
     /**Inquire the certificate request from a string*/
-    bool InquireRequest(std::string &content, bool if_eec = false, bool req_format = false);
+    bool InquireRequest(std::string &content, bool if_eec = false, bool if_der = false);
 
     /**Inquire the certificate request from a file*/
-    bool InquireRequest(const char* filename, bool if_eec = false, bool req_format = false);
+    bool InquireRequest(const char* filename, bool if_eec = false, bool if_der = false);
 
     /**Sign request based on the information inside proxy, and 
      * output the signed certificate to output BIO
-     * @param format false for PEM, true for DER
+     * @param if_der false for PEM, true for DER
      */
-    bool SignRequest(Credential* proxy, BIO* outputbio, bool format = false);
+    bool SignRequest(Credential* proxy, BIO* outputbio, bool if_der = false);
 
     /**Sign request and output the signed certificate to a string
-     * @param format false for PEM, true for DER
+     * @param if_der false for PEM, true for DER
      */
-    bool SignRequest(Credential* proxy, std::string &content, bool format = false);
+    bool SignRequest(Credential* proxy, std::string &content, bool if_der = false);
 
     /**Sign request and output the signed certificate to a file
-     * @param format false for PEM, true for DER
+     * @param if_der false for PEM, true for DER
      */
     bool SignRequest(Credential* proxy, const char* filename, bool foamat = false);
 

@@ -717,7 +717,7 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
 
   //TODO: self request/sign proxy
 
-  bool Credential::GenerateRequest(BIO* &reqbio){
+  bool Credential::GenerateRequest(BIO* &reqbio, bool if_der){
     bool res = false;
     RSA* rsa_key = NULL;
     int keybits = keybits_;
@@ -852,16 +852,20 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
  
               if(X509_REQ_set_pubkey(req,pkey)) {
                 if(X509_REQ_sign(req,pkey,digest)) {
-                  if(!(PEM_write_bio_X509_REQ(reqbio,req))){ 
-                    CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed"); 
-                    LogError(); res = false;
+                  if(if_der == false) {
+                    if(!(PEM_write_bio_X509_REQ(reqbio,req))){ 
+                      CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed"); 
+                      LogError(); res = false;
+                    }
+                    else { rsa_key_ = rsa_key; rsa_key = NULL; pkey_ = pkey; pkey = NULL; res = true; }
                   }
-                  //if(!(i2d_X509_REQ_bio(reqbio,req))){
-                  //  CredentialLogger.msg(ERROR, "Can't convert X509 request from internal to DER encoded format");
-                  //  LogError(); res = false;
-                  //}
-                  else { rsa_key_ = rsa_key; rsa_key = NULL; pkey_ = pkey; pkey = NULL; res = true; }
-                  //TODO
+                  else {
+                    if(!(i2d_X509_REQ_bio(reqbio,req))){
+                      CredentialLogger.msg(ERROR, "Can't convert X509 request from internal to DER encoded format");
+                      LogError(); res = false;
+                    }
+                    else { rsa_key_ = rsa_key; rsa_key = NULL; pkey_ = pkey; pkey = NULL; res = true; }
+                  }
                 }
               }
             }
@@ -877,14 +881,14 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
     return res;
   }
 
-  bool Credential::GenerateRequest(std::string &content) {
+  bool Credential::GenerateRequest(std::string &content, bool if_der) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for request"); 
       LogError(); return false;
     }
  
-    if(GenerateRequest(out)) {
+    if(GenerateRequest(out,if_der)) {
       for(;;) {
         char s[256];
         int l = BIO_read(out,s,sizeof(s));
@@ -897,7 +901,7 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
     return true;
   }
 
-  bool Credential::GenerateRequest(const char* filename) {
+  bool Credential::GenerateRequest(const char* filename, bool if_der) {
     BIO *out = BIO_new(BIO_s_file());
     if(!out) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for request"); 
@@ -908,7 +912,7 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
       LogError(); BIO_free_all(out); return false;
     }
 
-    if(GenerateRequest(out)) {
+    if(GenerateRequest(out,if_der)) {
       CredentialLogger.msg(INFO, "Wrote request into a file");
     }
     else {
@@ -962,10 +966,10 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
     return true;
   }
 
-  bool Credential::OutputCertificate(std::string &content, bool format) {
+  bool Credential::OutputCertificate(std::string &content, bool if_der) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
-    if(format == false) {
+    if(if_der == false) {
       if(!PEM_write_bio_X509(out,cert_)) { BIO_free_all(out); return false; };
     }
     else {
@@ -982,7 +986,7 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
     return true;
   }
 
-  bool Credential::OutputCertificateChain(std::string &content, bool format) {
+  bool Credential::OutputCertificateChain(std::string &content, bool if_der) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     X509 *cert;
@@ -991,7 +995,7 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
     //Out put the cert chain, except the CA certificate and this certificate itself
     for (int n = 1; n < sk_X509_num(cert_chain_) - 1; n++) {
       cert = sk_X509_value(cert_chain_, n);
-      if(format == false) {
+      if(if_der == false) {
         if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
       }
       else {
@@ -1010,15 +1014,15 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
   }
 
   //Inquire the input request bio to get PROXYCERTINFO, certType
-  bool Credential::InquireRequest(BIO* &reqbio, bool if_eec, bool req_format){
+  bool Credential::InquireRequest(BIO* &reqbio, bool if_eec, bool if_der){
     bool res = false;
     if(reqbio == NULL) { CredentialLogger.msg(ERROR, "NULL BIO passed to InquireRequest"); return false; }
     if(req_) {X509_REQ_free(req_); req_ = NULL; }
-    if((req_format == false) && (!(PEM_read_bio_X509_REQ(reqbio, &req_, NULL, NULL)))) { 
+    if((if_der == false) && (!(PEM_read_bio_X509_REQ(reqbio, &req_, NULL, NULL)))) { 
       CredentialLogger.msg(ERROR, "PEM_read_bio_X509_REQ failed");
       LogError(); return false;
     }
-    else if((req_format == true) && (!(d2i_X509_REQ_bio(reqbio, &req_)))) {
+    else if((if_der == true) && (!(d2i_X509_REQ_bio(reqbio, &req_)))) {
       CredentialLogger.msg(ERROR, "d2i_X509_REQ_bio failed"); 
       LogError(); return false;
     }
@@ -1103,14 +1107,14 @@ err:
     return res;
   }
 
-  bool Credential::InquireRequest(std::string &content, bool if_eec, bool req_format) {
+  bool Credential::InquireRequest(std::string &content, bool if_eec, bool if_der) {
     BIO *in;
     if(!(in = BIO_new_mem_buf((void*)(content.c_str()), content.length()))) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for parsing request"); 
       LogError(); return false;
     }
 
-    if(InquireRequest(in,if_eec,req_format)) {
+    if(InquireRequest(in,if_eec,if_der)) {
       CredentialLogger.msg(INFO, "Read request from a string");
     }
     else {
@@ -1122,7 +1126,7 @@ err:
     return true;
   }
 
-  bool Credential::InquireRequest(const char* filename, bool if_eec, bool req_format) {
+  bool Credential::InquireRequest(const char* filename, bool if_eec, bool if_der) {
     BIO *in = BIO_new(BIO_s_file());
     if(!in) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for parsing request"); 
@@ -1133,7 +1137,7 @@ err:
       LogError(); BIO_free_all(in); return false;
     }
 
-    if(InquireRequest(in,if_eec,req_format)) {
+    if(InquireRequest(in,if_eec,if_der)) {
       CredentialLogger.msg(INFO, "Read request from a file");
     }
     else {
@@ -1471,7 +1475,7 @@ err:
     return res;
   }
 
-  bool Credential::SignRequest(Credential* proxy, BIO* outputbio, bool format){
+  bool Credential::SignRequest(Credential* proxy, BIO* outputbio, bool if_der){
     bool res = false;
     if(proxy == NULL) {CredentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
     if(outputbio == NULL) { CredentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
@@ -1561,7 +1565,7 @@ err:
     else CredentialLogger.msg(INFO, "Succeeded to verify the signed certificate");
 
     /*Output the signed certificate into BIO*/
-    if(format == false) {
+    if(if_der == false) {
       if(PEM_write_bio_X509(outputbio, proxy_cert)) {
         CredentialLogger.msg(INFO, "Output the proxy certificate"); res = true;
       }
@@ -1588,14 +1592,14 @@ err:
     return res;
   }
 
-  bool Credential::SignRequest(Credential* proxy, std::string &content, bool format) {
+  bool Credential::SignRequest(Credential* proxy, std::string &content, bool if_der) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); 
       LogError(); return false;
     }
               
-    if(SignRequest(proxy, out, format)) {
+    if(SignRequest(proxy, out, if_der)) {
       for(;;) { 
         char s[256];
         int l = BIO_read(out,s,sizeof(s));
@@ -1608,7 +1612,7 @@ err:
     return true;    
   }               
                   
-  bool Credential::SignRequest(Credential* proxy, const char* filename, bool format) {
+  bool Credential::SignRequest(Credential* proxy, const char* filename, bool if_der) {
     BIO *out = BIO_new(BIO_s_file());
     if(!out) { 
       CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); 
@@ -1619,7 +1623,7 @@ err:
       LogError(); BIO_free_all(out); return false;
     }     
           
-    if(SignRequest(proxy, out, format)) {
+    if(SignRequest(proxy, out, if_der)) {
       CredentialLogger.msg(INFO, "Wrote signed proxy certificate into a file");
     }
     else {
