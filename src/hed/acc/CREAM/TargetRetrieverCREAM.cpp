@@ -104,6 +104,12 @@ namespace Arc {
     DataHandle handler(url);
     DataBuffer buffer;
 
+    if (!handler) {
+      logger.msg(ERROR, "Can't create information handle - "
+                 "is the ARC ldap DMC available?");
+      return;
+    }
+
     if (!handler->StartReading(buffer)) {
       delete thrarg;
       mom.RetrieverDone();
@@ -183,6 +189,12 @@ namespace Arc {
     url.ChangeLDAPScope(URL::subtree);
     DataHandle handler(url);
     DataBuffer buffer;
+
+    if (!handler) {
+      logger.msg(ERROR, "Can't create information handle - "
+                 "is the ARC ldap DMC available?");
+      return;
+    }
 
     if (!handler->StartReading(buffer)) {
       delete thrarg;
