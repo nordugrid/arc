@@ -109,6 +109,8 @@ namespace Arc {
     if (!handler) {
       logger.msg(ERROR, "Can't create information handle - "
                  "is the ARC ldap DMC available?");
+      delete thrarg;
+      mom.RetrieverDone();
       return;
     }
 
@@ -241,6 +243,8 @@ namespace Arc {
     if (!handler) {
       logger.msg(ERROR, "Can't create information handle - "
                  "is the ARC ldap DMC available?");
+      delete thrarg;
+      mom.RetrieverDone();
       return;
     }
 
