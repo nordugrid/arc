@@ -138,10 +138,34 @@
 \section{Quick start guide} % (fold)
 \label{sec:quick_start_guide}
 
+In this section we will follow the installation of the ARC storage system on a freshly installed debian linux machine. 
+
+Get the latest ARC code from the subversion (\verb!http://svn.nordugrid.org/!):
+
 \begin{verbatim}
-http://svn.nordugrid.org/
-svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1   
-README file for dependencies
+$ svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1
+\end{verbatim}
+
+Let's check the README file for all the dependencies, and install them:
+
+\begin{verbatim}
+$ sudo aptitude install build-essential
+$ sudo aptitude install autoconf
+$ sudo aptitude install gettext
+$ sudo aptitude install cvs
+$ sudo aptitude install libtool
+$ sudo aptitude install pkg-config
+$ sudo aptitude install libglibmm-2.4-dev
+$ sudo aptitude install python-dev
+$ sudo aptitude install swig
+$ sudo aptitude install libxml2-dev
+$ sudo aptitude install libssl-dev
+\end{verbatim}
+
+Run the \verb!autogen! and \verb!configure! scripts (you may want to specify target directories for the installation with the \verb!--prefix! option):
+
+\begin{verbatim}
+$ cd arc1
 $ ./autogen.sh
 $ ./configure --disable-java --disable-a-rex-service --disable-isi-service --disable-charon-service --disable-compiler-service --disable-paul-service --disable-sched-service
 --prefix
@@ -152,11 +176,11 @@ Python binding:     yes (2.5)
 
 Available third-party features:
 
-RLS:                yes
-GridFTP:            yes
+RLS:                no
+GridFTP:            no
 LFC:                no
-RSL:                yes
-SAML:               yes
+RSL:                no
+SAML:               no
 MYSQL CLIENT LIB:   no
 gSOAP:              no
 
@@ -169,15 +193,42 @@ SCHED service:      no
 STORAGE service:    yes
 PAUL service:       no
 SRM client (DMC):   no
-GSI channel (MCC):  yes
-
-$ make
-
-$ sudo make install
-
+GSI channel (MCC):  no
 
 \end{verbatim}
 
+We can start to compile it:
+
+\begin{verbatim}
+$ make
+\end{verbatim}
+
+And then install it (you need to be root if you want to install it to the default location):
+
+\begin{verbatim}
+$ sudo make install
+\end{verbatim}
+
+Maybe we should run \verb!ldconfig! to refresh the list of libraries:
+
+\begin{verbatim}
+$ ldconfig
+\end{verbatim}
+
+We can check if the python packages are installed correctly:
+
+\begin{verbatim}
+$ python
+Python 2.5.2 (r252:60911, Jan  4 2009, 17:40:26) 
+[GCC 4.3.2] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import arc
+>>> import storage
+>>> import arcom
+>>> 
+\end{verbatim}
+
+If there is no error on importing any of the packages, we are good to go.
 
 % section quick_start_guide (end)
 
