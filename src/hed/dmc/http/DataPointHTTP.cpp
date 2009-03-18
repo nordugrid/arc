@@ -631,7 +631,6 @@ namespace Arc {
         client = new ClientHTTP(cfg, point.url);
         continue;
       }
-      retries = 0;
       if (transfer_info.code == 416) { // EOF
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
@@ -648,11 +647,13 @@ namespace Arc {
           delete inbuf;
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
-            (transfer_info.code == 504))
-          continue;
+            (transfer_info.code == 504)) {
+          if ((++retries) <= 10) continue;
+        }
         transfer_failure = true;
         break;
       }
+      retries = 0;
       bool whole = (inbuf &&
                     ((transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0)) ||
                     (inbuf->Size() == -1)
@@ -772,18 +773,19 @@ namespace Arc {
         client = new ClientHTTP(cfg, point.url);
         continue;
       }
-      retries = 0;
       if ((transfer_info.code != 201) &&
           (transfer_info.code != 200) &&
           (transfer_info.code != 204)) {  // HTTP error - retry?
         point.buffer->is_notwritten(transfer_handle);
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
-            (transfer_info.code == 504))
-          continue;
+            (transfer_info.code == 504)) {
+          if ((++retries) <= 10) continue;
+        }
         transfer_failure = true;
         break;
       }
+      retries = 0;
       point.buffer->is_written(transfer_handle);
     }
     point.transfer_lock.lock();
