@@ -55,7 +55,7 @@ namespace Arc {
                       };
 
           virtual ~MyRegisteredService(void) { };
-          virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&) {};
+          virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&) {return Arc::MCC_Status(Arc::STATUS_OK);};
   };
 }
 
