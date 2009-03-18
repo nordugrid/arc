@@ -720,39 +720,50 @@ namespace Arc {
 
     // Try to get description from cluster
     for (std::list<Job>::iterator it = gettable.begin();
-         it != gettable.end(); it++)
-      if (it->JobDescription.empty())
-        if (!GetJobDescription(*it, it->JobDescription)) {
-          logger.msg(WARNING, "Failed getting job description for %s", it->JobID.str());
-          it = gettable.erase(it);
-        }
-        else
-          logger.msg(INFO, "Got job description for %s", it->JobID.str());
-
+         it != gettable.end();) {
+      if (!it->JobDescription.empty()){
+        it++;
+        continue;
+      }
+      if (GetJobDescription(*it, it->JobDescription)) {
+        logger.msg(INFO, "Got job description for %s", it->JobID.str());
+        it++;
+      } else {
+        logger.msg(WARNING, "Failed getting job description for %s", it->JobID.str());
+        it = gettable.erase(it);
+      }
+    }
     return gettable;
+
   }
 
   void JobController::CheckLocalDescription(std::list<Job>& jobs) {
     for (std::list<Job>::iterator it = jobs.begin();
-         it != jobs.end(); it++) {
+         it != jobs.end();) {
       // Search for jobids
       XMLNodeList xmljobs =
         jobstorage.XPathLookup("//Job[JobID='" + it->JobID.str() + "']", NS());
-
+      
       if (xmljobs.empty()) {
         logger.msg(ERROR, "Job not found in job list: %s", it->JobID.str());
-        return;
+        it++;
+        continue;
       }
       XMLNode& xmljob = *xmljobs.begin();
-
+      
       if (xmljob["JobDescription"]) {
         JobDescription jobdesc;
         jobdesc.setSource((std::string)xmljob["JobDescription"]);
+        
+        // Check for valid job description
         if (jobdesc.isValid())
           logger.msg(DEBUG, "Valid jobdescription found for: %s", it->JobID.str());
-        else
-          logger.msg(ERROR, "No valid jobdescription found for: %s", it->JobID.str());
-
+        else {
+          logger.msg(WARNING, "No valid jobdescription found for: %s", it->JobID.str());
+          it++;
+          continue;
+        }
+        
         // Check checksums of local input files
         bool CKSUM = true;
         int size = xmljob["LocalInputFiles"].Size();
@@ -763,20 +774,22 @@ namespace Arc {
           if (cksum_old != cksum_new) {
             logger.msg(WARNING, "Checksum of input file %s has changed.", file);
             CKSUM = false;
-          }
-          else
+          } else
             logger.msg(DEBUG, "Stored and new checksum of input file %s are identical.", file);
         }
         // Push_back job and job descriptions
         if (CKSUM) {
           logger.msg(INFO, "Job description for %s retrieved locally", it->JobID.str());
           it->JobDescription = (std::string)xmljob["JobDescription"];
+          it++;
+        } else {
+          logger.msg(WARNING, "Job %s can not be resubmitted", it->JobID.str());
+          it = jobs.erase(it);
         }
-        else
-          logger.msg(WARNING, "Job description for %s could not be retrieved locally", it->JobID.str());
-      }
-      else
+      } else {
         logger.msg(WARNING, "Job description for %s could not be retrieved locally", it->JobID.str());
+        it++;
+      }
     } //end loop over jobs
     return;
   }
