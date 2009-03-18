@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
     std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
     if (jobcont.empty()) {
-      logger.msg(Arc::ERROR, "No job controllers loaded");
+      std::cout << "No jobs found" << std::endl;
       return 1;
     }
 

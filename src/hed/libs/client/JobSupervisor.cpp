@@ -58,7 +58,8 @@ namespace Arc {
                                  "Name='" + *it + "']", NS());
 
         if (xmljobs.empty()) {
-          logger.msg(WARNING, "Job not found in job list: %s", *it);
+          //logger.msg(WARNING, "Job not found in job list: %s", *it);
+          std::cout << "Job not found in job list: " << *it << std::endl;
           continue;
         }
 
@@ -101,6 +102,11 @@ namespace Arc {
                  "all jobs present in job list");
 
       XMLNodeList xmljobs = jobstorage.XPathLookup("/ArcConfig/Job", NS());
+
+      if (xmljobs.empty()){
+        logger.msg(INFO, "No jobs to handle");
+        return;
+      }
 
       for (XMLNodeList::iterator it = xmljobs.begin();
            it != xmljobs.end(); it++)
