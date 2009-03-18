@@ -1,5 +1,5 @@
-#DIST_SUBDIRS = test
-#SUBDIRS = $(TEST_DIR)
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)
 
 noinst_LTLIBRARIES=libinfosys.la
 #noinst_PROGRAMS=test test_cache # test_register
