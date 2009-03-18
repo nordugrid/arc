@@ -93,9 +93,11 @@ class Client:
             try:
                 s = arc.ClientSOAP(self.cfg, url)
                 if self.get_trusted_dns_method:
-                    dnlistconf = arc.DNListHandlerConfig(self.get_trusted_dns_method(), 'outgoing')
-                    # _s points to the superclass, but not the object, so it needs the object as first argument
-                    s._s._s.AddSecHandler(s, dnlistconf, arc.TLSSec)
+                    dnlist = self.get_trusted_dns_method()
+                    if dnlist:
+                        dnlistconf = arc.DNListHandlerConfig(dnlist, 'outgoing')
+                        # _s points to the superclass, but not the object, so it needs the object as first argument
+                        s._s._s.AddSecHandler(s, dnlistconf, arc.TLSSec)
                 resp, status = s.process(outpayload)
                 if not status.isOk():
                     raise Exception, str(status)
