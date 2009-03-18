@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<ClientSSLConfig>
+    <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+    <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+    <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+</ClientSSLConfig>

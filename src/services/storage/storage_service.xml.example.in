@@ -5,7 +5,7 @@
 >
     <Server>
         <Pidfile>/var/run/arched.pid</Pidfile>
-        <Logger level="VERBOSE">/var/log/arched.log</Logger>
+        <Logger level="ERROR">/var/log/arched.log</Logger>
     </Server>
     <ModuleManager>
         <Path>@prefix@/lib/arc/</Path>
@@ -38,64 +38,62 @@
             <next id="librarian">^/Librarian$</next>
             <next id="bartender">^/Bartender$</next>
             <next id="shepherd">^/Shepherd$</next>
-            <next id="hopi">^/hopi/</next>
         </Plexer>
         <Service name="pythonservice" id="ahash">
             <ClassName>storage.ahash.ahash.AHashService</ClassName>
-            <LogLevel>ERROR</LogLevel>
             <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
-            <StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
-            <StoreCfg><DataDir>/tmp/arc/ahash_data</DataDir></StoreCfg>
+            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+            <StoreCfg><DataDir>/var/spool/arc/ahash_data</DataDir></StoreCfg>
+            <ClientSSLConfig FromFile="clientsslconfig.xml" />
         </Service>
         <Service name="pythonservice" id="librarian">
             <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
-            <LogLevel>ERROR</LogLevel>
-            <AHashURL>http://localhost:60000/AHash</AHashURL>
-            <ClientSSLConfig>
-                <KeyPath>./key.pem</KeyPath>
-                <CertificatePath>./cert.pem</CertificatePath>
-                <CACertificatePath>./ca.pem</CACertificatePath>
-            </ClientSSLConfig>
+            <AHashURL>https://localhost:60000/AHash</AHashURL>
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
+            <ClientSSLConfig FromFile="clientsslconfig.xml" />
         </Service>
         <Service name="pythonservice" id="bartender">
             <ClassName>storage.bartender.bartender.BartenderService</ClassName>
-            <LogLevel>ERROR</LogLevel>
             <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
-            <ClientSSLConfig>
-                <KeyPath>./key.pem</KeyPath>
-                <CertificatePath>./cert.pem</CertificatePath>
-                <CACertificatePath>./ca.pem</CACertificatePath>
-            </ClientSSLConfig>
+            <ClientSSLConfig FromFile="clientsslconfig.xml" />
         </Service>
         <Service name="pythonservice" id="shepherd">
             <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
-            <LogLevel>ERROR</LogLevel>
             <ServiceID>https://localhost:60000/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
-            <StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
-            <StoreCfg>
-                <DataDir>/tmp/arc/shepherd_data</DataDir>
-            </StoreCfg>
+            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+            <StoreCfg><DataDir>/var/spool/arc/shepherd_data</DataDir></StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
             <BackendCfg>
-                <DataDir>/tmp/arc/shepherd_store</DataDir>
-                <TransferDir>/tmp/arc/shepherd_transfer</TransferDir>
-                <!-- Change this prefix to the external interface of your machine -->
-                <TURLPrefix>https://localhost:60000/hopi/</TURLPrefix>
+                <DataDir>/var/spool/arc/shepherd_store</DataDir>
+                <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
+                <!-- Change this prefix to the external URL of the Hopi service, ending with a '/'! -->
+                <TURLPrefix>http://localhost:60000/hopi/</TURLPrefix>
             </BackendCfg>
             <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
             <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
-            <ClientSSLConfig>
-                <KeyPath>./key.pem</KeyPath>
-                <CertificatePath>./cert.pem</CertificatePath>
-                <CACertificatePath>./ca.pem</CACertificatePath>
-            </ClientSSLConfig>
+            <ClientSSLConfig FromFile="clientsslconfig.xml" />
         </Service>
+    </Chain>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="http"/> 
+            <tcp:Listen><tcp:Port>60001</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="plexer">GET</next>
+            <next id="plexer">PUT</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="hopi">^/hopi/</next>
+        </Plexer>
         <Service name="hopi" id="hopi">
-            <DocumentRoot>/tmp/arc/shepherd_transfer</DocumentRoot>
+            <DocumentRoot>/var/spool/arc/shepherd_transfer</DocumentRoot>
             <SlaveMode>1</SlaveMode>
         </Service>
     </Chain>
