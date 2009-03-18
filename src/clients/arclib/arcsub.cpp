@@ -287,14 +287,21 @@ int main(int argc, char **argv) {
     while (!JobSubmitted) {
 
       Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
-      if (EndOfList) {
-        std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
-        break;
-      }
-
       if (dumpdescription) {
-        std::string flavour = target.GridFlavour;
+        std::string flavour;
         std::string jobdesc;
+        if (!EndOfList)
+          flavour = target.GridFlavour;
+        else if (!clusters.empty()) {
+          Arc::URLListMap clusterselect;
+          Arc::URLListMap clusterreject;
+          if (!usercfg.ResolveAlias(clusters,clusterselect,clusterreject)) {
+            logger.msg(Arc::ERROR, "Failed resolving aliases");
+            return 0;
+          }
+          Arc::URLListMap::iterator it = clusterselect.begin();
+          flavour=it->first;
+        }
         if (flavour == "ARC1" || flavour == "UNICORE")
           it->getProduct(jobdesc, "POSIXJSDL");
         else if (flavour == "ARC0")
@@ -302,13 +309,23 @@ int main(int argc, char **argv) {
         else if (flavour == "CREAM")
           it->getProduct(jobdesc, "JDL");
         else {
-          std::cout << "Cluster" << target.Cluster.str() << "requires unknown format:"
+          std::cout << "Cluster requires unknown format:"
                     << flavour << std::endl;
           return 1;
         }
-        std::cout << "Job description to be send to " << target.Cluster.str() << ":" << std::endl;
+        if (!EndOfList)
+          std::cout << "Job description to be send to " << target.Cluster.str() << ":" << std::endl;
+        else if (!clusters.empty())
+          std::cout << "Job description to be send to " << clusters.front() << ":" << std::endl;
+        else
+          std::cout << "Job description could not be send to any cluster:" << std::endl;
         std::cout << jobdesc << std::endl;
         return 0;
+      }
+      
+      if (EndOfList) {
+        std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
+        break;
       }
 
       Arc::Submitter *submitter = target.GetSubmitter(usercfg);
