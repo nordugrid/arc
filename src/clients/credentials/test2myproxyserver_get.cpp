@@ -58,7 +58,7 @@ int main(void) {
   out_f.close();
 
 
-  //Contact the myproxy server to delegate a certificate into that server
+  //Contact the myproxy server to get a delegated certificate from that server
 
   // The message which will be sent to myproxy server
   //"GET" command
