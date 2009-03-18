@@ -200,15 +200,17 @@ class Shepherd:
                             # first we get the file's metadata from the librarian
                             metadata = self.librarian.get([GUID])[GUID]
                             # check if the cheksum changed in the Librarian
-                            if checksum != metadata[('states','checksum')] or checksumType != metadata[('states','checksumType')]:
+                            librarian_checksum = metadata.get(('states','checksum'), checksum)
+                            librarian_checksumType = metadata.get(('states','checksumType'), checksumType)
+                            if checksum != librarian_checksum or checksumType != librarian_checksumType:
                                 # refresh the checksum
                                 self.store.lock()
                                 try:
                                     if not localData: # what?
                                         self.store.unlock()
                                     else:
-                                        localData['checksum'] = metadata[('states','checksum')]
-                                        localData['checksumType'] = metadata[('states','checksumType')]
+                                        localData['checksum'] = librarian_checksum
+                                        localData['checksumType'] = librarian_checksumType
                                         print 'checksum refreshed', localData
                                         self.store.set(referenceID, localData)
                                         self.store.unlock()
