@@ -114,6 +114,8 @@ int main(void) {
   Arc::Time start;
   Arc::Credential x509_request(start, Arc::Period(), 1024);
   x509_request.GenerateRequest(x509_req_str, true);
+  std::string proxy_key_str;
+  x509_request.OutputPrivatekey(proxy_key_str);
 
   Arc::PayloadRaw request1;
   request1.Insert(x509_req_str.c_str(),0,x509_req_str.length());
@@ -153,12 +155,27 @@ int main(void) {
   }
   BIO_free_all(bio);
 
-  //Output the DER formated proxy certificate
-  std::string proxy_file("proxyfrommyproxy.pem");
-  std::ofstream proxy_f(proxy_file.c_str());
-  proxy_f.write(proxy_cert_str.c_str(), proxy_cert_str.size());
-  proxy_f.close();
+  //Output the PEM formated proxy certificate
+  std::string tmpcert_file("tmpcert.pem");
+  std::ofstream tmpcert_f(tmpcert_file.c_str());
+  std::string tmpkey_file("tmpkey.pem");
+  std::ofstream tmpkey_f(tmpkey_file.c_str());
+  tmpcert_f.write(proxy_cert_str.c_str(), proxy_cert_str.size());
+  tmpkey_f.write(proxy_key_str.c_str(), proxy_key_str.size());
+  tmpcert_f.close();
+  tmpkey_f.close();
   
+  Arc::Credential proxy_cred(tmpcert_file,tmpkey_file, cadir, "");
+  std::string proxy_cred_str_pem;
+  std::string proxy_cred_file("proxy_cred.pem");
+  std::ofstream proxy_cred_f(proxy_cred_file.c_str());
+  proxy_cred.OutputCertificate(proxy_cred_str_pem);
+  proxy_cred.OutputPrivatekey(proxy_cred_str_pem);
+  proxy_cred.OutputCertificateChain(proxy_cred_str_pem);
+  proxy_cred_f.write(proxy_cred_str_pem.c_str(), proxy_cred_str_pem.size());
+  proxy_cred_f.close();
+
+
   //Myproxy server will then return a standard response message
   std::string ret_str2;
   memset(ret_buf,0,1024);

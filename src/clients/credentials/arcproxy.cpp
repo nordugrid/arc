@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "certificate", istring("path to certificate file"),
+  options.AddOption('C', "cert", istring("path to certificate file"),
                     istring("path"), cert_path);
 
   std::string key_path;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
                     istring("path"), key_path);
 
   std::string ca_dir;
-  options.AddOption('T', "cacertdir", istring("path to trusted certificate directory, only needed for voms client functionality"),
+  options.AddOption('T', "cadir", istring("path to trusted certificate directory, only needed for voms client functionality"),
                     istring("path"), ca_dir);
 
   std::string vomses_path;
@@ -108,6 +108,22 @@ int main(int argc, char *argv[]) {
                                          "              of the certificate, the 'trusted certdir' is needed."
                                          ),
                     info);
+
+  std::string user_name; //user name to myproxy server
+  options.AddOption('U', "user", istring("username to myproxy server"),
+                    istring("string"), user_name);
+
+  std::string passphrase; //passphrase to myproxy server
+  options.AddOption('R', "pass", istring("passphrase to myproxy server"),
+                    istring("string"), passphrase);
+
+  std::string myproxy_server; //url of myproxy server
+  options.AddOption('L', "myproxysrv", istring("url of myproxy server"),
+                    istring("string"), myproxy_server);
+
+  std::string myproxy_command; //command to myproxy server
+  options.AddOption('M', "myproxycmd", istring("command to myproxy server"),
+                    istring("string"), myproxy_command);
 
   std::list<std::string> constraintlist;
   options.AddOption('c', "constraint", istring("proxy constraints"),
@@ -244,6 +260,7 @@ int main(int argc, char *argv[]) {
   SSL_load_error_strings();
   SSL_library_init();
 
+  //Create proxy or voms proxy
   try {
     if (vomslist.empty()) {
     //if there is no voms command specified, 
@@ -276,7 +293,7 @@ int main(int argc, char *argv[]) {
       if (::write(f, proxy.c_str(), proxy.length()) != proxy.length())
         throw std::runtime_error("Failed to write into proxy file " + proxy_path);
       ::close(f);
-      return EXIT_SUCCESS;
+      //return EXIT_SUCCESS;
     }
     else {
       Arc::Credential signer(cert_path, key_path, ca_dir, "");
@@ -497,11 +514,168 @@ int main(int argc, char *argv[]) {
       out_f1.write(signing_cert_chain.c_str(), signing_cert_chain.size());
       out_f1.close();
 
-      return EXIT_SUCCESS;
+      //return EXIT_SUCCESS;
     }
   } catch (std::exception& err) {
     std::cerr << "ERROR: " << err.what() << std::endl;
     tls_process_error();
     return EXIT_FAILURE;
   }
+
+  //Delegate the former self-delegated credential to 
+  //myproxy server
+  try{
+    if(myproxy_command == "put" || myproxy_command == "PUT") {
+      //Create the message that will be 
+      //sent to myproxy server
+      std::string send_msg("VERSION=MYPROXYv2\n COMMAND=1\n ");
+      if(user_name.empty())
+        throw std::invalid_argument("Username to myproxy server is missing");
+      send_msg.append("USERNAME=").append(user_name).append("\n ");
+      if(passphrase.empty())
+        throw std::invalid_argument("Passphrase to myproxy server is missing");
+      send_msg.append("PASSPHRASE=").append(passphrase).append("\n ");
+      send_msg.append("LIFETIME=43200\n");
+
+      if(myproxy_server.empty())
+        throw std::invalid_argument("URL of myproxy server is missing");
+      std::string host;
+      int port;
+      std::string::size_type pos = myproxy_server.find(":");
+      if (pos == std::string::npos) {
+        host = myproxy_server;
+        port = 7512;
+      } 
+      else {
+        host = myproxy_server.substr(0,pos);
+        port = Glib::Ascii::strtod(myproxy_server.substr(pos));
+      }
+      Arc::MCCConfig cfg;
+      cfg.AddProxy(proxy_path);
+      cfg.AddCADir(ca_dir); 
+      Arc::ClientTCP client(cfg, host, port, Arc::GSISec);
+
+      //Send the message to myproxy server
+      Arc::PayloadRaw request;
+      request.Insert(send_msg.c_str(),0,send_msg.length());
+      Arc::PayloadStreamInterface *response = NULL;
+      Arc::MCC_Status status = client.process(&request, &response,true);
+      if (!status) {
+        logger.msg(Arc::ERROR, (std::string)status);
+        if (response)
+          delete response;
+        return EXIT_FAILURE;
+      }
+      if (!response) {
+        logger.msg(Arc::ERROR, "No stream response");
+        return EXIT_FAILURE;
+      }
+
+      //Parse the response message from myproxy server
+      std::string ret_str;
+      char ret_buf[1024];
+      memset(ret_buf,0,1024);
+      int len;
+      do {
+        len = 1024;
+        response->Get(&ret_buf[0], len);
+        ret_str.append(ret_buf,len);
+        memset(ret_buf,0,1024);
+      }while(len == 1024);
+      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str.c_str());
+      if(ret_str.find("RESPONSE=0") == std::string::npos) {
+        //TODO: process "RESPONSE=2"
+        logger.msg(Arc::ERROR, "Myproxy server return failure msg");
+        return EXIT_FAILURE;
+      }
+    
+      //Myproxy server will then send back another message which includes
+      //the x509 certificate request in DER format
+      std::string x509ret_str;
+      memset(ret_buf,0,1024);
+      do {
+        len = 1024;
+        response->Get(&ret_buf[0], len);
+        x509ret_str.append(ret_buf,len);
+        memset(ret_buf,0,1024);
+      }while(len == 1024);
+      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", x509ret_str.c_str());
+      if(ret_str.find("RESPONSE=1") != std::string::npos) {
+        logger.msg(Arc::ERROR, "Myproxy server return failure msg");
+        return EXIT_FAILURE;
+      }
+
+      if(response) { delete response; response = NULL; }
+
+      //Sign the x509 certificate request
+      Arc::Credential signer(proxy_path, "", ca_dir, "");
+      Arc::Credential proxy;
+      std::string signedcert, signing_cert, signing_cert_chain;
+      proxy.InquireRequest(x509ret_str,false,true);
+      if(!(signer.SignRequest(&proxy, signedcert, true))) {
+        logger.msg(Arc::ERROR, "Delegate proxy to myproxy server failed");
+        return EXIT_FAILURE;
+      }
+      signer.OutputCertificate(signing_cert, true);
+      signer.OutputCertificateChain(signing_cert_chain, true);
+      signedcert.append(signing_cert).append(signing_cert_chain);
+
+      //Send back the proxy certificate to myproxy server
+      //Caculate the numbers of certifictes as the beginning of the message
+      unsigned char number_of_certs;
+      number_of_certs = signer.GetCertNumofChain() + 2;
+      BIO* bio = BIO_new(BIO_s_mem());
+      BIO_write(bio, &number_of_certs, sizeof(number_of_certs));
+      std::string start;
+      for(;;) {
+        char s[256];
+        int l = BIO_read(bio,s,sizeof(s));
+        if(l <= 0) break;
+        start.append(s,l);
+      }
+      BIO_free_all(bio);
+      signedcert.insert(0,start);
+
+      Arc::PayloadRaw request1;
+      request1.Insert(signedcert.c_str(),0,signedcert.length());
+      status = client.process(&request1, &response,true);
+      if (!status) {
+        logger.msg(Arc::ERROR, (std::string)status);
+        if (response)
+          delete response;
+        return EXIT_FAILURE;
+      }
+      if (!response) {
+        logger.msg(Arc::ERROR, "No stream response");
+        return EXIT_FAILURE;
+      }
+      std::string ret_str1;
+      memset(ret_buf,0,1024);
+      do {
+        len = 1024;
+        response->Get(&ret_buf[0], len);
+        ret_str1.append(ret_buf,len);
+        memset(ret_buf,0,1024);
+      }while(len == 1024);
+      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str1.c_str());
+      if(ret_str.find("RESPONSE=0") == std::string::npos) {
+        //TODO: process "RESPONSE=2"
+        logger.msg(Arc::ERROR, "Myproxy server return failure msg");
+        return EXIT_FAILURE;
+      }
+
+      if(response) { delete response; response = NULL; }
+      
+      return EXIT_SUCCESS;
+    }
+    else {
+
+    }
+
+  } catch (std::exception& err) {
+    std::cerr << "ERROR: " << err.what() << std::endl;
+    tls_process_error();
+    return EXIT_FAILURE;
+  }
+
 }

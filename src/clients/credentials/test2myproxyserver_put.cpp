@@ -155,7 +155,7 @@ int main(void) {
 
   //Caculate the numbers of certifictes as the beginning of the message
   unsigned char number_of_certs;
-  number_of_certs = 3;
+  number_of_certs = signer1.GetCertNumofChain() + 2;
   BIO* bio = BIO_new(BIO_s_mem());
   std::cout<<BIO_write(bio, &number_of_certs, sizeof(number_of_certs))<<std::endl;
   std::string start;
