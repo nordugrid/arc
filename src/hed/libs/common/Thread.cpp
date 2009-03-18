@@ -49,8 +49,8 @@ namespace Arc {
     ThreadArgument *argument = new ThreadArgument(func, arg);
     try {
       // TODO. Who is going to destroy created object? Check for memory leaks.
-      Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),
-                           false);
+      Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),thread_stacksize,
+                           false,false,Glib::THREAD_PRIORITY_NORMAL);
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
       delete argument;

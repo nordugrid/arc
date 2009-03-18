@@ -10,6 +10,12 @@ namespace Arc {
   /** So far it takes care of automatic initialization
      of threading environment and creation of simple detached threads. */
 
+/// Defines size of stack assigned to every new thread.
+/* It seems like MacOS has very small stack per thread by default.
+  So it's safer to have bigger one defined. If this value is set
+  to 0 default value wil lbe used. */
+const size_t thread_stacksize = (16*1024*1024);
+
   /// This macro behaves like function which makes thread of class' method.
   /** It accepts class instance and full  name of
      method - like class::method. 'method' should not be static member
