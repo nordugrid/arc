@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
                     istring("path"), key_path);
 
   std::string ca_dir;
-  options.AddOption('T', "trusted certdir", istring("path to trusted certificate directory, only needed for voms client functionality"),
+  options.AddOption('T', "cacertdir", istring("path to trusted certificate directory, only needed for voms client functionality"),
                     istring("path"), ca_dir);
 
   std::string vomses_path;
@@ -179,9 +179,14 @@ int main(int argc, char *argv[]) {
 
     if (ca_dir.empty())
       ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
-    if (ca_dir.empty())
-      ca_dir = user.get_uid() == 0 ? "/etc/grid-security/certificates" :
-               user.Home() + "/.globus/certificates";
+    if (ca_dir.empty()) {
+      if(user.get_uid() == 0) ca_dir = "/etc/grid-security/certificates";
+      else {
+        ca_dir =  user.Home() + "/.globus/certificates";
+        if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+          ca_dir =  "/etc/grid-security/certificates";
+      }
+    }
   } catch (std::exception& err) {
     std::cerr << "ERROR: " << err.what() << std::endl;
     tls_process_error();
@@ -319,12 +324,20 @@ int main(int argc, char *argv[]) {
         vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
 
       if (vomses_path.empty()) {
-        vomses_path = user.Home() + "/.vomses";
-        if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-          logger.msg(Arc::ERROR, "vomses path has not been specified");
-          return EXIT_FAILURE;
+        if(user.get_uid() == 0) vomses_path = "/etc/grid-security/.vomses";
+        else {
+          vomses_path = user.Home() + "/.vomses";
+          if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+            vomses_path = "/etc/grid-security/.vomses";
+            if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+              std::string tmp = user.Home() + "/.vomses";
+              logger.msg(Arc::ERROR, "Can not find vomses at %s and /etc/grid-security/.vomses",tmp.c_str());
+              return EXIT_FAILURE;
+            }
+          }
         }
       }
+
       std::ifstream in_f(vomses_path.c_str());
       std::map<std::string, std::string> matched_voms_line;
       std::string voms_line;
