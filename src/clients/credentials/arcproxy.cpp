@@ -240,16 +240,9 @@ int main(int argc, char *argv[]) {
   SSL_library_init();
 
   try {
-    if (vomses_path.empty())
-      vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
-
-    if (vomses_path.empty()) {
-      vomses_path = user.Home() + "/.vomses";
-      if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR))
-        vomses_path.resize(0);
-    }
-
-    if (vomses_path.empty()) {
+    if (vomslist.empty()) {
+    //if there is no voms command specified, 
+    //only create proxy without voms AC extension
 #ifndef WIN32
       struct termios to;
       tcgetattr(STDIN_FILENO, &to);
@@ -322,6 +315,16 @@ int main(int argc, char *argv[]) {
 
       //Parse the 'vomses' file to find configure lines corresponding to
       //the information from the command line
+      if (vomses_path.empty())
+        vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
+
+      if (vomses_path.empty()) {
+        vomses_path = user.Home() + "/.vomses";
+        if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+          logger.msg(Arc::ERROR, "vomses path has not been specified");
+          return EXIT_FAILURE;
+        }
+      }
       std::ifstream in_f(vomses_path.c_str());
       std::map<std::string, std::string> matched_voms_line;
       std::string voms_line;
