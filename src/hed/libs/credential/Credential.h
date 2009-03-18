@@ -166,6 +166,11 @@ class Credential {
     /**Get the certificate chain attached to this object*/
     STACK_OF(X509)* GetCertChain(void);
 
+    /**Get the number of certificates in the certificate 
+     * chain attached to this object
+     */
+    int GetCertNumofChain(void);
+
     /**Get the certificate format, PEM PKCS12 or DER */
     Credformat getFormat(BIO * in);
 

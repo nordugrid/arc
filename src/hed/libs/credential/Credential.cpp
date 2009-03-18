@@ -193,13 +193,11 @@ namespace Arc {
   void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
     //Parse the certificate
     Credformat format = CRED_UNKNOWN;
-    int n=0;
     
-    X509* x509 = NULL;
     PKCS12* pkcs12 = NULL;
     STACK_OF(X509)* pkcs12_certs = NULL;
     format = getFormat(certbio);
-
+    int n;
     if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
  
     switch(format) {
@@ -207,18 +205,19 @@ namespace Arc {
         CredentialLogger.msg(VERBOSE,"Certificate format is PEM");
         //Get the certificte, By default, certificate is without passphrase
         //Read certificate
-        if(!(x509 = PEM_read_bio_X509(certbio, &cert, NULL, NULL))) {
+        if(!(PEM_read_bio_X509(certbio, &cert, NULL, NULL))) {
           throw CredentialError("Can not read cert information from BIO"); 
         }
         //Get the issuer chain
         *certchain = sk_X509_new_null();
+        n = 0;
         while(!BIO_eof(certbio)){
           X509 * tmp = NULL;
           if(!(PEM_read_bio_X509(certbio, &tmp, NULL, NULL))){
             ERR_clear_error(); break;
           }
           if(!sk_X509_insert(*certchain, tmp, n)) {
-            std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
+            //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             X509_free(tmp);
             throw CredentialError("Can not insert cert into certificate's issuer chain"); 
           }
@@ -231,6 +230,21 @@ namespace Arc {
         cert=d2i_X509_bio(certbio,NULL);
         if(!cert){
           throw CredentialError("Unable to read DER credential from BIO"); 
+        }
+        //Get the issuer chain
+        *certchain = sk_X509_new_null();
+        n = 0;
+        while(!BIO_eof(certbio)){
+          X509 * tmp = NULL;
+          if(!(d2i_X509_bio(certbio, &tmp))){
+            ERR_clear_error(); break;
+          }
+          if(!sk_X509_insert(*certchain, tmp, n)) {
+            //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
+            X509_free(tmp);
+            throw CredentialError("Can not insert cert into certificate's issuer chain");
+          }
+          ++n;
         }
         break;
 
@@ -620,8 +634,14 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
       if(keybio!=NULL) loadKey(keybio, pkey_, passphrase4key);
       else {
         //the private key could be in the certificate file, if the certificate is a proxy.
-        keybio = BIO_new_file(certfile.c_str(), "r");
-        loadKey(keybio, pkey_, passphrase4key);
+        if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {
+          keybio = BIO_new_file(certfile.c_str(), "r");
+          loadKey(keybio, pkey_, passphrase4key);
+        }
+        else {
+          keybio = BIO_new_mem_buf((void*)(certfile.c_str()), certfile.length());
+          loadKey(keybio, pkey_, passphrase4key);
+        }
       }
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
@@ -926,22 +946,45 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
 
   bool Credential::OutputPrivatekey(std::string &content, bool encryption, const std::string& passphrase) {
     BIO *out = BIO_new(BIO_s_mem());
-    if(!out) return false;
     EVP_CIPHER *enc = NULL;
-    if(!encryption) {
-      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,NULL,NULL)) { 
-        BIO_free_all(out); return false; 
+    if(!out) return false;
+    if(rsa_key_ != NULL) {
+      if(!encryption) {
+        if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,NULL,NULL)) { 
+          BIO_free_all(out); return false; 
+        }
+      }
+      else {
+        enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
+        std::string prompt;
+        prompt = "Enter passphrase to encrypt the PEM key file: ";
+        if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,
+          (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) { 
+          BIO_free_all(out); return false; 
+        }
+      }
+    }
+    else if(pkey_ != NULL) {
+      if(!encryption) {
+        if(!PEM_write_bio_PrivateKey(out,pkey_,enc,NULL,0,NULL,NULL)) {
+          BIO_free_all(out); return false;
+        }
+      }
+      else {
+        enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
+        std::string prompt;
+        prompt = "Enter passphrase to encrypt the PEM key file: ";
+        if(!PEM_write_bio_PrivateKey(out,pkey_,enc,NULL,0,passwordcb,
+          (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) {
+          BIO_free_all(out); return false;
+        }
       }
     }
     else {
-      enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
-      std::string prompt;
-      prompt = "Enter passphrase to encrypt the PEM key file: ";
-      if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,
-        (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) { 
-        BIO_free_all(out); return false; 
-      }
+      CredentialLogger.msg(ERROR, "Failed to get private key");
+      BIO_free_all(out); return false;
     }
+
     for(;;) {
       char s[256];
       int l = BIO_read(out,s,sizeof(s));
@@ -955,7 +998,27 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
   bool Credential::OutputPublickey(std::string &content) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
-    if(!PEM_write_bio_RSAPublicKey(out,rsa_key_)) { BIO_free_all(out); return false; };
+    if(rsa_key_ != NULL) {
+      if(!PEM_write_bio_RSAPublicKey(out,rsa_key_)) { 
+        CredentialLogger.msg(ERROR, "Failed to get public key from RSA object");
+        BIO_free_all(out); return false; 
+      };
+    }
+    else if(cert_ != NULL) {
+      EVP_PKEY *pkey = NULL;
+      pkey = X509_get_pubkey(cert_);
+      if(pkey == NULL) {
+        CredentialLogger.msg(ERROR, "Failed to get public key from X509 object");
+        BIO_free_all(out); return false;
+      };
+      PEM_write_bio_PUBKEY(out, pkey);
+      EVP_PKEY_free(pkey);
+    }
+    else {
+      CredentialLogger.msg(ERROR, "Failed to get public key");
+      BIO_free_all(out); return false;
+    }
+
     for(;;) {
       char s[256];
       int l = BIO_read(out,s,sizeof(s));
@@ -1244,6 +1307,12 @@ err:
       sk_X509_insert(chain, tmp, i);
     }
     return chain;
+  }
+
+  int Credential::GetCertNumofChain(void) {
+    //Return the number of certificates 
+    //in the chain (not including this certificate itself)
+    return sk_X509_num(cert_chain_)-2;
   }
 
   bool Credential::AddExtension(std::string name, std::string data, bool crit) {
