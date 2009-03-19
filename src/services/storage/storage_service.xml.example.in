@@ -17,7 +17,7 @@
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/> 
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+            <tcp:Listen><tcp:Port>60000</tcp:Port><tcp:Version>4</tcp:Version></tcp:Listen>
         </Component>
         <Component name="tls.service" id="tls">
             <next id="http"/>
@@ -51,7 +51,7 @@
             <AHashURL>https://localhost:60000/AHash</AHashURL>
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
-            <ClientSSLConfig FromFile="clientsslconfig.xml" />
+            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
         </Service>
         <Service name="pythonservice" id="bartender">
             <ClassName>storage.bartender.bartender.BartenderService</ClassName>
@@ -78,18 +78,15 @@
         </Service>
     </Chain>
     <Chain>
-        <Component name="tcp.service" id="tcp">
-            <next id="http"/> 
-            <tcp:Listen><tcp:Port>60001</tcp:Port></tcp:Listen>
+        <Component name="tcp.service" id="tcp2">
+            <next id="http2"/> 
+            <tcp:Listen><tcp:Port>60001</tcp:Port><tcp:Version>4</tcp:Version></tcp:Listen>
         </Component>
-        <Component name="http.service" id="http">
-            <next id="plexer">GET</next>
-            <next id="plexer">PUT</next>
+        <Component name="http.service" id="http2">
+            <next id="plexer2">GET</next>
+            <next id="plexer2">PUT</next>
         </Component>
-        <Component name="soap.service" id="soap">
-            <next id="plexer"/>
-        </Component>
-        <Plexer name="plexer.service" id="plexer">
+        <Plexer name="plexer.service" id="plexer2">
             <next id="hopi">^/hopi/</next>
         </Plexer>
         <Service name="hopi" id="hopi">
