@@ -274,6 +274,11 @@ class TransDBStore(BaseStore):
             log.msg(arc.INFO, "Got deadlock error")            
             log.msg()
             raise db.DBError, "db deadlock"
+        except db.DBRepHandleDeadError:
+            # todo: more proper error handling for dead rep handle
+            log.msg(arc.INFO, "Got rep_dead_handle error")            
+            log.msg()
+            raise db.DBError, "db rep dead handle"
         except db.DBError, msg:
             self.__del__()
             log.msg()
