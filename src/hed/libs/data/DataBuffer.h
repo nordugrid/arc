@@ -57,15 +57,21 @@ namespace Arc {
     /* wait for any change of buffers' status */
     bool cond_wait();
     /* pointer to object to compute checksum */
-    CheckSum *checksum;
-    unsigned long long int checksum_offset;
-    bool checksum_ready;
+    typedef struct checksum_desc
+    {
+      checksum_desc(CheckSum * sum) : sum(sum), offset(0), ready(true) {};
+      CheckSum* sum;
+      unsigned long long int offset;
+      bool ready;
+    };
+    
+    std::list<checksum_desc> checksums;
 
   public:
     /// This object controls transfer speed
     DataSpeed speed;
     /// Check if DataBuffer object is initialized
-    operator bool() {
+    operator bool() const {
       return (bufs != 0);
     }
     /// Contructor
@@ -87,6 +93,11 @@ namespace Arc {
     /// destroyed till DataBuffer itself.
     bool set(CheckSum *cksum = NULL, unsigned int size = 65536,
              int blocks = 3);
+    /// Add a checksum object which will compute checksum of buffer.
+    /// \param cksum object which will compute checksum. Should not be
+    /// destroyed till DataBuffer itself.
+    /// \return integer position in the list of checksum objects.
+    int add(CheckSum *cksum);
     /// Direct access to buffer by number.
     char* operator[](int n);
     /// Request buffer for READING INTO it.
@@ -169,10 +180,16 @@ namespace Arc {
     bool wait_any();
     /// Wait till there are no more used buffers left in object.
     bool wait_used();
-    /// Returns true if checksum was successfully computed.
-    bool checksum_valid();
-    /// Returns CheckSum object specified in constructor.
-    const CheckSum* checksum_object();
+    /// Returns true if checksum was successfully computed, returns
+    /// false if index is not in list.
+    /// \param index of the checksum in question.
+    bool checksum_valid() const;
+    bool checksum_valid(int index) const;
+    /// Returns CheckSum object specified in constructor, returns
+    /// NULL if index is not in list.
+    /// \param index of the checksum in question.
+    const CheckSum* checksum_object() const;
+    const CheckSum* checksum_object(int index) const;
     /// Wait till end of transfer happens on 'read' side.
     bool wait_eof_read();
     /// Wait till end of transfer or error happens on 'read' side.
@@ -189,7 +206,7 @@ namespace Arc {
     }
     /// Returns size of buffer in object. If not initialized then this
     /// number represents size of default buffer.
-    unsigned int buffer_size();
+    unsigned int buffer_size() const;
   };
 
 } // namespace Arc
