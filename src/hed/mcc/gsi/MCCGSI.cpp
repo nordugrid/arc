@@ -421,6 +421,7 @@ namespace Arc {
     gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
     gss_buffer_desc recv_tok = GSS_C_EMPTY_BUFFER;
 
+    OM_uint32 req_flags;
     OM_uint32 ret_flags;
 
     std::string hostname = "host@";
@@ -437,22 +438,28 @@ namespace Arc {
       return MCC_Status();
     }
 
+    if((gss_cred_id_t)cred == GSS_C_NO_CREDENTIAL) req_flags |= GSS_C_ANON_FLAG;
+    req_flags |= GSS_C_CONF_FLAG;
+    req_flags |= GSS_C_MUTUAL_FLAG;
+    req_flags |= GSS_C_INTEG_FLAG;
+    req_flags |= GSS_C_REPLAY_FLAG;
+    //req_flags |= GSS_C_DELEG_FLAG;
+
     do {
       majstat = gss_init_sec_context(&minstat,
-                                     cred,
-                                     &ctx,
-                                     target_name,
-                                     GSS_C_NO_OID,
-                                     GSS_C_CONF_FLAG | GSS_C_MUTUAL_FLAG |
-                                     GSS_C_INTEG_FLAG, // | GSS_C_DELEG_FLAG,
-                                     0,
-                                     NULL,
-                                     &recv_tok,
-                                     NULL,
-                                     &send_tok,
-                                     &ret_flags,
-                                     NULL);
-      if (GSS_ERROR(majstat)) {
+				     cred,
+				     &ctx,
+				     target_name,
+				     GSS_C_NO_OID,
+                                     req_flags,
+				     0,
+				     GSS_C_NO_CHANNEL_BINDINGS,
+				     &recv_tok,
+				     NULL,
+				     &send_tok,
+				     &ret_flags,
+				     NULL);
+      if(GSS_ERROR(majstat)) {
         logger.msg(ERROR, "GSS init security context failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
         return MCC_Status();
       }

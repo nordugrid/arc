@@ -47,19 +47,22 @@ namespace Arc {
       credbuf += keybuf;
     }
 
-    OM_uint32 majstat, minstat;
-    gss_buffer_desc gbuf;
+    if(!credbuf.empty()) { 
+      //Convert to GSS credental only if find credential content
+      OM_uint32 majstat, minstat;
+      gss_buffer_desc gbuf;
 
-    gbuf.value = (void*)credbuf.c_str();
-    gbuf.length = credbuf.length();
+      gbuf.value = (void*)credbuf.c_str();
+      gbuf.length = credbuf.length();
 
-    majstat = gss_import_cred(&minstat, &credential, NULL, 0,
+      majstat = gss_import_cred(&minstat, &credential, NULL, 0,
 			      &gbuf, GSS_C_INDEFINITE, NULL);
 
-    if (GSS_ERROR(majstat)) {
-      logger.msg(ERROR, "Failed to convert GSI credential to "
-		 "GSS credential (major: %d, minor: %d)%s", majstat, minstat, ErrorStr(majstat, minstat));
-      return;
+      if (GSS_ERROR(majstat)) {
+        logger.msg(ERROR, "Failed to convert GSI credential to "
+                    "GSS credential (major: %d, minor: %d)%s", majstat, minstat, ErrorStr(majstat, minstat));
+        return;
+      }
     }
   }
 
