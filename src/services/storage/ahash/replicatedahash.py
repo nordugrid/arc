@@ -485,16 +485,6 @@ class ReplicationManager:
                         self.locker.acquire_write()
                         self.hostMap[id]['status'] = 'online'
                         self.locker.release_write()
-#                elif str(resp[0]).startswith("soap-env"):
-#                    # time since send less than 60 sec means that message didn't just time out
-#                    if id == self.masterID and time.time()-time_since_send < 55:
-#                        log.msg(arc.INFO, "Master is offline, starting re-election")
-#                        # in case more threads misses the master
-#                        if self.masterID != db.DB_EID_INVALID:
-#                            self.beginRole(db.DB_EID_INVALID)
-#                            self.masterID = db.DB_EID_INVALID
-#                            self.startElection()
-#                    raise RuntimeError, "No connection to server"
             except:
                 # assume url is disconnected
                 log.msg(arc.ERROR, "failed to send to %d of %s"%(id,str(eids)))
@@ -503,9 +493,9 @@ class ReplicationManager:
                 
                 if id == self.masterID:
                     # timeout if I've heard nothing from the master
-                    # and this is not just a simple message timeout
-                    timeout = time.time() - self.master_timestamp > self.heartbeat_period*2#\
-                                #and time.time()-time_since_send < 55
+                    # or master doesn't reply
+                    timeout = time.time() - self.master_timestamp > self.heartbeat_period*2\
+                            or time.time()-time_since_send < 55
                     if timeout:
                         log.msg(arc.INFO, "Master is offline, starting re-election")
                         # in case more threads misses the master
@@ -513,8 +503,8 @@ class ReplicationManager:
                             self.locker.release_write()
                             self.beginRole(db.DB_EID_INVALID)
                             self.masterID = db.DB_EID_INVALID
-                            self.startElection()
                             self.locker.acquire_write()
+                            self.startElection()
                         # only set master to offline if it has really timed out
                         self.hostMap[id]['status'] = "offline"
                         if msgID == NEWSITE_MESSAGE:
@@ -558,7 +548,7 @@ class ReplicationManager:
     
     def sendHeartbeatMsg(self):
         """
-        if new site is discovered sendNewSiteMsg will send 
+        if new site is discovered sendHeartbeatMsg will send 
         the hostMap to the new site
         """
         log.msg(arc.DEBUG, "entering sendHeartbeatMsg")
