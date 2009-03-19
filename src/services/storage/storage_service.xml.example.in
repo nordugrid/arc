@@ -44,7 +44,7 @@
             <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
             <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
             <StoreCfg><DataDir>/var/spool/arc/ahash_data</DataDir></StoreCfg>
-            <ClientSSLConfig FromFile="clientsslconfig.xml" />
+            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
         </Service>
         <Service name="pythonservice" id="librarian">
             <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
@@ -56,7 +56,7 @@
         <Service name="pythonservice" id="bartender">
             <ClassName>storage.bartender.bartender.BartenderService</ClassName>
             <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
-            <ClientSSLConfig FromFile="clientsslconfig.xml" />
+            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
         </Service>
         <Service name="pythonservice" id="shepherd">
             <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
@@ -74,7 +74,7 @@
             </BackendCfg>
             <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
             <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
-            <ClientSSLConfig FromFile="clientsslconfig.xml" />
+            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
         </Service>
     </Chain>
     <Chain>
