@@ -150,6 +150,7 @@ class TransDBStore(BaseStore):
                         
                         log.msg()
                         log.msg(arc.ERROR, "unexpected error closing after failed open")
+                        sys.exit(1)
                         raise db.DBError, strerror2
                     dbp = None
                     time.sleep(self.sleeptime)
@@ -178,41 +179,41 @@ class TransDBStore(BaseStore):
                 
         return dbp
 
-    def lock(self, blocking = True):
-        """ Starts transaction.
-
-        lock(blocking = True)
-
-        'blocking': if blocking is True, then this only returns when the lock is acquired.
-        If it is False, then it returns immediately with False if the lock is not available,
-        or with True if it could be acquired.
-        """
-
-        try:
-            txn_flag = (blocking and 0 or db.DB_TXN_NOWAIT)
-            self.txn = self.dbenv.txn_begin(flags = txn_flag)
-            return True
-        except db.DBLockDeadlockError:
-            log.msg(arc.DEBUG, "Couldn't acquire transaction lock")
-            return False
-        except:
-            log.msg()
-            return False
-    
-    def unlock(self):
-        """ Ends transaction.
-
-        unlock()
-        """
-        try:
-            if self.txn:
-                self.txn.commit()
-            self.txn = None
-        except:
-            log.msg(arc.ERROR, "Error on txn.commit()")
-            log.msg()
-            self.txn = None
-        return
+#    def lock(self, blocking = True):
+#        """ Starts transaction.
+#
+#        lock(blocking = True)
+#
+#        'blocking': if blocking is True, then this only returns when the lock is acquired.
+#        If it is False, then it returns immediately with False if the lock is not available,
+#        or with True if it could be acquired.
+#        """
+#
+#        try:
+#            txn_flag = (blocking and 0 or db.DB_TXN_NOWAIT)
+#            self.txn = self.dbenv.txn_begin(flags = txn_flag)
+#            return True
+#        except db.DBLockDeadlockError:
+#            log.msg(arc.DEBUG, "Couldn't acquire transaction lock")
+#            return False
+#        except:
+#            log.msg()
+#            return False
+#    
+#    def unlock(self):
+#        """ Ends transaction.
+#
+#        unlock()
+#        """
+#        try:
+#            if self.txn:
+#                self.txn.commit()
+#            self.txn = None
+#        except:
+#            log.msg(arc.ERROR, "Error on txn.commit()")
+#            log.msg()
+#            self.txn = None
+#        return
  
     
     def list(self):
@@ -237,6 +238,7 @@ class TransDBStore(BaseStore):
             self.__del__()
             log.msg()
             log.msg(arc.ERROR, "Error listing db")
+            sys.exit(1)
             raise db.DBError, "Error listing db"
 
     def get(self, ID):
@@ -273,9 +275,10 @@ class TransDBStore(BaseStore):
             log.msg()
             raise db.DBError, "db deadlock"
         except db.DBError, msg:
-            self.__del__()       
+            self.__del__()
             log.msg()
             log.msg(arc.ERROR, "Error getting %s"%ID)
+            sys.exit(1)
             raise db.DBError, "Error listing db"
         
     def set(self, ID, object):
@@ -346,6 +349,7 @@ class TransDBStore(BaseStore):
                 log.msg()
                 log.msg(arc.ERROR, "Error setting %s"%ID)
                 retry = False
+                sys.exit(1)
                 #raise db.DBError, msg
 
     def restart(self):
