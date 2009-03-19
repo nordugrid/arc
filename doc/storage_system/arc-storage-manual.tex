@@ -71,61 +71,61 @@
 \end{titlepage}
 
 \tableofcontents                          %Comment if use article style
-\begin{verbatim}
-    Administrator's and user's manual
-    ---------------------------------
-
-    Administrator's manual
-    - Quick start guide
-        - Checking the code out from the subversion
-        - Compiling and installing
-        - Modifying the configuration template
-        - Running the daemon
-        - Using the CLI tool
-    - Installation:
-        - Getting the source code from subversion
-        - Compilation details
-        - Installation
-    - Configuration:
-        - HED service config
-        - Centralized A-Hash
-        - Distributed A-Hash
-        - Librarian
-        - Shepherd
-        - Hopi
-        - Bartender
-        - Configuring inter-service trust: local listing of DNs, or using an A-Hash to store them
-        - Virtual organizations: how to configure HED to trust a VO
-    - Deployment scenarios:
-        - Single node: putting every service on one single node (including a storage node with Hopi)
-        - Centralized management: using seperate multiple storage nodes with Hopi, but leaving a central A-Hash, a Librarian and a Bartender on the central node
-        - Simple distribution: split the central node to three nodes, each of them has an A-Hash, a Librarian and a Bartender, and we have separate storage nodes
-        - One service per node: we have seperate nodes for all the services, any number of A-Hash nodes, any number of Librarian nodes, Bartender nodes, storage nodes
-
-    User's manual
-    - Overview: what do you need to access a running ARC storage system
-    - Prototype command line tool
-        - Configuring the command line tool
-        - Creating the root collection
-        - Uploading files
-        - Creating collections
-        - Moving files
-        - Creating hardlinks
-        - Removing files
-        - Removing collections
-        - Close collections
-        - Modify access policies
-        - Working with mount points
-    - Grid jobs
-        - Configuring the ARC storage DMC
-        - Specifying files in job descriptions
-    - Accessing the system with FUSE
-        - Configuring the FUSE module
-        - Mounting the storage system
-        - Supported operations
-        - Limitations
-    
-\end{verbatim}
+% \begin{verbatim}
+%     Administrator's and user's manual
+%     ---------------------------------
+% 
+%     Administrator's manual
+%     - Quick start guide
+%         - Checking the code out from the subversion
+%         - Compiling and installing
+%         - Modifying the configuration template
+%         - Running the daemon
+%         - Using the CLI tool
+%     - Installation:
+%         - Getting the source code from subversion
+%         - Compilation details
+%         - Installation
+%     - Configuration:
+%         - HED service config
+%         - Centralized A-Hash
+%         - Distributed A-Hash
+%         - Librarian
+%         - Shepherd
+%         - Hopi
+%         - Bartender
+%         - Configuring inter-service trust: local listing of DNs, or using an A-Hash to store them
+%         - Virtual organizations: how to configure HED to trust a VO
+%     - Deployment scenarios:
+%         - Single node: putting every service on one single node (including a storage node with Hopi)
+%         - Centralized management: using seperate multiple storage nodes with Hopi, but leaving a central A-Hash, a Librarian and a Bartender on the central node
+%         - Simple distribution: split the central node to three nodes, each of them has an A-Hash, a Librarian and a Bartender, and we have separate storage nodes
+%         - One service per node: we have seperate nodes for all the services, any number of A-Hash nodes, any number of Librarian nodes, Bartender nodes, storage nodes
+% 
+%     User's manual
+%     - Overview: what do you need to access a running ARC storage system
+%     - Prototype command line tool
+%         - Configuring the command line tool
+%         - Creating the root collection
+%         - Uploading files
+%         - Creating collections
+%         - Moving files
+%         - Creating hardlinks
+%         - Removing files
+%         - Removing collections
+%         - Close collections
+%         - Modify access policies
+%         - Working with mount points
+%     - Grid jobs
+%         - Configuring the ARC storage DMC
+%         - Specifying files in job descriptions
+%     - Accessing the system with FUSE
+%         - Configuring the FUSE module
+%         - Mounting the storage system
+%         - Supported operations
+%         - Limitations
+%     
+% \end{verbatim}
 
 \newpage
 
@@ -138,7 +138,7 @@
 \section{Quick start guide} % (fold)
 \label{sec:quick_start_guide}
 
-In this section we will follow the installation of the ARC storage system on a freshly installed debian linux machine. 
+In this section we will follow the installation of the ARC storage system on a freshly installed debian lenny machine. 
 
 Get the latest ARC code from the subversion (\verb!http://svn.nordugrid.org/!):
 
@@ -167,8 +167,9 @@ Run the \verb!autogen! and \verb!configure! scripts (you may want to specify tar
 \begin{verbatim}
 $ cd arc1
 $ ./autogen.sh
-$ ./configure --disable-java --disable-a-rex-service --disable-isi-service --disable-charon-service --disable-compiler-service --disable-paul-service --disable-sched-service
---prefix
+$ ./configure --disable-java --disable-a-rex-service --disable-isi-service \
+    --disable-charon-service --disable-compiler-service \
+    --disable-paul-service --disable-sched-service
 
 Unit testing:       yes
 Java binding:       no
@@ -230,47 +231,213 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 If there is no error on importing any of the packages, we are good to go.
 
+It is important to syncronize the time of the machine - the storage system will make decisions based on differences between timestamps, when we deploy it on multiple machines, different times would cause problems.
+
+We need host (and user) certificates to run the system. For testing purposes we can use the NorduGrid InstantCA solution which is capable of creating a demo-CA with short lifetime. The URL of the InstantCA service is \verb!https://vls.grid.upjs.sk/CA/instantCA!, let's create 3 user and 3 host certificates. (e.g. we can set the Organization Name to `knowarc', the Common name of the CA to `storage-test', the name of the users could be `penny', `billy' and `hammer', the name of the hosts could be `upsilon', `omicron' and `theta', and we need a password for the CA and passwords for the user certificates, both should be at least 4 characters long).
+
+Let's download the generated certificates and untar the archive file to see its contents:
+
+\begin{verbatim}
+$ ls -lR
+.:
+total 28
+drwxr-xr-x 2 zsombor zsombor 4096 2009-03-19 12:11 CA
+-rw-r--r-- 1 zsombor zsombor  963 2009-03-19 12:11 ca.key
+-rw-r--r-- 1 zsombor zsombor  786 2009-03-19 12:11 ca.pem
+drwxr-xr-x 2 zsombor zsombor 4096 2009-03-19 12:11 hostCerts
+-rw-r--r-- 1 zsombor zsombor 1044 2009-03-19 12:11 readme
+-rw-r--r-- 1 zsombor zsombor    3 2009-03-19 12:11 serial.srl
+drwxr-xr-x 2 zsombor zsombor 4096 2009-03-19 12:11 userCerts
+
+./CA:
+total 8
+-rw-r--r-- 1 zsombor zsombor 786 2009-03-19 12:11 66fe707c.0
+-rw-r--r-- 1 zsombor zsombor 139 2009-03-19 12:11 66fe707c.signing_policy
+
+./hostCerts:
+total 24
+-rw-r--r-- 1 zsombor zsombor 786 2009-03-19 12:11 hostcert-omicron.pem
+-rw-r--r-- 1 zsombor zsombor 782 2009-03-19 12:11 hostcert-theta.pem
+-rw-r--r-- 1 zsombor zsombor 786 2009-03-19 12:11 hostcert-upsilon.pem
+-rw-r--r-- 1 zsombor zsombor 887 2009-03-19 12:11 hostkey-omicron.pem
+-rw-r--r-- 1 zsombor zsombor 891 2009-03-19 12:11 hostkey-theta.pem
+-rw-r--r-- 1 zsombor zsombor 887 2009-03-19 12:11 hostkey-upsilon.pem
+
+./userCerts:
+total 24
+-rw-r--r-- 1 zsombor zsombor 778 2009-03-19 12:11 usercert-billy.pem
+-rw-r--r-- 1 zsombor zsombor 778 2009-03-19 12:11 usercert-hammer.pem
+-rw-r--r-- 1 zsombor zsombor 778 2009-03-19 12:11 usercert-penny.pem
+-rw-r--r-- 1 zsombor zsombor 963 2009-03-19 12:11 userkey-billy.pem
+-rw-r--r-- 1 zsombor zsombor 963 2009-03-19 12:11 userkey-hammer.pem
+-rw-r--r-- 1 zsombor zsombor 951 2009-03-19 12:11 userkey-penny.pem
+\end{verbatim}
+
+We have certificate and key files for all the hosts and users, and we have the CA file with the proper hashed name.
+There is no rule where to put these certificate, but now we will put them in \verb!/etc/grid-security!. Let's create this directory, and a subdirectory called \verb!certificates!. We will use the `theta' host certificates for this machine, let's copy it there:
+
+\begin{verbatim}
+$ sudo cp hostCerts/hostcert-theta.pem /etc/grid-security/hostcert.pem
+$ sudo cp hostCerts/hostkey-theta.pem /etc/grid-security/hostkey.pem
+$ sudo cp CA/* /etc/grid-security/certificates/
+$ ls -lR /etc/grid-security/
+/etc/grid-security/:
+total 12
+drwxr-xr-x 2 root root 4096 2009-03-19 12:36 certificates
+-rw-r--r-- 1 root root  782 2009-03-19 12:35 hostcert.pem
+-rw-r--r-- 1 root root  891 2009-03-19 12:36 hostkey.pem
+
+/etc/grid-security/certificates:
+total 8
+-rw-r--r-- 1 root root 786 2009-03-19 12:36 66fe707c.0
+-rw-r--r-- 1 root root 139 2009-03-19 12:36 66fe707c.signing_policy
+\end{verbatim}
+
+And I choose a user certificate and put it into the \verb!~/.arc! directory, conveniently removing the password from the key file:
+
+\begin{verbatim}
+$ mkdir ~/.arc
+$ cp userCerts/usercert-billy.pem ~/.arc/usercert.pem
+$ openssl rsa -in userCerts/userkey-billy.pem -out ~/.arc/userkey.pem
+$ chmod 600 ~/.arc/userkey.pem
+$ ls -l ~/.arc
+total 8
+-rw-r--r-- 1 zsombor zsombor 778 2009-03-19 13:06 usercert.pem
+-rw------- 1 zsombor zsombor 891 2009-03-19 13:09 userkey.pem
+\end{verbatim}
+
+The storage system runs withen the \verb!arched! hosting environment daemon, which needs a configuration file which describes which services we want to run, and on which ports do we want to listen, etc.
+Let's copy the template configuration files to the \verb!/etc/arc! directory:
+
+\begin{verbatim}
+$ sudo mkdir /etc/arc
+$ sudo cp arc1/src/services/storage/storage_service.xml.example /etc/arc/storage_service.xml
+$ sudo cp arc1/src/services/storage/clientsslconfig.xml /etc/arc
+$ ls -l /etc/arc
+total 12
+-rw-r--r-- 1 root root  259 2009-03-19 13:26 clientsslconfig.xml
+-rw-r--r-- 1 root root 4606 2009-03-19 13:25 storage_service.xml
+\end{verbatim}
+
+The template configuration file specifies several directories where the services can store their data. We will create these directories at \verb!/var/spool/arc!, but they can be created anywhere else.
+
+\begin{verbatim}
+$ sudo mkdir /var/spool/arc/ahash_data
+$ sudo mkdir /var/spool/arc/shepherd_data
+$ sudo mkdir /var/spool/arc/shepherd_store
+$ sudo mkdir /var/spool/arc/shepherd_transfer
+$ ls -l /var/spool/arc
+total 16
+drwxr-xr-x 2 root root 4096 2009-03-19 13:42 ahash_data
+drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_data
+drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_store
+drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_transfer
+\end{verbatim}
+
+In this deployment we plan to run the daemon as root, so it is OK that the root owns these directories. 
+If we create these directories somewhere else, we would need to modify the paths in the \verb!storage_service.xml! file.
+
+If we put the host certificates and the CA certificate somewhere else than \verb!/etc/grid-security! then we would need to modify the \verb!storage_service.xml! (look for \verb!KeyPath!, \verb!CertificatePath! and \verb!CACertificatesDir!), and we would need to modify \verb!/etc/arc/clientsslconfig.xml! as well. This file contains the credentials which is used by the services when they connect to an other service. If we put \verb!clientsslconfig.xml! somewhere else than \verb!/etc/arc! then we would need to modify all the \verb!ClientSSLConfig! tags in the \verb!storage_service.xml!.
+
+Let's run the \verb!arched! daemon with this config (specified by the \verb!-c! option) first in the foreground (using the \verb!-f! option) to see immediately if everything is right:
+
+\begin{verbatim}
+$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f
+\end{verbatim}
+
+The template configuration file specifies a loglevel which only prints error messages, so nothing should be written on the screen now.
+The \verb!arched! daemon should now listen on the ports: 60001 for our data transfer service called Hopi, and 60000 for all the other services:
+
+\begin{verbatim}
+$ netstat -at | grep LISTEN
+tcp        0      0 *:60000                 *:*                     LISTEN     
+tcp        0      0 *:60001                 *:*                     LISTEN     
+\end{verbatim}
+
+Now it is time to set up or prototype client tool to access the system. It is currently called \verb!arc_storage_cli! and it is by default installed to \verb!/usr/local/bin!. We have to tell this CLI tool where it can find our user credentials, and a URL of a Bartender service. The Bartender service is the front-end of the storage system. We can specify these things by environment variables, or by a configuration file called \verb!~/.arc/client.xml!. Let's create this \verb!client.xml! file:
+
+\begin{verbatim}
+$ cat ~/.arc/client.xml 
+<ArcConfig>
+  <KeyPath>~/.arc/userkey.pem</KeyPath>
+  <CertificatePath>~/.arc/usercert.pem</CertificatePath>
+  <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+  <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
+</ArcConfig>
+\end{verbatim}
+
+Now we can use the \verb!arc_storage_cli! to access our local deployment. Let's do a `list' on the root collection (`/'):
+
+\begin{verbatim}
+$ arc_storage_cli
+Usage:
+  arc_storage_cli <method> [<arguments>]
+Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy], unlink, credentialsDelegation, removeCredentials
+Without arguments, each method prints its own help.
+
+$ arc_storage_cli list
+- The URL of the Bartender: https://localhost:60000/Bartender
+- The key file: ~/.arc/userkey.pem
+- The cert file: ~/.arc/usercert.pem
+- The CA dir: /etc/grid-security/certificates
+Usage: list <LN> [<LN> ...]
+
+$ arc_storage_cli list /
+- The URL of the Bartender: https://localhost:60000/Bartender
+- The key file: ~/.arc/userkey.pem
+- The cert file: ~/.arc/usercert.pem
+- The CA dir: /etc/grid-security/certificates
+- Calling the Bartender's list method...
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component tcp.client(tcp) could not be created
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component tls.client(tls) could not be created
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component http.client(http) could not be created
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component soap.client(soap) could not be created
+ERROR: Wrong status from server.
+Maybe wrong URL: 'https://localhost:60000/Bartender'
+    
+\end{verbatim}
+
 % section quick_start_guide (end)
 
-\section{Installation} % (fold)
-\label{sec:installation}
-
-% section installation (end)
-
-\section{Configuration} % (fold)
-\label{sec:configuration}
-
-% section configuration (end)
-
-\section{Deployment scenarios} % (fold)
-\label{sec:deployment_scenarios}
-
-% section deployment_scenarios (end)
+% \section{Installation} % (fold)
+% \label{sec:installation}
+% 
+% % section installation (end)
+% 
+% \section{Configuration} % (fold)
+% \label{sec:configuration}
+% 
+% % section configuration (end)
+% 
+% \section{Deployment scenarios} % (fold)
+% \label{sec:deployment_scenarios}
+% 
+% % section deployment_scenarios (end)
 
 % chapter administrator_s_manual (end)
 
 \chapter{User's manual} % (fold)
 \label{cha:user_s_manual}
 
-\section{Overview} % (fold)
-\label{sec:overview}
-
-% section overview (end)
-
-\section{Prototype command line tool} % (fold)
-\label{sec:prototype_command_line_tool}
-
-% section prototype_command_line_tool (end)
-
-\section{Grid jobs} % (fold)
-\label{sec:grid_jobs}
-
-% section grid_jobs (end)
-
-\section{Accessing the system with FUSE} % (fold)
-\label{sec:accessing_the_system_with_fuse}
-
-% section accessing_the_system_with_fuse (end)
+% \section{Overview} % (fold)
+% \label{sec:overview}
+% 
+% % section overview (end)
+% 
+% \section{Prototype command line tool} % (fold)
+% \label{sec:prototype_command_line_tool}
+% 
+% % section prototype_command_line_tool (end)
+% 
+% \section{Grid jobs} % (fold)
+% \label{sec:grid_jobs}
+% 
+% % section grid_jobs (end)
+% 
+% \section{Accessing the system with FUSE} % (fold)
+% \label{sec:accessing_the_system_with_fuse}
+% 
+% % section accessing_the_system_with_fuse (end)
 
 % chapter user_s_manual (end)
 
