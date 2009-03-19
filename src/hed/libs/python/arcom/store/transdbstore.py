@@ -275,10 +275,11 @@ class TransDBStore(BaseStore):
             log.msg()
             raise db.DBError, "db deadlock"
         except db.DBRepHandleDeadError:
-            # todo: more proper error handling for dead rep handle
             log.msg(arc.INFO, "Got rep_dead_handle error")            
             log.msg()
-            raise db.DBError, "db rep dead handle"
+            self.__err()
+            self.dbp = None
+            raise
         except db.DBError, msg:
             self.__del__()
             log.msg()
@@ -334,6 +335,12 @@ class TransDBStore(BaseStore):
                 else:
                     log.msg(arc.DEBUG, "Deadlock exception, giving up...")
                     retry = False
+            except db.DBRepHandleDeadError:
+                log.msg(arc.INFO, "Got rep_dead_handle error")            
+                log.msg()
+                self.__err()
+                self.dbp = None
+                raise
             except db.DBAccessError:
                 log.msg(arc.WARNING,"Read-only db. I'm not a master.")
                 if self.txn:
