@@ -223,7 +223,7 @@ class ReplicationStore(TransDBStore):
         except:
             log.msg(arc.WARNING, "Bad cache size or no cache size configured, using 10MB")
             self.cachesize = 10*(1024**2)
-        self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_ALL)
+        self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_QUORUM)
         self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 500000)
         self.dbenv.rep_set_priority(self.priority)
         self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
@@ -323,9 +323,11 @@ class ReplicationManager:
         self.pool = None
         self.election_thread = threading.Thread(target=self.electionThread, args=[])
         self.comm_ready = False
+        self.heartbeat_period = 10
         threading.Thread(target=self.heartbeatThread, 
-                         args=[10]).start()
+                         args=[self.heartbeat_period]).start()
         self.check_heartbeat = False
+        self.master_timestamp = 0
         
     def isMaster(self):
         self.locker.acquire_read()
@@ -426,6 +428,7 @@ class ReplicationManager:
         try:
             # check if role has changed, to avoid too much write blocking
             if self.getRole() != role:
+                log.msg(arc.INFO, "new role")
                 self.setRole(role)
             self.dbenv.rep_start(role==db.DB_REP_MASTER and 
                                  db.DB_REP_MASTER or db.DB_REP_CLIENT)
@@ -482,33 +485,45 @@ class ReplicationManager:
                         self.locker.acquire_write()
                         self.hostMap[id]['status'] = 'online'
                         self.locker.release_write()
-                elif str(resp[0]).startswith("soap-env"):
-                    # time since send less than 60 sec means that message didn't just time out
-                    if id == self.masterID and time.time()-time_since_send < 55:
-                        log.msg(arc.INFO, "Master is offline, starting re-election")
-                        # in case more threads misses the master
-                        if self.masterID != db.DB_EID_INVALID:
-                            self.beginRole(db.DB_EID_INVALID)
-                            self.masterID = db.DB_EID_INVALID
-                            self.startElection()
-                    raise RuntimeError, "No connection to server"
+#                elif str(resp[0]).startswith("soap-env"):
+#                    # time since send less than 60 sec means that message didn't just time out
+#                    if id == self.masterID and time.time()-time_since_send < 55:
+#                        log.msg(arc.INFO, "Master is offline, starting re-election")
+#                        # in case more threads misses the master
+#                        if self.masterID != db.DB_EID_INVALID:
+#                            self.beginRole(db.DB_EID_INVALID)
+#                            self.masterID = db.DB_EID_INVALID
+#                            self.startElection()
+#                    raise RuntimeError, "No connection to server"
             except:
                 # assume url is disconnected
                 log.msg(arc.ERROR, "failed to send to %d of %s"%(id,str(eids)))
                 log.msg()
                 self.locker.acquire_write()
-                # cannot have less than 2 online sites
-                if len([id2 for id2,rep in self.hostMap.items() if rep['status']=="online"]) > 2:
-                    self.hostMap[id]['status'] = "offline"
-                    if msgID == NEWSITE_MESSAGE:
-                        record['status'] = "offline"
-                    if id == self.masterID:
+                
+                if id == self.masterID:
+                    # timeout if I've heard nothing from the master
+                    # and this is not just a simple message timeout
+                    timeout = time.time() - self.master_timestamp > self.heartbeat_period*2#\
+                                #and time.time()-time_since_send < 55
+                    if timeout:
                         log.msg(arc.INFO, "Master is offline, starting re-election")
                         # in case more threads misses the master
                         if self.masterID != db.DB_EID_INVALID:
+                            self.locker.release_write()
                             self.beginRole(db.DB_EID_INVALID)
                             self.masterID = db.DB_EID_INVALID
                             self.startElection()
+                            self.locker.acquire_write()
+                        # only set master to offline if it has really timed out
+                        self.hostMap[id]['status'] = "offline"
+                        if msgID == NEWSITE_MESSAGE:
+                            record['status'] = "offline"
+                # cannot have less than 2 online sites
+                elif len([id2 for id2,rep in self.hostMap.items() if rep['status']=="online"]) > 2:
+                    self.hostMap[id]['status'] = "offline"
+                    if msgID == NEWSITE_MESSAGE:
+                        record['status'] = "offline"
                 self.locker.release_write()
         return retval
     
@@ -588,6 +603,7 @@ class ReplicationManager:
             # sender is master, find local id for sender and set as masterID
             log.msg(arc.DEBUG, "received master id")
             self.masterID = [id for id,rep in self.hostMap.items() if rep['url']==sender['url']][0]
+            self.master_timestamp = time.time()
             return "processed"
         if msgID == HEARTBEAT_MESSAGE:
             log.msg(arc.DEBUG, "received HEARTBEAT_MESSAGE")
@@ -620,7 +636,7 @@ class ReplicationManager:
         except:
             return "notfound"
         if eid == self.masterID:
-            self.time_since_master_message = time.time()
+            self.master_timestamp = time.time()
         try:
             log.msg(arc.DEBUG, "processing message from %d"%eid)
             res, retlsn = self.dbenv.rep_process_message(control, record, eid)
