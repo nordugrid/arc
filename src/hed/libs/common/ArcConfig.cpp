@@ -8,15 +8,11 @@
 #include <iostream>
 #include <string>
 
+#include <glibmm/miscutils.h>
+
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/User.h>
-
-#ifdef WIN32
-#define FILE_SEPERATOR "\\"
-#else
-#define FILE_SEPERATOR "/"
-#endif
 
 namespace Arc {
 
@@ -92,7 +88,7 @@ namespace Arc {
       }
     }
     else
-      AddPluginsPath(ArcLocation::Get() + FILE_SEPERATOR + PKGLIBSUBDIR);
+      AddPluginsPath(ArcLocation::Get() + G_DIR_SEPARATOR_S + PKGLIBSUBDIR);
   }
 
   void BaseConfig::AddPluginsPath(const std::string& path) {
@@ -146,8 +142,13 @@ namespace Arc {
       const char *fname_str = getenv("ARC_CLIENT_CONFIG");
       if (fname_str)
         fname = fname_str;
-      else
-        fname = Arc::User().Home() + FILE_SEPERATOR + ".arc" + FILE_SEPERATOR + "client.xml";
+      else{
+        std::vector<std::string> clientPath(3);
+        clientPath[0] = Arc::User().Home();
+        clientPath[1] = ".arc";
+        clientPath[2] = "client.xml";
+        fname = Glib::build_filename(clientPath);
+        }
     }
     if (fname.empty())
       return;
