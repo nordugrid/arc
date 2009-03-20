@@ -1,6 +1,5 @@
-TESTS = InformationInterfaceTest InfoFilterTest
+TESTS = InformationInterfaceTest InfoFilterTest RegisteredServiceTest
 check_PROGRAMS = $(TESTS)
-noinst_PROGRAMS = RegisteredServiceTest
 
 InformationInterfaceTest_SOURCES = $(top_srcdir)/src/Test.cpp InformationInterfaceTest.cpp
 InformationInterfaceTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
