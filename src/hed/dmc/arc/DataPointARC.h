@@ -25,7 +25,7 @@ namespace Arc {
     bool writing;
     UserConfig usercfg;
     URL bartender_url;
-    MD5Sum md5sum;
+    MD5Sum *md5sum;
   public:
     DataPointARC(const URL& url);
     virtual ~DataPointARC();
