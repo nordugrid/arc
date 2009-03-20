@@ -113,7 +113,7 @@ class Bartender:
         #print cat_rem_requests
         #print cat_mod_requests
         success = self.librarian.remove(cat_rem_requests)
-            modify_success = self.librarian.modifyMetadata(cat_mod_requests)
+        modify_success = self.librarian.modifyMetadata(cat_mod_requests)
         #print success
         #print modify_success 
         #print response
