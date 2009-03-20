@@ -132,51 +132,51 @@ The different replicas of a file could be in different states, e.g. the replica 
 \section{The A-Hash} % (fold)
 \label{sec:the_a_hash}
 
-The A-Hash is a replicated metadata store, which is capable of consistently storing `objects' where an object contains property-value pairs organized in sections. All metadata about files and collections are stored in the A-Hash, and some other information (e.g. about A-Hash replication, about Shepherd services, etc.) is stored in it as well. The A-Hash itself does not interpret the data, it basically just stores tuples of strings.
+The A-Hash is the replicated\footnote{Depends on system configuration. It is possible to configure the storage system with only one central A-Hash too} metadata store of the storage system. It consistently stores `objects' which contain property-value pairs organized in sections. All metadata about files and collections in the storage system are stored in the A-Hash. Additionall system configutation information (e.g. about A-Hash replication, about Shepherd services, etc.) is stored in it as well. The A-Hash itself does not interpret any data.
 
 % section the_a_hash (end)
 
 \section{The Librarians} % (fold)
 \label{sec:the_librarians}
 
-The Librarian is capable of managing the hierarchy and metadata of files and collections, and health information of the Shepherd services. It can traverse Logical Names and return the corresponding metadata. It can receive heartbeat messages from Shepherd services, and it automatically modify the states of files if needed. The Librarian itself is a stateless service, it uses the A-Hash to actually store and retrieve the metadata, that’s why there could be any number of independent Librarian services (all using the same A-Hashes) which provides high-availability and load-balancing.
+The Librarian manages the storage system hierarchy of files and collections including their metadata. It can traverse Logical Names and return the corresponding metadata. The Shephards send their heartbeat messages to the Librarians which if needed respond by modifying the states of files stored on a certain storage node. The Librarian itself is a stateless service, it uses the A-Hash to store and retrieve the metadata and thus there can be any number of independent Librarian services (all using the same A-Hashes). This ensures high-availability and load-balancing of the storage system.
 
 % section the_librarians (end)
 
 \section{The Bartenders} % (fold)
 \label{sec:the_bartenders}
 
-The Bartender service provides a high-level interface for the storage system to the clients. Every interaction between a client and the ARC storage system begins with a request to a Bartender. You can create and remove collections, create, get and remove files, move files and collections within the namespace using Logical Names. The Bartender authorizes users and force access policies of files and collections. It communicates with the Librarian and Shepherd services to accomplish the client’s requests. The actual file data does not go through the Bartender; file transfers are directly performed between the storage nodes and the clients. There could be any number of independent Bartender services in the system which provides high-availability and load-balancing. The Bartender also provides a way to access files on third-party storage solutions through its interface by mounting the namespace of the third-party storage into the namespace of the ARC storage (this is accomplished by so called `gateway' modules). 
+The Bartender service provides the high-level interface of the storage system to the clients. Every interaction between a client and the ARC storage system starts by sending a request to a Bartender. Using the Bartender it is possible to create and remove collections, create, get and remove files, move files and collections within the namespace using Logical Names, etc. The Bartender authorizes users and apply access policies of files and collections. It communicates with the Librarian and Shepherd services to accomplish the client’s requests. The file data itself does however not go through the Bartender; file transfers are directly performed between the storage nodes and the clients. There could be any number of independent Bartender services in the system which ensure high-availability and load-balancing. The Bartender also provides a way to access files on third-party storage solutions through its interface by mounting the namespace of the third-party storage into the namespace of the ARC storage (this is accomplished by so called `gateway' modules). 
 
 % section the_bartenders (end)
 
 \section{The Shepherds} % (fold)
 \label{sec:the_shepherds}
 
-The files in the ARC storage system are usually replicated on different storage nodes. For each storage node there is a Shepherd service which manages the storage element service on the node, reports its health state to a Librarian and provides the interface for initiating file transfers. For each kind of storage element service (e.g. a HTTP server, an FTP server, a storage solution with a GridFTP interface, etc.) it is needed to have a Shepherd backend which is capable of managing the given storage element service. The Shepherd service periodically checks the health of the replicas based on their checksums, and if a replica is deleted or corrupted, the Shepherd tries to recover it by downloading a valid copy from an other storage node. The Shepherds also check if a file has fewer replicas in the system than needed, and they initiate replication if needed.
+The Shepherd service manages the storage element service on the storage node. It reports its health state to a Librarian and provides the interface for initiating file transfers. For each kind of storage element service (e.g. a HTTP server, an FTP server, a storage solution with a GridFTP interface, etc.) a Shepherd backend is needed which is capable of managing the given storage element service. The Shepherd service periodically checks the health of the replicas using their checksums, and if a replica is deleted or corrupted, the Shepherd tries to recover it by downloading a valid copy from another storage node. The Shepherd also periodicallys check if a file has the correct number of replicas in the system. If too few or too many replicas are found, new replicas will be created or redundant replicas removed.
 
 % section the_shepherds (end)
 
 \section{Security} % (fold)
 \label{sec:security}
 
-The ARC storage system consists of several services. Most of the services (A-Hash, Librarian, Shepherd) are `internal' services in a way that the end-user of the storage system never communicates with them directly. But these internal services are communicating with each other, so they have to know who to trust. We call this aspect of the security architecture of the ARC storage `inter-service authorization'.
+The ARC storage system consists of several services (both different kinds of services and multiple instances of the same kind). The A-Hash, Librarian and Shepherd services are `internal' services in the sense that the end-user of the storage system never communicates with them directly. But these internal services are communicating with each other, thus they have to know which other services to trust. We call this aspect of the security architecture of the ARC storage `inter-service authorization'.
 
-The end users always connect to one of the Bartender services, which will decide if the user has permissions to do something or not. This is the `high-level authorization' part of the security architecture.
+The end users always connect to one of the Bartender services, which will decide which permission the user has. This is the `high-level authorization' part of the security architecture.
 
-For transferring the actual file data, the users have to connect to storage element services which are sitting on storage nodes. These services also have their own authentication and authorization methods. Managing these aspects is the `transfer-level authorization' part of the security architecture of the ARC storage.
+For transferring the actual file data, the users have to connect to storage element services running on storage nodes. These services also have their own authentication and authorization methods. Managing these aspects is the `transfer-level authorization' part of the security architecture of the ARC storage.
 
 \subsection{Inter-service authorization} % (fold)
 \label{sub:inter_service_authorization}
 
-In a deployment of the ARC storage system, we could have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communicate with the Librarians, the Librarians talk with the A-Hashes. If any of these services get compromised or a new rouge service gets inserted in the system, we loose security completely. That's why it is vital for each service to authorize the services before sending or accepting requests. The services communicates via HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and they can examine the other service's certificates. Because of these X.509 certificates each service has Distinguish Name (DN). We can use these DNs to exactly specify which services we trust. We can configure a list of trusted DNs into each service, or we can store this list on a remote location. The services will only accept connections if the DN of the other end is listed in this list of trusted DNs. However the Bartender services will accept any incoming connection, which are from the users, because the users are authenticated differently.
+In a deployment of the ARC storage system it is possible to have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communicate with the Librarians, the Librarians talk with the A-Hashes. If any of these services gets compromised or a new rouge service is inserted in the system, security is lost. That's why it is vital for each service to authorize other services before sending or accepting requests. The services communicate via the HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and that they can examine eachother's certificates. Because of these X.509 certificates each service has Distinguish Name (DN), which can be used for identifying trusted services. A list of trusted DNs can be configured into each service, or a list of trusted services can be stored on a remote location. The services will only accept connections if the DN of the other end is listed in this list of trusted DNs. However the Bartender services will accept any incoming connection, which are from the users, because the users are authenticated differently.
 
 % subsection inter_service_authorization (end)
 
 \subsection{High-level authorization} % (fold)
 \label{sub:high_level_authorization}
 
-The Librarian component of the ARC storage system stores all the metadata about files and collections. For each file and collection there are access policies in the form of access control rules, and these are stored among these metadata. The users are identified by their DNs, and an access control rule specify the rights of the given user. One rule can be represented like this:
+The Librarian component of the ARC storage system stores all the metadata about files and collections. For each file and collection there are access policies in the form of access control rules, and these are stored among the metadata. The users are identified by their DNs, and an access control rule specify the rights of the given user. A rule can be represented like this:
 
 \begin{verbatim}
     DN +action +action -action
