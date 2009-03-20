@@ -229,7 +229,7 @@ HopiFile::~HopiFile(void) {
     if(!for_read) {
       if(chunks.Complete()) {
         if(slave) {
-          Hopi::logger.msg(Arc::ERROR, "Removing complete file in slave mode");
+          Hopi::logger.msg(Arc::DEBUG, "Removing complete file in slave mode");
           unlink(path.c_str());
         }
         chunks.Remove();

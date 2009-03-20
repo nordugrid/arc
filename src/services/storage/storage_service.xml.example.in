@@ -70,7 +70,7 @@
                 <DataDir>/var/spool/arc/shepherd_store</DataDir>
                 <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
                 <!-- Change this prefix to the external URL of the Hopi service, ending with a '/'! -->
-                <TURLPrefix>http://localhost:60000/hopi/</TURLPrefix>
+                <TURLPrefix>http://localhost:60001/hopi/</TURLPrefix>
             </BackendCfg>
             <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
             <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
