@@ -102,8 +102,8 @@ class Bartender:
                 url = metadata[('mountpoint', 'externalURL')]+'/'+restLN
                 #print url
                 res = self._externalStore(auth ,url,'delFile')
-                print res
-                print res[url]['status']  
+                #print res
+                #print res[url]['status']  
                 if 'successfully' in res[url]['status']:
                     response[requestID] = 'deleted'
                 else:
@@ -113,10 +113,10 @@ class Bartender:
         #print cat_rem_requests
         #print cat_mod_requests
         success = self.librarian.remove(cat_rem_requests)
-        modify_success = self.librarian.modifyMetadata(cat_mod_requests)
+            modify_success = self.librarian.modifyMetadata(cat_mod_requests)
         #print success
         #print modify_success 
-        print response
+        #print response
         return response
 
     def _traverse(self, requests):
@@ -652,7 +652,7 @@ class Bartender:
             if neededMetadata is empty it means we need everything
         """
         auth_request = auth.get_request('read')
-        print 'ID: '+auth.get_identity()
+        #print 'ID: '+auth.get_identity()
         # do traverse the requested Logical Names
         requests, traverse_response = self._traverse(requests)
         response = {}
@@ -1365,7 +1365,7 @@ class BartenderService(Service):
         ns = arc.NS('delegation','http://www.nordugrid.org/schemas/delegation')
         outpayload = arc.PayloadSOAP(ns)
         if self.proxy_store:
-            print inpayload.GetXML()
+            #print inpayload.GetXML()
             # Delegation Credentials(NEED TO FIX IT)  
             self.delegSOAP = arc.DelegationContainerSOAP()
             self.delegSOAP.DelegateCredentialsInit(inpayload,outpayload)

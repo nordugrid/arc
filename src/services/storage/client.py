@@ -256,7 +256,7 @@ class BartenderClient(Client):
         if print_xml is true this will print the SOAP messages
         """
         # sets the namespace
-        ns = self.NS_class('bar',bartender_uri)
+        ns = self.NS_class('bar', bartender_uri)
         # calls the superclass' constructor
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
 
@@ -584,7 +584,7 @@ class BartenderClient(Client):
 
         if requests['0'] == "-deleg":
             delegID = self.delegateCredentials()
-	    print delegID		
+            #print delegID
             if delegID == 0:
                 return "cannot delegate Credentials, check the Env. variables"
             del requests['0']
