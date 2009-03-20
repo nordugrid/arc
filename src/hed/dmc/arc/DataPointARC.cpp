@@ -47,8 +47,7 @@ namespace Arc {
       bartender_str = "http://localhost:60000/Bartender";
     //URL bartender_url(url.ConnectionURL()+"/Bartender");
     bartender_url = URL(bartender_str);
-    md5sum = MD5Sum();
-    md5sum.start();
+    md5sum = new MD5Sum();
   }
 
   DataPointARC::~DataPointARC() {
@@ -253,7 +252,7 @@ namespace Arc {
 
     writing = true;
     buffer = &buf;
-
+    buffer->set(md5sum);
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -335,8 +334,6 @@ namespace Arc {
       writing = false;
       return DataStatus::WriteError;
     }
-    logger.msg(Arc::INFO, "Checksum? %d", buf.buffer_size());
-    md5sum.add(&buf, size);
     return DataStatus::Success;
 
   }
@@ -347,20 +344,23 @@ namespace Arc {
     writing = false;
     if (!transfer)
       return DataStatus::Success;
-    DataStatus ret = (*transfer)->StopWriting();
     // update checksum and size
-    md5sum.end();
+    DataStatus ret = (*transfer)->StopWriting();
+    buffer->wait_read();
     unsigned char *md5res = new unsigned char(16);
     unsigned int length = 0;
-    md5sum.result(md5res, length);
+    //md5sum->end();
+    md5sum->result(md5res, length);
     std::string md5str = "";
     for (int i = 0; i < length; i++) {
       char tmpChar[2];
       sprintf(tmpChar, "%.2x", md5res[i]);
-      md5str.insert(i * 2, tmpChar);
+      md5str += tmpChar;
     }
-    std::cout << "CheckSum: " << md5str << " number " << length << std::endl;
+    std::cout << "CheckSum: " << md5str << " number " << length << " valid " << (buffer->checksum_valid() ? "yes":"no") << std::endl;
+    logger.msg(Arc::INFO, "Checksum? %s", md5str);
     delete transfer;
+    delete md5sum;
     transfer = NULL;
     return ret;
   }
