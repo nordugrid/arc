@@ -132,11 +132,9 @@
 \renewcommand{\thefootnote}{\arabic{footnote}}
 
 
-\chapter{Administrator's manual} % (fold)
-\label{cha:administrator_s_manual}
+\chapter{Quick start guide} % (fold)
 
-\section{Quick start guide} % (fold)
-\label{sec:quick_start_guide}
+\section{Installing a centralized system} % (fold)
 
 In this section we will follow the installation of the ARC storage system on a freshly installed debian lenny machine. 
 
@@ -453,27 +451,7 @@ $ arc_storage_cli list /
 
 Now we do have an empty root collection.
 
-% section quick_start_guide (end)
-
-% \section{Installation} % (fold)
-% \label{sec:installation}
-% 
-% % section installation (end)
-% 
-% \section{Configuration} % (fold)
-% \label{sec:configuration}
-% 
-% % section configuration (end)
-% 
-% \section{Deployment scenarios} % (fold)
-% \label{sec:deployment_scenarios}
-% 
-% % section deployment_scenarios (end)
-
-% chapter administrator_s_manual (end)
-
-\chapter{User's manual} % (fold)
-\label{cha:user_s_manual}
+\section{Using the prototype client tool} % (fold)
 
 Assume that we have a running storage system and we want to access it with the \verb!arc_storage_cli! client. We have the \verb!~/.arc/client.xml! set properly, so we can list the contents of the root collection:
 
@@ -609,13 +587,13 @@ Removing collection '/fruits': removed
 Let's introduce a new user into the system. If we have some other user certificate and key files, then we can tell \verb!arc_storage_cli! to use them with modifying the \verb!client.xml! or by specifying the \verb!ARC_CERT_FILE! and \verb!ARC_KEY_FILE! environment variables.
 
 \begin{verbatim}
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
 arc_storage_cli list /
 - Calling the Bartender's list method...
 - done in 0.31 seconds.
 '/': denied
 
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
 arc_storage_cli put /tmp/orange /pennys-orange
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
@@ -661,7 +639,7 @@ So we have changed the action list for user `ALL' to `+read +addEntry', which me
 Now we can upload a file with Penny:
 
 \begin{verbatim}
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
 arc_storage_cli put /tmp/orange /pennys-orange
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
@@ -679,7 +657,7 @@ arc_storage_cli put /tmp/orange /pennys-orange
 This file now only can be downloaded by Penny, so let's allow for Billy to download it as well:
 
 \begin{verbatim}
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
 arc_storage_cli pol /pennys-orange change /DC=eu/DC=KnowARC/O=knowarc/CN=billy +read
 - Calling the Bartender's stat method...
 - done in 0.41 seconds.
@@ -767,7 +745,7 @@ $ arc_storage_cli stat /new-orange
 
 \end{verbatim}
 
-We can see that the `neededReplica' metadata says 2, but if we deployed the system in a centralized way for testing purposes, then we only have one storage element (which is a Shepherd and a Hopi service together), so the file can only have one replica, that's why there is only one locations.
+We can see that the `neededReplica' metadata says 2, but if we deployed the system in a centralized way for testing purposes, then we only have one storage element (which is a Shepherd service and a Hopi service together), so the file can only have one replica, that's why there is only one locations.
 
 We can modify the number of needed replicas of an existing file with the `modify' method:
 
@@ -781,27 +759,378 @@ $ arc_storage_cli stat /new-orange | grep neededReplicas
     neededReplicas: 1
 \end{verbatim}
 
-% \section{Overview} % (fold)
-% \label{sec:overview}
-% 
-% % section overview (end)
-% 
-% \section{Prototype command line tool} % (fold)
-% \label{sec:prototype_command_line_tool}
-% 
-% % section prototype_command_line_tool (end)
-% 
-% \section{Grid jobs} % (fold)
-% \label{sec:grid_jobs}
-% 
-% % section grid_jobs (end)
-% 
-% \section{Accessing the system with FUSE} % (fold)
-% \label{sec:accessing_the_system_with_fuse}
-% 
-% % section accessing_the_system_with_fuse (end)
+\section{Adding more storage elements}
 
-% chapter user_s_manual (end)
+Let's add a new storage element to the system. We need to deploy a Shepherd service and a storage element service, which this time will be a `byteio' service. The `byteio' service implements a small part of the ByteIO interface, which means that it just put the entire file data into the SOAP message, so it is only suitable for small files.
 
-% \bibliography{grid}
+But first modify the configuration file of our original server. Currently all the transfer URLs which were generated when we upload and download files contained the hostname `localhost'. This is not OK if we want to access it from an other machine, we should provide transfer URLs which contains the external hostname of the machine. So lets change this line in \verb!/etc/arc/storage_service.xml!:
+
+\begin{verbatim}
+    <TURLPrefix>http://localhost:60001/hopi/</TURLPrefix>
+\end{verbatim}
+
+to the real hostname of the machine. But this is not enough. Currently the Shepherd services uses their URLs as IDs, and the other services use these IDs to connect to a Shepherd service, so we need to change to ID of the Shepherd service to a real external URL as well. And for the sake of clarity let's change all `localhost' entries in the config file to our real hostname. In our case the name of this machine is just `storage' so the Shepherd section should look like this:
+
+\begin{verbatim}
+<Service name="pythonservice" id="shepherd">
+    <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+    <ServiceID>https://storage:60000/Shepherd</ServiceID>
+    <CheckPeriod>20</CheckPeriod>
+    <MinCheckInterval>0.1</MinCheckInterval>
+    <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+    <StoreCfg><DataDir>/var/spool/arc/shepherd_data</DataDir></StoreCfg>
+    <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
+    <BackendCfg>
+        <DataDir>/var/spool/arc/shepherd_store</DataDir>
+        <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
+        <TURLPrefix>http://storage:60001/hopi/</TURLPrefix>
+    </BackendCfg>
+    <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
+    <BartenderURL>https://storage:60000/Bartender</BartenderURL>
+    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
+</Service>
+\end{verbatim}
+
+Let's check first if our centralized deployment is still working, stop the \verb!arched! daemon remove the data directories to make it a clean start, and restart it with the modified config.
+
+\begin{verbatim}
+$ sudo rm -r /var/spool/arc/*
+$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f    
+\end{verbatim}
+
+Let's see if we can still use the client:
+
+\begin{verbatim}
+$ arc_storage_cli list /
+- Calling the Bartender's list method...
+- done in 0.31 seconds.
+'/': not found
+
+$ arc_storage_cli mkdir /
+- Calling the Bartender's makeCollection method...
+- done in 0.63 seconds.
+Creating collection '/': done
+
+$ arc_storage_cli list /
+- Calling the Bartender's list method...
+- done in 0.50 seconds.
+'/': collection
+    empty.
+\end{verbatim}
+
+Let's upload a file and ask for two replicas:
+
+\begin{verbatim}
+$ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /
+- The size of the file is 7 bytes
+- Calculating md5 checksum...
+- done in 0.0005 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
+- Calling the Bartender's putFile method...
+- done in 1.10 seconds.
+- Got transfer URL: http://storage:60001/hopi/139dc57d-8c12-c188-a4a6-973449553811
+- Uploading from 'orange'
+    to 'http://storage:60001/hopi/139dc57d-8c12-c188-a4a6-973449553811' with http...
+    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 1.0090 seconds.
+'orange' (7 bytes) uploaded as '/orange'.
+
+$ arc_storage_cli stat /orange
+- Calling the Bartender's stat method...
+- done in 0.41 seconds.
+'/orange': found
+  states
+    checksumType: md5
+    neededReplicas: 2
+    size: 7
+    checksum: 6aefd2842be62cd470709b27aedc7db7
+  entry
+    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
+    GUID: 3fdad88a-944f-79c5-4f23-c5b3d3bc981e
+    type: file
+  parents
+    0/orange: parent
+  locations
+    https://storage:60000/Shepherd 0b46f53c-419d-ce4e-181a-ec95d16dcc95: alive
+  timestamps
+    created: 1237519441.96
+\end{verbatim}
+
+Currently it has only one replica, because we still don't have more than one storage elements. While \verb!arched! keeps running, let's create a new config for the other machine, which is called \verb!storage2!:
+
+\begin{verbatim}
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+>
+    <Server>
+        <Pidfile>/var/run/arched2.pid</Pidfile>
+        <Logger level="ERROR">/var/log/arched2.log</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>/usr/local/lib/arc/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/> 
+            <tcp:Listen>
+                <tcp:Port>60006</tcp:Port>
+                <tcp:Version>4</tcp:Version>
+            </tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="shepherd">^/Shepherd$</next>
+            <next id="byteio">^/byteio/</next>
+        </Plexer>
+        <Service name="pythonservice" id="shepherd">
+            <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+            <ServiceID>https://storage2:60006/Shepherd</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+            <StoreCfg>
+                <DataDir>/var/spool/arc/shepherd_store2</DataDir>
+            </StoreCfg>
+            <BackendClass>storage.shepherd.byteio.ByteIOBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>/var/spool/arc/shepherd_data2</DataDir>
+                <TransferDir>/var/spool/arc/shepherd_transfer2</TransferDir>
+                <TURLPrefix>https://storage2:60006/byteio/</TURLPrefix>
+            </BackendCfg>
+            <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
+            <BartenderURL>https://storage:60000/Bartender</BartenderURL>
+            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml"/>
+        </Service>
+        <Service name="pythonservice" id="byteio">
+            <ClassName>storage.shepherd.byteio.ByteIOService</ClassName>
+            <TransferDir>/var/spool/arc/shepherd_transfer2</TransferDir>
+            <NotifyURL>https://storage2:60006/Shepherd</NotifyURL>
+            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml"/>
+        </Service>
+    </Chain>
+</ArcConfig>    
+\end{verbatim}
+
+This configuration contains only two services: a Shepherd, and byteio service. The byteio service is just a very simple storage element service which moves files within SOAP messages. The Shepherd service needs to have a backend for all supported storage element services, so it has a ByteIOBackend configured. This Shepherd connects to our original server's Bartender and Librarian services. (See the technical documentation for details about the services.)
+
+While the original (\verb!storage!) server still runs the services, let's start this new server:
+
+\begin{verbatim}
+$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_2.xml -f
+\end{verbatim}
+
+And after a minute or two, let's check our file:
+
+\begin{verbatim}
+$ arc_storage_cli stat /orange
+- Calling the Bartender's stat method...
+- done in 0.41 seconds.
+'/orange': found
+  states
+    checksumType: md5
+    neededReplicas: 2
+    size: 7
+    checksum: 6aefd2842be62cd470709b27aedc7db7
+  entry
+    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
+    GUID: 24b442eb-ab1a-680e-1f79-4c20479d3ea9
+    type: file
+  parents
+    0/orange: parent
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
+  timestamps
+    created: 1237519828.4
+\end{verbatim}
+
+It indeed has two replicas now, one on each server.
+
+Let's download it multiple times:
+
+\begin{verbatim}
+$ arc_storage_cli get /orange /tmp/orange1
+- Calling the Bartender's getFile method...
+- done in 0.50 seconds.
+- Got transfer URL: http://storage:60001/hopi/de0d951f-7379-1ce4-0813-48a384c11982
+- Downloading from 'http://storage:60001/hopi/de0d951f-7379-1ce4-0813-48a384c11982'
+    to '/tmp/orange1' with http...
+    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 1.0060 seconds.
+'/orange' (7 bytes) downloaded as '/tmp/orange1'.
+    
+$ arc_storage_cli get /orange /tmp/orange2
+- Calling the Bartender's getFile method...
+- done in 0.51 seconds.
+- Got transfer URL: https://storage2:60006/byteio/52b6bffa-4812-03a5-93a1-834e38077ac5
+- Downloading from 'https://storage2:60006/byteio/52b6bffa-4812-03a5-93a1-834e38077ac5'
+    to '/tmp/orange2' with byteio...
+- done in 0.2822 seconds.
+'/orange' (7 bytes) downloaded as '/tmp/orange2'.
+\end{verbatim}
+
+First it was downloaded from the \verb!storage! server via HTTP, second time it was downloaded from the \verb!storage2! server via ByteIO.
+
+Let's create a third storage element on a machine called \verb!storage3! this time using a Hopi service as storage element service like on our main \verb!storage! server:
+
+\begin{verbatim}
+zsombor@storage:~$ cat /etc/arc/storage_service_3.xml 
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+>
+    <Server>
+        <Pidfile>/var/run/arched3.pid</Pidfile>
+        <Logger level="ERROR">/var/log/arched3.log</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>/usr/local/lib/arc/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/> 
+            <tcp:Listen>
+		<tcp:Port>60010</tcp:Port>
+		<tcp:Version>4</tcp:Version>
+	    </tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="shepherd">^/Shepherd$</next>
+        </Plexer>
+        <Service name="pythonservice" id="shepherd">
+            <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+            <ServiceID>https://storage3:60010/Shepherd</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+            <StoreCfg><DataDir>/var/spool/arc/shepherd_data3</DataDir></StoreCfg>
+            <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>/var/spool/arc/shepherd_store3</DataDir>
+                <TransferDir>/var/spool/arc/shepherd_transfer3</TransferDir>
+                <TURLPrefix>http://storage3:60011/hopi/</TURLPrefix>
+            </BackendCfg>
+            <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
+            <BartenderURL>https://storage:60000/Bartender</BartenderURL>
+            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
+        </Service>
+    </Chain>
+    <Chain>
+        <Component name="tcp.service" id="tcp2">
+            <next id="http2"/> 
+            <tcp:Listen>
+		<tcp:Port>60011</tcp:Port>
+		<tcp:Version>4</tcp:Version>
+	    </tcp:Listen>
+        </Component>
+        <Component name="http.service" id="http2">
+            <next id="plexer2">GET</next>
+            <next id="plexer2">PUT</next>
+        </Component>
+        <Plexer name="plexer.service" id="plexer2">
+            <next id="hopi">^/hopi/</next>
+        </Plexer>
+        <Service name="hopi" id="hopi">
+            <DocumentRoot>/var/spool/arc/shepherd_transfer3</DocumentRoot>
+            <SlaveMode>1</SlaveMode>
+        </Service>
+    </Chain>
+</ArcConfig>    
+\end{verbatim}
+
+This configuration has two separate ports, one with TLS security and a Shepherd service, and the other without TLS security and with the Hopi service. Let's run this server as well:
+
+\begin{verbatim}
+$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_3.xml -f
+\end{verbatim}
+
+Now when checking our file again there should be no change at all:
+
+\begin{verbatim}
+$ arc_storage_cli stat /orange
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
+\end{verbatim}
+
+Let's stop our server on \verb!storage2!, and watch what happens of our file:
+
+\begin{verbatim}
+$ arc_storage_cli stat /orange
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
+    
+$ arc_storage_cli stat /orange
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
+    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: creating
+
+$ arc_storage_cli stat /orange
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
+    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
+\end{verbatim}
+
+A new replica have been created on the third server to maintain the needed number of 2.
+
+Let's start the services on \verb!storage2! again, and let's see what is happening with our file:
+
+\begin{verbatim}
+$ arc_storage_cli stat /orange
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
+    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
+
+$ arc_storage_cli stat /orange
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: thirdwheel
+    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
+
+$ arc_storage_cli stat /orange
+  locations
+    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
+    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
+\end{verbatim}
+
+One of the replicas have been disappeared to maintain the needed number of 2.
+
+
 \end{document}
