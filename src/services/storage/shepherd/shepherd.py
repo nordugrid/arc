@@ -233,7 +233,7 @@ class Shepherd:
                                 # if the file is ALIVE (which means it is not CREATING or DELETED)
                                 if state == ALIVE:
                                     # check the number of needed replicasa
-                                    needed_replicas = int(metadata.get(('states','neededReplicas'),-1))
+                                    needed_replicas = int(metadata.get(('states','neededReplicas'),1))
                                     #print metadata.items()
                                     # find myself among the locations
                                     myself = [v for (s, p), v in metadata.items() if s == 'locations' and p == serialize_ids([self.serviceID, referenceID])]
@@ -262,11 +262,16 @@ class Shepherd:
                                         self.changeState(referenceID, THIRDWHEEL)
                             # or if this replica is not needed
                             elif state == THIRDWHEEL:
+                                # check the number of needed replicasa
+                                needed_replicas = int(metadata.get(('states','neededReplicas'),1))
+                                # and the number of alive replicas
+                                alive_replicas = len([property for (section, property), value in metadata.items()
+                                                          if section == 'locations' and value == ALIVE])
                                 # get the number of THIRDWHEELS not on this Shepherd (self.serviceID)
                                 thirdwheels = len([property for (section, property), value in metadata.items()
                                                    if section == 'locations' and value == THIRDWHEEL and not property.startswith(self.serviceID)])
-                                # if no-one else have a thirdwheel replica, we delete this replica
-                                if thirdwheels == 0:
+                                # if no-one else have a thirdwheel replica, and the file still has enough replicas, we delete this replica
+                                if thirdwheels == 0 and alive_replicas >= needed_replicas:
                                     #bsuccess = self.backend.remove(localID)
                                     #self.store.set(referenceID, None)
                                     self.changeState(referenceID, DELETED)

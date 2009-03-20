@@ -60,6 +60,7 @@
         </Service>
         <Service name="pythonservice" id="shepherd">
             <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+            <!-- Change this ServiceID to the real external URL of the Shepherd service! -->
             <ServiceID>https://localhost:60000/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
