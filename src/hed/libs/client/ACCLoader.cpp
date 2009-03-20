@@ -24,19 +24,16 @@ namespace Arc {
   }
 
   void ACCLoader::make_elements(Config& cfg) {
-    for (int n = 0;; ++n) {
-      XMLNode cn = cfg.Child(n);
-      if (!cn)
-        break;
-      Config cfg_(cn, cfg.getFileName());
+    for (int i = 0; cfg.Child(i); i++) {
+      Config cfg_(cfg.Child(i), cfg.getFileName());
 
-      if (MatchXMLName(cn, "ArcClientComponent")) {
-        std::string name = cn.Attribute("name");
+      if (MatchXMLName(cfg.Child(i), "ArcClientComponent")) {
+        std::string name = cfg.Child(i).Attribute("name");
         if (name.empty()) {
           logger.msg(ERROR, "ArcClientComponent has no name attribute defined");
           continue;
         }
-        std::string id = cn.Attribute("id");
+        std::string id = cfg.Child(i).Attribute("id");
         if (id.empty()) {
           logger.msg(ERROR, "ArcClientComponent has no id attribute defined");
           continue;
