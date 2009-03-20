@@ -1150,7 +1150,12 @@ TODO: what is the FUSE module, how does it work, how can we use it
 \section{Grid integration} % (fold)
 \label{sec:grid_integration}
 
-TODO: what is the ARC DMC, how does it work
+To access data through the ARC middleware client tools, one needs to go through Data Manager Components (DMCs). These are protocol specific plugins to the client tools. E.g, if you need to access data from a HTTPS service, you will go through the HTTP DMC using a URL starting with \verb!https://!and if you want to access data from a SRM service, you will use the SRM DMC using a URL starting with \verb!srm://!. Similarly, if you want access the ARC storage system, you will use the ARC DMC with protocol using a URL starting with \verb!arc://!. 
+
+As with the \verb!arc_storage_cli!, the credentials of the user and the URL of the Bartender can be configured with an XML file located at \verb!~/.arc/client.xml!. When the ARC DMC is initiated it will create an instance of \verb!DataPointARC! which provides functionality for listing collections and file IO. When downloading/uploading files from/to the storage system, the data point will use the provided Bartender URL to acquire a TURL from a Bartender. This TURL will be given to a \verb!DataTransfer!. Calling the constructor of the DataHandle class with a URL will trigger the iGetDataPoint class of all registered DMCs to be called until a non-NULL pointer is returned. This means that as long as there exists a data point plugin for the protocol of the returned TURL, the transfer can proceed.
+
+TODO: Some example of uploading, downloading and stat files, anything more?
+
 
 % section grid_integration (end)
 
