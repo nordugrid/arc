@@ -224,7 +224,7 @@ class ReplicationStore(TransDBStore):
             log.msg(arc.WARNING, "Bad cache size or no cache size configured, using 10MB")
             self.cachesize = 10*(1024**2)
         self.dbenv.repmgr_set_ack_policy(db.DB_REPMGR_ACKS_QUORUM)
-        self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 500000)
+        self.dbenv.rep_set_timeout(db.DB_REP_ACK_TIMEOUT, 5000000)
         self.dbenv.rep_set_priority(self.priority)
         self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
 
