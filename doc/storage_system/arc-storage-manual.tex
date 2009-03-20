@@ -229,7 +229,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> 
 \end{verbatim}
 
-If there is no error on importing any of the packages, we are good to go.
+If there is no error on importing any of the packages, we are good to go. If the packages cannot be imported, we should set the PYTHONPATH environment variable to point to their location.
 
 It is important to syncronize the time of the machine - the storage system will make decisions based on differences between timestamps, when we deploy it on multiple machines, different times would cause problems.
 
@@ -359,8 +359,8 @@ Now it is time to set up or prototype client tool to access the system. It is cu
 \begin{verbatim}
 $ cat ~/.arc/client.xml 
 <ArcConfig>
-  <KeyPath>~/.arc/userkey.pem</KeyPath>
-  <CertificatePath>~/.arc/usercert.pem</CertificatePath>
+  <KeyPath>/home/<username>/.arc/userkey.pem</KeyPath>
+  <CertificatePath>/home/<username>/.arc/usercert.pem</CertificatePath>
   <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
   <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
 </ArcConfig>
@@ -372,30 +372,86 @@ Now we can use the \verb!arc_storage_cli! to access our local deployment. Let's 
 $ arc_storage_cli
 Usage:
   arc_storage_cli <method> [<arguments>]
-Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy], unlink, credentialsDelegation, removeCredentials
+Supported methods:
+  stat - get detailed information about an entry
+  makeCollection | make | mkdir - create a collection
+  unmakeCollection | unmake | rmdir - remove an empty collection
+  list | ls - list the content of a collection
+  move | mv - move entries within the namespace
+  putFile | put - upload a file
+  getFile | get - download a file
+  delFile | del | rm - remove a file
+  modify | mod - modify metadata
+  policy | pol - modify access policy rules
+  unlink - remove a link to an entry from a collection without removing the entry itself
+  credentialsDelegation | cre - delegate credentials for using gateway
+  removeCredentials | rem - remove previously delegated credentials
 Without arguments, each method prints its own help.
 
 $ arc_storage_cli list
 - The URL of the Bartender: https://localhost:60000/Bartender
-- The key file: ~/.arc/userkey.pem
-- The cert file: ~/.arc/usercert.pem
+- The key file: /home/zsombor/.arc/userkey.pem
+- The cert file: /home/zsombor/.arc/usercert.pem
 - The CA dir: /etc/grid-security/certificates
 Usage: list <LN> [<LN> ...]
 
 $ arc_storage_cli list /
 - The URL of the Bartender: https://localhost:60000/Bartender
-- The key file: ~/.arc/userkey.pem
-- The cert file: ~/.arc/usercert.pem
+- The key file: /home/zsombor/.arc/userkey.pem
+- The cert file: /home/zsombor/.arc/usercert.pem
 - The CA dir: /etc/grid-security/certificates
 - Calling the Bartender's list method...
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component tcp.client(tcp) could not be created
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component tls.client(tls) could not be created
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component http.client(http) could not be created
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544] Component soap.client(soap) could not be created
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+    Component tcp.client(tcp) could not be created
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+    Component tls.client(tls) could not be created
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+    Component http.client(http) could not be created
+[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+    Component soap.client(soap) could not be created
 ERROR: Wrong status from server.
 Maybe wrong URL: 'https://localhost:60000/Bartender'
-    
 \end{verbatim}
+
+If you get this error, where the `Component [...] could not be created', we should reinforce the python environment about the location of our python packages:
+
+\begin{verbatim}
+$ export PYTHONPATH=/usr/local/lib/python2.5/site-packages/
+\end{verbatim}
+
+Without arguments, the \verb!arc_storage_cli! prints the list of available methods. Specifying only a method name prints the syntex of the given method. The \verb!list! method requires Logical Names (LN). In the storage system, every file and collection has a Logical Name, which is a path within the namespace.
+
+Now we have a running (centralized) storage service including a Hopi service, which is a basic HTTP server, for transfering files. We have a Bartender service which is the front-end of the system to the users, so our client always connect to the Bartender service. There are several directories configured in the config file where the services store their data. These directories can always be emptied, which resets the whole system to a clean state. If we run the storage system with clean data directories, then it is completely empty, which means that there is not even a root collection.
+
+\begin{verbatim}
+$ arc_storage_cli list /
+- The URL of the Bartender: https://localhost:60000/Bartender
+- The key file: /home/zsombor/.arc/userkey.pem
+- The cert file: /home/zsombor/.arc/usercert.pem
+- The CA dir: /etc/grid-security/certificates
+- Calling the Bartender's list method...
+- done in 0.34 seconds.
+'/': not found
+\end{verbatim}
+
+(From now on I will omit the first few lines of the \verb!arc_storage_cli!'s output.)
+
+The root collection has the Logical Name of `\verb!/!', and it's role to provide a starting point for all the other Logical Names. We have to create this root collection first:
+
+\begin{verbatim}
+$ arc_storage_cli mkdir /
+- Calling the Bartender's makeCollection method...
+- done in 0.81 seconds.
+Creating collection '/': done
+
+$ arc_storage_cli list /
+- Calling the Bartender's list method...
+- done in 0.55 seconds.
+'/': collection
+    empty.
+\end{verbatim}
+
+Now we do have an empty root collection.
 
 % section quick_start_guide (end)
 
@@ -418,6 +474,312 @@ Maybe wrong URL: 'https://localhost:60000/Bartender'
 
 \chapter{User's manual} % (fold)
 \label{cha:user_s_manual}
+
+Assume that we have a running storage system and we want to access it with the \verb!arc_storage_cli! client. We have the \verb!~/.arc/client.xml! set properly, so we can list the contents of the root collection:
+
+\begin{verbatim}
+$ arc_storage_cli list /
+- Calling the Bartender's list method...
+- done in 0.55 seconds.
+'/': collection
+    empty.
+\end{verbatim}
+
+Let's create a small file and upload it:
+
+\begin{verbatim}
+$ cat > orange
+orange
+$ cat orange 
+orange
+
+$ arc_storage_cli put orange /
+- The size of the file is 7 bytes
+- Calculating md5 checksum...
+- done in 0.0003 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
+- Calling the Bartender's putFile method...
+- done in 1.26 seconds.
+- Got transfer URL: http://localhost:60001/hopi/7fcef91e-ac9c-658d-4def-17d52ba33cfb
+- Uploading from 'orange'
+    to 'http://localhost:60001/hopi/7fcef91e-ac9c-658d-4def-17d52ba33cfb' with http...
+    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 0.0182 seconds.
+'orange' (7 bytes) uploaded as '/orange'.
+
+$ arc_storage_cli list /
+- Calling the Bartender's list method...
+- done in 0.51 seconds.
+'/': collection
+  orange              <file>
+
+\end{verbatim}
+
+We can get additional information about the file with the stat method:
+
+\begin{verbatim}
+$ arc_storage_cli stat /orange
+- Calling the Bartender's stat method...
+- done in 0.40 seconds.
+'/orange': found
+  states
+    checksumType: md5
+    neededReplicas: 1
+    size: 7
+    checksum: 6aefd2842be62cd470709b27aedc7db7
+  entry
+    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
+    GUID: 12ce831b-eab8-1f47-29f6-19fb85ebf46a
+    type: file
+  parents
+    0/orange: parent
+  locations
+    https://localhost:60000/Shepherd 3e9ea612-87c0-1e81-58f3-cec6b0b125c1: alive
+  timestamps
+    created: 1237504821.91
+\end{verbatim}
+
+Here we can see the owner of the file (Billy), the location of the replicas (currently only one), the number of needed replicas (which is also: one), the checksum and size of the file, and the timestamp of the creation.
+
+We can download this file:
+
+\begin{verbatim}
+$ arc_storage_cli get /orange /tmp
+- Calling the Bartender's getFile method...
+- done in 0.51 seconds.
+- Got transfer URL: http://localhost:60001/hopi/521c5869-4c93-8e28-aa3a-03f477f34f63
+- Downloading from 'http://localhost:60001/hopi/521c5869-4c93-8e28-aa3a-03f477f34f63'
+    to '/tmp/orange' with http...
+    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 1.0071 seconds.
+'/orange' (7 bytes) downloaded as '/tmp/orange'.
+$ cat /tmp/orange 
+orange
+\end{verbatim}
+
+We can create collections which can contain files and other collections forming a tree-hierarchy. We can move files and collection around within this namespace.
+
+\begin{verbatim}
+$ arc_storage_cli mkdir /fruits
+- Calling the Bartender's makeCollection method...
+- done in 0.79 seconds.
+Creating collection '/fruits': done
+
+$ arc_storage_cli mkdir /fruits/apple
+- Calling the Bartender's makeCollection method...
+- done in 0.91 seconds.
+Creating collection '/fruits/apple': done
+
+$ arc_storage_cli move /orange /fruits/
+- Calling the Bartender's move method...
+- done in 0.99 seconds.
+Moving '/orange' to '/fruits/': moved
+
+$ arc_storage_cli list /fruits
+- Calling the Bartender's list method...
+- done in 0.60 seconds.
+'/fruits': collection
+  orange              <file>
+  apple               <collection>
+\end{verbatim}
+
+We can remove files, and remove collections (but only if the collection is empty):
+
+\begin{verbatim}
+$ arc_storage_cli rmdir /fruits
+- Calling the Bartender's unmakeCollection method...
+- done in 0.41 seconds.
+Removing collection '/fruits': collection is not empty
+
+$ arc_storage_cli rmdir /fruits/apple
+- Calling the Bartender's unmakeCollection method...
+- done in 0.89 seconds.
+Removing collection '/fruits/apple': removed
+
+$ arc_storage_cli rm /fruits/orange
+- Calling the Bartender's delFile method...
+- done in 0.89 seconds.
+/fruits/orange: deleted
+
+$ arc_storage_cli rmdir /fruits
+- Calling the Bartender's unmakeCollection method...
+- done in 0.79 seconds.
+Removing collection '/fruits': removed
+\end{verbatim}
+
+Let's introduce a new user into the system. If we have some other user certificate and key files, then we can tell \verb!arc_storage_cli! to use them with modifying the \verb!client.xml! or by specifying the \verb!ARC_CERT_FILE! and \verb!ARC_KEY_FILE! environment variables.
+
+\begin{verbatim}
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+arc_storage_cli list /
+- Calling the Bartender's list method...
+- done in 0.31 seconds.
+'/': denied
+
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+arc_storage_cli put /tmp/orange /pennys-orange
+- The size of the file is 7 bytes
+- Calculating md5 checksum...
+- done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
+- Calling the Bartender's putFile method...
+- done in 0.81 seconds.
+/pennys-orange: failed to add child to parent
+
+\end{verbatim}
+
+Listing the root collection or uploading files into it for Penny is denied, because the root collection is owned by Billy, and nobody else has permissions to it. Let's ask Billy to allow for everyone to access the root collection:
+
+\begin{verbatim}
+$ arc_storage_cli pol / change ALL +read +addEntry
+- Calling the Bartender's stat method...
+- done in 0.30 seconds.
+old action list for the user ALL was ''
+the new action list of user ALL for LN / will be '+read +addEntry'
+- Calling the Bartender's modify method...
+- done in 0.50 seconds.
+set.
+\end{verbatim}
+
+The syntax of the \verb!policy! method is the following:
+
+\begin{verbatim}
+$ arc_storage_cli pol
+Usage: policy <LN> <changeType> <identity> <action list>
+  <changeType> could be 'set', 'change' or 'clear'
+    'set': sets the action list to the given user overwriting the old one
+    'change': modify the current action list with adding and removing actions
+    'clear': clear the action list of the given user
+  <identity> could be a '<UserDN>' or a 'VOMS:<VO name>'
+  <action list> is a list actions prefixed with '+' or '-'
+    e.g. '+read +addEntry -delete'
+    possible actions:
+        read addEntry removeEntry delete
+        modifyPolicy modifyStates modifyMetadata
+\end{verbatim}
+
+So we have changed the action list for user `ALL' to `+read +addEntry', which means that everybody can list the contents of this collection, create subcollection in it, upload a file into it, or move some existing entry into it.
+
+Now we can upload a file with Penny:
+
+\begin{verbatim}
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+arc_storage_cli put /tmp/orange /pennys-orange
+- The size of the file is 7 bytes
+- Calculating md5 checksum...
+- done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
+- Calling the Bartender's putFile method...
+- done in 1.18 seconds.
+- Got transfer URL: http://localhost:60001/hopi/4145891d-0e4c-b6bd-e4d6-dc80554b9d35
+- Uploading from '/tmp/orange'
+    to 'http://localhost:60001/hopi/4145891d-0e4c-b6bd-e4d6-dc80554b9d35' with http...
+    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 1.0071 seconds.
+'/tmp/orange' (7 bytes) uploaded as '/pennys-orange'.
+\end{verbatim}
+
+This file now only can be downloaded by Penny, so let's allow for Billy to download it as well:
+
+\begin{verbatim}
+$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \\
+arc_storage_cli pol /pennys-orange change /DC=eu/DC=KnowARC/O=knowarc/CN=billy +read
+- Calling the Bartender's stat method...
+- done in 0.41 seconds.
+old action list for the user /DC=eu/DC=KnowARC/O=knowarc/CN=billy was ''
+the new action list of user /DC=eu/DC=KnowARC/O=knowarc/CN=billy for LN /pennys-orange
+    will be '+read'
+- Calling the Bartender's modify method...
+- done in 0.59 seconds.
+set.
+
+$ arc_storage_cli stat /pennys-orange
+- Calling the Bartender's stat method...
+- done in 0.43 seconds.
+'/pennys-orange': found
+  locations
+    https://localhost:60000/Shepherd 1cc3b115-2350-8334-d206-a7b891912c00: alive
+  states
+    checksumType: md5
+    neededReplicas: 1
+    size: 7
+    checksum: 6aefd2842be62cd470709b27aedc7db7
+  parents
+    0/pennys-orange: parent
+  timestamps
+    created: 1237509633.17
+  policy
+    /DC=eu/DC=KnowARC/O=knowarc/CN=billy: +read
+  entry
+    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=penny
+    GUID: 0e6a4c9a-d4e7-e0dc-e083-16b83d460d82
+    type: file
+\end{verbatim}
+
+We can see among the metadata of the file, that Billy has `read' rights. Billy can now download this file:
+
+\begin{verbatim}
+$ arc_storage_cli get /pennys-orange /tmp
+- Calling the Bartender's getFile method...
+- done in 0.50 seconds.
+- Got transfer URL: http://localhost:60001/hopi/c16d7e12-42b0-7882-c09e-1cac31dbdbcd
+- Downloading from 'http://localhost:60001/hopi/c16d7e12-42b0-7882-c09e-1cac31dbdbcd'
+    to '/tmp/pennys-orange' with http...
+    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 1.0065 seconds.
+'/pennys-orange' (7 bytes) downloaded as '/tmp/pennys-orange'.
+$ cat /tmp/pennys-orange 
+orange
+\end{verbatim}
+
+We can specify the needed number of replicas for a new file with the \verb!ARC_NEEDED_REPLICAS! environment variable.
+
+\begin{verbatim}
+$ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /new-orange
+- The size of the file is 7 bytes
+- Calculating md5 checksum...
+- done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
+- Calling the Bartender's putFile method...
+- done in 1.11 seconds.
+- Got transfer URL: http://localhost:60001/hopi/0ad54182-7618-a2af-c490-dea7c4d6fc31
+- Uploading from 'orange' to
+    'http://localhost:60001/hopi/0ad54182-7618-a2af-c490-dea7c4d6fc31' with http...
+    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 1.0057 seconds.
+'orange' (7 bytes) uploaded as '/new-orange'.
+
+$ arc_storage_cli stat /new-orange
+- Calling the Bartender's stat method...
+- done in 0.40 seconds.
+'/new-orange': found
+  states
+    checksumType: md5
+    neededReplicas: 2
+    size: 7
+    checksum: 6aefd2842be62cd470709b27aedc7db7
+  entry
+    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
+    GUID: 4e673e28-4769-50af-f02e-d7a67632f87a
+    type: file
+  parents
+    0/new-orange: parent
+  locations
+    https://localhost:60000/Shepherd 4aacd276-653c-3ca5-c1a2-78a876c129c9: alive
+  timestamps
+    created: 1237509989.43
+
+\end{verbatim}
+
+We can see that the `neededReplica' metadata says 2, but if we deployed the system in a centralized way for testing purposes, then we only have one storage element (which is a Shepherd and a Hopi service together), so the file can only have one replica, that's why there is only one locations.
+
+We can modify the number of needed replicas of an existing file with the `modify' method:
+
+\begin{verbatim}
+$ arc_storage_cli modify /new-orange set states neededReplicas 1
+- Calling the Bartender's modify method...
+- done in 0.63 seconds.
+set
+
+$ arc_storage_cli stat /new-orange | grep neededReplicas
+    neededReplicas: 1
+\end{verbatim}
 
 % \section{Overview} % (fold)
 % \label{sec:overview}
