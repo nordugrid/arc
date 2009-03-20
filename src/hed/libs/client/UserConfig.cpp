@@ -8,12 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#ifdef WIN32
-#define FILE_SEPERATOR "\\"
-#include <direct.h>
-#else
-#define FILE_SEPERATOR "/"
-#endif
+#include <glibmm/miscutils.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -26,6 +21,8 @@
 namespace Arc {
 
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
+    
+  typedef std::vector<std::string> strv_t;
 
   UserConfig::UserConfig(const std::string& file)
     : conffile(file),
@@ -45,7 +42,10 @@ namespace Arc {
       return;
     }
 
-    confdir = user.Home() + FILE_SEPERATOR + ".arc";
+    strv_t confdirPath (2);
+    confdirPath[0] = user.Home();
+    confdirPath[1] = ".arc";
+    confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
 
     if (stat(confdir.c_str(), &st) != 0) {
       if (errno == ENOENT) {
@@ -80,7 +80,7 @@ namespace Arc {
     }
 
     if (conffile.empty())
-      conffile = confdir + FILE_SEPERATOR + "client.xml";
+      conffile = Glib::build_filename(confdir, "client.xml");
 
     if (stat(conffile.c_str(), &st) != 0) {
       if (errno == ENOENT) {
@@ -102,7 +102,7 @@ namespace Arc {
       return;
     }
 
-    joblistfile = confdir + FILE_SEPERATOR + "jobs.xml";
+    joblistfile  = Glib::build_filename(confdir, "jobs.xml");
 
     if (stat(joblistfile.c_str(), &st) != 0) {
       if (errno == ENOENT) {
@@ -126,7 +126,7 @@ namespace Arc {
 
     cfg.ReadFromFile(conffile);
 
-    std::string arcclientconf = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "arcclient.xml";
+    std::string arcclientconf = G_DIR_SEPARATOR_S +  Glib::build_filename("etc", "arcclient.xml");
 
     syscfg.ReadFromFile(ArcLocation::Get() + arcclientconf);
     if (!syscfg)
@@ -248,7 +248,7 @@ namespace Arc {
       logger.msg(INFO, "Using key file: %s", path);
       ccfg.NewChild("KeyPath") = path;
     }
-    else if (stat((path = FILE_SEPERATOR + std::string("tmp") + FILE_SEPERATOR + "x509up_u" + tostring(user.get_uid())).c_str(), &st) == 0) {
+    else if (stat((path = G_DIR_SEPARATOR_S + Glib::build_filename(std::string("tmp"), std::string("x509up_u") + tostring(user.get_uid()))).c_str(), &st) == 0) {
       if (!S_ISREG(st.st_mode)) {
         logger.msg(ERROR, "Proxy is not a file: %s", path);
         return false;
@@ -259,10 +259,20 @@ namespace Arc {
     else {
       logger.msg(WARNING, "Default proxy file does not exist: %s "
                  "trying default certificate and key", path);
-      if (user.get_uid() == 0)
-        path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostcert.pem";
-      else
-        path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR + "usercert.pem";
+      if (user.get_uid() == 0){
+        strv_t hostcert(3);
+        hostcert[0] = "etc";
+        hostcert[1] = "grid-security";
+        hostcert[2] = "hostcert.pem";
+        path = G_DIR_SEPARATOR_S + Glib::build_filename(hostcert);
+      }
+      else{
+        strv_t usercert (3);
+        usercert[0] = user.Home();
+        usercert[1] = ".globus";
+        usercert[2] = "usercert.pem";
+        path = Glib::build_filename(usercert);
+      }
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access certificate file: %s (%s)", path, StrError());
         return false;
@@ -274,10 +284,20 @@ namespace Arc {
       logger.msg(INFO, "Using certificate file: %s", path);
       ccfg.NewChild("CertificatePath") = path;
 
-      if (user.get_uid() == 0)
-        path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostkey.pem";
-      else
-        path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR + "userkey.pem";
+      if (user.get_uid() == 0){
+        strv_t hostkey (3);
+        hostkey[0] = "etc";
+        hostkey[1] = "grid-security";
+        hostkey[2] = "hostkey.pem";
+        path = G_DIR_SEPARATOR_S + Glib::build_filename(hostkey);
+      }
+      else{
+        strv_t userkey (3);
+        userkey[0] = user.Home();
+        userkey[1] = ".globus";
+        userkey[2] = "userkey.pem";
+        path = Glib::build_filename(userkey);
+      }
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access key file: %s (%s)",
                    path, StrError());
@@ -317,7 +337,7 @@ namespace Arc {
       ccfg.NewChild("CACertificatesDir") = path;
     }
     else if (user.get_uid() != 0 &&
-             stat((path = user.Home() + FILE_SEPERATOR + ".globus" + FILE_SEPERATOR + "certificates").c_str(), &st) == 0) {
+             stat((path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
       if (!S_ISDIR(st.st_mode)) {
         logger.msg(ERROR, "CA certificate directory is not a directory: %s", path);
         return false;
@@ -326,7 +346,11 @@ namespace Arc {
       ccfg.NewChild("CACertificatesDir") = path;
     }
     else {
-      path = FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "certificates";
+      strv_t certificatesPath (3);
+      certificatesPath[0] = "etc";
+      certificatesPath[1] = "grid-security";
+      certificatesPath[2] = "certificates";
+      path = G_DIR_SEPARATOR_S + Glib::build_filename(certificatesPath);
       if (stat(path.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
                    path, StrError());
