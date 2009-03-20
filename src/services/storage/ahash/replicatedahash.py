@@ -175,7 +175,7 @@ class ReplicationStore(TransDBStore):
                                          self.my_replica, other_replicas, self.dbReady)
         try:
             # start repmgr with 10 threads and always do election of master
-            threading.Thread(target = self.repmgr.start, args=[1024, db.DB_REP_ELECTION]).start()
+            threading.Thread(target = self.repmgr.start, args=[512, db.DB_REP_ELECTION]).start()
         except:
             log.msg()
             log.msg(arc.ERROR, "Couldn't start replication manager.")
