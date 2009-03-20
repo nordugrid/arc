@@ -1573,14 +1573,13 @@ else:
                 filename = '.'
             if filename == '.':
                 _, _, filename = splitLN(LN)
-                
             if os.path.exists(filename):
                 print "ERROR: local path '%s'" % filename, 'already exists!'
             else:
                 request = {'0' : (LN, supported_protocols)}
                 #print 'getFile', request
                 response = call_it('getFile', request)
-                print response
+                #print response
                 success, turl, protocol = response['0']
                 if success == 'done':
                     f = file(filename, 'wb')
