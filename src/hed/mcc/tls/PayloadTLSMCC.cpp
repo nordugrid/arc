@@ -8,13 +8,7 @@
 
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
-
-#ifdef WIN32
-#define FILE_SEPERATOR "\\"
-#include <direct.h>
-#else
-#define FILE_SEPERATOR "/"
-#endif
+#include <glibmm/miscutils.h>
 
 namespace Arc {
 
@@ -171,9 +165,16 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
   ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
   globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
+  
+  std::vector<std::string> gridSecDir (2);
+  gridSecDir[0] = G_DIR_SEPARATOR_S + std::string("etc");
+  gridSecDir[1] = "grid-security";
+  std::string gridSecurityDir = Glib::build_path(G_DIR_SEPARATOR_S, gridSecDir);
+
   if(!client) {
-    if(cert_file_.empty()) cert_file_= FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostcert.pem";
-    if(key_file_.empty()) key_file_= FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "hostkey.pem";
+    
+    if(cert_file_.empty()) cert_file_= Glib::build_filename(gridSecurityDir, "hostcert.pem");
+    if(key_file_.empty()) key_file_= Glib::build_filename(gridSecurityDir, "hostkey.pem");
     // Use VOMS trust DN of server certificates specified in configuration
     config_VOMS_add(cfg,vomscert_trust_dn_);
     // Look for those configured in separate files
@@ -201,7 +202,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
     //side should not require client authentication
     if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
   };
-  if(ca_dir_.empty() && ca_file_.empty()) ca_dir_= FILE_SEPERATOR + std::string("etc") + FILE_SEPERATOR + "grid-security" + FILE_SEPERATOR + "certificates";
+  if(ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
 
