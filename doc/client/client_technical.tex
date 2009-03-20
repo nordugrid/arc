@@ -627,13 +627,20 @@ virtual bool Migrate(const URL& url,
 The \texttt{Migrate} method behaves in much the same way as the \texttt{Submit}
 method, but instead of sending a new job request to the cluster it sends a 
 migration request of a given job, currently this request is only supported 
-for ARC1 clusters. The \texttt{url} and \texttt{jobdesc} specifies the job-id 
-and {\JobDescription} of the job which should be migrated.\\
+for ARC1 clusters. The \texttt{URL} and \texttt{jobdesc} specifies the job-id 
+and {\JobDescription} of the job which should be migrated.
+
+Note that whereas the \texttt{Migrate} method make provisions for automatically 
+getting files from the migration source cluster, this does not apply to the job 
+description which instead should be passed to \texttt{Migrate} explicitly in the 
+form of a {\JobDescription} object.
+
 The migration request will create a new job where the local input files are 
 transferred from old cluster. Once the input files have been transferred the 
 new cluster will send a request to kill the old job. If the kill request is 
 unsuccessful the new job will be terminated unless the \texttt{forcemigration} 
-boolean is \texttt{true}.\\
+boolean is \texttt{true}.
+
 The \texttt{Migrate} method will also fill the \texttt{info} {\XMLNode} with 
 information about the job the same way as the \texttt{Submit} method. However 
 for the \texttt{Migrate} method this \texttt{XMLNode} also contain the job-id 
@@ -816,22 +823,24 @@ with the specified status'. In case \texttt{getlocal} is true the job descriptio
 will first be searched for the users local XML file. If a local copy of 
 the job description is found the checksum of the local input files will be 
 computed and compared with the ones listed in the users local XML file. If 
-all checksums match the job description is returned.\\
+all checksums match the job description is returned.
+
 In case \texttt{getlocal} is false or the retrieval of the local job description 
-fails the job description will be tried retrieved from the cluster. This has 
+fails an attempt will be made to retrieved the job description from the cluster. This has 
 currently only been implemented for ARC(both generations) clusters. Note 
-that the job descriptions retried from a cluster might will most likely have 
-been changed since the submission either by the cluster\footnote{For both 
+that the job descriptions retrieved from a cluster will most likely have 
+been changed since the submission -- either by the cluster\footnote{For both 
 generations of ARC it is possible to recover the initial job description send 
 to the cluster. However modifications can still have been made to the 
 job description before sending it to the cluster.} or by the submission 
-client. Therefore the only way of retrieving the original job description is 
-through the users local XML file.\\
+client. Therefore, the only way of retrieving the original job description is 
+through the users local XML file.
+
 The \texttt{GetJobDescriptions} returns a list of the  {\Job}s where job description 
 have been found. The found job descriptions are kept in the 
 {\Job}.\texttt{JobDescription} attribute.
 
-The \texttt{Migrate} method:
+The \texttt{Migrate} method
 \begin{shaded}
 \begin{verbatim}
 bool Migrate(TargetGenerator& targetGen,
@@ -1224,24 +1233,23 @@ SampleBroker.py file that comes with your arc python installation.
 Given all components listed above it is possible to write versatile
 command line interfaces (cli) for grid job submission and
 management. {\libarcclient} offers the following native commands:
-
 \begin{enumerate}
-\item{\texttt{arcstat} - for computing resource or grid job status
-  queries.}
+\item{\texttt{arcstat} - for computing resource or grid job status 
+queries.}
 \item{\texttt{arcsub} - for grid job submission.}
-\item{\texttt{arcget} - for downloading output of finished, cancelled
-  or failed grid jobs.}
+\item{\texttt{arcget} - for downloading output of finished, cancelled 
+or failed grid jobs.}
 \item{\texttt{arckill} - for terminating grid jobs.}
-\item{\texttt{arcclean} - for removing a grid job's session directory
-  including all contents.}
-\item{\texttt{arccat} - for performing the \texttt{cat} command to a
-  running grid job's std out or std error file.}
-\item{\texttt{arcsync} - for synchronising the information in the user's
-  local XML file about active jobs.}
-\item{\texttt{arcresub} - for redoing an entire job on the same or a new
-  computing resource.}
-\item{\texttt{arcmigrate} - for moving a queuing job from an ARC1 
-  computing resource to another.}
+\item{\texttt{arcclean} - for removing a grid job's session directory 
+including all contents.}
+\item{\texttt{arccat} - for performing the \texttt{cat} command to a 
+running grid job's std out or std error file.}
+\item{\texttt{arcsync} - for synchronising the information in the user's 
+local XML file\footnote{By default \$HOME/.arc/jobs.xml} about active jobs.}
+\item{\texttt{arcresub} - for starting an entire job over on either the 
+same or a new computing resource.}
+\item{\texttt{arcmigrate} - for moving a queuing job from one A-REX 
+server to another.}
 \end{enumerate}
 
 Each of the commands above are encoded within one C++ file with the
