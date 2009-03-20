@@ -1435,7 +1435,20 @@ def call_it(method_name, *args):
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
     print '  arc_storage_cli <method> [<arguments>]'
-    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File], pol[icy], unlink, credentialsDelegation, removeCredentials'
+    print 'Supported methods:'
+    print '  stat - get detailed information about an entry'
+    print '  makeCollection | make | mkdir - create a collection'
+    print '  unmakeCollection | unmake | rmdir - remove an empty collection'
+    print '  list | ls - list the content of a collection'
+    print '  move | mv - move entries within the namespace'
+    print '  putFile | put - upload a file'
+    print '  getFile | get - download a file'
+    print '  delFile | del | rm - remove a file'
+    print '  modify | mod - modify metadata'
+    print '  policy | pol - modify access policy rules'
+    print '  unlink - remove a link to an entry from a collection without removing the entry itself'
+    print '  credentialsDelegation | cre - delegate credentials for using gateway'
+    print '  removeCredentials | rem - remove previously delegated credentials'
     print 'Without arguments, each method prints its own help.'
 else:
     try:
