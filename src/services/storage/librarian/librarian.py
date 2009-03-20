@@ -87,6 +87,9 @@ class Librarian:
             self.ahash.urls = ahash_urls
             return ret
         except:
+            # put back all known ahashes so we don't only ask the master
+            # for an update
+            self.ahash.urls = ahash_urls
             # retry, updating ahash urls in case master is outdated
             self._update_ahash_urls()
             ahash_urls = self.ahash.urls
