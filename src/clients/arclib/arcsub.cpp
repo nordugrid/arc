@@ -151,6 +151,10 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  // Proxy check
+  if (!usercfg.CheckProxy())
+    return 1;
+
   jobdescriptionfiles.insert(jobdescriptionfiles.end(),
                              params.begin(), params.end());
 

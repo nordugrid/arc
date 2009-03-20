@@ -52,6 +52,8 @@ namespace Arc {
     operator bool() const;
     bool operator!() const;
 
+    bool CheckProxy() const;
+    
   private:
     User user;
     std::string confdir;

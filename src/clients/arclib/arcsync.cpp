@@ -30,30 +30,30 @@
 int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
-
+  
   Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsync");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
-
+  
   Arc::ArcLocation::Init(argv[0]);
-
+  
   Arc::OptionParser options(istring("[filename ...]"),
 			    istring("The command synchronized your local job"
-				    "list with the information at a given "
-				    "cluster or index server"),
-			    istring("Argument to -i has the format "
-				    "Flavour:URL e.g.\n"
-				    "ARC0:ldap://grid.tsl.uu.se:2135/"
-				    "mds-vo-name=sweden,O=grid\n"
-				    "CREAM:ldap://cream.grid.upjs.sk:2170/"
-				    "o=grid\n"
-				    "\n"
-				    "Argument to -c has the format "
-				    "Flavour:URL e.g.\n"
-				    "ARC0:ldap://grid.tsl.uu.se:2135/"
-				    "nordugrid-cluster-name=grid.tsl.uu.se,"
-				    "Mds-Vo-name=local,o=grid"));
+                                    "list with the information at a given "
+                                    "cluster or index server"),
+                            istring("Argument to -i has the format "
+                                    "Flavour:URL e.g.\n"
+                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
+                                    "mds-vo-name=sweden,O=grid\n"
+                                    "CREAM:ldap://cream.grid.upjs.sk:2170/"
+                                    "o=grid\n"
+                                    "\n"
+                                    "Argument to -c has the format "
+                                    "Flavour:URL e.g.\n"
+                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
+                                    "nordugrid-cluster-name=grid.tsl.uu.se,"
+                                    "Mds-Vo-name=local,o=grid"));
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
@@ -122,6 +122,10 @@ int main(int argc, char **argv) {
               << std::endl;
     return 0;
   }
+
+  // Proxy check
+  if (!usercfg.CheckProxy())
+    return 1;
 
   //sanity check
   if (!force) {

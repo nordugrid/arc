@@ -105,6 +105,10 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  // Proxy check
+  if (!usercfg.CheckProxy())
+    return 1;
+
   if (jobs.empty() && joblist.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;

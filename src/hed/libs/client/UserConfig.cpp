@@ -17,6 +17,7 @@
 #include <arc/User.h>
 #include <arc/Utils.h>
 #include <arc/client/UserConfig.h>
+#include <arc/credential/Credential.h>
 
 namespace Arc {
 
@@ -596,4 +597,24 @@ namespace Arc {
     return !ok;
   }
 
+
+  bool UserConfig::CheckProxy() const {
+
+    NS ns;
+    XMLNode proxy(ns, "cred");
+    if (ApplySecurity(proxy)) {
+      Credential holder((std::string )proxy["ProxyPath"], "",
+                             (std::string )proxy["CACertificatesDir"], "");
+      if ( holder.GetEndTime() >= Arc::Time() )
+        logger.msg(INFO, "Valid proxy found");
+      else {
+        logger.msg(ERROR, "Proxy expired");
+        return false;
+      }
+    } else {
+      logger.msg(ERROR, "No proxy found ");
+      return false;
+    }    
+    return true;
+  }
 } // namespace Arc

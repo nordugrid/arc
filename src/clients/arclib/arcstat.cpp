@@ -126,6 +126,10 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  // Proxy check
+  if (!usercfg.CheckProxy())
+    return 1;
+
   if (queues) {
     // i.e we are looking for queue or cluster info, not jobs
     Arc::TargetGenerator targen(usercfg, clusters, indexurls);
