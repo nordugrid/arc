@@ -15,45 +15,44 @@ Start up ARC1 storage server as described in
 arc1/doc/storage_system/prototype_installation_howto.txt
 
    $ pwd
-   /home/jonkni/arc
+   /home/me/arc
    $ ln -s arc1/src/services/storage/fuse/arcfs.py arcfs.py
    $ mkdir mnt
-   $ PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs python arcfs.py ./mnt 
+   $ python arcfs.py ./mnt 
    
-This mounts ARCFS in /home/jonkni/arc/mnt, creates directory
-/home/jonkni/arc/fuse_transfer and a log file
-/home/jonkni/arc/arcfsmessages.
+This mounts ARCFS in /home/me/arc/mnt, creates directory
+/home/me/arc/fuse_transfer and a log file
+/home/me/arc/arcfsmessages.
 
 You can now make a collection
    
-   $ mkdir -p mnt/home/jonkni
-   $ stat mnt/home/jonkni
-     File: `mnt/home/jonkni'
+   $ mkdir -p mnt/home/me
+   $ stat mnt/home/me
+     File: `mnt/home/me'
      Size: 0               Blocks: 0          IO Block: 4096   directory
    Device: 19h/25d Inode: 3           Links: 2
-   Access: (0755/drwxr-xr-x)  Uid: (  500/  jonkni)   Gid: (  100/   users)
+   Access: (0755/drwxr-xr-x)  Uid: (  500/  me)   Gid: (  100/   users)
    Access: 1970-01-01 01:00:00.000000000 +0100
    Modify: 1970-01-01 01:00:00.000000000 +0100
    Change: 1970-01-01 01:00:00.000000000 +0100
 
-Note that so far there is no timestamps or security implemented, so
+Note that so far there is no security implemented, so
 that all files have mode 0644, all collections have mode 0755,
-everything is owned by the user that mounts the system and everything
-was created on January 1., 1970.
+everything is owned by the user that mounts the system.
 
 Now you may want to have some entries in your collection
-   $ cd mnt/home/jonkni
+   $ cd mnt/home/me
    $ emacs -nw fish
    catfish
    $ cat fish
    catfish
    $ cp fish fisk2
    $ ls -la
-   drwxr-xr-x 5 jonkni users  0 1970-01-01 01:00 .
-   drwxr-xr-x 3 jonkni users  0 1970-01-01 01:00 ..
-   -rw-r--r-- 1 jonkni users  8 1970-01-01 01:00 fish
-   -rw-r--r-- 1 jonkni users 28 1970-01-01 01:00 fish~
-   -rw-r--r-- 1 jonkni users  8 1970-01-01 01:00 fish2
+   drwxr-xr-x 5 me users  0 1970-01-01 01:00 .
+   drwxr-xr-x 3 me users  0 1970-01-01 01:00 ..
+   -rw-r--r-- 1 me users  8 1970-01-01 01:00 fish
+   -rw-r--r-- 1 me users 28 1970-01-01 01:00 fish~
+   -rw-r--r-- 1 me users  8 1970-01-01 01:00 fish2
 
 You probably want to remove that anoying emacs backup file
    
@@ -75,17 +74,17 @@ Maybe you're not happy with the collection name
 What about moving the collection out of ARC storage?
 
    $ cd ../../..
-   $ mv mnt/home/jonkni/creatures .
-   mv: cannot remove directory `mnt/home/jonkni/creatures': Function
+   $ mv mnt/home/me/creatures .
+   mv: cannot remove directory `mnt/home/me/creatures': Function
    not implemented
 
 Oops. rmdir isn't implemented yet, so 'creatures' is now an empty
 collection, but not removed it self
 
-   $ find mnt/home/jonkni/
-   mnt/home/jonkni/
-   mnt/home/jonkni/creatures
-   mnt/home/jonkni/fish
+   $ find mnt/home/me/
+   mnt/home/me/
+   mnt/home/me/creatures
+   mnt/home/me/fish
 
 
 
@@ -106,12 +105,12 @@ or even
 
 Now, remounting the system, everything should still be there:
 
-   $ PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs python arcfs.py ./mnt
+   $ python arcfs.py ./mnt
 
-   $ find mnt/home/jonkni/
-   mnt/home/jonkni/
-   mnt/home/jonkni/creatures
-   mnt/home/jonkni/fish
+   $ find mnt/home/me/
+   mnt/home/me/
+   mnt/home/me/creatures
+   mnt/home/me/fish
 
    $ fusermount -u mnt
 
@@ -119,14 +118,7 @@ Now, remounting the system, everything should still be there:
 Current issues
 ------
 
-What should happen when one deletes a file which has hard links?
- - refuse to delete the file? then maybe we should have some metadata
- with number of links to file
-
-ARCFSFile
- - what about file locking? Should __init__ ask catalog to lock the
- GUID of the file and release ask to unlock it?
-
+delegation hanlding is not implemented yet
 
 vim swap file is not removed if vim hasn't started writing to the swap
 file before vim is closed.
