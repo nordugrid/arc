@@ -306,7 +306,7 @@ namespace Arc {
         path = Glib::build_filename(cwd, path);
     }
 
-    if (host.empty() && protocol != "file" && protocol != "urllist")
+    if (host.empty() && protocol != "file" && protocol != "arc" && protocol != "urllist")
       URLLogger.msg(ERROR, "Illegal URL - no hostname given");
   }
 
