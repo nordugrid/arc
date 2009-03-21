@@ -255,7 +255,7 @@ class ARCFS(Fuse):
             # no metadata
             debug_msg('mkinod left, no metadata', (path))
             return None
-        is_dir = metadata[('entry', 'type')] == 'collection'
+        is_dir = metadata[('entry', 'type')] == 'collection' or metadata[('entry', 'type')] == 'mountpoint'
         is_file = metadata[('entry', 'type')] == 'file'
         if is_file:
             nlink = 1
