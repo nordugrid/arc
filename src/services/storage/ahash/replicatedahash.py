@@ -174,8 +174,13 @@ class ReplicationStore(TransDBStore):
         self.repmgr = ReplicationManager(ahash_send, self.dbenv, 
                                          self.my_replica, other_replicas, self.dbReady)
         try:
-            # start repmgr with 10 threads and always do election of master
-            threading.Thread(target = self.repmgr.start, args=[256, db.DB_REP_ELECTION]).start()
+            # start repmgr with 256 threads if 32 bits, 1024 if 64 bits 
+            # always do election of master
+            import struct
+            if struct.calcsize('P') > 4:
+                threading.Thread(target = self.repmgr.start, args=[1024, db.DB_REP_ELECTION]).start()
+            else:
+                threading.Thread(target = self.repmgr.start, args=[256, db.DB_REP_ELECTION]).start()
         except:
             log.msg()
             log.msg(arc.ERROR, "Couldn't start replication manager.")
@@ -258,14 +263,11 @@ class ReplicationStore(TransDBStore):
                                    ]
                     for (url, status) in client_list:
                         new_obj[('client', "%s:%s"%(url, status))] = url
-                    curr_obj = self.get(ahash_list_guid)
-                    if True: #curr_obj != new_obj:
-                        # store the site list if there are changes
-                        self.set(ahash_list_guid, new_obj)
-                        log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
-                        log.msg(arc.DEBUG, "old ahash list %s"%str(curr_obj))
-                        if not self.dbenv_ready:
-                            log.msg(arc.DEBUG, "but dbenv wasn't ready.")
+                    # store the site list
+                    self.set(ahash_list_guid, new_obj)
+                    log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
+                    if not self.dbenv_ready:
+                        log.msg(arc.DEBUG, "but dbenv wasn't ready.")
             except:
                 log.msg()
             time.sleep(period)
@@ -351,6 +353,7 @@ class ReplicationManager:
             if self.role == db.DB_REP_CLIENT:
                 if self.masterID != db.DB_EID_INVALID:
                     # use threaded send to avoid blocking
+                    #threading.Thread(target=self.sendHeartbeatMsg, args=[])
                     self.pool.queueTask(self.sendHeartbeatMsg)
             # add some randomness to avoid bugging the master too much
             log.msg(arc.DEBUG, ("heartbeat", self.masterID, self.role))
@@ -526,6 +529,7 @@ class ReplicationManager:
             res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
             return res
         else:
+            #threading.Thread(target=self.send, args=[env, control, record, lsn, eid, flags, REP_MESSAGE])
             self.pool.queueTask(self.send, args=[env, control, record, lsn, eid, flags, REP_MESSAGE])
             return 0
 
@@ -588,6 +592,7 @@ class ReplicationManager:
             # return hostMap to sender
             if really_new:
                 # use threaded send to avoid blocking
+                #threading.Thread(target=self.sendNewSiteMsg, args=[sender])
                 self.pool.queueTask(self.sendNewSiteMsg, args=sender)
         if msgID == MASTER_MESSAGE:
             # sender is master, find local id for sender and set as masterID
@@ -619,6 +624,7 @@ class ReplicationManager:
                     # say hello to my new friend
                     if really_new:
                         # use threaded send to avoid blocking
+                        #threading.Thread(target=self.sendNewSiteMsg, args=[replica])
                         self.pool.queueTask(self.sendNewSiteMsg, args=replica)
             return "processed"
         try:
@@ -645,6 +651,7 @@ class ReplicationManager:
             log.msg(arc.DEBUG, "received DB_REP_NEWSITE from %s"%str(sender))
             if self.isMaster():
                 # use threaded send to avoid blocking
+                #threading.Thread(target=self.sendNewMasterMsg, args=[eid])
                 self.pool.queueTask(self.sendNewMasterMsg, args=eid)
         elif res == db.DB_REP_HOLDELECTION:
             log.msg(arc.DEBUG, "received DB_REP_HOLDELECTION")
@@ -690,6 +697,7 @@ class ReplicationManager:
                 self.setRole(db.DB_REP_MASTER)
                 self.dbReady(True)
                 # use threaded send to avoid blocking
+                #threading.Thread(target=self.sendNewMasterMsg, args=[])
                 self.pool.queueTask(self.sendNewMasterMsg)
             elif which == db.DB_EVENT_REP_CLIENT:
                 log.msg(arc.DEBUG, "I am now a client")
@@ -710,6 +718,7 @@ class ReplicationManager:
                 log.msg(arc.DEBUG, "I won the election: I am the MASTER")
                 self.elected = True
                 # use threaded send to avoid blocking
+                #threading.Thread(target=self.sendNewMasterMsg, args=[])
                 self.pool.queueTask(self.sendNewMasterMsg)
             elif which == db.DB_EVENT_PANIC:
                 log.msg(arc.ERROR, "Oops! Internal DB panic!")
