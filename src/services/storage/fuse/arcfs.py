@@ -38,19 +38,43 @@ try:
     MNT = sys.argv[1]
 except:
     raise RuntimeError, 'Usage: ./arcfs.py LOCAL_MOUNTPOINT'
+user_config = None
+ssl_config = {}
+BartenderURL = ''
 try:
-    BartenderURL = os.environ['ARC_BARTENDER_URL']
-    print '- The URL of the Bartender:', BartenderURL
+    user_config = arc.UserConfig('')
+    config_xml = user_config.ConfTree()
+    key_file = str(config_xml.Get('KeyPath'))
+    if key_file:
+        ssl_config['key_file'] = key_file
+    cert_file = str(config_xml.Get('CertificatePath'))
+    if cert_file:
+        ssl_config['cert_file'] = cert_file
+    proxy_file = str(config_xml.Get('ProxyPath'))
+    if proxy_file:
+        ssl_config['proxy_file'] = proxy_file
+    ca_file = str(config_xml.Get('CACertificatePath'))
+    if ca_file:
+        ssl_config['ca_file'] = ca_file
+    ca_dir = str(config_xml.Get('CACertificatesDir'))
+    if ca_dir:
+        ssl_config['ca_dir'] = ca_dir
+    BartenderURL = str(config_xml.Get('BartenderURL'))
 except:
-    BartenderURL = 'http://localhost:60000/Bartender'
-    print '- ARC_BARTENDER_URL environment variable not found, using', BartenderURL
+    pass
+if not BartenderURL:
+    try:
+        BartenderURL = os.environ['ARC_BARTENDER_URL']
+        print '- The URL of the Bartender:', BartenderURL
+    except:
+        BartenderURL = 'http://localhost:60000/Bartender'
+        print '- ARC_BARTENDER_URL environment variable not found, using', BartenderURL
 try:
     needed_replicas = int(os.environ['ARC_NEEDED_REPLICAS'])
 except:
     needed_replicas = 1
 
-ssl_config = {}
-if BartenderURL.startswith('https'):
+if BartenderURL.startswith('https') and not user_config:
     try:
         ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
         ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
@@ -469,9 +493,9 @@ class ARCFS(Fuse):
                 checksum = create_checksum(f, 'md5')
                 f.close()
                 # set size and checksum now that we have it
-                request = {'size':[self.path, 'set', 'states', 'size', size],
-                           'checksum':[self.path, 'set', 'states', 'checksum', checksum],
-                           'replicas':[self.path, 'set', 'states', 'neededReplicas', needed_replicas]}
+                request = {'size':(self.path, 'set', 'states', 'size', size),
+                           'checksum':(self.path, 'set', 'states', 'checksum', checksum),
+                           'replicas':(self.path, 'set', 'states', 'neededReplicas', needed_replicas)}
                 modify_success = self.bartender.modify(request)
                 if modify_success['size'] == 'set' and \
                    modify_success['replicas'] == 'set' and \
