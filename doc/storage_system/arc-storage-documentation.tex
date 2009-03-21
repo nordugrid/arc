@@ -1136,7 +1136,27 @@ This is a testfile.
 \subsection{FUSE module} % (fold)
 \label{sub:fuse_module}
 
-TODO: what is the FUSE module, how does it work, how can we use it
+The \textbf{FUSE module} provides a high-level access to the storage system. Filesystem in Userspace (FUSE) provides a simple library and a kernel-userspace interface. Using FUSE and the ARC Python interface, the FUSE module allows users to mount the storage namespace into the local namespace, enabling the use of, e.g., graphical file browsers. Currently no delegation handling is implemented in the fuse module, so that to change ownership, group access, etc., you need to use the \verb!arc_storage_cli!.
+
+As for the \verb!arc_storage_cli! the credentials of the user and the URL of the Bartender can be configured either with an XML file located at \verb!~/.arc/client.xml! or with environment variables. See Section \ref{sub:prototype_cli_tool} for user configuration.
+
+An example of uploading, downloading and list files with FUSE:
+
+\begin{verbatim}
+$ python arcfs.py ./mnt
+$ cat testfile
+This is a test file
+$ mkdir mnt/tmp
+$ cp testfile mnt/tmp
+$ ls -l mnt/tmp/testfile
+-rw-r--r-- 1 jonkni jonkni 20 2009-03-21 23:27 mnt/tmp/testfile
+$ cp mnt/tmp/testfile newfile
+$ cat newfile
+This is a test file
+$ cat mnt/tmp/testfile
+This is a test file
+$ fusermount -u ./mnt
+\end{verbatim}
 
 % subsection fuse_module (end)
 
@@ -1149,8 +1169,18 @@ To access data through the ARC middleware client tools, one needs to go through 
 
 As with the \verb!arc_storage_cli!, the credentials of the user and the URL of the Bartender can be configured with an XML file located at \verb!~/.arc/client.xml!. When the ARC DMC is initiated it will create an instance of \verb!DataPointARC! which provides functionality for listing collections and file IO. When downloading/uploading files from/to the storage system, the data point will use the provided Bartender URL to acquire a TURL from a Bartender. This TURL will be given to a \verb!DataTransfer!. Calling the constructor of the DataHandle class with a URL will trigger the iGetDataPoint class of all registered DMCs to be called until a non-NULL pointer is returned. This means that as long as there exists a data point plugin for the protocol of the returned TURL, the transfer can proceed.
 
-TODO: Some example of uploading, downloading and stat files, anything more?
+Example of uploading, downloading and list files:
 
+\begin{verbatim}
+$ cat testfile
+This is a test file
+$ arccp testfile arc:///tmp/testfile
+$ arcls -l arc:///tmp/testfile
+testfile file * * * *
+$ arccp arc:///tmp/testfile newfile
+$ cat newfile
+This is a test file
+\end{verbatim}
 
 % section grid_integration (end)
 
