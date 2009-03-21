@@ -935,8 +935,6 @@ The high-level authorization is done by the Bartender. It makes decisions based 
     
     The response is a list of (\emph{requestID}, \emph{success}) where \emph{success} can be `\textbf{unset}', `\textbf{no such LN}', `\textbf{denied}' or `\textbf{nothing to unlink}'
     
-    TODO: makeMountpoint, unmakeMountpoint
-        
     \item[stat(statRequestList)] returns all metadata of files, collections or mount points
 
     The \emph{statRequestList} is a list of (\emph{requestID}, \emph{LN}) with the Logical Names we want to get information about.
@@ -989,9 +987,7 @@ The high-level authorization is done by the Bartender. It makes decisions based 
 
     \item[CredentialDelegation(CredentialDelegationRequest)] returns (\emph{status}, \emph{ID})
     
-    This interface is use to pass the user's limited credentials to the system in order to access the \emph{third-party} store for methods like \emph{get}, \emph{put} and \emph{list}. For listing files and directories, \emph{gateway} uses the user credential, whereas in the \emph{get} and \emph{put} methods system only uses the credentials to check the validity of the URLs before sending it to the user. 
-
-    From the client side \emph{createDelegation()} is called which interns initiate the \emph{CredentialDelegationInitRequest} for the service. After the successful handshake this method initiates an other request of \emph{UpdateCredentials( )}, which completes this process. Response from this interface could be \emph{done}, \emph{cannot delegate credentials, requested bartender does not supports the gateway}
+    From the client side \emph{createDelegation()} is called which interns initiate the \emph{CredentialDelegationInitRequest} for the service. After the successful handshake this method initiates an other request of \emph{UpdateCredentials(..)}, which completes this process. For complete details see ARC-Security-Document. Response from this interface could be \emph{done}, \emph{cannot delegate credentials, requested bartender does not supports the gateway}
 
     \item[RemoveCredentials(RemoveCredentialRequest)] returns (\emph{message}, \emph{status})
 
@@ -1005,10 +1001,9 @@ The high-level authorization is done by the Bartender. It makes decisions based 
 
 For managing collections the Bartender needs only to communicate with a Librarian service, for managing files it needs to communicate with Shepherd services as well. When a Bartender wants to create a new replica of a file (or the first replica of a new file) it should find available Shepherd services. Fortunately the Librarian has a list of registered Shepherd services, so the Bartender can use that.
 
-TODO: The Bartender can utilize gateway modules for accessing file listings and transfer URL on third-party storages. Curretly we have one implementation of a gateway module [...] A gateway module should provide these methods: [...] 
+The Bartender can utilize gateway modules for accessing file listings and transfer URL from third-party storages. It works as an optional backend component of the Bartender service. \emph{Gateway} module is based on four basic methods \emph{get}, \emph{put}, \emph{list} and \emph{remove}. Since the task is to contact external store, which requires user to delegate the credentials so that it can communicate on behelf of the user.     
 
-TODO: a few sentences about the proxy delegation.
-
+In order to access the \emph{files} and \emph{directories} from the external storage system, limited user credentials are passed to the \emph{Bartender} service.  Users can also remove their \emph{credentials} from the service side. These credentials are used in the methods like \emph{get}, \emph{put}, \emph{remove} and \emph{list} of the \emph{Gateway} module. These limited credentials are not used in any type of transfer, while listing files/directories, \emph{Gateway} uses the user credential, whereas in the \emph{get} and \emph{put} methods, it only uses the credentials to check the validity of the URL(s) before sending it to the user.
 % subsection implementation (end)
 
 \subsection{Configuration} % (fold)
