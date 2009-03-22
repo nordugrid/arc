@@ -1,80 +1,23 @@
 \chapter{The Echo Web Service}
 
-The next service presented is the Echo Web Service.
+The Echo Web Service was already presented in the introduction, 
+basically as the ground truth to learn if the installation of
+the HED is functional. And it was frequently referenced in the previous chapter
+on WSDL. In this section, we will implement our own version of the Echo
+Web Service.
+
 Its task is to return the content of the received message back to the client.
-Furthermore, the service provides two additional operations called ``ordinary'' and ``reverse''.
-Depending on the operation chosen by the client, the message gets returned unmodified or reversed.
-The goal of this chapter is to offer a deeper knowledge about message processing.
-Also, the \textit{WSDL} (Web Services Description Language) will be introduced, with which the section now starts.
+As a special feature that we introduce solely for educatory purposes, the
+service provides two additional operations called ``ordinary'' and ``reverse''.
+Depending on the operation chosen by the client, the message gets returned
+unmodified or reversed. The goal of this chapter is to deepen the knowledge
+on message processing.
 
-\section{Web Services Description Language}
+The WSDL file that specifies the here presented Echo Web Service is shown in
+Listing~\ref{lst:echo_wsdl}.
 
-Web Services can be specified (not implemented) by a meta language called \textit{WSDL} (Web Services Description Language).
-Beside the description of the service, WSDL renders the possibility that services can be discovered by service brokers.
-The discovery of services may be useful for an automatic adaption of a running client, i.e. if the endpoint of the service changes or to share the load of demands.
-The WSDL service specification enables a foreign programmer to implement a suitable client which interfaces the service in a proper way.
-WSDL describes the structure of the messages, the intended use of the messages, the supported protocols and the endpoint of the service (URL).
-\task{For that last reason, every instance of a service must be produced a distinct WSDL file for - or - it is automatically prepared from the information that the server has available once it is implemented. - ??MG }\\
 
-The WSDL file that specifies the here presented Echo Web Service is shown in Listing~\ref{lst:echo_wsdl}. 
-It is composed of five main elements:
-\newcommand{\parboxWidth}{13cm}
-\begin{itemize}
-	\item \textbf{Types} --- The element \textit{types} contains the description of the message structures and is written in the language XSD (XML Schema Definition). The data types used for the messages of the Echo Web Service are defined starting with the  line~\ref{lst_code:echo_wsdl_types}.
-
-	\item \textbf{Message} --- Within the element \textit{message} a subset of the previously defined types are assigned to be a message. In case of the Echo Web Service  two messages are designated: echoRequest and echoResponse, compare lines line~\ref{lst_code:echo_wsdl_message1} and \ref{lst_code:echo_wsdl_message2}.
-
-	\item \textbf{Port type} --- The element \textit{portType} is used to assign the messages to an interface. Four interface types can be distinguished: One-way (input), request-response (input, output), solicit-response (input, output, fault) and notification (output).
-	The Echo Web Service realises a solicit-response interface which is declared subsequent to line~\ref{lst_code:echo_wsdl_portType}. % in the lines followed by the line X
-
-	\item \textbf{Binding} --- The protocol and the data format used for the message transmission are denoted in the element \textit{binding}. Possible style attributes are \textit{document} or \textit{rpc} (Remote Procedure Call). The transport attribute defines the protocol which is regularly HTTP. For each operation a corresponding SOAP action has to be defined which assignes a messages to be either \textit{literal} or \textit{encoded}~\cite{BUTEK_2009}. The service implemented in this chapter will use the binding \textit{document}/\textit{literal} and the protocol HTTP which is to be seen in the lines follow line~\ref{lst_code:echo_wsdl_binding}.
-
-% The style attribute can be "rpc" or "document". In this case we use document. The transport attribute defines the SOAP protocol to use. In this case we use HTTP.
-%The operation element defines each operation that the port exposes.
-%For each operation the corresponding SOAP action has to be defined. You must also specify how the input and output are encoded. In this case we use "literal".
-%  http://www.ibm.com/developerworks/webservices/library/ws-whichwsdl/
-%   1. RPC/encoded    (Remote Procedure Call)
-%   2. RPC/literal
-%   3. Document/encoded
-%   4. Document/literal
-% The terminology here is very unfortunate: RPC versus document. These terms imply that the RPC style should be used for RPC programming models and that the document style should be used for document or messaging programming models. That is not the case at all. The style has nothing to do with a programming model. It merely dictates how to translate a WSDL binding to a SOAP message. Nothing more. You can use either style with any programming model.
-%
-% RPC/literal SOAP message for myMethod
-%
-%<soap:envelope>
-%    <soap:body>
-%        <myMethod>
-%            <x>5</x>
-%            <y>5.0</y>
-%        </myMethod>
-%    </soap:body>
-%</soap:envelope>
-%
-%  RPC/encoded SOAP message for myMethod
-% 
-% <soap:envelope>
-%     <soap:body>
-%         <myMethod>
-%             <x xsi:type="xsd:int">5</x>
-%             <y xsi:type="xsd:float">5.0</y>
-%         </myMethod>
-%     </soap:body>
-% </soap:envelope>
-
-	\item \textbf{Service} --- Within the last WSDL element \textit{service} the endpoint of the service gets specified. As to be seen in line~\ref{lst_code:echo_wsdl_service} the endpoint of the Echo Web Service  is assigned to \textit{http://localhost:60000/echo}.
-
-\end{itemize}
-%\textcolor{white}{newline}
-\lstsetJUSTXML
-\lstinputlisting
-	[
-	label=lst:echo_wsdl,
-	caption={[WSDL file describing the echo service. Filename: echo.wsdl]
-	\textbf{WSDL file describing the echo service. Filename: echo.wsdl}}
-	]
-{../src/services/echoservice/echo.wsdl}
-\task{TODO: Validate the WSDL Listing}
-
+% moved WSDL description into separate Chapter. See folder tex_wsdl.
 
 \subsection{The SOAP Fault Message}
 

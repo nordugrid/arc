@@ -231,6 +231,17 @@
 	}%
 }
 
+\newcommand{\lstsetECHOECLIPSEXML}{%
+\lstset{
+	escapeinside={<!--(@*}{*@)-->},  % <!--(*@\label{comment}@*)-->
+	language=XML,
+	frame=single,
+	numbers=left,
+	backgroundcolor=\color{brightyellow}
+	}%
+}
+
+
 % Sometimes latex just won't accept a line break.
 % With this command you can do it anyway! HAR HAR HAR
 \newcommand{\forcelinebreak}{
