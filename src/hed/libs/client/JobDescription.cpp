@@ -15,7 +15,7 @@
 
 namespace Arc {
 
-  Logger JobDescription::logger(Logger::getRootLogger(), "jobdescription");
+  Logger JobDescription::logger(Logger::getRootLogger(), "JobDescription");
 
   JobDescription::JobDescription()
     : FuzzyRank(false),
