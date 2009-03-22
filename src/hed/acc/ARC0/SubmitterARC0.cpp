@@ -54,7 +54,9 @@ namespace Arc {
     std::string::size_type pos1 = response.rfind('/', pos2 - 1);
     std::string jobnumber = response.substr(pos1 + 1, pos2 - pos1 - 1);
 
-    std::string jobdescstring = jobdesc.UnParse("XRSL");
+    JobDescription job(jobdesc);
+    job.QueueName = queue;
+    std::string jobdescstring = job.UnParse("XRSL");
 
     if (!ctrl.SendData(jobdescstring, "job", 500)) {
       logger.msg(ERROR, "Submit: Failed sending job description");

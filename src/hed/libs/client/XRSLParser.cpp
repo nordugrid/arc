@@ -679,7 +679,7 @@ namespace Arc {
         r.Add(new RSLCondition("executables", RSLEqual, l));
     }
 
-    if (!j.File.empty()) {
+    if (!j.File.empty() || !j.Output.empty() || !j.Error.empty()) {
       bool output(false), error(false);
       RSLList *l = NULL;
       for (std::list<FileType>::const_iterator it = j.File.begin();
