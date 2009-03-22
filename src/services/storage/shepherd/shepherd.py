@@ -18,11 +18,7 @@ from storage.client import LibrarianClient, BartenderClient
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Shepherd'))
 
-ALIVE = 'alive'
-CREATING = 'creating'
-INVALID = 'invalid'
-DELETED = 'deleted'
-THIRDWHEEL = 'thirdwheel'
+from storage.common import ALIVE, CREATING, STALLED, INVALID, DELETED, THIRDWHEEL
 
 class Shepherd:
 
@@ -60,6 +56,10 @@ class Shepherd:
         except:
             log.msg(arc.DEBUG, 'Cannot set CheckPeriod, MinCheckInterval')
             raise
+        try:
+            self.creating_timeout = float(str(cfg.Get('CreatingTimeout')))
+        except:
+            self.creating_timeout = 0
         self.changed_states = self.store.list()
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
         self.doReporting = True
@@ -151,10 +151,16 @@ class Shepherd:
             # or if the checksum is not the same - we have a corrupt file, or a not-fully-uploaded one
             if state == CREATING:
                 # if the file's local state is CREATING, that's OK, the file is still being uploaded
+                if self.creating_timeout:
+                    # but if the file is in CREATED state for a long time, then maybe something was wrong, we should change its state
+                    now = time.time()
+                    if now - float(localData.get('created', now)) > self.creating_timeout:
+                        self.changeState(referenceID, STALLED)
+                        return STALLED
                 return CREATING
-            if state == DELETED:
-                # if the file is DELETED we don't care if the checksum is wrong
-                return DELETED
+            if state in [DELETED, STALLED]:
+                # if the file is DELETED or STALLED we don't care if the checksum is wrong
+                return state
             if state != INVALID:
                 # but if it is not INVALID, not CREATING and not DELETED - so it's ALIVE: its state should be changed to INVALID
                 log.msg(arc.DEBUG, '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
@@ -241,9 +247,9 @@ class Shepherd:
                                     if not myself or myself[0] != ALIVE:
                                         # if the state of this replica is not proper in the Librarian, fix it
                                         self.changeState(referenceID, ALIVE)
-                                    # and the number of alive replicas
+                                    # and the number of alive (or creating) replicas
                                     alive_replicas = len([property for (section, property), value in metadata.items()
-                                                              if section == 'locations' and value == ALIVE])
+                                                              if section == 'locations' and value == [ALIVE, CREATING]])
                                     if alive_replicas < needed_replicas:
                                         # if the file has fewer replicas than needed
                                         log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
@@ -396,6 +402,7 @@ class Shepherd:
                         'checksumType' : requestData.get('checksumType', None),
                         'size' : size,
                         'acl': acl,
+                        'created': str(time.time()),
                         'state' : CREATING} # first it has the state: CREATING
                     try:
                         # ask the backend to initiate the transfer

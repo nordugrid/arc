@@ -13,6 +13,9 @@ from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, create_metadata, splitLN, remove_trailing_slash, global_root_guid, serialize_ids, deserialize_ids, sestore_guid, make_decision_metadata
 import traceback
 
+from storage.common import ALIVE, CREATING
+
+
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Bartender'))
 
@@ -267,11 +270,11 @@ class Bartender:
                             success = 'is not a file'
                         else:
                             # if it is a file,  then we need all the locations where it is stored and alive
-                            # this means all the metadata entries with in the 'locations' sections whose value is 'alive'
+                            # this means all the metadata entries with in the 'locations' sections whose value is ALIVE
                             # the location itself serialized from the ID of the service and the ID of the replica within the service
                             # so the location needs to be deserialized into two ID with deserialize_ids()
                             # valid_locations will contain a list if (serviceID, referenceID, state)
-                            valid_locations = [deserialize_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
+                            valid_locations = [deserialize_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == ALIVE]
                             # if this list is empty
                             if not valid_locations:
                                 success = 'file has no valid replica'
@@ -326,9 +329,9 @@ class Bartender:
             size = metadata[('states','size')]
             checksumType = metadata[('states','checksumType')]
             checksum = metadata[('states','checksum')]
-            # list of shepherds with a replica of this file (to avoid using one shepherd twice)
+            # list of shepherds with an alive or creating replica of this file (to avoid using one shepherd twice)
             exceptedSEs = [deserialize_ids(location)[0] 
-                           for (section, location), status in metadata.items() if section == 'locations']
+                           for (section, location), status in metadata.items() if section == 'locations' and status in [ALIVE, CREATING]]
             # initiate replica addition of this file with the given protocols 
             success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
             # set the response of this request

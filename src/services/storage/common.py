@@ -7,6 +7,14 @@ sestore_guid = '1'
 # a special entity where the list of A-Hashes is stored
 ahash_list_guid = '2'
 
+ALIVE = 'alive'
+CREATING = 'creating'
+STALLED = 'stalled'
+INVALID = 'invalid'
+DELETED = 'deleted'
+THIRDWHEEL = 'thirdwheel'
+OFFLINE = 'offline'
+
 common_supported_protocols = ['http', 'byteio','external']
 CHUNKSIZE = 2**20
 
@@ -20,38 +28,16 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
     elif protocol == 'external':
         return 
     elif protocol == 'http':
-        from arcom import parse_url
-        proto, host, port, path = parse_url(turl)
-        import httplib
-        if proto == 'https':
-            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
-        else:
-            h = httplib.HTTPConnection(host, port)
-        if not size:
-            size = os.path.getsize(fobj.name)
-        print 'Uploading %s bytes...' % size,
-        h.putrequest('PUT', path)
-        h.putheader('Content-Length', size)
-        h.endheaders()
-        chunk = fobj.read(CHUNKSIZE)
-        uploaded = 0
-        print '00%',
-        import time, sys
-        t = time.time()
-        while chunk:
-            sys.stdout.flush()    
-            h.send(chunk)
-            uploaded = uploaded + len(chunk)
-            if time.time() - t > 2:
-                t = time.time()
-                print '\b\b\b\b%02d%%' % (uploaded*100/size),
-            chunk = fobj.read(CHUNKSIZE)
-        print '\b\b\b\bdata sent, waiting...',
-        sys.stdout.flush()    
-        r = h.getresponse()
-        print 'done.'
-        #resp = r.read()
-        return r.status
+        import arc
+        from arcom import datapoint_from_url
+        src = datapoint_from_url(fobj.name)
+        dst = datapoint_from_url(turl)
+        dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
+            ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
+        mover = arc.DataMover()
+        mover.verbose(True)
+        status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+        return str(status)
 
 def download_from_turl(turl, protocol, fobj, ssl_config = {}):
     """docstring for download_from_turl"""
@@ -61,32 +47,16 @@ def download_from_turl(turl, protocol, fobj, ssl_config = {}):
         from storage.client import ByteIOClient
         ByteIOClient(turl, ssl_config = ssl_config).read(file = f)
     elif protocol == 'http':
-        from arcom import parse_url
-        proto, host, port, path = parse_url(turl)
-        import httplib
-        if proto == 'https':
-            h = httplib.HTTPSConnection(host, port, key_file = ssl_config.get('key_file', None), cert_file = ssl_config.get('cert_file', None))
-        else:
-            h = httplib.HTTPConnection(host, port)
-        h.request('GET', path)
-        r = h.getresponse()
-        size = int(r.getheader('Content-Length', CHUNKSIZE))
-        print 'Downloading %s bytes...' % size,
-        chunk = r.read(CHUNKSIZE)
-        downloaded = 0
-        print '00%',
-        import time, sys
-        t = time.time()
-        while chunk:
-            sys.stdout.flush()    
-            fobj.write(chunk)
-            downloaded = downloaded + len(chunk)
-            if time.time() - t > 2:
-                t = time.time()
-                print '\b\b\b\b%02d%%' % (downloaded*100/size),
-            chunk = r.read(CHUNKSIZE)
-        print '\b\b\b\bdone.'
-        return r.status
+        import arc
+        from arcom import datapoint_from_url
+        src = datapoint_from_url(turl)
+        dst = datapoint_from_url(fobj.name)
+        src.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
+            ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
+        mover = arc.DataMover()
+        mover.verbose(True)
+        status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+        return str(status)
 
 def create_checksum(file, type):
     """ Create checksum of a file.

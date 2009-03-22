@@ -12,6 +12,7 @@ from arcom.service import librarian_uri, true, false, parse_node, create_respons
 from arcom.xmltree import XMLTree
 from storage.client import AHashClient
 from storage.common import global_root_guid, sestore_guid, ahash_list_guid, parse_metadata, create_metadata, serialize_ids
+from storage.common import OFFLINE, DELETED
 import traceback
 import copy
 
@@ -120,7 +121,7 @@ class Librarian:
                     for serviceGUID, serviceID in serviceGUIDs.items():
                         filelist = filelists[serviceGUID]
                         #print 'filelist of late shepherd', serviceID, filelist
-                        changes.extend([(GUID, serviceID, referenceID, 'offline')
+                        changes.extend([(GUID, serviceID, referenceID, OFFLINE)
                             for (_, referenceID), GUID in filelist.items()])
                     change_response = self._change_states(changes)
                     for _, serviceID in serviceGUIDs.items():
@@ -139,10 +140,10 @@ class Librarian:
         with_locations = [(GUID, serialize_ids([serviceID, referenceID]), state)
             for GUID, serviceID, referenceID, state in changes]
         # we will ask the librarian for each file to modify the state of this location of this file (or add this location if it was not already there)
-        # if state == 'deleted' this location will be removed
+        # if state == DELETED this location will be removed
         # but only if the file itself exists
         change_request = dict([
-            (location, (GUID, (state != 'deleted') and 'set' or 'unset', 'locations', location, state,
+            (location, (GUID, (state != DELETED) and 'set' or 'unset', 'locations', location, state,
                 {'only if file exists' : ('is', 'entry', 'type', 'file')}))
                     for GUID, location, state in with_locations
         ])
@@ -195,8 +196,8 @@ class Librarian:
         # we want to know which files this shepherd stores, that's why we collect the GUIDs and referenceIDs of all the replicas the shepherd reports
         # we store this information in the A-Hash by the GUID of this shepherd (serviceGUID)
         # so this request asks the A-Hash to store the referenceID and GUID of this file in the section called 'file' in the A-Hash entry of the Shepherd
-        # but if the shepherd reports that a replica is 'deleted' then it will be removed from this list (unset)
-        change_request = dict([(referenceID, (serviceGUID, (state == 'deleted') and 'unset' or 'set', 'file', referenceID, GUID, {}))
+        # but if the shepherd reports that a replica is DELETED then it will be removed from this list (unset)
+        change_request = dict([(referenceID, (serviceGUID, (state == DELETED) and 'unset' or 'set', 'file', referenceID, GUID, {}))
             for GUID, referenceID, state in filelist])
         ## print 'report change_request:', change_request
         change_response = self.ahash_change(change_request)

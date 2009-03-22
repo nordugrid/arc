@@ -64,6 +64,7 @@
             <ServiceID>https://localhost:60000/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
+            <CreatingTimeout>600</CreatingTimeout>
             <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
             <StoreCfg><DataDir>/var/spool/arc/shepherd_data</DataDir></StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
