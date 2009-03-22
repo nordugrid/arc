@@ -16,6 +16,8 @@
 %}
 
 #ifdef SWIGPYTHON
+%template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
+
 namespace Arc {
 
 /* this typemap tells SWIG that we don't want to use the 'PayloadSOAP ** response' argument from the target language,
