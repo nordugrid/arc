@@ -252,6 +252,7 @@ namespace Arc {
 
     writing = true;
     buffer = &buf;
+    md5sum->start();
     chksum_index = buffer->add(md5sum);
     MCCConfig cfg;
     if (!proxyPath.empty())
@@ -345,22 +346,76 @@ namespace Arc {
     if (!transfer)
       return DataStatus::Success;
     // update checksum and size
+    buffer->wait_write();
     DataStatus ret = (*transfer)->StopWriting();
-    buffer->wait_read();
-    unsigned char *md5res = new unsigned char(16);
+    unsigned char *md5res_u = new unsigned char(16);
     unsigned int length;
-    buffer->checksum_object(chksum_index)->result(md5res, length);
+    buffer->checksum_object(chksum_index)->result(md5res_u, length);
     std::string md5str = "";
     for (int i = 0; i < length; i++) {
       char tmpChar[2];
-      sprintf(tmpChar, "%.2x", md5res[i]);
+      sprintf(tmpChar, "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
-    std::cout << "CheckSum: " << md5str << " number " << length << " valid " << (buffer->checksum_valid() ? "yes":"no") << std::endl;
-    logger.msg(Arc::INFO, "Checksum? %s", md5str);
+    std::cout << "CheckSum: " << md5str << " number " << length << " valid " << (buffer->checksum_valid(chksum_index)) << std::endl;
+    //logger.msg(Arc::INFO, "Checksum? %s", md5str);
+
+    MCCConfig cfg;
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
+
+    // get TURL from bartender
+    Arc::ClientSOAP client(cfg, bartender_url);
+    std::string xml;
+    std::stringstream out;
+    out << this->GetSize();
+    std::string size_str = out.str();
+    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    Arc::PayloadSOAP request(ns);
+    request.NewChild("bar:modify").NewChild("bar:modifyRequestList").NewChild("bar:modifyRequestElement").NewChild("bar:changeID") = "0";
+    request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:LN") = "/" + url.Path();
+    request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:changeType") = "set";
+    request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:section") = "states";
+    request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:property") = "checksum";
+    request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:value") = md5str;
+    request.GetXML(xml, true);
+    logger.msg(Arc::INFO, "Request:\n%s", xml);
+
+    Arc::PayloadSOAP *response = NULL;
+
+    Arc::MCC_Status status = client.process(&request, &response);
+
+    if (!status) {
+      logger.msg(Arc::ERROR, (std::string)status);
+      if (response)
+        delete response;
+      return DataStatus::WriteError;
+    }
+
+    if (!response) {
+      logger.msg(Arc::ERROR, "No SOAP response");
+      return DataStatus::WriteError;
+    }
+
+    response->Child().GetXML(xml, true);
+    logger.msg(Arc::INFO, "Response:\n%s", xml);
+
+    XMLNode nd = (*response).Child()["modifyResponseList"]["modifyResponseElement"];
+    nd.GetXML(xml, true);
+
+    logger.msg(Arc::INFO, "nd:\n%s", xml);
+
+    if (nd["success"] != "set")
+      return DataStatus::WriteError;
+
+    md5sum->end();
     delete transfer;
-    //md5sum->end();
-    //delete md5sum;
     transfer = NULL;
     return ret;
   }
