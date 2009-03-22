@@ -39,7 +39,7 @@ inline static int log_and_delete(Arc::LUTSClient &lc,
 {
   std::string urstr;
   urset.GetDoc(urstr,false);
-  logger.msg(Arc::VERBOSE, 
+  logger.msg(Arc::INFO, 
 	     "Logging UR set of %d URs: %s",
 	     urn, urstr.c_str()
 	     );
@@ -61,7 +61,7 @@ inline static int log_and_delete(Arc::LUTSClient &lc,
 	    {
 	      //TODO there must be a nicer way:
 	      std::string fname=logdir+"/"+(*jp)+"."+(*hp);
-	      logger.msg(Arc::VERBOSE, 
+	      logger.msg(Arc::INFO, 
 			 "Deleting %s",
 			 fname.c_str()
 			 );
@@ -109,25 +109,67 @@ int main(int argc, char **argv)
 
   //Set up client environment
 
-  //Default values:
-  std::string config_file = AREXLUTSCLIENT_DEFAULT_CONFIG_FILE;
-  std::string arex_joblog_dir = AREXLUTSCLIENT_DEFAULT_JOBLOG_DIR;
-  int max_ur_set_size = AREXLUTSCLIENT_DEFAULT_MAX_UR_SET_SIZE;
-  //First command line argument, if present, is the config file name
-  if (argc>=2)
-      config_file=argv[1];
-
-  //Values from config:
+  // First command line argument, required, is the config file name
+  if (argc<2)
+    {
+      logger.msg(Arc::FATAL, 
+		 "Configuration file path must be given in"
+		 " first command line argument!");
+      return -4;
+    }
+  std::string config_file=argv[1];
   logger.msg(Arc::VERBOSE, "Reading configuration file: %s",
 	     config_file.c_str());
   Arc::Config config(config_file.c_str());
+
+  // Default values:
+  std::string arex_joblog_dir = AREXLUTSCLIENT_DEFAULT_JOBLOG_DIR;
+  int max_ur_set_size = AREXLUTSCLIENT_DEFAULT_MAX_UR_SET_SIZE;
+  int reporting_interval = AREXLUTSCLIENT_DEFAULT_REPORTING_INTERVAL;
+
+  // Values from config:
+
   if (Arc::XMLNode lutsclientconfig=config["LutsClient"])
     {
+      Arc::XMLNode logger_node=lutsclientconfig["Logger"];
       Arc::XMLNode joblog_dir_node=lutsclientconfig["ArexLogDir"];
       Arc::XMLNode max_ur_set_size_node=lutsclientconfig["MaxURSetSize"];
+      Arc::XMLNode reporting_interval_node=
+	lutsclientconfig["ReportingInterval"];
+
+      // try logging to same file as server if no separate log file given
+      if (!logger_node) logger_node=config["Server"]["Logger"];
       
+      if (logger_node)
+	{
+	  
+	  // (stolen from hed daemon's init_logger function)
+	  Arc::LogStream* sd = NULL; 
+	  std::string log_file = (std::string)logger_node;
+	  std::string levelstr = (std::string)logger_node.Attribute("level");
+	  if(!levelstr.empty()) {
+	    Arc::LogLevel level = Arc::string_to_level(levelstr);
+	    Arc::Logger::rootLogger.setThreshold(level); 
+	  }
+	  if(!log_file.empty()) {
+	    std::fstream *dest = new std::fstream(log_file.c_str(), 
+						  std::fstream::out | 
+						  std::fstream::app
+						  );
+	    if(!(*dest)) {
+	      logger.msg(Arc::FATAL,"Failed to open log file: %s",log_file);
+	      return -5;
+	    }
+	    sd = new Arc::LogStream(*dest); 
+	  }
+	  logger.msg(Arc::VERBOSE,"Adding log destination: %s",log_file);
+	  if(sd) Arc::Logger::rootLogger.addDestination(*sd);
+	  
+	}
+
       if (joblog_dir_node)
 	arex_joblog_dir=(std::string)joblog_dir_node;
+
       if (max_ur_set_size_node)
 	{
 	  std::istringstream stream((std::string)max_ur_set_size_node);
@@ -140,11 +182,26 @@ int main(int argc, char **argv)
 	      return -3;
 	    }
 	}
+
+      if (reporting_interval_node)
+	{
+	  std::istringstream stream((std::string)reporting_interval_node);
+	  if (!(stream>>reporting_interval))
+	    {
+	      logger.msg(Arc::FATAL, 
+             "Could not parse integer value \"ReportingInterval\" in config file %s",
+			 config_file.c_str()
+			 );
+	      return -3;
+	    }
+	}
     }
   logger.msg(Arc::VERBOSE, "A-REX job log dir is: %s",
 	     arex_joblog_dir.c_str());
   logger.msg(Arc::VERBOSE, "Maximal UR Set size is: %d",
 	     max_ur_set_size);
+  logger.msg(Arc::VERBOSE, "Reporting interval is: %d s",
+	     reporting_interval);
 
   //Client for LUTS:
   Arc::LUTSClient lutsclient(config);
@@ -301,7 +358,11 @@ int main(int argc, char **argv)
     }
   
   logger.msg(Arc::INFO, 
-    "Finished logging Usage Records.");
+	     "Finished logging Usage Records,"
+	     " sleeping for %d seconds before exit.",
+	     reporting_interval);
+  sleep(reporting_interval);
+  logger.msg(Arc::INFO, "Exiting.");
   
   return 0;
 }

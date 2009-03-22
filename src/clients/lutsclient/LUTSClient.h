@@ -18,9 +18,9 @@ namespace Arc
     //Arc::URL endpoint_url;
     Arc::MCCLoader *mccloader;
     Arc::MCC* soapmcc;
-    Arc::Config config;
+    Arc::Config clientchain;
   public:
-  LUTSClient(Arc::Config &cfg):config(cfg) {}
+    LUTSClient(Arc::Config &cfg);
     Arc::MCC_Status log_urs(const std::string &urset);
   };
 }
