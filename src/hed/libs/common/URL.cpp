@@ -164,9 +164,9 @@ namespace Arc {
               if (pos3 == std::string::npos)
                 locations.push_back(URLLocation(ParseOptions("", ';'), loc));
               else
-                locations.push_back(URLLocation
-                                (ParseOptions(loc.substr(pos3 + 1), ';'),
-                                loc.substr(pos3 + 1)));
+                locations.push_back(URLLocation(ParseOptions
+                                                  (loc.substr(pos3 + 1), ';'),
+                                                loc.substr(pos3 + 1)));
             }
             else
               locations.push_back(loc);

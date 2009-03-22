@@ -22,7 +22,7 @@
 namespace Arc {
 
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
-    
+
   typedef std::vector<std::string> strv_t;
 
   UserConfig::UserConfig(const std::string& file)
@@ -43,7 +43,7 @@ namespace Arc {
       return;
     }
 
-    strv_t confdirPath (2);
+    strv_t confdirPath(2);
     confdirPath[0] = user.Home();
     confdirPath[1] = ".arc";
     confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
@@ -103,7 +103,7 @@ namespace Arc {
       return;
     }
 
-    joblistfile  = Glib::build_filename(confdir, "jobs.xml");
+    joblistfile = Glib::build_filename(confdir, "jobs.xml");
 
     if (stat(joblistfile.c_str(), &st) != 0) {
       if (errno == ENOENT) {
@@ -127,7 +127,7 @@ namespace Arc {
 
     cfg.ReadFromFile(conffile);
 
-    std::string arcclientconf = G_DIR_SEPARATOR_S +  Glib::build_filename("etc", "arcclient.xml");
+    std::string arcclientconf = G_DIR_SEPARATOR_S + Glib::build_filename("etc", "arcclient.xml");
 
     syscfg.ReadFromFile(ArcLocation::Get() + arcclientconf);
     if (!syscfg)
@@ -260,15 +260,15 @@ namespace Arc {
     else {
       logger.msg(WARNING, "Default proxy file does not exist: %s "
                  "trying default certificate and key", path);
-      if (user.get_uid() == 0){
+      if (user.get_uid() == 0) {
         strv_t hostcert(3);
         hostcert[0] = "etc";
         hostcert[1] = "grid-security";
         hostcert[2] = "hostcert.pem";
         path = G_DIR_SEPARATOR_S + Glib::build_filename(hostcert);
       }
-      else{
-        strv_t usercert (3);
+      else {
+        strv_t usercert(3);
         usercert[0] = user.Home();
         usercert[1] = ".globus";
         usercert[2] = "usercert.pem";
@@ -285,15 +285,15 @@ namespace Arc {
       logger.msg(INFO, "Using certificate file: %s", path);
       ccfg.NewChild("CertificatePath") = path;
 
-      if (user.get_uid() == 0){
-        strv_t hostkey (3);
+      if (user.get_uid() == 0) {
+        strv_t hostkey(3);
         hostkey[0] = "etc";
         hostkey[1] = "grid-security";
         hostkey[2] = "hostkey.pem";
         path = G_DIR_SEPARATOR_S + Glib::build_filename(hostkey);
       }
-      else{
-        strv_t userkey (3);
+      else {
+        strv_t userkey(3);
         userkey[0] = user.Home();
         userkey[1] = ".globus";
         userkey[2] = "userkey.pem";
@@ -347,7 +347,7 @@ namespace Arc {
       ccfg.NewChild("CACertificatesDir") = path;
     }
     else {
-      strv_t certificatesPath (3);
+      strv_t certificatesPath(3);
       certificatesPath[0] = "etc";
       certificatesPath[1] = "grid-security";
       certificatesPath[2] = "certificates";
@@ -603,18 +603,19 @@ namespace Arc {
     NS ns;
     XMLNode proxy(ns, "cred");
     if (ApplySecurity(proxy)) {
-      Credential holder((std::string )proxy["ProxyPath"], "",
-                             (std::string )proxy["CACertificatesDir"], "");
-      if ( holder.GetEndTime() >= Arc::Time() )
+      Credential holder((std::string)proxy["ProxyPath"], "",
+                        (std::string)proxy["CACertificatesDir"], "");
+      if (holder.GetEndTime() >= Arc::Time())
         logger.msg(INFO, "Valid proxy found");
       else {
         logger.msg(ERROR, "Proxy expired");
         return false;
       }
-    } else {
+    }
+    else {
       logger.msg(ERROR, "No proxy found ");
       return false;
-    }    
+    }
     return true;
   }
 } // namespace Arc

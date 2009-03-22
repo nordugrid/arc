@@ -647,9 +647,9 @@ namespace Arc {
           delete inbuf;
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
-            (transfer_info.code == 504)) {
-          if ((++retries) <= 10) continue;
-        }
+            (transfer_info.code == 504))
+          if ((++retries) <= 10)
+            continue;
         transfer_failure = true;
         break;
       }
@@ -779,9 +779,9 @@ namespace Arc {
         point.buffer->is_notwritten(transfer_handle);
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
-            (transfer_info.code == 504)) {
-          if ((++retries) <= 10) continue;
-        }
+            (transfer_info.code == 504))
+          if ((++retries) <= 10)
+            continue;
         transfer_failure = true;
         break;
       }

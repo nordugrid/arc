@@ -1,22 +1,29 @@
 // -*- indent-tabs-mode: nil -*-
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <list>
 #include <string>
 #include <vector>
-#include <list>
-#include <sstream>
-#include <time.h>
+
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
-#include <arc/client/JobInnerRepresentation.h>
 #include <arc/Logger.h>
 
 #include "JDLParser.h"
 
 namespace Arc {
 
+  JDLParser::JDLParser()
+    : JobDescriptionParser() {}
 
-  bool JDLParser::splitJDL(std::string original_string, std::vector<std::string>& lines) const {
+  JDLParser::~JDLParser() {}
+
+  bool JDLParser::splitJDL(const std::string& original_string,
+                           std::vector<std::string>& lines) const {
 
     // Clear the return variable
     lines.clear();
@@ -62,7 +69,7 @@ namespace Arc {
     return true;
   }
 
-  std::string JDLParser::simpleJDLvalue(std::string attributeValue) const {
+  std::string JDLParser::simpleJDLvalue(const std::string& attributeValue) const {
     std::string whitespaces(" \t\f\v\n\r");
     unsigned long last_pos = attributeValue.find_last_of("\"");
     // If the text is not between quotation marks, then return with the original form
@@ -73,8 +80,8 @@ namespace Arc {
       return attributeValue.substr(attributeValue.find_first_of("\"") + 1, last_pos - attributeValue.find_first_of("\"") - 1);
   }
 
-  std::vector<std::string> JDLParser::listJDLvalue(std::string attributeValue) const {
-    std::vector<std::string> elements;
+  std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue) const {
+    std::list<std::string> elements;
     unsigned long first_bracket = attributeValue.find_first_of("{");
     if (first_bracket == std::string::npos) {
       elements.push_back(simpleJDLvalue(attributeValue));
@@ -85,67 +92,72 @@ namespace Arc {
       elements.push_back(simpleJDLvalue(attributeValue));
       return elements;
     }
-    attributeValue = attributeValue.substr(first_bracket + 1, last_bracket - first_bracket - 1);
     std::vector<std::string> listElements;
-    tokenize(attributeValue, listElements, ",");
-    for (std::vector<std::string>::const_iterator it = listElements.begin(); it < listElements.end(); it++)
+    tokenize(attributeValue.substr(first_bracket + 1,
+                                   last_bracket - first_bracket - 1),
+             listElements, ",");
+    for (std::vector<std::string>::const_iterator it = listElements.begin();
+         it != listElements.end(); it++)
       elements.push_back(simpleJDLvalue(*it));
     return elements;
   }
 
-  bool JDLParser::handleJDLattribute(std::string attributeName, std::string attributeValue, Arc::JobInnerRepresentation& innerRepresentation) const {
-
+  bool JDLParser::handleJDLattribute(const std::string& attributeName_,
+                                     const std::string& attributeValue,
+                                     JobDescription& job) const {
     // To do the attributes name case-insensitive do them lowercase and remove the quotiation marks
-    attributeName = lower(attributeName);
+    std::string attributeName = lower(attributeName_);
     if (attributeName == "type") {
       std::string value = lower(simpleJDLvalue(attributeValue));
       if (value == "job")
         return true;
       if (value == "dag") {
         logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
-        return false;         // This kind of JDL decriptor is not supported yet
+        return false;  // This kind of JDL decriptor is not supported yet
       }
       if (value == "collection") {
         logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
-        return false;         // This kind of JDL decriptor is not supported yet
+        return false;  // This kind of JDL decriptor is not supported yet
       }
       logger.msg(DEBUG, "[JDLParser] Attribute name: %s, has unknown value: %s", attributeName, value);
-      return false;       // Unknown attribute value - error
+      return false;    // Unknown attribute value - error
     }
     else if (attributeName == "jobtype")
-      return true;       // Skip this attribute
+      return true;     // Skip this attribute
     else if (attributeName == "executable") {
-      innerRepresentation.Executable = simpleJDLvalue(attributeValue);
+      job.Executable = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "arguments") {
       std::string value = simpleJDLvalue(attributeValue);
       std::vector<std::string> parts;
       tokenize(value, parts);
-      for (std::vector<std::string>::const_iterator it = parts.begin(); it < parts.end(); it++)
-        innerRepresentation.Argument.push_back((*it));
+      for (std::vector<std::string>::const_iterator it = parts.begin();
+           it != parts.end(); it++)
+        job.Argument.push_back((*it));
       return true;
     }
     else if (attributeName == "stdinput") {
-      innerRepresentation.Input = simpleJDLvalue(attributeValue);
+      job.Input = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "stdoutput") {
-      innerRepresentation.Output = simpleJDLvalue(attributeValue);
+      job.Output = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "stderror") {
-      innerRepresentation.Error = simpleJDLvalue(attributeValue);
+      job.Error = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "inputsandbox") {
-      std::vector<std::string> inputfiles = listJDLvalue(attributeValue);
-      for (std::vector<std::string>::const_iterator it = inputfiles.begin(); it < inputfiles.end(); it++) {
-        Arc::FileType file;
+      std::list<std::string> inputfiles = listJDLvalue(attributeValue);
+      for (std::list<std::string>::const_iterator it = inputfiles.begin();
+           it != inputfiles.end(); it++) {
+        FileType file;
         std::vector<std::string> parts;
-        tokenize((*it), parts, "/");
+        tokenize(*it, parts, "/");
         file.Name = parts.back();
-        Arc::SourceType source;
+        SourceType source;
         source.URI = *it;
         source.Threads = -1;
         file.Source.push_back(source);
@@ -153,35 +165,32 @@ namespace Arc {
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
-        innerRepresentation.File.push_back(file);
+        job.File.push_back(file);
       }
       return true;
     }
     else if (attributeName == "inputsandboxbaseuri") {
-      //            innerRepresentation.JDL_elements["inputsandboxbaseuri"] = simpleJDLvalue( attributeValue );
-
-      std::list<Arc::FileType>::iterator iter;
-      for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++) {
-        std::list<Arc::SourceType>::iterator i_source;
-        for (i_source = (*iter).Source.begin(); i_source != (*iter).Source.end(); i_source++)
-          if ((*i_source).URI.Host() == "")
-            (*i_source).URI.ChangeHost(simpleJDLvalue(attributeValue));
-      }
-      std::list<Arc::DirectoryType>::iterator iter_d;
-      for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++) {
-        std::list<Arc::SourceType>::iterator i_source;
-        for (i_source = (*iter).Source.begin(); i_source != (*iter).Source.end(); i_source++)
-          if ((*i_source).URI.Host() == "")
-            (*i_source).URI.ChangeHost(simpleJDLvalue(attributeValue));
-      }
+      for (std::list<FileType>::iterator it = job.File.begin();
+           it != job.File.end(); it++)
+        for (std::list<SourceType>::iterator sit = it->Source.begin();
+             sit != it->Source.end(); sit++)
+          if (!sit->URI)
+            sit->URI = simpleJDLvalue(attributeValue);
+      for (std::list<DirectoryType>::iterator it = job.Directory.begin();
+           it != job.Directory.end(); it++)
+        for (std::list<SourceType>::iterator sit = it->Source.begin();
+             sit != it->Source.end(); sit++)
+          if (!sit->URI)
+            sit->URI = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "outputsandbox") {
-      std::vector<std::string> inputfiles = listJDLvalue(attributeValue);
-      for (std::vector<std::string>::const_iterator it = inputfiles.begin(); it < inputfiles.end(); it++) {
-        Arc::FileType file;
-        file.Name = (*it);
-        Arc::TargetType target;
+      std::list<std::string> outputfiles = listJDLvalue(attributeValue);
+      for (std::list<std::string>::const_iterator it = outputfiles.begin();
+           it != outputfiles.end(); it++) {
+        FileType file;
+        file.Name = *it;
+        TargetType target;
         target.URI = *it;
         target.Threads = -1;
         target.Mandatory = false;
@@ -191,107 +200,99 @@ namespace Arc {
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
-        innerRepresentation.File.push_back(file);
+        job.File.push_back(file);
       }
       return true;
     }
     else if (attributeName == "outputsandboxdesturi") {
-      std::vector<std::string> value = listJDLvalue(attributeValue);
-      int i = 0;
-      for (std::list<Arc::FileType>::iterator it = innerRepresentation.File.begin();
-           it != innerRepresentation.File.end(); it++)
-        if (!(*it).Target.empty()) {
-          if (i < value.size()) {
-            (*it).Target.begin()->URI = value[i];
+      std::list<std::string> value = listJDLvalue(attributeValue);
+      std::list<std::string>::iterator i = value.begin();
+      for (std::list<FileType>::iterator it = job.File.begin();
+           it != job.File.end(); it++)
+        if (!it->Target.empty()) {
+          if (i != value.end()) {
+            it->Target.begin()->URI = *i;
             i++;
           }
           else {
-            logger.msg(DEBUG, "Not enought outputsandboxdesturi element!");
+            logger.msg(DEBUG, "Not enough outputsandboxdesturi element!");
             return false;
           }
-
         }
       return true;
     }
     else if (attributeName == "outputsandboxbaseuri") {
-      //            innerRepresentation.JDL_elements["outputsandboxbaseuri"] = simpleJDLvalue( attributeValue );
-
-      std::list<Arc::FileType>::iterator iter;
-      for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++) {
-        std::list<Arc::TargetType>::iterator i_target;
-        for (i_target = (*iter).Target.begin(); i_target != (*iter).Target.end(); i_target++)
-          if ((*i_target).URI.Host() == "")
-            (*i_target).URI.ChangeHost(simpleJDLvalue(attributeValue));
-      }
-      std::list<Arc::DirectoryType>::iterator iter_d;
-      for (iter_d = innerRepresentation.Directory.begin(); iter_d != innerRepresentation.Directory.end(); iter_d++) {
-        std::list<Arc::TargetType>::iterator i_target;
-        for (i_target = (*iter).Target.begin(); i_target != (*iter).Target.end(); i_target++)
-          if ((*i_target).URI.Host() == "")
-            (*i_target).URI.ChangeHost(simpleJDLvalue(attributeValue));
-      }
+      for (std::list<FileType>::iterator it = job.File.begin();
+           it != job.File.end(); it++)
+        for (std::list<TargetType>::iterator tit = it->Target.begin();
+             tit != it->Target.end(); tit++)
+          if (!tit->URI)
+            tit->URI = simpleJDLvalue(attributeValue);
+      for (std::list<DirectoryType>::iterator it = job.Directory.begin();
+           it != job.Directory.end(); it++)
+        for (std::list<TargetType>::iterator tit = it->Target.begin();
+             tit != it->Target.end(); tit++)
+          if (!tit->URI)
+            tit->URI = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "batchsystem") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["BatchSystem"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["BatchSystem"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "prologue") {
-      innerRepresentation.Prologue.Name = simpleJDLvalue(attributeValue);
+      job.Prologue.Name = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "prologuearguments") {
       std::string value = simpleJDLvalue(attributeValue);
       std::vector<std::string> parts;
       tokenize(value, parts);
-      for (std::vector<std::string>::const_iterator it = parts.begin(); it < parts.end(); it++)
-        innerRepresentation.Prologue.Arguments.push_back(*it);
+      for (std::vector<std::string>::const_iterator it = parts.begin();
+           it != parts.end(); it++)
+        job.Prologue.Arguments.push_back(*it);
       return true;
     }
     else if (attributeName == "epilogue") {
-      innerRepresentation.Epilogue.Name = simpleJDLvalue(attributeValue);
+      job.Epilogue.Name = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "epiloguearguments") {
       std::string value = simpleJDLvalue(attributeValue);
       std::vector<std::string> parts;
       tokenize(value, parts);
-      for (std::vector<std::string>::const_iterator it = parts.begin(); it < parts.end(); it++)
-        innerRepresentation.Epilogue.Arguments.push_back(*it);
+      for (std::vector<std::string>::const_iterator it = parts.begin();
+           it != parts.end(); it++)
+        job.Epilogue.Arguments.push_back(*it);
       return true;
     }
     else if (attributeName == "allowzippedisb") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["AllowZippedISB"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["AllowZippedISB"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "zippedisb") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["ZippedISB"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["ZippedISB"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "expirytime") {
-      int lifeTimeSeconds = atoi(simpleJDLvalue(attributeValue).c_str());
-      int nowSeconds = time(NULL);
-      std::stringstream ss;
-      ss << lifeTimeSeconds - nowSeconds;
-      ss >> attributeValue;
-
-      Period time(attributeValue);
-      innerRepresentation.SessionLifeTime = time;
+      Time expirytime = stringtol(simpleJDLvalue(attributeValue));
+      Time now = Time();
+      job.SessionLifeTime = expirytime - now;
       return true;
     }
     else if (attributeName == "environment") {
-      std::vector<std::string> variables = listJDLvalue(attributeValue);
-
-      for (std::vector<std::string>::const_iterator it = variables.begin(); it < variables.end(); it++) {
-        unsigned long equal_pos = (*it).find_first_of("=");
+      std::list<std::string> variables = listJDLvalue(attributeValue);
+      for (std::list<std::string>::const_iterator it = variables.begin();
+           it != variables.end(); it++) {
+        std::string::size_type equal_pos = it->find('=');
         if (equal_pos != std::string::npos) {
-          Arc::EnvironmentType env;
-          env.name_attribute = (*it).substr(0, equal_pos);
-          env.value = (*it).substr(equal_pos + 1, std::string::npos);
-          innerRepresentation.Environment.push_back(env);
+          EnvironmentType env;
+          env.name_attribute = it->substr(0, equal_pos);
+          env.value = it->substr(equal_pos + 1);
+          job.Environment.push_back(env);
         }
         else {
           logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
@@ -302,17 +303,17 @@ namespace Arc {
     }
     else if (attributeName == "perusalfileenable") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["PerusalFileEnable"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["PerusalFileEnable"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "perusaltimeinterval") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["PerusalTimeInterval"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["PerusalTimeInterval"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "perusalfilesdesturi") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["PerusalFilesDestURI"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["PerusalFilesDestURI"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "inputdata")
@@ -333,60 +334,60 @@ namespace Arc {
       return true;
     else if (attributeName == "datarequirements") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["DataRequirements"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["DataRequirements"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "dataaccessprotocol") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["DataAccessProtocol"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["DataAccessProtocol"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "virtualorganisation") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["VirtualOrganisation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["VirtualOrganisation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "queuename") {
-      innerRepresentation.QueueName = simpleJDLvalue(attributeValue);
+      job.QueueName = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "retrycount") {
-      int count = atoi(simpleJDLvalue(attributeValue).c_str());
-      if (innerRepresentation.LRMSReRun > count)
-        count = innerRepresentation.LRMSReRun;
-      innerRepresentation.LRMSReRun = count;
+      int count = stringtoi(simpleJDLvalue(attributeValue));
+      if (job.LRMSReRun > count)
+        count = job.LRMSReRun;
+      job.LRMSReRun = count;
       return true;
     }
     else if (attributeName == "shallowretrycount") {
-      int count = atoi(simpleJDLvalue(attributeValue).c_str());
-      if (innerRepresentation.LRMSReRun > count)
-        count = innerRepresentation.LRMSReRun;
-      innerRepresentation.LRMSReRun = count;
+      int count = stringtoi(simpleJDLvalue(attributeValue));
+      if (job.LRMSReRun > count)
+        count = job.LRMSReRun;
+      job.LRMSReRun = count;
       return true;
     }
     else if (attributeName == "lbaddress") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["LBAddress"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["LBAddress"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "myproxyserver") {
-      Arc::URL url(simpleJDLvalue(attributeValue));
-      innerRepresentation.CredentialService = url;
+      URL url(simpleJDLvalue(attributeValue));
+      job.CredentialService = url;
       return true;
     }
     else if (attributeName == "hlrlocation") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["HLRLocation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["HLRLocation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "jobprovenance") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["JobProvenance"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["JobProvenance"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "nodenumber") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["NodeNumber"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["NodeNumber"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "jobsteps")
@@ -403,62 +404,62 @@ namespace Arc {
       return true;
     else if (attributeName == "listenerport") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["ListenerPort"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["ListenerPort"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "listenerhost") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["ListenerHost"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["ListenerHost"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "listenerpipename") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["ListenerPipeName"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["ListenerPipeName"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "requirements") {
       // It's too complicated to determinize the right conditions, because the definition language is
       // LRMS specific.
       // Only store it.
-      innerRepresentation.JDL_elements["Requirements"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["Requirements"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "rank") {
-      innerRepresentation.Rank = simpleJDLvalue(attributeValue);
+      job.Rank = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "fuzzyrank") {
       bool fuzzyrank = false;
-      if (Arc::upper(simpleJDLvalue(attributeValue)) == "TRUE")
+      if (upper(simpleJDLvalue(attributeValue)) == "TRUE")
         fuzzyrank = true;
-      innerRepresentation.FuzzyRank = fuzzyrank;
+      job.FuzzyRank = fuzzyrank;
       return true;
     }
     else if (attributeName == "usertags") {
       // They have no standard and no meaning.
-      innerRepresentation.UserTag.push_back(simpleJDLvalue(attributeValue));
+      job.UserTag.push_back(simpleJDLvalue(attributeValue));
       return true;
     }
     else if (attributeName == "outputse") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["OutputSE"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JDL_elements["OutputSE"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "shortdeadlinejob") {
       // Not supported yet, only store it
-      innerRepresentation.JDL_elements["ShortDeadlineJob"] = simpleJDLvalue(attributeValue);
+      job.JDL_elements["ShortDeadlineJob"] = simpleJDLvalue(attributeValue);
       return true;
     }
     logger.msg(DEBUG, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
     return false;
   }
 
-  bool JDLParser::parse(Arc::JobInnerRepresentation& innerRepresentation, const std::string source) {
+  JobDescription JDLParser::Parse(const std::string& source) const {
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
     if (first == std::string::npos || last == std::string::npos) {
       logger.msg(DEBUG, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
-      return false;
+      return JobDescription();
     }
     std::string input_text = source.substr(first + 1, last - first - 1);
 
@@ -487,12 +488,14 @@ namespace Arc {
 
     if (!splitJDL(wcpy, lines)) {
       logger.msg(DEBUG, "[JDLParser] Syntax error found during the split function.");
-      return false;
+      return JobDescription();
     }
     if (lines.size() <= 0) {
       logger.msg(DEBUG, "[JDLParser] Lines count is zero or other funny error has occurred.");
-      return false;
+      return JobDescription();
     }
+
+    JobDescription job;
 
     for (unsigned long i = 0; i < lines.size(); i++) {
       unsigned long equal_pos = lines[i].find_first_of("=");
@@ -501,27 +504,28 @@ namespace Arc {
           continue;
         else {
           logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
-          return false;
+          return JobDescription();
         }
       }
-      if (!handleJDLattribute(trim(lines[i].substr(0, equal_pos)), trim(lines[i].substr(equal_pos + 1, std::string::npos)), innerRepresentation))
-        return false;
+      if (!handleJDLattribute(trim(lines[i].substr(0, equal_pos)), trim(lines[i].substr(equal_pos + 1, std::string::npos)), job))
+        return JobDescription();
     }
-    return true;
+    return job;
   }
 
-  bool JDLParser::getProduct(const Arc::JobInnerRepresentation& innerRepresentation, std::string& product) const {
+  std::string JDLParser::UnParse(const JobDescription& job) const {
+    std::string product;
     product = "[\n  Type = \"job\";\n";
-    if (!innerRepresentation.Executable.empty()) {
+    if (!job.Executable.empty()) {
       product += "  Executable = \"";
-      product += innerRepresentation.Executable;
+      product += job.Executable;
       product += "\";\n";
     }
-    if (!innerRepresentation.Argument.empty()) {
+    if (!job.Argument.empty()) {
       product += "  Arguments = \"";
       bool first = true;
-      for (std::list<std::string>::const_iterator it = innerRepresentation.Argument.begin();
-           it != innerRepresentation.Argument.end(); it++) {
+      for (std::list<std::string>::const_iterator it = job.Argument.begin();
+           it != job.Argument.end(); it++) {
         if (!first)
           product += " ";
         else
@@ -530,27 +534,27 @@ namespace Arc {
       }
       product += "\";\n";
     }
-    if (!innerRepresentation.Input.empty()) {
+    if (!job.Input.empty()) {
       product += "  StdInput = \"";
-      product += innerRepresentation.Input;
+      product += job.Input;
       product += "\";\n";
     }
-    if (!innerRepresentation.Output.empty()) {
+    if (!job.Output.empty()) {
       product += "  StdOutput = \"";
-      product += innerRepresentation.Output;
+      product += job.Output;
       product += "\";\n";
     }
-    if (!innerRepresentation.Error.empty()) {
+    if (!job.Error.empty()) {
       product += "  StdError = \"";
-      product += innerRepresentation.Error;
+      product += job.Error;
       product += "\";\n";
     }
-    if (!innerRepresentation.Environment.empty()) {
+    if (!job.Environment.empty()) {
       product += "  Environment = {\n";
-      for (std::list<Arc::EnvironmentType>::const_iterator it = innerRepresentation.Environment.begin();
-           it != innerRepresentation.Environment.end(); it++) {
+      for (std::list<EnvironmentType>::const_iterator it = job.Environment.begin();
+           it != job.Environment.end(); it++) {
         product += "    \"" + (*it).name_attribute + "=" + (*it).value + "\"";
-        if (it++ != innerRepresentation.Environment.end()) {
+        if (it++ != job.Environment.end()) {
           product += ",";
           it--;
         }
@@ -558,16 +562,16 @@ namespace Arc {
       }
       product += "    };\n";
     }
-    if (!innerRepresentation.Prologue.Name.empty()) {
+    if (!job.Prologue.Name.empty()) {
       product += "  Prologue = \"";
-      product += innerRepresentation.Prologue.Name.empty();
+      product += job.Prologue.Name.empty();
       product += "\";\n";
     }
-    if (!innerRepresentation.Prologue.Arguments.empty()) {
+    if (!job.Prologue.Arguments.empty()) {
       product += "  PrologueArguments = \"";
       bool first = true;
-      for (std::list<std::string>::const_iterator iter = innerRepresentation.Prologue.Arguments.begin();
-           iter != innerRepresentation.Prologue.Arguments.end(); iter++) {
+      for (std::list<std::string>::const_iterator iter = job.Prologue.Arguments.begin();
+           iter != job.Prologue.Arguments.end(); iter++) {
         if (!first)
           product += " ";
         else
@@ -576,16 +580,16 @@ namespace Arc {
       }
       product += "\";\n";
     }
-    if (!innerRepresentation.Epilogue.Name.empty()) {
+    if (!job.Epilogue.Name.empty()) {
       product += "  Epilogue = \"";
-      product += innerRepresentation.Epilogue.Name;
+      product += job.Epilogue.Name;
       product += "\";\n";
     }
-    if (!innerRepresentation.Epilogue.Arguments.empty()) {
+    if (!job.Epilogue.Arguments.empty()) {
       product += "  EpilogueArguments = \"";
       bool first = true;
-      for (std::list<std::string>::const_iterator iter = innerRepresentation.Epilogue.Arguments.begin();
-           iter != innerRepresentation.Epilogue.Arguments.end(); iter++) {
+      for (std::list<std::string>::const_iterator iter = job.Epilogue.Arguments.begin();
+           iter != job.Epilogue.Arguments.end(); iter++) {
         if (!first)
           product += " ";
         else
@@ -594,21 +598,21 @@ namespace Arc {
       }
       product += "\";\n";
     }
-    if (!innerRepresentation.File.empty() ||
-        !innerRepresentation.Executable.empty() ||
-        !innerRepresentation.Input.empty()) {
+    if (!job.File.empty() ||
+        !job.Executable.empty() ||
+        !job.Input.empty()) {
 
       bool executable = false;
       bool input = false;
       bool empty = true;
       product += "  InputSandbox = {\n";
-      std::list<Arc::FileType>::const_iterator iter;
-      for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++) {
-        if ((*iter).Name == innerRepresentation.Executable)
+      std::list<FileType>::const_iterator iter;
+      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
+        if ((*iter).Name == job.Executable)
           executable = true;
-        if ((*iter).Name == innerRepresentation.Input)
+        if ((*iter).Name == job.Input)
           input = true;
-        std::list<Arc::SourceType>::const_iterator it_source;
+        std::list<SourceType>::const_iterator it_source;
         for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++) {
           if (it_source == (*iter).Source.begin() && empty)
             product += "    \"" + (*it_source).URI.fullstr() + "\"";
@@ -617,32 +621,32 @@ namespace Arc {
           empty = false;
         }
       }
-      if (!innerRepresentation.Executable.empty() && !executable) {
+      if (!job.Executable.empty() && !executable) {
         if (!empty)
           product += ",\n";
         empty = false;
-        product += "    \"" + innerRepresentation.Executable + "\"";
+        product += "    \"" + job.Executable + "\"";
       }
-      if (!innerRepresentation.Input.empty() && !input) {
+      if (!job.Input.empty() && !input) {
         if (!empty)
           product += ",\n";
         empty = false;
-        product += "    \"" + innerRepresentation.Input + "\"";
+        product += "    \"" + job.Input + "\"";
       }
       product += "\n    };\n";
     }
-    if (!innerRepresentation.File.empty() ||
-        !innerRepresentation.Error.empty() ||
-        !innerRepresentation.Output.empty()) {
+    if (!job.File.empty() ||
+        !job.Error.empty() ||
+        !job.Output.empty()) {
 
-      std::list<Arc::FileType>::const_iterator iter;
+      std::list<FileType>::const_iterator iter;
       bool first = true;
       bool error = false;
       bool output = false;
-      for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++) {
-        if ((*iter).Name == innerRepresentation.Error)
+      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
+        if ((*iter).Name == job.Error)
           error = true;
-        if ((*iter).Name == innerRepresentation.Output)
+        if ((*iter).Name == job.Output)
           output = true;
         if (!(*iter).Target.empty()) {
           if (!first)
@@ -654,41 +658,41 @@ namespace Arc {
           product += " \"" + (*iter).Name + "\"";
         }
       }
-      if (!innerRepresentation.Error.empty() && !error) {
+      if (!job.Error.empty() && !error) {
         if (first) {
           product += "  OutputSandbox = {";
           first = false;
         }
         else
           product += ", ";
-        product += " \"" + innerRepresentation.Error + "\"";
+        product += " \"" + job.Error + "\"";
       }
-      if (!innerRepresentation.Output.empty() && !output) {
+      if (!job.Output.empty() && !output) {
         if (first) {
           product += "  OutputSandbox = {";
           first = false;
         }
         else
           product += ", ";
-        product += " \"" + innerRepresentation.Output + "\"";
+        product += " \"" + job.Output + "\"";
       }
       if (!first)
         product += " };\n";
     }
-    if (!innerRepresentation.File.empty() ||
-        !innerRepresentation.Error.empty() ||
-        !innerRepresentation.Output.empty()) {
+    if (!job.File.empty() ||
+        !job.Error.empty() ||
+        !job.Output.empty()) {
 
-      std::list<Arc::FileType>::const_iterator iter;
+      std::list<FileType>::const_iterator iter;
       bool first = true;
       bool error = false;
       bool output = false;
-      for (iter = innerRepresentation.File.begin(); iter != innerRepresentation.File.end(); iter++) {
-        if ((*iter).Name == innerRepresentation.Error)
+      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
+        if ((*iter).Name == job.Error)
           error = true;
-        if ((*iter).Name == innerRepresentation.Output)
+        if ((*iter).Name == job.Output)
           output = true;
-        std::list<Arc::TargetType>::const_iterator it_target;
+        std::list<TargetType>::const_iterator it_target;
         for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++) {
           if (first)
             product += "  OutputSandboxDestURI = {\n";
@@ -707,44 +711,44 @@ namespace Arc {
           //          product += "\n";
         }
       }
-      if (!innerRepresentation.Error.empty() && !error) {
+      if (!job.Error.empty() && !error) {
         if (first) {
           product += "  OutputSandboxDestURI = {";
           first = false;
         }
         else
           product += ", \n";
-        Arc::URL errorURL("gsiftp://localhost/" + innerRepresentation.Error);
+        URL errorURL("gsiftp://localhost/" + job.Error);
         product += "    \"" + errorURL.fullstr() + "\"";
       }
-      if (!innerRepresentation.Output.empty() && !output) {
+      if (!job.Output.empty() && !output) {
         if (first) {
           product += "  OutputSandboxDestURI = {";
           first = false;
         }
         else
           product += ", \n";
-        Arc::URL outputURL("gsiftp://localhost/" + innerRepresentation.Output);
+        URL outputURL("gsiftp://localhost/" + job.Output);
         product += "    \"" + outputURL.fullstr() + "\"";
       }
       if (!first)
         product += "\n    };\n";
     }
-    if (!innerRepresentation.QueueName.empty()) {
+    if (!job.QueueName.empty()) {
       product += "  QueueName = \"";
-      product += innerRepresentation.QueueName;
+      product += job.QueueName;
       product += "\";\n";
     }
-    if (innerRepresentation.LRMSReRun > -1) {
+    if (job.LRMSReRun > -1) {
       product += "  RetryCount = \"";
       std::ostringstream oss;
-      oss << innerRepresentation.LRMSReRun;
+      oss << job.LRMSReRun;
       product += oss.str();
       product += "\";\n";
     }
-    if (innerRepresentation.SessionLifeTime != -1) {
+    if (job.SessionLifeTime != -1) {
       std::string outputValue;
-      int attValue = atoi(((std::string)innerRepresentation.SessionLifeTime).c_str());
+      int attValue = atoi(((std::string)job.SessionLifeTime).c_str());
       int nowSeconds = time(NULL);
       std::stringstream ss;
       ss << attValue + nowSeconds;
@@ -753,23 +757,23 @@ namespace Arc {
       product += outputValue;
       product += "\";\n";
     }
-    if (bool(innerRepresentation.CredentialService)) {
+    if (bool(job.CredentialService)) {
       product += "  MyProxyServer = \"";
-      product += innerRepresentation.CredentialService.fullstr();
+      product += job.CredentialService.fullstr();
       product += "\";\n";
     }
-    if (!innerRepresentation.Rank.empty()) {
+    if (!job.Rank.empty()) {
       product += "  Rank = \"";
-      product += innerRepresentation.Rank;
+      product += job.Rank;
       product += "\";\n";
     }
-    if (innerRepresentation.FuzzyRank)
+    if (job.FuzzyRank)
       product += "  FuzzyRank = true;\n";
-    if (!innerRepresentation.UserTag.empty()) {
+    if (!job.UserTag.empty()) {
       product += "  UserTag = ";
       bool first = true;
       std::list<std::string>::const_iterator iter;
-      for (iter = innerRepresentation.UserTag.begin(); iter != innerRepresentation.UserTag.end(); iter++) {
+      for (iter = job.UserTag.begin(); iter != job.UserTag.end(); iter++) {
         if (!first)
           product += ",";
         else
@@ -778,9 +782,9 @@ namespace Arc {
       }
       product += ";\n";
     }
-    if (!innerRepresentation.JDL_elements.empty()) {
+    if (!job.JDL_elements.empty()) {
       std::map<std::string, std::string>::const_iterator it;
-      for (it = innerRepresentation.JDL_elements.begin(); it != innerRepresentation.JDL_elements.end(); it++) {
+      for (it = job.JDL_elements.begin(); it != job.JDL_elements.end(); it++) {
         product += "  ";
         product += it->first;
         product += " = ";
@@ -790,7 +794,7 @@ namespace Arc {
     }
     product += "]";
 
-    return true;
+    return product;
   }
 
 } // namespace Arc

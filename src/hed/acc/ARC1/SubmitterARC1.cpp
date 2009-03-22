@@ -43,8 +43,7 @@ namespace Arc {
       cfg.AddCADir(caCertificatesDir);
     AREXClient ac(submissionEndpoint, cfg);
 
-    std::string jobdescstring;
-    jobdesc.getProduct(jobdescstring, "POSIXJSDL");
+    std::string jobdescstring = jobdesc.UnParse("POSIXJSDL");
     std::istringstream jsdlfile(jobdescstring);
 
     std::string jobid;
@@ -102,8 +101,7 @@ namespace Arc {
     std::string idstr;
     id.GetXML(idstr);
 
-    std::string jobdescstring;
-    jobdesc.getProduct(jobdescstring, "POSIXJSDL");
+    std::string jobdescstring = jobdesc.UnParse("POSIXJSDL");
 
     std::string newjobid;
     if (!ac.migrate(idstr, jobdescstring, forcemigration, newjobid, submissionEndpoint.Protocol() == "https")) {

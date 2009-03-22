@@ -196,11 +196,12 @@ int main(int argc, char *argv[]) {
     if (ca_dir.empty())
       ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
     if (ca_dir.empty()) {
-      if(user.get_uid() == 0) ca_dir = "/etc/grid-security/certificates";
+      if (user.get_uid() == 0)
+        ca_dir = "/etc/grid-security/certificates";
       else {
-        ca_dir =  user.Home() + "/.globus/certificates";
+        ca_dir = user.Home() + "/.globus/certificates";
         if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-          ca_dir =  "/etc/grid-security/certificates";
+          ca_dir = "/etc/grid-security/certificates";
       }
     }
   } catch (std::exception& err) {
@@ -263,8 +264,8 @@ int main(int argc, char *argv[]) {
   //Create proxy or voms proxy
   try {
     if (vomslist.empty()) {
-    //if there is no voms command specified, 
-    //only create proxy without voms AC extension
+      //if there is no voms command specified,
+      //only create proxy without voms AC extension
 #ifndef WIN32
       struct termios to;
       tcgetattr(STDIN_FILENO, &to);
@@ -341,14 +342,15 @@ int main(int argc, char *argv[]) {
         vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
 
       if (vomses_path.empty()) {
-        if(user.get_uid() == 0) vomses_path = "/etc/grid-security/.vomses";
+        if (user.get_uid() == 0)
+          vomses_path = "/etc/grid-security/.vomses";
         else {
           vomses_path = user.Home() + "/.vomses";
           if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
             vomses_path = "/etc/grid-security/.vomses";
             if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
               std::string tmp = user.Home() + "/.vomses";
-              logger.msg(Arc::ERROR, "Can not find vomses at %s and /etc/grid-security/.vomses",tmp.c_str());
+              logger.msg(Arc::ERROR, "Can not find vomses at %s and /etc/grid-security/.vomses", tmp.c_str());
               return EXIT_FAILURE;
             }
           }
@@ -522,22 +524,22 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  //Delegate the former self-delegated credential to 
+  //Delegate the former self-delegated credential to
   //myproxy server
-  try{
-    if(myproxy_command == "put" || myproxy_command == "PUT") {
-      //Create the message that will be 
+  try {
+    if (myproxy_command == "put" || myproxy_command == "PUT") {
+      //Create the message that will be
       //sent to myproxy server
       std::string send_msg("VERSION=MYPROXYv2\n COMMAND=1\n ");
-      if(user_name.empty())
+      if (user_name.empty())
         throw std::invalid_argument("Username to myproxy server is missing");
       send_msg.append("USERNAME=").append(user_name).append("\n ");
-      if(passphrase.empty())
+      if (passphrase.empty())
         throw std::invalid_argument("Passphrase to myproxy server is missing");
       send_msg.append("PASSPHRASE=").append(passphrase).append("\n ");
       send_msg.append("LIFETIME=43200\n");
 
-      if(myproxy_server.empty())
+      if (myproxy_server.empty())
         throw std::invalid_argument("URL of myproxy server is missing");
       std::string host;
       int port;
@@ -545,21 +547,21 @@ int main(int argc, char *argv[]) {
       if (pos == std::string::npos) {
         host = myproxy_server;
         port = 7512;
-      } 
+      }
       else {
-        host = myproxy_server.substr(0,pos);
+        host = myproxy_server.substr(0, pos);
         port = Glib::Ascii::strtod(myproxy_server.substr(pos));
       }
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
-      cfg.AddCADir(ca_dir); 
+      cfg.AddCADir(ca_dir);
       Arc::ClientTCP client(cfg, host, port, Arc::GSISec);
 
       //Send the message to myproxy server
       Arc::PayloadRaw request;
-      request.Insert(send_msg.c_str(),0,send_msg.length());
+      request.Insert(send_msg.c_str(), 0, send_msg.length());
       Arc::PayloadStreamInterface *response = NULL;
-      Arc::MCC_Status status = client.process(&request, &response,true);
+      Arc::MCC_Status status = client.process(&request, &response, true);
       if (!status) {
         logger.msg(Arc::ERROR, (std::string)status);
         if (response)
@@ -574,45 +576,48 @@ int main(int argc, char *argv[]) {
       //Parse the response message from myproxy server
       std::string ret_str;
       char ret_buf[1024];
-      memset(ret_buf,0,1024);
+      memset(ret_buf, 0, 1024);
       int len;
       do {
         len = 1024;
         response->Get(&ret_buf[0], len);
-        ret_str.append(ret_buf,len);
-        memset(ret_buf,0,1024);
-      }while(len == 1024);
+        ret_str.append(ret_buf, len);
+        memset(ret_buf, 0, 1024);
+      } while (len == 1024);
       logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str.c_str());
-      if(ret_str.find("RESPONSE=0") == std::string::npos) {
+      if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
         return EXIT_FAILURE;
       }
-    
+
       //Myproxy server will then send back another message which includes
       //the x509 certificate request in DER format
       std::string x509ret_str;
-      memset(ret_buf,0,1024);
+      memset(ret_buf, 0, 1024);
       do {
         len = 1024;
         response->Get(&ret_buf[0], len);
-        x509ret_str.append(ret_buf,len);
-        memset(ret_buf,0,1024);
-      }while(len == 1024);
+        x509ret_str.append(ret_buf, len);
+        memset(ret_buf, 0, 1024);
+      } while (len == 1024);
       logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", x509ret_str.c_str());
-      if(ret_str.find("RESPONSE=1") != std::string::npos) {
+      if (ret_str.find("RESPONSE=1") != std::string::npos) {
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
         return EXIT_FAILURE;
       }
 
-      if(response) { delete response; response = NULL; }
+      if (response) {
+        delete response;
+        response = NULL;
+      }
 
       //Sign the x509 certificate request
       Arc::Credential signer(proxy_path, "", ca_dir, "");
       Arc::Credential proxy;
       std::string signedcert, signing_cert, signing_cert_chain;
-      proxy.InquireRequest(x509ret_str,false,true);
-      if(!(signer.SignRequest(&proxy, signedcert, true))) {
+      proxy.InquireRequest(x509ret_str, false, true);
+      if (!(signer.SignRequest(&proxy, signedcert, true))) {
         logger.msg(Arc::ERROR, "Delegate proxy to myproxy server failed");
         return EXIT_FAILURE;
       }
@@ -624,21 +629,22 @@ int main(int argc, char *argv[]) {
       //Caculate the numbers of certifictes as the beginning of the message
       unsigned char number_of_certs;
       number_of_certs = signer.GetCertNumofChain() + 2;
-      BIO* bio = BIO_new(BIO_s_mem());
+      BIO *bio = BIO_new(BIO_s_mem());
       BIO_write(bio, &number_of_certs, sizeof(number_of_certs));
       std::string start;
-      for(;;) {
+      for (;;) {
         char s[256];
-        int l = BIO_read(bio,s,sizeof(s));
-        if(l <= 0) break;
-        start.append(s,l);
+        int l = BIO_read(bio, s, sizeof(s));
+        if (l <= 0)
+          break;
+        start.append(s, l);
       }
       BIO_free_all(bio);
-      signedcert.insert(0,start);
+      signedcert.insert(0, start);
 
       Arc::PayloadRaw request1;
-      request1.Insert(signedcert.c_str(),0,signedcert.length());
-      status = client.process(&request1, &response,true);
+      request1.Insert(signedcert.c_str(), 0, signedcert.length());
+      status = client.process(&request1, &response, true);
       if (!status) {
         logger.msg(Arc::ERROR, (std::string)status);
         if (response)
@@ -650,35 +656,38 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
       }
       std::string ret_str1;
-      memset(ret_buf,0,1024);
+      memset(ret_buf, 0, 1024);
       do {
         len = 1024;
         response->Get(&ret_buf[0], len);
-        ret_str1.append(ret_buf,len);
-        memset(ret_buf,0,1024);
-      }while(len == 1024);
+        ret_str1.append(ret_buf, len);
+        memset(ret_buf, 0, 1024);
+      } while (len == 1024);
       logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str1.c_str());
-      if(ret_str.find("RESPONSE=0") == std::string::npos) {
+      if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
         return EXIT_FAILURE;
       }
 
-      if(response) { delete response; response = NULL; }
-      
+      if (response) {
+        delete response;
+        response = NULL;
+      }
+
       return EXIT_SUCCESS;
     }
-    else if(myproxy_command == "get" || myproxy_command == "GET") {
+    else if (myproxy_command == "get" || myproxy_command == "GET") {
       std::string send_msg("VERSION=MYPROXYv2\n COMMAND=0\n ");
-      if(user_name.empty())
+      if (user_name.empty())
         throw std::invalid_argument("Username to myproxy server is missing");
       send_msg.append("USERNAME=").append(user_name).append("\n ");
-      if(passphrase.empty())
+      if (passphrase.empty())
         throw std::invalid_argument("Passphrase to myproxy server is missing");
       send_msg.append("PASSPHRASE=").append(passphrase).append("\n ");
       send_msg.append("LIFETIME=43200\n");
 
-      if(myproxy_server.empty())
+      if (myproxy_server.empty())
         throw std::invalid_argument("URL of myproxy server is missing");
       std::string host;
       int port;
@@ -688,7 +697,7 @@ int main(int argc, char *argv[]) {
         port = 7512;
       }
       else {
-        host = myproxy_server.substr(0,pos);
+        host = myproxy_server.substr(0, pos);
         port = Glib::Ascii::strtod(myproxy_server.substr(pos));
       }
       Arc::MCCConfig cfg;
@@ -699,9 +708,9 @@ int main(int argc, char *argv[]) {
 
       //Send the message to myproxy server
       Arc::PayloadRaw request;
-      request.Insert(send_msg.c_str(),0,send_msg.length());
+      request.Insert(send_msg.c_str(), 0, send_msg.length());
       Arc::PayloadStreamInterface *response = NULL;
-      Arc::MCC_Status status = client.process(&request, &response,true);
+      Arc::MCC_Status status = client.process(&request, &response, true);
       if (!status) {
         logger.msg(Arc::ERROR, (std::string)status);
         if (response)
@@ -716,21 +725,24 @@ int main(int argc, char *argv[]) {
       //Parse the response message from myproxy server
       std::string ret_str;
       char ret_buf[1024];
-      memset(ret_buf,0,1024);
+      memset(ret_buf, 0, 1024);
       int len;
       do {
         len = 1024;
         response->Get(&ret_buf[0], len);
-        ret_str.append(ret_buf,len);
-        memset(ret_buf,0,1024);
-      }while(len == 1024);
+        ret_str.append(ret_buf, len);
+        memset(ret_buf, 0, 1024);
+      } while (len == 1024);
       logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str.c_str());
-      if(ret_str.find("RESPONSE=0") == std::string::npos) {
+      if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
         return EXIT_FAILURE;
       }
-      if(response) { delete response; response = NULL; }
+      if (response) {
+        delete response;
+        response = NULL;
+      }
 
       //Generate a certificate request,
       //and send it to myproxy server
@@ -742,8 +754,8 @@ int main(int argc, char *argv[]) {
       x509_request.OutputPrivatekey(proxy_key_str);
 
       Arc::PayloadRaw request1;
-      request1.Insert(x509_req_str.c_str(),0,x509_req_str.length());
-      status = client.process(&request1, &response,true);
+      request1.Insert(x509_req_str.c_str(), 0, x509_req_str.length());
+      status = client.process(&request1, &response, true);
       if (!status) {
         logger.msg(Arc::ERROR, (std::string)status);
         if (response)
@@ -756,27 +768,28 @@ int main(int argc, char *argv[]) {
       }
 
       std::string ret_str1;
-      memset(ret_buf,0,1024);
+      memset(ret_buf, 0, 1024);
       do {
         len = 1024;
         response->Get(&ret_buf[0], len);
-        ret_str1.append(ret_buf,len);
-        memset(ret_buf,0,1024);
-      }while(len == 1024);
+        ret_str1.append(ret_buf, len);
+        memset(ret_buf, 0, 1024);
+      } while (len == 1024);
       logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str1.c_str());
 
       //The response includes a signed certificate
-      BIO* bio = BIO_new(BIO_s_mem());
-      BIO_write(bio,(unsigned char *)(ret_str1.c_str()),ret_str1.length());
+      BIO *bio = BIO_new(BIO_s_mem());
+      BIO_write(bio, (unsigned char*)(ret_str1.c_str()), ret_str1.length());
       unsigned char number_of_certs;
       BIO_read(bio, &number_of_certs, sizeof(number_of_certs));
-      logger.msg(Arc::VERBOSE, "There are %d certificates in the returned msg",number_of_certs);
+      logger.msg(Arc::VERBOSE, "There are %d certificates in the returned msg", number_of_certs);
       std::string proxy_cert_str;
-      for(;;) {
+      for (;;) {
         char s[256];
-        int l = BIO_read(bio,s,sizeof(s));
-        if(l <= 0) break;
-        proxy_cert_str.append(s,l);
+        int l = BIO_read(bio, s, sizeof(s));
+        if (l <= 0)
+          break;
+        proxy_cert_str.append(s, l);
       }
       BIO_free_all(bio);
 
@@ -790,7 +803,7 @@ int main(int argc, char *argv[]) {
       tmpcert_f.close();
       tmpkey_f.close();
 
-      Arc::Credential proxy_cred(tmpcert_file,tmpkey_file, ca_dir, "");
+      Arc::Credential proxy_cred(tmpcert_file, tmpkey_file, ca_dir, "");
       std::string proxy_cred_str_pem;
       std::string proxy_cred_file("proxy_cred.pem");
       std::ofstream proxy_cred_f(proxy_cred_file.c_str());
@@ -802,21 +815,24 @@ int main(int argc, char *argv[]) {
 
       //Myproxy server will then return a standard response message
       std::string ret_str2;
-      memset(ret_buf,0,1024);
+      memset(ret_buf, 0, 1024);
       do {
         len = 1024;
         response->Get(&ret_buf[0], len);
-        ret_str2.append(ret_buf,len);
-        memset(ret_buf,0,1024);
-      }while(len == 1024);
+        ret_str2.append(ret_buf, len);
+        memset(ret_buf, 0, 1024);
+      } while (len == 1024);
       logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str2.c_str());
-      if(ret_str.find("RESPONSE=0") == std::string::npos) {
+      if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
         return EXIT_FAILURE;
       }
 
-      if(response) { delete response; response = NULL; }
+      if (response) {
+        delete response;
+        response = NULL;
+      }
 
       return EXIT_SUCCESS;
     }

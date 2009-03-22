@@ -44,7 +44,7 @@ namespace Arc {
     virtual ~ACCPluginArgument() {}
     operator Config*() {
       return config;
-    };
+    }
   private:
     Config *config;
   };

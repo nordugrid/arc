@@ -58,7 +58,7 @@ namespace Arc {
     /// Returns false if pointer is NULL and true otherwise.
     operator bool(void) const {
       return (object != NULL);
-    };
+    }
     /// Returns true if pointer is NULL and false otherwise.
     bool operator!(void) const {
       return (object == NULL);
@@ -66,7 +66,7 @@ namespace Arc {
     /// Cast to original pointer
     operator T*(void) const {
       return object;
-    };
+    }
   };
 
   /// Wrapper for pointer with automatic destruction and mutiple references
@@ -143,7 +143,7 @@ namespace Arc {
     /// Returns false if pointer is NULL and true otherwise.
     operator bool(void) const {
       return ((object->ptr) != NULL);
-    };
+    }
     /// Returns true if pointer is NULL and false otherwise.
     bool operator!(void) const {
       return ((object->ptr) == NULL);
@@ -151,7 +151,7 @@ namespace Arc {
     /// Cast to original pointer
     operator T*(void) const {
       return (object->ptr);
-    };
+    }
   };
 
 

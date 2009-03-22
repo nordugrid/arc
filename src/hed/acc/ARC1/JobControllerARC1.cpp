@@ -184,21 +184,21 @@ namespace Arc {
       }
       else if (!isOutputOrError) {
         const size_t foundRSlash = ((std::string)files["Source"]["URI"]).rfind("/");
-        if (foundRSlash == std::string::npos) continue;
+        if (foundRSlash == std::string::npos)
+          continue;
 
         URL fileURI(((std::string)files["Source"]["URI"]).substr(0, foundRSlash));
         // Check if the input file URI is pointing to a old job session directory.
-        for (XMLNode oldJobID = xmlDesc["JobDescription"]["JobIdentification"]["OldJobID"]; oldJobID; ++oldJobID) {
+        for (XMLNode oldJobID = xmlDesc["JobDescription"]["JobIdentification"]["OldJobID"]; oldJobID; ++oldJobID)
           if (fileURI.str() == (std::string)oldJobID) {
             files["Source"]["URI"] = jobid.fullstr() + "/" + filename;
             break;
           }
-        }
       }
     }
 
     // Parse and set JobDescription.
-    jobDesc.setSource(xmlDesc);
+    jobDesc.Parse(xmlDesc);
 
     return true;
   }
@@ -235,8 +235,8 @@ namespace Arc {
     id.GetXML(idstr);
     if (ac.getdesc(idstr, desc_str)) {
       JobDescription desc;
-      desc.setSource(desc_str);
-      if (desc.isValid())
+      desc.Parse(desc_str);
+      if (desc)
         logger.msg(INFO, "Valid job description");
       return true;
     }

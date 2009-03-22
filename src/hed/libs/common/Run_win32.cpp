@@ -108,7 +108,6 @@ namespace Arc {
                                  &(pid_->processinfo));
 
       if (!result) {
-        ;
         std::cout << "Spawn Error: " << GetOsErrorMessage() << std::endl;
         return false;
       }

@@ -103,7 +103,7 @@ namespace Arc {
 
       XMLNodeList xmljobs = jobstorage.XPathLookup("/ArcConfig/Job", NS());
 
-      if (xmljobs.empty()){
+      if (xmljobs.empty()) {
         logger.msg(INFO, "No jobs to handle");
         return;
       }

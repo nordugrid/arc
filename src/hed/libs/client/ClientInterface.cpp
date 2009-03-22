@@ -223,7 +223,8 @@ namespace Arc {
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "tcp.client", "tcp"),
         handlercfg);
-    for(XMLNode pl = handlercfg["Plugins"];(bool)pl;++pl) AddPlugin(xmlcfg,pl["Name"]);
+    for (XMLNode pl = handlercfg["Plugins"]; (bool)pl; ++pl)
+      AddPlugin(xmlcfg, pl["Name"]);
     AddPlugin(xmlcfg, libname, libpath);
   }
 
@@ -366,7 +367,8 @@ namespace Arc {
     ClientInterface::AddSecHandler(
       ConfigFindComponent(xmlcfg["Chain"], "http.client", "http"),
       handlercfg);
-    for(XMLNode pl = handlercfg["Plugins"];(bool)pl;++pl) AddPlugin(xmlcfg,pl["Name"]);
+    for (XMLNode pl = handlercfg["Plugins"]; (bool)pl; ++pl)
+      AddPlugin(xmlcfg, pl["Name"]);
     AddPlugin(xmlcfg, libname, libpath);
   }
 
@@ -439,7 +441,8 @@ namespace Arc {
     ClientInterface::AddSecHandler(
       ConfigFindComponent(xmlcfg["Chain"], "soap.client", "soap"),
       handlercfg);
-    for(XMLNode pl = handlercfg["Plugins"];(bool)pl;++pl) AddPlugin(xmlcfg,pl["Name"]);
+    for (XMLNode pl = handlercfg["Plugins"]; (bool)pl; ++pl)
+      AddPlugin(xmlcfg, pl["Name"]);
     AddPlugin(xmlcfg, libname, libpath);
   }
 

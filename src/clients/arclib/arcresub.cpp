@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
-   
+
   if (joblist.empty())
     joblist = usercfg.JobListFile();
 
@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
        it != toberesubmitted.end(); it++) {
 
     Arc::JobDescription jobdesc;
-    jobdesc.setSource(it->JobDescription);
+    jobdesc.Parse(it->JobDescription);
     // Checking for previous OldJobIDs and adding this JobID
     for (std::list<Arc::URL>::iterator oldjob = it->OldJobIDs.begin();
          oldjob != it->OldJobIDs.end(); oldjob++)
@@ -254,25 +254,19 @@ int main(int argc, char **argv) {
         continue;
       }
 
-      //need to get the jobinnerrepresentation in order to get the number of slots
-      Arc::JobInnerRepresentation jir;
-      jobdesc.getInnerRepresentation(jir);
-
       for (std::list<Arc::ExecutionTarget>::iterator target2 = targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); target2++)
         if (target.url == (*target2).url) {
-          if ((*target2).FreeSlots >= abs(jir.Slots)) {   //The job will start directly
-            (*target2).FreeSlots -= abs(jir.Slots);
+          if ((*target2).FreeSlots >= abs(jobdesc.Slots)) {   //The job will start directly
+            (*target2).FreeSlots -= abs(jobdesc.Slots);
             if ((*target2).UsedSlots != -1)
-              (*target2).UsedSlots += abs(jir.Slots);
+              (*target2).UsedSlots += abs(jobdesc.Slots);
           }
           else                                           //The job will be queued
-          if ((*target2).WaitingJobs != -1)
-            (*target2).WaitingJobs += abs(jir.Slots);
+            if ((*target2).WaitingJobs != -1)
+              (*target2).WaitingJobs += abs(jobdesc.Slots);
         }
-      Arc::XMLNode node;
-      if (jobdesc.getXML(node))
-        if ((bool)node["JobDescription"]["JobIdentification"]["JobName"])
-          info.NewChild("Name") = (std::string)node["JobDescription"]["JobIdentification"]["JobName"];
+      if (!jobdesc.JobName.empty())
+        info.NewChild("Name") = jobdesc.JobName;
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();

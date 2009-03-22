@@ -1,5 +1,9 @@
 // -*- indent-tabs-mode: nil -*-
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>

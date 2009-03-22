@@ -67,7 +67,7 @@ namespace Arc {
     for (iter = PossibleTargets.begin(); iter != PossibleTargets.end(); iter++)
       if (iter->WaitingJobs == 0) {
         ZeroQueueCluster++;
-        TotalFreeCPUs += iter->FreeSlots / abs(jir.Slots);
+        TotalFreeCPUs += iter->FreeSlots / abs(job.Slots);
       }
 
     //If several clusters(queues) have free slots (CPUs) do basic load balancing
@@ -75,15 +75,15 @@ namespace Arc {
       for (int n = 0; n < ZeroQueueCluster - 1; n++) {
         double RandomCPU = rand() * TotalFreeCPUs;
         for (int j = n; j < ZeroQueueCluster; j++) {
-          if ((PossibleTargets[j].FreeSlots / abs(jir.Slots)) > RandomCPU) {
+          if ((PossibleTargets[j].FreeSlots / abs(job.Slots)) > RandomCPU) {
             ExecutionTarget temp = PossibleTargets[n];
             PossibleTargets[n] = PossibleTargets[j];
             PossibleTargets[j] = temp;
-            TotalFreeCPUs -= (PossibleTargets[n].FreeSlots / abs(jir.Slots));
+            TotalFreeCPUs -= (PossibleTargets[n].FreeSlots / abs(job.Slots));
             break;
           }
           else
-            RandomCPU -= (PossibleTargets[j].FreeSlots / abs(jir.Slots));
+            RandomCPU -= (PossibleTargets[j].FreeSlots / abs(job.Slots));
         }
       }
 

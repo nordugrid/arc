@@ -95,8 +95,7 @@ namespace Arc {
     // Nothing else needs to be done.
   }
 
-  bool ExpirationReminder::operator<
-                (const ExpirationReminder& other) const {
+  bool ExpirationReminder::operator<(const ExpirationReminder& other) const {
     // Smaller time has higher priority!
     return expiryTime > other.expiryTime;
   }

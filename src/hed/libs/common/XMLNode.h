@@ -110,7 +110,7 @@ namespace Arc {
     /** Returns true if instance points to XML element - valid instance */
     operator bool(void) const {
       return ((node_ != NULL) && (!is_temporary_));
-    };
+    }
     /** Returns true if instance does not point to XML element - invalid instance */
     bool operator!(void) const {
       return ((node_ == NULL) || is_temporary_);

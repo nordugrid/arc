@@ -54,14 +54,13 @@ namespace Arc {
     return true;
   }
 
-  int DataBuffer::add(CheckSum *cksum)
-  {
+  int DataBuffer::add(CheckSum *cksum) {
     checksums.push_back(checksum_desc(cksum));
     if (cksum)
       cksum->start();
-    return checksums.size()-1;
+    return checksums.size() - 1;
   }
-  
+
 
   DataBuffer::DataBuffer(unsigned int size, int blocks) {
     bufs_n = 0;
@@ -118,10 +117,10 @@ namespace Arc {
     lock.lock();
     if (eof_)
       for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-           itCheckSum != checksums.end(); itCheckSum++) {
+           itCheckSum != checksums.end(); itCheckSum++)
         if (itCheckSum->sum)
           itCheckSum->sum->end();
-      }
+
     eof_read_flag = eof_;
     cond.broadcast();
     lock.unlock();
@@ -145,10 +144,9 @@ namespace Arc {
       if (!(error_write_flag || error_transfer_flag))
         error_read_flag = true;
       for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-           itCheckSum != checksums.end(); itCheckSum++) {
+           itCheckSum != checksums.end(); itCheckSum++)
         if (itCheckSum->sum)
           itCheckSum->sum->end();
-      }
       eof_read_flag = true;
     }
     else
@@ -363,7 +361,7 @@ namespace Arc {
       eof_pos = offset + length;
     /* checksum on the fly */
     for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-         itCheckSum != checksums.end(); itCheckSum++) {
+         itCheckSum != checksums.end(); itCheckSum++)
       if ((itCheckSum->sum != NULL) && (offset == itCheckSum->offset))
         for (int i = handle; i < bufs_n; i++)
           if (bufs[i].used != 0) {
@@ -376,7 +374,6 @@ namespace Arc {
             else if (itCheckSum->offset < bufs[i].offset)
               itCheckSum->ready = false;
           }
-    }
     cond.broadcast();
     lock.unlock();
     return true;
@@ -429,13 +426,12 @@ namespace Arc {
       if (handle != -1) {
         bool keep_buffers = false;
         for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-             itCheckSum != checksums.end(); itCheckSum++) {
+             itCheckSum != checksums.end(); itCheckSum++)
           if ((!itCheckSum->ready) && (bufs[handle].offset >= itCheckSum->offset)) {
             keep_buffers = true;
             break;
           }
-        }
-        
+
         if (keep_buffers)
           /* try to keep buffers as long as possible for checksuming */
           if (have_unused && (!eof_read_flag)) {
@@ -579,18 +575,20 @@ namespace Arc {
   }
 
   bool DataBuffer::checksum_valid() const {
-    if (checksums.size() != 0) return checksums.begin()->ready;
-    else return false;
+    if (checksums.size() != 0)
+      return checksums.begin()->ready;
+    else
+      return false;
   }
-  
+
   bool DataBuffer::checksum_valid(int index) const {
-    if (index < 0) return false;
+    if (index < 0)
+      return false;
     int i = 0;
     for (std::list<checksum_desc>::const_iterator itCheckSum = checksums.begin();
          itCheckSum != checksums.end(); itCheckSum++) {
-      if (index == i) {
+      if (index == i)
         return itCheckSum->ready;
-      }
       i++;
     }
 
@@ -598,18 +596,20 @@ namespace Arc {
   }
 
   const CheckSum* DataBuffer::checksum_object() const {
-    if (checksums.size() != 0) return checksums.begin()->sum;
-    else return NULL;
+    if (checksums.size() != 0)
+      return checksums.begin()->sum;
+    else
+      return NULL;
   }
 
   const CheckSum* DataBuffer::checksum_object(int index) const {
-    if (index < 0) return NULL;
+    if (index < 0)
+      return NULL;
     int i = 0;
     for (std::list<checksum_desc>::const_iterator itCheckSum = checksums.begin();
          itCheckSum != checksums.end(); itCheckSum++) {
-      if (index == i) {
+      if (index == i)
         return itCheckSum->sum;
-      }
       i++;
     }
 

@@ -229,28 +229,18 @@ namespace Arc {
       job.JobDescription = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["JDL"];
 
       Arc::JobDescription jd;
-      if (jd.setSource(job.JobDescription) && jd.isValid()) {
-        Arc::XMLNode jd_xml;
-        //jd_xml = jd.getXML();
-        if (!jd.getXML(jd_xml)) {
-          std::cerr << "The JobDescription was empty." << std::endl;
-          return false;
-        }
-        if ((bool)(jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"]) &&
-            (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"] != "")
-          job.StdIn = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Input"];
+      if (jd.Parse(job.JobDescription) && jd) {
+        if (!jd.Input.empty())
+          job.StdIn = jd.Input;
 
-        if ((bool)(jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"]) &&
-            (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"] != "")
-          job.StdOut = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Output"];
+        if (!jd.Output.empty())
+          job.StdOut = jd.Output;
 
-        if ((bool)(jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"]) &&
-            (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"] != "")
-          job.StdErr = (std::string)jd_xml["JobDescription"]["Application"]["POSIXApplication"]["Error"];
+        if (!jd.Error.empty())
+          job.StdErr = jd.Error;
 
-        if ((bool)(jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"]) &&
-            (std::string)jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"] != "")
-          job.Queue = (std::string)jd_xml["JobDescription"]["Resources"]["CandidateTarget"]["QueueName"];
+        if (!jd.QueueName.empty())
+          job.Queue = jd.QueueName;
 
         /*           job.RequestedWallTime =
                      job.RequestedTotalCPUTime =

@@ -57,14 +57,16 @@ namespace Arc {
     /* wait for any change of buffers' status */
     bool cond_wait();
     /* pointer to object to compute checksum */
-    typedef struct checksum_desc
-    {
-      checksum_desc(CheckSum * sum) : sum(sum), offset(0), ready(true) {};
-      CheckSum* sum;
+    typedef struct checksum_desc {
+      checksum_desc(CheckSum *sum)
+        : sum(sum),
+          offset(0),
+          ready(true) {}
+      CheckSum *sum;
       unsigned long long int offset;
       bool ready;
     };
-    
+
     std::list<checksum_desc> checksums;
 
   public:

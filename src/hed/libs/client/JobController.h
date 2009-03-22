@@ -53,7 +53,7 @@ namespace Arc {
               const int timeout);
 
     bool Migrate(TargetGenerator& targetGen,
-                 Broker* broker,
+                 Broker *broker,
                  const bool forcemigration,
                  const int timeout);
 

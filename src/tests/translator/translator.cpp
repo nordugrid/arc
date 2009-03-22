@@ -15,19 +15,10 @@ int main() {
   (CPUtime=10) \
   (environment=(\"ATLAS\" \"/opt/atlas\") (\"CERN\" \"/cern\")) \
   (jobName=\"MyTestJob\")";
-  jd.setSource( xrsl_string );
+  jd.Parse( xrsl_string );
 
-  std::string test;
-  Arc::XMLNode node;
-  //jd.getXML().GetDoc(test, true);
-  if ( !jd.getXML(node) ){
-       std::cerr << "The JobDescription was empty." << std::endl;
-       return 1;
-  }
-  node.GetDoc(test, true);
-  std::cout << std::endl << " [ jd.getXML() ] " << std::endl << std::endl << test << std::endl;
+  jd.Print();
 
-  std::string jobdescstring;
-  jd.getProduct(jobdescstring, "JDL");
-  std::cout << std::endl << " [ jd.getProduct(var, \"JDL\") ] " << std::endl << std::endl << jobdescstring << std::endl;
+  std::string jobdescstring = jd.UnParse("JDL");
+  std::cout << std::endl << " [ jd.UnParse(\"JDL\") ] " << std::endl << std::endl << jobdescstring << std::endl;
 }

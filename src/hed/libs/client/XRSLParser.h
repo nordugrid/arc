@@ -3,8 +3,8 @@
 #ifndef __ARC_XRSLPARSER_H__
 #define __ARC_XRSLPARSER_H__
 
+#include <list>
 #include <string>
-#include <arc/client/JobInnerRepresentation.h>
 
 #include "JobDescriptionParser.h"
 
@@ -16,18 +16,19 @@ namespace Arc {
   class XRSLParser
     : public JobDescriptionParser {
   public:
-    bool parse(JobInnerRepresentation& j, const std::string source);
-    bool getProduct(const JobInnerRepresentation& j,
-                    std::string& product) const;
+    XRSLParser();
+    ~XRSLParser();
+    JobDescription Parse(const std::string& source) const;
+    std::string UnParse(const JobDescription& job) const;
   private:
-    bool parse(const RSL *r, JobInnerRepresentation& j);
-
+    bool Parse(const RSL *r, JobDescription& job) const;
     static bool SingleValue(const RSLCondition *c,
                             std::string& value);
     static bool ListValue(const RSLCondition *c,
                           std::list<std::string>& value);
     static bool SeqListValue(const RSLCondition *c,
-                             std::list<std::list<std::string> >& value);
+                             std::list<std::list<std::string> >& value,
+                             int seqlength = -1);
   };
 
 } // namespace Arc

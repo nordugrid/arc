@@ -27,7 +27,7 @@ namespace Arc {
 
   Submitter::~Submitter() {}
 
-  bool Submitter::PutFiles(const JobDescription& jobdesc, const URL& url) const {
+  bool Submitter::PutFiles(const JobDescription& job, const URL& url) const {
 
     FileCache cache;
     DataMover mover;
@@ -36,17 +36,15 @@ namespace Arc {
     mover.passive(true);
     mover.verbose(false);
 
-    //std::vector<std::pair<std::string, std::string> > fileList =
-    //  jobdesc.getUploadableFiles();
-    std::vector<std::pair<std::string, std::string> > fileList;
-    if (!jobdesc.getUploadableFiles(fileList)) {
-      std::cerr << "No uploadable files." << std::endl;
+    std::list<std::pair<std::string, std::string> > fileList;
+    if (!job.getUploadableFiles(fileList)) {
+      logger.msg(ERROR,
+                 "Extracting local file list from job description failed");
       return false;
     }
 
-    std::vector<std::pair<std::string, std::string> >::iterator file;
-
-    for (file = fileList.begin(); file != fileList.end(); file++) {
+    for (std::list<std::pair<std::string, std::string> >::iterator
+         file = fileList.begin(); file != fileList.end(); file++) {
       std::string src = file->second;
       std::string dst = url.str() + '/' + file->first;
       DataHandle source(src);

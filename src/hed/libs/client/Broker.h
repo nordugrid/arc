@@ -10,7 +10,6 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/client/JobInnerRepresentation.h>
 
 namespace Arc {
 
@@ -31,9 +30,9 @@ namespace Arc {
         to the PossibleTargets vector.
         \param targen TargetGenerator content the Execution Target candidates
         \param jd Job Description of the actual job
-    */
-    void PreFilterTargets(const TargetGenerator& targen, 
-                          const JobDescription& jd);
+     */
+    void PreFilterTargets(const TargetGenerator& targen,
+                          const JobDescription& job);
   protected:
     Broker(Config *cfg);
     virtual ~Broker();
@@ -50,7 +49,7 @@ namespace Arc {
     std::vector<ExecutionTarget> PossibleTargets;
     /// It is true if "custom" sorting is done
     bool TargetSortingDone;
-    JobInnerRepresentation jir;
+    JobDescription job;
 
     static Logger logger;
 

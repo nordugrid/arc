@@ -438,7 +438,8 @@ namespace Arc {
       return MCC_Status();
     }
 
-    if((gss_cred_id_t)cred == GSS_C_NO_CREDENTIAL) req_flags |= GSS_C_ANON_FLAG;
+    if ((gss_cred_id_t)cred == GSS_C_NO_CREDENTIAL)
+      req_flags |= GSS_C_ANON_FLAG;
     req_flags |= GSS_C_CONF_FLAG;
     req_flags |= GSS_C_MUTUAL_FLAG;
     req_flags |= GSS_C_INTEG_FLAG;
@@ -447,19 +448,19 @@ namespace Arc {
 
     do {
       majstat = gss_init_sec_context(&minstat,
-				     cred,
-				     &ctx,
-				     target_name,
-				     GSS_C_NO_OID,
+                                     cred,
+                                     &ctx,
+                                     target_name,
+                                     GSS_C_NO_OID,
                                      req_flags,
-				     0,
-				     GSS_C_NO_CHANNEL_BINDINGS,
-				     &recv_tok,
-				     NULL,
-				     &send_tok,
-				     &ret_flags,
-				     NULL);
-      if(GSS_ERROR(majstat)) {
+                                     0,
+                                     GSS_C_NO_CHANNEL_BINDINGS,
+                                     &recv_tok,
+                                     NULL,
+                                     &send_tok,
+                                     &ret_flags,
+                                     NULL);
+      if (GSS_ERROR(majstat)) {
         logger.msg(ERROR, "GSS init security context failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
         return MCC_Status();
       }

@@ -89,11 +89,10 @@ namespace Arc {
     return result;
   }
 
-  CounterTicket IntraProcessCounter::reserve
-              (int amount,
-              Glib::TimeVal duration,
-              bool prioritized,
-              Glib::TimeVal timeOut) {
+  CounterTicket IntraProcessCounter::reserve(int amount,
+                                             Glib::TimeVal duration,
+                                             bool prioritized,
+                                             Glib::TimeVal timeOut) {
     Glib::TimeVal deadline = getExpiryTime(timeOut);
     Glib::TimeVal expiryTime;
     IDType reservationID;
@@ -121,10 +120,9 @@ namespace Arc {
     synchCond.signal();
   }
 
-  void IntraProcessCounter::extend
-              (IDType& reservationID,
-              Glib::TimeVal& expiryTime,
-              Glib::TimeVal duration) {
+  void IntraProcessCounter::extend(IDType& reservationID,
+                                   Glib::TimeVal& expiryTime,
+                                   Glib::TimeVal duration) {
     int amount;
     synchMutex.lock();
     amount = unsafeCancel(reservationID);
@@ -165,8 +163,8 @@ namespace Arc {
     value -= amount;
     reservations[reservationID] = amount;
     if (expiryTime < ETERNAL)
-      selfExpiringReservations.push
-                    (getExpirationReminder(expiryTime, reservationID));
+      selfExpiringReservations.push(getExpirationReminder(expiryTime,
+                                                          reservationID));
     return reservationID;
   }
 

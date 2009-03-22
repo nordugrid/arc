@@ -34,8 +34,8 @@ namespace Arc {
     Arc::PayloadSOAP request(ns);
     Arc::XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    for (std::list<Arc::FileType>::const_iterator it = jir.File.begin();
-         it != jir.File.end(); it++)
+    for (std::list<Arc::FileType>::const_iterator it = job.File.begin();
+         it != job.File.end(); it++)
       if ((*it).Source.size() != 0) {
         std::list<Arc::SourceType>::const_iterator it2;
         it2 = ((*it).Source).begin();

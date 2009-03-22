@@ -22,8 +22,10 @@
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
+#include <arc/client/JobDescription.h>
 
 #include <Sandbox.h>
+
 namespace Arc {
 
   Logger Sandbox::logger(Logger::getRootLogger(), "Sandbox");
@@ -31,27 +33,23 @@ namespace Arc {
   bool Sandbox::Add(JobDescription& jobdesc, XMLNode& info) {
     logger.msg(DEBUG, "Adding job info to sandbox");
     // Create sandbox XML node
-    JobInnerRepresentation jir;
-    if (jobdesc.getInnerRepresentation(jir))
-      for (std::list<URL>::iterator it = jir.OldJobIDs.begin();
-           it != jir.OldJobIDs.end(); it++)
-        info.NewChild("OldJobID") = it->str();
-    else
-      logger.msg(INFO, "Unable to get inner representation of job");
+    for (std::list<URL>::iterator it = jobdesc.OldJobIDs.begin();
+         it != jobdesc.OldJobIDs.end(); it++)
+      info.NewChild("OldJobID") = it->str();
     // Store original job description string
     std::string rep;
     jobdesc.getSourceString(rep);
     info.NewChild("JobDescription") = (std::string)rep;
 
     // Getting cksum of input files
-    std::vector<std::pair<std::string, std::string> > FileList;
+    std::list<std::pair<std::string, std::string> > FileList;
     jobdesc.getUploadableFiles(FileList);
 
     NS ns;
     XMLNode LocalInput(ns, "LocalInputFiles");
     // Loop over input files
-    for (std::vector<std::pair<std::string, std::string> >::iterator file = FileList.begin();
-         file != FileList.end(); file++) {
+    for (std::list<std::pair<std::string, std::string> >::iterator
+         file = FileList.begin(); file != FileList.end(); file++) {
       std::string cksum = GetCksum(file->second);
       XMLNode File(ns, "File");
       File.NewChild("Source") =

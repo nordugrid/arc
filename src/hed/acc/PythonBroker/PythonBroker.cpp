@@ -165,11 +165,10 @@ namespace Arc {
       return;
     }
 
-    // Get the JobInnerRepresentation class (borrowed reference)
-    arc_jobrepr_klass = PyDict_GetItemString(arc_dict,
-                                             "JobInnerRepresentation");
+    // Get the JobDescription class (borrowed reference)
+    arc_jobrepr_klass = PyDict_GetItemString(arc_dict, "JobDescription");
     if (!arc_jobrepr_klass) {
-      logger.msg(ERROR, "Cannot find arc JobInnerRepresentation class");
+      logger.msg(ERROR, "Cannot find arc JobDescription class");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -177,7 +176,7 @@ namespace Arc {
 
     // check is it really a class
     if (!PyCallable_Check(arc_jobrepr_klass)) {
-      logger.msg(ERROR, "JobInnerRepresentation class is not an object");
+      logger.msg(ERROR, "JobDescription class is not an object");
       return;
     }
 
@@ -299,19 +298,19 @@ namespace Arc {
 
     PythonLock pylock;
 
-    // Convert JobInnerRepresentation to python object
-    PyObjectP arg = Py_BuildValue("(l)", &jir);
+    // Convert JobDescription to python object
+    PyObjectP arg = Py_BuildValue("(l)", &job);
     if (!arg) {
-      logger.msg(ERROR, "Cannot create JobInnerRepresentation argument");
+      logger.msg(ERROR, "Cannot create JobDescription argument");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
 
-    PyObjectP py_jir = PyObject_CallObject(arc_jobrepr_klass, arg);
-    if (!py_jir) {
+    PyObjectP py_job = PyObject_CallObject(arc_jobrepr_klass, arg);
+    if (!py_job) {
       logger.msg(ERROR,
-                 "Cannot convert JobInnerRepresentation to python object");
+                 "Cannot convert JobDescription to python object");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -351,7 +350,7 @@ namespace Arc {
     PyObjectP py_status = PyObject_CallMethod(object, (char*)"SortTargets",
                                               (char*)"(OO)",
                                               (PyObject*)py_list,
-                                              (PyObject*)py_jir);
+                                              (PyObject*)py_job);
     if (!py_status) {
       if (PyErr_Occurred())
         PyErr_Print();

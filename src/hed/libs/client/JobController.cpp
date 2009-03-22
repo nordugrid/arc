@@ -474,7 +474,7 @@ namespace Arc {
   }
 
   bool JobController::Migrate(TargetGenerator& targetGen,
-                              Broker* broker,
+                              Broker *broker,
                               const bool forcemigration,
                               const int timeout) {
     bool retVal = true;
@@ -519,29 +519,24 @@ namespace Arc {
           continue;
         }
 
-        // Need to get the JobInnerRepresentation in order to get the number of slots
-        JobInnerRepresentation jir;
-        jobDesc.getInnerRepresentation(jir);
         // Change number of slots or waiting jobs
         for (std::list<ExecutionTarget>::iterator itTarget = targetGen.ModifyFoundTargets().begin();
              itTarget != targetGen.ModifyFoundTargets().end();
              itTarget++)
           if (currentTarget.url == itTarget->url) {
-            if (itTarget->FreeSlots >= abs(jir.Slots)) { // The job will start directly
-              itTarget->FreeSlots -= abs(jir.Slots);
+            if (itTarget->FreeSlots >= abs(jobDesc.Slots)) { // The job will start directly
+              itTarget->FreeSlots -= abs(jobDesc.Slots);
               if (itTarget->UsedSlots != -1)
-                itTarget->UsedSlots += abs(jir.Slots);
+                itTarget->UsedSlots += abs(jobDesc.Slots);
             }
             else   //The job will be queued
               if (itTarget->WaitingJobs != -1)
-                itTarget->WaitingJobs += abs(jir.Slots);
+                itTarget->WaitingJobs += abs(jobDesc.Slots);
 
           }
 
-        XMLNode xmlDesc;
-        jobDesc.getXML(xmlDesc);
-        if (xmlDesc["JobDescription"]["JobIdentification"]["JobName"])
-          info.NewChild("Name") = (std::string)xmlDesc["JobDescription"]["JobIdentification"]["JobName"];
+        if (!jobDesc.JobName.empty())
+          info.NewChild("Name") = jobDesc.JobName;
 
         info.NewChild("Flavour") = currentTarget.GridFlavour;
         info.NewChild("Cluster") = currentTarget.Cluster.str();
@@ -721,14 +716,15 @@ namespace Arc {
     // Try to get description from cluster
     for (std::list<Job>::iterator it = gettable.begin();
          it != gettable.end();) {
-      if (!it->JobDescription.empty()){
+      if (!it->JobDescription.empty()) {
         it++;
         continue;
       }
       if (GetJobDescription(*it, it->JobDescription)) {
         logger.msg(INFO, "Got job description for %s", it->JobID.str());
         it++;
-      } else {
+      }
+      else {
         logger.msg(WARNING, "Failed getting job description for %s", it->JobID.str());
         it = gettable.erase(it);
       }
@@ -743,27 +739,27 @@ namespace Arc {
       // Search for jobids
       XMLNodeList xmljobs =
         jobstorage.XPathLookup("//Job[JobID='" + it->JobID.str() + "']", NS());
-      
+
       if (xmljobs.empty()) {
         logger.msg(ERROR, "Job not found in job list: %s", it->JobID.str());
         it++;
         continue;
       }
       XMLNode& xmljob = *xmljobs.begin();
-      
+
       if (xmljob["JobDescription"]) {
         JobDescription jobdesc;
-        jobdesc.setSource((std::string)xmljob["JobDescription"]);
-        
+        jobdesc.Parse((std::string)xmljob["JobDescription"]);
+
         // Check for valid job description
-        if (jobdesc.isValid())
+        if (jobdesc)
           logger.msg(DEBUG, "Valid jobdescription found for: %s", it->JobID.str());
         else {
           logger.msg(WARNING, "No valid jobdescription found for: %s", it->JobID.str());
           it++;
           continue;
         }
-        
+
         // Check checksums of local input files
         bool CKSUM = true;
         int size = xmljob["LocalInputFiles"].Size();
@@ -774,7 +770,8 @@ namespace Arc {
           if (cksum_old != cksum_new) {
             logger.msg(WARNING, "Checksum of input file %s has changed.", file);
             CKSUM = false;
-          } else
+          }
+          else
             logger.msg(DEBUG, "Stored and new checksum of input file %s are identical.", file);
         }
         // Push_back job and job descriptions
@@ -782,11 +779,13 @@ namespace Arc {
           logger.msg(INFO, "Job description for %s retrieved locally", it->JobID.str());
           it->JobDescription = (std::string)xmljob["JobDescription"];
           it++;
-        } else {
+        }
+        else {
           logger.msg(WARNING, "Job %s can not be resubmitted", it->JobID.str());
           it = jobs.erase(it);
         }
-      } else {
+      }
+      else {
         logger.msg(WARNING, "Job description for %s could not be retrieved locally", it->JobID.str());
         it++;
       }

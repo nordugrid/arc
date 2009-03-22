@@ -30,16 +30,16 @@
 int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
-  
+
   Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsync");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
-  
+
   Arc::ArcLocation::Init(argv[0]);
-  
+
   Arc::OptionParser options(istring("[filename ...]"),
-			    istring("The command synchronized your local job"
+                            istring("The command synchronized your local job"
                                     "list with the information at a given "
                                     "cluster or index server"),
                             istring("Argument to -i has the format "

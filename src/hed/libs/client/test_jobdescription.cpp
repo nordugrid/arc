@@ -1,11 +1,15 @@
 // -*- indent-tabs-mode: nil -*-
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/stat.h>
 #include <fstream>
 #include <arc/client/JobDescription.h>
 #include <arc/OptionParser.h>
 #include <arc/IString.h>
-#include <arc/ws-addressing/WSA.h>
+#include <arc/Logger.h>
 
 int main(int argc, char **argv) {
 
@@ -16,8 +20,7 @@ int main(int argc, char **argv) {
   Arc::OptionParser options(istring("[job description ...]"),
                             istring("This tiny tool can be used for testing"
                                     "the JobDescription's conversion abilities."),
-                            istring("The job description also can be a file or a string in JDL, POSIX JSDL, JSDL, or XRSL format.")
-                            );
+                            istring("The job description also can be a file or a string in JDL, POSIX JSDL, JSDL, or XRSL format."));
 
   std::string requested_format = "";
   options.AddOption('f', "format",
@@ -74,35 +77,29 @@ int main(int argc, char **argv) {
         std::cout << original_description << std::endl;
       }
 
-      jd.setSource(original_description);
+      jd.Parse(original_description);
 
       std::string test;
-      if (requested_format == "") {
-        Arc::XMLNode nd;
-        jd.getXML(nd);
-        nd.GetDoc(test, true);
-        std::cout << std::endl << " [ Inner representation ] " << std::endl << std::endl << test << std::endl;
-      }
+      if (requested_format == "")
+        jd.Print(true);
 
       if (requested_format == "JSDL" || requested_format == "") {
-        jd.getProduct(test, "JSDL");
-        Arc::XMLNode jsdl(test);
-        jsdl.GetXML(test, true);
+        test = jd.UnParse("JSDL");
         std::cout << std::endl << " [ JSDL ] " << std::endl << test << std::endl;
       }
 
       if (requested_format == "JDL" || requested_format == "") {
-        jd.getProduct(test, "JDL");
+        test = jd.UnParse("JDL");
         std::cout << std::endl << " [ JDL ] " << std::endl << test << std::endl;
       }
 
       if (requested_format == "XRSL" || requested_format == "") {
-        jd.getProduct(test, "XRSL");
+        test = jd.UnParse("XRSL");
         std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
       }
 
       if (requested_format == "POSIXJSDL" || requested_format == "") {
-        jd.getProduct(test, "POSIXJSDL");
+        test = jd.UnParse("POSIXJSDL");
         std::cout << std::endl << " [ POSIXJSDL ] " << std::endl << test << std::endl;
       }
     }

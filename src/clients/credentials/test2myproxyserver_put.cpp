@@ -40,7 +40,7 @@ int main(void) {
   Arc::Time t;
   int keybits = 1024;
   std::string req_str;
-  Arc::Credential cred_request(t, Arc::Period(12*3600), keybits, "rfc","inheritAll", "", -1);
+  Arc::Credential cred_request(t, Arc::Period(12 * 3600), keybits, "rfc", "inheritAll", "", -1);
   cred_request.GenerateRequest(req_str);
 
   Arc::Credential proxy;
@@ -64,7 +64,7 @@ int main(void) {
   //"PUT" command
   std::string send_msg("VERSION=MYPROXYv2\n COMMAND=1\n USERNAME=mytest\n PASSPHRASE=123456\n LIFETIME=43200\n");
 
-  std::cout<<"Send message to peer end through GSS communication: "<<send_msg<<" Size: "<<send_msg.length()<<std::endl;
+  std::cout << "Send message to peer end through GSS communication: " << send_msg << " Size: " << send_msg.length() << std::endl;
 
   Arc::MCCConfig cfg;
   cfg.AddProxy(out_file);
@@ -74,12 +74,12 @@ int main(void) {
   Arc::ClientTCP client(cfg, "knowarc1.grid.niif.hu", 7512, Arc::GSISec);
 
   Arc::PayloadRaw request;
-  request.Insert(send_msg.c_str(),0,send_msg.length());
+  request.Insert(send_msg.c_str(), 0, send_msg.length());
   //Arc::PayloadRawInterface& buffer = dynamic_cast<Arc::PayloadRawInterface&>(request);
   //std::cout<<"Message in PayloadRaw:  "<<((Arc::PayloadRawInterface&)buffer).Content()<<std::endl;
 
   Arc::PayloadStreamInterface *response = NULL;
-  Arc::MCC_Status status = client.process(&request, &response,true);
+  Arc::MCC_Status status = client.process(&request, &response, true);
   if (!status) {
     logger.msg(Arc::ERROR, (std::string)status);
     if (response)
@@ -90,34 +90,37 @@ int main(void) {
     logger.msg(Arc::ERROR, "No stream response");
     return 1;
   }
- 
+
   std::string ret_str;
   char ret_buf[1024];
-  memset(ret_buf,0,1024);
+  memset(ret_buf, 0, 1024);
   int len;
   do {
     len = 1024;
     response->Get(&ret_buf[0], len);
-    ret_str.append(ret_buf,len);
-    memset(ret_buf,0,1024);
-  }while(len == 1024);
+    ret_str.append(ret_buf, len);
+    memset(ret_buf, 0, 1024);
+  } while (len == 1024);
 
   logger.msg(Arc::INFO, "Returned msg from myproxy server: %s   %d", ret_str.c_str(), ret_str.length());
 
-  //Myproxy server will send back another message which includes 
+  //Myproxy server will send back another message which includes
   //the certificate request in DER format
   std::string x509ret_str;
-  memset(ret_buf,0,1024);
+  memset(ret_buf, 0, 1024);
   do {
     len = 1024;
     response->Get(&ret_buf[0], len);
-    x509ret_str.append(ret_buf,len);
-    memset(ret_buf,0,1024);
-  }while(len == 1024);
+    x509ret_str.append(ret_buf, len);
+    memset(ret_buf, 0, 1024);
+  } while (len == 1024);
 
   logger.msg(Arc::INFO, "Returned msg from myproxy server: %s   %d", x509ret_str.c_str(), x509ret_str.length());
 
-  if(response) { delete response; response = NULL; }
+  if (response) {
+    delete response;
+    response = NULL;
+  }
 
   std::string tmp_req_file("myproxy_req.pem");
   std::ofstream tmp_req_out(tmp_req_file.c_str());
@@ -129,8 +132,8 @@ int main(void) {
 
   Arc::Credential proxy1;
   std::string signedcert1, signing_cert1, signing_cert_chain1;
-  proxy1.InquireRequest(x509ret_str,false,true);
-  if(!(signer1.SignRequest(&proxy1, signedcert1, true))) {
+  proxy1.InquireRequest(x509ret_str, false, true);
+  if (!(signer1.SignRequest(&proxy1, signedcert1, true))) {
     logger.msg(Arc::ERROR, "Delegate proxy failed");
     return 1;
   }
@@ -156,20 +159,21 @@ int main(void) {
   //Caculate the numbers of certifictes as the beginning of the message
   unsigned char number_of_certs;
   number_of_certs = signer1.GetCertNumofChain() + 2;
-  BIO* bio = BIO_new(BIO_s_mem());
-  std::cout<<BIO_write(bio, &number_of_certs, sizeof(number_of_certs))<<std::endl;
+  BIO *bio = BIO_new(BIO_s_mem());
+  std::cout << BIO_write(bio, &number_of_certs, sizeof(number_of_certs)) << std::endl;
   std::string start;
-  for(;;) {
+  for (;;) {
     char s[256];
-    int l = BIO_read(bio,s,sizeof(s));
-    if(l <= 0) break;
-    start.append(s,l);
+    int l = BIO_read(bio, s, sizeof(s));
+    if (l <= 0)
+      break;
+    start.append(s, l);
   }
   BIO_free_all(bio);
-  signedcert1.insert(0,start);
+  signedcert1.insert(0, start);
 
-  request1.Insert(signedcert1.c_str(),0,signedcert1.length());
-  status = client.process(&request1, &response,true);
+  request1.Insert(signedcert1.c_str(), 0, signedcert1.length());
+  status = client.process(&request1, &response, true);
   if (!status) {
     logger.msg(Arc::ERROR, (std::string)status);
     if (response)
@@ -182,17 +186,20 @@ int main(void) {
   }
 
   std::string ret_str1;
-  memset(ret_buf,0,1024);
+  memset(ret_buf, 0, 1024);
   do {
     len = 1024;
     response->Get(&ret_buf[0], len);
-    ret_str1.append(ret_buf,len);
-    memset(ret_buf,0,1024);
-  }while(len == 1024);
+    ret_str1.append(ret_buf, len);
+    memset(ret_buf, 0, 1024);
+  } while (len == 1024);
   logger.msg(Arc::INFO, "Returned msg from myproxy server: %s   %d", ret_str1.c_str(), ret_str1.length());
 
 
-  if(response) { delete response; response = NULL; }
+  if (response) {
+    delete response;
+    response = NULL;
+  }
 
   return 0;
 }

@@ -246,12 +246,9 @@ namespace Arc {
 
   void ExecutionTarget::Update(const JobDescription& jobdesc) {
 
-    Arc::JobInnerRepresentation jir;
-    jobdesc.getInnerRepresentation(jir);
-
     //WorkingAreaFree
-    if (jir.DiskSpace) {
-      WorkingAreaFree -= (int)(jir.DiskSpace / 10E9);
+    if (jobdesc.DiskSpace) {
+      WorkingAreaFree -= (int)(jobdesc.DiskSpace / 10E9);
       if (WorkingAreaFree < 0)
         WorkingAreaFree = 0;
     }
@@ -259,15 +256,15 @@ namespace Arc {
     // FreeSlotsWithDuration
     if (!FreeSlotsWithDuration.empty()) {
       std::map<Period, int>::iterator cpuit, cpuit2;
-      cpuit = FreeSlotsWithDuration.lower_bound(jir.TotalCPUTime);
+      cpuit = FreeSlotsWithDuration.lower_bound(jobdesc.TotalCPUTime);
       if (cpuit != FreeSlotsWithDuration.end()) {
-        if (jir.Slots >= cpuit->second)
+        if (jobdesc.Slots >= cpuit->second)
           cpuit->second = 0;
         else
           for (cpuit2 = FreeSlotsWithDuration.begin();
                cpuit2 != FreeSlotsWithDuration.end(); cpuit2++) {
             if (cpuit2->first <= cpuit->first)
-              cpuit2->second -= jir.Slots;
+              cpuit2->second -= jobdesc.Slots;
             else if (cpuit2->second >= cpuit->second) {
               cpuit2->second = cpuit->second;
               Period oldkey = cpuit->first;
@@ -289,13 +286,13 @@ namespace Arc {
     }
 
     //FreeSlots, UsedSlots, WaitingJobs
-    if (FreeSlots >= abs(jir.Slots)) { //The job will start directly
-      FreeSlots -= abs(jir.Slots);
+    if (FreeSlots >= abs(jobdesc.Slots)) { //The job will start directly
+      FreeSlots -= abs(jobdesc.Slots);
       if (UsedSlots != -1)
-        UsedSlots += abs(jir.Slots);
+        UsedSlots += abs(jobdesc.Slots);
     }
     else if (WaitingJobs != -1)    //The job will enter the queue (or the cluster doesn't report FreeSlots)
-      WaitingJobs += abs(jir.Slots);
+      WaitingJobs += abs(jobdesc.Slots);
 
     return;
 

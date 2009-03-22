@@ -81,9 +81,9 @@ namespace Arc {
     std::ostringstream sout;
 #ifdef HAVE_GETPID
     sout << getpid() << "/"
-         << (unsigned long int)(void*) Glib::Thread::self();
+         << (unsigned long int)(void*)Glib::Thread::self();
 #else
-    sout << (unsigned long int)(void*) Glib::Thread::self();
+    sout << (unsigned long int)(void*)Glib::Thread::self();
 #endif
     return sout.str();
   }

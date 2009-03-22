@@ -203,11 +203,10 @@ namespace Arc {
        @return A CounterTicket that can be queried about the status of
        the reservation as well as for cancellations and extensions.
      */
-    virtual CounterTicket reserve
-                  (int amount = 1,
-                  Glib::TimeVal duration = ETERNAL,
-                  bool prioritized = false,
-                  Glib::TimeVal timeOut = ETERNAL) = 0;
+    virtual CounterTicket reserve(int amount = 1,
+                                  Glib::TimeVal duration = ETERNAL,
+                                  bool prioritized = false,
+                                  Glib::TimeVal timeOut = ETERNAL) = 0;
 
   protected:
 

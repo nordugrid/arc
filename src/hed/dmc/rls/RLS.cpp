@@ -55,7 +55,7 @@ namespace Arc {
       globus_rls_handle_t *h = NULL;
       logger.msg(INFO, "Contacting %s", url.str());
       err = globus_rls_client_connect
-                  (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+              (const_cast<char*>(url.ConnectionURL().c_str()), &h);
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
@@ -118,7 +118,7 @@ namespace Arc {
         const URL& url = *rli_p;
         logger.msg(INFO, "Contacting %s", url.str());
         err = globus_rls_client_connect
-                    (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+                (const_cast<char*>(url.ConnectionURL().c_str()), &h);
         if (err != GLOBUS_SUCCESS) {
           globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
@@ -200,7 +200,7 @@ namespace Arc {
         const URL& url = *rli_p;
         logger.msg(INFO, "Contacting %s", url.str());
         err = globus_rls_client_connect
-                    (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+                (const_cast<char*>(url.ConnectionURL().c_str()), &h);
         if (err != GLOBUS_SUCCESS) {
           globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
@@ -254,7 +254,7 @@ namespace Arc {
       globus_rls_handle_t *h = NULL;
       logger.msg(INFO, "Contacting %s", url.str());
       err = globus_rls_client_connect
-                  (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+              (const_cast<char*>(url.ConnectionURL().c_str()), &h);
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);

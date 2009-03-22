@@ -142,13 +142,13 @@ namespace Arc {
       const char *fname_str = getenv("ARC_CLIENT_CONFIG");
       if (fname_str)
         fname = fname_str;
-      else{
+      else {
         std::vector<std::string> clientPath(3);
         clientPath[0] = Arc::User().Home();
         clientPath[1] = ".arc";
         clientPath[2] = "client.xml";
         fname = Glib::build_filename(clientPath);
-        }
+      }
     }
     if (fname.empty())
       return;

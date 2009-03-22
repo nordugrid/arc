@@ -48,8 +48,7 @@ namespace Arc {
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
     CREAMClient gLiteClientSubmission(submissionurl, cfg);
     gLiteClientSubmission.setDelegationId(delegationid);
-    std::string jobdescstring;
-    jobdesc.getProduct(jobdescstring, "JDL");
+    std::string jobdescstring = jobdesc.UnParse("JDL");
     creamJobInfo jobInfo;
     if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
       logger.msg(ERROR, "Job registration failed");

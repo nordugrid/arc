@@ -210,9 +210,9 @@ int main(int argc, char **argv) {
 
     buffer[length] = '\0';
     Arc::JobDescription jobdesc;
-    jobdesc.setSource((std::string)buffer);
+    jobdesc.Parse((std::string)buffer);
 
-    if (jobdesc.isValid())
+    if (jobdesc)
       jobdescriptionlist.push_back(jobdesc);
     else {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
@@ -229,9 +229,9 @@ int main(int argc, char **argv) {
 
     Arc::JobDescription jobdesc;
 
-    jobdesc.setSource(*it);
+    jobdesc.Parse(*it);
 
-    if (jobdesc.isValid())
+    if (jobdesc)
       jobdescriptionlist.push_back(jobdesc);
     else {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
@@ -299,19 +299,19 @@ int main(int argc, char **argv) {
         else if (!clusters.empty()) {
           Arc::URLListMap clusterselect;
           Arc::URLListMap clusterreject;
-          if (!usercfg.ResolveAlias(clusters,clusterselect,clusterreject)) {
+          if (!usercfg.ResolveAlias(clusters, clusterselect, clusterreject)) {
             logger.msg(Arc::ERROR, "Failed resolving aliases");
             return 0;
           }
           Arc::URLListMap::iterator it = clusterselect.begin();
-          flavour=it->first;
+          flavour = it->first;
         }
         if (flavour == "ARC1" || flavour == "UNICORE")
-          it->getProduct(jobdesc, "POSIXJSDL");
+          jobdesc = it->UnParse("POSIXJSDL");
         else if (flavour == "ARC0")
-          it->getProduct(jobdesc, "XRSL");
+          jobdesc = it->UnParse("XRSL");
         else if (flavour == "CREAM")
-          it->getProduct(jobdesc, "JDL");
+          jobdesc = it->UnParse("JDL");
         else {
           std::cout << "Cluster requires unknown format:"
                     << flavour << std::endl;
@@ -326,7 +326,7 @@ int main(int argc, char **argv) {
         std::cout << jobdesc << std::endl;
         return 0;
       }
-      
+
       if (EndOfList) {
         std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
         break;
@@ -342,25 +342,19 @@ int main(int argc, char **argv) {
         continue;
       }
 
-      //need to get the jobinnerrepresentation in order to get the number of slots
-      Arc::JobInnerRepresentation jir;
-      it->getInnerRepresentation(jir);
-
       for (std::list<Arc::ExecutionTarget>::iterator target2 = targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); target2++)
         if (target.url == (*target2).url) {
-          if ((*target2).FreeSlots >= abs(jir.Slots)) {   //The job will start directly
-            (*target2).FreeSlots -= abs(jir.Slots);
+          if ((*target2).FreeSlots >= abs(it->Slots)) {   //The job will start directly
+            (*target2).FreeSlots -= abs(it->Slots);
             if ((*target2).UsedSlots != -1)
-              (*target2).UsedSlots += abs(jir.Slots);
+              (*target2).UsedSlots += abs(it->Slots);
           }
           else                                           //The job will be queued
-          if ((*target2).WaitingJobs != -1)
-            (*target2).WaitingJobs += abs(jir.Slots);
+            if ((*target2).WaitingJobs != -1)
+              (*target2).WaitingJobs += abs(it->Slots);
         }
-      Arc::XMLNode node;
-      if (it->getXML(node))
-        if ((bool)node["JobDescription"]["JobIdentification"]["JobName"])
-          info.NewChild("Name") = (std::string)node["JobDescription"]["JobIdentification"]["JobName"];
+      if (!it->JobName.empty())
+        info.NewChild("Name") = it->JobName;
       info.NewChild("Flavour") = target.GridFlavour;
       info.NewChild("Cluster") = target.Cluster.str();
       info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
@@ -400,14 +394,14 @@ int main(int argc, char **argv) {
     if (notsubmitted.size())
       std::cout << Arc::IString("The following %d were not submitted",
                                 notsubmitted.size()) << std::endl;
-      /*
-         std::map<int, std::string>::iterator it;
-         for (it = notsubmitted.begin(); it != notsubmitted.end(); it++) {
-         std::cout << _("Job nr.") << " " << it->first;
-         if (it->second.size()>0) std::cout << ": " << it->second;
-         std::cout << std::endl;
-         }
-       */
+    /*
+       std::map<int, std::string>::iterator it;
+       for (it = notsubmitted.begin(); it != notsubmitted.end(); it++) {
+       std::cout << _("Job nr.") << " " << it->first;
+       if (it->second.size()>0) std::cout << ": " << it->second;
+       std::cout << std::endl;
+       }
+     */
   }
 
   return 0;

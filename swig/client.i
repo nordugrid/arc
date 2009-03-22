@@ -9,7 +9,6 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/Broker.h>
 #include <arc/client/JobController.h>
-#include <arc/client/JobInnerRepresentation.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetRetriever.h>
@@ -53,7 +52,6 @@ the first member will be the '*response' and the second member is the original r
 %include "../src/hed/libs/client/TargetGenerator.h"
 %include "../src/hed/libs/client/Broker.h"
 %include "../src/hed/libs/client/JobController.h"
-%include "../src/hed/libs/client/JobInnerRepresentation.h"
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetRetriever.h"

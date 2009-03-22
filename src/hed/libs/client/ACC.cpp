@@ -28,7 +28,7 @@ namespace Arc {
     XMLNode mm = BaseConfig::MakeConfig(cfg);
     std::list<std::string> accs;
     for (std::list<std::string>::const_iterator path = plugin_paths.begin();
-         path != plugin_paths.end(); path++) {
+         path != plugin_paths.end(); path++)
       try {
         Glib::Dir dir(*path);
         for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++)
@@ -40,7 +40,6 @@ namespace Arc {
             }
           }
       } catch (Glib::FileError) {}
-    }
     return mm;
   }
 

@@ -8,6 +8,7 @@
 
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "SubmitterUNICORE.h"
 #include "UNICOREClient.h"
@@ -65,8 +66,7 @@ namespace Arc {
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     WSAHeader(req).Action("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
     WSAHeader(req).To(submissionEndpoint.str());
-    std::string jsdl_str;
-    jobdesc.getProduct(jsdl_str, "POSIXJSDL");
+    std::string jsdl_str = jobdesc.UnParse("POSIXJSDL");
     act_doc.NewChild(XMLNode(jsdl_str));
     //act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
