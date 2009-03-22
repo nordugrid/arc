@@ -390,7 +390,7 @@ The Librarian services use the A-Hash services to store the metadata of all kind
 \subsection{Files} % (fold)
 \label{sub:files}
 
-A file in the ARC storage has a logical entry in the namespace, and a couple of physical replicas on the storage nodes. We store the locations of the replicas in the \emph{location} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{thirdwheel}' (if the replica is marked for deletion because of too many replicas). We also store (in the \emph{states} section) the size of the file, the number of needed replicas, and a checksum of the file, which is created by some kind of checksumming algorithm (currently only md5 is supported).
+A file in the ARC storage has a logical entry in the namespace, and a couple of physical replicas on the storage nodes. We store the locations of the replicas in the \emph{location} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{thirdwheel}' (if the replica is marked for deletion because of too many replicas), `\textbf{stalled}' (if the the replica was in the state if uploading for a long time but hasn't arrived). We also store (in the \emph{states} section) the size of the file, the number of needed replicas, and a checksum of the file, which is created by some kind of checksumming algorithm (currently only md5 is supported).
 
 \begin{description}
     \item [locations] section 
@@ -710,7 +710,7 @@ The end-user of the ARC storage system never communicates directly with a Librar
     
     \item [report(serviceID, filelist)] is a report message from a Shepherd to a Librarian, contains the ID of the Shepherd (currently the URL), and a list of changed files on the Shepherd's storage node.
         
-    The \emph{filelist} is a list of (\emph{GUID}, \emph{referenceID}, \emph{state}) tuples containing the state of changed or new files, where referenceID is the Sheperd-local ID of the given replica where GUID refers to the logical file of this replica. The \emph{state} could be `\textbf{invalid}' (if the periodic self-check of the Shepherd found a non-matching checksum or missing file), `\textbf{creating}' (if this is a new file not uploaded yet) or `\textbf{alive}' (if the file is uploaded and the checksum is OK).
+    The \emph{filelist} is a list of (\emph{GUID}, \emph{referenceID}, \emph{state}) tuples containing the state of changed or new files, where referenceID is the Sheperd-local ID of the given replica where GUID refers to the logical file of this replica. The \emph{state} could be `\textbf{invalid}' (if the periodic self-check of the Shepherd found a non-matching checksum or missing file), `\textbf{creating}' (if this is a new file not uploaded yet), `\textbf{thirdwheel}' (if the replica is marked for deletion because of too many replicas), `\textbf{alive}' (if the file is uploaded and the checksum is OK), or `\textbf{stalled}' (if the file was in `creating' state for a long time but hasn't arrived).
     
     The response is \emph{nextReportTime}, a number of seconds, which is the timeframe within the Librarian expects the next heartbeat from the Shepherd.
 
@@ -777,7 +777,7 @@ With the \emph{stat} method we can get some information about a replica, e.g.~ch
 
 In normal operation the \emph{put} and \emph{get} calls is made by a Bartender but the actual uploading and downloading is done by the user's client. In the case of replication a Shepherd with a valid replica initiates the replication, this Shepherd asks the Bartender to choose a new Shepherd, the Bartender initiates putting the new replica on a chosen Shepherd and receives the TURL, then the Bartender returns the TURL to the initiator Shepherd, which uploads its replica to the given TURL.
 
-The replicas have a state, which could be `\textbf{creating}' when the transfer is initiated but the file is not uploaded yet, `\textbf{alive}' if the file is uploaded and has a proper checksum, or `\textbf{invalid}' if it does not exists anymore or has a bad checksum.
+The replicas have a state, which could be `\textbf{creating}' when the transfer is initiated but the file is not uploaded yet, `\textbf{alive}' if the file is uploaded and has a proper checksum, `\textbf{invalid}' if it does not exists anymore or has a bad checksum, `\textbf{thirdwheel}' if the replica is marked for deletion because the file has too many replicas, or `\textbf{stalled}' if it was in a `creating' state for a long time but hasn't arrived.
 
 % subsection functionality (end)
 
@@ -859,6 +859,7 @@ The Shepherd has these configuration variables:
     \item[ServiceID] is the ID of the service, currently it should be the URL of the service, because there is no information system where we can discover services by IDs.
     \item[CheckPeriod] specifies in seconds how frequently should the Shepherd check the existence and the checksum of all the files on the storage node.
     \item[MinCheckInterval] specifies in seconds how much time should the Shepherd wait between two subsequent file checks. This ensures that the Shepherd does not use up all the resources of the hosting machine. After checking the cheksum of a file, the Shepherd will always wait this long before checking the next file, even if this means that checking all the files takes longer than the `CheckPeriod'.
+    \item[CreatingTimeout] specifies in seconds after how much time the Shepherd decideds that a started file upload won't happen. This is not fatal, if the file is uploaded eventually, it will be a valid replica, but after this much time the system starts creating new replicas just in case.
     \item[StoreClass] specifies which type of store the Shepherd should use for storing its metadata on disk.
     \item[StoreCfg] can have parameters for the store class, e.g. the local directory to be used.
     \item[BackendClass] specifes which backend the Shepherd should use for communicating with the storage element service.
@@ -873,6 +874,7 @@ The Shepherd has these configuration variables:
         <ServiceID>https://localhost:60000/Shepherd</ServiceID>
         <CheckPeriod>20</CheckPeriod>
         <MinCheckInterval>0.1</MinCheckInterval>
+        <CreatingTimeout>600</CreatingTimeout>
         <StoreClass>storage.store.cachedpicklestore.CachedPickleStore</StoreClass>
         <StoreCfg>
             <DataDir>./shepherd_data1</DataDir>
