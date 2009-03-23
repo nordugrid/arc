@@ -777,6 +777,7 @@ to the real hostname of the machine. But this is not enough. Currently the Sheph
     <ServiceID>https://storage:60000/Shepherd</ServiceID>
     <CheckPeriod>20</CheckPeriod>
     <MinCheckInterval>0.1</MinCheckInterval>
+    <CreatingTimeout>600</CreatingTimeout>
     <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
     <StoreCfg><DataDir>/var/spool/arc/shepherd_data</DataDir></StoreCfg>
     <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
@@ -903,13 +904,14 @@ Currently it has only one replica, because we still don't have more than one sto
             <ServiceID>https://storage2:60006/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
+            <CreatingTimeout>600</CreatingTimeout>
             <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
             <StoreCfg>
-                <DataDir>/var/spool/arc/shepherd_store2</DataDir>
+                <DataDir>/var/spool/arc/shepherd_data2</DataDir>
             </StoreCfg>
             <BackendClass>storage.shepherd.byteio.ByteIOBackend</BackendClass>
             <BackendCfg>
-                <DataDir>/var/spool/arc/shepherd_data2</DataDir>
+                <DataDir>/var/spool/arc/shepherd_store2</DataDir>
                 <TransferDir>/var/spool/arc/shepherd_transfer2</TransferDir>
                 <TURLPrefix>https://storage2:60006/byteio/</TURLPrefix>
             </BackendCfg>
@@ -1035,6 +1037,7 @@ zsombor@storage:~$ cat /etc/arc/storage_service_3.xml
             <ServiceID>https://storage3:60010/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
+            <CreatingTimeout>600</CreatingTimeout>
             <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
             <StoreCfg><DataDir>/var/spool/arc/shepherd_data3</DataDir></StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
@@ -1132,7 +1135,77 @@ $ arc_storage_cli stat /orange
 
 One of the replicas have been disappeared to maintain the needed number of 2.
 
-Besides the \verb!arc_storage_cli! tool we can access the storage system with the use of a FUSE modul. We can install the ARC storage FUSE modul following these steps:
+\section{Make the A-Hash service replicated} % (fold)
+\label{sec:make_the_a_hash_service_replicated}
+
+Now we have a deployement, where one machine has the A-Hash, Librarian and Bartender services, and all three machines have a Shepherd and a storage element service. The A-Hash service stores all the metadata of all the files and collections, so it is critical. If the first machine goes offline then the whole system dies. We can deploy the A-Hash service on all the machines and still can have one consistent metadata database. The replicated version of the A-Hash uses the Berkeley DB to provide a distributed database.
+
+Let's install Berkeley DB as root (but you can use the \verb!--prefix! option of \verb!configure! to install it somewhere else than the default location).
+
+Get the latest Berkeley DB and its patches:
+\begin{verbatim}
+$ wget http://download.oracle.com/berkeley-db/db-4.7.25.tar.gz
+$ wget http://www.oracle.com/technology/products/berkeley-db/db/update/4.7.25/patch.4.7.25.1
+$ wget http://www.oracle.com/technology/products/berkeley-db/db/update/4.7.25/patch.4.7.25.2
+$ wget http://www.oracle.com/technology/products/berkeley-db/db/update/4.7.25/patch.4.7.25.3
+\end{verbatim}
+
+Extract it and apply the patches:
+\begin{verbatim}
+$ tar zxf db-4.7.25.tar.gz
+$ cd db-4.7.25
+$ patch -p 0 < ../patch.4.7.25.1
+$ patch -p 0 < ../patch.4.7.25.2
+$ patch -p 0 < ../patch.4.7.25.3
+\end{verbatim}
+
+Configure, make and install it (you can use the \verb!--prefix! option for \verb!configure!)
+\begin{verbatim}
+$ cd build_unix/
+$ ../dist/configure
+\end{verbatim}
+
+Now compile and install it:
+\begin{verbatim}
+$ make
+$ sudo make install
+\end{verbatim}
+
+Now we need the python wrapper for the Berkeley DB:
+
+\begin{verbatim}
+$ wget http://pypi.python.org/packages/source/b/bsddb3/bsddb3-4.7.5.tar.gz
+\end{verbatim}
+
+Let's install it to the default location:
+
+\begin{verbatim}
+$ tar zxf bsddb3-4.7.5.tar.gz
+$ cd bsddb3-4.7.5
+$ sudo python setup.py install
+\end{verbatim}
+
+If you've installed Berkeley DB somewhere else, or want to install the python wrapper to somewhere else than the default:
+
+\begin{verbatim}
+$ BERKELEYDB_DIR=/path/to/berkeleydb python setup.py install --prefix=/where/to/install
+\end{verbatim}
+
+Let's test the installation with the \verb!test.py! included in the directory of the python wrapper for the Berkeley DB:
+\begin{verbatim}
+$ sudo python test.py
+[...]
+Ran 383 tests in 29.858s
+
+OK
+\end{verbatim}
+
+
+
+\section{Using the FUSE module} % (fold)
+\label{sec:using_the_fuse_module}
+
+Besides the \verb!arc_storage_cli! tool we can access the storage system with the use of a FUSE module. We can install the ARC storage FUSE module following these steps:
 
 \begin{itemize}
 \item Install ARC1 storage system.

@@ -57,11 +57,11 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large Documentation of the ARC storage system}\Large \par}
+{\centering \textsc{\Large Chelonia - Self-healing distributed storage system}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
-{\centering \textit{\large First prototype status and plans}\large \par}
+{\centering \textit{\large Documentation and developer's guide}\large \par}
     
 \vspace*{1.5cm}
 %%%%---- A list of authors ----
@@ -577,11 +577,11 @@ The A-Hash service has a modular architecture which means that you can decide if
 The replicated A-Hash module is built on Oracle Berkeley DB High Availability, an open source database library with a replication API. The replication is based on a single master, multiple clients framework where all clients can read from the database, while only the master is allowed to write to the database. This ensures that all database transactions are ACID (atomic, consistent, isolated and durable). The replicated A-Hash module consists of three modules, \verb!ReplicatedAHash!, \verb!ReplicationStore! and \verb!ReplicationManager!.
 
 \begin{description}
-    \item[ReplicatedAHash] %TODO: describe ReplicatedAHash, sendMessage, processMessage
+    \item[ReplicatedAHash] 
 	is a subclass of the \verb!CentralizedAHash! business logic class and implements the extra logic needed for communication between A-Hash instances. The \verb!ReplicatedAHash! adds the method \verb!sendMessage! to the A-Hash interface and has a method \verb!processMessage! for processing messages from \verb!sendMessage!. These two methods are needed for the communication framework of the \verb!ReplicationManager!. The actual replication is managed by the \verb!ReplicationStore! and \verb!ReplicationManager!, meaning that the \verb!ReplicatedAHash!, with the exception of the above mentioned methods, is actually just a centralized A-Hash with a specific storage module.
-    \item[ReplicationStore] %TODO: describe ReplicationStore, connection with TransDBStore, config, etc.
+    \item[ReplicationStore] 
 	is a specialized replicated DB. It is a subclass of \verb!TransDBStore!\footnote{A module for storing data on disk transactionally using the Berkeley DB library.} with some additional features for handling replication. The \verb!ReplicationStore! periodically updates an A-Hash object containing information about the current master A-Hash and available clients. In addition it contains a \verb!ReplicationManager! object which governs the replication framework.
-    \item[ReplicationManager] %TODO: describe ReplicationManager, elections, communication (interservice communication, security, callback functions)
+    \item[ReplicationManager] 
 	handles all aspects of the Berkeley DB API and takes care of replicas, elections and replication messages.
 	\begin{itemize}
 	\item The replicated A-Hash consists of a set of replicas; one master and multiple clients. This means that the entire database is fully replicated on all replicas. When the master receives a write message, it will broadcast this message to all clients. To make sure that the db is consistent and that there will always be possible to elect a master, the master requires an acknowledgement message from a quorum of clients before continuing.
@@ -722,7 +722,6 @@ The end-user of the ARC storage system never communicates directly with a Librar
 
 The Librarian service uses the A-Hash to store all the metadata, and it uses the GUIDs as IDs in the database. It has the URL of one or more A-Hash services from its configuration, and it can acquire more A-Hash URLs from these first A-Hashes in case of a replicated A-Hash deployement.
 
-%TODO: here comes some sentences about how the Librarian reads from any A-Hash and finds the master A-Hash for writing.
 The replicated A-Hash deployment is based on a single master, multiple clients scenario (see Section~\ref{sec:a_hash} for details). This means that the Librarian can read from any A-Hash, while it can only write to the master A-Hash. A list of A-Hashes, master and clients, is stored in an A-Hash object. The Librarian periodically gets this list to maintain its own list of A-Hash services. If the Librarian tries to write to the replicated A-Hash and the master is down, the Librarian will try to get a new list from one of the clients and retry the write request once before giving up. In case of reading from the replicated A-Hash, the Librarian will randomly loop through the list of clients until the read request is successful or until there are no more clients available.
 
 The Librarian also accepts report messages from Shepherds, and stores the contents of these messages in the A-Hash. There is one A-Hash object which contains the ID and the expected time of the next heartbeat of the registered Shepherds, and there is one A-Hash object for each Shepherd which stores the states and GUIDs of the files on the Shepherd's storage node (see Section~\ref{sub:shepherds} for details). The Librarian checks periodically if there is a Shepherd which is late with its heartbeat, and it changes the states of all the replicas if needed.
