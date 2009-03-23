@@ -45,6 +45,11 @@ class DelegationSH : public SecHandler {
   std::string proxy_file_;
   std::string ca_file_;
   std::string ca_dir_;
+
+  Arc::MessageContextElement* mcontext_;
+
+ protected:
+  static Arc::Logger logger;
  
  private:
   DelegationContext* get_delegcontext(Arc::Message& msg);

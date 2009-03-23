@@ -17,6 +17,7 @@
 #include "DelegationSH.h"
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "DelegationSH");
+Arc::Logger ArcSec::DelegationSH::logger(Arc::Logger::rootLogger,"DelegationSH");
 
 Arc::Plugin* ArcSec::DelegationSH::get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg =
@@ -34,6 +35,13 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 
 namespace ArcSec {
 using namespace Arc;
+
+class DelegationContext:public Arc::MessageContextElement{
+ public:
+  bool have_delegated_;
+  DelegationContext(void){ have_delegated_ = false; };
+  virtual ~DelegationContext(void) { };
+};
 
 DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
   std::string delegation_type = (std::string)((*cfg)["Type"]);
@@ -77,17 +85,12 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
     logger.msg(ERROR,"Delegation type not supported: %s",delegation_type);
     return;
   }
+
+  mcontext_ = new DelegationContext();
 }
 
 DelegationSH::~DelegationSH() {
 }
-
-class DelegationContext:public Arc::MessageContextElement{
- public:
-  bool have_delegated_;
-  DelegationContext(void){ have_delegated_ = false; };
-  virtual ~DelegationContext(void) { };
-};
 
 DelegationContext* DelegationSH::get_delegcontext(Arc::Message& msg) {
   DelegationContext* deleg_ctx=NULL;
@@ -170,6 +173,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
               };
             }
 
+
             std::string cred_identity = msg->Attributes()->get("TLS:IDENTITYDN");
             unsigned long hash_value = string_hash(cred_identity);
             //Store the delegated credential (got from delegation service)
@@ -222,7 +226,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
         //the EEC credential's holder
 
         //Store delegation context into message context
-        DelegationContext* deleg_ctx = get_delegcontext(*msg);
+        DelegationContext* deleg_ctx = dynamic_cast<DelegationContext*>(mcontext_); //get_delegcontext(*msg);
         if(!deleg_ctx) {
           logger.msg(Arc::ERROR, "Can't create delegation context");
           return false;
