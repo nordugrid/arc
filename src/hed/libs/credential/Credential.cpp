@@ -481,7 +481,6 @@ namespace Arc {
           if((policy_object = OBJ_nid2obj(OBJ_sn2nid(IMPERSONATION_PROXY_SN))) != NULL) {
             PROXYPOLICY_set_policy_language(ppolicy, policy_object); 
           }
-else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
           break;
 
         case CERT_TYPE_GSI_3_INDEPENDENT_PROXY:
@@ -551,7 +550,8 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
         policylang_ = LIMITED_PROXY_OID;
       else if(policylang_ == "INDEPENDENT" || policylang_ == "independent") 
         policylang_ = INDEPENDENT_PROXY_OID;
-      else if(policylang_ == "IMPERSONATION" || policylang_ == "impersonation") 
+      else if(policylang_ == "IMPERSONATION" || policylang_ == "impersonation" 
+          || policylang_ == "inheritAll" || policylang_ == "INHERITALL") 
         policylang_ = IMPERSONATION_PROXY_OID;
       else if(policylang_.empty()) {
         if(policy_.empty()) policylang_ = IMPERSONATION_PROXY_OID;
@@ -1090,11 +1090,6 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
       LogError(); return false;
     }
 
-    //if(!(d2i_X509_REQ_bio(reqbio, &req_))) {
-    //  CredentialLogger.msg(ERROR, "Can't convert X509_REQ struct from DER encoded to internal format");
-    //  LogError(); return false;
-    //}
-
     STACK_OF(X509_EXTENSION)* req_extensions = NULL;
     X509_EXTENSION* ext;
     PROXYPOLICY*  policy = NULL;
@@ -1113,10 +1108,8 @@ else std::cout<<"IMPERSONATION_PROXY_SN empty"<<std::endl;
       ext = sk_X509_EXTENSION_value(req_extensions,i);
       extension_oid = X509_EXTENSION_get_object(ext);
       nid = OBJ_obj2nid(extension_oid);
-
-std::cout<<"NID:  "<<nid<<" SN: "<<OBJ_nid2sn(nid)<<std::endl;
-      if(nid == certinfo_v3_NID || nid == certinfo_v4_NID ||
-         nid == certinfo_old_NID || nid == certinfo_NID) {
+      if((nid != 0) && (nid == certinfo_v3_NID || nid == certinfo_v4_NID ||
+         nid == certinfo_old_NID || nid == certinfo_NID)) {
         if(proxy_cert_info_) {
           PROXYCERTINFO_free(proxy_cert_info_);
           proxy_cert_info_ = NULL;
@@ -1139,7 +1132,7 @@ std::cout<<"NID:  "<<nid<<" SN: "<<OBJ_nid2sn(nid)<<std::endl;
         LogError(); goto err;
       }    
       int policy_nid = OBJ_obj2nid(policy_lang);
-      if(nid == certinfo_v3_NID || nid == certinfo_old_NID) { 
+      if((nid != 0) && (nid == certinfo_v3_NID || nid == certinfo_old_NID)) { 
         if(policy_nid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { cert_type_= CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
         else if(policy_nid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
         else if(policy_nid == OBJ_sn2nid(LIMITED_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY; }
@@ -1158,9 +1151,7 @@ std::cout<<"NID:  "<<nid<<" SN: "<<OBJ_nid2sn(nid)<<std::endl;
     else if(if_eec == false) { cert_type_ =  CERT_TYPE_RFC_INDEPENDENT_PROXY; } //CERT_TYPE_GSI_2_PROXY; }
     else { cert_type_ = CERT_TYPE_EEC; }
 
-std::cout<<"Cert type: +++++++++++++  "<<cert_type_<<std::endl;
-if(cert_type_ == CERT_TYPE_RFC_INDEPENDENT_PROXY) std::cout<<"CERT_TYPE_RFC_INDEPENDENT_PROXY"<<std::endl;
-cert_type_ = CERT_TYPE_RFC_INDEPENDENT_PROXY;  
+    CredentialLogger.msg(VERBOSE,"Cert Type: %d",cert_type_);
 
     res = true;
 
