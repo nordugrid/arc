@@ -79,7 +79,7 @@ const static unsigned int max_files_list = 999;
                     SRMv2__ArrayOfTBringOnlineRequestFileStatus * file_statuses);
   
    public:
-    SRM22Client(std::string url);
+    SRM22Client(SRMURL url);
     ~SRM22Client(void);
   
     /**

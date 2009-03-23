@@ -98,7 +98,8 @@ namespace Arc {
          for indexing services only). */
     virtual DataStatus ListFiles(std::list<FileInfo>& files,
                                  bool long_list = false,
-                                 bool resolve = false) = 0;
+                                 bool resolve = false,
+                                 bool metadata = false) = 0;
 
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.

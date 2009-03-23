@@ -16,11 +16,11 @@ namespace Arc {
 
   public:
 
-    typedef enum {
+    enum Type {
       file_type_unknown = 0,
       file_type_file = 1,
       file_type_dir = 2
-    } Type;
+    };
 
     FileInfo(const std::string& name = "")
       : name(name),
@@ -124,6 +124,14 @@ namespace Arc {
       latency = l;
     }
 
+    std::map<std::string, std::string> GetMetaData() const {
+      return metadata;
+    }
+    
+    void SetMetaData(const std::string att, const std::string val) {
+      metadata[att] = val;
+    }
+    
   private:
 
     std::string name;
@@ -134,6 +142,7 @@ namespace Arc {
     Time valid;                  // Valid till time.
     Type type;                   // File type - usually file_type_file
     std::string latency;         // Access latenct of file (applies to SRM only)
+    std::map<std::string, std::string> metadata; // Generic metadata attribute-value pairs
   };
 
 } // namespace Arc

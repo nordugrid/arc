@@ -10,11 +10,13 @@
 #include <glibmm/fileutils.h>
 #include <glibmm/thread.h>
 
+#include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
+
 
 #include "DataPointSRM.h"
 
@@ -436,12 +438,13 @@ namespace Arc {
 
   DataStatus DataPointSRM::ListFiles(std::list<FileInfo>& files,
                                      bool long_list,
-                                     bool resolve) {
+                                     bool resolve,
+                                     bool metadata) {
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr());
-    if (!client)
+    SRMClient * client = SRMClient::getInstance(url.fullstr());
+    if(!client) 
       return DataStatus::CheckError;
-
+    
     std::string canonic_url;
     if (!url.HTTPOption("SFN").empty())
       canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
@@ -456,57 +459,83 @@ namespace Arc {
     }
 
     logger.msg(DEBUG, "ListFiles: looking for metadata: %s", CurrentLocation().str());
-    std::list<struct SRMFileMetaData> metadata;
+    std::list<struct SRMFileMetaData> srm_metadata;
 
     // get info from SRM
-    if (!client->info(*srm_request, metadata)) {
+    if (!client->info(*srm_request, srm_metadata)) {
       delete client;
       client = NULL;
       return DataStatus::ListError;
     }
 
-    if (metadata.empty()) {
+    if (srm_metadata.empty()) {
       delete client;
       client = NULL;
       return DataStatus::Success;
     }
     // set URL attributes for surl requested (file or dir)
-    if (metadata.front().size > 0)
-      SetSize(metadata.front().size);
-    if (metadata.front().checkSumType.length() > 0 &&
-        metadata.front().checkSumValue.length() > 0) {
-      std::string csum(metadata.front().checkSumType + ":" + metadata.front().checkSumValue);
+    if(srm_metadata.front().size > 0)
+      SetSize(srm_metadata.front().size);
+    if(srm_metadata.front().checkSumType.length() > 0 &&
+       srm_metadata.front().checkSumValue.length() > 0) {
+      std::string csum(srm_metadata.front().checkSumType+":"+srm_metadata.front().checkSumValue);
       SetCheckSum(csum);
     }
-    if (metadata.front().createdAtTime > 0)
-      SetCreated(Time(metadata.front().createdAtTime));
+    if(srm_metadata.front().createdAtTime > 0) 
+      SetCreated(Time(srm_metadata.front().createdAtTime));
 
     // set FileInfo attributes for surl requested and any files within a dir
-    for (std::list<struct SRMFileMetaData>::iterator i = metadata.begin();
-         i != metadata.end();
+    for (std::list<struct SRMFileMetaData>::iterator i = srm_metadata.begin();
+         i != srm_metadata.end();
          ++i) {
 
       std::list<FileInfo>::iterator f =
         files.insert(files.end(), FileInfo((*i).path));
-
-      if ((*i).fileType == SRM_FILE)
+      f->SetMetaData("path", i->path);
+      
+      if ((*i).fileType == SRM_FILE) {
         f->SetType(FileInfo::file_type_file);
-      else if ((*i).fileType == SRM_DIRECTORY)
+        f->SetMetaData("type", "file");
+      }
+      else if ((*i).fileType == SRM_DIRECTORY) {
         f->SetType(FileInfo::file_type_dir);
+        f->SetMetaData("type", "dir");
+      }
 
-      if ((*i).size >= 0)
+      if ((*i).size >= 0) {
         f->SetSize((*i).size);
-      if ((*i).createdAtTime > 0)
+        f->SetMetaData("size", tostring(i->size));
+      }
+      if ((*i).createdAtTime > 0) {
         f->SetCreated(Time((*i).createdAtTime));
+        f->SetMetaData("ctime", (Time((*i).createdAtTime)).str());
+      }
       if ((*i).checkSumType.length() > 0 &&
           (*i).checkSumValue.length() > 0) {
         std::string csum((*i).checkSumType + ":" + (*i).checkSumValue);
         f->SetCheckSum(csum);
+        f->SetMetaData("checksum", csum);
       }
-      if ((*i).fileLocality == SRM_ONLINE)
+      if ((*i).fileLocality == SRM_ONLINE) {
         f->SetLatency("ONLINE");
-      else if ((*i).fileLocality == SRM_NEARLINE)
+        f->SetMetaData("latency", "ONLINE");
+      }
+      else if ((*i).fileLocality == SRM_NEARLINE) {
         f->SetLatency("NEARLINE");
+        f->SetMetaData("latency", "NEARLINE");
+      }
+      if(!(*i).arrayOfSpaceTokens.empty()) f->SetMetaData("spacetokens", (*i).arrayOfSpaceTokens);
+      if(!(*i).owner.empty()) f->SetMetaData("owner", (*i).owner);
+      if(!(*i).group.empty()) f->SetMetaData("group", (*i).group);
+      if(!(*i).permission.empty()) f->SetMetaData("accessperm", (*i).permission);
+      if((*i).lastModificationTime > 0)
+        f->SetMetaData("mtime", (Time((*i).lastModificationTime)).str());
+      if((*i).lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring((*i).lifetimeLeft));
+      if((*i).lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring((*i).lifetimeAssigned));
+  
+      if ((*i).retentionPolicy == SRM_REPLICA) f->SetMetaData("retentionpolicy", "REPLICA");
+      else if ((*i).retentionPolicy == SRM_OUTPUT) f->SetMetaData("retentionpolicy", "OUTPUT");
+      else if ((*i).retentionPolicy == SRM_CUSTODIAL)  f->SetMetaData("retentionpolicy", "CUSTODIAL");
     }
     delete client;
     client = NULL;

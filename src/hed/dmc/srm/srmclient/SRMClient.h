@@ -43,6 +43,26 @@
     SRM_UNKNOWN,
     SRM_STAGE_ERROR,
   };
+   
+  /**
+   * Quality of retention
+   */
+  enum SRMRetentionPolicy {
+    SRM_REPLICA,
+    SRM_OUTPUT,
+    SRM_CUSTODIAL,
+    SRM_RETENTION_UNKNOWN,
+  };
+  
+  /**
+   * The lifetime of the file
+   */
+  enum SRMFileStorageType {
+    SRM_VOLATILE,
+    SRM_DURABLE,
+    SRM_PERMANENT,
+    SRM_FILE_STORAGE_UNKNOWN,
+  };
   
   /**
    * File, directory or link
@@ -76,18 +96,15 @@
     std::string checkSumType;
     std::string checkSumValue;
     SRMFileLocality fileLocality;
+    SRMRetentionPolicy retentionPolicy;
+    SRMFileStorageType fileStorageType;
     SRMFileType fileType;
-    /*
-      TFileStorageType fileStorageType;
-      TRetentionPolicyInfo retentionPolicyInfo;
-      string[] arrayOfSpaceTokens;
-      int lifetimeAssigned;
-      int lifetimeLeft; // on the SURL
-      TUserPermission ownerPermission;
-      TGroupPermission groupPermission;
-      TPermissionMode otherPermission;
-      TMetaDataPathDetail[] arrayOfSubPaths;
-    */
+    std::string arrayOfSpaceTokens;
+    std::string owner;
+    std::string group;
+    std::string permission;
+    int lifetimeLeft; // on the SURL    
+    int lifetimeAssigned;
   };
   
   class SRMInvalidRequestException: public std::exception {};
@@ -153,7 +170,12 @@
      * status of request. Only useful for asynchronous requests.
      */
     SRMRequestStatus _status;
-  
+    
+    /**
+     * Whether a detailed listing is requested
+     */
+    bool _long_list;
+    
    public:
     
     /**
@@ -162,10 +184,11 @@
      */
     SRMClientRequest(std::list<std::string> urls) 
       throw (SRMInvalidRequestException):
-      _request_token(""), 
+      _request_token(""),
       _space_token(""), 
       _waiting_time(1), 
-      _status(SRM_REQUEST_ONGOING) {
+      _status(SRM_REQUEST_ONGOING),
+      _long_list(false) {
   
       if(urls.empty()) throw SRMInvalidRequestException();
       for (std::list<std::string>::iterator i = urls.begin();
@@ -182,7 +205,9 @@
       _request_token(""),
       _space_token(""),
       _waiting_time(1),
-      _status(SRM_REQUEST_ONGOING) {
+      _status(SRM_REQUEST_ONGOING),
+      _long_list(false) {
+        
       if(url.compare("") == 0 && id.compare("") == 0) throw SRMInvalidRequestException();
       if(url.compare("") != 0) _surls[url] = SRM_UNKNOWN;
       else _request_token = (char*)id.c_str();
@@ -249,7 +274,12 @@
     void finished_error() {_status = SRM_REQUEST_FINISHED_ERROR;};
     void cancelled() {_status = SRM_REQUEST_CANCELLED;};
     SRMRequestStatus status() {return _status;};
-  
+    
+    /**
+     * set and get long list flag
+     */
+    void long_list(bool list) { _long_list = list; };
+    bool long_list() { return _long_list; };
   };
   
   /**

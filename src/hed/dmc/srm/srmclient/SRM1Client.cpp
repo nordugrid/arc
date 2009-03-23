@@ -4,15 +4,13 @@
 
   //Arc::Logger SRM1Client::logger(SRMClient::logger, "SRM1Client");
   
-  SRM1Client::SRM1Client(std::string url) {
+  SRM1Client::SRM1Client(SRMURL url) {
     version = "v1";
     implementation = SRM_IMPLEMENTATION_UNKNOWN;
-    SRMURL srm_url(url.c_str());
-    service_endpoint = srm_url.ContactURL();
+    service_endpoint = url.ContactURL();
     csoap = new Arc::HTTPSClientSOAP(service_endpoint.c_str(),&soapobj,true,request_timeout,false);
     if(!csoap) { csoap=NULL; return; };
     if(!*csoap) { delete csoap; csoap=NULL; return; };
-    //soap_set_namespaces(&soapobj, srm_soap_namespaces);
     soapobj.namespaces=srm1_soap_namespaces;
   }
   

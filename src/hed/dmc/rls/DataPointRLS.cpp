@@ -1069,7 +1069,7 @@ namespace Arc {
     return true;
   }
 
-  DataStatus DataPointRLS::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve) {
+  DataStatus DataPointRLS::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve, bool metadata) {
     std::list<URL> rlis;
     std::list<URL> lrcs;
     rlis.push_back(url.ConnectionURL());

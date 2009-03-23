@@ -55,7 +55,7 @@ namespace Arc {
     StopWriting();
   }
 
-  DataStatus DataPointARC::ListFiles(std::list<FileInfo>& files, bool, bool) {
+  DataStatus DataPointARC::ListFiles(std::list<FileInfo>& files, bool, bool, bool) {
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);

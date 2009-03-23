@@ -445,7 +445,8 @@ namespace Arc {
 
   DataStatus DataPointLFC::ListFiles(std::list<FileInfo>& files,
                                      bool long_list,
-                                     bool resolve) {
+                                     bool resolve,
+                                     bool metadata) {
 
 #ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
@@ -473,7 +474,7 @@ namespace Arc {
     }
 
     // if it's a directory, list entries
-    if (st.filemode & S_IFDIR) {
+    if (st.filemode & S_IFDIR && !metadata) {
       lfc_DIR *dir = lfc_opendirxg(const_cast<char*>(url.Host().c_str()), url.Path().c_str(), NULL);
       if (dir == NULL) {
         logger.msg(ERROR, "Error opening directory: %s", sstrerror(serrno));
@@ -502,9 +503,6 @@ namespace Arc {
           }
           f->SetCreated(direntry->ctime);
           f->SetType((direntry->filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
-
-          // TODO: figure out how to display guids
-          //if(!(direntry->filemode & S_IFDIR)) f->AddURL(URL("guid:"+std::string(direntry->guid)));
         }
       }
       if (serrno) {
@@ -539,15 +537,20 @@ namespace Arc {
     } // if (dir)
     else {
       std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(url.Path().c_str()));
+      f->SetMetaData("path", url.Path());
       f->SetSize(st.filesize);
+      f->SetMetaData("size", tostring(st.filesize));
       if (st.csumvalue[0]) {
         std::string csum = st.csumtype;
         csum += ":";
         csum += st.csumvalue;
         f->SetCheckSum(csum);
+        f->SetMetaData("checksum", csum);
       }
       f->SetCreated(st.mtime);
+      f->SetMetaData("mtime", f->GetCreated().str());
       f->SetType((st.filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
+      f->SetMetaData("type", (st.filemode & S_IFDIR) ? "dir" : "file");
       if (resolve) {
         int nbentries = 0;
         struct lfc_filereplica *entries = NULL;
@@ -560,6 +563,28 @@ namespace Arc {
         for (int n = 0; n < nbentries; n++)
           f->AddURL(URL(std::string(entries[n].sfn)));
       }
+      // fill some more metadata
+      if (st.guid[0] != '\0') f->SetMetaData("guid", std::string(st.guid));
+      if(metadata) {
+        char username[256];
+        if (lfc_getusrbyuid(st.uid, username) == 0) f->SetMetaData("owner", username);
+        char groupname[256];
+        if (lfc_getgrpbygid(st.gid, groupname) == 0) f->SetMetaData("group", groupname);
+      };
+      mode_t mode = st.filemode;
+      std::string perms;
+      if (mode & S_IRUSR) perms += 'r'; else perms += '-';
+      if (mode & S_IWUSR) perms += 'w'; else perms += '-';
+      if (mode & S_IXUSR) perms += 'x'; else perms += '-';
+      if (mode & S_IRGRP) perms += 'r'; else perms += '-';
+      if (mode & S_IWGRP) perms += 'w'; else perms += '-';
+      if (mode & S_IXGRP) perms += 'x'; else perms += '-';
+      if (mode & S_IROTH) perms += 'r'; else perms += '-';
+      if (mode & S_IWOTH) perms += 'w'; else perms += '-';
+      if (mode & S_IXOTH) perms += 'x'; else perms += '-';
+      f->SetMetaData("accessperm", perms);
+      f->SetMetaData("ctime", (Time(st.ctime)).str());
+      f->SetMetaData("atime", (Time(st.atime)).str());
     }
     lfc_endsess();
     return DataStatus::Success;

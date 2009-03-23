@@ -27,7 +27,8 @@ namespace Arc {
     virtual DataStatus Remove();
     virtual DataStatus ListFiles(std::list<FileInfo>& files,
                                  bool long_list = false,
-                                 bool resolve = false);
+                                 bool resolve = false,
+                                 bool metadata = false);
   private:
     SRMClientRequest *srm_request;
     static Logger logger;

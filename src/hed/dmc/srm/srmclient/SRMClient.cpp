@@ -13,15 +13,22 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
                                     SRMVersion srm_version) {
   
     request_timeout = timeout;
-  
+    SRMURL srm_url(url);
+    if (!srm_url) return NULL;
+    
     // if version is defined, return the appropriate client
-    if (srm_version == SRM_V1) return new SRM1Client(url);
-    if (srm_version == SRM_V2_2) return new SRM22Client(url);
+    if (srm_version == SRM_V1) return new SRM1Client(srm_url);
+    if (srm_version == SRM_V2_2) return new SRM22Client(srm_url);
+
+    // if version defined in the URL, use that
+    if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_1) return new SRM1Client(srm_url);
+    if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2) return new SRM22Client(srm_url);
   
     // try to do srmPing with the 2.2 client - if this returns ok
     // use v2.2, else use v1, or error, depending on the return value
   
-    SRMClient * client = new SRM22Client(url);
+    srm_url.SetSRMVersion("2.2");
+    SRMClient * client = new SRM22Client(srm_url);
     std::string version;
   
     SRMReturnCode srm_error;
@@ -35,6 +42,7 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
     // if soap error probably means v2 not supported
     if (srm_error == SRM_ERROR_SOAP) {
       logger.msg(Arc::DEBUG, "SOAP error with srmPing, instantiating v1 client");
+      srm_url.SetSRMVersion("1");
       return new SRM1Client(url);
     };
   

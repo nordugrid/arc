@@ -4,19 +4,17 @@
   
   //Arc::Logger SRM22Client::logger(SRMClient::logger, "SRM22Client");
 
-  SRM22Client::SRM22Client(std::string url) {
+  SRM22Client::SRM22Client(SRMURL url) {
     version = "v2.2";
     implementation = SRM_IMPLEMENTATION_UNKNOWN;
-    SRM22URL srm22url(url.c_str());
-    service_endpoint = srm22url.ContactURL();
+    service_endpoint = url.ContactURL();
     csoap = new Arc::HTTPSClientSOAP(service_endpoint.c_str(),
                                 &soapobj,
-                                srm22url.GSSAPI(),
+                                url.GSSAPI(),
                                 request_timeout,
                                 false);
     if(!csoap) { csoap=NULL; return; };
     if(!*csoap) { delete csoap; csoap=NULL; return; };
-    //soap_set_namespaces(&soapobj, srm_soap_namespaces);
     soapobj.namespaces=srm2_2_soap_namespaces;
   }
   
@@ -629,7 +627,10 @@
   
           // estimatedWaitTime gives the total estimated wait time since the initial
           // request, so take off what we have slept already
-          if (file_statuses && file_statuses->statusArray) {
+          if (file_statuses && 
+              file_statuses->statusArray &&
+              file_statuses->statusArray[0] &&
+              file_statuses->statusArray[0]->estimatedWaitTime) {
             int stime = *(file_statuses->statusArray[0]->estimatedWaitTime);
             sleeptime = stime-sleeptime;
           }
@@ -702,8 +703,7 @@
     if (offset != 0) request->offset = new int(offset);
     if (count != 0) request->count = new int(count);
     
-    // TODO add option whether to use this
-    //request->fullDetailedList = new bool(true);
+    if (req.long_list()) request->fullDetailedList = new bool(true);
   
     struct SRMv2__srmLsResponse_ response_struct;
     
@@ -787,6 +787,7 @@
     };
   
     // the request is ready - collect the details
+    if (!file_details || !file_details->pathDetailArray || file_details->__sizepathDetailArray == 0 || !file_details->pathDetailArray[0]) return true; // see bug 1364
     // first the file or directory corresponding to the surl
     SRMv2__TMetaDataPathDetail * details = file_details->pathDetailArray[0];
     if (!details->type || *(details->type) != SRMv2__TFileType__DIRECTORY || recursive < 0) {
@@ -920,7 +921,60 @@
       };
     }
     else { metadata.fileLocality = SRM_UNKNOWN; };
-  
+
+    if(details->arrayOfSpaceTokens && details->arrayOfSpaceTokens->__sizestringArray > 0) {
+      std::string tokens;
+      for(int i = 0; i < details->arrayOfSpaceTokens->__sizestringArray; i++) {
+        if (i == details->arrayOfSpaceTokens->__sizestringArray - 1) tokens += details->arrayOfSpaceTokens->stringArray[i];
+        else tokens += std::string(details->arrayOfSpaceTokens->stringArray[i]) + ",";
+      }
+      metadata.arrayOfSpaceTokens = tokens;
+    }
+    
+    if(details->ownerPermission && details->groupPermission && details->otherPermission) {
+      std::string perm;
+      if(details->ownerPermission->userID) metadata.owner = details->ownerPermission->userID;
+      if(details->groupPermission->groupID) metadata.group = details->groupPermission->groupID;
+      if(details->ownerPermission->mode &&
+         details->groupPermission->mode &&
+         details->otherPermission) {
+        std::string perms;
+        if (details->ownerPermission->mode & 4) perms += 'r'; else perms += '-';
+        if (details->ownerPermission->mode & 2) perms += 'w'; else perms += '-';
+        if (details->ownerPermission->mode & 1) perms += 'x'; else perms += '-';
+        if (details->groupPermission->mode & 4) perms += 'r'; else perms += '-';
+        if (details->groupPermission->mode & 2) perms += 'w'; else perms += '-';
+        if (details->groupPermission->mode & 1) perms += 'x'; else perms += '-';
+        if (*(details->otherPermission) & 4) perms += 'r'; else perms += '-';
+        if (*(details->otherPermission) & 2) perms += 'w'; else perms += '-';
+        if (*(details->otherPermission) & 1) perms += 'x'; else perms += '-';
+        metadata.permission = perms;
+       }
+    }
+    
+    if(details->lastModificationTime) {
+      time_t * mod_time = details->lastModificationTime;
+      metadata.lastModificationTime = *mod_time;
+    }
+    
+    if(details->lifetimeAssigned) metadata.lifetimeAssigned = *(details->lifetimeAssigned);
+    if(details->lifetimeLeft) metadata.lifetimeLeft = *(details->lifetimeLeft);  
+    
+    if(details->retentionPolicyInfo) {
+      if (details->retentionPolicyInfo->retentionPolicy == SRMv2__TRetentionPolicy__REPLICA) metadata.retentionPolicy = SRM_REPLICA;
+      else if (details->retentionPolicyInfo->retentionPolicy == SRMv2__TRetentionPolicy__OUTPUT) metadata.retentionPolicy = SRM_OUTPUT;
+      else if (details->retentionPolicyInfo->retentionPolicy == SRMv2__TRetentionPolicy__CUSTODIAL) metadata.retentionPolicy = SRM_CUSTODIAL;
+      else metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
+    }
+    
+    if(details->fileStorageType) {
+      SRMv2__TFileStorageType * file_storage_type = details->fileStorageType;
+      if (*file_storage_type == SRMv2__TFileStorageType__VOLATILE) metadata.fileStorageType = SRM_VOLATILE;
+      else if (*file_storage_type == SRMv2__TFileStorageType__DURABLE) metadata.fileStorageType = SRM_DURABLE;
+      else if (*file_storage_type == SRMv2__TFileStorageType__PERMANENT) metadata.fileStorageType = SRM_PERMANENT;
+      else metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
+    }
+    
     // if any other value, leave undefined
   
     return metadata;
@@ -974,7 +1028,17 @@
       return false;
     };
     request->requestToken=(char*)req.request_token().c_str();
+
+    // add the SURLs to the request
+    xsd__anyURI * req_array = new xsd__anyURI[1];
+    req_array[0] = (char*)req.surls().front().c_str();
   
+    SRMv2__ArrayOfAnyURI * surls_array = new SRMv2__ArrayOfAnyURI;
+    surls_array->__sizeurlArray=1;
+    surls_array->urlArray=req_array;
+  
+    request->arrayOfSURLs=surls_array;
+    
     struct SRMv2__srmPutDoneResponse_ response_struct;
   
     int soap_err = SOAP_OK;

@@ -568,7 +568,7 @@ namespace Arc {
     DataHandle handle(dir);
     handle->AssignCredentials(proxyPath, certificatePath,
                               keyPath, caCertificatesDir);
-    handle->ListFiles(outputfiles, true, false);
+    handle->ListFiles(outputfiles, true, false, false);
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
          i != outputfiles.end(); i++) {

@@ -30,7 +30,7 @@ namespace Arc {
     virtual ~DataPointHTTP();
     DataStatus Check();
     DataStatus Remove();
-    DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false);
+    DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
     DataStatus StartReading(DataBuffer& buffer);
     DataStatus StartWriting(DataBuffer& buffer,
                             DataCallback *space_cb = NULL);

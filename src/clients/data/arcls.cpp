@@ -23,6 +23,7 @@ void arcls(const Arc::URL& dir_url,
            Arc::XMLNode credentials,
            bool show_details,
            bool show_urls,
+           bool show_meta,
            int recursion,
            int timeout) {
   if (dir_url.Protocol() == "urllist") {
@@ -34,7 +35,7 @@ void arcls(const Arc::URL& dir_url,
     }
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
          dir != dirs.end(); dir++)
-      arcls(*dir, credentials, show_details, show_urls, recursion, timeout);
+      arcls(*dir, credentials, show_details, show_urls, show_meta, recursion, timeout);
     return;
   }
 
@@ -46,7 +47,7 @@ void arcls(const Arc::URL& dir_url,
   url->AssignCredentials(credentials);
   std::list<Arc::FileInfo> files;
   url->SetSecure(false);
-  if (!url->ListFiles(files, show_details, show_urls)) {
+  if (!url->ListFiles(files, show_details, show_urls, show_meta)) {
     if (files.size() == 0) {
       logger.msg(Arc::ERROR, "Failed listing metafiles");
       return;
@@ -56,7 +57,7 @@ void arcls(const Arc::URL& dir_url,
   }
   for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
-    std::cout << i->GetName();
+    if(!show_meta || show_details || show_urls) std::cout << i->GetName();
     if (show_details) {
       switch (i->GetType()) {
       case Arc::FileInfo::file_type_file:
@@ -90,13 +91,18 @@ void arcls(const Arc::URL& dir_url,
       if (i->CheckLatency())
         std::cout << " " << i->GetLatency();
     }
-    std::cout << std::endl;
+    if(!show_meta || show_details || show_urls) std::cout << std::endl;
     if (show_urls)
       for (std::list<Arc::URL>::const_iterator u = i->GetURLs().begin();
            u != i->GetURLs().end(); u++)
         std::cout << "\t" << *u << std::endl;
+    if (show_meta) {
+      std::map<std::string, std::string> md = i->GetMetaData();
+      for (std::map<std::string, std::string>::iterator mi = md.begin(); mi != md.end(); ++mi)
+        std::cout<<mi->first<<":"<<mi->second<<std::endl;
+    }
     // Do recursion
-    if (recursion > 0)
+    else if (recursion > 0)
       if (i->GetType() == Arc::FileInfo::file_type_dir) {
         Arc::URL suburl = dir_url;
         if (suburl.Path()[suburl.Path().length() - 1] != '/')
@@ -104,7 +110,7 @@ void arcls(const Arc::URL& dir_url,
         else
           suburl.ChangePath(suburl.Path() + i->GetName());
         std::cout << suburl.str() << ":" << std::endl;
-        arcls(suburl, credentials, show_details, show_urls, recursion - 1, timeout);
+        arcls(suburl, credentials, show_details, show_urls, show_meta, recursion - 1, timeout);
         std::cout << std::endl;
       }
   }
@@ -133,6 +139,10 @@ int main(int argc, char **argv) {
   bool locations = false;
   options.AddOption('L', "locations", istring("show URLs of file locations"),
                     locations);
+
+  bool metadata = false;
+  options.AddOption('m', "metadata", istring("display all available metadata"),
+        metadata);
 
   int recursion = 0;
   options.AddOption('r', "recursive",
@@ -193,7 +203,7 @@ int main(int argc, char **argv) {
   Arc::XMLNode cred(ns, "cred");
   usercfg.ApplySecurity(cred);
 
-  arcls(*it, cred, longlist, locations, recursion, timeout);
+  arcls(*it, cred, longlist, locations, metadata, recursion, timeout);
 
   return 0;
 }

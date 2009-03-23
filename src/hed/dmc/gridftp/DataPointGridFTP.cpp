@@ -635,7 +635,8 @@ namespace Arc {
 
   DataStatus DataPointGridFTP::ListFiles(std::list<FileInfo>& files,
                                          bool long_list,
-                                         bool resolve) {
+                                         bool resolve,
+                                         bool metadata) {
     if (!ftp_active)
       return DataStatus::NotInitializedError;
     if (reading)

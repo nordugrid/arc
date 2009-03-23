@@ -21,7 +21,7 @@ namespace Arc {
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
-    virtual DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false);
+    virtual DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
   protected:
     static Logger logger;
     std::string guid;

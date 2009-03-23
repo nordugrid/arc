@@ -10,6 +10,7 @@
 #endif
 #include <unistd.h>
 
+#include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/message/MCC.h>
@@ -338,7 +339,7 @@ namespace Arc {
     return true;
   }
 
-  DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool, bool) {
+  DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve, bool metadata) {
 
     MCCConfig cfg;
     if (!proxyPath.empty())
@@ -411,20 +412,40 @@ namespace Arc {
 
       // should maybe find a better way to do this...
       if (title.substr(0, 10) == "Index of /" ||
-          title.substr(0, 5) == "ARex:")
-        html2list(result.c_str(), url, files);
+          title.substr(0, 5) == "ARex:") {
+        if (metadata) {
+          std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
+          f->SetMetaData("path", url.FullPath());
+          f->SetType(FileInfo::file_type_dir);
+          f->SetMetaData("type", "dir");
+          f->SetSize(info.size);
+          f->SetMetaData("size", tostring(info.size));
+          f->SetCreated(info.lastModified);
+          f->SetMetaData("mtime", info.lastModified.str());
+        }
+        else
+          html2list (result.c_str(), url, files);
+      }
       else {
         std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
+        f->SetMetaData("path", url.FullPath());
         f->SetType(FileInfo::file_type_file);
+        f->SetMetaData("type", "file");
         f->SetSize(info.size);
+        f->SetMetaData("size", tostring(info.size));
         f->SetCreated(info.lastModified);
+        f->SetMetaData("mtime", info.lastModified.str());
       }
     }
     else {
       std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
+      f->SetMetaData("path", url.FullPath());
       f->SetType(FileInfo::file_type_file);
+      f->SetMetaData("type", "file");
       f->SetSize(info.size);
+      f->SetMetaData("size", tostring(info.size));
       f->SetCreated(info.lastModified);
+      f->SetMetaData("mtime", info.lastModified.str());
     }
 
     return DataStatus::Success;

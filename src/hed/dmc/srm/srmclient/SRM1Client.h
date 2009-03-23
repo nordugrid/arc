@@ -38,7 +38,7 @@ const static SOAP_NMAC struct Namespace srm1_soap_namespaces[] =
     //static Arc::Logger logger;
     
    public:
-    SRM1Client(std::string url);
+    SRM1Client(SRMURL url);
     ~SRM1Client(void);
     
     // not supported in v1

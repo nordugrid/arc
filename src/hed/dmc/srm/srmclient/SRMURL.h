@@ -6,23 +6,29 @@
 //namespace Arc {
   
   class SRMURL:public Arc::URL {
-   private:
-    static std::string empty;
-    std::string filename;
-    bool isshort;
-    bool valid;
    public:
+   
+    enum SRM_URL_VERSION {
+      SRM_URL_VERSION_1,
+      SRM_URL_VERSION_2_2,
+      SRM_URL_VERSION_UNKNOWN
+    };
+   
     /**
      * Examples shown for functions below assume the object was initiated with
      * srm://srm.ndgf.org/pnfs/ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/dummyfile3
      */
-    SRMURL(const char*);
-    ~SRMURL(void) { };
+    SRMURL(std::string url);
   
     /**
      * eg /srm/managerv2
      */
     const std::string& Endpoint(void) const { return Path(); };
+  
+    /**
+    * Possible values of version are "1" and "2.2"
+    */
+    void SetSRMVersion(const std::string version);
   
     /**
      * eg pnfs/ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/dummyfile3
@@ -49,23 +55,20 @@
      */
     std::string FullURL(void) const;
   
+    enum SRM_URL_VERSION SRMVersion() { return srm_version; };
     bool Short(void) const { return isshort; };
     bool GSSAPI(void) const;
     operator bool(void) { return valid; };
     bool operator!(void) { return !valid; };
-  };
-  
-  /*
-   * Subclass to override the URL pieces specific to the SRM version.
-   */
-  class SRM22URL: public SRMURL {
+
    private:
     static std::string empty;
     std::string filename;
     bool isshort;
     bool valid;
-   public:
-    SRM22URL(const char*);
+    enum SRM_URL_VERSION srm_version;
+    
+
   };
 
 //} // namespace Arc
