@@ -1132,5 +1132,130 @@ $ arc_storage_cli stat /orange
 
 One of the replicas have been disappeared to maintain the needed number of 2.
 
+Besides the \verb!arc_storage_cli! tool we can access the storage system with the use of a FUSE modul. We can install the ARC storage FUSE modul following these steps:
+
+\begin{itemize}
+\item Install ARC1 storage system.
+
+\item Install \verb!fuse >= 2.7.3! and \verb!fuse-python >= 0.2!:
+\begin{verbatim}
+$ sudo aptitude install fuse-python
+\end{verbatim}
+
+\item Set up \verb!~/.arc/client.xml!:
+
+\begin{verbatim}
+$ cat ~/.arc/client.xml 
+<ArcConfig>
+  <KeyPath>/home/<username>/.arc/userkey.pem</KeyPath>
+  <CertificatePath>/home/<username>/.arc/usercert.pem</CertificatePath>
+  <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+  <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
+</ArcConfig>
+\end{verbatim}
+
+\item Create a mountpoint and mount arcfs.py:
+\begin{verbatim}
+   $ pwd
+   /home/me/arc
+   $ ln -s arc1/src/services/storage/fuse/arcfs.py arcfs.py
+   $ mkdir mnt
+   $ python arcfs.py ./mnt 
+\end{verbatim}
+This mounts ARCFS in \verb!/home/me/arc/mnt!, creates directory
+\verb!/home/me/arc/fuse_transfer! and a log file
+\verb!/home/me/arc/arcfsmessages!.
+
+\item Make a collection:
+\begin{verbatim}   
+   $ mkdir -p mnt/home/me
+   $ stat mnt/home/me
+     File: `mnt/home/me'
+     Size: 0               Blocks: 0          IO Block: 4096   directory
+   Device: 19h/25d Inode: 3           Links: 2
+   Access: (0755/drwxr-xr-x)  Uid: (  500/  me)   Gid: (  100/   users)
+   Access: 1970-01-01 01:00:00.000000000 +0100
+   Modify: 1970-01-01 01:00:00.000000000 +0100
+   Change: 1970-01-01 01:00:00.000000000 +0100
+\end{verbatim}
+Note that so far there is no security handling implemented, so
+that all files have mode 0644, all collections have mode 0755,
+everything is owned by the user that mounts the system.
+
+\item Create some entries in your collection:
+\begin{verbatim}
+   $ cd mnt/home/me
+   $ emacs -nw fish
+   catfish
+   $ cat fish
+   catfish
+   $ cp fish fisk2
+   $ ls -la
+   drwxr-xr-x 5 me users  0 1970-01-01 01:00 .
+   drwxr-xr-x 3 me users  0 1970-01-01 01:00 ..
+   -rw-r--r-- 1 me users  8 1970-01-01 01:00 fish
+   -rw-r--r-- 1 me users 28 1970-01-01 01:00 fish~
+   -rw-r--r-- 1 me users  8 1970-01-01 01:00 fish2
+\end{verbatim}
+
+\item You probably want to remove that anoying emacs backup file
+\begin{verbatim}   
+   $ rm fish~
+   $ ls 
+   fish  fish2
+\end{verbatim}
+
+\item Maybe you want fish2 in a separate collection
+\begin{verbatim}   
+   $ mkdir sea_creatures
+   $ mv fish2 sea_creatures
+\end{verbatim}
+
+\item Maybe you're not happy with the collection name
+\begin{verbatim}
+   $ mv sea_creatures creatures
+   $ ls creatures
+   fish2
+\end{verbatim}
+
+\item Moving the collection out of ARC storage:
+\begin{verbatim}
+   $ cd ../../..
+   $ mv mnt/home/me/creatures .
+\end{verbatim}
+
+\item The collection is no longer in the ARC storage:
+\begin{verbatim}
+   $ find mnt/home/me/
+   mnt/home/me/
+   mnt/home/me/fish
+\end{verbatim}
+
+\item Unmounting ARCFS; To unmount, refer to fuse documentation. Usually you can do
+\begin{verbatim}   
+   $ fusermount -u mnt
+\end{verbatim}
+
+If this for some reason this doesn't work, you can do
+\begin{verbatim}   
+   $ sudo umount -f mnt
+\end{verbatim}   
+
+or even
+\begin{verbatim}   
+   $ sudo umount -l mnt
+\end{verbatim}   
+
+Now, remounting the system, everything should still be there:
+\begin{verbatim}
+   $ python arcfs.py ./mnt
+
+   $ find mnt/home/me/
+   mnt/home/me/
+   mnt/home/me/fish
+
+   $ fusermount -u mnt
+\end{verbatim}
+\end{itemize}
 
 \end{document}
