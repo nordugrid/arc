@@ -367,6 +367,12 @@ it is possible to restart the job)
 The A-REX will also send job records to this service in addition to
 the default logger service configured in the configuration (This feature
 does not work in current implementation).
+\item \textit{activityid} -- Job-id of previous job in case the job has been 
+resubmitted or migrated. This value can appear multiple times if a job has been 
+resubmitted or migrate more than once.
+\item \textit{forcemigration} -- This boolean is only used for migration of jobs.
+It determines whether the job should persists if the termination of the previous 
+job fails.
 \end{itemize}
 \end{itemize}
 
@@ -493,10 +499,13 @@ are described below.
 
 \subsubsection{Extensions to OGSA BES interface}
 
-A-REX introduces a new operation in addition to those provided by
-BES. It does that by defining its own port-type with the single operation
-\emph{ChangeActivityStatus} (see Appendix~\ref{annex:arex-wsdl}). This operation provides
-a way to request simple transfers between states of jobs and corresponding
+A-REX introduces two new operations in addition to those provided by
+BES. It does that by defining its own port-type with new operations
+\emph{ChangeActivityStatus} and \emph{MigrateActivity}(see 
+Appendix~\ref{annex:arex-wsdl}).
+
+The \emph{ChangeActivityStatus} operation provides a way to request 
+simple transfers between states of jobs and corresponding
 actions.
 
 \begin{itemize}
@@ -526,18 +535,69 @@ to do this operation.
 is not possible.
 \end{itemize}
 \end{itemize}
-\end{itemize}
 
 On result of this command, the job should be put into the requested
 state. If such a procedure cannot be performed immediately then the
-corresponding sequence is initiated and fault OperationWillBeAppliedEventuallyFault
-will be returned.
+corresponding sequence is initiated and fault 
+OperationWillBeAppliedEventuallyFault will be returned.
 
 Since BES allows implementations to extend their initial activity
 states with additional sub-states, A-REX defines a set of sub-states
 of activity processing in addition to those defined by the BES, as
 listed in Table~\ref{tab:Job-states-definitions}. Their meaning is
 described in Section~\ref{Section:Job Flow}.
+
+The \emph{MigrateActivity} operation generates a request to migrate a 
+grid job from another ARC1 cluster, i.e. the operation will get input 
+files and possibly job description from the cluster currently holding 
+the job and create the job as a new activity at the present cluster.
+Currently only migration of queuing jobs is supported. 
+
+\item \emph{MigrateActivity}
+\begin{itemize}
+\item Input
+\begin{itemize}
+\item \emph{wsa:EndpointReferenceType ActivityIdentifier}: This 
+element should contain the \emph{wsa:EndpointReference} of the job to 
+be migrated.
+\item \emph{ActivityDocument}: JSDL document of the job to be 
+migrated. This element is optional.
+\item \emph{Boolean ForceMigration}: Boolean that determines whether 
+the job will persist on the new cluster if the termination of the 
+previous job fails.
+\end{itemize}
+\item Output
+\begin{itemize}
+\item \emph{wsa:EndpointReferenceType ActivityIdentifier}: This 
+element should contain the \emph{wsa:EndpointReference} of the new 
+activity.
+\item \emph{ActivityDocument}: Contains the JSDL document of the new 
+activity.
+\end{itemize}
+\item Fault(s)
+\begin{itemize}
+\item \emph{NotAuthorizedFault}: Indicates that the client is not allowed
+to do this operation.
+\item \emph{NotAcceptingNewActivitiesFault}: A fault that indicates that A-REX 
+currently is not accepting new activities.
+\item \emph{UnsupportedFeatureFault}: This fault indicates that an sub-element in the 
+JDSL document is not supported or the ActivityDocument has not been recognised as JSDL. 
+\item \emph{InvalidRequestMessageFault}: This fault indicates that an element in the 
+request is either missing or has an invalid format. Typically this would mean that 
+the job-id cannot be located in the ActivityIdentifier of the old job.
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+The \emph{ActiviterIdentifier} specifies the URL of the job which will be migrated. In case the 
+\emph{ActivityDocument} is filled this document will be used to create a new activity otherwise 
+an attempt will be made to retrieve the job description through the BES operation
+\emph{GetActivityDocument}.
+
+Once the input files have been downloaded from the other cluster, a request will be send 
+to terminate the old job. If this request fails the new activity at the present cluster 
+will be terminate unless the \emph{ForceMigration} is true. This is to prevent the job 
+from being executed at two different places at the same time.
 
 %
 \begin{table}
@@ -745,6 +805,8 @@ to rerun in case of failure.
 may be used for renewing the expired delegated job credentials.
 \item [{\emph{CandidateTarget}}] -- specifies host name and queue
 of a computing resource.
+\item [{\emph{OldJobID}}] -- specifies the previous job-ids in case the job 
+has been resubmitted or migrated.
 \end{list}
 
 \section{Cache\label{sec:cache}}
@@ -1710,6 +1772,32 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
       </xsd:complexType>
       <xsd:element name=\char`\"{}ChangeActivityStatusResponse\char`\"{}
                    type=\char`\"{}a-rex:ChangeActivityStatusResponseType\char`\"{}/>
+      <xsd:complexType name="MigrateActivityType">
+        <xsd:sequence>
+	  <xsd:element name=\char`\"{}ActivityIdentifier\char`\"{} 
+	  	           type=\char`\"{}wsa:EndpointReferenceType\char`\"{} 
+	  	           minOccurs=\char`\"{}1\char`\"{} maxOccurs=\char`\"{}1\char`\"{}/>
+          <xsd:element ref=\char`\"{}bes-factory:ActivityDocument\char`\"{} minOccurs=\char`\"{}0\char`\"{}/>
+	  <xsd:element name=\char`\"{}ForceMigration\char`\"{} type=\char`\"{}xsd:boolean\char`\"{} minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}1\char`\"{}/>    
+          <xsd:any namespace=\char`\"{}##other\char`\"{} processContents=\char`\"{}lax\char`\"{} minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}unbounded\char`\"{}/>        
+        </xsd:sequence>
+        <xsd:anyAttribute namespace=\char`\"{}##other\char`\"{} processContents=\char`\"{}lax\char`\"{}/>
+      </xsd:complexType>
+
+      <xsd:complexType name=\char`\"{}MigrateActivityResponseType\char`\"{}>
+        <xsd:sequence>
+          <xsd:element name=\char`\"{}ActivityIdentifier\char`\"{} type=\char`\"{}wsa:EndpointReferenceType\char`\"{}/>
+          <xsd:element ref=\char`\"{}bes-factory:ActivityDocument\char`\"{} minOccurs=\char`\"{}0\char`\"{}/>
+          <xsd:any namespace=\char`\"{}##other\char`\"{} processContents=\char`\"{}lax\char`\"{} minOccurs=\char`\"{}0\char`\"{} maxOccurs=\char`\"{}unbounded\char`\"{}/>        
+        </xsd:sequence>
+        <xsd:anyAttribute namespace=\char`\"{}##other\char`\"{} processContents=\char`\"{}lax\char`\"{}/>
+      </xsd:complexType>
+
+      <xsd:element name=\char`\"{}MigrateActivity\char`\"{}
+        type=\char`\"{}a-rex:MigrateActivityType\char`\"{}/>
+      <xsd:element name=\char`\"{}MigrateActivityResponse\char`\"{}
+        type=\char`\"{}a-rex:MigrateActivityResponseType\char`\"{}/>
+
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name=\char`\"{}ChangeActivityStatusRequest\char`\"{}>
@@ -1720,6 +1808,17 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
     <wsdl:part name=\char`\"{}ChangeActivityStatusResponse\char`\"{}
                element=\char`\"{}a-rex:ChangeActivityStatusResponse\char`\"{}/>
   </wsdl:message>
+  
+  <wsdl:message name=\char`\"{}MigrateActivityRequest\char`\"{}>
+    <wsdl:part name=\char`\"{}MigrateActivityRequest\char`\"{} 
+	element=\char`\"{}a-rex:MigrateActivity\char`\"{}/>
+  </wsdl:message>
+
+  <wsdl:message name=\char`\"{}MigrateActivityResponse\char`\"{}>
+    <wsdl:part name=\char`\"{}MigrateActivityResponse\char`\"{} 
+        element=\char`\"{}a-rex:MigrateActivityResponse\char`\"{}/>
+  </wsdl:message>
+
   <wsdl:portType name=\char`\"{}a-rex\char`\"{}>
     <wsdl:operation name=\char`\"{}ChangeActivityStatus\char`\"{}>
       <wsdl:documentation>
@@ -1749,6 +1848,26 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
          message=\char`\"{}bes-factory:OperationWillBeAppliedEventuallyFault\char`\"{}
          wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
     </wsdl:operation>
+    <wsdl:operation name=\char`\"{}MigrateActivity\char`\"{}>
+      <wsdl:input 
+         name=\char`\"{}MigrateActivity\char`\"{}
+         message=\char`\"{}a-rex:MigrateActivityRequest\char`\"{}  
+      <wsdl:output
+         name=\char`\"{}MigrateActivityResponse\char`\"{}
+         message=\char`\"{}a-rex:MigrateActivityResponse\char`\"{}
+      <wsdl:fault name=\char`\"{}NotAuthorizedFault\char`\"{} 
+         message=\char`\"{}bes-factory:NotAuthorizedFault\char`\"{}
+        wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}NotAcceptingNewActivitiesFault\char`\"{} 
+         message=\char`\"{}bes-factory:NotAcceptingNewActivitiesFault\char`\"{}
+         wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}UnsupportedFeatureFault\char`\"{} 
+         message=\char`\"{}bes-factory:UnsupportedFeatureFault\char`\"{}
+         wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+      <wsdl:fault name=\char`\"{}InvalidRequestMessageFault\char`\"{}
+         message=\char`\"{}bes-factory:InvalidRequestMessageFault\char`\"{}
+         wsa:Action=\char`\"{}http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault\char`\"{}/>
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name=\char`\"{}a-rex\char`\"{} type=\char`\"{}a-rex:a-rex\char`\"{}>
     <soap:binding style=\char`\"{}document\char`\"{}
@@ -1774,6 +1893,27 @@ elementFormDefault=\char`\"{}qualified\char`\"{}>
         <soap:fault name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{} use=\char`\"{}literal\char`\"{} />
       </wsdl:fault>
     </wsdl:operation>
+    <wsdl:operation name=\char`\"{}MigrateActivity\char`\"{}>
+      <soap:operation soapAction=\char`\"{}MigrateActivity\char`\"{} /> 
+      <wsdl:input name=\char`\"{}MigrateActivity\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{} />
+      </wsdl:input>
+      <wsdl:output name=\char`\"{}MigrateActivityResponse\char`\"{}>
+        <soap:body use=\char`\"{}literal\char`\"{} />
+      </wsdl:output>
+      <wsdl:fault name=\char`\"{}NotAuthorizedFault\char`\"{}>
+        <soap:fault name=\char`\"{}NotAuthorizedFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}NotAcceptingNewActivitiesFault\char`\"{}>
+        <soap:fault name=\char`\"{}NotAcceptingNewActivitiesFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}UnsupportedFeatureFault\char`\"{}>
+        <soap:fault name=\char`\"{}UnsupportedFeatureFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+      <wsdl:fault name=\char`\"{}InvalidRequestMessageFault\char`\"{}>
+        <soap:fault name=\char`\"{}InvalidRequestMessageFault\char`\"{} use=\char`\"{}literal\char`\"{} />
+      </wsdl:fault>
+    </wsdl:operation> 
   </wsdl:binding>
   <wsdl:binding name=\char`\"{}GetResourcePropertyDocument\char`\"{}
                 type=\char`\"{}wsrf-rpw:GetResourcePropertyDocument\char`\"{}>
