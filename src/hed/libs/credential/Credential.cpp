@@ -374,11 +374,11 @@ namespace Arc {
 
   Credential::Credential() : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(Arc::Time()), lifetime_(Arc::Period("PT12H")),
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024),
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
         extensions_(NULL) {
 
-    OpenSSL_add_all_algorithms();
-    //EVP_add_digest(EVP_md5());
+    //OpenSSL_add_all_algorithms();
+    EVP_add_digest(EVP_sha1());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -390,10 +390,10 @@ namespace Arc {
         std::string policylang, std::string policy, int pathlength) : 
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL), 
-        signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), extensions_(NULL) {
+        signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits), extensions_(NULL) {
 
-    OpenSSL_add_all_algorithms();
-    //EVP_add_digest(EVP_md5());
+    //OpenSSL_add_all_algorithms();
+    EVP_add_digest(EVP_sha1());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -585,11 +585,11 @@ namespace Arc {
         const std::string& cadir, const std::string& cafile, const std::string& passphrase4key) : 
         cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), 
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), 
         keybits_(1024), extensions_(NULL) {
 
-    OpenSSL_add_all_algorithms();
-    //EVP_add_digest(EVP_md5());
+    //OpenSSL_add_all_algorithms();
+    EVP_add_digest(EVP_sha1());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -1605,9 +1605,9 @@ err:
       CredentialLogger.msg(ERROR, "Can not get the issuer's private key"); goto err;
     }
 
-    /* Check whether MD5 isn't requested as the signing algorithm in the request*/
-    if(EVP_MD_type(proxy->signing_alg_) != NID_md5) {
-      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be MD5 to sign certificate requests",
+    /* Check whether SHA1 isn't requested as the signing algorithm in the request*/
+    if(EVP_MD_type(proxy->signing_alg_) != NID_sha1) {
+      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1 to sign certificate requests",
       OBJ_nid2sn(EVP_MD_type(proxy->signing_alg_)));
       goto err;
     }
@@ -1702,7 +1702,7 @@ err:
        const std::string& extsect, const std::string& passphrase4key) : certfile_(CAfile), keyfile_(CAkey), 
        CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
+       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024), extensions_(NULL) {
     OpenSSL_add_all_algorithms();
     extensions_ = sk_X509_EXTENSION_new_null();
 
