@@ -3,7 +3,6 @@
 #endif
 
 #include <iostream>
-
 #include <sys/types.h>
 
 #include <arc/DateTime.h>
@@ -92,7 +91,8 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
         logger.msg(Arc::ERROR, "Can not store proxy certificate");
         return make_soap_fault(outmsg);
       }
-      std::cout<<"Delegated credentials:\n"<<cred<<std::endl;
+      logger.msg(Arc::VERBOSE,"Delegated credentials:\n %s",cred.c_str());
+
       CredentialCache* cred_cache = NULL;
       std::string id = (std::string)((*inpayload)["UpdateCredentials"]["DelegatedToken"]["Id"]);
       std::string credential_delegator_ip = inmsg.Attributes()->get("TCP:REMOTEHOST");
@@ -139,13 +139,13 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       //Set proxy path length to be -1, which means infinit length
       Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritAll","",-1);
       Arc::Credential signer(cred, "", trusted_cadir, "");
-
       std::string signedcert;
       proxy.InquireRequest(x509req_value);
       if(!(signer.SignRequest(&proxy, signedcert))) {
         logger.msg(Arc::ERROR, "Signing proxy on delegation service failed");
-        return Arc::MCC_Status();;
+        return Arc::MCC_Status();
       }
+
       std::string signercert_str;
       std::string signercertchain_str;
       signer.OutputCertificate(signercert_str);
@@ -155,7 +155,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
 
       token.NewChild("deleg:Value") = signedcert;
 
-      std::cout<<"Delegated credentials:\n"<<cred<<std::endl;
+      logger.msg(Arc::VERBOSE,"Delegated credentials:\n %s",signedcert.c_str());
     }
 
     //Compose response message
