@@ -64,7 +64,7 @@ class Bartender:
                     if decision != arc.DECISION_PERMIT:
                         metadata = {('error','permission denied') : 'you are not allowed to read'}
                 except:
-                    log.msg()
+                    #log.msg()
                     metadata = {('error', 'error checking permission') : traceback.format_exc()}
                 response[requestID] = metadata
             else: # if it was not complete, then we didn't found the entry, so metadata will be empty
@@ -193,8 +193,8 @@ class Bartender:
                         return 'done', child_GUID
                 else: # no parent given, skip the 'adding child to parent' part
                     return 'done', child_GUID
-        except:
-            log.msg()
+        except Exception, e:
+            log.msg(arc.ERROR, "Error creating new entry in Librarian: %s" % e)
             return 'internal error', None
         
     def _externalStore(self,auth, url, flag=''):
@@ -361,8 +361,9 @@ class Bartender:
             # the serviceID currently is a URL 
             # create an ShepherdClient with this URL
             return ShepherdClient(se, ssl_config = self.ssl_config)
-        except:
-            log.msg()
+        except Exception, e:
+            log.msg(arc.ERROR, "Error finding alive SE: %s" % e)
+            #log.msg()
             return None
 
     def _add_replica(self, size, checksumType, checksum, GUID, protocols, exceptedSEs=[]):

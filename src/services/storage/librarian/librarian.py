@@ -58,7 +58,7 @@ class Librarian:
         except:
             # if get_tree fails, there are no clients available, so there is
             # nothing to do here
-            log.msg()
+            #log.msg()
             raise
 
     def ahash_get(self, IDs, neededMetadata = []):
@@ -71,7 +71,7 @@ class Librarian:
         except:
             # if get fails, there are no clients available, so there is
             # nothing to do here
-            log.msg()
+            #log.msg()
             raise
 
     def ahash_change(self, changes):
@@ -129,8 +129,9 @@ class Librarian:
                 # update list of ahashes
                 self._update_ahash_urls()
                 time.sleep(period)
-            except:
-                log.msg()
+            except Exception, e:
+                log.msg(arc.ERROR, "Error in Librarian's checking thread: %s" % e)
+                #log.msg()
                 time.sleep(period)
 
     def _change_states(self, changes):
@@ -280,8 +281,9 @@ class Librarian:
                 return metadata
             except KeyError:
                 return metadata
-            except:
-                log.msg()
+            except Exception, e:
+                log.msg(arc.ERROR, 'Error traversing: %s' % e)
+                #log.msg()
                 return {}
 
 
@@ -308,8 +310,9 @@ class Librarian:
                     GUID = GUIDs[-1]
                     restLN = '/'.join(path)
                     response[rID] = (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
-                except:
-                    log.msg()
+                except Exception, e:
+                    log.msg(arc.ERROR, "Error in traverseLN method: %s" % s)
+                    #log.msg()
                     response[rID] = ([], False, '', guid0, None, '/'.join(path))
             #print '?\n? traversedList, wasComplete, traversedLN, GUID, metadata, restLN\n? ', response
         return response
