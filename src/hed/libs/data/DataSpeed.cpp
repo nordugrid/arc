@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <ctime>
 #include <arc/data/DataSpeed.h>
 
 namespace Arc {

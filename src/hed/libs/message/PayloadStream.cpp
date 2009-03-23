@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <ctime>
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifndef WIN32
