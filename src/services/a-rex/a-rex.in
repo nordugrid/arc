@@ -7,7 +7,7 @@
 #
 # config: /etc/sysconfig/globus
 # config: /etc/sysconfig/nordugrid
-# config: @arc_location@/etc/arc.conf
+# config: @prefix@/etc/arc.conf
 # config: /etc/arc.conf
 #
 #  This startup script takes ARC0 configuration file as
@@ -70,7 +70,7 @@ fi
 export GLOBUS_LOCATION
 
 # ARC_LOCATION
-ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
   echo "ARC_LOCATION ($ARC_LOCATION) not found"
   exit 1
