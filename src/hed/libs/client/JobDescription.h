@@ -108,13 +108,9 @@ namespace Arc {
     // Add an URL to OldJobIDs
     bool addOldJobID(const URL& oldjobid);
 
-    // Return sourceString
-    bool getSourceString(std::string& string) const;
-
     // Print all value to the standard output.
     void Print(bool longlist = false) const;
 
-    std::string sourceString;
     std::string sourceFormat;
 
     // Meta information

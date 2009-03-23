@@ -314,17 +314,14 @@ namespace Arc {
   } // end of Print
 
   bool JobDescription::Parse(const std::string& source) {
-    sourceFormat = "";
-    sourceString = source;
-
-    if (sourceString.empty()) {
+    if (source.empty()) {
       logger.msg(ERROR, "Empty job description source string");
       return false;
     }
 
     logger.msg(DEBUG, "Try to parse as XRSL");
     XRSLParser parser1;
-    *this = parser1.Parse(sourceString);
+    *this = parser1.Parse(source);
     if (*this) {
       sourceFormat = "xrsl";
       return true;
@@ -332,7 +329,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "Try to parse as POSIX JSDL");
     PosixJSDLParser parser2;
-    *this = parser2.Parse(sourceString);
+    *this = parser2.Parse(source);
     if (*this) {
       sourceFormat = "posixjsdl";
       return true;
@@ -340,7 +337,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "Try to parse as JSDL");
     JSDLParser parser3;
-    *this = parser3.Parse(sourceString);
+    *this = parser3.Parse(source);
     if (*this) {
       sourceFormat = "jsdl";
       return true;
@@ -348,7 +345,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "Try to parse as JDL");
     JDLParser parser4;
-    *this = parser4.Parse(sourceString);
+    *this = parser4.Parse(source);
     if (*this) {
       sourceFormat = "jdl";
       return true;
@@ -438,7 +435,4 @@ namespace Arc {
     return true;
   }
 
-  bool JobDescription::getSourceString(std::string& string) const {
-    string = sourceString;
-  }
 } // namespace Arc

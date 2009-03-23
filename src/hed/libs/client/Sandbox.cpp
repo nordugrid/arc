@@ -37,8 +37,8 @@ namespace Arc {
          it != jobdesc.OldJobIDs.end(); it++)
       info.NewChild("OldJobID") = it->str();
     // Store original job description string
-    std::string rep;
-    jobdesc.getSourceString(rep);
+    // - this is not quite the original - needs fixing
+    std::string rep = jobdesc.UnParse("POSIXJSDL");
     info.NewChild("JobDescription") = (std::string)rep;
 
     // Getting cksum of input files
