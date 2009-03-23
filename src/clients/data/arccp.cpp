@@ -542,6 +542,10 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  // Proxy check
+  if (!usercfg.CheckProxy())
+    return 1;
+
   if (params.size() != 2) {
     logger.msg(Arc::ERROR, "Wrong number of parameters specified");
     return 1;
