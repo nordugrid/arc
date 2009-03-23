@@ -1,5 +1,7 @@
 \chapter{Web Services Description Language}
 
+\section{Background}
+
 For Web Services, the mere communication, as for instance we know if from
 traditional CGI programming, is not everything. The communication is performed
 via the SOAP protocol, and there are several implementations of SOAP on top of
@@ -76,16 +78,6 @@ commonly located at the end. It will describe what the service is all about.
 From there, move upwards to learn about the operations and their parameters.
 Most items in the WSDL document have their own tags that provide names or
 descriptions.
-%\textcolor{white}{newline}
-\lstsetJUSTXML
-\lstinputlisting
-	[
-	label=lst:echo_wsdl,
-	caption={[WSDL file describing the echo service. Filename: echo.wsdl]
-	\textbf{WSDL file describing the echo service. Filename: echo.wsdl}}
-	]
-{../src/services/echoservice/echo.wsdl}
-\task{TODO: Validate the WSDL Listing}
 
 \section{How to prepare a WSDL document}
 
