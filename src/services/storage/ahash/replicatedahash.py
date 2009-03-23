@@ -318,7 +318,7 @@ class ReplicationManager:
         self.masterID = db.DB_EID_INVALID
         self.dbenv = dbenv
         self.dbReady = dbReady
-        self.dbenv.set_verbose(db.DB_VERB_REPLICATION, True)
+        #self.dbenv.set_verbose(db.DB_VERB_REPLICATION, True)
         # tell dbenv to uset our event callback function
         # to handle various events
         self.dbenv.set_event_notify(self.event_callback)
@@ -353,7 +353,7 @@ class ReplicationManager:
             if self.role == db.DB_REP_CLIENT:
                 if self.masterID != db.DB_EID_INVALID:
                     # use threaded send to avoid blocking
-                    #threading.Thread(target=self.sendHeartbeatMsg, args=[])
+                    #threading.Thread(target=self.sendHeartbeatMsg, args=[]).start()
                     self.pool.queueTask(self.sendHeartbeatMsg)
             # add some randomness to avoid bugging the master too much
             log.msg(arc.DEBUG, ("heartbeat", self.masterID, self.role))
@@ -529,7 +529,7 @@ class ReplicationManager:
             res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
             return res
         else:
-            #threading.Thread(target=self.send, args=[env, control, record, lsn, eid, flags, REP_MESSAGE])
+            #threading.Thread(target=self.send, args=[env, control, record, lsn, eid, flags, REP_MESSAGE]).start()
             self.pool.queueTask(self.send, args=[env, control, record, lsn, eid, flags, REP_MESSAGE])
             return 0
 
@@ -592,7 +592,7 @@ class ReplicationManager:
             # return hostMap to sender
             if really_new:
                 # use threaded send to avoid blocking
-                #threading.Thread(target=self.sendNewSiteMsg, args=[sender])
+                #threading.Thread(target=self.sendNewSiteMsg, args=[sender]).start()
                 self.pool.queueTask(self.sendNewSiteMsg, args=sender)
         if msgID == MASTER_MESSAGE:
             # sender is master, find local id for sender and set as masterID
@@ -624,7 +624,7 @@ class ReplicationManager:
                     # say hello to my new friend
                     if really_new:
                         # use threaded send to avoid blocking
-                        #threading.Thread(target=self.sendNewSiteMsg, args=[replica])
+                        #threading.Thread(target=self.sendNewSiteMsg, args=[replica]).start()
                         self.pool.queueTask(self.sendNewSiteMsg, args=replica)
             return "processed"
         try:
@@ -651,7 +651,7 @@ class ReplicationManager:
             log.msg(arc.DEBUG, "received DB_REP_NEWSITE from %s"%str(sender))
             if self.isMaster():
                 # use threaded send to avoid blocking
-                #threading.Thread(target=self.sendNewMasterMsg, args=[eid])
+                #threading.Thread(target=self.sendNewMasterMsg, args=[eid]).start()
                 self.pool.queueTask(self.sendNewMasterMsg, args=eid)
         elif res == db.DB_REP_HOLDELECTION:
             log.msg(arc.DEBUG, "received DB_REP_HOLDELECTION")
@@ -697,7 +697,7 @@ class ReplicationManager:
                 self.setRole(db.DB_REP_MASTER)
                 self.dbReady(True)
                 # use threaded send to avoid blocking
-                #threading.Thread(target=self.sendNewMasterMsg, args=[])
+                #threading.Thread(target=self.sendNewMasterMsg, args=[]).start()
                 self.pool.queueTask(self.sendNewMasterMsg)
             elif which == db.DB_EVENT_REP_CLIENT:
                 log.msg(arc.DEBUG, "I am now a client")
@@ -718,7 +718,7 @@ class ReplicationManager:
                 log.msg(arc.DEBUG, "I won the election: I am the MASTER")
                 self.elected = True
                 # use threaded send to avoid blocking
-                #threading.Thread(target=self.sendNewMasterMsg, args=[])
+                #threading.Thread(target=self.sendNewMasterMsg, args=[]).start()
                 self.pool.queueTask(self.sendNewMasterMsg)
             elif which == db.DB_EVENT_PANIC:
                 log.msg(arc.ERROR, "Oops! Internal DB panic!")
