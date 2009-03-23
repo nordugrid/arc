@@ -781,19 +781,26 @@ class Bartender:
                             # then we need to remove the source LN
                             # get the parent of the source: the source traverse has a list of the GUIDs of all the element along the path
                             source_parent_guid = sourceTraversedList[-2][1]
-                            # TODO: get the metadata of the parent, and decide if the user is allowed to removeEntry from it
-                            log.msg(arc.DEBUG, 'removing', sourceGUID, 'from parent', source_parent_guid)
-                            # delete the entry from the source parent
-                            mm_resp = self.librarian.modifyMetadata(
-                                {'move-source' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
-                                'move-source-parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), ''),
-                                'move-source-closed?' : (source_parent_guid, 'setifvalue=yes', 'states', 'closed', 'broken')})
-                            mm_succ = mm_resp['move-source']
-                            if mm_succ != 'unset':
-                                success = 'failed removing child from parent'
-                                # TODO: need some handling; remove the new entry or something
-                            else:
-                                success = 'moved'
+                            try:
+                                source_parent_metadata = self.librarian.get([source_parent_guid])[source_parent_guid]
+                                decision = make_decision_metadata(source_parent_metadata, auth.get_request('removeEntry'))
+                                if decision == arc.DECISION_PERMIT:
+                                    log.msg(arc.DEBUG, 'removing', sourceGUID, 'from parent', source_parent_guid)
+                                    # delete the entry from the source parent
+                                    mm_resp = self.librarian.modifyMetadata(
+                                        {'move-source' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
+                                        'move-source-parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), ''),
+                                        'move-source-closed?' : (source_parent_guid, 'setifvalue=yes', 'states', 'closed', 'broken')})
+                                    mm_succ = mm_resp['move-source']
+                                    if mm_succ != 'unset':
+                                        success = 'failed to remove original link'
+                                        # TODO: need some handling; remove the new entry or something
+                                    else:
+                                        success = 'moved'
+                                else:
+                                    success = 'denied to remove original link'
+                            except:
+                                success = 'error while removing original link'
             response[requestID] = success
         return response
 

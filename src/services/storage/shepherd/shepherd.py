@@ -249,7 +249,7 @@ class Shepherd:
                                         self.changeState(referenceID, ALIVE)
                                     # and the number of alive (or creating) replicas
                                     alive_replicas = len([property for (section, property), value in metadata.items()
-                                                              if section == 'locations' and value == [ALIVE, CREATING]])
+                                                              if section == 'locations' and value in [ALIVE, CREATING]])
                                     if alive_replicas < needed_replicas:
                                         # if the file has fewer replicas than needed
                                         log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
