@@ -90,7 +90,7 @@ class TransDBStore(BaseStore):
         if self.dbp != None:
             self.dbp.close(db.DB_NOSYNC)
             log.msg(arc.INFO, "database closed")
-            log.msg()
+            #log.msg()
 
     def __opendbenv(self):
         """
@@ -275,8 +275,7 @@ class TransDBStore(BaseStore):
             log.msg()
             raise db.DBError, "db deadlock"
         except db.DBRepHandleDeadError:
-            log.msg(arc.INFO, "Got rep_dead_handle error")            
-            log.msg()
+            log.msg(arc.INFO, "Got rep_dead_handle error")
             self.__err()
             self.dbp = None
             raise
@@ -317,8 +316,7 @@ class TransDBStore(BaseStore):
                     self.dbp.put(ID, cPickle.dumps(object, cPickle.HIGHEST_PROTOCOL), txn=self.txn)
                 retry = False
             except db.DBLockDeadlockError:
-                log.msg(arc.INFO, "Got deadlock error")            
-                log.msg()
+                log.msg(arc.INFO, "Got deadlock error")
                 # need to close transaction handle as well
                 if self.txn:
                     self.txn.abort()
@@ -337,7 +335,7 @@ class TransDBStore(BaseStore):
                     retry = False
             except db.DBRepHandleDeadError:
                 log.msg(arc.INFO, "Got rep_dead_handle error")            
-                log.msg()
+                #log.msg()
                 self.__err()
                 self.dbp = None
                 raise
@@ -358,7 +356,7 @@ class TransDBStore(BaseStore):
                     self.txn.abort()
                     self.txn = None
                 self.__del__()
-                log.msg()
+                #log.msg()
                 log.msg(arc.ERROR, "Error setting %s"%ID)
                 retry = False
                 sys.exit(1)
