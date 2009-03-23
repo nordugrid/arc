@@ -110,12 +110,12 @@ class Credential {
   private:
 
     /**load key from argument keybio, and put key information into argument pkey */
-    void loadKey(BIO* &keybio, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    void loadKey(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
 
     /**load certificate from argument certbio, and put certificate information into 
     * argument cert and certchain 
     */
-    void loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)** certchain);
+    void loadCertificate(const std::string& cert, X509* &x509, STACK_OF(X509)** certchain);
 
     /**Initiate cert_verify_context which will be used for certificate verification*/
     void InitVerification(void);

@@ -190,12 +190,29 @@ namespace Arc {
     start_ = start_time;
   }
 
-  void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
+  void Credential::loadCertificate(const std::string& cert, X509* &x509, STACK_OF(X509) **certchain) {
     //Parse the certificate
-    Credformat format = CRED_UNKNOWN;
-    
+    Credformat format = CRED_UNKNOWN; 
     PKCS12* pkcs12 = NULL;
     STACK_OF(X509)* pkcs12_certs = NULL;
+   
+    BIO* certbio = NULL;
+    if(Glib::file_test(cert,Glib::FILE_TEST_EXISTS)) {
+      //if the cert is a file
+      certbio = BIO_new_file(cert.c_str(), "r");
+      if(!certbio){
+      CredentialLogger.msg(ERROR,"Can not read certificate file: %s", cert); LogError();
+      throw CredentialError("Can not read certificate file");
+      }
+    }
+    else { //Otherwise the content of certificate is also acceptable
+      certbio = BIO_new_mem_buf((void*)(cert.c_str()), cert.length());
+      if(!certbio){
+      CredentialLogger.msg(ERROR,"Can not read certificate string: %s", cert); LogError();
+      throw CredentialError("Can not read certificate string");
+      }
+    }
+
     format = getFormat(certbio);
     int n;
     if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
@@ -203,9 +220,15 @@ namespace Arc {
     switch(format) {
       case CRED_PEM:
         CredentialLogger.msg(VERBOSE,"Certificate format is PEM");
+        //If BIO is memory, need to read again from buffer,
+        //since the content has been removed after reading from BIO
+        if(!(Glib::file_test(cert,Glib::FILE_TEST_EXISTS))) {
+          BIO_free(certbio);
+          certbio = BIO_new_mem_buf((void*)(cert.c_str()), cert.length());
+        }
         //Get the certificte, By default, certificate is without passphrase
         //Read certificate
-        if(!(PEM_read_bio_X509(certbio, &cert, NULL, NULL))) {
+        if(!(PEM_read_bio_X509(certbio, &x509, NULL, NULL))) {
           throw CredentialError("Can not read cert information from BIO"); 
         }
         //Get the issuer chain
@@ -227,8 +250,12 @@ namespace Arc {
 
       case CRED_DER:
         CredentialLogger.msg(VERBOSE,"Certificate format is DER");
-        cert=d2i_X509_bio(certbio,NULL);
-        if(!cert){
+        if(!(Glib::file_test(cert,Glib::FILE_TEST_EXISTS))) {
+          BIO_free(certbio);
+          certbio = BIO_new_mem_buf((void*)(cert.c_str()), cert.length());
+        }
+        x509=d2i_X509_bio(certbio,NULL);
+        if(!x509){
           throw CredentialError("Unable to read DER credential from BIO"); 
         }
         //Get the issuer chain
@@ -250,11 +277,15 @@ namespace Arc {
 
       case CRED_PKCS:
         CredentialLogger.msg(VERBOSE,"Certificate format is PKCS");
+        if(!(Glib::file_test(cert,Glib::FILE_TEST_EXISTS))) {
+          BIO_free(certbio);
+          certbio = BIO_new_mem_buf((void*)(cert.c_str()), cert.length());
+        }
         pkcs12 = d2i_PKCS12_bio(certbio, NULL);
         if(pkcs12){
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
-          if(!PKCS12_parse(pkcs12, password, NULL, &cert, &pkcs12_certs)) {
+          if(!PKCS12_parse(pkcs12, password, NULL, &x509, &pkcs12_certs)) {
             if(pkcs12) PKCS12_free(pkcs12);
             throw CredentialError("Can not parse PKCS12 file");
           }
@@ -278,17 +309,39 @@ namespace Arc {
         CredentialLogger.msg(VERBOSE,"Certificate format is unknown");
         break;
      } // end switch
-
+     BIO_free(certbio);
   }
 
-  void Credential::loadKey(BIO* &keybio, EVP_PKEY* &pkey, const std::string& passphrase) {
+  void Credential::loadKey(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase) {
     //Read key
     Credformat format;
     PKCS12* pkcs12 = NULL;
+    BIO* keybio = NULL;
+    if(!key.empty()) {
+      if(Glib::file_test(key,Glib::FILE_TEST_EXISTS)) {
+        keybio = BIO_new_file(key.c_str(), "r");
+        if(!keybio){
+          CredentialLogger.msg(ERROR,"Can not read key file: %s", key); LogError();
+          throw CredentialError("Can not read key file");
+       }
+      }
+      else {
+        keybio = BIO_new_mem_buf((void*)(key.c_str()), key.length());
+        if(!keybio){
+          CredentialLogger.msg(ERROR,"Can not read key string: %s", key); LogError();
+          throw CredentialError("Can not read key string");
+        }
+      }
+    }
+     
     format = getFormat(keybio);
     std::string prompt;
     switch(format){
       case CRED_PEM:
+        if(!(Glib::file_test(key,Glib::FILE_TEST_EXISTS))) {
+          BIO_free(keybio);
+          keybio = BIO_new_mem_buf((void*)(key.c_str()), key.length());
+        }
         prompt = "Enter passphrase to decrypt the PEM key file: ";
         EVP_set_pw_prompt((char*)(prompt.c_str()));
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, 
@@ -298,10 +351,18 @@ namespace Arc {
         break;
 
       case CRED_DER:
+        if(!(Glib::file_test(key,Glib::FILE_TEST_EXISTS))) {
+          BIO_free(keybio);
+          keybio = BIO_new_mem_buf((void*)(key.c_str()), key.length());
+        }
         pkey=d2i_PrivateKey_bio(keybio, NULL);
         break;
 
       case CRED_PKCS: 
+        if(!(Glib::file_test(key,Glib::FILE_TEST_EXISTS))) {
+          BIO_free(keybio);
+          keybio = BIO_new_mem_buf((void*)(key.c_str()), key.length());
+        }
         pkcs12 = d2i_PKCS12_bio(keybio, NULL);
         if(pkcs12) {
           char password[100];
@@ -316,6 +377,7 @@ namespace Arc {
       default:
         break;
     }
+    BIO_free(keybio);
   }
 
   static bool proxy_init_ = false;
@@ -593,56 +655,11 @@ namespace Arc {
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
-    BIO* certbio = NULL, *keybio = NULL; 
-
     try {
-      if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {
-        //if the cert is a file
-        certbio = BIO_new_file(certfile.c_str(), "r"); 
-        if(!certbio){
-          CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile); LogError(); 
-          throw CredentialError("Can not read certificate file");
-        }
-      }
-      else { //Otherwise the content of certificate is also acceptable
-        certbio = BIO_new_mem_buf((void*)(certfile.c_str()), certfile.length());
-        if(!certbio){
-          CredentialLogger.msg(ERROR,"Can not read certificate string: %s", certfile); LogError();
-          throw CredentialError("Can not read certificate string");
-        }
-      }
-
-      if(!keyfile.empty()) {
-        if(Glib::file_test(keyfile,Glib::FILE_TEST_EXISTS)) {
-          keybio = BIO_new_file(keyfile.c_str(), "r");
-          if(!keybio){
-            CredentialLogger.msg(ERROR,"Can not read key file: %s", keyfile); LogError();
-            throw CredentialError("Can not read key file");
-          }
-        }
-        else {
-          keybio = BIO_new_mem_buf((void*)(keyfile.c_str()), keyfile.length());
-          if(!keybio){
-            CredentialLogger.msg(ERROR,"Can not read key string: %s", keyfile); LogError();
-            throw CredentialError("Can not read key string");
-          }
-        }
-      }
-
-      loadCertificate(certbio, cert_, &cert_chain_);
-
-      if(keybio!=NULL) loadKey(keybio, pkey_, passphrase4key);
-      else {
-        //the private key could be in the certificate file, if the certificate is a proxy.
-        if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {
-          keybio = BIO_new_file(certfile.c_str(), "r");
-          loadKey(keybio, pkey_, passphrase4key);
-        }
-        else {
-          keybio = BIO_new_mem_buf((void*)(certfile.c_str()), certfile.length());
-          loadKey(keybio, pkey_, passphrase4key);
-        }
-      }
+      loadCertificate(certfile, cert_, &cert_chain_);
+      if(keyfile.empty())
+        loadKey(certfile, pkey_, passphrase4key);
+      else loadKey(keyfile, pkey_, passphrase4key);
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
       LogError(); return;
@@ -1617,14 +1634,12 @@ err:
     }
     else CredentialLogger.msg(INFO, "Succeeded to sign the proxy certificate");
 
-#if 0
     /*Verify the signature, not needed later*/
     issuer_pub = GetPubKey();
     if((X509_verify(proxy_cert, issuer_pub)) != 1) {
       CredentialLogger.msg(ERROR, "Failed to verify the signed certificate"); LogError(); goto err;
     }
     else CredentialLogger.msg(INFO, "Succeeded to verify the signed certificate");
-#endif
 
     /*Output the signed certificate into BIO*/
     if(if_der == false) {
@@ -1708,22 +1723,9 @@ err:
     OpenSSL_add_all_algorithms();
     extensions_ = sk_X509_EXTENSION_new_null();
 
-    BIO* certbio = NULL, *keybio = NULL;
-
     try {
-      certbio = BIO_new_file(CAfile.c_str(), "r");
-      if(!certbio){
-        CredentialLogger.msg(ERROR,"Can not read CA certificate file: %s", CAfile);
-        throw CredentialError("Can not read CA certificate file");
-      }
-      keybio = BIO_new_file(CAkey.c_str(), "r");
-      if(!keybio){
-        CredentialLogger.msg(ERROR,"Can not read CA key file: %s", CAkey);
-        throw CredentialError("Can not read CA key file");
-      }
-
-      loadCertificate(certbio, cert_, &cert_chain_);
-      loadKey(keybio, pkey_, passphrase4key);
+      loadCertificate(CAfile, cert_, &cert_chain_);
+      loadKey(CAkey, pkey_, passphrase4key);
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
       LogError();
