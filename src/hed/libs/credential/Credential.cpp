@@ -1617,12 +1617,14 @@ err:
     }
     else CredentialLogger.msg(INFO, "Succeeded to sign the proxy certificate");
 
+#if 0
     /*Verify the signature, not needed later*/
     issuer_pub = GetPubKey();
     if((X509_verify(proxy_cert, issuer_pub)) != 1) {
       CredentialLogger.msg(ERROR, "Failed to verify the signed certificate"); LogError(); goto err;
     }
     else CredentialLogger.msg(INFO, "Succeeded to verify the signed certificate");
+#endif
 
     /*Output the signed certificate into BIO*/
     if(if_der == false) {
