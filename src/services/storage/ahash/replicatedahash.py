@@ -182,8 +182,8 @@ class ReplicationStore(TransDBStore):
             else:
                 threading.Thread(target = self.repmgr.start, args=[256, db.DB_REP_ELECTION]).start()
         except:
-            log.msg()
             log.msg(arc.ERROR, "Couldn't start replication manager.")
+            log.msg()
             self.terminate()
 
         # thread for maintaining host list
@@ -199,13 +199,13 @@ class ReplicationStore(TransDBStore):
             # (i.e., becoming master)
             self.priority = int(str(cfg.Get('Priority')))
         except:
-            log.msg(arc.ERROR, "Bad Priority value, using default 10")
+            log.msg(arc.WARNING, "Bad Priority value, using default 10")
             self.priority = 10
         try:
             # In seconds, how often should we check for connected nodes
             self.check_period = float(str(cfg.Get('CheckPeriod')))
         except:
-            log.msg(arc.ERROR, "Could not find checking period, using default 10s")
+            log.msg(arc.WARNING, "Could not find checking period, using default 10s")
             self.check_period = 10.0
         try:
             # amount of db cached in memory
@@ -411,7 +411,6 @@ class ReplicationManager:
         except:
             log.msg(arc.ERROR, "Couldn't run election")
             log.msg(arc.DEBUG, "num_reps is %d, votes is %d, hostMap is %s"%(num_reps,votes,str(self.hostMap)))
-            log.msg()
             time.sleep(2)
         log.msg(arc.DEBUG, "%s tried election with %d replicas"%(self.url, num_reps))
             
@@ -491,7 +490,7 @@ class ReplicationManager:
             except:
                 # assume url is disconnected
                 log.msg(arc.ERROR, "failed to send to %d of %s"%(id,str(eids)))
-                log.msg()
+                #log.msg()
                 self.locker.acquire_write()
                 
                 if id == self.masterID:
@@ -639,7 +638,7 @@ class ReplicationManager:
         except db.DBNotFoundError:
             log.msg(arc.ERROR, "Got dbnotfound")
             log.msg(arc.ERROR, (control, record, eid, retlsn, sender, msgID))
-            log.msg()
+            #log.msg()
             return "failed"
         except:
             log.msg(arc.ERROR, "couldn't process message")
@@ -672,7 +671,7 @@ class ReplicationManager:
             self.startElection()
         elif res == db.DB_REP_IGNORE:
             log.msg(arc.DEBUG, "REP_IGNORE received")
-            log.msg(arc.ERROR, (control, record, eid, retlsn, sender, msgID))
+            log.msg(arc.DEBUG, (control, record, eid, retlsn, sender, msgID))
         elif res == db.DB_REP_JOIN_FAILURE:
             log.msg(arc.ERROR, "JOIN_FAILURE received")
         else:
