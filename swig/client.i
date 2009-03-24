@@ -17,6 +17,7 @@
 
 #ifdef SWIGPYTHON
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
+%template(JobControllerList) std::list<Arc::JobController *>;
 
 namespace Arc {
 
