@@ -24,16 +24,16 @@ namespace Arc {
     location.clear();
     location = GetEnv("ARC_LOCATION");
     if (location.empty() && !path.empty()) {
-      if (path.rfind('/') == std::string::npos)
+      if (path.rfind(G_DIR_SEPARATOR_S) == std::string::npos)
         path = Glib::find_program_in_path(path);
-      if (path.substr(0, 2) == "./") {
+      if (path.substr(0, 2) == std::string(".") + G_DIR_SEPARATOR_S) {
         char cwd[PATH_MAX];
         if (getcwd(cwd, PATH_MAX))
           path.replace(0, 1, cwd);
       }
-      std::string::size_type pos = path.rfind('/');
+      std::string::size_type pos = path.rfind(G_DIR_SEPARATOR_S);
       if (pos != std::string::npos && pos > 0) {
-        pos = path.rfind('/', pos - 1);
+        pos = path.rfind(G_DIR_SEPARATOR_S, pos - 1);
         if (pos != std::string::npos)
           location = path.substr(0, pos);
       }
@@ -46,7 +46,7 @@ namespace Arc {
       location = INSTPREFIX;
     }
 #ifdef ENABLE_NLS
-    bindtextdomain(PACKAGE, (location + "/share/locale").c_str());
+    bindtextdomain(PACKAGE, (location + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S "locale").c_str());
 #endif
   }
 
@@ -73,7 +73,7 @@ namespace Arc {
       }
     }
     else
-      plist.push_back(Get() + '/' + PKGLIBSUBDIR);
+      plist.push_back(Get() + G_DIR_SEPARATOR_S + PKGLIBSUBDIR);
     return plist;
   }
 
