@@ -439,8 +439,8 @@ namespace Arc {
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
         extensions_(NULL) {
 
-    //OpenSSL_add_all_algorithms();
-    EVP_add_digest(EVP_sha1());
+    OpenSSL_add_all_algorithms();
+    //EVP_add_digest(EVP_sha1());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -454,8 +454,8 @@ namespace Arc {
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL), 
         signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits), extensions_(NULL) {
 
-    //OpenSSL_add_all_algorithms();
-    EVP_add_digest(EVP_sha1());
+    OpenSSL_add_all_algorithms();
+    //EVP_add_digest(EVP_sha1());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -650,8 +650,8 @@ namespace Arc {
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), 
         keybits_(1024), extensions_(NULL) {
 
-    //OpenSSL_add_all_algorithms();
-    EVP_add_digest(EVP_sha1());
+    OpenSSL_add_all_algorithms();
+    //EVP_add_digest(EVP_sha1());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -1070,10 +1070,11 @@ namespace Arc {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     X509 *cert;
+    CredentialLogger.msg(VERBOSE, "Certiticate chain number %d",sk_X509_num(cert_chain_));
     //std::cout<<"+++++ cert chain number: "<<sk_X509_num(cert_chain_)<<std::endl;
 
-    //Out put the cert chain, except the CA certificate and this certificate itself
-    for (int n = 1; n < sk_X509_num(cert_chain_) - 1; n++) {
+    //Out put the cert chain
+    for (int n = 0; n < sk_X509_num(cert_chain_); n++) {
       cert = sk_X509_value(cert_chain_, n);
       if(if_der == false) {
         if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
@@ -1319,8 +1320,8 @@ err:
 
   int Credential::GetCertNumofChain(void) {
     //Return the number of certificates 
-    //in the chain (not including this certificate itself)
-    return sk_X509_num(cert_chain_)-2;
+    //in the issuer chain
+    return sk_X509_num(cert_chain_);
   }
 
   bool Credential::AddExtension(std::string name, std::string data, bool crit) {
