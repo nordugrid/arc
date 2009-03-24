@@ -216,8 +216,7 @@ int main(int argc, char **argv) {
 
     buffer[length] = '\0';
     Arc::JobDescription jobdesc;
-    std::string jobdesc_str = buffer;
-    jobdesc.Parse(jobdesc_str);
+    jobdesc.Parse((std::string)buffer);
 
     if (jobdesc)
       jobdescriptionlist.push_back(jobdesc);
