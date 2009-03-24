@@ -138,6 +138,16 @@ namespace Arc {
     return true;
   }
 
+  bool JobControllerCREAM::RenewJob(const Job& job){
+    logger.msg(ERROR, "Renewal of CREAM jobs is not supported");
+    return false;
+  }
+
+  bool JobControllerCREAM::ResumeJob(const Job& job){
+    logger.msg(ERROR, "Resumation of CREAM jobs is not supported");
+    return false;
+  }
+
   bool JobControllerCREAM::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
     return false;
   }

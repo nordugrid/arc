@@ -554,6 +554,90 @@ namespace Arc {
     return retVal;
   }
 
+  bool JobController::Renew(const std::list<std::string>& status,
+                            const int timeout) {
+
+    GetJobInformation();
+
+    std::list<Job*> renewable;
+    for (std::list<Job>::iterator it = jobstore.begin();
+         it != jobstore.end(); it++) {
+
+      if (it->State.empty()) {
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        continue;
+      }
+
+      if (!status.empty() && std::find(status.begin(), status.end(),
+                                       it->State) == status.end())
+        continue;
+
+      /* Need to fix this after we have implemented "normalized states"
+         if (it->State != "FINISHED" && it->State != "FAILED" &&
+          it->State != "KILLED" && it->State != "DELETED") {
+         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+         continue;
+         }
+       */
+
+      renewable.push_back(&(*it));
+    }
+
+    bool ok = true;
+    for (std::list<Job*>::iterator it = renewable.begin();
+         it != renewable.end(); it++) {
+      bool renewed = RenewJob(**it);
+      if (!renewed) {
+        logger.msg(ERROR, "Failed renewing job %s", (*it)->JobID.str());
+        ok = false;
+        continue;
+      }
+    }
+    return ok;
+  }
+
+  bool JobController::Resume(const std::list<std::string>& status,
+                             const int timeout) {
+
+    GetJobInformation();
+
+    std::list<Job*> resumable;
+    for (std::list<Job>::iterator it = jobstore.begin();
+         it != jobstore.end(); it++) {
+
+      if (it->State.empty()) {
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        continue;
+      }
+
+      if (!status.empty() && std::find(status.begin(), status.end(),
+                                       it->State) == status.end())
+        continue;
+
+      /* Need to fix this after we have implemented "normalized states"
+         if (it->State != "FINISHED" && it->State != "FAILED" &&
+          it->State != "KILLED" && it->State != "DELETED") {
+         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+         continue;
+         }
+       */
+
+      resumable.push_back(&(*it));
+    }
+
+    bool ok = true;
+    for (std::list<Job*>::iterator it = resumable.begin();
+         it != resumable.end(); it++) {
+      bool resumed = ResumeJob(**it);
+      if (!resumed) {
+        logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.str());
+        ok = false;
+        continue;
+      }
+    }
+    return ok;
+  }
+
   std::list<std::string> JobController::GetDownloadFiles(const URL& dir) {
 
     std::list<std::string> files;

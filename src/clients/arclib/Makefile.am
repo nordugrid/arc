@@ -1,7 +1,9 @@
-bin_PROGRAMS = arcsub arcget arcstat arckill arcclean arccat arcsync arcresub arcmigrate
+bin_PROGRAMS = arcsub arcget arcstat arckill arcclean arccat arcsync arcresub \
+	arcmigrate arcresume arcrenew
 
 man_MANS = arcsub.1 arcget.1 arcstat.1 arckill.1 arcclean.1 arccat.1 \
-	arcresub.1 arcmigrate.1 arcsync.1 arcclient.xml.5
+	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1 \
+	arcclient.xml.5
 
 CLILIBS = ../../hed/libs/data/libarcdata2.la \
           ../../hed/libs/loader/libarcloader.la \
@@ -44,6 +46,14 @@ arcresub_LDADD    = $(CLILIBS)
 arcmigrate_SOURCES  = arcmigrate.cpp
 arcmigrate_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcmigrate_LDADD    = $(CLILIBS)
+
+arcrenew_SOURCES  = arcrenew.cpp
+arcrenew_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcrenew_LDADD    = $(CLILIBS)
+
+arcresume_SOURCES  = arcresume.cpp
+arcresume_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcresume_LDADD    = $(CLILIBS)
 
 sysconf_DATA = arcclient.xml
 doc_DATA = client.xml.example

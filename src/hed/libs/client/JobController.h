@@ -51,6 +51,12 @@ namespace Arc {
                  Broker *broker,
                  const bool forcemigration);
 
+    bool Renew(const std::list<std::string>& status,
+               const int timeout);
+
+    bool Resume(const std::list<std::string>& status,
+                const int timeout);
+
     bool RemoveJobs(const std::list<URL>& jobids);
 
     std::list<std::string> GetDownloadFiles(const URL& dir);
@@ -66,6 +72,8 @@ namespace Arc {
     virtual bool GetJob(const Job& job, const std::string& downloaddir) = 0;
     virtual bool CleanJob(const Job& job, bool force) = 0;
     virtual bool CancelJob(const Job& job) = 0;
+    virtual bool RenewJob(const Job& job) = 0;
+    virtual bool ResumeJob(const Job& job) = 0;
     virtual URL GetFileUrlForJob(const Job& job,
                                  const std::string& whichfile) = 0;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) = 0;

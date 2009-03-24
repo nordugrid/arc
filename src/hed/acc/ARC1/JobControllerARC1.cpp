@@ -6,6 +6,9 @@
 
 #include <arc/XMLNode.h>
 #include <arc/message/MCC.h>
+#include <arc/data/DataMover.h>
+#include <arc/data/DataHandle.h>
+#include <arc/data/URLMap.h>
 
 #include "AREXClient.h"
 #include "JobControllerARC1.h"
@@ -156,6 +159,16 @@ namespace Arc {
     std::string idstr;
     id.GetXML(idstr);
     return ac.kill(idstr);
+  }
+
+  bool JobControllerARC1::RenewJob(const Job& job){
+    logger.msg(ERROR, "Renewal of ARC1 jobs is not supported");
+    return false;
+  }
+
+  bool JobControllerARC1::ResumeJob(const Job& job){
+    logger.msg(ERROR, "Resuming of ARC1 jobs is not supported");
+    return false;
   }
 
   bool JobControllerARC1::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {

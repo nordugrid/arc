@@ -14,6 +14,8 @@
 #include <arc/client/UserConfig.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
+#include <arc/Utils.h>
+
 
 #include "FTPControl.h"
 #include "JobControllerARC0.h"
@@ -290,6 +292,111 @@ namespace Arc {
     return true;
   }
 
+  bool JobControllerARC0::RenewJob(const Job& job){
+    
+    logger.msg(DEBUG, "Renewing credentials for job: %s", job.JobID.str());
+
+    FTPControl ctrl;
+    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, 500)) {
+      logger.msg(ERROR, "Failed to connect for credential renewal");
+      return false;
+    }
+
+    std::string path = job.JobID.Path();
+    std::string::size_type pos = path.rfind('/');
+    std::string jobpath = path.substr(0, pos);
+    std::string jobidnum = path.substr(pos + 1);
+
+    if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
+      logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
+      return false;
+    }
+
+    if (!ctrl.SendCommand("CWD " + jobidnum, 500)) {
+      logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
+      return false;
+    }
+
+    if (!ctrl.Disconnect(500)) {
+      logger.msg(ERROR, "Failed to disconnect after credentials renewal");
+      return false;
+    }
+
+    logger.msg(DEBUG, "Renewal of credentials was successful");
+    
+
+    return true;
+  }
+
+  bool JobControllerARC0::ResumeJob(const Job& job){
+
+    std::cout << "Resuming job "<<job.JobID.str()<<" at state "<< job.RestartState << std::endl;
+    if (job.RestartState.empty()){
+      logger.msg(ERROR, "Job %s does not report a resumable state",job.JobID.str());
+      return false;
+    }
+     
+    RenewJob(job);
+
+    // dump rsl into temporary file
+    std::string urlstr = job.JobID.str();
+    std::string::size_type pos = urlstr.rfind('/');
+    if (pos==std::string::npos || pos==0)
+      logger.msg(ERROR,"Illegal jobid specified");
+    std::string jobnr = urlstr.substr(pos+1);
+    urlstr = urlstr.substr(0, pos) + "/new/action";
+    logger.msg(DEBUG, "HER: %s",urlstr);
+    
+    std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
+
+    std::string filename("/tmp/arcresume.XXXXXX");
+    int tmp_h = mkstemp((char*)filename.c_str());
+    if (tmp_h == -1) {
+      logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
+      return false;
+    }
+    if (write(tmp_h, (void*)rsl.c_str(), rsl.size()) != rsl.size()) {
+      logger.msg(ERROR, "Could not write temporary file \"%s\"", filename);
+      return false;
+    }
+
+    close(tmp_h);
+    
+    // Send temporary file to cluster
+    NS ns;
+    XMLNode cred(ns, "cred");
+    usercfg.ApplySecurity(cred);
+    DataMover mover;
+    FileCache cache;
+    std::string failure;
+    URL source_url(filename);
+    URL dest_url(urlstr);
+    DataHandle source(source_url);
+    DataHandle destination(dest_url);
+    source->AssignCredentials(cred);
+    source->SetTries(1);
+    destination->AssignCredentials(cred);
+    destination->SetTries(1);
+    if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+                        0, 0, 0, 500, failure)) {
+      if (!failure.empty())
+        logger.msg(INFO, "Current transfer FAILED: %s", failure);
+      else
+        logger.msg(INFO, "Current transfer FAILED");
+      mover.Delete(*destination);
+      return false;
+    }
+    else
+      logger.msg(INFO, "Current transfer complete");
+
+    //Cleaning up
+    source->Remove();
+
+    logger.msg(DEBUG, "Job resumed successful");
+
+    return true;
+  }
+
   bool JobControllerARC0::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
     return false;
   }
@@ -320,7 +427,6 @@ namespace Arc {
 
     NS ns;
     XMLNode cred(ns, "cred");
-    //UserConfig usercfg(conffile);
     usercfg.ApplySecurity(cred);
 
     std::string::size_type pos = jobid.rfind("/");
@@ -338,7 +444,6 @@ namespace Arc {
     mover.verbose(false);
     mover.force_to_meta(false);
     mover.retry(true);
-    User cache_user;
     FileCache cache;
     std::string failure;
     URL source_url(cluster + "/info/" + shortid + "/description");

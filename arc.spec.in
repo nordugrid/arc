@@ -262,6 +262,10 @@ exit 0
 %doc %{_mandir}/man1/arcdecision.1*
 %{_bindir}/arcmigrate
 %doc %{_mandir}/man1/arcmigrate.1*
+%{_bindir}/arcrenew
+%doc %{_mandir}/man1/arcrenew.1*
+%{_bindir}/arcresume
+%doc %{_mandir}/man1/arcresume.1*
 %{_bindir}/voms_assertion_init
 %doc %{_mandir}/man1/voms_assertion_init.1*
 %{_bindir}/perftest

@@ -25,6 +25,8 @@ namespace Arc {
     bool GetJob(const Job& job, const std::string& downloaddir);
     bool CleanJob(const Job& job, bool force);
     bool CancelJob(const Job& job);
+    bool RenewJob(const Job& job);
+    bool ResumeJob(const Job& job);
     URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
     bool GetJobDescription(const Job& job, std::string& desc_str);
     bool PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const;

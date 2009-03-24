@@ -182,6 +182,16 @@ namespace Arc {
     //     return ac.kill(idstr);
   }
 
+  bool JobControllerUNICORE::RenewJob(const Job& job){
+    logger.msg(ERROR, "Renewal of UNICORE jobs is not supported");
+    return false;
+  }
+
+  bool JobControllerUNICORE::ResumeJob(const Job& job){
+    logger.msg(ERROR, "Resumation of UNICORE jobs is not supported");
+    return false;
+  }
+
   bool JobControllerUNICORE::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
     return false;
   }
