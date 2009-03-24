@@ -621,7 +621,7 @@ namespace Arc {
 
     NS ns;
     XMLNode proxy(ns, "cred");
-    if (ApplySecurity(proxy)) {
+    if (ApplySecurity(proxy) && !((std::string)proxy["ProxyPath"]).empty()) {
       Credential holder((std::string)proxy["ProxyPath"], "",
                         (std::string)proxy["CACertificatesDir"], "");
       if (holder.GetEndTime() >= Arc::Time())
