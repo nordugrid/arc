@@ -106,7 +106,7 @@ class InfoRegistrar {
 // TODO: Make it per chain, singleton solution reduces flexibility.
 class InfoRegisterContainer {
     private:
-        static InfoRegisterContainer instance_;
+        static InfoRegisterContainer* instance_;
         //std::list<InfoRegister*> regs_;
         std::list<InfoRegistrar*> regr_;
         bool regr_done_;
@@ -116,7 +116,7 @@ class InfoRegisterContainer {
         InfoRegisterContainer(const InfoRegisterContainer&) {};
     public:
         ~InfoRegisterContainer(void);
-        static InfoRegisterContainer& Instance(void) { return instance_; };
+        static InfoRegisterContainer& Instance(void);
         /// Adds ISISes to list of handled services.
         /** Supplied configuration document is scanned for InfoRegistrar 
            elements and those are turned into InfoRegistrar classes for 

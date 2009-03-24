@@ -57,7 +57,12 @@ InfoRegister::~InfoRegister(void) {
     
 // -------------------------------------------------------------------
 
-InfoRegisterContainer InfoRegisterContainer::instance_;
+InfoRegisterContainer* InfoRegisterContainer::instance_ = NULL;
+
+InfoRegisterContainer& InfoRegisterContainer::Instance(void) {
+  if(!instance_) instance_ = new InfoRegisterContainer;
+  return *instance_;
+}
 
 InfoRegisterContainer::InfoRegisterContainer(void):regr_done_(false) {
 }
