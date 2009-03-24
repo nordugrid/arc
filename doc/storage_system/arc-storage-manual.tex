@@ -387,17 +387,9 @@ Supported methods:
 Without arguments, each method prints its own help.
 
 $ arc_storage_cli list
-- The URL of the Bartender: https://localhost:60000/Bartender
-- The key file: /home/zsombor/.arc/userkey.pem
-- The cert file: /home/zsombor/.arc/usercert.pem
-- The CA dir: /etc/grid-security/certificates
 Usage: list <LN> [<LN> ...]
 
 $ arc_storage_cli list /
-- The URL of the Bartender: https://localhost:60000/Bartender
-- The key file: /home/zsombor/.arc/userkey.pem
-- The cert file: /home/zsombor/.arc/usercert.pem
-- The CA dir: /etc/grid-security/certificates
 - Calling the Bartender's list method...
 [2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
     Component tcp.client(tcp) could not be created
@@ -423,16 +415,10 @@ Now we have a running (centralized) storage service including a Hopi service, wh
 
 \begin{verbatim}
 $ arc_storage_cli list /
-- The URL of the Bartender: https://localhost:60000/Bartender
-- The key file: /home/zsombor/.arc/userkey.pem
-- The cert file: /home/zsombor/.arc/usercert.pem
-- The CA dir: /etc/grid-security/certificates
 - Calling the Bartender's list method...
 - done in 0.34 seconds.
 '/': not found
 \end{verbatim}
-
-(From now on I will omit the first few lines of the \verb!arc_storage_cli!'s output.)
 
 The root collection has the Logical Name of `\verb!/!', and it's role to provide a starting point for all the other Logical Names. We have to create this root collection first:
 
@@ -1200,7 +1186,277 @@ Ran 383 tests in 29.858s
 OK
 \end{verbatim}
 
+Let's configure the our first server (\verb!storage!). Here is the AHash part of the config:
 
+\begin{verbatim}
+<Service name="pythonservice" id="ahash">
+    <ClassName>storage.ahash.ahash.AHashService</ClassName>
+    <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
+    <LocalDir>/var/spool/arc/ahash_data</LocalDir>
+    <MyURL>https://storage:60000/AHash</MyURL>
+    <OtherURL>https://storage2:60006/AHash</OtherURL>
+    <Priority>50</Priority>
+    <ClientSSLConfig FromFile='/etc/arc/clientsslconfig.xml'/>
+</Service>
+\end{verbatim}
+
+In this config we specify the second server as a peer. Let's configure the second server as well:
+
+\begin{verbatim}
+<Plexer name="plexer.service" id="plexer">
+    <next id="ahash">^/AHash$</next>
+    <next id="shepherd">^/Shepherd$</next>
+    <next id="byteio">^/byteio/</next>
+</Plexer>
+<Service name="pythonservice" id="ahash">
+    <ClassName>storage.ahash.ahash.AHashService</ClassName>
+    <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
+    <LocalDir>/var/spool/arc/ahash_data2</LocalDir>
+    <MyURL>https://storage2:60006/AHash</MyURL>
+    <OtherURL>https://storage:60000/AHash</OtherURL>
+    <Priority>50</Priority>
+    <ClientSSLConfig FromFile='/etc/arc/clientsslconfig.xml'/>
+</Service>
+\end{verbatim}
+
+In this config we specify the first server as a peer. So the two together will be able to form a replicated network with two nodes. But let's configure the thirs one:
+
+\begin{verbatim}
+<Plexer name="plexer.service" id="plexer">
+    <next id="ahash">^/AHash$</next>
+    <next id="shepherd">^/Shepherd$</next>
+</Plexer>
+<Service name="pythonservice" id="ahash">
+    <ClassName>storage.ahash.ahash.AHashService</ClassName>
+    <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
+    <LocalDir>/var/spool/arc/ahash_data3</LocalDir>
+    <MyURL>https://storage3:60010/AHash</MyURL>
+    <OtherURL>https://storage:60000/AHash</OtherURL>
+    <Priority>50</Priority>
+    <ClientSSLConfig FromFile='/etc/arc/clientsslconfig.xml'/>
+</Service>
+\end{verbatim}
+
+Here we specify the first server as the peer.
+
+It is important that we need to make a fresh start, and remove the existing database, which was created by a different store:
+\begin{verbatim}
+$ sudo rm -r /var/spool/arc/*
+\end{verbatim}
+
+Let's start the first server. It will complain that it cannot find its peer:
+\begin{verbatim}
+ERROR connecting to https://storage2:60006/AHash
+[2009-03-24 10:34:18] [Arc.Storage.ReplicatedAHash] [ERROR] [10827/156026112]
+    failed to send to 2 of [1, 2]
+[2009-03-24 10:34:20] [Arc.Storage.ReplicatedAHash] [ERROR] [10827/158713512]
+    Couldn't run election
+\end{verbatim}
+
+With only one node of the replicated A-Hash the system is not ready to work, if we try to use it, we get an error message:
+\begin{verbatim}
+$ arc_storage_cli mkdir /
+- Calling the Bartender's makeCollection method...
+- done in 0.55 seconds.
+Creating collection '/': failed to create new librarian entry
+\end{verbatim}
+
+Let's start the second server. It may first print some error messages, but then both servers should be quiet, and now we can use the system. Let's upload a file, and set the number of needed replicas to 3:
+
+\begin{verbatim}
+$ arc_storage_cli mkdir /
+- Calling the Bartender's makeCollection method...
+- done in 1.16 seconds.
+Creating collection '/': done
+$ arc_storage_cli put orange /
+- The size of the file is 7 bytes
+- Calculating md5 checksum...
+- done in 0.0214 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
+- Calling the Bartender's putFile method...
+- done in 2.22 seconds.
+- Got transfer URL: http://storage:60001/hopi/3f903c50-0424-2891-5730-521cc00d96dc
+- Uploading from 'orange'
+    to 'http://storage:60001/hopi/3f903c50-0424-2891-5730-521cc00d96dc' with http...
+    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+- done in 1.0293 seconds.
+'orange' (7 bytes) uploaded as '/orange'.
+$ arc_storage_cli modify /orange set states neededReplicas 3
+- Calling the Bartender's modify method...
+- done in 0.74 seconds.
+set
+$ arc_storage_cli stat /orange
+[...]
+  locations
+    https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
+[...]
+zsombor@storage:~$ arc_storage_cli stat /orange
+[...]
+  locations
+    https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
+    https://storage2:60006/Shepherd 97edebb5-e72d-098a-55a7-14595f668770: alive
+[...]    
+\end{verbatim}
+
+It cannot create 3 replicas, because are third server is not running. Let's start it. After a minute or two, or file has three replicas:
+
+\begin{verbatim}
+$ arc_storage_cli stat /orange
+[...]
+  locations
+    https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
+    https://storage3:60010/Shepherd 3c55924b-73ad-c226-0f4a-4c056c967314: alive
+    https://storage2:60006/Shepherd 97edebb5-e72d-098a-55a7-14595f668770: alive
+[...]
+\end{verbatim}
+
+The fact that this file has three replicas is not at all related to the number of AHashes, but to the number of storage elements (Shepherds and storage element services), so this is no different then what we saw in the last section. The benefit of having more then one AHashes in a replicated way is that if one of the machines goes offline, the AHash is still working. But in our current case if we shutdown the first server, while the AHash will still work but we still have only one instance of the other two important service: the Librarian and the Bartender, so the whole system would be unusable. Let's add more Librarians and Bartenders to the system.
+
+\section{Additional Bartenders and Librarians} % (fold)
+\label{sec:additional_bartenders_and_librarians}
+
+Let's add a Bartender and a Librarian to each servers. We don't need to modify our first server now. For the other two we need to change the \verb!Plexer! section, add the twos services, and modify the Shepherd to use the server's own Bartender and Librarian for replication and heartbeats. Let's modify the config of our second server: (\verb![...]! indicates unchanged parts)
+
+\begin{verbatim}
+[...]
+<Plexer name="plexer.service" id="plexer">
+    <next id="ahash">^/AHash$</next>
+    <next id="shepherd">^/Shepherd$</next>
+    <next id="librarian">^/Librarian$</next>
+    <next id="bartender">^/Bartender$</next>
+    <next id="byteio">^/byteio/</next>
+</Plexer>
+<Service name="pythonservice" id="librarian">
+    <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+    <AHashURL>https://storage2:60006/AHash</AHashURL>
+    <HeartbeatTimeout>30</HeartbeatTimeout>
+    <CheckPeriod>20</CheckPeriod>
+    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
+</Service>
+<Service name="pythonservice" id="bartender">
+    <ClassName>storage.bartender.bartender.BartenderService</ClassName>
+    <LibrarianURL>https://storage2:60006/Librarian</LibrarianURL>
+    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
+</Service>
+[...]
+<Service name="pythonservice" id="shepherd">
+[...]
+    <LibrarianURL>https://storage2:60006/Librarian</LibrarianURL>
+    <BartenderURL>https://storage2:60006/Bartender</BartenderURL>
+[...]
+\end{verbatim}
+
+And the third server:
+
+\begin{verbatim}
+[...]
+<Plexer name="plexer.service" id="plexer">
+    <next id="ahash">^/AHash$</next>
+    <next id="shepherd">^/Shepherd$</next>
+    <next id="librarian">^/Librarian$</next>
+    <next id="bartender">^/Bartender$</next>
+</Plexer>
+<Service name="pythonservice" id="librarian">
+    <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+    <AHashURL>https://storage3:60010/AHash</AHashURL>
+    <HeartbeatTimeout>30</HeartbeatTimeout>
+    <CheckPeriod>20</CheckPeriod>
+    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
+</Service>
+<Service name="pythonservice" id="bartender">
+    <ClassName>storage.bartender.bartender.BartenderService</ClassName>
+    <LibrarianURL>https://storage3:60010/Librarian</LibrarianURL>
+    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
+</Service>
+[...]
+<Service name="pythonservice" id="shepherd">
+[...]
+    <LibrarianURL>https://storage3:60010/Librarian</LibrarianURL>
+    <BartenderURL>https://storage3:60010/Bartender</BartenderURL>
+[...]
+\end{verbatim}
+
+We need to modify our \verb!client.xml! to add all the other Bartenders:
+
+\begin{verbatim}
+$ cat ~/.arc/client.xml 
+<ArcConfig>
+  <KeyPath>/home/zsombor/.arc/userkey.pem</KeyPath>
+  <CertificatePath>/home/zsombor/.arc/usercert.pem</CertificatePath>
+  <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+  <BartenderURL>https://storage:60000/Bartender</BartenderURL>
+  <BartenderURL>https://storage2:60006/Bartender</BartenderURL>
+  <BartenderURL>https://storage3:60010/Bartender</BartenderURL>
+</ArcConfig>
+\end{verbatim}
+
+Now we can start all three servers. The replicated A-Hash sometimes prints great amount of error messages, but if it stops printing them, then everything is OK. Now we can use the system as intended. There is a flag for the \verb!arc_storage_cli! which makes it very verbose. We can check the used Bartender with it:
+
+\begin{verbatim}
+$ arc_storage_cli -v stat /orange
+- The URL of the Bartender(s): https://storage:60000/Bartender,
+    https://storage2:60006/Bartender, https://storage3:60010/Bartender
+- The key file: /home/zsombor/.arc/userkey.pem
+- The cert file: /home/zsombor/.arc/usercert.pem
+- The CA dir: /etc/grid-security/certificates
+- Calling the Bartender's stat method...
+- trying https://storage:60000/Bartender
+[...]
+- done in 1.27 seconds.
+'/orange': found
+\end{verbatim}
+
+Now we can stop our first server. The system will be unaccessable for a few seconds while the other two A-Hash figure out what is happening, but after that it will work again:
+
+\begin{verbatim}
+$ arc_storage_cli -v stat /orange
+- The URL of the Bartender(s): https://storage:60000/Bartender,
+    https://storage2:60006/Bartender, https://storage3:60010/Bartender
+- The key file: /home/zsombor/.arc/userkey.pem
+- The cert file: /home/zsombor/.arc/usercert.pem
+- The CA dir: /etc/grid-security/certificates
+- Calling the Bartender's stat method...
+- trying https://storage:60000/Bartender
+[...]
+- (-1, "Wrong status from server.\nMaybe wrong URL: 'https://storage:60000/Bartender'")
+- trying https://storage2:60006/Bartender
+[...]
+- done in 0.45 seconds.
+'/orange': found
+[...]
+\end{verbatim}
+
+If we start again our first server, after a few seconds the system will work again with the three fully-functional node.
+
+\begin{verbatim}
+zsombor@storage:~$ arc_storage_cli -v stat /orange
+- The URL of the Bartender(s): https://storage:60000/Bartender,
+    https://storage2:60006/Bartender, https://storage3:60010/Bartender
+- The key file: /home/zsombor/.arc/userkey.pem
+- The cert file: /home/zsombor/.arc/usercert.pem
+- The CA dir: /etc/grid-security/certificates
+- Calling the Bartender's stat method...
+- trying https://storage:60000/Bartender
+[...]
+- done in 0.49 seconds.
+'/orange': found
+  states
+    checksumType: md5
+    neededReplicas: 3
+    size: 7
+    checksum: 6aefd2842be62cd470709b27aedc7db7
+  entry
+    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
+    GUID: 0080d8be-1f6f-2fc7-ad71-732f899326c8
+    type: file
+  parents
+    0/orange: parent
+  locations
+    https://storage3:60010/Shepherd 03312843-d3b3-2d15-4732-ad673df958ae: alive
+    https://storage2:60006/Shepherd b0057765-4532-d0b4-fded-182499a91450: alive
+    https://storage:60000/Shepherd 532ec0f8-dd83-297b-d7b6-dc5dacea34e0: alive
+  timestamps
+    created: 1237887474.95    
+\end{verbatim}
 
 \section{Using the FUSE module} % (fold)
 \label{sec:using_the_fuse_module}
