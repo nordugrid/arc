@@ -33,7 +33,7 @@ namespace Arc {
   } \
 
   /// Helper function to create simple thread.
-  /** It takes care of all pecularities og Glib::Thread API.
+  /** It takes care of all pecularities of Glib::Thread API.
      As result it runs function 'func' with argument 'arg' in a separate
      thread.
      Returns true on success. */
