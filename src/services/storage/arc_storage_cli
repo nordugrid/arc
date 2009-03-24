@@ -1442,11 +1442,13 @@ def call_it(method_name, *args):
             print e.args[1]
         except:
             print e
+    if not verbose:
+        print "(try to put the '-v' flag before the method name for more details)" 
     sys.exit(-1)
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
-    print '  arc_storage_cli <method> [<arguments>]'
+    print '  arc_storage_cli [-v] <method> [<arguments>]'
     print 'Supported methods:'
     print '  stat - get detailed information about an entry'
     print '  makeCollection | make | mkdir - create a collection'
