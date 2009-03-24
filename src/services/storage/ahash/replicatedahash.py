@@ -399,6 +399,8 @@ class ReplicationManager:
             num_reps = len([id for id,rep in self.hostMap.items() if rep["status"] != "offline"])
             self.locker.release_read()
             votes = num_reps/2 + 1
+            if votes < 2:
+                votes = 2
             log.msg(arc.DEBUG, "%s: my role is %d"%(self.url, role))
             self.dbenv.rep_elect(num_reps, votes)
             # wait one second for election results
