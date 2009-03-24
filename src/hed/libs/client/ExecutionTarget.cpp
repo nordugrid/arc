@@ -238,6 +238,7 @@ namespace Arc {
     SubmitterComp.NewChild("Cluster") = Cluster.str();
     SubmitterComp.NewChild("Queue") = MappingQueue;
     SubmitterComp.NewChild("SubmissionEndpoint") = url.str();
+    ucfg.ApplyTimeout(SubmitterComp);
 
     const_cast<ExecutionTarget*>(this)->loader = new ACCLoader(cfg);
 

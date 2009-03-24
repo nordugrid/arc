@@ -18,6 +18,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
@@ -83,8 +84,8 @@ int main(int argc, char **argv) {
                     istring("merge the found jobs with the jobs in the joblist"),
                     merge);
 
-  int timeout = 20;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
                     istring("seconds"), timeout);
 
   std::string conffile;

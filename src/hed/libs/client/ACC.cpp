@@ -10,16 +10,19 @@
 #include <glibmm/fileutils.h>
 
 #include <arc/client/ACC.h>
+#include <arc/client/UserConfig.h>
+#include <arc/StringConv.h>
 
 namespace Arc {
 
   ACC::ACC(Config *cfg, const std::string& flavour)
-    : flavour(flavour) {
+    : flavour(flavour), timeout(UserConfig::DEFAULT_TIMEOUT) {
     proxyPath = (std::string)(*cfg)["ProxyPath"];
     certificatePath = (std::string)(*cfg)["CertificatePath"];
     keyPath = (std::string)(*cfg)["KeyPath"];
     caCertificatesDir = (std::string)(*cfg)["CACertificatesDir"];
-
+    if ((*cfg)["TimeOut"])
+      timeout = stringtoi((std::string)(*cfg)["TimeOut"]);
   }
 
   ACC::~ACC() {}

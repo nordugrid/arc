@@ -33,29 +33,23 @@ namespace Arc {
 
     bool Get(const std::list<std::string>& status,
              const std::string& downloaddir,
-             const bool keep,
-             const int timeout);
+             const bool keep);
 
     bool Kill(const std::list<std::string>& status,
-              const bool keep,
-              const int timeout);
+              const bool keep);
 
     bool Clean(const std::list<std::string>& status,
-               const bool force,
-               const int timeout);
+               const bool force);
 
     bool Cat(const std::list<std::string>& status,
-             const std::string& whichfile,
-             const int timeout);
+             const std::string& whichfile);
 
     bool Stat(const std::list<std::string>& status,
-              const bool longlist,
-              const int timeout);
+              const bool longlist);
 
     bool Migrate(TargetGenerator& targetGen,
                  Broker *broker,
-                 const bool forcemigration,
-                 const int timeout);
+                 const bool forcemigration);
 
     bool RemoveJobs(const std::list<URL>& jobids);
 
@@ -63,8 +57,7 @@ namespace Arc {
     bool CopyFile(const URL& src, const URL& dst);
 
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
-                                      const bool getlocal,
-                                      const int timeout);
+                                      const bool getlocal);
 
     void CheckLocalDescription(std::list<Job>& jobs);
 

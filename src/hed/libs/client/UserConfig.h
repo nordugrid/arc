@@ -30,6 +30,9 @@ namespace Arc {
     const XMLNode& ConfTree() const;
 
     bool ApplySecurity(XMLNode& ccfg) const;
+    
+    bool ApplyTimeout(XMLNode& ccfg) const;
+    void SetTimeout(int timeout);
 
     bool DefaultServices(URLListMap& cluster,
                          URLListMap& index) const;
@@ -53,6 +56,8 @@ namespace Arc {
     bool operator!() const;
 
     bool CheckProxy() const;
+
+    static const int DEFAULT_TIMEOUT = 20;
 
   private:
     User user;

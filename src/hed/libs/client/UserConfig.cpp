@@ -368,6 +368,25 @@ namespace Arc {
     return true;
   }
 
+  bool UserConfig::ApplyTimeout(XMLNode& ccfg) const {
+    if (cfg["TimeOut"] && !((std::string)cfg["TimeOut"]).empty() &&
+        stringtoi((std::string)cfg["TimeOut"]) > 0) {
+      logger.msg(INFO, "Setting timeout to %s s", (std::string)cfg["TimeOut"]);
+      ccfg.NewChild("TimeOut") = (std::string)cfg["TimeOut"];
+      return true;
+    }
+
+    return false;
+  }
+
+  void UserConfig::SetTimeout(int timeout) {
+    if (!cfg["TimeOut"]) {
+      cfg.NewChild("TimeOut");
+    }
+
+    cfg["TimeOut"] = tostring(timeout);
+  }
+
   bool UserConfig::DefaultServices(URLListMap& cluster,
                                    URLListMap& index) const {
 

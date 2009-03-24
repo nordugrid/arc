@@ -13,6 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
@@ -80,8 +81,8 @@ int main(int argc, char **argv) {
                     istring("[-]name"),
                     indexurls);
 
-  int timeout = 20;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
                     istring("seconds"), timeout);
 
   std::string conffile;
@@ -112,6 +113,10 @@ int main(int argc, char **argv) {
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+
+  if (timeout > 0) {
+    usercfg.SetTimeout(timeout);
   }
 
   if (debug.empty() && usercfg.ConfTree()["Debug"]) {
@@ -173,6 +178,7 @@ int main(int argc, char **argv) {
   Broker.NewAttribute("id") = "broker";
 
   usercfg.ApplySecurity(Broker);
+  usercfg.ApplyTimeout(Broker);
 
   Arc::ACCLoader loader(cfg);
   Arc::Broker *chosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
@@ -187,7 +193,7 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, forcemigration, timeout))
+    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, forcemigration))
       retval = 1;
   } // Loop over job controllers
 

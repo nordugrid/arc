@@ -18,6 +18,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
@@ -91,8 +92,8 @@ int main(int argc, char **argv) {
                     istring("statusstr"),
                     status);
 
-  int timeout = 20;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
                     istring("seconds"), timeout);
 
   std::string conffile;
@@ -124,6 +125,10 @@ int main(int argc, char **argv) {
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+
+  if (timeout > 0) {
+    usercfg.SetTimeout(timeout);
   }
 
   if (debug.empty() && usercfg.ConfTree()["Debug"]) {
@@ -161,7 +166,7 @@ int main(int argc, char **argv) {
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++) {
     std::list<Arc::Job> cont_jobs;
-    cont_jobs = (*it)->GetJobDescriptions(status, true, timeout);
+    cont_jobs = (*it)->GetJobDescriptions(status, true);
     toberesubmitted.insert(toberesubmitted.begin(), cont_jobs.begin(), cont_jobs.end());
   }
   if (toberesubmitted.empty()) {
@@ -216,6 +221,7 @@ int main(int argc, char **argv) {
   Broker.NewAttribute("id") = "broker";
 
   usercfg.ApplySecurity(Broker);
+  usercfg.ApplyTimeout(Broker);
 
   Arc::ACCLoader loader(cfg);
   Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
@@ -295,9 +301,9 @@ int main(int argc, char **argv) {
 
   for (std::list<Arc::JobController*>::iterator it = killcont.begin();
        it != killcont.end(); it++)
-    if (!(*it)->Kill(status, keep, timeout))
+    if (!(*it)->Kill(status, keep))
       if (!keep)
-        if (!(*it)->Clean(status, true, timeout))
+        if (!(*it)->Clean(status, true))
           logger.msg(Arc::WARNING, "Job could not be killed or cleaned");
 
 

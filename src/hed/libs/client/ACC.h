@@ -23,6 +23,7 @@ namespace Arc {
     std::string certificatePath;
     std::string keyPath;
     std::string caCertificatesDir;
+    int timeout;
   };
 
   class ACCConfig

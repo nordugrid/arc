@@ -51,6 +51,7 @@ namespace Arc {
         retriever.NewAttribute("name") = "TargetRetriever" + it->first;
         retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
         usercfg.ApplySecurity(retriever); // check return value ?
+        usercfg.ApplyTimeout(retriever);
         XMLNode url = retriever.NewChild("URL") = it2->str();
         url.NewAttribute("ServiceType") = "computing";
         targetcnt++;

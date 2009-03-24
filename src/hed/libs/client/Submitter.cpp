@@ -55,7 +55,6 @@ namespace Arc {
                                      keyPath, caCertificatesDir);
 
       std::string failure;
-      int timeout = 300;
       if (!mover.Transfer(*source, *destination, cache, URLMap(),
                           0, 0, 0, timeout, failure)) {
         if (!failure.empty())

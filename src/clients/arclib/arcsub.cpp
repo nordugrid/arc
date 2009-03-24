@@ -18,6 +18,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
@@ -101,8 +102,8 @@ int main(int argc, char **argv) {
                             "in the format matching the selected cluster."),
                     dumpdescription);
 
-  int timeout = 20;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
                     istring("seconds"), timeout);
 
   std::string conffile;
@@ -139,6 +140,11 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+
+  if (timeout > 0) {
+    usercfg.SetTimeout(timeout);
+  }
+  
 
   if (debug.empty() && usercfg.ConfTree()["Debug"]) {
     debug = (std::string)usercfg.ConfTree()["Debug"];
@@ -210,7 +216,8 @@ int main(int argc, char **argv) {
 
     buffer[length] = '\0';
     Arc::JobDescription jobdesc;
-    jobdesc.Parse((std::string)buffer);
+    std::string jobdesc_str = buffer;
+    jobdesc.Parse(jobdesc_str);
 
     if (jobdesc)
       jobdescriptionlist.push_back(jobdesc);
@@ -275,6 +282,7 @@ int main(int argc, char **argv) {
   Broker.NewAttribute("id") = "broker";
 
   usercfg.ApplySecurity(Broker);
+  usercfg.ApplyTimeout(Broker);
 
   Arc::ACCLoader loader(cfg);
   Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));

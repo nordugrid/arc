@@ -179,8 +179,7 @@ namespace Arc {
 
   bool JobController::Get(const std::list<std::string>& status,
                           const std::string& downloaddir,
-                          const bool keep,
-                          const int timeout) {
+                          const bool keep) {
 
     logger.msg(DEBUG, "Getting %s jobs", flavour);
     std::list<URL> toberemoved;
@@ -245,8 +244,7 @@ namespace Arc {
   }
 
   bool JobController::Kill(const std::list<std::string>& status,
-                           const bool keep,
-                           const int timeout) {
+                           const bool keep) {
 
     logger.msg(DEBUG, "Killing %s jobs", flavour);
     std::list<URL> toberemoved;
@@ -311,8 +309,7 @@ namespace Arc {
   }
 
   bool JobController::Clean(const std::list<std::string>& status,
-                            const bool force,
-                            const int timeout) {
+                            const bool force) {
 
     logger.msg(DEBUG, "Cleaning %s jobs", flavour);
     std::list<URL> toberemoved;
@@ -370,8 +367,7 @@ namespace Arc {
   }
 
   bool JobController::Cat(const std::list<std::string>& status,
-                          const std::string& whichfile,
-                          const int timeout) {
+                          const std::string& whichfile) {
 
     logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", flavour);
 
@@ -451,8 +447,7 @@ namespace Arc {
   }
 
   bool JobController::Stat(const std::list<std::string>& status,
-                           const bool longlist,
-                           const int timeout) {
+                           const bool longlist) {
 
     GetJobInformation();
 
@@ -475,8 +470,7 @@ namespace Arc {
 
   bool JobController::Migrate(TargetGenerator& targetGen,
                               Broker *broker,
-                              const bool forcemigration,
-                              const int timeout) {
+                              const bool forcemigration) {
     bool retVal = true;
 
     std::list<URL> migratedJobIDs;
@@ -628,7 +622,6 @@ namespace Arc {
 
     FileCache cache;
     std::string failure;
-    int timeout = 10;
     if (!mover.Transfer(*source, *destination, cache, URLMap(),
                         0, 0, 0, timeout, failure)) {
       if (!failure.empty())
@@ -684,8 +677,7 @@ namespace Arc {
   }
 
   std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
-                                                   const bool getlocal,
-                                                   const int timeout) {
+                                                   const bool getlocal) {
 
     logger.msg(DEBUG, "Getting %s jobs", flavour);
     GetJobInformation();
