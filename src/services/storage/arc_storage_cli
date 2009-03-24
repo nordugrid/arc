@@ -1484,7 +1484,7 @@ else:
         bartender_url = None
     bartender_env_url = os.environ.get('ARC_BARTENDER_URL', '')
     if bartender_env_url:
-        bartender_urls.insert(0, bartender_env_url)
+        bartender_urls = [bartender_env_url]
     if bartender_urls:
         if verbose:
             print '- The URL of the Bartender(s):', ', '.join(bartender_urls)
