@@ -105,6 +105,7 @@ namespace Arc {
         signer_->OutputCertificateChain(signercertchain_str);
         signedcert.append(signercert_str);
         signedcert.append(signercertchain_str);
+        std::cout<<"X509 proxy certificate: \n"<<signedcert<<std::endl;
 
         PayloadSOAP request2(ns);
         XMLNode token2 = request2.NewChild("deleg:UpdateCredentials").NewChild("deleg:DelegatedToken");
@@ -250,6 +251,8 @@ namespace Arc {
         Arc::Credential cred_request(start, Arc::Period(), keybits);
         cred_request.GenerateRequest(x509req_str);
         tokenlookup.NewChild("deleg:Value") = x509req_str;
+        std::string privkey_str;
+        cred_request.OutputPrivatekey(privkey_str);
 
         PayloadSOAP *response = NULL;
         //Send AcquireCredentials request
@@ -274,13 +277,19 @@ namespace Arc {
           return false;
         }
         delegation_id = (std::string)(token["Id"]);
-        delegation_cred = (std::string)(token["Value"]);
+        std::string delegation_cert = (std::string)(token["Value"]);
         delete response;
-        if (delegation_id.empty() || delegation_cred.empty()) {
+        if (delegation_id.empty() || delegation_cert.empty()) {
           logger.msg(Arc::ERROR, "There is no Id or X509 token value in the response");
           return false;
         }
-        //std::cout<<"Get delegated X509 Token: \n"<<delegation_cred<<std::endl;
+
+        Arc::Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_);
+        proxy_cred.OutputCertificate(delegation_cred);
+        proxy_cred.OutputPrivatekey(delegation_cred);
+        proxy_cred.OutputCertificateChain(delegation_cred);
+
+        logger.msg(VERBOSE,"Get delegated credential from delegation service: \n %s",delegation_cred.c_str());
         return true;
       }
       else {
