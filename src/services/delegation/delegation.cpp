@@ -138,7 +138,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       Arc::Time start;
       //Set proxy path length to be -1, which means infinit length
       Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritAll","",-1);
-      Arc::Credential signer(cred, "", trusted_cadir, "");
+      Arc::Credential signer(cred, "", trusted_cadir, trusted_capath);
       std::string signedcert;
       proxy.InquireRequest(x509req_value);
       if(!(signer.SignRequest(&proxy, signedcert))) {
@@ -188,6 +188,7 @@ Service_Delegation::Service_Delegation(Arc::Config *cfg):Service(cfg),
   max_credlife_ = 43200;
 
   trusted_cadir = (std::string)((*cfg)["CACertificatesDir"]);
+  trusted_capath = (std::string)((*cfg)["CACertificatePath"]);
 }
 
 Service_Delegation::~Service_Delegation(void) {

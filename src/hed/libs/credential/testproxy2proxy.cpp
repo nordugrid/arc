@@ -13,7 +13,7 @@
 int main(void) {
   Arc::LogStream cdest(std::cerr);
   Arc::Logger::getRootLogger().addDestination(cdest);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
   std::string cafile("./ca.pem");
 

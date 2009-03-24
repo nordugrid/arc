@@ -1073,8 +1073,11 @@ namespace Arc {
     CredentialLogger.msg(VERBOSE, "Certiticate chain number %d",sk_X509_num(cert_chain_));
     //std::cout<<"+++++ cert chain number: "<<sk_X509_num(cert_chain_)<<std::endl;
 
-    //Out put the cert chain
-    for (int n = 0; n < sk_X509_num(cert_chain_); n++) {
+    //Out put the cert chain. After the verification the cert_chain_ 
+    //will include the CA certificate and the certificate (which 
+    //need to be verified here) itself.
+    //Those two certificates are excluded when outputing
+    for (int n = 1; n < sk_X509_num(cert_chain_) - 1 ; n++) {
       cert = sk_X509_value(cert_chain_, n);
       if(if_der == false) {
         if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
@@ -1321,7 +1324,7 @@ err:
   int Credential::GetCertNumofChain(void) {
     //Return the number of certificates 
     //in the issuer chain
-    return sk_X509_num(cert_chain_);
+    return sk_X509_num(cert_chain_) - 2;
   }
 
   bool Credential::AddExtension(std::string name, std::string data, bool crit) {

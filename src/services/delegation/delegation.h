@@ -23,6 +23,7 @@ class Service_Delegation: public Arc::Service {
   int max_crednum_;
   int max_credlife_;
   std::string trusted_cadir;
+  std::string trusted_capath;
  protected:
   Arc::NS ns_;
   Arc::Logger logger_;
