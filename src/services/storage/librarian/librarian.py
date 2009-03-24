@@ -302,7 +302,10 @@ class Librarian:
             traversed = [guid0]
             GUIDs = [guid]
             path = copy.deepcopy(path0)
-            metadata0 = self.ahash_get([guid])[guid]
+            try:
+                metadata0 = self.ahash_get([guid])[guid]
+            except:
+                metadata0 = {}
             if not metadata0.has_key(('entry','type')):
                 response[rID] = ([], False, '', guid0, None, '/'.join(path))
             else:

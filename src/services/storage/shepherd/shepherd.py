@@ -172,6 +172,7 @@ class Shepherd:
         # call the checksum checker which will change the state to ALIVE if its checksum is OK, but leave it as CREATING if the checksum is wrong
         # TODO: either this checking should be in seperate thread, or the backend's should call this in a seperate thread?
         state = self._checking_checksum(referenceID)
+        # TODO: check if we have accidentally more then one replica of the same file and then set it to THIRDWHEEL
         # if _checking_checksum haven't change the state to ALIVE: the file is corrupt
         if state == CREATING:
             self.changeState(referenceID, INVALID)

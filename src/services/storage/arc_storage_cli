@@ -374,6 +374,10 @@ def get_child_nodes(node):
     # the node.Size() method returns the number of children
     return [node.Child(i) for i in range(node.Size())]
 
+def get_child_values_by_name(node, name):
+    return [str(child) for child in get_child_nodes(node) if child.Name() == name]  
+
+
 def node_to_data(node, names, single = False, string = True):
     """ Get some children of an XMLNode and return them in a list in the specified order using the first one as a key.
     
@@ -1409,28 +1413,33 @@ args = sys.argv[1:]
 if len(sys.argv) > 1: 
     func = sys.argv[1]
     
-if len(args) > 0 and args[0] == '-x':
+if len(args) > 0 and args[0] in ['-x', '-v']:
     args.pop(0)
-    print_xml = True
+    verbose = True
 else:
-    print_xml = False   
+    verbose = False   
 
-bartender = None
+bartender_urls = []
 
 def call_it(method_name, *args):
     print '- Calling the Bartender\'s %s method...' % method_name
     start = time.time()
-    try:
-        response = getattr(bartender, method_name)(*args)
-    except socket.error, e:
-        print 'ERROR:',
+    for bartender_url in bartender_urls:
+        if verbose:
+            print '- trying', bartender_url
         try:
-            print e.args[1]
-        except:
-            print e
-        sys.exit(-1)
-    print '- done in %0.2f seconds.' % (time.time()-start)
-    return response
+            bartender = BartenderClient(bartender_url, verbose, ssl_config = ssl_config)    
+            response = getattr(bartender, method_name)(*args)
+            print '- done in %0.2f seconds.' % (time.time()-start)
+            return response
+        except socket.error, e:
+            print 'ERROR:',
+            try:
+                print e.args[1]
+            except:
+                print e
+            sys.exit(-1)
+    raise
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
@@ -1460,7 +1469,7 @@ else:
         proxy_file = str(config_xml.Get('ProxyPath'))
         ca_file = str(config_xml.Get('CACertificatePath'))
         ca_dir = str(config_xml.Get('CACertificatesDir'))
-        bartender_url = str(config_xml.Get('BartenderURL'))
+        bartender_urls = get_child_values_by_name(config_xml,'BartenderURL')
     except:
         key_file = None
         cert_file = None
@@ -1468,19 +1477,22 @@ else:
         ca_file = None
         ca_dir = None
         bartender_url = None
-    bartender_url = os.environ.get('ARC_BARTENDER_URL', bartender_url)
-    if bartender_url:
-        print '- The URL of the Bartender:', bartender_url
+    bartender_env_url = os.environ.get('ARC_BARTENDER_URL', '')
+    if bartender_env_url:
+        bartender_urls.insert(0, bartender_env_url)
+    if bartender_urls:
+        if verbose:
+            print '- The URL of the Bartender(s):', ', '.join(bartender_urls)
     else:
-        bartender_url = 'http://localhost:60000/Bartender'
-        print '- The URL of the Bartender is not given, using', bartender_url
+        bartender_urls = ['http://localhost:60000/Bartender']
+        print '- The URL of the Bartender is not given, using', bartender_urls[0]
     try:
         needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
     except:
         needed_replicas = 1
     ssl_config = {}
     
-    if bartender_url.startswith('https'):
+    if len([bartender_url for bartender_url in bartender_urls if bartender_url.startswith('https')]) > 0:
         key_file = os.environ.get('ARC_KEY_FILE', key_file)
         cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
         proxy_file = os.environ.get('ARC_PROXY_FILE', proxy_file)
@@ -1488,24 +1500,23 @@ else:
         ca_dir = os.environ.get('ARC_CA_DIR', ca_dir)
         if proxy_file:
             ssl_config['proxy_file'] = proxy_file
-            print '- The proxy certificate file:', ssl_config['proxy_file']
+            if verbose:
+                print '- The proxy certificate file:', ssl_config['proxy_file']
         else:
             if key_file and cert_file:                
                 ssl_config['key_file'] = key_file
                 ssl_config['cert_file'] = cert_file
-                print '- The key file:', ssl_config['key_file']
-                print '- The cert file:', ssl_config['cert_file']
+                if verbose:
+                    print '- The key file:', ssl_config['key_file']
+                    print '- The cert file:', ssl_config['cert_file']
         if ca_file:
             ssl_config['ca_file'] = ca_file
-            print '- The CA file:', ssl_config['ca_file']
+            if verbose:
+                print '- The CA file:', ssl_config['ca_file']
         elif ca_dir:
             ssl_config['ca_dir'] = ca_dir
-            print '- The CA dir:', ssl_config['ca_dir']
-    try:
-        bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)    
-    except Exception, e:
-        print 'ERROR:', e
-        sys.exit(-1)
+            if verbose:
+                print '- The CA dir:', ssl_config['ca_dir']
     command = args.pop(0)[0:3]
     # print "args.pop(0)"
     # print args 
