@@ -1,14 +1,33 @@
-#include <typeinfo>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <iostream>
+#include <string>
 #include <fstream>
 
-#include "../RegisteredService.h"
+#include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadRaw.h>
+#include <arc/infosys//RegisteredService.h>
 
 
-const char* xml_str = "\
+class RegisteredServiceTest
+  : public CppUnit::TestFixture {
+
+  CPPUNIT_TEST_SUITE(RegisteredServiceTest);
+  CPPUNIT_TEST(TestRegisteredService);
+  CPPUNIT_TEST_SUITE_END();
+
+public:
+  void setUp();
+  void tearDown();
+  void TestRegisteredService();
+};
+
+static const char* xml_str = "\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\
 <SOAP-ENV:Envelope \
 xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" \
@@ -40,8 +59,6 @@ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><SOAP-ENV:Body><bes-fact
     </JobDescription> \
 </JobDefinition></bes-factory:ActivityDocument></bes-factory:CreateActivity></SOAP-ENV:Body></SOAP-ENV:Envelope>";
 
-namespace Arc {
-
   class MyRegisteredService: public Arc::RegisteredService
   {
       public:
@@ -57,10 +74,17 @@ namespace Arc {
           virtual ~MyRegisteredService(void) { };
           virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&) {return Arc::MCC_Status(Arc::STATUS_OK);};
   };
+
+
+void RegisteredServiceTest::setUp() {
 }
 
 
-int main(void) {
+void RegisteredServiceTest::tearDown() {
+}
+
+
+void RegisteredServiceTest::TestRegisteredService() {
   Arc::Logger logger(Arc::Logger::rootLogger, "RegisteredService-Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
@@ -69,11 +93,6 @@ int main(void) {
 
 
   Arc::MessagePayload *m = new Arc::PayloadRaw();
-  std::cerr<<"m: "<<typeid(m).name()<<std::endl;
-  std::cerr<<"*m: "<<typeid(*m).name()<<std::endl;
-  std::cerr<<"MessagePayload: "<<typeid(Arc::MessagePayload).name()<<std::endl;
-  std::cerr<<"PayloadRawInterface: "<<typeid(Arc::PayloadRawInterface).name()<<std::endl;
-  std::cerr<<"PayloadRaw: "<<typeid(Arc::PayloadRaw).name()<<std::endl;
 
   std::string cfg_str="";
   cfg_str +="\n";
@@ -99,7 +118,11 @@ int main(void) {
   cfg_str +="    </ArcConfig>";
   
   Arc::Config cfg(cfg_str);
-  Arc::MyRegisteredService myservice(&cfg);
+  MyRegisteredService myservice(&cfg);
 
-  return 0;
+  CPPUNIT_ASSERT(true);
 }
+
+
+CPPUNIT_TEST_SUITE_REGISTRATION(RegisteredServiceTest);
+
