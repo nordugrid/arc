@@ -1458,6 +1458,29 @@ zsombor@storage:~$ arc_storage_cli -v stat /orange
     created: 1237887474.95    
 \end{verbatim}
 
+\section{Accessing external storage solutions} % (fold)
+\label{sec:using_the_gateway}
+
+install globus libraries
+
+\begin{verbatim}
+$ sudo mkdir /var/spool/arc/proxy_store
+\end{verbatim}
+
+\begin{verbatim}
+<Service name="pythonservice" id="bartender">
+    <ClassName>storage.bartender.bartender.BartenderService</ClassName>
+    <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
+    <ProxyStore>/var/spool/arc/proxy_store</ProxyStore>
+    <GatewayClass>storage.bartender.gateway.gateway.Gateway</GatewayClass>
+    <GatewayCfg>
+        <ProxyStore>/var/spool/arc/proxy_store</ProxyStore>
+        <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+    </GatewayCfg>
+    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
+</Service>
+\end{verbatim}
+
 \section{Using the FUSE module} % (fold)
 \label{sec:using_the_fuse_module}
 
