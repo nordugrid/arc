@@ -90,4 +90,16 @@ That's it! You are ready to go write OpenSSL-capable code!
    * Build code with make
    * Install it with make install
 
-- TODO: Explain how to make it work.
+- Explain how to make it work.
+  * After building ARC1, you might want to run it. Currently only some limited functionality of the clients are working
+    - If you haven't build ARC1 yourself, but you have got the already builded files, you have to make sure to install the following in addition:
+      - The runtime environment of glibmm (http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/), make sure the "Add the gtkmm runtime directory to the PATH variable" option is checked.
+        For additional information, please visit http://live.gnome.org/gtkmm/MSWindows
+      - The Win32 OpenSSL vX.Y.Zn Light version (http://www.slproweb.com/products/Win32OpenSSL.html)
+        - Copy ssleay32.dll and libeay32.dll to your ARC_INSTALL\bin directory
+  * Open the command line prompt. Go to the ARC_INSTALL\bin directory and it should be possible to submit jobs
+    - Example of command on Windows XP (if you want to run the commands without SSL, replace ARC1:https://knowarc1.grid.niif.hu:60000/arex by ARC1:http://knowarc1.grid.niif.hu:50000/arex):
+      - arcsub -debug DEBUG -f "C:\Documents and Settings\<username>\Application Data\.arc\testjob.xml" -z "C:\Documents and Settings\<username>\Application Data\.arc\client.xml" -cluster ARC1:https://knowarc1.grid.niif.hu:60000/arex
+        - (It is indeed an idea that you have some meaningful testjob.xml and client.xml files where the latter is pointing to your user key and user certificate and the CA certificates diretory)
+    - Example of command on Windows Vista:
+      - arcsub -debug DEBUG -f C:\Users\<username>\AppData\Roaming\.arc\testjob.xml -z C:\Users\<username>\AppData\Roaming\.arc\client.xml -cluster ARC1:https://knowarc1.grid.niif.hu:60000/arex
