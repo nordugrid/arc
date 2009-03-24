@@ -837,9 +837,10 @@ class Client:
         self.xmlnode_class = FakeXMLNode
         try:
             import arc
-            root_logger = arc.Logger_getRootLogger()
-            root_logger.addDestination(arc.LogStream(sys.stdout))
-            root_logger.setThreshold(arc.ERROR)
+            if print_xml: # meaning: verbose
+                root_logger = arc.Logger_getRootLogger()
+                root_logger.addDestination(arc.LogStream(sys.stdout))
+                root_logger.setThreshold(arc.ERROR)
             self.call_raw = self.call_raw_hed
             self.cfg = arc.MCCConfig()
             if self.https:
@@ -1424,6 +1425,7 @@ bartender_urls = []
 def call_it(method_name, *args):
     print '- Calling the Bartender\'s %s method...' % method_name
     start = time.time()
+    exceptions = []
     for bartender_url in bartender_urls:
         if verbose:
             print '- trying', bartender_url
@@ -1433,13 +1435,16 @@ def call_it(method_name, *args):
             print '- done in %0.2f seconds.' % (time.time()-start)
             return response
         except socket.error, e:
-            print 'ERROR:',
-            try:
-                print e.args[1]
-            except:
-                print e
-            sys.exit(-1)
-    raise
+            exceptions.append(e)
+            if verbose:
+                print '-', e
+    for e in exceptions:
+        print 'ERROR:',
+        try:
+            print e.args[1]
+        except:
+            print e
+    sys.exit(-1)
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
