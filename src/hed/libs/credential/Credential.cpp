@@ -530,6 +530,11 @@ namespace Arc {
         return;
       }
 
+      if(proxy_cert_info_) {
+        PROXYCERTINFO_free(proxy_cert_info_);
+        proxy_cert_info_ = NULL;
+      }
+
       proxy_cert_info_ = PROXYCERTINFO_new();
       PROXYPOLICY *   ppolicy =PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
       PROXYPOLICY_set_policy(ppolicy, NULL, 0);
@@ -654,6 +659,11 @@ namespace Arc {
     //EVP_add_digest(EVP_sha1());
 
     extensions_ = sk_X509_EXTENSION_new_null();
+
+    if(certfile.empty()) {
+      CredentialLogger.msg(ERROR, "Certificate/Proxy path is empty");
+      return;
+    }
 
     try {
       loadCertificate(certfile, cert_, &cert_chain_);
