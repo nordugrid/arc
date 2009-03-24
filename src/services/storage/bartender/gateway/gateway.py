@@ -24,7 +24,7 @@ class Gateway:
     def __init__(self,cfg):
         #print "Gateway constructor..."
         self.service_name = 'Gateway'
-	self.cfg = cfg
+        self.cfg = cfg
         self.proxy_store = str(self.cfg.Get('ProxyStore'))
         self.ca_dir = str(self.cfg.Get('CACertificatesDir'))
         if len(self.proxy_store) == 0:

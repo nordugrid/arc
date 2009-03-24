@@ -305,6 +305,8 @@ class Librarian:
             try:
                 metadata0 = self.ahash_get([guid])[guid]
             except:
+                # TODO: figure out this part
+                raise
                 metadata0 = {}
             if not metadata0.has_key(('entry','type')):
                 response[rID] = ([], False, '', guid0, None, '/'.join(path))

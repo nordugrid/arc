@@ -865,6 +865,7 @@ class BartenderService(Service):
         # call the Service's constructor
         Service.__init__(self, request_config, cfg)
         # get the list of the available proxies. 
+        # TODO: create the directory if it does not exist
         self.proxy_store = str(cfg.Get('ProxyStore'))
         if self.proxy_store:
             log.msg(arc.DEBUG, '//// Proxy store:', self.proxy_store)
