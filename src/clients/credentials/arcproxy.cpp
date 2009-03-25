@@ -122,7 +122,13 @@ int main(int argc, char *argv[]) {
                     istring("string"), myproxy_server);
 
   std::string myproxy_command; //command to myproxy server
-  options.AddOption('M', "myproxycmd", istring("command to myproxy server"),
+  options.AddOption('M', "myproxycmd", istring("command to myproxy server. The command can be PUT and GET.\n"
+                                         "              PUT/put -- put a delegated credential to myproxy server; \n"
+                                         "              GET/get -- get a delegated credential from myproxy server, \n"
+                                         "              credential (certificate and key) is not needed in this case. \n"
+                                         "              myproxy functionality can be used together with voms\n"
+                                         "              functionality.\n"
+                                         ),
                     istring("string"), myproxy_command);
 
   std::list<std::string> constraintlist;
