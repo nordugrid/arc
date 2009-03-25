@@ -10,7 +10,7 @@ email: salman.toor@it.uu.se
 """
 import arc
 import time
-from arcom import get_child_nodes
+from arcom import get_child_nodes, datapoint_from_url
 from arcom.service import gateway_uri, true, create_response
 from arcom.service import Service 
 import commands
@@ -52,14 +52,12 @@ class Gateway:
                     elif sourceURL[:3] == 'srm':
                         protocol = 'srm'
                     response[file.GetName()] = {'turl':sourceURL,'status': status,'protocol':protocol}
-                    
             else:
                 status = 'failed: cannot access file'
                 response[url] = {'turl':'','status': status,'protocol':''}
         else:
             status = 'cannot find valid credentials'
             response[url] = {'turl':'','status': status,'protocol':''}
-        #print response
         log.msg(arc.DEBUG,'get response: %s',response)
         return response
             
@@ -74,72 +72,54 @@ class Gateway:
         else:
             protocol = 'unkonwn'
             status = 'failed' 
-        
         response[url] = {'turl':url,'status':status, 'protocol':protocol}
-
         return response
 
-    def list(self,auth,url, flags=''):
+    def list(self, auth, url, flags=''):
         """Input arguments
         URL of the file or directory """
         response = {}
         tmpList = []
+        longlisting = '-l' in flags
         status = ''
-        protocol = ''
-        if url[:6] == 'gsiftp':
+        if url.startswith('gsiftp'):
             protocol = 'gridftp'
-        elif url[:3] == 'srm':
+        elif url.startswith('srm'):
             protocol = 'srm'
         else:
             protocol = 'unkonwn'
-        
         if len(self.proxy_store) == 0:
             log.msg(arc.DEBUG,'proxy store is not accessable.')
-        
         if protocol != 'unknown':
-          
             proxyfile = base64.b64encode(auth.get_identity())
-            filepath = self.proxy_store+'/'+proxyfile+'.proxy'
+            filepath = self.proxy_store + '/' + proxyfile + '.proxy'
             if os.path.isfile(filepath):
-            
-                externalURL = arc.URL(url)
-                handle = arc.DataHandle(externalURL)
-                handle.__deref__().AssignCredentials(filepath,'','',self.ca_dir)
-                (files, stat) = handle.__deref__().ListFiles(True)
+                dp = datapoint_from_url(url)
+                dp.AssignCredentials(filepath, '', '', self.ca_dir)
+                (files, stat) = dp.ListFiles(longlisting)
                 if files:
-                    if (flags == '-l'):
-                        status = 'successful'
-                        for file in files:
-                            print file.GetName(), " ", file.GetSize(), " ", file.GetCreated()
-                            if ( file.GetType() == 1):
+                    status = 'found'
+                    for f in files:
+                        if longlisting:
+                            #print f.GetName(), " ", f.GetSize(), " ", f.GetCreated()
+                            if (f.GetType() == 1):
                                 type = 'file'
-                            elif (file.GetType() == 2):
+                            elif (f.GetType() == 2):
                                 type = 'dir'
                             else:
                                 type = 'known'       
-                            if (flags == '-l'):      
-                                tmpList.append(file.GetName()+':'+str(file.GetSize())+':'+type+'\n')
-                            else:
-                                tmpList.append(file.GetName()+'\n')
-                    else:
-                        for file in files:
-                            tmpList.append(file.GetName()+',')
-                        if len(tmpList) == 0:
-                            status = 'no file/directory found'
-                        else: 
-                            status = 'successful'    
+                            tmpList.append(f.GetName() + ':' + str(f.GetSize()) + ':' + type + '\n')
+                        else:
+                            tmpList.append(f.GetName())
                 else:
-                    status = 'cannot access file or directory. Check the LN or the credentials. '
-                                   
+                    status = 'Cannot access external store. Reason: %s' % str(stat)
             else:
-                status = 'failed: credentials not found'
-        
-	response[url]={'list':''.join(tmpList),'status':status,'protocol':protocol}
-        #print response
+                status = 'Your proxy cannot be found. Please delegate your proxy!'
+        response[url] = {'list': tmpList, 'status': status, 'protocol': protocol}
         log.msg(arc.DEBUG, 'list response: %s', response)
         return response
-    def remove(self, auth, url, flags):
         
+    def remove(self, auth, url, flags):
         """ remove file or direcotory """
         response = {}
         protocol = ''
@@ -150,16 +130,13 @@ class Gateway:
             protocol = 'srm'
         else:
             protocol = 'unkonwn'
-            
         if len(self.proxy_store) == 0:
             status = 'failed' 
             log.msg(arc.DEBUG,'proxy store is not accessable.')
-
         if protocol != 'unknown':
             proxyfile = base64.b64encode(auth.get_identity())
             filepath = self.proxy_store+'/'+proxyfile+'.proxy'
             if os.path.isfile(filepath):
-            
                 externalURL = arc.URL(url)
                 handle = arc.DataHandle(externalURL)
                 handle.__deref__().AssignCredentials(filepath,'','',self.ca_dir)
@@ -170,4 +147,3 @@ class Gateway:
         response[url]={'status':str(status),'protocol':protocol}
         #print "File or directory removed"     
         return response 
-       

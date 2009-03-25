@@ -197,26 +197,23 @@ class Bartender:
             log.msg(arc.ERROR, "Error creating new entry in Librarian: %s" % e)
             return 'internal error', None
         
-    def _externalStore(self,auth, url, flag=''):
+    def _externalStore(self, auth, url, flag=''):
         """ This method calles the gateway backend class to get/check the full URL of the externally stored file"""
         response = {}
         if self.gateway != None:
             if flag == 'list':      
-                response = self.gateway.list(auth,url,flag)
-                #print 'response'   
-                #print response     
+                response = self.gateway.list(auth, url, flag)
             elif flag == 'getFile':
-                #print url
-                response = self.gateway.get(auth,url,flag)
+                response = self.gateway.get(auth, url, flag)
             elif flag == 'delFile':
-                response = self.gateway.remove(auth,url,flag)
+                response = self.gateway.remove(auth, url, flag)
             elif flag == 'putFile': 
-                 response = self.gateway.put(auth,url,flag)
+                 response = self.gateway.put(auth, url, flag)
         else:
             if flag == 'list':
-                response[url]={'list':'','status':'gateway is not configured. Bartender does not support mount points','protocol':''}            
+                response[url] = {'list': '', 'status': 'gateway is not configured. Bartender does not support mount points', 'protocol':''}            
             else:
-                response[url]={'turl':'','status':'gateway is not configured. Bartender does not support mount points','protocol':''}
+                response[url]={'turl': '' ,'status': 'gateway is not configured. Bartender does not support mount points', 'protocol':''}
         log.msg(arc.DEBUG, '//// response from the external store:', response)
         return response
 
@@ -678,12 +675,11 @@ class Bartender:
                         status = 'is a file'
                         entries = {}
                     elif type == 'mountpoint':
-                        status = 'mountpointfound'
                         url = metadata[('mountpoint', 'externalURL')]
-                        res = self._externalStore(auth, url, 'list')
+                        res = self._externalStore(auth, url, 'list')[url]
+                        status = res['status']
                         #print res
-                        entries = dict([(url, (type, {('mountpoint','status'):res[url]['status'],('external','list'):res[url]['list']})) ]) 
-                        #entries = dict([(url, (type, {('mountpoint','status'):stat,('external','list'):list})) for url, list, stat  in res.items()])
+                        entries = dict([(name, ('', {})) for name in res['list']])
                     else: #if it is not a file, it must be a collection (currently there is no other type)
                         status = 'found'
                         # get all the properties and values from the 'entries' metadata section of the collection
@@ -864,15 +860,16 @@ class BartenderService(Service):
         request_config = [deleg_request_type, bar_request_type]
         # call the Service's constructor
         Service.__init__(self, request_config, cfg)
-        # get the list of the available proxies. 
-        # TODO: create the directory if it does not exist
+        # get the path to proxy store
         self.proxy_store = str(cfg.Get('ProxyStore'))
-        if self.proxy_store:
-            log.msg(arc.DEBUG, '//// Proxy store:', self.proxy_store)
-        else:
-            log.msg(arc.DEBUG, '//// Proxy store not available:')  
-        #if self.proxy_store:
-        #    self.proxies = os.listdir(self.proxy_store)
+        try:
+            if not os.path.exists(self.proxy_store):
+                os.mkdir(self.proxy_store)
+            log.msg(arc.DEBUG, 'Proxy store:', self.proxy_store)
+        except:
+            self.proxy_store = ''
+        if not self.proxy_store:
+            log.msg(arc.ERROR, 'The directory for storing proxies is not available. Proxy delegation disabled.')
         # get the URLs of the Librarians from the config file
         librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
         # create a LibrarianClient from the URL
