@@ -72,7 +72,8 @@ namespace Arc {
           cs.ready = false;
     if (eof_read_flag && cs.ready)
       cs.sum->end();
-    int res = checksums.push_back(cs);
+    checksums.push_back(cs);
+    int res = checksums.size() - 1;
     lock.unlock();
     return res;
   }
