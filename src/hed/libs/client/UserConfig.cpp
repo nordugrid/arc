@@ -621,20 +621,34 @@ namespace Arc {
 
     NS ns;
     XMLNode proxy(ns, "cred");
-    if (ApplySecurity(proxy) && !((std::string)proxy["ProxyPath"]).empty()) {
-      Credential holder((std::string)proxy["ProxyPath"], "",
-                        (std::string)proxy["CACertificatesDir"], "");
-      if (holder.GetEndTime() >= Arc::Time())
-        logger.msg(INFO, "Valid proxy found");
+    if (ApplySecurity(proxy)) {
+      if (proxy["ProxyPath"]) {
+        Credential holder((std::string)proxy["ProxyPath"], "",
+                          (std::string)proxy["CACertificatesDir"], "");
+        if (holder.GetEndTime() >= Arc::Time())
+          logger.msg(INFO, "Valid proxy found");
+        else {
+          logger.msg(ERROR, "Proxy expired");
+          return false;
+        }
+      }
       else {
-        logger.msg(ERROR, "Proxy expired");
-        return false;
+        Credential holder((std::string)proxy["CertificatePath"],
+                          (std::string)proxy["KeyPath"],
+                          (std::string)proxy["CACertificatesDir"], "");
+        if (holder.GetEndTime() >= Arc::Time())
+          logger.msg(INFO, "Valid certificate and key found");
+        else {
+          logger.msg(ERROR, "Certificate and key expired");
+          return false;
+        }
       }
     }
     else {
-      logger.msg(ERROR, "No proxy found ");
+      logger.msg(ERROR, "No credentials found ");
       return false;
     }
     return true;
   }
+
 } // namespace Arc
