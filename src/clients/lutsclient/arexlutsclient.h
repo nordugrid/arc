@@ -21,7 +21,6 @@ typedef std::map<std::string, hashlist_t> jobmap_t;
 typedef std::list<std::string> joblist_t;
 
 //Default values for configuration:
-//#define AREXLUTSCLIENT_DEFAULT_CONFIG_FILE        "/etc/arexlutsclient.xml"
 #define AREXLUTSCLIENT_DEFAULT_JOBLOG_DIR         "/tmp/jobstatus/logs"
 #define AREXLUTSCLIENT_DEFAULT_MAX_UR_SET_SIZE    50 //just like in original JARM
 #define AREXLUTSCLIENT_DEFAULT_LOG_FILE           "/tmp/arexlutsclient.log"
