@@ -55,12 +55,27 @@ namespace Arc {
   }
 
   int DataBuffer::add(CheckSum *cksum) {
-    checksums.push_back(checksum_desc(cksum));
-    if (cksum)
-      cksum->start();
-    return checksums.size() - 1;
+    if (!cksum)
+      return -1;
+    lock.lock();
+    checksum_desc cs = cksum;
+    cs.sum->start();
+    for (int i = 0; i < bufs_n; i++)
+      if (bufs[i].used != 0)
+        if (bufs[i].offset == cs.offset) {
+          cs.sum->add(bufs[i].start, bufs[i].used);
+          cs.offset += bufs[i].used;
+          i = -1;
+          cs.ready = true;
+        }
+        else if (cs.offset < bufs[i].offset)
+          cs.ready = false;
+    if (eof_read_flag && cs.ready)
+      cs.sum->end();
+    int res = checksums.push_back(cs);
+    lock.unlock();
+    return res;
   }
-
 
   DataBuffer::DataBuffer(unsigned int size, int blocks) {
     bufs_n = 0;
@@ -120,7 +135,6 @@ namespace Arc {
            itCheckSum != checksums.end(); itCheckSum++)
         if (itCheckSum->sum)
           itCheckSum->sum->end();
-
     eof_read_flag = eof_;
     cond.broadcast();
     lock.unlock();
@@ -364,7 +378,7 @@ namespace Arc {
          itCheckSum != checksums.end(); itCheckSum++)
       if ((itCheckSum->sum != NULL) && (offset == itCheckSum->offset))
         for (int i = handle; i < bufs_n; i++)
-          if (bufs[i].used != 0) {
+          if (bufs[i].used != 0)
             if (bufs[i].offset == itCheckSum->offset) {
               itCheckSum->sum->add(bufs[i].start, bufs[i].used);
               itCheckSum->offset += bufs[i].used;
@@ -373,7 +387,6 @@ namespace Arc {
             }
             else if (itCheckSum->offset < bufs[i].offset)
               itCheckSum->ready = false;
-          }
     cond.broadcast();
     lock.unlock();
     return true;

@@ -252,8 +252,7 @@ namespace Arc {
 
     writing = true;
     buffer = &buf;
-    md5sum->start();
-    chksum_index = buffer->add(md5sum);
+    buffer->add(md5sum);
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
@@ -346,18 +345,18 @@ namespace Arc {
     if (!transfer)
       return DataStatus::Success;
     // update checksum and size
-    buffer->wait_write();
     DataStatus ret = (*transfer)->StopWriting();
+    buffer->wait_read();
     unsigned char *md5res_u = new unsigned char(16);
     unsigned int length;
-    buffer->checksum_object(chksum_index)->result(md5res_u, length);
+    md5sum->result(md5res_u, length);
     std::string md5str = "";
     for (int i = 0; i < length; i++) {
       char tmpChar[2];
       sprintf(tmpChar, "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
-    std::cout << "CheckSum: " << md5str << " number " << length << " valid " << (buffer->checksum_valid(chksum_index)) << std::endl;
+    std::cout << "CheckSum: " << md5str << " number " << length << " valid " << (bool)(*md5sum) << std::endl;
     //logger.msg(Arc::INFO, "Checksum? %s", md5str);
 
     MCCConfig cfg;
@@ -414,7 +413,6 @@ namespace Arc {
     if (nd["success"] != "set")
       return DataStatus::WriteError;
 
-    md5sum->end();
     delete transfer;
     transfer = NULL;
     return ret;
