@@ -10,7 +10,7 @@
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
   pdfauthor = {Zsombor Nagy},
-  pdftitle = {User's manual of the ARC storage system},
+  pdftitle = {Administrator's manual of the ARC storage system},
   pdfsubject = {Paper subject},
   pdfkeywords = {Paper,keyword,comma-separated},
   pdfcreator = {PDFLaTeX with hyperref package},
@@ -57,7 +57,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large Administrator's and user's manual of the ARC storage system}\Large \par}
+{\centering \textsc{\Large Administrator's manual of the ARC storage system}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -1461,16 +1461,48 @@ zsombor@storage:~$ arc_storage_cli -v stat /orange
 \section{Accessing external storage solutions} % (fold)
 \label{sec:using_the_gateway}
 
-install globus libraries
+If we have permissions to access some third-party storage solutions (e.g. dCache), we can create a mount point within the namespace of the ARC storage system which points to a third-party URL, and then we can use the client interface of the ARC storage to access the third-party storage as well. This is achieved by a module of the Bartender, called the `Gateway'. Currently only GridFTP access is supported, and for that we need to install the Globus libraries to our machines. Then we need to recompile our source for GridFTP support. The output of the \verb!configure! script should look like this:
 
 \begin{verbatim}
-$ sudo mkdir /var/spool/arc/proxy_store
+    Available third-party features:
+
+    RLS:                yes
+    GridFTP:            yes
+    LFC:                no
+    RSL:                yes
+    SAML:               yes
+    MYSQL CLIENT LIB:   no
+    gSOAP:              yes
+
+    Included components:
+    A-Rex service:      no
+    ISI service:        no
+    CHARON service:     no
+    HOPI service:       yes
+    SCHED service:      no
+    STORAGE service:    yes
+    PAUL service:       no
+    SRM client (DMC):   yes
+    GSI channel (MCC):  yes
 \end{verbatim}
+
+After compilation and installation we can use the \verb!arcls! tool to list the content of a third-party storage. Let's check if our Billy user has access to this directory:
+
+\begin{verbatim}
+$ arcls gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data
+data1
+data2
+other
+\end{verbatim}
+
+We can see some files in there, so we have permissions to list that directory.
+
+Now let's configure the Bartenders on all three machines to use the Gateway module:
 
 \begin{verbatim}
 <Service name="pythonservice" id="bartender">
     <ClassName>storage.bartender.bartender.BartenderService</ClassName>
-    <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
+    <LibrarianURL>[...]</LibrarianURL>
     <ProxyStore>/var/spool/arc/proxy_store</ProxyStore>
     <GatewayClass>storage.bartender.gateway.gateway.Gateway</GatewayClass>
     <GatewayCfg>
@@ -1479,6 +1511,75 @@ $ sudo mkdir /var/spool/arc/proxy_store
     </GatewayCfg>
     <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
 </Service>
+\end{verbatim}
+
+Let's start all three servers. Then create a mount point with the Logical Name \verb!/salmount! which points to this URL:
+
+\begin{verbatim}
+$ arc_storage_cli makemount /salmount \
+    gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data
+- Calling the Bartender's makeMountpoint method...
+- done in 3.07 seconds.
+Creating mountpoint '/salmount': done
+
+$ arc_storage_cli stat /salmount
+- Calling the Bartender's stat method...
+- done in 0.47 seconds.
+'/salmount': found
+  states
+    closed: 0
+  entry
+    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
+    type: mountpoint
+    GUID: b21d9d22-e885-502a-ee0e-bd0a7b967543
+  parents
+    0/salmount: parent
+  mountpoint
+    externalURL: gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data
+  timestamps
+    created: 1237990168.09
+\end{verbatim}
+
+Let's list the content of this mountpoint:
+
+\begin{verbatim}
+$ arc_storage_cli list /salmount- Calling the Bartender's list method...
+- done in 0.49 seconds.
+'/salmount': Your proxy cannot be found. Please delegate your credentials!
+\end{verbatim}
+
+Yes, we first need to delegate our credentials with the \verb!credentialsDelegation! method, then try to list the mount point:
+
+\begin{verbatim}
+$ arc_storage_cli cre
+- Calling the Bartender's credentialsDelegation method...
+[...]
+- done in 0.42 seconds.
+Successful delegation.
+Proxy ID: eNCMDmi8i6YnPSAtDmVmuSEmABFKDmABFKDm0zKKDmFBFKDmeOzdBo
+
+$ arc_storage_cli list /salmount
+- Calling the Bartender's list method...
+- done in 3.19 seconds.
+'/salmount': collection
+  data1  <unknown>
+  data2  <unknown>
+  other  <unknown>
+\end{verbatim}
+
+Let's download a file:
+
+\begin{verbatim}
+$ arc_storage_cli get /salmount/data1 /tmp
+- Calling the Bartender's getFile method...
+- done in 3.56 seconds.
+- Got transfer URL: gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data/data1
+- Downloading from 'gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data/data1'
+    to '/tmp/data1' with gridftp...
+   2 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
+   3 s:        1.3 kB       0.4 kB/s       0.4 kB/s    . . .       
+- done in 2.7828 seconds.
+'/salmount/data1' (1290 bytes) downloaded as '/tmp/data1'.
 \end{verbatim}
 
 \section{Using the FUSE module} % (fold)
