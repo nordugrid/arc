@@ -747,6 +747,8 @@ $ arc_storage_cli stat /new-orange | grep neededReplicas
 
 \section{Adding more storage elements}
 
+This version of the \verb!arc_storage_cli! tool currently does not support recursive methods or working with multiple files at once.
+
 Let's add a new storage element to the system. We need to deploy a Shepherd service and a storage element service, which this time will be a `byteio' service. The `byteio' service implements a small part of the ByteIO interface, which means that it just put the entire file data into the SOAP message, so it is only suitable for small files.
 
 But first modify the configuration file of our original server. Currently all the transfer URLs which were generated when we upload and download files contained the hostname `localhost'. This is not OK if we want to access it from an other machine, we should provide transfer URLs which contains the external hostname of the machine. So lets change this line in \verb!/etc/arc/storage_service.xml!:
@@ -1581,6 +1583,26 @@ $ arc_storage_cli get /salmount/data1 /tmp
 - done in 2.7828 seconds.
 '/salmount/data1' (1290 bytes) downloaded as '/tmp/data1'.
 \end{verbatim}
+
+\section{Using the ARC DMC} % (fold)
+\label{sec:using_the_arc_dmc}
+
+ARC has its own multi-protocol storage client tools which provide a unified way to access different kind of storage. For all the supported types there is a DMC module. We created a DMC module for the ARC storage as well. If it is compiled and installed, then you can use the \verb!arcls!, \verb!arccp!, \verb!arcrm!, etc. tools with the \verb!arc://! protocol to access the ARC storage system. You need to have a Bartender URL configured in the \verb!client.xml! user config.
+
+\begin{verbatim}
+$ arcls arc:///
+$ arccp orange arc:///orange
+$ arcls arc:///
+orange
+$ arccp arc:///orange /tmp/orange
+$ cat /tmp/orange 
+orange
+$ arcrm arc:///orange
+$ arcls arc:///
+$ 
+\end{verbatim}
+
+TODO: if Bartender returns a ByteIO URL - not good, need to fix it.
 
 \section{Using the FUSE module} % (fold)
 \label{sec:using_the_fuse_module}
