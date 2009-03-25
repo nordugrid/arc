@@ -1,21 +1,20 @@
 .\" -*- nroff -*-
-.TH ARCSTAT 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCRENEW 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
-arcstat \- ARC Status
+arcrenew \- ARC Proxy Renewal
 
 .SH DESCRIPTION
 
 The
-.B arcstat
-command is used for obtaining the status of jobs that have been
-submitted to grid enabled resources and the status of the clusters in
-the grid.
+.B arcrenew
+command is used for renewing the proxy of jobs that have 
+been submitted to grid enabled resources. 
 
 .SH SYNOPSIS
 
-.B arcstat [options] [job ...]
+.B arcrenew [options] [job ...]
 
 .SH OPTIONS
 
@@ -27,12 +26,6 @@ file containing a list of jobs
 explicitly select or reject a specific cluster
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
-.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
-explicitly select or reject an index server
-.IP "\fB-q\fR, \fB--queues\fR"
-show information about clusters and queues
-.IP "\fB-l\fR, \fB--long\fR"
-long format (more information)
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
@@ -53,25 +46,22 @@ list of jobids and/or jobnames
 
 .SH EXTENDED DESCRIPTION
 
-The
-.B arcstat
-command gives the status of a job submitted an ARC enabled
-resource. The job can be referred to either by the jobid that was
-returned by
+The 
+.B arcrenew
+command renews the proxy of a job submitted an ARC enabled resource. 
+The job can be referred to either by the jobid that was returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
 submitted contained a jobname attribute.
 
 More than one jobid and/or jobname can be given. If several jobs were
-submitted with the same jobname the status of all those jobs are
-shown. If the
+submitted with the same jobname the proxies of all those jobs are 
+renewed. If the
 .B --joblist
 option is used the list of jobs is read from a file with the
 specified filename. By specifying the
 .B --all
-option, the status of all active jobs will be shown. If the
-.B --long
-option is given more detailed information is given.
+option, the proxies of all active jobs will be renewed.
 
 The
 .B --cluster
@@ -81,29 +71,6 @@ for a discussion of the format of arguments to this option. The
 .B --status
 option can be used to select jobs in a specific state. These options
 can be repeated several times.
-
-If the
-.B --queues
-option is used,
-.B arcstat
-gives the status of the clusters and queues available rather than
-of the jobs submitted. In this case the
-.B --cluster
-option can be used to select or reject clusters for which the status
-should be returned.
-
-The
-.B arcstat
-command locates the available clusters by querying information index
-servers. Which servers to query can be specified by giving the
-.B --index
-option to the command. See
-.BR arcsub (1)
-for a discussion of the format of arguments to this option.
-
-Also in this case the
-.B --long
-option can be used to obtain more detailed information.
 
 .SH FILES
 
@@ -142,7 +109,11 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcclean (1),
 .BR arcget (1),
 .BR arckill (1),
+.BR arcmigrate (1),
+.BR arcresub (1),
+.BR arcresume (1),
 .BR arcsub (1),
+.BR arcstat (1),
 .BR arccp (1),
 .BR arcls (1),
 .BR arcrm (1),
