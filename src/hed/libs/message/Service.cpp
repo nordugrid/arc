@@ -9,7 +9,6 @@ namespace Arc {
 Logger Service::logger(Logger::getRootLogger(), "Service");
 
 Service::Service(Arc::Config*) {
-    //TODO: Create InfoRegister()
 }
 
 void Service::AddSecHandler(Config* cfg,ArcSec::SecHandler* sechandler,const std::string& label) {

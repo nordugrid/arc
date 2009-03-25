@@ -1,3 +1,4 @@
+TEST_DIR = test
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
 

@@ -4,14 +4,9 @@
 
 #include "RegisteredService.h"
 
-#include <arc/infosys/InfoRegister.h>
-
-
 namespace Arc {
 
-  RegisteredService::RegisteredService(Arc::Config* cfg):Service(cfg) {
-      // Register to the ISIS
-      Arc::InfoRegister inforeg((Arc::XMLNode&)(*cfg), this);
+  RegisteredService::RegisteredService(Arc::Config* cfg):Service(cfg),inforeg((Arc::XMLNode&)(*cfg), this) {
   }
 
 } // namespace Arc

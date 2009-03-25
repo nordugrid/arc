@@ -7,6 +7,7 @@
 #include <arc/message/MCC.h>
 #include <arc/loader/Plugin.h>
 #include <arc/security/SecHandler.h>
+#include <arc/infosys/InfoRegister.h>
 
 namespace Arc {
 
@@ -33,6 +34,9 @@ namespace Arc {
  */
 class RegisteredService: public Service
 {
+    private:
+        Arc::InfoRegister inforeg;
+
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
         RegisteredService(Arc::Config*);

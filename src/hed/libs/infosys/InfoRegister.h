@@ -9,6 +9,7 @@
 #include <arc/message/Service.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
+#include <arc/DateTime.h>
 
 #define GLUE2_D42_NAMESPACE "http://schemas.ogf.org/glue/2008/05/spec_2.0_d42_r1"
 #define REGISTRATION_NAMESPACE "http://www.nordugrid.org/schemas/registartion/2008/08"
@@ -54,6 +55,12 @@ class InfoRegisters {
         ~InfoRegisters(void);
 };
 
+// Data stucture for the InfoRegistrar class.
+struct Register_Info_Type{
+    InfoRegister* p_register;
+    Period period;
+    Time next_registration;
+};
 
 /// Registration process associated with particular ISIS
 /** Instance of this class starts thread which takes care 
@@ -77,13 +84,17 @@ class InfoRegistrar {
         long int period_;
         std::string id_;
         // Associated services
-        std::list<InfoRegister*> reg_;
+        std::list<Register_Info_Type> reg_;
         // Mutex protecting reg_ list
         Glib::Mutex lock_;
         // Condition signaled when thread has to exit
         Glib::Cond cond_exit_;
         // Condition signaled when thread exited
         Glib::Cond cond_exited_;
+        // InfoRegistrar object creation time moment
+        Time creation_time;
+        // Time window providing some flexibility to avoid the casual slides
+        Period stretch_window;
     public:
         ~InfoRegistrar(void);
         operator bool(void) { return (bool)url_; };

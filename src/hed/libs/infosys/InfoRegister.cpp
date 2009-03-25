@@ -14,12 +14,18 @@
 #include <arc/win32.h>
 #endif
 
-static Arc::Logger logger_(Arc::Logger::rootLogger, "InfoRegister");
+static Arc::Logger logger_(Arc::Logger::rootLogger, "InfoSys");
 
 namespace Arc {
 
 static void reg_thread(void *data) {
     InfoRegistrar *self = (InfoRegistrar *)data;
+    { // Very important!!!: Delete this block imediately!!!
+        // Sleep and exit if interrupted by request to exit
+        unsigned int sleep_time = 15; //seconds
+        logger_.msg(DEBUG, "InfoRegistrar thread waiting %d seconds for the all Registers elements creation.", sleep_time);
+        sleep(sleep_time);
+    }
     self->registration();
 }
 
@@ -31,21 +37,29 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     ns_["register"] = REGISTRATION_NAMESPACE;
 
     // parse config
-    std::string s_reg_period = (std::string)cfg["Period"];
-    if (!s_reg_period.empty()) { 
-        reg_period_ = strtol(s_reg_period.c_str(), NULL, 10);
+    std::string s_reg_period = (std::string)cfg["InfoRegister"].Attribute("period");
+    if (!s_reg_period.empty()) {
+        Period p(s_reg_period); 
+        reg_period_ = p.GetPeriod();
     } else {
         reg_period_ = -1;
     }
+
+    //DEBUG//
+    std::string configuration_string;
+    XMLNode temp;
+    cfg.New(temp);
+    temp.GetDoc(configuration_string, true);
+    logger_.msg(DEBUG, "InfoRegister created with config:\n%s", configuration_string);
+
     // Add service to registration list. Optionally only for 
     // registration through specific registrants.
     std::list<std::string> ids;
-    for(XMLNode r = cfg["Registrant"];(bool)r;++r) {
+    for(XMLNode r = cfg["InfoRegister"]["Registrar"];(bool)r;++r) {
       std::string id = r;
       if(!id.empty()) ids.push_back(id);
     };
     InfoRegisterContainer::Instance().addService(this,ids,cfg);
-    std::cout << "InfoRegister - ready" << std::endl;
 }
 
 InfoRegister::~InfoRegister(void) {
@@ -132,10 +146,6 @@ void InfoRegisterContainer::removeService(InfoRegister* reg) {
 
 InfoRegistrar::InfoRegistrar(XMLNode cfg) {
     id_=(std::string)cfg.Attribute("id");
-    if(!stringto((std::string)cfg["Period"],period_)) {
-      period_=0; // Wrong number
-      logger_.msg(ERROR, "Can't recognize period: %s",(std::string)cfg["Period"]);
-    };
     key_   = (std::string)cfg["KeyPath"];
     cert_  = (std::string)cfg["CertificatePath"];
     proxy_ = (std::string)cfg["ProxyPath"];
@@ -143,28 +153,46 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg) {
     url_ = URL((std::string)cfg["URL"]);
     if(!url_) {
       logger_.msg(ERROR, "Can't recognize URL: %s",(std::string)cfg["URL"]);
-    };
+    } else {
+      //logger_.msg(DEBUG, "InfoRegistrar created for URL: %s",(std::string)cfg["URL"]);
+    }
+
+    time_t rawtime;
+    time ( &rawtime );  //current time
+    gmtime ( &rawtime );
+    Time ctime(rawtime);
+    creation_time = ctime;
 }
-  
+
 bool InfoRegistrar::addService(InfoRegister* reg) {
     Glib::Mutex::Lock lock(lock_);
-    for(std::list<InfoRegister*>::iterator r = reg_.begin();
+    for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
-        if(reg == *r) return false;
+        if(reg == r->p_register) {
+            logger_.msg(DEBUG, "InfoRegistrar (%s) service already registered.", url_.fullstr());
+            return false;
+        }
     };
-    reg_.push_back(reg);
+    Register_Info_Type reg_info;
+    reg_info.p_register = reg;
+    reg_info.period = reg->getPeriod();
+    reg_info.next_registration = creation_time.GetTime() + reg->getPeriod() ;
+    reg_.push_back(reg_info);
+    logger_.msg(DEBUG, "InfoRegistrar (%s) service added.", url_.fullstr());
     return true;
 }
 
 bool InfoRegistrar::removeService(InfoRegister* reg) {
     Glib::Mutex::Lock lock(lock_);
-    for(std::list<InfoRegister*>::iterator r = reg_.begin();
+    for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
-        if(reg == *r) {
+        if(reg == r->p_register) {
             reg_.erase(r);
+            logger_.msg(DEBUG, "InfoRegistrar (%s) service removed.", url_.fullstr());
             return true;
         };
     };
+    logger_.msg(ERROR, "InfoRegistrar (%s) remove service was unsuccessful.", url_.fullstr());
     return false;
 }
 
@@ -188,7 +216,10 @@ void InfoRegistrar::registration(void) {
     CondExit cond(cond_exited_);
     std::string isis_name = url_.fullstr();
     while(true) {
+
         logger_.msg(DEBUG, "Registration starts: %s",isis_name);
+        logger_.msg(DEBUG, "reg_.size(): %d",reg_.size());
+
         if(!url_) {
             logger_.msg(WARNING, "Registrant has no proper URL specified");
             return;
@@ -200,39 +231,38 @@ void InfoRegistrar::registration(void) {
         // Registration algorithm is stupid and straightforward.
         // This part has to be redone to fit P2P network od ISISes
 
-        for(std::list<InfoRegister*>::iterator r = reg_.begin();
+        for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                                r!=reg_.end();++r) {
-            XMLNode reg_doc(reg_ns, "isis:Advertisements");
-            XMLNode services_doc(reg_ns, "Services");
-            if(!((*r)->getService())) continue;
-            (*r)->getService()->RegistrationCollector(services_doc);
-            // Look for service registration information
-            // TODO: use more efficient way to find <Service> entries than XPath. 
-            std::list<XMLNode> services = services_doc.XPathLookup("//*[normalize-space(@BaseType)='Service']", reg_ns);
-            if (services.size() == 0) {
-                logger_.msg(WARNING, "Service provided no registration entries");
-                continue;
-            }
-            // create advertisement
-            std::list<XMLNode>::iterator sit;
-            for (sit = services.begin(); sit != services.end(); sit++) {
-                // filter may come here
-                XMLNode ad = reg_doc.NewChild("isis:Advertisement");
-                ad.NewChild((*sit));
-                // XXX metadata
-            }
+            logger_.msg(DEBUG,"In the for statement");
+            XMLNode services_doc(reg_ns, "RegEntry");
+            if(!((r->p_register)->getService())) continue;
+            (r->p_register)->getService()->RegistrationCollector(services_doc);
+            // TODO check the received registration information
 
             // prepare for sending to ISIS
             logger_.msg(DEBUG, "Registering to %s ISIS", isis_name);
             PayloadSOAP request(reg_ns);
             XMLNode op = request.NewChild("isis:Register");
+            XMLNode header = op.NewChild("isis:Header");
 
             // create header
-            op.NewChild("isis:Header").NewChild("isis:SourcePath").NewChild("isis:ID") = (*r)->getService()->getID();
-        
+            time_t rawtime;
+            time ( &rawtime );  //current time
+            tm * ptm;
+            ptm = gmtime ( &rawtime );
+
+            std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+            std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+            std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+            std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+            std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+            std::stringstream out;
+            out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+            header.NewChild("MessageGenerationTime") = out.str();
+
             // create body
-            op.NewChild(reg_doc);   
-        
+            op.NewChild(services_doc);
+
             // send
             PayloadSOAP *response;
             MCCConfig mcc_cfg;
@@ -240,11 +270,31 @@ void InfoRegistrar::registration(void) {
             mcc_cfg.AddCertificate(cert_);
             mcc_cfg.AddProxy(proxy_);
             mcc_cfg.AddCADir(cadir_);
+
+            std::string services_document;
+            services_doc.GetDoc(services_document, true);
+            logger_.msg(DEBUG, "RegistrationCollector: %s", services_document);
+            logger_.msg(DEBUG, "Call the ISIS.process method.");
+
             ClientSOAP cli(mcc_cfg,url_);
             MCC_Status status = cli.process(&request, &response);
+
+            //calculate the waiting time
+            //std::string s_period_ = (std::string)services_doc["MetaSrcAdv"]["Expiration"];
+            if ( bool(services_doc["MetaSrcAdv"]["Expiration"]) ){
+               Period time((std::string)services_doc["MetaSrcAdv"]["Expiration"]);
+               period_ = time.GetPeriod();
+            } else {
+               period_ = -1;  //Wath is the default registration time?
+            }
+
+            std::string response_string;
+            (*response)["RegisterResponse"].GetDoc(response_string, true);
+            logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
+
             if ((!status) || 
                 (!response) || 
-                (response->Name() != "RegisterResponse")) {
+                (!bool((*response)["RegisterResponse"]))) {
                 logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
             } else {
                 XMLNode fault = (*response)["Fault"];
@@ -256,6 +306,7 @@ void InfoRegistrar::registration(void) {
             }
         }
         logger_.msg(DEBUG, "Registration ends: %s",isis_name);
+        logger_.msg(DEBUG, "Waiting period is %d second(s).",period_);
         if(period_ <= 0) break; // One time registration
         Glib::TimeVal etime;
         etime.assign_current_time();
@@ -287,7 +338,5 @@ InfoRegisters::~InfoRegisters(void) {
 
 // -------------------------------------------------------------------
 
-
 } // namespace Arc
-
 
