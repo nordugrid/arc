@@ -1387,36 +1387,50 @@ class BartenderClient(Client):
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
     def credentialsDelegation(self,request):
-
         #print "Inside delegateCredentials"
         import arc
         url = arc.URL("https://localhost:60000/Bartender")
-        print "Protocol: "+str(url.Protocol())
+        #print "Protocol: "+str(url.Protocol())
         self.X509DelegationClient = arc.ClientX509Delegation(self.cfg,self.url)
         delegID = ""
         statusAndID = self.X509DelegationClient.createDelegation(arc.DELEG_ARC,delegID)
-        print statusAndID
+        #print statusAndID
         if statusAndID[0]:
             return statusAndID[1]
         else:
             return 0
+            
     def removeCredentials(self, request):
-
-        print "will removed the delegated Credentials -- "      
+        #print "will removed the delegated Credentials -- "      
         tree = XMLTree(from_tree = ('bar:removeCredentials', 'removeCredentials'))
-	print tree
-	msg = self.call(tree)
+        #print tree
+        msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['message', 'status'], single = False) 
+        
 # This part is copied from bartender_client.py but then changed
 
 args = sys.argv[1:]
-    
-if len(args) > 0 and args[0] in ['-x', '-v']:
-    args.pop(0)
-    verbose = True
-else:
-    verbose = False   
+
+verbose = False
+configfilename = ''
+
+while (len(args) > 0) and (args[0].startswith('-')):
+    flag = args.pop(0)[1:]
+    if flag in ['x', 'v']:
+       verbose = True
+    if flag in ['z']:
+        configfilename = args.pop(0)
+        if not os.path.exists(configfilename):
+            print '- Config file does not exist:', configfilename, '- using default.'
+            configfilename = ''
+
+if verbose:
+    if configfilename:
+        print '- Config file specified:', configfilename
+    else:
+        print '- Using default user config.'
+
 
 bartender_urls = []
 
@@ -1426,7 +1440,7 @@ def call_it(method_name, *args):
     exceptions = []
     for bartender_url in bartender_urls:
         if verbose:
-            print '- trying', bartender_url
+            print '- Trying', bartender_url + '...'
         try:
             bartender = BartenderClient(bartender_url, verbose, ssl_config = ssl_config)    
             response = getattr(bartender, method_name)(*args)
@@ -1448,7 +1462,7 @@ def call_it(method_name, *args):
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
-    print '  arc_storage_cli [-v] <method> [<arguments>]'
+    print '  arc_storage_cli [-v] [-z <configfile>] <method> [<arguments>]'
     print 'Supported methods:'
     print '  stat - get detailed information about an entry'
     print '  makeCollection | make | mkdir - create a collection'
@@ -1470,7 +1484,7 @@ else:
     problem_with_userconfig = None
     try:
         import arc
-        user_config = arc.UserConfig('')
+        user_config = arc.UserConfig(configfilename)
         config_xml = user_config.ConfTree()
         key_file = str(config_xml.Get('KeyPath'))
         cert_file = str(config_xml.Get('CertificatePath'))
@@ -1558,19 +1572,19 @@ else:
         #print command
         request = {}
         response = call_it('credentialsDelegation', request)
-        if not response:
-            print 'cannot delegate credentials,\n check requested bartender supports the gateway ... '
+        if response.has_key('message'):
+            print response['message']
+        else:
+            print 'cannot delegate credentials,\n check requested bartender supports the gateway ... '            
     elif command in ['rem']:
         #print command
         request = {}
         response = call_it('removeCredentials', request)
-        
         if 'cannot access proxy file' in response['message'][0]:
             print 'cannot delegate credentials, ProxyStore problem at service side.'
-	else:    	
+        else:
             print response['message']
     elif command in ['del', 'rm']:
-    # ----------------------- #
         if len(args) < 1:
             print 'Usage: delFile <LN> [<LN> ...]'
         else:
@@ -1614,26 +1628,6 @@ else:
                     print "'%s' (%s bytes) downloaded as '%s'." % (LN, size, filename)
                 else:
                     print '%s: %s' % (LN, success)
-    # elif command == 'add':
-    #     if len(args) < 2:
-    #         print 'Usage: addReplica <source filename> <GUID>'
-    #     else:
-    #         filename = args[0]
-    #         requests = {'0' : args[1]}
-    #         protocols = ['byteio']
-    #         #print 'addReplica', requests, protocols
-    #         response = call_it('addReplica', requests, protocols)
-    #         #print response
-    #         success, turl, protocol = response['0']
-    #         if success == 'done':
-    #             f = file(filename,'rb')
-    #             print "Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol),
-    #             start = time.time()
-    #             upload_to_turl(turl, protocol, f)
-    #             print 'done in %.2f seconds.' % (time.time()-start)
-    #             print "'%s' (%s bytes) added to '%s'." % (filename, size, args[1])
-    #         else:
-    #             print '%s: %s' % (filename, success)
     elif command in ['put']:
         if len(args) < 2:
             print 'Usage: putFile <source filename> <target LN>'
@@ -1725,15 +1719,14 @@ else:
                 if status == 'found':
                     print "'%s':" % request[rID], 'collection'
                     if entries:
+                        longest = 0
+                        for name in entries.keys():
+                            if len(name) > longest:
+                                longest = len(name)
                         for name, (GUID, metadata) in entries.items():
-                            print '  %s%s<%s>' % (name, ' '*(20-len(name)), metadata.get(('entry', 'type'),'unknown'))
+                            print '  %s%s<%s>' % (name, ' ' + ' '*(longest-len(name)), metadata.get(('entry', 'type'),'unknown'))
                     else: 
                         print '    empty.'
-                elif status == 'mountpointfound':
-                    if entries:
-                        for url, (type, list) in entries.items():
-                            print 'type:' , type
-                            print list[('external', 'list')]        
                 else:
                     print "'%s': %s" % (request[rID], status)
     elif command in ['mov', 'mv']:
