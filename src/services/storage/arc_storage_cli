@@ -1446,7 +1446,7 @@ def call_it(method_name, *args):
             response = getattr(bartender, method_name)(*args)
             print '- done in %0.2f seconds.' % (time.time()-start)
             return response
-        except socket.error, e:
+        except Exception, e:
             exceptions.append(e)
             if verbose:
                 print '-', e

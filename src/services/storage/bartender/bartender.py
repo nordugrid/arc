@@ -140,6 +140,8 @@ class Bartender:
         traverse_request = dict([(rID, data[0]) for rID, data in requests])
         # call the librarian service
         traverse_response = self.librarian.traverseLN(traverse_request)
+        if not traverse_response:
+            raise Exception, 'Empty response from the Librarian'
         # return the requests as list (without the trailing slashes) and the traverse response from the librarian
         return requests, traverse_response
 
@@ -658,48 +660,49 @@ class Bartender:
         requests, traverse_response = self._traverse(requests)
         response = {}
         for requestID, [LN] in requests:
-            # for each LN
-            metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
-            #print 'metadata'
-            #print metadata
-            if wasComplete:
-                # this means the LN exists
-                decision = make_decision_metadata(metadata, auth_request)
-                if decision != arc.DECISION_PERMIT:
-                    entries = {}
-                    status = 'denied'
-                else:
-                    # let's get the type
-                    type = metadata[('entry', 'type')]
-                    if type == 'file': # files have no contents, we do not list them
-                        status = 'is a file'
+            try:
+                # for each LN
+                metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
+                #print 'metadata'
+                #print metadata
+                if wasComplete:
+                    # this means the LN exists
+                    decision = make_decision_metadata(metadata, auth_request)
+                    if decision != arc.DECISION_PERMIT:
                         entries = {}
-                    elif type == 'mountpoint':
-                        url = metadata[('mountpoint', 'externalURL')]
-                        res = self._externalStore(auth, url, 'list')[url]
-                        status = res['status']
-                        #print res
-                        entries = dict([(name, ('', {})) for name in res['list']])
-                    else: #if it is not a file, it must be a collection (currently there is no other type)
-                        status = 'found'
-                        # get all the properties and values from the 'entries' metadata section of the collection
-                        #   these are the names and GUIDs: the contents of the collection
-                        GUIDs = dict([(name, GUID)
-                            for (section, name), GUID in metadata.items() if section == 'entries'])
-                        # get the needed metadata of all the entries
-                        metadata = self.librarian.get(GUIDs.values(), neededMetadata)
-                        # create a dictionary with the name of the entry as key and (GUID, metadata) as value
-                        entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
-            elif metadata.get(('entry', 'type'), '') == 'mountpoint':
-                url = metadata[('mountpoint', 'externalURL')]+'/'+restLN
-                type = metadata.get(('entry', 'type'), '') 
-                status = 'mountpointfound'
-                res = self._externalStore(auth ,url, 'list')
-                #print res
-                entries = dict([(url, (type, {('mountpoint','status'):res[url]['status'],('external','list'):res[url]['list']})) ])
-            else:
+                        status = 'denied'
+                    else:
+                        # let's get the type
+                        type = metadata[('entry', 'type')]
+                        if type == 'file': # files have no contents, we do not list them
+                            status = 'is a file'
+                            entries = {}
+                        elif type == 'mountpoint':
+                            url = metadata[('mountpoint', 'externalURL')]
+                            res = self._externalStore(auth, url, 'list')[url]
+                            status = res['status']
+                            entries = dict([(name, ('', {})) for name in res['list']])
+                        else: #if it is not a file, it must be a collection (currently there is no other type)
+                            status = 'found'
+                            # get all the properties and values from the 'entries' metadata section of the collection
+                            #   these are the names and GUIDs: the contents of the collection
+                            GUIDs = dict([(name, GUID)
+                                for (section, name), GUID in metadata.items() if section == 'entries'])
+                            # get the needed metadata of all the entries
+                            metadata = self.librarian.get(GUIDs.values(), neededMetadata)
+                            # create a dictionary with the name of the entry as key and (GUID, metadata) as value
+                            entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
+                elif metadata.get(('entry', 'type'), '') == 'mountpoint':
+                    url = metadata[('mountpoint', 'externalURL')] + '/' + restLN
+                    res = self._externalStore(auth, url, 'list')[url]
+                    status = res['status']
+                    entries = dict([(name, ('', {})) for name in res['list']])
+                else:
+                    entries = {}
+                    status = 'not found'
+            except Exception, e:
                 entries = {}
-                status = 'not found'
+                status = 'internal error (%s)' % traceback.format_exc()
             response[requestID] = (entries, status)
         return response
 
