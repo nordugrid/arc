@@ -238,7 +238,7 @@ namespace Arc {
     int AttributesSize(void) const;
     /** Assigns namespaces of XML document at point specified by this instance.
        If namespace already exists it gets new prefix. New namespaces are added.
-       It is usefull to apply this method to XML being processed in order to refer to it's
+       It is useful to apply this method to XML being processed in order to refer to it's
        elements by known prefix. */
     void Namespaces(const NS& namespaces);
     /** Returns namespaces known at this node */
