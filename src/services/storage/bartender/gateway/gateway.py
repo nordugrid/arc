@@ -114,7 +114,7 @@ class Gateway:
                 else:
                     status = 'Cannot access external store. Reason: %s' % str(stat)
             else:
-                status = 'Your proxy cannot be found. Please delegate your proxy!'
+                status = 'Your proxy cannot be found. Please delegate your credentials!'
         response[url] = {'list': tmpList, 'status': status, 'protocol': protocol}
         log.msg(arc.DEBUG, 'list response: %s', response)
         return response

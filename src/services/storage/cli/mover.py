@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 import arc, sys, os
+root_logger = arc.Logger_getRootLogger()
+root_logger.addDestination(arc.LogStream(sys.stdout))
+root_logger.setThreshold(arc.VERBOSE)
+
 from arcom import datapoint_from_url
 
 try:
@@ -7,16 +11,21 @@ try:
     dst = sys.argv[2]
 except:
     print "Usage: mover.py fromURL toURL"
-    print
-    print "Use file:// for local files"
     sys.exit(-1)
 
 ssl_config = {}
-key_file = os.environ.get('ARC_KEY_FILE', '')
-cert_file = os.environ.get('ARC_CERT_FILE', '')
-proxy_file = os.environ.get('ARC_PROXY_FILE', '')
-ca_file = os.environ.get('ARC_CA_FILE', '')
-ca_dir = os.environ.get('ARC_CA_DIR', '')
+user_config = arc.UserConfig("")
+config_xml = user_config.ConfTree()
+key_file = str(config_xml.Get('KeyPath'))
+cert_file = str(config_xml.Get('CertificatePath'))
+proxy_file = str(config_xml.Get('ProxyPath'))
+ca_file = str(config_xml.Get('CACertificatePath'))
+ca_dir = str(config_xml.Get('CACertificatesDir'))
+key_file = os.environ.get('ARC_KEY_FILE', key_file)
+cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
+proxy_file = os.environ.get('ARC_PROXY_FILE', proxy_file)
+ca_file = os.environ.get('ARC_CA_FILE', ca_file)
+ca_dir = os.environ.get('ARC_CA_DIR', ca_dir)
 if proxy_file:
     ssl_config['proxy_file'] = proxy_file
     print '- The proxy certificate file:', ssl_config['proxy_file']

@@ -1406,7 +1406,7 @@ class BartenderClient(Client):
         #print tree
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(get_data_node(xml), ['message', 'status'], single = False) 
+        return parse_node(get_data_node(xml), ['message', 'status'], single = True) 
         
 # This part is copied from bartender_client.py but then changed
 
@@ -1572,18 +1572,15 @@ else:
         #print command
         request = {}
         response = call_it('credentialsDelegation', request)
-        if response.has_key('message'):
-            print response['message']
+        if response:
+            print 'Successful delegation. Proxy ID:', response
         else:
-            print 'cannot delegate credentials,\n check requested bartender supports the gateway ... '            
+            print 'ERROR: failed to delegate credentials.'            
     elif command in ['rem']:
         #print command
         request = {}
         response = call_it('removeCredentials', request)
-        if 'cannot access proxy file' in response['message'][0]:
-            print 'cannot delegate credentials, ProxyStore problem at service side.'
-        else:
-            print response['message']
+        print response['message']
     elif command in ['del', 'rm']:
         if len(args) < 1:
             print 'Usage: delFile <LN> [<LN> ...]'
