@@ -72,16 +72,16 @@ namespace Arc {
                                std::string& value) {
     if (!value.empty()) {
       logger.msg(ERROR, "XRSL attribute %s multiply defined", c->Attr());
-      return JobDescription();
+      return false;
     }
     if (c->size() != 1) {
       logger.msg(ERROR, "XRSL attribute %s is not a single value", c->Attr());
-      return JobDescription();
+      return false;
     }
     const RSLLiteral *n = dynamic_cast<const RSLLiteral*>(*c->begin());
     if (!n) {
       logger.msg(ERROR, "XRSL attribute %s is not a string", c->Attr());
-      return JobDescription();
+      return false;
     }
     value = n->Value();
     return true;
@@ -91,14 +91,14 @@ namespace Arc {
                              std::list<std::string>& value) {
     if (!value.empty()) {
       logger.msg(ERROR, "XRSL attribute %s multiply defined", c->Attr());
-      return JobDescription();
+      return false;
     }
     for (std::list<RSLValue*>::const_iterator it = c->begin();
          it != c->end(); it++) {
       const RSLLiteral *n = dynamic_cast<const RSLLiteral*>(*it);
       if (!n) {
         logger.msg(ERROR, "XRSL attribute %s is not a string", c->Attr());
-        return JobDescription();
+        return false;
       }
       value.push_back(n->Value());
     }
@@ -110,19 +110,19 @@ namespace Arc {
                                 int seqlength) {
     if (!value.empty()) {
       logger.msg(ERROR, "XRSL attribute %s multiply defined", c->Attr());
-      return JobDescription();
+      return false;
     }
     for (std::list<RSLValue*>::const_iterator it = c->begin();
          it != c->end(); it++) {
       const RSLSequence *s = dynamic_cast<const RSLSequence*>(*it);
       if (!s) {
         logger.msg(ERROR, "XRSL attribute %s is not sequence", c->Attr());
-        return JobDescription();
+        return false;
       }
-      if (seqlength != -1 && s->size() != seqlength) {
+      if (seqlength != -1 && int(s->size()) != seqlength) {
         logger.msg(ERROR, "XRSL attribute %s has wrong sequence length",
                    c->Attr());
-        return JobDescription();
+        return false;
       }
       std::list<std::string> l;
       for (std::list<RSLValue*>::const_iterator it = s->begin();
@@ -130,7 +130,7 @@ namespace Arc {
         const RSLLiteral *n = dynamic_cast<const RSLLiteral*>(*it);
         if (!n) {
           logger.msg(ERROR, "XRSL attribute %s is not a string", c->Attr());
-          return JobDescription();
+          return false;
         }
         l.push_back(n->Value());
       }
@@ -148,22 +148,22 @@ namespace Arc {
              it != b->end(); it++)
           if (!Parse(*it, j)) {
             logger.msg(ERROR, "XRSL parsing problem");
-            return JobDescription();
+            return false;
           }
       }
       else if (b->Op() == RSLOr) {
         if (b->size() != 1) {
           logger.msg(ERROR, "RSL conditionals currentsly not yet supported");
-          return JobDescription();
+          return false;
         }
         if (!Parse(*b->begin(), j)) {
           logger.msg(ERROR, "XRSL parsing problem");
-          return JobDescription();
+          return false;
         }
       }
       else {
         logger.msg(ERROR, "Unexpected RSL type");
-        return JobDescription();
+        return false;
       }
     }
     else if ((c = dynamic_cast<const RSLCondition*>(r))) {
@@ -185,7 +185,7 @@ namespace Arc {
       if (c->Attr() == "inputfiles") {
         std::list<std::list<std::string> > ll;
         if (!SeqListValue(c, ll, 2))
-          return JobDescription();
+          return false;
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
           std::list<std::string>::iterator it2 = it->begin();
@@ -209,7 +209,7 @@ namespace Arc {
       if (c->Attr() == "executables") {
         std::list<std::string> execs;
         if (!ListValue(c, execs))
-          return JobDescription();
+          return false;
         for (std::list<std::string>::iterator it = execs.begin();
              it != execs.end(); it++)
           for (std::list<FileType>::iterator it2 = j.File.begin();
@@ -222,7 +222,7 @@ namespace Arc {
       if (c->Attr() == "cache") {
         std::string cache;
         if (!SingleValue(c, cache))
-          return JobDescription();
+          return false;
         if (lower(cache) == "yes") {
           j.cached = true;
           for (std::list<FileType>::iterator it = j.File.begin();
@@ -236,7 +236,7 @@ namespace Arc {
       if (c->Attr() == "outputfiles") {
         std::list<std::list<std::string> > ll;
         if (!SeqListValue(c, ll, 2))
-          return JobDescription();
+          return false;
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
           std::list<std::string>::iterator it2 = it->begin();
@@ -261,7 +261,7 @@ namespace Arc {
       if (c->Attr() == "starttime") {
         std::string time;
         if (!SingleValue(c, time))
-          return JobDescription();
+          return false;
         j.ProcessingStartTime = time;
         return true;
       }
@@ -269,7 +269,7 @@ namespace Arc {
       if (c->Attr() == "lifetime") {
         std::string time;
         if (!SingleValue(c, time))
-          return JobDescription();
+          return false;
         j.SessionLifeTime = Period(time, PeriodMinutes);
         return true;
       }
@@ -277,7 +277,7 @@ namespace Arc {
       if (c->Attr() == "cputime") {
         std::string time;
         if (!SingleValue(c, time))
-          return JobDescription();
+          return false;
         j.TotalCPUTime = Period(time, PeriodMinutes);
         return true;
       }
@@ -285,7 +285,7 @@ namespace Arc {
       if (c->Attr() == "walltime") {
         std::string time;
         if (!SingleValue(c, time))
-          return JobDescription();
+          return false;
         j.TotalWallTime = Period(time, PeriodMinutes);
         return true;
       }
@@ -293,7 +293,7 @@ namespace Arc {
       if (c->Attr() == "gridtime") {
         std::string time;
         if (!SingleValue(c, time))
-          return JobDescription();
+          return false;
         ReferenceTimeType rtime;
         rtime.benchmark = "gridtime";
         rtime.value = 2800;
@@ -305,7 +305,7 @@ namespace Arc {
       if (c->Attr() == "benchmarks") {
         std::list<std::list<std::string> > bm;
         if (!SeqListValue(c, bm, 3))
-          return JobDescription();
+          return false;
         for (std::list<std::list<std::string> >::iterator it = bm.begin();
              it != bm.end(); it++) {
           std::list<std::string>::iterator it2 = it->begin();
@@ -321,7 +321,7 @@ namespace Arc {
       if (c->Attr() == "memory") {
         std::string mem;
         if (!SingleValue(c, mem))
-          return JobDescription();
+          return false;
         j.IndividualPhysicalMemory = stringtoi(mem);
         return true;
       }
@@ -329,7 +329,7 @@ namespace Arc {
       if (c->Attr() == "disk") {
         std::string disk;
         if (!SingleValue(c, disk))
-          return JobDescription();
+          return false;
         j.DiskSpace = stringtoi(disk);
         return true;
       }
@@ -347,7 +347,7 @@ namespace Arc {
       if (c->Attr() == "join") {
         std::string join;
         if (!SingleValue(c, join))
-          return JobDescription();
+          return false;
         if (lower(join) == "true")
           j.Join = true;
         return true;
@@ -362,7 +362,7 @@ namespace Arc {
       if (c->Attr() == "ftpthreads") {
         std::string sthreads;
         if (!SingleValue(c, sthreads))
-          return JobDescription();
+          return false;
         int threads = stringtoi(sthreads);
         for (std::list<FileType>::iterator it = j.File.begin();
              it != j.File.end(); it++) {
@@ -392,7 +392,7 @@ namespace Arc {
       if (c->Attr() == "acl") {
         std::string acl;
         if (!SingleValue(c, acl))
-          return JobDescription();
+          return false;
         XMLNode node(acl);
         node.New(j.AccessControl);
         return true;
@@ -401,7 +401,7 @@ namespace Arc {
       if (c->Attr() == "cluster") {
         std::string cluster;
         if (!SingleValue(c, cluster))
-          return JobDescription();
+          return false;
         j.EndPointURL = cluster;
         return true;
       }
@@ -409,11 +409,11 @@ namespace Arc {
       if (c->Attr() == "notify") {
         std::list<std::string> l;
         if (!ListValue(c, l))
-          return JobDescription();
+          return false;
         NotificationType nofity;
         if (l.size() < 2) {
           logger.msg(DEBUG, "Invalid notify attribute");
-          return JobDescription();
+          return false;
         }
         for (std::list<std::string>::iterator it = l.begin();
              it != l.end(); it++) {
@@ -446,7 +446,7 @@ namespace Arc {
 
               default:
                 logger.msg(DEBUG, "Invalid notify attribute: %c", *i);
-                return JobDescription();
+                return false;
               }
           else
             nofity.Address.push_back(*it);
@@ -458,7 +458,7 @@ namespace Arc {
       if (c->Attr() == "replicacollection") {
         std::string collection;
         if (!SingleValue(c, collection))
-          return JobDescription();
+          return false;
         URL url(collection);
         for (std::list<FileType>::iterator it = j.File.begin();
              it != j.File.end(); it++)
@@ -472,7 +472,7 @@ namespace Arc {
       if (c->Attr() == "rerun") {
         std::string rerun;
         if (!SingleValue(c, rerun))
-          return JobDescription();
+          return false;
         j.LRMSReRun = stringtoi(rerun);
         return true;
       }
@@ -483,7 +483,7 @@ namespace Arc {
       if (c->Attr() == "nodeaccess") {
         std::list<std::string> l;
         if (!ListValue(c, l))
-          return JobDescription();
+          return false;
         for (std::list<std::string>::iterator it = l.begin();
              it != l.end(); it++)
           if (*it == "inbound")
@@ -492,7 +492,7 @@ namespace Arc {
             j.OutBound = true;
           else {
             logger.msg(DEBUG, "Invalid nodeaccess value: %s", *it);
-            return JobDescription();
+            return false;
           }
         return true;
       }
@@ -500,7 +500,7 @@ namespace Arc {
       if (c->Attr() == "dryrun") {
         std::string dryrun;
         if (!SingleValue(c, dryrun))
-          return JobDescription();
+          return false;
         if (lower(dryrun) == "yes" || lower(dryrun) == "dryrun")
           ; // j.DryRun = true;
         return true;
@@ -513,7 +513,7 @@ namespace Arc {
       if (c->Attr() == "environment") {
         std::list<std::list<std::string> > ll;
         if (!SeqListValue(c, ll, 2))
-          return JobDescription();
+          return false;
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
           EnvironmentType env;
@@ -528,7 +528,7 @@ namespace Arc {
       if (c->Attr() == "count") {
         std::string count;
         if (!SingleValue(c, count))
-          return JobDescription();
+          return false;
         j.ProcessPerHost = stringtoi(count);
         return true;
       }
@@ -536,7 +536,7 @@ namespace Arc {
       if (c->Attr() == "jobreport") {
         std::string jobreport;
         if (!SingleValue(c, jobreport))
-          return JobDescription();
+          return false;
         j.RemoteLogging = jobreport;
         return true;
       }
@@ -544,13 +544,17 @@ namespace Arc {
       if (c->Attr() == "credentialserver") {
         std::string credentialserver;
         if (!SingleValue(c, credentialserver))
-          return JobDescription();
+          return false;
         j.CredentialService = credentialserver;
         return true;
       }
 
       logger.msg(DEBUG, "Unknown XRSL attribute: %s", c->Attr());
-      return JobDescription();
+      return false;
+    }
+    else {
+      logger.msg(ERROR, "Unexpected RSL type");
+      return false;
     }
   }
 
