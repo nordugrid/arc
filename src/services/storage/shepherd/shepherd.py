@@ -194,7 +194,7 @@ class Shepherd:
                 else:
                     localData['checksum'] = librarian_checksum
                     localData['checksumType'] = librarian_checksumType
-                    print 'checksum refreshed', localData
+                    log.msg(arc.DEBUG, 'checksum refreshed', localData)
                     self.store.set(referenceID, localData)
                     self.store.unlock()
             except:
