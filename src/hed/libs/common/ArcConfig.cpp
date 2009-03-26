@@ -68,7 +68,6 @@ namespace Arc {
   }
 
   BaseConfig::BaseConfig() {
-    wsstype = NONETOKEN;
 #ifdef WIN32
     char separator = ';';
 #else
@@ -121,14 +120,6 @@ namespace Arc {
 
   void BaseConfig::AddCADir(const std::string& path) {
     cadir = path;
-  }
-
-  void BaseConfig::AddWSSType(const Arc::WSSType& type) {
-    wsstype = type;
-  }
-
-  void BaseConfig::AddWSSInfo(const Arc::WSSInfo& info) {
-    wssinfo = info;
   }
 
   void BaseConfig::AddOverlay(XMLNode cfg) {

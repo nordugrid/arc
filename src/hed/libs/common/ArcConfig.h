@@ -69,24 +69,6 @@ namespace Arc {
     void save(const char *filename);
   };
 
-  /**Configuration information for WS-Security, including WS-Security
-     profile type, and the information which will be used by the specific
-     WS-Security profile.*/
-  typedef enum {
-    NONETOKEN,
-    USERNAMETOKEN,
-    X509TOKEN,
-    SAMLTOKEN,
-    KERBEROSTOKEN
-  } WSSType;
-
-  struct WSSInfo {
-    std::string username;
-    std::string password;
-    std::string password_encoding;
-    //other information about other types of token
-  };
-
   /** Configuration for client interface.
       It contains information which can't be expressed in
       class constructor arguments. Most probably common things
@@ -100,8 +82,6 @@ namespace Arc {
     std::string proxy;
     std::string cafile;
     std::string cadir;
-    WSSType wsstype;
-    WSSInfo wssinfo;
     XMLNode overlay;
     BaseConfig();
     virtual ~BaseConfig() {}
@@ -117,10 +97,6 @@ namespace Arc {
     void AddCAFile(const std::string& path);
     /** Add CA directory */
     void AddCADir(const std::string& path);
-    /** Add WSS type */
-    void AddWSSType(const Arc::WSSType& type);
-    /** Add WSS information */
-    void AddWSSInfo(const Arc::WSSInfo& info);
     /** Add configuration overlay */
     void AddOverlay(XMLNode cfg);
     /** Read overlay from file */
