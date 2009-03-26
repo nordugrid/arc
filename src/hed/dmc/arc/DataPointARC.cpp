@@ -40,13 +40,21 @@ namespace Arc {
       writing(false),
       usercfg(""),
       bartender_url("") {
-    //BartenderURL taken from ~/.arc/client.xml
-    std::string bartender_str = (std::string)usercfg.ConfTree()["BartenderURL"];
-    //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
-    if (bartender_str.empty())
-      bartender_str = "http://localhost:60000/Bartender";
-    //URL bartender_url(url.ConnectionURL()+"/Bartender");
-    bartender_url = URL(bartender_str);
+
+    std::string bartender_str = url.HTTPOption("BartenderURL");
+    if(bartender_str != ""){
+      bartender_url = URL(bartender_str);
+    }
+    else{
+      //BartenderURL taken from ~/.arc/client.xml
+      bartender_str = (std::string)usercfg.ConfTree()["BartenderURL"];
+      //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
+      if (bartender_str.empty())
+        bartender_str = "http://localhost:60000/Bartender";
+      //URL bartender_url(url.ConnectionURL()+"/Bartender");
+      bartender_url = URL(bartender_str);
+    }
+
     md5sum = new MD5Sum();
   }
 
@@ -252,7 +260,7 @@ namespace Arc {
 
     writing = true;
     buffer = &buf;
-    buffer->add(md5sum);
+    chksum_index = buffer->add(md5sum);
     MCCConfig cfg;
     if (!proxyPath.empty())
       cfg.AddProxy(proxyPath);
