@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <errno.h>
 
+#include <sstream>
 
 namespace Arc
 {
