@@ -243,7 +243,7 @@ namespace Arc {
         port = LFC_DEFAULT_PORT;
     }
 
-    if (protocol != "ldap") {
+    if (protocol != "ldap" && protocol != "arc") {
       pos = path.find(':');
       if (pos != std::string::npos) {
         metadataoptions = ParseOptions(path.substr(pos + 1), ':');
@@ -255,6 +255,7 @@ namespace Arc {
     if (protocol == "http" ||
         protocol == "https" ||
         protocol == "httpg" ||
+        protocol == "arc" ||
         protocol == "srm") {
       pos = path.find("?");
       if (pos != std::string::npos) {
