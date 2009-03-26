@@ -337,10 +337,10 @@ class Bartender:
             response[rID] = (success, turl, protocol)
         return response
 
-    def _find_alive_se(self, except_these=[]):
+    def _find_alive_ses(self, except_these=[]):
         """  Get the list of currently alive Shepherds.
         
-        _find_alive_se()
+        _find_alive_ses()
         """
         # sestore_guid is the GUID of the librarian entry which the list of Shepherds registered by the Librarian
         SEs = self.librarian.get([sestore_guid])[sestore_guid]
@@ -351,19 +351,10 @@ class Bartender:
         # get all the Shepherds which has a positiv nextHeartbeat timestamp and which has not already been used
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
         log.msg(arc.DEBUG, 'Alive Shepherds:', alive_SEs)
-        if len(alive_SEs) == 0:
-            return None
-        try:
-            # choose one randomly
-            se = random.choice(alive_SEs)
-            log.msg(arc.DEBUG, 'Shepherd chosen:', se)
-            # the serviceID currently is a URL 
-            # create an ShepherdClient with this URL
-            return ShepherdClient(se, ssl_config = self.ssl_config)
-        except Exception, e:
-            log.msg(arc.ERROR, "Error finding alive SE: %s" % e)
-            #log.msg()
-            return None
+        response = []
+        for se in alive_SEs:
+            response.append(ShepherdClient(se, ssl_config = self.ssl_config))
+        return response
 
     def _add_replica(self, size, checksumType, checksum, GUID, protocols, exceptedSEs=[]):
         """ Helper method to initiate addition of a replica to a file.
@@ -383,21 +374,19 @@ class Bartender:
             ('checksum', checksum), ('GUID', GUID)] + \
             [('protocol', protocol) for protocol in protocols]
         # find an alive Shepherd
-        shepherd = self._find_alive_se(exceptedSEs)
-        if not shepherd:
-            return 'no shepherd found', turl, protocol
-        # call the SE's put method with the prepared request
-        put_response = dict(shepherd.put({'putFile': put_request})['putFile'])
-        if put_response.has_key('error'):
-            log.msg(arc.DEBUG, 'ERROR', put_response['error'])
-            # TODO: we should handle this, remove the new file or something
-            return 'put error (%s)' % put_response['error'], turl, protocols
-        else:
-            # if the put request was successful then we have a transfer URL, a choosen protocol and the referenceID of the file
-            # TODO: check if this is working this way
-            turl = put_response['TURL']
-            protocol = put_response['protocol']
-            return 'done', turl, protocol
+        shepherds = self._find_alive_ses(exceptedSEs)
+        while len(shepherds) > 0:
+            shepherd = shepherds.pop()
+            # call the SE's put method with the prepared request
+            put_response = dict(shepherd.put({'putFile': put_request})['putFile'])
+            if put_response.has_key('error'):
+                log.msg(arc.ERROR, 'ERROR', put_response['error'])
+            else:
+                # if the put request was successful then we have a transfer URL, a choosen protocol and the referenceID of the file
+                turl = put_response['TURL']
+                protocol = put_response['protocol']
+                return 'done', turl, protocol
+        return 'no suitable shepherd found', turl, protocol
             
     def putFile(self, auth, requests):
         """ Put a new file to the storage: initiate the process.

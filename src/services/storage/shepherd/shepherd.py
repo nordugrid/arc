@@ -119,10 +119,7 @@ class Shepherd:
         self.doReporting = doReporting
         return str(self.doReporting)
     
-    def _checking_checksum(self, referenceID):
-        #print 'Checking checksum', referenceID
-        # get the local data of this file
-        localData = self.store.get(referenceID)
+    def _checking_checksum(self, referenceID, localData):
         # ask the backend to create the checksum of the file 
         try:
             current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
@@ -171,12 +168,39 @@ class Shepherd:
         # this is called usually by the backend when a file arrived (gets fully uploaded)
         # call the checksum checker which will change the state to ALIVE if its checksum is OK, but leave it as CREATING if the checksum is wrong
         # TODO: either this checking should be in seperate thread, or the backend's should call this in a seperate thread?
-        state = self._checking_checksum(referenceID)
-        # TODO: check if we have accidentally more then one replica of the same file and then set it to THIRDWHEEL
+        localData = self.store.get(referenceID)
+        if not localData['checksum']:
+            time.sleep(3) # hack to wait for the ARC DMC to update the checksum
+            GUID = localData['GUID']
+            # check if the cheksum changed in the Librarian
+            metadata = self.librarian.get([GUID])[GUID]
+            self._refresh_checksum(referenceID, localData, metadata)
+        state = self._checking_checksum(referenceID, localData)
         # if _checking_checksum haven't change the state to ALIVE: the file is corrupt
         if state == CREATING:
             self.changeState(referenceID, INVALID)
-        
+
+    def _refresh_checksum(self, referenceID, localData, metadata):
+        checksum = localData['checksum']
+        checksumType = localData['checksumType']
+        librarian_checksum = metadata.get(('states','checksum'), checksum)
+        librarian_checksumType = metadata.get(('states','checksumType'), checksumType)
+        if checksum != librarian_checksum or checksumType != librarian_checksumType:
+            # refresh the checksum
+            self.store.lock()
+            try:
+                if not localData: # what?
+                    self.store.unlock()
+                else:
+                    localData['checksum'] = librarian_checksum
+                    localData['checksumType'] = librarian_checksumType
+                    print 'checksum refreshed', localData
+                    self.store.set(referenceID, localData)
+                    self.store.unlock()
+            except:
+                log.msg()
+                self.store.unlock()
+
     def checkingThread(self, period):
         # first just wait a few seconds
         time.sleep(10)
@@ -187,6 +211,7 @@ class Shepherd:
                 referenceIDs = self.store.list()
                 # count them
                 number = len(referenceIDs)
+                alive_GUIDs = []
                 # if there are stored files at all
                 if number > 0:
                     # we should check all the files periodically, with a given period, which determines the checking interval for one file
@@ -203,31 +228,14 @@ class Shepherd:
                             localData = self.store.get(referenceID)
                             #print localData
                             GUID, localID = localData['GUID'], localData['localID']
-                            checksum, checksumType = localData['checksum'], localData['checksumType']
                             # first we get the file's metadata from the librarian
                             metadata = self.librarian.get([GUID])[GUID]
                             # check if the cheksum changed in the Librarian
-                            librarian_checksum = metadata.get(('states','checksum'), checksum)
-                            librarian_checksumType = metadata.get(('states','checksumType'), checksumType)
-                            if checksum != librarian_checksum or checksumType != librarian_checksumType:
-                                # refresh the checksum
-                                self.store.lock()
-                                try:
-                                    if not localData: # what?
-                                        self.store.unlock()
-                                    else:
-                                        localData['checksum'] = librarian_checksum
-                                        localData['checksumType'] = librarian_checksumType
-                                        print 'checksum refreshed', localData
-                                        self.store.set(referenceID, localData)
-                                        self.store.unlock()
-                                except:
-                                    log.msg()
-                                    self.store.unlock()
+                            self._refresh_checksum(referenceID, localData, metadata)
                             # check the real checksum of the file: if the checksum is OK or not, it changes the state of the replica as well
                             # and it returns the state and the GUID and the localID of the file
                             #   if _checking_checksum changed the state then the new state is returned here:
-                            state = self._checking_checksum(referenceID)
+                            state = self._checking_checksum(referenceID, localData)
                             # now the file's state is according to its checksum
                             # if it is CREATING or ALIVE:
                             if state == CREATING or state == ALIVE:
@@ -239,34 +247,46 @@ class Shepherd:
                                     self.store.set(referenceID, None)
                                 # if the file is ALIVE (which means it is not CREATING or DELETED)
                                 if state == ALIVE:
-                                    # check the number of needed replicasa
-                                    needed_replicas = int(metadata.get(('states','neededReplicas'),1))
-                                    #print metadata.items()
-                                    # find myself among the locations
-                                    myself = [v for (s, p), v in metadata.items() if s == 'locations' and p == serialize_ids([self.serviceID, referenceID])]
-                                    #print myself
-                                    if not myself or myself[0] != ALIVE:
-                                        # if the state of this replica is not proper in the Librarian, fix it
-                                        self.changeState(referenceID, ALIVE)
-                                    # and the number of alive (or creating) replicas
-                                    alive_replicas = len([property for (section, property), value in metadata.items()
-                                                              if section == 'locations' and value in [ALIVE, CREATING]])
-                                    if alive_replicas < needed_replicas:
-                                        # if the file has fewer replicas than needed
-                                        log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
-                                        # we offer our copy to replication
-                                        response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
-                                        success, turl, protocol = response['checkingThread']
-                                        #print 'addReplica response', success, turl, protocol
-                                        if success == 'done':
-                                            # if it's OK, we asks the backend to upload our copy to the TURL we got from the bartender
-                                            self.backend.copyTo(localID, turl, protocol)
-                                            # TODO: this should be done in some other thread
-                                        else:
-                                            log.msg(arc.DEBUG, 'checkingThread error, bartender responded', success)
-                                    elif alive_replicas > needed_replicas:
-                                        log.msg(arc.DEBUG, '\n\nFile', GUID, 'has %d more replicas than needed.'%(alive_replicas-needed_replicas))
+                                    if GUID in alive_GUIDs:
+                                        # this means that we already have an other alive replica of this file
+                                        log.msg(arc.DEBUG, '\n\nFile', GUID, 'has more than one replicas on this storage element.')
                                         self.changeState(referenceID, THIRDWHEEL)
+                                    else:    
+                                        # check the number of needed replicasa
+                                        needed_replicas = int(metadata.get(('states','neededReplicas'),1))
+                                        #print metadata.items()
+                                        # find myself among the locations
+                                        mylocation = serialize_ids([self.serviceID, referenceID])
+                                        myself = [v for (s, p), v in metadata.items() if s == 'locations' and p == mylocation]
+                                        #print myself
+                                        if not myself or myself[0] != ALIVE:
+                                            # if the state of this replica is not proper in the Librarian, fix it
+                                            metadata[('locations', mylocation)] = ALIVE
+                                            self.changeState(referenceID, ALIVE)
+                                        # and the number of alive (or creating) replicas
+                                        alive_replicas = len([property for (section, property), value in metadata.items()
+                                                                  if section == 'locations' and value in [ALIVE, CREATING]])
+                                        if alive_replicas < needed_replicas:
+                                            # if the file has fewer replicas than needed
+                                            log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
+                                            # we offer our copy to replication
+                                            response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
+                                            success, turl, protocol = response['checkingThread']
+                                            #print 'addReplica response', success, turl, protocol
+                                            if success == 'done':
+                                                # if it's OK, we asks the backend to upload our copy to the TURL we got from the bartender
+                                                self.backend.copyTo(localID, turl, protocol)
+                                                # TODO: this should be done in some other thread
+                                            else:
+                                                log.msg(arc.DEBUG, 'checkingThread error, bartender responded', success)
+                                            # so this GUID has an alive replica here
+                                            alive_GUIDs.append(GUID)
+                                        elif alive_replicas > needed_replicas:
+                                            log.msg(arc.DEBUG, '\n\nFile', GUID, 'has %d more replicas than needed.' % (alive_replicas-needed_replicas))
+                                            self.changeState(referenceID, THIRDWHEEL)
+                                        else:
+                                            # so this GUID has an alive replica here
+                                            alive_GUIDs.append(GUID)
                             # or if this replica is not needed
                             elif state == THIRDWHEEL:
                                 # check the number of needed replicasa
