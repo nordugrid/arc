@@ -290,6 +290,9 @@ int main(int argc, char **argv) {
     } //end loop over all possible targets
   } //end loop over all job descriptions
 
+  if (jobs.empty())
+    return 0;
+
   // Only kill and clean jobs that have been resubmitted
   clusters.clear();
   Arc::JobSupervisor killmaster(usercfg, jobs, clusters, joblist);
