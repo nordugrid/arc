@@ -161,6 +161,9 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "No job controllers loaded");
     return 1;
   }
+  // Clearing jobs and cluster
+  jobs.clear();
+  clusters.clear();
 
   std::list<Arc::Job> toberesubmitted;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
@@ -246,8 +249,6 @@ int main(int argc, char **argv) {
       Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
       if (EndOfList) {
         std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
-        //Do not clean jobs that are not resubmitted
-        jobs.remove(it->JobID.str());
         break;
       }
 
@@ -286,15 +287,16 @@ int main(int argc, char **argv) {
       logger.msg(Arc::INFO, "Job resubmitted with new jobid: %s\n",
                  (std::string)info["JobID"]);
       JobSubmitted = true;
+      jobs.push_back(it->JobID.str());
       break;
     } //end loop over all possible targets
   } //end loop over all job descriptions
 
+  std::cout << " Size:"<< jobs.size() << std::endl;
   if (jobs.empty())
     return 0;
 
   // Only kill and clean jobs that have been resubmitted
-  clusters.clear();
   Arc::JobSupervisor killmaster(usercfg, jobs, clusters, joblist);
   std::list<Arc::JobController*> killcont = killmaster.GetJobControllers();
   if (killcont.empty()) {
