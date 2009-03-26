@@ -34,9 +34,13 @@
             <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
             <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
             <tls:CACertificatePath>./testcacert.pem</tls:CACertificatePath>
+            <tls:CACertificatesDir>certificates</tls:CACertificatesDir>\
             <!--tls:ClientAuthn>false</tls:ClientAuthn-->
             <tls:VOMSCertTrustDNChain>
-              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>----NEXT CHAIN---</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/glueball.uio.no</tls:VOMSCertTrustDN>
               <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
             </tls:VOMSCertTrustDNChain>
             <!--tls:VOMSCertTrustDNChain>
@@ -49,7 +53,6 @@
         </Component>
         <Component name="http.service" id="http">
             <next id="plexer">POST</next>
-            <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
         <Plexer name="plexer.service" id="plexer">
             <!--next id="samlsp">/saml2sp</next-->
@@ -65,7 +68,6 @@
                 <Process>extract</Process>
                 <CACertificatePath>./testcacert.pem</CACertificatePath>
             </SecHandler-->
-            <!--SecHandler name="saml2ssoserviceprovider.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
         <!--Service name='saml.sp' id='samlsp'/-->
         <Service name="echo" id="echo">

@@ -37,22 +37,34 @@ int main(void) {
   mcc_cfg.AddCAFile("testcacert.pem");
   mcc_cfg.AddCADir("certificates");
 
-  //Arc::WSSInfo wssinfo;
-  //wssinfo.username="user";
-  //wssinfo.password="passwd";
-  //wssinfo.password_encoding="digest";
-  //mcc_cfg.AddWSSType(Arc::USERNAMETOKEN);
-  //mcc_cfg.AddWSSInfo(wssinfo);
-
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
 
-#if 0
   /******** Test to service **********/
   //Create a SOAP client
   logger.msg(Arc::INFO, "Creating a soap client");
 
+#if 0
+  Arc::XMLNode sechanlder_nd("\
+        <SecHandler name='usernametoken.handler' id='usernametoken' event='outgoing'>\
+            <Process>generate</Process>\
+            <PasswordEncoding>digest</PasswordEncoding>\
+            <Username>user</Username>\
+            <Password>passwd</Password>\
+        </SecHandler>");
+#endif
+
+  Arc::XMLNode sechanlder_nd("\
+        <SecHandler name='x509token.handler' id='x509token' event='outgoing'>\
+            <Process>generate</Process>\
+            <CertificatePath>./testcert.pem</CertificatePath>\
+            <KeyPath>./testkey-nopass.pem</KeyPath>\
+        </SecHandler>");
+
+
   Arc::ClientSOAP *client;
   client = new Arc::ClientSOAP(mcc_cfg,url);
+
+  client->AddSecHandler(sechanlder_nd, "arcshc");
 
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
@@ -83,7 +95,7 @@ int main(void) {
 
   if(resp) delete resp;
   if(client) delete client;
-#endif
+
 
 #if 0
   std::string idp_name = "https://idp.testshib.org/idp/shibboleth";
@@ -152,6 +164,7 @@ int main(void) {
   if(client_soap) delete client_soap;
 #endif
 
+#if 0
   /******** Test to ARC delegation service **********/
   std::string arc_deleg_url_str("https://127.0.0.1:60000/delegation");
   Arc::URL arc_deleg_url(arc_deleg_url_str);
@@ -196,6 +209,7 @@ int main(void) {
   }
   logger.msg(Arc::INFO, "Delegation ID: %s", gs_delegation_id.c_str());
   if(gs_deleg_client) delete gs_deleg_client;
+#endif
 
   return 0;
 }
