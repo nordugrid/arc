@@ -364,8 +364,7 @@ namespace Arc {
       sprintf(tmpChar, "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
-    std::cout << "CheckSum: " << md5str << " number " << length << " valid " << (bool)(*md5sum) << std::endl;
-    //logger.msg(Arc::INFO, "Checksum? %s", md5str);
+    logger.msg(Arc::DEBUG, "Calculated checksum: %s", md5str);
 
     MCCConfig cfg;
     if (!proxyPath.empty())
