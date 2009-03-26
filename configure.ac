@@ -969,10 +969,17 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FORK
 AC_FUNC_LSTAT
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_FUNC_MKTIME
+# GNU compatible *ALLOC functions are available on Windows
+# The test will however fail when cross-compiling with mingw
+case "${host}" in
+  *-*-mingw32) : ;;
+            *)
+AC_FUNC_MALLOC
 AC_FUNC_REALLOC
+;;
+esac
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
@@ -1000,6 +1007,7 @@ case "${host}" in
     # its required to libtool generate .dlls on win32 using mingw
     LDFLAGS="$LDFLAGS -no-undefined"
     AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
+    AC_CHECK_PROGS(WINDRES, windres.exe i686-pc-mingw32-windres)
     ;;
   *solaris*)
     SOCKET_LIBS="-lsocket"
