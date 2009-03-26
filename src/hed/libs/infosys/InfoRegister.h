@@ -81,7 +81,6 @@ class InfoRegistrar {
         std::string cert_;
         std::string proxy_;
         std::string cadir_;
-        long int period_;
         std::string id_;
         // Associated services
         std::list<Register_Info_Type> reg_;
@@ -106,7 +105,7 @@ class InfoRegistrar {
         /// Adds new service to list of handled services.
         /** Service is described by it's InfoRegister object
           which must be valid as long as this object is functional. */
-        bool addService(InfoRegister*);
+        bool addService(InfoRegister*, XMLNode&);
         /// Removes service from list of handled services.
         bool removeService(InfoRegister*);
         const std::string& id(void) { return id_; };

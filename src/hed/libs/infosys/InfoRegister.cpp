@@ -68,7 +68,7 @@ InfoRegister::~InfoRegister(void) {
     // TODO: initiate un-register of service
     InfoRegisterContainer::Instance().removeService(this);
 }
-    
+
 // -------------------------------------------------------------------
 
 InfoRegisterContainer* InfoRegisterContainer::instance_ = NULL;
@@ -119,17 +119,24 @@ void InfoRegisterContainer::addService(InfoRegister* reg,const std::list<std::st
 
     // Add to registrars
     Glib::Mutex::Lock lock(lock_);
-    for(std::list<InfoRegistrar*>::iterator r = regr_.begin();
-                              r != regr_.end();++r) {
-        if(ids.size() > 0) {
-            for(std::list<std::string>::const_iterator i = ids.begin();
-                                            i != ids.end();++i) {
-                if((*i) == (*r)->id()) (*r)->addService(reg);
-            };
-        } else {
-            (*r)->addService(reg);
-        };
-    };
+    if(ids.size() <= 0) {
+        for(std::list<InfoRegistrar*>::iterator r = regr_.begin(); r != regr_.end();++r) {
+            (*r)->addService(reg, cfg);
+            logger_.msg(DEBUG, "Registering to every InfoRegistrar.");
+        }
+    } else {
+        for(std::list<std::string>::const_iterator i = ids.begin(); i != ids.end();++i) {
+            bool id_found = false;
+            for(std::list<InfoRegistrar*>::iterator r = regr_.begin(); r != regr_.end();++r) {
+                if((*i) == (*r)->id()) {
+                    (*r)->addService(reg, cfg);
+                    id_found = true;
+                }
+            }
+            if (!id_found) logger_.msg(ERROR, "Configuration error: InfoRegistrar id \"%s\" cannot be found.", (*i));
+            else logger_.msg(DEBUG, "InfoRegistrar id \"%s\" has been found.", (*i));
+        }
+    }
 }
 
 void InfoRegisterContainer::removeService(InfoRegister* reg) {
@@ -144,7 +151,7 @@ void InfoRegisterContainer::removeService(InfoRegister* reg) {
 
 // -------------------------------------------------------------------
 
-InfoRegistrar::InfoRegistrar(XMLNode cfg) {
+InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
     id_=(std::string)cfg.Attribute("id");
     key_   = (std::string)cfg["KeyPath"];
     cert_  = (std::string)cfg["CertificatePath"];
@@ -164,7 +171,7 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg) {
     creation_time = ctime;
 }
 
-bool InfoRegistrar::addService(InfoRegister* reg) {
+bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     Glib::Mutex::Lock lock(lock_);
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
@@ -175,8 +182,17 @@ bool InfoRegistrar::addService(InfoRegister* reg) {
     };
     Register_Info_Type reg_info;
     reg_info.p_register = reg;
-    reg_info.period = reg->getPeriod();
-    reg_info.next_registration = creation_time.GetTime() + reg->getPeriod() ;
+
+    Period period(reg->getPeriod());
+    for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
+       if ( (std::string)node == id_ && !((std::string)node.Attribute("period")).empty() ) {
+          Period current_period((std::string)node.Attribute("period"));
+          period = current_period;
+       }
+    }
+
+    reg_info.period = period;
+    reg_info.next_registration = creation_time.GetTime();
     reg_.push_back(reg_info);
     logger_.msg(DEBUG, "InfoRegistrar (%s) service added.", url_.fullstr());
     return true;
@@ -215,7 +231,7 @@ void InfoRegistrar::registration(void) {
     Glib::Mutex::Lock lock(lock_);
     CondExit cond(cond_exited_);
     std::string isis_name = url_.fullstr();
-    while(true) {
+    while(reg_.size() > 0) {
 
         logger_.msg(DEBUG, "Registration starts: %s",isis_name);
         logger_.msg(DEBUG, "reg_.size(): %d",reg_.size());
@@ -231,25 +247,42 @@ void InfoRegistrar::registration(void) {
         // Registration algorithm is stupid and straightforward.
         // This part has to be redone to fit P2P network od ISISes
 
+        time_t current_time;
+        time ( &current_time );  //current time
+        tm * ptm;
+        ptm = gmtime ( &current_time );
+        Time min_reg_time(-1);
+        XMLNode send_doc(reg_ns, "");
+
         for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                                r!=reg_.end();++r) {
-            logger_.msg(DEBUG,"In the for statement");
-            XMLNode services_doc(reg_ns, "RegEntry");
-            if(!((r->p_register)->getService())) continue;
-            (r->p_register)->getService()->RegistrationCollector(services_doc);
-            // TODO check the received registration information
+            if ( (r->next_registration).GetTime() <= current_time + stretch_window.GetPeriod() ){
+               logger_.msg(DEBUG,"Create RegEntry XML element");
+               Time current(current_time);
+               // set the next registration time
+               r->next_registration = current + r->period;
 
-            // prepare for sending to ISIS
+               XMLNode services_doc(reg_ns,"RegEntry");
+               if(!((r->p_register)->getService())) continue;
+               (r->p_register)->getService()->RegistrationCollector(services_doc);
+               // TODO check the received registration information
+               send_doc.NewChild(services_doc);
+            }
+            // conditioned minimum search
+            if ( min_reg_time.GetTime() == -1 ){
+                min_reg_time = r->next_registration;
+            }
+            else if ( r->next_registration < min_reg_time ) {
+                min_reg_time = r->next_registration;
+            }
+        }
+
+        // prepare for sending to ISIS
+        if ( min_reg_time.GetTime() != -1 ) {
             logger_.msg(DEBUG, "Registering to %s ISIS", isis_name);
             PayloadSOAP request(reg_ns);
             XMLNode op = request.NewChild("isis:Register");
             XMLNode header = op.NewChild("isis:Header");
-
-            // create header
-            time_t rawtime;
-            time ( &rawtime );  //current time
-            tm * ptm;
-            ptm = gmtime ( &rawtime );
 
             std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
             std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
@@ -261,7 +294,9 @@ void InfoRegistrar::registration(void) {
             header.NewChild("MessageGenerationTime") = out.str();
 
             // create body
-            op.NewChild(services_doc);
+            for(XMLNode node = send_doc["RegEntry"];(bool)node;++node) {
+                op.NewChild(node);
+            }
 
             // send
             PayloadSOAP *response;
@@ -271,29 +306,21 @@ void InfoRegistrar::registration(void) {
             mcc_cfg.AddProxy(proxy_);
             mcc_cfg.AddCADir(cadir_);
 
-            std::string services_document;
-            services_doc.GetDoc(services_document, true);
-            logger_.msg(DEBUG, "RegistrationCollector: %s", services_document);
+            {std::string services_document;
+             op.GetDoc(services_document, true);
+             logger_.msg(DEBUG, "Sent RegEntries: %s", services_document);
+            }
             logger_.msg(DEBUG, "Call the ISIS.process method.");
 
             ClientSOAP cli(mcc_cfg,url_);
             MCC_Status status = cli.process(&request, &response);
 
-            //calculate the waiting time
-            //std::string s_period_ = (std::string)services_doc["MetaSrcAdv"]["Expiration"];
-            if ( bool(services_doc["MetaSrcAdv"]["Expiration"]) ){
-               Period time((std::string)services_doc["MetaSrcAdv"]["Expiration"]);
-               period_ = time.GetPeriod();
-            } else {
-               period_ = -1;  //Wath is the default registration time?
-            }
-
             std::string response_string;
             (*response)["RegisterResponse"].GetDoc(response_string, true);
             logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
 
-            if ((!status) || 
-                (!response) || 
+            if ((!status) ||
+                (!response) ||
                 (!bool((*response)["RegisterResponse"]))) {
                 logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
             } else {
@@ -304,7 +331,11 @@ void InfoRegistrar::registration(void) {
                     logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
                 }
             }
-        }
+        } // end of hte connection with the ISIS
+
+        // Thread sleeping
+        long int period_ = min_reg_time.GetTime() - current_time;
+
         logger_.msg(DEBUG, "Registration ends: %s",isis_name);
         logger_.msg(DEBUG, "Waiting period is %d second(s).",period_);
         if(period_ <= 0) break; // One time registration
