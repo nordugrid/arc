@@ -10,6 +10,8 @@
 
 #include <dirent.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <glibmm/fileutils.h>
@@ -462,12 +464,14 @@ namespace Arc {
       if (mode & S_IRUSR) perms += 'r'; else perms += '-';
       if (mode & S_IWUSR) perms += 'w'; else perms += '-';
       if (mode & S_IXUSR) perms += 'x'; else perms += '-';
+#ifndef WIN32
       if (mode & S_IRGRP) perms += 'r'; else perms += '-';
       if (mode & S_IWGRP) perms += 'w'; else perms += '-';
       if (mode & S_IXGRP) perms += 'x'; else perms += '-';
       if (mode & S_IROTH) perms += 'r'; else perms += '-';
       if (mode & S_IWOTH) perms += 'w'; else perms += '-';
       if (mode & S_IXOTH) perms += 'x'; else perms += '-';
+#endif
       f->SetMetaData("accessperm", perms);
     }
     return DataStatus::Success;
