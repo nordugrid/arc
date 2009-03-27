@@ -43,6 +43,24 @@ the first member will be the '*response' and the second member is the original r
 }
 #endif
 
+
+#ifdef SWIGJAVA
+%template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
+%template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
+%template(JobControllerList) std::list<Arc::JobController *>;
+%template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
+
+%inline %{
+void stream(std::ostream& os) {
+ os << "hello from stream method" << std::endl;
+}
+std::ostream& getStdout() {
+  return std::cout;
+}
+%} 
+#endif
+
+
 %include "../src/hed/libs/client/ACC.h"
 %include "../src/hed/libs/client/ACCLoader.h"
 %include "../src/hed/libs/client/ClientInterface.h"
