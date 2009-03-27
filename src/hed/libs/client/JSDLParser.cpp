@@ -48,7 +48,7 @@ namespace Arc {
     // The source parsing start now.
     NS nsList;
     nsList.insert(std::pair<std::string, std::string>("jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl"));
-    //TODO: wath is the new GIN namespace  (it is now temporary namespace)
+    //TODO: what is the new GIN namespace  (it is now temporary namespace)
     //nsList.insert(std::pair<std::string, std::string>("gin","http://"));
 
     //Meta
@@ -736,7 +736,7 @@ namespace Arc {
   std::string JSDLParser::UnParse(const JobDescription& job) const {
 
     NS gin_namespaces;
-    gin_namespaces["jsdl-gin"] = "http://schemas.ogf.org/gin-profile/2008/11/jsdl";
+    gin_namespaces[""] = "http://schemas.ogf.org/gin-profile/2008/11/jsdl";
     gin_namespaces["targetNamespace"] = "http://schemas.ogf.org/gin-profile/2008/11/jsdl";
     gin_namespaces["elementFormDefault"] = "qualified";
     XMLNode jobTree(gin_namespaces, "JobDefinition");
