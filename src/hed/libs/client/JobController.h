@@ -51,11 +51,9 @@ namespace Arc {
                  Broker *broker,
                  const bool forcemigration);
 
-    bool Renew(const std::list<std::string>& status,
-               const int timeout);
+    bool Renew(const std::list<std::string>& status);
 
-    bool Resume(const std::list<std::string>& status,
-                const int timeout);
+    bool Resume(const std::list<std::string>& status);
 
     bool RemoveJobs(const std::list<URL>& jobids);
 

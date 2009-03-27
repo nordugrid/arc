@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
                     istring("statusstr"),
                     status);
          
-  int timeout = 20;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
                     istring("seconds"), timeout);
 
   std::string conffile;
@@ -80,6 +80,10 @@ int main(int argc, char **argv) {
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+
+  if (timeout > 0) {
+    usercfg.SetTimeout(timeout);
   }
 
   if (debug.empty() && usercfg.ConfTree()["Debug"]) {
@@ -116,7 +120,7 @@ int main(int argc, char **argv) {
   int retval = 0;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++)
-    if (!(*it)->Renew(status, timeout))
+    if (!(*it)->Renew(status))
       retval = 1;
   
   if (retval = 0)

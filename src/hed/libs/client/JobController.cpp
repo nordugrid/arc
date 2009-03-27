@@ -554,8 +554,7 @@ namespace Arc {
     return retVal;
   }
 
-  bool JobController::Renew(const std::list<std::string>& status,
-                            const int timeout) {
+  bool JobController::Renew(const std::list<std::string>& status) {
 
     GetJobInformation();
 
@@ -596,8 +595,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Resume(const std::list<std::string>& status,
-                             const int timeout) {
+  bool JobController::Resume(const std::list<std::string>& status) {
 
     GetJobInformation();
 
