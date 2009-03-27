@@ -333,7 +333,7 @@ namespace Arc {
 
   std::string PosixJSDLParser::UnParse(const JobDescription& job) const {
     NS nsList;
-    nsList.insert(std::pair<std::string, std::string>("jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl"));
+    nsList.insert(std::pair<std::string, std::string>("", "http://schemas.ggf.org/jsdl/2005/11/jsdl"));
     nsList.insert(std::pair<std::string, std::string>("jsdl-posix", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
     nsList.insert(std::pair<std::string, std::string>("jsdl-arc", "http://www.nordugrid.org/ws/schemas/jsdl-arc"));
 
