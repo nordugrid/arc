@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
-  Arc::Logger logger(Arc::Logger::getRootLogger(), "arcstat");
+  Arc::Logger logger(Arc::Logger::getRootLogger(), "arcmigrate");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
