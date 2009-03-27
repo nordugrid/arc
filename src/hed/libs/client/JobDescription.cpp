@@ -313,6 +313,13 @@ namespace Arc {
     std::cout << std::endl;
   } // end of Print
 
+  bool JobDescription::Parse(const XMLNode& xmlSource)
+  {
+    std::string source;
+    xmlSource.GetXML(source);
+    return Parse(source);
+  }
+
   bool JobDescription::Parse(const std::string& source) {
     if (source.empty()) {
       logger.msg(ERROR, "Empty job description source string");

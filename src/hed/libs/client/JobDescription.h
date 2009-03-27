@@ -90,6 +90,7 @@ namespace Arc {
 
     // Try to parse the source string and store it.
     bool Parse(const std::string& source);
+    bool Parse(const XMLNode& xmlSource);
 
     // Transform the inner job description representation into a given format,
     // if it's known as a parser (JSDL as default)
