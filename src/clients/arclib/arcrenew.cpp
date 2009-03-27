@@ -12,6 +12,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
