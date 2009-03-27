@@ -131,22 +131,23 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* reason = NULL)
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
   outmsg.Payload(payload);
-  return MCC_Status(Arc::GENERIC_ERROR);
+  return MCC_Status(Arc::STATUS_OK);
 }
 
-static MCC_Status make_soap_fault(Message& outmsg,const char* = NULL) {
+static MCC_Status make_soap_fault(Message& outmsg,const char* reason = NULL) {
   PayloadSOAP* soap = new PayloadSOAP(Arc::NS(),true);
-  soap->Fault()->Code(SOAPFault::Receiver);
+  soap->Fault()->Code(SOAPFault::Sender);
+  if(reason != NULL) soap->Fault()->Reason(0, reason);
   outmsg.Payload(soap);
-  return MCC_Status(Arc::GENERIC_ERROR);
+  return MCC_Status(Arc::STATUS_OK);
 }
 
-static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* desc = NULL) {
+static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* reason = NULL) {
   if(oldmsg.Payload()) {
     delete oldmsg.Payload();
     oldmsg.Payload(NULL);
   };
-  return make_soap_fault(outmsg,desc);
+  return make_soap_fault(outmsg,reason);
 }
 
 MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
@@ -154,13 +155,13 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   MessagePayload* inpayload = inmsg.Payload();
   if(!inpayload) {
     logger.msg(WARNING, "empty input payload");
-    return make_raw_fault(outmsg);
+    return make_raw_fault(outmsg,"Missing incoming request");
   }
   // Converting payload to SOAP
   PayloadSOAP nextpayload(*inpayload);
   if(!nextpayload) {
     logger.msg(WARNING, "incoming message is not SOAP");
-    return make_raw_fault(outmsg);
+    return make_raw_fault(outmsg,"Incoming request is not SOAP");
   }
   // Creating message to pass to next MCC and setting new payload.. 
   // Using separate message. But could also use same inmsg.
@@ -177,24 +178,24 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // Checking authentication and authorization; 
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
-    return make_raw_fault(outmsg, "Can not pass the authentication or authorization checking from service side in soap level.");
+    return make_raw_fault(outmsg, "Security check failed for SOAP request");
   };
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) {
     logger.msg(WARNING, "empty next chain element");
-    return make_raw_fault(outmsg);
+    return make_raw_fault(outmsg,"Internal error");
   }
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract SOAP response
   if(!ret) {
     logger.msg(WARNING, "next element of the chain returned error status");
-    return make_raw_fault(outmsg);
+    return make_raw_fault(outmsg,"Internal error");
   }
   if(!nextoutmsg.Payload()) {
     logger.msg(WARNING, "next element of the chain returned empty payload");
-    return make_raw_fault(outmsg);
+    return make_raw_fault(outmsg,"There is no response");
   }
   PayloadSOAP* retpayload = NULL;
   try {
@@ -203,13 +204,16 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   if(!retpayload) {
     logger.msg(WARNING, "next element of the chain returned invalid payload");
     delete nextoutmsg.Payload(); 
-    return make_raw_fault(outmsg); 
+    return make_raw_fault(outmsg,"There is no SOAP response"); 
   };
-  if(!(*retpayload)) { delete retpayload; return make_raw_fault(outmsg); };
+  if(!(*retpayload)) {
+    delete retpayload;
+    return make_raw_fault(outmsg,"There is no valid SOAP response");
+  };
   //Checking authentication and authorization; 
   if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
-    delete retpayload; return make_raw_fault(outmsg);
+    delete retpayload; return make_raw_fault(outmsg,"Security check failed for SOAP response");
   };
   // Convert to Raw - TODO: more efficient conversion
   PayloadRaw* outpayload = new PayloadRaw;
@@ -245,16 +249,16 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
 
 MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
-  if(!inmsg.Payload()) return make_soap_fault(outmsg);
+  if(!inmsg.Payload()) return make_soap_fault(outmsg,"No message to send");
   PayloadSOAP* inpayload = NULL;
   try {
     inpayload = dynamic_cast<PayloadSOAP*>(inmsg.Payload());
   } catch(std::exception& e) { };
-  if(!inpayload) return make_soap_fault(outmsg);
+  if(!inpayload) return make_soap_fault(outmsg,"No SOAP message to send");
   //Checking authentication and authorization;
   if(!ProcessSecHandlers(inmsg,"outgoing")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
-    return make_soap_fault(outmsg);
+    return make_soap_fault(outmsg,"Security check failed for outgoing SOAP message");
   };
   // Converting payload to Raw
   PayloadRaw nextpayload;
@@ -276,18 +280,18 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   };
   // Call next MCC 
   MCCInterface* next = Next();
-  if(!next) return make_soap_fault(outmsg);
+  if(!next) return make_soap_fault(outmsg,"Internal chain failure: no next component");
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and create SOAP response
-  if(!ret) return make_soap_fault(outmsg,nextoutmsg);
-  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg,nextoutmsg);
+  if(!ret) return make_soap_fault(outmsg,nextoutmsg,"Failed to send SOAP message");
+  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg,nextoutmsg,"No response for SOAP message recieved");
   MessagePayload* retpayload = nextoutmsg.Payload();
-  if(!retpayload) return make_soap_fault(outmsg,nextoutmsg);
+  if(!retpayload) return make_soap_fault(outmsg,nextoutmsg,"No valid response for SOAP message recieved");
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
-  if(!outpayload) return make_soap_fault(outmsg,nextoutmsg);
+  if(!outpayload) return make_soap_fault(outmsg,nextoutmsg,"Response is not SOAP");
   if(!(*outpayload)) {
-    delete outpayload; return make_soap_fault(outmsg,nextoutmsg);
+    delete outpayload; return make_soap_fault(outmsg,nextoutmsg,"Response is not valid SOAP");
   };
   outmsg = nextoutmsg;
   outmsg.Payload(outpayload);
@@ -295,7 +299,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   //Checking authentication and authorization; 
   if(!ProcessSecHandlers(outmsg,"incoming")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
-    delete outpayload; return make_soap_fault(outmsg);
+    delete outpayload; return make_soap_fault(outmsg,"Security check failed for incoming SOAP message");
   };
   return MCC_Status(Arc::STATUS_OK);
 }
