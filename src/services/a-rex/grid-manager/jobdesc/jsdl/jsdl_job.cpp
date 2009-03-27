@@ -728,7 +728,9 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   };
 
   if(!get_gmlog(job_desc.stdlog)) return false;
-  if(!get_loggers(l)) return false; if(l.size())job_desc.jobreport=*(l.begin());
+  std::list<std::string> urls;
+  if(!get_loggers(urls)) return false; 
+  if(!urls.empty())job_desc.jobreport=urls;
   if(!get_notification(job_desc.notify)) return false;
   if(!get_queue(job_desc.queue)) return false;
   if(!get_credentialserver(job_desc.credentialserver)) return false;

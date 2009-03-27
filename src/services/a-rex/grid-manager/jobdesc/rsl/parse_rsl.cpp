@@ -607,7 +607,10 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
                             NG_RSL_JOBREPORT_PARAM,&tmp_param) != 0) {
     logger.msg(Arc::ERROR,fail="Broken RSL in jobreport"); goto exit;
   };
-  if(tmp_param[0] != NULL) { job_desc.jobreport=tmp_param[0]; };
+  if(tmp_param[0] != NULL) { 
+    job_desc.jobreport.push_back(std::string(tmp_param[0])); 
+    //TODO handle more than 1 logging destinations in RSL!
+  };
   globus_free(tmp_param);
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
                             NG_RSL_RERUN_PARAM,&tmp_param) != 0) {

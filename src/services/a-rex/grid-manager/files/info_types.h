@@ -70,7 +70,7 @@ class JobLocalDescription {
                            notify(""),processtime(),exectime(),
                            clientname(""),clientsoftware(""),
                            reruns(0),downloads(-1),uploads(-1),
-                           jobname(""),jobreport(""),
+                           jobname(""),jobreport(),
                            cleanuptime(),expiretime(),
                            failedstate(""),fullaccess(false),
                            credentialserver(""),gsiftpthreads(1),
@@ -96,7 +96,7 @@ class JobLocalDescription {
   int    downloads;          /* number of downloadable files requested */
   int    uploads;            /* number of uploadable files requested */
   std::string jobname;       /* name of job given by user */
-  std::string jobreport;     /* URL of user's/VO's logger */
+  std::list<std::string> jobreport;     /* URLs of user's/VO's loggers */
   mds_time cleanuptime;      /* time to remove job completely */
   mds_time expiretime;       /* when delegation expires */
   std::string stdlog;        /* dirname to which log messages will be

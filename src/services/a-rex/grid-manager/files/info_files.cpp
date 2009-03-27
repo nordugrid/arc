@@ -661,7 +661,12 @@ inline void write_pair(std::ofstream &f,const std::string &name,bool value) {
 bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc) {
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
   if(! f.is_open() ) return false; /* can't open file */
-  write_pair(f,"jobreport",job_desc.jobreport);
+  for (std::list<std::string>::iterator it=job_desc.jobreport.begin();
+       it!=job_desc.jobreport.end();
+       it++)
+    {
+      write_pair(f,"jobreport",*it);
+    }
   write_pair(f,"lrms",job_desc.lrms);
   write_pair(f,"queue",job_desc.queue);
   write_pair(f,"localid",job_desc.localid);
@@ -733,7 +738,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
     else if(name == "notify") { job_desc.notify = buf+p; }
     else if(name == "processtime") { job_desc.processtime = buf+p; }
     else if(name == "exectime") { job_desc.exectime = buf+p; }
-    else if(name == "jobreport") { job_desc.jobreport = buf+p; }
+    else if(name == "jobreport") { job_desc.jobreport.push_back(std::string(buf+p)); }
     else if(name == "jobname") { job_desc.jobname = buf+p; }
     else if(name == "gmlog") { job_desc.stdlog = buf+p; }
     else if(name == "rerun") {

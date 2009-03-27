@@ -236,8 +236,13 @@ bool JobLog::make_file(JobDescription &job,JobUser &user) {
   } else if((local=job.get_local()) == NULL) { 
     result=false;
   } else {
-    if(local->jobreport.length()) {
-      result = job_log_make_file(job,user,local->jobreport) && result;
+    if(!(local->jobreport.empty())) 
+    {
+      for (std::list<std::string>::iterator v = local->jobreport.begin();
+	   v!=local->jobreport.end(); v++)
+	{
+	  result = job_log_make_file(job,user,*v) && result;
+	}
     };
   };
   return result;
