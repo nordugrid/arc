@@ -25,11 +25,8 @@ namespace Arc {
   private:
     std::string file_name_;
   public:
-    /** Dummy constructor - produces invalid structure */
-    Config() {
-      file_name_ = "";
-    }
     /** Creates empty XML tree */
+    Config() : XMLNode(NS(), "ArcConfig") {}
     Config(const NS& ns)
       : XMLNode(ns, "ArcConfig") {}
     /** Loads configuration document from file 'filename' */
