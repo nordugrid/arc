@@ -55,5 +55,40 @@
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
 
+    <!-- Configuration elements to provide the proper information for the Self-Registration -->
+
+    <xsd:complexType name="endpoint_Type">
+        <!--
+             This element defines URL of the service as seen from outside.
+        -->
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:element name="endpoint" type="endpoint_Type"/>
+
+    <xsd:complexType name="serviceid_Type">
+        <!--
+             This element defines the unique id of the service propagated outside.
+        -->
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:element name="serviceid" type="serviceid_Type"/>
+
+    <xsd:complexType name="expiration_Type">
+        <!--
+             This element defines the expiration time of the information provided by the service.
+        -->
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:element name="expiration" type="expiration_Type"/>
+
 </xsd:schema>
 
