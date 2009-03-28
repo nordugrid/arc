@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
 #ifndef __ARC_WIN32_H__
-#define __ARC_WIN32_H_
+#define __ARC_WIN32_H__
 #define NOGDI
 #define WINVER 0x0501 /* we support XP or higher */
 #define WIN32_LEAN_AND_MEAN
