@@ -92,13 +92,44 @@ void ARexService::InformationCollector(void) {
 }
 
 bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
-  Arc::XMLNode root = infodoc_.Acquire();
+  //Arc::XMLNode root = infodoc_.Acquire();
   logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
+  Arc::XMLNode empty(ns_, "RegEntry");
+  empty.New(doc);
+
+  doc.NewChild("SrcAdv");
+  doc.NewChild("MetaSrcAdv");
+
+  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.execution.arex";
+  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
+  //doc["SrcAdv"].NewChild("SSPair");
+
+  doc["MetaSrcAdv"].NewChild("ServiceID") = serviceid_;
+
+  time_t rawtime;
+  time ( &rawtime );    //current time
+  tm * ptm;
+  ptm = gmtime ( &rawtime );
+
+  std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+  std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+  std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+  std::string min_prefix = (ptm->tm_min < 10)?"0":"";  std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+  std::stringstream out;
+  out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+  doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
+  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+
+  std::string regcoll;
+  doc.GetDoc(regcoll, true);
+  logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
+  return true;
+  //
   // TODO: filter information here.
-  Arc::XMLNode regdoc("<Service/>");
-  regdoc.New(doc);
-  doc.NewChild(root);
-  infodoc_.Release();
+  //Arc::XMLNode regdoc("<Service/>");
+  //regdoc.New(doc);
+  //doc.NewChild(root);
+  //infodoc_.Release();
 }
 
 std::string ARexService::getID() {

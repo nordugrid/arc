@@ -1,7 +1,7 @@
 #ifndef __ARC_AREX_H__
 #define __ARC_AREX_H__
 
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
@@ -14,13 +14,15 @@ namespace ARex {
 class ARexGMConfig;
 class ARexConfigContext;
 
-class ARexService: public Arc::Service {
+class ARexService: public Arc::RegisteredService {
  protected:
   Arc::NS ns_;
   Arc::Logger logger_;
   Arc::DelegationContainerSOAP delegations_;
   Arc::InformationContainer infodoc_;
   Arc::InfoRegisters inforeg_;
+  std::string serviceid_;
+  std::string expiration_;
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;

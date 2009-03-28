@@ -362,7 +362,7 @@ static void thread_starter(void* arg) {
   ((ARexService*)arg)->InformationCollector();
 }
  
-ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),inforeg_(*cfg,this),gm_(NULL) {
+ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),inforeg_(*cfg,this),gm_(NULL) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
@@ -376,6 +376,11 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   // Obtain information from configuration
+
+  // Information for the infosys
+  serviceid_=(std::string)((*cfg)["serviceid"]);
+  expiration_=(std::string)((*cfg)["expiration"]);
+
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
