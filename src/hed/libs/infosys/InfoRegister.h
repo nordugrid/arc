@@ -58,6 +58,7 @@ class InfoRegisters {
 // Data stucture for the InfoRegistrar class.
 struct Register_Info_Type{
     InfoRegister* p_register;
+    std::string serviceid_;
     Period period;
     Time next_registration;
 };

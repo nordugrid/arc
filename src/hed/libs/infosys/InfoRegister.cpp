@@ -176,10 +176,10 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
         if(reg == r->p_register) {
-            logger_.msg(DEBUG, "InfoRegistrar (%s) service already registered.", url_.fullstr());
+            logger_.msg(DEBUG, "Service was already registered to the InfoRegistrar connecting to infosys %s.", url_.fullstr());
             return false;
         }
-    };
+    }
     Register_Info_Type reg_info;
     reg_info.p_register = reg;
 
@@ -194,7 +194,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     reg_info.period = period;
     reg_info.next_registration = creation_time.GetTime();
     reg_.push_back(reg_info);
-    logger_.msg(DEBUG, "InfoRegistrar (%s) service added.", url_.fullstr());
+    logger_.msg(DEBUG, "Service is successfully added to the InfoRegistrar connecting to infosys %s.", url_.fullstr());
     return true;
 }
 
@@ -203,12 +203,55 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
         if(reg == r->p_register) {
+
+            NS reg_ns;
+            reg_ns["glue2"] = GLUE2_D42_NAMESPACE;
+            reg_ns["isis"] = ISIS_NAMESPACE;
+
+            PayloadSOAP request(reg_ns);
+            XMLNode op = request.NewChild("isis:RemoveRegistration");
+            op.NewChild("ServiceID") = r->serviceid_;
+
+            // send
+            PayloadSOAP *response;
+            MCCConfig mcc_cfg;
+            mcc_cfg.AddPrivateKey(key_);
+            mcc_cfg.AddCertificate(cert_);
+            mcc_cfg.AddProxy(proxy_);
+            mcc_cfg.AddCADir(cadir_);
+
+            ClientSOAP cli(mcc_cfg,url_);
+            MCC_Status status = cli.process(&request, &response);
+
+            std::string response_string;
+            (*response).GetDoc(response_string, true);
+            logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
+
+            if ((!status) ||
+                (!response)) {
+                //(!response) ||
+                //(!bool((*response)["RemoveRegistrationResponse"]))) {
+                logger_.msg(ERROR, "Failed to remove registration from %s ISIS", url_.fullstr());
+            } else {
+                if(!(bool)(*response)["RemoveRegistrationResponseElement"])  {
+                    logger_.msg(DEBUG, "Successful removed registration from ISIS (%s)", url_.fullstr());
+                } else {
+                    int i=0;
+                    while ((bool)(*response)["RemoveRegistrationResponseElement"][i]) {
+                        logger_.msg(DEBUG, "Failed to remove registration from ISIS (%s) - %s",
+                            url_.fullstr(), std::string((*response)["RemoveRegistrationResponseElement"][i]["Fault"]));
+                        i++;
+                    }
+                }
+            }
+
             reg_.erase(r);
-            logger_.msg(DEBUG, "InfoRegistrar (%s) service removed.", url_.fullstr());
+
+            logger_.msg(DEBUG, "Service removed from InfoRegistrar connecting to infosys %s.", url_.fullstr());
             return true;
         };
     };
-    logger_.msg(ERROR, "InfoRegistrar (%s) remove service was unsuccessful.", url_.fullstr());
+    logger_.msg(ERROR, "Removing service from InfoRegistrar connecting to infosys %s was unsuccessful.", url_.fullstr());
     return false;
 }
 
@@ -257,16 +300,23 @@ void InfoRegistrar::registration(void) {
         for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                                r!=reg_.end();++r) {
             if ( (r->next_registration).GetTime() <= current_time + stretch_window.GetPeriod() ){
-               logger_.msg(DEBUG,"Create RegEntry XML element");
-               Time current(current_time);
-               // set the next registration time
-               r->next_registration = current + r->period;
+                logger_.msg(DEBUG,"Create RegEntry XML element");
+                Time current(current_time);
+                // set the next registration time
+                r->next_registration = current + r->period;
 
-               XMLNode services_doc(reg_ns,"RegEntry");
-               if(!((r->p_register)->getService())) continue;
-               (r->p_register)->getService()->RegistrationCollector(services_doc);
-               // TODO check the received registration information
-               send_doc.NewChild(services_doc);
+                XMLNode services_doc(reg_ns,"RegEntry");
+                if(!((r->p_register)->getService())) continue;
+                (r->p_register)->getService()->RegistrationCollector(services_doc);
+                // TODO check the received registration information
+
+                // Store the sent ServiceID for the clear shutdown RemoveRegistration operation, if necessary
+                if ( (r->serviceid_).empty() &&
+                     (bool)services_doc["MetaSrcAdv"]["ServiceID"]) {
+                    r->serviceid_ = (std::string) services_doc["MetaSrcAdv"]["ServiceID"];
+                    logger_.msg(DEBUG,"ServiceID stored: %s", r->serviceid_);
+                }
+                send_doc.NewChild(services_doc);
             }
             // conditioned minimum search
             if ( min_reg_time.GetTime() == -1 ){
@@ -310,7 +360,7 @@ void InfoRegistrar::registration(void) {
              op.GetDoc(services_document, true);
              logger_.msg(DEBUG, "Sent RegEntries: %s", services_document);
             }
-            logger_.msg(DEBUG, "Call the ISIS.process method.");
+            //logger_.msg(DEBUG, "Call the ISIS.process method.");
 
             ClientSOAP cli(mcc_cfg,url_);
             MCC_Status status = cli.process(&request, &response);
@@ -331,7 +381,7 @@ void InfoRegistrar::registration(void) {
                     logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
                 }
             }
-        } // end of hte connection with the ISIS
+        } // end of the connection with the ISIS
 
         // Thread sleeping
         long int period_ = min_reg_time.GetTime() - current_time;
