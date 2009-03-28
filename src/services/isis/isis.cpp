@@ -74,7 +74,7 @@ namespace ISIS
         while ((bool) request["RegEntry"][i]) {
             Arc::XMLNode regentry_ = request["RegEntry"][i++];
             logger_.msg(Arc::DEBUG, "Register: ID=%s; EPR=%s; MsgGenTime=%s",
-                (std::string) regentry_["MetaSrcAdv"]["ServiceID"], (std::string) regentry_["SrcAdv"]["EPR"],
+                (std::string) regentry_["MetaSrcAdv"]["ServiceID"], (std::string) regentry_["SrcAdv"]["EPR"]["Address"],
                 (std::string) request["Header"]["MessageGenerationTime"]);
             Arc::XMLNode regentry_xml;
             regentry_.New(regentry_xml);
