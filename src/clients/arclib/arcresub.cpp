@@ -292,7 +292,6 @@ int main(int argc, char **argv) {
     } //end loop over all possible targets
   } //end loop over all job descriptions
 
-  std::cout << " Size:"<< jobs.size() << std::endl;
   if (jobs.empty())
     return 0;
 
