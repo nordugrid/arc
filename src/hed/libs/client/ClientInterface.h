@@ -48,7 +48,7 @@ namespace Arc {
   };
 
   enum SecurityLayer {
-    NoSec, TLSSec, GSISec
+    NoSec, TLSSec, GSISec, SSL3Sec
   };
 
   // Also supports TLS & GSI

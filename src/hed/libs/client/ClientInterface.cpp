@@ -134,7 +134,7 @@ namespace Arc {
     comp.NewChild("Host") = host;
     comp.NewChild("Port") = tostring(port);
 
-    if (sec == TLSSec) {
+    if ((sec == TLSSec) || (sec == SSL3Sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
       if (!cfg.key.empty())
         comp.NewChild("KeyPath") = cfg.key;
@@ -147,6 +147,8 @@ namespace Arc {
       if (!cfg.cadir.empty())
         comp.NewChild("CACertificatesDir") = cfg.cadir;
       comp.NewAttribute("entry") = "tls";
+      if (sec == SSL3Sec) 
+        comp.NewChild("Handshake") = "SSLv3";
     }
     else if (sec == GSISec) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "gsi.client", "gsi", "tcp");
