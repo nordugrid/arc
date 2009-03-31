@@ -127,6 +127,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *arc_cfg_klass = NULL;
     PyObject *arg = NULL;
     PyObject *py_cfg = NULL;
+
+    initialized = false;
  
     if (tstate == NULL) {
         logger.msg(Arc::ERROR, "Main python thread is not initialized");
@@ -298,7 +300,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     //tstate = PyGILState_GetThisThreadState();
     //PyEval_ReleaseThread(tstate);
 
-    logger.msg(Arc::DEBUG, "Python Wrapper constructor called");
+    logger.msg(Arc::DEBUG, "Python Wrapper constructor succeeded");
+    initialized = true;
 }
 
 Service_PythonWrapper::~Service_PythonWrapper(void) 
@@ -382,6 +385,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     PyObject *arg = NULL;
    
     logger.msg(Arc::DEBUG, "Python wrapper process called");
+
+    if(!initialized) return Arc::MCC_Status();
     
     PythonLock plock(logger);
    
