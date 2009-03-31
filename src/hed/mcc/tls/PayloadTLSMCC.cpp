@@ -164,6 +164,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
   ca_file_ = (std::string)(cfg["CACertificatePath"]);
   ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
   globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
+  handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   
   std::vector<std::string> gridSecDir (2);
@@ -281,7 +282,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    // extract from provided MCC
    BIO* bio = BIO_new_MCC(mcc); 
    // Initialize the SSL Context object
-   sslctx_=SSL_CTX_new(SSLv23_client_method());
+   if(cfg.IfTLSHandshake()) {
+     sslctx_=SSL_CTX_new(SSLv23_client_method());
+   } else {
+     sslctx_=SSL_CTX_new(SSLv3_client_method());
+   };
    if(sslctx_==NULL){
       logger.msg(ERROR, "Can not create the SSL Context object");
       goto error;
@@ -340,7 +345,11 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    // Creating BIO for communication through provided stream
    BIO* bio = BIO_new_MCC(stream);
    // Initialize the SSL Context object
-   sslctx_=SSL_CTX_new(SSLv23_server_method());
+   if(cfg.IfTLSHandshake()) {
+     sslctx_=SSL_CTX_new(SSLv23_client_method());
+   } else {
+     sslctx_=SSL_CTX_new(SSLv3_client_method());
+   };
    if(sslctx_==NULL){
       logger.msg(ERROR, "Can not create the SSL Context object");
       goto error;

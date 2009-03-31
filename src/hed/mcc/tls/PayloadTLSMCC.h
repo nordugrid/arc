@@ -21,6 +21,10 @@ class ConfigTLSMCC {
   std::string key_file_;
   bool client_authn_;
   bool globus_policy_;
+  enum {
+    tls_handshake,
+    ssl3_handshake
+  } handshake_;
   std::vector<std::string> vomscert_trust_dn_;
   ConfigTLSMCC(void);
  public:
@@ -34,6 +38,8 @@ class ConfigTLSMCC {
   const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };
   bool Set(SSL_CTX* sslctx,Logger& logger);
   bool IfClientAuthn(void) const { return client_authn_; };
+  bool IfTLSHandshake(void) const { return handshake_ == tls_handshake; };
+  bool IfSSLv3Handshake(void) const { return handshake_ == ssl3_handshake; };
 };
 
 // This class extends PayloadTLSStream with initialization procedure to 
