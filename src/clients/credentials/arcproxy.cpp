@@ -101,6 +101,8 @@ int main(int argc, char *argv[]) {
                                          "                               has such a role, the role will be put into AC \n"
                                          ),
                     istring("string"), vomslist);
+  bool use_gsi_comm = false;
+  options.AddOption('G', "gsicom", istring("use GSI communication protocol for contacting VOMS services"), use_gsi_comm);
 
   bool info = false;
   options.AddOption('I', "info", istring("print all information about this proxy. \n"
@@ -293,7 +295,7 @@ int main(int argc, char *argv[]) {
       }
       else {
         host = myproxy_server.substr(0, pos);
-        port = Glib::Ascii::strtod(myproxy_server.substr(pos));
+        Arc::stringto(myproxy_server.substr(pos),port);
       }
       Arc::MCCConfig cfg;
       //if(!proxy_path.empty())
@@ -625,7 +627,7 @@ int main(int argc, char *argv[]) {
             command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
         }
         send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
-        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), Arc::GSISec);
+        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm?Arc::GSISec:Arc::SSL3Sec);
         Arc::PayloadRaw request;
         request.Insert(send_msg.c_str(), 0, send_msg.length());
         Arc::PayloadStreamInterface *response = NULL;
@@ -732,7 +734,7 @@ int main(int argc, char *argv[]) {
       }
       else {
         host = myproxy_server.substr(0, pos);
-        port = Glib::Ascii::strtod(myproxy_server.substr(pos));
+        Arc::stringto(myproxy_server.substr(pos),port);
       }
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
