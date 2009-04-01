@@ -151,21 +151,9 @@ sub create_shell_wrapper {
     }
 
     # Set $real_exe to the path to the job executable (environment variables
-    # expanded).  $exewrapper is the basename of $exe, plus some random
-    # characters for uniqueness.  Also, the file $exportfile is created,
-    # containing shell statements in the form
-    #
-    #   export NAME="value"
-    #
-    # for all environment variables in existence after sourcing the runtime
-    # scripts with argument 0.
-    my $exportfile = File::Temp::tempnam('/tmp', 'export.');
-    $real_exe = `{ $setrte0; } >/dev/null
-                 export >$exportfile
-                 echo -n $grami{joboption_arg_0}`;
-    $real_exe = "./$real_exe" if $real_exe !~ m{/};
-    $real_exe =~ m{([^/]+)$};
-    $exewrapper = File::Temp::tempnam($grami{joboption_directory}, "$1.");
+    # expanded).  $exewrapper contains the script which will be submitted to condor.
+    $real_exe = $grami{joboption_arg_0};
+    $exewrapper = File::Temp::tempnam($grami{joboption_directory}, "condorjob.sh.");
 
     # Get the name of the stdout file.
     my $stdout = notnull($grami{joboption_stdout}) ?
@@ -191,13 +179,6 @@ sub create_shell_wrapper {
         $output .= "set -x\nexec &>\Q$stderr\E\nls -la\n";
     }
 
-    # All environment variables in existence after sourcing the runtime scripts
-    # with argument 0 should be set in the wrapper script.
-    open EXPORTFILE, "<$exportfile" or die "$0: $exportfile: $!\n";
-    $output .= $_ for <EXPORTFILE>;
-    close EXPORTFILE;
-    unlink $exportfile;
-
     # set HOME to the working directory of the job
     $output .= "HOME=\`pwd\`\nexport HOME\n";
 
@@ -206,16 +187,16 @@ sub create_shell_wrapper {
 
     # Enable the executable bit for non-preinstalled executables.
     if ($real_exe !~ m{^/}) {
-        $output .= "chmod +x \Q$real_exe\E\n";
+        $output .= "eval chmod +x \"\Q$real_exe\E\"\n";
     }
 
     # Incomplete job command; arguments may follow.
-    $output .= "\Q$real_exe\E";
+    $output .= "eval \"\Q$real_exe\E\"";
 
     # Add optional arguments to the command line.
     if (defined $grami{joboption_arg_1}) {
         for (my $i = 1; defined(my $arg = $grami{"joboption_arg_$i"}); $i++) {
-            $output .= $arg ne '' ? " \Q$arg\E" : " ''";
+            $output .= $arg ne '' ? " \"\Q$arg\E\"" : " ''";
         }
     }
 
