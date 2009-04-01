@@ -346,9 +346,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    BIO* bio = BIO_new_MCC(stream);
    // Initialize the SSL Context object
    if(cfg.IfTLSHandshake()) {
-     sslctx_=SSL_CTX_new(SSLv23_client_method());
+     sslctx_=SSL_CTX_new(SSLv23_server_method());
    } else {
-     sslctx_=SSL_CTX_new(SSLv3_client_method());
+     sslctx_=SSL_CTX_new(SSLv3_server_method());
    };
    if(sslctx_==NULL){
       logger.msg(ERROR, "Can not create the SSL Context object");
