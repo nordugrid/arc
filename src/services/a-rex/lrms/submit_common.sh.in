@@ -84,7 +84,7 @@ EOHELP
    while [ ! -z "${var_is_set}" ] ; do
       eval "var_value=\${joboption_arg_$i}"
       # Use -- to avoid echo eating arguments it understands
-      var_value=`echo -- "$var_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/' | sed 's/"/\\\"/'`
+      var_value=`echo -- "$var_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
       joboption_args="$joboption_args \"${var_value}\""
       i=$(( $i + 1 ))
       eval "var_is_set=\${joboption_arg_$i+yes}"
