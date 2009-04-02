@@ -86,7 +86,7 @@ static bool x509_to_string(RSA* key,std::string& str) {
 
 static int passphrase_callback(char* buf, int size, int, void *arg) {
    std::istream* in = (std::istream*)arg;
-   if(in == &std::cin) std::cout<<"Enter passphrase for your private key: "<<std::endl;
+   if(in == &std::cin) std::cout<<"Enter passphrase for your private key: ";
    buf[0]=0;
    in->getline(buf,size);
    //if(!(*in)) {
@@ -153,6 +153,61 @@ static bool string_to_x509(const std::string& str,X509* &cert,STACK_OF(X509)* &c
   BIO_free_all(in);
   return true;
 }
+
+/*
+static unsigned char* ASN1_BIT_STRING_to_data(ASN1_BIT_STRING* str,int* l) {
+  *l=0;
+  int length = i2d_ASN1_BIT_STRING(str, NULL);
+  if(length < 0) return NULL;
+  unsigned char* data = (unsigned char*)malloc(length);
+  if(!data) return NULL;
+  length = i2d_ASN1_BIT_STRING(str,&data);
+  if(length < 0) {
+    free(data);
+    return NULL;
+  };
+  if(l) *l=length;
+  return data;
+}
+
+static X509_EXTENSION* data_to_X509_EXTENSION(const char* name,unsigned char* data,int length,bool critical) {
+  ASN1_OBJECT* ext_obj = NULL;
+  ASN1_OCTET_STRING* ext_oct = NULL;
+  X509_EXTENSION* ext = NULL;
+
+  ext_obj=OBJ_nid2obj(OBJ_txt2nid(name));
+  if(!ext_obj) goto err;
+  ext_oct=ASN1_OCTET_STRING_new();
+  if(!ext_oct) goto err;
+  ASN1_OCTET_STRING_set(ext_oct,data,length);
+  ext=X509_EXTENSION_create_by_OBJ(NULL,ext_obj,critical?1:0,ext_oct);
+err:
+  if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
+  if(ext_obj) ASN1_OBJECT_free(ext_obj);
+  return ext;
+}
+
+static X509_EXTENSION* ASN1_OCTET_STRING_to_X509_EXTENSION(const char* name,ASN1_OCTET_STRING* oct,bool critical) {
+  ASN1_OBJECT* ext_obj = NULL;
+  X509_EXTENSION* ext = NULL;
+
+  ext_obj=OBJ_nid2obj(OBJ_txt2nid(name));
+  if(!ext_obj) goto err;
+  ext=X509_EXTENSION_create_by_OBJ(NULL,ext_obj,critical?1:0,oct);
+err:
+  if(ext_obj) ASN1_OBJECT_free(ext_obj);
+  return ext;
+}
+*/
+
+static bool X509_add_ext_by_nid(X509 *cert,int nid,char *value,int pos) {
+  X509_EXTENSION* ext = X509V3_EXT_conf_nid(NULL, NULL, nid, value);
+  if(!ext) return false;
+  X509_add_ext(cert,ext,pos);
+  X509_EXTENSION_free(ext);
+  return true;
+}
+
 
 DelegationConsumer::DelegationConsumer(void):key_(NULL) {
   Generate();
@@ -519,6 +574,20 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   X509_set_version(cert,2L);
 
   /*
+   Proxy certificates do no need KeyUsage extension. But
+   some old software still expects it to be present.
+
+   From RFC3820:
+
+   If the Proxy Issuer certificate has the KeyUsage extension, the
+   Digital Signature bit MUST be asserted.
+  */
+
+  X509_add_ext_by_nid(cert,NID_key_usage,"critical,digitalSignature,keyCertSign",-1);
+
+  /*
+   From RFC3820:
+
    If a certificate is a Proxy Certificate, then the proxyCertInfo
    extension MUST be present, and this extension MUST be marked as
    critical.
