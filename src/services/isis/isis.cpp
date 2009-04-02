@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <sstream>
+
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
 
@@ -9,8 +11,11 @@
 
 namespace ISIS
 {
-    ISIService::ISIService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL) {
-        service_id_ = "XXX";
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL) {
+        serviceid_=(std::string)((*cfg)["serviceid"]);
+        endpoint_=(std::string)((*cfg)["endpoint"]);
+        expiration_=(std::string)((*cfg)["expiration"]);
+
         ns_["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
 
         std::string db_path = (std::string)(*cfg)["DBPath"];
@@ -36,6 +41,39 @@ namespace ISIS
     }
 
     bool ISIService::RegistrationCollector(Arc::XMLNode &doc) {
+          logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
+          // RegEntry element generation
+          Arc::XMLNode empty(ns_, "RegEntry");
+          empty.New(doc);
+
+          doc.NewChild("SrcAdv");
+          doc.NewChild("MetaSrcAdv");
+
+          doc["SrcAdv"].NewChild("Type") = "org.nordugrid.tests.echo";
+          doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
+          //doc["SrcAdv"].NewChild("SSPair");
+
+          doc["MetaSrcAdv"].NewChild("ServiceID") = serviceid_;
+
+          time_t rawtime;
+          time ( &rawtime );    //current time
+          tm * ptm;
+          ptm = gmtime ( &rawtime );
+
+          std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+          std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+          std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+          std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+          std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+          std::stringstream out;
+          out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+          doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
+          doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+
+          std::string regcoll;
+          doc.GetDoc(regcoll, true);
+          logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
+          return true;
     }
 
     Arc::MCC_Status ISIService::Query(Arc::XMLNode &request, Arc::XMLNode &response) {
@@ -149,7 +187,7 @@ namespace ISIS
     }
 
     std::string ISIService::getID() {
-        return service_id_;
+        return serviceid_;
     }
 
     Arc::MCC_Status ISIService::make_soap_fault(Arc::Message &outmsg) {

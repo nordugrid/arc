@@ -5,15 +5,18 @@
 
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/dbxml/XmlDatabase.h>
 
 namespace ISIS {
 
-    class ISIService: public Arc::Service {
+    class ISIService: public Arc::RegisteredService {
         private:
             Arc::Logger logger_;
-            std::string service_id_;
+            std::string serviceid_;
+            std::string endpoint_;
+            std::string expiration_;
+
             Arc::XmlDatabase *db_;
             Arc::NS ns_;
             Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
