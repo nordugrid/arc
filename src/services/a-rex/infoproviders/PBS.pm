@@ -429,6 +429,8 @@ sub jobs_info ($$@) {
     unless (open QSTATOUTPUT,   "$path/qstat -f 2>/dev/null |") {
 	error("Error in executing qstat: $path/qstat -f ");
     }
+
+    my %job_owner;
     while (my $line = <QSTATOUTPUT>) {       
 	if ($line =~ /^Job Id:\s+(\d+.*)/) {
 	    $jid = 0;
@@ -482,7 +484,7 @@ sub jobs_info ($$@) {
 	
 	if ( $k eq 'Job_Owner' ) {
 	    $v =~ /(\S+)@/;
-	    $lrms_jobs{$jid}{Job_Owner} = $1;
+	    $job_owner{$jid} = $1;
 	}
 	if ( $k eq 'job_state' ) {
 	    if ($v eq 'R') {
@@ -496,17 +498,17 @@ sub jobs_info ($$@) {
 		}
 	    }
 	    if ($v eq 'R' or 'E'){
-		++$user_jobs_running{$lrms_jobs{$jid}{Job_Owner}};
+		++$user_jobs_running{$job_owner{$jid}};
 	    }
 	    if ($v eq 'Q'){ 
-		++$user_jobs_queued{$lrms_jobs{$jid}{Job_Owner}};
+		++$user_jobs_queued{$job_owner{$jid}};
 	    }
 	}
     }
     close QSTATOUTPUT;
 
     my (@scalarkeywords) = ('status', 'rank', 'mem', 'walltime', 'cputime',
-			    'reqwalltime', 'reqcputime', 'node');
+			    'reqwalltime', 'reqcputime');
 
     foreach $jid ( @$jids ) {
 	foreach my $k ( @scalarkeywords ) {
