@@ -11,7 +11,13 @@ src/hed/acc/.
 The following commands are presently implemented:
 
 o arcsub
+o arcstat
 o arcget
 o arckill
 o arcclean
 o arccat
+o arcresub
+o arcmigrate
+o arcrenew
+o arcsync
+o arcresume
