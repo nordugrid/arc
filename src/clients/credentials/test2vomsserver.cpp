@@ -7,6 +7,7 @@
 #include <iostream>
 #include <signal.h>
 #include <fstream>
+#include <openssl/ssl.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
@@ -25,6 +26,9 @@
 
 int main(void) {
   setlocale(LC_ALL, "");
+
+  SSL_load_error_strings();
+  SSL_library_init();
 
   Arc::Logger logger(Arc::Logger::getRootLogger(), "Test2VOMSServer");
   Arc::LogStream logcerr(std::cerr);
@@ -77,10 +81,10 @@ int main(void) {
   //cfg.AddProxy("/tmp/x509up_u1001");
   //cfg.AddCertificate("/home/wzqiang/arc-0.9/src/tests/echo/usercert.pem");
   //cfg.AddPrivateKey("/home/wzqiang/arc-0.9/src/tests/echo/userkey-nopass.pem");
-  cfg.AddCADir("/home/qiangwz/.globus/certificates/");
+  cfg.AddCADir("../../tests/echo/certificates/");
 
-  //Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15002, Arc::GSISec);
-  Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15001, Arc::GSISec);
+  //Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15001, Arc::GSISec);
+  Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15001, Arc::SSL3Sec);
   //Arc::ClientTCP client(cfg, "squark.uio.no", 15011, Arc::GSISec);
 
   Arc::PayloadRaw request;
