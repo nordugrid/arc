@@ -310,7 +310,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    };
 #endif
    StoreInstance();
+#ifdef SSL_OP_NO_TICKET
+   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_ALL | SSL_OP_NO_TICKET);
+#else
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_ALL);
+#endif
    SSL_CTX_set_default_passwd_cb(sslctx_, no_passphrase_callback);
    /* Get DN from certificate, and put it into message's attribute */
 
