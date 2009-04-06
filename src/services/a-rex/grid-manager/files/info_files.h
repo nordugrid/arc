@@ -210,8 +210,8 @@ bool job_Xput_read_file(std::list<FileData> &files);
   Write and read file, containing most important/needed job parameters.
   Information is passed to/from file through 'job_desc' object.
 */
-bool job_local_write_file(const JobDescription &desc,const JobUser &user,JobLocalDescription &job_desc);
-bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc);
+bool job_local_write_file(const JobDescription &desc,const JobUser &user,const JobLocalDescription &job_desc);
+bool job_local_write_file(const std::string &fname,const JobLocalDescription &job_desc);
 bool job_local_read_file(const JobId &id,const JobUser &user,JobLocalDescription &job_desc);
 bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc);
 // bool job_local_read_string(const std::string &fname,unsigned int num,std::string &str);

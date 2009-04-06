@@ -641,7 +641,7 @@ bool job_acl_write_file(JobId &id,JobUser &user,std::string &acl) {
   return job_description_write_file(fname,acl.c_str());
 }
 
-bool job_local_write_file(const JobDescription &desc,const JobUser &user,JobLocalDescription &job_desc) {
+bool job_local_write_file(const JobDescription &desc,const JobUser &user,const JobLocalDescription &job_desc) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_local;
   return job_local_write_file(fname,job_desc) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,user);
 }
@@ -658,10 +658,10 @@ inline void write_pair(std::ofstream &f,const std::string &name,bool value) {
   f << name << '=' << (value?"yes":"no") << std::endl;
 }
 
-bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc) {
+bool job_local_write_file(const std::string &fname,const JobLocalDescription &job_desc) {
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
   if(! f.is_open() ) return false; /* can't open file */
-  for (std::list<std::string>::iterator it=job_desc.jobreport.begin();
+  for (std::list<std::string>::const_iterator it=job_desc.jobreport.begin();
        it!=job_desc.jobreport.end();
        it++)
     {
@@ -672,7 +672,7 @@ bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc
   write_pair(f,"localid",job_desc.localid);
   f << "args=";
   if(job_desc.arguments.size()) {
-    for(std::list<std::string>::iterator i=job_desc.arguments.begin(); \
+    for(std::list<std::string>::const_iterator i=job_desc.arguments.begin(); \
         i!=job_desc.arguments.end(); ++i) {
       output_escaped_string(f,*i);
       f << " ";
@@ -699,7 +699,7 @@ bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc
   write_pair(f,"failedstate",job_desc.failedstate);
   write_pair(f,"fullaccess",job_desc.fullaccess);
   write_pair(f,"credentialserver",job_desc.credentialserver);
-  for(std::list<std::string>::iterator act_id=job_desc.activityid.begin();
+  for(std::list<std::string>::const_iterator act_id=job_desc.activityid.begin();
       act_id != job_desc.activityid.end(); ++act_id) {
     write_pair(f,"activityid",(*act_id));
   };
