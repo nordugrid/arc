@@ -5,20 +5,20 @@
         attributes:
             The ServiceID for register.
             A key - value pair for register.
-    RemoveRegistration - for sending test RemoveRegistration messages
+    RemoveRegistrations - for sending test RemoveRegistrations messages
         attributes: The ServiceID for remove.
     (The GetISISList operation will be used in every other cases impicitly.)
 
     Usage:
         testISISclient Query "query string"
         testISISclient Register "ServiceID1,EPR1" "ServiceID2,EPR2" "ServiceID3,EPR3"
-        testISISclient RemoveRegistration "ServiceID1" "ServiceID2"
+        testISISclient RemoveRegistrations "ServiceID1" "ServiceID2"
         etc.
 
     Examples:
         testISISclient -m Register "Srv_ID1,EPR1"
         testISISclient -m Query "/RegEntry/MetaSrcAdv/ServiceID[text()=\"Srv_ID1\"]"
-        testISISclient -m RemoveRegistration "Srv_ID1"
+        testISISclient -m RemoveRegistrations "Srv_ID1"
 
 */
 
@@ -263,8 +263,8 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
 }
 
 
-// RemoveRegistration function
-std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceID ){
+// RemoveRegistrations function
+std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &serviceID ){
 
     Arc::XMLNode client_doc(ChainConfigString(url));
     Arc::Config client_config(client_doc);
@@ -280,7 +280,7 @@ std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceI
       return "-1";
     };
 
-    // Create and send RemoveRegistration request
+    // Create and send RemoveRegistrations request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
     query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
@@ -358,7 +358,7 @@ std::vector<std::string> GetISISList( Arc::URL url ){
       return response;
     };
 
-    // Create and send RemoveRegistration request
+    // Create and send RemoveRegistrations request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns; query_ns["isis"]="urn:isis";
     query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
@@ -436,12 +436,12 @@ int main(int argc, char** argv) {
     Arc::OptionParser options(istring("[ISIS testing ...]"),
       istring("This tiny tool can be used for testing "
               "the ISIS's abilities."),
-      istring("The method are the folows: Query, Register, RemoveRegistration")
+      istring("The method are the folows: Query, Register, RemoveRegistrations")
       );
 
     std::string method = "";
       options.AddOption('m', "method",
-        istring("define which method are use (Query, Register, RemoveRegistration)"),
+        istring("define which method are use (Query, Register, RemoveRegistrations)"),
         istring("method"),
         method);
 
@@ -520,20 +520,20 @@ int main(int argc, char** argv) {
           }
        }
     }
-    //The method is RemoveRegistration
-    else if (method == "RemoveRegistration"){
+    //The method is RemoveRegistrations
+    else if (method == "RemoveRegistrations"){
        std::vector<std::string> serviceID;
 
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
               serviceID.push_back(*it);
        }
-       response = RemoveRegistration( ContactISIS, serviceID );
+       response = RemoveRegistrations( ContactISIS, serviceID );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           int i=0;
           Arc::XMLNode responsElements = resp["Body"]["RemoveRegistrationsResponse"]["RemoveRegistrationResponseElement"];
           while ( bool(responsElements[i]) ){
-             std::cout << " The RemoveRegistration failed!" << std::endl;
+             std::cout << " The RemoveRegistrations failed!" << std::endl;
              std::cout << " The ServiceID: " << (std::string)responsElements[i]["ServiceID"] << std::endl;
              std::cout << " The fault's name: " << (std::string)responsElements[i]["Fault"]["Name"] << std::endl;
              std::cout << " The fault's type: " << (std::string)responsElements[i]["Fault"]["Type"] << std::endl;
@@ -542,7 +542,7 @@ int main(int argc, char** argv) {
           }
 
           if (i == 0) {
-             std::cout << " The RemoveRegistration method succeeded." << std::endl;
+             std::cout << " The RemoveRegistrations method succeeded." << std::endl;
           }
        }
     }

@@ -26,7 +26,7 @@ namespace ISIS {
             // Functions for the service specific interface
             Arc::MCC_Status Query(Arc::XMLNode &request, Arc::XMLNode &response);
             Arc::MCC_Status Register(Arc::XMLNode &request, Arc::XMLNode &response);
-            Arc::MCC_Status RemoveRegistration(Arc::XMLNode &request, Arc::XMLNode &response);
+            Arc::MCC_Status RemoveRegistrations(Arc::XMLNode &request, Arc::XMLNode &response);
             Arc::MCC_Status GetISISList(Arc::XMLNode &request, Arc::XMLNode &response);
         public:
             ISIService(Arc::Config *cfg);

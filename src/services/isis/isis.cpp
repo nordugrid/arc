@@ -121,11 +121,11 @@ namespace ISIS
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    Arc::MCC_Status ISIService::RemoveRegistration(Arc::XMLNode &request, Arc::XMLNode &response) {
+    Arc::MCC_Status ISIService::RemoveRegistrations(Arc::XMLNode &request, Arc::XMLNode &response) {
         int i=0;
         while ((bool) request["ServiceID"][i]) {
             std::string service_id = (std::string) request["ServiceID"][i];
-            logger_.msg(Arc::DEBUG, "RemoveRegistration: ID=%s", service_id);
+            logger_.msg(Arc::DEBUG, "RemoveRegistrations: ID=%s", service_id);
             db_->del(service_id);
             i++;
         }
@@ -169,11 +169,11 @@ namespace ISIS
             Arc::XMLNode query_ = (*inpayload).Child(0);
             ret = Query(query_, r);
         }
-        // If the requested operation was: RemoveRegistration
+        // If the requested operation was: RemoveRegistrations
         else if (MatchXMLName((*inpayload).Child(0), "RemoveRegistrations")) {
             Arc::XMLNode r = res.NewChild("isis:RemoveRegistrationsResponse");
             Arc::XMLNode remove_ = (*inpayload).Child(0);
-            ret = RemoveRegistration(remove_, r);
+            ret = RemoveRegistrations(remove_, r);
         }
         // If the requested operation was: GetISISList
         else if (MatchXMLName((*inpayload).Child(0), "GetISISList")) {
