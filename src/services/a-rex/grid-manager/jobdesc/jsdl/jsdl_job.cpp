@@ -626,7 +626,7 @@ bool JSDLJob::get_reruns(int& n) {
 
 // Set OldJobID as activityID
 bool JSDLJob::get_activityid(std::list<std::string>& activityid) {
-
+  activityid.clear();
   for ( int i=0; (bool)jsdl_document["JobDescription"]["JobIdentification"]["OldJobID"][i]; i++)
     activityid.push_back( (std::string)jsdl_document["JobDescription"]["JobIdentification"]["OldJobID"][i]);
   return true;
