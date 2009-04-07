@@ -220,7 +220,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             reg_ns["isis"] = ISIS_NAMESPACE;
 
             PayloadSOAP request(reg_ns);
-            XMLNode op = request.NewChild("isis:RemoveRegistration");
+            XMLNode op = request.NewChild("isis:RemoveRegistrations");
             op.NewChild("ServiceID") = r->serviceid_;
 
             // send
