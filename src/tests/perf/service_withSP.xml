@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
+  xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
+  xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
+  xmlns:echo="urn:echo_config"
+>
+
+    <ModuleManager>
+        <Path>../echo/.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+        <Path>../../hed/shc/.libs/</Path>
+        <Path>../../services/saml/.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arcshc</Name></Plugins>
+    <Plugins><Name>saml2sp</Name></Plugins>
+
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <tls:KeyPath>../../services/slcs/testkey-nopass.pem</tls:KeyPath>
+            <tls:CertificatePath>../../services/slcs/testcert.pem</tls:CertificatePath>
+            <!--tls:CACertificatePath>../echo/testcacert.pem</tls:CACertificatePath-->
+            <!--tls:CACertificatesDir>../echo/certificates</tls:CACertificatesDir-->\
+            <tls:ClientAuthn>false</tls:ClientAuthn>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="plexer">POST</next>
+            <!--SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/-->
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="samlsp">/saml2sp</next>
+            <next id="soap">/echo</next>
+        </Plexer>
+        <Component name="soap.service" id="soap">
+            <next id="echo"/>
+            <!--SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/-->
+        </Component>
+        <Service name='saml.sp' id='samlsp'>
+            <MetaDataLocation>../../services/slcs/test_metadata.xml</MetaDataLocation>
+            <ServiceProviderName>https://squark.uio.no/shibboleth-sp</ServiceProviderName>
+            <KeyPath>../../services/slcs/testkey-nopass.pem</KeyPath>
+            <CertificatePath>../../services/slcs/testcert.pem</CertificatePath>
+        </Service>
+        <Service name="echo" id="echo">
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+            <echo:suffix> ]</echo:suffix>
+        </Service>
+    </Chain>
+</ArcConfig>
