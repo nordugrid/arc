@@ -319,7 +319,25 @@ void InfoRegistrar::registration(void) {
                 XMLNode services_doc(reg_ns,"RegEntry");
                 if(!((r->p_register)->getService())) continue;
                 (r->p_register)->getService()->RegistrationCollector(services_doc);
-                // TODO check the received registration information
+
+                // Possible completion of the services_doc
+                if (!((bool)services_doc["MetaSrcAdv"]["ServiceID"]) && ((bool)services_doc["SrcAdv"]["EPR"]["Address"])) {
+                    services_doc["MetaSrcAdv"].NewChild("ServiceID") = (std::string) services_doc["SrcAdv"]["EPR"]["Address"];
+                    logger_.msg(WARNING, "ServiceID attribute calculated from Endpoint Reference");
+                }
+                if (!(bool)services_doc["MetaSrcAdv"]["GenTime"]) {
+                    std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+                    std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+                    std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+                    std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+                    std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+                    std::stringstream out;
+                    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
+                    out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+
+                    services_doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
+                    logger_.msg(WARNING, "Generation Time attribute calculated from current time");
+                }
 
                 // Store the sent ServiceID for the clear shutdown RemoveRegistration operation, if necessary
                 if ( (r->serviceid_).empty() &&
@@ -327,7 +345,37 @@ void InfoRegistrar::registration(void) {
                     r->serviceid_ = (std::string) services_doc["MetaSrcAdv"]["ServiceID"];
                     logger_.msg(DEBUG,"ServiceID stored: %s", r->serviceid_);
                 }
-                send_doc.NewChild(services_doc);
+
+                // TODO check the received registration information
+                bool valid_services_doc = true;
+                if (!(services_doc.Name() == "RegEntry")) {
+                    logger_.msg(ERROR,"Missing service document provided by the service %s", r->serviceid_);
+                    valid_services_doc = false;
+                }
+
+                if (!((bool) services_doc["MetaSrcAdv"]) ||
+                    !((bool) services_doc["MetaSrcAdv"]["Expiration"])) {
+                    logger_.msg(ERROR,"Missing MetaServiceAdvertisment or Expiration values provided by the service %s",
+                                r->serviceid_);
+                    valid_services_doc = false;
+                }
+
+                if (!((bool) services_doc["SrcAdv"]) ||
+                    !((bool) services_doc["SrcAdv"]["Type"])) {
+                    logger_.msg(ERROR,"Missing Type value provided by the service %s",
+                                r->serviceid_);
+                    valid_services_doc = false;
+                }
+
+                if (!((bool) services_doc["SrcAdv"]) ||
+                    !((bool) services_doc["SrcAdv"]["EPR"]) ||
+                    !((bool) services_doc["SrcAdv"]["EPR"]["Address"])) {
+                    logger_.msg(ERROR,"Missing Endpoint Reference value provided by the service %s",
+                                r->serviceid_);
+                    valid_services_doc = false;
+                }
+
+                if (valid_services_doc) send_doc.NewChild(services_doc);
             }
             // conditioned minimum search
             if ( min_reg_time.GetTime() == -1 ){
