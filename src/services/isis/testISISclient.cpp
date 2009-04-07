@@ -439,6 +439,12 @@ int main(int argc, char** argv) {
       istring("The method are the folows: Query, Register, RemoveRegistrations")
       );
 
+    std::string infosys_url = "http://knowarc2.grid.niif.hu:50000/isis1";
+      options.AddOption('i', "isis",
+        istring("define the URL of the Bootstrap ISIS"),
+        istring("isis"),
+        infosys_url);
+
     std::string method = "";
       options.AddOption('m', "method",
         istring("define which method are use (Query, Register, RemoveRegistrations)"),
@@ -462,7 +468,7 @@ int main(int argc, char** argv) {
     std::cout << " [ ISIS tester ] " << std::endl;
     logger.msg(Arc::INFO, "ISIS tester start!");
 
-    Arc::URL BootstrapISIS("http://knowarc2.grid.niif.hu:50000/isis1");
+    Arc::URL BootstrapISIS(infosys_url);
 
     // Get the a list of known ISIS's and choose one from them randomly
     std::vector<std::string> neighbors_ = GetISISList( BootstrapISIS );
