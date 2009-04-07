@@ -90,5 +90,9 @@
     </xsd:complexType>
     <xsd:element name="expiration" type="expiration_Type"/>
 
+    <xsd:element name="NoRegister">
+        <xsd:complexType />
+    </xsd:element>
+
 </xsd:schema>
 

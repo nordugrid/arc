@@ -172,6 +172,16 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
 }
 
 bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
+    if ( bool(cfg["NoRegister"]) || !bool(cfg["InfoRegister"])){
+       logger_.msg(DEBUG, "The service can not be registred.");
+       return true;
+    }
+
+    if ( ((std::string)cfg["InfoRegister"].Attribute("period")).empty() ){
+       logger_.msg(DEBUG, "Missing mandatory \"period\" attribute.");
+       return false;
+    }
+
     Glib::Mutex::Lock lock(lock_);
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
@@ -192,6 +202,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     }
 
     reg_info.period = period;
+
     reg_info.next_registration = creation_time.GetTime();
     reg_.push_back(reg_info);
     logger_.msg(DEBUG, "Service is successfully added to the InfoRegistrar connecting to infosys %s.", url_.fullstr());
