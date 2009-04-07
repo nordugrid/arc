@@ -3,22 +3,29 @@
         attributes: The query string.
     Register - for sending test Register messages
         attributes:
-            The ServiceID for register.
-            A key - value pair for register.
+            The following set of information for register.
+            - A ServiceID and an Endpoint reference.
+            - A ServiceID, an Endpoint reference and a Service type.
+            - A ServiceID, an Endpoint reference, a Service type and an Expiration period.
     RemoveRegistrations - for sending test RemoveRegistrations messages
         attributes: The ServiceID for remove.
     (The GetISISList operation will be used in every other cases impicitly.)
 
+    It is also possible to define the BootstrapISIS with the -i command line option.
+
     Usage:
-        testISISclient Query "query string"
-        testISISclient Register "ServiceID1,EPR1" "ServiceID2,EPR2" "ServiceID3,EPR3"
-        testISISclient RemoveRegistrations "ServiceID1" "ServiceID2"
+        testISISclient -m Query "query string"
+        testISISclient -m Register "ServiceID1,EPR1" "ServiceID2,EPR2,Type" "ServiceID3,EPR3,Type,ExpTime"
+        testISISclient -m RemoveRegistrations "ServiceID1" "ServiceID2"
         etc.
 
     Examples:
         testISISclient -m Register "Srv_ID1,EPR1"
+        testISISclient -m Register "Srv_ID1,EPR1,org.nordugrid.tests.echo,PT1M"
         testISISclient -m Query "/RegEntry/MetaSrcAdv/ServiceID[text()=\"Srv_ID1\"]"
         testISISclient -m RemoveRegistrations "Srv_ID1"
+
+        testISISclient -i https://your.domain.com/infosys -m RemoveRegistrations "Srv_ID1"
 
 */
 
@@ -156,7 +163,8 @@ std::string Query( Arc::URL url, std::string query ){
 
 
 // Register function
-std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::vector<std::string> &epr ){
+std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::vector<std::string> &epr,
+                      std::vector<std::string> type, std::vector<std::string> expiration ){
 
     if (serviceID.size() != epr.size()){
        logger.msg(Arc::DEBUG, " Service_ID's number is not equivalent with the ERP's number!");
@@ -204,15 +212,15 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
 
     for (int i=0; i < serviceID.size(); i++){
         Arc::XMLNode srcAdv = request.NewChild("RegEntry").NewChild("SrcAdv");
-        srcAdv.NewChild("Type") = "org.nordugrid.test.testISISclient";
-        Arc::XMLNode epr = srcAdv.NewChild("EPR");
-        epr.NewChild("wsa:Address") = epr[i];
+        srcAdv.NewChild("Type") = type[i];
+        Arc::XMLNode epr_xmlnode = srcAdv.NewChild("EPR");
+        epr_xmlnode.NewChild("wsa:Address") = epr[i];
         //srcAdv.NewChild("SSPair");
 
         Arc::XMLNode metaSrcAdv = request["RegEntry"][i].NewChild("MetaSrcAdv");
         metaSrcAdv.NewChild("ServiceID") = serviceID[i];
         metaSrcAdv.NewChild("GenTime") = out.str();
-        metaSrcAdv.NewChild("Expiration") = "P30M";
+        metaSrcAdv.NewChild("Expiration") = expiration[i];
     }
     Arc::Message reqmsg;
     Arc::Message repmsg;
@@ -290,6 +298,19 @@ std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &service
     for (std::vector<std::string>::const_iterator it = serviceID.begin(); it != serviceID.end(); it++){
         request.NewChild("ServiceID") = *it;
     }
+    time_t rawtime;
+    time ( &rawtime );	//current time
+    tm * ptm;
+    ptm = gmtime ( &rawtime );
+
+    std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+    std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+    std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+    std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+    std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+    std::stringstream out;
+    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+    request.NewChild("MessageGenerationTime") = out.str();
     Arc::Message reqmsg;
     Arc::Message repmsg;
     reqmsg.Payload(&req);
@@ -500,19 +521,25 @@ int main(int argc, char** argv) {
     else if (method == "Register"){
        std::vector<std::string> serviceID;
        std::vector<std::string> epr;
+       std::vector<std::string> type;
+       std::vector<std::string> expiration;
 
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
            std::vector<std::string> Elements = split( *it, "," );
-           if ( Elements.size() > 1) {
+           if ( Elements.size() >= 2 && Elements.size() <= 4 ) {
               serviceID.push_back(Elements[0]);
               epr.push_back(Elements[1]);
+              if ( Elements.size() >= 3 ) type.push_back(Elements[2]);
+              else type.push_back("org.nordugrid.tests.testISISclient");
+              if ( Elements.size() >= 4 ) expiration.push_back(Elements[3]);
+              else expiration.push_back("PT30M");
            }
            else {
-              logger.msg(Arc::ERROR, "Not enough parameter! %s", *it);
+              logger.msg(Arc::ERROR, "Not enough or too much parameters! %s", *it);
               return 1;
            }
        }
-       response = Register( ContactISIS, serviceID, epr );
+       response = Register( ContactISIS, serviceID, epr, type, expiration );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           if ( bool(resp["Body"]["Fault"]) ){ 
