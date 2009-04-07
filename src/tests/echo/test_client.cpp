@@ -50,7 +50,7 @@ int main(void) {
       </Component>\
       <Component name='http.client' id='http'><next id='tcp'/>\
         <Method>POST</Method>\
-        <Endpoint>/echo</Endpoint>\
+        <Endpoint>/Echo</Endpoint>\
       </Component>\
       <Component name='soap.client' id='soap' entry='soap'>\
         <next id='http'/>\

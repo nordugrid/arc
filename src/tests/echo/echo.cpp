@@ -31,10 +31,9 @@ namespace Echo {
 Service_Echo::Service_Echo(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logger::rootLogger, "Echo") {
   ns_["echo"]="urn:echo";
   prefix_=(std::string)((*cfg)["prefix"]);
-  suffix_=(std::string)((*cfg)["suffix"]);  
-  serviceid_=(std::string)((*cfg)["serviceid"]);  
-  endpoint_=(std::string)((*cfg)["endpoint"]);  
-  expiration_=(std::string)((*cfg)["expiration"]); 
+  suffix_=(std::string)((*cfg)["suffix"]);
+  endpoint_=(std::string)((*cfg)["endpoint"]);
+  expiration_=(std::string)((*cfg)["expiration"]);
 
 #if 0
   // Parse the policy location information, and put them into a map container for later using
@@ -162,6 +161,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
 }
 
 bool Service_Echo::RegistrationCollector(Arc::XMLNode &doc) {
+  logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
   // RegEntry element generation
   Arc::XMLNode empty(ns_, "RegEntry");
   empty.New(doc);
@@ -169,25 +169,10 @@ bool Service_Echo::RegistrationCollector(Arc::XMLNode &doc) {
   doc.NewChild("SrcAdv");
   doc.NewChild("MetaSrcAdv");
 
-  doc["SrcAdv"].NewChild("Type") = "this is the Type value";
+  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.tests.echo";
   doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
   //doc["SrcAdv"].NewChild("SSPair");
 
-  doc["MetaSrcAdv"].NewChild("ServiceID") = serviceid_;
-
-  time_t rawtime;
-  time ( &rawtime );	//current time
-  tm * ptm;
-  ptm = gmtime ( &rawtime );
-
-  std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-  std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-  std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-  std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-  std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-  std::stringstream out;
-  out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
-  doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
   doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
 
   std::string regcoll;

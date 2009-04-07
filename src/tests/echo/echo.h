@@ -29,7 +29,6 @@ class Service_Echo: public Arc::RegisteredService
     protected:
         std::string prefix_;
         std::string suffix_;
-        std::string serviceid_;
         std::string endpoint_;
         std::string expiration_;
         std::string policylocation_;
