@@ -81,7 +81,7 @@ bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const
     return true;
   }
   else {};
-  return false;
+  return true;
 }
 
 bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val) {
