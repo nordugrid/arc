@@ -219,9 +219,24 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             reg_ns["glue2"] = GLUE2_D42_NAMESPACE;
             reg_ns["isis"] = ISIS_NAMESPACE;
 
+            time_t current_time;
+            time ( &current_time );  //current time
+            tm * ptm;
+            ptm = gmtime ( &current_time );
+
+            std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+            std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+            std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+            std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+            std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+            std::stringstream out;
+            out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
+            out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+
             PayloadSOAP request(reg_ns);
             XMLNode op = request.NewChild("isis:RemoveRegistrations");
             op.NewChild("ServiceID") = r->serviceid_;
+            op.NewChild("MessageGenerationTime") = out.str();
 
             // send
             PayloadSOAP *response;
@@ -262,7 +277,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             return true;
         };
     };
-    logger_.msg(ERROR, "Removing service from InfoRegistrar connecting to infosys %s was unsuccessful.", url_.fullstr());
+    logger_.msg(DEBUG, "Unregistred Service can not be removed.");
     return false;
 }
 

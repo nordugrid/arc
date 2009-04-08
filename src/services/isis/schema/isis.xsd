@@ -37,6 +37,7 @@
     <!-- Input type for RemoveRegistrations operation -->
     <xsd:complexType name="RemoveRegistrationsType">
         <xsd:sequence>
+            <xsd:element name="MessageGenerationTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
