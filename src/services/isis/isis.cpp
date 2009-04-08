@@ -6,11 +6,94 @@
 
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/MCCLoader.h>
+#include <arc/Thread.h>
 
 #include "isis.h"
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 namespace ISIS
 {
+static Arc::Logger thread_logger(Arc::Logger::rootLogger, "InfoSys_Thread");
+
+std::string ChainConfigString( Arc::URL url ) {
+
+    std::string host = url.Host();
+    std::string port;
+    std::stringstream ss;
+    ss << url.Port();
+    ss >> port;
+    std::string path = url.Path();
+    thread_logger.msg(Arc::DEBUG, " [ host : %s ]", host);
+    thread_logger.msg(Arc::DEBUG, " [ port : %s ]", port);
+    thread_logger.msg(Arc::DEBUG, " [ path : %s ]", path);
+
+    // Create client chain
+    std::string doc="";
+    doc +="\n";
+    doc +="    <ArcConfig\n";
+    doc +="      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\n";
+    doc +="      xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\">\n";
+    doc +="     <ModuleManager>\n";
+    doc +="        <Path>.libs/</Path>\n";
+    doc +="        <Path>../../hed/mcc/http/.libs/</Path>\n";
+    doc +="        <Path>../../hed/mcc/soap/.libs/</Path>\n";
+    doc +="        <Path>../../hed/mcc/tls/.libs/</Path>\n";
+    doc +="        <Path>../../hed/mcc/tcp/.libs/</Path>\n";
+    doc +="     </ModuleManager>\n";
+    doc +="     <Plugins><Name>mcctcp</Name></Plugins>\n";
+    doc +="     <Plugins><Name>mcctls</Name></Plugins>\n";
+    doc +="     <Plugins><Name>mcchttp</Name></Plugins>\n";
+    doc +="     <Plugins><Name>mccsoap</Name></Plugins>\n";
+    doc +="     <Chain>\n";
+    doc +="      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>" + host + "</tcp:Host><tcp:Port>" + port + "</tcp:Port></tcp:Connect></Component>\n";
+    doc +="      <Component name='http.client' id='http'><next id='tcp'/><Method>POST</Method><Endpoint>"+ path +"</Endpoint></Component>\n";
+    doc +="      <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\n";
+    doc +="     </Chain>\n";
+    doc +="    </ArcConfig>";
+    return doc;
+}
+
+struct Thread_data {
+   std::string url;
+   Arc::XMLNode node;
+};
+
+//static void message_send_thread(void *data_n) {
+static void message_send_thread(void *data) {
+    std::string url = ((ISIS::Thread_data *)data)->url;
+    std::string node_str;
+    (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
+
+    thread_logger.msg(Arc::DEBUG, "Neighbor's url: %s", ((ISIS::Thread_data *)data)->url);
+    thread_logger.msg(Arc::DEBUG, "Sended XML: %s", node_str);
+
+    //Send SOAP message to the neighbor.
+    //Arc::XMLNode client_doc(ChainConfigString(url));
+
+}
+
+void SendToNeighbors(Arc::XMLNode& node, std::vector<std::string>& neighbors_, Arc::Logger& logger_) {
+    if ( !bool(node) ) {
+       logger_.msg(Arc::WARNING, "Empty message can not be send to the neighbors.");
+       return;
+    }
+
+    for (std::vector<std::string>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
+        //thread creation
+        ISIS::Thread_data* data;
+        data = new ISIS::Thread_data;
+        data->url = *it;
+        node.New(data->node);
+        Arc::CreateThreadFunction(&message_send_thread, data);
+    }
+
+    logger_.msg(Arc::DEBUG, "All message sender thread created.");
+    return;
+}
+
     ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL) {
         serviceid_=(std::string)((*cfg)["serviceid"]);
         endpoint_=(std::string)((*cfg)["endpoint"]);
@@ -114,21 +197,83 @@ namespace ISIS
             logger_.msg(Arc::DEBUG, "Register: ID=%s; EPR=%s; MsgGenTime=%s",
                 (std::string) regentry_["MetaSrcAdv"]["ServiceID"], (std::string) regentry_["SrcAdv"]["EPR"]["Address"],
                 (std::string) request["Header"]["MessageGenerationTime"]);
-            Arc::XMLNode regentry_xml;
-            regentry_.New(regentry_xml);
-            db_->put((std::string) regentry_["MetaSrcAdv"]["ServiceID"], regentry_xml);
+
+            //search and check in the database
+            Arc::XMLNode db_regentry;
+            //db_->get(ServiceID, RegistrationEntry);
+            db_->get((std::string) regentry_["MetaSrcAdv"]["ServiceID"], db_regentry);
+
+            Arc::Time new_gentime((std::string) regentry_["MetaSrcAdv"]["GenTime"]);
+            if ( !bool(db_regentry) || 
+                ( bool(db_regentry) && Arc::Time((std::string)db_regentry["MetaSrcAdv"]["GenTime"]) < new_gentime ) ) {
+               Arc::XMLNode regentry_xml;
+               regentry_.New(regentry_xml);
+               db_->put((std::string) regentry_["MetaSrcAdv"]["ServiceID"], regentry_xml);
+            }
+            else {
+               regentry_.Destroy();
+            }
         }
+        //Send to neighbors the Registration(s).
+        if ( bool(request["RegEntry"]) )
+           SendToNeighbors(request, neighbors_, logger_);
+
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
     Arc::MCC_Status ISIService::RemoveRegistrations(Arc::XMLNode &request, Arc::XMLNode &response) {
+        //database dump
+        Arc::XMLNode query_response(ns_, "QueryResponse");
+        Arc::XMLNode query(ns_, "Query");
+        query.NewChild("QueryString") = "/*";
+        Query(query, query_response);
+
         int i=0;
         while ((bool) request["ServiceID"][i]) {
             std::string service_id = (std::string) request["ServiceID"][i];
             logger_.msg(Arc::DEBUG, "RemoveRegistrations: ID=%s", service_id);
-            db_->del(service_id);
+
+            //search and check in the database
+            Arc::XMLNode regentry;
+            //db_->get(ServiceID, RegistrationEntry);
+            db_->get(service_id, regentry);
+            if ( bool(regentry) ) {
+               logger_.msg(Arc::DEBUG, "The ServiceID (%s) is found in the database.", service_id);
+               Arc::Time old_gentime((std::string)regentry["MetaSrcAdv"]["GenTime"]);
+               Arc::Time new_gentime((std::string)request["MessageGenerationTime"]);
+               if ( old_gentime >= new_gentime &&  !bool(regentry["MetaSrcAdv"]["Expiration"])) {
+                  //Removed the ServiceID from the RemoveRegistrations message.
+                  request["ServiceID"][i].Destroy();
+               }
+               else {
+                  //update the database
+                  logger_.msg(Arc::DEBUG,"Database update with the new \"MessageGenerationTime\".");
+                  Arc::XMLNode new_data(ns_, "RegEntry");
+                  new_data.NewChild("MetaSrcAdv").NewChild("ServiceID") = service_id;
+                  new_data["MetaSrcAdv"].NewChild("GenTime") = (std::string)request["MessageGenerationTime"];
+                  db_->put(service_id, new_data);
+               }
+            }
+            else {
+               logger_.msg(Arc::DEBUG, "The ServiceID (%s) is not found in the database.", service_id);
+               logger_.msg(Arc::DEBUG, "Now added this ServiceID (%s) in the database.", service_id);
+               //add this element in the database
+               logger_.msg(Arc::DEBUG,"Database update with the new \"MessageGenerationTime\".");
+               Arc::XMLNode new_data(ns_, "RegEntry");
+               new_data.NewChild("MetaSrcAdv").NewChild("ServiceID") = service_id;
+               new_data["MetaSrcAdv"].NewChild("GenTime") = (std::string)request["MessageGenerationTime"];
+               db_->put(service_id, new_data);
+            }
+            //TODO: create soft state datebase cleaning thread.
+            //db_->del(service_id);
             i++;
         }
+        logger_.msg(Arc::DEBUG, "RemoveRegistrations: MGenTime=%s", (std::string)request["MessageGenerationTime"]);
+
+        // Send RemoveRegistration message to the other(s) neighbors ISIS.
+        if ( bool(request["ServiceID"]) )
+           SendToNeighbors(request, neighbors_, logger_);
+
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
@@ -202,7 +347,7 @@ namespace ISIS
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    static Arc::Plugin *get_service(Arc::PluginArgument* arg) { 
+    static Arc::Plugin *get_service(Arc::PluginArgument* arg) {
         Arc::ServicePluginArgument* srvarg = arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
         if(!srvarg) return NULL;
         return new ISIService((Arc::Config*)(*srvarg));
