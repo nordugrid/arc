@@ -21,7 +21,7 @@ namespace ISIS {
             Arc::NS ns_;
             Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
             // List of known neighbor's endpoint URL in string
-            std::vector<std::string> neighbors_;
+            std::vector<Arc::ISIS_description> neighbors_;
 
             // Functions for the service specific interface
             Arc::MCC_Status Query(Arc::XMLNode &request, Arc::XMLNode &response);

@@ -7,6 +7,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCCLoader.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/Thread.h>
 
 #include "isis.h"
@@ -18,76 +19,75 @@ namespace ISIS
 {
 static Arc::Logger thread_logger(Arc::Logger::rootLogger, "InfoSys_Thread");
 
-std::string ChainConfigString( Arc::URL url ) {
-
-    std::string host = url.Host();
-    std::string port;
-    std::stringstream ss;
-    ss << url.Port();
-    ss >> port;
-    std::string path = url.Path();
-    thread_logger.msg(Arc::DEBUG, " [ host : %s ]", host);
-    thread_logger.msg(Arc::DEBUG, " [ port : %s ]", port);
-    thread_logger.msg(Arc::DEBUG, " [ path : %s ]", path);
-
-    // Create client chain
-    std::string doc="";
-    doc +="\n";
-    doc +="    <ArcConfig\n";
-    doc +="      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\n";
-    doc +="      xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\">\n";
-    doc +="     <ModuleManager>\n";
-    doc +="        <Path>.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/http/.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/soap/.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/tls/.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/tcp/.libs/</Path>\n";
-    doc +="     </ModuleManager>\n";
-    doc +="     <Plugins><Name>mcctcp</Name></Plugins>\n";
-    doc +="     <Plugins><Name>mcctls</Name></Plugins>\n";
-    doc +="     <Plugins><Name>mcchttp</Name></Plugins>\n";
-    doc +="     <Plugins><Name>mccsoap</Name></Plugins>\n";
-    doc +="     <Chain>\n";
-    doc +="      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>" + host + "</tcp:Host><tcp:Port>" + port + "</tcp:Port></tcp:Connect></Component>\n";
-    doc +="      <Component name='http.client' id='http'><next id='tcp'/><Method>POST</Method><Endpoint>"+ path +"</Endpoint></Component>\n";
-    doc +="      <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\n";
-    doc +="     </Chain>\n";
-    doc +="    </ArcConfig>";
-    return doc;
-}
-
 struct Thread_data {
-   std::string url;
+   Arc::ISIS_description isis;
    Arc::XMLNode node;
 };
 
-//static void message_send_thread(void *data_n) {
 static void message_send_thread(void *data) {
-    std::string url = ((ISIS::Thread_data *)data)->url;
+    std::string url = ((ISIS::Thread_data *)data)->isis.url;
+    if ( url.empty() ) {
+       thread_logger.msg(Arc::ERROR, "Empty URL add to the thread.");
+       return;
+    }
+    if ( !bool(((ISIS::Thread_data *)data)->node) ) {
+       thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
+       return;
+    }
     std::string node_str;
     (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
 
-    thread_logger.msg(Arc::DEBUG, "Neighbor's url: %s", ((ISIS::Thread_data *)data)->url);
+    thread_logger.msg(Arc::DEBUG, "Neighbor's url: %s", url);
     thread_logger.msg(Arc::DEBUG, "Sended XML: %s", node_str);
 
     //Send SOAP message to the neighbor.
-    //Arc::XMLNode client_doc(ChainConfigString(url));
+    Arc::PayloadSOAP *response = NULL;
+    Arc::MCCConfig mcc_cfg;
+//    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
+//    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
+//    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
+//    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+
+    Arc::ClientSOAP client_entry(mcc_cfg, url);
+
+    // Create and send "Register/RemoveRegistrations" request
+    thread_logger.msg(Arc::INFO, "Creating and sending request");
+    Arc::NS message_ns;
+    message_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
+    message_ns["wsa"] = "http://www.w3.org/2005/08/addressing";
+    message_ns["glue2"] = GLUE2_D42_NAMESPACE;
+    message_ns["isis"] = ISIS_NAMESPACE;
+    Arc::PayloadSOAP req(message_ns);
+
+    req.NewChild(((ISIS::Thread_data *)data)->node);
+    Arc::MCC_Status status;
+    thread_logger.msg(Arc::DEBUG, " Request sent to %s. Waiting for the response.", url );
+    status= client_entry.process(&req,&response);
+
+    if (!status) {
+       thread_logger.msg(Arc::ERROR, "%s Request failed", url);
+       return;
+    };
+    thread_logger.msg(Arc::DEBUG, "Status (%s): OK",url );
 
 }
 
-void SendToNeighbors(Arc::XMLNode& node, std::vector<std::string>& neighbors_, Arc::Logger& logger_) {
+void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& neighbors_,
+                     Arc::Logger& logger_, Arc::ISIS_description isis_desc) {
     if ( !bool(node) ) {
        logger_.msg(Arc::WARNING, "Empty message can not be send to the neighbors.");
        return;
     }
 
-    for (std::vector<std::string>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
-        //thread creation
-        ISIS::Thread_data* data;
-        data = new ISIS::Thread_data;
-        data->url = *it;
-        node.New(data->node);
-        Arc::CreateThreadFunction(&message_send_thread, data);
+    for (std::vector<Arc::ISIS_description>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
+        if ( isis_desc.url != (*it).url ) {
+           //thread creation
+           ISIS::Thread_data* data;
+           data = new ISIS::Thread_data;
+           data->isis = isis_desc;
+           node.New(data->node);
+           Arc::CreateThreadFunction(&message_send_thread, data);
+        }
     }
 
     logger_.msg(Arc::DEBUG, "All message sender thread created.");
@@ -113,7 +113,9 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<std::string>& neighbors_, A
         // Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
         int i=0;
         while ((bool)(*cfg)["EndpointURL"][i]) {
-            neighbors_.push_back((std::string)(*cfg)["EndpointURL"][i++]);
+            Arc::ISIS_description isisdesc;
+            isisdesc.url = (std::string)(*cfg)["EndpointURL"][i++];
+            neighbors_.push_back(isisdesc);
         }
     }
 
@@ -215,19 +217,15 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<std::string>& neighbors_, A
             }
         }
         //Send to neighbors the Registration(s).
+        Arc::ISIS_description isis;
+        isis.url = endpoint_;
         if ( bool(request["RegEntry"]) )
-           SendToNeighbors(request, neighbors_, logger_);
+           SendToNeighbors(request, neighbors_, logger_, isis);
 
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
     Arc::MCC_Status ISIService::RemoveRegistrations(Arc::XMLNode &request, Arc::XMLNode &response) {
-        //database dump
-        Arc::XMLNode query_response(ns_, "QueryResponse");
-        Arc::XMLNode query(ns_, "Query");
-        query.NewChild("QueryString") = "/*";
-        Query(query, query_response);
-
         int i=0;
         while ((bool) request["ServiceID"][i]) {
             std::string service_id = (std::string) request["ServiceID"][i];
@@ -271,16 +269,18 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<std::string>& neighbors_, A
         logger_.msg(Arc::DEBUG, "RemoveRegistrations: MGenTime=%s", (std::string)request["MessageGenerationTime"]);
 
         // Send RemoveRegistration message to the other(s) neighbors ISIS.
+        Arc::ISIS_description isis;
+        isis.url = endpoint_;
         if ( bool(request["ServiceID"]) )
-           SendToNeighbors(request, neighbors_, logger_);
+           SendToNeighbors(request, neighbors_, logger_, isis);
 
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
     Arc::MCC_Status ISIService::GetISISList(Arc::XMLNode &request, Arc::XMLNode &response) {
         logger_.msg(Arc::DEBUG, "GetISISList");
-        for (std::vector<std::string>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
-            response.NewChild("EPR") = (*it);
+        for (std::vector<Arc::ISIS_description>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
+            response.NewChild("EPR") = (*it).url;
         }
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
