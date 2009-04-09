@@ -63,6 +63,15 @@ struct Register_Info_Type{
     Time next_registration;
 };
 
+// Data structure for describe a remote ISIS
+struct ISIS_description {
+    std::string url;
+    std::string key;
+    std::string cert;
+    std::string proxy;
+    std::string cadir;
+};
+
 /// Registration process associated with particular ISIS
 /** Instance of this class starts thread which takes care 
    passing information about associated services to ISIS
@@ -77,11 +86,6 @@ class InfoRegistrar {
            configuration document. */
         InfoRegistrar(XMLNode cfg);
         // Configuration parameters
-        URL url_;
-        std::string key_;
-        std::string cert_;
-        std::string proxy_;
-        std::string cadir_;
         std::string id_;
         // Associated services
         std::list<Register_Info_Type> reg_;
@@ -95,10 +99,23 @@ class InfoRegistrar {
         Time creation_time;
         // Time window providing some flexibility to avoid the casual slides
         Period stretch_window;
+
+        // ISIS handle attributes & functions
+        ISIS_description defaultBootstrapISIS;
+        ISIS_description myISIS;
+        int originalISISCount;
+        std::vector<ISIS_description> myISISList;
+
+        void initISIS(XMLNode cfg);
+        void removeISIS(ISIS_description isis);
+        void getISISList(ISIS_description isis);
+        ISIS_description getISIS(void);
+        // End of ISIS handle attributes & functions
+
     public:
         ~InfoRegistrar(void);
-        operator bool(void) { return (bool)url_; };
-        bool operator!(void) { return !url_; };
+        operator bool(void) { return !myISIS.url.empty(); };
+        bool operator!(void) { return myISIS.url.empty(); };
         /// Performs registartion in a loop.
         /** Never exits unless there is a critical error or
            requested by destructor. */

@@ -153,16 +153,8 @@ void InfoRegisterContainer::removeService(InfoRegister* reg) {
 
 InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
     id_=(std::string)cfg.Attribute("id");
-    key_   = (std::string)cfg["KeyPath"];
-    cert_  = (std::string)cfg["CertificatePath"];
-    proxy_ = (std::string)cfg["ProxyPath"];
-    cadir_ = (std::string)cfg["CACertificatesDir"];
-    url_ = URL((std::string)cfg["URL"]);
-    if(!url_) {
-      logger_.msg(ERROR, "Can't recognize URL: %s",(std::string)cfg["URL"]);
-    } else {
-      //logger_.msg(DEBUG, "InfoRegistrar created for URL: %s",(std::string)cfg["URL"]);
-    }
+
+    initISIS(cfg);
 
     time_t rawtime;
     time ( &rawtime );  //current time
@@ -186,7 +178,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
         if(reg == r->p_register) {
-            logger_.msg(DEBUG, "Service was already registered to the InfoRegistrar connecting to infosys %s.", url_.fullstr());
+            logger_.msg(DEBUG, "Service was already registered to the InfoRegistrar connecting to infosys %s.", myISIS.url);
             return false;
         }
     }
@@ -205,7 +197,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
 
     reg_info.next_registration = creation_time.GetTime();
     reg_.push_back(reg_info);
-    logger_.msg(DEBUG, "Service is successfully added to the InfoRegistrar connecting to infosys %s.", url_.fullstr());
+    logger_.msg(DEBUG, "Service is successfully added to the InfoRegistrar connecting to infosys %s.", myISIS.url);
     return true;
 }
 
@@ -241,12 +233,12 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             // send
             PayloadSOAP *response;
             MCCConfig mcc_cfg;
-            mcc_cfg.AddPrivateKey(key_);
-            mcc_cfg.AddCertificate(cert_);
-            mcc_cfg.AddProxy(proxy_);
-            mcc_cfg.AddCADir(cadir_);
+            mcc_cfg.AddPrivateKey(myISIS.key);
+            mcc_cfg.AddCertificate(myISIS.cert);
+            mcc_cfg.AddProxy(myISIS.proxy);
+            mcc_cfg.AddCADir(myISIS.cadir);
 
-            ClientSOAP cli(mcc_cfg,url_);
+            ClientSOAP cli(mcc_cfg,myISIS.url);
             MCC_Status status = cli.process(&request, &response);
 
             std::string response_string;
@@ -257,15 +249,15 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
                 (!response)) {
                 //(!response) ||
                 //(!bool((*response)["RemoveRegistrationResponse"]))) {
-                logger_.msg(ERROR, "Failed to remove registration from %s ISIS", url_.fullstr());
+                logger_.msg(ERROR, "Failed to remove registration from %s ISIS", myISIS.url);
             } else {
                 if(!(bool)(*response)["RemoveRegistrationResponseElement"])  {
-                    logger_.msg(DEBUG, "Successful removed registration from ISIS (%s)", url_.fullstr());
+                    logger_.msg(DEBUG, "Successful removed registration from ISIS (%s)", myISIS.url);
                 } else {
                     int i=0;
                     while ((bool)(*response)["RemoveRegistrationResponseElement"][i]) {
                         logger_.msg(DEBUG, "Failed to remove registration from ISIS (%s) - %s",
-                            url_.fullstr(), std::string((*response)["RemoveRegistrationResponseElement"][i]["Fault"]));
+                            myISIS.url, std::string((*response)["RemoveRegistrationResponseElement"][i]["Fault"]));
                         i++;
                     }
                 }
@@ -273,7 +265,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
 
             reg_.erase(r);
 
-            logger_.msg(DEBUG, "Service removed from InfoRegistrar connecting to infosys %s.", url_.fullstr());
+            logger_.msg(DEBUG, "Service removed from InfoRegistrar connecting to infosys %s.", myISIS.url);
             return true;
         };
     };
@@ -299,13 +291,13 @@ class CondExit {
 void InfoRegistrar::registration(void) {
     Glib::Mutex::Lock lock(lock_);
     CondExit cond(cond_exited_);
-    std::string isis_name = url_.fullstr();
+    std::string isis_name = myISIS.url;
     while(reg_.size() > 0) {
 
         logger_.msg(DEBUG, "Registration starts: %s",isis_name);
         logger_.msg(DEBUG, "reg_.size(): %d",reg_.size());
 
-        if(!url_) {
+        if(myISIS.url.empty()) {
             logger_.msg(WARNING, "Registrant has no proper URL specified");
             return;
         }
@@ -425,10 +417,10 @@ void InfoRegistrar::registration(void) {
             // send
             PayloadSOAP *response;
             MCCConfig mcc_cfg;
-            mcc_cfg.AddPrivateKey(key_);
-            mcc_cfg.AddCertificate(cert_);
-            mcc_cfg.AddProxy(proxy_);
-            mcc_cfg.AddCADir(cadir_);
+            mcc_cfg.AddPrivateKey(myISIS.key);
+            mcc_cfg.AddCertificate(myISIS.cert);
+            mcc_cfg.AddProxy(myISIS.proxy);
+            mcc_cfg.AddCADir(myISIS.cadir);
 
             {std::string services_document;
              op.GetDoc(services_document, true);
@@ -436,7 +428,7 @@ void InfoRegistrar::registration(void) {
             }
             //logger_.msg(DEBUG, "Call the ISIS.process method.");
 
-            ClientSOAP cli(mcc_cfg,url_);
+            ClientSOAP cli(mcc_cfg,myISIS.url);
             MCC_Status status = cli.process(&request, &response);
 
             if ((!status) ||
@@ -444,13 +436,13 @@ void InfoRegistrar::registration(void) {
                 (!bool((*response)["RegisterResponse"]))) {
                 logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
             } else {
-                std::string response_string;
-                (*response)["RegisterResponse"].GetDoc(response_string, true);
-                logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
-
                 XMLNode fault = (*response)["Fault"];
 
                 if(!fault)  {
+                    std::string response_string;
+                    (*response)["RegisterResponse"].GetDoc(response_string, true);
+                    logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
+
                     logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name); 
                 } else {
                     logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
