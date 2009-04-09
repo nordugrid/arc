@@ -84,7 +84,7 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
            //thread creation
            ISIS::Thread_data* data;
            data = new ISIS::Thread_data;
-           data->isis = isis_desc;
+           data->isis = *it;
            node.New(data->node);
            Arc::CreateThreadFunction(&message_send_thread, data);
         }
