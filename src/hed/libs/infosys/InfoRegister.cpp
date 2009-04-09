@@ -439,16 +439,17 @@ void InfoRegistrar::registration(void) {
             ClientSOAP cli(mcc_cfg,url_);
             MCC_Status status = cli.process(&request, &response);
 
-            std::string response_string;
-            (*response)["RegisterResponse"].GetDoc(response_string, true);
-            logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
-
             if ((!status) ||
                 (!response) ||
                 (!bool((*response)["RegisterResponse"]))) {
                 logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
             } else {
+                std::string response_string;
+                (*response)["RegisterResponse"].GetDoc(response_string, true);
+                logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
+
                 XMLNode fault = (*response)["Fault"];
+
                 if(!fault)  {
                     logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name); 
                 } else {
