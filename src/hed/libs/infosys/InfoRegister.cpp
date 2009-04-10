@@ -154,6 +154,18 @@ void InfoRegisterContainer::removeService(InfoRegister* reg) {
 InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
     id_=(std::string)cfg.Attribute("id");
 
+    if ((bool)cfg["Retry"]) {
+        if (!((std::string)cfg["Retry"]).empty()) {
+            if(EOF == sscanf(((std::string)cfg["Retry"]).c_str(), "%d", &retry) || retry < 0)
+            {
+                logger_.msg(ERROR, "Configuration error. Retry: \"%s\" is not a valid value. Default value will be used.");
+                retry = 5;
+            }
+        } else retry = 5;
+    } else retry = 5;
+
+    logger_.msg(DEBUG, "Retry: %d", retry);
+
     initISIS(cfg);
 
     time_t rawtime;

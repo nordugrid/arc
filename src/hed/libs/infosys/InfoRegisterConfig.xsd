@@ -21,6 +21,9 @@
             <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0"/>
             <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0"/>
             <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0"/>
+            <!-- Retry count. Specifie how many times have an ISIS to timeout to handle it as 
+                unavailable. If there is no value specified the default value: 5 will be used. -->
+            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
         <!-- Attribute id may be used to refer to this element -->
         <xsd:attribute name="id" type="xsd:string" use="optional"/>

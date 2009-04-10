@@ -87,6 +87,7 @@ class InfoRegistrar {
         InfoRegistrar(XMLNode cfg);
         // Configuration parameters
         std::string id_;
+        int retry;
         // Associated services
         std::list<Register_Info_Type> reg_;
         // Mutex protecting reg_ list
