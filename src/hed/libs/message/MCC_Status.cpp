@@ -28,8 +28,8 @@ namespace Arc {
   }
 
   MCC_Status::MCC_Status(StatusKind kind,
-			 const std::string& origin,
-			 const std::string& explanation):
+                         const std::string& origin,
+                         const std::string& explanation):
     kind(kind),
     origin(origin),
     explanation(explanation)

@@ -6,7 +6,7 @@
 #include <string>
 
 namespace Arc {
-  
+
   //! Status kinds (types)
   /*! This enum defines a set of possible status kinds.
    */
@@ -20,7 +20,7 @@ namespace Arc {
     BUSY_ERROR = 32,               //! Message can't be processed now
     SESSION_CLOSE = 64             //! Higher level protocol needs session to be closed
   };
-  
+
   //! Conversion to string.
   /*! Conversion from StatusKind to string.
     @param kind The StatusKind to convert.
@@ -44,13 +44,13 @@ namespace Arc {
       @param explanation An explanation (default: "No explanation.")
     */
     MCC_Status(StatusKind kind = STATUS_UNDEFINED,
-	       const std::string& origin = "???",
-	       const std::string& explanation = "No explanation.");
+               const std::string& origin = "???",
+               const std::string& explanation = "No explanation.");
 
     //! Is the status kind ok?
-    /*! This method returns true iff the status kind of this object is
+    /*! This method returns true if the status kind of this object is
       STATUS_OK
-      @return true iff kind==STATUS_OK
+      @return true if kind==STATUS_OK
     */
     bool isOk() const;
 
@@ -77,14 +77,14 @@ namespace Arc {
     /*! This operator converts a MCC_Status object to a string.
      */
     operator std::string() const;
-    
+
     //! Is the status kind ok?
-    /*! This method returns true iff the status kind of this object is
+    /*! This method returns true if the status kind of this object is
       STATUS_OK
-      @return true iff kind==STATUS_OK
+      @return true if kind==STATUS_OK
     */
     operator bool(void) const { return isOk(); };
-    
+
     //! not operator
     /*! Returns true if the status kind is not OK
       @return true if kind!=STATUS_OK
@@ -107,3 +107,4 @@ namespace Arc {
 }
 
 #endif
+
