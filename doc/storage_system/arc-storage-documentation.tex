@@ -6,6 +6,7 @@
 \usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
 \usepackage{geometry}                              %for defining page size
 \usepackage{longtable}                             %for breaking tables
+\usepackage{trackchanges}
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2CM}
 \hypersetup{
@@ -80,7 +81,7 @@
 \label{cha:overview}
 
 
-The ARC storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and a storage element service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), \url{https://forge.gridforum.org/projects/byteio-wg/}}, etc.). For each storage node one of the services of the ARC storage system is needed to manage it and to integrate it into the system. There is a way on the client side to access third-party storage solutions through the namespace of the ARC storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
+Chelonia is a distributed system for storing replicated \emph{file}s on several file storage nodes and managing them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems). A collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}'s). The users can use this global namespace as if they were using a local filesystem. Files can be transfered by several different transfer protocols. The client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and a running storage element service (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), \url{https://forge.gridforum.org/projects/byteio-wg/}}, etc.). \note[JKN]{TODO: Rephrase this sentence; "one of the services" seems vague}For each storage node one of the services of the ARC storage system is needed to manage it and to integrate it into the system. The client side provides access to third-party storage solutions through the namespace of the ARC storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
 \begin{itemize}
     \item the \textbf{A-Hash} service, which is a replicated database which is used by the Librarian to store metadata;
     \item the \textbf{Librarian} service, which handles the metadata and hierarchy of collections and files, the location of replicas, and health data of the Shepherd services, using the A-Hash as database;
@@ -90,16 +91,16 @@ The ARC storage system is a distributed system for storing replicated \emph{file
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.8}{\includegraphics{arc-storage-services.pdf}}}
-\caption{\label{fig:services}The components of the ARC storage: the \textbf{A-H}ash service, the \textbf{L}ibrarian service, the \textbf{B}artender service and the \textbf{S}hepherd service.}}
+\caption{\label{fig:services}{\bf TODO:} explain figure, since components are not yet introduced. The components of the ARC storage: the \textbf{A-H}ash service, the \textbf{L}ibrarian service, the \textbf{B}artender service and the \textbf{S}hepherd service.}}
 \end{figure}
 
 \section{Files and collections} % (fold)
 \label{sec:files_and_collections}
 
 The storage system is capable of storing files which can be grouped in collections and sub-collections, etc.
-Every file and collection has a unique ID in the system called the \emph{GUID}. Compared to the well-known structure of local file systems, these GUIDs are very similar to the concept of \emph{inode}s. And as a directory on a local filesystem is basically just a list of name and inode pairs, a collection on the ARC storage is just a list of name and GUID pairs. There is a dedicated collection which is the \emph{root collection}. This makes the namespace of the ARC storage system a hierarchical namespace where you can start at the root collection, and go to sub-collections and sub-sub-collections to get to a file. This path is called the \emph{Logical Name} (LN). For example if there is a sub-collection called \verb!saturn! in the root collection, and there is a file called \verb!rings! in this sub-collection, then the LN of this file is \verb!/saturn/rings!.
+Every file and collection has a unique ID in the system called the \emph{GUID}. Compared to the well-known structure of local file systems, these GUID's are very similar to the concept of \emph{inode}s. And as a directory on a local filesystem is basically just a list of name and inode pairs, a collection on the ARC storage is just a list of name and GUID pairs. There is a dedicated collection which is the \emph{root collection}. This makes the namespace of the ARC storage system a hierarchical namespace where you can start at the root collection, and go to sub-collections and sub-sub-collections to get to a file. This path is called the \emph{Logical Name} (LN). For example if there is a sub-collection called \verb!saturn! in the root collection, and there is a file called \verb!rings! in this sub-collection, then the LN of this file is \verb!/saturn/rings!.
 
-Besides the Logical Names we can refer to a file or collection by simply its GUID, or we can use GUIDs and Logical Names together, as seen on Figure~\ref{fig:namespace}.
+In addition to the Logical Names we can refer to a file or collection simply by its GUID, or we can use GUID's and Logical Names together, as seen in Figure~\ref{fig:namespace}.
 
 The full syntax of Logical Names is \verb#/[path]# or \verb#<GUID>[/<path>]# where [...] indicates optional parts.
 
@@ -108,75 +109,75 @@ The full syntax of Logical Names is \verb#/[path]# or \verb#<GUID>[/<path>]# whe
 \caption{\label{fig:namespace}Example of the hierarchy of the global namespace} }
 \end{figure}
 
-Example on Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then we can refer to this file with the Logical Name \verb#1234/green/orange/huge#, which means that from the collection called \verb!1234! we have to follow along the path: \verb!green!, \verb!orange!, \verb!huge!.
+An example of the hierarchy of the global namespace is shown in Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then we can refer to this file with the Logical Name \verb#1234/green/orange/huge#, which means that from the collection called \verb!1234! we have to follow along the path: \verb!green!, \verb!orange!, \verb!huge!.
 
-There is a dedicated root collection (which has the GUID \verb#0#), and if a LN starts with no GUID prefix, it is implicitly prefixed with the GUID of this well-known root collection, e.g.~\verb#/why/blue# means \verb#0/why/blue#. If a user wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, which concept is very similar to a hardlink in a regular local file system.
+There is a dedicated root collection (which has the GUID \verb#0#), and if a LN starts without a GUID prefix, it is implicitly prefixed with the GUID of the root collection, e.g.~\verb#/why/blue# means \verb#0/why/blue#. If a user wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, a concept very similar to a hardlink in a \note[JKN]{Todo: Posix file system?}regular local file system.
 
 % section files_and_collections (end)
 
 \section{Storage nodes and replicas} % (fold)
 \label{sec:storage_nodes_and_replicas}
 
-The collections in the ARC storage are logical entities, the content of a collection is stored as metadata of the collection, which means the a collection actually has no physical data. A file however has both metadata and real physical data (the actual bytes of the file). The metadata of a file is stored in the same database where the collections are stored, but the physical data of a file is stored on storage nodes as multiple replicated copies.
+The collections in Chelonia are logical entities. The content of a collection is stored as metadata of the collection, which means that a collection actually has no physical data. A file, however, has both metadata and real physical data (the actual content of the file). The metadata of a file is stored in the same database where the collections are stored, but the physical data of a file is stored on storage nodes as multiple replicated copies.
 
-A storage node consists of two things: a storage element service which is capable of storing and serving files through a specific protocol (e.g. a web server, an FTP server, a GridFTP server, etc.) and a Shepherd service which provides a simple interface to access the storage node, and which can initiate and manage file transfers through the storage element service. The Shepherd has different backends for the supported storage element services which made it possible the communicate with them.
+A storage node consists of two things: a storage element service which is capable of storing and serving files through a specific protocol (e.g. a web server, an FTP server, a GridFTP server, etc.) and a Shepherd service which provides a simple interface to access the storage node, and which can initiate and manage file transfers through the storage element service. The Shepherd has different backends for the supported storage element services which made it possible to communicate with them.
 
-So we have logical files, which are part of the hierarchical namespace and have a GUID and other metadata, and a logical file has one or more physical replicas. The physical replicas stored on separate storage nodes. In order to connect the logical file to its replicas, we need to have some pointers. Each storage node has a URL and each replica has a unique ID within the storage node called \emph{referenceID}, the URL and the referenceID together is called a \emph{Location}, a Location unambiguously points to one specific replica. So to connect the logical files to the physical ones, each logical file has a list of Locations.
+A logical file, which are part of the hierarchical namespace, has a GUID and other metadata, and one or more physical replicas. The physical replicas are stored on separate storage nodes. In order to connect the logical file to its replicas, the system needs to have global pointers. Each storage node has a URL and each replica has a unique ID within the storage node called \emph{referenceID}, the URL and the referenceID together is called a \emph{Location}, a Location unambiguously points to one specific replica. To connect the logical files to the physical ones, each logical file has a list of Locations.
 
-The user can specify for each file how many replicas are needed. The ARC storage system periodically checks the number of replicas, and automatically creates new replicas if there are fewer then needed, and removes replicas if there are more. 
+The user can specify how many replicas are required for each file. The ARC storage system periodically checks the number of replicas\note[JKN]{TODO: How will this scale?}, and automatically creates new replicas if there are fewer than required, and removes replicas if there are more. 
 
-The different replicas of a file could be in different states, e.g. the replica could be valid and alive or just in the process of creation or it could be corrupt or a whole storage node could be offline. This state is always stored as metadata next to the Location of the given replica. For each file there is a checksum calculated, and this checksum is used to detect if a replica gets corrupted. If a storage node (more precisely: the Shepherd service on the storage node) detects that a file is invalid, it reports this so the metadata will be in sync with the real state. And the storage nodes sends heartbeat messages periodically, and if a storage node goes offline, the missing heartbeat triggers the modification of metadata as well. 
+The different replicas of a file could be in different \note[JKN]{TODO: which states? a reference to definition of states maybe?}states, e.g. the replica could be valid and alive or just in the process of creation or it could be corrupt or a whole storage node could be offline. This state is always stored as metadata of the given replica. For each file there is a checksum calculated, and this checksum is used to detect if a replica gets corrupted. If a storage node (more precisely: the Shepherd service on the storage node) detects that a file is invalid, it reports this so the metadata will be in sync with the real state. And the storage nodes sends heartbeat messages periodically, and if a storage node goes offline, the missing heartbeat triggers the modification of metadata as well. 
 
 % section storage_nodes_and_replicas (end)
 
 \section{The A-Hash} % (fold)
 \label{sec:the_a_hash}
 
-The A-Hash is the replicated\footnote{Depends on system configuration. It is possible to configure the storage system with only one central A-Hash too} metadata store of the storage system. It consistently stores `objects' which contain property-value pairs organized in sections. All metadata about files and collections in the storage system are stored in the A-Hash. Additionall system configutation information (e.g. about A-Hash replication, about Shepherd services, etc.) is stored in it as well. The A-Hash itself does not interpret any data.
+The A-Hash is the metadata store of the storage system. The A-Hash may be deployed as either a centralized or a replicated service. It consistently stores `objects' which contain property-value pairs organized in sections. All metadata about files and collections in the storage system are stored in the A-Hash. Additionall system configutation information (e.g. about A-Hash replication, about Shepherd services, etc.) is stored in it as well. The A-Hash itself does not interpret any data.
 
 % section the_a_hash (end)
 
 \section{The Librarians} % (fold)
 \label{sec:the_librarians}
 
-The Librarian manages the storage system hierarchy of files and collections including their metadata. It can traverse Logical Names and return the corresponding metadata. The Shephards send their heartbeat messages to the Librarians which if needed respond by modifying the states of files stored on a certain storage node. The Librarian itself is a stateless service, it uses the A-Hash to store and retrieve the metadata and thus there can be any number of independent Librarian services (all using the same A-Hashes). This ensures high-availability and load-balancing of the storage system.
+The Librarian manages the storage system hierarchy of files and collections including their metadata. It can traverse Logical Names and return the corresponding metadata. The Shepherds (see Sect. \ref{sec:the_shepherds}) send their heartbeat messages to the Librarians and, if needed, the Librarian responds by modifying the states of files stored on a certain storage node. The Librarian itself is a stateless service, it uses the A-Hash to store and retrieve the metadata and thus there can be any number of independent Librarian services (all using the same A-Hashes). This ensures high-availability and load-balancing of the storage system.
 
 % section the_librarians (end)
 
 \section{The Bartenders} % (fold)
 \label{sec:the_bartenders}
 
-The Bartender service provides the high-level interface of the storage system to the clients. Every interaction between a client and the ARC storage system starts by sending a request to a Bartender. Using the Bartender it is possible to create and remove collections, create, get and remove files, move files and collections within the namespace using Logical Names, etc. The Bartender authorizes users and apply access policies of files and collections. It communicates with the Librarian and Shepherd services to accomplish the client’s requests. The file data itself does however not go through the Bartender; file transfers are directly performed between the storage nodes and the clients. There could be any number of independent Bartender services in the system which ensure high-availability and load-balancing. The Bartender also provides a way to access files on third-party storage solutions through its interface by mounting the namespace of the third-party storage into the namespace of the ARC storage (this is accomplished by so called `gateway' modules). 
+The Bartender service provides the high-level interface of the storage system to clients. Every interaction between a client and the ARC storage system starts by sending a request to a Bartender. Using the Bartender it is possible to create and remove collections, create, get and remove files, move files and collections within the namespace using Logical Names, etc. The Bartender authorizes users and applies access policies of files and collections. It communicates with the Librarian and Shepherd services to execute the requests of the clients. The file data itself does not go through the Bartender; file transfers are performed directly between the storage nodes and the clients. Any number of independent Bartender services may be deployed in the system to ensure high-availability and load-balancing. The Bartender also provides access to files in third-party storage solutions through its interface by mounting the namespace of the third-party storage into the namespace of the ARC storage (this is accomplished by so-called `gateway' modules). 
 
 % section the_bartenders (end)
 
 \section{The Shepherds} % (fold)
 \label{sec:the_shepherds}
 
-The Shepherd service manages the storage element service on the storage node. It reports its health state to a Librarian and provides the interface for initiating file transfers. For each kind of storage element service (e.g. a HTTP server, an FTP server, a storage solution with a GridFTP interface, etc.) a Shepherd backend is needed which is capable of managing the given storage element service. The Shepherd service periodically checks the health of the replicas using their checksums, and if a replica is deleted or corrupted, the Shepherd tries to recover it by downloading a valid copy from another storage node. The Shepherd also periodicallys check if a file has the correct number of replicas in the system. If too few or too many replicas are found, new replicas will be created or redundant replicas removed.
+The Shepherd service manages the storage element service on the storage node. It reports its health state to a Librarian and provides the interface for initiating file transfers. For each kind of storage element service (e.g. an HTTP server, an FTP server, a storage solution with a GridFTP interface, etc.) a Shepherd backend is needed which is capable of managing the given storage element service. The Shepherd service periodically checks the health of the replicas using their checksums, and if a replica is deleted or corrupted, the Shepherd tries to recover it by downloading a valid copy from another storage node. The Shepherd also periodically checks if a file has the correct number of replicas in the system. If too few or too many replicas are found, new replicas will be created or redundant replicas removed.
 
 % section the_shepherds (end)
 
 \section{Security} % (fold)
 \label{sec:security}
 
-The ARC storage system consists of several services (both different kinds of services and multiple instances of the same kind). The A-Hash, Librarian and Shepherd services are `internal' services in the sense that the end-user of the storage system never communicates with them directly. But these internal services are communicating with each other, thus they have to know which other services to trust. We call this aspect of the security architecture of the ARC storage `inter-service authorization'.
+Chelonia consists of several services (both different kinds of services and multiple instances of the same kind). The A-Hash, Librarian and Shepherd services are `internal' services in the sense that the end-user of the storage system never communicates with them directly. But these internal services are communicating with each other, thus they have to know which other services to trust. We call this aspect of the security architecture of the ARC storage system `inter-service authorization'.
 
-The end users always connect to one of the Bartender services, which will decide which permission the user has. This is the `high-level authorization' part of the security architecture.
+The end users always connect to one of the Bartender services, which will decide which permissions the user has. This is the `high-level authorization' part of the security architecture.
 
-For transferring the actual file data, the users have to connect to storage element services running on storage nodes. These services also have their own authentication and authorization methods. Managing these aspects is the `transfer-level authorization' part of the security architecture of the ARC storage.
+For transferring the actual file data, the users have to connect to storage element services running on storage nodes. These services have their own authentication and authorization methods. Managing these aspects is the `transfer-level authorization' part of the security architecture of Chelonia.
 
 \subsection{Inter-service authorization} % (fold)
 \label{sub:inter_service_authorization}
 
-In a deployment of the ARC storage system it is possible to have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communicate with the Librarians, the Librarians talk with the A-Hashes. If any of these services gets compromised or a new rouge service is inserted in the system, security is lost. That's why it is vital for each service to authorize other services before sending or accepting requests. The services communicate via the HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and that they can examine eachother's certificates. Because of these X.509 certificates each service has Distinguish Name (DN), which can be used for identifying trusted services. A list of trusted DNs can be configured into each service, or a list of trusted services can be stored on a remote location. The services will only accept connections if the DN of the other end is listed in this list of trusted DNs. However the Bartender services will accept any incoming connection, which are from the users, because the users are authenticated differently.
+In a deployment of Chelonia, it is possible to have several A-Hash, Librarian, Shepherd and Bartender services. The Bartenders send requests to the Librarians and the Shepherds, the Shepherds communicate with the Librarians and the Librarians with the A-Hashes. If any of these services gets compromised or a new rogue service is inserted in the system, security is lost. That's why it is vital for each service to authorize other services before sending or accepting requests. The services communicate via the HTTPS protocol, which means that they should provide an X.509 certificate for each connection, and that they can examine each other's certificates. Each service is required to have an X.509 certificate and is thus identified by its Distinguish Name (DN). A list of trusted DN's can be configured into each service, or a list of trusted services can be stored on a remote location. The services will only accept connections if the DN of the other end is listed in this list of trusted DN's. However, the Bartender services will accept any incoming connection, which are from the users, because the users are authenticated differently.
 
 % subsection inter_service_authorization (end)
 
 \subsection{High-level authorization} % (fold)
 \label{sub:high_level_authorization}
 
-The Librarian component of the ARC storage system stores all the metadata about files and collections. For each file and collection there are access policies in the form of access control rules, and these are stored among the metadata. The users are identified by their DNs, and an access control rule specify the rights of the given user. A rule can be represented like this:
+The Librarian component of the ARC storage system stores all the metadata about files and collections. For each file and collection there are access policies in the form of access control rules, and these are stored among the metadata. The users are identified by their DN's, and an access control rule specifies the rights of the given user. A rule can be represented like this:
 
 \begin{verbatim}
     DN +action +action -action
@@ -184,11 +185,11 @@ The Librarian component of the ARC storage system stores all the metadata about 
 
 This contains a list of actions, each prefixed with a \verb!+! or \verb!-! character which indicates that the given action is allowed or not allowed for the given DN.
 
-Besides specifying only one user with a DN, there are other types of access control rules: we can have a rule for a whole VO (Virtual Organization) or for ALL users, like this:
+Besides specifying only one user with a DN, there are other types of access control rules: we can have a rule for a whole VO (Virtual Organization) or for all users, like this:
 
 \begin{verbatim}
-    ALL +action
     VOMS:knowarc.eu +action -action 
+    ALL +action
 \end{verbatim}
 
 These are the actions which can be used for access control:
@@ -210,7 +211,7 @@ Additionally, each file and collection has an `owner' which is a user who always
 \subsection{Transfer-level authorization} % (fold)
 \label{sub:transfer_level_authorization}
 
-Currently the transfer-level authorization is kept very simple. When the Bartender decides that a user has permission to download a file, then the Bartender chooses a replica, and initiates the transfer. The result of this initiation is a URL which is called the transfer URL (TURL). This TURL is unique for each request, even for request to the same replica, and this TURL is only valid for one download. Currently we configure the storage element services to not do any authorization, and we use these one-time URLs to ensure that only the authorized users can access the contents of the storage elements. 
+Currently the transfer-level authorization is very simple. When the Bartender decides that a user has permission to download a file, then the Bartender chooses a replica, and initiates the transfer. The result of this initiation is the transfer URL (TURL). This TURL is unique for each request, even for requests for the same replica, and this TURL is only valid for one download. Currently we configure the storage element services to not do any authorization, and we use these one-time TURL's to ensure that only authorized users can access the contents of the storage elements. 
 
 % subsection transfer_level_authorization (end)
 
@@ -218,8 +219,10 @@ Currently the transfer-level authorization is kept very simple. When the Bartend
 
 % chapter design_overview (end)
 
-\chapter{Use cases} % (fold)
+\chapter{Implementation of use cases} % (fold)
 \label{cha:use_cases}
+
+\note[JKN]{TODO: Short intro to this chapter mentioning that this chapter contains a partial list of use cases and that not all features are covered.}
 
 \section{Listing the contents of a collection} % (fold)
 \label{sec:listing_the_contents_of_a_collection}
@@ -228,19 +231,19 @@ Currently the transfer-level authorization is kept very simple. When the Bartend
 \caption{\label{fig:listing}Listing the contents of a collection} }
 \end{figure}
 
-We want to list the contents of a collection, which has a Logical Name of \verb!/ourvo/users/we!. In order to do this, we have to contact a Bartender, and send a request to it containing the Logical Name we want to list, and the response from the Bartender will contain the list of entries. The steps are represented on Figure~\ref{fig:listing}.
+A user wants to list the contents of a collection, which has a Logical Name of \verb!/ourvo/users/user!. In order to do this, the client tool has to contact a Bartender, and send a request to it containing the Logical Name the user wants to list, and the response from the Bartender will contain the list of entries. The steps are represented in Figure~\ref{fig:listing}.
 
 \begin{enumerate}
-    \item We need to know the URL of a Bartender. This could be preconfigured on the client side or in future releases it could be acquired from an information system. When we have the URL, we send a `list' request which contains the Logical Name \verb!/ourvo/users/we!.
+    \item The client tool needs to know the URL of a Bartender. This could be preconfigured on the client side or in future releases it could be acquired from an information system. When the client tool has the URL, it sends a `list' request which contains the Logical Name \verb!/ourvo/users/user!.
     \item The Bartender tries to get the metadata of the given LN by sending a `traverseLN' request to a Librarian.
-    \item The Librarian service starts the traversing by asking an A-Hash service about the first part of the LN, which is the \verb!/! root collection. The A-Hash service only knows about GUIDs and not about LNs, but the GUID of the root collection is well-known, so the A-Hash can return the metadata of it which contains the list of files and sub-collections in the root collection.
-    \item Hopefully the \verb!ourvo! collection can be found in the root collection, which means that new the Librarian knows its GUID, and can ask for its metadata from the A-Hash.
+    \item The Librarian service starts the traversing by asking an A-Hash service about the first part of the LN, which is the \verb!/! root collection. The A-Hash service only knows about GUID's and not about LN's, but the GUID of the root collection is well-known, so the A-Hash can return the metadata of the list of files and sub-collections in the root collection.
+    \item Hopefully, the \verb!ourvo! collection can be found in the root collection, which means that the Librarian knows its GUID, and can ask for its metadata from the A-Hash.
     \item After the A-Hash returns the metadata of the \verb!/ourvo! collection, the Librarian finds the GUID of \verb!users! in it, then gets its metadata.
-    \item The A-Hash returns the metadata of \verb!/ourvo/users! which contains the GUID of \verb!we!, so the Librarian can ask for its metadata.
-    \item At last the A-Hash returns the metadata of \verb!/ourvo/users/we! to the Librarian, and the Librarian returns it to the Bartender. This metadata contains the list of entries within this collection, and it also contains the access policies for this collection.
-    \item The Bartender first checks if based on our DN (or our VO membership) and the access policies of this collection do we have rights to get the contents of this collection or not. If we are approved, then because the `list' request should return additional metadata about each entry in the collection, the Bartender send a `get' message to a Librarian requesting metadata of all the entries in this collection.
-    \item The Librarian gets the data from the A-Hash and returns it to the Bartender.
-    \item Now the Bartender has all the needed information, so it could return the proper response to us, the user. Our client tool formats and prints the results nicely.
+    \item The A-Hash returns the metadata of \verb!/ourvo/users! which contains the GUID of \verb!user!, so the Librarian can ask for its metadata.
+    \item At last the A-Hash returns the metadata of \verb!/ourvo/users/user! to the Librarian, and the Librarian returns it to the Bartender. This metadata contains the list of entries within this collection, and it also contains the access policies for this collection.
+    \item The Bartender first checks, based on the user's DN (or his VO membership) and the access policies of this collection, if the user has permission to get the contents of this collection or not. If the user is approved, then because the `list' request should return additional metadata about each entry in the collection, the Bartender sends a `get' message to a Librarian which requests the metadata of all the entries in this collection.
+    \item The Librarian gets the metadata from the A-Hash and returns it to the Bartender.
+    \item Now the Bartender has all the needed information and returns the proper response to the client tool which formats and prints the results nicely for the user.
 \end{enumerate}
 
 % section listing_the_contents_of_a_collection (end)
@@ -252,16 +255,16 @@ We want to list the contents of a collection, which has a Logical Name of \verb!
 \caption{\label{fig:downloading}Downloading a file} }
 \end{figure}
 
-In this use case we want to download a file which has a Logical Name of \verb#/ourvo/users/we/thefilewewant# (see Figure~\ref{fig:downloading}).
+In this use case a user wants to download a file which has a Logical Name of \verb#/ourvo/users/user/thefilehewants# (see Figure~\ref{fig:downloading}).
 
 \begin{enumerate}
-    \item We connect a Bartender and send a `getFile' request with the LN of our file.
+    \item The client tool connects to a Bartender and sends a `getFile' request with the LN of the file.
     \item The Bartender contacts a Librarian to traverse the Logical Name and to get the metadata of our file.
-    \item The Librarian do the step by step traversing and gets all the data from the A-Hash and returns the metadata of our file to the Bartender. This metadata contains the location of the file's replicas and the access policies of this file.
-    \item The Bartender checks based on the access policies and our identity if we are allowed to get the file, and if we are good to go, then it chooses a replica location. A location consists of the URL of a Shepherd service, and the ID of the replica within that Shepherd (which is called a `referenceID'). The Bartender sends a `get' request to the chosen Shepherd.
-    \item The Shepherd prepares the file transfer by asking the storage element service to create a new one-time URL for this replica. This URL called the transfer URL, and it will only be valid for one download. The Shepherd returns the TURL to the Bartender.
-    \item The Bartender returns the TURL to us.
-    \item Now we use this TURL to get the file directly from the storage element service on the storage node.
+    \item The Librarian does the step-by-step traversing of the name space and gets all the metadata from the A-Hash and returns the metadata of our file to the Bartender. This metadata contains the location of the file's replicas and the access policies of this file.
+    \item The Bartender checks, based on the access policies and the user's identity, if he is allowed to get the file, and if allowed, it chooses \note[JKN]{TODO: We need to define the choosing algorithm somewhere} a replica location. A location consists of the URL of a Shepherd service, and the ID of the replica within that Shepherd (which is called a `referenceID'). The Bartender sends a `get' request to the chosen Shepherd.
+    \item The Shepherd prepares the file transfer by asking the storage element service to create a new one-time TURL for this replica. The Shepherd returns the TURL to the Bartender.
+    \item The Bartender returns the TURL to the client tool.
+    \item The client tool use this TURL to get the file directly from the storage element service on the storage node.
 \end{enumerate}
 
 % section downloading_a_file (end)
@@ -273,17 +276,17 @@ In this use case we want to download a file which has a Logical Name of \verb#/o
 \caption{\label{fig:makecollection}Creating a collection} }
 \end{figure}
 
-We want to create a new (empty) collection as sub-collection of \verb#/ourvo/common#, and we want to call it \verb!docs! (see Figure~\ref{fig:makecollection})
+Here, the user wants to create a new (empty) collection as sub-collection of \verb#/ourvo/common#, and he wants to call it \verb!docs! (see Figure~\ref{fig:makecollection})
 
 \begin{enumerate}
-    \item We contact a Bartender and send a `makeCollection' request with the LN \verb!/ourvo/common/docs!.
+    \item The client tool contacts a Bartender and send a `makeCollection' request with the LN \verb!/ourvo/common/docs!.
     \item The Bartender asks a Librarian to traverse this LN.
-    \item The Librarian try to traverse the Logical Name and it stops at the last possible point and returns the metadata of the last element. Because we want to put our collection to a new path but into an existing collection, we expect that only the \verb#/ourvo/common# part of the LN can be traversed. If the Librarian could traverse the whole LN that would mean that there is already an existing file or collection by that name. If the parent collection does exist then the Librarian can traverse it which means that the parent collection's metadata is returned to the Bartender. 
-    \item The Bartender checks the access policies to decide if we have permissions to put something into this collection. Then it asks the Librarian to create a new collection.
-    \item The Librarian creates the collection, and returns its GUID. At this point this new collection has no real Logical Name yet, it only has a GUID, but it is not yet put into its parent collection.
+    \item The Librarian tries to traverse the Logical Name and it stops at the last possible point and returns the metadata of the last element. Because the user wants to put his collection in a new path but into an existing collection, we expect that only the \verb#/ourvo/common# part of the LN can be traversed. If the Librarian could traverse the whole LN that would mean that there is already an existing file or collection by that name. If LN does not exist but the the parent collection does, then the parent collection's metadata is returned to the Bartender. 
+    \item The Bartender checks the access policies to decide if the user has permissions to put something into this collection. Then it asks the Librarian to create a new collection.
+    \item The Librarian creates the collection, and returns its GUID. At this point this new collection has no real Logical Name, it only has a GUID, but it is not yet put into its parent collection.
     \item The Bartender now asks the Librarian to add this new entry into the parent collection, which means that the new GUID and the name \verb!docs! are added as a pair.
     \item The Librarian returns with a status message.
-    \item Finally the Bartender tells us if everything went OK or not.
+    \item Finally the Bartender tells the client tool if everything went OK or not.
 \end{enumerate}
 
 
@@ -297,24 +300,24 @@ We want to create a new (empty) collection as sub-collection of \verb#/ourvo/com
 \caption{\label{fig:uploading}Uploading a file} }
 \end{figure}
 
-We have a file on our local disk we want to upload to a collection called \verb#/ourvo/common/docs#. (See Figure~\ref{fig:uploading}.)
+The user has a file on his local disk and wants to upload the file to a collection called \verb#/ourvo/common/docs#. (See Figure~\ref{fig:uploading}.)
 \begin{enumerate}
-    \item We contact a Bartender to put the file, we give the size and checksum and other metadata. And of course we give the Logical Name where we want to put the file, which in this case will be \verb#/ourvo/common/docs/proposal.pdf#
-    \item The Bartender ask a Librarian to traverse this LN.
-    \item The Librarian traverses the Logical Name, and we expect it to stop at the \verb#/ourvo/common/docs# part of the LN, because that means that the name is available and the parent collection exists. If everything is fine, the metadata of the parent collection is returned to the Bartender. 
-    \item The Bartender checks the access policies to decide if we have permissions to put something into this collection. Then it asks the Librarian to create a new file entry. 
+    \item The client tool contact a Bartender to upload the file, providing the file's metadata, including the the Logical Name (LN), which in this case will be \verb#/ourvo/common/docs/proposal.pdf#
+    \item The Bartender asks a Librarian to traverse this LN.
+    \item The Librarian traverses the Logical Name, and stopping at the \verb#/ourvo/common/docs# part of the LN, which means that the name is available and the parent collection exists. If everything is OK, the metadata of the parent collection is returned to the Bartender. 
+    \item The Bartender checks the access policies to decide if the user has permissions to put anything into this collection. Then it asks the Librarian to create a new file entry. 
     \item The Librarian creates the entry and returns its GUID.
-    \item Then the Bartender add the name \verb#proposal.pdf# and the new GUID to the collection \verb#/ourvo/common/docs# and from now on there will be a valid LN \verb#/ourvo/common/docs/proposal.pdf#. However this LN points to a file which has currently no replica at all. If someone tried to download the file called \verb#/ourvo/common/docs/proposal.pdf# now, would get an error message.
+    \item Next, the Bartender adds the name \verb#proposal.pdf# and the new GUID to the collection \verb#/ourvo/common/docs# and from now on there will be a valid LN \verb#/ourvo/common/docs/proposal.pdf#. However this LN points to a file which has currently no replica at all. If someone tried to download the file called \verb#/ourvo/common/docs/proposal.pdf# now, they would get an error message.
     \item The Bartender asks the Librarian about Shepherd services (which are sitting on storage nodes).
-    \item The Librarian returns a list of Shepherd services
-    \item The Bartender chooses a Shepherd service and sends it a `put' request to initiate the file upload. 
-    \item The Shepherd communicates with the storage element service on the same node to create a new transfer URL (TURL). Then it creates a `referenceID' for this file and then reports to the Librarian that there is a new replica in \verb#creating# state. The Librarian gets the message from the Shepherd and adds the new replica to our new file. Now the file has one replica, which is not uploaded yet into the system. If someone tries to download this file now, still gets an error message.
+    \item The Librarian returns a list of Shepherd services.
+    \item The Bartender randomly chooses a Shepherd service and sends it a `put' request to initiate the file upload. 
+    \item The Shepherd communicates with the storage element service on the same node to create a new transfer URL (TURL). Then it creates a `referenceID' for this file and reports to the Librarian that there is a new replica in the \verb#creating# state. The Librarian gets the message from the Shepherd and adds the new replica to the new file. Now the file has one replica, which is not uploaded yet into the system. If someone tries to download this file now, they still get an error message.
     \item The Shepherd returns the the TURL to the Bartender.
-    \item The Bartender returns the TURL to us.
-    \item Then we can upload the file to this TURL.
-    \item The Shepherd detects that the file is arrived. It checks the checksum of the file, and if it is OK, then it reports to the Librarian, that this replica is now \verb#alive#. The Librarian alters the state of this location, and now finally the file has one valid replica. 
+    \item The Bartender returns the TURL to the client tool.
+    \item Then client tool can upload the file to this TURL.
+    \item The Shepherd detects\note[JKN]{TODO: How does it detect it? Callback from the transfer service?} that the file has been uploaded. It checks the checksum of the file, and if it is OK, then it reports to the Librarian, that this replica is now \verb#alive#. The Librarian alters the state of this location, and now the file has one valid replica. 
 \end{enumerate}
-í
+
 % section uploading_a_file (end)
 
 \section{Removing a file} % (fold)
@@ -324,15 +327,15 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \centering{{\scalebox{0.7}{\includegraphics{arc-storage-removing.pdf}}}
 \caption{\label{fig:removing}Removing a file} }
 \end{figure}
+In Chelonia, files are deleted through so called {\it lazy deletion}, meaning that at first only the Logcial Name (LN) is deleted, while the physical replicas are removed at a later stage.
 \begin{enumerate}
-    \item If we want to remove a file, we should connect to a Bartender with the LN of the file we want to remove.
+    \item If the user wants to remove a file, his client tool should connect to a Bartender with the LN of the file he wants to remove.
     \item The Bartender asks the Librarian to traverse the LN.
     \item The Librarian returns the metadata of the file. The metadata contains information about all the hardlinks which points to this file if there are more than one.
     \item Now the Bartender asks the Librarian to remove the file.
     \item After that, the Bartender asks the Librarian to remove the links to this file from all the parent collections.
-    \item Next time a Shepherd which has a replica of this file does its periodic check, it asks the Librarian about the file, and notices that the file does not exist anymore, so it removes the replica itself from the storage node.
+    \item The next time a Shepherd which has a replica of this file does its periodic check, it asks the Librarian about the file, and notices that the file does not exist anymore, so it removes the replica itself from the storage node.
 \end{enumerate}
-
 
 % section removing_a_file (end)
 
@@ -344,29 +347,29 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \section{Framework and language} % (fold)
 \label{sec:framework_and_language}
 
-The services are written in Python and running in the HED\footnote{The ARC container - \url{https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf}} hosting environment. The HED itself is written in C++, but there are language bindings which allow us to write services in other languages, e.g.~in Python or Java. The source code of the storage services are in the NorduGrid Subversion repository\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}}.
+The Chelonia services are written in Python and execute in the HED\footnote{The ARC container - \url{https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf}} hosting environment. The HED itself is written in C++, but there are language bindings which allow services to be written in other languages, e.g.~in Python or Java. The source code of the storage services is in the NorduGrid Subversion repository\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}}.
 
-Because the next-generation information system of ARC is currently under development, we cannot use it to discover services, that's why currently the URLs of almost all the services are hard-coded in the configuration files of the service. There is one exception: the Shepherd services are reporting their URLs to the Librarians, so a Bartender always could get a very current list of alive Shepherd services.
+Because the next-generation information system of ARC is currently under development, it cannot be used to discover services. Hence, currently the URL's of almost all the services are hard-coded in the configuration files of the service. There is one exception: the Shepherd services are reporting their URL's to the Librarians, so a Bartender can always get the most current list of accessible Shepherd services.
 
-The HED also has a security framework which the Bartenders use the make access policy decision . The details of this is described in section X.
+The HED has a security framework which the Bartenders use the make access policy decisions. The details of this is described in Section \ref{sec:security_implementation}.
 
 % section framework_and_language (end)
 
 \section{Data model} % (fold)
 \label{sec:data_model}
 
-The ARC storage system stores different kinds of metadata about files, collections, mount point, Shepherd services, etc. Each of these has a unique ID which we call `GUID'.
+The ARC storage system stores different kinds of metadata about files, collections, mount points, Shepherd services, etc. Each of these has a unique ID; a GUID.
 
-The A-Hash services provide a functionality to store `objects', where each object has a unique ID, and contains property-value pairs organized in sections. The properties, the values and the section names too are simple character strings. The A-Hash services provide a simple interface to interact with these objects, e.g.~to do conditional and atomic changes.
+The A-Hash services provide a functionality to store `objects', where each object has a unique ID, and contains property-value pairs organized in sections. The properties, the values and the section names are simple character strings. The A-Hash services provide a simple interface to interact with these objects, e.g.~to do conditional and atomic changes.
 
-The Librarian services use the A-Hash services to store the metadata of all kinds, using the GUIDs as unique IDs. For this, we have to represent the metadata as property-value pairs organized in section. The files, the collections and the mount points have some common attributes: the GUID, the type and the owner which are in the \emph{entry} section; the creation and modification timestamps in the \emph{timestamps} section, a list of access control rules in the \emph{policy} section; the list of parent collections where this entry has a `hardlink'; and each entry could have arbitrary property-value pairs in the \emph{metadata} section.
+The Librarian services use the A-Hash services to store the metadata, using the GUID's as unique ID's. For this, we have to represent the metadata as property-value pairs organized in section. The files, the collections and the mount points have some common attributes: the GUID, the type and the owner which are in the \emph{entry} section; the creation and modification timestamps in the \emph{timestamps} section, a list of access control rules in the \emph{policy} section; the list of parent collections where this entry has a `hardlink' in the \emph{parents} section; and optional, arbitrary property-value pairs in the \emph{metadata} section.
 
 \begin{description}
     \item [entry] section 
     \begin{itemize}
         \item \emph{type}: the type of the entry: `collection', `file' or `mountpoint'
         \item \emph{GUID}: the unique ID of the entry
-        \item \emph{owner}: the DN of the user how owns this entry
+        \item \emph{owner}: the DN of the user who owns this entry
     \end{itemize}
     \item [timestamps] section 
     \begin{itemize}
@@ -375,27 +378,27 @@ The Librarian services use the A-Hash services to store the metadata of all kind
     \end{itemize}
     \item [policy] section 
     \begin{itemize}
-        \item \emph{(identity, action list) pairs}: a list of allowed and not allowed actions for different identities (users, VOs, etc.). 
+        \item \emph{(identity, action list) pairs}: a list of allowed and not allowed actions for different identities (users, VO's, etc., see Section \ref{sub:high_level_authorization} for details). 
     \end{itemize}
     \item [parents] section
     \begin{itemize}
-        \item list of GUIDs of collection where this entry is located, and the name of this entry within the given collections
+        \item list of GUID's of collection where this entry is located, and the name of this entry within the given collections
     \end{itemize}
     \item [metadata] section 
     \begin{itemize}
-        \item any other arbitrary property-value pairs
+        \item optional arbitrary property-value pairs
     \end{itemize}
 \end{description}
 
 \subsection{Files} % (fold)
 \label{sub:files}
 
-A file in the ARC storage has a logical entry in the namespace, and a couple of physical replicas on the storage nodes. We store the locations of the replicas in the \emph{location} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{thirdwheel}' (if the replica is marked for deletion because of too many replicas), `\textbf{stalled}' (if the the replica was in the state if uploading for a long time but hasn't arrived). We also store (in the \emph{states} section) the size of the file, the number of needed replicas, and a checksum of the file, which is created by some kind of checksumming algorithm (currently only md5 is supported).
+A file in Chelonia has a logical entry in the namespace, and one or more physical replicas on the storage nodes. We store the locations of the replicas in the \emph{locations} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state is `\textbf{alive}' if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy, `\textbf{invalid}' if the replica has wrong checksum, or the Shepherd claims it has no such file, `\textbf{offline}' if the Shepherd is not reachable, but may have a valid replica, `\textbf{creating}' if the replica is in the state of uploading, `\textbf{thirdwheel}' if the replica is marked for deletion because of too many replicas, or `\textbf{stalled}' if the the replica was in the state if uploading for a long time but hasn't arrived. The \emph{states} section contains the size of the file, the number of required replicas, and a checksum of the file, which is created by some kind of checksumming algorithm (currently only md5 is supported).
 
 \begin{description}
     \item [locations] section 
     \begin{itemize}
-        \item \emph{(location, state) pairs}, where a location is a (\emph{URL}, \emph{referenceID}) pair serialized as a string, where \emph{URL} is the address of the Shepherd service storing this replica, \emph{referenceID} is the ID of the file within that Shepherd service.
+        \item \emph{(location, state) pairs}: where a location is a (\emph{URL}, \emph{referenceID}) pair serialized as a string, where \emph{URL} is the address of the Shepherd service storing this replica, \emph{referenceID} is the ID of the file within that Shepherd service.
     \end{itemize}
     \item [states] section 
     \begin{itemize}
@@ -416,7 +419,7 @@ A file in the ARC storage has a logical entry in the namespace, and a couple of 
 \subsection{Collections} % (fold)
 \label{sub:collections}
 
-A \emph{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-hierarchy. Each entry has a unique name within a collection and a GUID which points to corresponding file or collection, so a collection is basically a list of name-GUID pairs, which list is stored in the \emph{entries} section. The collections could be in a closed state, which means that its contents should not be changed. If you close a collection then it cannot be opened again. However it cannot be guaranteed that the contents of a closed collection remains the same (e.g. if we include in our collection a file which we don't own, then the owner of the file could remove it nevertheless), but if a closed collection is changed, its state will be broken, and this state could never be changed again, which means you will always know if a closed collection is not intact anymore. This state is stored in the \emph{states} section, and its values could be `\textbf{no}' (if the collection is not closed), `\textbf{yes}' (if the collection is closed) and `\textbf{broken}' (if the collection was closed, but something happened, and its contents have been changed).
+A \emph{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-hierarchy. Each entry has a unique name within a collection and a GUID which points to a corresponding file or collection, so a collection is basically a list of name-GUID pairs, which list is stored in the \emph{entries} section (see below). The collections could be in a closed state, which means that its contents should not be changed. If you close a collection then it cannot be opened again. However it cannot be guaranteed that the contents of a closed collection remains the same (e.g. if we include in our collection a file which we don't own, then the owner of the file could remove it nevertheless), but if a closed collection is changed, its state will be broken, and this state could never be changed again, which means you will always know if a closed collection is not intact anymore. This state is stored in the \emph{states} section, and its possible values are `\textbf{no}' if the collection is not closed, `\textbf{yes}' if the collection is closed and `\textbf{broken}' if the collection was closed, but something happened, and its contents have been changed.
 
 \begin{description}
     \item [entries] section 
@@ -434,12 +437,12 @@ A \emph{collection} is a list of files and other collections, which are in paren
 \subsection{Mount Points} % (fold)
 \label{sub:mount_points}
 
-The mount point entry is a reference to an external third-party storage. Its metadata is basically just the URL of the external storage.
+The mount point entry is a reference to an external third-party storage. Its metadata is basically just the URL of the external storage end point.
 
 \begin{description}
     \item [mountpoint] section 
     \begin{itemize}
-        \item \emph{externalURL}: the URL of the external storage.
+        \item \emph{externalURL}: the URL of the external storage end point \note[JKN]{TODO: an example URL maybe?}.
     \end{itemize}
 \end{description}
 
@@ -449,16 +452,16 @@ The mount point entry is a reference to an external third-party storage. Its met
 \subsection{Shepherds} % (fold)
 \label{sub:shepherds}
 
-The Librarian stores information about the registered Shepherd services. Each Shepherd reports its URL and the list of its files to a Librarian, and for each Shepherd a GUID is created. There is a special entry (with GUID `1' by default) which stores a list of the registered Shepherd services, storing their GUID and the timestamp of the last heartbeat message from them.
+The Librarian stores information about the registered Shepherd services. Each Shepherd reports its URL and the list of its files to a Librarian, and for each Shepherd a GUID is created. There is a special entry (with GUID `1' by default) which stores a list of the registered Shepherd services, with their GUID and the timestamp of the last heartbeat message from them.
 
 \begin{description}
 	\item [nextHeartBeat] section
 	\begin{itemize}
-		\item (URL, timestamp) pairs contains when was the last heartbeat of this service
+		\item \emph{(URL, timestamp) pairs}: contains when was the last heartbeat of this service
 	\end{itemize}
 	\item [serviceGUID] section
     \begin{itemize}
-        \item (URL, GUID) pairs connects the URL of the Shepherd to the GUID where the information is stored about the Shepherd's stored files
+        \item \emph{(URL, GUID) pairs}: connects the URL of the Shepherd to the GUID where the information is stored about the Shepherd's stored files
     \end{itemize}
 \end{description}
 
@@ -471,7 +474,7 @@ And for each Shepherd there is a separate entry with the list of all files store
     \end{itemize}
 	\item [files] section
 	\begin{itemize}
-	    \item \emph{(referenceID, GUID) pairs} for each replica stored on the Shepherd
+	    \item \emph{(referenceID, GUID) pairs}: for each replica stored on the Shepherd
 	\end{itemize}
 \end{description}
 
@@ -483,7 +486,7 @@ And for each Shepherd there is a separate entry with the list of all files store
 \section{Security implementation} % (fold)
 \label{sec:security_implementation}
 
-The ARC HED hosting environment has a security framework, and it has its own policy language for describing access policies and requests. The storage system use a different internal format to store the access policies, but when the time comes to make decisions, it converts the stored policies and the incoming requests to the ARC native policy format, then asks the security framework to decide.
+The ARC HED hosting environment has a security framework, and it has its own policy language for describing access policies and requests. The storage system currently use a different internal format to store the access policies, but when the time comes to make decisions, it converts the stored policies and the incoming requests to the ARC native policy format, then asks the security framework to decide.
 
 The internal representation of the access policies is based on access rules. A rule contains an identity and a list of actions. Currently the identity could be one of the following:
 \begin{itemize}
@@ -495,17 +498,17 @@ The internal representation of the access policies is based on access rules. A r
 
 Then for each rule there is list of actions, each action is either allowed or denied. In the internal representation of an access rule the list of actions is one single string, where the name of actions are separated with a space, and each name is prefixed with a `\verb!+!' or `\verb!-!' sign indicating if the action is allowed or denied for the given identity. The list of actions can be found in section~\ref{sub:high_level_authorization}.
 
-When there is an incoming connection to a Bartender, the security framework of the HED extract the identity information of the connecting client (DN of client, DN of the issuer CA, extended attributes, etc.), and all these information is accessible by the Bartender. When the given method of the Bartender gets to the point where the access rules are present, and it is clear that what kind of action the user wants to do, then either the request and the policy is converted to the native ARC policy language, and then the policy evaluator of the security framework is called to make the decision. Within the native ARC policy language XML representation of the requests and policies the storage actions are put into an `Attribute' element with the ID `\verb!http://www.nordugrid.org/schemas/policy-arc/types/storage/action!'.
+When there is an incoming connection to a Bartender, the security framework of the HED extracts the identity information of the connecting client (DN of client, DN of the issuer CA, extended attributes, etc.), and all this information is accessible by the Bartender. When the given method of the Bartender gets to the point where the access rules are present, and it is clear that what kind of action the user wants to do, then either\note[JKN]{TODO: Where is the 'or' that should follow the either?} the request and the policy is converted to the native ARC policy language, and then the policy evaluator of the security framework is called to make the decision. Within the native ARC policy language, the XML representation of the requests and policies the storage actions are put into an `Attribute' element with the ID `\verb!http://www.nordugrid.org/schemas/policy-arc/types/storage/action!'\note[JKN]{TODO: This sentence needs more explanation; too technical.}.
 
-For inter-service authorization we can configure the services to only accept connections from trusted services. We trust a service if we know its DN. For each service we can write trusted DNs in the configuration, or we can periodically get the list from an A-Hash. This can be configured with a `\emph{TrustManager}' section in the service configuration, which contains these entries:
+For inter-service authorization the services can be configured to only accept connections from trusted services. A service is trusted if we know its DN. For each service we can write trusted DN's in the configuration, or we can periodically get the list from an A-Hash. This can be configured with a `\emph{TrustManager}' section in the service configuration, which contains these entries:
 
 \begin{description}
     \item[DN] is a trusted DN
-    \item[CA] is a DN of a trusted CA: we will trust all certificates issued by this CA
-    \item[DNsFromAHash] is a list of A-Hash URLs (in \textbf{AHashURL}) from where we periodically get a list of trusted DNs (there can be multiple A-Hash URLs listed here in case of one is offline). This has some attributes: \textbf{CheckingInterval} specifies how frequently we should get the list from the A-Hash (default: 600); \textbf{ID} specifies the ID of the A-Hash objects, where the list is stored (default: `3').
+    \item[CA] is a DN of a trusted CA: all certificates issued by this CA are trusted
+    \item[DNsFromAHash] is a list of A-Hash URL's (in \textbf{AHashURL}) from where a list of trusted DN's are periodically obtained (there can be multiple A-Hash URL's listed here in case of one is offline). The following attributes are obtained: \textbf{CheckingInterval} specifies how frequently the list from the A-Hash should be updated (default: 600 seconds); \textbf{ID} specifies the GUID where the list is stored (default: `3').
 \end{description}
 
-The TrustManager section itself could have some attributes: \textbf{FromFile} could have a filename, if we want to get the whole TrustManager configuration from a separate file; and \textbf{Force} indicates (with `yes' or `no') that we want to ensure that our service does not even get the request if the client of the incoming connection is not trusted. 
+\note[JKN]{TODO: This paragraph is very unclear. All the 'could's makes it look like the TrustManager is just something planed in the far future}The TrustManager section itself could have some attributes: \textbf{FromFile} could have a filename, if we want to get the whole TrustManager configuration from a separate file; and \textbf{Force} indicates (with `yes' or `no') that we want to ensure that our service does not even get the request if the client of the incoming connection is not trusted. 
 
 Example TrustManager configuration:
 
@@ -520,7 +523,7 @@ Example TrustManager configuration:
     </TrustManager>
 \end{verbatim}
 
-Because of the heavy use of X509 certificates, of course, all the services should have their own certificates, which they can use when connecting to other services. Currently it is needed to put the paths of the certificate and private key files (and the trusted CAs as well) into the configuration of each services, like this:
+All the services must have their own X.509 certificates, which they use when connecting to other services. Currently, it is needed to set the paths of the certificate and private key files (and the trusted CAs as well) in the configuration of each service, like this:
 
 \begin{verbatim}
     <ClientSSLConfig>
@@ -554,7 +557,7 @@ If you have an ID, you can get all property-value pairs of the corresponding obj
 \begin{description}
     \item [get(IDs, neededMetadataList)] returns all or some of the property-value pairs of the requested objects.
     
-    The \emph{IDs} is a list of string \emph{ID}s, \emph{neededMetadataList} is a list of (\emph{section}, \emph{property}) pairs. If the \emph{neededMetadataList} is empty, then for each \emph{ID} it returns all the \emph{value}s for all the \emph{property} in all the \emph{section} in that given object. If there are sections and properties specified in \emph{neededMetadataList}, then only those values are returned.
+    The \emph{IDs} is a list of string \emph{ID}'s, \emph{neededMetadataList} is a list of (\emph{section}, \emph{property}) pairs. If the \emph{neededMetadataList} is empty, then for each \emph{ID} it returns all the \emph{value}s for all the \emph{property} in all the \emph{section} in that given object. If there are sections and properties specified in \emph{neededMetadataList}, then only those values are returned.
 
     The response contains a list of \emph{object}s, where an \emph{object} is an (\emph{ID}, \emph{metadataList}) pair, where \emph{metadataList} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
 
@@ -656,7 +659,7 @@ Example of replicated A-Hash:
 \subsection{Functionality} % (fold)
 % 
 
-The Librarian knows about the type of possible entries in the namespace of the ARC storage system: files, collections and mount points. It knows that these are organized in a tree-hiearchy with grouping them into collections, and it knows about Logical Names, and how to traverse a Logical Name to find the metadata of the file or collection (or mount point) which it refers to. However, the Librarian does not maintain the namespace of the ARC storage, e.g. it does not put new files into collections, or remove the link from its parent collection when a file is removed - this is the job of the Bartender. The only Librarian method which deals with Logical Names is the \emph{traverseLN} method, which traverses the Logical Name as long as possible, and returns the GUID and metadata of the last found entry in the path of the Logical Name. All the other methods work with GUIDs, and do not care about the hierarchical namespace. In this regard the Librarian can be treated as a higher level application-specifc interface to the metadata store (the A-Hash), because while the A-Hash does not care about what it stores, the Librarian knowa exactly that it stores metadata about files, collections, etc. With this interface you can create new files, collections and mount points with the \emph{new} method, you can get or modify the metadata of any entry with the \emph{get} and the \emph{modifyMetadata} methods, and you can remove an entry with the \emph{remove} method.
+The Librarian knows about the type of possible entries in the namespace of the ARC storage system: files, collections and mount points. It knows that these are organized in a tree-hiearchy with grouping them into collections, and it knows about Logical Names, and how to traverse a Logical Name to find the metadata of the file or collection (or mount point) which it refers to. However, the Librarian does not maintain the namespace of the ARC storage, e.g. it does not put new files into collections, or remove the link from its parent collection when a file is removed - this is the job of the Bartender. The only Librarian method which deals with Logical Names is the \emph{traverseLN} method, which traverses the Logical Name as long as possible, and returns the GUID and metadata of the last found entry in the path of the Logical Name. All the other methods work with GUID's, and do not care about the hierarchical namespace. In this regard the Librarian can be treated as a higher level application-specifc interface to the metadata store (the A-Hash), because while the A-Hash does not care about what it stores, the Librarian knowa exactly that it stores metadata about files, collections, etc. With this interface you can create new files, collections and mount points with the \emph{new} method, you can get or modify the metadata of any entry with the \emph{get} and the \emph{modifyMetadata} methods, and you can remove an entry with the \emph{remove} method.
 
 Besides being an interface to the metadata store, the Librarian has an other importat functionality: it provides a way for Shepherds to register themselves, and to periodically send reports about the state of their stored files. A Shepherd send a \emph{report} message to a Librarian if e.g. a new file arrived, or an old file gets corrupted, thus the Librarian can keep the states of the replicas up-to-date. The Librarian monitors the registered Shepherds, and if one of them stops sending reports, the Librarian will assume, that it is offline, and modify the states of the all the replicas which are on the Shepherd's storage node. In order to do this, the Librarian stores for each Shepherd a list of files on the given storage nodes, this make it possible to know which files have replicas on a given storage nodes without checking all the files in the system. This list of files gets updated every time a Shepherd sends a report.
 
@@ -668,16 +671,16 @@ The end-user of the ARC storage system never communicates directly with a Librar
 
 \begin{description}
 
-    \item [get(getRequestList, neededMetadataList)] returns all or some of the metadata of the the requested GUIDs.
+    \item [get(getRequestList, neededMetadataList)] returns all or some of the metadata of the the requested GUID's.
     
-    The \emph{getRequestList} is a list of string \emph{GUID}s, \emph{neededMetadataList} is a list of (\emph{section}, \emph{property}) pairs. If the \emph{neededMetadataList} is empty, then for each \emph{GUID} it returns all the metadata \emph{value}s for all the \emph{property}s in all the \emph{section}s. If there are sections and properties specified in \emph{neededMetadataList}, then only those values are returned.
+    The \emph{getRequestList} is a list of string \emph{GUID}'s, \emph{neededMetadataList} is a list of (\emph{section}, \emph{property}) pairs. If the \emph{neededMetadataList} is empty, then for each \emph{GUID} it returns all the metadata \emph{value}s for all the \emph{property}s in all the \emph{section}s. If there are sections and properties specified in \emph{neededMetadataList}, then only those values are returned.
 
     The response contains a list of \emph{GUID, metadatList} pairs, where \emph{metadataList} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
 
     \item[new(newRequestList)] creates a new entry in the Librarian with the given metadata, and returns the GUID of the new entry.
     
     The \emph{newRequestList} is a list of (\emph{requestID}, \emph{metadataList}) where \emph{requestID} is an arbitrary ID used to identify this request in the list of responses; \emph{metadataList} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
-    This method generates a \emph{GUID} for each request, and inserts the new entry (with the given metadata) into the A-Hash, then returns the GUIDs of the newly created entries. In the metadata of the new entry the `type' property in the `entry' section defines whether it is a file, a collection or a mount point. The `GUID' property can contain a GUID if we want to specify the GUID of the new entry, and don't want the Librarian to generate a random one.
+    This method generates a \emph{GUID} for each request, and inserts the new entry (with the given metadata) into the A-Hash, then returns the GUID's of the newly created entries. In the metadata of the new entry the `type' property in the `entry' section defines whether it is a file, a collection or a mount point. The `GUID' property can contain a GUID if we want to specify the GUID of the new entry, and don't want the Librarian to generate a random one.
     
     The response contains a list of (\emph{requestID}, \emph{GUID}, \emph{success}) tuples.
     
@@ -719,11 +722,11 @@ The end-user of the ARC storage system never communicates directly with a Librar
 
 \subsection{Implementation} % (fold)
 
-The Librarian service uses the A-Hash to store all the metadata, and it uses the GUIDs as IDs in the database. It has the URL of one or more A-Hash services from its configuration, and it can acquire more A-Hash URLs from these first A-Hashes in case of a replicated A-Hash deployement.
+The Librarian service uses the A-Hash to store all the metadata, and it uses the GUID's as ID's in the database. It has the URL of one or more A-Hash services from its configuration, and it can acquire more A-Hash URL's from these first A-Hashes in case of a replicated A-Hash deployement.
 
 The replicated A-Hash deployment is based on a single master, multiple clients scenario (see Section~\ref{sec:a_hash} for details). This means that the Librarian can read from any A-Hash, while it can only write to the master A-Hash. A list of A-Hashes, master and clients, is stored in an A-Hash object. The Librarian periodically gets this list to maintain its own list of A-Hash services. If the Librarian tries to write to the replicated A-Hash and the master is down, the Librarian will try to get a new list from one of the clients and retry the write request once before giving up. In case of reading from the replicated A-Hash, the Librarian will randomly loop through the list of clients until the read request is successful or until there are no more clients available.
 
-The Librarian also accepts report messages from Shepherds, and stores the contents of these messages in the A-Hash. There is one A-Hash object which contains the ID and the expected time of the next heartbeat of the registered Shepherds, and there is one A-Hash object for each Shepherd which stores the states and GUIDs of the files on the Shepherd's storage node (see Section~\ref{sub:shepherds} for details). The Librarian checks periodically if there is a Shepherd which is late with its heartbeat, and it changes the states of all the replicas if needed.
+The Librarian also accepts report messages from Shepherds, and stores the contents of these messages in the A-Hash. There is one A-Hash object which contains the ID and the expected time of the next heartbeat of the registered Shepherds, and there is one A-Hash object for each Shepherd which stores the states and GUID's of the files on the Shepherd's storage node (see Section~\ref{sub:shepherds} for details). The Librarian checks periodically if there is a Shepherd which is late with its heartbeat, and it changes the states of all the replicas if needed.
 
 Because the Librarian services store everything in the A-Hash, the Librarian itself is a stateless service. We can deploy multiple Librarians, if we configure them to use the same replicated group of A-Hashes (or the same central A-Hash) then the Bartenders could use any Librarian to achieve the same results, and the Shepherds also could report to any of them. One Shepherd should only report to one Librarian, but if that Librarian is offline, it should find another. The reports will be registered in the A-Hash as well, so it does not matter which Librarian gets a report.
 
@@ -734,7 +737,7 @@ Because the Librarian services store everything in the A-Hash, the Librarian its
 The Librarian has these configuration variables:
 
 \begin{description}
-    \item[AHashURL] is the URL of an A-Hash which the Librarian should use. There could be multiple URLs specified here.
+    \item[AHashURL] is the URL of an A-Hash which the Librarian should use. There could be multiple URL's specified here.
     \item[HeartbeatTimeout] specifies in seconds how frequently the Sheperds should send reports to the Librarian.
     \item[CheckPeriod] specifies in seconds how frequently the Librarian should check for late heartbeats.
 \end{description}
@@ -761,15 +764,15 @@ An example configuration:
 
 \subsection{Functionality} % (fold)
 
-A Shepherd service is capable of managing a storage node. It keeps track all the files it stores with their GUIDs and checksums. It periodically checks each file to detect corruption, and send reports to a Librarian indicating that the storage node is up and running, and whether some file's state has been changed. If a file goes missing or has a bad checksum then the Librarian is notified about the error (here the Shepherd refers to the file with its GUID, that's why it needs to store the GUIDs of its files). It periodically asks the Librarian how many replicas its files have, and if a file has fewer replicas than needed, the Shepherd offers its copy for replication by calling the Bartender.
+A Shepherd service is capable of managing a storage node. It keeps track all the files it stores with their GUID's and checksums. It periodically checks each file to detect corruption, and send reports to a Librarian indicating that the storage node is up and running, and whether some file's state has been changed. If a file goes missing or has a bad checksum then the Librarian is notified about the error (here the Shepherd refers to the file with its GUID, that's why it needs to store the GUID's of its files). It periodically asks the Librarian how many replicas its files have, and if a file has fewer replicas than needed, the Shepherd offers its copy for replication by calling the Bartender.
 
-A Shepherd service is always connected to a storage element service (e.g.~a web server). For each supported storage element service we need a backend module which makes the Shepherd capable of communicating with it to initiate file transfers, to detect whether a transfer was successful or not, to generate local IDs and checksums, etc.
+A Shepherd service is always connected to a storage element service (e.g.~a web server). For each supported storage element service we need a backend module which makes the Shepherd capable of communicating with it to initiate file transfers, to detect whether a transfer was successful or not, to generate local ID's and checksums, etc.
 
 A file in a storage node could be identified with a \emph{referenceID} which is unique within that node. If we know the \emph{location} of a file, which is the ID of the Shepherd service (\emph{serviceID}, currently the URL of the Shepherd) and the \emph{referenceID}, we could call the Shepherds \emph{get} method with the \emph{referenceID} and a list of transfer protocols we can use, the Shepherd chooses a protocol from this list which it can provide, and create a transfer URL (\emph{TURL}) and returns it along with the \emph{checksum} of the file. We could download the file from this \emph{TURL}, and verify it with the \emph{checksum}. An end user of the storage system does not need to call this \emph{get} method, because the Bartender service will do it, the user just asks the Bartender and gets the TURL.
 
 Storing a file starts with initiating the transfer with the \emph{put} method of the Shepherd, we should give the \emph{size} and \emph{checksum} of the file and its \emph{GUID} as well. We also specify a list of transfer protocols we are able to use, and the Shepherd chooses a \emph{protocol}, creates a \emph{TURL} for uploading and generates a \emph{referenceID}, then we can upload the file to the TURL. Again, the end user just asks the Bartender, and gets the TURL, the user does not need to call the \emph{put} method of the Shepherd directly.
 
-These \emph{TURL}s are one-time URLs which means that after the client uploads or downloads the file these \emph{TURL}s cannot be used again to do the same. If we want to download the same file twice, we have to initiate the transfer twice, and will get two different \emph{TURL}s.
+These \emph{TURL}'s are one-time URL's which means that after the client uploads or downloads the file these \emph{TURL}'s cannot be used again to do the same. If we want to download the same file twice, we have to initiate the transfer twice, and will get two different \emph{TURL}'s.
 
 With the \emph{stat} method we can get some information about a replica, e.g.~checksum, GUID, state, etc. The \emph{delete} method removes the replica.
 
@@ -797,7 +800,7 @@ The replicas have a state, which could be `\textbf{creating}' when the transfer 
     
     \item[delete(deleteRequestList)] removes a replica.
     
-    The \emph{deleteRequestList} is a list of (\emph{requestID}, \emph{referenceID}) pairs containing the IDs of the files to remove.
+    The \emph{deleteRequestList} is a list of (\emph{requestID}, \emph{referenceID}) pairs containing the ID's of the files to remove.
     
     The response is a list of (\emph{requestID}, \emph{status}), where \emph{status} could be `\textbf{deleted}' or `\textbf{nosuchfile}'.
     .
@@ -826,11 +829,11 @@ All the backend modules should have this common interface which the Shepherd can
 \begin{description}
     \item[prepareToGet(referenceID, localID, protocol)] returns the \emph{TURL}.
     
-    Initiate transfer with \emph{protocol} for the file which has these IDs: \emph{localID} and \emph{referenceID}. The reason for including here the referenceID as well is that this information could be used by the backend module later, e.g.~when the transfer finished and the state of the file needs to be changed.
+    Initiate transfer with \emph{protocol} for the file which has these ID's: \emph{localID} and \emph{referenceID}. The reason for including here the referenceID as well is that this information could be used by the backend module later, e.g.~when the transfer finished and the state of the file needs to be changed.
     
     \item[prepareToPut(referenceID, localID, protocol)] returns the \emph{TURL}.
     
-    Initiate transfer with \emph{protocol} for the file which has these IDs: \emph{localID} and \emph{referenceID}.
+    Initiate transfer with \emph{protocol} for the file which has these ID's: \emph{localID} and \emph{referenceID}.
     
     \item[copyTo(localID, turl, protocol)] returns \emph{success}.
     
@@ -840,7 +843,7 @@ All the backend modules should have this common interface which the Shepherd can
     
     Download the file from the given \emph{TURL} with the given \emph{protocol}, and store it as \emph{localID}.
     
-    \item[list()] returns a list of \emph{localID}s currently in the store directory.
+    \item[list()] returns a list of \emph{localID}'s currently in the store directory.
     \item[getAvailableSpace()] returns the available disk space in bytes.
     \item[generateLocalID()] returns a new unique \emph{localID}.
     \item[matchProtocols(protocols)] only leave that protocols in the list \emph{protocols} which are supported by this file transfer service.
@@ -854,7 +857,7 @@ All the backend modules should have this common interface which the Shepherd can
 The Shepherd has these configuration variables:
 
 \begin{description}
-    \item[ServiceID] is the ID of the service, currently it should be the URL of the service, because there is no information system where we can discover services by IDs.
+    \item[ServiceID] is the ID of the service, currently it should be the URL of the service, because there is no information system where we can discover services by ID's.
     \item[CheckPeriod] specifies in seconds how frequently should the Shepherd check the existence and the checksum of all the files on the storage node.
     \item[MinCheckInterval] specifies in seconds how much time should the Shepherd wait between two subsequent file checks. This ensures that the Shepherd does not use up all the resources of the hosting machine. After checking the cheksum of a file, the Shepherd will always wait this long before checking the next file, even if this means that checking all the files takes longer than the `CheckPeriod'.
     \item[CreatingTimeout] specifies in seconds after how much time the Shepherd decideds that a started file upload won't happen. This is not fatal, if the file is uploaded eventually, it will be a valid replica, but after this much time the system starts creating new replicas just in case.
@@ -899,7 +902,7 @@ The Shepherd has these configuration variables:
 
 \subsection{Functionality} % (fold)
 
-The Bartender provides an easy to use interface of the ARC storage system to the users. You can put, get and delete files using their logical names (\emph{LN}s) with the \emph{putFile}, \emph{getFile} and \emph{delFile} methods, create, remove and list collections with \emph{makeCollection}, \emph{unmakeCollection} and \emph{list}. You can remove the link to a file or sub-collection from its parent collection without removing the file or sub-collection itself with the \emph{unlink} method. The metadata of a file or collection (e.g.~whether the collection is closed, number of needed replicas, access policies) can be changed with \emph{modify}. A \emph{stat} call gives all the information about a file or collection, and you can move (or create hardlinks of) collections and files within the namespace with \emph{move}. You can upload an entirely new replica to a file (e.g.~if the file lost all its replicas, or when a Shepherd service offers its replica for replications) with \emph{addReplica}. You can create and remove mount points with the \emph{makeMountpoint} and \emph{unmakeMountpoint} methods.
+The Bartender provides an easy to use interface of the ARC storage system to the users. You can put, get and delete files using their logical names (\emph{LN}'s) with the \emph{putFile}, \emph{getFile} and \emph{delFile} methods, create, remove and list collections with \emph{makeCollection}, \emph{unmakeCollection} and \emph{list}. You can remove the link to a file or sub-collection from its parent collection without removing the file or sub-collection itself with the \emph{unlink} method. The metadata of a file or collection (e.g.~whether the collection is closed, number of needed replicas, access policies) can be changed with \emph{modify}. A \emph{stat} call gives all the information about a file or collection, and you can move (or create hardlinks of) collections and files within the namespace with \emph{move}. You can upload an entirely new replica to a file (e.g.~if the file lost all its replicas, or when a Shepherd service offers its replica for replications) with \emph{addReplica}. You can create and remove mount points with the \emph{makeMountpoint} and \emph{unmakeMountpoint} methods.
 
 The Bartender communicates with the Librarians to get and modify the metadata of files and collections, and it communicates with the Shepherds to initiate file transfers. The Bartender also has \emph{gateway modules} which are capable of communicating different kinds of thrid-party storage solutions. With these gateway modules it is possible to create mount points within the namespace of the ARC storage, and to access the namespace of the third-party storage through these mount points, which means the user can use the Bartender to get listing of directories on the third-party storage or to get files from the third-party storage. Thus the user can use a single client tool to access different kind of storages easily.
 
@@ -943,7 +946,7 @@ The high-level authorization is done by the Bartender. It makes decisions based 
     
     \item[makeCollection(makeCollectionRequestList)] creates new collections.
     
-    The \emph{makeCollectionRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the `\textbf{entries}' section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUIDs with the given name) and in the `\textbf{states}' section there is the `\textbf{closed}' property (if it is `yes' then no more files can be added or removed later).
+    The \emph{makeCollectionRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the `\textbf{entries}' section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUID's with the given name) and in the `\textbf{states}' section there is the `\textbf{closed}' property (if it is `yes' then no more files can be added or removed later).
     
     The response is a list of (\emph{requestID}, \emph{success}), where \emph{success} can be `\textbf{done}', `\textbf{LN exists}', `\textbf{parent does not exist}', `\textbf{failed to create new catalog entry}', `\textbf{failed to add child to parent}', `\textbf{internal error}', etc.
     
@@ -975,7 +978,7 @@ The high-level authorization is done by the Bartender. It makes decisions based 
 
     \emph{makeMountpointRequestList}, list of (\emph{requestID}, \emph{status})
 
-    \emph{makeMountpoint} is quite similar to the \emph{makeCollection}. It is used to provide the access of the external storage system within the global namespace. \emph{makeMountpointRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{URL}, \emph{metadata} ) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUIDs with the given name). \emph{LN} will be requested Logical name and the \emph{URL} is the path to the external point that is required to access. In the policies section there could be some access policies, and in the metadata section there could be any other \emph{metadata} in key-value pairs. 
+    \emph{makeMountpoint} is quite similar to the \emph{makeCollection}. It is used to provide the access of the external storage system within the global namespace. \emph{makeMountpointRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{URL}, \emph{metadata} ) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUID's with the given name). \emph{LN} will be requested Logical name and the \emph{URL} is the path to the external point that is required to access. In the policies section there could be some access policies, and in the metadata section there could be any other \emph{metadata} in key-value pairs. 
 
     The \emph{status} in the response could be \emph{done}, \emph{mountpoint exists}, \emph{parent does not exist}, \emph{internal error}, \emph{'failed: credentials not found'}, \emph{'cannot create anything in mountpoint'}
 
@@ -1044,7 +1047,7 @@ An example configuration:
 \subsection{Prototype CLI tool} % (fold)
 \label{sub:prototype_cli_tool}
 
-In the first prototype release there is one client tool called \verb!arc_storage_cli!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and uploading and downloading TURLs via HTTP. However in order to use proxy certificates or to transfer files with GridFTP protocol, you need to have the ARC client libraries installed.
+In the first prototype release there is one client tool called \verb!arc_storage_cli!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and uploading and downloading TURL's via HTTP. However in order to use proxy certificates or to transfer files with GridFTP protocol, you need to have the ARC client libraries installed.
 
 The credentials of the user and the URL of the Bartender can be configured either with an XML file located at \verb!~/.arc/client.xml! or with environment variables.
 
