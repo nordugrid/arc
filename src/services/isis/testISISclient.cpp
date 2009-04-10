@@ -11,7 +11,11 @@
         attributes: The ServiceID for remove.
     (The GetISISList operation will be used in every other cases impicitly.)
 
-    It is also possible to define the BootstrapISIS with the -i command line option.
+    It is also possible to define the BootstrapISIS with the -b or --bootstrap command line option.
+
+    For testing purposes it's also possible to define the isis url directly with the -i or --isis option.
+    If there is such an option defined the GetISISList operation will be skipped even if there is also
+    a BootstrapISIS defined.
 
     Usage:
         testISISclient -m Query "query string"
@@ -25,7 +29,10 @@
         testISISclient -m Query "/RegEntry/MetaSrcAdv/ServiceID[text()=\"Srv_ID1\"]"
         testISISclient -m RemoveRegistrations "Srv_ID1"
 
-        testISISclient -i https://your.domain.com/infosys -m RemoveRegistrations "Srv_ID1"
+        testISISclient -b https://your.domain.com/infosys -m RemoveRegistrations "Srv_ID1"
+
+        testISISclient -i https://your.domain.com/infosys -m Query "/RegEntry"
+
 
 */
 
@@ -461,10 +468,16 @@ int main(int argc, char** argv) {
       );
 
     std::string infosys_url = "http://knowarc2.grid.niif.hu:50000/isis1";
-      options.AddOption('i', "isis",
+      options.AddOption('b', "bootstrap",
         istring("define the URL of the Bootstrap ISIS"),
         istring("isis"),
         infosys_url);
+
+    std::string isis_url = "";
+      options.AddOption('i', "isis",
+        istring("define the URL of the ISIS to connect directly"),
+        istring("isis"),
+        isis_url);
 
     std::string method = "";
       options.AddOption('m', "method",
@@ -489,14 +502,20 @@ int main(int argc, char** argv) {
     std::cout << " [ ISIS tester ] " << std::endl;
     logger.msg(Arc::INFO, "ISIS tester start!");
 
-    Arc::URL BootstrapISIS(infosys_url);
+    std::string contactISIS_address_ = "";
 
-    // Get the a list of known ISIS's and choose one from them randomly
-    std::vector<std::string> neighbors_ = GetISISList( BootstrapISIS );
+    if (isis_url.empty()) {
+        Arc::URL BootstrapISIS(infosys_url);
 
-    std::srand(time(NULL));
-    std::string contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
-    std::cout << "The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
+        // Get the a list of known ISIS's and choose one from them randomly
+        std::vector<std::string> neighbors_ = GetISISList( BootstrapISIS );
+
+        std::srand(time(NULL));
+        contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
+        std::cout << "The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
+    } else {
+        contactISIS_address_ = isis_url;
+    }
     Arc::URL ContactISIS(contactISIS_address_);
     // end of getISISList
 
