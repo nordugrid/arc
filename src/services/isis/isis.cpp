@@ -17,7 +17,7 @@
 
 namespace ISIS
 {
-static Arc::Logger thread_logger(Arc::Logger::rootLogger, "InfoSys_Thread");
+static Arc::Logger thread_logger(Arc::Logger::rootLogger, "ISIS_Thread");
 
 struct Thread_data {
    Arc::ISIS_description isis;
@@ -38,7 +38,7 @@ static void message_send_thread(void *data) {
     (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
 
     thread_logger.msg(Arc::DEBUG, "Neighbor's url: %s", url);
-    thread_logger.msg(Arc::DEBUG, "Sended XML: %s", node_str);
+    thread_logger.msg(Arc::DEBUG, "Sent XML: %s", node_str);
 
     //Send SOAP message to the neighbor.
     Arc::PayloadSOAP *response = NULL;
