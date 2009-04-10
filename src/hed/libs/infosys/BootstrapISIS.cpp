@@ -21,6 +21,7 @@ static Arc::Logger logger_(Arc::Logger::rootLogger, "InfoSys");
 namespace Arc {
 
     void InfoRegistrar::initISIS(XMLNode cfg) {
+        logger_.msg(DEBUG, "Initialize ISIS handler");
         // Process configuration
         defaultBootstrapISIS.key   = (std::string)cfg["KeyPath"];
         defaultBootstrapISIS.cert  = (std::string)cfg["CertificatePath"];
@@ -43,9 +44,10 @@ namespace Arc {
     }
 
     void InfoRegistrar::removeISIS(ISIS_description isis) {
+        logger_.msg(DEBUG, "Remove ISIS (%s) from list", isis.url);
         // Remove isis from myISISList
         for (std::vector<ISIS_description>::iterator it = myISISList.begin();
-             it <= myISISList.end() && ((*it).url != myISIS.url || myISISList.erase(it) == it); it++);
+             it < myISISList.end() && ((*it).url != myISIS.url || myISISList.erase(it) == it); it++);
 
         // If the 'isis' is the currently used (myISIS) isis
         if ( isis.url == myISIS.url && myISISList.size() != 0 ) {
@@ -62,6 +64,7 @@ namespace Arc {
     }
 
     void InfoRegistrar::getISISList(ISIS_description isis) {
+        logger_.msg(DEBUG, "getISISList from %s", isis.url);
         // Try to get ISISList from the actual ISIS
         // Compose getISISList request
         Arc::NS query_ns;
@@ -92,7 +95,7 @@ namespace Arc {
         while((bool)(*response)["GetISISListResponse"]["EPR"][i]) {
             bool ISIS_found = false;
             for (std::vector<ISIS_description>::iterator it = myISISList.begin();
-                it <= myISISList.end() && ((*it).url != (std::string) (*response)["GetISISListResponse"]["EPR"][i]
+                it < myISISList.end() && ((*it).url != (std::string) (*response)["GetISISListResponse"]["EPR"][i]
                 || (ISIS_found = true)); it++);
             if ( !ISIS_found ) {
                 ISIS_description new_ISIS;
@@ -109,13 +112,16 @@ namespace Arc {
         std::srand(time(NULL));
         ISIS_description rndISIS = myISISList[std::rand() % myISISList.size()];
 
+        logger_.msg(DEBUG, "Chosen ISIS for communication: %s", rndISIS.url);
         myISIS = rndISIS;
 
     }
 
     ISIS_description InfoRegistrar::getISIS(void) {
+        logger_.msg(DEBUG, "Get ISIS from list of ISIS handler");
         if (myISISList.size() == 0) {
             if ( myISIS.url == defaultBootstrapISIS.url ) {
+                logger_.msg(WARNING, "There is no more ISIS available. The list of ISIS's is already empty.");
                 // If there is no available 
                 ISIS_description temporary_ISIS;
                 temporary_ISIS.url = "";
