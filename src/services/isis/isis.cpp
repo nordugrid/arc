@@ -64,7 +64,7 @@ static void message_send_thread(void *data) {
     thread_logger.msg(Arc::DEBUG, " Request sent to %s. Waiting for the response.", url );
     status= client_entry.process(&req,&response);
 
-    if (!status) {
+    if (!status.isOk()) {
        thread_logger.msg(Arc::ERROR, "%s Request failed", url);
        return;
     };

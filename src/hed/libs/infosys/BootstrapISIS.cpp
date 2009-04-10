@@ -82,7 +82,7 @@ namespace Arc {
         MCC_Status status = cli.process(&request, &response);
 
         // If the given ISIS wasn't available remove it and return
-        if (!status || !response || !bool((*response)["GetISISListResponse"])) {
+        if (!status.isOk() || !response || !bool((*response)["GetISISListResponse"])) {
             removeISIS(isis);
             return;
         }

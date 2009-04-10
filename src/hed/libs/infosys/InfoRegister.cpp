@@ -245,7 +245,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             (*response).GetDoc(response_string, true);
             logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
 
-            if ((!status) ||
+            if ((!status.isOk()) ||
                 (!response)) {
                 //(!response) ||
                 //(!bool((*response)["RemoveRegistrationResponse"]))) {
@@ -431,7 +431,7 @@ void InfoRegistrar::registration(void) {
             ClientSOAP cli(mcc_cfg,myISIS.url);
             MCC_Status status = cli.process(&request, &response);
 
-            if ((!status) ||
+            if ((!status.isOk()) ||
                 (!response) ||
                 (!bool((*response)["RegisterResponse"]))) {
                 logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
