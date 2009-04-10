@@ -1,7 +1,7 @@
 if XMLSEC_ENABLED
 bin_PROGRAMS=perftest  perftest_saml2sso  perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_cmd_times
 else 
-bin_PROGRAMS=perftest  perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_times
+bin_PROGRAMS=perftest  perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_cmd_times
 endif
 
 perftest_SOURCES  = perftest.cpp
