@@ -13,7 +13,7 @@
         <Path>../../hed/mcc/tls/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
-        <Path>../../hed/pdc/.libs/</Path>
+        <Path>../../hed/shc/.libs/</Path>
         <Path>../../services/saml/.libs/</Path>
         <Path>../../services/slcs/.libs/</Path>
     </ModuleManager>
@@ -21,7 +21,7 @@
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
-    <Plugins><Name>arcpdc</Name></Plugins>
+    <Plugins><Name>arcshc</Name></Plugins>
     <Plugins><Name>saml2sp</Name></Plugins>
     <Plugins><Name>slcs</Name></Plugins>
     <Chain>
@@ -51,6 +51,8 @@
         <Service name='saml.sp' id='samlsp'>
             <MetaDataLocation>./test_metadata.xml</MetaDataLocation>
             <ServiceProviderName>https://squark.uio.no/shibboleth-sp</ServiceProviderName>
+            <KeyPath>./testkey-nopass.pem</KeyPath>
+            <CertificatePath>./testcert.pem</CertificatePath>
         </Service>
         <Service name="slcs.service" id="slcs">
             <next id="slcs"/>
