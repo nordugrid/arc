@@ -1,71 +1,63 @@
-<?xml version="1.0"?>
-<ArcConfig 
+<ArcConfig
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:isis="http://www.nordugrid.org/schemas/isis/2008/08"
-  xmlns:register="http://www.nordugrid.org/schemas/register/2008/08"
+  xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
 >
-    <Server>
-        <Foreground/>
-        <Pidfile>./arched.pid</Pidfile>
-        <Logger level="VERBOSE">./logfile</Logger>
-    </Server>
-    <ModuleManager>
-        <Path>.libs/</Path>
-        <Path>../../hed/mcc/http/.libs/</Path>
-        <Path>../../hed/mcc/tls/.libs/</Path>
-        <Path>../../hed/mcc/soap/.libs/</Path>
-        <Path>../../hed/mcc/tcp/.libs/</Path>
-    </ModuleManager>
-    <Plugins><Name>mcctcp</Name></Plugins>
-    <Plugins><Name>mcctls</Name></Plugins>
-    <Plugins><Name>mcchttp</Name></Plugins>
-    <Plugins><Name>mccsoap</Name></Plugins>
-    <Plugins><Name>isis</Name></Plugins>
-    <Chain>
-        <Component name="tcp.service" id="tcp">
-            <next id="http"/>
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
-        </Component>
-        <Component name="http.service" id="http">
-            <next id="soap">POST</next>
-        </Component>
-        <Component name="soap.service" id="soap">
-            <next id="plexer"/>
-        </Component>
-        <Plexer name="plexer.service" id="plexer">
-            <next id="isis">/isis</next>
-            <next id="isis2">/isis2</next>
-        </Plexer>
-        <Service name="isis" id="isis">
-            <ID>74B46699-04E3-4083-BFD1-7195C9C20E99</ID>
-            <DBPath>./db</DBPath>
-            <Router>
-                <Peers>
-                    <URL>http://localhost:60000/isis2</URL>
-                </Peers>
-                <MaxThread>5</MaxThread>
-            </Router>
-            <register:Register>
-                <register:Peers>
-                    <register:URL>http://localhost:60000/isis</register:URL>
-                </register:Peers>
-                <register:Period>0</register:Period>
-            </register:Register>
-        </Service>
-        <Service name="isis" id="isis2">
-            <ID>B14A460F-9E64-4862-942D-9E2E7A95CA55</ID>
-            <DBPath>./db2</DBPath>
-            <Router>
-                <Peers><URL>http://localhost:60000/isis</URL></Peers>
-                <MaxThread>5</MaxThread>
-            </Router>
-            <register:Register>
-                <register:Peers>
-                    <register:URL>http://localhost:60000/isis2</register:URL>
-                </register:Peers>
-                <register:Period>0</register:Period>
-            </register:Register>
-        </Service>
-    </Chain>
+  <Server>
+    <Pidfile>/var/run/arched.pid</Pidfile>
+    <Logger level="VERBOSE">/storage/arc1/log/arched.log</Logger>
+  </Server>
+  <infosys:InfoRegistrar id="NorduGridInfosys">
+    <!-- Contact and behavior details of the InfoRegsitrar element-->
+    <infosys:URL>http://knowarc3.grid.niif.hu:50000/isis1</infosys:URL>
+    <infosys:Retry>4</infosys:Retry>
+  </infosys:InfoRegistrar>
+  <ModuleManager>
+    <Path>/usr/local/lib/arc</Path>
+    <Path>/usr/local/lib</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>isis</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+   <Chain>
+    <Component name="tcp.service" id="tcp">
+      <next id="http"/>
+      <tcp:Listen>
+        <tcp:Port>50000</tcp:Port>
+        <tcp:Version>4</tcp:Version>
+      </tcp:Listen>
+    </Component>
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+      <next id="plexer">GET</next>
+      <next id="plexer">PUT</next>
+    </Component>
+    <Component name="soap.service" id="soap">
+        <next id="plexer"/>
+    </Component>
+
+    <Plexer name="plexer.service" id="plexer">
+      <next id="isis1">^/isis1$</next>
+    </Plexer>
+
+    <Service name="isis" id="isis1">
+        <!-- DBPath: File location where the database is physically stored -->
+        <DBPath>/storage/arc1/isis1</DBPath>
+        <infosys:serviceid>http://knowarc2.grid.niif.hu:50000/isis1</infosys:serviceid>
+        <infosys:endpoint>http://knowarc2.grid.niif.hu:50000/isis1</infosys:endpoint>
+        <infosys:expiration>PT3M</infosys:expiration>
+        <!-- EndpointURL: The URL where the service can be accessed -->
+        <EndpointURL>http://knowarc2.grid.niif.hu:50000/isis1</EndpointURL>
+        <!-- BootsrtapISIS: Contact details of the bootstrap ISIS -->
+        <BootstrapISIS>
+            <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
+        </BootstrapISIS>
+        <infosys:NoRegister />
+    </Service>
+
+  </Chain>
 </ArcConfig>
+
