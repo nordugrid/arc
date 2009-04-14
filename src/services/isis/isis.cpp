@@ -99,6 +99,11 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
         endpoint_=(std::string)((*cfg)["endpoint"]);
         expiration_=(std::string)((*cfg)["expiration"]);
 
+        log_destination.open("/storage/arc1/log/isis.log");
+        log_stream = new Arc::LogStream(log_destination);
+        thread_logger.addDestination(*log_stream);
+        logger_.addDestination(*log_stream);
+
         ns_["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
 
         std::string db_path = (std::string)(*cfg)["DBPath"];
@@ -120,6 +125,10 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
     }
 
     ISIService::~ISIService(void){
+        logger_.removeDestinations();
+        thread_logger.removeDestinations();
+        delete log_stream;
+        log_destination.close();
         if (db_ != NULL) {
             delete db_;
         }

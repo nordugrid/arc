@@ -2,6 +2,7 @@
 #define __ARC_ISIS_H__
 
 #include <string>
+#include <fstream>
 
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -13,6 +14,8 @@ namespace ISIS {
     class ISIService: public Arc::RegisteredService {
         private:
             Arc::Logger logger_;
+            std::ofstream log_destination;
+            Arc::LogStream *log_stream;
             std::string serviceid_;
             std::string endpoint_;
             std::string expiration_;
