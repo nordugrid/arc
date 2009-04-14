@@ -49,7 +49,7 @@ std::string config_read_line(std::istream &cfile) {
   for(;;) {
     if(cfile.eof()) { rest=""; return rest; };
     {
-      char buf[256];
+      char buf[4096];
       istream_readline(cfile,buf,sizeof(buf));
       rest=buf;
     };

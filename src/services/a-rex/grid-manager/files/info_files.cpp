@@ -680,6 +680,7 @@ bool job_local_write_file(const std::string &fname,const JobLocalDescription &jo
   };
   f << std::endl;
   write_pair(f,"subject",job_desc.DN);
+  write_pair(f,"vomsinfo",job_desc.VOMS_info);
   write_pair(f,"starttime",job_desc.starttime);
   write_pair(f,"lifetime",job_desc.lifetime);
   write_pair(f,"notify",job_desc.notify);
@@ -732,6 +733,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
     else if(name == "queue") { job_desc.queue = buf+p; }
     else if(name == "localid") { job_desc.localid = buf+p; }
     else if(name == "subject") { job_desc.DN = buf+p; }
+    else if(name == "vomsinfo") { job_desc.VOMS_info = buf+p; }
     else if(name == "starttime") { job_desc.starttime = buf+p; }
 //    else if(name == "UI") { job_desc.UI = buf+p; }
     else if(name == "lifetime") { job_desc.lifetime = buf+p; }
