@@ -390,8 +390,12 @@ bool JSDLJob::get_gmlog(std::string& s) {
 
 bool JSDLJob::get_loggers(std::list<std::string>& urls) {
 
+  int max_userdef_loggers=3;   // TODO eliminate magic constant!
   Arc::XMLNode logNodes = jsdl_document["JobDescription"]["RemoteLogging"];
-  for( int i=0; (bool)(jsdl_document["JobDescription"]["RemoteLogging"][i]); i++ ) {
+  for( int i=0; 
+       i<max_userdef_loggers &&  (bool)(jsdl_document["JobDescription"]["RemoteLogging"][i]); 
+       i++ ) 
+  {
     urls.push_back( (std::string) jsdl_document["JobDescription"]["RemoteLogging"][i]["URL"]);
   };
   return true;
