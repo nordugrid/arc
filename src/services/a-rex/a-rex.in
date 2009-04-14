@@ -56,7 +56,7 @@ add_library_path() {
   if [ ! "x$location" = "x" ] ; then
     if [ ! "$location" = "/usr" ] ; then
       libdir="$location/lib"
-      libdir64="$location/lib"
+      libdir64="$location/lib64"
       if [ -d "$libdir64" ] ; then
         LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
       fi
