@@ -51,6 +51,22 @@ else
   }
 fi
 
+add_library_path() {
+  location="$1"
+  if [ ! "x$location" = "x" ] ; then
+    if [ ! "$location" = "/usr" ] ; then
+      libdir="$location/lib"
+      libdir64="$location/lib"
+      if [ -d "$libdir64" ] ; then
+        LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
+      fi
+      if [ -d "$libdir" ] ; then
+        LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+      fi
+    fi
+  fi
+}
+
 # sysconfig files
 if [ -f /etc/sysconfig/globus ]; then
     . /etc/sysconfig/globus
@@ -233,7 +249,11 @@ VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
 # GRIDSITE_LOCATION
 GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-@DEFAULT_GRIDSITE_LOCATION@}
 
-LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$GLOBUS_LOCATION/lib:$VOMS_LOCATION/lib:$GRIDSITE_LOCATION/lib:$LD_LIBRARY_PATH
+add_library_path "$LFC_LOCATION"
+add_library_path "$GRIDSITE_LOCATION"
+add_library_path "$VOMS_LOCATION"
+add_library_path "$GLOBUS_LOCATION"
+LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
 SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
 export LD_LIBRARY_PATH SASL_PATH
 
