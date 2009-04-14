@@ -58,7 +58,7 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
       if(min_s.length() == 0) {
         throw CacheConfigException("Not enough parameters in cachesize parameter");
       }
-      int max_i;
+      off_t max_i;
       if(!Arc::stringto(max_s,max_i)) {
         throw CacheConfigException("bad number in cachesize parameter");
       }
@@ -67,7 +67,7 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
         continue;
       }
       _cache_max = max_i;
-      int min_i;
+      off_t min_i;
       if(!Arc::stringto(min_s,min_i)) {
         throw CacheConfigException("bad number in cachesize parameter");
       }
