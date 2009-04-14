@@ -690,6 +690,12 @@ bool job_local_write_file(const std::string &fname,const JobLocalDescription &jo
   if(job_desc.downloads>=0) write_pair(f,"downloads",Arc::tostring(job_desc.downloads));
   if(job_desc.uploads>=0) write_pair(f,"uploads",Arc::tostring(job_desc.uploads));
   write_pair(f,"jobname",job_desc.jobname);
+  for (std::list<std::string>::const_iterator ppn=job_desc.projectnames.begin();
+       ppn!=job_desc.projectnames.end();
+       ++ppn)
+    {
+      write_pair(f,"projectname",*ppn);
+    }
   write_pair(f,"gmlog",job_desc.stdlog);
   write_pair(f,"cleanuptime",job_desc.cleanuptime);
   write_pair(f,"delegexpiretime",job_desc.expiretime);
@@ -742,6 +748,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
     else if(name == "exectime") { job_desc.exectime = buf+p; }
     else if(name == "jobreport") { job_desc.jobreport.push_back(std::string(buf+p)); }
     else if(name == "jobname") { job_desc.jobname = buf+p; }
+    else if(name == "projectname") { job_desc.projectnames.push_back(std::string(buf+p)); }
     else if(name == "gmlog") { job_desc.stdlog = buf+p; }
     else if(name == "rerun") {
       std::string temp_s(buf+p); int n;

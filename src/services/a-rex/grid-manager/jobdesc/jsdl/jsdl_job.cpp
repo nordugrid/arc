@@ -709,6 +709,7 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   set_posix();
   if(!check()) return false;
   if(!get_jobname(job_desc.jobname)) return false;
+  if(!get_jobprojects(job_desc.projectnames)) return false;
   if(!get_data(job_desc.inputdata,job_desc.downloads,job_desc.outputdata,job_desc.uploads)) return false;
   if(!get_arguments(job_desc.arguments)) return false;
   if(!get_stdin(job_desc.stdin_)) return false;

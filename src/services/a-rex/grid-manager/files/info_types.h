@@ -97,6 +97,7 @@ class JobLocalDescription {
   int    downloads;          /* number of downloadable files requested */
   int    uploads;            /* number of uploadable files requested */
   std::string jobname;       /* name of job given by user */
+  std::list<std::string> projectnames;  /* project names, i.e. "ACIDs" */
   std::list<std::string> jobreport;     /* URLs of user's/VO's loggers */
   mds_time cleanuptime;      /* time to remove job completely */
   mds_time expiretime;       /* when delegation expires */
