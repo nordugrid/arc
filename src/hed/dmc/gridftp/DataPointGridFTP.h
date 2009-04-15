@@ -26,6 +26,7 @@ namespace Arc {
     globus_ftp_client_operationattr_t ftp_opattr;
     globus_thread_t ftp_control_thread;
     int ftp_threads;
+    bool autodir;
 
     SimpleCondition cond;
     DataStatus condstatus;

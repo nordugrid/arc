@@ -506,7 +506,7 @@ namespace Arc {
     ftp_eof_flag = false;
     GlobusResult res;
     globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
-    if (additional_checks) {
+    if (autodir) {
       logger.msg(DEBUG, "start_writing_ftp: mkdir");
       if (!mkdir_ftp())
         logger.msg(DEBUG,
@@ -786,6 +786,13 @@ namespace Arc {
         ftp_threads = 1;
       if (ftp_threads > MAX_PARALLEL_STREAMS)
         ftp_threads = MAX_PARALLEL_STREAMS;
+    }
+    autodir = additional_checks;
+    std::string autodir_s = url.Option("autodir");
+    if(autodir_s == "yes") {
+      autodir = true;
+    } else if(autodir_s == "no") {
+      autodir = false;
     }
   }
 
