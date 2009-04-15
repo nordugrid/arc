@@ -1349,8 +1349,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/charon/Makefile
                  src/clients/charon/arcdecision.1
                  src/clients/isis/Makefile
-                 src/clients/wsrf/Makefile
-                 src/clients/wsrf/arcinfo.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
                  src/clients/credentials/arcslcs.1
@@ -1358,6 +1356,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/voms/voms_assertion_init.1
                  src/clients/arclib/Makefile
                  src/clients/arclib/arcstat.1
+                 src/clients/arclib/arcinfo.1
                  src/clients/arclib/arcsub.1
                  src/clients/arclib/arcclean.1
                  src/clients/arclib/arckill.1

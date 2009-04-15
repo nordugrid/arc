@@ -1,7 +1,7 @@
-bin_PROGRAMS = arcsub arcget arcstat arckill arcclean arccat arcsync arcresub \
+bin_PROGRAMS = arcsub arcget arcstat arcinfo arckill arcclean arccat arcsync arcresub \
 	arcmigrate arcresume arcrenew
 
-man_MANS = arcsub.1 arcget.1 arcstat.1 arckill.1 arcclean.1 arccat.1 \
+man_MANS = arcsub.1 arcget.1 arcstat.1 arcinfo.1 arckill.1 arcclean.1 arccat.1 \
 	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1 \
 	arcclient.xml.5
 
@@ -22,6 +22,10 @@ arcget_LDADD    = $(CLILIBS)
 arcstat_SOURCES  = arcstat.cpp
 arcstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcstat_LDADD    = $(CLILIBS)
+
+arcinfo_SOURCES  = arcinfo.cpp
+arcinfo_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcinfo_LDADD    = $(CLILIBS)
 
 arckill_SOURCES  = arckill.cpp
 arckill_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

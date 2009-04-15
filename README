@@ -383,122 +383,192 @@ Testing and Using A-REX (clients)
 ================================
 
 Now You may use the command line utility 'arcinfo' to obtain a service description.
-Make sure user key and certificate and CA certificate(s) are readable from account
-You use and run something like
+You can do something like
 
- ./arcinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem -A /etc/grid-security/certificates https://loc
-alhost:60000/arex 2>error.log
+ ./arcinfo -c ARC1:https://localhost:60000/arex -l
 
-That should produce XML output describing resource A-REX represents. Below You can 
-see an example of proper output. In case of error see error.log file and report 
-problems to ARC1 development team. Include content of error.log and server's log.
+This should produce a description list of the resources A-REX represents. Below
+you can see an example of proper output.
 
-<n:nordugrid xmlns:n="urn:nordugrid" xmlns:M0="urn:Mds" xmlns:nc0="urn:nordugrid-cluster">
-  <nc0:name>mobile2.home.net</nc0:name>
-  <nc0:aliasname>MINIMAL Computing Element</nc0:aliasname>
-  <nc0:comment>This is a minimal out-of-box CE setup</nc0:comment>
-  <nc0:issuerca>/O=Grid/O=Test/CN=CA</nc0:issuerca>
-  <nc0:issuerca-hash>4457e417</nc0:issuerca-hash>
-  <nc0:trustedca>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</nc0:trustedca>
-  <nc0:trustedca>/O=Grid/O=Test/CN=CA</nc0:trustedca>
-  <nc0:contactstring>gsiftp://mobile2.home.net:2811/jobs</nc0:contactstring>
-  <nc0:lrms-type>fork</nc0:lrms-type>
-  <nc0:architecture>i686</nc0:architecture>
-  <nc0:homogeneity>TRUE</nc0:homogeneity>
-  <nc0:nodeaccess>inbound</nc0:nodeaccess>
-  <nc0:nodeaccess>outbound</nc0:nodeaccess>
-  <nc0:totalcpus>1</nc0:totalcpus>
-  <nc0:usedcpus>0</nc0:usedcpus>
-  <nc0:cpudistribution>1cpu:1</nc0:cpudistribution>
-  <nc0:prelrmsqueued>0</nc0:prelrmsqueued>
-  <nc0:totaljobs>0</nc0:totaljobs>
-  <nc0:sessiondir-free>8469</nc0:sessiondir-free>
-  <nc0:sessiondir-total>43865</nc0:sessiondir-total>
-  <nc0:sessiondir-lifetime>10080</nc0:sessiondir-lifetime>
-  <M0:validfrom>20080220142836Z</M0:validfrom>
-  <M0:validto>20080220143036Z</M0:validto>
-  <nq0:name xmlns:nq0="urn:nordugrid-queue" name="fork">
-    <nq0:name>fork</nq0:name>
-    <nq0:status>inactive, grid-manager is down</nq0:status>
-    <nq0:comment>This queue is nothing more than a fork host</nq0:comment>
-    <nq0:schedulingpolicy>FIFO</nq0:schedulingpolicy>
-    <nq0:homogeneity>TRUE</nq0:homogeneity>
-    <nq0:nodecpu>Intel(R) Celeron(R) M CPU        420  @ 1.60GHz @ 1596.048 MHz</nq0:nodecpu>
-    <nq0:architecture>i686</nq0:architecture>
-    <nq0:maxcputime>unlimited</nq0:maxcputime>
-    <nq0:maxwalltime>unlimited</nq0:maxwalltime>
-    <nq0:running>0</nq0:running>
-    <nq0:gridrunning>0</nq0:gridrunning>
-    <nq0:localqueued>0</nq0:localqueued>
-    <nq0:gridqueued>0</nq0:gridqueued>
-    <nq0:prelrmsqueued>0</nq0:prelrmsqueued>
-    <nq0:totalcpus>1</nq0:totalcpus>
-    <IM0:validfrom>20080220142836Z</M0:validfrom>
-    <M0:validto>20080220143036Z</M0:validto>
-    <nig0:name xmlns:nig0="urn:nordugrid-info-group" name="jobs">
-      <nig0:name>jobs</nig0:name>
-      <M0:validfrom>20080220142836Z</M0:validfrom>
-      <M0:validto>20080220143036Z</M0:validto>
-      <nj0:globalid xmlns:nj0="urn:nordugrid-job" name="gsiftp://mobile2.home.net:2811/jobs/636312034687631804
-289383">
-        <nj0:globalid>gsiftp://mobile2.home.net:2811/jobs/636312034687631804289383</nj0:globalid>
-        <nj0:globalowner>/O=Grid/O=Test/CN=user</nj0:globalowner>
-        <nj0:jobname>TEST</nj0:jobname>
-        <nj0:execcluster>mobile2.home.net</nj0:execcluster>
-        <nj0:execqueue>fork</nj0:execqueue>
-        <nj0:submissionui>127.0.0.1:59790</nj0:submissionui>
-        <nj0:submissiontime>20080220005243Z</nj0:submissiontime>
-        <nj0:sessiondirerasetime>20080227005843Z</nj0:sessiondirerasetime>
-        <nj0:completiontime>20080220005843Z</nj0:completiontime>
-        <nj0:cpucount>1</nj0:cpucount>
-        <nj0:comment>GM: The grid-manager is down</nj0:comment>
-        <nj0:usedcputime>0</nj0:usedcputime>
-        <nj0:usedwalltime>0</nj0:usedwalltime>
-        <nj0:errors>Job submission to LRMS failed</nj0:errors>
-        <nj0:status>FAILED</nj0:status>
-        <nj0:rerunable>SUBMIT</nj0:rerunable>
-        <M0:validfrom>20080220142836Z</M0:validfrom>
-        <M0:validto>20080220143036Z</M0:validto>
-      </nj0:globalid>
-    </nig0:name>
-    <nig0:name xmlns:nig0="urn:nordugrid-info-group" name="users">
-      <nig0:name>users</nig0:name>
-      <M0:validfrom>20080220142836Z</M0:validfrom>
-      <M0:validto>20080220143036Z</M0:validto>
-    </nig0:name>
-  </nq0:name>
-</n:nordugrid>
+---
+Cluster: localhost
+ Health State: ok
 
-Please note that You can run similar arcinfo request against any ARC1 service
-except echo service. Output should always be XML description of service.
+Location information:
 
-To avoid providing credentials information on command line it is possible to
-have user configuration file with predefined values. Default location for 
-this file is ~/.arc/client.xml . There is an example installed in 
-$ARC_LOCATION/share/doc/arc/client.xml . Please edit before copying it into
-your home directory.
+Domain information:
+
+Service information:
+ Service Name: MINIMAL Computing Element
+ Service Type: org.nordugrid.arex
+
+Endpoint information:
+ URL: https://localhost:60000/arex
+ Capabilities:
+  executionmanagement.jobexecution
+ Technology: webservice
+ Interface Name: OGSA-BES
+ Supported Profiles:
+  WS-I 1.0
+  HPC-BP
+ Implementor: NorduGrid
+ Implementation Name: A-REX
+ Implementation Version: 0.9
+ QualityLevel: development
+ Health State: ok
+ Serving State: production
+ Issuer CA: /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
+ Trusted CAs:
+  /C=BE/O=BELNET/OU=BEGrid/CN=BEGrid CA/emailAddress=gridca@belnet.be
+  /C=FR/O=CNRS/CN=CNRS2-Projets
+  /DC=org/DC=ugrid/CN=UGRID CA
+  /C=BR/O=ICPEDU/O=UFF BrGrid CA/CN=UFF Brazilian Grid Certification Authority
+  /C=DE/O=DFN-Verein/OU=DFN-PKI/CN=DFN-Verein PCA Grid - G01
+  /C=PT/O=LIPCA/CN=LIP Certification Authority
+  /C=FR/O=CNRS/CN=GRID-FR
+  /C=FR/O=CNRS/CN=CNRS2
+  /C=TR/O=TRGrid/CN=TR-Grid CA
+  /C=NL/O=NIKHEF/CN=NIKHEF medium-security certification auth
+  /DC=org/DC=DOEGrids/OU=Certificate Authorities/CN=DOEGrids CA 1
+  /DC=ch/DC=cern/CN=CERN Trusted Certification Authority
+  /C=AU/O=APACGrid/OU=CA/CN=APACGrid/emailAddress=camanager@vpac.org
+  /C=IE/O=Grid-Ireland/CN=Grid-Ireland Certification Authority
+  /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
+  /DC=RO/DC=RomanianGRID/O=ROSA/OU=Certification Authority/CN=RomanianGRID CA
+  /DC=bg/DC=acad/CN=BG.ACAD CA
+  /C=MX/O=UNAMgrid/OU=UNAM/CN=CA
+  /C=GR/O=HellasGrid/OU=Certification Authorities/CN=HellasGrid Root CA 2006
+  /C=CL/O=REUNACA/CN=REUNA Certification Authority
+  /DC=org/DC=balticgrid/CN=Baltic Grid Certification Authority
+  /C=IT/O=INFN/CN=INFN CA
+  /DC=me/DC=ac/DC=MREN/CN=MREN-CA
+  /C=FR/O=CNRS/CN=CNRS-Projets
+  /C=DE/O=DFN-Verein/OU=DFN-PKI/CN=DFN-Verein User CA Grid - G01
+  /C=UK/O=eScienceCA/OU=Authority/CN=UK e-Science CA
+  /C=RS/O=AEGIS/CN=AEGIS-CA
+  /C=SI/O=SiGNET/CN=SiGNET CA
+  /C=VE/O=Grid/O=Universidad de Los Andes/OU=CeCalCULA/CN=ULAGrid Certification Authority
+  /DC=ORG/DC=SEE-GRID/CN=SEE-GRID CA
+  /C=CH/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/CN=SWITCH Personal CA
+  /C=RU/O=RDIG/CN=Russian Data-Intensive Grid CA
+  /C=HU/O=KFKI RMKI CA/CN=KFKI RMKI CA
+  /C=JP/O=KEK/OU=CRC/CN=KEK GRID Certificate Authority
+  /DC=EDU/DC=UTEXAS/DC=TACC/O=UT-AUSTIN/CN=TACC Root CA
+  /C=AT/O=AustrianGrid/OU=Certification Authority/CN=Certificate Issuer
+  /C=IL/O=IUCC/CN=IUCC/emailAddress=ca@mail.iucc.ac.il
+  /DC=TW/DC=ORG/DC=NCHC/CN=NCHC CA
+  /C=KR/O=KISTI/O=GRID/CN=KISTI Grid Certificate Authority
+  /DC=LV/DC=latgrid/CN=Certification Authority for Latvian Grid
+  /DC=NET/DC=PRAGMA-GRID/CN=PRAGMA-UCSD CA
+  /C=CH/O=SwissSign/CN=SwissSign CA (RSA IK May 6 1999 18:00:58)/emailAddress=ca@SwissSign.com
+  /C=MA/O=MaGrid/CN=MaGrid CA
+  /C=MK/O=MARGI/CN=MARGI-CA
+  /C=GR/O=HellasGrid/OU=Certification Authorities/CN=HellasGrid CA 2006
+  /C=TH/O=NECTEC/OU=GOC/CN=NECTEC GOC CA
+  /C=PL/O=GRID/CN=Polish Grid CA
+  /C=UK/O=eScienceRoot/OU=Authority/CN=UK e-Science Root
+  /DC=cz/DC=cesnet-ca/CN=CESNET CA
+  /C=TW/O=AS/CN=Academia Sinica Grid Computing Certification Authority Mercury
+  /DC=es/DC=irisgrid/CN=IRISGridCA
+  /C=JP/O=AIST/OU=GRID/CN=Certificate Authority
+  /C=JP/O=National Research Grid Initiative/OU=CGRD/CN=NAREGI CA
+  /DC=BR/DC=UFF/DC=IC/O=UFF LACGrid CA/CN=UFF Latin American and Caribbean Catch-all Grid CA
+  /C=CY/O=CyGrid/O=HPCL/CN=CyGridCA
+  /DC=CN/DC=Grid/CN=Root Certificate Authority at CNIC
+  /C=AR/O=e-Ciencia/OU=UNLP/L=CeSPI/CN=PKIGrid
+  /C=CN/O=HEP/CN=gridca-cn/emailAddress=gridca@ihep.ac.cn
+  /C=CA/O=Grid/CN=Grid Canada Certificate Authority
+  /CN=SWITCH CA/emailAddress=switch.ca@switch.ch/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/C=CH
+  /DC=CN/DC=Grid/DC=SDG/CN=Scientific Data Grid CA
+  /C=HU/O=NIIF/OU=Certificate Authorities/CN=NIIF Root CA
+  /C=IR/O=IPM/O=IRAN-GRID/CN=IRAN-GRID CA
+  /C=FR/O=CNRS/CN=CNRS
+  /C=CH/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/CN=SWITCHgrid Root CA
+  /C=AM/O=ArmeSFo/CN=ArmeSFo CA
+  /C=FR/O=CNRS/CN=GRID2-FR
+  /DC=net/DC=ES/O=ESnet/OU=Certificate Authorities/CN=ESnet Root CA 1
+  /DC=ch/DC=cern/CN=CERN Root CA
+  /DC=IN/DC=GARUDAINDIA/CN=Indian Grid Certification Authority
+  /C=DE/O=GermanGrid/CN=GridKa-CA
+  /C=SK/O=SlovakGrid/CN=SlovakGrid CA
+  /CN=SwissSign Bronze CA/emailAddress=bronze@swisssign.com/O=SwissSign/C=CH
+  /DC=EDU/DC=UTEXAS/DC=TACC/O=UT-AUSTIN/CN=TACC Classic CA
+  /C=BE/OU=BEGRID/O=BELNET/CN=BEgrid CA
+  /CN=SwissSign Silver CA/emailAddress=silver@swisssign.com/O=SwissSign/C=CH
+  /C=CH/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/CN=SWITCH Server CA
+  /C=PK/O=NCP/CN=PK-GRID-CA
+  /C=DE/O=DFN-Verein/OU=DFN-PKI/CN=DFN-Verein Server CA Grid - G01
+  /C=HR/O=edu/OU=srce/CN=SRCE CA
+ Staging: staginginout
+ Job Descriptions:
+  ogf:jsdl:1.0
+
+Queue information:
+ Mapping Queue: default
+ Max Total Jobs: 100
+ Max Running Jobs: 10
+ Max Waiting Jobs: 99
+ Max Pre LRMS Waiting Jobs: 0
+ Max User Running Jobs: 5
+ Max Slots Per Job: 1
+ Doesn't Support Preemption
+ Total Jobs: 0
+ Running Jobs: 0
+ Waiting Jobs: 0
+ Suspended Jobs: 0
+ Staging Jobs: 0
+ Pre-LRMS Waiting Jobs: 0
+ Free Slots: 10
+ Free Slots With Duration:
+  P68Y1M5DT3H14M7S: 10
+ Used Slots: 0
+ Requested Slots: 0
+
+Manager information:
+ Resource Manager: torque
+ Doesn't Support Advance Reservations
+ Doesn't Support Bulk Submission
+ Total Physical CPUs: 10
+ Total Logical CPUs: 10
+ Total Slots: 10
+ Non-homogeneous Resource
+ Working area is nor shared among jobs
+ Working Area Total Size: 15
+ Working Area Free Size: 4
+ Working Area Life Time: P7D
+ Cache Area Total Size: 15
+ Cache Area Free Size: 4
+
+Execution Environment information:
+ Execution environment is a physical machine
+ Execution environment does not support inbound connections
+ Execution environment does not support outbound connections
+---
+
+Please note that you can run similar arcinfo request against any ARC1 service
+except echo service.
 
 A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided
-in $ARC_LOCATION/share/doc/ in files jsdl_simple.xml and jsdl_stage.xml . To 
-submit job to A-REX service one may use 'arcsub' command
+in $ARC_LOCATION/share/doc/ in files 'jsdl_simple.xml' and 'jsdl_stage.xml'. To 
+submit job to A-REX service one may use the 'arcsub' command:
 
 $ARC_LOCATION/bin/arcsub -c ARC1:https://localhost:60000/arex -f /usr/local/share/doc/arc/jsdl_simple.xml -j id.xml
 
 If everything goes properly somewhere in it's output there should be a message
-"Submitted the job!". Obtained job identifier is an XML document and is stored
-in id.xml file. It may then be used to query job state with 'arcstat' utility.
+"Job submitted!", and a job identifier is obtained which will be stored
+in 'id.xml' file. One can then query job state with the 'arcstat' utility:
 
- $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
+ $ARC_LOCATION/bin/arcstat id.xml
  Job status: Running/Submitting
 
- $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
+ $ARC_LOCATION/bin/arcstat id.xml
  Job status: Running/Finishing
 
- $ARC_LOCATION/bin/arcstat id.xml 2>/dev/null
+ $ARC_LOCATION/bin/arcstat id.xml
  Job status: Finished/Finished
 
-Full set of A-Rex client tools consists of arcsub, arcstat, arckill, arcget 
-and arcclean commands. For more information please see man pages ot those utilities.
+Some of the of A-REX client tools consists of arcsub, arcstat, arckill, arcget 
+and arcclean commands. For more information please see the man pages of those utilities.
 
 
 Security and Authorization

@@ -1,32 +1,25 @@
 .\" -*- nroff -*-
-.TH ARCSTAT 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCINFO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
-arcstat \- ARC Status
+arcinfo \- ARC Info
 
 .SH DESCRIPTION
 
 The
-.B arcstat
-command is used for obtaining the status of jobs that have been
-submitted to grid enabled resources and the status of the clusters in
+.B arcinfo
+command is used for obtaining the status of the clusters in
 the grid.
 
 .SH SYNOPSIS
 
-.B arcstat [options] [job ...]
+.B arcinfo [options]
 
 .SH OPTIONS
 
-.IP "\fB-a\fR, \fB--all\fR"
-all jobs
-.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-file containing a list of jobs
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
-.IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
-only select jobs whose status is statusstr
 .IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
 .IP "\fB-l\fR, \fB--long\fR"
@@ -43,16 +36,10 @@ print version information
 print help
 .LP
 
-.SH ARGUMENTS
-
-.IP "\fBjob\fR ..."
-list of jobids and/or jobnames
-.LP
-
 .SH EXTENDED DESCRIPTION
 
 The
-.B arcstat
+.B arcinfo
 command gives the status of a job submitted an ARC enabled
 resource. The job can be referred to either by the jobid that was
 returned by
@@ -80,8 +67,18 @@ for a discussion of the format of arguments to this option. The
 option can be used to select jobs in a specific state. These options
 can be repeated several times.
 
+If the
+.B --queues
+option is used,
+.B arcinfo
+gives the status of the clusters and queues available rather than
+of the jobs submitted. In this case the
+.B --cluster
+option can be used to select or reject clusters for which the status
+should be returned.
+
 The
-.B arcstat
+.B arcinfo
 command locates the available clusters by querying information index
 servers. Which servers to query can be specified by giving the
 .B --index
