@@ -6,7 +6,7 @@
 \usepackage[caption=false,font=footnotesize]{subfig}
 \hyphenation{op-tical net-works semi-conduc-tor}
 \begin{document}
-\title{The design and implementation of standard-based Grid single sign-on using federated identity}
+\title{The design and implementation of standards-based Grid single sign-on using federated identity}
 
 \author{\IEEEauthorblockN{Weizhong Qiang, Aleksandr Konstantinov}
 \IEEEauthorblockA{Department of Physics, University of Oslo}
@@ -16,50 +16,74 @@
 
 
 \begin{abstract}
-When pursuing the task of making access to Grids as simple as possible, security is one of the most important challenges in production Grid infrastructures, especially when the Grid applications span multiple administrative domains as well as heterogeneous Grid middlewares. A typical example is wide scale e-Science applications which need to coordinate resources shared among a number of independent institutions with different Grid middlewares deployed on these resources. In this paper, we describe security implementation and considerations used in the upcoming version of the Advanced Resource Connector (ARC) middleware, where the heterogeneity issue has been addressed. The main goal of ARC implementation in terms of security is to let the middleware be capable of interoperating with other Grid middlewares by leveraging on standard specifications. The key aspect of the work is to enhance the current proxy certificate based authentication and single sign-on by utilizing and enhancing the standardized Web Service specifications such as Security Assertion Markup Languages (SAML), single sign-on (SSO) profile and Web Services Security in order to achieve cross-middleware authentication and single sign-on.
-
-and more importantly, this solution can utilize the widely deployed SAML based authentication implementation in Grid systems avoiding the use of X.509 certificate on the client side.
-
-user can get a short-lived X.509 certificate without being bothered to contact any registration authority (RA) or certificate authority (CA).
-
+Security infrastructure is one of the most challenging tasks in the developement, integration and
+deployment of Grid middlewares. Even though the Grid community addresses the security issue 
+through public key infrastructures (PKI) to support mutual authentication using X.509 certificates,
+maintaining the X.509 credential is not that easy for non-IT specialists, and is proved to be an 
+obstacle for the more widely deployment of Grid technology. Considering the identity federation 
+technology is a emergingly widely used technology which can facilitate cross-domain single sign-on,
+without requiring the users to maintain the X.509 credentials rather than their own institutional
+accounts, we believe utilizing identity federation for Grid middlwares is a promising direction 
+for Grid technology to be more widely used.
+This paper describes a single sign-on infrastructure developed as part of the NorduGrid/ARC grid 
+middleware. It adopts the identity federation standard (SAML), as well as Web Service standand. 
+It focus on single sign-on solution on the middleware level for users to access Grids by only 
+using their frequently used accounts, without being bothered to maintain X.509 credentials. 
+Unlike other research which utilize identity federation on the Grid portal level, solution on
+the middleware level can provide more flexibility.
+Also, the performance of single sign-on solution is measured. We identify the performance limitation 
+of security-related services inside this solution, and analyze the ways to avoid or improve the 
+limitation. 
+To our knowledge, the work described in this paper is the first evaluated implementation that utilizes 
+identity federation for Grid usage on the middlware level.
 \end{abstract}
 
 %-------------------------------------------------------------------------
 \section{Introduction}
 \label{sec:intro}
-Grid provides the technology for wide-scale, cross-domain collaboration where users work with resources and share data which are distributed across administrative domains. This kind of collaboration is called Virtual Organization (VO)~\cite{IFoster01}. The resources that contribute to the VO can come from independent administrative domains, and even require different security approaches to access control due to usage of different underlying middlewares. The same heterogeneous situation applies to users who need to access the VO resources, because users holding one kind of a credential may need to utilize multiple resources with different security approaches. To solve the above issues, Grid middlewares should provide the following abilities:
-\begin{itemize}
-\item The user which participates a VO should be able to access data and resources without being required to constantly do authentication at each resource or service;
-\item The VO should be able to easily manage the privileges and memberships of the users;
-\item The VO together with its resources should be able to easily manage the authorization, given the condition that the resources are owned by different administrative domains.
-\end{itemize}
-In the current Grid community, the Grid Security Infrastructure (GSI)~\cite{IFoster98} is the de facto standard for authentication and transport level security. It builds on the Public Key Infrastructure (PKI), an architecture based on the X.509 public key certificate. GSI implements some enhancement (such as certificate delegation) based on the standard SSL/TLS protocol. Mutual authentication is required by GSI, and is the default configuration for GSI based Grid deployment.
+Grid infrastructures facilitate the interoperability between wide-scale, cross-domain heterogeneous 
+resources, as well as the accessibility provided to users. In terms of security issue, the Grid security 
+infrastruture should provide accessibility as much as possible without loosing the security benifits.
 
-In terms of the Virtual Organization issues mentioned earlier, GSI and some other related solutions like the Virtual Organization Management Service (VOMS) ~\cite{AlfieriR05} have partly solved them, to a different extent. The identity delegation and the X.509 proxy certificate initiated by GSI can achieve single sign-on, so that the need to re-enter the user’s pass phrase for authentication can be avoided. VOMS adopts the Attribute Certificate~\cite{RFC3821link} approach. The Attribute Certificate is signed by the VOMS server and then bound to proxy certificates by the client. Attributes include the VO membership data which is associated with the proxy certificate’s identity. Eventually the resources can make access control decisions based on parsing the VO membership attributes from the Attribute Certificate.
+The current Grid community uses Grid Security Infrastructure (GSI)~\cite{IFoster98} as the de facto 
+standard for authentication and transport level security, which builds on the Public Key Infrastructure
+(PKI) to support authentication using X.509 certificate. Mutual authentication is required 
+by GSI based Grid deployment. Mutual authentication means that Grid users have to possess X.509 
+credentials. To obtain a X.509 credential, a user needs to contact the Registration Authority (RA)
+which will check the user's information and approve his certificate request; afterwards,
+the Certificate Authority (CA) can issue the certificate according to the approval from 
+the RA. The whole process is arduous and may take some time.
+Meanwhile, to maintain a X.509 certificate is also not so easy for the non-IT community to deal 
+with, since users have to periodically create proxy certificates by using Grid-specific command line 
+utility, such as grid-proxy-init or voms-proxy-init. Also maintaing the CAs or RAs is also not a  
+easy task, especially when the community of Grid users is getting much wider.
 
-The VO is essentially supposed to be able to provide resource sharing capability with resources running under heterogeneous systems/middlewares. This goal can be achieved using Web Service Architecture (WSA). This way, the Web Service technology has been utilized in Grid computing middlewares, including Globus Toolkit~\cite{GTlink}, gLite~\cite{gLitelink}, as well as the Advanced Resource Connector (ARC)~\cite{ARClink}.
+On the other hand, users normally could already have had some frequently-used campus or institutional 
+accounts/credentials such as username/password. We believe that enabling Grid users to use their home 
+credentials rather than the X.509 certificate to access Grids is a promising way 
+to make the Grids more easily accessible, as well as to extend the user community of Grids
+to a much larger scale.
 
-Unfortunately, the existing Grid security solutions such as GSI and VOMS do not apply to Web Service based applications very well due to the following reasons:
-\begin{itemize}
-\item The GSS API based confidential communication and identity delegation has not been adopted by Web Service implementations.
-\item The Attribute Certificate has not been adopted by any aspects Web Service implementation at all.
-\item Web Service implementations commonly use the Web Services Security (WS-Security)~\cite{WSSeclink}, Security Assertion Markup Languages (SAML)~\cite{SAMLlink}, and standard SSL/TLS as well as standard X.509 certificate when considering security, which make them impossible to interoperate with the GSI based Grid middlewares.
-\end{itemize}
+To enable users to utilize the institutional credentials to access Grid, some issues needs to be 
+addressed. Firstly, the Grid middleware needs to be improved to support the authentication based on
+institutional credentials instead of X.509 certificates; Secondly, in order to interoperate with
+those Grid infrastructures which require X.509 certificate based mutual authentication, an approach
+should be provided for obtaining X.509 certificate based on the institutional credentials; Thirdly,
+the single sign-on characteristic should be provided so that users can login once and then transverse 
+from Grid resources to Grid resources without being prompted to log in again at each of the resources.
 
-Moreover, the Grid security solutions require each user to possess a X.509 certificate. However, the process to get a certificate may take quite long time, since the requester needs to be checked and approved by the Registration Authority (RA) and only then the Certificate Authority (CA) can issue the certificate according to the approval from the RA. Meanwhile, the process to use the certificate is also not so easy for the non-IT advanced research community to deal with, since the user has to generate proxy certificates by using Grid-specific command lines, such as grid-proxy-init or voms-proxy-init. On the other hand, users could often have some more familiar local community or institutional credentials such as username/password. Enabling users to use their own community credentials instead of the X.509 certificate to access Grids is a promising solution to make the Grids more easily accessible.
+The approach in the new version of ARC grid middleware is to utilize the identity federation 
+standards, specifically, the Security Assertion Markup Language (SAML) specification, and Web 
+Service standards, to make the Grid single sign-on be possible.
 
-The above analysis shows that in order to achieve interoperability and transparency for user to access Grid system which is established on different middlewares, we need to address the mismatch between the different security solutions from these middlewares in order to ensure the interoperability as wide as possible; it is also necessary to address the mismatch between users' daily experience and middleware's requirements in order to ensure the access as simple as possible.
-
-The approach in the new version of ARC is to utilize the existing Web Service standards, such as SAML and WS-Security, to achieve the interoperability and accessibility without breaking existing Grid specific security protocols.
-
-The rest of this paper is organized as follows: Section 2 presents the ARC Grid middleware, especially the architecture of the new version of ARC. Section 3 describes the solution for cross-middleware authentication and single sign-on, including implementations for bridging the mismatch in terms of authentication and single sign-on. Section 4 discusses the related research, and Section 5 presents conclusions and future work outlook.
-
-We investigated the authentication and single sign-on issue in the scenario when a user or user's representative (acting on behalf of this user) needs to access resources across different middlewares. Our work focuses on the following five major aspects:
-\begin{itemize}
-	\item Integration of community authentication -- to utilize the standard-compatible community authentication mechanism from the Shibboleth~\cite{Shiblink} Identity Provider software when users authenticate against the Grid services.
-	\item Short lived credentials service -- to issue the short lived X.509 certificates for users authenticated using the community authentication, in order to interoperate with the services that depend on PKI based authentication.
-	\item Credential delegation service -- to process the X.509 credential delegation as a normal Web Service, in order to provide single sign-on ability.
-\end{itemize}
+The rest of this paper is organized as follows: Section \ref{sec:arcmiddleware} presents the 
+ARC Grid middleware, especially the architecture of the new version of ARC. Section 
+\ref{sec:intergrationSAML2SSO} describes the solution of using federated identity for 
+Grid authentication by using SAML2SSO profile; Setion \ref{sec:fedidtoX509} describes
+how to obtain a X.509 credential based on federated identity, and how to use it for 
+accessing multiple Grid resources; Section \ref{sec:perfeval} is performance evaluation;
+Section \ref{sec:relatedwork} describes the related work; Section \ref{sec:conclusion} 
+contains conclusions and future work outlook.
 
 %-------------------------------------------------------------------------
 \section{ARC Grid middleware}
