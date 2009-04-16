@@ -28,6 +28,7 @@
 const char * const sfx_local       = ".local";
 const char * const sfx_rsl         = ".description";
 const char * const sfx_diag        = ".diag";
+const char * const sfx_proxy       = ".proxy";
 
 static void extract_integer(std::string& s,std::string::size_type n = 0) {
   for(;n<s.length();n++) {
@@ -129,7 +130,6 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     std::string key = config_read_line(i_src,value,'=');
     if(key=="subject") { o_dst<<"usersn="<<value<<std::endl; }
     else if(key=="lrms") { o_dst<<"lrms="<<value<<std::endl; }
-    else if(key=="vomsinfo") { o_dst<<"vomsinfo="<<value<<std::endl; }
     else if(key=="queue") { o_dst<<"queue="<<value<<std::endl; }
     else if(key=="localid") { o_dst<<"localjobid="<<value<<std::endl; }
     else if(key=="jobname") { o_dst<<"jobname="<<value<<std::endl; }
@@ -137,6 +137,43 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     else if(key=="clientname") { o_dst<<"clienthost="<<value<<std::endl; }
   };
   };
+
+  // Copy public part of user certificate chain incl. proxy
+  {
+    std::string user_cert;
+    fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_proxy;
+    std::ifstream proxy_src(fname_src.c_str());
+    bool in_private=false;
+    for(;;) {
+      if(proxy_src.bad()) goto error;
+      if(proxy_src.eof()) break;
+      std::string line;
+      std::getline(proxy_src,line);
+      if(in_private)  
+	{ // Skip private key
+	  if (line.find("-----END") != std::string::npos &&
+	      line.find("PRIVATE KEY-----") != std::string::npos
+	      )           // can be RSA, DSA etc.
+	    in_private=false;
+	}
+      else
+	{
+	  if (line.find("-----BEGIN") != std::string::npos &&
+	      line.find("PRIVATE KEY-----") != std::string::npos
+	      )           // can be RSA, DSA etc.
+	    in_private=true;
+	  else
+	    {
+	      user_cert+=line;
+	      if (!proxy_src.eof()) user_cert+='\\';
+	    }
+	}
+    }
+    if(user_cert.length()) {
+      o_dst<<"usercert="<<user_cert<<std::endl; if(o_dst.fail()) goto error;
+    }
+  }
+
   // Extract requested resources
   {
   fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
