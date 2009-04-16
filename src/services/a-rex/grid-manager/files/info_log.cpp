@@ -231,10 +231,16 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
           o_dst<<"usedwalltime="<<(unsigned int)f<<std::endl;
       } else if(strcasecmp(key.c_str(),"kerneltime") == 0) {
         float f;
-        if(string_to_number(value,f)) cputime+=f;
+        if(string_to_number(value,f)) {
+          o_dst<<"usedkernelcputime="<<(unsigned int)f<<std::endl;
+          cputime+=f;
+        }
       } else if(strcasecmp(key.c_str(),"usertime") == 0) {
         float f;
-        if(string_to_number(value,f)) cputime+=f;
+        if(string_to_number(value,f)) {
+          o_dst<<"usedusercputime="<<(unsigned int)f<<std::endl;
+          cputime+=f;
+        }
       } else if(strcasecmp(key.c_str(),"averagetotalmemory") == 0) {
         float f;
         if(string_to_number(value,f))
