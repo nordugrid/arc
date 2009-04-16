@@ -133,6 +133,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     else if(key=="queue") { o_dst<<"queue="<<value<<std::endl; }
     else if(key=="localid") { o_dst<<"localjobid="<<value<<std::endl; }
     else if(key=="jobname") { o_dst<<"jobname="<<value<<std::endl; }
+    else if(key=="globalid") { o_dst<<"globalid="<<value<<std::endl; }
     else if(key=="projectname") { o_dst<<"projectname="<<value<<std::endl; }
     else if(key=="clientname") { o_dst<<"clienthost="<<value<<std::endl; }
   };

@@ -667,6 +667,7 @@ bool job_local_write_file(const std::string &fname,const JobLocalDescription &jo
     {
       write_pair(f,"jobreport",*it);
     }
+  write_pair(f,"globalid",job_desc.globalid);
   write_pair(f,"lrms",job_desc.lrms);
   write_pair(f,"queue",job_desc.queue);
   write_pair(f,"localid",job_desc.localid);
@@ -745,6 +746,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
     else if(name == "processtime") { job_desc.processtime = buf+p; }
     else if(name == "exectime") { job_desc.exectime = buf+p; }
     else if(name == "jobreport") { job_desc.jobreport.push_back(std::string(buf+p)); }
+    else if(name == "globalid") { job_desc.globalid = buf+p; }
     else if(name == "jobname") { job_desc.jobname = buf+p; }
     else if(name == "projectname") { job_desc.projectnames.push_back(std::string(buf+p)); }
     else if(name == "gmlog") { job_desc.stdlog = buf+p; }

@@ -65,7 +65,7 @@ std::ostream &operator<< (std::ostream &o,const mds_time &t);
 class JobLocalDescription {
  /* all values are public, this class is just for convenience */
  public:
-  JobLocalDescription(void):jobid(""),lrms(""),queue(""),localid(""),
+ JobLocalDescription(void):jobid(""),globalid(""),lrms(""),queue(""),localid(""),
                            DN(""),starttime(),lifetime(""),
                            notify(""),processtime(),exectime(),
                            clientname(""),clientsoftware(""),
@@ -80,6 +80,7 @@ class JobLocalDescription {
   };
   std::string jobid;         /* job's unique identificator */
   /* attributes stored in job.ID.local */
+  std::string globalid;      /* BES ActivityIdentifier, i.e. globally unique id */
   std::string lrms;          /* lrms type to use - pbs */
   std::string queue;         /* queue name  - default */
   std::string localid;       /* job's id in lrms */

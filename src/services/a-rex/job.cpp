@@ -17,6 +17,7 @@
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/message/SecAttr.h>
 #include <arc/credential/Credential.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "grid-manager/conf/environment.h"
 #include "grid-manager/conf/conf_pre.h"
@@ -361,6 +362,21 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.clientname=clientid;
   job_.migrateactivityid=(std::string)migration["ActivityIdentifier"];
   job_.forcemigration=(migration["ForceMigration"]=="true");
+  // BES ActivityIdentifier is global job ID
+  Arc::NS ns_;
+  ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+  ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
+  Arc::XMLNode node_(ns_,"bes-factory:ActivityIdentifier");
+  Arc::WSAEndpointReference identifier(node_);
+  identifier.Address(config.Endpoint()); // address of service
+  identifier.ReferenceParameters().NewChild("a-rex:JobID")=id_;
+  identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=config.Endpoint()+"/"+id_;
+  std::string globalid;
+  ((Arc::XMLNode)identifier).GetDoc(globalid);
+  int nlp;
+  while ((nlp=globalid.find('\n'))!=std::string::npos)
+    globalid.replace(nlp,1," "); // squeeze into 1 line
+  job_.globalid=globalid;
   // Try to create proxy
   if(!update_credentials(credentials)) {
     failure_="Failed to store credentials";
