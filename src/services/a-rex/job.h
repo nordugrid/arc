@@ -20,18 +20,16 @@ class ARexGMConfig {
   std::list<std::string> queues_;
   std::string grid_name_; // temporary solution
   std::string service_endpoint_; // temporary solution
-  std::string voms_info_; // contains authentication data on user, incl. VOMS attributes (for accounting)
   std::list<Arc::MessageAuth*> auths_;
   ContinuationPlugins cont_plugins_;
  public:
-  ARexGMConfig(const std::string& config_file,const std::string& uname,const std::string& grid_name, const std::string& voms_info, const std::string& service_endpoint);
+  ARexGMConfig(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
   ~ARexGMConfig(void);
   operator bool(void) const { return (user_ != NULL); };
   bool operator!(void) const { return (user_ == NULL); };
   JobUser* User(void) { return user_; };
   bool ReadOnly(void) const { return readonly_; };
   const std::string& GridName(void) const { return grid_name_; };
-  const std::string& VomsInfo(void) const { return voms_info_; };
   const std::string& Endpoint(void) const { return service_endpoint_; };
   const std::list<std::string>& Queues(void) const { return queues_; };
   static bool InitEnvironment(const std::string& configfile);

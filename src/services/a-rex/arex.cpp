@@ -65,7 +65,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
 
 class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
  public:
-  ARexConfigContext(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& voms_info,const std::string& service_endpoint):ARexGMConfig(config_file,uname,grid_name,voms_info,service_endpoint) { };
+  ARexConfigContext(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):ARexGMConfig(config_file,uname,grid_name,service_endpoint) { };
   virtual ~ARexConfigContext(void) { };
 };
 
@@ -147,8 +147,6 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   logger_.msg(Arc::VERBOSE,"Using local account '%s'",uname);
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
   std::string endpoint = endpoint_;
-  std::string voms_info;  //crude solution: collect everything related to auth.
-  inmsg.Auth()->get("TLS")->Export(Arc::SecAttr::ARCAuth,voms_info);
   if(endpoint.empty()) {
     std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
     std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
@@ -161,7 +159,7 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
     };
     endpoint+=GetPath(http_endpoint);
   };
-  config=new ARexConfigContext(gmconfig_,uname,grid_name,voms_info,endpoint);
+  config=new ARexConfigContext(gmconfig_,uname,grid_name,endpoint);
   if(config) {
     if(*config) {
       inmsg.Context()->Add("arex.gmconfig",config);

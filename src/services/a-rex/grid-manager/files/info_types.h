@@ -66,7 +66,7 @@ class JobLocalDescription {
  /* all values are public, this class is just for convenience */
  public:
   JobLocalDescription(void):jobid(""),lrms(""),queue(""),localid(""),
-                           DN(""),VOMS_info(""),starttime(),lifetime(""),
+                           DN(""),starttime(),lifetime(""),
                            notify(""),processtime(),exectime(),
                            clientname(""),clientsoftware(""),
                            reruns(0),downloads(-1),uploads(-1),
@@ -85,7 +85,6 @@ class JobLocalDescription {
   std::string localid;       /* job's id in lrms */
   std::list<std::string> arguments;    /* executable + arguments */
   std::string DN;            /* user's distinguished name aka subject name */
-  std::string VOMS_info;     /* user's credential data, containing info from VOMS */
   mds_time starttime;        /* job submission time */
   std::string lifetime;      /* time to live for submission directory */
   std::string notify;        /* notification flags used and email address */

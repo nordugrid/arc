@@ -51,7 +51,7 @@ ARexGMConfig::~ARexGMConfig(void) {
   if(user_) delete user_;
 }
 
-ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& uname,const std::string& grid_name,const std::string& voms_info,const std::string& service_endpoint):user_(NULL),readonly_(false),grid_name_(grid_name),voms_info_(voms_info),service_endpoint_(service_endpoint) {
+ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):user_(NULL),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
   if(!InitEnvironment(configfile)) return;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();
@@ -358,7 +358,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.jobid=id_;
   job_.starttime=time(NULL);
   job_.DN=config_.GridName();
-  job_.VOMS_info=config_.VomsInfo();
   job_.clientname=clientid;
   job_.migrateactivityid=(std::string)migration["ActivityIdentifier"];
   job_.forcemigration=(migration["ForceMigration"]=="true");
