@@ -74,7 +74,7 @@ As the key part of the implementation of new ARC middleware, there is a lightwei
 The architecture of the HED is illustrated in Figure \ref{fig:HED}. In general, there are few components called Message Chain Component (MCC) which are in charge of implementing different protocol levels. For instance, as shown in the example message flow, the HTTP MCC will process stream from the TLS MCC to parse the HTTP message and pass its body to the SOAP MCC, and also process the SOAP response from the SOAP MCC to generate the HTTP message for the TLS MCC.
 
 \begin{figure}
-\includegraphics[width=0.9\columnwidth]{HED.png}
+\includegraphics[width=0.9\columnwidth]{HED.pdf}
 \caption{The example of Host Environment Daemon deployed with A-REX and File services}
 \label{fig:HED}
 \end{figure}
