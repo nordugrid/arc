@@ -11,7 +11,6 @@
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
-#include <arc/client/UserConfig.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/Utils.h>
@@ -363,9 +362,6 @@ namespace Arc {
     close(tmp_h);
     
     // Send temporary file to cluster
-    NS ns;
-    XMLNode cred(ns, "cred");
-    usercfg.ApplySecurity(cred);
     DataMover mover;
     FileCache cache;
     std::string failure;
@@ -373,9 +369,9 @@ namespace Arc {
     URL dest_url(urlstr);
     DataHandle source(source_url);
     DataHandle destination(dest_url);
-    source->AssignCredentials(cred);
+    source->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     source->SetTries(1);
-    destination->AssignCredentials(cred);
+    destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
     if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                         0, 0, 0, 500, failure)) {
@@ -425,10 +421,6 @@ namespace Arc {
     logger.msg(INFO, "Trying to retrieve job description"
                "of %s from cluster", jobid);
 
-    NS ns;
-    XMLNode cred(ns, "cred");
-    usercfg.ApplySecurity(cred);
-
     std::string::size_type pos = jobid.rfind("/");
     if (pos == std::string::npos) {
       logger.msg(ERROR, "invalid jobid: %s", jobid);
@@ -451,9 +443,9 @@ namespace Arc {
     URL dest_url(localfile);
     DataHandle source(source_url);
     DataHandle destination(dest_url);
-    source->AssignCredentials(cred);
+    source->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     source->SetTries(1);
-    destination->AssignCredentials(cred);
+    destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
     if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                         0, 0, 0, 500, failure)) {
