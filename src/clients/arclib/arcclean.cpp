@@ -86,9 +86,6 @@ int main(int argc, char **argv) {
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-
   Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
@@ -99,7 +96,9 @@ int main(int argc, char **argv) {
     usercfg.SetTimeout(timeout);
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
     debug = (std::string)usercfg.ConfTree()["Debug"];
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
   }

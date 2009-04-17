@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+  else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
     debug = (std::string)usercfg.ConfTree()["Debug"];
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
   }
