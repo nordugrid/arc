@@ -289,7 +289,7 @@ bool PayloadHTTP::Flush(void) {
   };
   if((version_major_ == 1) && (version_minor_ == 1) && (!method_.empty())) {
     std::map<std::string,std::string>::iterator it = attributes_.find("host");
-    if(it != attributes_.end()) {
+    if(it == attributes_.end()) {
       std::string host;
       if(!uri_.empty()) {
         std::string::size_type p1 = uri_.find("://");
