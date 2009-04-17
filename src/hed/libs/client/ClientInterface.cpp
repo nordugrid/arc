@@ -236,8 +236,8 @@ namespace Arc {
                   : url.Protocol() == "httpg" ? GSISec
                       : NoSec),
       http_entry(NULL),
-      host(url.Host()),
-      port(url.Port()),
+      default_url(url),
+      relative_uri(false),
       sec(url.Protocol() == "https" ? TLSSec
             : url.Protocol() == "httpg" ? GSISec
                 : NoSec) {
@@ -323,15 +323,20 @@ namespace Arc {
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
     if (!path.empty()) {
-      std::string url(sec == TLSSec ? "https" :
-                      sec == GSISec ? "httpg" : "http");
-      url += "://" + host;
-      if (port > 0)
-        url += ":" + tostring(port);
-      if (path[0] != '/')
-        url += "/";
-      url += path;
-      reqmsg.Attributes()->set("HTTP:ENDPOINT", url);
+      URL url(default_url);
+      url.ChangePath(path);
+      if(relative_uri) {
+        // Workaround for servers which can't handle full URLs in request
+        reqmsg.Attributes()->set("HTTP:HOST", url.Host() + ":" + tostring(url.Port()));
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.FullPath());
+      } else {
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.str());
+      }
+    } else {
+      if(relative_uri) {
+        reqmsg.Attributes()->set("HTTP:HOST", default_url.Host() + ":" + tostring(default_url.Port()));
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", default_url.FullPath());
+      }
     }
     if (range_end != UINT64_MAX)
       reqmsg.Attributes()->set("HTTP:Range", "bytes=" + tostring(range_start) +

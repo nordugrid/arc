@@ -117,10 +117,11 @@ namespace Arc {
     }
     void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
     virtual void Load();
+    void RelativeURI(bool val) { relative_uri=val; };
   protected:
     MCC *http_entry;
-    std::string host;
-    int port;
+    URL default_url;
+    bool relative_uri;
     SecurityLayer sec;
   };
 
