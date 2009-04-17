@@ -79,10 +79,10 @@ int main(int argc, char **argv) {
                     istring("do not ask for verification"),
                     force);
 
-  bool merge = false;
-  options.AddOption('m', "merge",
-                    istring("merge the found jobs with the jobs in the joblist"),
-                    merge);
+  bool truncate = false;
+  options.AddOption('T', "truncate",
+                    istring("truncate the joblist before sync"),
+                    truncate);
 
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
@@ -184,11 +184,11 @@ int main(int argc, char **argv) {
     Arc::NS ns;
     Arc::Config jobs(ns);
 
-    if (merge)
+    if (!truncate)
       jobs.ReadFromFile(joblist);
     for (std::list<Arc::XMLNode*>::const_iterator itSyncedJob = targen.FoundJobs().begin();
          itSyncedJob != targen.FoundJobs().end(); itSyncedJob++) {
-      if (merge)
+      if (!truncate)
         for (Arc::XMLNode j = jobs["Job"]; j; ++j)
           if ((std::string)j["JobID"] == (std::string)(**itSyncedJob)["JobID"]) {
             j.Destroy();
