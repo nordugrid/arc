@@ -87,10 +87,11 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   virtual const std::map<std::string,std::string>& Attributes(void);
   /** Sets HTTP header attribute 'name' to 'value' */
   virtual void Attribute(const std::string& name,const std::string& value);
-  /** Send created object through associated stream. If there is no stream associated then
-    HTTP specific data is inserted into Raw buffers of this object. In last case 
-    this operation should not be repeated till content of buffer is completely
-    rewritten. */
+  /** Send created object through associated stream.
+    If there is no stream associated then HTTP specific data is 
+    inserted into Raw buffers of this object. In last case this 
+    operation should not be repeated till content of buffer is 
+    completely rewritten. */
   virtual bool Flush(void);
   virtual std::string Method() { return method_; };
   virtual std::string Endpoint() { return uri_; };

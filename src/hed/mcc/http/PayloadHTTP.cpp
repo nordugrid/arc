@@ -85,7 +85,7 @@ bool PayloadHTTP::parse_header(void) {
     std::string::size_type pos = line.find(':');
     if(pos == std::string::npos) continue;
     std::string name = line.substr(0,pos);
-    for(std::string::size_type p=0;p<name.length();++p) name[p]=tolower(name[p]);
+    name=Arc::lower(name);
     for(++pos;pos<line.length();++pos) if(!isspace(line[pos])) break;
     if(pos<line.length()) {
       std::string value = line.substr(pos);
@@ -237,7 +237,7 @@ const std::map<std::string,std::string>& PayloadHTTP::Attributes(void) {
 }
 
 void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
-  attributes_[name]=value;
+  attributes_[Arc::lower(name)]=value;
 }
 
 PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):valid_(false),stream_(&stream),stream_own_(own),fetched_(false),stream_offset_(0),chunked_size_(0),chunked_offset_(0),body_(NULL),body_own_(false),keep_alive_(true) {
@@ -287,18 +287,21 @@ bool PayloadHTTP::Flush(void) {
   } else {
     return false;
   };
-  std::string host;
   if((version_major_ == 1) && (version_minor_ == 1) && (!method_.empty())) {
-    if(!uri_.empty()) {
-      std::string::size_type p1 = uri_.find("://");
-      if(p1 != std::string::npos) {
-        std::string::size_type p2 = uri_.find('/',p1+3);
-        if(p2 != std::string::npos) {
-          host=uri_.substr(p1+3,p2-p1-3);
+    std::map<std::string,std::string>::iterator it = attributes_.find("host");
+    if(it != attributes_.end()) {
+      std::string host;
+      if(!uri_.empty()) {
+        std::string::size_type p1 = uri_.find("://");
+        if(p1 != std::string::npos) {
+          std::string::size_type p2 = uri_.find('/',p1+3);
+          if(p2 != std::string::npos) {
+            host=uri_.substr(p1+3,p2-p1-3);
+          };
         };
       };
+      header+="Host: "+host+"\r\n";
     };
-    header+="Host: "+host+"\r\n";
   };
   // Computing length of Body part
   length_=0;

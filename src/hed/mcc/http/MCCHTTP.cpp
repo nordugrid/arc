@@ -188,6 +188,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   {
     std::string::size_type p = endpoint.find("://");
     if(p == std::string::npos) {
+      // TODO: Use Host attribute of HTTP
       std::string oendpoint = nextinmsg.Attributes()->get("ENDPOINT");
       p=oendpoint.find("://");
       if(p != std::string::npos) {

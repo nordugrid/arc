@@ -7,9 +7,17 @@
   elementFormDefault="qualified">
   
     <!--
-        These elements define endpoint and HTTP method for client HTTP MCC.
+        These elements define configuration parameters for client
+        part of HTTP MCC. Service part uses no configuration.
+    -->
+    <!--
+        Endpoint (URL) for HTTP request. This configuration parameter
+       may be overwritted by HTTP:ENDPOINT attribute of message.
     -->
     <xsd:element name="Endpoint" type="xsd:string"/>
+    <!--
+       Method to use for HTTP request. May be overwritten by
+      HTTP:METHOD attribute of message.
+    -->
     <xsd:element name="Method" type="xsd:string"/>
 </xsd:schema>
-
