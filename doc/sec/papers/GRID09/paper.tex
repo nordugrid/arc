@@ -32,8 +32,7 @@ using their frequently used accounts, without being bothered to maintain X.509 c
 Unlike other research which utilize identity federation on the Grid portal level, solution on
 the middleware level can provide more flexibility.
 Also, the performance of single sign-on solution is measured. We identify the performance limitation 
-of security-related services inside this solution, and analyze the ways to avoid or improve the 
-limitation. 
+of security-related services inside this solution, and analyze the ways to avoid the limitation.
 To our knowledge, the work described in this paper is the first evaluated implementation that utilizes 
 identity federation for Grid usage on the middlware level.
 \end{abstract}
@@ -55,11 +54,11 @@ the Certificate Authority (CA) can issue the certificate according to the approv
 the RA. The whole process is arduous and may take some time.
 Meanwhile, to maintain a X.509 certificate is also not so easy for the non-IT community to deal 
 with, since users have to periodically create proxy certificates by using Grid-specific command line 
-utility, such as grid-proxy-init or voms-proxy-init. Also maintaing the CAs or RAs is also not a  
+utilities, such as grid-proxy-init or voms-proxy-init. Also maintaing the CAs or RAs is not a  
 easy task, especially when the community of Grid users is getting much wider.
 
 On the other hand, users normally could already have had some frequently-used campus or institutional 
-accounts/credentials such as username/password. We believe that enabling Grid users to use their home 
+accounts/credentials such as username/password. We believe that enabling Grid users to use their institutional 
 credentials rather than the X.509 certificate to access Grids is a promising way 
 to make the Grids more easily accessible, as well as to extend the user community of Grids
 to a much larger scale.
@@ -69,12 +68,12 @@ addressed. Firstly, the Grid middleware needs to be improved to support the auth
 institutional credentials instead of X.509 certificates; Secondly, in order to interoperate with
 those Grid infrastructures which require X.509 certificate based mutual authentication, an approach
 should be provided for obtaining X.509 certificate based on the institutional credentials; Thirdly,
-the single sign-on characteristic should be provided so that users can login once and then transverse 
-from Grid resources to Grid resources without being prompted to log in again at each of the resources.
+the single sign-on characteristic should be provided so that users can authenticate once and then transverse 
+from Grid resources to Grid resources without being prompted to authenticate again at each of the resources.
 
 The approach in the new version of ARC grid middleware is to utilize the identity federation 
 standards, specifically, the Security Assertion Markup Language (SAML) specification, and Web 
-Service standards, to make the Grid single sign-on be possible.
+Service standards, to facilitate the Grid single sign-on.
 
 The rest of this paper is organized as follows: Section \ref{sec:arcmiddleware} presents the 
 ARC Grid middleware, especially the architecture of the new version of ARC. Section 
@@ -89,29 +88,94 @@ contains conclusions and future work outlook.
 \section{ARC Grid middleware}
 \label{sec:arcmiddleware}
 
-ARC (Advanced Resource Connector) is an open source Grid middleware solution released under Apache license. ARC middleware aims at developing self-organized, fault-tolerant, non-intrusive, easy-manageable Grid middleware~\cite{MEllert07}. The current production version of ARC provides Grid services for job submission and management, resource characterization, resource aggregation and discovery, basic data management, integration of Grid security solution, and so on. This release has been deployed and used in production environment, and is one of the widely deployed Grid middlewares in Europe.
+ARC (Advanced Resource Connector) is an open source Grid middleware solution released 
+under Apache license. ARC middleware aims at developing self-organized, 
+fault-tolerant, non-intrusive, easy-manageable Grid middleware~\cite{MEllert07}. 
+The current production version of ARC provides Grid services for job submission and 
+management, resource characterization, resource aggregation and discovery, basic data 
+management, integration of Grid security solution, and so on. This release has been 
+deployed and used in production environment, and is one of the widely deployed Grid 
+middlewares in Europe.
 
-The next generation of ARC components is developed by the KnowARC project~\cite{KnowARClink}, based on the functionality and capabilities of the classic ARC middleware. It aims at implementing a Web Service oriented Grid middleware which will provide higher levels of resource and user abstraction through well-defined Web Service interface~\cite{KnowARCDesignlink} in order to provide interoperability with other service-based Grid middlewares, as well as other Web Service compatible applications.
+The development version of ARC components is developed by the KnowARC project~\cite{KnowARClink}, 
+based on the functionality of the current production ARC middleware. It aims at 
+implementing a Web Service oriented Grid middleware which will provide higher levels of 
+resource and user abstraction through well-defined Web Service interface~\cite{KnowARCDesignlink} 
+in order to provide interoperability with other Web Service oriented Grid middlewares, as well as 
+other Web Service compatible applications.
 
-As the key part of the implementation of new ARC middleware, there is a lightweight Web Service container called Hosting Environment Daemon (HED) which provides hosting for various services at application level, as well as a number of modules to support flexible, interoperable, and efficient communication mechanism for building SOAP based Web Services. The whole design of the HED is built around the idea of flexibility and modularity.
+As the key part of the implementation of new ARC middleware, there is a lightweight Web 
+Service container called Hosting Environment Daemon (HED) which provides hosting environment 
+for various services at application level, as well as a number of modules to support flexible, 
+interoperable, and efficient communication mechanism for building SOAP based Web Services. 
+The design of the HED is built around the idea of flexibility and modularity,
+such that the application service developers can simply concentrate on the application 
+level Web Service implementation by only using the core minimum amount of components. It 
+also simplifies work on the middleware level, e.g. making possible to implement another 
+communication protocol or authentication mechanism. A system administrator can easily 
+configure and deploy the middleware and application for different kinds of requirements 
+without having to know much about the implementation. 
 
-The architecture of the HED is illustrated in Figure \ref{fig:HED}. In general, there are few components called Message Chain Component (MCC) which are in charge of implementing different protocol levels. For instance, as shown in the example message flow, the HTTP MCC will process stream from the TLS MCC to parse the HTTP message and pass its body to the SOAP MCC, and also process the SOAP response from the SOAP MCC to generate the HTTP message for the TLS MCC.
+The architecture of the HED is illustrated in Figure \ref{fig:HED}. In general, there 
+are few components called Message Chain Component (MCC) which are in charge of implementing 
+different protocol levels. For instance, as shown in the example message flow, the HTTP MCC 
+will process stream from the TLS MCC to parse the HTTP message and pass its body to the SOAP 
+MCC, and also process the SOAP response from the SOAP MCC to generate the HTTP message 
+for the TLS MCC.
+
+Dotted line in Figure \ref{fig:HED} shows an alternative path for the information 
+to propagate among MCCs. A service administrator can configure the MCCs according to the 
+interoperability requirements with the other part. For instance, the configuration marked 
+with the dotted line is compatible with the WSE (Web Services Enhancement for .NET) SOAP 
+message mechanism (see WSE’s SoapSender and SoapReceiver)~\cite{WSElink}. Another configuration 
+could be SOAP over HTTPG (HTTP over GSI) which is needed to interoperate with services 
+like the Storage Resource Manager (SRM)~\cite{A.Shoshan03} service. This shows the 
+flexibility of HED in terms of protocols support.
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{HED.pdf}
 \caption{The example of Host Environment Daemon deployed with A-REX and File services}
 \label{fig:HED}
 \end{figure}
-HED contains a framework for implementing and enforcing authentication and authorization. Each MCC or Service has a common interface for implementing various authentication and authorization functionality. Each functionality can be implemented as a pluggable and configurable component (plug-ins) called SecHandler, which is implemented as a C++ class and provides a method for processing message that travels through MCC or Service. Each MCC or Service is usually configured with two queues of SecHandler -- one for the incoming message and one for the outgoing message respectively. In Figure \ref{fig:HED}, the ``AuthZ'' and ``AuthN'' sub-modules inside MCCs and Services are examples of SecHandler.
+
+HED contains a flexible security framework for implementing and enforcing security 
+related functionality, such as authentication and authorization. 
+Each security related functionality can be implemented as a pluggable and configurable 
+component (plug-ins) called SecHandler. Each MCC or Service is usually configured with 
+two queues of SecHandler -- one for the incoming message and one for the outgoing message 
+respectively. In Figure \ref{fig:HED}, the ``AuthZ'' and ``AuthN'' sub-modules inside 
+MCCs and Services are examples of SecHandler.
 
 %-------------------------------------------------------------------------
 \section{Grid authentication using federated identity: Integrating SAML2SSO profile}
 \label{sec:intergrationSAML2SSO}
-Identity federation is an emerging technology which enables the identity information to be trustily transfered across autonomous security domains. By using identity federation, users from one domain can access another domain without the need for directly trust relationship between users and accessed domain, i.e., users can use accounts from their host domains to access external domains, and accessed domain does not need to maintain accounts for those external users. Identity federation doesn't enforce specific authentication mechanisms, so that various types of authentication can be supported between user and its host domain, and user is able to use his frequently used account/credential to accomplish authentication. Considering the Grid use cases, we see that utilizing the existing account to access Grid without being bothered to applying and manipulating a X.509 credential should be attractive for Grid users.
+Identity federation is an emerging technology which enables the identity information to be 
+trustily transfered across autonomous security domains. By using identity federation, users 
+from one domain can access another domain without the need for directly trust relationship 
+between users and accessed domain, i.e., users can use accounts from their host domains to 
+access external domains, and accessed domain does not need to maintain accounts for those 
+external users. Identity federation doesn't enforce specific authentication mechanisms, so 
+that various types of authentication can be supported between user and its host domain, and 
+user is able to use his frequently used account/credential to accomplish authentication. 
+Considering the Grid use cases, we see that utilizing the existing account to access Grid 
+without being bothered to applying and manipulating a X.509 credential should be attractive 
+for Grid users.
 
-Shibboleth is the one of the several implementations of the identity federation, which is based on the OASIS Security Assertion Markup Language (SAML) 2.0 specifications. In terms of authentication, the Shibboleth implements SAML2.0 web browser SSO profile, which  defines two functional components, an Identity Provider and a Service Provider. The Identity Provider (IdP) is responsible for creating, maintaining, and managing user identity, while the Service Provider (SP) is responsible for controlling access to services and resources by analyzing the SAML assertions produced and issued by the IdP upon request.
+Shibboleth is the one of the several implementations of the identity federation, which is 
+based on the OASIS Security Assertion Markup Language (SAML) 2.0 specifications. In terms 
+of authentication, the Shibboleth implements SAML2.0 web browser SSO profile, which  defines 
+two functional components, an Identity Provider and a Service Provider. The Identity Provider 
+(IdP) is responsible for creating, maintaining, and managing user identity, while the Service 
+Provider (SP) is responsible for controlling access to services and resources by analyzing 
+the SAML assertions produced and issued by the IdP upon request.
 
-In the implementation of ARC middleware, SAML2.0 web browser SSO profile is supported by implementing the functionality of service provider and web browser's user agent, and utilizing Shibboleth IdP implementation for the functionality of identity provider. The user agent functionality is for mimicing the behavior of web browser's user agent for authentication, such as the HTTP redirection and the HTTP cookie processing. The implementation of the user agent is based on the the HTTPS client interface of ARC, since the client interface of ARC can support different protocols which are incarnated by different MCCs.
+In the implementation of ARC middleware, SAML2.0 web browser SSO profile is supported by 
+implementing the functionality of service provider and web browser's user agent, and utilizing 
+Shibboleth IdP implementation for the functionality of identity provider. The user agent 
+functionality is for mimicing the behavior of web browser's user agent for authentication, 
+such as the HTTP redirection and the HTTP cookie processing. The implementation of the user 
+agent is based on the the HTTPS client interface of ARC, since the client interface of ARC 
+can support different protocols which are incarnated by different MCCs.
 
 \begin{figure}
 \includegraphics[width=1.0\columnwidth]{SAML2SSO_UML.pdf}
@@ -229,7 +293,9 @@ interoperability to those Grid/Web services that requires mutual authentication 
 %-------------------------------------------------------------------------
 \section{Performace Evaluation}
 \label{sec:perfeval}
-The following section evaluate the performance of the 
+The following sections evaluate the performance of the HED versus Axis2/C, as 
+well as the performance about the SAML2SSO profile, short-lived credential
+service, and delegation service.
 
 \subsection{Performance comparison between HED and Axis2/C}
 \label{sec:perhedandaxis}
@@ -270,9 +336,9 @@ default in Apache Http Server. The client and service are configured with mutual
 
 Figure \ref{fig:HED2Axis_thread10} and Figure \ref{fig:HED2Axis_thread40} are the results of 
 performance comparison. 
-Two types of experiments are shown: session reused, session no-reused.
+Two types of experiments are shown: session reused, session non-reused.
 ``Session reused'' means all of the SOAP invocations on each client share the same session 
-(tcp connection); while ``Session no-reused'' means each invocation launches a new session.
+(tcp connection); while ``Session non-reused'' means each invocation launches a new session.
 
 For ``Session reused'' experiments, we see that the average response time in HED is about 81ms
 which is twice of the value in Axis2/C, and the throughput in HED is about half of the value in Axis2/C, 
@@ -283,7 +349,7 @@ quite stable, with the average response time almost kept unchanged under differe
 as well as under different number of clients, and throughput kept unchanged under different 
 time points, while increased linearly with number of clients.
 
-For ``Session no-reused'' experiments, the average response time in HED is almost the same as
+For ``Session non-reused'' experiments, the average response time in HED is almost the same as
 the value in Axis2/C, in both cases of client number is 10 (the value is 15ms) and 40 (the value
  is 53ms) correspondingly. On the other hand the throughput in HED is also the same as the value 
 in Axis2/C, in both cases of client number is 10 and 40. One interesting obersabation is that the 
@@ -315,13 +381,13 @@ Figure \ref{fig:SAML2SSO_thread1} depicts the average response time and throughp
 running against the service. Since the success of authentication from IdP can be regarded as 
 valid for the whole session between client and service, the client with ``Session reused'' 
 need to accomplish the SAML2SSO profile only once for all SOAP invocations on this client, 
-while the client with ``Session no-reused'' will need to accomplish this profile once per 
+while the client with ``Session non-reused'' will need to accomplish this profile once per 
 SOAP invocation.
 
-The average response time of ``Session no-reused'' experiments changes little with the execution 
+The average response time of ``Session non-reused'' experiments changes little with the execution 
 duration, and the value is about 730ms; while the throughput is around 82 requests per minutes.
 Considering that the average response time in case of 
-``Session no-reused'' and pure SOAP invocation is around 15ms when client number is 10 (see section
+``Session non-reused'' and pure SOAP invocation is around 15ms when client number is 10 (see section
 \ref{sec:perhedandaxis}), not demostrated in section \ref{sec:perhedandaxis}, the same value applies 
 when client number is only 1, therefore we can calculate that the consumption of time for 
 SAML2SSO profile is about 98\% of the whole SOAP invocation with SAML2SSO profile integrated.
@@ -423,20 +489,74 @@ throughput benefit can be achieved by adding clients.
 %-------------------------------------------------------------------------
 \section{Related Work}
 \label{sec:relatedwork}
-Similar work that integrates Shibboleth and Grid middleware does exist. GridShib~\cite{VWelch05,TBarton06} uses Shibboleth to get entity's attribute for the authorization of services developed in Globus Tookit. Unlike the work described in this paper, the GridShib does not use Shibboleth's native login handlers for authentication to Shibboleth IdP, instead, a new login handler specific for X.509 based authentication is developed for the Shibboleth IdP, and a credential service is developed for acting as an online-CA, authenticating the user, and issuing short-lived X.509 credential. Moreover, this paper provides a single sign-on solution for the user with community credentials authenticating to Grid services by directly using SAML2.0 SSO profile.
+There are other researches that utilize Shibboleth for protecting usage of Grid resources. 
+The work in ~\cite{J.Watt06} uses Shibboleth to protect a GridSphere portal and then 
+indirectly protect Grid services which are deployed in this GridSphere protal. Another 
+work in ~\cite{R.O.Sinnott06} also uses Shibboleth to protect Grid portal, moreover, it 
+maintains a few common used server certificates which can then be used to access Grid 
+resources after users have successfully authenticated themselves at Grid protal through
+Shibboleth. Unlike these two solutions that use Shibboleth to protect Grid portal, the solution
+in this paper uses Shibboleth or similar standards-based identity federation to directly protect 
+Grid resource/services, which provide possibility for those Grid applications that are directly
+based on Grid interface (e.g., applications that invokes SOAP operations of remote Grid services),
+to benefit from identity federation.
 
-SWITCH (The Swiss Education and Research Network) short-lived credential service (SLCS)~\cite{switchslcslink} provides a SLCS service and a client. The advantage of our work comparing to the SWTCH's solution is that the SLCS service and client are based on Web Services, so that they can be implemented in any Web Service container while keeping interoperability.
+GridShib~\cite{T.Scavo07,VWelch05} provides one solution that users can use X.509 
+certificate to authenticate to Shibbolth IdP, get back SAML assertion and embed it in 
+the proxy certificate. The Grid service will then use this SAML assertion for access control.
+Unlike the work described in this paper, GridShib still requires users to possess a X.509 
+credential, rather than username/password. GridShib also provides another 
+solution~\cite{TBarton06} in which a credential service (MyProxy server) is deployed together
+with Shibboleth IdP for acting as an online-CA, authenticating the user through username/password
+rather than X.509 certificate, and issuing short-lived X.509 credential. The second solution
+is similar to the short-lived credential service in our solution, while our solution
+also provides the option for users directly authenticating to Grid services via SAML2.0 SSO 
+profile using their username/password.
 
-In terms of delegation, apart from the credential delegation mechanism of GSI~\cite{IFoster98,VWelch04}, several authors~\cite{MAhsant04} propose a delegation protocol based on the WS-Trust~\cite{WSTrustlink} in order to provide a standard and interoperable protocol for the delegation in Grids. WS-Trust will also be adopted by the ARC middleware to express the specifications required to define delegation protocol in a standard way. Gridsite project implements a X.509 credential delegation solution~\cite{GridSitelink} based on the Web Service, with which ARC delegation client can be made easily interoperable.
+Another short-lived credential service is also provided by ~\cite{switchslcslink}. 
+The advantage of our work comparing to the work in ~\cite{switchslcslink} is that 
+our SLCS service is based on Web Services standard, so that it is easier to achieve 
+interoperability.
+
+In the aspect of credential delegation, apart from the credential delegation mechanism of 
+GSI~\cite{IFoster98,VWelch04}, several authors~\cite{MAhsant04} propose a delegation protocol 
+based on the WS-Trust~\cite{WSTrustlink} to provide a standard and interoperable protocol 
+for the delegation in Grids. WS-Trust will also be adopted by the ARC middleware to express the 
+specifications required to define delegation protocol in a standard way. Gridsite project also
+implements a X.509 credential delegation solution~\cite{GridSitelink} based on the Web 
+Service, with which ARC delegation client can be easily made interoperate.
 
 %-------------------------------------------------------------------------
 \section{Conclusion And Future Work}
 \label{sec:conclusion}
-In this paper we presented the solution built into the ARC Grid middleware, aiming towards the cross-middle-ware authentication and single sign-on. The goal of our work is to develop an interoperable and accessible single sign-on solution to be used for a VO scenario in production Grids, where users can easily authenticate against the Grids with any of their credentials (not only X.509) from anywhere, and move inside Grid middleware infrastructure and even across heterogeneous Grids  boundaries, without re-authentication within a reasonable period. In order to do so, we implemented some standards based Web Services (including the SLCS service, the X.509 credential delegation service, and the SAML Token delegation service), as well as the user agent and the Service Provider in the context of the SAML2 SSO profile.
+In this paper we propose a Grid single sign-on framework that can utilize users' 
+federated identity instead of X.509 mutual authentication for authentication, which
+we believe can make further uptake of Grid resources as well as Grid middleware by 
+wider scale of users.
 
-It must be noted that due to the standard specifications utilized (SAML and WS-Security) which are independent from any particular middleware, the WS clients and Web/Grid Services developed within the ARC middleware can interoperate with WS clients and Web/Grid Services developed as part of some other middlewares in a standardized way.
+We implement the SAML2 SSO profile in the ARC Grid middleware, so that the Grid applications
+that developed by using the application interface provided by this middleware can easily 
+be switched to benefit from federated identity based authentication. 
+The performance evaluation shows even though the introducing of SAML2 SSO profile causes 
+much performance downgrade, this downgrade can be avoided by reusing the authentication 
+result for multiple SOAP invocations.
+Meanwhile, in order to be compatible with those Grid applications that require X.509 
+certificate on the client side, we also implement one Web Service which can be used for 
+obtaining an X.509 credential based on federated identity, and the other Web Service 
+which can be used for delegating X.509 credential. We believe that the evaluated 
+performance is enough for creating X.509 certificate and proxy certificate, considering that 
+the certificates should have a relaively much longer lifetime comparing to the response time of 
+these two services.
+ 
+Although only authentication issue has been discussed in this paper, we know single
+sign-in should also include the authorization issue. The SAML assertion which includes
+users' attributes can be used on the serrvice side to achiece attribute-based authorization.
+Therefore providing plugin on the service side to enforce access control using SAML attribute
+is considered one part of the future work.
 
-Though only authentication issue is discussed in this paper, as the future work, we will implement a solution for cross-middleware attribute-based authorization by using the standard specifications such as SAML.
+SimpleSAMLphp~\cite{simplesamllink} provides another implementation of SAML2 SSO profile, and it 
+has been widely deployed around nordic countries for identity federation. Hence integrating
+ARC based Grid applications with simpleSAMLphp is considered as another of future work.
 
 
 
@@ -521,9 +641,6 @@ Though only authentication issue is discussed in this paper, as the future work,
 The authors would like to thank...
 
 
-
-
-
 % trigger a \newpage just before the given reference
 % number - used to balance the columns on the last page
 % adjust value as needed - may need to be readjusted if
@@ -539,14 +656,14 @@ The authors would like to thank...
 
 \begin{thebibliography}{1}
 
-\bibitem{IFoster01}
-I. Foster, C. Kesselman, S. Tuecke. The anatomy of the Grid: Enabling scalable virtual organizations, International Journal of Supercomputer Applications, 15(3), 200-222 (2001)
-
 \bibitem{IFoster98}
-I. Foster, C. Kesselman, G. Tsudik, and S. Tuecke, A Security Architecture for Computational Grids, ACM Conference on Computers and Security, 1998, 83-91.
+I. Foster, C. Kesselman, G. Tsudik, and S. Tuecke, A Security Architecture for 
+Computational Grids, ACM Conference on Computers and Security, 1998, 83-91.
 
 \bibitem{AlfieriR05}
-R. Alfieri, R. Cecchini, V. Ciaschini, L. dell’Agnello, A. Frohner, K. Lorentey, and F. Spataro. From gridmap-file to voms: managing authorization in a Grid environment. Future Generation Comp. Syst., 21(4), 549-558 (2005)
+R. Alfieri, R. Cecchini, V. Ciaschini, L. dell’Agnello, A. Frohner, K. Lorentey, 
+and F. Spataro. From gridmap-file to voms: managing authorization in a Grid environment. 
+Future Generation Comp. Syst., 21(4), 549-558 (2005)
 
 \bibitem{RFC3821link}
 RFC 3821- An Internet Attribute Certificate Profile for Authorization. http://www.faqs.org/rfcs/rfc3281.html
@@ -567,7 +684,8 @@ OASIS Web Services Security. www.oasis-open.org/committees/wss/
 OASIS Security Assertion Markup Languages (SAML). www.oasis-open.org/committees/security/
 
 \bibitem{MEllert07}
-M. Ellert et al. Advanced resource connector middleware for lightweight computational grids, Future Generation computer systems, 23(2), 219-240 (2007)
+M. Ellert et al. Advanced resource connector middleware for lightweight computational 
+grids, Future Generation computer systems, 23(2), 219-240 (2007)
 
 \bibitem{KnowARClink}
 KnowARC project.  https://www.knowarc.eu/
@@ -575,32 +693,63 @@ KnowARC project.  https://www.knowarc.eu/
 \bibitem{KnowARCDesignlink}
 Design document of new version ARC. https://www.knowarc.eu/documents/Knowarc\_D1.1-1\_07.pdf
 
+\bibitem{WSElink}
+Web Services Enhancements 2.0 Service Pack 2. http://msdn.microsoft.com/en-us/library/
+
+\bibitem{A.Shoshan03}
+A. Shoshani, A. Sim, and J. Gu, Storage Resource Managers: Essential Components for the Grid, 
+Grid Resource Management: State of the Art and Future Trends, Kluwer Publishing, 2003.
+
 \bibitem{Shiblink}
 The Shibboleth Project. http://shibboleth.internet2.edu/
 
 \bibitem{eduSchemalink}
 eduPerson and eduOrg Object shema. http://middleware.internet2.edu/eduperson/
 
+\bibitem{R.O.Sinnott06}
+R.O. Sinnott, J. Jiang, J. Watt, and O. Ajayi. Shibboleth-based access to and 
+usage of grid resources. Proceeding of 7th IEEE/ACM International Conference on 
+Grid Computing, September 2006, Barcelona.
+
+\bibitem{J.Watt06}
+J. Watt, O. Ajayi, J. Jiang, J. Koetsier, R.O. Sinnott. A Shibboleth-Protected 
+Privilege Management Infrastructure for e-Science Education. in proceeding of Sixth 
+IEEE International Symposium on Cluster Computing and the Grid (CCGRID'06), May 2006,
+Singapore.
+
+\bibitem{T.Scavo07}
+T. Scavo and V. Welch. A Grid Authorization Model for Science Gateways. International 
+Workshop on Grid Computing Environments, 2007.
+
 \bibitem{VWelch05}
-V. Welch, T. Barton, K. Keahey and F. Siebenlist. Attributes, Anonymity, and Access: Shibboleth and Globus Integration to Facilitate Grid Collaboration. 4th Annual PKI R\&D Workshop, 2005.
+V. Welch, T. Barton, K. Keahey and F. Siebenlist. Attributes, Anonymity, and 
+Access: Shibboleth and Globus Integration to Facilitate Grid Collaboration. in 
+proceeding of 4th Annual PKI R\&D Workshop, 2005.
 
 \bibitem{TBarton06}
-T. Barton et al. Identity Federation and Attribute-based Authorization through the Globus Toolkit, Shibboleth, Gridshib, and MyProxy. 5th Annual PKI R\&D Workshop, 2006.
+T. Barton et al. Identity Federation and Attribute-based Authorization 
+through the Globus Toolkit, Shibboleth, Gridshib, and MyProxy. in proceeding 
+of 5th Annual PKI R\&D Workshop, 2006.
 
 \bibitem{switchslcslink}
 SWITCH Short Lived Credential Service. http://www.switch.ch/Grid/slcs/
 
 \bibitem{VWelch04}
-V. Welch et al. X.509 proxy certificate for dynamic delegation, Proceeding of the 3rd Annual KI R\&D Workshop, 2004.
+V. Welch et al. X.509 proxy certificate for dynamic delegation. in proceeding 
+of the 3rd Annual KI R\&D Workshop, 2004.
 
 \bibitem{MAhsant04}
-M. Ahsant, J. Basney, and O. Mulmo. Grid Delegation Protocol, UK Workshop on Grid Security Experiences, Oxford. 2004.
+M. Ahsant, J. Basney, and O. Mulmo. Grid Delegation Protocol. UK Workshop on 
+Grid Security Experiences, Oxford. 2004.
 
 \bibitem{WSTrustlink}
 OASIS WS-Trust specification. http://docs.oasis-open.org/ws-sx/ws-trust/200512
 
 \bibitem{GridSitelink}
 Gridsite delegation service. http://www.gridsite.org/wiki/Delegation\_protocol
+
+\bibitem{simplesamllink}
+http://rnd.feide.no/simplesamlphp
 
 \end{thebibliography}
 
