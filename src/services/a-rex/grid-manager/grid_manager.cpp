@@ -374,10 +374,7 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
 }
 */
 
-GridManager::GridManager(const char* config_filename,std::string key_path,
-                         std::string certificate_path,std::string ca_certificates_dir
-                         ):active_(false) {
-  job_log.set_credentials(key_path, certificate_path, ca_certificates_dir);
+GridManager::GridManager(const char* config_filename):active_(false) {
   void* arg = config_filename?strdup(config_filename):NULL;
   active_=Arc::CreateThreadFunction(&grid_manager,arg);
   if(!active_) if(arg) free(arg);

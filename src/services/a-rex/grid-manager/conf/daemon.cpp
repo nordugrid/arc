@@ -18,7 +18,17 @@
 
 #include "daemon.h"
 
+#define DEFAULT_SERVICE_KEY   "/etc/grid-security/hostkey.pem"
+#define DEFAULT_SERVICE_CERT  "/etc/grid-security/hostcert.pem"
+#define DEFAULT_SERVICE_CADIR "/etc/grid-security/certificates"
+
 Daemon::Daemon(void):logfile_(""),logsize_(0),lognum_(5),uid_((uid_t)(-1)),gid_((gid_t)(-1)),daemon_(true),pidfile_(""),debug_(-1),logger_(Arc::Logger::getRootLogger()) {
+  key_path_=Arc::GetEnv("X509_USER_KEY");
+  cert_path_=Arc::GetEnv("X509_USER_CERT");
+  cadir_path_=Arc::GetEnv("X509_CERT_DIR");
+  if(key_path_.empty()) key_path_=DEFAULT_SERVICE_KEY;
+  if(cert_path_.empty()) cert_path_=DEFAULT_SERVICE_CERT;
+  if(cadir_path_.empty()) cadir_path_=DEFAULT_SERVICE_CADIR;
 }
 
 Daemon::~Daemon(void) {
@@ -96,10 +106,13 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
       Arc::SetEnv("GLOBUS_UDP_PORT_RANGE",rest); return 0;
     } else if(cmd == "x509_user_key") {
       Arc::SetEnv("X509_USER_KEY",rest); return 0;
+      key_path_=rest;
     } else if(cmd == "x509_user_cert") {
       Arc::SetEnv("X509_USER_CERT",rest); return 0;
+      cert_path_=rest;
     } else if(cmd == "x509_cert_dir") {
       Arc::SetEnv("X509_CERT_DIR",rest); return 0;
+      cadir_path_=rest;
     } else if(cmd == "http_proxy") {
       Arc::SetEnv("ARC_HTTP_PROXY",rest); return 0;
     };

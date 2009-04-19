@@ -17,6 +17,9 @@ class Daemon {
   std::string pidfile_;
   int debug_;
   Arc::Logger& logger_;
+  std::string key_path_;
+  std::string cert_path_;
+  std::string cadir_path_;
  public:
   Daemon(void);
   ~Daemon(void);
@@ -28,6 +31,9 @@ class Daemon {
   const char* short_help(void);
   void logfile(const char* path);
   void pidfile(const char* path);
+  const std::string& keypath(void) { return key_path_; };
+  const std::string& certpath(void) { return cert_path_; };
+  const std::string& cadirpath(void) { return cadir_path_; };
 };
 
 #endif // __GM_DAEMON_H__

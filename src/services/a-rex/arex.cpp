@@ -389,14 +389,6 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
   long_description_ = (std::string)((*cfg)["longDescription"]);
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
   os_name_ = (std::string)((*cfg)["OperatingSystem"]);
-  // Service credential info for logger / usagereporter tool
-  Arc::XMLNode tlsnode=cfg->GetRoot()["Chain"]["Component"];
-  while (tlsnode && 
-	 (std::string)tlsnode.Attribute("name") != "tls.service") 
-    ++tlsnode;
-  key_path_ = (std::string)tlsnode["KeyPath"];
-  certificate_path_ = (std::string)tlsnode["CertificatePath"];
-  ca_certificates_dir_ = (std::string)tlsnode["CACertificatesDir"];
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
   /*
@@ -412,8 +404,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
   */
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
     //gm_=new GridManager(gmargv);
-    gm_=new GridManager(gmconfig_.empty()?NULL:gmconfig_.c_str(),
-			key_path_, certificate_path_, ca_certificates_dir_);
+    gm_=new GridManager(gmconfig_.empty()?NULL:gmconfig_.c_str());
     if(!gm_) return;
     if(!(*gm_)) { delete gm_; gm_=NULL; return; };
   };

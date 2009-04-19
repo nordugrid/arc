@@ -55,6 +55,9 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   std::string central_control_dir("");
   ConfigSections* cf = NULL;
   std::string infosys_user("");
+  std::string jobreport_key("");
+  std::string jobreport_cert("");
+  std::string jobreport_cadir("");
 
   /* read configuration and add users and other things */
   if(!config_open(cfile)) {
@@ -135,7 +138,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         job_log.SetReporter(url.c_str());
       };
     }
-    else if(command == "accounting_options") { /* e.g. for SGAS, interpreted by usage reporter */ 
+    else if(command == "jobreport_credentials") {
+      jobreport_key = config_next_arg(rest); 
+      jobreport_cert = config_next_arg(rest); 
+      jobreport_cadir = config_next_arg(rest); 
+    }
+    else if(command == "jobreport_options") { /* e.g. for SGAS, interpreted by usage reporter */ 
       std::string accounting_options = config_next_arg(rest); 
       job_log.set_options(accounting_options);
     }
@@ -544,6 +552,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     };
   };
+  if(daemon) {
+    if(jobreport_key.empty()) jobreport_key = daemon->keypath();
+    if(jobreport_cert.empty()) jobreport_cert = daemon->certpath();
+    if(jobreport_cadir.empty()) jobreport_cadir = daemon->cadirpath();
+  }
+  job_log.set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
   return true;
 exit:
   if(central_configuration) delete cf;

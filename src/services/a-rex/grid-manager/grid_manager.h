@@ -12,8 +12,7 @@ class GridManager {
   GridManager(const GridManager&) { };
  public:
   //GridManager(Arc::XMLNode argv);
-  GridManager(const char* config_filename,std::string key_path="",
-	      std::string certificate_path="",std::string ca_certificates_dir="");
+  GridManager(const char* config_filename);
   ~GridManager(void);
   operator bool(void) { return active_; };
 };
