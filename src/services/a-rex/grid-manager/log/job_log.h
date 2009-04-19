@@ -16,6 +16,9 @@ class JobLog {
  private:
   std::string filename;
   std::list<std::string> urls;
+  std::list<std::string> report_config; // additional configuration for usage reporter
+  std::string certificate_path;
+  std::string ca_certificates_dir;
   Arc::Run *proc;
   time_t last_run;
   time_t ex_period;
@@ -42,6 +45,8 @@ class JobLog {
   void SetExpiration(time_t period = 0);
   /* Create data file for Reporter */
   bool make_file(JobDescription &job,JobUser &user);
+  /* Set credential file names for accessing logging service */
+  void set_credentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir);
 };
 
 #endif

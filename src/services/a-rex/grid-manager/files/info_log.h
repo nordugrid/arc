@@ -2,12 +2,13 @@
 #define GRID_MANAGER_INFO_LOG_H
 
 #include <string>
+#include <list>
 
 #include "../jobs/job.h"
 #include "../jobs/users.h"
 #include "info_types.h"
 
-bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::string &url);
+bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::string &url,std::list<std::string> &report_config);
 
 #endif
 

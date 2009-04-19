@@ -227,7 +227,7 @@ bool JobLog::make_file(JobDescription &job,JobUser &user) {
   bool result = true;
   // for configured loggers
   for(std::list<std::string>::iterator u = urls.begin();u!=urls.end();u++) {
-    if(u->length()) result = job_log_make_file(job,user,*u) && result;
+    if(u->length()) result = job_log_make_file(job,user,*u,report_config) && result;
   };
   // for user's logger
   JobLocalDescription* local;
@@ -241,11 +241,21 @@ bool JobLog::make_file(JobDescription &job,JobUser &user) {
       for (std::list<std::string>::iterator v = local->jobreport.begin();
 	   v!=local->jobreport.end(); v++)
 	{
-	  result = job_log_make_file(job,user,*v) && result;
+	  result = job_log_make_file(job,user,*v,report_config) && result;
 	}
     };
   };
   return result;
+}
+
+void JobLog::set_credentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir)
+{
+  if (!key_path.empty()) 
+    report_config.push_back(std::string("key_path=")+key_path);
+  if (!certificate_path.empty())
+    report_config.push_back(std::string("certificate_path=")+certificate_path);
+  if (!ca_certificates_dir.empty())
+    report_config.push_back(std::string("ca_certificates_dir=")+ca_certificates_dir);
 }
 
 JobLog::~JobLog(void) {

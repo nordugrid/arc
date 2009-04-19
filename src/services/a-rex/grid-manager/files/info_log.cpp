@@ -65,7 +65,7 @@ static bool string_to_number(std::string& s,unsigned int& n) {
 
 // Create multiple files for sending to logger
 // TODO - make it SOAP XML so that they could be sent directly
-bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::string &url) {
+bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::string &url,std::list<std::string> &report_config) {
   std::string fname_dst = user.ControlDir()+"/logs/"+desc.get_id()+".XXXXXX";
   std::string fname_src;
   std::string status;
@@ -85,6 +85,13 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   if(url.length()) {
     o_dst<<"loggerurl="<<url<<std::endl; if(o_dst.fail()) goto error;
   };
+  // Configuration options for usage reporter tool
+  for (std::list<std::string>::iterator sp = report_config.begin();
+       sp != report_config.end();
+       ++sp) 
+    {
+      o_dst<<*sp<<std::endl;
+    }
   // Copy job description
   {
   fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
