@@ -252,6 +252,14 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
         float f;
         if(string_to_number(value,f))
           o_dst<<"usedmemory="<<(unsigned int)f<<std::endl;
+      } else if(strcasecmp(key.c_str(),"averageresidentmemory") == 0) {
+        float f;
+        if(string_to_number(value,f))
+          o_dst<<"usedaverageresident="<<(unsigned int)f<<std::endl;
+      } else if(strcasecmp(key.c_str(),"maxresidentmemory") == 0) {
+        float f;
+        if(string_to_number(value,f))
+          o_dst<<"usedmaxresident="<<(unsigned int)f<<std::endl;
       } else if(strcasecmp(key.c_str(),"exitcode") == 0) {
         int n;
         if(Arc::stringto(value,n)) o_dst<<"exitcode="<<n<<std::endl;
