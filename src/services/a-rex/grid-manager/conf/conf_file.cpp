@@ -135,6 +135,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         job_log.SetReporter(url.c_str());
       };
     }
+    else if(command == "accounting_options") { /* e.g. for SGAS, interpreted by usage reporter */ 
+      std::string accounting_options = config_next_arg(rest); 
+      job_log.set_options(accounting_options);
+    }
     else if(command == "maxjobs") { /* maximum number of the jobs to support */ 
       std::string max_jobs_s = config_next_arg(rest);
       long int i;

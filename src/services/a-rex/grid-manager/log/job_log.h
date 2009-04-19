@@ -47,6 +47,8 @@ class JobLog {
   bool make_file(JobDescription &job,JobUser &user);
   /* Set credential file names for accessing logging service */
   void set_credentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir);
+  /* Set accounting options (e.g. batch size for SGAS LUTS) */
+  void set_options(std::string &options) { report_config.push_back(std::string("accounting_options=")+options); }
 };
 
 #endif
