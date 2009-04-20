@@ -51,6 +51,8 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
   delegation_id_ = (std::string)((*cfg)["DelegationID"]);
   delegation_cred_identity_ = (std::string)((*cfg)["DelegationCredIdentity"]);  
 
+  if(delegation_type.empty()) delegation_type = "x509";
+
   if(delegation_type == "x509") {
     proxy_file_=(std::string)((*cfg)["ProxyPath"]);
     cert_file_=(std::string)((*cfg)["CertificatePath"]);
@@ -70,8 +72,8 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
       return;
     }
     delegation_type_=delegation_x509;
-    if(delegation_role == "client") delegation_role_ = delegation_client;
-    else if(delegation_role == "service") delegation_role_ = delegation_service;
+    if(delegation_role == "delegator") delegation_role_ = delegation_delegator;
+    else if(delegation_role == "delegatee") delegation_role_ = delegation_delegatee;
     else {
       logger.msg(ERROR,"Delegation role not supported: %s",delegation_role);
       return;
@@ -126,10 +128,20 @@ bool DelegationSH::Handle(Arc::Message* msg){
     try {
       PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());
 
-      if(delegation_role_ == delegation_service) {
+      if(delegation_role_ == delegation_delegatee) {
         //Try to get the delegation service and delegation ID
         //information from incoming message
-        logger.msg(Arc::INFO,"Delegation handler with service role starts to process");
+
+        //Store delegation context into message context
+        DelegationContext* deleg_ctx = get_delegcontext(*msg); //dynamic_cast<DelegationContext*>(mcontext_);
+        if(!deleg_ctx) {
+          logger.msg(Arc::ERROR, "Can't create delegation context");
+          return false;
+        }
+        //Credential delegation will only be triggered once for each connection
+        if(deleg_ctx->have_delegated_) return true;
+
+        logger.msg(Arc::INFO,"Delegation handler with delegatee role starts to process");
         std::string method = (*msg).Attributes()->get("HTTP:METHOD");
         if(method == "POST") {
           logger.msg(Arc::DEBUG, "process: POST");
@@ -202,22 +214,28 @@ bool DelegationSH::Handle(Arc::Message* msg){
             return false;
           }
         };
-        logger.msg(Arc::INFO,"Delegation handler with service role ends");
+
+        //Set the 'have_delegated_' value of DelegationContext to
+        //be true, so that the delegation process will only be triggered
+        //once for each communication.
+        deleg_ctx->have_delegated_=true;
+
+        logger.msg(Arc::INFO,"Delegation handler with delegatee role ends");
         return true;
       }
-      else if(delegation_role_ == delegation_client) {
+      else if(delegation_role_ == delegation_delegator) {
         //Create one more level of delegation
         Arc::MCCConfig ds_client_cfg;
         //Use delegation credential (one option is to use the one got and stored 
-        //in the delegation handler with 'service' delegation role, note in this 
+        //in the delegation handler with 'delegatee' delegation role, note in this 
         //case the service implementation should configure the client interface 
         //(the client interface which is called by the service implementation to
         //contact another service) with the 'Identity' of the credential on which 
-        //this service will act on behalf, then the delegation handler with 'client' 
+        //this service will act on behalf, then the delegation handler with 'delegator' 
         //delegation role (configured in this client interface's configuration) will
         //get the delegated credential from local temporary path (this path is 
         //decided according to the 'Identity'); the other option is cofigure the credential
-        //(EEC credential or delegated credential) in this 'client' role delegation
+        //(EEC credential or delegated credential) in this 'delegator' role delegation
         //handler's configuration. What can be concluded here is: the former option
         //applies to intermediate service; the later option applies to the client
         //utilities. 
@@ -234,7 +252,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
         //Credential delegation will only be triggered once for each connection
         if(deleg_ctx->have_delegated_) return true;
 
-        logger.msg(Arc::INFO,"Delegation handler with client role starts to process");
+        logger.msg(Arc::INFO,"Delegation handler with delegator role starts to process");
         std::string proxy_path;
         if(!delegation_cred_identity_.empty()) {
           unsigned long hash_value = string_hash(delegation_cred_identity_);
@@ -270,14 +288,14 @@ bool DelegationSH::Handle(Arc::Message* msg){
 
         //Send the endpoint of delegation service and delegation ID to 
         //the peer service side, on which the delegation handler with 
-        //'delegation_service' role will get the endpoint of delegation
+        //'delegation_delegatee' role will get the endpoint of delegation
         //service and delegation ID to aquire delegation credential.
         //
         //The delegation service and delegation ID
         //information will be sent to the service side by the 
         //client side. If the client functionality is hosted/called by
         //some intermediate service, this handler (delegation handler with
-        //client role) should be configured into the 'incoming' message of 
+        //delegator role) should be configured into the 'incoming' message of 
         //the hosted service; if the client functionality is called by
         //some independent client utility, this handler should be configured 
         //into the 'incoming' message of the client itself.
@@ -314,7 +332,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
         deleg_ctx->have_delegated_=true;      
 
         logger.msg(Arc::INFO, "Succeeded to send DelegationService: %s and DelegationID: %s info to peer service",ds_endpoint_.c_str(),delegation_id.c_str());
-        logger.msg(Arc::INFO,"Delegation handler with service role ends");
+        logger.msg(Arc::INFO,"Delegation handler with delegatee role ends");
         return true;     
       }
 

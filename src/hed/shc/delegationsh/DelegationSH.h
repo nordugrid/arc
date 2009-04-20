@@ -16,8 +16,8 @@ class DelegationContext;
 class DelegationSH : public SecHandler {
  private:
   enum {
-    delegation_client,
-    delegation_service
+    delegation_delegator,
+    delegation_delegatee
   } delegation_role_;
   enum {
     delegation_x509,
@@ -28,15 +28,15 @@ class DelegationSH : public SecHandler {
                             // create a delegation credential
   std::string peers_endpoint_; //endpoint of the peer service, to which
                                //the real service invokation will be called.
-                               //This variable is only valid for the client
+                               //This variable is only valid for the delegator
                                //role Delegation handler.
   std::string delegation_id_; //The delegation ID which is used to 
                               //be send to the peer service side. The 
-                              //variable is only valid for the client role
+                              //variable is only valid for the delegator role
                               //Delegation handler.
-                              //The client role delegation handler is only need
+                              //The delegator role delegation handler is only need
                               //to be set if it is configured in a client.
-                              //If the client role Delegation handler is configured 
+                              //If the delegator role Delegation handler is configured 
                               //in a service, then delegation_id_ delegation_id
                               //does not need to set.
   std::string delegation_cred_identity_;
