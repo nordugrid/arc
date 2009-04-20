@@ -66,6 +66,7 @@ namespace Arc {
     logger.msg(INFO, "Creating an A-REX client");
     client = new ClientSOAP(cfg, url);
     set_arex_namespaces(arex_ns);
+    rurl = url;
   }
 
   AREXClient::~AREXClient() {
@@ -329,7 +330,7 @@ namespace Arc {
 
     WSRPGetResourcePropertyDocumentRequest WSRPReq;
     PayloadSOAP req(WSRPReq.SOAP());
-    WSAHeader(req).To(rurl.str()); //?
+    WSAHeader(req).To(rurl.str());
 
     // Send status request
     PayloadSOAP *resp = NULL;
@@ -381,6 +382,12 @@ namespace Arc {
     }
     else {
       logger.msg(ERROR, "There is no connection chain configured");
+      return false;
+    }
+    SOAPFault* fault = resp->Fault();
+    if(fault) {
+      logger.msg(ERROR, "The response to a service status request "
+                 "is Fault message: " + fault->Reason());
       return false;
     }
     resp->XMLNode::New(status);
@@ -456,15 +463,18 @@ namespace Arc {
       return false;
     }
 
-    XMLNode terminated, fs;
+    XMLNode terminated;
     (*resp)["TerminateActivitiesResponse"]
     ["Response"]["Terminated"].New(terminated);
     result = (std::string)terminated;
-    (*resp)["Fault"]["faultstring"].New(fs);
-    faultstring = (std::string)fs;
-    // delete resp;
-    if (faultstring != "") {
-      logger.msg(ERROR, faultstring);
+    SOAPFault fs(*resp);
+    if (fs) {
+      faultstring = fs.Reason();
+      if(faultstring.empty()) faultstring="unknown reason";
+      std::string s;
+      resp->GetXML(s);
+      logger.msg(VERBOSE, "Request returned failure: %s", s);
+      logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
       return false;
     }
     if (result != "true") {
@@ -533,11 +543,14 @@ namespace Arc {
 
     if (!((*resp)["ChangeActivityStatusResponse"])) {
       // delete resp;
-      XMLNode fs;
-      (*resp)["Fault"]["faultstring"].New(fs);
-      faultstring = (std::string)fs;
-      if (faultstring != "") {
-        logger.msg(ERROR, faultstring);
+      SOAPFault fs(*resp);
+      if (fs) {
+        faultstring = fs.Reason();
+        if(faultstring.empty()) faultstring="unknown reason";
+        std::string s;
+        resp->GetXML(s);
+        logger.msg(VERBOSE, "Request returned failure: %s", s);
+        logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
         return false;
       }
       if (result != "true") {
@@ -611,16 +624,20 @@ namespace Arc {
       return false;
     }
 
-    XMLNode st, fs;
+    XMLNode st;
     (*resp)["GetActivityDocumentsResponse"]["Response"]
     ["JobDefinition"].New(st);
     st.GetDoc(jobdesc);
     // Check for faults
-    (*resp)["Fault"]["faultstring"].New(fs);
-    faultstring = (std::string)fs;
+    SOAPFault fs(*resp);
     // delete resp;
-    if (faultstring != "") {
-      logger.msg(ERROR, faultstring);
+    if (fs) {
+      faultstring = fs.Reason();
+      if(faultstring.empty()) faultstring="unknown reason";
+      std::string s;
+      resp->GetXML(s);
+      logger.msg(VERBOSE, "Request returned failure: %s", s);
+      logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
       return false;
     }
     else
@@ -787,3 +804,4 @@ namespace Arc {
     }
   }
 }
+
