@@ -249,6 +249,23 @@ find ./ -type f -exec chmod u+w "{}" ";"
 for i in $files; do
     chmod u-w "./\$i" 2>/dev/null
 done
+EOF
+        # Protect from deleting files in the dynamic output file list
+        for my $dynlist (grep /^@/, @fileslst) {
+          $dynlist =~ s/^@//;
+          $output .= "dynlist='$dynlist'\n";
+          $output .= <<'EOF';
+chmod -R u-w "./$dynlist" 2>/dev/null
+cat "./$dynlist" \
+| sed 's/^ *"\([^"]*\)".*/\1/g;t suc;s/^ *//;s/\([^\\]\) .*/\1/;:suc;s/\\\(.\)/\1/g' \
+| while true; do
+    read name
+    if [ $? -ne '0' ]; then break; fi
+      chmod -R u-w "./$name" 2>/dev/null
+  done
+EOF
+        }
+        $output .= <<EOF;
 find ./ -type f -perm +200 -exec rm -f "{}" ";"
 find ./ -type f -exec chmod u+w "{}" ";"
 EOF
