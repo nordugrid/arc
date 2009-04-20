@@ -128,7 +128,7 @@
             <!-- Globally unique and persistent ID of the service -->
             <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <!-- Time of information generation or collection -->
-            <xsd:element name="GenTime" type="xsd:dateTime"/>
+            <xsd:element name="GenTime" type="xsd:dateTime" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="Expiration" type="xsd:duration"/>
         </xsd:sequence>
     </xsd:complexType>
