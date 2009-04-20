@@ -61,6 +61,9 @@
             <!--Security handler for obtaining proxy certificate from 
             delegation service.
 
+            There should be delegation security handler that concurrently 
+            appears on the client side, and acts as the "delegator".
+
             "Type" is for specifying the type of delegated credential, default value 
             is "x509" which is for delegation of x509 credential; other option could be
             "saml" which is for delegation of SAML token, this has not yet been implemented.

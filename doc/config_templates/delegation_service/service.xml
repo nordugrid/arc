@@ -1,0 +1,18 @@
+
+    <!--Other plugin names-->
+    <Plugins><Name>delegation</Name></Plugins>
+
+
+    <Chain>
+        <!--Other message components-->
+
+        <Plexer name="plexer.service" id="plexer">
+            <next id="echo">/echo</next>
+            <next id="delegation">/delegation</next>
+        </Plexer>
+        <Service name="delegation.service" id="delegation">
+            <next id="delegation"/>
+            <!--Nothing else needs to be specified-->
+        </Service>
+
+    </Chain>
