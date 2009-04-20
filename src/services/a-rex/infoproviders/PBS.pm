@@ -110,18 +110,9 @@ sub cluster_info ($) {
     # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
     my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
 
-    my ($npstring);
-    my (%np_str) = ( 'openpbs' => 'np',
-		     'spbs' => 'np',
-		     'torque' => 'np',
-		     'pbspro' => 'np');
-    
-    if ( ! exists $np_str{lc($lrms_cluster{lrms_type})}) {
-	error("The given flavour of PBS $lrms_cluster{lrms_type} ".
-	      "is not supported");
-    } else {
-	$npstring = $np_str{ lc($lrms_cluster{lrms_type}) }
-    }
+    error("The given flavour of PBS $lrms_cluster{lrms_type} is not supported")
+        unless grep {$_ eq lc($lrms_cluster{lrms_type})}
+            qw(openpbs spbs torque pbspro);
 
     $lrms_cluster{totalcpus} = 0;
     my ($number_of_running_jobs) = 0;
@@ -139,20 +130,27 @@ sub cluster_info ($) {
 
 	my ($nodestate) = $hoh_pbsnodes{$node}{"state"};      
 
+	my $nodecpus;
+        if ($hoh_pbsnodes{$node}{'np'}) {
+	    $nodecpus = $hoh_pbsnodes{$node}{'np'};
+        } elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
+	    $nodecpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
+        }
+
 	if ($nodestate=~/down/ or $nodestate=~/offline/) {
 	    next;
 	}
         if ($nodestate=~/(?:,|^)busy/) {
-           $lrms_cluster{totalcpus} += $hoh_pbsnodes{$node}{$npstring};
-	   $cpudist[$hoh_pbsnodes{$node}{$npstring}] +=1;
-	   $number_of_running_jobs += $hoh_pbsnodes{$node}{$npstring};
+           $lrms_cluster{totalcpus} += $nodecpus;
+	   $cpudist[$nodecpus] +=1;
+	   $number_of_running_jobs += $nodecpus;
 	   next;
         }
 	
 
-	$lrms_cluster{totalcpus} += $hoh_pbsnodes{$node}{$npstring};
+	$lrms_cluster{totalcpus} += $nodecpus;
 
-	$cpudist[$hoh_pbsnodes{$node}{$npstring}] += 1;
+	$cpudist[$nodecpus] += 1;
 
 	if ($hoh_pbsnodes{$node}{"jobs"}){
 	    $number_of_running_jobs++;
