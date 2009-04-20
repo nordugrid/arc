@@ -27,8 +27,8 @@ namespace Arc {
                                                  const URL& url)
     : http_client_(NULL),
       authn_(false) {
-    if (!(Arc::init_xmlsec()))
-      return;
+    //if (!(Arc::init_xmlsec()))
+    //  return;
     http_client_ = new ClientHTTP(cfg, url);
     //Use the credential and trusted certificates from client's main chain to
     //contact IdP
@@ -39,7 +39,7 @@ namespace Arc {
   }
 
   ClientHTTPwithSAML2SSO::~ClientHTTPwithSAML2SSO() {
-    Arc::final_xmlsec();
+    //Arc::final_xmlsec();
     if (http_client_)
       delete http_client_;
   }
@@ -310,8 +310,8 @@ namespace Arc {
                                                  const URL& url)
     : soap_client_(NULL),
       authn_(false) {
-    if (!(Arc::init_xmlsec()))
-      return;
+    //if (!(Arc::init_xmlsec()))
+    //  return;
     soap_client_ = new ClientSOAP(cfg, url);
     //Use the credential and trusted certificates from client's main chain to
     //contact IdP
@@ -322,7 +322,7 @@ namespace Arc {
   }
 
   ClientSOAPwithSAML2SSO::~ClientSOAPwithSAML2SSO() {
-    Arc::final_xmlsec();
+    //Arc::final_xmlsec();
     if (soap_client_)
       delete soap_client_;
   }

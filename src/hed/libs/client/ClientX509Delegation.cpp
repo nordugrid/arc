@@ -163,6 +163,7 @@ namespace Arc {
         return false;
       }
       std::string getProxyReqReturnValue;
+
       if ((bool)(*response) &&
           (bool)((*response)["getProxyReqResponse"]["getProxyReqReturn"]) &&
           ((std::string)(*response)["getProxyReqResponse"]["getProxyReqReturn"] != ""))
@@ -179,14 +180,16 @@ namespace Arc {
       std::string signedcert;
       //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
+      proxy.SetProxyPolicy("gsi2", "", "", -1);
       if (!(signer_->SignRequest(&proxy, signedcert))) {
         logger.msg(ERROR, "DelegateProxy failed");
         return false;
       }
 
-      std::string signerstr;
+      std::string signerstr, signerchain_str;
       signer_->OutputCertificate(signerstr);
-      signedcert.append(signerstr);
+      signer_->OutputCertificateChain(signerchain_str);
+      signedcert.append(signerstr).append(signerchain_str);
 
       PayloadSOAP request2(ns);
       XMLNode putProxyRequest = request2.NewChild("deleg:putProxy");
@@ -212,6 +215,7 @@ namespace Arc {
         logger.msg(ERROR, "There is no SOAP connection chain configured");
         return false;
       }
+
       if (!(bool)(*response) || !(bool)((*response)["putProxyResponse"])) {
         logger.msg(ERROR, "Creating delegation to CREAM delegation failed");
         return false;
