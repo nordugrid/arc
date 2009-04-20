@@ -17,11 +17,12 @@ arcproxy_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 
 if XMLSEC_ENABLED
 arcslcs_SOURCES  = arcslcs.cpp
-arcslcs_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-arcslcs_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+arcslcs_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+arcslcs_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 arcslcs_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
-                  $(top_srcdir)/src/hed/libs/credential/libarccredential.la
+                  $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+                  $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la
 endif
 
 test2vomsserver_SOURCES  = test2vomsserver.cpp

@@ -33,6 +33,7 @@
 #include <arc/Utils.h>
 #include <arc/URL.h>
 #include <arc/client/UserConfig.h>
+#include <arc/xmlsec/XmlSecUtils.h>
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 
@@ -59,6 +60,8 @@ int main(int argc, char *argv[]) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options("", "", "");
+
+  Arc::init_xmlsec();
 
   std::string slcs_url;
   options.AddOption('S', "url", istring("URL of SLCS service"),
@@ -192,6 +195,7 @@ int main(int argc, char *argv[]) {
     std::string cert_req_str;
     if (!request.GenerateRequest(cert_req_str))
       throw std::runtime_error("Failed to generate certificate request");
+
     std::ofstream out_cert_req(cert_req_path.c_str(), std::ofstream::out);
     out_cert_req.write(cert_req_str.c_str(), cert_req_str.size());
     out_cert_req.close();
@@ -250,11 +254,6 @@ int main(int argc, char *argv[]) {
         throw std::runtime_error("There was no SOAP response");
       }
     }
-    {
-      std::string xml_soap;
-      resp_soap->GetXML(xml_soap);
-      std::cout << "XML: " << xml_soap << std::endl;
-    }
 
     std::string cert_str = (std::string)((*resp_soap)["GetSLCSCertificateResponse"]["X509Certificate"]);
     std::string ca_str = (std::string)((*resp_soap)["GetSLCSCertificateResponse"]["CACertificate"]);
@@ -280,6 +279,8 @@ int main(int argc, char *argv[]) {
     std::ofstream out_ca(ca_path.c_str(), std::ofstream::out);
     out_ca.write(ca_str.c_str(), ca_str.size());
     out_ca.close();
+
+    Arc::final_xmlsec();
 
     return EXIT_SUCCESS;
   } catch (std::exception& err) {
