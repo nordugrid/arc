@@ -1,0 +1,85 @@
+
+       <!--This is configuration for the echo service, which is intended to 
+       be an example for demonstrating:
+       1. enforcement of local access control policy by 
+          using local authorization security handler;
+       2. enforcement of remote access control policy by 
+          invoking remote authorization service;
+       3. enforcement of delegation policy by using delegation handler; 
+       4. invocation to delegation service;
+       -->
+
+        <Service name="echo" id="echo">
+
+            <SecHandler name="arc.authz" id="authz" event="incoming">
+              <!--Simple access control list which includes the 
+              DN of each permitted user like:
+               /O=KnowARC/OU=UiO/CN=squark.uio.no
+               /C=NO/ST=Oslo/O=UiO/CN=test
+
+              location should be located to a local file.-->
+              <PDP name="simplelist.pdp" location="/path/to/simplelist"/>
+
+
+              <!--ARC policy.-->
+              <!--PolicyStore should include locations to policy files-->
+              <PDP name="arc.pdp">
+                <PolicyStore>
+                  <Location type="file">/path/to/Policy_Example.xml</Location>
+                  <!--Other policy location-->
+                </PolicyStore>
+              </PDP>
+
+
+              <!--Remote pdp service invocation-->
+              <!--The endpoint of pdp service should be specified; 
+              The Cert&Key or Proxy, as well as the CA certificates should
+              also be specified.
+              Not you might think it is redundant to the certificates information 
+              under tls mcc. But here this service is acting as a client to another
+              service (pdp service), so it is better to seperatedly specify the 
+              certificate information so that different certificates might be
+              specified for this client functionality. -->
+              <PDP name="pdpservice.invoker">
+                <ServiceEndpoint>https://127.0.0.1:60001/pdp.service</ServiceEndpoint>
+                <ProxyPath>/path/to/testproxy.pem</ProxyPath>
+                <KeyPath>/path/to/testkey-nopass.pem</KeyPath>
+                <CertificatePath>/path/to/testcert.pem</CertificatePath>
+                <CACertificatePath>/path/to/testcacert.pem</CACertificatePath>
+                <CACertificatesDir>/path/to/cadir</CACertificatesDir>
+              </PDP>
+
+              <!--To enforce the delegation policy which is parsed from 
+              peer proxy;
+              Note this should appears concurrently with  "delegation.collector" 
+              under tls mcc's configuration-->
+              <PDP name="delegation.pdp"/>
+
+            </SecHandler>
+
+
+            <!--Security handler for obtaining proxy certificate from 
+            delegation service.
+
+            "Type" is for specifying the type of delegated credential, default value 
+            is "x509" which is for delegation of x509 credential; other option could be
+            "saml" which is for delegation of SAML token, this has not yet been implemented.
+             
+            "Role" is for specifying the role of the delegation process: delegator, delegatee.
+
+            The Cert&Key or Proxy, as well as the CA certificates are also needed to 
+            be specified. Since this part will act as a client to the delegation service.
+            -->
+            <SecHandler name='delegation.handler' id='delegation' event='incoming'>
+              <deleg:Type>x509</deleg:Type>
+              <deleg:Role>delegatee</deleg:Role>
+              <deleg:KeyPath>/path/to/echo/userkey-nopass.pem</deleg:KeyPath>
+              <deleg:CertificatePath>/path/to/echo/usercert.pem</deleg:CertificatePath>
+              <deleg:CACertificatesDir>/path/to/echo/certificates</deleg:CACertificatesDir>
+            </SecHandler>
+
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+            <echo:suffix> ]</echo:suffix>
+        </Service>
+

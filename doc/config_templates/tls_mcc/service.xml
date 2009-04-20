@@ -13,8 +13,8 @@
 
             <!--If ClientAuthn is set to be false, then neither CACertificatePath
             nor CACertificatesDir should be specified-->
-            <tls:CACertificatePath>./testcacert.pem</tls:CACertificatePath>
-            <tls:CACertificatesDir>certificates</tls:CACertificatesDir>
+            <tls:CACertificatePath>/path/to/testcacert.pem</tls:CACertificatePath>
+            <tls:CACertificatesDir>/path/to/cadir</tls:CACertificatesDir>
 
 
             <!--Decide whether do client certificate authentication or not.
