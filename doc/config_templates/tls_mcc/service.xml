@@ -1,0 +1,65 @@
+
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+
+
+            <!--Either Proxy file, or Cert&Keys file should be specified; If both are 
+            specified, only proxy file will be used; If Cert&Key files is specfied, the 
+            key should not be protected by pass-phrase-->
+            <tls:ProxyPath>/path/to/testkey-nopass.pem</tls:ProxyPath>
+            <tls:KeyPath>/path/to/testkey-nopass.pem</tls:KeyPath>
+            <tls:CertificatePath>/path/to/testcert.pem</tls:CertificatePath>
+
+
+            <!--If ClientAuthn is set to be false, then neither CACertificatePath
+            nor CACertificatesDir should be specified-->
+            <tls:CACertificatePath>./testcacert.pem</tls:CACertificatePath>
+            <tls:CACertificatesDir>certificates</tls:CACertificatesDir>
+
+
+            <!--Decide whether do client certificate authentication or not.
+            default is true. If false, the client side is possible not to 
+            specify Cert&Key or Proxy-->
+            <tls:ClientAuthn>false</tls:ClientAuthn>
+
+
+            <!--Configuration for specifying some constraints about parsing voms attribute 
+            certificate in voms proxy.
+            This is needed if service side needs to take out voms attribute information
+            out from voms proxy; If this is specified, but if the peer proxy does not
+            include voms attributes, or the peer proxy includes voms attributes but 
+            the attribute certificate does not passed these constraints, the whole message chain
+            will still pass, but without any voms attributes being taken out-->
+
+            <!--VOMSCertTrustDNChain. The DN chain: first one should be the DN of voms server
+            certificate (which is used to issue the voms attribute certificate (AC); 
+            the second one should be the DN of certificate which is used to issue the voms server
+            certificate; and so on; the last one should be the DN of one of the CA certificates
+            which is specified in CACertificatePath or CACertificatesDir.
+            Multiple DN chain can be specified, which "----NEXT CHAIN---" as seperator--.
+            Regular expression can be used as well, in this case, only one regular expression
+            can be specified for one chain.>
+            <tls:VOMSCertTrustDNChain>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>----NEXT CHAIN---</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/glueball.uio.no</tls:VOMSCertTrustDN>
+              <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
+            </tls:VOMSCertTrustDNChain>
+            <!--tls:VOMSCertTrustDNChain>
+              <tls:VOMSCertTrustRegex>^/O=Grid/O=NorduGrid</tls:VOMSCertTrustRegex>
+            </tls:VOMSCertTrustDNChain>
+            <tls:VOMSCertTrustDNChainsLocation>./</tls:VOMSCertTrustDNChainsLocation-->
+
+
+            <!--Specify the ssl handshake, default is compatible with SSLv2, SSLv3, and TLSv1
+            If SSLv3 is set, then the connection which can only understand 
+            SSLv3 will be established-->
+            <tls:Handshake>SSLv3</tls:Handshake>
+
+
+            <!--A security handler for collecting delegation policy from peer 
+            proxy certificate.-->
+            <SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler>
+        </Component>
+
