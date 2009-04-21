@@ -90,15 +90,31 @@ bool FileStat(const char* path,struct stat *st,uid_t uid,gid_t gid,bool follow_s
   int r = -1;
   {
     UserSwitch usw(uid,gid);
-    if(!usw) return -1;
+    if(!usw) return false;
     if(follow_symlinks) {
       r = stat(path,st);
     } else {
       r = lstat(path,st);
     };
   };
-  return r;
+  return (r == 0);
 }
+
+bool DirCreate(const char* path,mode_t mode) {
+  return DirCreate(path,0,0,mode);
+}
+
+// TODO: find non-blocking way to create directory
+bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode) {
+  int r = -1;
+  {
+    UserSwitch usw(uid,gid);
+    if(!usw) return false;
+    r = mkdir(path,mode);
+  };
+  return (r == 0);
+}
+
 
 } // namespace Arc
 
