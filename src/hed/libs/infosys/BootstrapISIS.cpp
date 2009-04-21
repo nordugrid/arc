@@ -6,8 +6,6 @@
 #include <unistd.h>
 #include <algorithm>
 
-#include <arc/loader/Loader.h>
-#include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/message/PayloadSOAP.h>
