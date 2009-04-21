@@ -176,7 +176,9 @@ namespace Arc {
       delete response;
 
       //Sign the proxy certificate
-      Arc::Credential proxy;
+      Arc::Time start;
+      start = start - Arc::Period(300);
+      Arc::Credential proxy(start);
       std::string signedcert;
       //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
