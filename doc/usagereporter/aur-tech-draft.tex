@@ -79,20 +79,37 @@
 %\tableofcontents                          %Comment if use article style
 \newpage
 
-\section{Introduction}
-
 \section{Purpose}
-  metering resource usage
-  record it in a database
-    SGAS service used
-    standard OGF Usage Records
-  possibly billing
-  job-level accounting
-  user-based accounting
-  project name
+
+The ARC Usage Reporter tool is a component implementing accounting
+functionality in the ARC middleware. Its objective is to gather
+metered resource usage data for each job and submit it to an
+accounting service along with the job submitter's identity and
+miscellaneous job-related metadata. 
+
+The accounting service stores the received usage data in a database,
+and provides an interface for querying it.  Queries can be made by the
+consumers of the accounting data, such as a billing component.  The
+service itself is a third party application, separate from the
+middleware distribution. The ARC Usage Reporter is currently capable
+of using the logging service of the SweGrid Accounting System (SGAS),
+but maintaining the possibility to enable utilizing other services
+have been kept in mind during design.
+
+Before the usage data collected from the resource manager is
+submitted, it is transformed into records of job-level granularity. To
+every job corresponds exactly one Grid user, therefore reports over a
+time period (e.g.~an invoice) can be generated per-user, or
+alternatively on a larger scale such as job project or VO level.
 
 \section{Architecture}
   (diagram)
+
+\begin{figure}[ht]
+\centering{{\scalebox{0.9}{\includegraphics{usagereporting.png}}}
+\caption{\label{fig:myfigure1}Components participating in accounting.} }
+\end{figure}
+
 
   A-REX
   logger
