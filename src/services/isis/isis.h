@@ -19,6 +19,8 @@ namespace ISIS {
             std::string serviceid_;
             std::string endpoint_;
             std::string expiration_;
+            Arc::Period valid;
+            Arc::Period remove;
 
             Arc::XmlDatabase *db_;
             Arc::NS ns_;

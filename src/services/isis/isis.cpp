@@ -94,7 +94,88 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
     return;
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL) {
+struct Soft_State {
+   std::string function;
+   int sleep;
+   std::string query;
+   Arc::XmlDatabase* database;
+};
+
+
+static void soft_state_thread(void *data) {
+    Soft_State *self = (Soft_State *)data;
+    std::string method = self->function;
+    unsigned int sleep_time = self->sleep; //seconds
+    std::string query_string = self->query;
+    Arc::XmlDatabase* db_ = self->database;
+
+    thread_logger.msg(Arc::DEBUG, "%s Soft State thread start.", method);
+
+    while (true){
+        thread_logger.msg(Arc::DEBUG, "%s thread waiting %d seconds for the next database cleaning.", method, sleep_time);
+        sleep(sleep_time);
+
+        // Database cleaning
+        std::vector<std::string> service_ids;
+
+        // Query from the database
+        std::map<std::string, Arc::XMLNodeList> result;
+        db_->queryAll(query_string, result);
+        std::map<std::string, Arc::XMLNodeList>::iterator it;
+        // DEBUGING // thread_logger.msg(Arc::DEBUG, "Result.size(): %d", result.size());
+        for (it = result.begin(); it != result.end(); it++) {
+            if (it->second.size() == 0 || it->first == "" ) {
+                continue;
+            }
+
+            // If add better XPath for ETValid, then this block can be remove
+            if ( method == "ETValid" ){
+               Arc::XMLNode data;
+               //db_->get(ServiceID, RegistrationEntry);
+               db_->get(it->first, data);
+               { //DEBUGING
+                 /*std::string data_s;
+                 data.GetXML(data_s, true);
+                 thread_logger.msg(Arc::DEBUG, "Data: %s", data_s);*/
+               }
+               Arc::Time gentime( (std::string)data["MetaSrcAdv"]["GenTime"]);
+               Arc::Period expiration((std::string)data["MetaSrcAdv"]["Expiration"]);
+
+               time_t rawtime;
+               time ( &rawtime );    //current time
+               tm * ptm;
+               ptm = gmtime ( &rawtime );
+
+               std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+               std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+               std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+               std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+               std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+               std::stringstream out;
+               out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+               Arc::Time current_time(out.str());
+
+               if ( (gentime.GetTime() + 2* expiration.GetPeriod()) > current_time.GetTime() )   // Now the information is not expired
+                   continue;
+
+            }
+            // end of the block
+
+            // DEBUGING // thread_logger.msg(Arc::DEBUG, "ServiceID: %s", it->first);
+            service_ids.push_back(it->first);
+        }
+
+        // Remove all old datas
+        // DEBUGING // thread_logger.msg(Arc::DEBUG, "service_ids.size(): %d", service_ids.size());
+        std::vector<std::string>::iterator id_it;
+        for (id_it = service_ids.begin(); id_it != service_ids.end(); id_it++) {
+            db_->del(*id_it);
+        }
+
+    }
+}
+
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D") {
         serviceid_=(std::string)((*cfg)["serviceid"]);
         endpoint_=(std::string)((*cfg)["endpoint"]);
         expiration_=(std::string)((*cfg)["expiration"]);
@@ -103,6 +184,32 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
         log_stream = new Arc::LogStream(log_destination);
         thread_logger.addDestination(*log_stream);
         logger_.addDestination(*log_stream);
+
+        if ((bool)(*cfg)["ETValid"]) {
+            if (!((std::string)(*cfg)["ETValid"]).empty()) {
+                Arc::Period validp((std::string)(*cfg)["ETValid"]);
+                if(validp.GetPeriod() <= 0) {
+                    logger_.msg(Arc::ERROR, "Configuration error. ETValid: \"%s\" is not a valid value. Default value will be used.",(std::string)(*cfg)["ETValid"]);
+                } else {
+                    valid.SetPeriod( validp.GetPeriod() );
+                }
+            } else logger_.msg(Arc::ERROR, "Configuration error. ETValid is empty. Default value will be used.");
+        } else logger_.msg(Arc::DEBUG, "ETValid: Default value will be used.");
+
+        logger_.msg(Arc::DEBUG, "ETValid: %d seconds", valid.GetPeriod());
+
+        if ((bool)(*cfg)["ETRemove"]) {
+            if (!((std::string)(*cfg)["ETRemove"]).empty()) {
+                Arc::Period removep((std::string)(*cfg)["ETRemove"]);
+                if(removep.GetPeriod() <= 0) {
+                    logger_.msg(Arc::ERROR, "Configuration error. ETRemove: \"%s\" is not a valid value. Default value will be used.",(std::string)(*cfg)["ETRemove"]);
+                } else {
+                    remove.SetPeriod( removep.GetPeriod() );
+                }
+            } else logger_.msg(Arc::ERROR, "Configuration error. ETRemove is empty. Default value will be used.");
+        } else logger_.msg(Arc::DEBUG, "ETRemove: Default value will be used.");
+
+        logger_.msg(Arc::DEBUG, "ETRemove: %d seconds", remove.GetPeriod());
 
         ns_["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
 
@@ -122,6 +229,72 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
             isisdesc.url = (std::string)(*cfg)["EndpointURL"][i++];
             neighbors_.push_back(isisdesc);
         }
+
+        // Create Soft-State database threads
+        int thread_sleep(((int)valid.GetPeriod())/2);
+        if ((int)remove.GetPeriod() < (int)valid.GetPeriod())
+           thread_sleep = ((int)remove.GetPeriod())/2;
+
+        // Valid thread creation
+        Soft_State* valid_data;
+        valid_data = new Soft_State();
+        valid_data->function = "ETValid";
+        valid_data->sleep = thread_sleep;
+
+        time_t rawtime;
+        time ( &rawtime );    //current time
+
+        time_t valid_time(rawtime - (int)valid.GetPeriod());
+        tm * pvtm;
+        pvtm = gmtime ( &rawtime );
+
+        std::string mon_prefix = (pvtm->tm_mon+1 < 10)?"0":"";
+        std::string day_prefix = (pvtm->tm_mday < 10)?"0":"";
+        std::string hour_prefix = (pvtm->tm_hour < 10)?"0":"";
+        std::string min_prefix = (pvtm->tm_min < 10)?"0":"";
+        std::string sec_prefix = (pvtm->tm_sec < 10)?"0":"";
+        std::stringstream vout;
+        vout << pvtm->tm_year+1900<<mon_prefix<<pvtm->tm_mon+1<<day_prefix<<pvtm->tm_mday<<"."<<hour_prefix<<pvtm->tm_hour<<min_prefix<<pvtm->tm_min<<sec_prefix<<pvtm->tm_sec;
+
+        // Current this is the Query
+        //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('20090420.082903')]/ServiceID"
+
+        // This Query is better, but it is not working now
+        //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and ( (years-from-duration(Expiration)*1000) +(months-from-duration(Expiration)*10) + (days-from-duration(Expiration)) + (hours-from-duration(Expiration)*0.01) + (minutes-from-duration(Expiration)*0.0001) + (seconds-from-duration(Expiration)*0.000001) + number(translate(GenTime,'TZ:-','.'))) < number('20090420.132903')]/ServiceID"
+        std::string valid_query("//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('");
+        valid_query += vout.str();
+        valid_query += "')]/ServiceID";
+
+        valid_data->query = valid_query;
+        valid_data->database = db_;
+        Arc::CreateThreadFunction(&soft_state_thread, valid_data);
+
+
+        // Remove thread creation
+        Soft_State* remove_data;
+        remove_data = new Soft_State();
+        remove_data->function = "ETRemove";
+        remove_data->sleep = thread_sleep;
+
+        time_t remove_time(rawtime - (int)remove.GetPeriod());
+        tm * prtm;
+        prtm = gmtime ( &rawtime );
+
+        mon_prefix = (prtm->tm_mon+1 < 10)?"0":"";
+        day_prefix = (prtm->tm_mday < 10)?"0":"";
+        hour_prefix = (prtm->tm_hour < 10)?"0":"";
+        min_prefix = (prtm->tm_min < 10)?"0":"";
+        sec_prefix = (prtm->tm_sec < 10)?"0":"";
+        std::stringstream rout;
+        rout << prtm->tm_year+1900<<mon_prefix<<prtm->tm_mon+1<<day_prefix<<prtm->tm_mday<<"."<<hour_prefix<<prtm->tm_hour<<min_prefix<<prtm->tm_min<<sec_prefix<<prtm->tm_sec;
+        std::string remove_query("/RegEntry/MetaSrcAdv[count(Expiration)=0 and number(translate(GenTime,'TZ:-','.')) < number('");
+        remove_query += rout.str();
+        remove_query += "')]/ServiceID";
+
+        remove_data->query = remove_query;
+        remove_data->database = db_;
+        Arc::CreateThreadFunction(&soft_state_thread, remove_data);
+
     }
 
     ISIService::~ISIService(void){
@@ -215,7 +388,7 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
             db_->get((std::string) regentry_["MetaSrcAdv"]["ServiceID"], db_regentry);
 
             Arc::Time new_gentime((std::string) regentry_["MetaSrcAdv"]["GenTime"]);
-            if ( !bool(db_regentry) || 
+            if ( !bool(db_regentry) ||
                 ( bool(db_regentry) && Arc::Time((std::string)db_regentry["MetaSrcAdv"]["GenTime"]) < new_gentime ) ) {
                Arc::XMLNode regentry_xml;
                regentry_.New(regentry_xml);
@@ -271,8 +444,6 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
                new_data["MetaSrcAdv"].NewChild("GenTime") = (std::string)request["MessageGenerationTime"];
                db_->put(service_id, new_data);
             }
-            //TODO: create soft state datebase cleaning thread.
-            //db_->del(service_id);
             i++;
         }
         logger_.msg(Arc::DEBUG, "RemoveRegistrations: MGenTime=%s", (std::string)request["MessageGenerationTime"]);
