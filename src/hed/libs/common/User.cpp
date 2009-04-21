@@ -24,6 +24,8 @@
 
 namespace Arc {
 
+static Glib::Mutex suid_lock;
+
 #ifndef WIN32
   static uid_t get_user_id(void) {
     uid_t user_id = getuid();
@@ -236,6 +238,46 @@ namespace Arc {
   int User::check_file_access(const std::string& path, int flags) {
     // XXX NOP
     return 0;
+  }
+#endif
+
+#ifndef WIN32
+  UserSwitch::UserSwitch(int uid,int gid):valid(false) {
+    suid_lock.lock();
+    old_gid = getegid();
+    old_uid = geteuid();
+    if(gid) {
+      if(old_gid != gid) {
+        if(setegid(gid) == -1) {
+          suid_lock.unlock();
+          return;
+        };
+      };
+    };
+    if(uid) {
+      if(old_uid != uid) {
+        if(seteuid(uid) == -1) {
+          if(old_gid != gid) setegid(old_gid);
+          suid_lock.unlock();
+          return;
+        };
+      };
+    };
+    valid=true;
+  }
+
+  UserSwitch::~UserSwitch(void) {
+    if(valid) {
+      suid_lock.unlock();
+      if(old_uid != geteuid()) seteuid(old_uid);
+      if(old_gid != getegid()) setegid(old_gid);
+    };
+  }
+#else
+  UserSwitch::UserSwitch(int uid,int gid):valid(false) {
+  }
+
+  UserSwitch::~UserSwitch(void) {
   }
 #endif
 

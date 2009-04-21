@@ -11,13 +11,11 @@
 
 namespace Arc {
 
-  static Logger threadLogger(Logger::getRootLogger(), "Thread");
-
   class ThreadInitializer {
   public:
     ThreadInitializer(void) {
       Glib::init();
-      threadLogger.msg(INFO, "Initialize thread system");
+      //threadLogger.msg(INFO, "Initialize thread system");
       if (!Glib::thread_supported())
         Glib::thread_init();
     }
@@ -45,8 +43,11 @@ namespace Arc {
   // mutexes, semaphors, etc.
   static ThreadInitializer thread_initializer;
 
+  static Logger threadLogger(Logger::getRootLogger(), "Thread");
+
   bool CreateThreadFunction(void (*func)(void*), void *arg) {
     ThreadArgument *argument = new ThreadArgument(func, arg);
+    /* ThreadLock.lock(); */
     try {
       // TODO. Who is going to destroy created object? Check for memory leaks.
       Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),
@@ -55,9 +56,10 @@ namespace Arc {
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
       delete argument;
+      /* ThreadLock.unlock(); */
       return false;
-    }
-    ;
+    };
+    /* ThreadLock.unlock(); */
     return true;
   }
 

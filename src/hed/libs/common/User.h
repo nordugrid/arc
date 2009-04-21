@@ -43,6 +43,35 @@ namespace Arc {
     bool RunAs(std::string cmd);
   }; // class User
 
+  // For quick switching of user id.
+  /** If this class is created user identity is switched to provided
+     uid and gid. Due to internal lock there will be only one valid
+     instance of this class. Any attempt to create another instance 
+     will block till first one is destroyed.
+      If uid and gid are set to 0 then user identity is not switched.
+     But lock is applied anyway.
+      The lock has dual purpose. First and most important is to 
+     protect communication with underlying operating system which may
+     depend on user identity. For that it is advisable for code which
+     talks to operating system to acquire valid instance of this class.
+     Care must be taken for not to hold that instance too long cause
+     that may block other code in multithreaded envoronment. 
+      Other purpose of this lock is to provide workaround for glibc bug
+     in __nptl_setxid. That bug causes lockup of seteuid() function
+     if racing with fork. To avoid this problem the lock mentioned above
+     is used by Run class while spawning new process. */
+  class UserSwitch {
+  private:
+    int old_uid;
+    int old_gid;
+    bool valid;
+  public:
+    UserSwitch(int uid,int gid);
+    ~UserSwitch(void);
+    operator bool(void) { return valid; };
+  }; // class UserSwitch
+
+
 } // namespace Arc
 
 #endif

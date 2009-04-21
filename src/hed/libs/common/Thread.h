@@ -26,9 +26,11 @@ namespace Arc {
 #define CreateThreadClass(instance, method) \
   { \
     Glib::Thread *thr = NULL; \
+    /* ThreadLock.lock(); */ \
     try { \
       thr = Glib::Thread::create(sigc::mem_fun((instance), &method), false); \
     } catch (std::exception& e) {}; \
+    /* ThreadLock.unlock(); */ \
     (thr != NULL); \
   } \
 

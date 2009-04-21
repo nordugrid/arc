@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include "User.h"
 #include "Run.h"
 
 
@@ -254,6 +255,7 @@ namespace Arc {
     RunPump& pump = RunPump::Instance();
     RunInitializerArgument *arg = NULL;
     try {
+      UserSwitch usw(0,0);
       running_ = true;
       if (initializer_func_) {
         arg = new RunInitializerArgument(initializer_func_, initializer_arg_);
@@ -281,8 +283,7 @@ namespace Arc {
     } catch (std::exception& e) {
       running_ = false;
       return false;
-    }
-    ;
+    };
     pump.Add(this);
     if (arg)
       delete arg;
