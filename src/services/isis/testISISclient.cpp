@@ -17,6 +17,9 @@
     If there is such an option defined the GetISISList operation will be skipped even if there is also
     a BootstrapISIS defined.
 
+    If -n or --neighbors options are used without any parameters, then the neighbors of the ISIS or the
+    BootstrapISIS will be also shown.
+
     Usage:
         testISISclient -m Query "query string"
         testISISclient -m Register "ServiceID1,EPR1" "ServiceID2,EPR2,Type" "ServiceID3,EPR3,Type,ExpTime"
@@ -488,10 +491,15 @@ int main(int argc, char** argv) {
     std::string debug;
       options.AddOption('d', "debug",
                 istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
-                istring("debuglevel"), debug); 
+                istring("debuglevel"), debug);
+
+    bool neighbors;
+      options.AddOption('n', "neighbors",
+                istring("get neighbors list from the BootstrapISIS"),
+                neighbors);
 
     std::list<std::string> parameters = options.Parse(argc, argv);
-      if (parameters.empty()) {
+      if (!method.empty() && parameters.empty()) {
          std::cout << "Use --help option for detailed usage information" << std::endl;
          return 1;
       }
@@ -504,14 +512,20 @@ int main(int argc, char** argv) {
 
     std::string contactISIS_address_ = "";
 
-    if (isis_url.empty()) {
+    if (isis_url.empty() || neighbors) {
         Arc::URL BootstrapISIS(infosys_url);
 
         // Get the a list of known ISIS's and choose one from them randomly
         std::vector<std::string> neighbors_ = GetISISList( BootstrapISIS );
 
         std::srand(time(NULL));
-        contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
+        if (neighbors) {
+            for (std::vector<std::string>::const_iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
+                std::cout << "Neighbor: " << (*it) << std::endl;
+            }
+        }
+        if (isis_url.empty()) contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
+        else contactISIS_address_ = isis_url;
         std::cout << "The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
     } else {
         contactISIS_address_ = isis_url;
@@ -519,7 +533,7 @@ int main(int argc, char** argv) {
     Arc::URL ContactISIS(contactISIS_address_);
     // end of getISISList
 
-    std::cout << " [ The selected method:  " << method << " ] " << std::endl;
+    if (!method.empty()) { std::cout << " [ The selected method:  " << method << " ] " << std::endl; }
     std::string response = "";
     //The method is Query
     if (method == "Query"){
@@ -599,7 +613,7 @@ int main(int argc, char** argv) {
        }
     }
     else {
-       std::cout << " [ Wrong method! ] " << std::endl;
+       std::cout << " [ Method is missing! ] " << std::endl;
        return 0;
     }
 
