@@ -526,8 +526,9 @@ namespace Arc {
     if (!urloptions.empty())
       urlstr += ';' + OptionString(urloptions, ';');
 
-    if (path[0] != '/')
-      urlstr += '/';
+    if ( (!urlstr.empty()) || (!path.empty()) )
+      if (path[0] != '/')
+        urlstr += '/';
 
     if (!path.empty())
       urlstr += path;
@@ -581,8 +582,9 @@ namespace Arc {
     if (port != -1)
       urlstr += ':' + tostring(port);
 
-    if (path[0] != '/')
-      urlstr += '/';
+    if ( (!urlstr.empty()) || (!path.empty()) )
+      if (path[0] != '/')
+        urlstr += '/';
 
     if (!path.empty())
       urlstr += path;
