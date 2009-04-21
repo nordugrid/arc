@@ -30,9 +30,6 @@ class ARexService: public Arc::RegisteredService {
   std::string long_description_;
   std::string lrms_name_;
   std::string os_name_;
-  std::string key_path_;
-  std::string certificate_path_;
-  std::string ca_certificates_dir_;
   std::map<std::string,std::string> glue_states_;
   GridManager* gm_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
