@@ -231,15 +231,11 @@ static void soft_state_thread(void *data) {
         }
 
         // Create Soft-State database threads
-        int thread_sleep(((int)valid.GetPeriod())/2);
-        if ((int)remove.GetPeriod() < (int)valid.GetPeriod())
-           thread_sleep = ((int)remove.GetPeriod())/2;
-
         // Valid thread creation
         Soft_State* valid_data;
         valid_data = new Soft_State();
         valid_data->function = "ETValid";
-        valid_data->sleep = thread_sleep;
+        valid_data->sleep = ((int)valid.GetPeriod())/2;
 
         time_t rawtime;
         time ( &rawtime );    //current time
@@ -274,7 +270,7 @@ static void soft_state_thread(void *data) {
         Soft_State* remove_data;
         remove_data = new Soft_State();
         remove_data->function = "ETRemove";
-        remove_data->sleep = thread_sleep;
+        remove_data->sleep = ((int)remove.GetPeriod())/2;
 
         time_t remove_time(rawtime - (int)remove.GetPeriod());
         tm * prtm;
