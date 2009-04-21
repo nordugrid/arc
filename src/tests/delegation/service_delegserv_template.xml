@@ -9,7 +9,7 @@
 >
     <Server>
       <Pidfile>/var/run/arched.pid</Pidfile>
-      <Logger level="INFO">./arched.log</Logger>
+      <Logger level="ERROR">./arched.log</Logger>
     </Server>
 
     <ModuleManager>
@@ -38,8 +38,7 @@
 	    <tls:KeyPath>../echo/testkey-nopass.pem</tls:KeyPath>
 	    <tls:CertificatePath>../echo/testcert.pem</tls:CertificatePath>
 	    <tls:CACertificatesDir>../echo/certificates</tls:CACertificatesDir>
-            <!--delegation.collector must be inside tls MCC-->
-            <!--SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler-->
+            <tls:CACertificatePath>../echo/testcacert.pem</tls:CACertificatePath>
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -53,16 +52,10 @@
         </Plexer>
         <Service name="delegation.service" id="delegation">
             <next id="delegation"/>
+            <deleg:CACertificatesDir>../echo/certificates</deleg:CACertificatesDir>
+            <deleg:CACertificatePath>../echo/testcacert.pem</deleg:CACertificatePath>
         </Service>
         <Service name="echo" id="echo">
-            <SecHandler name='delegation.handler' id='delegation' event='incoming'>
-              <deleg:Type>x509</deleg:Type>
-              <deleg:Role>service</deleg:Role>
-              <deleg:DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</deleg:DelegationServiceEndpoint>
-              <deleg:KeyPath>../echo/testkey-nopass.pem</deleg:KeyPath>
-              <deleg:CertificatePath>../echo/testcert.pem</deleg:CertificatePath>
-              <deleg:CACertificatesDir>../echo/certificates</deleg:CACertificatesDir>
-            </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
 	    <echo:suffix> ]</echo:suffix>
