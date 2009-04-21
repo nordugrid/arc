@@ -75,13 +75,6 @@ struct Registrar_data {
         Arc::NS query_ns;
         query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
 
-        // Set up default values if necessary
-        if ( myISISList.size() == 0) {
-            myISIS = defaultBootstrapISIS;
-            originalISISCount = 1;
-            myISISList.push_back(myISIS);
-        }
-
         // Try to get ISIS.getISISList()
         PayloadSOAP request(query_ns);
         request.NewChild("GetISISList");
@@ -149,7 +142,13 @@ struct Registrar_data {
         if (myISISList.size() == 0) {
             if ( myISIS.url == defaultBootstrapISIS.url ) {
                 logger_.msg(WARNING, "There is no more ISIS available. The list of ISIS's is already empty.");
-                // If there is no available 
+
+                // Set up default values for the further tries
+                myISIS = defaultBootstrapISIS;
+                originalISISCount = 1;
+                myISISList.push_back(myISIS);
+
+                // If there is no available, return an empty ISIS
                 ISIS_description temporary_ISIS;
                 temporary_ISIS.url = "";
                 return temporary_ISIS;

@@ -177,7 +177,7 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
 
 bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     if ( bool(cfg["NoRegister"]) || !bool(cfg["InfoRegister"])){
-       logger_.msg(DEBUG, "The service can not be registred.");
+       logger_.msg(DEBUG, "The service won't be registered.");
        return true;
     }
 
@@ -314,9 +314,11 @@ class CondExit {
 void InfoRegistrar::registration(void) {
     Glib::Mutex::Lock lock(lock_);
     CondExit cond(cond_exited_);
-    ISIS_description usedISIS = getISIS();
-    std::string isis_name = usedISIS.url;
+    ISIS_description usedISIS;
+    std::string isis_name;
     while(reg_.size() > 0) {
+        usedISIS = getISIS();
+        isis_name = usedISIS.url;
 
         logger_.msg(DEBUG, "Registration starts: %s",isis_name);
         logger_.msg(DEBUG, "reg_.size(): %d",reg_.size());
