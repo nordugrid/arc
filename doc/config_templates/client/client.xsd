@@ -1,8 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<xsd:annotation>
-<xsd:documentation>
-Client configuration schema does not yet exist.
-</xsd:documentation>
-</xsd:annotation>
+  <xsd:element name="ArcConfig">
+    <xsd:annotation><xsd:documentation>Preliminary XML schema for a client user configuration file</xsd:documentation></xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Alias" minOccurs="0" maxOccurs="unbounded">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="Alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xsd:element name="URL" type="ARCURL" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute name="name" type="xsd:string" use="required"/>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="DefaultServices" minOccurs="0" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="URL" type="ARCURL" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="BartenderURL" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="Broker" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="CACertificatePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="CertLifetime" type="xsd:duration" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="Debug" minOccurs="0" maxOccurs="1">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:enumeration value="DEBUG"/>
+              <xsd:enumeration value="VERBOSE"/>
+              <xsd:enumeration value="INFO"/>
+              <xsd:enumeration value="FATAL"/>
+              <xsd:enumeration value="ERROR"/>
+              <xsd:enumeration value="WARNING"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="DownloadDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="IdPname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="JobListFile" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="Keep" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="Keypass" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="KeyPath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="Keysize" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="Password" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="SLCSURL" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="StoreDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="TimeOut" type="xsd:duration" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="UserName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="VOMSServerPath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:simpleType name="FlavourEnum">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ARC0"/>
+      <xsd:enumeration value="ARC1"/>
+      <xsd:enumeration value="CREAM"/>
+      <xsd:enumeration value="UNICORE"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ServiceTypeEnum">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="index"/>
+      <xsd:enumeration value="computing"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="ARCURL">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:anyURI">
+        <xsd:attribute name="Flavour" type="FlavourEnum" use="required"/>
+        <xsd:attribute name="ServiceType" type="ServiceTypeEnum" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
 </xsd:schema>
