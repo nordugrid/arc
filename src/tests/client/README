@@ -1,0 +1,7 @@
+This directory includes the example codes about how to use the 
+client interfaces for developing the clients, including:
+1. General WS client;
+2. WS client with SAMLSSO2 profile;
+3. Delegation client for using delegation client interface: 
+    to ARC delegation service; to gridSite delegation service;
+
