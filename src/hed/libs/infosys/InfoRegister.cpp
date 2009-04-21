@@ -39,7 +39,7 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     // parse config
     std::string s_reg_period = (std::string)cfg["InfoRegister"].Attribute("period");
     if (!s_reg_period.empty()) {
-        Period p(s_reg_period); 
+        Period p(s_reg_period);
         reg_period_ = p.GetPeriod();
     } else {
         reg_period_ = -1;
@@ -52,7 +52,7 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     temp.GetDoc(configuration_string, true);
     logger_.msg(DEBUG, "InfoRegister created with config:\n%s", configuration_string);
 
-    // Add service to registration list. Optionally only for 
+    // Add service to registration list. Optionally only for
     // registration through specific registrants.
     std::list<std::string> ids;
     for(XMLNode r = cfg["InfoRegister"]["Registrar"];(bool)r;++r) {
@@ -158,7 +158,7 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
         if (!((std::string)cfg["Retry"]).empty()) {
             if(EOF == sscanf(((std::string)cfg["Retry"]).c_str(), "%d", &retry) || retry < 0)
             {
-                logger_.msg(ERROR, "Configuration error. Retry: \"%s\" is not a valid value. Default value will be used.");
+                logger_.msg(ERROR, "Configuration error. Retry: \"%s\" is not a valid value. Default value will be used.",(std::string)cfg["Retry"]);
                 retry = 5;
             }
         } else retry = 5;
@@ -252,30 +252,39 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             mcc_cfg.AddCADir(usedISIS.cadir);
 
             ClientSOAP cli(mcc_cfg,usedISIS.url);
-            MCC_Status status = cli.process(&request, &response);
 
-            std::string response_string;
-            (*response).GetDoc(response_string, true);
-            logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
+            int retry_ = retry;
+            while ( retry_ >= 1 ){
+                MCC_Status status = cli.process(&request, &response);
 
-            if ((!status.isOk()) ||
-                (!response)) {
-                //(!response) ||
-                //(!bool((*response)["RemoveRegistrationResponse"]))) {
-                logger_.msg(ERROR, "Failed to remove registration from %s ISIS", usedISIS.url);
-                removeISIS(usedISIS);
-            } else {
-                if(!(bool)(*response)["RemoveRegistrationResponseElement"])  {
-                    logger_.msg(DEBUG, "Successful removed registration from ISIS (%s)", usedISIS.url);
+                std::string response_string;
+                (*response).GetDoc(response_string, true);
+                logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
+
+                if ((!status.isOk()) ||
+                    (!response)) {
+                    //(!response) ||
+                    //(!bool((*response)["RemoveRegistrationResponse"]))) {
+                    logger_.msg(ERROR, "Failed to remove registration from %s ISIS )", usedISIS.url);
                 } else {
-                    int i=0;
-                    while ((bool)(*response)["RemoveRegistrationResponseElement"][i]) {
-                        logger_.msg(DEBUG, "Failed to remove registration from ISIS (%s) - %s",
-                            usedISIS.url, std::string((*response)["RemoveRegistrationResponseElement"][i]["Fault"]));
-                        i++;
+                    if(!(bool)(*response)["RemoveRegistrationResponseElement"])  {
+                        logger_.msg(DEBUG, "Successful removed registration from ISIS (%s)", usedISIS.url);
+                        break;
+                    } else {
+                        int i=0;
+                        while ((bool)(*response)["RemoveRegistrationResponseElement"][i]) {
+                            logger_.msg(DEBUG, "Failed to remove registration from ISIS (%s) - %s",
+                                    usedISIS.url, std::string((*response)["RemoveRegistrationResponseElement"][i]["Fault"]));
+                            i++;
+                        }
                     }
                 }
+                retry_--;
+                logger_.msg(DEBUG, "Retry connecting to the ISIS (%s) %d. time(s).", usedISIS.url, retry-retry_);
             }
+
+            if (retry_ == 0 )
+               removeISIS(usedISIS);
 
             reg_.erase(r);
 
@@ -313,7 +322,7 @@ void InfoRegistrar::registration(void) {
         logger_.msg(DEBUG, "reg_.size(): %d",reg_.size());
 
         if(usedISIS.url.empty()) {
-            logger_.msg(WARNING, "Registrant has no proper URL specified");
+            logger_.msg(WARNING, "Registrant has no proper URL specified. Registration end.");
             return;
         }
         NS reg_ns;
@@ -444,27 +453,36 @@ void InfoRegistrar::registration(void) {
             //logger_.msg(DEBUG, "Call the ISIS.process method.");
 
             ClientSOAP cli(mcc_cfg,usedISIS.url);
-            MCC_Status status = cli.process(&request, &response);
 
-            // TODO multiple tries
-            if ((!status.isOk()) ||
-                (!response) ||
-                (!bool((*response)["RegisterResponse"]))) {
-                logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
-                removeISIS(usedISIS);
-            } else {
-                XMLNode fault = (*response)["Fault"];
+            int retry_ = retry;
+            while ( retry_ >= 1 ) {
+                MCC_Status status = cli.process(&request, &response);
 
-                if(!fault)  {
-                    std::string response_string;
-                    (*response)["RegisterResponse"].GetDoc(response_string, true);
-                    logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
-
-                    logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name);
+                // multiple tries
+                if ((!status.isOk()) ||
+                    (!response) ||
+                    (!bool((*response)["RegisterResponse"]))) {
+                    logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
                 } else {
-                    logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"]));
+                    XMLNode fault = (*response)["Fault"];
+
+                    if(!fault)  {
+                        std::string response_string;
+                        (*response)["RegisterResponse"].GetDoc(response_string, true);
+                        logger_.msg(DEBUG, "Response from the ISIS: %s", response_string);
+
+                        logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name);
+                        break;
+                    } else {
+                        logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"]));
+                    }
                 }
+                retry_--;
+                logger_.msg(DEBUG, "Retry connecting to the ISIS (%s) %d. time(s).", isis_name, retry-retry_);
             }
+
+            if ( retry_ == 0 )
+                removeISIS(usedISIS);
         } // end of the connection with the ISIS
 
         // Thread sleeping
@@ -472,12 +490,13 @@ void InfoRegistrar::registration(void) {
 
         logger_.msg(DEBUG, "Registration ends: %s",isis_name);
         logger_.msg(DEBUG, "Waiting period is %d second(s).",period_);
-        if(period_ <= 0) break; // One time registration
+        // The next line is removed for infinite operation
+        // if(period_ <= 0) break; // One time registration
         Glib::TimeVal etime;
         etime.assign_current_time();
         etime.add_milliseconds(period_*1000L);
         // Sleep and exit if interrupted by request to exit
-        if(cond_exit_.timed_wait(lock_,etime)) break; 
+        if(cond_exit_.timed_wait(lock_,etime)) break;
         //sleep(period_);
     }
     logger_.msg(DEBUG, "Registration exit: %s",isis_name);

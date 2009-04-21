@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <algorithm>
 
+#include <arc/loader/Loader.h>
+#include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/message/PayloadSOAP.h>
@@ -19,6 +21,11 @@
 static Arc::Logger logger_(Arc::Logger::rootLogger, "InfoSys");
 
 namespace Arc {
+
+struct Registrar_data {
+   ISIS_description isis;
+   InfoRegistrar *registrar;
+};
 
     void InfoRegistrar::initISIS(XMLNode cfg) {
         logger_.msg(DEBUG, "Initialize ISIS handler");
@@ -39,8 +46,8 @@ namespace Arc {
         originalISISCount = 1;
         myISISList.push_back(myISIS);
 
-        // Fill the myISISList with the neighbors list and draw myISIS
         getISISList(myISIS);
+        logger_.msg(DEBUG, "Initialize ISIS handler successed");
     }
 
     void InfoRegistrar::removeISIS(ISIS_description isis) {
@@ -70,6 +77,14 @@ namespace Arc {
         Arc::NS query_ns;
         query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
 
+        // Set up default values if necessary
+        if ( myISISList.size() == 0) {
+            myISIS = defaultBootstrapISIS;
+            originalISISCount = 1;
+            myISISList.push_back(myISIS);
+        }
+
+        // Try to get ISIS.getISISList()
         PayloadSOAP request(query_ns);
         request.NewChild("GetISISList");
 
@@ -82,10 +97,23 @@ namespace Arc {
         mcc_cfg.AddCADir(isis.cadir);
 
         ClientSOAP cli(mcc_cfg,isis.url);
-        MCC_Status status = cli.process(&request, &response);
+        int retry_ = retry;
+        int reconnection = 0;
+        while ( retry_ >= 1 ) {
+            MCC_Status status = cli.process(&request, &response);
+            retry_--;
+            reconnection++;
+            // If the given ISIS wasn't available try reconnect
+            if (!status.isOk() || !response || !bool((*response)["GetISISListResponse"])) {
+                logger_.msg(DEBUG, "ISIS (%s) is not avaliable or not valid response. (%d. reconnection)", isis.url, reconnection);
+            } else {
+                logger_.msg(DEBUG, "Connection to the ISIS (%s) is success and get the list of ISIS.", isis.url);
+                break;
+            }
+        }
 
         // If the given ISIS wasn't available remove it and return
-        if (!status.isOk() || !response || !bool((*response)["GetISISListResponse"])) {
+        if ( retry_ == 0 ) {
             removeISIS(isis);
             return;
         }
@@ -101,6 +129,7 @@ namespace Arc {
                 ISIS_description new_ISIS;
                 new_ISIS.url = (std::string)(*response)["GetISISListResponse"]["EPR"][i];
                 myISISList.push_back(new_ISIS);
+                logger_.msg(DEBUG, "GetISISList add this (%s) ISIS into the list.", new_ISIS.url);
             }
             i++;
         }

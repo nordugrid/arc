@@ -128,6 +128,8 @@ class InfoRegistrar {
         /// Removes service from list of handled services.
         bool removeService(InfoRegister*);
         const std::string& id(void) { return id_; };
+
+
 };
 
 /// Singleton class for scanning configuration and storing
