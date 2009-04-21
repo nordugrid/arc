@@ -303,7 +303,12 @@ if [ ! "$?" = '0' ] ; then
   sleep 60
   exit 1
 fi
-pids=`cat "$pidslist" | sed -n 's/^\([0-9][0-9]*\)\..*/\1/p'`
+
+exclude_completed () {
+  awk '$10!="C"{print $0}'
+}
+
+pids=`cat "$pidslist" | grep '^[0-9][0-9]*\.' | exclude_completed | sed 's/^\([0-9][0-9]*\).*/\1/'`
 rm -f "$pidslist"
 # Go through directories
 for ctr_dir in "$@" ; do

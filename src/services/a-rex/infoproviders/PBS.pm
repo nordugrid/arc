@@ -454,9 +454,9 @@ sub jobs_info ($$@) {
 	    if($k eq "job_state") {
 	    	if( $v eq "U" ) {
 		  $lrms_jobs{$jid}{status} = "S";
-		}
-		if ( $v ne "R" and $v ne "Q" and $v ne "U" and $v ne "S" and 
-		     $v ne "E" ) {
+		} elsif ( $v eq "C" ) {
+		  $lrms_jobs{$jid}{status} = ""; # No status means job has completed
+		} elsif ( $v ne "R" and $v ne "Q" and $v ne "S" and $v ne "E" ) {
 		  $lrms_jobs{$jid}{status} = "O";
 		}
 	    }
@@ -486,6 +486,8 @@ sub jobs_info ($$@) {
 	}
 	if ( $k eq 'job_state' ) {
 	    if ($v eq 'R') {
+		$lrms_jobs{$jid}{rank} = "";
+	    } elsif ($v eq 'C') {
 		$lrms_jobs{$jid}{rank} = "";
 	    } else {
 		$rank++;
