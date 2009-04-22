@@ -161,8 +161,7 @@ ARC API docmentation
 
 %build
 %configure --disable-static %{?disable_java:--disable-java}
-make %{?_smp_mflags}
-
+make all doc %{?_smp_mflags}
 make check
 
 %install
