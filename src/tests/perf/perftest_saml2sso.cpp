@@ -20,6 +20,8 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ClientSAML2SSO.h>
 
+#include <arc/xmlsec/XmlSecUtils.h>
+
 // Some global shared variables...
 Glib::Mutex* mutex;
 bool run;
@@ -70,7 +72,7 @@ void sendRequests(){
     client = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url);
 
     connected=true;
-    while(run and connected){
+    //while(run and connected){
       // Prepare the request.
       Arc::PayloadSOAP req(echo_ns);
       req.NewChild("echo").NewChild("say")="HELLO";
@@ -104,9 +106,9 @@ void sendRequests(){
           std::cout<<"failure2: "<<std::endl;
 
         } else {
-          std::string xml;
-          resp->GetXML(xml);
-          std::cout<<"reponse: "<<xml<<std::endl;
+          //std::string xml;
+          //resp->GetXML(xml);
+          //std::cout<<"reponse: "<<xml<<std::endl;
           if (std::string((*resp)["echoResponse"]["hear"]).size()==0){
             // The response was not what it should be.
             failedRequests++;
@@ -121,7 +123,7 @@ void sendRequests(){
         }
       }
       if(resp) delete resp;
-    }
+    //}
     if(client) delete client;
   }
 
@@ -189,14 +191,18 @@ int main(int argc, char* argv[]){
   numberOfThreads = atoi(argv[5]);
   duration = atoi(argv[6]);
 
+  Arc::init_xmlsec();
+
   // Start threads.
   run=true;
   finishedThreads=0;
   //Glib::thread_init();
   mutex=new Glib::Mutex;
   threads = new Glib::Thread*[numberOfThreads];
-  for (i=0; i<numberOfThreads; i++)
+  for (i=0; i<numberOfThreads; i++) {
     threads[i]=Glib::Thread::create(sigc::ptr_fun(sendRequests),true);
+    //Glib::usleep(1000000);
+  }
 
   // Sleep while the threads are working.
   Glib::usleep(duration*1000000);
@@ -227,6 +233,9 @@ int main(int argc, char* argv[]){
 	    << failedRequests << " ("
 	    << Round(failedRequests*100.0/totalRequests)
 	    << "%)" << std::endl;
+  std::cout << "Completed requests per min: "
+            << Round(((double)completedRequests)/duration*60)
+            << std::endl;
   std::cout << "Average response time for all requests: "
 	    << Round(1000*totalTime.as_double()/totalRequests)
 	    << " ms" << std::endl;
@@ -239,6 +248,8 @@ int main(int argc, char* argv[]){
 	      << Round(1000*failedTime.as_double()/failedRequests)
 	      << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
+
+  Arc::final_xmlsec();
 
   return 0;
 }

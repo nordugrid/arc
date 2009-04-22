@@ -65,7 +65,7 @@ void sendRequests(){
     client = new Arc::ClientSOAP(mcc_cfg,url);
 
     connected=true;
-    while(run and connected){
+    //while(run and connected){
       // Prepare the request.
       Arc::PayloadSOAP req(echo_ns);
       req.NewChild("echo").NewChild("say")="HELLO";
@@ -109,7 +109,7 @@ void sendRequests(){
         }
       }
       if(resp) delete resp;
-    }
+    //}
     if(client) delete client;
   }
 
@@ -209,6 +209,9 @@ int main(int argc, char* argv[]){
 	    << failedRequests << " ("
 	    << Round(failedRequests*100.0/totalRequests)
 	    << "%)" << std::endl;
+  std::cout << "Completed requests per second: "
+            << Round(completedRequests/duration)
+            << std::endl;
   std::cout << "Average response time for all requests: "
 	    << Round(1000*totalTime.as_double()/totalRequests)
 	    << " ms" << std::endl;

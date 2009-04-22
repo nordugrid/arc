@@ -54,6 +54,9 @@ void execCommand() {
 
     pid = fork();
     if(pid == 0) {
+//if(i ==0)
+// Glib::usleep(1000000);
+
       int e = execvp(cmd_str.c_str(), list);
       //If execvp returns, it must have failed.
       std::cout << "[child] error " << e << " errno: " << errno << std::endl;
@@ -64,11 +67,13 @@ void execCommand() {
       exit(1);
     }
     else {
-      int child_status, child_pid;
-      child_pid = wait(&child_status);
+//      int child_status, child_pid;
+//      child_pid = wait(&child_status);
 
       tAfter.assign_current_time();
-
+//if(i ==0)
+// Glib::usleep(1000000);
+#if 0
       if(child_status != 0) {
         std::cout << "ERROR: " << cmd_str << " returns code " << child_status << std::endl;
         Glib::Mutex::Lock lock(*mutex);
@@ -82,6 +87,7 @@ void execCommand() {
         ::completedTime+=tAfter-tBefore;
         finishedProcesses++;
       }
+#endif
     }
   } 
 

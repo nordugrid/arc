@@ -37,7 +37,7 @@ Arc::XMLNode sechanlder_nd("\
     <Role>client</Role>\
     <!--DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</DelegationServiceEndpoint-->\
     <DelegationServiceEndpoint>https://glueball.uio.no:60000/delegation</DelegationServiceEndpoint>\
-    <PeerServiceEndpoint>https://127.0.0.1:60000/echo</PeerServiceEndpoint>\
+    <PeerServiceEndpoint>https://squark.uio.no:60000/echo</PeerServiceEndpoint>\
     <KeyPath>../echo/userkey-nopass.pem</KeyPath>\
     <CertificatePath>../echo/usercert.pem</CertificatePath>\
     <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\
@@ -233,6 +233,9 @@ int main(int argc, char* argv[]){
 	    << failedRequests << " ("
 	    << Round(failedRequests*100.0/totalRequests)
 	    << "%)" << std::endl;
+  std::cout << "Completed requests per min: "
+            << Round(((double)completedRequests)/duration*60)
+            << std::endl;
   std::cout << "Average response time for all requests: "
 	    << Round(1000*totalTime.as_double()/totalRequests)
 	    << " ms" << std::endl;

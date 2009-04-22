@@ -136,6 +136,9 @@ int main(int argc, char* argv[]){
 	    << failedCommands << " ("
 	    << Round(failedCommands*100.0/totalCommands)
 	    << "%)" << std::endl;
+  std::cout << "Completed requests per min: "
+            << Round(((double)completedCommands)/duration*60)
+            << std::endl;
   std::cout << "Average response time for all commands: "
 	    << Round(1000*totalTime.as_double()/totalCommands)
 	    << " ms" << std::endl;
