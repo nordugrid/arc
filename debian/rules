@@ -90,7 +90,7 @@ install-indep:
 	# Add here commands to install the indep part of the package into
 	# debian/<package>-doc.
 	#INSTALLDOC#
-	dh_installdocs -i --sourcedir=debian/tmp --fail-missing
+	dh_installdocs -i --sourcedir=debian/tmp
 
 install-arch:
 	dh_testdir
