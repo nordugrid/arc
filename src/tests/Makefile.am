@@ -1,1 +1,1 @@
-SUBDIRS = echo data xpath policy-delegation delegation translator arcpolicy perf
+SUBDIRS = echo data xpath policy-delegation delegation translator arcpolicy perf client
