@@ -172,15 +172,28 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
   };
 
   int rc;
-  std::string v(value.size(),'\0');
+
+  //We need to remove the "BEGIN RSA PRIVATE KEY" and "END RSA PRIVATE KEY" 
+  //if they exit in the input parameter
+  std::string v;
+  std::size_t pos1, pos2;
+  pos1 = value.find("BEGIN RSA PRIVATE KEY");
+  if(pos1 != std::string::npos) {
+    pos1 = pos1 + 21;
+    pos2 = value.find_first_not_of("-", pos1);
+    v = value.substr(pos2);
+    pos2 = v.find_first_of("-");
+    v.resize(pos2);
+  }
+
   xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
-  xmlSecByte* tmp_str = new xmlSecByte[value.size()];
-  memset(tmp_str,0,value.size());
-  rc = xmlSecBase64Decode((const xmlChar*)(value.c_str()), tmp_str, value.size());
+  xmlSecByte* tmp_str = new xmlSecByte[v.size()];
+  memset(tmp_str,0,v.size());
+  rc = xmlSecBase64Decode((const xmlChar*)(v.c_str()), tmp_str, v.size());
   if (rc < 0) {
     //bad base-64
-    memcpy(tmp_str,value.c_str(),value.size());
-    rc = value.size();
+    memcpy(tmp_str,v.c_str(),v.size());
+    rc = v.size();
   }
   for (int i=0; key_formats[i] && key == NULL; i++) {
     key = xmlSecCryptoAppKeyLoadMemory(tmp_str, rc, key_formats[i], NULL, NULL, NULL);
@@ -251,7 +264,8 @@ xmlSecKey* get_key_from_certstr(const std::string& value) {
   BIO* certbio = NULL;
   std::string cert_value;
   //Here need to compose a complete certificate
-  cert_value.append("-----BEGIN CERTIFICATE-----").append("\n").append(value).append("\n").append("-----END CERTIFICATE-----");
+  cert_value.append("-----BEGIN CERTIFICATE-----").append("\n").append(value).append("\n").append("-----END CERTIFICATE-----"
+);
 
   for (int i=0; key_formats[i] && key == NULL; i++) {
     certbio = BIO_new_mem_buf((void*)(cert_value.c_str()), cert_value.size());
