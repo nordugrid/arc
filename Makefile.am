@@ -26,9 +26,10 @@ DIST_SUBDIRS = src swig java python po doc include debian
 EXTRA_DIST = arc.spec autogen.sh LICENSE
 
 doc:
-ifneq(,$(DOCDIRS))
 	for d in $(DOCDIRS); do \
 		cd $d ; \
 		make
-	fi
-endif
+	done
+
+.PHONY: doc
+
