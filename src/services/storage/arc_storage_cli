@@ -962,7 +962,10 @@ class Client:
             resp, status = s.process(outpayload)
             if not status.isOk():
                 raise Exception, status
+            if resp.IsFault():
+                raise Exception, resp.GetXML()
             resp = resp.GetXML()
+             
             return resp
         except:
             raise socket.error, (-1, "Wrong status from server.\nMaybe wrong URL: '%s%s:%s%s'" %
