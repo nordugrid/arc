@@ -51,6 +51,9 @@ namespace Arc {
     /** gets the period */
     time_t GetPeriod() const;
 
+    /** Returns a string representation of the period in long format. */
+    std::string tolongstring() const;
+
     /** Returns a string representation of the period. */
     operator std::string() const;
 
@@ -146,6 +149,12 @@ namespace Arc {
 
     /** Subtracting Time object from the other Time object. */
     Period operator-(const Time&) const;
+
+    static const int YEAR  = 31536000;
+    static const int MONTH = 2592000;
+    static const int WEEK  = 604800;
+    static const int DAY   = 86400;
+    static const int HOUR  = 3600;
 
   private:
     /** The time stored -- by default it is equal to the current time. */

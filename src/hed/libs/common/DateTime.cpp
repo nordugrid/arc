@@ -402,8 +402,8 @@ namespace Arc {
            << std::setw(2) << tmtime.tm_hour << ':'
            << std::setw(2) << tmtime.tm_min << ':'
            << std::setw(2) << tmtime.tm_sec << (tzoffset < 0 ? '-' : '+')
-           << std::setw(2) << abs(tzoffset) / 3600 << ':'
-           << std::setw(2) << (abs(tzoffset) % 3600) / 60;
+           << std::setw(2) << abs(tzoffset) / Time::HOUR << ':'
+           << std::setw(2) << (abs(tzoffset) % Time::HOUR) / 60;
 
         return ss.str();
       }
@@ -562,21 +562,21 @@ namespace Arc {
           pos = pos2;
           switch (period[pos]) {
           case 'Y':
-            seconds += num * (365 * 24 * 60 * 60);
+            seconds += num * Time::YEAR;
             break;
 
           case 'W':
-            seconds += num * (7 * 24 * 60 * 60);
+            seconds += num * Time::WEEK;
             min = true;
             break;
 
           case 'D':
-            seconds += num * (24 * 60 * 60);
+            seconds += num * Time::DAY;
             min = true;
             break;
 
           case 'H':
-            seconds += num * (60 * 60);
+            seconds += num * Time::HOUR;
             min = true;
             break;
 
@@ -584,7 +584,7 @@ namespace Arc {
             if (min)
               seconds += num * 60;
             else {
-              seconds += num * (30 * 24 * 60 * 60);
+              seconds += num * Time::MONTH;
               min = true;
             }
             break;
@@ -621,21 +621,21 @@ namespace Arc {
           switch (period[i]) {
           case 'w':
           case 'W':
-            seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24 * 7;
+            seconds += stringtoi(period.substr(pos, len)) * Time::WEEK;
             pos = std::string::npos;
             base = PeriodDays;
             break;
 
           case 'd':
           case 'D':
-            seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24;
+            seconds += stringtoi(period.substr(pos, len)) * Time::DAY;
             pos = std::string::npos;
             base = PeriodHours;
             break;
 
           case 'h':
           case 'H':
-            seconds += stringtoi(period.substr(pos, len)) * 60 * 60;
+            seconds += stringtoi(period.substr(pos, len)) * Time::HOUR;
             pos = std::string::npos;
             base = PeriodMinutes;
             break;
@@ -681,15 +681,15 @@ namespace Arc {
           break;
 
         case PeriodHours:
-          n *= 60 * 60;
+          n *= Time::HOUR;
           break;
 
         case PeriodDays:
-          n *= 60 * 60 * 24;
+          n *= Time::DAY;
           break;
 
         case PeriodWeeks:
-          n *= 60 * 60 * 24 * 7;
+          n *= Time::WEEK;
           break;
         }
         seconds += n;
@@ -718,29 +718,66 @@ namespace Arc {
   }
 
 
+  std::string Period::tolongstring() const {
+    time_t remain = seconds;
+
+    std::stringstream ss;
+
+    if (remain >= Time::YEAR) {
+      ss << remain / Time::YEAR << " " << (remain >= 2*Time::YEAR ? istring("years") : istring("year"));
+      remain %= Time::YEAR;
+    }
+    if (remain >= Time::MONTH) {
+      if (remain != seconds) ss << " ";
+      ss << remain / Time::MONTH << " " << (remain >= 2*Time::MONTH ? istring("months") : istring("month"));
+      remain %= Time::MONTH;
+    }
+    if (remain >= Time::DAY) {
+      if (remain != seconds) ss << " ";
+      ss << remain / Time::DAY << " " << (remain >= 2*Time::DAY ? istring("days") : istring("day"));
+      remain %= Time::DAY;
+    }
+    if (remain >= Time::HOUR) {
+      if (remain != seconds) ss << " ";
+      ss << remain / Time::HOUR << " " << (remain >= 2*Time::HOUR ? istring("hours") : istring("hour"));
+      remain %= Time::HOUR;
+    }
+    if (remain >= 60) {
+      if (remain != seconds) ss << " ";
+      ss << remain / 60 << " " << (remain >= 120 ? istring("minutes") : istring("minute"));
+      remain %= 60;
+    }
+    if (remain >= 1) {
+      if (remain != seconds) ss << " ";
+      ss << remain << " " << (remain >= 2 ? istring("seconds") : istring("second"));
+    }
+
+    return ss.str();
+  }
+
   Period::operator std::string() const {
     time_t remain = seconds;
 
     std::stringstream ss;
 
     ss << 'P';
-    if (remain >= 365 * 24 * 60 * 60) {
-      ss << remain / (365 * 24 * 60 * 60) << 'Y';
-      remain %= (365 * 24 * 60 * 60);
+    if (remain >= Time::YEAR) {
+      ss << remain / Time::YEAR << 'Y';
+      remain %= Time::YEAR;
     }
-    if (remain >= 30 * 24 * 60 * 60) {
-      ss << remain / (30 * 24 * 60 * 60) << 'M';
-      remain %= (30 * 24 * 60 * 60);
+    if (remain >= Time::MONTH) {
+      ss << remain / Time::MONTH << 'M';
+      remain %= Time::MONTH;
     }
-    if (remain >= 24 * 60 * 60) {
-      ss << remain / (24 * 60 * 60) << 'D';
-      remain %= (24 * 60 * 60);
+    if (remain >= Time::DAY) {
+      ss << remain / Time::DAY << 'D';
+      remain %= Time::DAY;
     }
     if (remain)
       ss << 'T';
-    if (remain >= 60 * 60) {
-      ss << remain / (60 * 60) << 'H';
-      remain %= (60 * 60);
+    if (remain >= Time::HOUR) {
+      ss << remain / Time::HOUR << 'H';
+      remain %= Time::HOUR;
     }
     if (remain >= 60) {
       ss << remain / 60 << 'M';
