@@ -803,5 +803,119 @@ namespace Arc {
       return false;
     }
   }
+  bool AREXClient::resume(const std::string& jobid) {
+
+    std::string result, faultstring;
+    logger.msg(INFO, "Creating and sending request to resume a job");
+
+    bool delegate=true;
+    PayloadSOAP req(arex_ns);
+    XMLNode op = req.NewChild("a-rex:ChangeActivityStatus");
+    XMLNode jobref = op.NewChild(XMLNode(jobid));
+    XMLNode jobstate = op.NewChild("a-rex:NewStatus");
+    jobstate.NewAttribute("bes-factory:state") = "Running";
+    // Not supporting resume into user-defined state
+    jobstate.NewChild("a-rex:state") = "";
+    // Try to figure out which credentials are used
+    // TODO: Method used is unstable beacuse it assumes some predefined
+    // structure of configuration file. Maybe there should be some
+    // special methods of ClientTCP class introduced.
+    std::string deleg_cert;
+    std::string deleg_key;
+    if (delegate) {
+      client->Load(); // Make sure chain is ready
+      XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
+                                      "Component", "name", "tls.client");
+      if (tls_cfg) {
+        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
+        if (deleg_cert.empty()) {
+          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
+          deleg_key = (std::string)(tls_cfg["KeyPath"]);
+        }
+        else
+          deleg_key = deleg_cert;
+      }
+      if (deleg_cert.empty() || deleg_key.empty()) {
+        logger.msg(ERROR, "Failed to find delegation credentials in "
+                   "client configuration");
+        return false;
+      }
+    }
+    // Send resume request
+    PayloadSOAP *resp = NULL;
+    if (client) {
+      if (delegate) {
+        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+        logger.msg(INFO, "Initiating delegation procedure");
+        if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
+                                           &(client->GetContext()))) {
+          logger.msg(ERROR, "Failed to initiate delegation");
+          return false;
+        }
+        deleg.DelegatedToken(op);
+      }
+      MCC_Status status = client->process("", &req, &resp);
+      if (resp == NULL) {
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
+      }
+    }
+    else if (client_entry) {
+      Message reqmsg;
+      Message repmsg;
+      MessageAttributes attributes_req;
+      MessageAttributes attributes_rep;
+      MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      MCC_Status status = client_entry->process(reqmsg, repmsg);
+      if (!status) {
+        logger.msg(ERROR, "A job resuming request failed");
+        return false;
+      }
+      logger.msg(INFO, "A job resuming request succeed");
+      if (repmsg.Payload() == NULL) {
+        logger.msg(ERROR,
+                   "There was no response to a job resuming request");
+        return false;
+      }
+      try {
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
+      if (resp == NULL) {
+        logger.msg(ERROR, "The response of a job resuming request was not "
+                   "a SOAP message");
+        delete repmsg.Payload();
+        return false;
+      }
+    }
+    else {
+      logger.msg(ERROR, "There is no connection chain configured");
+      return false;
+    }
+
+    if (!((*resp)["ChangeActivityStatusResponse"])) {
+      // delete resp;
+      XMLNode fs;
+      (*resp)["Fault"]["faultstring"].New(fs);
+      faultstring = (std::string)fs;
+      if (faultstring != "") {
+        logger.msg(ERROR, faultstring);
+        return false;
+      }
+      if (result != "true") {
+        logger.msg(ERROR, "Job resuming failed");
+        return false;
+      }
+    } else {
+      std::string new_state=(std::string)(*resp)["ChangeActivityStatusResponse"]["NewStatus"]["state"];
+      logger.msg(WARNING,"Job resumed at state: %s", new_state);
+    }
+    // delete resp;
+    return true;
+  }
 }
 

@@ -167,8 +167,44 @@ namespace Arc {
   }
 
   bool JobControllerARC1::ResumeJob(const Job& job){
-    logger.msg(ERROR, "Resuming of ARC1 jobs is not supported");
-    return false;
+
+    if (job.RestartState.empty()){
+      logger.msg(ERROR, "Job %s does not report a resumable state",job.JobID.str());
+      //return false;
+    }
+     
+    logger.msg(DEBUG, "Resuming job: %s at state: %s",job.JobID.str(),job.RestartState);
+
+    MCCConfig cfg;
+    if (!proxyPath.empty())
+      cfg.AddProxy(proxyPath);
+    if (!certificatePath.empty())
+      cfg.AddCertificate(certificatePath);
+    if (!keyPath.empty())
+      cfg.AddPrivateKey(keyPath);
+    if (!caCertificatesDir.empty())
+      cfg.AddCADir(caCertificatesDir);
+    PathIterator pi(job.JobID.Path(), true);
+    URL url(job.JobID);
+    url.ChangePath(*pi);
+    AREXClient ac(url, cfg);
+    NS ns;
+    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+    ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
+    ns["wsa"] = "http://www.w3.org/2005/08/addressing";
+    ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+    ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+    XMLNode id(ns, "ActivityIdentifier");
+    id.NewChild("wsa:Address") = url.str();
+    id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
+    std::string idstr;
+    id.GetXML(idstr);
+    bool ok = ac.resume(idstr);
+    if (ok)
+      logger.msg(DEBUG, "Job resuming successful");
+    return ok;
   }
 
   bool JobControllerARC1::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {

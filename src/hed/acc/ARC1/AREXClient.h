@@ -108,6 +108,10 @@ namespace Arc {
      */
     bool migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate = false);
 
+
+
+    bool resume(const std::string& jobid);
+
     ClientSOAP* SOAP(void) {
       return client;
     }
