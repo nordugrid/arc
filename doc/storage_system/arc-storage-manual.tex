@@ -1,4 +1,5 @@
-\documentclass{book}
+\documentclass{article}
+%\documentclass{book}
 \usepackage{graphicx}                              %for PNG images (pdflatex)
 \usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
 \usepackage{color}                                 %for defining custom colors
@@ -57,7 +58,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large Administrator's manual of the ARC storage system}\Large \par}
+{\centering \textsc{\Large Chelonia Administrator's manual}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -77,11 +78,11 @@
 \renewcommand{\thefootnote}{\arabic{footnote}}
 
 
-\chapter{Quick start guide} % (fold)
+%\chapter{Quick start guide} % (fold)
 
 \section{Installing a centralized system} % (fold)
 
-In this section we will follow the installation of the ARC storage system on a freshly installed debian lenny machine.
+This section shows how to install Chelonia on a freshly installed debian lenny machine.
 
 Get the latest ARC code from the subversion (\verb!http://svn.nordugrid.org/!):
 
@@ -89,7 +90,7 @@ Get the latest ARC code from the subversion (\verb!http://svn.nordugrid.org/!):
 $ svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1
 \end{verbatim}
 
-Let's check the README file for all the dependencies, and install them! We use `aptitude' here, but of course on other linux distribution you may use a different package management software, and the name of the packages may differ as well.
+Check the README file for all the dependencies, and install them. Here `aptitude' is used, but of course on other Linux distribution different package management software may be used, and the name of the packages may differ as well.
 
 \begin{verbatim}
 $ sudo aptitude install build-essential
@@ -105,7 +106,7 @@ $ sudo aptitude install libxml2-dev
 $ sudo aptitude install libssl-dev
 \end{verbatim}
 
-Run the \verb!autogen! and \verb!configure! scripts (you may want to specify target directories for the installation with the \verb!--prefix! option):
+Now, run the \verb!autogen! and \verb!configure! scripts (target directories for the installation may be specified with the \verb!--prefix! option):
 
 \begin{verbatim}
 $ cd arc1
@@ -141,7 +142,7 @@ GSI channel (MCC):  no
 
 \end{verbatim}
 
-We can start to compile it:
+Start with compiling it:
 
 \begin{verbatim}
 $ make
@@ -153,13 +154,13 @@ And then install it (you need to be root if you want to install it to the defaul
 $ sudo make install
 \end{verbatim}
 
-Maybe we should run \verb!ldconfig! to refresh the list of libraries:
+It may be a good idea to run \verb!ldconfig! to refresh the list of libraries:
 
 \begin{verbatim}
 $ ldconfig
 \end{verbatim}
 
-We can check if the python packages are installed correctly:
+Check if the python packages are installed correctly:
 
 \begin{verbatim}
 $ python
@@ -172,13 +173,13 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> 
 \end{verbatim}
 
-If there is no error on importing any of the packages, we are good to go. If the packages cannot be imported, we should set the PYTHONPATH environment variable to point to their location.
+If there is no error on importing any of the packages, everything is OK. If the packages cannot be imported, try to set the PYTHONPATH environment variable to point to location of the packages.
 
-It is important to syncronize the time of the machine - the storage system will make decisions based on differences between timestamps, when we deploy it on multiple machines, different times would cause problems.
+It is important to syncronize the time of the machine - the storage system will make decisions based on differences between timestamps. When deploying multiple machines, different times will cause problems.
 
-We need host (and user) certificates to run the system. For testing purposes we can use the NorduGrid InstantCA solution which is capable of creating a demo-CA with short lifetime. The URL of the InstantCA service is \verb!https://vls.grid.upjs.sk/CA/instantCA!, let's create 3 user and 3 host certificates. (e.g. we can set the Organization Name to `knowarc', the Common name of the CA to `storage-test', the name of the users could be `penny', `billy' and `hammer', the name of the hosts could be `upsilon', `omicron' and `theta', and we need a password for the CA and passwords for the user certificates, both should be at least 4 characters long).
+Host (and user) certificates are required to run the system. For testing purposes the NorduGrid InstantCA solution can be used. The InstantCA is capable of creating a demo-CA with short lifetime. The URL of the InstantCA service is \verb!https://vls.grid.upjs.sk/CA/instantCA!. Now, create 3 user and 3 host certificates. (for this example, set the Organization Name to `knowarc', the Common name of the CA to `storage-test', the name of the users to `penny', `billy' and `hammer' and the name of the hosts to `upsilon', `omicron' and `theta'. A password for the CA and passwords for the user certificates are needed as well, these should be at least 4 characters long).
 
-Let's download the generated certificates and untar the archive file to see its contents:
+Now, download the generated certificates and untar the archive file to see its contents:
 
 \begin{verbatim}
 $ ls -lR
@@ -216,8 +217,8 @@ total 24
 -rw-r--r-- 1 zsombor zsombor 951 2009-03-19 12:11 userkey-penny.pem
 \end{verbatim}
 
-We have certificate and key files for all the hosts and users, and we have the CA file with the proper hashed name.
-There is no rule where to put these certificate, but now we will put them in \verb!/etc/grid-security!. Let's create this directory, and a subdirectory called \verb!certificates!. We will use the `theta' host certificates for this machine, let's copy it there:
+You can see the certificate and key files for all the hosts and users, and the CA file with the proper hashed name.
+There is no rule about where to put these certificate, but it is common to put them in \verb!/etc/grid-security!. Now, create this directory, and a subdirectory called \verb!certificates!. To use the `theta' host certificates for this machine, copy the corresponding certificate and key there:
 
 \begin{verbatim}
 $ sudo cp hostCerts/hostcert-theta.pem /etc/grid-security/hostcert.pem
@@ -236,7 +237,7 @@ total 8
 -rw-r--r-- 1 root root 139 2009-03-19 12:36 66fe707c.signing_policy
 \end{verbatim}
 
-And I choose a user certificate and put it into the \verb!~/.arc! directory, conveniently removing the password from the key file:
+Choose a user certificate and put it into the \verb!~/.arc! directory, removing the password from the key file for convenience:
 
 \begin{verbatim}
 $ mkdir ~/.arc
@@ -249,8 +250,8 @@ total 8
 -rw------- 1 zsombor zsombor 891 2009-03-19 13:09 userkey.pem
 \end{verbatim}
 
-The storage system runs within the \verb!arched! hosting environment daemon, which needs a configuration file which describes which services we want to run, and on which ports do we want to listen, etc.
-Let's copy the template configuration files to the \verb!/etc/arc! directory:
+The storage system runs within the \verb!arched! hosting environment daemon, which needs a configuration file describing which services to be run, on which ports do to listen, etc.
+Copy the template configuration files to the \verb!/etc/arc! directory:
 
 \begin{verbatim}
 $ sudo mkdir /etc/arc
@@ -262,7 +263,7 @@ total 12
 -rw-r--r-- 1 root root 4606 2009-03-19 13:25 storage_service.xml
 \end{verbatim}
 
-The template configuration file specifies several directories where the services can store their data. We will create these directories at \verb!/var/spool/arc!, but they can be created anywhere else.
+The template configuration file specifies several directories where the services can store their data. Create these directories at, e.g., \verb!/var/spool/arc!.
 
 \begin{verbatim}
 $ sudo mkdir /var/spool/arc/ahash_data
@@ -277,19 +278,19 @@ drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_store
 drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_transfer
 \end{verbatim}
 
-In this deployment we plan to run the daemon as root, so it is OK that the root owns these directories. 
-If we create these directories somewhere else, we would need to modify the paths in the \verb!storage_service.xml! file.
+In this deployment the daemon will be run as root, so it is OK that the root owns these directories. 
+If creating these directories somewhere else, then modify the paths in the \verb!storage_service.xml! file.
 
-If we put the host certificates and the CA certificate somewhere else than \verb!/etc/grid-security! then we would need to modify the \verb!storage_service.xml! (look for \verb!KeyPath!, \verb!CertificatePath! and \verb!CACertificatesDir!), and we would need to modify \verb!/etc/arc/clientsslconfig.xml! as well. This file contains the credentials which is used by the services when they connect to an other service. If we put \verb!clientsslconfig.xml! somewhere else than \verb!/etc/arc! then we would need to modify all the \verb!ClientSSLConfig! tags in the \verb!storage_service.xml!.
+If putting the host certificates and the CA certificate somewhere else than \verb!/etc/grid-security! then modify the \verb!storage_service.xml! (look for \verb!KeyPath!, \verb!CertificatePath! and \verb!CACertificatesDir!). Also, modify \verb!/etc/arc/clientsslconfig.xml!. This file contains the credentials which are used by the services when they connect to an other service. If putting \verb!clientsslconfig.xml! somewhere else than \verb!/etc/arc!, you need to modify all the \verb!ClientSSLConfig! tags in the \verb!storage_service.xml!.
 
-Let's run the \verb!arched! daemon with this config (specified by the \verb!-c! option) first in the foreground (using the \verb!-f! option) to see immediately if everything is right:
+Now, run the \verb!arched! daemon with this config (specified by the \verb!-c! option) first in the foreground (using the \verb!-f! option) to see immediately if everything is right:
 
 \begin{verbatim}
 $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f
 \end{verbatim}
 
 The template configuration file specifies a loglevel which only prints error messages, so nothing should be written on the screen now.
-The \verb!arched! daemon should now listen on the ports: 60001 for our data transfer service called Hopi, and 60000 for all the other services:
+The \verb!arched! daemon should now listen on the ports: 60001 for the data transfer service called Hopi, and 60000 for all the other services:
 
 \begin{verbatim}
 $ netstat -at | grep LISTEN
@@ -297,7 +298,7 @@ tcp        0      0 *:60000                 *:*                     LISTEN
 tcp        0      0 *:60001                 *:*                     LISTEN     
 \end{verbatim}
 
-Now it is time to set up or prototype client tool to access the system. It is currently called \verb!arc_storage_cli! and it is by default installed to \verb!/usr/local/bin!. We have to tell this CLI tool where it can find our user credentials, and a URL of a Bartender service. The Bartender service is the front-end of the storage system. We can specify these things by environment variables, or by a configuration file called \verb!~/.arc/client.xml!. Let's create this \verb!client.xml! file:
+Now it is time to set up the prototype client tool to access the system. It is currently called \verb!arc_storage_cli! and it is by default installed to \verb!/usr/local/bin!. The CLI tool needs to be told where it can find the user credentials, and a URL of a Bartender service. The Bartender service is the front-end of the storage system. This can be specified either by environment variables, or by a configuration file called \verb!~/.arc/client.xml!. Create the following \verb!client.xml! file:
 
 \begin{verbatim}
 $ cat ~/.arc/client.xml 
@@ -309,7 +310,7 @@ $ cat ~/.arc/client.xml
 </ArcConfig>
 \end{verbatim}
 
-Now we can use the \verb!arc_storage_cli! to access our local deployment. Let's do a `list' on the root collection (`/'):
+Now you can use the \verb!arc_storage_cli! to access your local deployment. Try to do a `list' on the root collection (`/'):
 
 \begin{verbatim}
 $ arc_storage_cli
@@ -348,15 +349,15 @@ ERROR: Wrong status from server.
 Maybe wrong URL: 'https://localhost:60000/Bartender'
 \end{verbatim}
 
-If you get this error, where the `Component [...] could not be created', we should reinforce the python environment about the location of our python packages:
+If you get the error `Component [...] could not be created', try to specify to the python environment the location of the python packages:
 
 \begin{verbatim}
 $ export PYTHONPATH=/usr/local/lib/python2.5/site-packages/
 \end{verbatim}
 
-Without arguments, the \verb!arc_storage_cli! prints the list of available methods. Specifying only a method name prints the syntex of the given method. The \verb!list! method requires Logical Names (LN). In the storage system, every file and collection has a Logical Name, which is a path within the namespace.
+Without arguments, the \verb!arc_storage_cli! prints the list of available methods. Specifying only a method name prints the syntax of the given method. The \verb!list! method requires Logical Names (LN). In the storage system, every file and collection has a Logical Name, which is a path within the namespace.
 
-Now we have a running (centralized) storage service including a Hopi service, which is a basic HTTP server, for transfering files. We have a Bartender service which is the front-end of the system to the users, so our client always connect to the Bartender service. There are several directories configured in the config file where the services store their data. These directories can always be emptied, which resets the whole system to a clean state. If we run the storage system with clean data directories, then it is completely empty, which means that there is not even a root collection.
+Now a (centralized) storage service is running, including a Hopi service, which is a basic HTTP server, for transferring files. The Bartender service is the front-end of the system to the users, so the clients always connect to the Bartender service. There are several directories configured in the config file where the services store their data. These directories can always be emptied, which resets the whole system to a clean state. If Chelonia is running with clean data directories, then it is completely empty, meaning that there is not even a root collection:
 
 \begin{verbatim}
 $ arc_storage_cli list /
@@ -365,7 +366,7 @@ $ arc_storage_cli list /
 '/': not found
 \end{verbatim}
 
-The root collection has the Logical Name of `\verb!/!', and it's role to provide a starting point for all the other Logical Names. We have to create this root collection first:
+The root collection has the Logical Name of `\verb!/!', and it's role to provide a starting point for all the other Logical Names. This root collection needs to be created first:
 
 \begin{verbatim}
 $ arc_storage_cli makeCollection /
@@ -380,11 +381,11 @@ $ arc_storage_cli list /
     empty.
 \end{verbatim}
 
-Now we do have an empty root collection.
+Now there is an empty root collection.
 
 \section{Using the prototype client tool} % (fold)
 
-Assume that we have a running storage system and we want to access it with the \verb!arc_storage_cli! client. We have the \verb!~/.arc/client.xml! set properly, so we can list the contents of the root collection:
+Assume that Chelonia is running and you want to access it with the \verb!arc_storage_cli! client. The \verb!~/.arc/client.xml! is set properly, the contents of the root collection can be listed:
 
 \begin{verbatim}
 $ arc_storage_cli list /
@@ -394,7 +395,7 @@ $ arc_storage_cli list /
     empty.
 \end{verbatim}
 
-Let's create a small file and upload it:
+Now, create a small file and upload it:
 
 \begin{verbatim}
 $ cat > orange
@@ -423,7 +424,7 @@ $ arc_storage_cli list /
 
 \end{verbatim}
 
-We can get additional information about the file with the stat method:
+Additional information about the file can be found with the stat method:
 
 \begin{verbatim}
 $ arc_storage_cli stat /orange
@@ -447,9 +448,9 @@ $ arc_storage_cli stat /orange
     created: 1237504821.91
 \end{verbatim}
 
-Here we can see the owner of the file (Billy), the location of the replicas (currently only one), the number of needed replicas (which is also: one), the checksum and size of the file, and the timestamp of the creation.
+Here, the owner of the file (Billy), the location of the replicas (currently only one), the number of needed replicas (which is also only one), the checksum and size of the file, and the timestamp of the creation is shown.
 
-We can download this file:
+This file can be downloaded:
 
 \begin{verbatim}
 $ arc_storage_cli get /orange /tmp
@@ -465,7 +466,7 @@ $ cat /tmp/orange
 orange
 \end{verbatim}
 
-We can create collections which can contain files and other collections forming a tree-hierarchy. We can move files and collection around within this namespace.
+You can create collections which can contain files and other collections forming a tree-hierarchy. You can move files and collection around within this namespace.
 
 \begin{verbatim}
 $ arc_storage_cli makeCollection /fruits
@@ -491,7 +492,7 @@ $ arc_storage_cli list /fruits
   apple               <collection>
 \end{verbatim}
 
-We can remove files, and remove collections (but only if the collection is empty):
+You can remove files, and remove collections (but only if the collection is empty):
 
 \begin{verbatim}
 $ arc_storage_cli rmdir /fruits
@@ -515,7 +516,7 @@ $ arc_storage_cli rmdir /fruits
 Removing collection '/fruits': removed
 \end{verbatim}
 
-Let's introduce a new user into the system. If we have some other user certificate and key files, then we can tell \verb!arc_storage_cli! to use them with modifying the \verb!client.xml! or by specifying the \verb!ARC_CERT_FILE! and \verb!ARC_KEY_FILE! environment variables.
+Now, introduce a new user, Penny, into the system. Again, \verb!arc_storage_cli! can be told to use user certificate and key files for this user with modifying the \verb!client.xml! or by specifying the \verb!ARC_CERT_FILE! and \verb!ARC_KEY_FILE! environment variables.
 
 \begin{verbatim}
 $ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
@@ -535,7 +536,7 @@ arc_storage_cli put /tmp/orange /pennys-orange
 
 \end{verbatim}
 
-Listing the root collection or uploading files into it for Penny is denied, because the root collection is owned by Billy, and nobody else has permissions to it. Let's ask Billy to allow for everyone to access the root collection:
+Listing the root collection or uploading files into it for Penny is denied, because the root collection is owned by Billy, and nobody else has permissions to it. Now, Billy allows for everyone to access the root collection:
 
 \begin{verbatim}
 $ arc_storage_cli pol / change ALL +read +addEntry
@@ -565,9 +566,9 @@ Usage: policy <LN> <changeType> <identity> <action list>
         modifyPolicy modifyStates modifyMetadata
 \end{verbatim}
 
-So we have changed the action list for user `ALL' to `+read +addEntry', which means that everybody can list the contents of this collection, create subcollection in it, upload a file into it, or move some existing entry into it.
+So Billy has changed the action list for user `ALL' to `+read +addEntry', which means that everybody can list the contents of this collection, create subcollections in it, upload files into it, or move existing entries into it.
 
-Now we can upload a file with Penny:
+Now, Penny can upload a file:
 
 \begin{verbatim}
 $ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
@@ -585,7 +586,7 @@ arc_storage_cli put /tmp/orange /pennys-orange
 '/tmp/orange' (7 bytes) uploaded as '/pennys-orange'.
 \end{verbatim}
 
-This file now only can be downloaded by Penny, so let's allow for Billy to download it as well:
+This file now only can be downloaded by Penny, so she should allow for Billy to download it as well:
 
 \begin{verbatim}
 $ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
@@ -622,7 +623,7 @@ $ arc_storage_cli stat /pennys-orange
     type: file
 \end{verbatim}
 
-We can see among the metadata of the file, that Billy has `read' rights. Billy can now download this file:
+The metadata of the file shows that Billy has `read' rights. Billy can now download this file:
 
 \begin{verbatim}
 $ arc_storage_cli get /pennys-orange /tmp
@@ -638,7 +639,7 @@ $ cat /tmp/pennys-orange
 orange
 \end{verbatim}
 
-We can specify the needed number of replicas for a new file with the \verb!ARC_NEEDED_REPLICAS! environment variable.
+The needed number of replicas for a new file can be specified with the \verb!ARC_NEEDED_REPLICAS! environment variable.
 
 \begin{verbatim}
 $ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /new-orange
@@ -676,9 +677,9 @@ $ arc_storage_cli stat /new-orange
 
 \end{verbatim}
 
-We can see that the `neededReplica' metadata says 2, but if we deployed the system in a centralized way for testing purposes, then we only have one storage element (which is a Shepherd service and a Hopi service together), so the file can only have one replica, that's why there is only one locations.
+Here, the `neededReplica' metadata says 2, but the system is deployed in a centralized way for testing purposes, so there is only one storage element (which is a Shepherd service and a Hopi service together), so the file can only have one replica and there can only be one location.
 
-We can modify the number of needed replicas of an existing file with the `modify' method:
+The number of needed replicas of an existing file can be modified with the `modify' method:
 
 \begin{verbatim}
 $ arc_storage_cli modify /new-orange set states neededReplicas 1
@@ -690,20 +691,20 @@ $ arc_storage_cli stat /new-orange | grep neededReplicas
     neededReplicas: 1
 \end{verbatim}
 
-This version of the \verb!arc_storage_cli! tool currently does not support recursive methods or working with multiple files at once.
+It should be noted that the current version of the \verb!arc_storage_cli! tool does not support recursive methods or working with multiple files at once.
 
 
 \section{Adding more storage elements}
 
-Let's add a new storage element to the system. A new storage element should be on a different physical machine, preferably in a different building to minimize the possibility of both storage elements being offline at the same time. But for testing purposes it is of course possible to run it on the same machine using different ports. We need to deploy a Shepherd service and a storage element service, which this time will be a `byteio' service. The `byteio' service implements a small part of the ByteIO interface, which means that it just put the entire file data into the SOAP message, so it is only suitable for small files.
+The following shows how to add a new storage element to the system. A new storage element should be on a different physical machine, preferably in a different building to minimize the possibility of both storage elements being offline at the same time. But for testing purposes it is of course possible to run it on the same machine using different ports. A storage element consists of a Shepherd service and a storage element service, which this time will be a `byteio' service. The `byteio' service implements a small part of the ByteIO interface, which means that it just put the entire file data into the SOAP message, so it is only suitable for small files.
 
-But first modify the configuration file of our original server. Currently all the transfer URLs which were generated when we upload and download files contained the hostname `localhost'. This is not OK if we want to access it from an other machine, we should provide transfer URLs which contains the external hostname of the machine. So lets change this line in \verb!/etc/arc/storage_service.xml!:
+Now, modify the configuration file of the original server. Currently all the transfer URLs which were generated when uploading and downloading files contained the hostname `localhost'. This is not OK if access from an other machine is needed. In this case, transfer URL's must contain the external hostname of the machine. To do this, change this line in \verb!/etc/arc/storage_service.xml!:
 
 \begin{verbatim}
     <TURLPrefix>http://localhost:60001/hopi/</TURLPrefix>
 \end{verbatim}
 
-to the real hostname of the machine. But this is not enough. Currently the Shepherd services uses their URLs as IDs, and the other services use these IDs to connect to a Shepherd service, so we need to change to ID of the Shepherd service to a real external URL as well. And for the sake of clarity let's change all `localhost' entries in the config file to our real hostname. In our case the name of this machine is just `storage' so the Shepherd section should look like this:
+to the real hostname of the machine. But this is not enough. Currently the Shepherd services uses their URLs as IDs, and the other services use these IDs to connect to a Shepherd service, so the ID of the Shepherd service needs to be changed to a real external URL as well. For the sake of clarity, change all `localhost' entries in the config file to the real hostname. In this example, the name of this machine is just `storage' so the Shepherd section should look like this:
 
 \begin{verbatim}
 <Service name="pythonservice" id="shepherd">
@@ -726,14 +727,14 @@ to the real hostname of the machine. But this is not enough. Currently the Sheph
 </Service>
 \end{verbatim}
 
-Let's check first if our centralized deployment is still working, stop the \verb!arched! daemon remove the data directories to make it a clean start, and restart it with the modified config.
+Now, check if the centralized deployment is still working, stop the \verb!arched! daemon, remove the data directories to make it a clean start, and restart it with the modified config.
 
 \begin{verbatim}
 $ sudo rm -r /var/spool/arc/*
 $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f    
 \end{verbatim}
 
-Let's see if we can still use the client:
+See if the client is still usable:
 
 \begin{verbatim}
 $ arc_storage_cli list /
@@ -753,7 +754,7 @@ $ arc_storage_cli list /
     empty.
 \end{verbatim}
 
-Let's upload a file and ask for two replicas:
+Now, upload a file and ask for two replicas:
 
 \begin{verbatim}
 $ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /
@@ -790,7 +791,7 @@ $ arc_storage_cli stat /orange
     created: 1237519441.96
 \end{verbatim}
 
-Currently it has only one replica, because we still don't have more than one storage elements. While \verb!arched! keeps running, let's create a new config for the other machine, which is called \verb!storage2!:
+Currently it has only one replica, because there is still only one storage element. Now, create a new config for the other machine, here called \verb!storage2!:
 
 \begin{verbatim}
 <?xml version="1.0"?>
@@ -863,15 +864,15 @@ Currently it has only one replica, because we still don't have more than one sto
 </ArcConfig>    
 \end{verbatim}
 
-This configuration contains only two services: a Shepherd, and byteio service. The byteio service is just a very simple storage element service which moves files within SOAP messages. The Shepherd service needs to have a backend for all supported storage element services, so it has a ByteIOBackend configured. This Shepherd connects to our original server's Bartender and Librarian services. (See the technical documentation for details about the services.)
+This configuration contains only two services: a Shepherd, and byteio service. The byteio service is just a very simple storage element service which moves files within SOAP messages. The Shepherd service needs to have a backend for all supported storage element services, so it has a ByteIOBackend configured. This Shepherd connects to the first server's Bartender and Librarian services. (See the technical documentation for details about the services.)
 
-While the original (\verb!storage!) server still runs the services, let's start this new server:
+While the original (\verb!storage!) server still runs the services, start the new server:
 
 \begin{verbatim}
 $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_2.xml -f
 \end{verbatim}
 
-And after a minute or two, let's check our file:
+After a minute or two, check the file again:
 
 \begin{verbatim}
 $ arc_storage_cli stat /orange
@@ -898,7 +899,7 @@ $ arc_storage_cli stat /orange
 
 It indeed has two replicas now, one on each server.
 
-Let's download it multiple times:
+Now, try to download it multiple times:
 
 \begin{verbatim}
 $ arc_storage_cli get /orange /tmp/orange1
@@ -923,7 +924,7 @@ $ arc_storage_cli get /orange /tmp/orange2
 
 First it was downloaded from the \verb!storage! server via HTTP, second time it was downloaded from the \verb!storage2! server via ByteIO.
 
-Let's create a third storage element on a machine called \verb!storage3! this time using a Hopi service as storage element service like on our main \verb!storage! server:
+Now, create a third storage element on a machine called \verb!storage3! this time using a Hopi service as storage element service like on the main \verb!storage! server:
 
 \begin{verbatim}
 zsombor@storage:~$ cat /etc/arc/storage_service_3.xml 
@@ -1008,13 +1009,13 @@ zsombor@storage:~$ cat /etc/arc/storage_service_3.xml
 </ArcConfig>    
 \end{verbatim}
 
-This configuration has two separate ports, one with TLS security and a Shepherd service, and the other without TLS security and with the Hopi service. Let's run this server as well:
+This configuration has two separate ports, one with TLS security and a Shepherd service, and the other without TLS security and with the Hopi service. Run this server as well:
 
 \begin{verbatim}
 $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_3.xml -f
 \end{verbatim}
 
-Now when checking our file again there should be no change at all:
+Now when checking the file again there should be no change at all:
 
 \begin{verbatim}
 $ arc_storage_cli stat /orange
@@ -1023,7 +1024,7 @@ $ arc_storage_cli stat /orange
     https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
 \end{verbatim}
 
-Let's stop our server on \verb!storage2!, and watch what happens of our file:
+Stop the server on \verb!storage2!, and watch what happens with the file:
 
 \begin{verbatim}
 $ arc_storage_cli stat /orange
@@ -1044,9 +1045,9 @@ $ arc_storage_cli stat /orange
     https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
 \end{verbatim}
 
-A new replica have been created on the third server to maintain the needed number of 2.
+A new replica has been created on the third server to maintain the needed number of 2.
 
-Let's start the services on \verb!storage2! again, and let's see what is happening with our file:
+Now, start the services on \verb!storage2! again, and see what is happening with the file:
 
 \begin{verbatim}
 $ arc_storage_cli stat /orange
@@ -1067,14 +1068,14 @@ $ arc_storage_cli stat /orange
     https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
 \end{verbatim}
 
-One of the replicas have been disappeared to maintain the needed number of 2.
+One of the replicas has been removed to maintain the needed number of 2.
 
 \section{Make the A-Hash service replicated} % (fold)
 \label{sec:make_the_a_hash_service_replicated}
 
-Now we have a deployement, where one machine has the A-Hash, Librarian and Bartender services, and all three machines have a Shepherd and a storage element service. The A-Hash service stores all the metadata of all the files and collections, so it is critical. If the first machine goes offline then the whole system dies. We can deploy the A-Hash service on all the machines and still can have one consistent metadata database. The replicated version of the A-Hash uses the Berkeley DB to provide a distributed database.
+Now the deployment is as following: One machine has the A-Hash, Librarian and Bartender services, and all three machines have a Shepherd and a storage element service. The A-Hash service stores all the metadata of all the files and collections, so it is critical. If the first machine goes offline then the whole system dies. However, it is possible to deploy the A-Hash service on all the machines and still have one consistent metadata database. The replicated version of the A-Hash uses the Berkeley DB to provide a distributed database.
 
-Let's install Berkeley DB as root (but you can use the \verb!--prefix! option of \verb!configure! to install it somewhere else than the default location). This should be done on all the machines:
+In the following, Berkeley DB is installed as root (the \verb!--prefix! option of \verb!configure! can be used to install it somewhere else than the default location). This needs to be done on all the machines.
 
 Get the latest Berkeley DB and its patches:
 \begin{verbatim}
@@ -1093,7 +1094,7 @@ $ patch -p 0 < ../patch.4.7.25.2
 $ patch -p 0 < ../patch.4.7.25.3
 \end{verbatim}
 
-Configure, make and install it (you can use the \verb!--prefix! option for \verb!configure!)
+Configure, make and install it (and if needed, use the \verb!--prefix! option for \verb!configure!)
 \begin{verbatim}
 $ cd build_unix/
 $ ../dist/configure
@@ -1105,13 +1106,13 @@ $ make
 $ sudo make install
 \end{verbatim}
 
-Now we need the python wrapper for the Berkeley DB:
+Next, get the python wrapper for the Berkeley DB:
 
 \begin{verbatim}
 $ wget http://pypi.python.org/packages/source/b/bsddb3/bsddb3-4.7.5.tar.gz
 \end{verbatim}
 
-Let's install it to the default location:
+Install it to the default location:
 
 \begin{verbatim}
 $ tar zxf bsddb3-4.7.5.tar.gz
@@ -1119,13 +1120,13 @@ $ cd bsddb3-4.7.5
 $ sudo python setup.py install
 \end{verbatim}
 
-If you've installed Berkeley DB somewhere else, or want to install the python wrapper to somewhere else than the default:
+If Berkeley DB was installed in a non-default location, or to install the python wrapper to somewhere else than the default:
 
 \begin{verbatim}
 $ BERKELEYDB_DIR=/path/to/berkeleydb python setup.py install --prefix=/where/to/install
 \end{verbatim}
 
-Let's test the installation with the \verb!test.py! included in the directory of the python wrapper for the Berkeley DB:
+Test the installation with the \verb!test.py! included in the directory of the python wrapper for the Berkeley DB:
 \begin{verbatim}
 $ sudo python test.py
 [...]
@@ -1134,7 +1135,7 @@ Ran 383 tests in 29.858s
 OK
 \end{verbatim}
 
-Let's configure our first server (\verb!storage!). Here is the AHash part of the config:
+Configure the first server (\verb!storage!). Here is the AHash part of the config:
 
 \begin{verbatim}
 <Service name="pythonservice" id="ahash">
@@ -1148,7 +1149,7 @@ Let's configure our first server (\verb!storage!). Here is the AHash part of the
 </Service>
 \end{verbatim}
 
-In this config we specify the second server as a peer. Let's configure the second server (\verb!storage2!) as well:
+In this config the second server is specified as a peer. Configure the second server (\verb!storage2!) as well:
 
 \begin{verbatim}
 <Plexer name="plexer.service" id="plexer">
@@ -1167,7 +1168,7 @@ In this config we specify the second server as a peer. Let's configure the secon
 </Service>
 \end{verbatim}
 
-In this config we specify the first server as a peer. So the two together will be able to form a replicated network with two nodes. But let's configure the third one (\verb!storage3!):
+In this config the first server is configured as a peer. So the two together will be able to form a replicated network with two nodes. Then configure the third one (\verb!storage3!):
 
 \begin{verbatim}
 <Plexer name="plexer.service" id="plexer">
@@ -1185,14 +1186,14 @@ In this config we specify the first server as a peer. So the two together will b
 </Service>
 \end{verbatim}
 
-Here we specify the first server as the peer.
+Here the first server is specified as the peer.
 
-It is important that we need to make a fresh start on all the servers, and remove the existing database, which was created by a different store:
+It is important to make a fresh start on all the servers, and remove the existing database, which was created by a different store:
 \begin{verbatim}
 $ sudo rm -r /var/spool/arc/*
 \end{verbatim}
 
-Let's start the first server. It will complain that it cannot find its peer:
+Now, start the first server. It will complain that it cannot find its peer:
 \begin{verbatim}
 ERROR connecting to https://storage2:60006/AHash
 [2009-03-24 10:34:18] [Arc.Storage.ReplicatedAHash] [ERROR] [10827/156026112]
@@ -1201,7 +1202,7 @@ ERROR connecting to https://storage2:60006/AHash
     Couldn't run election
 \end{verbatim}
 
-With only one node of the replicated A-Hash the system is not ready to work, if we try to use it, we get an error message:
+With only one node of the replicated A-Hash the system is not ready to work, and trying to use it will result in an error message:
 \begin{verbatim}
 $ arc_storage_cli makeCollection /
 - Calling the Bartender's makeCollection method...
@@ -1209,7 +1210,7 @@ $ arc_storage_cli makeCollection /
 Creating collection '/': failed to create new librarian entry
 \end{verbatim}
 
-Let's start the second server. It may first print some error messages, but then both servers should be quiet, and now we can use the system. Let's upload a file, and set the number of needed replicas to 3:
+Start the second server. It may first print some error messages, but then both servers should be quiet, and the system is ready for use. Now, upload a file, and set the number of needed replicas to 3:
 
 \begin{verbatim}
 $ arc_storage_cli makeCollection /
@@ -1245,7 +1246,7 @@ zsombor@storage:~$ arc_storage_cli stat /orange
 [...]    
 \end{verbatim}
 
-It cannot create 3 replicas, because are third server is not running. Let's start it. After a minute or two, or file has three replicas:
+It cannot create 3 replicas, because the third server is not running. Start it. After a minute or two, the file has three replicas:
 
 \begin{verbatim}
 $ arc_storage_cli stat /orange
@@ -1257,12 +1258,12 @@ $ arc_storage_cli stat /orange
 [...]
 \end{verbatim}
 
-The fact that this file has three replicas is not at all related to the number of AHashes, but to the number of storage elements (Shepherds and storage element services), so this is no different then what we saw in the last section. The benefit of having more then one AHashes in a replicated way is that if one of the machines goes offline, the AHash is still working. But in our current case if we shutdown the first server, while the AHash will still work but we still have only one instance of the other two important service: the Librarian and the Bartender, so the whole system would be unusable. Let's add more Librarians and Bartenders to the system.
+The fact that this file has three replicas is not at all related to the number of AHashes, but to the number of storage elements (Shepherds and storage element services), so this is no different then what was seen in the previous section. The benefit of having more then one AHashes in a replicated way is that if one of the machines goes offline, the AHash is still working. However, with the setup above, if the first server is shutdown, the AHash will still work but there is only one instance of the other two important service: the Librarian and the Bartender, so the whole system will still be unusable. Hence, more Librarians and Bartenders needs to be added to the system. The next section explains how.
 
 \section{Additional Bartenders and Librarians} % (fold)
 \label{sec:additional_bartenders_and_librarians}
 
-Let's add a Bartender and a Librarian to each servers. We don't need to modify our first server now. For the other two we need to change the \verb!Plexer! section, add the twos services, and modify the Shepherd to use the server's own Bartender and Librarian for replication and heartbeats. Let's modify the config of our second server: (\verb![...]! indicates unchanged parts)
+In this section, a Bartender and a Librarian is added to each server. The first server does not need modification now. For the other two, the \verb!Plexer! section needs to be altered, the twos services must be added, and the Shepherd must be modified to use the server's own Bartender and Librarian for replication and heartbeats. Modify the config of the second server as follows: (\verb![...]! indicates unchanged parts)
 
 \begin{verbatim}
 [...]
@@ -1323,7 +1324,7 @@ And the third server:
 [...]
 \end{verbatim}
 
-We need to modify our \verb!client.xml! to add all the other Bartenders:
+\verb!client.xml! must be modified to add all the other Bartenders:
 
 \begin{verbatim}
 $ cat ~/.arc/client.xml 
@@ -1337,7 +1338,7 @@ $ cat ~/.arc/client.xml
 </ArcConfig>
 \end{verbatim}
 
-Now we can start all three servers. The replicated A-Hash sometimes prints great amount of error messages, but if it stops printing them, then everything is OK. Now we can use the system as intended. There is a flag for the \verb!arc_storage_cli! which makes it very verbose. We can check the used Bartender with it:
+Now, all three servers can be started. The replicated A-Hash sometimes prints great amount of error messages, but if it stops printing them, then everything is OK. Now the system can be used as intended. There is a flag for the \verb!arc_storage_cli! which makes it very verbose. You can check the used Bartender with it:
 
 \begin{verbatim}
 $ arc_storage_cli -v stat /orange
@@ -1353,7 +1354,7 @@ $ arc_storage_cli -v stat /orange
 '/orange': found
 \end{verbatim}
 
-Now we can stop our first server. The system will be unaccessable for a few seconds while the other two A-Hash figure out what is happening, but after that it will work again:
+Now, stop the first server. The system will be unaccessible for a few seconds while the other two A-Hash figure out what is happening, but after that it will work again:
 
 \begin{verbatim}
 $ arc_storage_cli -v stat /orange
@@ -1373,7 +1374,7 @@ $ arc_storage_cli -v stat /orange
 [...]
 \end{verbatim}
 
-If we start again our first server, after a few seconds the system will work again with the three fully-functional node.
+If the first server is started again, after a few seconds the system will work again with the three fully-functional node.
 
 \begin{verbatim}
 zsombor@storage:~$ arc_storage_cli -v stat /orange
@@ -1409,7 +1410,7 @@ zsombor@storage:~$ arc_storage_cli -v stat /orange
 \section{Accessing external storage solutions} % (fold)
 \label{sec:using_the_gateway}
 
-If we have permissions to access some third-party storage solutions (e.g. dCache via the GridFTP protocol), we can create a mount point within the namespace of the ARC storage system which points to a third-party URL, and then we can use the client interface of the ARC storage to access the third-party storage as well. This is achieved by a module of the Bartender, called the `Gateway'. Currently only GridFTP access is supported, and for that we need to install the Globus libraries to our machines. Then we need to recompile our source for GridFTP support. The output of the \verb!configure! script should look like this:
+If you have permissions to access some third-party storage solutions (e.g. dCache via the GridFTP protocol), you can create a mount point within the namespace of the ARC storage system which points to a third-party URL, and then you can use the client interface of the ARC storage to access the third-party storage as well. This is achieved by a module of the Bartender, called the `Gateway'. Currently only GridFTP access is supported, and for that the Globus libraries needs to be installed. Next, ARC needs to be recompiled for GridFTP support. The output of the \verb!configure! script should look like this:
 
 \begin{verbatim}
     Available third-party features:
@@ -1434,7 +1435,7 @@ If we have permissions to access some third-party storage solutions (e.g. dCache
     GSI channel (MCC):  yes
 \end{verbatim}
 
-After compilation and installation we can use the \verb!arcls! tool to list the content of a third-party storage. Let's check if our Billy user has access to this directory:
+After compilation and installation the \verb!arcls! tool can be used to list the content of a third-party storage. The user Billy can see if has access to this directory:
 
 \begin{verbatim}
 $ arcls gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data
@@ -1443,9 +1444,9 @@ data2
 other
 \end{verbatim}
 
-We can see some files in there, so we have permissions to list that directory.
+Since he can see some files in there, so he have permissions to list that directory.
 
-Now let's configure the Bartenders on all three machines to use the Gateway module:
+Now, configure the Bartenders on all three machines to use the Gateway module:
 
 \begin{verbatim}
 <Service name="pythonservice" id="bartender">
@@ -1461,7 +1462,7 @@ Now let's configure the Bartenders on all three machines to use the Gateway modu
 </Service>
 \end{verbatim}
 
-Let's start all three servers. Then create a mount point with the Logical Name \verb!/salmount! which points to this URL:
+Next, start all three servers. Then create a mount point with the Logical Name \verb!/salmount! which points to this URL:
 
 \begin{verbatim}
 $ arc_storage_cli makemount /salmount \
@@ -1488,7 +1489,7 @@ $ arc_storage_cli stat /salmount
     created: 1237990168.09
 \end{verbatim}
 
-Let's list the content of this mountpoint:
+List the content of this mountpoint:
 
 \begin{verbatim}
 $ arc_storage_cli list /salmount- Calling the Bartender's list method...
@@ -1496,7 +1497,7 @@ $ arc_storage_cli list /salmount- Calling the Bartender's list method...
 '/salmount': Your proxy cannot be found. Please delegate your credentials!
 \end{verbatim}
 
-Yes, we first need to delegate our credentials with the \verb!credentialsDelegation! method, then try to list the mount point:
+OK, First you need to delegate your credentials with the \verb!credentialsDelegation! method.
 
 \begin{verbatim}
 $ arc_storage_cli cre
@@ -1505,7 +1506,11 @@ $ arc_storage_cli cre
 - done in 0.42 seconds.
 Successful delegation.
 Proxy ID: eNCMDmi8i6YnPSAtDmVmuSEmABFKDmABFKDm0zKKDmFBFKDmeOzdBo
+\end{verbatim}
 
+Then try to list the mount point again:
+
+\begin{verbatim}
 $ arc_storage_cli list /salmount
 - Calling the Bartender's list method...
 - done in 3.19 seconds.
@@ -1515,7 +1520,7 @@ $ arc_storage_cli list /salmount
   other  <unknown>
 \end{verbatim}
 
-Let's download a file:
+Now, download a file:
 
 \begin{verbatim}
 $ arc_storage_cli get /salmount/data1 /tmp
@@ -1533,7 +1538,7 @@ $ arc_storage_cli get /salmount/data1 /tmp
 \section{Using the ARC DMC} % (fold)
 \label{sec:using_the_arc_dmc}
 
-ARC has its own multi-protocol storage client tools which provide a unified way to access different kind of storage. For all the supported types there is a DMC module. We created a DMC module for the ARC storage as well. If it is compiled and installed, then you can use the \verb!arcls!, \verb!arccp!, \verb!arcrm!, etc. tools with the \verb!arc://! protocol to access the ARC storage system. You can specify the URL of the Bartender with the \verb!BartenderURL! URL option, or you can have a Bartender URL configured in the \verb!client.xml! user config.
+ARC has its own multi-protocol storage client tools which provide a unified way to access different kind of storage. For all the supported types there is a DMC module. For Chelonia, the ARC DMC module is used. If it is compiled and installed, then you can use the \verb!arcls!, \verb!arccp!, \verb!arcrm!, etc. tools with the \verb!arc://! protocol to access the ARC storage system. You can specify the URL of the Bartender with the \verb!BartenderURL! URL option, or you can have a Bartender URL configured in the \verb!client.xml! user config.
 
 \begin{verbatim}
 $ arcls arc:///
@@ -1568,7 +1573,7 @@ fruits
 \section{Using the FUSE module} % (fold)
 \label{sec:using_the_fuse_module}
 
-Besides the \verb!arc_storage_cli! tool we can access the storage system with the use of a FUSE module. We can install the ARC storage FUSE module following these steps:
+Besides the \verb!arc_storage_cli! tool you can access the storage system with the use of a FUSE module. The following steps installs the ARC storage FUSE module:
 
 \begin{itemize}
 \item Install ARC1 storage system.
