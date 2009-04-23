@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[filename ...]"),
+  Arc::OptionParser options(istring(""),
                             istring("The command synchronized your local job"
                                     "list with the information at a given "
                                     "cluster or index server"),
