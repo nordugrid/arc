@@ -16,10 +16,10 @@
 \section*{Support for Unicore resource discovery and job submission/management}
 The next generation ARC client library will offer support for discovering grid resource running Unicore middleware and to submit and manage grid jobs (basic functionality) at these resources. This write-up documents the present status of the Unicore support, what is missing and what is the work plan to implement the missing functionality.
 \subsection*{Versions of Unicore supported}
-Unicore versions of 6.2 (release, not candiate) and later are supported. Earlier versions are not supported due to incomplete information about the computing resources. Some functionality will still be present for earlier versions but not intentionally. 
+Unicore versions of 6.2 and later are supported. Earlier versions are not supported due to incomplete information about the computing resources. Some functionality will still be present for earlier versions but not intentionally. 
 \subsection*{Status of ongoing work}
 \subsubsection*{Resource discovery}
-The Unicore resource discovery starts by asking Unicore index servers for BES interfaces to Unicore execution services. Thereby all resources with a BES interfaces that register with that server are discovered. Presently it is not possible to get detailed information from the cluster, but this will be implemented using the Glue2 enabled information providers in the recent versions of Unicore (6.2 and above).
+The Unicore resource discovery starts by asking Unicore index servers for BES interfaces to Unicore execution services. Thereby all resources with a BES interfaces that register with that server are discovered. Currently it is not possible to get detailed information from the cluster, but this will be implemented using the Glue2 enabled information providers in the recent versions of Unicore (6.2 and above).
 
 The new ARC client doesn't come with any default Unicore index servers. Thus, in order to make use of the new ARC client's Unicore interoperability it is required that the user provide the URL to an Unicore index server or Unicore BES interface. 
 \subsubsection*{Job submission and management}
@@ -33,7 +33,7 @@ These ARC client commands are either not implementable (according to present kno
 \item{\texttt{arccat, arcmigrate, arcrenew and arcresume}}
 \end{itemize}
 
-Presently it is possible to use the \texttt{arcsub, arcstat} and \texttt{arcinfo} commands, though with some limited functionality (it is not possible to upload input files and the returned job/cluster job information is sparse). 
+Currently it is possible to use the \texttt{arcsub, arcstat} and \texttt{arcinfo} commands, though with some limited functionality (it is not possible to upload input files and the returned job/cluster job information is sparse). 
 
 \subsection*{Work to be done}
 In light of the present status the following to do's can be identified:
