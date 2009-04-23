@@ -224,7 +224,7 @@ int main(int argc, char *argv[]) {
     Arc::Credential holder(proxy_path, "", ca_dir, "");
     std::cout << "Subject:  " << holder.GetDN() << std::endl;
     std::cout << "Identity: " << holder.GetIdentityName() << std::endl;
-    std::cout << "Timeleft for proxy: " << (holder.GetEndTime() - Arc::Time()) << std::endl;
+    std::cout << "Timeleft for proxy: " << (holder.GetEndTime() - Arc::Time()).tolongstring() << std::endl;
 
     std::vector<std::string> voms_trust_dn;
     res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
