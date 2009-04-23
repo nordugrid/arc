@@ -27,8 +27,7 @@ EXTRA_DIST = arc.spec autogen.sh LICENSE
 
 doc:
 	for d in $(DOCDIRS); do \
-		cd $d ; \
-		make
+		$(MAKE) -C $$d ; \
 	done
 
 .PHONY: doc
