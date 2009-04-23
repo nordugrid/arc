@@ -15,6 +15,7 @@
 #include <sys/mman.h>
 
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 #include "PayloadFile.h"
 
 namespace ARex {
@@ -33,13 +34,28 @@ PayloadFile::PayloadFile(const char* filename,size_t start,size_t end):handle_(-
   };
   return;
 error:
-  char errbuf[256];
-  errbuf[0]=0;
-#if HAVE_DECL_STRERROR_R == 1
-  strerror_r(errno,errbuf,sizeof(errbuf)-1);
-  errbuf[sizeof(errbuf)-1]=0;
-  Arc::Logger::rootLogger.msg(Arc::ERROR,"%s",errbuf);
-#endif
+  std::string err = Arc::StrError(errno);
+  Arc::Logger::rootLogger.msg(Arc::ERROR,"%s",err);
+  if(handle_ != -1) close(handle_);
+  handle_=-1; size_=0; addr_=NULL;
+  return;
+}
+
+PayloadFile::PayloadFile(int handle,size_t start,size_t end):handle_(handle),addr_(NULL),size_(0),start_(start),end_(end) {
+  if(handle_ == -1) return;
+  struct stat st;
+  if(fstat(handle_,&st) != 0) goto error;
+  size_=st.st_size;
+  if((end_ == (size_t)(-1)) || (end_ > size_)) end_=size_;
+  if(start_>end_) start_=end_;
+  if(end_ > start_) {
+    addr_=(char*)mmap(NULL,end_-start_,PROT_READ,MAP_SHARED,handle_,start_);
+    if(addr_ == MAP_FAILED) goto error;
+  };
+  return;
+error:
+  std::string err = Arc::StrError(errno);
+  Arc::Logger::rootLogger.msg(Arc::ERROR,"%s",err);
   if(handle_ != -1) close(handle_);
   handle_=-1; size_=0; addr_=NULL;
   return;

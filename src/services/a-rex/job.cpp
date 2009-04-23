@@ -11,8 +11,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <glibmm/thread.h>
+#include <arc/Thread.h>
 #include <arc/StringConv.h>
+#include <arc/FileUtils.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/message/SecAttr.h>
@@ -643,30 +644,73 @@ std::string ARexJob::SessionDir(void) {
   return config_.User()->SessionRoot()+"/"+id_;
 }
 
+static bool normalize_filename(std::string& filename) {
+  std::string::size_type p = 0;
+  if(filename[0] != G_DIR_SEPARATOR) filename.insert(0,G_DIR_SEPARATOR_S);
+  for(;p != std::string::npos;) {
+    if((filename[p+1] == '.') &&
+       (filename[p+2] == '.') &&
+       ((filename[p+3] == 0) || (filename[p+3] == G_DIR_SEPARATOR))
+      ) {
+      std::string::size_type pr = std::string::npos;
+      if(p > 0) pr = filename.rfind(G_DIR_SEPARATOR,p-1);
+      if(p == std::string::npos) return false;
+      filename.erase(pr,p-pr+3);
+      p=pr;
+    } else if((filename[p+1] == '.') && (filename[p+2] == G_DIR_SEPARATOR)) {
+      filename.erase(p,2);
+    } else if(filename[p+1] == G_DIR_SEPARATOR) {
+      filename.erase(p,1);
+    };
+    p = filename.find(G_DIR_SEPARATOR,p+1);
+  };
+  if(!filename.empty()) filename.erase(0,1); // removing leading separator
+  return true;
+}
+
 int ARexJob::CreateFile(const std::string& filename) {
   if(id_.empty()) return -1;
-  std::string fname = config_.User()->SessionRoot()+"/"+id_+"/"+filename;
-  struct stat st;
-  if(lstat(fname.c_str(),&st) == 0) {
-    if(!S_ISREG(st.st_mode)) return -1;
-  } else {
-    // Create sudirectories
-    std::string::size_type n = fname.length()-filename.length();
-    for(;;) {
-      if(strncmp("../",fname.c_str()+n,3) == 0) return -1;
-      n=fname.find('/',n);
-      if(n == std::string::npos) break;
-      std::string dname = fname.substr(0,n);
-      ++n;
-      if(lstat(dname.c_str(),&st) == 0) {
-        if(!S_ISDIR(st.st_mode)) return -1;
-      } else {
-        if(mkdir(dname.c_str(),S_IRUSR | S_IWUSR) != 0) return -1;
-        fix_file_owner(dname,*config_.User());
-      };
-    };
+  std::string fname = filename;
+  if(!normalize_filename(fname)) return -1;
+  if(fname.empty()) return -1;
+  int lname = fname.length();
+  fname = config_.User()->SessionRoot()+"/"+id_+"/"+fname;
+  // First try to create/open file
+  int h = Arc::FileOpen(fname.c_str(),O_WRONLY | O_CREAT,config_.User()->get_uid(),config_.User()->get_gid(),S_IRUSR | S_IWUSR);
+  if(h != -1) return h;
+  if(errno != ENOENT) return -1;
+  // If open reports missing directory - try to create all sudirectories
+  std::string::size_type n = fname.length()-lname;
+  for(;;) {
+    n=fname.find('/',n);
+    if(n == std::string::npos) break;
+    std::string dname = fname.substr(0,n);
+    ++n;
+    if(Arc::DirCreate(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid(),S_IRUSR | S_IWUSR | S_IXUSR)) continue;
+    if(errno == EEXIST) continue;
   };
-  int h = open(fname.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
-  if(h != -1) fix_file_owner(fname,*config_.User());
-  return h;
+  return Arc::FileOpen(fname.c_str(),O_WRONLY | O_CREAT,config_.User()->get_uid(),config_.User()->get_gid(),S_IRUSR | S_IWUSR);
 }
+
+int ARexJob::OpenFile(const std::string& filename,bool for_read,bool for_write) {
+  if(id_.empty()) return -1;
+  std::string fname = filename;
+  if(!normalize_filename(fname)) return -1;
+  if(fname.empty()) return -1;
+  fname = config_.User()->SessionRoot()+"/"+id_+"/"+fname;
+  int flags = 0;
+  if(for_read && for_write) { flags=O_RDWR; }
+  else if(for_read) { flags=O_RDONLY; }
+  else if(for_write) { flags=O_WRONLY; }
+  return Arc::FileOpen(fname.c_str(),flags,config_.User()->get_uid(),config_.User()->get_gid(),0);
+}
+
+Glib::Dir* ARexJob::OpenDir(const std::string& dirname) {
+  if(id_.empty()) return NULL;
+  std::string dname = dirname;
+  if(!normalize_filename(dname)) return NULL;
+  //if(dname.empty()) return NULL;
+  dname = config_.User()->SessionRoot()+"/"+id_+"/"+dname;
+  return Arc::DirOpen(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid());
+}
+

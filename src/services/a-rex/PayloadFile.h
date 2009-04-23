@@ -20,6 +20,8 @@ class PayloadFile: public Arc::PayloadRawInterface {
  public:
   /** Creates object associated with file for reading from it */
   PayloadFile(const char* filename,size_t start = 0,size_t end = (size_t)(-1));
+  /** Creates object associated with file handle for reading or writing to it */
+  PayloadFile(int handle,size_t start = 0,size_t end = (size_t)(-1));
   /** Creates object associated with file for writing into it.
     Use size=-1 for undefined size. */
   PayloadFile(const char* filename,int size);
