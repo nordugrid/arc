@@ -5,6 +5,7 @@
 #endif
 
 #include <string>
+#include <glibmm.h>
 
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
@@ -294,23 +295,33 @@ namespace Arc {
 
     for (int i = 0; datastaging[i]; i++) {
       XMLNode ds = datastaging[i];
-      XMLNode source_uri = ds["Source"]["URI"];
-      XMLNode target_uri = ds["Target"]["URI"];
+      XMLNode source = ds["Source"];
+      XMLNode source_uri = source["URI"];
+      XMLNode target = ds["Target"];
+      XMLNode target_uri = target["URI"];
       XMLNode filenameNode = ds["FileName"];
 
       FileType file;
 
       if (filenameNode) {
         file.Name = (std::string)filenameNode;
-        if (bool(source_uri)) {
+        if (bool(source)) {
           SourceType source;
-          source.URI = (std::string)source_uri;
+          if (bool(source_uri)) {
+            source.URI = (std::string)source_uri;
+          } else {
+            source.URI = "file://"+Glib::build_filename(Glib::get_current_dir(),file.Name);
+          }
           source.Threads = -1;
           file.Source.push_back(source);
         }
-        if (bool(target_uri)) {
+        if ((bool(target)) || ((!target) && (!source))) {
           TargetType target;
-          target.URI = (std::string)target_uri;
+          // TODO: Clear way to specify output files without
+          //   destination is needed
+          if (bool(target_uri)) {
+            target.URI = (std::string)target_uri;
+          }
           target.Threads = -1;
           file.Target.push_back(target);
         }
@@ -467,14 +478,16 @@ namespace Arc {
       if ((*it).Source.size() != 0) {
         std::list<SourceType>::const_iterator it2;
         it2 = ((*it).Source).begin();
+        XMLNode source = datastaging.NewChild("Source");
         if (trim(((*it2).URI).fullstr()) != "")
-          datastaging.NewChild("Source").NewChild("URI") = ((*it2).URI).fullstr();
+          source.NewChild("URI") = ((*it2).URI).fullstr();
       }
       if ((*it).Target.size() != 0) {
         std::list<TargetType>::const_iterator it3;
         it3 = ((*it).Target).begin();
+        XMLNode target = datastaging.NewChild("Target");
         if (trim(((*it3).URI).fullstr()) != "")
-          datastaging.NewChild("Target").NewChild("URI") = ((*it3).URI).fullstr();
+          target.NewChild("URI") = ((*it3).URI).fullstr();
       }
       if ((*it).IsExecutable || (*it).Name == job.Executable)
         datastaging.NewChild("jsdl-arc:IsExecutable") = "true";
