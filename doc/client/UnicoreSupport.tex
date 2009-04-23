@@ -14,19 +14,35 @@
 \begin{document}
 %\maketitle
 \section*{Support for Unicore resource discovery and job submission/management}
-The next generation ARC client library will offer support for discovering grid resource running Unicore middleware and to submit and manage grid jobs (basic functionality) at these resources. This writeup documents the present status of the Unicore support, what is missing and what is the work plan to implement the missing functionality.
+The next generation ARC client library will offer support for discovering grid resource running Unicore middleware and to submit and manage grid jobs (basic functionality) at these resources. This write-up documents the present status of the Unicore support, what is missing and what is the work plan to implement the missing functionality.
 \subsection*{Versions of Unicore supported}
-Text here about the supported versions
+Unicore versions of 6.2 (release, not candiate) and later are supported. Earlier versions are not supported due to incomplete information about the computing resources. Some functionality will still be present for earlier versions but not intentionally. 
 \subsection*{Status of ongoing work}
 \subsubsection*{Resource discovery}
-Resource discovery. Can we find all resources? Are there defaults in the config file? Can we get detailed information from the clusters?
+The Unicore resource discovery starts by asking Unicore index servers for BES interfaces to Unicore execution services. Thereby all resources with a BES interfaces that register with that server are discovered. Presently it is not possible to get detailed information from the cluster, but this will be implemented using the Glue2 enabled information providers in the recent versions of Unicore (6.2 and above).
+
+The new ARC client doesn't come with any default Unicore index servers. Thus, in order to make use of the new ARC client's Unicore interoperability it is required that the user provide the URL to an Unicore index server or Unicore BES interface. 
 \subsubsection*{Job submission and management}
-Can we submit jobs? Can we get jobs? Can we kill jobs?
+The following ARC client commands will be interoperable with Unicore: 
+\begin{itemize}
+\item{\texttt{arcsub, arcstat, arcinfo, arcget, arcclean, arckill, arcresub(sandbox), arcsync and arctest.}} 
+\end{itemize}
+
+These ARC client commands are either not implementable (according to present knowledge of Unicore) or not relevant for Unicore:
+\begin{itemize}
+\item{\texttt{arccat, arcmigrate, arcrenew and arcresume}}
+\end{itemize}
+
+Presently it is possible to use the \texttt{arcsub, arcstat} and \texttt{arcinfo} commands, though with some limited functionality (it is not possible to upload input files and the returned job/cluster job information is sparse). 
 
 \subsection*{Work to be done}
-I guess this section is is to write once the present status is documented. Any depencies? i.e. work that has to be done be others?
+In light of the present status the following to do's can be identified:
 
-\subsection*{Work Plan}
-Assuming that the Unicore work can start fulltime again first week of May. How much time would be needed in order to finalize the work listed above in the work to be done section. What should be done first etc. 
-
+\begin{itemize}
+\item{Retrieve detailed cluster information using the new Glue2 information providers and populate the ARC internal ExecutionTarget with this information. Input/fixes from the Unicore team may be needed.}
+\item{Retrieve detailed job information (similarly to the cluster information).}
+\item{Enable job input files and get the remaining interoperable commands to work. The latter will in many cases only require small fixes to already existing code.}
+\end{itemize}
+\subsection*{Time estimate}
+It is estimated that the remaining work for Unicore interoperability is of the order of 1 PM. Thus if Unicore work can resume again early May the work should be completed early June if everything progresses according to plan.
 \end{document}
