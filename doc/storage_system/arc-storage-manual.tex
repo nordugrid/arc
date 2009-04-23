@@ -71,61 +71,6 @@
 \end{titlepage}
 
 \tableofcontents                          %Comment if use article style
-% \begin{verbatim}
-%     Administrator's and user's manual
-%     ---------------------------------
-% 
-%     Administrator's manual
-%     - Quick start guide
-%         - Checking the code out from the subversion
-%         - Compiling and installing
-%         - Modifying the configuration template
-%         - Running the daemon
-%         - Using the CLI tool
-%     - Installation:
-%         - Getting the source code from subversion
-%         - Compilation details
-%         - Installation
-%     - Configuration:
-%         - HED service config
-%         - Centralized A-Hash
-%         - Distributed A-Hash
-%         - Librarian
-%         - Shepherd
-%         - Hopi
-%         - Bartender
-%         - Configuring inter-service trust: local listing of DNs, or using an A-Hash to store them
-%         - Virtual organizations: how to configure HED to trust a VO
-%     - Deployment scenarios:
-%         - Single node: putting every service on one single node (including a storage node with Hopi)
-%         - Centralized management: using seperate multiple storage nodes with Hopi, but leaving a central A-Hash, a Librarian and a Bartender on the central node
-%         - Simple distribution: split the central node to three nodes, each of them has an A-Hash, a Librarian and a Bartender, and we have separate storage nodes
-%         - One service per node: we have seperate nodes for all the services, any number of A-Hash nodes, any number of Librarian nodes, Bartender nodes, storage nodes
-% 
-%     User's manual
-%     - Overview: what do you need to access a running ARC storage system
-%     - Prototype command line tool
-%         - Configuring the command line tool
-%         - Creating the root collection
-%         - Uploading files
-%         - Creating collections
-%         - Moving files
-%         - Creating hardlinks
-%         - Removing files
-%         - Removing collections
-%         - Close collections
-%         - Modify access policies
-%         - Working with mount points
-%     - Grid jobs
-%         - Configuring the ARC storage DMC
-%         - Specifying files in job descriptions
-%     - Accessing the system with FUSE
-%         - Configuring the FUSE module
-%         - Mounting the storage system
-%         - Supported operations
-%         - Limitations
-%     
-% \end{verbatim}
 
 \newpage
 
@@ -136,7 +81,7 @@
 
 \section{Installing a centralized system} % (fold)
 
-In this section we will follow the installation of the ARC storage system on a freshly installed debian lenny machine. 
+In this section we will follow the installation of the ARC storage system on a freshly installed debian lenny machine.
 
 Get the latest ARC code from the subversion (\verb!http://svn.nordugrid.org/!):
 
@@ -144,7 +89,7 @@ Get the latest ARC code from the subversion (\verb!http://svn.nordugrid.org/!):
 $ svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1
 \end{verbatim}
 
-Let's check the README file for all the dependencies, and install them:
+Let's check the README file for all the dependencies, and install them! We use `aptitude' here, but of course on other linux distribution you may use a different package management software, and the name of the packages may differ as well.
 
 \begin{verbatim}
 $ sudo aptitude install build-essential
@@ -304,7 +249,7 @@ total 8
 -rw------- 1 zsombor zsombor 891 2009-03-19 13:09 userkey.pem
 \end{verbatim}
 
-The storage system runs withen the \verb!arched! hosting environment daemon, which needs a configuration file which describes which services we want to run, and on which ports do we want to listen, etc.
+The storage system runs within the \verb!arched! hosting environment daemon, which needs a configuration file which describes which services we want to run, and on which ports do we want to listen, etc.
 Let's copy the template configuration files to the \verb!/etc/arc! directory:
 
 \begin{verbatim}
@@ -745,11 +690,12 @@ $ arc_storage_cli stat /new-orange | grep neededReplicas
     neededReplicas: 1
 \end{verbatim}
 
-\section{Adding more storage elements}
-
 This version of the \verb!arc_storage_cli! tool currently does not support recursive methods or working with multiple files at once.
 
-Let's add a new storage element to the system. We need to deploy a Shepherd service and a storage element service, which this time will be a `byteio' service. The `byteio' service implements a small part of the ByteIO interface, which means that it just put the entire file data into the SOAP message, so it is only suitable for small files.
+
+\section{Adding more storage elements}
+
+Let's add a new storage element to the system. A new storage element should be on a different physical machine, preferably in a different building to minimize the possibility of both storage elements being offline at the same time. But for testing purposes it is of course possible to run it on the same machine using different ports. We need to deploy a Shepherd service and a storage element service, which this time will be a `byteio' service. The `byteio' service implements a small part of the ByteIO interface, which means that it just put the entire file data into the SOAP message, so it is only suitable for small files.
 
 But first modify the configuration file of our original server. Currently all the transfer URLs which were generated when we upload and download files contained the hostname `localhost'. This is not OK if we want to access it from an other machine, we should provide transfer URLs which contains the external hostname of the machine. So lets change this line in \verb!/etc/arc/storage_service.xml!:
 
@@ -1128,7 +1074,7 @@ One of the replicas have been disappeared to maintain the needed number of 2.
 
 Now we have a deployement, where one machine has the A-Hash, Librarian and Bartender services, and all three machines have a Shepherd and a storage element service. The A-Hash service stores all the metadata of all the files and collections, so it is critical. If the first machine goes offline then the whole system dies. We can deploy the A-Hash service on all the machines and still can have one consistent metadata database. The replicated version of the A-Hash uses the Berkeley DB to provide a distributed database.
 
-Let's install Berkeley DB as root (but you can use the \verb!--prefix! option of \verb!configure! to install it somewhere else than the default location).
+Let's install Berkeley DB as root (but you can use the \verb!--prefix! option of \verb!configure! to install it somewhere else than the default location). This should be done on all the machines:
 
 Get the latest Berkeley DB and its patches:
 \begin{verbatim}
@@ -1188,7 +1134,7 @@ Ran 383 tests in 29.858s
 OK
 \end{verbatim}
 
-Let's configure the our first server (\verb!storage!). Here is the AHash part of the config:
+Let's configure our first server (\verb!storage!). Here is the AHash part of the config:
 
 \begin{verbatim}
 <Service name="pythonservice" id="ahash">
@@ -1202,7 +1148,7 @@ Let's configure the our first server (\verb!storage!). Here is the AHash part of
 </Service>
 \end{verbatim}
 
-In this config we specify the second server as a peer. Let's configure the second server as well:
+In this config we specify the second server as a peer. Let's configure the second server (\verb!storage2!) as well:
 
 \begin{verbatim}
 <Plexer name="plexer.service" id="plexer">
@@ -1221,7 +1167,7 @@ In this config we specify the second server as a peer. Let's configure the secon
 </Service>
 \end{verbatim}
 
-In this config we specify the first server as a peer. So the two together will be able to form a replicated network with two nodes. But let's configure the thirs one:
+In this config we specify the first server as a peer. So the two together will be able to form a replicated network with two nodes. But let's configure the third one (\verb!storage3!):
 
 \begin{verbatim}
 <Plexer name="plexer.service" id="plexer">
@@ -1241,7 +1187,7 @@ In this config we specify the first server as a peer. So the two together will b
 
 Here we specify the first server as the peer.
 
-It is important that we need to make a fresh start, and remove the existing database, which was created by a different store:
+It is important that we need to make a fresh start on all the servers, and remove the existing database, which was created by a different store:
 \begin{verbatim}
 $ sudo rm -r /var/spool/arc/*
 \end{verbatim}
@@ -1463,7 +1409,7 @@ zsombor@storage:~$ arc_storage_cli -v stat /orange
 \section{Accessing external storage solutions} % (fold)
 \label{sec:using_the_gateway}
 
-If we have permissions to access some third-party storage solutions (e.g. dCache), we can create a mount point within the namespace of the ARC storage system which points to a third-party URL, and then we can use the client interface of the ARC storage to access the third-party storage as well. This is achieved by a module of the Bartender, called the `Gateway'. Currently only GridFTP access is supported, and for that we need to install the Globus libraries to our machines. Then we need to recompile our source for GridFTP support. The output of the \verb!configure! script should look like this:
+If we have permissions to access some third-party storage solutions (e.g. dCache via the GridFTP protocol), we can create a mount point within the namespace of the ARC storage system which points to a third-party URL, and then we can use the client interface of the ARC storage to access the third-party storage as well. This is achieved by a module of the Bartender, called the `Gateway'. Currently only GridFTP access is supported, and for that we need to install the Globus libraries to our machines. Then we need to recompile our source for GridFTP support. The output of the \verb!configure! script should look like this:
 
 \begin{verbatim}
     Available third-party features:
@@ -1679,7 +1625,7 @@ everything is owned by the user that mounts the system.
    catfish
    $ cat fish
    catfish
-   $ cp fish fisk2
+   $ cp fish fish2
    $ ls -la
    drwxr-xr-x 5 me users  0 1970-01-01 01:00 .
    drwxr-xr-x 3 me users  0 1970-01-01 01:00 ..
