@@ -5,6 +5,8 @@
 
 #include <glibmm/thread.h>
 
+#include <arc/User.h>
+
 namespace Arc {
   /// This module provides convenient helpers for Glibmm interface for thread management.
   /** So far it takes care of automatic initialization
@@ -28,6 +30,7 @@ namespace Arc {
     Glib::Thread *thr = NULL; \
     /* ThreadLock.lock(); */ \
     try { \
+      UserSwitch usw(0,0); \
       thr = Glib::Thread::create(sigc::mem_fun((instance), &method), false); \
     } catch (std::exception& e) {}; \
     /* ThreadLock.unlock(); */ \

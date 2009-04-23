@@ -49,6 +49,7 @@ namespace Arc {
     ThreadArgument *argument = new ThreadArgument(func, arg);
     /* ThreadLock.lock(); */
     try {
+      UserSwitch usw(0,0);
       // TODO. Who is going to destroy created object? Check for memory leaks.
       Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),
                            thread_stacksize, false, false,

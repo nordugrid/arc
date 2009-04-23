@@ -268,9 +268,9 @@ static Glib::Mutex suid_lock;
 
   UserSwitch::~UserSwitch(void) {
     if(valid) {
-      suid_lock.unlock();
       if(old_uid != geteuid()) seteuid(old_uid);
       if(old_gid != getegid()) setegid(old_gid);
+      suid_lock.unlock();
     };
   }
 #else
