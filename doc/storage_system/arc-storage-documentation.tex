@@ -100,7 +100,7 @@ Chelonia is a distributed system for storing replicated \emph{file}s on several 
 The storage system is capable of storing files which can be grouped in collections and sub-collections, etc.
 Every file and collection has a unique ID in the system called the \emph{GUID}. Compared to the well-known structure of local file systems, these GUID's are very similar to the concept of \emph{inode}s. And as a directory on a local filesystem is basically just a list of name and inode pairs, a collection in Chelonia is just a list of name and GUID pairs. There is a dedicated collection which is the \emph{root collection}. This makes the namespace of Chelonia a hierarchical namespace where you can start at the root collection, and go to sub-collections and sub-sub-collections to get to a file. This path is called the \emph{Logical Name} (LN). For example if there is a sub-collection called \verb!saturn! in the root collection, and there is a file called \verb!rings! in this sub-collection, then the LN of this file is \verb!/saturn/rings!.
 
-In addition to the Logical Names we can refer to a file or collection simply by its GUID, or we can use GUID's and Logical Names together, as seen in Figure~\ref{fig:namespace}.
+In addition to the Logical Names a file or collection can be refered to simply by its GUID, or you can use GUID's and Logical Names together, as seen in Figure~\ref{fig:namespace}.
 
 The full syntax of Logical Names is \verb#/[path]# or \verb#<GUID>[/<path>]# where [...] indicates optional parts.
 
@@ -109,7 +109,7 @@ The full syntax of Logical Names is \verb#/[path]# or \verb#<GUID>[/<path>]# whe
 \caption{\label{fig:namespace}Example of the hierarchy of the global namespace} }
 \end{figure}
 
-An example of the hierarchy of the global namespace is shown in Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then we can refer to this file with the Logical Name \verb#1234/green/orange/huge#, which means that from the collection called \verb!1234! we have to follow along the path: \verb!green!, \verb!orange!, \verb!huge!.
+An example of the hierarchy of the global namespace is shown in Figure~\ref{fig:namespace}: if you have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then you can refer to this file with the Logical Name \verb#1234/green/orange/huge#, which means that from the collection called \verb!1234! you have to follow along the path: \verb!green!, \verb!orange!, \verb!huge!.
 
 There is a dedicated root collection (which has the GUID \verb#0#), and if a LN starts without a GUID prefix, it is implicitly prefixed with the GUID of the root collection, e.g.~\verb#/why/blue# means \verb#0/why/blue#. If a user wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, a concept very similar to a hardlink in a regular local (POSIX-like) file system.
 
@@ -161,7 +161,7 @@ The Shepherd service manages the storage element service on the storage node. It
 \section{Security} % (fold)
 \label{sec:security}
 
-Chelonia consists of several services (both different kinds of services and multiple instances of the same kind). The A-Hash, Librarian and Shepherd services are `internal' services in the sense that the end-user of the storage system never communicates with them directly. But these internal services are communicating with each other, thus they have to know which other services to trust. We call this aspect of the security architecture of Chelonia `inter-service authorization'.
+Chelonia consists of several services (both different kinds of services and multiple instances of the same kind). The A-Hash, Librarian and Shepherd services are `internal' services in the sense that the end-user of the storage system never communicates with them directly. But these internal services are communicating with each other, thus they have to know which other services to trust. This aspect of the security architecture of Chelonia is called `inter-service authorization'.
 
 The end users always connect to one of the Bartender services, which will decide which permissions the user has. This is the `high-level authorization' part of the security architecture.
 
@@ -185,7 +185,7 @@ The Librarian component of Chelonia manages all the metadata about files and col
 
 This contains a list of actions, each prefixed with a \verb!+! or \verb!-! character which indicates that the given action is allowed or not allowed for the given DN.
 
-Besides specifying only one user with a DN, there are other types of access control rules: we can have a rule for a whole VO (Virtual Organization) or for all users, like this:
+Besides specifying only one user with a DN, there are other types of access control rules. For example, you can have a rule for a whole VO (Virtual Organization) or for all users, like this:
 
 \begin{verbatim}
     VOMS:knowarc.eu +action -action 
@@ -211,7 +211,7 @@ Additionally, each file and collection has an `owner' which is a user who always
 \subsection{Transfer-level authorization} % (fold)
 \label{sub:transfer_level_authorization}
 
-Currently the transfer-level authorization is very simple. When the Bartender decides that a user has permission to download a file, then the Bartender chooses a replica, and initiates the transfer. The result of this initiation is the transfer URL (TURL). This TURL is unique for each request, even for requests for the same replica, and this TURL is only valid for one download. Currently we configure the storage element services to not do any authorization, and we use these one-time TURL's to ensure that only authorized users can access the contents of the storage elements. 
+Currently the transfer-level authorization is very simple. When the Bartender decides that a user has permission to download a file, then the Bartender chooses a replica, and initiates the transfer. The result of this initiation is the transfer URL (TURL). This TURL is unique for each request, even for requests for the same replica, and this TURL is only valid for one download. Currently the storage element services are  configured to not do any authorization, and these one-time TURL's are used to ensure that only authorized users can access the contents of the storage elements. 
 
 % subsection transfer_level_authorization (end)
 
@@ -281,7 +281,7 @@ Here, the user wants to create a new (empty) collection as sub-collection of \ve
 \begin{enumerate}
     \item The client tool contacts a Bartender and send a `makeCollection' request with the LN \verb!/ourvo/common/docs!.
     \item The Bartender asks a Librarian to traverse this LN.
-    \item The Librarian tries to traverse the Logical Name and it stops at the last possible point and returns the metadata of the last element. Because the user wants to put his collection in a new path but into an existing collection, we expect that only the \verb#/ourvo/common# part of the LN can be traversed. If the Librarian can traverse the whole LN it means that there is already an existing file or collection by that name. If LN does not exist but the the parent collection does, then the parent collection's metadata is returned to the Bartender. 
+    \item The Librarian tries to traverse the Logical Name and it stops at the last possible point and returns the metadata of the last element. Because the user wants to put his collection in a new path but into an existing collection, only the \verb#/ourvo/common# part of the LN is expected to be traversed. If the Librarian can traverse the whole LN it means that there is already an existing file or collection by that name. If LN does not exist but the the parent collection does, then the parent collection's metadata is returned to the Bartender. 
     \item The Bartender checks the access policies to decide if the user has permissions to put something into this collection. Then it asks the Librarian to create a new collection.
     \item The Librarian creates the collection, and returns its GUID. At this point this new collection has no real Logical Name, it only has a GUID, but it is not yet put into its parent collection.
     \item The Bartender now asks the Librarian to add this new entry into the parent collection, which means that the new GUID and the name \verb!docs! are added as a pair.
@@ -362,7 +362,7 @@ The storage system stores different kinds of metadata about files, collections, 
 
 The A-Hash services provide a functionality to store `objects', where each object has a unique ID, and contains property-value pairs organized in sections. The properties, the values and the section names are simple character strings. The A-Hash services provide a simple interface to interact with these objects, e.g.~to do conditional and atomic changes.
 
-The Librarian services use the A-Hash services to store the metadata, using the GUID's as unique ID's. For this, we have to represent the metadata as property-value pairs organized in section. The files, the collections and the mount points have some common attributes: the GUID, the type and the owner which are in the \emph{entry} section; the creation and modification timestamps in the \emph{timestamps} section, a list of access control rules in the \emph{policy} section; the list of parent collections where this entry has a `hardlink' in the \emph{parents} section; and optional, arbitrary property-value pairs in the \emph{metadata} section.
+The Librarian services use the A-Hash services to store the metadata, using the GUID's as unique ID's. For this, the metadata have to be represented as property-value pairs organized in section. The files, the collections and the mount points have some common attributes: the GUID, the type and the owner which are in the \emph{entry} section; the creation and modification timestamps in the \emph{timestamps} section, a list of access control rules in the \emph{policy} section; the list of parent collections where this entry has a `hardlink' in the \emph{parents} section; and optional, arbitrary property-value pairs in the \emph{metadata} section.
 
 \begin{description}
     \item [entry] section 
@@ -393,7 +393,7 @@ The Librarian services use the A-Hash services to store the metadata, using the 
 \subsection{Files} % (fold)
 \label{sub:files}
 
-A file in Chelonia has a logical entry in the namespace, and one or more physical replicas on the storage nodes. We store the locations of the replicas in the \emph{locations} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state is `\textbf{alive}' if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy, `\textbf{invalid}' if the replica has wrong checksum, or the Shepherd claims it has no such file, `\textbf{offline}' if the Shepherd is not reachable, but may have a valid replica, `\textbf{creating}' if the replica is in the state of uploading, `\textbf{thirdwheel}' if the replica is marked for deletion because of too many replicas, or `\textbf{stalled}' if the the replica was in the state of uploading for a long time but hasn't arrived. The \emph{states} section contains the size of the file, the number of required replicas, and a checksum of the file, which is created by some kind of checksumming algorithm (currently only md5 is supported).
+A file in Chelonia has a logical entry in the namespace, and one or more physical replicas on the storage nodes. The locations of the replicas have to be stored in the \emph{locations} section. A location contains the URL of the Shepherd service, the local ID of the file within the storage node and the state of the replica. This state is `\textbf{alive}' if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy, `\textbf{invalid}' if the replica has wrong checksum, or the Shepherd claims it has no such file, `\textbf{offline}' if the Shepherd is not reachable, but may have a valid replica, `\textbf{creating}' if the replica is in the state of uploading, `\textbf{thirdwheel}' if the replica is marked for deletion because of too many replicas, or `\textbf{stalled}' if the the replica was in the state of uploading for a long time but hasn't arrived. The \emph{states} section contains the size of the file, the number of required replicas, and a checksum of the file, which is created by some kind of checksumming algorithm (currently only md5 is supported).
 
 \begin{description}
     \item [locations] section 
@@ -419,7 +419,7 @@ A file in Chelonia has a logical entry in the namespace, and one or more physica
 \subsection{Collections} % (fold)
 \label{sub:collections}
 
-A \emph{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-like hierarchy (with possible interconnection due to hardlinks). Each entry has a unique name within a collection and a GUID which points to a corresponding file or collection, so a collection is basically a list of name-GUID pairs, which list is stored in the \emph{entries} section (see below). The collections can be in a closed state, which means that its contents should not be changed. If you close a collection then it cannot be opened again. However it cannot be guaranteed that the contents of a closed collection remains the same (e.g. if we include in our collection a file which we don't own, then the owner of the file can still remove it), but if a closed collection is changed, its state will be broken, and this state can never be changed again, which means you will always know if a closed collection is not intact anymore. This state is stored in the \emph{states} section, and its possible values are `\textbf{no}' if the collection is not closed, `\textbf{yes}' if the collection is closed and `\textbf{broken}' if the collection was closed, but something happened, and its contents have been changed.
+A \emph{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-like hierarchy (with possible interconnection due to hardlinks). Each entry has a unique name within a collection and a GUID which points to a corresponding file or collection, so a collection is basically a list of name-GUID pairs, which list is stored in the \emph{entries} section (see below). The collections can be in a closed state, which means that its contents should not be changed. If you close a collection then it cannot be opened again. However it cannot be guaranteed that the contents of a closed collection remains the same (e.g. if a user include in his collection a file which he does not own, then the owner of the file can still remove it), but if a closed collection is changed, its state will be broken, and this state can never be changed again, which means you will always know if a closed collection is not intact anymore. This state is stored in the \emph{states} section, and its possible values are `\textbf{no}' if the collection is not closed, `\textbf{yes}' if the collection is closed and `\textbf{broken}' if the collection was closed, but something happened, and its contents have been changed.
 
 \begin{description}
     \item [entries] section 
@@ -500,7 +500,7 @@ Then for each rule there is list of actions, each action is either allowed or de
 
 When there is an incoming connection to a Bartender, the security framework of the HED extracts the identity information of the connecting client (DN of client, DN of the issuer CA, extended attributes, etc.), and all this information is accessible by the Bartender. When the given method of the Bartender gets to the point where the access rules are present, and it is clear that what kind of action the user wants to do, then both the request and the policy are converted to the native ARC policy language, and then the policy evaluator of the security framework is called to make the decision. The native ARC policy language defines attribute types for attributes within requests and policies. The XML representation of an ARC policy or request contains several `Attribute' elements, each have a type and a value. The storage actions are also put into Attribute elements with the type `\verb!http://www.nordugrid.org/schemas/policy-arc/types/storage/action!'.
 
-For inter-service authorization the services can be configured to only accept connections from trusted services. A service is trusted if we know its DN. For each service we can write trusted DN's in the configuration, or we can periodically get the list from an A-Hash. This can be configured with a `\emph{TrustManager}' section in the service configuration, which contains these entries:
+For inter-service authorization the services can be configured to only accept connections from trusted services. A service is trusted if its DN is known. For each service the trusted DN's can be inserted to the configuration, or the list can periodically be retrieved from an A-Hash. This can be configured with a `\emph{TrustManager}' section in the service configuration, which contains these entries:
 
 \begin{description}
     \item[DN] is a trusted DN
@@ -508,7 +508,7 @@ For inter-service authorization the services can be configured to only accept co
     \item[DNsFromAHash] is a list of A-Hash URL's (in \textbf{AHashURL}) from where a list of trusted DN's are periodically obtained (there can be multiple A-Hash URL's listed here in case of one is offline). The following attributes are obtained: \textbf{CheckingInterval} specifies how frequently the list from the A-Hash should be updated (default: 600 seconds); \textbf{ID} specifies the GUID where the list is stored (default: `3').
 \end{description}
 
-The TrustManager section itself have the following optional attributes: \textbf{FromFile} can specify a filename if we want to get the whole TrustManager configuration from a separate file; and \textbf{Force} indicates (with `yes' or `no', default: `yes') that we want to ensure that our service does not even get the request if the client of the incoming connection is not trusted. 
+The TrustManager section itself have the following optional attributes: \textbf{FromFile} can specify a filename if the whole TrustManager configuration should be taken from a separate file; and \textbf{Force} indicates (with `yes' or `no', default: `yes') that you want to ensure that your service does not even get the request if the client of the incoming connection is not trusted. 
 
 Example TrustManager configuration:
 
@@ -566,7 +566,7 @@ Given an ID, the \emph{get} method returns property-value pairs of the correspon
     The \emph{changeRequestList} is a list of \emph{changeRequest}s, where a \emph{changeRequest} is a tuple of (\emph{changeID}, \emph{ID}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}, \emph{conditionList}):
 \begin{itemize}
 \item \emph{changeID} is an arbitrary ID which is used in the response to refer to this part of the request
-\item \emph{ID} points to the object we want to change
+\item \emph{ID} points to the object to be change
 \item \emph{changeType} can be `\textbf{set}' to set the property within the section to value, `\textbf{unset}' to remove the property from the section regardless of the value, `\textbf{delete}' to remove the whole object
 \item \emph{conditionList} is a list of \emph{condition}s, where a \emph{condition} is a tuple of (\emph{conditionID}, \emph{conditionType}, \emph{section}, \emph{property}, \emph{value}), where \emph{conditionType} can be `\textbf{is}' which will be true if the property in the section is set to the value, `\textbf{isnot}' which will be true if the property in the section is not set to the value, `\textbf{isset}' which will be true if the property of the section is set regardless of the value or `\textbf{unset}' which will be true if the property of the section is not set at all.
 \end{itemize}
@@ -687,7 +687,7 @@ The end-user of Chelonia never communicates directly with a Librarian, the Barte
     \item[new(newRequestList)] creates a new entry in the Librarian with the given metadata, and returns the GUID's of the new entries.
     
     The \emph{newRequestList} is a list of (\emph{requestID}, \emph{metadataList}) where \emph{requestID} is an arbitrary ID used to identify this request in the list of responses; \emph{metadataList} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
-    This method generates a \emph{GUID} for each request, and inserts the new entry (with the given metadata) into the A-Hash, then returns the GUID's of the newly created entries. In the metadata of the new entry the `type' property in the `entry' section defines whether it is a file, a collection or a mount point. The `GUID' property can contain a GUID if we want to specify the GUID of the new entry, and don't want the Librarian to generate a random one.
+    This method generates a \emph{GUID} for each request, and inserts the new entry (with the given metadata) into the A-Hash, then returns the GUID's of the newly created entries. In the metadata of the new entry the `type' property in the `entry' section defines whether it is a file, a collection or a mount point. The `GUID' property can contain a GUID if you want to specify the GUID of the new entry, and don't want the Librarian to generate a random one.
     
     The response contains a list of (\emph{requestID}, \emph{GUID}, \emph{success}) tuples.
     
