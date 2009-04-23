@@ -93,6 +93,13 @@ Also in this case the
 .B --long
 option can be used to obtain more detailed information.
 
+Previously the 
+.B arcstat
+command was also used to query information of clusters and/or index servers.
+This functionality have been moved to the new command
+.B arcinfo
+.
+
 .SH FILES
 
 .TP
