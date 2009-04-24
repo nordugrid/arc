@@ -342,14 +342,7 @@ namespace Arc {
   DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve, bool metadata) {
 
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
     ClientHTTP client(cfg, url);
 
     PayloadRaw request;
@@ -461,14 +454,7 @@ namespace Arc {
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
@@ -529,14 +515,7 @@ namespace Arc {
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;

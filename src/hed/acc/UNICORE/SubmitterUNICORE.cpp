@@ -32,14 +32,7 @@ namespace Arc {
 
   bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, XMLNode& info) const {
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
 
     logger.msg(INFO, "Creating client chain for UNICORE BES service");
     ClientSOAP client(cfg, submissionEndpoint);

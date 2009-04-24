@@ -108,9 +108,17 @@ namespace Arc {
      */
     bool migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate = false);
 
-
-
     bool resume(const std::string& jobid);
+
+    //! Create a activity identifier.
+    /*! This is a convenience method to construct a activity identifier used
+       in BES requests.
+
+       @param jobid The URL of the job to construct the activity identifier from.
+       @param activityIdentifier The created activity identifier will be stored
+              in this object.
+     */
+    static void createActivityIdentifier(const URL& jobid, std::string& activityIdentifier);
 
     ClientSOAP* SOAP(void) {
       return client;

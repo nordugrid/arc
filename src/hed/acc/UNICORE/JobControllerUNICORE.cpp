@@ -30,17 +30,11 @@ namespace Arc {
   }
 
   void JobControllerUNICORE::GetJobInformation() {
+    MCCConfig cfg;
+    ApplySecurity(cfg);
+    
     for (std::list<Job>::iterator iter = jobstore.begin();
          iter != jobstore.end(); iter++) {
-      MCCConfig cfg;
-      if (!proxyPath.empty())
-        cfg.AddProxy(proxyPath);
-      if (!certificatePath.empty())
-        cfg.AddCertificate(certificatePath);
-      if (!keyPath.empty())
-        cfg.AddPrivateKey(keyPath);
-      if (!caCertificatesDir.empty())
-        cfg.AddCADir(caCertificatesDir);
       URL url(iter->Cluster);
       XMLNode id(iter->AuxInfo);
       ClientSOAP client(cfg, url);
@@ -124,14 +118,7 @@ namespace Arc {
 
   bool JobControllerUNICORE::CleanJob(const Job& job, bool force) {
     //     MCCConfig cfg;
-    //     if (!proxyPath.empty())
-    //       cfg.AddProxy(proxyPath);
-    //     if (!certificatePath.empty())
-    //       cfg.AddCertificate(certificatePath);
-    //     if (!keyPath.empty())
-    //       cfg.AddPrivateKey(keyPath);
-    //     if (!caCertificatesDir.empty())
-    //       cfg.AddCADir(caCertificatesDir);
+    //     ApplySecurity(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
     //     URL url(job.JobID);
     //     url.ChangePath(*pi);
@@ -154,14 +141,7 @@ namespace Arc {
 
   bool JobControllerUNICORE::CancelJob(const Job& job) {
     //     MCCConfig cfg;
-    //     if (!proxyPath.empty())
-    //       cfg.AddProxy(proxyPath);
-    //     if (!certificatePath.empty())
-    //       cfg.AddCertificate(certificatePath);
-    //     if (!keyPath.empty())
-    //       cfg.AddPrivateKey(keyPath);
-    //     if (!caCertificatesDir.empty())
-    //       cfg.AddCADir(caCertificatesDir);
+    //     ApplySecurity(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
     //     URL url(job.JobID);
     //     url.ChangePath(*pi);

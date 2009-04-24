@@ -28,14 +28,7 @@ namespace Arc {
 
   bool SubmitterCREAM::Submit(const JobDescription& jobdesc, XMLNode& info) const {
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
     std::string delegationid = UUID();
     URL delegationurl(submissionEndpoint);
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");

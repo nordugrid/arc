@@ -65,14 +65,7 @@ namespace Arc {
 
   DataStatus DataPointARC::ListFiles(std::list<FileInfo>& files, bool, bool, bool) {
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
 
     Arc::ClientSOAP client(cfg, bartender_url);
     std::string xml;
@@ -168,14 +161,7 @@ namespace Arc {
     reading = true;
     buffer = &buf;
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
 
     // get TURL from bartender
     Arc::ClientSOAP client(cfg, bartender_url);
@@ -262,14 +248,7 @@ namespace Arc {
     buffer = &buf;
     chksum_index = buffer->add(md5sum);
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
 
     // get TURL from bartender
     Arc::ClientSOAP client(cfg, bartender_url);
@@ -367,14 +346,7 @@ namespace Arc {
     logger.msg(Arc::DEBUG, "Calculated checksum: %s", md5str);
 
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
 
     // get TURL from bartender
     Arc::ClientSOAP client(cfg, bartender_url);
@@ -431,14 +403,7 @@ namespace Arc {
 
   DataStatus DataPointARC::Remove() {
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
+    ApplySecurity(cfg);
 
     Arc::ClientSOAP client(cfg, bartender_url);
     std::string xml;

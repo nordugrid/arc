@@ -5,6 +5,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/loader/Plugin.h>
+#include <arc/message/MCC.h>
 
 namespace Arc {
 
@@ -17,6 +18,20 @@ namespace Arc {
     const std::string& Flavour() {
       return flavour;
     }
+
+    //!Apply authentication credentials
+    /*! This method applies the member credentials to the passed MCCConfig
+        object reference.
+     
+       @param cfg The member credentials are applied to this object reference.
+     */
+    void ApplySecurity(MCCConfig& cfg) const {
+      cfg.AddProxy(proxyPath);
+      cfg.AddCertificate(certificatePath);
+      cfg.AddPrivateKey(keyPath);
+      cfg.AddCADir(caCertificatesDir);
+    }
+    
   protected:
     std::string flavour;
     std::string proxyPath;
