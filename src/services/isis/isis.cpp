@@ -9,6 +9,7 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/Thread.h>
+#include <arc/Utils.h>
 
 #include "isis.h"
 #ifdef WIN32
@@ -19,20 +20,22 @@ namespace ISIS
 {
 static Arc::Logger thread_logger(Arc::Logger::rootLogger, "ISIS_Thread");
 
-struct Thread_data {
-   Arc::ISIS_description isis;
-   Arc::XMLNode node;
+class Thread_data {
+    public:
+        Arc::ISIS_description isis;
+        Arc::XMLNode node;
 };
 
-static void message_send_thread(void *data) {
-    std::string url = ((ISIS::Thread_data *)data)->isis.url;
+static void message_send_thread(void *arg) {
+    Arc::AutoPointer<ISIS::Thread_data> data((ISIS::Thread_data*)arg);
+    if(!data) return;
+    std::string url = data->isis.url;
     if ( url.empty() ) {
        thread_logger.msg(Arc::ERROR, "Empty URL add to the thread.");
        return;
     }
     if ( !bool(((ISIS::Thread_data *)data)->node) ) {
        thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
-       return;
     }
     std::string node_str;
     (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
@@ -61,14 +64,15 @@ static void message_send_thread(void *data) {
 
     req.NewChild(((ISIS::Thread_data *)data)->node);
     Arc::MCC_Status status;
-    thread_logger.msg(Arc::DEBUG, " Request sent to %s. Waiting for the response.", url );
+    thread_logger.msg(Arc::DEBUG, " Sending request to %s and waiting for the response.", url );
     status= client_entry.process(&req,&response);
 
-    if (!status.isOk()) {
+    if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
        thread_logger.msg(Arc::ERROR, "%s Request failed", url);
-       return;
+    } else {
+      thread_logger.msg(Arc::DEBUG, "Status (%s): OK",url );
     };
-    thread_logger.msg(Arc::DEBUG, "Status (%s): OK",url );
+    if(response) delete response;
 
 }
 
@@ -94,16 +98,18 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description>& nei
     return;
 }
 
-struct Soft_State {
-   std::string function;
-   int sleep;
-   std::string query;
-   Arc::XmlDatabase* database;
+class Soft_State {
+    public:
+        std::string function;
+        int sleep;
+        std::string query;
+        Arc::XmlDatabase* database;
 };
 
 
 static void soft_state_thread(void *data) {
-    Soft_State *self = (Soft_State *)data;
+    Arc::AutoPointer<Soft_State> self((Soft_State *)data);
+    if(!self) return;
     std::string method = self->function;
     unsigned int sleep_time = self->sleep; //seconds
     std::string query_string = self->query;
@@ -180,6 +186,7 @@ static void soft_state_thread(void *data) {
         endpoint_=(std::string)((*cfg)["endpoint"]);
         expiration_=(std::string)((*cfg)["expiration"]);
 
+        // TODO: Make location of log configurable
         log_destination.open("/storage/arc1/log/isis.log");
         log_stream = new Arc::LogStream(log_destination);
         thread_logger.addDestination(*log_stream);
@@ -294,6 +301,7 @@ static void soft_state_thread(void *data) {
     }
 
     ISIService::~ISIService(void){
+        // TODO: First stop soft-state and message threads
         logger_.removeDestinations();
         thread_logger.removeDestinations();
         delete log_stream;
