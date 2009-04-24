@@ -129,7 +129,6 @@ int main(int argc, char **argv) {
   if (!usercfg.CheckProxy())
     return 1;
 
-  // i.e we are looking for the status of jobs
   if (jobs.empty() && joblist.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
