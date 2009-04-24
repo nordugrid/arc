@@ -1,12 +1,12 @@
-#ifndef __ARC_SERVICE_PYTHON_WRAPPER_H__
+#ifndef __ARC_SERVICE_PYTHON_WRAPPER_H_
 #define __ARC_SERVICE_PYTHON_WRAPPER_H__
 
 #include <Python.h>
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/Logger.h>
 
 namespace Arc {
-class Service_PythonWrapper: public Arc::Service {
+class Service_PythonWrapper: public Arc::RegisteredService {
     protected:
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
         static Arc::Logger logger;
@@ -27,3 +27,4 @@ class Service_PythonWrapper: public Arc::Service {
 } // namespace Arc
 
 #endif // __ARC_SERVICE_PYTHON_WRAPPER_H__
+

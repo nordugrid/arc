@@ -1,4 +1,4 @@
-// based on: 
+// based on:
 // http://www.codeproject.com/cpp/embedpython_1.asp
 // http://coding.derkeiler.com/Archive/Python/comp.lang.python/2006-11/msg01211.html
 #ifdef HAVE_CONFIG_H
@@ -25,20 +25,20 @@ typedef void *(*swig_converter_func)(void *);
 typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
 typedef struct swig_type_info {
-  const char             *name;			/* mangled name of this type */
-  const char             *str;			/* human readable name of this type */
-  swig_dycast_func        dcast;		/* dynamic cast function down a hierarchy */
-  struct swig_cast_info  *cast;			/* linked list of types that can cast into this type */
-  void                   *clientdata;		/* language specific type data */
-  int                    owndata;		/* flag if the structure owns the clientdata */
+  const char             *name;         /* mangled name of this type */
+  const char             *str;          /* human readable name of this type */
+  swig_dycast_func        dcast;        /* dynamic cast function down a hierarchy */
+  struct swig_cast_info  *cast;         /* linked list of types that can cast into this type */
+  void                   *clientdata;   /* language specific type data */
+  int                    owndata;       /* flag if the structure owns the clientdata */
 } swig_type_info;
 
 /* Structure to store a type and conversion function used for casting */
 typedef struct swig_cast_info {
-  swig_type_info         *type;			/* pointer to type that is equivalent to this type */
-  swig_converter_func     converter;		/* function to cast the void pointers */
-  struct swig_cast_info  *next;			/* pointer to next cast in linked list */
-  struct swig_cast_info  *prev;			/* pointer to the previous cast */
+  swig_type_info         *type;         /* pointer to type that is equivalent to this type */
+  swig_converter_func     converter;    /* function to cast the void pointers */
+  struct swig_cast_info  *next;         /* pointer to next cast in linked list */
+  struct swig_cast_info  *prev;         /* pointer to the previous cast */
 } swig_cast_info;
 
 typedef struct {
@@ -72,7 +72,7 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
 static PyThreadState *tstate = NULL;
 static int python_service_counter = 0;
 static Glib::Mutex service_lock;
-Arc::Logger Arc::Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
+Arc::Logger Arc::Service_PythonWrapper::logger(RegisteredService::logger, "PythonWrapper");
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
@@ -85,7 +85,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     ::dlopen(((Arc::PluginsFactory*)(*ctx))->findLocation("pythonservice").c_str(),RTLD_NOW | RTLD_GLOBAL);
 #endif
 
-    service_lock.lock();    
+    service_lock.lock();
     // Initialize the Python Interpreter
     if (!Py_IsInitialized()) {
         Py_InitializeEx(0); // python does not handle signals
@@ -104,8 +104,8 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     }
     python_service_counter++;
     Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Loading %u-th Python service", python_service_counter);
-    service_lock.unlock();    
-    Arc::Service* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg));
+    service_lock.unlock();
+    Arc::RegisteredService* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg));
     PyEval_ReleaseThread(tstate); // Release current thread
     Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Initialized %u-th Python service", python_service_counter);
     return service;
@@ -118,7 +118,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace Arc {
 
-Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg) 
+Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService(cfg)
 {
     PyObject *py_module_name = NULL;
     PyObject *py_arc_module_name = NULL;
@@ -129,14 +129,14 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *py_cfg = NULL;
 
     initialized = false;
- 
+
     if (tstate == NULL) {
         logger.msg(Arc::ERROR, "Main python thread is not initialized");
         return;
     }
     //PyEval_AcquireThread(tstate);
 
-    std::string path = (std::string)(*cfg)["ClassName"];    
+    std::string path = (std::string)(*cfg)["ClassName"];
     std::size_t p = path.rfind(".");
     if (p == std::string::npos) {
         logger.msg(Arc::ERROR, "Invalid class name");
@@ -146,7 +146,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     std::string class_name = path.substr(p+1, path.length());
     logger.msg(Arc::DEBUG, "class name: %s", class_name);
     logger.msg(Arc::DEBUG, "module name: %s", module_name);
-    
+
     // Convert module name to Python string
     py_module_name = PyString_FromString(module_name.c_str());
     if (py_module_name == NULL) {
@@ -167,7 +167,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         return;
     }
     Py_DECREF(py_module_name);
-    
+
     // Import ARC python wrapper
     py_arc_module_name = PyString_FromString("arc");
     if (py_arc_module_name == NULL) {
@@ -177,7 +177,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         }
         return;
     }
-    
+
     // Load arc module
     arc_module = PyImport_Import(py_arc_module_name);
     if (arc_module == NULL) {
@@ -189,7 +189,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         return;
     }
     Py_DECREF(py_arc_module_name);
-    
+
     arc_dict = PyModule_GetDict(arc_module);
     if (arc_dict == NULL) {
         logger.msg(Arc::ERROR, "Cannot get dictionary of arc module");
@@ -198,8 +198,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         }
         return;
     }
-    
-    // Get the arc config class 
+
+    // Get the arc config class
     arc_cfg_klass = PyDict_GetItemString(arc_dict, "Config");
     if (arc_cfg_klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find arc Config class");
@@ -208,15 +208,15 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         }
         return;
     }
-    
+
     // check is it really a class
     if (!PyCallable_Check(arc_cfg_klass)) {
         logger.msg(Arc::ERROR, "Config klass is not an object");
         return;
     }
-    
+
     // Get dictionary of module content
-    // dict is a borrowed reference 
+    // dict is a borrowed reference
     dict = PyModule_GetDict(module);
     if (dict == NULL) {
         logger.msg(Arc::ERROR, "Cannot get dictionary of module");
@@ -225,8 +225,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         }
         return;
     }
-    
-    // Get the class 
+
+    // Get the class
     klass = PyDict_GetItemString(dict, (char*)class_name.c_str());
     if (klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find service class");
@@ -235,7 +235,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         }
         return;
     }
-    
+
     // check is it really a class
     if (PyCallable_Check(klass)) {
         arg = Py_BuildValue("(l)", (long int)cfg);
@@ -256,7 +256,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
             Py_DECREF(arg);
             return;
         }
-        Py_DECREF(arg); 
+        Py_DECREF(arg);
         arg = Py_BuildValue("(O)", py_cfg);
         if (arg == NULL) {
             logger.msg(Arc::ERROR, "Cannot create argument of the constructor");
@@ -265,7 +265,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
             }
             return;
         }
-        
+
         // create instance of class
         object = PyObject_CallObject(klass, arg);
         if (object == NULL) {
@@ -282,7 +282,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         return;
     }
 
-    // Get the class 
+    // Get the class
     arc_msg_klass = PyDict_GetItemString(arc_dict, "SOAPMessage");
     if (arc_msg_klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find arc Message class");
@@ -291,7 +291,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         }
         return;
     }
-    
+
     // check is it really a class
     if (!PyCallable_Check(klass)) {
         logger.msg(Arc::ERROR, "Message klass is not an object");
@@ -304,7 +304,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     initialized = true;
 }
 
-Service_PythonWrapper::~Service_PythonWrapper(void) 
+Service_PythonWrapper::~Service_PythonWrapper(void)
 {
     // Finish the Python Interpreter
     python_service_counter--;
@@ -315,7 +315,7 @@ Service_PythonWrapper::~Service_PythonWrapper(void)
     logger.msg(Arc::DEBUG, "Python Wrapper destructor called (%d)", python_service_counter);
 }
 
-Arc::MCC_Status Service_PythonWrapper::make_fault(Arc::Message& outmsg) 
+Arc::MCC_Status Service_PythonWrapper::make_fault(Arc::Message& outmsg)
 {
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(Arc::NS(),true);
     Arc::SOAPFault* fault = outpayload->Fault();
@@ -377,19 +377,19 @@ class PyObjectP {
     operator PyObject*(void) { return obj_; };
 };
 
-Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message& outmsg) 
+Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message& outmsg)
 {
     //PyObject *py_status = NULL;
     //PyObject *py_inmsg = NULL;
     //PyObject *py_outmsg = NULL;
     PyObject *arg = NULL;
-   
+
     logger.msg(Arc::DEBUG, "Python wrapper process called");
 
     if(!initialized) return Arc::MCC_Status();
-    
+
     PythonLock plock(logger);
-   
+
     // Convert in message to SOAP message
     Arc::SOAPMessageP inmsg_ptr(inmsg);
     if(!inmsg_ptr) {
@@ -446,7 +446,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     Py_DECREF(arg);
 
     // Call the process method
-    PyObjectP py_status(PyObject_CallMethod(object, (char*)"process", (char*)"(OO)", 
+    PyObjectP py_status(PyObject_CallMethod(object, (char*)"process", (char*)"(OO)",
                                     (PyObject*)py_inmsg, (PyObject*)py_outmsg));
     if (!py_status) {
         if (PyErr_Occurred() != NULL) {
@@ -454,13 +454,13 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         }
         return make_fault(outmsg);
     }
-    
+
     MCC_Status *status_ptr2 = (MCC_Status *)extract_swig_wrappered_pointer(py_status);
     Arc::MCC_Status status;
     if(status_ptr2) status=(*status_ptr2);
     {
         // std::string str = (std::string)status;
-        // std::cout << "status: " << str << std::endl;   
+        // std::cout << "status: " << str << std::endl;
     };
     SOAPMessage *outmsg_ptr2 = (SOAPMessage *)extract_swig_wrappered_pointer(py_outmsg);
     if(outmsg_ptr2 == NULL) return make_fault(outmsg);
@@ -469,16 +469,16 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     {
         // std::string xml;
         // if(p) p->GetXML(xml);
-        // std::cout << "XML: " << xml << std::endl; 
+        // std::cout << "XML: " << xml << std::endl;
     };
 
     Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*p);
     {
         // std::string xml;
-        // pl->GetXML(xml); 
-        // std::cout << "XML: " << xml << std::endl; 
+        // pl->GetXML(xml);
+        // std::cout << "XML: " << xml << std::endl;
     };
-    
+
     outmsg.Payload(pl);
     return status;
 }
