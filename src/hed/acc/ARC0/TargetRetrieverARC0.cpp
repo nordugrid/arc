@@ -148,27 +148,16 @@ namespace Arc {
       if ((std::string)(*it)["Mds-Reg-status"] == "PURGED")
         continue;
 
-      std::string urlstr;
-      urlstr = (std::string)(*it)["Mds-Service-type"] + "://" +
-               (std::string)(*it)["Mds-Service-hn"] + ":" +
-               (std::string)(*it)["Mds-Service-port"] + "/" +
-               (std::string)(*it)["Mds-Service-Ldap-suffix"];
-      URL url(urlstr);
-
-      NS ns;
-      Config cfg(ns);
-      if (!proxyPath.empty())
-        cfg.NewChild("ProxyPath") = proxyPath;
-      if (!certificatePath.empty())
-        cfg.NewChild("CertificatePath") = certificatePath;
-      if (!keyPath.empty())
-        cfg.NewChild("KeyPath") = keyPath;
-      if (!caCertificatesDir.empty())
-        cfg.NewChild("CACertificatesDir") = caCertificatesDir;
-      XMLNode URLXML = cfg.NewChild("URL") = url.str();
-      URLXML.NewAttribute("ServiceType") = "index";
-
-      TargetRetrieverARC0 retriever(&cfg);
+      TargetRetrieverARC0 retriever;
+      retriever.proxyPath = proxyPath;
+      retriever.certificatePath = certificatePath;
+      retriever.keyPath = keyPath;
+      retriever.caCertificatesDir = caCertificatesDir;
+      retriever.url = URL((std::string)(*it)["Mds-Service-type"] + "://" +
+                          (std::string)(*it)["Mds-Service-hn"] + ":" +
+                          (std::string)(*it)["Mds-Service-port"] + "/" +
+                          (std::string)(*it)["Mds-Service-Ldap-suffix"]);
+      retriever.serviceType = "index";
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -182,27 +171,16 @@ namespace Arc {
       if ((std::string)(*it)["Mds-Reg-status"] == "PURGED")
         continue;
 
-      std::string urlstr;
-      urlstr = (std::string)(*it)["Mds-Service-type"] + "://" +
-               (std::string)(*it)["Mds-Service-hn"] + ":" +
-               (std::string)(*it)["Mds-Service-port"] + "/" +
-               (std::string)(*it)["Mds-Service-Ldap-suffix"];
-      URL url(urlstr);
-
-      NS ns;
-      Config cfg(ns);
-      if (!proxyPath.empty())
-        cfg.NewChild("ProxyPath") = proxyPath;
-      if (!certificatePath.empty())
-        cfg.NewChild("CertificatePath") = certificatePath;
-      if (!keyPath.empty())
-        cfg.NewChild("KeyPath") = keyPath;
-      if (!caCertificatesDir.empty())
-        cfg.NewChild("CACertificatesDir") = caCertificatesDir;
-      XMLNode URLXML = cfg.NewChild("URL") = url.str();
-      URLXML.NewAttribute("ServiceType") = "computing";
-
-      TargetRetrieverARC0 retriever(&cfg);
+      TargetRetrieverARC0 retriever;
+      retriever.proxyPath = proxyPath;
+      retriever.certificatePath = certificatePath;
+      retriever.keyPath = keyPath;
+      retriever.caCertificatesDir = caCertificatesDir;
+      retriever.url = URL((std::string)(*it)["Mds-Service-type"] + "://" +
+                          (std::string)(*it)["Mds-Service-hn"] + ":" +
+                          (std::string)(*it)["Mds-Service-port"] + "/" +
+                          (std::string)(*it)["Mds-Service-Ldap-suffix"]);
+      retriever.serviceType = "computing";
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 

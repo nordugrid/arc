@@ -17,6 +17,7 @@ namespace Arc {
   class TargetRetrieverARC0
     : public TargetRetriever {
   private:
+    TargetRetrieverARC0() {};
     TargetRetrieverARC0(Config *cfg);
   public:
     ~TargetRetrieverARC0();

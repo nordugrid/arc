@@ -12,6 +12,7 @@ namespace Arc {
   class ACC
     : public Plugin {
   protected:
+    ACC() {};
     ACC(Config *cfg, const std::string& flavour = "");
   public:
     virtual ~ACC();
