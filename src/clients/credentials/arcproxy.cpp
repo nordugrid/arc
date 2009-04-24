@@ -674,8 +674,10 @@ int main(int argc, char *argv[]) {
         //std::cout<<"Decoded AC: "<<decodedac<<std::endl;
 
         if (command == "list") {
-          logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
-                     voms_server.c_str(), decodedac.c_str());
+          //logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
+          //           voms_server.c_str(), decodedac.c_str());
+          std::cout<<"The attribute information from voms server: "<<voms_server
+                   <<" is list as following \n"<<decodedac;
           if (response)
             delete response;
           return EXIT_SUCCESS;
