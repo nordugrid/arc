@@ -1140,9 +1140,11 @@ err:
           return false;
         }
         //attribute.append("/grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
+        std::string seperator;
+        if(qualifier.substr(0,1) != "/") seperator = "/";
         attribute.append("/voname=").append(voname).
                   append("/hostname=").append(uri).
-                  append(qualifier).append(":").append(name).
+                  append(seperator).append(qualifier).append(":").append(name).
                   append("=").append(value);
         attributes.push_back(attribute);
       }
@@ -1327,7 +1329,7 @@ err:
       CredentialLogger.msg(ERROR,"VOMS: AC has expired");
       return false;
     }
-    period_left = (Time(ASN1_GENERALIZEDTIME_get(end)) - Time());
+    period_left = (Time(ASN1_GENERALIZEDTIME_get(end)) - Time()).tolongstring();
 
     STACK_OF(GENERAL_NAME) *names;
     GENERAL_NAME  *name;

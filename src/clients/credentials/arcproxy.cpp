@@ -532,9 +532,14 @@ int main(int argc, char *argv[]) {
           if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
             vomses_path = "/etc/grid-security/.vomses";
             if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-              std::string tmp = user.Home() + "/.vomses";
-              logger.msg(Arc::ERROR, "Can not find vomses at %s and /etc/grid-security/.vomses", tmp.c_str());
-              return EXIT_FAILURE;
+              vomses_path = user.Home() + "/.voms/vomses";
+              if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+                std::string tmp1 = user.Home() + "/.vomses";
+                std::string tmp2 = user.Home() + "/.voms/vomses";
+                logger.msg(Arc::ERROR, "Can not find vomses at %s, %s, and /etc/grid-security/.vomses", 
+                  tmp1.c_str(), tmp2.c_str());
+                return EXIT_FAILURE;
+              }
             }
           }
         }
