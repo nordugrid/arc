@@ -6,6 +6,7 @@
 #include <vector>
 #include <glibmm/module.h>
 #include <arc/ArcConfig.h>
+#include <arc/Logger.h>
 
 namespace Arc {
 
@@ -43,6 +44,7 @@ typedef std::map<std::string, LoadableModuleDesciption> plugin_cache_t;
 class ModuleManager
 {
     private:
+        static Logger logger;
         std::vector<std::string> plugin_dir; /** collection of path to directory for modules */
         plugin_cache_t plugin_cache; /** Cache of handles of loaded modules */
     public:

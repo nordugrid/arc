@@ -2,15 +2,16 @@
 #include <config.h>
 #endif
 
-#include "ModuleManager.h"
-#include "Loader.h"
+#include <arc/loader/ModuleManager.h>
 
 namespace Arc {
+  Logger ModuleManager::logger(Logger::rootLogger, "ModuleManager");
+  
 ModuleManager::ModuleManager(const Arc::Config *cfg)
 { 
   if(cfg==NULL) return;
   if(!(*cfg)) return;
-  Loader::logger.msg(VERBOSE, "Module Manager Init");
+  ModuleManager::logger.msg(VERBOSE, "Module Manager Init");
   if(!MatchXMLName(*cfg,"ArcConfig")) return;
   XMLNode mm = (*cfg)["ModuleManager"];
   for (int n = 0;;++n) {
@@ -85,25 +86,25 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   {
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
-      Loader::logger.msg(VERBOSE, "Found %s in cache", name);
+      ModuleManager::logger.msg(VERBOSE, "Found %s in cache", name);
       p->second.load();
       return static_cast<Glib::Module*>(p->second);
     }
   }
   std::string path = findLocation(name);
   if(path.empty()) {
-    Loader::logger.msg(DEBUG, "Could not locate module %s", name);
+    ModuleManager::logger.msg(DEBUG, "Could not locate module %s", name);
     return NULL;
   };
   Glib::ModuleFlags flags = Glib::ModuleFlags(0);
   if(probe) flags|=Glib::MODULE_BIND_LAZY;
   Glib::Module *module = new Glib::Module(path,flags);
   if ((!module) || (!(*module))) {
-    Loader::logger.msg(ERROR, Glib::Module::get_last_error());
+    ModuleManager::logger.msg(ERROR, Glib::Module::get_last_error());
     if(module) delete module;
     return NULL;
   }
-  Loader::logger.msg(VERBOSE, "Loaded %s", path);
+  ModuleManager::logger.msg(VERBOSE, "Loaded %s", path);
   (plugin_cache[name] = module).load();
   return module;
 }
@@ -119,7 +120,7 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
   //flags|=Glib::MODULE_BIND_LOCAL;
   Glib::Module *module = new Glib::Module(omodule->get_name(),flags);
   if ((!module) || (!(*module))) {
-    Loader::logger.msg(ERROR, Glib::Module::get_last_error());
+    ModuleManager::logger.msg(ERROR, Glib::Module::get_last_error());
     if(module) delete module;
     return NULL;
   }
@@ -131,7 +132,7 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
 void ModuleManager::setCfg (Arc::Config *cfg) {
   if(cfg==NULL) return;
   if(!(*cfg)) return;
-  Loader::logger.msg(INFO, "Module Manager Init by ModuleManager::setCfg");
+  ModuleManager::logger.msg(INFO, "Module Manager Init by ModuleManager::setCfg");
 
   if(!MatchXMLName(*cfg,"ArcConfig")) return;
   XMLNode mm = (*cfg)["ModuleManager"];
