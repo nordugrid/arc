@@ -292,6 +292,16 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
         return;
     }
 
+    // Get XMLNode class
+    arc_xmlnode_klass = PyDict_GetItemString(arc_dict, "XMLNode");
+    if (arc_xmlnode_klass == NULL) {
+        logger.msg(Arc::ERROR, "Cannot find arc XMLNode class");
+        if (PyErr_Occurred() != NULL) {
+            PyErr_Print();
+        }
+        return;
+    }
+
     // check is it really a class
     if (!PyCallable_Check(klass)) {
         logger.msg(Arc::ERROR, "Message klass is not an object");
@@ -345,6 +355,25 @@ class PythonLock {
         PyGILState_Release(gstate_);
         logger_.msg(Arc::DEBUG, "Python interpreter released");
     };
+};
+
+class XMLNodeP {
+  private:
+    Arc::XMLNode* obj_;
+  public:
+    XMLNodeP(Arc::XMLNode& node):obj_(NULL) {
+        try {
+            obj_ = new Arc::XMLNode(node);
+        } catch(std::exception& e) { };
+    };
+    ~XMLNodeP(void) {
+        if(obj_) delete obj_;
+    };
+    XMLNode& operator*(void) const { return *obj_; };
+    XMLNode* operator->(void) const { return obj_; };
+    operator bool(void) { return (obj_ != NULL); };
+    bool operator!(void) { return (obj_ == NULL); };
+    operator long int(void) { return (long int)obj_; };
 };
 
 class SOAPMessageP {
@@ -481,6 +510,69 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
 
     outmsg.Payload(pl);
     return status;
+}
+
+bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
+    PyObject *arg = NULL;
+
+    logger.msg(Arc::DEBUG, "Python 'RegistrationCollector' wrapper process called");
+
+    if(!initialized) return false;
+
+    PythonLock plock(logger);
+
+    // Convert doc to XMLNodeP
+    logger.msg(Arc::DEBUG, "Convert doc to XMLNodeP");
+    Arc::XMLNodeP doc_ptr(doc);
+    if (!doc_ptr) {
+        logger.msg(Arc::ERROR, "Failed to create XMLNode container");
+        return false;
+    }
+
+    // Convert doc to python object
+    logger.msg(Arc::DEBUG, "Convert doc to python object");
+    arg = Py_BuildValue("(l)", (long int)doc_ptr);
+    if (arg == NULL) {
+        logger.msg(Arc::ERROR, "Cannot create doc argument");
+        if (PyErr_Occurred() != NULL) {
+           PyErr_Print();
+        }
+        return false;
+    }
+    logger.msg(Arc::DEBUG, "Create python XMLNode");
+    PyObjectP py_doc(PyObject_CallObject(arc_xmlnode_klass, arg));
+        if (!py_doc) {
+        logger.msg(Arc::ERROR, "Cannot convert doc to python object");
+        if (PyErr_Occurred() != NULL) {
+            PyErr_Print();
+        }
+        Py_DECREF(arg);
+        return false;
+    }
+    Py_DECREF(arg);
+
+    // Call the RegistrationCollector method
+    logger.msg(Arc::DEBUG, "Call the RegistrationCollector method");
+    PyObjectP py_bool(PyObject_CallMethod(object, (char*)"RegistrationCollector", (char*)"(O)",
+                      (PyObject*)py_doc));
+
+    if (!py_bool) {
+        if (PyErr_Occurred() != NULL) {
+            PyErr_Print();
+        }
+        return false;
+    }
+
+    // Convert the return value of the function back to cpp
+    logger.msg(Arc::DEBUG, "Convert the return value of the function back to cpp");
+    bool *ret_val2 = (bool *)extract_swig_wrappered_pointer(py_bool);
+    bool return_value = false;
+    if (ret_val2) return_value = (*ret_val2);
+
+    XMLNode *doc2 = (XMLNode *)extract_swig_wrappered_pointer(py_doc);
+    if (doc2 == NULL) return false;
+    doc = (*doc2);
+    return true;
 }
 
 } // namespace Arc

@@ -12,6 +12,7 @@ class Service_PythonWrapper: public Arc::RegisteredService {
         static Arc::Logger logger;
         PyObject *arc_module;
         PyObject *arc_msg_klass;
+        PyObject *arc_xmlnode_klass;
         PyObject *module;
         PyObject *klass;
         PyObject *object;
@@ -22,6 +23,7 @@ class Service_PythonWrapper: public Arc::RegisteredService {
         virtual ~Service_PythonWrapper(void);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&, Arc::Message&);
+        bool RegistrationCollector(Arc::XMLNode&);
 };
 
 } // namespace Arc
