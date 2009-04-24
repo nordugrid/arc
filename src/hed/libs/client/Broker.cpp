@@ -13,7 +13,7 @@
 
 namespace Arc {
 
-  Arc::Logger Broker::logger(Arc::Logger::getRootLogger(), "broker");
+  Logger Broker::logger(Logger::getRootLogger(), "broker");
 
   Broker::Broker(Config *cfg)
     : ACC(cfg),
@@ -243,14 +243,14 @@ namespace Arc {
 
       if (!job.RunTimeEnvironment.empty()) {
         if (!(*target).ApplicationEnvironments.empty()) {   // Example: ATLAS-9.0.3
-          std::list<Arc::RunTimeEnvironmentType>::const_iterator iter1;
+          std::list<RunTimeEnvironmentType>::const_iterator iter1;
           bool next_target;
           bool match;
           for (iter1 = job.RunTimeEnvironment.begin(); iter1 != job.RunTimeEnvironment.end(); iter1++) {
             next_target = false;
             std::list<std::string>::const_iterator iter2;
             match = false;
-            std::list<Arc::ApplicationEnvironment>::const_iterator iter3;
+            std::list<ApplicationEnvironment>::const_iterator iter3;
             if ((*iter1).Version.size() == 0)
               for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++) {
                 RuntimeEnvironment rt((*iter3).Name);

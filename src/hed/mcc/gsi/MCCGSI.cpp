@@ -63,8 +63,8 @@ namespace Arc {
       arg ? dynamic_cast<MCCPluginArgument*>(arg) : NULL;
     if (!mccarg)
       return NULL;
-    return new MCC_GSI_Service(*(Arc::Config*)(*mccarg),
-                               *(PluginsFactory*)(*(Arc::ChainContext*)(*mccarg)));
+    return new MCC_GSI_Service(*(Config*)(*mccarg),
+                               *(PluginsFactory*)(*(ChainContext*)(*mccarg)));
   }
 
   static Plugin* get_mcc_client(PluginArgument *arg) {
@@ -72,8 +72,8 @@ namespace Arc {
       arg ? dynamic_cast<MCCPluginArgument*>(arg) : NULL;
     if (!mccarg)
       return NULL;
-    return new MCC_GSI_Client(*(Arc::Config*)(*mccarg),
-                              *(PluginsFactory*)(*(Arc::ChainContext*)(*mccarg)));
+    return new MCC_GSI_Client(*(Config*)(*mccarg),
+                              *(PluginsFactory*)(*(ChainContext*)(*mccarg)));
   }
 
   class MCC_GSI_Context
@@ -501,8 +501,8 @@ namespace Arc {
           return MCC_Status();
         }
 
-        Arc::PayloadStreamInterface *response =
-          dynamic_cast<Arc::PayloadStreamInterface*>(repmsg.Payload());
+        PayloadStreamInterface *response =
+          dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
 
         int pos = 0;
         char readbuf[5];

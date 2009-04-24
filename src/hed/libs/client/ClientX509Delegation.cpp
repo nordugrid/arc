@@ -35,9 +35,9 @@ namespace Arc {
     trusted_ca_dir_ = cfg.cadir;
     trusted_ca_file_ = cfg.cafile;
     if (!cert_file_.empty() && !privkey_file_.empty())
-      signer_ = new Arc::Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_);
+      signer_ = new Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_);
     else if (!proxy_file_.empty())
-      signer_ = new Arc::Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_);
+      signer_ = new Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_);
   }
 
   ClientX509Delegation::~ClientX509Delegation() {
@@ -60,22 +60,22 @@ namespace Arc {
         PayloadSOAP *response = NULL;
         //Send DelegateCredentialsInit request
         MCC_Status status = soap_client_->process(&request, &response);
-        if (status != Arc::STATUS_OK) {
-          logger.msg(Arc::ERROR, "DelegateCredentialsInit failed");
+        if (status != STATUS_OK) {
+          logger.msg(ERROR, "DelegateCredentialsInit failed");
           return false;
         }
         if (!response) {
-          logger.msg(Arc::ERROR, "There is no SOAP response");
+          logger.msg(ERROR, "There is no SOAP response");
           return false;
         }
         XMLNode token = (*response)["DelegateCredentialsInitResponse"]["TokenRequest"];
         if (!token) {
-          logger.msg(Arc::ERROR, "There is no X509 request in the response");
+          logger.msg(ERROR, "There is no X509 request in the response");
           delete response;
           return false;
         }
         if (((std::string)(token.Attribute("Format"))) != "x509") {
-          logger.msg(Arc::ERROR, "There is no Format request in the response");
+          logger.msg(ERROR, "There is no Format request in the response");
           delete response;
           return false;
         }
@@ -83,15 +83,15 @@ namespace Arc {
         std::string x509request = (std::string)(token["Value"]);
         delete response;
         if (delegation_id.empty() || x509request.empty()) {
-          logger.msg(Arc::ERROR, "There is no Id or X509 request value in the response");
+          logger.msg(ERROR, "There is no Id or X509 request value in the response");
           return false;
         }
 
         //std::cout<<"X509 Request: \n"<<x509request<<std::endl;
 
         //Sign the proxy certificate
-        Arc::Time start;
-        Arc::Credential proxy(start, Arc::Period(12 * 3600), 0, "rfc", "inheritAll", "", -1);
+        Time start;
+        Credential proxy(start, Period(12 * 3600), 0, "rfc", "inheritAll", "", -1);
         //Set proxy path length to be -1, which means infinit length
         std::string signedcert;
         proxy.InquireRequest(x509request);
@@ -114,16 +114,16 @@ namespace Arc {
         token2.NewChild("deleg:Value") = signedcert;
         //Send UpdateCredentials request
         status = soap_client_->process(&request2, &response);
-        if (status != Arc::STATUS_OK) {
-          logger.msg(Arc::ERROR, "UpdateCredentials failed");
+        if (status != STATUS_OK) {
+          logger.msg(ERROR, "UpdateCredentials failed");
           return false;
         }
         if (!response) {
-          logger.msg(Arc::ERROR, "There is no SOAP response");
+          logger.msg(ERROR, "There is no SOAP response");
           return false;
         }
         if (!(*response)["UpdateCredentialsResponse"]) {
-          logger.msg(Arc::ERROR, "There is no UpdateCredentialsResponse in response");
+          logger.msg(ERROR, "There is no UpdateCredentialsResponse in response");
           delete response;
           return false;
         }
@@ -176,9 +176,9 @@ namespace Arc {
       delete response;
 
       //Sign the proxy certificate
-      Arc::Time start;
-      start = start - Arc::Period(300);
-      Arc::Credential proxy(start);
+      Time start;
+      start = start - Period(300);
+      Credential proxy(start);
       std::string signedcert;
       //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
@@ -252,9 +252,9 @@ namespace Arc {
         }
         //Generate a X509 request
         std::string x509req_str;
-        Arc::Time start;
+        Time start;
         int keybits = 1024;
-        Arc::Credential cred_request(start, Arc::Period(), keybits);
+        Credential cred_request(start, Period(), keybits);
         cred_request.GenerateRequest(x509req_str);
         tokenlookup.NewChild("deleg:Value") = x509req_str;
         std::string privkey_str;
@@ -263,22 +263,22 @@ namespace Arc {
         PayloadSOAP *response = NULL;
         //Send AcquireCredentials request
         MCC_Status status = soap_client_->process(&request, &response);
-        if (status != Arc::STATUS_OK) {
-          logger.msg(Arc::ERROR, "DelegateCredentialsInit failed");
+        if (status != STATUS_OK) {
+          logger.msg(ERROR, "DelegateCredentialsInit failed");
           return false;
         }
         if (!response) {
-          logger.msg(Arc::ERROR, "There is no SOAP response");
+          logger.msg(ERROR, "There is no SOAP response");
           return false;
         }
         XMLNode token = (*response)["AcquireCredentialsResponse"]["DelegatedToken"];
         if (!token) {
-          logger.msg(Arc::ERROR, "There is no Delegated X509 token in the response");
+          logger.msg(ERROR, "There is no Delegated X509 token in the response");
           delete response;
           return false;
         }
         if (((std::string)(token.Attribute("Format"))) != "x509") {
-          logger.msg(Arc::ERROR, "There is no Format delegated token in the response");
+          logger.msg(ERROR, "There is no Format delegated token in the response");
           delete response;
           return false;
         }
@@ -286,11 +286,11 @@ namespace Arc {
         std::string delegation_cert = (std::string)(token["Value"]);
         delete response;
         if (delegation_id.empty() || delegation_cert.empty()) {
-          logger.msg(Arc::ERROR, "There is no Id or X509 token value in the response");
+          logger.msg(ERROR, "There is no Id or X509 token value in the response");
           return false;
         }
 
-        Arc::Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_);
+        Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_);
         proxy_cred.OutputCertificate(delegation_cred);
         proxy_cred.OutputPrivatekey(delegation_cred);
         proxy_cred.OutputCertificateChain(delegation_cred);

@@ -479,7 +479,7 @@ namespace Arc {
     // Loop over job descriptions.
     for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); itJob++) {
       if (itJob->State != "Running/Executing/Queuing") {
-        logger.msg(Arc::WARNING, "Cannot migrate job %s, it is not queuing in the batch system.", itJob->JobID.str());
+        logger.msg(WARNING, "Cannot migrate job %s, it is not queuing in the batch system.", itJob->JobID.str());
         continue;
       }
 
@@ -497,19 +497,19 @@ namespace Arc {
       while (true) {
         ExecutionTarget& currentTarget = broker->GetBestTarget(endOfList);
         if (endOfList) {
-          logger.msg(Arc::ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.str());
+          logger.msg(ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.str());
           retVal = false;
           break;
         }
 
         if (currentTarget.GridFlavour != "ARC1") {
-          logger.msg(Arc::WARNING, "Cannot migrate to a %s cluster.", currentTarget.GridFlavour);
-          logger.msg(Arc::INFO, "Note: Migration is currently only supported between ARC1 clusters.");
+          logger.msg(WARNING, "Cannot migrate to a %s cluster.", currentTarget.GridFlavour);
+          logger.msg(INFO, "Note: Migration is currently only supported between ARC1 clusters.");
           continue;
         }
 
         if (!currentTarget.GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, info)) {
-          logger.msg(Arc::WARNING, "Migration to %s failed, trying next target", currentTarget.url.str());
+          logger.msg(WARNING, "Migration to %s failed, trying next target", currentTarget.url.str());
           continue;
         }
 
@@ -534,13 +534,13 @@ namespace Arc {
 
         info.NewChild("Flavour") = currentTarget.GridFlavour;
         info.NewChild("Cluster") = currentTarget.Cluster.str();
-        info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
+        info.NewChild("LocalSubmissionTime") = (std::string)Time();
 
         jobstorage.NewChild("Job").Replace(info);
 
         migratedJobIDs.push_back(URL(itJob->JobID.str()));
 
-        std::cout << Arc::IString("Job migrated with jobid: %s", (std::string)info["JobID"]) << std::endl;
+        std::cout << IString("Job migrated with jobid: %s", (std::string)info["JobID"]) << std::endl;
         break;
       } // Loop over all possible targets
     } // Loop over jobs

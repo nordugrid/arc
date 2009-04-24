@@ -12,9 +12,9 @@ namespace Arc {
    */
   class MCC_SOAP : public MCC {
   public:
-    MCC_SOAP(Arc::Config *cfg);
+    MCC_SOAP(Config *cfg);
   protected:
-    static Arc::Logger logger;
+    static Logger logger;
   };
 
 /** This MCC parses SOAP message from input payload.
@@ -27,7 +27,7 @@ class MCC_SOAP_Service: public MCC_SOAP
     public:
         /* Constructor takes configuration of MCC. 
          Currently there are no configuration parameters for this MCC */
-        MCC_SOAP_Service(Arc::Config *cfg);
+        MCC_SOAP_Service(Config *cfg);
         virtual ~MCC_SOAP_Service(void);
         virtual MCC_Status process(Message&,Message&);
 };
@@ -41,7 +41,7 @@ class MCC_SOAP_Client: public MCC_SOAP
     public:
         /* Constructor takes configuration of MCC. 
          Currently there are no configuration parameters for this MCC */
-        MCC_SOAP_Client(Arc::Config *cfg);
+        MCC_SOAP_Client(Config *cfg);
         virtual ~MCC_SOAP_Client(void);
         virtual MCC_Status process(Message&,Message&);
 };

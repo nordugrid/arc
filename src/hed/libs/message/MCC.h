@@ -32,8 +32,8 @@ namespace Arc {
        	of the request when the method returns.
      \return An object representing the status of the call.
      */
-    virtual Arc::MCC_Status process(Arc::Message& request,
-				    Arc::Message& response) = 0;
+    virtual MCC_Status process(Message& request,
+				    Message& response) = 0;
     virtual ~MCCInterface() {}
   };
 
@@ -42,13 +42,13 @@ namespace Arc {
       functionality for every MCC plugin needed for managing of component
       in a chain. */
   class MCC
-    : public Arc::MCCInterface {
+    : public MCCInterface {
   protected:
     /** Set of labeled "next" components.
        	Each implemented MCC must call process() method of
        	corresponding MCCInterface from this set in own process() method. */
-    std::map<std::string, Arc::MCCInterface *> next_;
-    Arc::MCCInterface *Next(const std::string& label = "");
+    std::map<std::string, MCCInterface *> next_;
+    MCCInterface *Next(const std::string& label = "");
 
     /** Set of labeled authentication and authorization handlers.
        	MCC calls sequence of handlers at specific point depending
@@ -62,17 +62,17 @@ namespace Arc {
        	functionality.
        	This is a convenience method and has to be called by the implemention
        	of the MCC. */
-    bool ProcessSecHandlers(Arc::Message& message,
+    bool ProcessSecHandlers(Message& message,
 			    const std::string& label = "");
 
     /// A logger for MCCs.
     /** A logger intended to be the parent of loggers in the different
        	MCCs. */
-    static Arc::Logger logger;
+    static Logger logger;
 
   public:
     /** Example contructor - MCC takes at least it's configuration subtree */
-    MCC(Arc::Config *) {}
+    MCC(Config *) {}
 
     virtual ~MCC() {}
 
@@ -80,7 +80,7 @@ namespace Arc {
        	This method is called by Loader for every potentially labeled link to
        	next component which implements MCCInterface. If next is NULL
        	corresponding link is removed.  */
-    virtual void Next(Arc::MCCInterface *next, const std::string& label = "");
+    virtual void Next(MCCInterface *next, const std::string& label = "");
 
     /** Add security components/handlers to this MCC.
        	Security handlers are stacked into a few queues with each queue
@@ -92,7 +92,7 @@ namespace Arc {
        	client side. Those labels are just a matter of agreement
        	and some MCCs may implement different queues executed at various
        	message processing steps. */
-    virtual void AddSecHandler(Arc::Config *cfg,
+    virtual void AddSecHandler(Config *cfg,
 			       ArcSec::SecHandler *sechandler,
 			       const std::string& label = "");
 
@@ -100,8 +100,8 @@ namespace Arc {
     virtual void Unlink();
 
     /** Dummy Message processing method. Just a placeholder. */
-    virtual Arc::MCC_Status process(Arc::Message& /* request */,
-				    Arc::Message& /* response */) {
+    virtual MCC_Status process(Message& /* request */,
+				    Message& /* response */) {
       return MCC_Status();
     }
   };

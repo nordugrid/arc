@@ -132,11 +132,10 @@ namespace Arc {
 
   };
 
-
+  inline std::ostream& operator<<(std::ostream& o, const DataStatus& d) {
+    return (o << ((std::string)d));
+  }
 } // namespace Arc
 
-inline std::ostream& operator<<(std::ostream& o, const Arc::DataStatus& d) {
-  return (o << ((std::string)d));
-}
 
 #endif // __ARC_DATASTATUS_H__

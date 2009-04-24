@@ -764,7 +764,7 @@ err:
 
   static bool regex_match(std::string& label, std::string& value) {
     bool match=false;
-    Arc::RegularExpression regex(label);
+    RegularExpression regex(label);
     if(regex.isOk()){
       std::list<std::string> unmatched, matched;
       if(regex.match(value, unmatched, matched))
@@ -1327,7 +1327,7 @@ err:
       CredentialLogger.msg(ERROR,"VOMS: AC has expired");
       return false;
     }
-    period_left = (Arc::Time(ASN1_GENERALIZEDTIME_get(end)) - Arc::Time());
+    period_left = (Time(ASN1_GENERALIZEDTIME_get(end)) - Time());
 
     STACK_OF(GENERAL_NAME) *names;
     GENERAL_NAME  *name;

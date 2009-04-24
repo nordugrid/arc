@@ -22,12 +22,12 @@ namespace Arc {
 
   SubmitterUNICORE::~SubmitterUNICORE() {}
 
-  Plugin* SubmitterUNICORE::Instance(Arc::PluginArgument *arg) {
+  Plugin* SubmitterUNICORE::Instance(PluginArgument *arg) {
     ACCPluginArgument *accarg =
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new SubmitterUNICORE((Arc::Config*)(*accarg));
+    return new SubmitterUNICORE((Config*)(*accarg));
   }
 
   bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, XMLNode& info) const {

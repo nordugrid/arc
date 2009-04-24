@@ -25,11 +25,11 @@ namespace Arc {
   }
 
   Plugin* DMCFile::Instance(PluginArgument *arg) {
-    Arc::DMCPluginArgument *dmcarg =
-      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<DMCPluginArgument*>(arg) : NULL;
     if (!dmcarg)
       return NULL;
-    return new DMCFile((Arc::Config*)(*dmcarg));
+    return new DMCFile((Config*)(*dmcarg));
   }
 
   DataPoint* DMCFile::iGetDataPoint(const URL& url) {

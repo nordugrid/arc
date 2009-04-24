@@ -61,7 +61,7 @@ class XMLSecNode: public XMLNode {
     *@param privkey_file   The private key file, which is used for decrypting
     *@param decrypted_node Output the decrypted node
     */
-   bool DecryptNode(const std::string& privkey_file, Arc::XMLNode& decrypted_node);
+   bool DecryptNode(const std::string& privkey_file, XMLNode& decrypted_node);
 };
 
 } // namespace Arc 

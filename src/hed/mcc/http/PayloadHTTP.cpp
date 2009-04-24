@@ -85,7 +85,7 @@ bool PayloadHTTP::parse_header(void) {
     std::string::size_type pos = line.find(':');
     if(pos == std::string::npos) continue;
     std::string name = line.substr(0,pos);
-    name=Arc::lower(name);
+    name=lower(name);
     for(++pos;pos<line.length();++pos) if(!isspace(line[pos])) break;
     if(pos<line.length()) {
       std::string value = line.substr(pos);
@@ -237,7 +237,7 @@ const std::map<std::string,std::string>& PayloadHTTP::Attributes(void) {
 }
 
 void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
-  attributes_[Arc::lower(name)]=value;
+  attributes_[lower(name)]=value;
 }
 
 PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):valid_(false),stream_(&stream),stream_own_(own),fetched_(false),stream_offset_(0),chunked_size_(0),chunked_offset_(0),body_(NULL),body_own_(false),keep_alive_(true) {

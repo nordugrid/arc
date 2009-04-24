@@ -232,7 +232,7 @@ namespace Arc {
     return true;
   }
 
-  std::string BuildDeflatedQuery(const Arc::XMLNode& node) {
+  std::string BuildDeflatedQuery(const XMLNode& node) {
     //deflated, b64'ed and url-escaped
     std::string encoding("utf-8");
     std::string query;
@@ -242,7 +242,7 @@ namespace Arc {
     //node.SaveToStream(oss);
     //query = oss.str();
    
-    //Arc::XMLNode node1(query);
+    //XMLNode node1(query);
     //std::string query1;
     //node1.GetXML(query1, encoding);  
 
@@ -394,7 +394,7 @@ namespace Arc {
     return false;
   }
 
-  bool BuildNodefromMsg(const std::string msg, Arc::XMLNode& node) {
+  bool BuildNodefromMsg(const std::string msg, XMLNode& node) {
     bool b64 = false;
     char* str = (char*)(msg.c_str());
     if (is_base64(msg.c_str())) {   
@@ -408,7 +408,7 @@ namespace Arc {
     }
 
     if (strchr(str, '<')) {
-      Arc::XMLNode nd(str);
+      XMLNode nd(str);
       if(!nd) { std::cerr<<"Message format unknown"<<std::endl; free(str); return false; }
       if (b64) free(str);
       nd.New(node);

@@ -12,7 +12,7 @@ PayloadSOAP::PayloadSOAP(const MessagePayload& source):SOAPEnvelope(ContentFromP
 PayloadSOAP::PayloadSOAP(const SOAPEnvelope& soap):SOAPEnvelope(soap) {
 }
 
-PayloadSOAP::PayloadSOAP(const Arc::NS& ns,bool fault):SOAPEnvelope(ns,fault) {
+PayloadSOAP::PayloadSOAP(const NS& ns,bool fault):SOAPEnvelope(ns,fault) {
 }
 
 PayloadSOAP::~PayloadSOAP(void) {

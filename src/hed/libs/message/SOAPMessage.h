@@ -15,13 +15,13 @@ namespace Arc {
   SOAP content. */
 class SOAPMessage {
  private:
-  Arc::SOAPEnvelope* payload_; /** Main content of message */
-  Arc::MessageAuth* auth_; /** Authentication and authorization related information */
-  Arc::MessageAttributes* attributes_; /** Various useful attributes */
+  SOAPEnvelope* payload_; /** Main content of message */
+  MessageAuth* auth_; /** Authentication and authorization related information */
+  MessageAttributes* attributes_; /** Various useful attributes */
   /** This element is maintained by MCC/element which handles/knows
     persistency of connection. It must be created and destroyed by
     that element. */
-  Arc::MessageContext* context_;
+  MessageContext* context_;
   /** No copying is allowed */
   SOAPMessage(SOAPMessage& msg);
   /** No assignment is allowed. */
@@ -32,26 +32,26 @@ class SOAPMessage {
   /** Copy constructor. Used by language bindigs */
   SOAPMessage(long msg_ptr_addr);
   /** Copy constructor. Ensures shallow copy. */
-  SOAPMessage(Arc::Message& msg);
+  SOAPMessage(Message& msg);
   /** Destructor does not affect refered objects */
   ~SOAPMessage(void);
   /** Returns pointer to current payload or NULL if no payload assigned. */
-  Arc::SOAPEnvelope* Payload(void);
+  SOAPEnvelope* Payload(void);
   /** Replace payload with a COPY of new one */
-  void Payload(Arc::SOAPEnvelope* new_payload);
+  void Payload(SOAPEnvelope* new_payload);
   /** Returns a pointer to the current attributes object or NULL if no
       attributes object has been assigned. */
-  Arc::MessageAttributes* Attributes(void) { return attributes_; };
-  void Attributes(Arc::MessageAttributes* attributes) {
+  MessageAttributes* Attributes(void) { return attributes_; };
+  void Attributes(MessageAttributes* attributes) {
     attributes_=attributes;
   };
 
-  Arc::MessageAuth *Auth(void) { return auth_; };
-  void Auth(Arc::MessageAuth *auth) {
+  MessageAuth *Auth(void) { return auth_; };
+  void Auth(MessageAuth *auth) {
     auth_ = auth;
   };
-  Arc::MessageContext* Context(void) { return context_; };
-  void Context(Arc::MessageContext* context) {
+  MessageContext* Context(void) { return context_; };
+  void Context(MessageContext* context) {
     context_=context;
   };
 };

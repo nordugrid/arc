@@ -55,10 +55,10 @@ namespace Arc {
      \code
      // Declare a counter. Replace XYZ by some appropriate kind of
      // counter and provide required parameters. Unit is MB.
-     Arc::XYZCounter memory(...);
+     XYZCounter memory(...);
      ...
      // Make a reservation of memory for 2000000 doubles.
-     Arc::CounterTicket tick = memory.reserve(2*sizeof(double));
+     CounterTicket tick = memory.reserve(2*sizeof(double));
      // Use the memory.
      double* A=new double[2000000];
      doSomething(A);
@@ -79,7 +79,7 @@ namespace Arc {
      A self-expiring reservation can be cancelled explicitly before it
      expires, but if it is not cancelled it will expire automatically
      when the duration has passed. The default value for the duration
-     is Arc::ETERNAL, which means that the reservation will not be
+     is ETERNAL, which means that the reservation will not be
      cancelled automatically.
 
      Prioritized reservations may use the excess limit and succeed
@@ -328,10 +328,10 @@ namespace Arc {
      \code
      // Declare a counter. Replace XYZ by some appropriate kind of
      // counter and provide required parameters. Unit is MB.
-     Arc::XYZCounter memory(...);
+     XYZCounter memory(...);
      ...
      // Make a reservation of memory for 2000000 doubles.
-     Arc::CounterTicket tick = memory.reserve(2*sizeof(double));
+     CounterTicket tick = memory.reserve(2*sizeof(double));
      // Use the memory.
      double* A=new double[2000000];
      doSomething(A);

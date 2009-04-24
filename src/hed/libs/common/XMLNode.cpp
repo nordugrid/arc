@@ -148,7 +148,7 @@ namespace Arc {
   }
 
   static void SetNamespaces(const NS& namespaces, xmlNodePtr node_) {
-    for (Arc::NS::const_iterator ns = namespaces.begin();
+    for (NS::const_iterator ns = namespaces.begin();
          ns != namespaces.end(); ++ns) {
       // First check maybe this namespace is already defined
       xmlNsPtr ns_ = xmlSearchNsByHref(node_->doc, node_, (const xmlChar*)(ns->second.c_str()));
@@ -227,7 +227,7 @@ namespace Arc {
     is_owner_ = true;
   }
 
-  XMLNode::XMLNode(const Arc::NS& ns, const char *name)
+  XMLNode::XMLNode(const NS& ns, const char *name)
     : node_(NULL),
       is_owner_(false),
       is_temporary_(false) {
@@ -621,7 +621,7 @@ namespace Arc {
     return;
   }
 
-  void XMLNode::Namespaces(const Arc::NS& namespaces) {
+  void XMLNode::Namespaces(const NS& namespaces) {
     if (node_ == NULL)
       return;
     if (node_->type != XML_ELEMENT_NODE)
@@ -704,7 +704,7 @@ namespace Arc {
     return res;
   }
 
-  XMLNodeList XMLNode::XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList) const {
+  XMLNodeList XMLNode::XPathLookup(const std::string& xpathExpr, const NS& nsList) const {
     std::list<XMLNode> retlist;
     if (node_ == NULL)
       return retlist;
@@ -715,7 +715,7 @@ namespace Arc {
       return retlist;
     xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
 
-    for (Arc::NS::const_iterator ns = nsList.begin(); ns != nsList.end(); ++ns)
+    for (NS::const_iterator ns = nsList.begin(); ns != nsList.end(); ++ns)
       xmlXPathRegisterNs(xpathCtx, (xmlChar*)ns->first.c_str(), (xmlChar*)ns->second.c_str());
 
     xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((const xmlChar*)(xpathExpr.c_str()), xpathCtx);

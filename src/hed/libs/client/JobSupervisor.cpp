@@ -33,7 +33,7 @@ namespace Arc {
     URLListMap clusterreject;
 
     if (!usercfg.ResolveAlias(clusters, clusterselect, clusterreject)) {
-      logger.msg(Arc::ERROR, "Failed resolving aliases");
+      logger.msg(ERROR, "Failed resolving aliases");
       return;
     }
 

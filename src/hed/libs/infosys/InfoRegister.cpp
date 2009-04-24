@@ -14,9 +14,9 @@
 #include <arc/win32.h>
 #endif
 
-static Arc::Logger logger_(Arc::Logger::rootLogger, "InfoSys");
-
 namespace Arc {
+
+static Logger logger_(Logger::rootLogger, "InfoSys");
 
 static void reg_thread(void *data) {
     InfoRegistrar *self = (InfoRegistrar *)data;

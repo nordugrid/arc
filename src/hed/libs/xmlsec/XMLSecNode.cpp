@@ -112,11 +112,11 @@ bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_fi
   xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
   xmlFree(id);
  
-  Arc::XMLNode signature = (*this)["Signature"];
+  XMLNode signature = (*this)["Signature"];
   if(!signature) { std::cerr<<"No signature node under this node"<<std::endl; return false; }
   xmlNodePtr signatureptr = ((XMLSecNode*)(&signature))->node_;
-  Arc::XMLNode keyinfo = signature["KeyInfo"];
-  Arc::XMLNode x509data = signature["KeyInfo"]["X509Data"];
+  XMLNode keyinfo = signature["KeyInfo"];
+  XMLNode x509data = signature["KeyInfo"]["X509Data"];
 
   xmlSecKeysMngr* keys_manager = NULL;
   xmlSecDSigCtx *dsigCtx;
@@ -138,7 +138,7 @@ bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_fi
       //Since xmlsec automatically needs to check trusted certificates
       //if the KeyInfo is composed by X509Data, here we manualy extract 
       //the public key from X509Data
-      Arc::XMLNode x509cert = x509data["X509Certificate"];
+      XMLNode x509cert = x509data["X509Certificate"];
       std::string certstr = (std::string)x509cert;
       xmlSecKey* pubkey = get_key_from_certstr(certstr);
       if (pubkey == NULL){

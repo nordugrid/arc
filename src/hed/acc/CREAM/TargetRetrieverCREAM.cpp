@@ -53,12 +53,12 @@ namespace Arc {
 
   TargetRetrieverCREAM::~TargetRetrieverCREAM() {}
 
-  Plugin* TargetRetrieverCREAM::Instance(Arc::PluginArgument *arg) {
+  Plugin* TargetRetrieverCREAM::Instance(PluginArgument *arg) {
     ACCPluginArgument *accarg =
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new TargetRetrieverCREAM((Arc::Config*)(*accarg));
+    return new TargetRetrieverCREAM((Config*)(*accarg));
   }
 
   void TargetRetrieverCREAM::GetTargets(TargetGenerator& mom, int targetType,

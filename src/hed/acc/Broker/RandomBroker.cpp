@@ -21,12 +21,12 @@ namespace Arc {
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new RandomBroker((Arc::Config*)(*accarg));
+    return new RandomBroker((Config*)(*accarg));
   }
 
   void RandomBroker::SortTargets() {
 
-    std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
+    std::vector<ExecutionTarget>::iterator iter = PossibleTargets.begin();
 
     logger.msg(DEBUG, "Matching against job description, following targets possible for RandomBroker: %d", PossibleTargets.size());
 

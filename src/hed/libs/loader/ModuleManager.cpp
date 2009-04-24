@@ -7,7 +7,7 @@
 namespace Arc {
   Logger ModuleManager::logger(Logger::rootLogger, "ModuleManager");
   
-ModuleManager::ModuleManager(const Arc::Config *cfg)
+ModuleManager::ModuleManager(const Config *cfg)
 { 
   if(cfg==NULL) return;
   if(!(*cfg)) return;
@@ -129,7 +129,7 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
   return module; 
 }
 
-void ModuleManager::setCfg (Arc::Config *cfg) {
+void ModuleManager::setCfg (Config *cfg) {
   if(cfg==NULL) return;
   if(!(*cfg)) return;
   ModuleManager::logger.msg(INFO, "Module Manager Init by ModuleManager::setCfg");

@@ -32,7 +32,7 @@ namespace Arc {
     ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
     if (!accarg)
       return NULL;
-    return new JobControllerARC0((Arc::Config*)(*accarg));
+    return new JobControllerARC0((Config*)(*accarg));
   }
 
   void JobControllerARC0::GetJobInformation() {
@@ -373,7 +373,7 @@ namespace Arc {
     source->SetTries(1);
     destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
-    if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+    if (!mover.Transfer(*source, *destination, cache, URLMap(),
                         0, 0, 0, 500, failure)) {
       if (!failure.empty())
         logger.msg(INFO, "Current transfer FAILED: %s", failure);
@@ -447,7 +447,7 @@ namespace Arc {
     source->SetTries(1);
     destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
-    if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+    if (!mover.Transfer(*source, *destination, cache, URLMap(),
                         0, 0, 0, 500, failure)) {
       if (!failure.empty())
         logger.msg(INFO, "Current transfer FAILED: %s", failure);

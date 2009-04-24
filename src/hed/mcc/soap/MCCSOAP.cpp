@@ -17,7 +17,7 @@
 Arc::Logger Arc::MCC_SOAP::logger(Arc::MCC::logger,"SOAP");
 
 
-Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : MCC(cfg) {
+Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
@@ -109,13 +109,13 @@ bool SOAPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   return false;
 }
 
-MCC_SOAP_Service::MCC_SOAP_Service(Arc::Config *cfg):MCC_SOAP(cfg) {
+MCC_SOAP_Service::MCC_SOAP_Service(Config *cfg):MCC_SOAP(cfg) {
 }
 
 MCC_SOAP_Service::~MCC_SOAP_Service(void) {
 }
 
-MCC_SOAP_Client::MCC_SOAP_Client(Arc::Config *cfg):MCC_SOAP(cfg) {
+MCC_SOAP_Client::MCC_SOAP_Client(Config *cfg):MCC_SOAP(cfg) {
 }
 
 MCC_SOAP_Client::~MCC_SOAP_Client(void) {
@@ -131,15 +131,15 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* reason = NULL)
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
   outmsg.Payload(payload);
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(STATUS_OK);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,const char* reason = NULL) {
-  PayloadSOAP* soap = new PayloadSOAP(Arc::NS(),true);
+  PayloadSOAP* soap = new PayloadSOAP(NS(),true);
   soap->Fault()->Code(SOAPFault::Sender);
   if(reason != NULL) soap->Fault()->Reason(0, reason);
   outmsg.Payload(soap);
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(STATUS_OK);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* reason = NULL) {
@@ -244,7 +244,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     // stupid - not implementing.
   };
   delete outmsg.Payload(outpayload);
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(STATUS_OK);
 }
 
 MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
@@ -301,7 +301,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
     delete outpayload; return make_soap_fault(outmsg,"Security check failed for incoming SOAP message");
   };
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(STATUS_OK);
 }
 
 } // namespace Arc

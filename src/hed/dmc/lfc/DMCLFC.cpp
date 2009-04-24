@@ -25,11 +25,11 @@ namespace Arc {
   }
 
   Plugin* DMCLFC::Instance(PluginArgument *arg) {
-    Arc::DMCPluginArgument *dmcarg =
-      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<DMCPluginArgument*>(arg) : NULL;
     if (!dmcarg)
       return NULL;
-    return new DMCLFC((Arc::Config*)(*dmcarg));
+    return new DMCLFC((Config*)(*dmcarg));
   }
 
   DataPoint* DMCLFC::iGetDataPoint(const URL& url) {

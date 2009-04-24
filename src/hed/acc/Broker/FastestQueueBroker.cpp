@@ -30,7 +30,7 @@ namespace Arc {
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new FastestQueueBroker((Arc::Config*)(*accarg));
+    return new FastestQueueBroker((Config*)(*accarg));
   }
 
   void FastestQueueBroker::SortTargets() {
@@ -38,7 +38,7 @@ namespace Arc {
     logger.msg(DEBUG, "FastestQueueBroker is filtering %d targets", PossibleTargets.size());
 
     //Remove clusters with incomplete information for target sorting
-    std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
+    std::vector<ExecutionTarget>::iterator iter = PossibleTargets.begin();
     while (iter != PossibleTargets.end()) {
       if (iter->WaitingJobs == -1 || iter->TotalSlots == -1 || iter->FreeSlots == -1) {
         if (iter->WaitingJobs == -1)

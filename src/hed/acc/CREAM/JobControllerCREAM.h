@@ -15,7 +15,7 @@ namespace Arc {
 
   public:
 
-    JobControllerCREAM(Arc::Config *cfg);
+    JobControllerCREAM(Config *cfg);
     ~JobControllerCREAM();
 
     void GetJobInformation();

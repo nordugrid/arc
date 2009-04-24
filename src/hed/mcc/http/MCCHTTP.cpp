@@ -15,7 +15,7 @@
 
 Arc::Logger Arc::MCC_HTTP::logger(Arc::MCC::logger,"HTTP");
 
-Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : MCC(cfg) {
+Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
@@ -109,13 +109,13 @@ bool HTTPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   return false;
 }
 
-MCC_HTTP_Service::MCC_HTTP_Service(Arc::Config *cfg):MCC_HTTP(cfg) {
+MCC_HTTP_Service::MCC_HTTP_Service(Config *cfg):MCC_HTTP(cfg) {
 }
 
 MCC_HTTP_Service::~MCC_HTTP_Service(void) {
 }
 
-static MCC_Status make_http_fault(Arc::Logger& logger,PayloadStreamInterface& stream,Message& outmsg,int code,const char* desc = NULL) {
+static MCC_Status make_http_fault(Logger& logger,PayloadStreamInterface& stream,Message& outmsg,int code,const char* desc = NULL) {
   if((desc == NULL) || (*desc == 0)) {
     switch(code) {
       case HTTP_BAD_REQUEST:  desc="Bad Request"; break;
@@ -288,11 +288,11 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Returning empty payload because response is already sent through Flush
   PayloadRaw* outpayload_e = new PayloadRaw;
   outmsg.Payload(outpayload_e);
-  if(!keep_alive) return MCC_Status(Arc::SESSION_CLOSE);
-  return MCC_Status(Arc::STATUS_OK);
+  if(!keep_alive) return MCC_Status(SESSION_CLOSE);
+  return MCC_Status(STATUS_OK);
 }
 
-MCC_HTTP_Client::MCC_HTTP_Client(Arc::Config *cfg):MCC_HTTP(cfg) {
+MCC_HTTP_Client::MCC_HTTP_Client(Config *cfg):MCC_HTTP(cfg) {
   endpoint_=(std::string)((*cfg)["Endpoint"]);
   method_=(std::string)((*cfg)["Method"]);
 }
@@ -366,7 +366,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
       outpayload->Attributes().begin();i!=outpayload->Attributes().end();++i) {
     outmsg.Attributes()->set("HTTP:"+i->first,i->second);
   };
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(STATUS_OK);
 }
 
 } // namespace Arc

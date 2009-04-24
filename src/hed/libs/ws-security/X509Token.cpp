@@ -95,7 +95,7 @@ X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
  
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
-    Arc::NS ns;
+    NS ns;
     ns["wsse"]=WSSE_NAMESPACE;
     ns["wsse11"]=WSSE11_NAMESPACE;
     ns["wsu"]=WSU_NAMESPACE;
@@ -125,7 +125,7 @@ X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
   }
   else{
     //Compose the xml structure
-    Arc::NS ns;
+    NS ns;
     ns["xenc"] = XENC_NAMESPACE;
     ns["ds"] = DSIG_NAMESPACE;
     XMLNode encrypted_data(ns,"xenc:EncryptedData");
@@ -266,7 +266,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
-    Arc::NS header_ns, ns;
+    NS header_ns, ns;
     header_ns["wsse"]=WSSE_NAMESPACE;
     header_ns["wsse11"]=WSSE11_NAMESPACE;
     header.Namespaces(header_ns);
@@ -374,7 +374,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
   }
   else {
     // Apply predefined namespace prefix
-    Arc::NS ns, header_ns;
+    NS ns, header_ns;
     header_ns["wsse"]=WSSE_NAMESPACE;
     header_ns["wsse11"]=WSSE11_NAMESPACE;
     header_ns["wsu"]=WSU_NAMESPACE;

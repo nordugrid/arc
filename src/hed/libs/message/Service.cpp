@@ -8,7 +8,7 @@ namespace Arc {
 
 Logger Service::logger(Logger::getRootLogger(), "Service");
 
-Service::Service(Arc::Config*) {
+Service::Service(Config*) {
 }
 
 void Service::AddSecHandler(Config* cfg,ArcSec::SecHandler* sechandler,const std::string& label) {
@@ -19,10 +19,10 @@ void Service::AddSecHandler(Config* cfg,ArcSec::SecHandler* sechandler,const std
     }
 }
 
-bool Service::ProcessSecHandlers(Arc::Message& message,const std::string& label) {
+bool Service::ProcessSecHandlers(Message& message,const std::string& label) {
     std::map<std::string,std::list<ArcSec::SecHandler*> >::iterator q = sechandlers_.find(label);
     if(q == sechandlers_.end()) {
-        logger.msg(Arc::VERBOSE, "No security processing/check requested for '%s'", label);
+        logger.msg(VERBOSE, "No security processing/check requested for '%s'", label);
         return true;
     }
 
@@ -30,17 +30,17 @@ bool Service::ProcessSecHandlers(Arc::Message& message,const std::string& label)
     for(;h!=q->second.end();++h) {
         ArcSec::SecHandler* handler = *h;
         if(handler) if(!(handler->Handle(&message))) {
-            logger.msg(Arc::VERBOSE, "Security processing/check for '%s' failed", label);
+            logger.msg(VERBOSE, "Security processing/check for '%s' failed", label);
             return false;
         }
     }
-    logger.msg(Arc::VERBOSE, "Security processing/check for '%s' passed", label);
+    logger.msg(VERBOSE, "Security processing/check for '%s' passed", label);
     return true;
 }
 
-bool Service::RegistrationCollector(Arc::XMLNode &doc)
+bool Service::RegistrationCollector(XMLNode &doc)
 {
-    logger.msg(Arc::WARNING, "Empty registration collector");
+    logger.msg(WARNING, "Empty registration collector");
 }
 
 } // namespace Arc

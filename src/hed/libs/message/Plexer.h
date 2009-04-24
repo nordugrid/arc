@@ -68,7 +68,7 @@ namespace Arc {
 
   /* protected:
     XXX: workaround because the python segmentation fault */
-    static Arc::Logger logger;
+    static Logger logger;
 
   private:
 

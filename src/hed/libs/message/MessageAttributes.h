@@ -42,9 +42,9 @@ namespace Arc {
 
     Typical usage is:
     \code
-    Arc::MessageAttributes attributes;
+    MessageAttributes attributes;
     ...
-    for (Arc::AttributeIterator iterator=attributes.getAll("Foo:Bar");
+    for (AttributeIterator iterator=attributes.getAll("Foo:Bar");
          iterator.hasMore(); ++iterator)
       std::cout << *iterator << std::endl;
     \endcode

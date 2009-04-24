@@ -27,7 +27,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   hint.ai_family = AF_UNSPEC;
   hint.ai_socktype = SOCK_STREAM;
   hint.ai_protocol = IPPROTO_TCP;
-  std::string port_str = Arc::tostring(port);
+  std::string port_str = tostring(port);
   struct addrinfo *info = NULL;
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
   if (ret != 0) {

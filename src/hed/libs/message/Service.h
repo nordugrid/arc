@@ -44,24 +44,24 @@ class Service: public MCCInterface
 
         /** Executes security handlers of specified queue.
           For more information please see description of MCC::ProcessSecHandlers */
-        bool ProcessSecHandlers(Arc::Message& message,const std::string& label = "");
+        bool ProcessSecHandlers(Message& message,const std::string& label = "");
 
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
-        Service(Arc::Config*);
+        Service(Config*);
 
         virtual ~Service(void) { };
 
         /** Add security components/handlers to this MCC.
           For more information please see description of MCC::AddSecHandler */
-        virtual void AddSecHandler(Arc::Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
+        virtual void AddSecHandler(Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
         
         /** Service specific registartion collector, 
             used for generate service registartions.
            In implemented service this method should generate GLUE2 document
            with part of service description which service wishes to advertise
            to Information Services. */
-        virtual bool RegistrationCollector(Arc::XMLNode &doc);
+        virtual bool RegistrationCollector(XMLNode &doc);
 
         /** Service may implement own service identitifer gathering method.
            This method return identifier of service which is used for registering
@@ -76,7 +76,7 @@ class ServicePluginArgument: public PluginArgument {
         Config* config_;
         ChainContext* context_;
     public:
-        ServicePluginArgument(Arc::Config* config,Arc::ChainContext* context):config_(config),context_(context) { };
+        ServicePluginArgument(Config* config,ChainContext* context):config_(config),context_(context) { };
         virtual ~ServicePluginArgument(void) { };
         operator Config* (void) { return config_; };
         operator ChainContext* (void) { return context_; };

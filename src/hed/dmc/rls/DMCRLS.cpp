@@ -40,11 +40,11 @@ namespace Arc {
   }
 
   Plugin* DMCRLS::Instance(PluginArgument *arg) {
-    Arc::DMCPluginArgument *dmcarg =
-      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<DMCPluginArgument*>(arg) : NULL;
     if (!dmcarg)
       return NULL;
-    return new DMCRLS((Arc::Config*)(*dmcarg));
+    return new DMCRLS((Config*)(*dmcarg));
   }
 
   DataPoint* DMCRLS::iGetDataPoint(const URL& url) {

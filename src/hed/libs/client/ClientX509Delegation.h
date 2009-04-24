@@ -106,7 +106,7 @@ namespace Arc {
     std::string proxy_file_;
     std::string trusted_ca_dir_;
     std::string trusted_ca_file_;
-    Arc::Credential *signer_;
+    Credential *signer_;
     static Logger logger;
   };
 

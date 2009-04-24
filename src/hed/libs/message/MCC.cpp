@@ -10,7 +10,7 @@
 
 namespace Arc {
 
-  Arc::Logger Arc::MCC::logger(Arc::Logger::getRootLogger(), "MCC");
+  Logger MCC::logger(Logger::getRootLogger(), "MCC");
 
   void MCC::Next(MCCInterface *next, const std::string& label) {
     if (next == NULL)
@@ -42,7 +42,7 @@ namespace Arc {
     }
   }
 
-  bool MCC::ProcessSecHandlers(Arc::Message& message,
+  bool MCC::ProcessSecHandlers(Message& message,
 			       const std::string& label) {
     // Each MCC/Service can define security handler queues in the configuration
     // file, the queues have labels specified in handlers configuration 'event'
@@ -63,7 +63,7 @@ namespace Arc {
     std::map<std::string, std::list<ArcSec::SecHandler *> >::iterator q =
       sechandlers_.find(label);
     if (q == sechandlers_.end()) {
-      logger.msg(Arc::VERBOSE,
+      logger.msg(VERBOSE,
 		 "No security processing/check requested for '%s'", label);
       return true;
     }
@@ -73,11 +73,11 @@ namespace Arc {
       if (!handler)
 	continue; // Shouldn't happen. Just a sanity check.
       if (!(handler->Handle(&message))) {
-	logger.msg(Arc::INFO, "Security processing/check failed");
+	logger.msg(INFO, "Security processing/check failed");
 	return false;
       }
     }
-    logger.msg(Arc::VERBOSE, "Security processing/check passed");
+    logger.msg(VERBOSE, "Security processing/check passed");
     return true;
   }
 

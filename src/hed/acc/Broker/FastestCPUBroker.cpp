@@ -44,13 +44,13 @@ namespace Arc {
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new FastestCPUBroker((Arc::Config*)(*accarg));
+    return new FastestCPUBroker((Config*)(*accarg));
   }
 
   void FastestCPUBroker::SortTargets() {
 
     //Remove clusters with incomplete information for target sorting
-    std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
+    std::vector<ExecutionTarget>::iterator iter = PossibleTargets.begin();
     while (iter != PossibleTargets.end()) {
       if ((iter->Benchmarks).empty()) {
         iter = PossibleTargets.erase(iter);

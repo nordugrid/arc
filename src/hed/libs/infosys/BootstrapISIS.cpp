@@ -16,9 +16,9 @@
 #include <arc/win32.h>
 #endif
 
-static Arc::Logger logger_(Arc::Logger::rootLogger, "InfoSys");
-
 namespace Arc {
+
+static Logger logger_(Logger::rootLogger, "InfoSys");
 
 struct Registrar_data {
    ISIS_description isis;
@@ -72,7 +72,7 @@ struct Registrar_data {
         logger_.msg(DEBUG, "getISISList from %s", isis.url);
         // Try to get ISISList from the actual ISIS
         // Compose getISISList request
-        Arc::NS query_ns;
+        NS query_ns;
         query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
 
         // Try to get ISIS.getISISList()

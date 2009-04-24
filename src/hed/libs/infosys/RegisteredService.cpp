@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-  RegisteredService::RegisteredService(Arc::Config* cfg):Service(cfg),inforeg((Arc::XMLNode&)(*cfg), this) {
+  RegisteredService::RegisteredService(Config* cfg):Service(cfg),inforeg((XMLNode&)(*cfg), this) {
   }
 
 } // namespace Arc

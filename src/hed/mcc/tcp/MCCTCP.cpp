@@ -58,7 +58,7 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #define PROTO_NAME(ADDR) ((ADDR->ai_family==AF_INET6)?"IPv6":"IPv4")
 Arc::Logger Arc::MCC_TCP::logger(Arc::MCC::logger,"TCP");
 
-Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : MCC(cfg) {
+Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
@@ -85,11 +85,11 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 namespace Arc {
 
 
-MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
+MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
-    	logger.msg(Arc::ERROR, "Cannot initialize winsock library");
+    	logger.msg(ERROR, "Cannot initialize winsock library");
         return;
     }
 #endif
@@ -104,7 +104,7 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
         if(!l) break;
         std::string port_s = l["Port"];
         if(port_s.empty()) {
-            logger.msg(Arc::ERROR, "Missing Port in Listen element");
+            logger.msg(ERROR, "Missing Port in Listen element");
             continue;
         };
         std::string version_s = l["Version"];
@@ -112,7 +112,7 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
             if(version_s == "4") { hint.ai_family = AF_INET; }
             else if(version_s == "6") { hint.ai_family = AF_INET6; }
             else {
-                logger.msg(Arc::ERROR, "Version in Listen element can't be recognized");
+                logger.msg(ERROR, "Version in Listen element can't be recognized");
                 continue;
             };
         };
@@ -123,42 +123,42 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
             continue;
         };
         for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
-            logger.msg(Arc::DEBUG, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
+            logger.msg(DEBUG, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
             int s = ::socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
             if(s == -1) {
                 std::string e = StrError(errno);
-	        logger.msg(Arc::ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+	        logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 continue;
             };
             if(::bind(s,info->ai_addr,info->ai_addrlen) == -1) {
                 std::string e = StrError(errno);
-	        logger.msg(Arc::ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+	        logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
             if(::listen(s,-1) == -1) {
                 std::string e = StrError(errno);
-	        logger.msg(Arc::WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+	        logger.msg(WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
             handles_.push_back(s);
-            logger.msg(Arc::INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
+            logger.msg(INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
         };
         freeaddrinfo(info);
     };
     if(handles_.size() == 0) {
-        logger.msg(Arc::ERROR, "No listening ports initiated");
+        logger.msg(ERROR, "No listening ports initiated");
         return;
     };
     if(!CreateThreadFunction(&listener,this)) {
-        logger.msg(Arc::ERROR, "Failed to start thread for listening");
+        logger.msg(ERROR, "Failed to start thread for listening");
         for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) ::close(*i);
     };
 }
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
-    //logger.msg(Arc::DEBUG, "TCP_Service destroy");
+    //logger.msg(DEBUG, "TCP_Service destroy");
     lock_.lock();
     for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();++i) {
         ::close(*i); *i=-1;
@@ -186,7 +186,7 @@ MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o)
     // list is locked externally
     std::list<mcc_tcp_exec_t>::iterator e = o->executers_.insert(o->executers_.end(),*this); 
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,&(*e))) {
-        logger.msg(Arc::ERROR, "Failed to start thread for communication");
+        logger.msg(ERROR, "Failed to start thread for communication");
         ::shutdown(handle,2);
 #ifdef WIN32
         ::closesocket(handle); handle=-1; o->executers_.erase(e);
@@ -216,7 +216,7 @@ void MCC_TCP_Service::listener(void* arg) {
         int n = select(max_s+1,&readfds,NULL,NULL,&tv);
         if(n < 0) {
             if(ErrNo != EINTR) {
-	        logger.msg(Arc::ERROR,
+	        logger.msg(ERROR,
 			"Failed while waiting for connection request");
                 it.lock_.lock();
                 for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
@@ -239,7 +239,7 @@ void MCC_TCP_Service::listener(void* arg) {
                 socklen_t addrlen = sizeof(addr);
                 int h = accept(s,&addr,&addrlen);
                 if(h == -1) {
-                    logger.msg(Arc::ERROR, "Failed to accept connection request");
+                    logger.msg(ERROR, "Failed to accept connection request");
                     it.lock_.lock();
                 } else {
                     it.lock_.lock();
@@ -420,7 +420,7 @@ void MCC_TCP_Service::executer(void* arg) {
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;
-        logger.msg(Arc::DEBUG, "next chain element called");
+        logger.msg(DEBUG, "next chain element called");
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(!it.ProcessSecHandlers(nextoutmsg,"outgoing")) break;
         // If nextoutmsg contains some useful payload send it here.
@@ -432,7 +432,7 @@ void MCC_TCP_Service::executer(void* arg) {
                 outpayload = dynamic_cast<PayloadRawInterface*>(nextoutmsg.Payload());
             } catch(std::exception& e) { };
             if(!outpayload) {
-                logger.msg(Arc::WARNING, "Only Raw Buffer payload is supported for output");
+                logger.msg(WARNING, "Only Raw Buffer payload is supported for output");
             } else {
                 // Sending payload
                 for(int n=0;;++n) {
@@ -440,7 +440,7 @@ void MCC_TCP_Service::executer(void* arg) {
                     if(!buf) break;
                     int bufsize = outpayload->BufferSize(n);
                     if(!(stream.Put(buf,bufsize))) {
-                        logger.msg(Arc::ERROR, "Failed to send content of buffer");
+                        logger.msg(ERROR, "Failed to send content of buffer");
                         break;
                     };
                 };
@@ -469,29 +469,29 @@ MCC_Status MCC_TCP_Service::process(Message&,Message&) {
   return MCC_Status();
 }
 
-MCC_TCP_Client::MCC_TCP_Client(Arc::Config *cfg):MCC_TCP(cfg),s_(NULL) {
+MCC_TCP_Client::MCC_TCP_Client(Config *cfg):MCC_TCP(cfg),s_(NULL) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
-    	logger.msg(Arc::ERROR, "Cannot initialize winsock library");
+    	logger.msg(ERROR, "Cannot initialize winsock library");
         return;
     }
 #endif
     XMLNode c = (*cfg)["Connect"][0];
     if(!c) {
-        logger.msg(Arc::ERROR,"No Connect element specified");
+        logger.msg(ERROR,"No Connect element specified");
         return;
     };
 
     std::string port_s = c["Port"];
     if(port_s.empty()) {
-        logger.msg(Arc::ERROR,"Missing Port in Connect element");
+        logger.msg(ERROR,"Missing Port in Connect element");
         return;
     };
 
     std::string host_s = c["Host"];
     if(host_s.empty()) {
-        logger.msg(Arc::ERROR,"Missing Host in Connect element");
+        logger.msg(ERROR,"Missing Host in Connect element");
         return;
     };
 
@@ -512,25 +512,25 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Accepted payload is Raw
     // Returned payload is Stream
     
-    logger.msg(Arc::DEBUG, "client process called");
+    logger.msg(DEBUG, "client process called");
     //outmsg.Attributes(inmsg.Attributes());
     //outmsg.Context(inmsg.Context());
-    if(!s_) return MCC_Status(Arc::GENERIC_ERROR);
+    if(!s_) return MCC_Status(GENERIC_ERROR);
     // Extracting payload
-    if(!inmsg.Payload()) return MCC_Status(Arc::GENERIC_ERROR);
+    if(!inmsg.Payload()) return MCC_Status(GENERIC_ERROR);
     PayloadRawInterface* inpayload = NULL;
     try {
         inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
-    if(!inpayload) return MCC_Status(Arc::GENERIC_ERROR);
-    if(!ProcessSecHandlers(inmsg,"outgoing")) return MCC_Status(Arc::GENERIC_ERROR);
+    if(!inpayload) return MCC_Status(GENERIC_ERROR);
+    if(!ProcessSecHandlers(inmsg,"outgoing")) return MCC_Status(GENERIC_ERROR);
     // Sending payload
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
         if(!buf) break;
         int bufsize = inpayload->BufferSize(n);
         if(!(s_->Put(buf,bufsize))) {
-            logger.msg(Arc::ERROR, "Failed to send content of buffer");
+            logger.msg(ERROR, "Failed to send content of buffer");
             return MCC_Status();
         };
     };
@@ -556,7 +556,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     outmsg.Attributes()->set("TCP:REMOTEPORT",remoteport_attr);
     outmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
     outmsg.Attributes()->set("ENDPOINT",endpoint_attr);
-    if(!ProcessSecHandlers(outmsg,"incoming")) return MCC_Status(Arc::GENERIC_ERROR);
-    return MCC_Status(Arc::STATUS_OK);
+    if(!ProcessSecHandlers(outmsg,"incoming")) return MCC_Status(GENERIC_ERROR);
+    return MCC_Status(STATUS_OK);
 }
 } // namespace ARC

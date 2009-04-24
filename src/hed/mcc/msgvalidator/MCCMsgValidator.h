@@ -9,9 +9,9 @@ namespace Arc {
 
   class MCC_MsgValidator : public MCC {
   public:
-    MCC_MsgValidator(Arc::Config *cfg);
+    MCC_MsgValidator(Config *cfg);
   protected:
-    static Arc::Logger logger;
+    static Logger logger;
     std::map<std::string,std::string> schemas;
 
     bool validateMessage(Message&,std::string);
@@ -25,7 +25,7 @@ class MCC_MsgValidator_Service: public MCC_MsgValidator
 {
     public:
         /* Constructor takes configuration of MCC. */
-        MCC_MsgValidator_Service(Arc::Config *cfg);
+        MCC_MsgValidator_Service(Config *cfg);
         virtual ~MCC_MsgValidator_Service(void);
         virtual MCC_Status process(Message&,Message&);
     private:

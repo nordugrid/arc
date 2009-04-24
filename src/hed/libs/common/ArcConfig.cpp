@@ -135,7 +135,7 @@ namespace Arc {
         fname = fname_str;
       else {
         std::vector<std::string> clientPath(3);
-        clientPath[0] = Arc::User().Home();
+        clientPath[0] = User().Home();
         clientPath[1] = ".arc";
         clientPath[2] = "client.xml";
         fname = Glib::build_filename(clientPath);

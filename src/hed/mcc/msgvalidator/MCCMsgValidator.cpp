@@ -20,10 +20,10 @@
 Arc::Logger Arc::MCC_MsgValidator::logger(Arc::MCC::logger,"MsgValidator");
 
 
-Arc::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : MCC(cfg) {
+Arc::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : Arc::MCC(cfg) {
     // Collect services to be validated
     for(int i = 0;;++i) {
-        XMLNode n = (*cfg)["ValidatedService"][i];
+        Arc::XMLNode n = (*cfg)["ValidatedService"][i];
         if(!n) break;
         std::string servicepath = n["ServicePath"];
         if(servicepath.empty()) {
@@ -58,7 +58,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace Arc {
 
-MCC_MsgValidator_Service::MCC_MsgValidator_Service(Arc::Config *cfg):MCC_MsgValidator(cfg) {
+MCC_MsgValidator_Service::MCC_MsgValidator_Service(Config *cfg):MCC_MsgValidator(cfg) {
 }
 
 MCC_MsgValidator_Service::~MCC_MsgValidator_Service(void) {
@@ -184,14 +184,14 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* = NULL)
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
   outmsg.Payload(payload);
-  return MCC_Status(Arc::GENERIC_ERROR);
+  return MCC_Status(GENERIC_ERROR);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,const char* = NULL) {
-  PayloadSOAP* soap = new PayloadSOAP(Arc::NS(),true);
+  PayloadSOAP* soap = new PayloadSOAP(NS(),true);
   soap->Fault()->Code(SOAPFault::Receiver);
   outmsg.Payload(soap);
-  return MCC_Status(Arc::GENERIC_ERROR);
+  return MCC_Status(GENERIC_ERROR);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* desc = NULL) {
@@ -283,7 +283,7 @@ MCC_Status MCC_MsgValidator_Service::process(Message& inmsg,Message& outmsg) {
   // replace old payload with retpayload
   // then delete old payload
   delete outmsg.Payload(retpayload);
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(STATUS_OK);
 }
 
 std::string MCC_MsgValidator_Service::getPath(std::string url){

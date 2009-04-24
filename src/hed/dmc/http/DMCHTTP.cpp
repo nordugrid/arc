@@ -25,11 +25,11 @@ namespace Arc {
   }
 
   Plugin* DMCHTTP::Instance(PluginArgument *arg) {
-    Arc::DMCPluginArgument *dmcarg =
-      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<DMCPluginArgument*>(arg) : NULL;
     if (!dmcarg)
       return NULL;
-    return new DMCHTTP((Arc::Config*)(*dmcarg));
+    return new DMCHTTP((Config*)(*dmcarg));
   }
 
   DataPoint* DMCHTTP::iGetDataPoint(const URL& url) {

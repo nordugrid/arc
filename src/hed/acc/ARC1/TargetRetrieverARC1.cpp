@@ -61,12 +61,12 @@ namespace Arc {
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
-  Plugin* TargetRetrieverARC1::Instance(Arc::PluginArgument *arg) {
+  Plugin* TargetRetrieverARC1::Instance(PluginArgument *arg) {
     ACCPluginArgument *accarg =
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new TargetRetrieverARC1((Arc::Config*)(*accarg));
+    return new TargetRetrieverARC1((Config*)(*accarg));
   }
 
   void TargetRetrieverARC1::GetTargets(TargetGenerator& mom, int targetType,
@@ -653,7 +653,7 @@ namespace Arc {
 
       DataHandle dir_url(url);
       if (!dir_url) {
-        logger.msg(Arc::ERROR, "Unsupported url given");
+        logger.msg(ERROR, "Unsupported url given");
         return;
       }
 

@@ -12,9 +12,9 @@ namespace Arc {
  */
 class MCC_HTTP : public MCC {
   public:
-    MCC_HTTP(Arc::Config *cfg);
+    MCC_HTTP(Config *cfg);
   protected:
-    static Arc::Logger logger;
+    static Logger logger;
 };
 
 /** This class implements MCC to processes HTTP request.
@@ -37,7 +37,7 @@ class MCC_HTTP : public MCC {
  */
 class MCC_HTTP_Service: public MCC_HTTP {
     public:
-        MCC_HTTP_Service(Arc::Config *cfg);
+        MCC_HTTP_Service(Config *cfg);
         virtual ~MCC_HTTP_Service(void);
         virtual MCC_Status process(Message&,Message&);
 };
@@ -64,7 +64,7 @@ class MCC_HTTP_Client: public MCC_HTTP {
         std::string method_;
         std::string endpoint_;
     public:
-        MCC_HTTP_Client(Arc::Config *cfg);
+        MCC_HTTP_Client(Config *cfg);
         virtual ~MCC_HTTP_Client(void);
         virtual MCC_Status process(Message&,Message&);
 };

@@ -41,9 +41,9 @@ namespace Arc {
 
   bool VerifyQuery(const std::string query, const std::string& sender_cert_str);
 
-  std::string BuildDeflatedQuery(const Arc::XMLNode& node);
+  std::string BuildDeflatedQuery(const XMLNode& node);
 
-  bool BuildNodefromMsg(const std::string msg, Arc::XMLNode& node);
+  bool BuildNodefromMsg(const std::string msg, XMLNode& node);
 
 }// namespace Arc
 

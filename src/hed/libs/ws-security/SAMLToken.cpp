@@ -89,7 +89,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap) : SOAPEnvelope(soap){
   wsse_signature_nd = NULL; 
 
   // Apply predefined namespace prefix
-  Arc::NS ns;
+  NS ns;
   ns["wsse"]=WSSE_NAMESPACE;
   ns["wsse11"]=WSSE11_NAMESPACE;
   ns["wsu"]=WSU_NAMESPACE;
@@ -214,7 +214,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
   //if(!init_xmlsec()) return;
   if(samlversion == SAML2) {
     // Apply predefined namespace prefix
-    Arc::NS ns, header_ns, assertion_ns;
+    NS ns, header_ns, assertion_ns;
     ns = envelope.Namespaces();
     ns["wsu"]=WSU_NAMESPACE;
     envelope.Namespaces(ns);
@@ -232,7 +232,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     XMLNode assertion = get_node(wsse, "saml2:Assertion");
     assertion.Namespaces(assertion_ns);
     assertion.Name("saml2:Assertion");
-    std::string assertion_id = Arc::UUID();
+    std::string assertion_id = UUID();
     assertion.NewAttribute("ID") = assertion_id;
     assertion.NewAttribute("IssueInstant") = "2008-07-12T16:53:33.173Z";
     assertion.NewAttribute("Issuer") = "www.knowarc.org";

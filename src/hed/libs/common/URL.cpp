@@ -823,7 +823,7 @@ namespace Arc {
       std::ifstream f(url.Path().c_str());
       std::string line;
       while (getline(f, line)) {
-        Arc::URL url(line);
+        URL url(line);
         if (url)
           urllist.push_back(url);
         else

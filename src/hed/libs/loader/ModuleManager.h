@@ -52,7 +52,7 @@ class ModuleManager
            It is supposed to process correponding configuration subtree and tune
           module loading parameters accordingly. 
            Currently it only sets modulr directory to current one. */
-        ModuleManager(const Arc::Config *cfg);
+        ModuleManager(const Config *cfg);
         ~ModuleManager();
         /** Finds module 'name' in cache or loads corresponding shared library */
         Glib::Module* load(const std::string& name,bool probe = false /*,bool reload = false*/ );
@@ -67,7 +67,7 @@ class ModuleManager
         std::string findLocation(const std::string& name);
         /** Input the configuration subtree, and trigger the module loading (do almost the same as the Constructor); 
         It is function desgined for ClassLoader to adopt the singleton pattern */
-        void setCfg (Arc::Config *cfg);
+        void setCfg (Config *cfg);
 };
 
 } // namespace Arc

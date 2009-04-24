@@ -2,7 +2,7 @@
 
 //namespace Arc {
 
-  //Arc::Logger SRM1Client::logger(SRMClient::logger, "SRM1Client");
+  //Logger SRM1Client::logger(SRMClient::logger, "SRM1Client");
   
   SRM1Client::SRM1Client(SRMURL url) {
     version = "v1";

@@ -14,7 +14,7 @@ namespace Arc {
     : public JobController {
 
   private:
-    JobControllerARC0(Arc::Config *cfg);
+    JobControllerARC0(Config *cfg);
   public:
     ~JobControllerARC0();
 

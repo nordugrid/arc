@@ -170,23 +170,23 @@ namespace Arc {
     return (verify_ctx_.proxy_policy);
   }
 
-  Arc::Period Credential::GetLifeTime(void) {
+  Period Credential::GetLifeTime(void) {
     return lifetime_;
   }
 
-  Arc::Time Credential::GetStartTime() {
+  Time Credential::GetStartTime() {
     return start_;
   }
 
-  Arc::Time Credential::GetEndTime() {
+  Time Credential::GetEndTime() {
     return start_+lifetime_;
   }
 
-  void Credential::SetLifeTime(const Arc::Period& period) {
+  void Credential::SetLifeTime(const Period& period) {
     lifetime_ = period;
   }
 
-  void Credential::SetStartTime(const Arc::Time& start_time) {
+  void Credential::SetStartTime(const Time& start_time) {
     start_ = start_time;
   }
 
@@ -435,7 +435,7 @@ namespace Arc {
   } 
 
   Credential::Credential() : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-        start_(Arc::Time()), lifetime_(Arc::Period("PT12H")),
+        start_(Time()), lifetime_(Period("PT12H")),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
         extensions_(NULL) {
 

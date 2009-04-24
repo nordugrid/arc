@@ -36,83 +36,83 @@ namespace Arc {
 
   void Job::Print(bool longlist) const {
 
-    std::cout << Arc::IString("Job: %s", JobID.str()) << std::endl;
+    std::cout << IString("Job: %s", JobID.str()) << std::endl;
     if (!Name.empty())
-      std::cout << Arc::IString(" Name: %s", Name) << std::endl;
+      std::cout << IString(" Name: %s", Name) << std::endl;
     if (!State.empty())
-      std::cout << Arc::IString(" State: %s", State) << std::endl;
+      std::cout << IString(" State: %s", State) << std::endl;
     if (ExitCode != -1)
-      std::cout << Arc::IString(" Exit Code: %d", ExitCode) << std::endl;
+      std::cout << IString(" Exit Code: %d", ExitCode) << std::endl;
     if (!Error.empty()) {
       std::list<std::string>::const_iterator iter;
       for (iter = Error.begin(); iter != Error.end(); iter++)
-        std::cout << Arc::IString(" Error: %s", *iter) << std::endl;
+        std::cout << IString(" Error: %s", *iter) << std::endl;
     }
     if (longlist) {
       if (!Owner.empty())
-        std::cout << Arc::IString(" Owner: %s", Owner) << std::endl;
+        std::cout << IString(" Owner: %s", Owner) << std::endl;
       if (!OtherMessages.empty())
-        std::cout << Arc::IString(" Other Messages: %s", OtherMessages)
+        std::cout << IString(" Other Messages: %s", OtherMessages)
                   << std::endl;
       if (!ExecutionCE.empty())
-        std::cout << Arc::IString(" ExecutionCE: %s", ExecutionCE)
+        std::cout << IString(" ExecutionCE: %s", ExecutionCE)
                   << std::endl;
       if (!Queue.empty())
-        std::cout << Arc::IString(" Queue: %s", Queue) << std::endl;
+        std::cout << IString(" Queue: %s", Queue) << std::endl;
       if (UsedSlots != -1)
-        std::cout << Arc::IString(" Used Slots: %d", UsedSlots) << std::endl;
+        std::cout << IString(" Used Slots: %d", UsedSlots) << std::endl;
       if (WaitingPosition != -1)
-        std::cout << Arc::IString(" Waiting Position: %d", WaitingPosition)
+        std::cout << IString(" Waiting Position: %d", WaitingPosition)
                   << std::endl;
       if (!StdIn.empty())
-        std::cout << Arc::IString(" Stdin: %s", StdIn) << std::endl;
+        std::cout << IString(" Stdin: %s", StdIn) << std::endl;
       if (!StdOut.empty())
-        std::cout << Arc::IString(" Stdout: %s", StdOut) << std::endl;
+        std::cout << IString(" Stdout: %s", StdOut) << std::endl;
       if (!StdErr.empty())
-        std::cout << Arc::IString(" Stderr: %s", StdErr) << std::endl;
+        std::cout << IString(" Stderr: %s", StdErr) << std::endl;
       if (!LogDir.empty())
-        std::cout << Arc::IString(" Grid Manager Log Directory: %s", LogDir)
+        std::cout << IString(" Grid Manager Log Directory: %s", LogDir)
                   << std::endl;
       if (SubmissionTime != -1)
-        std::cout << Arc::IString(" Submitted: %s",
+        std::cout << IString(" Submitted: %s",
                                   (std::string)SubmissionTime) << std::endl;
       if (EndTime != -1)
-        std::cout << Arc::IString(" End Time: %s", (std::string)EndTime)
+        std::cout << IString(" End Time: %s", (std::string)EndTime)
                   << std::endl;
       if (!SubmissionHost.empty())
-        std::cout << Arc::IString(" Submitted from: %s", SubmissionHost)
+        std::cout << IString(" Submitted from: %s", SubmissionHost)
                   << std::endl;
       if (!SubmissionClientName.empty())
-        std::cout << Arc::IString(" Submitting client: %s",
+        std::cout << IString(" Submitting client: %s",
                                   SubmissionClientName) << std::endl;
       if (RequestedTotalCPUTime != -1)
-        std::cout << Arc::IString(" Requested CPU Time: %s",
+        std::cout << IString(" Requested CPU Time: %s",
                                   (std::string)RequestedTotalCPUTime)
                   << std::endl;
       if (UsedTotalCPUTime != -1)
-        std::cout << Arc::IString(" Used CPU Time: %s",
+        std::cout << IString(" Used CPU Time: %s",
                                   (std::string)UsedTotalCPUTime) << std::endl;
       if (UsedWallTime != -1)
-        std::cout << Arc::IString(" Used Wall Time: %s",
+        std::cout << IString(" Used Wall Time: %s",
                                   (std::string)UsedWallTime) << std::endl;
       if (UsedMainMemory != -1)
-        std::cout << Arc::IString(" Used Memory: %d", UsedMainMemory)
+        std::cout << IString(" Used Memory: %d", UsedMainMemory)
                   << std::endl;
       if (WorkingAreaEraseTime != -1)
-        std::cout << Arc::IString((State == "DELETED") ?
+        std::cout << IString((State == "DELETED") ?
                                   " Results were deleted: %s" :
                                   " Results must be retrieved before: %s",
                                   (std::string)WorkingAreaEraseTime)
                   << std::endl;
       if (ProxyExpirationTime != -1)
-        std::cout << Arc::IString(" Proxy valid until: %s",
+        std::cout << IString(" Proxy valid until: %s",
                                   (std::string)ProxyExpirationTime)
                   << std::endl;
       if (CreationTime != -1)
-        std::cout << Arc::IString(" Entry valid from: %s",
+        std::cout << IString(" Entry valid from: %s",
                                   (std::string)CreationTime) << std::endl;
       if (Validity != -1)
-        std::cout << Arc::IString(" Entry valid for: %s",
+        std::cout << IString(" Entry valid for: %s",
                                   (std::string)Validity) << std::endl;
     }
 

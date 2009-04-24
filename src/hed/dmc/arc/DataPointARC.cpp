@@ -67,41 +67,41 @@ namespace Arc {
     MCCConfig cfg;
     ApplySecurity(cfg);
 
-    Arc::ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url);
     std::string xml;
 
-    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
-    Arc::PayloadSOAP request(ns);
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
     request.NewChild("bar:list").NewChild("bar:listRequestList").NewChild("bar:listRequestElement").NewChild("bar:requestID") = "0";
     request["bar:list"]["bar:listRequestList"]["bar:listRequestElement"].NewChild("bar:LN") = "/" + url.Path();
     request["bar:list"].NewChild("bar:neededMetadataList").NewChild("bar:neededMetadataElement").NewChild("bar:section") = "entry";
     request["bar:list"]["bar:neededMetadatList"]["bar:neededMetadataElement"].NewChild("bar:property") = "";
     request.GetXML(xml, true);
-    logger.msg(Arc::INFO, "Request:\n%s", xml);
+    logger.msg(INFO, "Request:\n%s", xml);
 
-    Arc::PayloadSOAP *response = NULL;
+    PayloadSOAP *response = NULL;
 
-    Arc::MCC_Status status = client.process(&request, &response);
+    MCC_Status status = client.process(&request, &response);
 
     if (!status) {
-      logger.msg(Arc::ERROR, (std::string)status);
+      logger.msg(ERROR, (std::string)status);
       if (response)
         delete response;
       return DataStatus::ListError;
     }
 
     if (!response) {
-      logger.msg(Arc::ERROR, "No SOAP response");
+      logger.msg(ERROR, "No SOAP response");
       return DataStatus::ListError;
     }
 
     response->Child().GetXML(xml, true);
-    logger.msg(Arc::INFO, "Response:\n%s", xml);
+    logger.msg(INFO, "Response:\n%s", xml);
 
     XMLNode nd = (*response).Child()["listResponseList"]["listResponseElement"];
     nd.GetXML(xml, true);
 
-    logger.msg(Arc::INFO, "nd:\n%s", xml);
+    logger.msg(INFO, "nd:\n%s", xml);
 
     if (nd["status"] == "not found")
       return DataStatus::ListError;
@@ -120,7 +120,7 @@ namespace Arc {
           if (ccnd["property"] == "type")
             type = (std::string)ccnd["value"];
         }
-        logger.msg(Arc::INFO, "cnd:\n%s is a %s", file_name, type);
+        logger.msg(INFO, "cnd:\n%s is a %s", file_name, type);
         std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(file_name.c_str()));
         if (type == "collection")
           f->SetType(FileInfo::file_type_dir);
@@ -146,7 +146,7 @@ namespace Arc {
 
     delete response;
 
-    logger.msg(Arc::INFO, answer);
+    logger.msg(INFO, answer);
 
     return DataStatus::Success;
   }
@@ -164,46 +164,46 @@ namespace Arc {
     ApplySecurity(cfg);
 
     // get TURL from bartender
-    Arc::ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url);
     std::string xml;
 
-    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
-    Arc::PayloadSOAP request(ns);
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
     request.NewChild("bar:getFile").NewChild("bar:getFileRequestList").NewChild("bar:getFileRequestElement").NewChild("bar:requestID") = "0";
     request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:LN") = "/" + url.Path();
     // only supports http protocol:
     request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:protocol") = "http";
     request.GetXML(xml, true);
-    logger.msg(Arc::INFO, "Request:\n%s", xml);
+    logger.msg(INFO, "Request:\n%s", xml);
 
-    Arc::PayloadSOAP *response = NULL;
+    PayloadSOAP *response = NULL;
 
-    Arc::MCC_Status status = client.process(&request, &response);
+    MCC_Status status = client.process(&request, &response);
 
     if (!status) {
-      logger.msg(Arc::ERROR, (std::string)status);
+      logger.msg(ERROR, (std::string)status);
       if (response)
         delete response;
       return DataStatus::ReadError;
     }
 
     if (!response) {
-      logger.msg(Arc::ERROR, "No SOAP response");
+      logger.msg(ERROR, "No SOAP response");
       return DataStatus::ReadError;
     }
 
     response->Child().GetXML(xml, true);
-    logger.msg(Arc::INFO, "Response:\n%s", xml);
+    logger.msg(INFO, "Response:\n%s", xml);
 
     XMLNode nd = (*response).Child()["getFileResponseList"]["getFileResponseElement"];
     nd.GetXML(xml, true);
 
-    logger.msg(Arc::INFO, "nd:\n%s", xml);
+    logger.msg(INFO, "nd:\n%s", xml);
 
     if (nd["success"] != "done" || !nd["TURL"])
       return DataStatus::ReadError;
 
-    logger.msg(Arc::INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
+    logger.msg(INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
 
     URL turl(nd["TURL"]);
     // redirect actual reading to http dmc
@@ -251,13 +251,13 @@ namespace Arc {
     ApplySecurity(cfg);
 
     // get TURL from bartender
-    Arc::ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url);
     std::string xml;
     std::stringstream out;
     out << this->GetSize();
     std::string size_str = out.str();
-    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
-    Arc::PayloadSOAP request(ns);
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
     request.NewChild("bar:putFile").NewChild("bar:putFileRequestList").NewChild("bar:putFileRequestElement").NewChild("bar:requestID") = "0";
     request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:LN") = "/" + url.Path();
     // only supports http protocol:
@@ -275,36 +275,36 @@ namespace Arc {
     request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][3].NewChild("bar:property") = "size";
     request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"]["bar:metadataList"]["bar:metadata"][3].NewChild("bar:value") = size_str;
     request.GetXML(xml, true);
-    logger.msg(Arc::INFO, "Request:\n%s", xml);
+    logger.msg(INFO, "Request:\n%s", xml);
 
-    Arc::PayloadSOAP *response = NULL;
+    PayloadSOAP *response = NULL;
 
-    Arc::MCC_Status status = client.process(&request, &response);
+    MCC_Status status = client.process(&request, &response);
 
     if (!status) {
-      logger.msg(Arc::ERROR, (std::string)status);
+      logger.msg(ERROR, (std::string)status);
       if (response)
         delete response;
       return DataStatus::WriteError;
     }
 
     if (!response) {
-      logger.msg(Arc::ERROR, "No SOAP response");
+      logger.msg(ERROR, "No SOAP response");
       return DataStatus::WriteError;
     }
 
     response->Child().GetXML(xml, true);
-    logger.msg(Arc::INFO, "Response:\n%s", xml);
+    logger.msg(INFO, "Response:\n%s", xml);
 
     XMLNode nd = (*response).Child()["putFileResponseList"]["putFileResponseElement"];
     nd.GetXML(xml, true);
 
-    logger.msg(Arc::INFO, "nd:\n%s", xml);
+    logger.msg(INFO, "nd:\n%s", xml);
 
     if (nd["success"] != "done" || !nd["TURL"])
       return DataStatus::WriteError;
 
-    logger.msg(Arc::INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
+    logger.msg(INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
 
     URL turl(nd["TURL"]);
     // redirect actual writing to http dmc
@@ -343,19 +343,19 @@ namespace Arc {
       sprintf(tmpChar, "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
-    logger.msg(Arc::DEBUG, "Calculated checksum: %s", md5str);
+    logger.msg(DEBUG, "Calculated checksum: %s", md5str);
 
     MCCConfig cfg;
     ApplySecurity(cfg);
 
     // get TURL from bartender
-    Arc::ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url);
     std::string xml;
     std::stringstream out;
     out << this->GetSize();
     std::string size_str = out.str();
-    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
-    Arc::PayloadSOAP request(ns);
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
     request.NewChild("bar:modify").NewChild("bar:modifyRequestList").NewChild("bar:modifyRequestElement").NewChild("bar:changeID") = "0";
     request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:LN") = "/" + url.Path();
     request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:changeType") = "set";
@@ -363,31 +363,31 @@ namespace Arc {
     request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:property") = "checksum";
     request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:value") = md5str;
     request.GetXML(xml, true);
-    logger.msg(Arc::INFO, "Request:\n%s", xml);
+    logger.msg(INFO, "Request:\n%s", xml);
 
-    Arc::PayloadSOAP *response = NULL;
+    PayloadSOAP *response = NULL;
 
-    Arc::MCC_Status status = client.process(&request, &response);
+    MCC_Status status = client.process(&request, &response);
 
     if (!status) {
-      logger.msg(Arc::ERROR, (std::string)status);
+      logger.msg(ERROR, (std::string)status);
       if (response)
         delete response;
       return DataStatus::WriteError;
     }
 
     if (!response) {
-      logger.msg(Arc::ERROR, "No SOAP response");
+      logger.msg(ERROR, "No SOAP response");
       return DataStatus::WriteError;
     }
 
     response->Child().GetXML(xml, true);
-    logger.msg(Arc::INFO, "Response:\n%s", xml);
+    logger.msg(INFO, "Response:\n%s", xml);
 
     XMLNode nd = (*response).Child()["modifyResponseList"]["modifyResponseElement"];
     nd.GetXML(xml, true);
 
-    logger.msg(Arc::INFO, "nd:\n%s", xml);
+    logger.msg(INFO, "nd:\n%s", xml);
 
     if (nd["success"] != "set")
       return DataStatus::WriteError;
@@ -405,40 +405,40 @@ namespace Arc {
     MCCConfig cfg;
     ApplySecurity(cfg);
 
-    Arc::ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url);
     std::string xml;
 
-    Arc::NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
-    Arc::PayloadSOAP request(ns);
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
     request.NewChild("bar:delFile").NewChild("bar:delFileRequestList").NewChild("bar:delFileRequestElement").NewChild("bar:requestID") = "0";
     request["bar:delFile"]["bar:delFileRequestList"]["bar:delFileRequestElement"].NewChild("bar:LN") = "/" + url.Path();
 
     request.GetXML(xml, true);
-    logger.msg(Arc::INFO, "Request:\n%s", xml);
+    logger.msg(INFO, "Request:\n%s", xml);
 
-    Arc::PayloadSOAP *response = NULL;
+    PayloadSOAP *response = NULL;
 
-    Arc::MCC_Status status = client.process(&request, &response);
+    MCC_Status status = client.process(&request, &response);
 
     if (!status) {
-      logger.msg(Arc::ERROR, (std::string)status);
+      logger.msg(ERROR, (std::string)status);
       if (response)
         delete response;
       return DataStatus::DeleteError;
     }
 
     if (!response) {
-      logger.msg(Arc::ERROR, "No SOAP response");
+      logger.msg(ERROR, "No SOAP response");
       return DataStatus::DeleteError;
     }
 
     response->Child().GetXML(xml, true);
-    logger.msg(Arc::INFO, "Response:\n%s", xml);
+    logger.msg(INFO, "Response:\n%s", xml);
 
     XMLNode nd = (*response).Child()["delFileResponseList"]["delFileResponseElement"];
 
     if (nd["success"] == "deleted")
-      logger.msg(Arc::INFO, "Deleted %s", url.Path());
+      logger.msg(INFO, "Deleted %s", url.Path());
     return DataStatus::Success;
   }
 

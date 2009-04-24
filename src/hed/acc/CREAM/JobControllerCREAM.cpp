@@ -25,7 +25,7 @@ namespace Arc {
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new JobControllerCREAM((Arc::Config*)(*accarg));
+    return new JobControllerCREAM((Config*)(*accarg));
   }
 
   void JobControllerCREAM::GetJobInformation() {

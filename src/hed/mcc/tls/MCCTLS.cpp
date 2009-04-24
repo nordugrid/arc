@@ -37,7 +37,7 @@
 
 namespace Arc {
 
-class TLSSecAttr: public Arc::SecAttr {
+class TLSSecAttr: public SecAttr {
  friend class MCC_TLS_Service;
  friend class MCC_TLS_Client;
  public:
@@ -69,7 +69,7 @@ Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 int Arc::MCC_TLS::ssl_locks_num_ = 0;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
-Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : MCC(&cfg), config_(cfg,logger,client) {
+Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : Arc::MCC(&cfg), config_(cfg,logger,client) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
@@ -335,7 +335,7 @@ class MCC_TLS_Context:public MessageContextElement {
 
 /* The main functionality of the constructor method is to 
    initialize SSL layer. */
-MCC_TLS_Service::MCC_TLS_Service(Arc::Config& cfg):MCC_TLS(cfg,false) {
+MCC_TLS_Service::MCC_TLS_Service(Config& cfg):MCC_TLS(cfg,false) {
    if(!do_ssl_init()) return;
 }
 
@@ -418,10 +418,10 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    // For nextoutmsg, nothing to do for payload of msg, but 
    // transfer some attributes of msg
    outmsg = nextoutmsg;
-   return MCC_Status(Arc::STATUS_OK);
+   return MCC_Status(STATUS_OK);
 }
 
-MCC_TLS_Client::MCC_TLS_Client(Arc::Config& cfg):MCC_TLS(cfg,true){
+MCC_TLS_Client::MCC_TLS_Client(Config& cfg):MCC_TLS(cfg,true){
    stream_=NULL;
    if(!do_ssl_init()) return;
    /* Get DN from certificate, and put it into message's attribute */
@@ -480,7 +480,7 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
       delete outmsg.Payload(NULL); return MCC_Status();
    };
-   return MCC_Status(Arc::STATUS_OK);
+   return MCC_Status(STATUS_OK);
 }
 
 

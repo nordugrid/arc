@@ -59,7 +59,7 @@ namespace Arc {
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new TargetRetrieverUNICORE((Arc::Config*)(*accarg));
+    return new TargetRetrieverUNICORE((Config*)(*accarg));
   }
 
   void TargetRetrieverUNICORE::GetTargets(TargetGenerator& mom, int targetType,
@@ -112,12 +112,12 @@ namespace Arc {
 
     UNICOREClient uc(url, cfg);
     std::string thePayload;
-    std::list<Arc::Config> beses;
+    std::list<Config> beses;
     //beses should hold a list of trees each suitable to configure a new TargetRetriever
     uc.listTargetSystemFactories(beses, thePayload);
     std::cout << thePayload << std::endl; //debug remove!
     //The following loop should work even for mixed lists of index and computing services
-    for (std::list<Arc::Config>::iterator it = beses.begin(); it != beses.end(); it++) {
+    for (std::list<Config>::iterator it = beses.begin(); it != beses.end(); it++) {
       if (!thrarg->certificatePath.empty())
         (*it).NewChild("CertificatePath") = thrarg->certificatePath;
       if (!thrarg->keyPath.empty())

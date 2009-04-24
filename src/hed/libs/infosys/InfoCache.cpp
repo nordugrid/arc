@@ -26,7 +26,7 @@ static Logger logger(Logger::getRootLogger(), "InfoCache");
 
 static RegularExpression id_regex("@id=\"([a-zA-Z0-9_\\\\-]*)\"");
 
-static void merge_xml(std::string& path_base, Arc::XMLNode &node)
+static void merge_xml(std::string& path_base, XMLNode &node)
 {
     Glib::Dir dir(path_base);
     std::string d;
@@ -36,8 +36,8 @@ static void merge_xml(std::string& path_base, Arc::XMLNode &node)
         //std::cout << "merge_xml f1: " << path_fl1 << std::endl;
         if (Glib::file_test(path_fl1, Glib::FILE_TEST_IS_REGULAR)) {
             std::string xml_str = Glib::file_get_contents(path_fl1);
-            Arc::XMLNode n(xml_str);
-            Arc::XMLNode c;
+            XMLNode n(xml_str);
+            XMLNode c;
             for (int i = 0; (bool)(c = n.Child(i)); i++) {
                     node.NewChild(c);
             }
@@ -58,7 +58,7 @@ static bool create_directory(const std::string dir) {
 
 // --------------------------------------------------------------------------------
 
-InfoCache::InfoCache(const Arc::Config &cfg, const std::string &service_id)
+InfoCache::InfoCache(const Config &cfg, const std::string &service_id)
 {
     std::string cfg_s;
     cfg.GetXML(cfg_s);
@@ -126,7 +126,7 @@ static bool unset_path(const std::string &path_base,const std::vector<std::strin
     return (::remove(file.c_str()) == 0);
 }
 
-static bool get_path(const std::string &path_base,const std::vector<std::string> &tokens,Arc::XMLNode &node)
+static bool get_path(const std::string &path_base,const std::vector<std::string> &tokens,XMLNode &node)
 {
     if(tokens.size() < 1) return false;
     std::string dir = path_base;
@@ -139,7 +139,7 @@ static bool get_path(const std::string &path_base,const std::vector<std::string>
     return node.ReadFromFile(file);
 }
 
-bool InfoCache::Set(const char *xml_path, Arc::XMLNode &value)
+bool InfoCache::Set(const char *xml_path, XMLNode &value)
 {
     if (path_base.empty()) {
         logger.msg(ERROR,"InfoCache object is not set up");
@@ -152,7 +152,7 @@ bool InfoCache::Set(const char *xml_path, Arc::XMLNode &value)
     std::string p(xml_path);
     clean_path(p);
     std::vector<std::string> tokens;
-    Arc::tokenize(p, tokens, "/");
+    tokenize(p, tokens, "/");
     bool ret;
     ret = set_path(path_base, tokens, value);
     return ret;
@@ -171,13 +171,13 @@ bool InfoCache::Unset(const char *xml_path)
     std::string p(xml_path);
     clean_path(p);
     std::vector<std::string> tokens;
-    Arc::tokenize(p, tokens, "/");
+    tokenize(p, tokens, "/");
     bool ret;
     ret = unset_path(path_base, tokens);
     return ret;
 }
 
-bool InfoCache::Get(const char *xml_path, Arc::XMLNodeContainer &result)
+bool InfoCache::Get(const char *xml_path, XMLNodeContainer &result)
 {
     if (path_base.empty()) {
         logger.msg(ERROR,"InfoCache object is not set up");
@@ -190,31 +190,31 @@ bool InfoCache::Get(const char *xml_path, Arc::XMLNodeContainer &result)
     std::string p(xml_path);
     clean_path(p);
     std::vector<std::string> tokens;
-    Arc::tokenize(p, tokens, "/");
+    tokenize(p, tokens, "/");
     if (tokens.size() <= 0) {
-        Arc::NS ns;
-        Arc::XMLNode node(ns, "InfoDoc");
+        NS ns;
+        XMLNode node(ns, "InfoDoc");
         merge_xml(path_base, node);
         result.AddNew(node);
         return true;
     }
-    Arc::XMLNode node;
+    XMLNode node;
     return get_path(path_base,tokens,node);
 }
 
-bool InfoCache::Query(const char *path, const char *query, Arc::XMLNodeContainer &result)
+bool InfoCache::Query(const char *path, const char *query, XMLNodeContainer &result)
 {
     if (path_base.empty()) {
         logger.msg(ERROR,"InfoCache object is not set up");
         return false;
     }
-    Arc::XMLNodeContainer gc;
+    XMLNodeContainer gc;
     Get(path, gc);
-    Arc::NS ns;
+    NS ns;
     
     for (int i = 0; i < gc.Size(); i++) {
-        Arc::XMLNode node = gc[i];
-        Arc::XMLNodeList xresult = node.XPathLookup(query,ns);
+        XMLNode node = gc[i];
+        XMLNodeList xresult = node.XPathLookup(query,ns);
         result.AddNew(xresult);
     }
     return true;
@@ -222,7 +222,7 @@ bool InfoCache::Query(const char *path, const char *query, Arc::XMLNodeContainer
 
 // --------------------------------------------------------------------------------
 
-InfoCacheInterface::InfoCacheInterface(Arc::Config &cfg, std::string &service_id):
+InfoCacheInterface::InfoCacheInterface(Config &cfg, std::string &service_id):
                                        cache(cfg,service_id)
 {
 }

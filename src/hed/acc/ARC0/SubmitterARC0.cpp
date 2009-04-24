@@ -19,11 +19,11 @@ namespace Arc {
 
   SubmitterARC0::~SubmitterARC0() {}
 
-  Plugin* SubmitterARC0::Instance(Arc::PluginArgument *arg) {
+  Plugin* SubmitterARC0::Instance(PluginArgument *arg) {
     ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
     if (!accarg)
       return NULL;
-    return new SubmitterARC0((Arc::Config*)(*accarg));
+    return new SubmitterARC0((Config*)(*accarg));
   }
 
   bool SubmitterARC0::Submit(const JobDescription& jobdesc, XMLNode& info) const {

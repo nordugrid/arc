@@ -14,9 +14,9 @@ namespace Arc {
    */
   class MCC_TCP : public MCC {
   public:
-    MCC_TCP(Arc::Config *cfg);
+    MCC_TCP(Config *cfg);
   protected:
-    static Arc::Logger logger;
+    static Logger logger;
     friend class PayloadTCPSocket;
   };
 
@@ -57,7 +57,7 @@ class MCC_TCP_Service: public MCC_TCP
         static void listener(void *); /** executing function for listening thread */
         static void executer(void *); /** executing function for connection thread */
     public:
-        MCC_TCP_Service(Arc::Config *cfg);
+        MCC_TCP_Service(Config *cfg);
         virtual ~MCC_TCP_Service(void);
         virtual MCC_Status process(Message&,Message&);
 };
@@ -75,7 +75,7 @@ class MCC_TCP_Client: public MCC_TCP
           It contains NULL if connectino failed. */
         PayloadTCPSocket* s_; 
     public:
-        MCC_TCP_Client(Arc::Config *cfg);
+        MCC_TCP_Client(Config *cfg);
         virtual ~MCC_TCP_Client(void);
         virtual MCC_Status process(Message&,Message&);
 };

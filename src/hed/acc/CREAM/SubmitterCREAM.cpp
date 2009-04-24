@@ -18,12 +18,12 @@ namespace Arc {
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
-  Plugin* SubmitterCREAM::Instance(Arc::PluginArgument *arg) {
+  Plugin* SubmitterCREAM::Instance(PluginArgument *arg) {
     ACCPluginArgument *accarg =
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new SubmitterCREAM((Arc::Config*)(*accarg));
+    return new SubmitterCREAM((Config*)(*accarg));
   }
 
   bool SubmitterCREAM::Submit(const JobDescription& jobdesc, XMLNode& info) const {

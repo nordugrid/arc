@@ -37,8 +37,8 @@ namespace Arc {
   }
 
   Plugin* DMCGridFTP::Instance(PluginArgument *arg) {
-    Arc::DMCPluginArgument *dmcarg =
-      arg ? dynamic_cast<Arc::DMCPluginArgument*>(arg) : NULL;
+    DMCPluginArgument *dmcarg =
+      arg ? dynamic_cast<DMCPluginArgument*>(arg) : NULL;
     if (!dmcarg)
       return NULL;
     openssl_lock.lock();
@@ -50,7 +50,7 @@ namespace Arc {
         openssl_initialized = true;
     }
     openssl_lock.unlock();
-    return new DMCGridFTP((Arc::Config*)(*dmcarg));
+    return new DMCGridFTP((Config*)(*dmcarg));
   }
 
   DataPoint* DMCGridFTP::iGetDataPoint(const URL& url) {

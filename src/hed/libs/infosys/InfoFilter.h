@@ -56,7 +56,7 @@ class InfoFilter {
      in policies argument. First element of every pair is XPath defining to 
      which XML node policy must be applied. Second element is policy itself.
      Argument ns defines XML namespaces for XPath evaluation. */
-  bool Filter(XMLNode doc,const InfoFilterPolicies& policies,const Arc::NS& ns) const;
+  bool Filter(XMLNode doc,const InfoFilterPolicies& policies,const NS& ns) const;
 };
 
 } // namespace Arc

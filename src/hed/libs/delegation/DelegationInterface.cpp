@@ -675,9 +675,9 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     validity_start=Time(restrictions_["validityStart"]).GetTime();
   };
   if(!(restrictions_["validityEnd"].empty())) {
-    validity_end=Arc::Time(restrictions_["validityEnd"]).GetTime();
+    validity_end=Time(restrictions_["validityEnd"]).GetTime();
   } else if(!(restrictions_["validityPeriod"].empty())) {
-    validity_end=validity_start+Arc::Period(restrictions_["validityPeriod"]).GetPeriod();
+    validity_end=validity_start+Period(restrictions_["validityPeriod"]).GetPeriod();
   };
   ASN1_TIME_set(X509_get_notBefore(cert),validity_start);
   if(validity_end == (time_t)(-1)) {

@@ -341,7 +341,7 @@ namespace Arc {
     }
   }
 
-  bool UNICOREClient::listTargetSystemFactories(std::list<Arc::Config>& tsf, std::string& status) {
+  bool UNICOREClient::listTargetSystemFactories(std::list<Config>& tsf, std::string& status) {
 
     std::string state, faultstring;
     logger.msg(INFO, "Creating and sending a service an index service query");

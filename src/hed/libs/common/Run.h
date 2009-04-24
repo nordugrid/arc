@@ -39,7 +39,7 @@ namespace Arc {
     sigc::connection stdin_conn_;
     sigc::connection child_conn_;
     // PID of child
-    Arc::Pid *pid_;
+    Pid *pid_;
     // Arguments to execute
     Glib::ArrayHandle<std::string> argv_;
     void (*initializer_func_)(void*);

@@ -19,46 +19,46 @@ namespace Arc {
 
   bool DataBroker::CacheCheck(void) {
 
-    Arc::MCCConfig cfg;
-    Arc::NS ns;
+    MCCConfig cfg;
+    NS ns;
 
     ApplySecurity(cfg);
     
-    Arc::PayloadSOAP request(ns);
-    Arc::XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
+    PayloadSOAP request(ns);
+    XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    for (std::list<Arc::FileType>::const_iterator it = job.File.begin();
+    for (std::list<FileType>::const_iterator it = job.File.begin();
          it != job.File.end(); it++)
       if ((*it).Source.size() != 0) {
-        std::list<Arc::SourceType>::const_iterator it2;
+        std::list<SourceType>::const_iterator it2;
         it2 = ((*it).Source).begin();
         req.NewChild("FileURL") = ((*it2).URI).fullstr();
       }
 
-    Arc::PayloadSOAP *response = NULL;
+    PayloadSOAP *response = NULL;
 
-    for (std::vector<Arc::ExecutionTarget>::const_iterator target =   \
+    for (std::vector<ExecutionTarget>::const_iterator target =   \
            PossibleTargets.begin(); target != PossibleTargets.end(); \
          target++) {
 
-      Arc::ClientSOAP client(cfg, (*target).url);
+      ClientSOAP client(cfg, (*target).url);
 
       long DataSize = 0;
       int j = 0;
 
-      Arc::MCC_Status status = client.process(&request, &response);
+      MCC_Status status = client.process(&request, &response);
 
       if (!status)
         CacheMappingTable[(*target).url.fullstr()] = 0;
       if (response == NULL)
         CacheMappingTable[(*target).url.fullstr()] = 0;
 
-      Arc::XMLNode ExistCount = (*response)["CacheCheckResponse"]["CacheCheckResult"]["Result"];
+      XMLNode ExistCount = (*response)["CacheCheckResponse"]["CacheCheckResult"]["Result"];
 
       for (int i = 0; ExistCount[i]; i++) {
         if (((std::string)ExistCount[i]["ExistInTheCache"]) == "true")
           j++;
-        DataSize += Arc::stringto<long>((std::string)ExistCount[i]["FileSize"]);
+        DataSize += stringto<long>((std::string)ExistCount[i]["FileSize"]);
       }
 
       CacheMappingTable[(*target).url.fullstr()] = DataSize;
@@ -86,14 +86,14 @@ namespace Arc {
       arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
     if (!accarg)
       return NULL;
-    return new DataBroker((Arc::Config*)(*accarg));
+    return new DataBroker((Config*)(*accarg));
   }
 
   void DataBroker::SortTargets() {
 
     //Remove clusters which are not A-REX
 
-    std::vector<Arc::ExecutionTarget>::iterator iter = PossibleTargets.begin();
+    std::vector<ExecutionTarget>::iterator iter = PossibleTargets.begin();
 
     while (iter != PossibleTargets.end()) {
       if ((iter->ImplementationName) != "A-REX") {

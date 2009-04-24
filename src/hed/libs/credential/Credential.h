@@ -89,7 +89,7 @@ class Credential {
          *used for generating X509 request; it should be '0' if 
          *'this' class is used for constraing certificate signing.
     */ 
-    Credential(Arc::Time start, Arc::Period lifetime = Arc::Period("PT12H"), 
+    Credential(Time start, Period lifetime = Period("PT12H"), 
               int keybits = 1024, std::string proxyversion = "rfc", 
               std::string policylang = "inheritAll", std::string policy = "", 
               int pathlength = -1);
@@ -140,7 +140,7 @@ class Credential {
     * will not after the ealier value from issuer's end 
     * time and the "start" parameter plus "lifetime" paremeter
     */
-    bool SetProxyPeriod(X509* tosign, X509* issuer, Arc::Time& start, Arc::Period& lifetime);
+    bool SetProxyPeriod(X509* tosign, X509* issuer, Time& start, Period& lifetime);
 
     /**Assistant method for signing the proxy request, the method will duplicate some information 
     *(subject and extension) from signing certificate 
@@ -213,19 +213,19 @@ class Credential {
     bool OutputCertificateChain(std::string &content, bool is_der=false);
 
     /**Returns lifetime of certificate or proxy*/
-    Arc::Period GetLifeTime(void);
+    Period GetLifeTime(void);
 
     /**Returns validity start time of certificate or proxy*/
-    Arc::Time GetStartTime();
+    Time GetStartTime();
 
     /**Returns validity end time of certificate or proxy*/
-    Arc::Time GetEndTime();
+    Time GetEndTime();
 
     /**Set lifetime of certificate or proxy*/
-    void SetLifeTime(const Arc::Period& period);
+    void SetLifeTime(const Period& period);
     
     /**Set start time of certificate or proxy*/
-    void SetStartTime(const Arc::Time& start_time);
+    void SetStartTime(const Time& start_time);
 
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,
@@ -326,8 +326,8 @@ class Credential {
                                    //will be included
     ArcCredential::PROXYCERTINFO* proxy_cert_info_;
     Credformat       format;
-    Arc::Time        start_;
-    Arc::Period      lifetime_;
+    Time        start_;
+    Period      lifetime_;
 
     //Certificate request
     X509_REQ* req_;

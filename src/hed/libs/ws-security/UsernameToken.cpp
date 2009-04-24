@@ -261,7 +261,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap) {
   header_=soap.Header();
 
   // Apply predefined namespace prefix
-  Arc::NS ns;
+  NS ns;
   ns["wsse"]=WSSE_NAMESPACE;
   ns["wsse11"]=WSSE11_NAMESPACE;
   ns["wsu"]=WSU_NAMESPACE;
@@ -368,7 +368,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap, const std::string& username, co
   if(password_.empty()) get_password(password_,false);
 
   // Apply predefined namespace prefix
-  Arc::NS ns;
+  NS ns;
   ns["wsse"]=WSSE_NAMESPACE;
   ns["wsse11"]=WSSE11_NAMESPACE;
   ns["wsu"]=WSU_NAMESPACE;
@@ -425,7 +425,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap, const std::string& username, co
   salt_ = get_salt(mac);
 
   // Apply predefined namespace prefix
-  Arc::NS ns;
+  NS ns;
   ns["wsse"]=WSSE_NAMESPACE;
   ns["wsse11"]=WSSE11_NAMESPACE;
   ns["wsu"]=WSU_NAMESPACE;

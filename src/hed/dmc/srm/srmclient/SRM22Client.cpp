@@ -2,7 +2,7 @@
 
 //namespace Arc {
   
-  //Arc::Logger SRM22Client::logger(SRMClient::logger, "SRM22Client");
+  //Logger SRM22Client::logger(SRMClient::logger, "SRM22Client");
 
   SRM22Client::SRM22Client(SRMURL url) {
     version = "v2.2";

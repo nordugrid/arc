@@ -21,7 +21,7 @@ namespace Arc {
       So far there are no schema and/or namespaces assigned.
    */
   class Config
-    : public Arc::XMLNode {
+    : public XMLNode {
   private:
     std::string file_name_;
   public:
@@ -37,9 +37,9 @@ namespace Arc {
     /** Acquire existing XML (sub)tree.
         Content is not copied. Make sure XML tree is not destroyed
         while in use by this object. */
-    Config(Arc::XMLNode xml)
+    Config(XMLNode xml)
       : XMLNode(xml) {}
-    Config(Arc::XMLNode xml, const std::string& filename)
+    Config(XMLNode xml, const std::string& filename)
       : XMLNode(xml) {
       file_name_ = filename;
     }

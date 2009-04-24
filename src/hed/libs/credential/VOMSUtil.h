@@ -132,8 +132,8 @@ namespace Arc {
    *			   is the one which carries AC
    * The rest arguments are the same as the above method          
    */
-  bool createVOMSAC(std::string& codedac, Arc::Credential& issuer_cred,
-                    Arc::Credential& holder_cred,
+  bool createVOMSAC(std::string& codedac, Credential& issuer_cred,
+                    Credential& holder_cred,
                     std::vector<std::string> &fqan,
                     std::vector<std::string> &targets,
                     std::vector<std::string>& attributes, 
@@ -199,7 +199,7 @@ namespace Arc {
                    std::vector<std::string>& output, bool verify = true);
 
   /**Parse the certificate. The same as the above one */
-  bool parseVOMSAC(Arc::Credential& holder_cred,
+  bool parseVOMSAC(Credential& holder_cred,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
                    const VOMSTrustList& vomscert_trust_dn,

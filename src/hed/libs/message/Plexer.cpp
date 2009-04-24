@@ -56,13 +56,13 @@ namespace Arc {
       }
     }
     logger.msg(WARNING, "No service at path \"%s\"",path);
-    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR,
+    return MCC_Status(UNKNOWN_SERVICE_ERROR,
 			   (std::string)("MCC Plexer"),
 			   path);  
   }
 
   //XXX: workaround because the python bindig segmentation fault
-  Arc::Logger Arc::Plexer::logger(Arc::Logger::rootLogger,"Plexer");
+  Logger Plexer::logger(Logger::rootLogger,"Plexer");
 
   std::string Plexer::getPath(std::string url){
     // TODO: Need even more reliable URL detection
