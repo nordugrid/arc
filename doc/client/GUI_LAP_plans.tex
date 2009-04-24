@@ -1,0 +1,33 @@
+\documentclass[11pt,oneside,a4paper,english]{article}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{graphicx,epic,eepic}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{a4wide}
+\usepackage{xspace}
+
+\newcommand{\arcmigrate}{\texttt{arcmigrate}\xspace}
+
+\begin{document}
+%\maketitle
+\section*{The Lunarc Application Portal - A graphical grid user interface using ARC}
+The Lunarc Application Portal (LAP) is an existing web interface for submission and management of grid jobs. As reflected in the name the LAP is an application oriented portal, providing easy to use interfaces for commonly available applications. The LAP is also a framework for implementing web interfaces for user applications.
+
+A new and updated version of LAP is presently under development which will make the LAP to Web 2.0 compliant and which will interface to the next generation ARC client library. The latter interfacing is done in collaboration between LAP and the KnowARC project and will allow the KnowARC project to use the next generation LAP for it's deliverable D2.2-2 "Advanced graphical client with easy-to-use job creation module and support for bulk job management and monitoring".
+
+\section*{Functionality to be offered though LAP}
+Below functionality to be offered through the LAP and which will be a part of the KnowARC deliverable D2.2-2 is listed and discussed:
+
+\begin{itemize}
+\item{The portal will support bulk job handling, i.e. it will support listing and sorting of (several) hundred(s) of jobs using a java table. Using the same table bulk handling will be enabled making it possible to select groups of jobs to execute commands on like e.g. kill, clean, get, resume etc. Will it be possible to group jobs together?}
+\item{Job statuses will be updated automatically by a background processes, but a "manual update" button will also be provided.}
+\item{Job "babysitting" will offer to automatically download finished jobs or resubmit jobs that have failed. Resubmission will be limited to only 2(3?) attempts. It will be possible to activate "babysitting" at any time for any kind of job.}
+\item{Users will be able to create and maintain lists of favorite clusters. Blacklisting of clusters will also be possible.}
+\item{The LAP is application orieented and new grid jobs are created through an application specific interface. The new and updated version of LAP will offer an application unspecific interface allowing users to create any kind of grid job. The interface will offer the user an easy to use job description creation module and the possibility to upload executable and job input files.}
+\item{Occasionally users would like to use existing job description files, but still submit their grid job through the LAP. To support this the LAP will offer an interface for uploading and submitting job description files.}
+\end{itemize}
+
+\end{document}
