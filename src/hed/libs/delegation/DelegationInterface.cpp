@@ -574,7 +574,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   X509_set_version(cert,2L);
 
   /*
-   Proxy certificates do no need KeyUsage extension. But
+   Proxy certificates do not need KeyUsage extension. But
    some old software still expects it to be present.
 
    From RFC3820:
@@ -583,7 +583,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
    Digital Signature bit MUST be asserted.
   */
 
-  X509_add_ext_by_nid(cert,NID_key_usage,"critical,digitalSignature,keyCertSign",-1);
+  X509_add_ext_by_nid(cert,NID_key_usage,"critical,digitalSignature,keyEncipherment",-1);
 
   /*
    From RFC3820:
