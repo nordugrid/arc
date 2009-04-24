@@ -70,15 +70,15 @@ PayloadFile::~PayloadFile(void) {
 
 char* PayloadFile::Content(int pos) {
   if(handle_ == -1) return NULL;
-  if(pos >= end_) return NULL;
-  if(pos < start_) return NULL;
+  if(((size_t)pos) >= end_) return NULL;
+  if(((size_t)pos) < start_) return NULL;
   return (addr_+(pos-start_));
 }
 
 char PayloadFile::operator[](int pos) const {
   if(handle_ == -1) return 0;
-  if(pos >= end_) return 0;
-  if(pos < start_) return 0;
+  if(((size_t)pos) >= end_) return 0;
+  if(((size_t)pos) < start_) return 0;
   return addr_[pos-start_];
 }
 
