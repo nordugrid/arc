@@ -830,12 +830,14 @@ namespace Arc {
       if (!credential)
         credential = new GSSCredential(proxyPath, certificatePath, keyPath);
 
-      globus_ftp_client_operationattr_set_authorization(&ftp_opattr,
-                                                        *credential,
-                                                        ":globus-mapping:",
-                                                        "user@",
-                                                        GLOBUS_NULL,
-                                                        GLOBUS_NULL);
+      GlobusResult r = globus_ftp_client_operationattr_set_authorization(
+                     &ftp_opattr,
+                     *credential,":globus-mapping:","user@",
+                     GLOBUS_NULL,GLOBUS_NULL);
+      if(!r) {
+        logger.msg(WARNING, "Failed to set credentials for GridFTP transfer");
+        logger.msg(DEBUG, "globus_ftp_client_operationattr_set_authorization: error: %s", r.str());
+      }
       if (force_secure || (url.Option("secure") == "yes")) {
         globus_ftp_client_operationattr_set_mode(&ftp_opattr,
                                                  GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
