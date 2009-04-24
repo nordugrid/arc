@@ -108,7 +108,7 @@ class ARexJob {
   /** Creates file in job's session directory and returns handler */
   int CreateFile(const std::string& filename);
   int OpenFile(const std::string& filename,bool for_read,bool for_write);
-  Glib::Dir* ARexJob::OpenDir(const std::string& dirname);
+  Glib::Dir* OpenDir(const std::string& dirname);
   /** Updates job credentials */
   bool UpdateCredentials(const std::string& credentials);
 };
