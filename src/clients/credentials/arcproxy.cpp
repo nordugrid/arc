@@ -653,6 +653,9 @@ int main(int argc, char *argv[]) {
           memset(ret_buf, 0, 1024);
         } while (len == 1024);
         logger.msg(Arc::DEBUG, "Returned msg from voms server: %s ", ret_str.c_str());
+        if(ret_str.find("error") != std::string::npos) {
+          throw std::runtime_error("Can not get any AC or attributes info from voms server: " + voms_server);
+        }
 
         //Put the return attribute certificate into proxy certificate as the extension part
         Arc::XMLNode node(ret_str);
