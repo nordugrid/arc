@@ -1,5 +1,5 @@
 if XMLSEC_ENABLED
-noinst_PROGRAMS=perftest  perftest_saml2sso  perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_cmd_times
+noinst_PROGRAMS=perftest  perftest_saml2sso perftest_slcs perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_cmd_times
 else 
 noinst_PROGRAMS=perftest  perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_cmd_times
 endif
@@ -14,6 +14,11 @@ perftest_saml2sso_SOURCES  = perftest_saml2sso.cpp
 perftest_saml2sso_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
 perftest_saml2sso_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)  $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 perftest_saml2sso_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la
+
+perftest_slcs_SOURCES  = perftest_slcs.cpp
+perftest_slcs_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+perftest_slcs_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)  $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
+perftest_slcs_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la
 endif
 
 perftest_deleg_bysechandler_SOURCES  = perftest_deleg_bysechandler.cpp

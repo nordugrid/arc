@@ -1,0 +1,23 @@
+usage of the perf test utilities:
+
+perftest:
+  Axis2C:
+    with tls:
+      ./perftest https://glueball.uio.no:50443/axis2/services/echo  10 30
+    without tls:
+      ./perftest http://glueball.uio.no:50000/axis2/services/echo  10 30
+   
+  HED:
+    with tls:
+      ./perftest https://glueball.uio.no:60000/echo 10 30
+    without tls:
+      ./perftest http://glueball.uio.no:60010/echo 10 30
+
+perftest_saml2sso:
+  ./perftest_saml2sso https://glueball.uio.no:60002/echo  https://squark.uio.no/idp/shibboleth  staff 123456 1 15
+
+perftest_slcs:
+  ./perftest_slcs https://glueball.uio.no:60003/slcs  https://squark.uio.no/idp/shibboleth  staff 123456 1 15
+
+perftest_deleg_bysechandler:
+  ./perftest_deleg_bysechandler https://squark.uio.no:60000/echo 1 120
