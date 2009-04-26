@@ -18,7 +18,8 @@ SecAttr::operator bool() const {
 }
 
 bool SecAttr::Export(SecAttrFormat format,std::string &val) const {
-  XMLNode x(NS(), "");
+  NS ns;
+  XMLNode x(ns, "");
   if(!Export(format,x)) return false;
   x.GetXML(val);
   return true;
