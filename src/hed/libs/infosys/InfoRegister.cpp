@@ -351,7 +351,9 @@ void InfoRegistrar::registration(void) {
 
                 XMLNode services_doc(reg_ns,"RegEntry");
                 if(!((r->p_register)->getService())) continue;
+                logger_.msg(DEBUG,"'RegistrationCollector is calling");
                 (r->p_register)->getService()->RegistrationCollector(services_doc);
+                logger_.msg(DEBUG,"'RegistrationCollector is terminated");
 
                 // Possible completion of the services_doc
                 if (!((bool)services_doc["MetaSrcAdv"]["ServiceID"]) && ((bool)services_doc["SrcAdv"]["EPR"]["Address"])) {

@@ -14,7 +14,10 @@ class EchoService:
         self.suffix = str(cfg.Get('suffix'))
         log.msg("EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix))
         self.ssl_config = parse_ssl_config(cfg)
-        
+
+    def RegistrationCollector(self, doc):
+        log.msg("Halleluja!")
+        return True
 
     def process(self, inmsg, outmsg):
         log.msg("EchoService (python) 'Process' called")

@@ -430,7 +430,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         return make_fault(outmsg);
     }
     // Convert incomming message to python object
-    arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
+    arg = Py_BuildValue("(li)", (long int)inmsg_ptr, 1);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create inmsg argument");
         if (PyErr_Occurred() != NULL) {
