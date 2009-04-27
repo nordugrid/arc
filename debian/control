@@ -4,9 +4,10 @@ Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
 Uploaders: Steffen Moeller <moeller@debian.org>
 DM-Upload-Allowed: yes
-Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl-dev|libltdl7-dev|libltdl3-dev, gcj, libgcj6-dev|libgcj7-dev|libgcj8-dev|libgcj9-dev|libgcj-dev, libldap2-dev, libtool, uuid-dev, libcppunit-dev, pkg-config, libdb4.2++-dev|libdb4.3++-dev|libdb4.4++-dev|libdb++-dev, swig, automake, autoconf, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, libglobus-rsl-dev, libglobus-io-dev, libglobus-openssl-dev
+Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-all-dev (>= 2.4), libltdl-dev|libltdl7-dev|libltdl3-dev, gcj, libgcj6-dev|libgcj7-dev|libgcj8-dev|libgcj9-dev|libgcj-dev, libldap2-dev, libtool, uuid-dev, libcppunit-dev, pkg-config, libdb4.2++-dev|libdb4.3++-dev|libdb4.4++-dev|libdb++-dev, swig, automake, autoconf, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, libglobus-rsl-dev, libglobus-io-dev, libglobus-openssl-dev
 Build-Depends-Indep: texlive-extra-utils, texlive, doxygen 
 Standards-Version: 3.8.1
+XS-Python-Version: >= 2.4
 Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
@@ -37,7 +38,7 @@ Description: ARC grid middleware
 
 Package: nordugrid-arc1-lib
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libglobus-common, libglobus-gssapi-gsi, libglobus-rls-client, libglobus-ftp-client, libglobus-ftp-control, libglobus-rsl, libglobus-io, libglobus-openssl
+Depends: ${shlibs:Depends}, ${misc:Depends}, libglobus-common0, libglobus-gssapi-gsi4, libglobus-rls-client5, libglobus-ftp-client1, libglobus-ftp-control1, libglobus-rsl2, libglobus-io3, libglobus-openssl
 Description: ARC shared libraries
  ARC libraries that are shared among the client and the server's web services.
 
@@ -87,8 +88,9 @@ Description: ARC development files
  Development files for ARC.
 
 Package: nordugrid-arc1-python
+XB-Python-Version: ${python:Versions}
 Architecture: any
-Depends: nordugrid-arc1-lib, python2.4
+Depends: nordugrid-arc1-lib, ${python:Depends}
 Description: ARC Python wrapper
  Python wrapper for ARC.
 
