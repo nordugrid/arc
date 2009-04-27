@@ -206,6 +206,11 @@ if test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
             AC_MSG_NOTICE([Adding path to python library])
             PYTHON_LIBS="-L$PY_LIBDEST/config -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
             AC_ERROR([Can't find python library])])])
+
+    AC_CHECK_LIB([python$PYTHON_VERSION], [Py_InitializeEx],[
+        AC_MSG_NOTICE([Python includes functionality of skipping initialization registration of signal handlers])
+        AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX,,[Define if you have Py_InitializeEx function])],[AC_MSG_NOTICE([Python does not include functionality of skipping initialization registration of signal handlers, since its version is below 2.4])])
+
     LDFLAGS=$SAVE_LDFLAGS
     AC_SUBST(PYTHON_VERSION)
     AC_SUBST(PYTHON_CFLAGS)

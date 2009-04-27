@@ -64,7 +64,9 @@ namespace Arc {
 
     // Initialize the Python Interpreter
     if (!Py_IsInitialized()) {
+#ifdef HAVE_PYTHON_INITIALIZE_EX
       Py_InitializeEx(0);            // Python does not handle signals
+#endif
       PyEval_InitThreads();          // Main thread created and lock acquired
       tstate = PyThreadState_Get();  // Get current thread
       if (!tstate) {
