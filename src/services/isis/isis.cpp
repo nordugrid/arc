@@ -104,6 +104,9 @@ class Soft_State {
         int sleep;
         std::string query;
         Arc::XmlDatabase* database;
+        ISIS::ISIService* isis;
+        bool* kill_thread;
+        int* threads_count;
 };
 
 
@@ -115,11 +118,33 @@ static void soft_state_thread(void *data) {
     std::string query_string = self->query;
     Arc::XmlDatabase* db_ = self->database;
 
-    thread_logger.msg(Arc::DEBUG, "%s Soft State thread start.", method);
+    (*(self->threads_count))++;
+    thread_logger.msg(Arc::DEBUG, "%s Soft-State thread starts. It's the %d. thread in the ISIS", method, *(self->threads_count));
 
+    // "sleep_period" is the time, when the thread wakes up and checks the "KillTread" variable's value and then sleep away.
+    unsigned int sleep_period = 60;
     while (true){
-        thread_logger.msg(Arc::DEBUG, "%s thread waiting %d seconds for the next database cleaning.", method, sleep_time);
-        sleep(sleep_time);
+        thread_logger.msg(Arc::DEBUG, "%s thread is waiting for %d seconds to the next database cleaning.", method, sleep_time);
+
+        // "sleep_time" is comminuted to some little period
+        unsigned int tmp_sleep_time = sleep_time;
+        while ( tmp_sleep_time > 0 ) {
+            // Whether ISIS's destructor called or not
+            if( *(self->kill_thread) ) {
+               (*(self->threads_count))--;
+               thread_logger.msg(Arc::DEBUG, "%s Soft-State thread is finished.", method);
+               return;
+            }
+
+            if( tmp_sleep_time > sleep_period ) {
+               tmp_sleep_time = tmp_sleep_time - sleep_period;
+               sleep(sleep_period);
+            }
+            else {
+               sleep(tmp_sleep_time);
+               tmp_sleep_time = 0;
+            }
+        }
 
         // Database cleaning
         std::vector<std::string> service_ids;
@@ -185,6 +210,9 @@ static void soft_state_thread(void *data) {
         serviceid_=(std::string)((*cfg)["serviceid"]);
         endpoint_=(std::string)((*cfg)["endpoint"]);
         expiration_=(std::string)((*cfg)["expiration"]);
+
+        ThreadsCount = 0;
+        KillThread = false;
 
         // Set up custom logger if there is any in the configuration
         Arc::XMLNode logger_node = (*cfg)["Logger"];
@@ -275,6 +303,8 @@ static void soft_state_thread(void *data) {
 
         valid_data->query = valid_query;
         valid_data->database = db_;
+        valid_data->kill_thread = &KillThread;
+        valid_data->threads_count = &ThreadsCount;
         Arc::CreateThreadFunction(&soft_state_thread, valid_data);
 
 
@@ -301,12 +331,20 @@ static void soft_state_thread(void *data) {
 
         remove_data->query = remove_query;
         remove_data->database = db_;
+        remove_data->kill_thread = &KillThread;
+        remove_data->threads_count = &ThreadsCount;
         Arc::CreateThreadFunction(&soft_state_thread, remove_data);
 
     }
 
     ISIService::~ISIService(void){
-        // TODO: First stop soft-state and message threads
+        // TODO: stop message threads
+        KillThread = true;
+        while (ThreadsCount > 0){
+            logger_.msg(Arc::DEBUG, "ISIS (%s) has %d more thread%s", endpoint_, ThreadsCount, ThreadsCount>1?"s.":".");
+            sleep(10);
+        }
+
         logger_.removeDestinations();
         thread_logger.removeDestinations();
         if (log_stream) delete log_stream;
@@ -314,6 +352,7 @@ static void soft_state_thread(void *data) {
         if (db_ != NULL) {
             delete db_;
         }
+        logger_.msg(Arc::DEBUG, "ISIS (%s) destroyed.", endpoint_);
     }
 
     bool ISIService::RegistrationCollector(Arc::XMLNode &doc) {

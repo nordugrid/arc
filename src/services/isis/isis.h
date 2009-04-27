@@ -22,6 +22,9 @@ namespace ISIS {
             Arc::Period valid;
             Arc::Period remove;
 
+            bool KillThread;
+            int ThreadsCount;
+
             Arc::XmlDatabase *db_;
             Arc::NS ns_;
             Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
