@@ -227,6 +227,14 @@ namespace Arc {
     is_owner_ = true;
   }
 
+  XMLNode::XMLNode(long ptr_addr)
+    : node_(NULL),
+      is_owner_(false),
+      is_temporary_(false) {
+    XMLNode *other = (XMLNode *)ptr_addr;
+    (*other).New((*this));
+  }
+
   XMLNode::XMLNode(const NS& ns, const char *name)
     : node_(NULL),
       is_owner_(false),
