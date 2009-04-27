@@ -4,7 +4,7 @@
 
 // MCC_Status.cpp
 
-#include "MCC_Status.h"
+#include <arc/message/MCC_Status.h>
 
 namespace Arc {
 

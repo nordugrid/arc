@@ -20,7 +20,6 @@
 %ignore *::Put(const char *);
 #endif
 
-%include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/MCC_Status.h"
 %rename(next) Arc::AttributeIterator::operator++;
 #ifdef SWIGPYTHON
@@ -47,6 +46,7 @@
 #endif
 %include "../src/hed/libs/message/MessageAuth.h"
 %include "../src/hed/libs/message/Message.h"
+%include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/PayloadRaw.h"
 
 %apply std::string& OUTPUT { std::string& out_xml_str }; 

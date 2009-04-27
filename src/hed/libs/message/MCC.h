@@ -7,8 +7,8 @@
 #include <arc/Logger.h>
 #include <arc/security/SecHandler.h>
 #include <arc/loader/Plugin.h>
-#include "Message.h"
-#include "MCC_Status.h"
+#include <arc/message/Message.h>
+#include <arc/message/MCC_Status.h>
 
 namespace Arc {
 

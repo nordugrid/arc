@@ -3,7 +3,7 @@
 #endif
 
 #include <iostream>
-#include "Message.h"
+#include <arc/message/Message.h>
 
 namespace Arc {
 
