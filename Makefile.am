@@ -17,6 +17,8 @@ if DOC_ENABLED
 DOC_SD = doc
 endif
 
+POSUB=po
+
 SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) 
 
 DOCDIRS = $(DOC_SD)
