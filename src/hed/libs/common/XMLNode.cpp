@@ -227,7 +227,7 @@ namespace Arc {
     is_owner_ = true;
   }
 
-  XMLNode::XMLNode(long ptr_addr, int hack)
+  XMLNode::XMLNode(long ptr_addr)
     : node_(NULL),
       is_owner_(false),
       is_temporary_(false) {

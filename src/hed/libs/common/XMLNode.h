@@ -97,7 +97,7 @@ namespace Arc {
     /** Same as previous */
     XMLNode(const char *xml, int len = -1);
     /** Copy constructor. Used by language bindigs */
-    XMLNode(long ptr_addr, int hack);
+    XMLNode(long ptr_addr);
     /** Creates empty XML document structure with specified namespaces.
        Created XML contains only root element named 'name'.
        Created structure is pointed and owned by constructed instance */
