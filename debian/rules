@@ -10,6 +10,9 @@ export DH_OPTIONS
 # from having to guess our platform (since we know it already)
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_PYTHON_SYSTEM    = pycentral
+
+include /usr/share/cdbs/1/class/python-distutils.mk
 
 
 CFLAGS = -Wall -g
@@ -49,7 +52,7 @@ build-indep-stamp:  config.status
 	$(MAKE) doc
 	touch $@
 
-clean:
+clean::
 	dh_testdir
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP#
@@ -62,8 +65,6 @@ endif
 ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp -f /usr/share/misc/config.guess config.guess || echo ignored
 endif
-
-
 	dh_clean 
 
 install: install-indep install-arch
