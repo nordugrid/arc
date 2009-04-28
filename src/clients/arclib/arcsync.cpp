@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
-  Arc::UserConfig usercfg(conffile);
+  Arc::UserConfig usercfg(conffile, joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
@@ -146,31 +146,6 @@ int main(int argc, char **argv) {
      */
   }
 
-  //Setting the joblist file (or creating a new one if not already existing)
-  if (joblist.empty())
-    joblist = usercfg.JobListFile();
-  else {
-    struct stat st;
-    if (stat(joblist.c_str(), &st) != 0) {
-      if (errno == ENOENT) {
-        Arc::NS ns;
-        Arc::Config(ns).SaveToFile(joblist);
-        logger.msg(Arc::INFO, "Created empty ARC job list file: %s", joblist);
-        stat(joblist.c_str(), &st);
-      }
-      else {
-        logger.msg(Arc::ERROR, "Can not access ARC job list file: %s (%s)",
-                   joblist, Arc::StrError());
-        return 1;
-      }
-    }
-    if (!S_ISREG(st.st_mode)) {
-      logger.msg(Arc::ERROR, "ARC job list file is not a regular file: %s",
-                 joblist);
-      return 1;
-    }
-  }
-
   //Find all jobs
   Arc::TargetGenerator targen(usercfg, clusters, indexurls);
   targen.GetTargets(1, 1);
@@ -180,12 +155,12 @@ int main(int argc, char **argv) {
 
   //Write extracted job info to joblist (overwrite the file)
   { //start of file lock
-    Arc::FileLock lock(joblist);
+    Arc::FileLock lock(usercfg.JobListFile());
     Arc::NS ns;
     Arc::Config jobs(ns);
 
     if (!truncate)
-      jobs.ReadFromFile(joblist);
+      jobs.ReadFromFile(usercfg.JobListFile());
     for (std::list<Arc::XMLNode*>::const_iterator itSyncedJob = targen.FoundJobs().begin();
          itSyncedJob != targen.FoundJobs().end(); itSyncedJob++) {
       if (!truncate)
@@ -197,7 +172,7 @@ int main(int argc, char **argv) {
 
       jobs.NewChild(**itSyncedJob);
     }
-    jobs.SaveToFile(joblist);
+    jobs.SaveToFile(usercfg.JobListFile());
   } //end of file lock
 
   return 0;

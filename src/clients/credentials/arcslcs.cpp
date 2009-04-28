@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
-  Arc::UserConfig usercfg(conffile);
+  Arc::UserConfig usercfg(conffile, false);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;

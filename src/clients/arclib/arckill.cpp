@@ -112,14 +112,16 @@ int main(int argc, char **argv) {
   if (!usercfg.CheckProxy())
     return 1;
 
-  if (jobs.empty() && joblist.empty() && !all) {
+  // If user specifies a joblist on the command line, he means to kill jobs
+  // stored in this file. So we should check if joblist is set or not, and not
+  // if usercfg.JobListFile() is empty or not.
+  if (jobs.empty() && joblist.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
-  if (joblist.empty())
-    joblist = usercfg.JobListFile();
-
+  // If the user specified a joblist on the command line joblist equals
+  // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
   Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, joblist);
 
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();

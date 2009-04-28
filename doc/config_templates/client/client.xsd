@@ -3,30 +3,93 @@
   <xsd:element name="ArcConfig">
     <xsd:annotation><xsd:documentation>Preliminary XML schema for a client user configuration file</xsd:documentation></xsd:annotation>
     <xsd:complexType>
-      <xsd:sequence>
-        <xsd:element name="Alias" minOccurs="0" maxOccurs="unbounded">
+      <xsd:all>
+        <xsd:element name="AliasList" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+              AliasList specifies a list of alias.
+            </xsd:documentation>
+          </xsd:annotation>
           <xsd:complexType>
             <xsd:sequence>
-              <xsd:element name="Alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-              <xsd:element name="URL" type="ARCURL" minOccurs="0" maxOccurs="unbounded"/>
+              <xsd:element name="Alias" maxOccurs="unbounded">
+                <xsd:annotation>
+                  <xsd:documentation xml:lang="EN">
+A alias is a short hand notation identifier of one or multiple URL(s) pointing
+to either a computing or index service(s). The <attribute>name</attribute>
+attribute specifies the name of the alias, while the <element>Alias</element>
+element may either contain one or multiple <element>URL</element> element(s) or
+one or multiple <element>AliasRef</element> element(s).
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:choice>
+                      <xsd:element name="AliasRef" type="xsd:string" maxOccurs="unbounded">
+                        <xsd:annotation>
+                          <xsd:documentation>
+This element is a reference to a previous defined alias.
+                          </xsd:documentation>
+                        </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element ref="URL"/>
+                    </xsd:choice>
+                  </xsd:sequence>
+                  <xsd:attribute name="name" type="xsd:string" use="required"/>
+                </xsd:complexType>
+              </xsd:element>
             </xsd:sequence>
-            <xsd:attribute name="name" type="xsd:string" use="required"/>
           </xsd:complexType>
         </xsd:element>
-        <xsd:element name="DefaultServices" minOccurs="0" maxOccurs="1">
+        <xsd:element name="DefaultServices" minOccurs="0">
           <xsd:complexType>
             <xsd:sequence>
-              <xsd:element name="URL" type="ARCURL" minOccurs="0" maxOccurs="unbounded"/>
+              <xsd:element name="URL" type="ARCURL" maxOccurs="unbounded"/>
             </xsd:sequence>
           </xsd:complexType>
         </xsd:element>
-        <xsd:element name="BartenderURL" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="Broker" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="CACertificatePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="CertLifetime" type="xsd:duration" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="Debug" minOccurs="0" maxOccurs="1">
+        <xsd:element name="BartenderURL" type="xsd:anyURI" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="Broker" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="CACertificatePath" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="CertLifetime" type="xsd:duration" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="Debug" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+              
+            </xsd:documentation>
+          </xsd:annotation>
           <xsd:simpleType>
             <xsd:restriction base="xsd:string">
               <xsd:enumeration value="DEBUG"/>
@@ -38,21 +101,96 @@
             </xsd:restriction>
           </xsd:simpleType>
         </xsd:element>
-        <xsd:element name="DownloadDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="IdPname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="JobListFile" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="Keep" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="Keypass" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="KeyPath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="Keysize" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="Password" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="SLCSURL" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="StoreDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="TimeOut" type="xsd:duration" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="UserName" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="VOMSServerPath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-      </xsd:sequence>
+        <xsd:element name="DownloadDir" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="IdPname" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="JobListFile" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="Keep" type="xsd:boolean" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="Keypass" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="KeyPath" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="Keysize" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="Password" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="SLCSURL" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="StoreDir" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="TimeOut" type="xsd:duration" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+When communicating over a network the response time, the time from sending a
+request and obtaining a response, can vary alot. With the
+<element>TimeOut</element> element it is possible to specify how long time
+should be spend waiting for a response. If the response time exceeds the
+specified timeout ...?
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="UserName" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="VOMSServerPath" type="xsd:string" minOccurs="0">
+          <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:all>
     </xsd:complexType>
   </xsd:element>
 
@@ -72,12 +210,23 @@
     </xsd:restriction>
   </xsd:simpleType>
 
-  <xsd:complexType name="ARCURL">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:anyURI">
-        <xsd:attribute name="Flavour" type="FlavourEnum" use="required"/>
-        <xsd:attribute name="ServiceType" type="ServiceTypeEnum" use="required"/>
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
+  <xsd:element name="URL" maxOccurs="unbounded">
+    <xsd:annotation>
+      <xsd:documentation>
+With the <element>URL</element> element it is possible to specify a URL pointing
+to either a computing or index service. The <attribute>Flavour</attribute>
+attribute specifies which middleware the URL is pointing to, and the
+<attribute>ServiceType</attribute> attribute the service, either computing or
+index. Both of these attributes are required.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:anyURI">
+          <xsd:attribute name="Flavour" type="FlavourEnum" use="required"/>
+          <xsd:attribute name="ServiceType" type="ServiceTypeEnum" use="required"/>
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
+  </xsd:element>
 </xsd:schema>

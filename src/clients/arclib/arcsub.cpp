@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
-  Arc::UserConfig usercfg(conffile);
+  Arc::UserConfig usercfg(conffile, joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
@@ -161,30 +161,6 @@ int main(int argc, char **argv) {
 
   jobdescriptionfiles.insert(jobdescriptionfiles.end(),
                              params.begin(), params.end());
-
-  if (joblist.empty())
-    joblist = usercfg.JobListFile();
-  else {
-    struct stat st;
-    if (stat(joblist.c_str(), &st) != 0) {
-      if (errno == ENOENT) {
-        Arc::NS ns;
-        Arc::Config(ns).SaveToFile(joblist);
-        logger.msg(Arc::INFO, "Created empty ARC job list file: %s", joblist);
-        stat(joblist.c_str(), &st);
-      }
-      else {
-        logger.msg(Arc::ERROR, "Can not access ARC job list file: %s (%s)",
-                   joblist, Arc::StrError());
-        return 1;
-      }
-    }
-    if (!S_ISREG(st.st_mode)) {
-      logger.msg(Arc::ERROR, "ARC job list file is not a regular file: %s",
-                 joblist);
-      return 1;
-    }
-  }
 
   if (jobdescriptionfiles.empty() && jobdescriptionstrings.empty()) {
     logger.msg(Arc::ERROR, "No job description input specified");
@@ -381,12 +357,12 @@ int main(int argc, char **argv) {
 
   //now add info about all submitted jobs to the local xml file
   { //start of file lock
-    Arc::FileLock lock(joblist);
+    Arc::FileLock lock(usercfg.JobListFile());
     Arc::Config jobs;
-    jobs.ReadFromFile(joblist);
+    jobs.ReadFromFile(usercfg.JobListFile());
     for (Arc::XMLNode j = jobstorage["Job"]; j; ++j)
       jobs.NewChild(j);
-    jobs.SaveToFile(joblist);
+    jobs.SaveToFile(usercfg.JobListFile());
   } //end of file lock
 
   if (jobdescriptionlist.size() > 1) {

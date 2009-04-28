@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
-  Arc::UserConfig usercfg(conffile);
+  Arc::UserConfig usercfg(conffile, joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
@@ -132,15 +132,17 @@ int main(int argc, char **argv) {
   // Proxy check
   if (!usercfg.CheckProxy())
     return 1;
-
+    
+  // If user specifies a joblist on the command line, he means to migrate jobs
+  // stored in this file. So we should check if joblist is set or not, and not
+  // if usercfg.JobListFile() is empty or not.
   if (jobs.empty() && joblist.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
-  if (joblist.empty())
-    joblist = usercfg.JobListFile();
-
+  // If the user specified a joblist on the command line joblist equals
+  // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
   Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, joblist);
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
