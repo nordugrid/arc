@@ -167,7 +167,8 @@ of authentication, the Shibboleth implements SAML2.0 web browser SSO profile, wh
 two functional components, an Identity Provider and a Service Provider. The Identity Provider 
 (IdP) is responsible for creating, maintaining, and managing user identity, while the Service 
 Provider (SP) is responsible for controlling access to services and resources by analyzing 
-the SAML assertions produced and issued by the IdP upon request.
+the SAML assertions produced and issued by the IdP upon request (request from client application 
+to the service/resource that is protected by SP).
 
 In the implementation of ARC middleware, SAML2.0 web browser SSO profile is supported by 
 implementing the functionality of service provider and web browser's user agent, and utilizing 
@@ -196,10 +197,12 @@ with the Username/Password login handler of Shibboleth IdP.
 
 In step 6, the service provider (SP Service) verifies and checks the SAML response, decrypts and stores 
 the SAML assertion into session/connection context. That assertion includes the AuthnStatement and 
-AttributeStatement elements. From step 7 to step 9, the WS client launches the SOAP invocation via 
+AttributeStatement elements. From step 8 to step 10, the WS client launches the SOAP invocation via 
 the same connection as the one which is used by user agent to contact SP Service, then Grid/Web Service 
 checks the AuthnStatement stored in the session context to see if the AuthnStatement is valid or expired. 
-If valid, service handles the SOAP request and returns the SOAP response to the WS client.
+If valid, service handles the SOAP request and returns the SOAP response to the WS client. Note
+the ``connection'' and ``session'' are interchangeably used in this paper, with the same meaning for 
+TCP connection.
 
 Note that in the current implementation the service requires WS client to reuse the same 
 TCP connection as the one used by user agent in step 5, in order to guarantee that the validity of 
@@ -231,12 +234,17 @@ providing his username/password and authenticating through the SAML2SSO profile.
 
 Also, in order to provide single sign-on capability for services that act on behalf of user to 
 invoke other services, a X.509 credential delegation service is implemented, which is based on 
-SOAP communication rather than the proprietary GSI communication implemented in Globus Toolkit.
+SOAP communication rather than the proprietary GSI communication which is used in the delegation
+services such as MyProxy.
 
 \subsection{Short-lived credential service}
 \label{sec:slcs}
-The sequence diagram of SLCS process specializes the diagram shown in Figure \ref{fig:SAML2SSOUML}, 
-with the SOAP request including X.509 request and SOAP response including X.509 response. 
+The sequence diagram of SLCS process is the same as the diagram shown in 
+Figure \ref{fig:SAML2SSOUML}, with SOAP request (the message of step 8 of 
+Figure \ref{fig:SAML2SSOUML}) including X.509 request 
+and SOAP response (the message of step 10 of Figure \ref{fig:SAML2SSOUML}) 
+including an signed X.509 certificate and the CA certificate that is used to 
+sign this X.509 certificate. 
 In detail, the SLCS client firstly accomplishes the SAML2SSO profile, then sends 
 SOAP request to the SLCS service with the X.509 request embedded. The SLCS service makes
 access control decision according to the SAML assertion stored in session context, and issues 
@@ -250,9 +258,10 @@ key. Hence single sign-on is provided, since the user only needs to input his pa
 he starts SAML2SSO profile.
 
 How to compose a distinguished name (DN) for the certificate is a critical issue for 
-the SLCS service. We pick up the relatively identical information ``eduPersonPrincipalName'' 
-(see eduPerson schema~\cite{eduSchemalink}) from SAML attributes that returned from Shibboleth
-IdP, and use it to compose the DN. A typical example of the eduPersonPrincipalName 
+the SLCS service. Since the ``eduPersonPrincipalName'' (see eduPerson schema~\cite{eduSchemalink})
+is identical to the user that accomplishes SAML2SSO profile. We pick up ``eduPersonPrincipalName'' 
+from SAML attributes that returned from Shibboleth IdP, and use it to compose the DN. A 
+typical example of the eduPersonPrincipalName 
 could be alice@example.org. In such case composed DN is for example\\``/O=knowarc/OU=example.org/CN=alice''.
 
 By using the SLCS service, the user can easily access the Grid services that requires 
@@ -271,8 +280,8 @@ and providing his username and password.
 The sequence diagram is shown in Figure \ref{fig:DelegUML}. Firstly, the client needs to delegate
 the proxy certificate or short-lived certificate to a delegation service through step 1 to step 7.
 Then this client invokes the peer Web Service by appending the delegation information (URL of delegation
-service and the delegation ID corresponding to the above delegation) into the SOAP body as out-of-band 
-message. The Web Service then sends a X.509 request and the delegation ID to the delegation service 
+service and the delegation ID corresponding to the above delegation) into the SOAP body. The Web 
+Service then sends a X.509 request and the delegation ID to the delegation service 
 which is specified by client side, and gets back a delegated certificate which can be composed together
 with the private key for a proxy certificate. The Web Service could use this proxy certificate 
 to represent the user to invoke another Web Service, which either could cause one more process of 
@@ -306,8 +315,10 @@ AxisJava, gSOAP, XSOAP4, etc., the goal of this paper is not about complete comp
 HED and all the other SOAP implementations, so we use the Axis2/C (v1.5.0) to demostrate the performance
 HED.
 
-For the service side, we implement the simple ``echoString'' service in HED, and use the ``echoString''
-service in Axis2/C. For client side, we develope a client by using API of ARC, to invoke the ``echoString''
+For the service side, we implement two simple ``echoString'' services in HED and Axis2/C. The 
+``echoString'' provides a simple SOAP portType which will output the same value as it gets from
+input.
+For client side, we develope a client by using the client API of ARC, to invoke the ``echoString''
 services from Axis2/C and HED. The service invocation is just sending a short string to service, and 
 getting back the same string. One test/experiment consists of a set of clients which run simultaneously. 
 Each client runs for a fixed period of time, and invokes the service as many times as it can during 
@@ -318,9 +329,9 @@ by counting the number of invocation during each second.
 
 The two ``echoString'' services run in a test machine equipped with 3GHz Intel Pentium dual-core 
 CPU and 2GB memory, Red Hat Enterprise Linux 5. The client runs in another machine equipped 
-with 1.8GHz Intel Pentium CPU and 2GB memory, Ubuntu 8.10. The Axis2/C service is run using 
+with 2.0GHz AMD Athlon CPU and 1GB memory, Red Hat Enterprise Linux 5. The Axis2/C service is run using 
 the httpd module on Apache Http Server version 2.2.11 instance. We keep all the configurations 
-default in Apache Http Server. The client and service are configured with mutual TLS authentication.
+default in Apache Http Server.
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{HED2Axis_thread10.pdf}
@@ -329,98 +340,141 @@ default in Apache Http Server. The client and service are configured with mutual
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=0.9\columnwidth]{HED2Axis_thread40.pdf}
-\caption{Performance results for HED and Axis2C: 1 service and 40 clients}
-\label{fig:HED2Axis_thread40}
+\includegraphics[width=0.9\columnwidth]{TCP_thread_all.pdf}
+\caption{Performance of HED and Axis2C echoString services without TLS: performance
+changes with client numbers; session non-reused }
+\label{fig:TCP_thread_all}
 \end{figure}
 
-Figure \ref{fig:HED2Axis_thread10} and Figure \ref{fig:HED2Axis_thread40} are the results of 
-performance comparison. 
+\begin{figure}
+\includegraphics[width=0.9\columnwidth]{TLS_thread_all.pdf}
+\caption{Performance of HED and Axis2C echoString services with TLS: performance
+changes with client numbers; session non-reused}
+\label{fig:TLS_thread_all}
+\end{figure}
+
+Figure \ref{fig:HED2Axis_thread10} is the results of performance comparison with ten 
+clients being launched.
 Two types of experiments are shown: session reused, session non-reused.
 ``Session reused'' means all of the SOAP invocations on each client share the same session 
 (tcp connection); while ``Session non-reused'' means each invocation launches a new session.
 
 For ``Session reused'' experiments, we see that the average response time in HED is about 81ms
-which is twice of the value in Axis2/C, and the throughput in HED is about half of the value in Axis2/C, 
-when the client number is 10. When the client number is increased to 40, the average response 
-time in HED is close to the value in Axis2/C when the duration is more than 60 seconds, and the 
-similar result appears for throughput. One obersavation is that, the performance results of HED is 
-quite stable, with the average response time almost kept unchanged under different time points, 
-as well as under different number of clients, and throughput kept unchanged under different 
-time points, while increased linearly with number of clients.
-
+which is twice of the value in Axis2/C, and the throughput in HED is about half of the value in Axis2/C. 
+One obersavation is that, the performance results of HED is quite stable, with the average response time 
+and throughput almost kept unchanged under different time points.
 For ``Session non-reused'' experiments, the average response time in HED is almost the same as
-the value in Axis2/C, in both cases of client number is 10 (the value is 15ms) and 40 (the value
- is 53ms) correspondingly. On the other hand the throughput in HED is also the same as the value 
-in Axis2/C, in both cases of client number is 10 and 40. One interesting obersabation is that the 
-throughput is close to a fixed value (around 500 request/s) for both HED and Axis2/C in both 
-cases of client number, when the duration value becomes bigger. Also, in case of client number is
-40, the throughput from ``Session reused'' experiments also is close to the same fixed value.
-We speculate that, with a relatively big value of client number, no matter the session is reused or
-not, the throughput is becoming a fixed value which can be explained as the SOAP processing capability
-of the SOAP implementation. In this case, we can believe that HED has the similar performance 
-capability as Axis2/C. 
+the value in Axis2/C, with the value 15ms. On the other hand, the throughput in HED is close to
+ the value in Axis2/C. 
+
+Since the echoString service is a simple service which occupies little and stable time for processing
+service logic itself, and also the experiments are done under local network, we can speculate 
+the response time we get in Figure \ref{fig:HED2Axis_thread10} is mainly about the processing time 
+in container itself.
+With the stability characteristic of performance, we can speculate that the service container 
+itself will stablly impact on the performance of other services.
+
+To more deeply compare the performance of services from HED and Axis2/C, some tests have
+been done to investigate how does the number of simultaneous clients impact on the performance.
+Figure \ref{fig:TCP_thread_all} is the performance results for echoString services with client number
+being changed. In this set of experiments, the session is not reused, and secure communication is not
+used. Each experiment is executed for a relatively long duration (two minutes), so that the there are
+enough times of service invokations and then the performance results are reliable.
+We see that both the response time of services in HED and Axis2/C starts from similar value 
+(when client number is five) and changes linearly with number of clients, while service in HED 
+provides shorter response time with the value being around two thirds of the response time of 
+service in Axis2/C when client number becomes bigger.
+In case of throughput, service in HED provides stable throughtput, while service in Axis2/C provides 
+throughput which slightly becomes smaller when client number becomes bigger.
+
+Figure \ref{fig:TLS_thread_all} is the performance results when secure communication is used.
+For Axis2/C, we configure the http server (that hosts Axis2/C) with SSL module enabled.
+Each experiment is executed for a duration of two minutes.
+We see that, similar to Figure \ref{fig:TCP_thread_all}, the both the response time of services 
+in HED and Axis2/C also starts from similar value (when client number is five) and changes linearly 
+with number of clients, while the service in HED also provides much shorter response time 
+with the value being around sightly more than one third of the response time of service in Axis2/C 
+when client number becomes bigger.
+In case of throughput, the throughput of service in HED increases linearly with client numbers intially,
+however, it starts to keep stable to be a fixed value (around 13000 requests per minutes) when client 
+number is bigger than 30. On the other hand, the throughput of service in Axis2/C starts to keep 
+stable when client number is bigger than 10, with the value being around sightly more than one 
+third of the throughput of service in HED.
+
+We conclude that the HED can provide better performance than Axis2/C, in both cases of secure 
+communication being enabled and disabled, especially when the number of simultaneous clients 
+is bigger.
 
 \subsection{Performance of the integration SAML2 SSO profile}
 \label{sec:perfsaml2sso}
 In our next experiment, we evaluate how does the integration of SAML2SSO profile impact on the 
 performance of Web Service invocation. We configure a ``echoString'' service together with a SP (
 Service Provider) service, and develope a client by using SAML2SSO related API of ARC, to invoke 
-the ``echoString'', as well as interact with the IdP (Identity Provider). Services and client run on
+the ``echoString'', as well as interact with the IdP (Identity Provider). Service and clients run on
 the same set of machine as section \ref{sec:perhedandaxis}. Meanwhile, we deploy the Shibboleth IdP 
 implementation on a machine equipped with 2.8GHz Intel Pentium CPU and 1GB memory, Red Hat Enterprise 
 Linux 5.
 
 \begin{figure}
-\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread1.pdf}
-\caption{Performance results for SAML2SSO profile: 1 service and 1 client}
-\label{fig:SAML2SSO_thread1}
+\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10.pdf}
+\caption{Performance of HED echoString services with SAMLSSO profile: 1 service and 10 clients}
+\label{fig:SAML2SSO_thread10}
 \end{figure}
 
-Figure \ref{fig:SAML2SSO_thread1} depicts the average response time and throughputs for one client 
-running against the service. Since the success of authentication from IdP can be regarded as 
-valid for the whole session between client and service, the client with ``Session reused'' 
-need to accomplish the SAML2SSO profile only once for all SOAP invocations on this client, 
-while the client with ``Session non-reused'' will need to accomplish this profile once per 
-SOAP invocation.
+\begin{figure}
+\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread_all.pdf}
+\caption{Performance of HED echoString services with SAMLSSO profile:
+performance changes with client numbers; session non-reused }
+\label{fig:SAML2SSO_thread_all}
+\end{figure}
+
+
+Figure \ref{fig:SAML2SSO_thread10} depicts the average response time and throughputs for 10 clients
+running simultaneously against the ``echoString'' service enhanced with SAML2SSO profile. Since 
+the success of authentication from IdP can be regarded as valid for the whole session between client 
+and service, the client with ``Session reused'' need to accomplish the SAML2SSO profile only once 
+for all SOAP invocations on this client, while the client with ``Session non-reused'' will need to 
+accomplish this profile once per SOAP invocation.
 
 The average response time of ``Session non-reused'' experiments changes little with the execution 
-duration, and the value is about 730ms; while the throughput is around 82 requests per minutes.
-Considering that the average response time in case of 
-``Session non-reused'' and pure SOAP invocation is around 15ms when client number is 10 (see section
-\ref{sec:perhedandaxis}), not demostrated in section \ref{sec:perhedandaxis}, the same value applies 
-when client number is only 1, therefore we can calculate that the consumption of time for 
-SAML2SSO profile is about 98\% of the whole SOAP invocation with SAML2SSO profile integrated.
-Deeper investigation about recording the time of each step of SAML2SSO profile supports the above
-obersavation. In order to improve the performance of SAML2SSO profile, optimizing the process between
+duration, and the value is about 3000ms; while the throughput is around 200 requests per minutes.
+Considering that the average response time in case of ``Session non-reused'' and pure SOAP invocation 
+is around 15ms when client number is 10 (see section \ref{sec:perhedandaxis}), therefore we can 
+calculate that the consumption of time for SAML2SSO profile is about 99.5\% of the whole SOAP 
+invocation with SAML2SSO profile integrated. 
+
+Deeper investigation about recording the time of each step of SAML2SSO profile supports the 
+above obersavation. The average time cost for getting an authencation request from SP service 
+is about 60ms; the average time cost for authenticating against IdP is about 2750ms; the 
+average time cost for sending the SAML response (from IdP) to SP service is about 20ms;
+the average time cost for verifying (by SP service) the signature of SAML response is 
+around 130ms.
+
+In order to improve the performance of SAML2SSO profile, optimizing the process between 
 client and IdP is the correct direction, and probably one of the easiest way is to enhance the 
 hardware configuration.
 
 One the other hand, the average response time of ``Session reused'' experiments is about 82 ms,
-which is almost as short as the value in the pure SOAP invocation experiment in \ref{sec:perhedandaxis}.
-The result is resonable because the time consumption caused by only once of SAML2SSO execution on one 
-client is relatively small comparing with the time consumption caused by the following hundreds 
-of pure SOAP invocations.
+which is almost as short as the value in the pure SOAP invocation experiment in section 
+\ref{sec:perhedandaxis}. The result is resonable because the time consumption caused by 
+only once of SAML2SSO execution on one client is relatively small comparing with the time 
+consumption caused by the following hundreds of pure SOAP invocations on the same client.
 
-\begin{figure}
-\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread5.pdf}
-\caption{Performance results for SAML2SSO profile: 1 service and 5 clients}
-\label{fig:SAML2SSO_thread5}
-\end{figure}
+Figure \ref{fig:SAML2SSO_thread_all} depicts the performance results for echoString services
+that are enhanced with SAML2SSO profile, with client number being changed. In this set of experiments, 
+the session is not reused, and secure communication without client certificate authentication is used.
+The results show the average response time increases linearly with the client number, while the 
+throughput increases initially and then keeps in a fixed value (around 215 requests per minute) 
+when the client number is bigger than 4. When the client number is four, the response time is 
+around one second, while the throughput of the service is 215 requests per minutes which is almost
+the fixed value.
+We speculate that in order to get acceptable response time, there should be less than four (including four) 
+concurrent clients if they need to continuously participate one SAML2SSO profile. 
 
-\begin{figure}
-\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10.pdf}
-\caption{Performance results for SAML2SSO profile: 1 service and 10 clients}
-\label{fig:SAML2SSO_thread10}
-\end{figure}
-
-Figure \ref{fig:SAML2SSO_thread5} and Figure \ref{fig:SAML2SSO_thread10} depicts the average 
-response time and throughputs for 5 and 10 clients running against one service simultaneously,
-with the session not being reused. The throughput seems to change little with the number of 
-clients increased from five to ten, with the value being abroud 200 requests per minutes;
-while the average response time doubles, with the value increasing from 1.6s to 3.1s. We conclude
-that in order to get acceptable response time, there should be at least less than five concurrent
-clients if they need to continuously participate one SAML2SSO profile. 
+Considering that the throughput of ``echoString'' service enhanced with mutual TLS is 13000, and 
+the concurrent client number when arriving fixed throughput is 30, the performance of
+``echoString'' service enhanced with SAML2SSO profile is much worse, with the values being 215
+and 4 correspondingly.
 
 However for some typical grid application scenarios, normally the client does not need 
 to continuously accomplish SAML2SSO profile. For instance, a user could submit a job 
@@ -428,63 +482,62 @@ which needs a period of time (normally this period is much longer than a few sec
 to execute, which launches an execution of SAML2SSO profile; 
 afterwards, this user could query the information as well as the result about this job, which 
 launches another execution of SAML2SSO profile. On the other hand, statistically, users will most
-probably not access grid system in a concurrent way, rather a random way. Therefore, if we 
+probably not access grid system in a concurrent way, rather than a random way. Therefore, if we 
 suppose a user could access grid once per minute, in our test environment, we can claim that 
-around 200 clients randomly can be supported with acceptable performance.
-
+around 215 clients randomly can be supported with acceptable performance.
 
 \subsection{Performance of SLCS service}
 \label{sec:perfslcsserv}
 
 \begin{figure}
-\includegraphics[width=0.9\columnwidth]{SLCS.pdf}
-\caption{Performance results for SLCS service: 1 service and 1 client}
-\label{fig:SLCS}
+\includegraphics[width=0.9\columnwidth]{SLCS_thread_all.pdf}
+\caption{Performance of SLCS service: performance changes with client numbers}
+\label{fig:SLCS_thread_all}
 \end{figure}
 
-Figure \ref{fig:SLCS} is the performance about the SLCS service. Since the SLCS is based on the SAML2SSO
-profile, the reponse time should be the accumulation of time consumption about the SAML2SSO processing 
-and the SLCS processing. In this experiment, SLCS service and client run on the same set of machine 
-as section \ref{sec:perhedandaxis}. This figure shows that the average response time changes little with
-the execution time with the value being around 1.3s which is nearly double as the value (730ms) of one client 
-experiment about ``echoString'' service invocation with SAML2SSO integrated. Not demostrated in 
-Figure \ref{fig:SLCS}, the more consumption of time is caused by the creating of X.509 request on the
- client side, which takes about roughly 310ms in average, as well as by the signing of X.509 certificate 
-on the SLCS service side, which takes roughly 33ms in average, together with the time consumption for 
-communication.
+Figure \ref{fig:SLCS_thread_all} is the performance about the SLCS service. Since the SLCS is 
+based on the SAML2SSO profile, the reponse time should be the accumulation of time consumption 
+about the SAML2SSO processing and the SLCS processing. In this experiment, SLCS service and 
+client run on the same set of machine as section \ref{sec:perhedandaxis}. 
+
+The results show that the throughput of SLCS service has the same characteristic as the throughput
+of ``echoString'' service enhanced with SAML2SSO profile, with the value being around 215 
+requests per minute; and the average response time resembles the value of ``echoString'' service as 
+well, with the value being increased for about 80ms. The increased time consumption is caused by 
+the creating of X.509 request (1024-bit RSA key pair generation) on the client side.
 
 Even though the average response time of SLCS service is not very short, considering the short-lived 
 credential has a relatively long lifetime (12 hours by default) and therefore client only needs to invoke
-SLCS service once per 12 hours, the performance is completely acceptable. Also considering the time 
-consumption for the creation of X.509 request (1024-bit RSA key pair generation) is on the client side,
-we speculate the SLCS service side will not be affected much by the time-consuming key pair generation, and
-therefore its performance resemble the performance of SAML2SSO profile in section \ref{sec:perfsaml2sso}.
+SLCS service once per 12 hours, the performance is completely acceptable.
 
 \subsection{Performance of delegation service}
 \label{sec:perfdelegserv}
 
 In the last experiment, we evaluate how does the usage of delegation service impact on the 
 performance of Web Service invocation. We deployed a ``echoString'' service plugged with delegation
-security handler on a machine equipped with 2.80GHz Intel Pentium CPU and 1GB memory, Red Hat 
-Enterprise Linux 5, and also configure a client together with delegation security handler plugged 
-on a machine equipped with 1.8GHz Intel Pentium CPU and 2GB memory, Ubuntu 8.10. Aside from 
+security handler on a machine equipped with 3GHz Intel Pentium dual-core CPU and 2GB memory, Red 
+Hat Enterprise Linux 5, and also configure a client together with delegation security handler plugged 
+on a machine equipped with 2.0GHz AMD Athlon CPU and 1GB memory, Red Hat Enterprise Linux 5. Aside from 
 ``echoString'' service and client, a delegation service is deployed on a machine equipped with 
 3GHz Intel Pentium dual-core CPU and 2GB memory, Red Hat Enterprise Linux 5.
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{Delegation_thread_to_perf.pdf}
-\caption{Performance results of delegation service: from 1 client to 15 clients}
-\label{fig:Deleg}
+\caption{Performance of HED echoString service with credential delegation: performance 
+changes with client numbers; echoString service contacts delegation service upon each service 
+invokation from client}
+\label{fig:Delegation_thread_to_perf}
 \end{figure}
 
-Initial experiments which are not demonstrated in this paper show that both the response time and
-throughput almost do not change with the time. Therefore, we measure the performance as the function 
-of the client numbers from 1 to 15. Figure \ref{fig:Deleg} is performance results. We see that 
-the response time increases in a linear manner against client numbers; and the throughput gradually 
-increases, and stops increasing and almost keeps unchanged when the client number is bigger than eight.
-We conclude that if the client number is bigger than eight, in our test environment, there is no 
-throughput benefit can be achieved by adding clients.
-
+In the experiment, the client launches a new credential delegation for each service invokation, 
+and ``echoString'' service acquires delegated credential from delegation service upon each 
+service invokation.
+Figure \ref{fig:Delegation_thread_to_perf} depicts the average response time and throughput of 
+the ``echoString'' service with delegation security handler embedded. The average response time 
+inreases linearly with the client number, while the throughput starts to keep at fixed value
+(around 400 request per minutes) when the client number is 8, after initially increasing.
+We conclude that if the client number is bigger than eight, in our test environment, there 
+is no throughput benefit can be achieved by adding clients.
 
 %-------------------------------------------------------------------------
 \section{Related Work}
