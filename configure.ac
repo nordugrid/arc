@@ -1188,6 +1188,10 @@ AC_SUBST(posix_shell)
 DATE=`date +%Y-%m-%d`
 AC_SUBST(DATE)
 
+if test "x$enable_doc" = "xyes"; then
+  AC_CONFIG_SUBDIRS([doc])
+fi
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/hed/Makefile
@@ -1393,7 +1397,6 @@ AC_CONFIG_FILES([Makefile
                  java/Makefile
                  python/Makefile
                  po/Makefile.in
-                 doc/Makefile
                  include/Makefile
                  debian/Makefile
                  debian/nordugrid-arc1-client.install

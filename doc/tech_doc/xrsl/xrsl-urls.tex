@@ -1,0 +1,160 @@
+File locations in ARC can be specified both as local file
+names, and as Internet standard \textit{Uniform Resource Locators
+  (URL)}\index{URL}. There are also some additional URL
+\textit{options} that can be used.
+
+The following transfer protocols and metadata servers are supported:
+
+\begin{tabular}{lp{10cm}}
+   \texttt{ftp} & ordinary \textit{File Transfer Protocol (FTP)}\\
+   \texttt{gsiftp} & GridFTP, the \globus\ -enhanced FTP protocol with
+security, encryption, etc. developed by The Globus Alliance \cite{globus}\\
+   \texttt{http} & ordinary \textit{Hyper-Text Transfer Protocol (HTTP)} with PUT and GET methods using multiple streams\\
+   \texttt{https} & HTTP with SSL v3\\
+   \texttt{httpg} & HTTP with \globus\  GSI\\
+   \texttt{ldap} & ordinary \textit{Lightweight Data Access Protocol (LDAP)}~\cite{ldap}\\
+   \texttt{rc} & \globus\  \textit{Replica Catalog (RC)}~\cite{rc}\\
+   \texttt{rls} & \globus\  \textit{Replica Location Service (RLS)}~\cite{rls}\\
+   \texttt{fireman} & Fireman indexing service of EGEE gLite~\cite{glite}\\
+   \texttt{lfc} & LFC catalog and indexing service of EGEE gLite~\cite{glite}\\
+   \texttt{se} & ARC Smart Storage Element service~\cite{se}\\
+   \texttt{srm} & Storage Resource Manager (SRM) service~\cite{srm}\\
+   \texttt{file} & local to the host file name with a full path\\
+\end{tabular}
+
+An URL can be used in a standard form, i.e.
+\begin{shaded}
+   \verb#<protocol>://host[:port]/<file>#
+\end{shaded}
+
+Or, to enhance the performance, it can have additional options:
+\begin{shaded}
+   \verb#<protocol>://host[:port][;option[;option[...]]]/<file>#
+\end{shaded}
+
+For a metadata service URL, construction is the following:
+\begin{shaded}
+   \verb#rc://rc://[location[|location[...]]@]<host>[:port]/<DN>/<lfn>#\\
+   \verb#rls://[url[|url[...]]@]<host>[:port]/<lfn>#\\
+   \verb#fireman://[url[|url[...]]@]<host>[:port]/<service_path>?<lfn>#\\
+   \verb#lfc://[url[|url[...]]@]<host>[:port]/<lfn>#
+\end{shaded}
+
+For the Smart Storage Element service, the syntax is
+\begin{shaded}
+   \verb#se://host[:port][;options]/path[?file_id]#
+\end{shaded}
+
+For the SRM service, the syntax is
+\begin{shaded}
+   \verb#srm://<host>[:port][;options]/[service_path?SFN=]<file_id>#
+\end{shaded}
+
+Versions 1.1 and 2.2 of the SRM protocol are supported. The
+default \emph{service\_path} is srm/managerv2 when the server supports
+v2.2, srm/managerv1 otherwise.
+
+The URL components are:
+
+\begin{tabular}{lp{10cm}}
+   \verb#location#&\verb#<location_name_in_RC>[;option[;option[...]]]#\\
+   \verb#host[:port]#&IP address of a server\\
+   \verb#DN#&Distinguished Name (as in LDAP) of an RC collection\\
+   \verb#lfn#&Logical File Name\\
+   \verb#url#&URL of the file as registered in RLS/Fireman\\
+   \verb#service_path#&End-point path of the Web service\\
+   \verb#file#&local to the host file name with a full path\\
+\end{tabular}
+
+The following options are supported for location URLs:\index{URL:options}
+
+\begin{tabular}{lp{10cm}}
+   \verb#threads=<number># & specifies number of parallel
+   streams to be used by GridFTP or HTTP(s,g); default value is 1,
+   maximal value is 10\\
+   \verb#cache=yes|no|renew# & indicates whether the GM should
+   cache the file; default for input files is \verb#yes#. \verb#renew# forces a download of the file, even if the cached copy is still valid. (NB: cached files can not be modified by jobs)\\
+   \verb#readonly=yes|no# & for transfers to \verb#file://# destinations, specifies whether the file should be
+   read-only (unmodifiable) or not; default is \verb#yes# \\
+   \verb#secure=yes|no# & indicates whether the GridFTP data
+   channel should be encrypted; default is \verb#no#\\
+   \verb#blocksize=<number># & specifies size of
+   chunks/blocks/buffers used in GridFTP or HTTP(s,g) transactions;
+   default is protocol dependent\\ 
+   \verb#checksum=cksum|md5|adler32# & specifies the algorithm for checksum to be
+   computed (ev. provided to the indexing server). This is overridden
+   by any metadata options specified (see below). If this option is
+   not provided, the default for the protocol is used. \verb#checksum=no#
+   in a source URL will disable checksum verification.\\ 
+   \verb#exec=yes|no# & means the file should be treated as executable\\
+   \verb#preserve=yes|no# & specify if file must be uploaded to this
+   destination even if job processing failed (default is \verb#no#)\\
+   \verb#pattern=<pattern># & defines file matching pattern; currently
+   works for file listing requests sent to an \verb#se://# endpoint\\
+   \verb#guid=yes|no# & make software use GUIDs instead of LFNs while
+   communicating to indexing services; meaningful for \verb#rls://#
+   only\\
+   \verb#overwrite=yes|no# & make software try to overwrite existing
+   file(s), i.e. before writing to destination, tools will try to remove
+   any information/content associated with specified URL\\
+   \verb#protocol=gsi|gssapi# & to distinguish between two kinds of 
+   \verb#httpg#. \verb#gssapi# stands for implemention using only GSSAPI 
+   functions to wrap data and \verb#gsi# uses additional headers as 
+   implmented in Globus IO\\
+   \verb#spacetoken=<pattern># & specify the space token to be used for
+   uploads to SRM storage elements supporting SRM version 2.2 or higher\\
+   \verb#autodir=yes|no# & specify if before writing to specified location
+   software should try to create all directories mentioned in specified
+   URL. Currently this applies to FTP and GridFTP only. Default for those
+   protocols is \verb#yes#\\
+\end{tabular}
+
+Local files are referred to by specifying either a location relative
+to the job submission working directory, or by an absolute path (the
+one that starts with "/"), preceded with a \verb#file://# prefix.
+
+Metadata service URLs also support metadata options which can be used
+for register additional metadata attributes or query the service using
+metadata attributes. These options are specified at the end of the LFN
+and consist of name and value pairs separated by colons. The following
+attributes are supported:
+
+\begin{tabular}{lp{10cm}}
+   \verb#guid# & GUID of the file in the metadata service \\
+   \verb#checksumtype# & Type of checksum. Supported values are cksum
+   (default), md5 and ad (adler32 checksum) \\
+   \verb#checksumvalue# & The checksum of the file \\
+\end{tabular}
+
+Currently these metadata options are only supported for lfc:// URLs.
+
+\begin{framed}
+   Examples of URLs are:\\
+   \\
+   \verb#http://grid.domain.org/dir/script.sh#\\
+   \verb#gsiftp://grid.domain.org:2811;threads=10;secure=yes/dir/input_12378.dat#\\
+   \verb#ldap://grid.domain.org:389/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org#\\
+   \verb#rc://grid.domain.org/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org/zebra/f1.zebra#\\
+   \verb#rls://gsiftp://se.domain.org/datapath/file25.dat@grid.domain.org:61238/myfile02.dat#$^1$\\
+   \verb#fireman://fireman_host:8443/glite-data-catalog-interface/FiremanCatalog?data.root#\\
+   \verb#file:///home/auser/griddir/steer.cra#\\
+   \verb#lfc://srm://srm.domain.org/griddir@lfc.domain.org//user/file1:guid=\# \\
+   \verb#    bc68cdd0-bf94-41ce-ab5a-06a1512764dc:checksumtype=ad:checksumvalue=12345678#$^2$\\
+   \verb#lfc://;cache=no@lfc.domain.org/:guid=bc68cdd0-bf94-41ce-ab5a-06a1512764d#$^3$\\
+\end{framed}
+
+$^1$This is a destination URL. The file will be copied to the GridFTP
+server at se.domain.org with the path datapath/file25.dat and
+registered in the RLS indexing service at grid.domain.org with the LFN
+myfile02.dat.
+
+$^2$This is a destination URL. The file will be copied to
+srm.domain.org at the path griddir/file1 and registered to the LFC
+service at lfc.domain.org with the LFN /user/file1. The given GUID
+and checksum attributes will be registered.
+
+$^3$This is a source URL. The file is registered in the LFC service at
+lfc.domain.org with the given GUID and can be copied or queried by
+this URL. Note that as URL options are part of the location (physical)
+URL, in meta service URLs the options must be part of the location
+URL, even if the location URL is empty.

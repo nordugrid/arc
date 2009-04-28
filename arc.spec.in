@@ -409,7 +409,7 @@ exit 0
 
 %files doc
 %defattr(-,root,root,-)
-%doc doc/ARC1-*.pdf
+#%doc doc/tech_doc/doxygen/ARC1-*.pdf
 
 %changelog
 

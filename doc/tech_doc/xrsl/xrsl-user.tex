@@ -1,0 +1,1097 @@
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:executable}\addcontentsline{toc}{subsection}{executable}
+  \begin{shaded}
+    \xrsl{executable}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(executable=<string>)#\\
+    GM input:& for ARC $\leq$ 0.5.25:  \verb#(executable="/bin/echo")#\\
+    Example:&\verb#(executable="local_to_job.exe")#\\
+  \end{tabular}
+
+  The executable to be submitted as a main task to a Local Resource
+  Management System (LRMS).
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string}&file name (including path), local to the computing
+    element (CE)\\
+  \end{tabular}
+
+  Executable is a file that has to be executed as the main process
+  of the task. It could be either a pre-compiled binary, or a
+  script. Users may transfer their own executables, or use the ones
+  known to be already installed on the remote system (CE).
+
+  If an executable has to be transferred to the destination site (CE) from some source, it
+  has to be specified in the \texttt{inputFiles} list. If it is not specified in \texttt{inputFiles},
+  the source is expected to be local to the user (client) and
+  will be added as such to the \texttt{inputFiles} list by the UI.
+
+  If the file name starts with a leading slash ("\verb#/#"), it is considered
+  to be \textbf{the full path to the executable at the destination site (CE)}; otherwise
+  the location of the file is \textbf{relative} to the session
+  directory (where job input and files are stored). 
+
+  If the xRSL string is entered from the command line and is enclosed
+  in double quotes, standard shell expansion of variables takes place.
+  That is, if the file name
+  contains an environment variable ("\verb#$...#"), %$
+  the value of this variable is resolved locally, but if the name
+  itself is also
+  enclosed in double quotes, it will be resolved at the remote
+  computing element:\\
+  \verb#(executable=$ROOT_DIR/myprog.exe)# -- \verb#$ROOT_DIR# is resolved
+  locally (\textit{will cause errors if the path does not exist at the
+  execution machine})\\
+  \verb#(executable="$ROOT_DIR/myprog.exe")# -- \verb#$ROOT_DIR# will be
+  resolved remotely\\
+
+  For ARC $\leq$ 0.5.25, UI created a dummy executable attribute for internal GM use,
+  with e.g., "\verb#/bin/echo#" as an argument (unless the
+  specified executable itself started with "\verb#/#"). The actual
+  executable was transferred by the UI to
+  \texttt{arguments}, \texttt{inputFiles} and \texttt{executables} lists
+  in the pre-processed xRSL script.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:arguments}\addcontentsline{toc}{subsection}{arguments}
+  \begin{shaded}
+    \xrsl{arguments}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(arguments=<string> [string] ... )#\\
+    GM input:&\verb#(arguments=<executable> <string> [string] ... )#\\
+    Example:&\verb#(arguments="10000" $(ATLAS)/input.dat)#\\ %$
+  \end{tabular}
+
+  List of the arguments for the executable.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string}&an argument\\
+    \hspace*{1cm}&\texttt{executable}&the executable to be run by LRMS, taken by the
+    UI from the user-specified \texttt{executable} attribute\\
+  \end{tabular}
+
+  For ARC $\leq$ 0.5.25, UI added the name specified in \texttt{executable} to the 
+  \texttt{arguments} list in the pre-processed xRSL script.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:inputFiles}\addcontentsline{toc}{subsection}{inputFiles}
+  \begin{shaded}
+    \xrsl{inputFiles}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{12cm}}
+    User input:&\verb#(inputFiles=(<filename> <location>) ... )#\\
+    GM input:&\verb#(inputFiles=(<filename> <URL>)#\\
+    &\verb#        (<filename> [size][.checksum]) ... )#\\
+    Example:&\verb#(inputFiles=("local_to_job" "gsiftp://se1.lu.se/p1/remote_one")#\\
+    &\verb#        ("local_to_job.dat" "/scratch/local_to_me.dat")#\\
+    &\verb#        ("same_name_as_in_my_current_dir" ""))#\\
+  \end{tabular}
+
+  List of files to be copied to the computing element before the
+  execution.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{filename} & file name, local to the computing element and
+    always relative to the session directory\\
+    \hspace*{1cm}&\texttt{location} & location of the file (\texttt{gsiftp},
+    \texttt{https}, \texttt{ftp}, \texttt{http} URLs, or a path, local
+    to the submission node). If void ("", use the quotes!), the input file is taken
+    from the submission directory.\\
+    \hspace*{1cm}&\texttt{URL} & URL of the file (see Section~\ref{sec:url})\\
+    \hspace*{1cm}&\texttt{size} & file size in bytes\\
+    \hspace*{1cm}&\texttt{checksum} & file checksum (as returned by \texttt{cksum})\\
+  \end{tabular}
+
+  If the list does not contain the standard input file (as specified
+  by \texttt{stdin}) and/or the executable file (as specified by
+  \texttt{executable} if the given name), the UI appends these files
+  to the list. If the \verb#<location># is a URL, it is passed by the
+  UI to the GM without changes; if it is a local path (or void, ""),
+  the UI converts it to \verb#<size># and \verb#<checksum># and
+  uploads those files to the execution cluster.
+
+  \begin{framed}
+  Please note that the \texttt{inputFiles} attribute is not meant to
+  operate with directories: you must specify a pair
+  \verb#("<local_to_job>" "[source]")# for each file.
+  \end{framed}
+
+  For ARC $\leq$ 0.5.25, UI added the name specified in \texttt{executable} to the 
+  \texttt{inputFiles} list in the pre-processed xRSL script.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:executables}\addcontentsline{toc}{subsection}{executables}
+  \begin{shaded}
+    \xrsl{executables}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(executables=<string> [string] ...)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(executables="myscript.sh" "myjob.exe")#\\
+  \end{tabular}
+
+  List of files from the \texttt{inputFiles} set, which will be given
+  executable permissions.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string}& file name, local to the computing element and
+    relative to the session directory\\
+  \end{tabular}
+
+  If the executable file (as specified in \texttt{executable} and is
+  relative to the session directory)  is not listed, it will be added
+  to the list by the UI.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:cache}\addcontentsline{toc}{subsection}{cache}
+  \begin{shaded}
+    \xrsl{cache}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.34, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(cache="yes"|"no")#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(cache="yes")#\\
+  \end{tabular}
+
+  Specifies whether input files specified in the \texttt{inputFiles}
+  should be placed by default in the cache or not. This does not
+  affect files described by the \texttt{executables}, which will be
+  placed in the session directory always.
+
+  If not specified, default value is "yes".
+
+  \begin{framed}
+    Cached files can not be modified by jobs by default. If your job has to 
+    modify input files, please specify \texttt{(cache="no")} or use
+    \texttt{(readonly="no")} URL option for those files.
+  \end{framed}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:outputFiles}\addcontentsline{toc}{subsection}{outputFiles} 
+  \begin{shaded}
+    \xrsl{outputFiles}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(outputFiles=(<string> <URL>) ... )#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(outputFiles=("local_to_job.dat" "gsiftp://se1.uo.no/stored.dat")#\\
+    &\verb#    ("local_to_job.dat" "rc://rc1.uc.dk/set1/stored_and_indexed.dat")#\\  
+    &\verb#    ("local_to_job_dir/" ""))#\\  
+  \end{tabular}
+
+  List of files to be retrieved by the user or uploaded by the GM and
+  indexed (registered) in a data indexing service, e.g. \globus\  RLS or Fireman.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string}& file name, local to the
+    \textit{Computing Element (CE)}\index{Computing Element}. If this
+    string ends with a backslash "/" and \verb#<URL># is empty, the
+    entire directory is being kept at the execution site. If however
+    this string ends with a backslash "/" but the \verb#<URL>#
+    starts with \texttt{gsiftp} or \texttt{ftp}, the whole directory
+    is transfered to the destination.\\
+    \hspace*{1cm}&\texttt{URL} & URL of the remote file (see
+    Section~\ref{sec:url}); if void ("", use the quotes!), the file is
+    kept for manual retrieval.  Note that this can not be a local
+    \texttt{file://} URL.\\
+  \end{tabular}
+
+  Using a Replica Catalog pseudo-URL (see Section~\ref{sec:url}), you should make
+  sure that the location is already defined in the Replica Catalog. If more
+  than one such location is specified, only those found in the Replica Catalog
+  for this collection will be used. Grid Manager will store output files in
+  \textbf{one} location only: the first randomly picked location that
+  exists. If no locations are specified, all those found in the
+  Replica Catalog for this collection will be tried.
+
+  If in a \verb#rc://# pseudo-URL the server component \texttt{host[:port]/DN} is not
+  specified, server specified in the \texttt{replicaCollection} attribute will be used.
+
+  If the list does not contain standard output, standard error
+  file names and GM log-files directory name (as specified by \texttt{stdout},
+  \texttt{stderr} and \texttt{gmlog}), the UI appends these
+  items to the \texttt{outputFiles} list. If the \verb#<URL># is not specified (void,
+  "", use the quotes!), files will be kept on SE and should be downloaded 
+  by the user via the UI. If specified name of file ends with "/", the 
+  entire directory is kept.
+
+  A convenient way to keep the entire job directory at the remote site
+  for a manual retrieval is to specify \texttt{(outputfiles=("/" ""))}.
+
+  In some cases, the list of output files may only be known after the
+  job has completed. ARC allows a user to specify a list of output
+  files dynamically in a file or files in the session directory as
+  part of their job. The file(s) containing the output file
+  information can be defined in the xRSL script as the path to the
+  file relative to the session directory preceeded by '@'. The format
+  of these files is lines of 2 values separated by a space. The first
+  value contains name of the output file relative to the session
+  directory and the second value is a URL to which the file will be
+  uploaded.
+
+  \begin{tabular}{lp{13cm}}
+    Example:&\verb#(outputFiles=("@output.files" "")#\\
+    & \emph{output.files} is generated by the user and contains \\
+    &\verb#   file1 gsiftp://grid.domain.org/file1#\\
+    &\verb#   file2 gsiftp://grid.domain.org/file2#\\
+  \end{tabular}
+
+  After the job completes, the file output.files in the session
+  directory will be read and any files described within will be
+  uploaded to the given URLs.
+
+  \begin{framed}
+    Please note that the \texttt{outputFiles} attribute is not meant to
+    operate with directories: you must specify a pair
+    \verb#("<local_to_job>" "[destination]")# for each file. One
+    exception is when you want to preserve an entire directory at the
+    remote computer for later \textbf{manual} download via
+    \texttt{ngget}. In that case, simply add the trailing backslash
+    "/" at the end of the remote directory name. You can not upload a
+    directory to a URL location, only to your local disk.
+  \end{framed}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:cpuTime}\addcontentsline{toc}{subsection}{cpuTime}
+  \begin{shaded}
+    \xrsl{cpuTime}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.17\footnote{Was called \texttt{maxCpuTime} for ARC $\leq$ 0.3.16.}, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(cpuTime=<time>)#\\
+    GM input:&\verb#(cpuTime=<tttt>)#\\
+    Example:&\verb#(cpuTime="240")#\\
+  \end{tabular}
+
+  Maximal CPU time request for the job. 
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{time} & time (minutes)\\
+    \hspace*{1cm}&\texttt{tttt} & time converted by the UI from \texttt{time} to 
+    minutes (ARC $\leq$ 0.5.26) or seconds (ARC $\geq$ 0.5.27)\\
+  \end{tabular}
+  
+  If only number is specified, the time is assumed to be minutes (ARC
+  $\leq$ 0.5.26) or seconds (ARC $\geq$ 0.5.27). Otherwise, a free
+  format is accepted, i.e., any of the following will be interpreted
+  properly (make sure to enclose such strings in quotes!):
+
+  \begin{tabular}{ll}
+    \hspace*{1cm}&\texttt{"1 week"}\\
+    \hspace*{1cm}&\texttt{"3 days"}\\
+    \hspace*{1cm}&\texttt{"2 days, 12 hours"}\\
+    \hspace*{1cm}&\texttt{"1 hour, 30 minutes"}\\
+    \hspace*{1cm}&\texttt{"36 hours"}\\
+    \hspace*{1cm}&\texttt{"9 days"}\\
+    \hspace*{1cm}&\texttt{"240 minutes"}\\
+  \end{tabular}
+ 
+  If both \texttt{cpuTime} and \texttt{wallTime} are specified, the UI converts them both to 
+  seconds. \texttt{cpuTime} can not be specified together with \texttt{gridTime}
+  or \texttt{benchmarks}.
+ 
+  \begin{framed}
+    This attribute should be used to direct the job to a system with
+    sufficient CPU resources, typically, a batch queue with the
+    sufficient upper time limit. Jobs exceeding this maximum most
+    likely will be \textbf{terminated} by remote systems! If
+    time limits are not specified, the limit is not set and jobs
+   can run as long as the system settings allow (note that in this
+    case you can not avoid queues with too short time limits).
+  \end{framed}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:wallTime}\addcontentsline{toc}{subsection}{wallTime}
+  \begin{shaded}
+    \xrsl{wallTime}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.5.27, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(wallTime=<time>)#\\
+    GM input:&\verb#(wallTime=<tttt>)#\\
+    Example:&\verb#(wallTime="240")#\\
+  \end{tabular}
+
+  Maximal wall clock time request for the job. 
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{time} & time (minutes)\\
+    \hspace*{1cm}&\texttt{tttt} & time converted by the UI from \texttt{time} to seconds\\
+  \end{tabular}
+  
+  If only number is specified, the time is assumed to be
+  seconds. Otherwise, a free format is accepted, i.e., any of the
+  following will be interpreted properly (make sure to enclose such
+  strings in quotes!):
+
+  \begin{tabular}{ll}
+    \hspace*{1cm}&\texttt{"1 week"}\\
+    \hspace*{1cm}&\texttt{"3 days"}\\
+    \hspace*{1cm}&\texttt{"2 days, 12 hours"}\\
+    \hspace*{1cm}&\texttt{"1 hour, 30 minutes"}\\
+    \hspace*{1cm}&\texttt{"36 hours"}\\
+    \hspace*{1cm}&\texttt{"9 days"}\\
+    \hspace*{1cm}&\texttt{"240 minutes"}\\
+  \end{tabular}
+ 
+  If both \texttt{cpuTime} and \texttt{wallTime} are specified, the UI converts them both to 
+  seconds. \texttt{wallTime} can not be specified together with \texttt{gridTime}
+  or \texttt{benchmarks}. If only \texttt{wallTime} is specified, but not \texttt{cpuTime},
+  the corresponding  \texttt{cpuTime} value is evaluated by the UI and added to the job description.
+ 
+  \begin{framed}
+    This attribute should be used to direct the job to a system with
+    sufficient CPU resources, typically, a batch queue with the
+    sufficient upper time limit. Jobs exceeding this maximum most
+    likely will be \textbf{terminated} by remote systems! If 
+    time limits are not specified, the limit is not set and jobs
+    can run as long as the system settings allow (note that in this
+    case you can not avoid queues with too short time limits).
+  \end{framed}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:gridTime}\addcontentsline{toc}{subsection}{gridTime}
+  \begin{shaded}
+    \xrsl{gridTime}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.31, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(gridTime=<time>)#\\
+    GM input:& none\\
+    Example:&\verb#(gridTime="2 h")#\\
+  \end{tabular}
+
+  Maximal CPU time request for the job scaled to the 2.8~GHz
+  Intel\textsuperscript{\textregistered}
+  Pentium\textsuperscript{\textregistered}~4 processor.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{time} & time (minutes)\\
+  \end{tabular}
+  
+  The attribute is completely analogous to \texttt{cpuTime}, except
+  that it will be recalculated to the actual CPU time request for each
+  queue, depending on the published processor clock speed.
+  
+  \texttt{gridTime} can not be specified together with \texttt{cpuTime}
+  or \texttt{wallTime}. If only \texttt{gridTime} is specified, but not \texttt{cpuTime},
+  the corresponding  \texttt{cpuTime} value is evaluated by the UI and added to the job description.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:benchmarks}\addcontentsline{toc}{subsection}{benchmarks}
+  \begin{shaded}
+    \xrsl{benchmarks}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.5.14, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(benchmarks=(<string> <value> <time>) ... )#\\
+    GM input:&\\
+    Example:&\verb#(benchmarks=("mybenchmark" "10" "1 hour, 30 minutes"))#\\
+  \end{tabular}
+
+  Evaluate a job's \texttt{cpuTime} based on benchmark values.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & benchmark name\\
+    \hspace*{1cm}&\texttt{value} & benchmark value of reference machine\\
+    \hspace*{1cm}&\texttt{time} & the \texttt{cpuTime} the job requires on the reference machine\\
+  \end{tabular}
+  
+  \texttt{benchmarks} can not be specified together with \texttt{cpuTime}
+  or \texttt{wallTime}. If only \texttt{benchmarks} is specified, but not \texttt{cpuTime},
+  the corresponding  \texttt{cpuTime} value is evaluated by the UI and added to the job description.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:memory}\addcontentsline{toc}{subsection}{memory}
+  \begin{shaded}
+    \xrsl{memory}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.17\footnote{Was called \texttt{maxMemory} for ARC $\leq$ 0.3.16}, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(memory=<integer>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(memory>="500")#\\
+  \end{tabular}
+
+  Memory required for the job.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{integer} & size (Mbytes)\\
+  \end{tabular}
+
+  \begin{framed}
+    Just like \texttt{cpuTime}, this attribute should be used to
+    direct a job to a resource with a sufficient capacity. Jobs
+    exceeding this memory limit will most likely be \textbf{terminated}
+    by the remote system.
+  \end{framed}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:disk}\addcontentsline{toc}{subsection}{disk}
+  \begin{shaded}
+    \xrsl{disk}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.17\footnote{Was called \texttt{maxDisk} for ARC $\leq$ 0.3.16}, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(disk=<integer>)#\\
+    GM input:&none\\
+    Example:&\verb#(disk="500")#\\
+  \end{tabular}
+
+  Disk space required for the job.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{integer}  & disk space, Mbytes\\
+  \end{tabular}
+
+  \begin{framed}
+    This attribute is used at the job submission time to find a system
+    with sufficient disk space. However, it \textbf{does not
+    guarantee} that this space will be available at the end of the
+    job, as most known systems do not allow for disk space
+    allocation. Eventually, a remote system can terminate a job that
+    exceeds the requested disk space.
+  \end{framed}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:runTimeEnvironment}\addcontentsline{toc}{subsection}{runTimeEnvironment}
+  \begin{shaded}
+    \xrsl{runTimeEnvironment}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(runTimeEnvironment=<string>)(runTimeEnvironment=<string>)#\\
+    GM input:&For ARC $\leq$ 0.5.39: \verb#(runTimeEnvironment="<string>" "<string>")#\\
+    Example:&\verb#(runTimeEnvironment>="APPS/HEP/ATLAS-10.0.1")#\\
+  \end{tabular}
+
+  Required runtime environment.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & environment name\\
+  \end{tabular}
+
+  The site to submit the job to will be chosen by the UI among those
+  advertising specified runtime environments. Before starting the job,
+  the GM will set up environment variables and paths according to
+  those requested. Runtime environment names are defined by Virtual 
+  Organizations, and tend to be organized in name spaces.
+
+  To request several environments, repeat the attribute string:\\
+  \verb#(runTimeEnvironment="ENV1")(runTimeEnvironment="ENV2")# etc.   
+  In ARC $\leq$ 0.5.39, before being submitted to the GM, a grouping was done by the UI, such that GM input was,
+  e.g., \verb#(runTimeEnvironment="ENV1" "ENV2")#.
+
+  To make a disjunct-request, use a boolean expression:\\
+  \verb#(|(runTimeEnvironment="env1")(runTimeEnvironment="env2"))#.
+
+  You can use "\verb#>=#" or "\verb#<=#" operators: job will be submitted to
+  any suitable site that satisfies such requirements, and among the available at the sites
+  runtime environments, the highest version satisfying a requirement will be requested
+  in the pre-processed xRSL script.
+
+  Runtime environment string interpretation is
+  case-insensitive.  If a runtime environment string consists of a name
+  and a version number, a partial specification is possible: it is sufficient
+  to request only the name and use "\verb#>#" or "\verb#>=#" operators to select the highest version.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:middleware}\addcontentsline{toc}{subsection}{middleware}
+  \begin{shaded}
+    \xrsl{middleware}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(middleware=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(middleware="nordugrid-arc-0.5.99")#\\
+  \end{tabular}
+
+  Required middleware.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & Grid middleware name.\\
+  \end{tabular}
+
+  The site to submit the job to will be chosen by the UI among those
+  advertising specified middleware. Usage is identical to that of the
+  \texttt{runTimeEnvironment}. Use the "\verb#>=#" operator to
+  request a version "equal or higher". Request
+  \texttt{(middleware="nordugrid-arc")} defaults to
+  \verb#(middleware>="nordugrid-arc-0.0.0.0")#.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:opsys}\addcontentsline{toc}{subsection}{opsys}
+  \begin{shaded}
+    \xrsl{opsys}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.21, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(opsys=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(opsys="FC3")#\\
+  \end{tabular}
+
+  Required operating system.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & Operating system name and version.\\
+  \end{tabular}
+
+  The site to submit the job to will be chosen by the UI among those
+  advertising specified operating system. Usage is identical to that of
+  \texttt{runTimeEnvironment} and \texttt{middleware}. Use the "\verb#>=#" operator to
+  request a version "equal or higher".
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:stdin}\addcontentsline{toc}{subsection}{stdin}
+  \begin{shaded}
+    \xrsl{stdin}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(stdin=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(stdin="myinput.dat")#\\
+  \end{tabular}
+
+  The standard input file.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & file name, local to the computing element\\
+  \end{tabular}
+
+  The standard input file should be listed in the \texttt{inputFiles}
+  attribute; otherwise it will be forced to that list by the UI.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:stdout}\addcontentsline{toc}{subsection}{stdout}
+  \begin{shaded}
+    \xrsl{stdout}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(stdout=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(stdout="myoutput.txt")#\\
+  \end{tabular}
+
+  The standard output file.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & file name, local to the computing element and
+    relative to the session directory.\\
+  \end{tabular}
+
+  The standard output file should be listed in the
+  \texttt{outputFiles} attribute; otherwise it will be forced to that
+  list by the UI. If the standard output is not defined, UI assigns a
+  name.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:stderr}\addcontentsline{toc}{subsection}{stderr}
+  \begin{shaded}
+    \xrsl{stderr}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(stderr=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(stderr="myjob.err")#\\
+  \end{tabular}
+
+  The standard error file.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & file name, local to the computing element and
+    relative to the session directory.\\
+  \end{tabular}
+
+  The standard error file should be listed as an \texttt{outputFiles}
+  attribute; otherwise it will be forced to that list by the UI. If
+  the standard error is not defined, UI assigns a name. If \texttt{join} is 
+  specified with value "yes", UI adds \texttt{stderr} to the 
+  pre-processed xRSL script with the same value as \texttt{stdout}.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:join}\addcontentsline{toc}{subsection}{join}
+  \begin{shaded}
+    \xrsl{join}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(join="yes"|"no")#\\
+    GM input:none\\
+    Example:&\verb#(join="yes")#\\
+  \end{tabular}
+
+  If "yes", joins \texttt{stderr} and  \texttt{stdout} files into
+  the \texttt{stdout} one. Default is \verb#no#.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:gmlog}\addcontentsline{toc}{subsection}{gmlog}
+  \begin{shaded}
+    \xrsl{gmlog}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(gmlog=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(gmlog="myjob.log")#\\
+  \end{tabular}
+
+  A name of the directory containing grid-specific diagnostics per job.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & a directory, local to the computing element and
+    relative to the session directory\\
+  \end{tabular}
+
+%  The job log file should be listed as an \texttt{outputFiles} attribute;
+%  otherwise it will be forced to that list by the UI.
+	This directory is kept in the session directory to be
+	available for retrieval (UI forces it to the list if
+	\texttt{outputFiles})
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:jobName}\addcontentsline{toc}{subsection}{jobName}
+  \begin{shaded}
+    \xrsl{jobName}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(jobName=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(jobName="My Job nr. 1")#\\
+  \end{tabular}
+
+  User-specified job name.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & job name\\
+  \end{tabular}
+
+  This name is meant for convenience of the user. It can be used to
+  select the job while using the UI. It is also available through the
+  Information System.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:ftpThreads}\addcontentsline{toc}{subsection}{ftpThreads}
+  \begin{shaded}
+    \xrsl{ftpThreads}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(ftpThreads=<integer>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(ftpThreads="4")#\\
+  \end{tabular}
+
+  Defines how many parallel streams will be used by the GM during
+  \texttt{gsiftp} and \texttt{http(s|g)}transfers of files.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{integer} & a number from 1 to 10\\
+  \end{tabular}
+
+  If not specified, parallelism is not used.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:acl}\addcontentsline{toc}{subsection}{acl}
+  \begin{shaded}
+    \xrsl{acl}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.5.12, ARC 0.6}
+
+  \textit{Available in ARC v0.5.12 and higher}.
+
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(acl=<xml>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(acl="<?xml version=""1.0""?>#\\
+    &\verb#    <gacl version=""0.0.1""><entry><any-user></any-user>#\\
+    &\verb#    <allow><write/><read/><list/><admin/></allow></entry></gacl>")#\\
+  \end{tabular}
+
+
+
+  Makes use of GACL~\cite{gacl} rules to list users who are allowed to
+  access and control job in addition to job's owner. Access and
+  control levels are specified per user. \texttt{any-user} tag refers
+  to any user authorized at the execution cluster. To get more
+  information about GACL please refer to \url{http://www.gridsite.org}.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{xml} & a GACL-compliant XML string defining
+    access control list\\
+  \end{tabular}
+
+  Following job control levels can be specified via \texttt{acl}:
+
+  \begin{tabular}{llll}
+    \hspace*{1cm}&\texttt{write}&--&\parbox[t]{11cm}{allows to modify contents of job data (job directory) and control job flow (cancel, clean, etc.)}\\
+    \hspace*{1cm}&\texttt{read}&--&\parbox[t]{11cm}{allows to read content of job data
+    (contents of job directory)}\\
+    \hspace*{1cm}&\texttt{list}&--&\parbox[t]{11cm}{allows to list files available for
+    the job (contents of job directory)}\\
+    \hspace*{1cm}&\texttt{admin}&--&\parbox[t]{11cm}{allows to do everything --
+    full equivalence to job ownership}\\
+  \end{tabular}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:cluster}\addcontentsline{toc}{subsection}{cluster}
+  \begin{shaded}
+    \xrsl{cluster}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(cluster=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(cluster="cluster1.site2.org")#\\
+  \end{tabular}
+
+  The name of the execution cluster.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & known cluster name, or a substring of it\\
+  \end{tabular}
+
+  Use this attribute to explicitly force job submission to a cluster,
+  or to avoid such. The job will not be submitted if the cluster does
+  not satisfy other requirements of the job. Disjunct-requests of the
+  kind \verb#(|(cluster="clus1")(cluster="clus2"))# are supported. To
+  exclude a cluster, use \verb#(cluster!="clus3")#.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:queue}\addcontentsline{toc}{subsection}{queue}
+  \begin{shaded}
+    \xrsl{queue}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(queue=<string>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(queue="pclong")#\\
+  \end{tabular}
+  
+  The name of the remote batch queue. Use only if you are sure that
+  the queue by this name does exist.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & known queue name\\
+  \end{tabular}
+
+  Use this attribute to explicitly force job submission to a queue.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:startTime}\addcontentsline{toc}{subsection}{startTime}
+  \begin{shaded}
+    \xrsl{startTime}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(startTime=<time>)#\\
+    GM input:&\verb#(startTime=<tttt>)#\\
+    Example:&\verb#(startTime="2002-05-25 21:30")#\\
+  \end{tabular}
+
+  Time to start job processing by the Grid Manager, such as e.g. start downloading input files.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{time} & time string, YYYY-MM-DD hh:mm:ss\\ 
+    \hspace*{1cm}&\texttt{tttt} & time string, YYYYMMDDhhmmss[Z] (converted by the UI from
+    \texttt{time})\\
+  \end{tabular}
+  
+  \begin{framed}
+   Actual job processing on a worker node starts depending on local scheduling mechanisms, but not sooner than \texttt{startTime}. 
+   \end{framed}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:lifeTime}\addcontentsline{toc}{subsection}{lifeTime}
+  \begin{shaded}
+    \xrsl{lifeTime}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(lifeTime=<time>)#\\
+    GM input:&\verb#(lifeTime=<tttt>)#\\
+    Example:&\verb#(lifeTime="60")#\\
+  \end{tabular}
+
+  Maximal time to keep job files (the session directory) on the
+  gatekeeper upon job completion.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{time} & time (days)\\
+    \hspace*{1cm}&\texttt{tttt} & time (seconds, converted by the UI from \texttt{time})\\
+  \end{tabular}
+
+  Typical life time is 1 day (24 hours). Specified life time can not
+  exceed local settings.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:notify}\addcontentsline{toc}{subsection}{notify}
+  \begin{shaded}
+    \xrsl{notify}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(notify=<string> [string] ... )#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(notify="be your.name@your.domain.com")#\\
+  \end{tabular}
+
+  Request e-mail notifications on job status change.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & string of the format:
+    \verb#[b][q][f][e][c] user1@domain1 [user2@domain2] ...#\\
+    \hspace*{1cm}&&here flags indicating the job status are:\\
+    \hspace*{1cm}&&\texttt{b} -- begin (PREPARING)\\
+    \hspace*{1cm}&&\texttt{q} -- queued (INLRMS)\\
+    \hspace*{1cm}&&\texttt{f} -- finalizing (FINISHING)\\
+    \hspace*{1cm}&&\texttt{e} -- end (FINISHED)\\
+    \hspace*{1cm}&&\texttt{c} -- cancellation (CANCELLED)\\
+    \hspace*{1cm}&&\texttt{d} -- deleted (DELETED)\\
+  \end{tabular}
+
+  No more than 3 e-mail addresses per status change accepted.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:replicaCollection}\addcontentsline{toc}{subsection}{replicaCollection}
+  \begin{shaded}
+    \xrsl{replicaCollection}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(replicaCollection=<URL>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(replicaCollection="ldap://grid.uio.no:389/lc=TestCollection,#\\
+    &\verb#          rc=NorduGrid,nordugrid,dc=org")#\\
+  \end{tabular}
+
+  Location of a logical collection in the Replica Catalog.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{URL} & LDAP directory specified as an URL (\verb#ldap://host[:port]/dn#)\\
+  \end{tabular}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:rerun}\addcontentsline{toc}{subsection}{rerun}
+  \begin{shaded}
+    \xrsl{rerun}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(rerun=<integer>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(rerun="2")#\\
+  \end{tabular}
+
+  Number of reruns (if a system failure occurs).
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{integer}  & an integer number\\
+  \end{tabular}
+    
+  If not specified, the default is 0. Default maximal allowed value is
+  5. Before 0.5.29 jobs were rerun automatically and only in case of
+  failure in INLRMS state. Since 0.5.29 job may be rerun after failure
+  in any state for which reruning has sense. To initiate rerun user
+  has to use \texttt{ngresume} command.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:architecture}\addcontentsline{toc}{subsection}{architecture}
+  \begin{shaded}
+    \xrsl{architecture}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(architecture=<string>)#\\
+    GM input:&\\
+    Example:&\verb#(architecture="i686")#\\
+  \end{tabular}
+
+  Request a specific architecture.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string} & architecture  (e.g., as produced by uname -a)\\
+  \end{tabular}
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:nodeAccess}\addcontentsline{toc}{subsection}{nodeAccess}
+  \begin{shaded}
+    \xrsl{nodeAccess}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.24, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(nodeAccess="inbound"|"outbound")#\\
+    GM input:&\\
+    Example:&\verb#(nodeAccess="inbound")#\\
+  \end{tabular}
+
+  Request cluster nodes with inbound or outbound IP connectivity. If
+  both are needed, a conjunct request should be specified.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:dryRun}\addcontentsline{toc}{subsection}{dryRun}
+  \begin{shaded}
+    \xrsl{dryRun}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(dryRun="yes"|"no")#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(dryRun="yes")#\\
+  \end{tabular}
+
+  If "yes", do dry-run: RSL is parsed, but no job submission to LRMS
+  is made. Should be used for xRSL and communication validation.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:rsl\_substitution}\addcontentsline{toc}{subsection}{rsl\_substitution}
+  \begin{shaded}
+    \xrsl{rsl\_substitution}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(rsl_substitution=(<string1> <string2>))#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(rsl_substitution=("ATLAS" "/opt/atlas"))#\\
+  \end{tabular}
+
+  Substitutes \verb#<string2># with \verb#<string1># for
+  \textbf{internal} RSL use.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{string1} & new internal RSL variable\\
+    \hspace*{1cm}&\texttt{string2} & any string, e.g., existing combination of
+    variables or a path\\
+  \end{tabular}
+  
+  Use this attribute to define variables that simplify xRSL editing,
+  e.g. when same path is used in several values, typically in
+  \texttt{inputFiles}. Only one pair per substitution is allowed. To
+  request several substitution, concatenate such requests. Bear in
+  mind that substitution must be defined \textbf{prior} to actual use
+  of a new variable \texttt{string1}.
+
+  After the substitution is defined, it should be used in a way
+  similar to shell variables in scripts: enclosed in round brackets,
+  preceded with a dollar sign, \textbf{without quotes}:\\
+  \verb#(inputfiles=("myfile" $(ATLAS)/data/somefile))#
+
+  Unlike the \texttt{environment} attribute, \texttt{rsl\_substitution}
+  definition is only used by the client and is valid inside xRSL
+  script. It can not be used to define environment or shell variable
+  at the execution site.
+
+  \hspace*{0.5cm}\phantomsection
+  \index{XRSL:attribute:environment}\addcontentsline{toc}{subsection}{environment}
+  \begin{shaded}
+    \xrsl{environment}
+  \end{shaded}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(environment=(<VAR> <string>) [(<VAR> <string>)] ... )#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(environment=("ATLSRC" "/opt/atlas/src")#\\
+    &\verb#         ("ALISRC" "/opt/alice/src"))#\\
+  \end{tabular}
+
+  Defines execution shell environment variables.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{VAR} & new variable name\\
+    \hspace*{1cm}&\texttt{string} & any string, e.g., existing combination of
+    variables or a path\\
+  \end{tabular}
+
+  Use this to define variables at an execution site. Unlike the
+  \texttt{rsl\_substitution} attribute, it can not be used to define
+  variables on the client side.
+
+%%   \hspace*{0.5cm}\phantomsection
+%%   \index{XRSL:attribute:jobtype}\addcontentsline{toc}{subsection}{jobtype}
+%%   \begin{shaded}
+%%     \xrsl{jobtype}
+%%   \end{shaded}
+%%   \versions{ARC $\geq$ 0.3.12, ARC 0.4}
+%%   \begin{tabular}{lp{13cm}}
+%%     User input:&\verb#(jobtype= "single"|"multiple"|"mpi"|"condor" )#\\
+%%     Example:&\verb#(jobtype="mpi")#\\
+%%   \end{tabular}
+
+%%   Specifies a type of job (default is \texttt{single}).
+
+  \hspace*{0.5cm}\phantomsection
+  \addcontentsline{toc}{subsection}{count}\index{XRSL:attribute:count}
+  \begin{shaded}
+    \xrsl{count}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.12, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(count=<integer>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(count="4")#\\
+  \end{tabular}
+
+  Specifies amount of sub-jobs to be submitted for parallel tasks.
+
+  \hspace*{0.5cm}\phantomsection
+  \addcontentsline{toc}{subsection}{jobreport}\index{XRSL:attribute:jobreport}
+  \begin{shaded}
+    \xrsl{jobreport}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.3.34, ARC 0.4, ARC 0.5, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(jobreport=<URL>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(jobreport="https://grid.uio.no:8001/logger")#\\
+  \end{tabular}
+
+  Specifies an URL for a logging service to send reports about job
+  to. The default is set up in the cluster configuration.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{URL} & URL\\
+  \end{tabular}
+
+  It is up to a user to make sure the requested logging service
+  accepts reports from the set of clusters she intends to use.
+
+  \hspace*{0.5cm}\phantomsection
+  \addcontentsline{toc}{subsection}{credentialserver}\index{XRSL:attribute:credentialserver}
+  \begin{shaded}
+    \xrsl{credentialserver}
+  \end{shaded}
+  \versions{ARC $\geq$ 0.5.45, ARC 0.6}
+  \begin{tabular}{lp{13cm}}
+    User input:&\verb#(credentialserver=<URL>)#\\
+    GM input:&\verb#-"-#\\
+    Example:&\verb#(credentialserver="myproxy://myproxy.nordugrid.org;username=user")#\\
+  \end{tabular}
+
+  Specifies an URL which Grid Manager may contact to renew/extend delegated
+  proxy of job. Only MyProxy servers are supported.
+
+  \begin{tabular}{llp{10cm}}
+    \hspace*{1cm}&\texttt{URL} & URL of MyProxy server\\
+  \end{tabular}
+
+  It is up to a user to make sure the specified MyProxy server will accept
+  requests from Grid Manager to renew expired credentials.
+  \texttt{URL} may contain options \texttt{username} and \texttt{credname}
+  to specify user name and credentials name which Grid Manager should pass
+  to MyProxy server. If \texttt{username} is not specified DN of user 
+  credentials is used instead.
+  
