@@ -28,7 +28,10 @@ namespace ISIS {
             Arc::XmlDatabase *db_;
             Arc::NS ns_;
             Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
-            // List of known neighbor's endpoint URL in string
+            // List of known InfoProviderISIS's endpoint URL, key, cert, proxy and cadir in string
+            std::vector<Arc::ISIS_description> infoproviders_;
+	    std::string bootstrapISIS;
+            // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             std::vector<Arc::ISIS_description> neighbors_;
 
             // Functions for the service specific interface
@@ -36,6 +39,14 @@ namespace ISIS {
             Arc::MCC_Status Register(Arc::XMLNode &request, Arc::XMLNode &response);
             Arc::MCC_Status RemoveRegistrations(Arc::XMLNode &request, Arc::XMLNode &response);
             Arc::MCC_Status GetISISList(Arc::XMLNode &request, Arc::XMLNode &response);
+
+            Arc::MCC_Status Connect(Arc::XMLNode &request, Arc::XMLNode &response);
+            Arc::MCC_Status Announce(Arc::XMLNode &request, Arc::XMLNode &response);
+            Arc::MCC_Status Alarm(Arc::XMLNode &request, Arc::XMLNode &response);
+            Arc::MCC_Status AlarmReport(Arc::XMLNode &request, Arc::XMLNode &response);
+            Arc::MCC_Status FakeAlarm(Arc::XMLNode &request, Arc::XMLNode &response);
+            Arc::MCC_Status ExtendISISList(Arc::XMLNode &request, Arc::XMLNode &response);	    
+
         public:
             ISIService(Arc::Config *cfg);
             virtual ~ISIService(void);
