@@ -1,5 +1,7 @@
 docdir = @docdir@
 
+SUBDIRS=a-rex backend_interface client dmc hed infosys jura storage_system ws-programming-tutorial ws-quick-guide
+
 doc_DATA = ARC1-API.pdf ARC1-Services.pdf ARC1-ChainComponents.pdf
 
 ngtest_PARTS = ngtest.tex
@@ -20,6 +22,6 @@ ARC1-ChainComponents.pdf: Doxyfile.chain
 
 EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain hed $(doc_DATA)
 
-CLEANFILES = latex
+CLEANFILES = latex *.pdf
 
 MAINTAINERCLEANFILES = $(doc_DATA)
