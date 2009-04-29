@@ -1,2 +1,11 @@
-doc/ARC1-*.pdf 
-usr/share/doc/arc/*
+usr/share/doc/arc-doc/ARC1-API.pdf
+usr/share/doc/arc-doc/ARC1-ChainComponents.pdf
+usr/share/doc/arc-doc/ARC1-Services.pdf
+usr/share/doc/arc-doc/ARCHED_article.pdf
+usr/share/doc/arc-doc/arex_tech_doc.pdf
+usr/share/doc/arc-doc/Backends-arc1.pdf
+usr/share/doc/arc-doc/client_technical.pdf
+usr/share/doc/arc-doc/ISIS-TechnicalHandbook.pdf
+usr/share/doc/arc-doc/jura-tech-doc.pdf
+usr/share/doc/arc-doc/ui.pdf
+usr/share/doc/arc-doc/ws-quick-guide.pdf
