@@ -32,12 +32,14 @@ static const std::string BES_FACTORY_FAULT_URL("http://schemas.ggf.org/bes/2006/
 
 static void SetFaultResponse(Arc::SOAPFault& fault) {
   // Fetch top element of SOAP message - should be better way
-  Arc::SOAPEnvelope res(((Arc::XMLNode)fault).Parent().Parent()); // Fault->Body->Envelope
+  Arc::XMLNode fault_node = fault;
+  Arc::SOAPEnvelope res(fault_node.Parent().Parent()); // Fault->Body->Envelope
   Arc::WSAHeader(res).Action(BES_FACTORY_FAULT_URL);
 }
 
 void ARexService::GenericFault(Arc::SOAPFault& fault) {
-  Arc::SOAPEnvelope res(((Arc::XMLNode)fault).Parent().Parent()); // Fault->Body->Envelope
+  Arc::XMLNode fault_node = fault;
+  Arc::SOAPEnvelope res(fault_node.Parent().Parent()); // Fault->Body->Envelope
   Arc::WSAHeader(res).Action("");
 }
 
