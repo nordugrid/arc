@@ -27,13 +27,14 @@ namespace ISIS {
 
             Arc::XmlDatabase *db_;
             Arc::NS ns_;
-            Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
+            Arc::MCC_Status make_soap_fault(Arc::Message &outmsg, const std::string& reason = "");
+            void make_soap_fault(Arc::XMLNode &response, const std::string& reason = "");
             // List of known InfoProviderISIS's endpoint URL, key, cert, proxy and cadir in string
             std::vector<Arc::ISIS_description> infoproviders_;
 	    std::string bootstrapISIS;
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             std::vector<Arc::ISIS_description> neighbors_;
-
+            bool CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::XMLNode &response);
             // Functions for the service specific interface
             Arc::MCC_Status Query(Arc::XMLNode &request, Arc::XMLNode &response);
             Arc::MCC_Status Register(Arc::XMLNode &request, Arc::XMLNode &response);

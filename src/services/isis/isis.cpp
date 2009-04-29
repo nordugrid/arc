@@ -11,6 +11,8 @@
 #include <arc/Thread.h>
 #include <arc/Utils.h>
 
+#include "security.h"
+
 #include "isis.h"
 #ifdef WIN32
 #include <arc/win32.h>
@@ -656,6 +658,28 @@ static void soft_state_thread(void *data) {
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
+    bool ISIService::CheckAuth(const std::string& action, Arc::Message &inmsg,Arc::XMLNode &response) {
+        inmsg.Auth()->set("ISIS",new ISISSecAttr(action));
+        if(!ProcessSecHandlers(inmsg,"incoming")) {
+            logger_.msg(Arc::ERROR, "Security check failed in ISIS for incoming message");
+            make_soap_fault(response, "Not allowed");
+            return false;
+        };
+        return true;
+    }
+
+    #define RegisterXMLPath "RegEntry/MetaSrcAdv/ServiceID"
+    #define RemoveXMLPath   "ServiceID"
+    static bool IsOwnID(Arc::XMLNode node,const std::string& path,const std::string& id) {
+        if(id.empty()) return false;
+        Arc::XMLNodeList ids = node.Path(path);
+        if(ids.empty()) return false;
+        if(ids.size() > 1) return false;
+        std::string node_id = *(ids.begin());
+        if(node_id != id) return false;
+        return true;
+    }
+
     Arc::MCC_Status ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
         // Both input and output are supposed to be SOAP
         // Extracting payload
@@ -671,31 +695,42 @@ static void soft_state_thread(void *data) {
         Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
         Arc::PayloadSOAP& res = *outpayload;
         Arc::MCC_Status ret = Arc::MCC_Status(Arc::STATUS_OK);
+        // TODO: needed agereement on what is service id
+        std::string client_id = inmsg.Attributes()->get("TLS:IDENTITYDN");
 
         logger_.msg(Arc::DEBUG,"Operation: %s", (std::string) (*inpayload).Child(0).Name());
         // If the requested operation was: Register
         if (MatchXMLName((*inpayload).Child(0), "Register")) {
             Arc::XMLNode r = res.NewChild("isis:RegisterResponse");
             Arc::XMLNode register_ = (*inpayload).Child(0);
-            ret = Register(register_, r);
+            if(CheckAuth(IsOwnID(register_,RegisterXMLPath,client_id)?"service":"isis", inmsg, r)) {
+                ret = Register(register_, r);
+            }
         }
         // If the requested operation was: Query
         else if (MatchXMLName((*inpayload).Child(0), "Query")) {
             Arc::XMLNode r = res.NewChild("isis:QueryResponse");
-            Arc::XMLNode query_ = (*inpayload).Child(0);
-            ret = Query(query_, r);
+            if(CheckAuth("client", inmsg, r)) {
+                Arc::XMLNode query_ = (*inpayload).Child(0);
+                ret = Query(query_, r);
+            }
         }
         // If the requested operation was: RemoveRegistrations
         else if (MatchXMLName((*inpayload).Child(0), "RemoveRegistrations")) {
             Arc::XMLNode r = res.NewChild("isis:RemoveRegistrationsResponse");
             Arc::XMLNode remove_ = (*inpayload).Child(0);
-            ret = RemoveRegistrations(remove_, r);
+            if(CheckAuth(IsOwnID(remove_,RemoveXMLPath,client_id)?"service":"isis", inmsg, r)) {
+                ret = RemoveRegistrations(remove_, r);
+            }
         }
         // If the requested operation was: GetISISList
         else if (MatchXMLName((*inpayload).Child(0), "GetISISList")) {
             Arc::XMLNode r = res.NewChild("isis:GetISISListResponse");
             Arc::XMLNode isislist_= (*inpayload).Child(0);
-            ret = GetISISList(isislist_, r);
+            if(CheckAuth("client", inmsg, r)) {
+                Arc::XMLNode isislist_= (*inpayload).Child(0);
+                ret = GetISISList(isislist_, r);
+            }
         }
         // If the requested operation was: Connect
         else if (MatchXMLName((*inpayload).Child(0), "Connect")) {
@@ -742,16 +777,33 @@ static void soft_state_thread(void *data) {
         return serviceid_;
     }
 
-    Arc::MCC_Status ISIService::make_soap_fault(Arc::Message &outmsg) {
+    Arc::MCC_Status ISIService::make_soap_fault(Arc::Message &outmsg,const std::string& reason) {
         Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
         Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
         if(fault) {
-            fault->Code(Arc::SOAPFault::Sender);
-            fault->Reason("Failed processing request");
+            fault->Code(Arc::SOAPFault::Receiver);
+            if(reason.empty()) {
+                fault->Reason("Failed processing request");
+            } else {
+                fault->Reason(reason);
+            }
         }
 
         outmsg.Payload(outpayload);
         return Arc::MCC_Status(Arc::STATUS_OK);
+    }
+
+    void ISIService::make_soap_fault(Arc::XMLNode &response,const std::string& reason) {
+        Arc::SOAPEnvelope fault(ns_,true);
+        if(fault) {
+            fault.Fault()->Code(Arc::SOAPFault::Receiver);
+            if(reason.empty()) {
+                fault.Fault()->Reason("Failed processing request");
+            } else {
+                fault.Fault()->Reason(reason);
+            }
+            response.Replace(fault.Child());
+        }
     }
 
     static Arc::Plugin *get_service(Arc::PluginArgument* arg) {
