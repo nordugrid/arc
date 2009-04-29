@@ -1,0 +1,20 @@
+ARC1 Documentation
+==================
+
+This directory contains technical documentation pertaining to individual ARC1 components.
+
+Directories:
+------------
+
+a-rex              - ARC Resource-coupled EXecution service documentation
+backend_interface  - ???
+client		   - ARC Client documentation
+client_schemas	   - Tables and schemas for the ARC client
+doxygen		   - ARC documentation build by doxygen
+gin-profile	   - GIN profile documentation
+hed                - Hosting Environment Daemon documentation
+infosys            - Information System documentation
+jura		   - ???
+sec                - Securty-related documents
+storage_system     - Storage System documentation
+xrsl		   - Documentation on xrsl
