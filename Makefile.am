@@ -32,5 +32,10 @@ doc:
 		$(MAKE) -C $$d ; \
 	done
 
+install-doc:
+	for d in $(DOCDIRS); do \
+		$(MAKE) -C $$d install; \
+	done
+
 .PHONY: doc
 

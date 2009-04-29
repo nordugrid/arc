@@ -73,6 +73,7 @@ install-indep:
 	dh_testroot
 	dh_clean -k -i 
 	dh_installdirs -i
+	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install-doc
 	dh_installdocs -i --sourcedir=debian/tmp
 
 install-arch:
