@@ -3,6 +3,7 @@
 #endif
 
 #include <sstream>
+#include <map>
 
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
@@ -14,6 +15,8 @@
 #include "security.h"
 
 #include "isis.h"
+#include "md5wrapper.h"
+
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
@@ -21,6 +24,41 @@
 namespace ISIS
 {
 static Arc::Logger thread_logger(Arc::Logger::rootLogger, "ISIS_Thread");
+
+int hextoi(std::string hex_string) {
+
+    std::map<char, int> values;
+    values['0'] = 0;
+    values['1'] = 1;
+    values['2'] = 2;
+    values['3'] = 3;
+    values['4'] = 4;
+    values['5'] = 5;
+    values['6'] = 6;
+    values['7'] = 7;
+    values['8'] = 8;
+    values['9'] = 9;
+    values['a'] = 10; values['A'] = 10;
+    values['b'] = 11; values['B'] = 11;
+    values['c'] = 12; values['C'] = 12;
+    values['d'] = 13; values['D'] = 13;
+    values['e'] = 14; values['E'] = 14;
+    values['f'] = 15; values['F'] = 15;
+
+    const char *next = hex_string.c_str();
+    if (*next == '0' && *next == 'x') next += 2;
+
+    int return_value = 0;
+    while (*next != '\0') {
+        return_value *= 16;
+        return_value += values[*next];
+        next++;
+    }
+
+    return return_value;
+}
+
+
 
 class Thread_data {
     public:
@@ -213,6 +251,18 @@ static void soft_state_thread(void *data) {
         endpoint_=(std::string)((*cfg)["endpoint"]);
         expiration_=(std::string)((*cfg)["expiration"]);
 
+        if ((bool)(*cfg)["retry"]) {
+            if (!((std::string)(*cfg)["retry"]).empty()) {
+                if(EOF == sscanf(((std::string)(*cfg)["retry"]).c_str(), "%d", &retry) || retry < 0)
+                {
+                    logger_.msg(Arc::ERROR, "Configuration error. Retry: \"%s\" is not a valid value. Default value will be used.",(std::string)(*cfg)["retry"]);
+                    retry = 5;
+                }
+            } else retry = 5;
+        } else retry = 5;
+
+        logger_.msg(Arc::DEBUG, "ISIS Retry: %d", retry);
+
         ThreadsCount = 0;
         KillThread = false;
 
@@ -266,23 +316,26 @@ static void soft_state_thread(void *data) {
 
         // Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
         int i=0;
-        while ((bool)(*cfg)["EndpointURL"][i]) {
+        while ((bool)(*cfg)["InfoProviderISIS"][i]) {
             Arc::ISIS_description isisdesc;
-            isisdesc.url = (std::string)(*cfg)["EndpointURL"][i++];
-            //isisdesc.proxy = ;
-            //isisdesc.cadir = ;
+            isisdesc.url = (std::string)(*cfg)["InfoProviderISIS"][i++]["URL"];
+            //isisdesc.proxy = (std::string)(*cfg)["InfoProviderISIS"][i++]["Proxy"];;
+            //isisdesc.cadir = (std::string)(*cfg)["InfoProviderISIS"][i++]["CaDir"];;
+            // DEBUG //logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
 	    infoproviders_.push_back(isisdesc);
-	    {//TODO: it will be remove!
-            //neighbors_.push_back(isisdesc);
-	    }
         }
-	
-	// goto InfoProviderISIS (one of the list)
-	if ( infoproviders_.size() != 0 ){
-	    std::srand(time(NULL));
-	    Arc::ISIS_description rndProvider = infoproviders_[std::rand() % infoproviders_.size()];
 
-	    // Send Query SOAP message to the providerISIS with Filter
+        // goto InfoProviderISIS (one of the list)
+        if ( infoproviders_.size() != 0 ){
+            std::srand(time(NULL));
+            Arc::ISIS_description rndProvider = infoproviders_[std::rand() % infoproviders_.size()];
+
+            std::map<std::string,int> retry_;
+            for( int i=0; i< infoproviders_.size(); i++ ) {
+               retry_[ infoproviders_[i].url ] = retry;
+            }
+
+            // Send Query SOAP message to the providerISIS with Filter
             Arc::PayloadSOAP *response = NULL;
             Arc::MCCConfig mcc_cfg;
             // mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
@@ -304,62 +357,162 @@ static void soft_state_thread(void *data) {
             Arc::MCC_Status status;
 
             bool isavaliable = false;
-            int retry_ = 5;//TODO: better retry
-            while ( !isavaliable && retry_ > 0 ) {
+            while ( !isavaliable && retry_.size() > 0 ) {
                 Arc::ClientSOAP client_entry(mcc_cfg, rndProvider.url);
-                logger_.msg(Arc::DEBUG, " Sending request to th infoProvider (%s) and waiting for the response.", rndProvider.url );
+                logger_.msg(Arc::DEBUG, " Sending request to the infoProvider (%s) and waiting for the response.", rndProvider.url );
                 status= client_entry.process(&req,&response);
 
                 if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
                    logger_.msg(Arc::ERROR, "%s Request failed, choose new infoProviderISIS.", rndProvider.url);
-		   std::string old_url = rndProvider.url;
-	           rndProvider = infoproviders_[std::rand() % infoproviders_.size()];
-		   if (rndProvider.url == old_url ){
-		      retry_--;
-		   } else {
-		      retry_ = 5;
-		   }
+                   retry_[rndProvider.url]--;
+                   if ( retry_[ rndProvider.url ] == 0 ) {
+                      retry_.erase(rndProvider.url);
+                   }
+                   // new provider search
+                   rndProvider = infoproviders_[std::rand() % infoproviders_.size()];
                 } else {
                    logger_.msg(Arc::DEBUG, "Status (%s): OK", rndProvider.url );
-		   isavaliable = true;
+                   isavaliable = true;
+                   bootstrapISIS = rndProvider.url;
                 };
-	    }
-	    
-	    std::vector<std::string> find_serviceids;
-	    for ( int i=0; bool( (*response)["QueryResponse"]["RegEntry"][i]); i++ ) {
-	        std::string serviceid = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["MetaSrcAdv"]["ServiceID"];
-		if ( serviceid.empty() )
-		    continue;
-	        find_serviceids.push_back( serviceid );
-	    }
+            }
+
+            std::vector<std::string> find_serviceids;
+            for ( int i=0; bool( (*response)["QueryResponse"]["RegEntry"][i]); i++ ) {
+                std::string serviceid = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["MetaSrcAdv"]["ServiceID"];
+                if ( serviceid.empty() )
+                    continue;
+                find_serviceids.push_back( serviceid );
+            }
             if(response) delete response;
 
-	    // Create ServiceURL hash
+            // Create ServiceURL hash
+            md5wrapper md5;
+            // calculate my hash from the endpoint URL
+            my_hash =  hextoi(md5.getHashFromString(endpoint_));
             for (int i=0; i < find_serviceids.size(); i++) {
                 logger_.msg(Arc::DEBUG, "find ServiceID: %s", find_serviceids[i] );
-		//TODO: hash creation
+                int md5_hash = hextoi(md5.getHashFromString(find_serviceids[i]));
+                logger_.msg(Arc::DEBUG, "%s hash: %d", find_serviceids[i], md5_hash );
+                // add the hash and the serviceid into the hash table
+                hash_table.insert( std::pair<int,std::string>(md5_hash, find_serviceids[i]) );
+            }
+
+            // Find nearest ISIS
+	    if ( !isavaliable) {
+	       logger_.msg(Arc::DEBUG, "All infoProvider are not avaliable." );    
 	    }
+            else if ( hash_table.size() == 0 ) {
+	       logger_.msg(Arc::DEBUG, "No element is the hash table. BootstrapISIS is the infoPoviderISIS" );    
+	    } else {
+               Arc::PayloadSOAP connect_req(message_ns);
+               connect_req.NewChild("Connect").NewChild("URL") = endpoint_;
+               connect_req["Connect"].NewChild("Key") = "mykey";
+               connect_req["Connect"].NewChild("Cert") = "mycert";
+               connect_req["Connect"].NewChild("Proxy") = "myproxy";
+               connect_req["Connect"].NewChild("CaDir") = "mycadir";
+	       
+	       // Calculate the "minimal" hash
+	       int low = hash_table.lower_bound(my_hash)->first;
+	       int up = hash_table.upper_bound(my_hash)->first;
+	       int current_hash;
+	       std::vector<int> used_isis;
+	       if ( (my_hash-low) < (up-my_hash) ) {
+	          bootstrapISIS = hash_table.find(low)->second;
+		  current_hash = low;
+	       } else {
+	          bootstrapISIS = hash_table.find(up)->second;
+		  current_hash = up;
+	       }
+ 	       used_isis.push_back(current_hash);
 
-	    // Find nearest ISIS
-            //TODO: find min hash
-            bootstrapISIS = "http://knowarc3.grid.niif.hu:50000/isis1";
+               // Connect message send to the bootStrapISIS
+               bool isavaliable_connect = false;
+	       bool no_more_isis = false;
+	       while ( !isavaliable_connect && !no_more_isis) {
+                   int retry_connect = retry;
+		   // Try to connect to the current bootstrapISIS
+	           while ( !isavaliable_connect && retry_connect>0) {
+                       Arc::ClientSOAP bootstrapclient_entry(mcc_cfg, bootstrapISIS);
+                       logger_.msg(Arc::DEBUG, " Sending request to the bootStrapISIS (%s) and waiting for the response.", bootstrapISIS );
 
-            // neigbors vector filling
-	    Arc::ISIS_description isisdesc;
-	    isisdesc.url = bootstrapISIS;
-	    neighbors_.push_back(isisdesc);
-	    //TODO: add ISIS to the neighbors vector
-	    
-            // Connection message send to neighbors ISIS
-            Arc::ISIS_description isis;
-            isis.url = endpoint_;
-	    Arc::XMLNode connect; //it is memory leak or not?
-	    connect.NewChild("Connect");
-	    connect["Connect"].NewChild("URL") = endpoint_;
-	    connect["Connect"].NewChild("Proxy") = "myproxy";
-	    
-            SendToNeighbors(connect, neighbors_, logger_, isis);
-	}
+                       status= bootstrapclient_entry.process(&connect_req,&response);
+                       if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
+                          logger_.msg(Arc::ERROR, "Request failed, try again.");
+                          retry_connect--;
+                       } else {
+                          logger_.msg(Arc::DEBUG, "Status (%s): OK", bootstrapISIS );
+                          isavaliable_connect = true;
+                       };
+                   }
+		   
+		   if ( hash_table.size() == used_isis.size() ) {
+		      no_more_isis = true;
+		   } else if (!isavaliable_connect) {
+		      if (current_hash == low) {
+		         low = hash_table.lower_bound(current_hash-1)->first;
+		      }
+		      if (current_hash == up) {
+		         up = hash_table.upper_bound(current_hash)->first;
+		      }
+		      // calculate the new current min hash
+	              if ( (my_hash-low) < (up-my_hash) ) {
+	                 bootstrapISIS = hash_table.find(low)->second;
+		         current_hash = low;
+	              } else {
+	                 bootstrapISIS = hash_table.find(up)->second;
+		         current_hash = up;
+	              }
+		      logger_.msg(Arc::DEBUG, " The new bootStrapISIS:  %s", bootstrapISIS );
+ 	              used_isis.push_back(current_hash);
+		   }
+	       }
+
+               if ( isavaliable_connect ){
+                  // response data processing
+		  /*TODO: -DB refresh
+		          -Config update
+			  -neighbors_ select
+                  */
+
+                  // neigbors vector filling
+                  logger_.msg(Arc::DEBUG, "Neighbors filling" );
+                  Arc::ISIS_description isisdesc;
+                  isisdesc.url = bootstrapISIS;
+		  // follows info is in the DB yet
+		  //isisdesc.cert =
+		  //isisdesc.key =
+		  //isisdesc.proxy =
+		  //isisdesc.cadir =
+                  neighbors_.push_back(isisdesc);
+                  // add more neigbors
+               }
+
+               // ExtendISISList message send to neighbors ISIS
+	       if ( neighbors_.size() > 1 ) {
+                  Arc::ISIS_description isis;
+                  isis.url = endpoint_;
+		  //isis.cert =
+		  //isis.key =
+		  //isis.proxy =
+		  //isis.cadir =
+                  Arc::XMLNode* extendIL; //it is memory leak or not?
+                  extendIL = new Arc::XMLNode(message_ns,"ExtendISISList");
+		  for (int i=0; i < neighbors_.size(); i++) {
+                     Arc::XMLNode node = (*extendIL).NewChild("ISIS");
+		     node.NewChild("URL") = neighbors_[i].url;
+                     node.NewChild("Key") = neighbors_[i].key;
+                     node.NewChild("Cert") = neighbors_[i].cert;
+                     node.NewChild("Proxy") = neighbors_[i].proxy;
+                     node.NewChild("CaDir") = neighbors_[i].cadir;
+                  }
+
+                  logger_.msg(Arc::DEBUG, "Send ExtendISISList message to the %d neighbor%s", neighbors_.size(), neighbors_.size()>1?"s.":"." );
+                  SendToNeighbors(*extendIL, neighbors_, logger_, isis);
+	       }
+            }
+	    if (response) delete response;
+        }
 
         // Create Soft-State database threads
         // Valid thread creation
@@ -606,35 +759,66 @@ static void soft_state_thread(void *data) {
 
     Arc::MCC_Status ISIService::Connect(Arc::XMLNode &request, Arc::XMLNode &response) {
         logger_.msg(Arc::DEBUG, "Connect");
-	if ( !bool(request["URL"]) ) {
-	   logger_.msg(Arc::ERROR, "Error in the Connect message. URL is empty.");
-	   return Arc::MCC_Status(Arc::PARSING_ERROR);
-	}
-	
-	// The neigbors list contain this URL?
-	bool contain = false;
-	std::vector<Arc::ISIS_description>::iterator it;
-	for (it = neighbors_.begin(); it < neighbors_.end(); it++){
-	    if ( (*it).url == (std::string)request["URL"] ) {
-	       contain = true;
-	    }
-	}
+        if ( !bool(request["URL"]) ) {
+           logger_.msg(Arc::ERROR, "Error in the Connect message. URL is empty.");
+           return Arc::MCC_Status(Arc::PARSING_ERROR);
+        }
 
-	if ( !contain ){
-	    Arc::ISIS_description isis;
+        // The neigbors list contain this URL?
+        bool contains = false;
+        std::vector<Arc::ISIS_description>::iterator it;
+        for (it = neighbors_.begin(); it < neighbors_.end(); it++){
+            if ( (*it).url == (std::string)request["URL"] ) {
+               contains = true;
+            }
+        }
+
+        if ( !contains ){
+            Arc::ISIS_description isis;
             isis.url = (std::string)request["URL"];
-	    // TODO: cert added
+            // TODO: cert added
+            // isis.key =
+            // isis.cert =
+            // isis.proxy =
+            // isis.cadir =
             neighbors_.push_back(isis);
-            logger_.msg(Arc::DEBUG, "%s added to my neighbors vector.", isis.url);       
-	} else {
-            logger_.msg(Arc::DEBUG, "This ISIS (%s) is already my neighbor.", (std::string)request["URL"]);       
-	}
-	
-        return Arc::MCC_Status(Arc::STATUS_OK);
-    }
+            logger_.msg(Arc::DEBUG, "%s added to my neighbors vector.", isis.url);
 
-    Arc::MCC_Status ISIService::Announce(Arc::XMLNode &request, Arc::XMLNode &response) {
-        logger_.msg(Arc::DEBUG, "Announce");
+            // Database Dump
+            response.NewChild("Database");
+            std::map<std::string, Arc::XMLNodeList> result;
+            db_->queryAll("/RegEntry", result);
+            std::map<std::string, Arc::XMLNodeList>::iterator it;
+            // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
+            for (it = result.begin(); it != result.end(); it++) {
+                if (it->second.size() == 0) {
+                   continue;
+                }
+                // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
+                Arc::XMLNode data_;
+                //db_->get(ServiceID, RegistrationEntry);
+                db_->get(it->first, data_);
+                // add data to output
+                response["Database"].NewChild(data_);
+            }
+
+            response.NewChild("Config");
+            response.NewChild("EndpointURL") = endpoint_;
+            response.NewChild("ISISList");
+            std::vector<Arc::ISIS_description>::const_iterator iter;
+            for (iter = neighbors_.begin(); iter < neighbors_.end(); iter++){
+                Arc::XMLNode isis = response["ISISList"].NewChild("ISIS");
+                isis.NewChild("URL") = (*iter).url;
+                isis.NewChild("Key") = (*iter).key;
+                isis.NewChild("Cert") = (*iter).cert;
+                isis.NewChild("Proxy") = (*iter).proxy;
+                isis.NewChild("CaDir") = (*iter).cadir;
+            }
+            logger_.msg(Arc::DEBUG, "Connect response creation successed.");
+        } else {
+            logger_.msg(Arc::DEBUG, "This ISIS (%s) is already my neighbor.", (std::string)request["URL"]);
+        }
+
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
@@ -655,6 +839,31 @@ static void soft_state_thread(void *data) {
 
     Arc::MCC_Status ISIService::ExtendISISList(Arc::XMLNode &request, Arc::XMLNode &response) {
         logger_.msg(Arc::DEBUG, "ExtendISISList");
+        bool contains;
+        for ( int i=0; bool(request["ISIS"][i]); i++) {
+            // The neigbors list contains this URL?
+            contains = false;
+            std::vector<Arc::ISIS_description>::iterator it;
+            for (it = neighbors_.begin(); it < neighbors_.end(); it++){
+                if ( (*it).url == (std::string)request["ISIS"][i]["URL"] ) {
+                   contains = true;
+                }
+            }
+
+            if ( !contains ){
+               Arc::ISIS_description isis;
+               isis.url = (std::string)request["ISIS"][i]["URL"];
+               // TODO: cert added
+               // isis.key =
+               // isis.cert =
+               // isis.proxy =
+               // isis.cadir =
+               neighbors_.push_back(isis);
+               logger_.msg(Arc::DEBUG, "%s added to my neighbors vector.", isis.url);
+            } else {
+                logger_.msg(Arc::DEBUG, "This ISIS (%s) is already my neighbor.", (std::string)request["ISIS"][i]["URL"]);
+            }
+        }
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
@@ -738,12 +947,6 @@ static void soft_state_thread(void *data) {
             Arc::XMLNode connect_= (*inpayload).Child(0);
             ret = Connect(connect_, r);
         }
-        // If the requested operation was: Announce
-        else if (MatchXMLName((*inpayload).Child(0), "Announce")) {
-            Arc::XMLNode r = res.NewChild("isis:AnnounceResponse");
-            Arc::XMLNode announce_= (*inpayload).Child(0);
-            ret = Announce(announce_, r);
-        }
         // If the requested operation was: Alarm
         else if (MatchXMLName((*inpayload).Child(0), "Alarm")) {
             Arc::XMLNode r = res.NewChild("isis:AlarmResponse");
@@ -768,6 +971,18 @@ static void soft_state_thread(void *data) {
             Arc::XMLNode isislist_= (*inpayload).Child(0);
             ret = ExtendISISList(isislist_, r);
         }
+
+        /*else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+            // TODO: do not copy out_ to outpayload.
+            Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
+            if(out_) {
+                *outpayload=*out_;
+                delete out_;
+            } else {
+                delete outpayload;
+                return make_soap_fault(outmsg);
+            };
+        }*/
 
         outmsg.Payload(outpayload);
         return ret;
