@@ -3,3 +3,42 @@ Client for ISIS (Information Indexing service)
 Using this client one can put and get registrations to/from the ISIS.
 
 Mostly for testing.
+
+The test ISIS client is for the following operations:
+    Query - for querying remote ISIS
+        attributes: The query string.
+    Register - for sending test Register messages
+        attributes:
+            The following set of information for register.
+            - A ServiceID and an Endpoint reference.
+            - A ServiceID, an Endpoint reference and a Service type.
+            - A ServiceID, an Endpoint reference, a Service type and an Expiration period.
+    RemoveRegistrations - for sending test RemoveRegistrations messages
+        attributes: The ServiceID for remove.
+    (The GetISISList operation will be used in every other cases impicitly.)
+
+    It is also possible to define the BootstrapISIS with the -b or --bootstrap command line option.
+
+    For testing purposes it's also possible to define the isis url directly with the -i or --isis option.
+    If there is such an option defined the GetISISList operation will be skipped even if there is also
+    a BootstrapISIS defined.
+
+    If -n or --neighbors options are used without any parameters, then the neighbors of the ISIS or the
+    BootstrapISIS will be also shown.
+
+    Usage:
+        testISISclient -m Query "query string"
+        testISISclient -m Register "ServiceID1,EPR1" "ServiceID2,EPR2,Type" "ServiceID3,EPR3,Type,ExpTime"
+        testISISclient -m RemoveRegistrations "ServiceID1" "ServiceID2"
+        etc.
+
+    Examples:
+        testISISclient -m Register "Srv_ID1,EPR1"
+        testISISclient -m Register "Srv_ID1,EPR1,org.nordugrid.tests.echo,PT1M"
+        testISISclient -m Query "/RegEntry/MetaSrcAdv/ServiceID[text()=\"Srv_ID1\"]"
+        testISISclient -m RemoveRegistrations "Srv_ID1"
+
+        testISISclient -b https://your.domain.com/infosys -m RemoveRegistrations "Srv_ID1"
+
+        testISISclient -i https://your.domain.com/infosys -m Query "/RegEntry"
+
