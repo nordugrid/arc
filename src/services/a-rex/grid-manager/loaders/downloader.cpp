@@ -627,44 +627,40 @@ int main(int argc,char** argv) {
     olog << "WARNING: Failed writing changed input file." << std::endl;
   };
 
-
+  // Job migration functionality
   if (res == 0) {
     desc.GetLocalDescription(user);
 
-    // Kill job on old cluster, only for migrated jobs.
     if (desc.get_local()->migrateactivityid != "") {
+    // Complete the migration.
       const size_t found = desc.get_local()->migrateactivityid.rfind("/");
 
       if (found != std::string::npos) {
-	Arc::MCCConfig cfg;
-	cfg.AddProxy(Arc::GetEnv("X509_USER_PROXY"));
-	
-	Arc::AREXClient ac(desc.get_local()->migrateactivityid.substr(0, found), cfg);
-	
-	olog << "Address: " << desc.get_local()->migrateactivityid.substr(0, found) << std::endl;
-	olog << "ReferenceParameters: " << desc.get_local()->migrateactivityid.substr(found+1) << std::endl;
+        Arc::MCCConfig cfg;
+        cfg.AddProxy(Arc::GetEnv("X509_USER_PROXY"));
 
-	Arc::NS ns;
-	ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
-	ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
-	ns["wsa"] = "http://www.w3.org/2005/08/addressing";
-	ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-	ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-	ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
-	ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+        Arc::AREXClient ac(desc.get_local()->migrateactivityid.substr(0, found), cfg);
 
-	Arc::XMLNode id(ns, "ActivityIdentifier");
-	id.NewChild("wsa:Address") = desc.get_local()->migrateactivityid.substr(0, found);
-	id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = desc.get_local()->migrateactivityid.substr(found+1);
-	std::string idstr;
-	id.GetXML(idstr);
+        std::string idstr, status;
+        Arc::AREXClient::createActivityIdentifier(Arc::URL(desc.get_local()->migrateactivityid), idstr);
 
-	const bool migratekillsuccess =  ac.kill(idstr); // Try to kill job at old cluster, do not care if we do not succeed.
-	if (!desc.get_local()->forcemigration && !migratekillsuccess) {
-	  res = 1;
-	  failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
-	}
-	desc.get_local()->migrateactivityid = "";
+        // Get status of job at old cluster.
+        if (ac.stat(idstr, status) && status == "Running/Executing/Queuing") {
+          // Kill job on old cluster.
+          const bool migratekillsuccess =  ac.kill(idstr); // Try to kill job at old cluster, do not care if we do not succeed.
+          // Only fail if forcemigration is not set and kill failed.
+          if (!desc.get_local()->forcemigration && !migratekillsuccess) {
+            res = 1;
+            failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
+          }
+        }
+        else {
+          res = 1;
+          if (status.empty())
+            failure_reason = "FATAL ERROR: Could not migrate job \"" + desc.get_local()->migrateactivityid + "\", failed retrieving job status.";
+          else
+            failure_reason = "FATAL ERROR: Could not migrate job \"" + desc.get_local()->migrateactivityid + "\", it is no longer queuing.";
+        }
       }
     }
   }
