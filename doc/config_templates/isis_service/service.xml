@@ -1,0 +1,73 @@
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2008/08"
+  xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+>
+  <!-- Various server settings -->
+  <infosys:InfoRegistrar id="NorduGridInfosys">
+    <!-- Contact and behavior details of the InfoRegsitrar element-->
+    <infosys:URL>http://knowarc2.grid.niif.hu:50000/isis1</infosys:URL>
+    <infosys:Retry>4</infosys:Retry>
+  </infosys:InfoRegistrar>
+  <infosys:InfoRegistrar id="NorduGridInfosys2">
+    <!-- Contact and behavior details of the InfoRegsitrar element-->
+    <infosys:URL>http://knowarc3.grid.niif.hu:50000/isis1</infosys:URL>
+    <!-- Retry node is missing - default value: 5 will be used -->
+  </infosys:InfoRegistrar>
+
+  <!--Other plugins-->
+  <Plugins><Name>isis</Name></Plugins>
+  <Plugins><Name>some_service</Name></Plugins>
+
+  <Chain>
+    <!--Other message components-->
+    <Plexer name="plexer.service" id="plexer">
+      <next id="isis1">^/isis1$</next>
+      <next id="some_service1">^/some$</next>
+    </Plexer>
+
+    <Service name="isis" id="isis1">
+        <!-- DBPath: File location where the database is physically stored -->
+        <DBPath>/storage/arc1/isis1</DBPath>
+        <!-- serviceid: A globbaly unique ID that identify the service -->
+        <infosys:serviceid>http://knowarc2.grid.niif.hu:50000/isis1</infosys:serviceid>
+        <!-- endpoint: The URL where the service can be accessed from outside -->
+        <infosys:endpoint>http://knowarc2.grid.niif.hu:50000/isis1</infosys:endpoint>
+        <!-- expiration: The lifetime of the RegEntry provided by the service 
+            about itself -->
+        <infosys:expiration>PT3M</infosys:expiration>
+        <!-- InfoProviderISIS: Contact details to one or more ISIS where the other
+            ISIS's can be queried. -->
+        <InfoProviderISIS>
+            <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
+        </InfoProviderISIS>
+        <!-- This element explicitly sais that the service have not to be registered.
+            It has the same effect then the missing InfoRegister element. -->
+        <infosys:NoRegister />
+    </Service>
+    <!--Other services-->
+    <Service name="some_service" id="some_service1">
+        <!-- This service is represents how to configure a successful registration -->
+        <!-- Service specific configuration -->
+        <!-- serviceid: A globbaly unique ID that identify the service -->
+        <register:serviceid>http://knowarc2.grid.niif.hu:50000/echo</register:serviceid>
+        <!-- endpoint: The URL where the service can be accessed from outside -->
+        <register:endpoint>http://knowarc2.grid.niif.hu:50000/echo</register:endpoint>
+        <!-- expiration: The lifetime of the RegEntry provided by the service 
+            about itself -->
+        <register:expiration>PT1M</register:expiration>
+        <!-- InfoRegister: This element indicates the self-registration mechanism with the given
+            period as default. If there is no Registrar element in the InfoRegister then the
+            service will be registered to every InfoRegistrar. -->
+        <register:InfoRegister period="PT50S">
+            <register:Registrar>NorduGridInfosys</register:Registrar>
+            <!-- The period value can be overwritten to every differnt Registrar -->
+            <register:Registrar period="PT2H">NorduGridInfosys2</register:Registrar>
+        </register:InfoRegister>
+    </Service>
+
+
+  </Chain>
+</ArcConfig>
+
