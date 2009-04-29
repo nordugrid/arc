@@ -15,7 +15,7 @@ ARC1-ChainComponents.pdf: Doxyfile.chain
 	rm -rf latex
 
 
-EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain hed $(doc_DATA)
+EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain $(doc_DATA)
 
 CLEANFILES = latex *.pdf
 
