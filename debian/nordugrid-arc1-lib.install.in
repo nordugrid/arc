@@ -1,5 +1,8 @@
 usr/lib/lib*.so.*
 usr/share/locale/*/LC_MESSAGES/arc.mo
+usr/lib/arc/libdmcarc.so
+usr/lib/arc/libdmcsrm.so
+usr/lib/arc/libaccUNICORE.so
 @RLS_ENABLED_TRUE@usr/lib/arc/libdmcrls.so
 @GRIDFTP_ENABLED_TRUE@usr/lib/arc/libdmcgridftp.so
 
