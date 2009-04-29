@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
 
   // If the user specified a joblist on the command line joblist equals
   // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
-  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, joblist);
+  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, usercfg.JobListFile());
 
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 

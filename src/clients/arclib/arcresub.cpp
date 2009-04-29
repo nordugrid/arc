@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
     return 0;
 
   // Only kill and clean jobs that have been resubmitted
-  Arc::JobSupervisor killmaster(usercfg, jobs, clusters, joblist);
+  Arc::JobSupervisor killmaster(usercfg, jobs, clusters, usercfg.JobListFile());
   std::list<Arc::JobController*> killcont = killmaster.GetJobControllers();
   if (killcont.empty()) {
     logger.msg(Arc::ERROR, "No job controllers loaded");
@@ -315,15 +315,15 @@ int main(int argc, char **argv) {
 
   //now add info about all resubmitted jobs to the local xml file
   { //start of file lock
-    Arc::FileLock lock(joblist);
+    Arc::FileLock lock(usercfg.JobListFile());
     Arc::Config jobs;
-    jobs.ReadFromFile(joblist);
+    jobs.ReadFromFile(usercfg.JobListFile());
     for (Arc::XMLNode j = jobstorage["Job"]; j; ++j) {
       jobs.NewChild(j);
       std::cout << Arc::IString("Job resubmitted with new jobid: %s\n",
                                 (std::string)j["JobID"]) << std::endl;
     }
-    jobs.SaveToFile(joblist);
+    jobs.SaveToFile(usercfg.JobListFile());
   } //end of file lock
 
   /*
