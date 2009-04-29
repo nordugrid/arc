@@ -291,6 +291,13 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
+      } else if(MatchXMLName(op,"UpdateCredentials")) {
+        std::string credentials;
+        if(!delegations_.UpdateCredentials(credentials,*inpayload,*outpayload)) {
+          delete outpayload;
+          return make_soap_fault(outmsg);
+        };
+        UpdateCredentials(*config,op,outpayload->Child(),credentials);
       } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
         // TODO: do not copy out_ to outpayload.
         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
