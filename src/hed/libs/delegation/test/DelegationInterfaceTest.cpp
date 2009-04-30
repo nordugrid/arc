@@ -93,7 +93,9 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATE() {
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context));
+#ifdef HAVE_OPENSSL_PROXY
   CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context));
+#endif
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(DelegationInterfaceTest);
