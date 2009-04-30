@@ -515,14 +515,14 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
 bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     PyObject *arg = NULL;
 
-    logger.msg(Arc::DEBUG, "Python 'RegistrationCollector' wrapper process called");
+    // logger.msg(Arc::DEBUG, "Python 'RegistrationCollector' wrapper process called");
 
     if(!initialized) return false;
 
     PythonLock plock(logger);
 
     // Convert doc to XMLNodeP
-    logger.msg(Arc::DEBUG, "Convert doc to XMLNodeP");
+    // logger.msg(Arc::DEBUG, "Convert doc to XMLNodeP");
     Arc::XMLNodeP doc_ptr(doc);
     if (!doc_ptr) {
         logger.msg(Arc::ERROR, "Failed to create XMLNode container");
@@ -530,7 +530,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     }
 
     // Convert doc to python object
-    logger.msg(Arc::DEBUG, "Convert doc to python object");
+    // logger.msg(Arc::DEBUG, "Convert doc to python object");
     arg = Py_BuildValue("(l)", (long int)doc_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create doc argument");
@@ -539,7 +539,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
         }
         return false;
     }
-    logger.msg(Arc::DEBUG, "Create python XMLNode");
+    // logger.msg(Arc::DEBUG, "Create python XMLNode");
     PyObjectP py_doc(PyObject_CallObject(arc_xmlnode_klass, arg));
         if (!py_doc) {
         logger.msg(Arc::ERROR, "Cannot convert doc to python object");
@@ -552,7 +552,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     Py_DECREF(arg);
 
     // Call the RegistrationCollector method
-    logger.msg(Arc::DEBUG, "Call the RegistrationCollector method");
+    // logger.msg(Arc::DEBUG, "Call the RegistrationCollector method");
     PyObjectP py_bool(PyObject_CallMethod(object, (char*)"RegistrationCollector", (char*)"(O)",
                       (PyObject*)py_doc));
 
@@ -564,14 +564,14 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     }
 
     // Convert the return value of the function back to cpp
-    logger.msg(Arc::DEBUG, "Convert the return value of the function back to cpp");
+    // logger.msg(Arc::DEBUG, "Convert the return value of the function back to cpp");
     bool *ret_val2 = (bool *)extract_swig_wrappered_pointer(py_bool);
     bool return_value = false;
     if (ret_val2) return_value = (*ret_val2);
 
     XMLNode *doc2 = (XMLNode *)extract_swig_wrappered_pointer(py_doc);
     if (doc2 == NULL) return false;
-    doc = (*doc2);
+    (*doc2).New(doc);
     return true;
 }
 
