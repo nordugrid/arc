@@ -523,7 +523,7 @@ int main(int argc, char** argv) {
               serviceID.push_back(Elements[0]);
               epr.push_back(Elements[1]);
               if ( Elements.size() >= 3 ) type.push_back(Elements[2]);
-              else type.push_back("org.nordugrid.tests.testISISclient");
+              else type.push_back("org.nordugrid.tests.isistest");
               if ( Elements.size() >= 4 ) expiration.push_back(Elements[3]);
               else expiration.push_back("PT30M");
            }

@@ -1,4 +1,5 @@
-noinst_PROGRAMS = isistest
+#noinst_PROGRAMS = isistest
+bin_PROGRAMS = isistest
 
 isistest_SOURCES  = isistest.cpp
 isistest_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
