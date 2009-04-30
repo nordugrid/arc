@@ -78,7 +78,8 @@ Service standards, to facilitate the Grid single sign-on.
 The rest of this paper is organized as follows: Section~\ref{sec:arcmiddleware} presents the 
 ARC Grid middleware, and in particular its new architecture. Section~\ref{sec:intergrationSAML2SSO} 
 describes the solution of using federated identity for 
-Grid authentication by using \texttt{SAML2SSO} profile; Section~\ref{sec:fedidtoX509} describes
+Grid authentication by using \texttt{SAML2 Web Browser SSO Profile (SAML2SSO)} profile; 
+Section~\ref{sec:fedidtoX509} describes
 how to obtain X.509 credentials based on federated identity, and how to use such for 
 accessing multiple Grid resources; Section~\ref{sec:perfeval} is dedicated to performance evaluation;
 Section~\ref{sec:relatedwork} describes the related work; Section~\ref{sec:conclusion} 
@@ -112,7 +113,7 @@ The design of the HED is built around the idea of flexibility and modularity,
 such that the application service developers can simply concentrate on the application 
 level Web Service implementation by only using the core minimum amount of components. It 
 also simplifies work on the middleware level: for example, it makes possible to implement another 
-communication protocol or authentication mechanism. A system administrator can easily 
+communication protocol or authentication mechanism. Meanwhile, a service administrator can easily 
 configure and deploy the middleware and application for different kinds of requirements 
 without having to know much about the implementation. 
 
@@ -181,14 +182,14 @@ interface of ARC can support different protocols which are incarnated by differe
 
 \begin{figure}
 \includegraphics[width=1.0\columnwidth]{SAML2SSO_UML.pdf}
-\caption{Sequence diagram of SAML2.0 SSO profile integration in SOAP invocation 
+\caption{Sequence diagram of the integration of SAML2.0 SSO profile in SOAP invocation 
 between ARC WS Client and Web Service}
 \label{fig:SAML2SSOUML}
 \end{figure}
 
 Figure~\ref{fig:SAML2SSOUML} shows how the SAML2.0 SSO profile is integrated
 into the SOAP invocation between ARC WS Client and Web Service. Steps 1 to 5 in
-Figure~\ref{fig:SAML2SSOUML} are similar to those steps depicted in the Web Browser SSO profile, with
+Figure~\ref{fig:SAML2SSOUML} are similar to those steps depicted in the SAML2 Web Browser SSO profile, with
 the difference that we specify the way how does the service provider determine which identity
 provider to use (identity provider discovery) by enabling the client to send the IdP name to the service
 provider. We also specify the way how does the client (user agent)
@@ -218,7 +219,7 @@ identity provider, such as Shibboleth IdP, can cache the authentication result t
 once the user has succeeded to authenticate, and for a short period this authentication result
 is valid, so that the next time the user authenticates against IdP, the user agent can just feed
 IdP with the last successfully authenticated session's identity rather than feed IdP with
-the username and password again. So the user (or the client on behalf of that user) can travel across multiple
+the username and password again. So the user (or the client on behalf of that user) can access multiple
 security domains by only providing his name and password once, which is also a characteristic of
 single sign-on. Lastly, even though there are several implementations of identity providers,
 most of them are standard-compliant, so the solution implemented in ARC middleware can
@@ -244,13 +245,13 @@ in the delegation services such as MyProxy~\cite{myproxy}.
 The sequence diagram of a SLCS process is the same as the diagram shown in 
 Figure~\ref{fig:SAML2SSOUML}, with the SOAP request (the message of step 8 of 
 Figure~\ref{fig:SAML2SSOUML}) including an X.509 request, and the SOAP response (the message of step 10 
-of Figure~\ref{fig:SAML2SSOUML}) including a signed X.509 certificate and a CA certificate that is used 
+of Figure~\ref{fig:SAML2SSOUML}) including an X.509 certificate and a CA certificate that is used 
 to sign this X.509 certificate. In detail, the SLCS client firstly accomplishes the SAML2SSO profile, 
 then sends the SOAP request to the SLCS service with the X.509 request embedded. The SLCS
 service makes access control decision according to the SAML assertion stored in the session
 context, and issues a certificate (with 12 hours lifetime) with SAML attributes as the X.509
 certificate extension. The SLCS client then gets the SOAP response with the X.509
-certificate embedded.
+certificate and the CA certificate embedded.
 
 Since the lifetime of the short lived credential is short, it is
 permissible to protect the private key by using the local file system permissions instead of encrypting
@@ -275,7 +276,8 @@ client command and providing his username and password.
 
 \begin{figure}
 \includegraphics[width=1.0\columnwidth]{Delegation_UML.pdf}
-\caption{Sequence diagram of the usage of delegation service}
+\caption{Sequence diagram of the usage of delegation service in SOAP invocation 
+between ARC WS Client and Web Service}
 \label{fig:DelegUML}
 \end{figure}
 
