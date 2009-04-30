@@ -68,7 +68,7 @@ endif
 	dh_clean 
 
 install: install-indep install-arch
-install-indep:
+install-indep: build-indep-stamp
 	dh_testdir
 	dh_testroot
 	dh_clean -k -i 
@@ -76,7 +76,7 @@ install-indep:
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install-doc
 	dh_installdocs -i --sourcedir=debian/tmp
 
-install-arch:
+install-arch: build-arch-stamp
 	dh_testdir
 	dh_testroot
 	dh_clean -k -s 
