@@ -6,6 +6,7 @@
 #include <map>
 
 #include <arc/loader/Loader.h>
+#include <arc/data/FileCacheHash.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/client/ClientInterface.h>
@@ -15,7 +16,7 @@
 #include "security.h"
 
 #include "isis.h"
-#include "md5wrapper.h"
+//#include "md5wrapper.h"
 
 #ifdef WIN32
 #include <arc/win32.h>
@@ -356,6 +357,8 @@ static void soft_state_thread(void *data) {
             req["Query"].NewChild("QueryString") = "/RegEntry/SrcAdv[ Type = 'org.nordugrid.infosys.isis']";
             Arc::MCC_Status status;
 
+            std::vector<Arc::ISIS_description> template_provider;
+	    template_provider = infoproviders_;
             bool isavaliable = false;
             while ( !isavaliable && retry_.size() > 0 ) {
                 Arc::ClientSOAP client_entry(mcc_cfg, rndProvider.url);
@@ -365,11 +368,20 @@ static void soft_state_thread(void *data) {
                 if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
                    logger_.msg(Arc::ERROR, "%s Request failed, choose new infoProviderISIS.", rndProvider.url);
                    retry_[rndProvider.url]--;
-                   if ( retry_[ rndProvider.url ] == 0 ) {
+		   // DEBUG //logger_.msg(Arc::DEBUG, "Retry decrement: %d", retry_[rndProvider.url]);
+                   if ( retry_[rndProvider.url] < 1 ) {
                       retry_.erase(rndProvider.url);
+		      for (int i=0; i<template_provider.size(); i++){
+		          if (template_provider[i].url == rndProvider.url){
+			     template_provider.erase(template_provider.begin()+i);
+			     break;
+			  }
+		      }
+                      logger_.msg(Arc::ERROR, "%s erase from the infoProviderISIS list.", rndProvider.url);
                    }
                    // new provider search
-                   rndProvider = infoproviders_[std::rand() % infoproviders_.size()];
+		   if ( template_provider.size() > 0 )
+                      rndProvider = template_provider[std::rand() % template_provider.size()];
                 } else {
                    logger_.msg(Arc::DEBUG, "Status (%s): OK", rndProvider.url );
                    isavaliable = true;
@@ -387,12 +399,12 @@ static void soft_state_thread(void *data) {
             if(response) delete response;
 
             // Create ServiceURL hash
-            md5wrapper md5;
+	    FileCacheHash md5;
             // calculate my hash from the endpoint URL
-            my_hash =  hextoi(md5.getHashFromString(endpoint_));
+            my_hash = hextoi(md5.getHash(endpoint_));
             for (int i=0; i < find_serviceids.size(); i++) {
                 logger_.msg(Arc::DEBUG, "find ServiceID: %s", find_serviceids[i] );
-                int md5_hash = hextoi(md5.getHashFromString(find_serviceids[i]));
+                int md5_hash = hextoi(md5.getHash(find_serviceids[i]));
                 logger_.msg(Arc::DEBUG, "%s hash: %d", find_serviceids[i], md5_hash );
                 // add the hash and the serviceid into the hash table
                 hash_table.insert( std::pair<int,std::string>(md5_hash, find_serviceids[i]) );
@@ -429,6 +441,7 @@ static void soft_state_thread(void *data) {
                // Connect message send to the bootStrapISIS
                bool isavaliable_connect = false;
 	       bool no_more_isis = false;
+               Arc::PayloadSOAP *response2 = NULL;
 	       while ( !isavaliable_connect && !no_more_isis) {
                    int retry_connect = retry;
 		   // Try to connect to the current bootstrapISIS
@@ -436,7 +449,7 @@ static void soft_state_thread(void *data) {
                        Arc::ClientSOAP bootstrapclient_entry(mcc_cfg, bootstrapISIS);
                        logger_.msg(Arc::DEBUG, " Sending request to the bootStrapISIS (%s) and waiting for the response.", bootstrapISIS );
 
-                       status= bootstrapclient_entry.process(&connect_req,&response);
+                       status= bootstrapclient_entry.process(&connect_req,&response2);
                        if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
                           logger_.msg(Arc::ERROR, "Request failed, try again.");
                           retry_connect--;
@@ -496,8 +509,11 @@ static void soft_state_thread(void *data) {
 		  //isis.key =
 		  //isis.proxy =
 		  //isis.cadir =
-                  Arc::XMLNode* extendIL; //it is memory leak or not?
+                  Arc::XMLNode* extendIL;
+                  //it is not memory leak because this memory place will be delete in the destructor
                   extendIL = new Arc::XMLNode(message_ns,"ExtendISISList");
+		  garbage_collector.push_back(extendIL);
+		  
 		  for (int i=0; i < neighbors_.size(); i++) {
                      Arc::XMLNode node = (*extendIL).NewChild("ISIS");
 		     node.NewChild("URL") = neighbors_[i].url;
@@ -509,9 +525,9 @@ static void soft_state_thread(void *data) {
 
                   logger_.msg(Arc::DEBUG, "Send ExtendISISList message to the %d neighbor%s", neighbors_.size(), neighbors_.size()>1?"s.":"." );
                   SendToNeighbors(*extendIL, neighbors_, logger_, isis);
+	          if (response2) delete response2;
 	       }
             }
-	    if (response) delete response;
         }
 
         // Create Soft-State database threads
@@ -584,6 +600,11 @@ static void soft_state_thread(void *data) {
     ISIService::~ISIService(void){
         // TODO: stop message threads
         KillThread = true;
+	for (int i=0; i< garbage_collector.size(); i++) {
+	    if ( i == 0 )
+	       logger_.msg(Arc::DEBUG, "Garbage Collector working.");
+	    delete garbage_collector[i];
+	}
         while (ThreadsCount > 0){
             logger_.msg(Arc::DEBUG, "ISIS (%s) has %d more thread%s", endpoint_, ThreadsCount, ThreadsCount>1?"s.":".");
             sleep(10);

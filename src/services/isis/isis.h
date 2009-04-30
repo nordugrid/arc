@@ -13,6 +13,7 @@ namespace ISIS {
 
     class ISIService: public Arc::RegisteredService {
         private:
+	    // Configuration parameters
             Arc::Logger logger_;
             std::ofstream log_destination;
             Arc::LogStream *log_stream;
@@ -25,6 +26,8 @@ namespace ISIS {
 
             bool KillThread;
             int ThreadsCount;
+	    // Garbage collector for memory leak killing
+	    std::vector<Arc::XMLNode*> garbage_collector;
 
             Arc::XmlDatabase *db_;
             Arc::NS ns_;
@@ -35,6 +38,7 @@ namespace ISIS {
             std::string bootstrapISIS;
             int my_hash;
             std::multimap<int,std::string> hash_table;
+	    
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             std::vector<Arc::ISIS_description> neighbors_;
             bool CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::XMLNode &response);
