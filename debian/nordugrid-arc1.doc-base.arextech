@@ -1,0 +1,8 @@
+Document: arc1-arex-tex
+Title: ARC Computational Job Management Component - A-REX
+Author: Aleksandr Konstantinov
+Abstract: A description and the administrator's manual to the A-REX module that is accepting jobs and manages their computation at a grid site.
+Section: Network/Communication
+
+Format: PDF
+Files: usr/share/doc/nordugrid-arc1-doc/arex_tech_doc.pdf

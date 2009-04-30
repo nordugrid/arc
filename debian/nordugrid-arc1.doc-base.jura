@@ -1,0 +1,8 @@
+Document: arc1-jura
+Title: ARC1 Accounting Service - Jura
+Author: NorduGrid developers
+Abstract: Documentation for a service implementing the metered grid usage.
+Section: Network/Communication
+
+Format: PDF
+Files: usr/share/doc/nordugrid-arc1-doc/jura-tech-doc.pdf
