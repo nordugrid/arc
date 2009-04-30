@@ -1019,7 +1019,7 @@ The Bartender implements the \textbf{DelegateCredentialsInit} and \textbf{Update
 
 \subsection{Implementation} % (fold)
 
-To manage collections the Bartender only needs to communicate with a Librarian service. To manage files it needs to communicate with Shepherd services as well. When a Bartender wants to create a new replica of a file (or the first replica of a new file) it should find available Shepherd services. The Bartender uses the list of Shepherd services registered to the Librarian.
+To manage collections the Bartender only needs to communicate with a Librarian service. To manage files it needs to communicate with Shepherd services as well. When a Bartender wants to create a new replica of a file (or the first replica of a new file) it should find available Shepherd services. The Bartender uses the list of Shepherd services registered to the Librarian, and chooses the locations of the replicas randomly from this list according a uniform distribution. 
 
 The Bartender utilizes \emph{Gateway} modules to access file listings and transfer URLs from third-party storage systems. The gateway module has four basic methods: \emph{get}, \emph{put}, \emph{list} and \emph{remove}. This module connects to the third-party storages on behalf of the user, in order to do this, the Bartender needs to have proxy certificates from the user. A proxy certificate can be passed to the Bartender through the process of credential delegation. Users can also remove their proxy certificate from the service side. 
 % subsection implementation (end)
@@ -1222,6 +1222,10 @@ This is a test file
 
 Note here that long listing (\verb!arcls -l!)! with the \verb!arc! protocol not yet supports time stamps. Hence, only the type of the entry (here `file') is shown.
 
+The ARC DMC allows Grid jobs to access Chelonia directly. As long as A-REX, the job execution service of ARC, and ARC DMC are installed on a site, files can be both downloaded and uploaded by specifying the corresponding URL's in the job description. In this case, the Bartender URL needs to be embedded in the URL as a URL option. For example, if a job requires an input file \verb!/user/me/input.dat!, and a Bartender \verb!https://storage/Bartender! the URL specified in the job description will be as follows:
+\begin{verbatim}
+arc:///user/me/input.dat?BartenderURL=https://storage/Bartender
+\end{verbatim}
 % section grid_integration (end)
 
 % chapter technical_description (end)
