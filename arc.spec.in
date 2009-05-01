@@ -275,6 +275,7 @@ exit 0
 %doc %{_mandir}/man5/arcclient.xml.5*
 %{_bindir}/arexlutsclient
 %{_bindir}/arexlutsclient-wrapper.sh
+%{_bindir}/isistest
 
 %files server
 %defattr(-,root,root,-)
