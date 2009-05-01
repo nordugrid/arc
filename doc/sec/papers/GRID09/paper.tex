@@ -228,7 +228,11 @@ interoperate with other identity provider implementations with minimum change.
 %-------------------------------------------------------------------------
 \section{Bridging federated identity and X.509 credential}
 \label{sec:fedidtoX509}
-Many widely used Grid middlewares are based on GSI which requires mutual X.509
+The integration of SAML2SSO profile in Section~\ref{sec:intergrationSAML2SSO}
+provides complete single sign-on in the Grid middleware level without requiring X.509
+certificate on the client side.
+
+However, many widely used Grid middlewares are based on GSI which requires mutual X.509
 authentication. Meanwhile, Web Service based Grid applications mostly require client
 certificate authentication. To bridge the gap between federated identities and X.509 credentials, a short
 lived credential service (SLCS) is implemented through which a user can get a short-lived X.509
@@ -311,8 +315,8 @@ using certificate.
 \section{Performance Evaluation}
 \label{sec:perfeval}
 The following sections evaluate the performance of the HED versus Axis2/C, as 
-well as the performance related to the SAML2SSO profile, short-lived credential
-service, and delegation service.
+well as the performance related to the integration of SAML2SSO profile, 
+short-lived credential service, and delegation service.
 
 \subsection{Performance comparison between HED and Axis2/C}
 \label{sec:perhedandaxis}
@@ -321,18 +325,18 @@ which is the base of the security related web services described in this paper, 
 compare the performance of HED and other SOAP implementations. Although there are many SOAP
 implementations such as AxisJava, gSOAP, XSOAP4, etc.., it is not the goal of this paper to do a
 complete comparison between HED and all the other SOAP implementations, so we use Axis2/C (v1.5.0) to
-demonstrate the performance HED.
+demonstrate the performance of HED.
 
 For the service side, we implement two simple ``echoString'' services in HED and
 Axis2/C. The ``echoString'' provides a simple SOAP portType which will output the same value
-as it gets from input. For the client side, we developed a client by using the client API of ARC, to
+as it gets from input. For the client side, we develope a client by using the client API of ARC, to
 invoke ``echoString'' services from Axis2/C and HED. Service invocation just sends a short
 string to a service, and gets back the same string. One test involves a set of clients
 which run simultaneously. Each client runs for a fixed period of time, and invokes the service as many
 times as it can during the test period. Multiple clients are launched by creating multiple threads in
 one test. Two values are measured: average response time and throughput. Average response
 time is computed by counting the average value of the response time for each invocation.
-Throughput is computed by counting number of invocations per second.
+Throughput is computed by counting number of invocations per second or per minute.
 
 The two ``echoString'' services run in a test machine equipped with a 3GHz Intel
 Pentium dual-core CPU and 2GB memory, Red Hat Enterprise Linux 5. The client runs in another
