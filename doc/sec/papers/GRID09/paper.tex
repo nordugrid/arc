@@ -431,7 +431,9 @@ together with as SP (Service Provider) service, and develop a client by using
 SAML2SSO related API of ARC, to invoke the ``echoString'', as well as interact with the IdP (Identity Provider).
 Service and clients run on the same set of machine as Section~\ref{sec:perhedandaxis}. Meanwhile, we deploy
 the Shibboleth IdP implementation on a machine equipped with 2.8GHz Intel Pentium CPU and 1GB
-memory, Red Hat Enterprise Linux 5.
+memory, Red Hat Enterprise Linux 5. We run Shibboleth IdP (2.0.0) on Apache Tomcat(6.0.18), and
+configure the JVM memory for Tomcat by setting ``CATALINA\_OPTS=-Xms16m -Xmx256m''. The Java
+version is 1.6.0_07. 
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10_nosso.pdf}
@@ -488,8 +490,12 @@ about 20ms; the average time cost for verifying (by SP service) the signature of
 response is around 130ms.
 
 In order to improve the performance of SAML2SSO profile, optimizing the process
-between client and IdP is the correct direction, and probably one of the easiest ways is
-to enhance the hardware configuration.
+between client and IdP is the correct direction. Considerting most of the performance 
+characteristics for the Shibboleth IdP are determined by the Servlet Container (that is Tomcat 
+in our test environment) and Java VM running it, we also increase the JVM memory for Tomcat 
+by setting ``CATALINA\_OPTS=-Xms256m -Xmx1024m'', and the performance result after setting
+shows little improvement.
+Therefore we conclude that the easiest way is to enhance the hardware configuration.
 
 One the other hand, the average response time of ``Session reused'' experiments
 is about 82 ms, which is almost as short as the value in the pure SOAP invocation experiment in
