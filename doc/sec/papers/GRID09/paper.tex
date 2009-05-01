@@ -322,10 +322,13 @@ short-lived credential service, and delegation service.
 \label{sec:perhedandaxis}
 Since the implementation of HED includes an alternative SOAP implementation
 which is the base of the security related web services described in this paper, it is useful to
-compare the performance of HED and other SOAP implementations. Although there are many SOAP
-implementations such as AxisJava, gSOAP, XSOAP4, etc.., it is not the goal of this paper to do a
-complete comparison between HED and all the other SOAP implementations, so we use Axis2/C (v1.5.0) to
-demonstrate the performance of HED.
+compare the performance of HED and other SOAP implementations. Here we compare 
+the performance of HED and Axis2/C (v1.5.0), because we need to demostrate that the performance of HED
+is at least comparable to other implementations. We do not compare the performance of HED 
+with other SOAP implementations such as AxisJava, gSOAP, XSOAP4, etc., because a complete 
+performance comparison between HED and all the other SOAP implementations is not the main 
+goal of this paper to achieve, and a partial performance comparison is enough. Another reason
+of choosing Axis2/C is because it is also implemented in C/C++ programming language.
 
 For the service side, we implement two simple ``echoString'' services in HED and
 Axis2/C. The ``echoString'' provides a simple SOAP portType which will output the same value
@@ -341,8 +344,9 @@ Throughput is computed by counting number of invocations per second or per minut
 The two ``echoString'' services run in a test machine equipped with a 3GHz Intel
 Pentium dual-core CPU and 2GB memory, Red Hat Enterprise Linux 5. The client runs in another
 machine equipped with 2.0GHz AMD Athlon CPU and 1GB memory, Red Hat Enterprise Linux 5. The
-Axis2/C service is run using the httpd module on Apache Http Server version 2.2.11 instance. We use all the
-default configurations in the Apache Http Server.
+Axis2/C service is run using the httpd module on Apache Http Server version 2.2.11 instance. 
+We use all the default configurations in the Apache Http Server, and complie Axis2/C
+with default options except specifying the ``--with-apache2'' option.
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{HED2Axis_thread10.pdf}
