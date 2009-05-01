@@ -321,7 +321,7 @@ short-lived credential service, and delegation service.
 \subsection{Performance comparison between HED and Axis2/C}
 \label{sec:perhedandaxis}
 Since the implementation of HED includes an alternative SOAP implementation
-which is the base of the security related web services described in this paper, it is useful to
+which is the base of the security related Grid/Web Services described in this paper, it is useful to
 compare the performance of HED and other SOAP implementations. Here we compare 
 the performance of HED and Axis2/C (v1.5.0), because we need to demostrate that the performance of HED
 is at least comparable to other implementations. We do not compare the performance of HED 
@@ -538,14 +538,14 @@ TLS is 13000, and the concurrent client number when throughput reaches saturatio
 performance of ``echoString'' service enhanced with SAML2SSO profile is much worse, both 
 with single sign-on disabled and enabled, with the values being 215, 4, and 340, 5, correspondingly.
 
-However, for some typical grid application scenarios, the client normally does
+However, for some typical Grid application scenarios, the client normally does
 not need to continuously accomplish SAML2SSO profile. For instance, a user could submit a
 job which needs a period of time (normally this period is much longer than a few
 seconds) to execute, which launches an execution of SAML2SSO profile. 
 This user could afterwards query the information as well as the result of
 this job, which would launch another execution of SAML2SSO profile. On the other hand,
-statistically, users will most probably not access grid system in a concurrent way, rather than in a random way.
-Therefore, if we suppose that a user could access grid once per minute, in our test environment, we
+statistically, users will most probably not access Grid system in a concurrent way, rather than in a random way.
+Therefore, if we suppose that a user could access Grid once per minute, in our test environment, we
 can claim that for the case of disabled single sign-on, around 215 clients randomly can be 
 supported with acceptable performance, while for the case of single sign-on enabled, around 340 
 clients randomly can be supported with acceptable performance.
