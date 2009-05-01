@@ -431,10 +431,17 @@ the Shibboleth IdP implementation on a machine equipped with 2.8GHz Intel Pentiu
 memory, Red Hat Enterprise Linux 5.
 
 \begin{figure}
-\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10.pdf}
+\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10_nosso.pdf}
 \caption{Performance of HED echoString services with SAMLSSO profile: 1 service
 and 10 clients}
-\label{fig:SAML2SSO_thread10}
+\label{fig:SAML2SSO_thread10_nosso}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10_nosso_and_sso.pdf}
+\caption{Performance of HED echoString services with SAMLSSO profile: 1 service
+and 10 clients}
+\label{fig:SAML2SSO_thread10_nosso_and_sso}
 \end{figure}
 
 \begin{figure}
@@ -445,7 +452,7 @@ performance changes with client numbers; session non-reused }
 \end{figure}
 
 
-Figure \ref{fig:SAML2SSO_thread10} depicts the average response time and
+Figure \ref{fig:SAML2SSO_thread10_nosso} depicts the average response time and
 throughputs for 10 clients running simultaneously against the ``echoString'' service enhanced with SAML2SSO
 profile. Since the success of authentication from IdP can be regarded as valid for the whole
 session between client and service, the client with ``Session reused'' need to accomplish the SAML2SSO
