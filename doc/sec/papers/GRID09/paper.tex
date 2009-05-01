@@ -432,35 +432,46 @@ memory, Red Hat Enterprise Linux 5.
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10_nosso.pdf}
-\caption{Performance of HED echoString services with SAMLSSO profile: 1 service
-and 10 clients}
+\caption{Performance of HED echoString services with SAML2SSO profile: 1 service
+and 10 clients; single sign-on is disabled; session used and session not re-used are compared}
 \label{fig:SAML2SSO_thread10_nosso}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10_nosso_and_sso.pdf}
-\caption{Performance of HED echoString services with SAMLSSO profile: 1 service
-and 10 clients}
+\caption{Performance of HED echoString services with SAML2SSO profile: 1 service
+and 10 clients; session not re-used; single sign-on enabled and single sign-on disabled are compared}
 \label{fig:SAML2SSO_thread10_nosso_and_sso}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{SAML2SSO_thread_all.pdf}
-\caption{Performance of HED echoString services with SAMLSSO profile:
-performance changes with client numbers; session non-reused }
+\caption{Performance of HED echoString services with SAML2SSO profile:
+performance changes with client numbers; session not re-used; single sign-on enabled and 
+single sign-on disabled are compared}
 \label{fig:SAML2SSO_thread_all}
 \end{figure}
 
+We consider two situations in terms of the authenticating between user agent (client) and IdP: 
+SSO enabled, and SSO disabled. ``SSO disabled'' means the successful authentication
+session between user agent and IdP is not regarded as valid for the subsequent authentication, and
+user is required to authenticate by inputing his username and password on each request.
+``SSO enabled'' means the successful authentication session is regarded as valid for the 
+subsequent authentication, in a short period (we setup this period as 30 minutes).
 
-Figure \ref{fig:SAML2SSO_thread10_nosso} depicts the average response time and
-throughputs for 10 clients running simultaneously against the ``echoString'' service enhanced with SAML2SSO
-profile. Since the success of authentication from IdP can be regarded as valid for the whole
-session between client and service, the client with ``Session reused'' need to accomplish the SAML2SSO
+Considering the success of authentication from IdP can be regarded as valid for the whole
+session between client and service, we also consider two situation in terms of the 
+using of authentication result between client and service: session re-used, and session non-reused.
+The client with ``Session reused'' need to accomplish the SAML2SSO
 profile only once for all SOAP invocations on this client, while the client with ``Session
 non-reused'' will need to accomplish this profile once per SOAP invocation.
 
+Figure \ref{fig:SAML2SSO_thread10_nosso} depicts the average response time and
+throughputs for 10 clients running simultaneously against the ``echoString'' service enhanced with SAML2SSO
+profile, with single sign-on disabled.
+
 The average response time of ``Session non-reused'' experiments changes little
-with the execution duration, and the value is about 3000ms; while the throughput is around 200
+with the execution duration, and the value is about 3000ms; while the throughput is around 215
 requests per minutes. Considering that the average response time in case of ``Session non-reused'' and
 pure SOAP invocation is around 15ms when client number is 10 (see section \ref{sec:perhedandaxis}),
 therefore we can calculate that the consumption of time for SAML2SSO profile is about 99.5\% of
@@ -482,24 +493,47 @@ is about 82 ms, which is almost as short as the value in the pure SOAP invocatio
 section \ref{sec:perhedandaxis}. The result is reasonable because the time consumption
 caused by only once of SAML2SSO execution on one client is relatively small comparing with
 the time consumption caused by the following hundreds of pure SOAP invocations on the
-same client.
+same client. So besides improving the performance of SAML2SSO profile, reusing 
+the session as longer as possbile is also a way to improve the performance of 
+Web Service invokation with SAML2SSO profile integrated as authentication approach.
+
+Figure \ref{fig:SAML2SSO_thread10_nosso_and_sso} depicts the performance comparison between singled 
+sign-on disabled and singled sign-on enabled, for 10 clients running simultaneously 
+against the ``echoString'' service enhanced with SAML2SSO profile, with session not re-used.
+
+The average response time of ``SSO enabled'' is about 1700ms, while the throughput is about
+340 requests per minutes. The average response time of ``SSO disabled'' is about 3000ms, while 
+the through put is about 215 requests per minutes. The comparison shows that the performance 
+of ``SSO enabled'' is better than that of ``SSO disabled'', but still on the same quantitative
+level.
 
 Figure~\ref{fig:SAML2SSO_thread_all} depicts the performance results for
 echoString services that are enhanced with SAML2SSO profile, with client number being changed. In
-this set of experiments, the session is not reused, and secure communication without client certificate
-authentication is used. The results show the average response time increases linearly with the client
-number, while the throughput increases initially and then keeps in a fixed value (around 215
-requests per minute) when the client number is bigger than 4. When the client number is four, the
-response time is around one second, while the throughput of the service is 215 requests per
-minutes which is almost the fixed value.
-We speculate that in order to get acceptable response time, there should be less
-than four (including four) concurrent clients if they need to continuously participate one SAML2SSO
-profile. 
+this set of experiments, the session is not reused, and single sign-on enabled and singled sign-on
+disabled are compared. 
+
+For the situation of singled sign-on disabled, the average response time 
+increases linearly with the client number, while the throughput increases initially and then 
+keeps in a fixed value (around 215 requests per minute) when the client number is bigger 
+than 4. When the client number is four, the response time is around one second, while the 
+throughput of the service is 215 requests per minutes which is almost the fixed value.
+
+For the situation of singled sign-on enabled, the average response time 
+also increases linearly with the client number, while the throughput also increases initially and then 
+keeps in a fixed value (around 340 requests per minute) when the client number is bigger 
+than 5. When the client number is five, the response time is around 880ms, while the 
+throughput of the service is 340 requests per minutes which is almost the fixed value.
+
+We speculate that in order to get acceptable response time, for the case of single sign-on disabled, 
+there should be less than four (including four) concurrent clients if they need to continuously 
+participate one SAML2SSO profile; for the case of single sign-on enabled, 
+there should be less than five (including five) concurrent clients if they need to continuously 
+participate one SAML2SSO profile.
 
 Considering that the throughput of the ``echoString'' service enhanced with mutual
 TLS is 13000, and the concurrent client number when arriving fixed throughput is 30, the
-performance of ``echoString'' service enhanced with SAML2SSO profile is much worse, with the
-values being 215 and 4 correspondingly.
+performance of ``echoString'' service enhanced with SAML2SSO profile is much worse, both 
+with single sign-on disabled and enabled, with the values being 215, 4, and 340, 5, correspondingly.
 
 However for some typical grid application scenarios, normally the client does
 not need to continuously accomplish SAML2SSO profile. For instance, a user could submit a
@@ -509,14 +543,16 @@ afterwards, this user could query the information as well as the result about
 this job, which launches another execution of SAML2SSO profile. On the other hand,
 statistically, users will most probably not access grid system in a concurrent way, rather than a random way.
 Therefore, if we suppose a user could access grid once per minute, in our test environment, we
-can claim that around 215 clients randomly can be supported with acceptable performance.
+can claim that for the case of of single sign-on disabled, around 215 clients randomly can be 
+supported with acceptable performance, while for the case of single sign-on enabled, around 340 
+clients randomly can be supported with acceptable performance.
 
 \subsection{Performance of the SLCS service}
 \label{sec:perfslcsserv}
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{SLCS_thread_all.pdf}
-\caption{Performance of SLCS service: performance changes with client numbers}
+\caption{Performance of SLCS service: performance changes with client numbers; single sign-on disabled}
 \label{fig:SLCS_thread_all}
 \end{figure}
 
@@ -524,6 +560,12 @@ Figure \ref{fig:SLCS_thread_all} is the performance about the SLCS service.
 Since the SLCS is based on the SAML2SSO profile, the response time should be the accumulation of
 time consumption about the SAML2SSO processing and the SLCS processing. In this experiment, SLCS
 service and client run on the same set of machine as section~\ref{sec:perhedandaxis}. 
+
+Considering the time interval of the usage of SLCS client should be similar to the lifetime of SLCS
+credential which is 12 hours by default, and the lifetime of successful authentication session is 
+30 minutes by default, enabling single sign-on is not useful in real deployment because the successful 
+authentication session will be expired before the next time the SLCS client is used, therefore, 
+we do not enable single sign-on when testing the SLCS service.
 
 The results show that the throughput of SLCS service has the same characteristic
 as the throughput of ``echoString'' service enhanced with SAML2SSO profile, with the value being
@@ -717,10 +759,9 @@ future work.
 
 
 \section*{Acknowledgment}
-
-
-The authors would like to thank...
-
+We would thank all of the ARC middleware developers for
+their intelligent work. We wish to thank Oxana Smirnova for
+vital comments and proof-reading.
 
 % trigger a \newpage just before the given reference
 % number - used to balance the columns on the last page
