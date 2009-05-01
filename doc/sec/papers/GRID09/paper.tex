@@ -382,7 +382,7 @@ of the value for Axis2/C. One observation is that the performance results of HED
 the average response time and throughput almost unchanged for different time points.
 For the ``Session not re-used'' experiments, the average response time in HED is
 almost the same as the value for Axis2/C, with the value 15ms. On the other hand, the throughput in
-HED is close to the value for Axis2/C. 
+HED is close to the value for Axis2/C.
 
 Since the echoString service is a simple service which occupies little
 resources and has stable time for the processing service logic itself, and also since the experiments are done over the local
@@ -415,13 +415,12 @@ response time with the value being sightly more than about one third of the resp
 the service in Axis2/C when  number of clients becomes higher.
 In the case of throughput, the throughput of service in HED increases linearly
 with the client numbers initially, however, it saturates at around 13000 requests per
-minutes when the number  of client number is higher than 30. On the other hand, the throughput of service in
+minute when the number  of client number is higher than 30. On the other hand, the throughput of service in
 Axis2/C saturates already when the number of clients reaches 10, with
 the value being around sightly more than one third of the throughput of service in HED.
 
-We conclude that the HED can provide better performance than Axis2/C, in both
-cases of secure communication being enabled and disabled, especially when the number of
-simultaneous clients is bigger.
+We conclude that the HED can provide comparable performance 
+as Axis2/C, in both cases of secure communication being enabled and disabled.
 
 \subsection{Performance of the integration of the SAML2 SSO profile}
 \label{sec:perfsaml2sso}
