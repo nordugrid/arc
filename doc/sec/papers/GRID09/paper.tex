@@ -433,7 +433,7 @@ Service and clients run on the same set of machine as Section~\ref{sec:perhedand
 the Shibboleth IdP implementation on a machine equipped with 2.8GHz Intel Pentium CPU and 1GB
 memory, Red Hat Enterprise Linux 5. We run Shibboleth IdP (2.0.0) on Apache Tomcat(6.0.18), and
 configure the JVM memory for Tomcat by setting ``CATALINA\_OPTS=-Xms16m -Xmx256m''. The Java
-version is 1.6.0_07. 
+version is 1.6.0\_07. 
 
 \begin{figure}
 \includegraphics[width=0.9\columnwidth]{SAML2SSO_thread10_nosso.pdf}
@@ -490,11 +490,11 @@ about 20ms; the average time cost for verifying (by SP service) the signature of
 response is around 130ms.
 
 In order to improve the performance of SAML2SSO profile, optimizing the process
-between client and IdP is the correct direction. Considerting most of the performance 
+between client and IdP is the correct direction. Considering most of the performance 
 characteristics for the Shibboleth IdP are determined by the Servlet Container (that is Tomcat 
 in our test environment) and Java VM running it, we also increase the JVM memory for Tomcat 
 by setting ``CATALINA\_OPTS=-Xms256m -Xmx1024m'', and the performance result after setting
-shows little improvement.
+shows little improvement in terms of throughput and reponse time.
 Therefore we conclude that the easiest way is to enhance the hardware configuration.
 
 One the other hand, the average response time of ``Session reused'' experiments
@@ -581,7 +581,9 @@ as the throughput of ``echoString'' service enhanced with SAML2SSO profile, with
 around 215 requests per minute; and the average response time is close to the value of
 ``echoString'' service as well, with the value being increased to about 80ms. The increased time
 consumption is caused by the creating of X.509 request (1024-bit RSA key pair generation) on the client
-side.
+side. We conclude that the performance of SLCS service is mostly influenced by the SAML2SSO profile,
+while the performance consumption for RSA key pair generation is very little comparing with the 
+consumption for SAML2SSO profile.
 
 Even though the average response time of SLCS service is not very short,
 considering the short-lived credential has a relatively long lifetime (12 hours by default) and therefore
@@ -615,6 +617,14 @@ average response time increases linearly with the client number, while the throu
 at around 400 request per minutes when the client number reaches 8.
 We conclude that if the client number is bigger than eight, in our test
 environment, there is no throughput benefit can be achieved by adding clients.
+
+In the delegation process (showing in Figure~\ref{fig:DelegUML}), the delegation service needs
+to generate RSA pair key (step 2 in Figure~\ref{fig:DelegUML}), and the ``echoString'' service
+needs to generate RSA pair key (step 10 in Figure~\ref{fig:DelegUML}). Also the delegation service
+needs to sign the X.509 request from ``echoString'' service.
+We speculate the throughput of ``echoString'' service that configured with credential delegation
+is mainly influenced by these cryptographic operations.
+
 
 %-------------------------------------------------------------------------
 \section{Related Work}
