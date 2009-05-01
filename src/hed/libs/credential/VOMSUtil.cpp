@@ -1131,8 +1131,8 @@ err:
         }
         value.assign((const char*)(at->value->data), at->value->length);
         if(value.empty()) {
-          CredentialLogger.msg(ERROR,"VOMS: the attribute value is empty");
-          return false;
+          CredentialLogger.msg(WARNING,"VOMS: the attribute value for %s is empty", name.c_str());
+          //return false;
         }
         qualifier.assign((const char*)(at->qualifier->data), at->qualifier->length);
         if(qualifier.empty()) {
