@@ -57,6 +57,24 @@ while [ $# -gt 0 ] ; do
   shift
 done
 
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+save_commentfile () {
+  username=$1
+  commentfile=$2
+  errorsfile=$3
+  action="
+    { echo '---------- Contents of output stream forwarded by SGE -----------'
+      cat '$commentfile' 2> /dev/null
+      echo '------------------------- End of output -------------------------'
+    } >> '$errorsfile'
+  "
+  if [ -z "$username" ] ; then
+    eval "$action"
+  else
+    su "$username" -c "eval \"$action\""
+  fi
+}
+
 
 # GD: no attempt to look for SGE Manager logfiles, restrict to job logs.
 
@@ -104,6 +122,8 @@ for ctr_dir in $control_dirs ; do
       else
         olog "Warning: cannot determine owner of $jobfile"
       fi
+    else
+      username=
     fi
     # extract grid id
     gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
@@ -119,6 +139,7 @@ for ctr_dir in $control_dirs ; do
     if [ ! "$status" = "INLRMS" ] ; then continue ; fi
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
+    commentfile="${session}.comment"
     if [  -d "$session" ] ; then
       diagfile="${session}.diag"
       # try to obtain the exit code
@@ -236,6 +257,8 @@ for ctr_dir in $control_dirs ; do
 
           fi # grami file
 
+          save_commentfile "$username" "$commentfile" "$errorsfile"
+
           if [ -z "$failedcode" ]; then
             # Should never happen
             olog "SGE job $id failed: SGE accouting record is incomplete"
@@ -316,6 +339,9 @@ for ctr_dir in $control_dirs ; do
 
     if [ "$counter" -gt 5 ]; then
       # Cannot wait more for accounting info.
+
+      save_commentfile "$username" "$commentfile" "$errorsfile"
+
       if [ -z "$exitcode" ]; then
         olog "SGE job $id failed with unknown exit code. No SGE accounting record found"
         echo "-1 Job failed with unknown exit code. No SGE accounting record found" > "$donefile"

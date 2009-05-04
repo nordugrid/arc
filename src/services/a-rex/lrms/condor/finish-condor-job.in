@@ -346,6 +346,11 @@ fi
 
 merge_diag $tmpdiag $sessiondir.diag 
 
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+{ echo '---------- Contents of output stream forwarded by Condor -----------'
+  cat ${sessiondir}.comment 2> /dev/null
+  echo '--------------------------- End of output --------------------------'
+} >> $gmlog
 
 # Finally, declare the job done
 echo $exitcode $message > $lrms_done

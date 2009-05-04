@@ -20,6 +20,38 @@ test -d "$control_dir" || exit 1
 # Get LoadLeveler environment
 . "${pkglibdir}/configure-ll-env.sh" || exit $?
 
+my_id=`id -u`
+
+STAT_USERNAME='stat -u'
+eval $STAT_USERNAME $0 2>/dev/null 1>&2
+if [ ! $? = '0' ] ; then
+  STAT_USERNAME='stat -c "uid (%U)"'
+  eval $STAT_USERNAME $0 2>/dev/null 1>&2
+  if [ ! $? = '0' ] ; then
+    echo "Can't find useable stat utility"
+    sleep 60
+    exit 1
+  fi
+fi
+
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+save_commentfile () {
+  username=$1
+  commentfile=$2
+  errorsfile=$3
+  action="
+    { echo '---------- Contents of output stream forwarded by LL ------------'
+      cat '$commentfile' 2> /dev/null
+      echo '------------------------- End of output -------------------------'
+    } >> '$errorsfile'
+  "
+  if [ -z "$username" ] ; then
+    eval "$action"
+  else
+    su "$username" -c "eval \"$action\""
+  fi
+}
+
 #for i in "$control_dir"/job.*.local
 find $control_dir -maxdepth 1 -type f -name job\*.local | while read i
 do
@@ -29,6 +61,8 @@ do
   jobid=`basename $i .local|sed 's/^job.//'`
   donefile="${control_dir}/job.${jobid}.lrms_done"    
   statusfile="${control_dir}/job.${jobid}.status"
+  jobfile="${control_dir}/job.${jobid}.local"
+  errorsfile="${control_dir}/job.${jobid}.errors"
   
   # Continue if the job is already flagged as done?
   test -f "$donefile" && continue
@@ -59,9 +93,19 @@ do
   diagfile="${session}.diag"
   commentfile="${session}.comment"
 
+  if [ "$my_id" = '0' ] ; then
+      username=`eval $STAT_USERNAME "${jobfile}" | grep 'uid' | sed -n 's/[^(]*(\([^(]*\))/\1/p'`
+  else
+      username=
+  fi
+
   if [ ! -z "$session" ] ; then
     # have chance to obtain exit code
-    exitcode=`grep '^exitcode=' "$diagfile" | sed 's/^exitcode=//'`  
+    if [ -z "$username" ] ; then
+      exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+    else
+      exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+    fi
   else
     continue
   fi
@@ -69,16 +113,19 @@ do
   if [ ! -z "$exitcode" ] ; then
     if [ "$exitcode" = "152" -o $exitcode = "24" ] ; then
 	exitcode="24"     
+        save_commentfile "$username" "${session}.comment" "$errorsfile"
     	echo "$exitcode Job exceeded time limit." > "$donefile"
         ${GMKICK} "$statusfile"
         continue  
     fi
     # job finished and exit code is known
+    save_commentfile "$username" "${session}.comment" "$errorsfile"
     echo "$exitcode Executable finished with exit code $exitcode" >> "$donefile"               
     ${GMKICK} "$statusfile"
     continue
   fi
   exitcode=-1
+  save_commentfile "$username" "${session}.comment" "$errorsfile"
   echo "$exitcode Job finished with unknown exit code" >> "$donefile"
   ${GMKICK} "$statusfile"
 done

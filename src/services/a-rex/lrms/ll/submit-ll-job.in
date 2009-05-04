@@ -69,7 +69,11 @@ if [ ! -z "${joboption_jobname}" ] ; then
 	   sed 's/\(...............\).*/\1/'`
   echo "# @ job_name = $jobname" >> $LRMS_JOB_SCRIPT
 fi
+
 echo "LL jobname: $jobname" 1>&2
+
+echo "# @ output = ${joboption_directory}.comment" >> $LRMS_JOB_SCRIPT
+echo "# @ error = ${joboption_directory}.comment" >> $LRMS_JOB_SCRIPT
 
 # Project account number for accounting
 if [ ! -z "${joboption_rsl_project}" ] ; then

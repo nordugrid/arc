@@ -53,6 +53,24 @@ my_id=`id -u`
 
 my_name=`id -un`
 
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+save_commentfile () {
+  username=$1
+  commentfile=$2
+  errorsfile=$3
+  action="
+    { echo '---------- Contents of output stream forwarded by LSF -----------'
+      cat '$commentfile' 2> /dev/null
+      echo '------------------------- End of output -------------------------'
+    } >> '$errorsfile'
+  "
+  if [ -z "$username" ] ; then
+    eval "$action"
+  else
+    su "$username" -c "eval \"$action\""
+  fi
+}
+
 
 # Get all running jobs
 #
@@ -122,16 +140,17 @@ for ctr_dir in $control_dir ; do
 	status=`cat "$statusfile"`
 	if [ ! "$status" = "INLRMS" ] ; then continue ; fi
 
+	if [ "$my_id" = '0' ] ; then
+	    username=`eval $STAT_USERNAME "${jobfile}" | sed -n 's/^uid (\([^)]*\))/\1/p'`
+	else
+	    username=
+	fi
+
 	# get session directory of this job
 	session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
 	if [ ! -z "$session" ] ; then
 	    # have chance to obtain exit code
 	    diagfile="${session}.diag"
-	    if [ "$my_id" = '0' ] ; then
-		username=`eval $STAT_USERNAME "${jobfile}" | grep 'uid' | sed -n 's/[^(]*(\([^(]*\))/\1/p'`
-	    else
-		username=
-	    fi
 
 	    if [ ! -z "$session" ] ; then
 		# have chance to obtain exit code
@@ -144,6 +163,7 @@ for ctr_dir in $control_dir ; do
 
 	    if [ ! -z "$exitcode" ] ; then
 		# job finished and exit code is known
+                save_commentfile "$username" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
 		${GMKICK} "$statusfile"
 		continue
@@ -161,6 +181,7 @@ for ctr_dir in $control_dir ; do
 
 	if [ "$counter" -gt 5 ] ; then
 	    rm -f "$countfile"
+            save_commentfile "$username" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
 	    ${GMKICK} "$statusfile"
 	else

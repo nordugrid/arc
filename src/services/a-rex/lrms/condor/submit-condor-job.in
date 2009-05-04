@@ -300,6 +300,8 @@ sub create_condor_job_description {
                  "Input = $grami{joboption_stdin}\n";
 
     $output .= "Log = $condor_log\n";
+    $output .= "Output = $grami{joboption_directory}.comment\n";
+    $output .= "Error = $grami{joboption_directory}.comment\n";
 
     my @requirements = ();
 
