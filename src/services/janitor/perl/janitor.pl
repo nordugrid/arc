@@ -575,7 +575,7 @@ sub getNextCatalogRefresh {
 
 	my $refresh = $config->{'janitor'}{'catalogrefresh'};
 	$refresh = 60 if !defined $refresh or $refresh < 60;
-	my $var = 20 * (rand() - 0.5);	# ± 10s
+	my $var = 20 * (rand() - 0.5);	# +- 10s
 	my $w =  int ($refresh + $var + 0.5);
 	$w = 60 if $w < 60;
 

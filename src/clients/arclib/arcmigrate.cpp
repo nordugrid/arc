@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
                                     "migrating queud jobs to another cluster.\n"
                                     "Note that migration is only supported "
                                     "between ARC1 clusters."),
-                            istring(""));
+                            istring(" "));
 
   bool all = false;
   options.AddOption('a', "all",
