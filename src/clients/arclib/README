@@ -12,6 +12,7 @@ The following commands are presently implemented:
 
 o arcsub
 o arcstat
+o arcinfo
 o arcget
 o arckill
 o arcclean
