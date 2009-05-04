@@ -30,6 +30,7 @@ Glib::TimeVal completedTime;
 Glib::TimeVal failedTime;
 Glib::TimeVal totalTime;
 std::string url_str;
+bool alwaysReconnect = false;
 
 // Round off a double to an integer.
 int Round(double x){
@@ -51,8 +52,8 @@ void sendRequests(){
   Arc::URL url(url_str);
 
   Arc::MCCConfig mcc_cfg;
-  mcc_cfg.AddPrivateKey("../echo/userkey-nopass.pem");
-  mcc_cfg.AddCertificate("../echo/usercert.pem");
+  mcc_cfg.AddPrivateKey("../echo/testuserkey-nopass.pem");
+  mcc_cfg.AddCertificate("../echo/testusercert.pem");
   mcc_cfg.AddCAFile("../echo/testcacert.pem");
   mcc_cfg.AddCADir("../echo/certificates");
 
@@ -65,8 +66,7 @@ void sendRequests(){
     client = new Arc::ClientSOAP(mcc_cfg,url);
 
     connected=true;
-    //If session is not reused, then comment the following line
-    //while(run and connected){
+    while(run and connected){
       // Prepare the request.
       Arc::PayloadSOAP req(echo_ns);
       req.NewChild("echo").NewChild("say")="HELLO";
@@ -110,7 +110,8 @@ void sendRequests(){
         }
       }
       if(resp) delete resp;
-    //}
+      if(alwaysReconnect) connected=false;
+    }
     if(client) delete client;
   }
 
@@ -142,6 +143,8 @@ int main(int argc, char* argv[]){
     } else if(strcmp(argv[1],"-d") == 0) {
       debug_level=Arc::string_to_level(argv[2]);
       argv[2]=argv[0]; argv+=2; argc-=2;
+    } else if(strcmp(argv[1],"-r") == 0) {
+      alwaysReconnect=true; argv+=1; argc-=1;
     } else {
       break;
     };
@@ -155,17 +158,19 @@ int main(int argc, char* argv[]){
     std::cerr << "Wrong number of arguments!" << std::endl
 	      << std::endl
 	      << "Usage:" << std::endl
-	      << "perftest [-c config] [-d debug] url threads duration" << std::endl
+	      << "perftest [-c config] [-d debug] [-r] url threads duration" << std::endl
 	      << std::endl
 	      << "Arguments:" << std::endl
-	      << "url     The url of the service." << std::endl
-	      << "threads  The number of concurrent requests." << std::endl
-	      << "duration The duration of the test in seconds." << std::endl
-	      << "config   The file containing client chain XML configuration with " << std::endl
-              << "         'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
-              << "         keyword for hostname, port and HTTP path of 'echo' service." << std::endl
-	      << "debug    The textual representation of desired debug level. Available " << std::endl
-              << "         levels: VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL." << std::endl;
+	      << "url       The url of the service." << std::endl
+	      << "threads   The number of concurrent requests." << std::endl
+	      << "duration  The duration of the test in seconds." << std::endl
+	      << "-c config The file containing client chain XML configuration with " << std::endl
+              << "          'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
+              << "           keyword for hostname, port and HTTP path of 'echo' service." << std::endl
+	      << "-d debug   The textual representation of desired debug level. Available " << std::endl
+              << "           levels: VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL." << std::endl
+	      << "-r         If specified close connection and reconnect after " << std::endl
+              << "           every request." << std::endl;
     exit(EXIT_FAILURE);
   }
   url_str = std::string(argv[1]);
