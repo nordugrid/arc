@@ -126,10 +126,13 @@ namespace Arc {
 
   void LogStream::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
-    char *loc = setlocale(LC_ALL, NULL);
-    setlocale(LC_ALL, locale.c_str());
+    const char *loc = NULL;
+    if (!locale.empty()) {
+      loc = setlocale(LC_ALL, NULL);
+      setlocale(LC_ALL, locale.c_str());
+    }
     destination << message << std::endl;
-    setlocale(LC_ALL, loc);
+    if (!locale.empty()) setlocale(LC_ALL, loc);
   }
 
   LogStream::LogStream(const LogStream&)
@@ -146,12 +149,14 @@ namespace Arc {
 
   Logger*Logger::rootLogger = NULL;
   unsigned int Logger::rootLoggerMark = ~rootLoggerMagic;
+  int Logger::logCounter = 0;
 
   Logger& Logger::getRootLogger(void) {
     if ((rootLogger == NULL) || (rootLoggerMark != rootLoggerMagic)) {
       rootLogger = new Logger();
       rootLoggerMark = rootLoggerMagic;
     }
+    logCounter++;
     return *rootLogger;
   }
 
@@ -172,6 +177,10 @@ namespace Arc {
       domain(parent.getDomain() + "." + subdomain),
       threshold(threshold) {
     // Nothing else needs to be done.
+  }
+
+  Logger::~Logger() {
+    if (logCounter-- == 0 && rootLogger) delete rootLogger;
   }
 
   void Logger::addDestination(LogDestination& destination) {

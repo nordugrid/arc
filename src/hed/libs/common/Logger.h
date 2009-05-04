@@ -299,6 +299,11 @@ namespace Arc {
            const std::string& subdomain,
            LogLevel threshold);
 
+    //! Destroys a logger.
+    /*! Destructor
+    */
+    ~Logger();
+
     //! Adds a LogDestination.
     /*! Adds a LogDestination to which to forward LogMessages sent to
        this logger (if they pass the threshold). Since LogDestinatoins
@@ -451,6 +456,7 @@ namespace Arc {
 #define rootLoggerMagic (0xF6569201)
     static Logger *rootLogger;
     static unsigned int rootLoggerMark;
+    static int logCounter;
   };
 
 } // namespace Arc
