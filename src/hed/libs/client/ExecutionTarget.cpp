@@ -86,7 +86,10 @@ namespace Arc {
     return *this;
   }
 
-  ExecutionTarget::~ExecutionTarget() {}
+  ExecutionTarget::~ExecutionTarget() {
+    if (loader)
+      delete loader;
+  }
 
   void ExecutionTarget::Copy(const ExecutionTarget& target) {
 
@@ -239,6 +242,9 @@ namespace Arc {
     SubmitterComp.NewChild("Queue") = MappingQueue;
     SubmitterComp.NewChild("SubmissionEndpoint") = url.str();
     ucfg.ApplyTimeout(SubmitterComp);
+
+    if (loader)
+      delete loader;
 
     const_cast<ExecutionTarget*>(this)->loader = new ACCLoader(cfg);
 

@@ -204,6 +204,7 @@ namespace Arc {
       CredentialLogger.msg(ERROR,"Can not read certificate file: %s", cert); LogError();
       throw CredentialError("Can not read certificate file");
       }
+      BIO_set_close(certbio, BIO_CLOSE);
     }
     else { //Otherwise the content of certificate is also acceptable
       certbio = BIO_new_mem_buf((void*)(cert.c_str()), cert.length());
@@ -229,6 +230,7 @@ namespace Arc {
         //Get the certificte, By default, certificate is without passphrase
         //Read certificate
         if(!(PEM_read_bio_X509(certbio, &x509, NULL, NULL))) {
+	  BIO_free(certbio);
           throw CredentialError("Can not read cert information from BIO");
         }
         //Get the issuer chain
@@ -242,6 +244,7 @@ namespace Arc {
           if(!sk_X509_insert(*certchain, tmp, n)) {
             //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             X509_free(tmp);
+	    BIO_free(certbio);
             throw CredentialError("Can not insert cert into certificate's issuer chain");
           }
           ++n;
@@ -256,6 +259,7 @@ namespace Arc {
         }
         x509=d2i_X509_bio(certbio,NULL);
         if(!x509){
+	  BIO_free(certbio);
           throw CredentialError("Unable to read DER credential from BIO");
         }
         //Get the issuer chain
@@ -269,6 +273,7 @@ namespace Arc {
           if(!sk_X509_insert(*certchain, tmp, n)) {
             //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             X509_free(tmp);
+	    BIO_free(certbio);
             throw CredentialError("Can not insert cert into certificate's issuer chain");
           }
           ++n;
@@ -287,10 +292,12 @@ namespace Arc {
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
           if(!PKCS12_parse(pkcs12, password, NULL, &x509, &pkcs12_certs)) {
             if(pkcs12) PKCS12_free(pkcs12);
+	    BIO_free(certbio);
             throw CredentialError("Can not parse PKCS12 file");
           }
         }
         else{
+	  BIO_free(certbio);
           throw CredentialError("Can not read PKCS12 credential from BIO");
         }
         if (pkcs12_certs && sk_num(pkcs12_certs)){
@@ -2449,6 +2456,9 @@ error:
     if(req_) X509_REQ_free(req_);
     if(rsa_key_) RSA_free(rsa_key_);
     if(extensions_) sk_X509_EXTENSION_pop_free(extensions_, X509_EXTENSION_free);
+    if(verify_ctx_.cert_chain) sk_X509_pop_free(verify_ctx_.cert_chain, X509_free);
+
+    EVP_cleanup();
   }
 
 }

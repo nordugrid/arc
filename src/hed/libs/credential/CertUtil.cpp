@@ -17,7 +17,7 @@
 
 namespace ArcCredential {
 
-static Arc::Logger& logger = Arc::Logger::rootLogger;
+  static Arc::Logger& logger = Arc::Logger::rootLogger;
 
 int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx) {
   int i;
@@ -674,6 +674,7 @@ bool check_cert_type(X509* cert, certType& type) {
 err:
   if(issuer) { X509_NAME_free(issuer); }
   if(certinfo) {PROXYCERTINFO_free(certinfo);}
+  if(x509v3_bc) { BASIC_CONSTRAINTS_free(x509v3_bc); }
 
   return ret;
 }
