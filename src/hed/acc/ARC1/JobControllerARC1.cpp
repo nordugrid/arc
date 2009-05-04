@@ -113,31 +113,10 @@ namespace Arc {
     logger.msg(DEBUG, "Resuming job: %s at state: %s",job.JobID.str(),job.RestartState);
 
     MCCConfig cfg;
-    if (!proxyPath.empty())
-      cfg.AddProxy(proxyPath);
-    if (!certificatePath.empty())
-      cfg.AddCertificate(certificatePath);
-    if (!keyPath.empty())
-      cfg.AddPrivateKey(keyPath);
-    if (!caCertificatesDir.empty())
-      cfg.AddCADir(caCertificatesDir);
-    PathIterator pi(job.JobID.Path(), true);
-    URL url(job.JobID);
-    url.ChangePath(*pi);
-    AREXClient ac(url, cfg);
-    NS ns;
-    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
-    ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
-    ns["wsa"] = "http://www.w3.org/2005/08/addressing";
-    ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-    ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
-    ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-    XMLNode id(ns, "ActivityIdentifier");
-    id.NewChild("wsa:Address") = url.str();
-    id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
+    ApplySecurity(cfg);
+    AREXClient ac(job.Cluster, cfg);
     std::string idstr;
-    id.GetXML(idstr);
+    AREXClient::createActivityIdentifier(job.JobID, idstr);
     bool ok = ac.resume(idstr);
     if (ok)
       logger.msg(DEBUG, "Job resuming successful");
