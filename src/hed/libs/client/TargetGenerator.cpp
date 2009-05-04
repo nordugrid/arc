@@ -50,7 +50,7 @@ namespace Arc {
         XMLNode retriever = cfg.NewChild("ArcClientComponent");
         retriever.NewAttribute("name") = "TargetRetriever" + it->first;
         retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-        usercfg.ApplySecurity(retriever); // check return value ?
+        usercfg.ApplySecurity(retriever);
         usercfg.ApplyTimeout(retriever);
         XMLNode url = retriever.NewChild("URL") = it2->str();
         url.NewAttribute("ServiceType") = "computing";
@@ -65,7 +65,7 @@ namespace Arc {
         XMLNode retriever = cfg.NewChild("ArcClientComponent");
         retriever.NewAttribute("name") = "TargetRetriever" + it->first;
         retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-        usercfg.ApplySecurity(retriever); // check return value ?
+        usercfg.ApplySecurity(retriever);
         XMLNode url = retriever.NewChild("URL") = it2->str();
         url.NewAttribute("ServiceType") = "index";
         targetcnt++;
@@ -75,8 +75,16 @@ namespace Arc {
   }
 
   TargetGenerator::~TargetGenerator() {
-    if (loader)
+    if (loader) {
       delete loader;
+    }
+
+    if (foundJobs.size() > 0) {
+      for (std::list<XMLNode*>::iterator it = foundJobs.begin();
+           it != foundJobs.end(); foundJobs.begin()) {
+        delete *foundJobs.erase(it);
+      }
+    }
   }
 
   void TargetGenerator::GetTargets(int targetType, int detailLevel) {
