@@ -146,16 +146,39 @@ namespace Arc {
   }
 
   std::string Credential::GetIdentityName(void) {
-    //std::cout<<"proxy depth: +++"<<verify_ctx_.proxy_depth<<std::endl;
-    int proxy_depth = verify_ctx_.proxy_depth;
     X509_NAME *subject = NULL;
     X509_NAME_ENTRY *ne = NULL;
     subject = X509_NAME_dup(X509_get_subject_name(cert_));
+
+#if 0
+    int proxy_depth = verify_ctx_.proxy_depth;
+    //std::cout<<"proxy depth: +++"<<verify_ctx_.proxy_depth<<std::endl;
     for(int i=0; i<proxy_depth; i++) {
       ne = X509_NAME_delete_entry(subject, X509_NAME_entry_count(subject)-1);
       if(ne)
         X509_NAME_ENTRY_free(ne);
     }
+#endif
+
+    ASN1_STRING* entry;
+    std::string entry_str;
+    for(;;) {
+      ne = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
+      if (!OBJ_cmp(ne->object,OBJ_nid2obj(NID_commonName))) {
+        entry = X509_NAME_ENTRY_get_data(ne);
+        entry_str.assign((const char*)(entry->data), (std::size_t)(entry->length));
+        if(entry_str == "proxy" || entry_str == "limited proxy" || 
+           entry_str.find_first_not_of("0123456789") == std::string::npos) {
+          //Drop the name entry "proxy", "limited proxy", or the random digital(RFC)
+          ne = X509_NAME_delete_entry(subject, X509_NAME_entry_count(subject)-1);
+          X509_NAME_ENTRY_free(ne);
+          ne = NULL;
+        }
+        else break;
+      }
+      else break;
+    }
+
     std::string str;
     char buf[256];
     if(subject!=NULL) {
