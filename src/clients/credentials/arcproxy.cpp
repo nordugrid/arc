@@ -557,6 +557,7 @@ int main(int argc, char *argv[]) {
       std::string voms_server;
       std::string command;
       ArcCredential::AC **aclist = NULL;
+      std::string acorder;
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
@@ -665,12 +666,14 @@ int main(int argc, char *argv[]) {
         if (response)
           delete response;
 
-        Arc::addVOMSAC(aclist, decodedac);
+        Arc::addVOMSAC(aclist, acorder, decodedac);
       }
 
       //Put the returned attribute certificate into proxy certificate
       if (aclist != NULL)
         cred_request.AddExtension("acseq", (char**)aclist);
+      if(!acorder.empty())
+        cred_request.AddExtension("order", acorder);
     }
 
     if(!use_gsi_proxy)

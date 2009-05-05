@@ -574,10 +574,11 @@ err:
   }
 
 
-  bool addVOMSAC(AC** &aclist, std::string &codedac) {
+  bool addVOMSAC(AC** &aclist, std::string &acorder, std::string &codedac) {
     AC* received_ac;
     AC** actmplist = NULL;
     char *p, *pp;
+    BIGNUM* dataorder = NULL;
 
     InitVOMSAttribute();
 
@@ -592,19 +593,32 @@ err:
     pp = (char *)memcpy(pp, codedac.data(), codedac.size());
     p = pp;
 
+    dataorder = BN_new();
+    if (!dataorder) {
+      CredentialLogger.msg(ERROR,"VOMS: Can not allocate memory for storing the order of AC");
+      return false;
+    }
+    BN_one(dataorder);
+
     //Parse the AC, and insert it into an AC list
     if((received_ac = d2i_AC(NULL, (unsigned char **)&p, l))) {
       actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
       if (actmplist) {
-        aclist = actmplist; free(pp); return true;
+        aclist = actmplist; 
+        (void)BN_lshift1(dataorder, dataorder);
+        (void)BN_set_bit(dataorder, 0);
+        char *buffer = BN_bn2hex(dataorder);
+        acorder = std::string(buffer);
+        OPENSSL_free(buffer);
+        free(pp); BN_free(dataorder); return true;
       }
       else {
-        listfree((char **)aclist, (freefn)AC_free);  free(pp); return false;
+        listfree((char **)aclist, (freefn)AC_free);  free(pp); BN_free(dataorder); return false;
       }
     }
     else {
       CredentialLogger.msg(ERROR,"VOMS: Can not parse AC");
-      free(pp); return false;
+      free(pp); BN_free(dataorder); return false;
     }
   }
 

@@ -137,7 +137,8 @@ int main(void) {
   //std::cout<<"Decoded AC: "<<decodedac<<std::endl<<" Size: "<<size<<std::endl;
 
   ArcCredential::AC **aclist = NULL;
-  Arc::addVOMSAC(aclist, decodedac);
+  std::string acorder;
+  Arc::addVOMSAC(aclist, acorder, decodedac);
 
   Arc::Credential proxy1;
   proxy1.InquireRequest(req_str);

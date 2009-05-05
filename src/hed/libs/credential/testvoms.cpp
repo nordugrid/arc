@@ -77,7 +77,8 @@ int main(void) {
   * list as a proxy certificate's extension.
   */
   ArcCredential::AC** aclist = NULL;
-  Arc::addVOMSAC(aclist, ac_str);
+  std::string acorder;
+  Arc::addVOMSAC(aclist, acorder, ac_str);
    
 
   /** b.Below is general proxy processing, which is the same as the 

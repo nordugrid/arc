@@ -140,11 +140,12 @@ namespace Arc {
                     std::string &voname, std::string &uri, int lifetime);
 
   /**Add decoded AC string into a list of AC objects
-   * @param aclist 	The list of AC objects
+   * @param aclist 	The list of AC objects (output)
+   * @param acorder       The order of AC objects (output)
    * @param decodedac	The AC string that is decoded from the string
-   * 			returned from voms server
+   * 			returned from voms server (input)
    */
-  bool addVOMSAC(ArcCredential::AC** &aclist, std::string &decodedac);
+  bool addVOMSAC(ArcCredential::AC** &aclist, std::string &acorder, std::string &decodedac);
 
   /**Parse the certificate, and output the attributes.
    * @param holder  The proxy certificate which includes the voms 
