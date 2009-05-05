@@ -104,6 +104,9 @@ int main(int argc, char *argv[]) {
   bool use_gsi_comm = false;
   options.AddOption('G', "gsicom", istring("use GSI communication protocol for contacting VOMS services"), use_gsi_comm);
 
+  bool use_gsi_proxy = false;
+  options.AddOption('O', "old", istring("use GSI proxy (RFC 3820 compliant proxy is default)"), use_gsi_proxy);
+
   bool info = false;
   options.AddOption('I', "info", istring("print all information about this proxy. \n"
                                          "              In order to show the Identity (DN without CN as subfix for proxy) \n"
@@ -446,53 +449,21 @@ int main(int argc, char *argv[]) {
 
   //Create proxy or voms proxy
   try {
-    if (vomslist.empty()) {
-      //if there is no voms command specified,
-      //only create proxy without voms AC extension
-#ifndef WIN32
-      struct termios to;
-      tcgetattr(STDIN_FILENO, &to);
-      to.c_lflag &= ~ECHO;
-      tcsetattr(STDIN_FILENO, TCSANOW, &to);
-      Arc::DelegationProvider provider(cert_path, key_path, &std::cin);
-      to.c_lflag |= ECHO;
-      tcsetattr(STDIN_FILENO, TCSANOW, &to);
-#else
-      Arc::DelegationProvider provider(cert_path, key_path, &std::cin);
-#endif
-      if (!provider)
-        throw std::runtime_error("Failed to acquire credentials");
-      Arc::DelegationConsumer consumer;
-      if (!consumer)
-        throw std::runtime_error("Failed to generate new private key");
-      std::string request;
-      if (!consumer.Request(request))
-        throw std::runtime_error("Failed to generate certificate request");
-      std::string proxy = provider.Delegate(request, constraints);
-      if (!consumer.Acquire(proxy))
-        throw std::runtime_error("Failed to generate proxy");
-      int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-      if (f == -1)
-        throw std::runtime_error("Failed to open proxy file " + proxy_path);
-      if (::write(f, proxy.c_str(), proxy.length()) != proxy.length())
-        throw std::runtime_error("Failed to write into proxy file " + proxy_path);
-      ::close(f);
-      //return EXIT_SUCCESS;
-    }
-    else {
-      Arc::Credential signer(cert_path, key_path, ca_dir, "");
-      std::string private_key, signing_cert, signing_cert_chain;
+    Arc::Credential signer(cert_path, key_path, ca_dir, "");
+    std::string private_key, signing_cert, signing_cert_chain;
 
-      Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
-      Arc::Period period1 = constraints["validityEnd"].empty() ? Arc::Period(std::string("43200")) : (Arc::Time(constraints["validityEnd"]) - start);
-      Arc::Period period = constraints["validityPeriod"].empty() ? period1 : (Arc::Period(constraints["validityPeriod"]));
-      int keybits = 1024;
-      std::string req_str;
-      std::string policy;
-      policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
-      //Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
-      Arc::Credential cred_request(start, period, keybits);
-      cred_request.GenerateRequest(req_str);
+    Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
+    Arc::Period period1 = constraints["validityEnd"].empty() ? Arc::Period(std::string("43200")) : (Arc::Time(constraints["validityEnd"]) - start);
+    Arc::Period period = constraints["validityPeriod"].empty() ? period1 : (Arc::Period(constraints["validityPeriod"]));
+    int keybits = 1024;
+    std::string req_str;
+    std::string policy;
+    policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
+    //Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
+    Arc::Credential cred_request(start, period, keybits);
+    cred_request.GenerateRequest(req_str);
+
+    if(!vomslist.empty()) { //If we need to generate voms proxy
 
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
@@ -700,17 +671,26 @@ int main(int argc, char *argv[]) {
       //Put the returned attribute certificate into proxy certificate
       if (aclist != NULL)
         cred_request.AddExtension("acseq", (char**)aclist);
-      cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
-      signer.SignRequest(&cred_request, proxy_path.c_str());
-
-      std::ofstream out_f1(proxy_path.c_str(), std::ofstream::app);
-      out_f1.write(private_key.c_str(), private_key.size());
-      out_f1.write(signing_cert.c_str(), signing_cert.size());
-      out_f1.write(signing_cert_chain.c_str(), signing_cert_chain.size());
-      out_f1.close();
-
-      //return EXIT_SUCCESS;
     }
+
+    if(!use_gsi_proxy)
+      cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
+    else 
+      cred_request.SetProxyPolicy("gsi2", "", "", -1);
+
+    std::string proxy_cert;
+    signer.SignRequest(&cred_request, proxy_cert);
+
+    proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
+
+    int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (f == -1)
+      throw std::runtime_error("Failed to open proxy file " + proxy_path);
+    if (::write(f, proxy_cert.c_str(), proxy_cert.length()) != proxy_cert.length())
+      throw std::runtime_error("Failed to write into proxy file " + proxy_path);
+    ::close(f);
+
+    //return EXIT_SUCCESS;  
   } catch (std::exception& err) {
     std::cerr << "ERROR: " << err.what() << std::endl;
     tls_process_error();
