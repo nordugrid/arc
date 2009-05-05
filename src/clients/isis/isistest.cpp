@@ -37,6 +37,8 @@ std::string ChainConfigString( Arc::URL url ) {
     doc +="      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\n";
     doc +="      xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\">\n";
     doc +="     <ModuleManager>\n";
+    doc +="        <Path>/usr/local/lib</Path>\n";
+    doc +="        <Path>/usr/lib</Path>\n";
     doc +="        <Path>.libs/</Path>\n";
     doc +="        <Path>../../hed/mcc/http/.libs/</Path>\n";
     doc +="        <Path>../../hed/mcc/soap/.libs/</Path>\n";
