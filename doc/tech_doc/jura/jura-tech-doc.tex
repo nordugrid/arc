@@ -106,7 +106,7 @@ alternatively on a larger scale such as job project or VO level.
 
 \begin{figure}[ht]
 \centering{{{\includegraphics[width=0.9\textwidth]{components.pdf}}}
-\caption{\label{fig:components}Components participating in accounting.} }
+\caption{\label{fig:components}The usage reporting mechanism.} }
 \end{figure}
 
 JURA offers a complete replacement in functionality for the old
@@ -136,7 +136,7 @@ arguments, but mostly via lines in the job log files (see Appendix
 \ref{config} for details). The source of the latter are lines in the
 grid-manager configuration file.
 
-The command line format is a subset of that of logger:
+The command line format is a subset of that of logger: %TODO make it so!
 
 \verb|jura [-E <expiration_time>] <control_dir>|
 
@@ -156,11 +156,14 @@ files pertaining to the same job. For each job and for each reporting
 destination (i.e. accounting service to be contacted), at least two
 log files are written for each job: one at the time of job submission,
 and another one after the job finishes, and possibly others at each
-start and stop event.
+start and stop event. Reporting destination URLs are acquired from
+``\textit{jobreport=}'' lines in the A-REX configuration file, and a
+limited number of additional destinations can be supplied by the
+submitter in the job description.
 
 A job log file consists of ``\textit{name=value}'' lines.  These
 make up some of the configuration options for JURA, such as the URL of
-an accounting destination in the ``\textit{loggerurl=}'' line.  The
+an accounting destination in the ``\textit{loggerurl=}'' line. The
 file also contains detailed resource usage data and related metadata
 to be reported about the job.(See Appendix \ref{config} for more
 details.)  The accuracy of the metered data may depend on the type of
@@ -180,17 +183,20 @@ file generated upon job submission contains no \textit{status} entry,
 so this file is ignored, and no UR is generated from it.
 
 \subsection{Accessing LUTS}
+\label{accessing}
 After the necessary URs to be inserted are filled and valid, they are
-submitted to the accounting service through its insertion
-interface. The service in particular, SGAS LUTS has a simple custom
-web service interface loosely based on WS-ResourceProperties.
+submitted to the accounting service specified by the URL in the
+``\textit{loggerurl=}'' line of the job log file, through the
+insertion interface of the service. The service in particular, SGAS
+LUTS has a simple custom web service interface loosely based on
+WS-ResourceProperties\cite{wsrp}.
 
 To increase communication efficiency, LUTS accepts a batch of several
 URs within a single request. The batch is an XML element called
 \textit{UsageRecords}, containing elements representing URs. The
 maximal number of URs in a batch is limited, it can be set in the
 ``\textit{jobreport\_options=}'' line of the A-REX configuration file
-(see Appendix \ref{config}).
+(see Sec. \ref{config}).
 
 \section{Security}
 The JURA executable runs as the same user as A-REX does, typically as
@@ -208,8 +214,9 @@ client. This means that the client can access the service using a
 proxy certificate as well. In the scenario involving A-REX and JURA,
 all usage records are submitted using credentials given in the
 \textit{jobreport\_credentials} line of the A-REX configuration file
-(see Appendix \ref{config}), and no proxies are used. Normally the
-credentials for the A-REX service should be used.
+(see A-REX Description and Administration Manual\cite{arex}), and no
+proxies are used. Normally the credentials for the A-REX service
+should be used.
 
 The access control policy for LUTS can be configured in two ways. One
 is a plain text configuration file where users, identified by their
@@ -218,45 +225,128 @@ URs. The other option is a service port type called \textit{Service
   Authorization Management} (SAM). One can set access control rules
 through the SAM port of the service in a format based on XACML. 
 
-\section{Implementation}
-JURA is written merely in C++, and is tested in a GNU/Linux
-environment, built with standard GNU tools. It depends on the HED
-libraries, and thus also on all mandatory dependencies thereof. The
-\textit{openssl} library is also required, since sensitive accounting
-data needs to be sent in a secure manner.
-
-%TODO about other service types
-
-When deployed, the executable called ``\textit{jura}'' is placed into the
-\textit{libexec} directory of the ARC install location. There is a
-symbolic link %TODO make it so!
-to the executable in the same directory, called ``\textit{logger}'',
-through which A-REX executes JURA. This is to keep compatibility with
-the old logger client. No other executables or wrapper scripts are
-needed.
-
-\appendix
-
 \section{Configuration}
 \label{config}
 
-%   loggerurl: jobreport, JSDL
+JURA can ne set up through the configuration file of A-REX. Three
+commands are used by JURA: \textit{jobreport},
+\textit{jobreport\_credentials} and \textit{jobreport\_options}. See the
+A-REX Description and Administrator's Manual\cite{arex}, Section
+``Configuration'' for details.
 
-%   (lifetime)
+The \textit{jobreport\_options} command allows passing a generic option
+string to JURA verbatim. This option can be used for example for
+service-related settings. Currently only SGAS LUTS service is
+supported, for which the UR batch size can be set with the following
+command format:
 
-%   jobreport
+\verb|jobreport_options="urbatch:size"|
 
-%   accounting\_options: jobreport\_options
+%TODO implement!
+where \textit{size} is a positive integer, the number of URs sent
+within one request. If not given, the default is 50.
 
-%   key\_path, certificate\_path, ca\_certificates\_dir: jobreport\_credentials
+\section{Implementation}
+JURA is written merely in C++, built with standard GNU tools, and
+tested in a GNU/Linux environment. It depends on the HED libraries,
+and thus also on all mandatory dependencies thereof. The
+\textit{openssl} library is also required, since sensitive accounting
+data needs to be sent in a secure manner.
+
+%TODO enable other service types, write about them
+
+\section{Installation and deployment}
+
+Upon \verb|make install|, the executable called ``\textit{jura}'' is
+placed into the \textit{libexec} directory of the configured ARC
+install location. There is a symbolic link %TODO make it so!
+to the executable in the same directory, called ``\textit{logger}'',
+through which A-REX executes JURA. This is to keep compatibility with
+the old logger client. No other executables or wrapper scripts are
+installed.
+
+\section{Limitations and issues}
+Although stable, JURA still has minor imperfections, some of them
+stemming from flaws in A-REX or the \textit{arcsub} client:
+
+\begin{itemize}
+\item The time frequency of running JURA is not configurable. It is a
+  hardcoded value in A-REX: 3600 seconds, i.e. one hour. 
+\item The number of user-supplied reporting destinations is limited
+  for the sake of robustness. This upper limit is hardcoded: max. 3
+  destinations are parsed from JSDL, and max. 1 from RSL.
+\item The \textit{arcsub} job submission client removes all but one
+  reporting destination URL from the job description, further limiting
+  the number of user-supplied destinations.
+\item The expiration time of job log files can be given in each
+  ``\textit{jobreport=}'' line in the configuration file. However,
+  only one single value is used for all reporting destinations; the
+  last one given overrides the previous ones.
+\item Missing UR properties: charge, processors, network etc. see
+  App. \ref{log2ur}
+\item The GNU time memory measurement bug
+\end{itemize}
+
+
+\appendix
 
 \section{Usage Record properties}
 \label{log2ur}
-%   input file format
+The following table shows which properties in OGF UR are filled, what
+data source was used for them, which properties are missing, and what
+extensions have been added to UR.
 
-%   filled properties
+\begin{tabular}{|p{0.2\columnwidth}|p{0.5\columnwidth}|p{0.2\columnwidth}|}
+\hline
+\textbf{UR Property}&
+\textbf{Description}&
+\textbf{Source\newline(job log entry)}\\
+\hline\hline
+RecordId&
+Globally unique identifier for UR&
+nodename,\newline
+ngjobid\\
+\hline
+GlobalJobId&
+Globally unique identifier of job&
+globalid\\
+\hline
+LocalJobId&
+CE-specific identifier of job&
+localid\\
+\end{tabular}
 
-%   missing properties
+%  filled:
+% RecordId: nodename+ngjobid
+% GlobalJobId: globalid
+% LocalJobId: localid
+% GlobalUserName: usersn
+% LocalUserId: localuser
+% JobName: jobname
+% Status: status
+% WallDuration: usedwalltime
+% CpuDuration: usedcputime
+% StartTime: submissiontime (?)
+% EndTime: endtime
+% MachineName: nodename/1
+% Host: nodename
+% SubmitHost: clienthost
+% Queue: lrms
+% ProjectName: projectname
+
+%  unfilled:
+% ProcessId (localjobid?)
+% Charge
+
+%  extra:
+% UserVO(?) userproxy
+% RuntimeEnvironment: runtimeenvironment
+
+
+\section{Additional job log file entries}
+Table \ref{table:joblog} describes entries of the job log file not
+present in Table \ref{table:ur}.
 
 \bibliography{grid}
 \end{document}
+
