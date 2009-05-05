@@ -63,8 +63,8 @@ int main(int argc, char *argv[]) {
                             istring("Supported constraints are:\n"
                                     "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
                                     "  validityEnd=time\n"
-                                    "  validityPeriod=time (e.g. 43200; if both validityPeriod and validityEnd not specified, the default is 12 hours)\n"
-                                    "  vomsACvalidityPeriod=time (e.g. 43200; if not specified, validityPeriod is used\n"
+                                    "  validityPeriod=time (e.g. 43200 or 12h or 12H; if both validityPeriod and validityEnd not specified, the default is 12 hours)\n"
+                                    "  vomsACvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, validityPeriod is used\n"
                                     "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file"));
 
@@ -253,6 +253,28 @@ int main(int argc, char *argv[]) {
       (constraints["validityPeriod"].empty()))
     constraints["validityPeriod"] = "43200";
 
+  //If the period is formated with hours, e.g., 12h, then change 
+  //it into seconds
+  if(!(constraints["validityPeriod"].empty()) && 
+    ((constraints["validityPeriod"].rfind("h") != std::string::npos) ||
+    (constraints["validityPeriod"].rfind("H") != std::string::npos))) {
+    unsigned long tmp;
+    tmp = std::strtoll(constraints["validityPeriod"].c_str(), NULL, 0);
+    tmp = tmp * 3600;
+    std::string strtmp = Arc::tostring(tmp);
+    constraints["validityPeriod"] = strtmp;
+  }
+
+  if(!(constraints["vomsACvalidityPeriod"].empty()) &&
+    ((constraints["vomsACvalidityPeriod"].rfind("h") != std::string::npos) ||
+    (constraints["vomsACvalidityPeriod"].rfind("H") != std::string::npos))) {
+    unsigned long tmp;
+    tmp = std::strtoll(constraints["vomsACvalidityPeriod"].c_str(), NULL, 0);
+    tmp = tmp * 3600;
+    std::string strtmp = Arc::tostring(tmp);
+    constraints["vomsACvalidityPeriod"] = strtmp;
+  }
+
   //Set the default proxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if (constraints["vomsACvalidityPeriod"].empty()) {
@@ -266,7 +288,7 @@ int main(int argc, char *argv[]) {
       constraints["vomsACvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - Arc::Time()) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
   }
 
-  std::string voms_period = Glib::Ascii::dtostr(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
+  std::string voms_period = Arc::tostring(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
 
   SSL_load_error_strings();
   SSL_library_init();
@@ -405,12 +427,16 @@ int main(int argc, char *argv[]) {
 
       Arc::Credential proxy_cred(tmpcert_file, tmpkey_file, ca_dir, "");
       std::string proxy_cred_str_pem;
-      std::ofstream proxy_cred_f(proxy_path.c_str());
       proxy_cred.OutputCertificate(proxy_cred_str_pem);
       proxy_cred.OutputPrivatekey(proxy_cred_str_pem);
       proxy_cred.OutputCertificateChain(proxy_cred_str_pem);
-      proxy_cred_f.write(proxy_cred_str_pem.c_str(), proxy_cred_str_pem.size());
-      proxy_cred_f.close();
+
+      int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+      if (f == -1)
+        throw std::runtime_error("Failed to open proxy file " + proxy_path);
+      if (::write(f, proxy_cred_str_pem.c_str(), proxy_cred_str_pem.length()) != proxy_cred_str_pem.length())
+        throw std::runtime_error("Failed to write into proxy file " + proxy_path);
+      ::close(f);
 
       //Myproxy server will then return a standard response message
       std::string ret_str2;
@@ -450,6 +476,9 @@ int main(int argc, char *argv[]) {
   //Create proxy or voms proxy
   try {
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
+
+    std::cout<<"Your identity: "<<signer.GetIdentityName()<<std::endl;    
+
     std::string private_key, signing_cert, signing_cert_chain;
 
     Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
