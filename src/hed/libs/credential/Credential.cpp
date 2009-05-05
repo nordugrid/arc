@@ -472,6 +472,8 @@ namespace Arc {
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_sha1());
 
+    InitVerification();
+
     extensions_ = sk_X509_EXTENSION_new_null();
 
     //Initiate the proxy certificate constant and  method which is required by openssl
@@ -483,13 +485,15 @@ namespace Arc {
 	  req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits),
 	  extensions_(NULL) {
 
-	OpenSSL_add_all_algorithms();
-	//EVP_add_digest(EVP_sha1());
+    OpenSSL_add_all_algorithms();
+    //EVP_add_digest(EVP_sha1());
 
-	extensions_ = sk_X509_EXTENSION_new_null();
+    InitVerification();
 
-	//Initiate the proxy certificate constant and  method which is required by openssl
-	if(!proxy_init_) InitProxyCertInfo();
+    extensions_ = sk_X509_EXTENSION_new_null();
+
+    //Initiate the proxy certificate constant and  method which is required by openssl
+    if(!proxy_init_) InitProxyCertInfo();
   }
 
   Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion,
@@ -500,6 +504,8 @@ namespace Arc {
 
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_sha1());
+
+    InitVerification();
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -702,6 +708,8 @@ namespace Arc {
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_sha1());
 
+    InitVerification();
+
     extensions_ = sk_X509_EXTENSION_new_null();
 
     if(certfile.empty()) {
@@ -724,8 +732,6 @@ namespace Arc {
 
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
-
-    InitVerification();
 
     if(!cacertfile_.empty() || !cacertdir_.empty())
       Verify();
@@ -1948,6 +1954,9 @@ err:
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024), extensions_(NULL) {
     OpenSSL_add_all_algorithms();
+
+    InitVerification();
+
     extensions_ = sk_X509_EXTENSION_new_null();
 
     try {
