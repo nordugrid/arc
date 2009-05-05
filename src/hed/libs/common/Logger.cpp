@@ -149,14 +149,12 @@ namespace Arc {
 
   Logger*Logger::rootLogger = NULL;
   unsigned int Logger::rootLoggerMark = ~rootLoggerMagic;
-  int Logger::logCounter = 0;
 
   Logger& Logger::getRootLogger(void) {
     if ((rootLogger == NULL) || (rootLoggerMark != rootLoggerMagic)) {
       rootLogger = new Logger();
       rootLoggerMark = rootLoggerMagic;
     }
-    logCounter++;
     return *rootLogger;
   }
 
@@ -180,7 +178,6 @@ namespace Arc {
   }
 
   Logger::~Logger() {
-    if (logCounter-- == 0 && rootLogger) delete rootLogger;
   }
 
   void Logger::addDestination(LogDestination& destination) {

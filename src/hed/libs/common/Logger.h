@@ -456,7 +456,6 @@ namespace Arc {
 #define rootLoggerMagic (0xF6569201)
     static Logger *rootLogger;
     static unsigned int rootLoggerMark;
-    static int logCounter;
   };
 
 } // namespace Arc
