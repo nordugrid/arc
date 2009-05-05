@@ -2457,8 +2457,6 @@ error:
     if(rsa_key_) RSA_free(rsa_key_);
     if(extensions_) sk_X509_EXTENSION_pop_free(extensions_, X509_EXTENSION_free);
     if(verify_ctx_.cert_chain) sk_X509_pop_free(verify_ctx_.cert_chain, X509_free);
-
-    EVP_cleanup();
   }
 
 }
