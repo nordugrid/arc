@@ -491,15 +491,15 @@ int main(int argc, char *argv[]) {
     //Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
     Arc::Credential cred_request(start, period, keybits);
     cred_request.GenerateRequest(req_str);
+    cred_request.OutputPrivatekey(private_key);
+    signer.OutputCertificate(signing_cert);
+    signer.OutputCertificateChain(signing_cert_chain);
 
     if(!vomslist.empty()) { //If we need to generate voms proxy
 
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
       signer.SignRequest(&cred_request, proxy_path.c_str());
-      cred_request.OutputPrivatekey(private_key);
-      signer.OutputCertificate(signing_cert);
-      signer.OutputCertificateChain(signing_cert_chain);
       std::ofstream out_f(proxy_path.c_str(), std::ofstream::app);
       out_f.write(private_key.c_str(), private_key.size());
       out_f.write(signing_cert.c_str(), signing_cert.size());
