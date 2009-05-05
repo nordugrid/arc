@@ -1,0 +1,11 @@
+bin_PROGRAMS = jura
+
+jura_SOURCES  = main.cpp jura.h UsageReporter.cpp UsageReporter.h JobLogFile.cpp JobLogFile.h Destinations.cpp Destinations.h Destination.cpp Destination.h LutsDestination.cpp LutsDestination.h
+
+jura_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include -ggdb
+jura_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+#man_MANS = arexlutsclient.1

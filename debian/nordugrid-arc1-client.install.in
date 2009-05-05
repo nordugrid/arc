@@ -21,8 +21,7 @@ usr/bin/arcmigrate
 usr/bin/arcresume
 usr/bin/arcrenew
 usr/bin/voms_assertion_init
-/usr/bin/arexlutsclient
-/usr/bin/arexlutsclient-wrapper.sh
+usr/bin/jura
 usr/share/man/man1/arcecho.1
 usr/share/man/man1/arcinfo.1
 usr/share/man/man1/arcproxy.1

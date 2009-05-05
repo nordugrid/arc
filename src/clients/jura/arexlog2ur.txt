@@ -4,7 +4,7 @@ OGF-UR property	     A-REX log entry		  ARC-UR property
 RecordIdentity:      nodename, ngjobid 
 		     (hyphen-separated, 
 		     with custom prefix)
-GlobalJobId:         ngjobid			  globaljobid
+GlobalJobId:         (ngjobid) globalid		  globaljobid
 LocalJobId:          localjobid			  localjobid
 ProcessId:           [MISSING]			  processid
 GlobalUserName:      usersn			  globaluserid
@@ -18,21 +18,22 @@ CpuDuration:         usedcputime		  usedcputime
 StartTime:           submissiontime		  submissiontime
 EndTime:             endtime			  endtime
 MachineName:         nodename			  nodename
-Host:                [MISSING]
+Host:                nodename
 SubmitHost:          clienthost			  submithost
                      (port number removed)
 Queue:               lrms			  queue (lrms)
-ProjectName:         [MISSING]			  projectname
+ProjectName:         projectname		  projectname
 
 Differentiated properties
 
 Network:             [MISSING]			  network
 Disk:                [MISSING]			  useddisk
 Memory:              [MISSING] 			  usedmemory
-                     (usedmemory is always 
-                     zero using fork scheduler)
+                     (usedmemory is always zero
+                     due to bug in GNU time
+		     using fork scheduler)
 Swap:                [MISSING]			  usedswap
-NodeCount:           [MISSING]			  nodecount
+NodeCount:           nodecount			  nodecount
 Processors:          [MISSING]			  processors
 
 TimeDuration:        [MISSING]
