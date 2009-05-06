@@ -32,17 +32,12 @@ umask 022
 
 my_id=`id -u`
 
-STAT_USERNAME='stat -u'
-eval $STAT_USERNAME $0 2>/dev/null 1>&2
-if [ ! $? = '0' ] ; then
-  STAT_USERNAME='stat -c "uid (%U)"'
-  eval $STAT_USERNAME $0 2>/dev/null 1>&2
-  if [ ! $? = '0' ] ; then
-    # OBS: Solaris 9 is missing stat (but Solaris 10 has it)
-    olog "Warning: Can't find useable stat utility"
-    STAT_USERNAME='echo bogous'
-  fi
-fi
+# Prints the owner of the file given as argument
+# Perl is used because it's more protable than using the stat command
+printowner () {
+  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
+  perl -we "$code" "$1"
+}
 
 if [ -z "$1" ] ; then exit 1 ; fi
 
@@ -116,7 +111,7 @@ for ctr_dir in $control_dirs ; do
     as_owner() { /bin/sh -c "$*"; }
     # find who runs this job
     if [ "$my_id" = '0' ] ; then
-      username=`eval $STAT_USERNAME "${jobfile}" | sed -n 's/^uid (\([^)]*\))/\1/p'`
+      username=`printowner "${jobfile}"`
       if [ $? = 0 ] && [ ! -z "$username" ]; then
         as_owner() { su "$username" -c "$*"; }
       else

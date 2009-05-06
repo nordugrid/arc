@@ -63,7 +63,6 @@ EOHELP
       exit 1
    fi
    . $arg_file
-   echo "joboption_user=`whoami`" >> $arg_file
 
    if [ -z "$joboption_controldir" ] ; then
      joboption_controldir=`dirname "$arg_file"`

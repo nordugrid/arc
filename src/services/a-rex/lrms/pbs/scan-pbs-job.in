@@ -57,17 +57,12 @@ ldate=$(( $ldt + 0 ))
 if [ -z "$lines_skip" ] ; then lines_skip='0' ; fi
 if [ -z "$ldate" ] ; then ldate='0' ; fi
 
-STAT_USERNAME='stat -u'
-eval $STAT_USERNAME $0 2>/dev/null 1>&2
-if [ ! $? = '0' ] ; then
-  STAT_USERNAME='stat -c "uid (%U)"'
-  eval $STAT_USERNAME $0 2>/dev/null 1>&2
-  if [ ! $? = '0' ] ; then
-    echo "Can't find useable stat utility"
-    sleep 60
-    exit 1
-  fi
-fi 
+# Prints the owner of the file given as argument
+# Perl is used because it's more protable than using the stat command
+printowner () {
+  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
+  perl -we "$code" "$1"
+}
 
 # Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
 # This file can also contain a message from PBS (i.e. the reason for killing the job).
@@ -190,7 +185,7 @@ sort -u | \
         diagfile="${session}.diag"
         commentfile="${session}.comment"
 	if [ "$my_id" = '0' ] ; then
-          username=`eval $STAT_USERNAME "${name}" | grep 'uid' | sed -n 's/[^(]*(\([^(]*\))/\1/p'`
+          username=`printowner "${name}"`
 	else
 	  username=
 	fi
@@ -357,7 +352,7 @@ for ctr_dir in "$@" ; do
     status=`cat "$statusfile"`
     if [ ! "$status" = "INLRMS" ] ; then continue ; fi
     if [ "$my_id" = '0' ] ; then
-      username=`eval $STAT_USERNAME "${jobfile}" | grep 'uid' | sed -n 's/[^(]*(\([^(]*\))/\1/p'`
+      username=`printowner "${jobfile}"`
     else
       username=
     fi
