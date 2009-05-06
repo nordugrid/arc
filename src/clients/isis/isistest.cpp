@@ -207,7 +207,7 @@ std::vector<std::string> GetISISList( Arc::URL url ){
     //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
     Arc::ClientSOAP client_entry(mcc_cfg, url);
 
-    // Create and send Query request
+    // Create and send GetISISList request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns;
     query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
