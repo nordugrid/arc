@@ -195,7 +195,7 @@ echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
 
 # simple queuing system: make hard reference to the queue
 cd "$joboption_directory" 1>&2 || { echo "Could not cd to $joboption_directory, aborting" && exit 1; }
-watcher "${LRMS_JOB_SCRIPT}" "${LRMS_JOB_OUT}" "${LRMS_JOB_ERR}" &
+watcher "${LRMS_JOB_SCRIPT}" "${joboption_directory}.comment" "${LRMS_JOB_ERR}" &
 job_id=$!
 result=
 while [ -z "$result" ]; do

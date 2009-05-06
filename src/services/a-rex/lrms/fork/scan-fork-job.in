@@ -16,6 +16,24 @@ $debug "options = $@"
 
 if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
 
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+save_commentfile () {
+  username=$1
+  commentfile=$2
+  errorsfile=$3
+  action="
+    { echo '---------- Contents of output stream from job wrapper -----------'
+      cat '$commentfile' 2> /dev/null
+      echo '------------------------- End of output -------------------------'
+    } >> '$errorsfile'
+  "
+  if [ -z "$username" ] ; then
+    eval "$action"
+  else
+    su "$username" -c "eval \"$action\""
+  fi
+}
+
 for control_dir in "$@" ; do
 
     if [ ! -d "${control_dir}" ]; then 
@@ -60,7 +78,7 @@ for control_dir in "$@" ; do
         fi
 
         $debug "checking ${joboption_directory}.diag"
-        if [ `id -u` -eq '0' ] ; then
+        if [ "$id" = '0' ] ; then
           exitcode=`su "${joboption_user}" -c "cat ${joboption_directory}.diag" 2>/dev/null | sed -n 's/^exitcode=\([0-9]*\).*/\1/p'`
         else
           exitcode=`cat "${joboption_directory}.diag" 2>/dev/null | sed -n 's/^exitcode=\([0-9]*\).*/\1/p'`
@@ -80,6 +98,12 @@ for control_dir in "$@" ; do
             fork_comment="Job finished with non-zero exit code" 1>&2
 	fi
         $debug "got exitcode=$exitcode"
+        if [ "$id" = '0' ] ; then
+            username=$joboption_user
+        else
+            username=
+        fi
+        save_commentfile "$username" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
 	echo "$exitcode $fork_comment" > "${control_dir}/job.${job}.lrms_done"
     done    
 
