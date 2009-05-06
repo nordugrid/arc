@@ -477,7 +477,7 @@ int main(int argc, char *argv[]) {
   try {
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
 
-    std::cout<<"Your identity: "<<signer.GetIdentityName()<<std::endl;    
+    //std::cout<<"Your identity: "<<signer.GetIdentityName()<<std::endl;    
 
     std::string private_key, signing_cert, signing_cert_chain;
 
@@ -721,6 +721,11 @@ int main(int argc, char *argv[]) {
     if (::write(f, proxy_cert.c_str(), proxy_cert.length()) != proxy_cert.length())
       throw std::runtime_error("Failed to write into proxy file " + proxy_path);
     ::close(f);
+
+    Arc::Credential proxy_cred(proxy_path, proxy_path, ca_dir, "");
+    Arc::Time left = proxy_cred.GetEndTime();
+    std::cout<<"Proxy generation succeeded"<<std::endl;
+    std::cout<<"The proxy will be valid until: "<<(std::string)left<<std::endl;
 
     //return EXIT_SUCCESS;  
   } catch (std::exception& err) {

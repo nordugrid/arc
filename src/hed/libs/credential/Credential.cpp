@@ -354,6 +354,7 @@ namespace Arc {
           CredentialLogger.msg(ERROR,"Can not read key file: %s", key); LogError();
           throw CredentialError("Can not read key file");
        }
+       BIO_set_close(keybio, BIO_CLOSE);
       }
       else {
         keybio = BIO_new_mem_buf((void*)(key.c_str()), key.length());
@@ -372,7 +373,7 @@ namespace Arc {
           BIO_free(keybio);
           keybio = BIO_new_mem_buf((void*)(key.c_str()), key.length());
         }
-        prompt = "Enter passphrase to decrypt the PEM key file: ";
+        prompt = "Enter passphrase to decrypt the private key: ";
         EVP_set_pw_prompt((char*)(prompt.c_str()));
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb,
           (passphrase.empty()) ? NULL : (void*)(passphrase.c_str())))) {
@@ -719,6 +720,7 @@ namespace Arc {
 
     try {
       loadCertificate(certfile, cert_, &cert_chain_);
+      std::cout<<"Your identity: "<<GetDN() << std::endl;
       if(keyfile.empty())
         loadKey(certfile, pkey_, passphrase4key);
       else loadKey(keyfile, pkey_, passphrase4key);
