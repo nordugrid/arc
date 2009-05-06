@@ -395,8 +395,8 @@ else
   for fname in $joboption_rsl_outputfiles; do
     if [ "${fname:0:1}" = "@" ]; then
       dynlist=${fname:1}
-      echo "dynlist='$dynlist'" >> $PBS_JOB_SCRIPT
-      cat >> $PBS_JOB_SCRIPT <<'EOSCR'
+      echo "dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
+      cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
   chmod -R u-w "./$dynlist" 2>/dev/null
   cat "./$dynlist" \
   | sed 's/^ *"\([^"]*\)".*/\1/g;t suc;s/^ *//;s/\([^\\]\) .*/\1/;:suc;s/\\\(.\)/\1/g' \
