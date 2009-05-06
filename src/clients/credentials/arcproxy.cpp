@@ -204,6 +204,8 @@ int main(int argc, char *argv[]) {
       proxy_path = "/tmp/x509up_u" + Arc::tostring(user.get_uid());
 
     if (ca_dir.empty())
+      ca_dir = Arc::GetEnv("X509_CERT_DIR");
+    if (ca_dir.empty())
       ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
     if (ca_dir.empty()) {
       if (user.get_uid() == 0)
@@ -477,8 +479,6 @@ int main(int argc, char *argv[]) {
   try {
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
 
-    //std::cout<<"Your identity: "<<signer.GetIdentityName()<<std::endl;    
-
     std::string private_key, signing_cert, signing_cert_chain;
 
     Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
@@ -521,6 +521,8 @@ int main(int argc, char *argv[]) {
 
       //Parse the 'vomses' file to find configure lines corresponding to
       //the information from the command line
+      if (vomses_path.empty())
+        vomses_path = Arc::GetEnv("X509_VOMS_DIR");
       if (vomses_path.empty())
         vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
 
@@ -612,8 +614,9 @@ int main(int argc, char *argv[]) {
         p = voms_line.find("\"", p1 + 1);
         p1 = voms_line.find("\"", p + 1);
         std::string port = voms_line.substr(p + 1, p1 - p - 1);
-        logger.msg(Arc::INFO, "Contacting to VOMS server (named %s): %s on port: %s",
+        logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
                    voms_server.c_str(), address.c_str(), port.c_str());
+        std::cout<<"Contacting VOMS server (named "<<voms_server<<" ): "<< address<<" on port: "<<port<<std::endl;
 
         std::string send_msg;
         send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms><command>");
@@ -725,7 +728,7 @@ int main(int argc, char *argv[]) {
     Arc::Credential proxy_cred(proxy_path, proxy_path, ca_dir, "");
     Arc::Time left = proxy_cred.GetEndTime();
     std::cout<<"Proxy generation succeeded"<<std::endl;
-    std::cout<<"The proxy will be valid until: "<<(std::string)left<<std::endl;
+    std::cout<<"Your proxy is valid until: "<<(std::string)left<<std::endl;
 
     //return EXIT_SUCCESS;  
   } catch (std::exception& err) {
