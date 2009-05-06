@@ -8,8 +8,8 @@
 
 #include <arc/OptionParser.h>
 #include <arc/IString.h>
-#include <arc/ArcConfig.h>
 #include <arc/Logger.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>
@@ -17,107 +17,32 @@
 
 Arc::Logger logger(Arc::Logger::rootLogger, "ISISTest");
 
-
-std::string ChainConfigString( Arc::URL url ) {
-
-    std::string host = url.Host();
-    std::string port;
-    std::stringstream ss;
-    ss << url.Port();
-    ss >> port;
-    std::string path = url.Path();
-    logger.msg(Arc::DEBUG, " [ host : %s ]", host);
-    logger.msg(Arc::DEBUG, " [ port : %s ]", port);
-    logger.msg(Arc::DEBUG, " [ path : %s ]", path);
-
-    // Create client chain
-    std::string doc="";
-    doc +="\n";
-    doc +="    <ArcConfig\n";
-    doc +="      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\n";
-    doc +="      xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\">\n";
-    doc +="     <ModuleManager>\n";
-    doc +="        <Path>/usr/local/lib</Path>\n";
-    doc +="        <Path>/usr/lib</Path>\n";
-    doc +="        <Path>.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/http/.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/soap/.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/tls/.libs/</Path>\n";
-    doc +="        <Path>../../hed/mcc/tcp/.libs/</Path>\n";
-    doc +="     </ModuleManager>\n";
-    doc +="     <Plugins><Name>mcctcp</Name></Plugins>\n";
-    doc +="     <Plugins><Name>mcctls</Name></Plugins>\n";
-    doc +="     <Plugins><Name>mcchttp</Name></Plugins>\n";
-    doc +="     <Plugins><Name>mccsoap</Name></Plugins>\n";
-    doc +="     <Chain>\n";
-    doc +="      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>" + host + "</tcp:Host><tcp:Port>" + port + "</tcp:Port></tcp:Connect></Component>\n";
-    doc +="      <Component name='http.client' id='http'><next id='tcp'/><Method>POST</Method><Endpoint>"+ path +"</Endpoint></Component>\n";
-    doc +="      <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\n";
-    doc +="     </Chain>\n";
-    doc +="    </ArcConfig>";
-
-    return doc;
-}
-
-
 // Query function
 std::string Query( Arc::URL url, std::string query ){
 
-    Arc::XMLNode client_doc(ChainConfigString(url));
-    Arc::Config client_config(client_doc);
-    if(!client_config) {
-      logger.msg(Arc::ERROR, "Failed to load client configuration");
-      return "-1";
-    };
-    Arc::MCCLoader client_loader(client_config);
-    logger.msg(Arc::INFO, "Client side MCCs are loaded");
-    Arc::MCC* client_entry = client_loader["soap"];
-    if(!client_entry) {
-      logger.msg(Arc::ERROR, "Client chain does not have entry point");
-      return "-1";
-    };
+    Arc::MCCConfig mcc_cfg;
+    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
+    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
+    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
+    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    Arc::ClientSOAP client_entry(mcc_cfg, url);
 
     // Create and send Query request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns;
     query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
     Arc::PayloadSOAP req(query_ns);
-
     Arc::XMLNode request = req.NewChild("Query");
     request.NewChild("QueryString") = query;
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    reqmsg.Payload(&req);
-    // It is a responsibility of code initiating first Message to
-    // provide Context and Attributes as well.
-    Arc::MessageAttributes attributes_req;
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
 
     Arc::MCC_Status status;
+    Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
-    status= client_entry->process(reqmsg,repmsg);
+    status= client_entry.process(&req,&resp);
 
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
-      return "-1";
-    };
-
-    Arc::PayloadSOAP* resp = NULL;
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR, "There is no response");
-      return "-1";
-    };
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR, "Response is not SOAP");
       return "-1";
     };
 
@@ -139,23 +64,16 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
                       std::vector<std::string> type, std::vector<std::string> expiration ){
 
     if (serviceID.size() != epr.size()){
-       logger.msg(Arc::DEBUG, " Service_ID's number is not equivalent with the ERP's number!");
+       logger.msg(Arc::DEBUG, " Service_ID's number is not equivalent with the EPR's number!");
        return "-1";
     }
 
-    Arc::XMLNode client_doc(ChainConfigString(url));
-    Arc::Config client_config(client_doc);
-    if(!client_config) {
-      logger.msg(Arc::ERROR, "Failed to load client configuration");
-      return "-1";
-    };
-    Arc::MCCLoader client_loader(client_config);
-    logger.msg(Arc::INFO, "Client side MCCs are loaded");
-    Arc::MCC* client_entry = client_loader["soap"];
-    if(!client_entry) {
-      logger.msg(Arc::ERROR, "Client chain does not have entry point");
-      return "-1";
-    };
+    Arc::MCCConfig mcc_cfg;
+    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
+    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
+    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
+    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    Arc::ClientSOAP client_entry(mcc_cfg, url);
 
     // Create and send Register request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -194,39 +112,15 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
         metaSrcAdv.NewChild("GenTime") = out.str();
         metaSrcAdv.NewChild("Expiration") = expiration[i];
     }
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    reqmsg.Payload(&req);
-    // It is a responsibility of code initiating first Message to
-    // provide Context and Attributes as well.
-    Arc::MessageAttributes attributes_req;
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
 
     Arc::MCC_Status status;
+    Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
-    status= client_entry->process(reqmsg,repmsg);
+    status= client_entry.process(&req,&resp);
 
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
-      return "-1";
-    };
-
-    Arc::PayloadSOAP* resp = NULL;
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR, "There is no response");
-      return "-1";
-    };
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR, "Response is not SOAP");
       return "-1";
     };
 
@@ -246,19 +140,12 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
 // RemoveRegistrations function
 std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &serviceID ){
 
-    Arc::XMLNode client_doc(ChainConfigString(url));
-    Arc::Config client_config(client_doc);
-    if(!client_config) {
-      logger.msg(Arc::ERROR, "Failed to load client configuration");
-      return "-1";
-    };
-    Arc::MCCLoader client_loader(client_config);
-    logger.msg(Arc::INFO, "Client side MCCs are loaded");
-    Arc::MCC* client_entry = client_loader["soap"];
-    if(!client_entry) {
-      logger.msg(Arc::ERROR, "Client chain does not have entry point");
-      return "-1";
-    };
+    Arc::MCCConfig mcc_cfg;
+    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
+    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
+    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
+    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    Arc::ClientSOAP client_entry(mcc_cfg, url);
 
     // Create and send RemoveRegistrations request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -283,39 +170,15 @@ std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &service
     std::stringstream out;
     out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
     request.NewChild("MessageGenerationTime") = out.str();
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    reqmsg.Payload(&req);
-    // It is a responsibility of code initiating first Message to
-    // provide Context and Attributes as well.
-    Arc::MessageAttributes attributes_req;
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
 
     Arc::MCC_Status status;
+    Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
-    status= client_entry->process(reqmsg,repmsg);
+    status= client_entry.process(&req,&resp);
 
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
-      return "-1";
-    };
-
-    Arc::PayloadSOAP* resp = NULL;
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR, "There is no response");
-      return "-1";
-    };
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR, "Response is not SOAP");
       return "-1";
     };
 
@@ -337,60 +200,28 @@ std::vector<std::string> GetISISList( Arc::URL url ){
     //The response vector
     std::vector<std::string> response;
 
-    Arc::XMLNode client_doc(ChainConfigString(url));
-    Arc::Config client_config(client_doc);
-    if(!client_config) {
-      logger.msg(Arc::ERROR, "Failed to load client configuration");
-      return response;
-    };
-    Arc::MCCLoader client_loader(client_config);
-    logger.msg(Arc::INFO, "Client side MCCs are loaded");
-    Arc::MCC* client_entry = client_loader["soap"];
-    if(!client_entry) {
-      logger.msg(Arc::ERROR, "Client chain does not have entry point");
-      return response;
-    };
+    Arc::MCCConfig mcc_cfg;
+    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
+    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
+    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
+    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    Arc::ClientSOAP client_entry(mcc_cfg, url);
 
-    // Create and send RemoveRegistrations request
+    // Create and send Query request
     logger.msg(Arc::INFO, "Creating and sending request");
     Arc::NS query_ns;
     query_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
     Arc::PayloadSOAP req(query_ns);
-
     Arc::XMLNode request = req.NewChild("GetISISList");
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    reqmsg.Payload(&req);
-    // It is a responsibility of code initiating first Message to
-    // provide Context and Attributes as well.
-    Arc::MessageAttributes attributes_req;
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
 
     Arc::MCC_Status status;
+    Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
-    status= client_entry->process(reqmsg,repmsg);
+    status= client_entry.process(&req,&resp);
 
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
-      return response;
-    };
-
-    Arc::PayloadSOAP* resp = NULL;
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR, "There is no response");
-      return response;
-    };
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR, "Response is not SOAP");
       return response;
     };
 
