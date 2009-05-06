@@ -137,6 +137,62 @@ sub arc1_info_schema {
             },
     };
 
+    my $exec_env_t = {
+            'LocalID'              => [ '' ],
+            'PlatformType'         => [ '' ],
+            'VirtualMachine'       => [ '' ],
+            'TotalInstances'       => [ '' ],
+            'UsedInstances'        => [ '' ],
+            'UnavailableInstances' => [ '' ],
+            'PhysicalCPUs'         => [ '' ],
+            'LogicalCPUs'          => [ '' ],
+            'CPUMultiplicity'      => [ '' ],
+            'CPUVendor'            => [ '' ],
+            'CPUModel'             => [ '' ],
+            'CPUVersion'           => [ '' ],
+            'CPUClockSpeed'        => [ '' ],
+            'CPUTimeScalingFactor' => [ '' ],
+            'WallTimeScalingFactor'=> [ '' ],
+            'MainMemorySize'       => [ '' ],
+            'VirtualMemorySize'    => [ '' ],
+            'OSFamily'             => [ '' ],
+            'OSName'               => [ '' ],
+            'OSVersion'            => [ '' ],
+            'ConnectivityIn'       => [ '' ],
+            'ConnectivityOut'      => [ '' ],
+            'NetworkInfo'          => [ '' ],
+            'Associations' => {
+                'ComputingShareLocalID'         => [ '' ],
+                'ApplicationEnvironmentLocalID' => [ '' ],
+                'BenchmarkLocalID'              => [ '*' ],
+                'ComputingActivityID'           => [ '*' ],
+             },
+    };
+
+    my $app_env_t = {
+            'LocalID'      => [ '' ],
+            'Name'         => [ '' ],
+            'Version'      => [ '*' ],
+            'State'        => [ '*' ],
+            'LifeTime'     => [ '*' ],
+            'License'      => [ '*' ],
+            'Description'  => [ '*' ],
+            'ParallelSupport' => [ '*' ],
+            'MaxJobs'      => [ '*' ],
+            'MaxUserSeats' => [ '*' ],
+            'FreeSlots'    => [ '*' ],
+            'FreeJobs'     => [ '*' ],
+            'FreeUserSeats' => [ '*' ],
+            #'ApplicationHandle' => [ {
+            #    'LocalID' => [ '' ],
+            #    'Type'    => [ '' ],
+            #    'Value'   => [ '' ],
+            #} ],
+            #'Associations' => {
+            #    'ExecutionEnvironmentLocalID' => [ '' ],
+            #}
+    };
+
     my $comp_manager_t = {
             'BaseType'     => '',
             'CreationTime' => '',
@@ -170,66 +226,10 @@ sub arc1_info_schema {
             'ApplicationDir'        => [ '*' ],
             'OtherInfo'             => [ '*' ],
             #'Benchmark' => [ $benchmark_t ],
-            #'ApplicationEnvironments' => {
-            #    'ApplicationEnvironment' => [ $app_env_t ]
-            #},
+            'ApplicationEnvironments' => {
+                'ApplicationEnvironment' => [ $app_env_t ]
+            },
             #'ExecutionEnvironment' => [ $exec_env_t ],
-    };
-
-    my $app_env_t = {
-            'LocalID'      => [ '' ],
-            'Name'         => [ '' ],
-            'Version'      => [ '*' ],
-            'State'        => [ '*' ],
-            'LifeTime'     => [ '*' ],
-            'License'      => [ '*' ],
-            'Description'  => [ '*' ],
-            'ParallelType' => [ '*' ],
-            'MaxJobs'      => [ '*' ],
-            'MaxUserSeats' => [ '*' ],
-            'FreeSlots'    => [ '*' ],
-            'FreeJobs'     => [ '*' ],
-            'FreeUserSeats' => [ '*' ],
-            'ApplicationHandle' => [ {
-                'LocalID' => [ '' ],
-                'Type'    => [ '' ],
-                'Value'   => [ '' ],
-            } ],
-            'Associations' => {
-                'ExecutionEnvironmentLocalID' => [ '' ],
-            }
-    };
-
-    my $exec_env_t = {
-            'LocalID'              => [ '' ],
-            'PlatformType'         => [ '' ],
-            'VirtualMachine'       => [ '' ],
-            'TotalInstances'       => [ '' ],
-            'UsedInstances'        => [ '' ],
-            'UnavailableInstances' => [ '' ],
-            'PhysicalCPUs'         => [ '' ],
-            'LogicalCPUs'          => [ '' ],
-            'CPUMultiplicity'      => [ '' ],
-            'CPUVendor'            => [ '' ],
-            'CPUModel'             => [ '' ],
-            'CPUVersion'           => [ '' ],
-            'CPUClockSpeed'        => [ '' ],
-            'CPUTimeScalingFactor' => [ '' ],
-            'WallTimeScalingFactor'=> [ '' ],
-            'MainMemorySize'       => [ '' ],
-            'VirtualMemorySize'    => [ '' ],
-            'OSFamily'             => [ '' ],
-            'OSName'               => [ '' ],
-            'OSVersion'            => [ '' ],
-            'ConnectivityIn'       => [ '' ],
-            'ConnectivityOut'      => [ '' ],
-            'NetworkInfo'          => [ '' ],
-            'Associations' => {
-                'ComputingShareLocalID'         => [ '' ],
-                'ApplicationEnvironmentLocalID' => [ '' ],
-                'BenchmarkLocalID'              => [ '*' ],
-                'ComputingActivityID'           => [ '*' ],
-             },
     };
 
 my $comp_activity_t = {

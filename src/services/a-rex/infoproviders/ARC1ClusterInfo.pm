@@ -270,7 +270,8 @@ sub _collect($$) {
 
     # Locally Unique IDs
     my $cshaLID = 'csha0'; my %cshaLIDs; # ComputingShare
-    my $xenvLID = 'xenv0'; my @xenvIDs; # ExecutionEnvironment
+    my $xenvLID = 'xenv0'; my %xenvLIDs; # ExecutionEnvironment
+    my $aenvLID = 'aenv0'; my %aenvLIDs; # ApplicationEnvironment
     my $locLID = 'loc0';   my @locLIDs;  # Location
     my $conLID = 'con0';   my @conLIDs;  # Contact
     my $apolLID = 'apol0'; my @apolLIDs; # AccessPolicy
@@ -279,6 +280,11 @@ sub _collect($$) {
     # Generate CompShare LocalIDs
     for my $share (keys %{$config->{shares}}) {
         $cshaLIDs{$share} = $cshaLID++;
+    }
+
+    # Generate AppEnv LocalIDs
+    for my $rte (@{$host_info->{runtimeenvironments}}) {
+        $aenvLIDs{$rte} = $aenvLID++;
     }
 
     # generate CompActivity Global IDs
@@ -709,6 +715,28 @@ sub _collect($$) {
     #$cmgr->{ScratchDir};
     #$cmgr->{ApplicationDir};
 
+    # ApplicationEnvironments
+
+    $cmgr->{ApplicationEnvironments} = {};
+
+    for my $rte (@{$host_info->{runtimeenvironments}}) {
+
+        my $appenv = {};
+        push @{$cmgr->{ApplicationEnvironments}{ApplicationEnvironment}}, $appenv;
+
+        # Version is the part following the last -
+        my ($name,$version) = ($rte, '');
+        ($name,$version) = ($1, $2) if $rte =~ m{^(.*)-([^/-]*)$};
+
+        $appenv->{Name} = [ $name ];
+        $appenv->{Version} = [ $version ];
+        $appenv->{LocalID} = [ $aenvLIDs{$rte} ];
+        #TODO: mechanism for getting metadata about RTEs, even for manually installed ones
+	# Could use tags inside the RTE script inspired by as doxygen or init scripts
+        $appenv->{State} = [ 'installednotverified' ];
+        $appenv->{Description} = [ 'NotImplemented' ];
+        $appenv->{ParallelSupport} = [ 'none' ];
+    }
 
     # Computing Activities
 
@@ -793,7 +821,8 @@ sub _collect($$) {
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
             $log->warning("No local job for $jobid") and next unless $lrmsjob;
 
-            $cact->{State} = [ ogsa_state("INLRMS", $lrmsjob->{status}) or 'UNDEFINEDVALUE' ];
+            my $ogsa_state = ogsa_state("INLRMS", $lrmsjob->{status});
+            $cact->{State} = [ $ogsa_state ? "bes:$ogsa_state" : 'UNDEFINEDVALUE' ];
             $cact->{WaitingPosition} = [ $lrmsjob->{rank} ] if defined $lrmsjob->{rank};
             $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
             unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
