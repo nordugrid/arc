@@ -9,6 +9,7 @@
 #include <string>
 #include <stdexcept>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -261,7 +262,7 @@ int main(int argc, char *argv[]) {
     ((constraints["validityPeriod"].rfind("h") != std::string::npos) ||
     (constraints["validityPeriod"].rfind("H") != std::string::npos))) {
     unsigned long tmp;
-    tmp = std::strtoll(constraints["validityPeriod"].c_str(), NULL, 0);
+    tmp = strtoll(constraints["validityPeriod"].c_str(), NULL, 0);
     tmp = tmp * 3600;
     std::string strtmp = Arc::tostring(tmp);
     constraints["validityPeriod"] = strtmp;
@@ -271,7 +272,7 @@ int main(int argc, char *argv[]) {
     ((constraints["vomsACvalidityPeriod"].rfind("h") != std::string::npos) ||
     (constraints["vomsACvalidityPeriod"].rfind("H") != std::string::npos))) {
     unsigned long tmp;
-    tmp = std::strtoll(constraints["vomsACvalidityPeriod"].c_str(), NULL, 0);
+    tmp = strtoll(constraints["vomsACvalidityPeriod"].c_str(), NULL, 0);
     tmp = tmp * 3600;
     std::string strtmp = Arc::tostring(tmp);
     constraints["vomsACvalidityPeriod"] = strtmp;
@@ -650,8 +651,7 @@ int main(int argc, char *argv[]) {
           logger.msg(Arc::ERROR, "No stream response from voms server");
           return EXIT_FAILURE;
         }
-        std::string ret_str;
-        int length;
+        std::string ret_str;    
         char ret_buf[1024];
         memset(ret_buf, 0, 1024);
         int len;
