@@ -11,6 +11,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/Thread.h>
+#include <arc/infosys/RegisteredService.h>
 
 #include "slcs.h"
 
@@ -168,7 +169,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   return Arc::MCC_Status();
 }
 
-Service_SLCS::Service_SLCS(Arc::Config *cfg):Service(cfg), 
+Service_SLCS::Service_SLCS(Arc::Config *cfg):RegisteredService(cfg), 
     logger_(Arc::Logger::rootLogger, "SLCS_Service"), ca_credential_(NULL) {
 
   logger_.addDestination(logcerr);
@@ -183,6 +184,27 @@ Service_SLCS::Service_SLCS(Arc::Config *cfg):Service(cfg),
 
 Service_SLCS::~Service_SLCS(void) {
   if(ca_credential_) delete ca_credential_;
+}
+
+bool Service_SLCS::RegistrationCollector(Arc::XMLNode &doc) {
+  logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
+  //RegEntry element generation
+  Arc::XMLNode empty(ns_, "RegEntry");
+  empty.New(doc);
+  
+  doc.NewChild("SrcAdv");
+  doc.NewChild("MetaSrcAdv");
+  
+  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.slcs";
+  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
+  //doc["SrcAdv"].NewChild("SSPair");
+  
+  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  
+  std::string regcoll;
+  doc.GetDoc(regcoll, true);
+  logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
+  return true;
 }
 
 } // namespace ArcSec
