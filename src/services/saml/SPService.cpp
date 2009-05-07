@@ -94,7 +94,7 @@ bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val)
   return false;
 }
 
-Service_SP::Service_SP(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "SAML2SP") {
+Service_SP::Service_SP(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logger::rootLogger, "SAML2SP") {
 /*
   Arc::XMLNode chain_node = (*cfg).Parent();
   Arc::XMLNode tls_node;
@@ -114,6 +114,10 @@ Service_SP::Service_SP(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLo
   std::string metadata_file = (std::string)((*cfg)["MetaDataLocation"]);
   logger.msg(Arc::INFO, "SAML Metadata is from %s", metadata_file);
   metadata_node_.ReadFromFile(metadata_file);
+
+  endpoint_=(std::string)((*cfg)["endpoint"]);
+  expiration_=(std::string)((*cfg)["expiration"]);
+
   if(!(Arc::init_xmlsec())) return;
 }
 
@@ -339,6 +343,19 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
+
+
+bool Service_SP::RegistrationCollector(Arc::XMLNode &doc) {
+  Arc::XMLNode regentry(ns_, "RegEntry");
+  regentry.NewChild("SrcAdv");
+  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.saml";
+  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
+  regentry.NewChild("MetaSrcAdv");
+  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  regentry.New(doc);
+  return true;
+}
+
 
 } // namespace SPService
 

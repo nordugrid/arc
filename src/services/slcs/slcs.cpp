@@ -11,7 +11,6 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/Thread.h>
-#include <arc/infosys/RegisteredService.h>
 
 #include "slcs.h"
 
@@ -180,6 +179,9 @@ Service_SLCS::Service_SLCS(Arc::Config *cfg):RegisteredService(cfg),
   CAkey = (std::string)((*cfg)["CAKey"]);
   CAserial = (std::string)((*cfg)["CASerial"]);
   ca_credential_ = new Arc::Credential(CAcert, CAkey, CAserial, 0, "", "");
+
+  endpoint_=(std::string)((*cfg)["endpoint"]);
+  expiration_=(std::string)((*cfg)["expiration"]);
 }
 
 Service_SLCS::~Service_SLCS(void) {
@@ -187,23 +189,13 @@ Service_SLCS::~Service_SLCS(void) {
 }
 
 bool Service_SLCS::RegistrationCollector(Arc::XMLNode &doc) {
-  logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
-  //RegEntry element generation
-  Arc::XMLNode empty(ns_, "RegEntry");
-  empty.New(doc);
-  
-  doc.NewChild("SrcAdv");
-  doc.NewChild("MetaSrcAdv");
-  
+  Arc::XMLNode regentry(ns_, "RegEntry");
+  regentry.NewChild("SrcAdv");
   doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.slcs";
   doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  //doc["SrcAdv"].NewChild("SSPair");
-  
+  regentry.NewChild("MetaSrcAdv");
   doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
-  
-  std::string regcoll;
-  doc.GetDoc(regcoll, true);
-  logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
+  regentry.New(doc);
   return true;
 }
 

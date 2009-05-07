@@ -14,7 +14,6 @@
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/security/ArcPDP/Source.h>
 #include <arc/Thread.h>
-#include <arc/infosys/RegisteredService.h>
 
 #include "charon.h"
 
@@ -179,6 +178,9 @@ Charon::Charon(Arc::Config *cfg):RegisteredService(cfg), logger_(Arc::Logger::ro
       logger.msg(Arc::INFO, "Policy location: %s", (std::string)policyfile);
     }
   }
+
+  endpoint_=(std::string)((*cfg)["endpoint"]);
+  expiration_=(std::string)((*cfg)["expiration"]);
 }
 
 Charon::~Charon(void) {
@@ -188,23 +190,13 @@ Charon::~Charon(void) {
 }
 
 bool Charon::RegistrationCollector(Arc::XMLNode &doc) {
-  logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
-  //RegEntry element generation
-  Arc::XMLNode empty(ns_, "RegEntry");
-  empty.New(doc);
-  
-  doc.NewChild("SrcAdv");
-  doc.NewChild("MetaSrcAdv");
-  
+  Arc::XMLNode regentry(ns_, "RegEntry");
+  regentry.NewChild("SrcAdv");
   doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.charon";
   doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  //doc["SrcAdv"].NewChild("SSPair");
-  
+  regentry.NewChild("MetaSrcAdv");
   doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
-  
-  std::string regcoll;
-  doc.GetDoc(regcoll, true);
-  logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
+  regentry.New(doc);
   return true;
 }
 

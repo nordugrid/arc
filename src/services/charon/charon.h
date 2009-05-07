@@ -1,7 +1,7 @@
 #ifndef __ARC_CHARON_H__
 #define __ARC_CHARON_H__
 
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
 #include <arc/infosys/InformationInterface.h>

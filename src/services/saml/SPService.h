@@ -2,8 +2,9 @@
 #define __ARC_SP_H__
 
 #include <map>
-#include <arc/message/Service.h>
 #include <arc/Logger.h>
+#include <arc/infosys/RegisteredService.h>
+#include <arc/infosys/InformationInterface.h>
 
 namespace SPService {
 
@@ -14,7 +15,7 @@ namespace SPService {
  * instead of the WRYF(where are you from) or Discovery Service in other implementation
  */
 
-class Service_SP: public Arc::Service
+class Service_SP: public Arc::RegisteredService
 {
     protected:
         Arc::NS ns_;
@@ -23,12 +24,17 @@ class Service_SP: public Arc::Service
         std::string sp_name_;
         std::string cert_file_;
         std::string privkey_file_;
+        std::string endpoint_;
+        std::string expiration_;
     public:
         /** Constructor*/
         Service_SP(Arc::Config *cfg);
         virtual ~Service_SP(void);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&);
+
+        bool RegistrationCollector(Arc::XMLNode &doc);
+
 };
 
 } // namespace SPService

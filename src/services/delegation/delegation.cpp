@@ -177,7 +177,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
   return Arc::MCC_Status();
 }
 
-Service_Delegation::Service_Delegation(Arc::Config *cfg):Service(cfg), 
+Service_Delegation::Service_Delegation(Arc::Config *cfg):RegisteredService(cfg), 
     logger_(Arc::Logger::rootLogger, "Delegation_Service"), deleg_service_(NULL) {
 
   logger_.addDestination(logcerr);
@@ -189,10 +189,24 @@ Service_Delegation::Service_Delegation(Arc::Config *cfg):Service(cfg),
 
   trusted_cadir = (std::string)((*cfg)["CACertificatesDir"]);
   trusted_capath = (std::string)((*cfg)["CACertificatePath"]);
+
+  endpoint_=(std::string)((*cfg)["endpoint"]);
+  expiration_=(std::string)((*cfg)["expiration"]);
 }
 
 Service_Delegation::~Service_Delegation(void) {
   if(deleg_service_) delete deleg_service_;
+}
+
+bool Service_Delegation::RegistrationCollector(Arc::XMLNode &doc) {
+  Arc::XMLNode regentry(ns_, "RegEntry");
+  regentry.NewChild("SrcAdv");
+  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.delegation";
+  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
+  regentry.NewChild("MetaSrcAdv");
+  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  regentry.New(doc);
+  return true;
 }
 
 } // namespace ArcSec

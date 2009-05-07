@@ -1,7 +1,7 @@
 #ifndef __ARC_SERVICE_SLCS_H__
 #define __ARC_SERVICE_SLCS_H__
 
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/credential/Credential.h>
 #include <arc/infosys/InformationInterface.h>
 
