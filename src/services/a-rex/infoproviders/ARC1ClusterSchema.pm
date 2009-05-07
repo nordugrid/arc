@@ -171,7 +171,8 @@ sub arc1_info_schema {
 
     my $app_env_t = {
             'LocalID'      => [ '' ],
-            'Name'         => [ '' ],
+            'Name'         => [ '*' ],
+            'AppName'      => [ '' ],
             'Version'      => [ '*' ],
             'State'        => [ '*' ],
             'LifeTime'     => [ '*' ],
