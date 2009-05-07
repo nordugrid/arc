@@ -647,6 +647,20 @@ namespace Arc {
       else
         logger.msg(INFO, "The Service doesn't advertise any Benchmarks.");
 
+      if (GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"])
+        for (XMLNode n = GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
+          ApplicationEnvironment ae;
+          ae.Name = (std::string)n["AppName"];
+          ae.Version = (std::string)n["Version"];
+          ae.State = (std::string)n["State"];
+          ae.FreeSlots = target.FreeSlots;
+          ae.FreeJobs = 42;  //These last two are temporary dummy values because I have no idea what they should represent
+          ae.FreeUserSeats = 42; // The number of small Spanish cars the user can obtain without payment
+          target.ApplicationEnvironments.push_back(ae);
+        }
+      else {
+        logger.msg(INFO, "The Service doesn't advertise any Application Environments.");
+      }
       mom.AddTarget(target);
     }
     else if (targetType == 1) {
