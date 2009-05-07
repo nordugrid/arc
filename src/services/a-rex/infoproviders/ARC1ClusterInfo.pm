@@ -32,44 +32,55 @@ sub mdstoiso {
 }
 
 # TODO: Stage-in and Stage-out are substates of what?
-# OBS: Deleted is not in OGSA-BES
-sub ogsa_state {
+sub bes_state {
     my ($gm_state,$lrms_state) = @_;
     if      ($gm_state eq "ACCEPTED") {
-        return "Pending:Accepted";
+        return [ "Pending", "Accepted" ];
     } elsif ($gm_state eq "PREPARING") {
-        return "Running:Stage-in";
+        return [ "Pending", "Stage-in" ];
     } elsif ($gm_state eq "SUBMIT") {
-        return "Running:Submitting";
+        return [ "Pending", "Submitting" ];
     } elsif ($gm_state eq "INLRMS") {
         if (not defined $lrms_state) {
-            return "Running";
+            return [ "Running" ];
         } elsif ($lrms_state eq 'Q') {
-            return "Running:Queuing";
+            return [ "Pending", "Queuing" ];
         } elsif ($lrms_state eq 'R') {
-            return "Running:Executing";
-        } elsif ($lrms_state eq 'EXECUTED' or $lrms_state eq '') {
-            return "Running:Executed";
+            return [ "Running", "Executing" ];
+        } elsif ($lrms_state eq 'EXECUTED'
+              or $lrms_state eq '') {
+            return [ "Running", "Executed" ];
         } elsif ($lrms_state eq 'S') {
-            return "Running:Suspended";
+            return [ "Running", "Suspended" ];
         } else {
-            return "Running:LRMSOther";
+            return [ "Running", "LRMSOther" ];
         }
     } elsif ($gm_state eq "FINISHING") {
-        return "Running:Stage-out";
+        return [ "Running", "Stage-out" ];
     } elsif ($gm_state eq "CANCELING") {
-        return "Running:Cancelling";
+        return [ "Running", "Cancelling" ];
     } elsif ($gm_state eq "KILLED") {
-        return "Cancelled";
+        return [ "Cancelled" ];
     } elsif ($gm_state eq "FAILED") {
-        return "Failed";
+        return [ "Failed" ];
     } elsif ($gm_state eq "FINISHED") {
-        return "Finished";
+        return [ "Finished" ];
     } elsif ($gm_state eq "DELETED") {
-        return "Deleted";
+        # Cannot map to BES state
+        return [ ];
     } else {
-        return undef;
+        return [ ];
     }
+}
+
+sub glueState {
+    my @ng_status = @_;
+    my $bes_state = bes_state(@ng_status);
+    my $status = [];
+    push @$status, "bes:".$bes_state->[0] if @$bes_state;
+    push @$status, "nordugrid:".join(':',@ng_status) if @ng_status;
+    push @$status, "UNDEFINEDVALUE" unless @$status;
+    return $status;
 }
 
 ############################################################################
@@ -762,8 +773,7 @@ sub _collect($$) {
         $cact->{Name} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
         # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
         $cact->{JobDescription} = [ "ogf:jsdl:1.0" ];
-        $cact->{State} = [ ogsa_state($gmjob->{status}) or 'UNDEFINEDVALUE' ];
-        $cact->{RestartState} = [ ogsa_state($gmjob->{failedstate},'R') or 'UNDEFINEDVALUE' ] if $gmjob->{failedstate};
+        $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
         $cact->{ExitCode} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
         # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
         $cact->{ComputingManagerExitCode} = [ $gmjob->{lrmsexitcode} ] if $gmjob->{lrmsexitcode};
@@ -821,8 +831,7 @@ sub _collect($$) {
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
             $log->warning("No local job for $jobid") and next unless $lrmsjob;
 
-            my $ogsa_state = ogsa_state("INLRMS", $lrmsjob->{status});
-            $cact->{State} = [ $ogsa_state ? "bes:$ogsa_state" : 'UNDEFINEDVALUE' ];
+            $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
             $cact->{WaitingPosition} = [ $lrmsjob->{rank} ] if defined $lrmsjob->{rank};
             $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
             unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
@@ -831,6 +840,8 @@ sub _collect($$) {
             $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * $gmjob->{count} ] if defined $lrmsjob->{walltime};
             $cact->{UsedTotalCPUTime} = [ $lrmsjob->{cputime} ] if defined $lrmsjob->{cputime};
             $cact->{UsedMainMemory} = [ ceil($lrmsjob->{mem}/1024) ] if defined $lrmsjob->{mem};
+        } else {
+            $cact->{State} = glueState($gmjob->{status});
         }
 
     }
