@@ -151,6 +151,8 @@ static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>
     if(id.empty()) continue;
     std::string state  = (std::string)((*node)["State"]);
     if(state.empty()) continue;
+    // Remove bes prefix if present
+    if(strcmp("bes:",state.c_str()) == 0) state.erase(0,4);
     // Store state under id
     states[id] = state;
   };
