@@ -739,7 +739,7 @@ sub _collect($$) {
         my ($name,$version) = ($rte, '');
         ($name,$version) = ($1, $2) if $rte =~ m{^(.*)-([^/-]*)$};
 
-        $appenv->{Name} = [ $name ];
+        $appenv->{AppName} = [ $name ];
         $appenv->{Version} = [ $version ];
         $appenv->{LocalID} = [ $aenvLIDs{$rte} ];
         #TODO: mechanism for getting metadata about RTEs, even for manually installed ones
