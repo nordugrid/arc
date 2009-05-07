@@ -14,6 +14,7 @@
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/security/ArcPDP/Source.h>
 #include <arc/Thread.h>
+#include <arc/infosys/RegisteredService.h>
 
 #include "charon.h"
 
@@ -150,7 +151,7 @@ Arc::MCC_Status Charon::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   return Arc::MCC_Status();
 }
 
-Charon::Charon(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "Charon"), eval(NULL) {
+Charon::Charon(Arc::Config *cfg):RegisteredService(cfg), logger_(Arc::Logger::rootLogger, "Charon"), eval(NULL) {
   logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_["ra"]="http://www.nordugrid.org/schemas/request-arc";
@@ -184,6 +185,27 @@ Charon::~Charon(void) {
   if(eval)
     delete eval;
   eval = NULL;
+}
+
+bool Charon::RegistrationCollector(Arc::XMLNode &doc) {
+  logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
+  //RegEntry element generation
+  Arc::XMLNode empty(ns_, "RegEntry");
+  empty.New(doc);
+  
+  doc.NewChild("SrcAdv");
+  doc.NewChild("MetaSrcAdv");
+  
+  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.charon";
+  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
+  //doc["SrcAdv"].NewChild("SSPair");
+  
+  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  
+  std::string regcoll;
+  doc.GetDoc(regcoll, true);
+  logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
+  return true;
 }
 
 } // namespace ArcSec
