@@ -23,6 +23,7 @@ namespace ISIS {
             Arc::Period valid;
             Arc::Period remove;
             int retry;
+            int sparsity;
 
             bool KillThread;
             int ThreadsCount;
@@ -37,10 +38,13 @@ namespace ISIS {
             std::vector<Arc::ISIS_description> infoproviders_;
             std::string bootstrapISIS;
             int my_hash;
-            std::multimap<int,std::string> hash_table;
+            std::multimap<int,Arc::ISIS_description> hash_table;
 	    
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
-            std::vector<Arc::ISIS_description> neighbors_;
+            int neighbors_count;
+            std::vector<std::multimap<int,Arc::ISIS_description>::const_iterator> neighbors_;
+            void Neighbors_Update(int hash, Arc::ISIS_description isis, bool remove = false);
+
             bool CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::XMLNode &response);
             // InformationContainer providing information via the LIDI interface
             //Arc::InformationContainer infodoc_;
@@ -52,11 +56,6 @@ namespace ISIS {
             Arc::MCC_Status GetISISList(Arc::XMLNode &request, Arc::XMLNode &response);
 
             Arc::MCC_Status Connect(Arc::XMLNode &request, Arc::XMLNode &response);
-            Arc::MCC_Status Announce(Arc::XMLNode &request, Arc::XMLNode &response);
-            Arc::MCC_Status Alarm(Arc::XMLNode &request, Arc::XMLNode &response);
-            Arc::MCC_Status AlarmReport(Arc::XMLNode &request, Arc::XMLNode &response);
-            Arc::MCC_Status FakeAlarm(Arc::XMLNode &request, Arc::XMLNode &response);
-            Arc::MCC_Status ExtendISISList(Arc::XMLNode &request, Arc::XMLNode &response);
 
         public:
             ISIService(Arc::Config *cfg);
