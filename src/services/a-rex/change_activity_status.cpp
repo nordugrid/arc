@@ -157,6 +157,10 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   };
   // Make response
   // TODO: 
+  // Updating currenst job state
+  gm_state=job.State(pending);
+  failed=job.Failed();
+  convertActivityStatus(gm_state,bes_state,arex_state,failed,pending);
   Arc::XMLNode state = out.NewChild("a-rex:NewStatus");
   state.NewAttribute("bes-factory:state")=bes_state;
   state.NewChild("a-rex:state")=arex_state;
