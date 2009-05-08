@@ -30,6 +30,10 @@ class InfoRegister {
     private:
         // Registration period
         long int reg_period_;
+        // Registration information
+        std::string serviceid;
+        std::string expiration;
+        std::string endpoint;
         // Associated service - it is used to fetch information document
         Service *service_;
         NS ns_;
@@ -39,6 +43,9 @@ class InfoRegister {
         operator bool(void) { return service_; };
         bool operator!(void) { return !service_; };
         long int getPeriod(void) const { return reg_period_; };
+        std::string getServiceID(void) { if (serviceid.empty()) return ""; else return serviceid; };
+        std::string getEndpoint(void) { if (endpoint.empty()) return ""; else return endpoint; };
+        std::string getExpiration(void) { if (expiration.empty()) return ""; else return expiration; };
         Service* getService(void) { return service_; };
 };
 
@@ -57,10 +64,16 @@ class InfoRegisters {
 
 // Data stucture for the InfoRegistrar class.
 struct Register_Info_Type{
+    // Necessary information for the registration
     InfoRegister* p_register;
-    std::string serviceid_;
     Period period;
     Time next_registration;
+    // ServiceID extracted from the first provided registration message
+    std::string serviceid_;
+    // Registration information
+    std::string serviceid;
+    std::string expiration;
+    std::string endpoint;
 };
 
 // Data structure for describe a remote ISIS

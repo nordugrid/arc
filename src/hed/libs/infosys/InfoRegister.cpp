@@ -37,13 +37,21 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     ns_["register"] = REGISTRATION_NAMESPACE;
 
     // parse config
-    std::string s_reg_period = (std::string)cfg["InfoRegister"].Attribute("period");
+    std::string s_reg_period = (std::string)cfg["InfoRegister"]["Period"];
     if (!s_reg_period.empty()) {
         Period p(s_reg_period);
         reg_period_ = p.GetPeriod();
     } else {
         reg_period_ = -1;
     }
+    std::string s_serviceid = (std::string)cfg["InfoRegister"]["ServiceID"];
+    if (!s_serviceid.empty()) {
+        serviceid = s_serviceid;
+    }
+    if ((bool)cfg["InfoRegister"]["Endpoint"])
+        endpoint = (std::string)cfg["InfoRegister"]["Endpoint"];
+    if ((bool)cfg["InfoRegister"]["Expiration"])
+        expiration = (std::string)cfg["InfoRegister"]["Expiration"];
 
     //DEBUG//
     std::string configuration_string;
@@ -56,8 +64,9 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     // registration through specific registrants.
     std::list<std::string> ids;
     for(XMLNode r = cfg["InfoRegister"]["Registrar"];(bool)r;++r) {
-      std::string id = r;
+      std::string id = (std::string) r.Attribute("id");
       if(!id.empty()) ids.push_back(id);
+      else logger_.msg(ERROR, "Configuration error: \"id\" attribute is mandatory at the Registrar elements");
     };
     InfoRegisterContainer::Instance().addService(this,ids,cfg);
 }
@@ -181,11 +190,20 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
        return true;
     }
 
-    if ( ((std::string)cfg["InfoRegister"].Attribute("period")).empty() ){
-       logger_.msg(DEBUG, "Missing mandatory \"period\" attribute.");
+    if (!(bool)cfg["InfoRegister"]["Period"] ) {
+       logger_.msg(ERROR, "Configuration error. Missing mandatory \"Period\" element.");
        return false;
     }
 
+    if (!(bool)cfg["InfoRegister"]["Endpoint"] ) {
+       logger_.msg(ERROR, "Configuration error. Missing mandatory \"Endpoint\" element.");
+       return false;
+    }
+
+    if (!(bool)cfg["InfoRegister"]["Expiration"] ) {
+       logger_.msg(ERROR, "Configuration error. Missing mandatory \"Expiration\" element.");
+       return false;
+    }
     Glib::Mutex::Lock lock(lock_);
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
@@ -197,15 +215,32 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     Register_Info_Type reg_info;
     reg_info.p_register = reg;
 
+    std::string current_serviceid = reg->getServiceID();
+    std::string current_expiration = reg->getExpiration();
+    std::string current_endpoint = reg->getEndpoint();
     Period period(reg->getPeriod());
     for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
-       if ( (std::string)node == id_ && !((std::string)node.Attribute("period")).empty() ) {
-          Period current_period((std::string)node.Attribute("period"));
-          period = current_period;
+        if ( (std::string)node.Attribute("id") == id_ ) {
+            if (! ((std::string)node["Period"]).empty() ) {
+                Period current_period((std::string)node["Period"]);
+                period = current_period;
+            }
+            if (! ((std::string)node["ServiceID"]).empty() ) {
+                current_serviceid = (std::string)node["ServiceID"];
+            }
+            if (! ((std::string)node["Endpoint"]).empty() ) {
+                current_endpoint = (std::string)node["Endpoint"];
+            }
+            if (! ((std::string)node["Expiration"]).empty() ) {
+                current_expiration = (std::string)node["Expiration"];
+            }
        }
     }
 
     reg_info.period = period;
+    reg_info.serviceid = current_serviceid;
+    reg_info.expiration = current_expiration;
+    reg_info.endpoint = current_endpoint;
 
     reg_info.next_registration = creation_time.GetTime();
     reg_.push_back(reg_info);
@@ -352,6 +387,26 @@ void InfoRegistrar::registration(void) {
                 XMLNode services_doc(reg_ns,"RegEntry");
                 if(!((r->p_register)->getService())) continue;
                 (r->p_register)->getService()->RegistrationCollector(services_doc);
+
+                // Fill attributes from InfoRegister configuration
+                if (!((bool)services_doc["SrcAdv"]["EPR"]["Address"]) && !((r->endpoint).empty()) ) {
+                    if (!(bool)services_doc["SrcAdv"]) services_doc.NewChild("SrcAdv");
+                    if (!(bool)services_doc["SrcAdv"]["EPR"]) services_doc["SrcAdv"].NewChild("EPR");
+                    if (!(bool)services_doc["SrcAdv"]["EPR"]["Address"]) services_doc["SrcAdv"]["EPR"].NewChild("Address");
+                    services_doc["SrcAdv"]["EPR"]["Address"] = r->endpoint;
+                }
+
+                if (!((bool)services_doc["MetaSrcAdv"]["ServiceID"]) && !((r->serviceid).empty()) ) {
+                    if (!(bool)services_doc["MetaSrcAdv"]) services_doc.NewChild("MetaSrcAdv");
+                    if (!(bool)services_doc["MetaSrcAdv"]["ServiceID"]) services_doc["MetaSrcAdv"].NewChild("ServiceID");
+                    services_doc["MetaSrcAdv"]["ServiceID"] = r->serviceid;
+                }
+
+                if (!((bool)services_doc["MetaSrcAdv"]["Expiration"]) && !((r->expiration).empty()) ) {
+                    if (!(bool)services_doc["MetaSrcAdv"]) services_doc.NewChild("MetaSrcAdv");
+                    if (!(bool)services_doc["MetaSrcAdv"]["Expiration"]) services_doc["MetaSrcAdv"].NewChild("Expiration");
+                    services_doc["MetaSrcAdv"]["Expiration"] = r->expiration;
+                }
 
                 // Possible completion of the services_doc
                 if (!((bool)services_doc["MetaSrcAdv"]["ServiceID"]) && ((bool)services_doc["SrcAdv"]["EPR"]["Address"])) {
