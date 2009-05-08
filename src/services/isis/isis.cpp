@@ -942,7 +942,7 @@ static void soft_state_thread(void *data) {
             ret = Connect(connect_, r);
         }
 
-        /*else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+        else if(MatchXMLNamespace((*inpayload).Child(0),"http://docs.oasis-open.org/wsrf/rp-2")) {
             // TODO: do not copy out_ to outpayload.
             Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
             if(out_) {
@@ -952,7 +952,7 @@ static void soft_state_thread(void *data) {
                 delete outpayload;
                 return make_soap_fault(outmsg);
             };
-        }*/
+        }
 
         outmsg.Payload(outpayload);
         return ret;

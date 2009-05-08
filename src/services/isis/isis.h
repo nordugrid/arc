@@ -7,13 +7,14 @@
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/infosys/RegisteredService.h>
+#include <arc/infosys/InformationInterface.h>
 #include <arc/dbxml/XmlDatabase.h>
 
 namespace ISIS {
 
     class ISIService: public Arc::RegisteredService {
         private:
-	    // Configuration parameters
+            // Configuration parameters
             Arc::Logger logger_;
             std::ofstream log_destination;
             Arc::LogStream *log_stream;
@@ -27,8 +28,8 @@ namespace ISIS {
 
             bool KillThread;
             int ThreadsCount;
-	    // Garbage collector for memory leak killing
-	    std::vector<Arc::XMLNode*> garbage_collector;
+            // Garbage collector for memory leak killing
+            std::vector<Arc::XMLNode*> garbage_collector;
 
             Arc::XmlDatabase *db_;
             Arc::NS ns_;
@@ -39,7 +40,7 @@ namespace ISIS {
             std::string bootstrapISIS;
             int my_hash;
             std::multimap<int,Arc::ISIS_description> hash_table;
-	    
+
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             int neighbors_count;
             std::vector<std::multimap<int,Arc::ISIS_description>::const_iterator> neighbors_;
@@ -47,7 +48,7 @@ namespace ISIS {
 
             bool CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::XMLNode &response);
             // InformationContainer providing information via the LIDI interface
-            //Arc::InformationContainer infodoc_;
+            Arc::InformationContainer infodoc_;
 
             // Functions for the service specific interface
             Arc::MCC_Status Query(Arc::XMLNode &request, Arc::XMLNode &response);
