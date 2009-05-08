@@ -286,7 +286,7 @@ int main(int argc, char** argv) {
                 istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
                 istring("debuglevel"), debug);
 
-    bool neighbors;
+    bool neighbors = false;
       options.AddOption('n', "neighbors",
                 istring("get neighbors list from the BootstrapISIS"),
                 neighbors);
