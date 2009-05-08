@@ -12,33 +12,13 @@ class EchoService:
         self.prefix = str(cfg.Get('prefix'))
         # get the response-suffix from the config XML
         self.suffix = str(cfg.Get('suffix'))
-        # get the service ID from the config for the self-registration
-        self.serviceid = str(cfg.Get('serviceid'))
-        if not self.serviceid:
-            log.msg(arc.ERROR, "Missing serviceid from the configuration")
-            raise Exception, "Missing serviceid from the configuration"
-        # get the expiration time from the config for the self-registration
-        self.expiration = str(cfg.Get('expiration'))
-        if not self.expiration:
-            log.msg(arc.ERROR, "Missing expiration from the configuration")
-            raise Exception, "Missing expiration from the configuration"
         log.msg("EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix))
         self.ssl_config = parse_ssl_config(cfg)
 
     def RegistrationCollector(self, doc):
-        log.msg(doc.GetXML())
         regentry = arc.XMLNode('<RegEntry />')
-        log.msg(regentry.GetXML())
         SrcAdv = regentry.NewChild('SrcAdv')
-        log.msg(regentry.GetXML())
         SrcAdv.NewChild('Type').Set('org.nordugrid.tests.echo_python')
-        log.msg(regentry.GetXML())
-        SrcAdv.NewChild('EPR').NewChild('Address').Set(self.serviceid)
-        log.msg(regentry.GetXML())
-        MetaSrcAdv = regentry.NewChild('MetaSrcAdv')
-        log.msg(regentry.GetXML())
-        MetaSrcAdv.NewChild('Expiration').Set(self.expiration)
-        log.msg(regentry.GetXML())
 
         #Place the document into the doc attribute
         doc.Replace(regentry)
