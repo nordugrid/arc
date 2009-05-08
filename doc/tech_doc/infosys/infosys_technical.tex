@@ -1,0 +1,250 @@
+\documentclass{book}
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{longtable}                             %for breaking tables
+%\usepackage{trackchanges}
+%
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2CM}
+\hypersetup{
+  pdfauthor = {},
+  pdftitle = {Documentation of the ARC Information System},
+  pdfsubject = {},
+  pdfkeywords = {Paper,keyword,comma-separated},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+%
+%----- DON'T CHANGE HEADER MATTER
+\hyphenation{preserve-Original}
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+
+\begin{tabular}{rl}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+\end{tabular}
+
+\hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+
+{\raggedleft NORDUGRID-TECH-XX\par}
+
+{\raggedleft \today\par}
+
+\vspace*{2cm}
+
+%%%%---- The title ----
+{\centering \textsc{\Large ARC Information System}\Large \par}
+\vspace*{0.5cm}
+    
+%%%%---- A subtitle, if necessary ----
+{\centering \textit{\large Documentation and developer's guide}\large \par}
+    
+\vspace*{1.5cm}
+%%%%---- A list of authors ----
+    {\centering \large \footnote{@} \large \par}
+\end{titlepage}
+
+\tableofcontents                          %Comment if use article style
+\newpage
+
+\renewcommand{\thefootnote}{\arabic{footnote}}
+
+
+\chapter{Design Overview} % (fold)
+\label{cha:design_overview}
+
+\chapter{ISIS} % (fold)
+\label{cha:isis}
+
+\section{Registration handling} % (fold)
+\label{sec:registration_handling}
+
+\subsection{Functionality} % (fold)
+\label{sub:isis_functionality}
+
+ Main functionality of ISIS service visible from outside of ISIS cloud is to accept registration and provide collected information to clients. For that ISIS implements operations described in following section.
+The seingle ISIS service accepts Registration Records pushed to it by other services (including ISIS services too) and stores them in local XML database. Stored records can be queried by clients using mandatory and service-specific attributes for selection criteria.
+
+ In case of multiple ISIS services they form a peer-to-peer network called \texttt{Cloud of ISISes}. Inside that cloud Registration Records are propagated between services in such a way that all ISIS instances continiously try to synchronise their databases.
+
+% TODO: put figure here
+
+% subsection functionality (end)
+
+\subsection{Interface} % (fold)
+\label{sub:isis_interface}
+
+\subsubsection{Operation Register}
+
+\begin{description}
+
+  \item[Input]~\begin{description}
+    \item[Header]~\begin{description}
+      \item[RequesterID] Identifier of the client.
+      \item[MessageGenerationTime] Time when following set of RegEntry was generated. There may be multiple RegEntry elements.
+    \end{description}
+    \item[RegEntry]~\begin{description}
+      \item[SrcAdv]~\begin{description}
+        \item[Type] Type of service being registered. This element is opaque string for now. There shall be service types defined later.
+        \item[EPR] Endpoint Reference of service being registered in terms of WS-Addressing.
+        \item[SSPair] Set of key/value pairs representing service specific information.
+      \end{description}
+      \item[MetaSrcAdv]~\begin{description}
+        \item[ServiceID] Globally unique and persistent identifier of the service.
+        \item[GenTime] Time when this RegEntry was generated
+        \item[Expiration] Validity period of this registration record.
+      \end{description}
+    \end{description}
+  \end{description}
+
+  \item[Output]~\begin{description}
+    \item[Fault] Optional element describing fault which occured while performing registration. If missing registration succeeded.
+  \end{description}
+
+  \item[Faults]~\begin{description}
+    \item[none]No specific faults are defined
+  \end{description}
+
+\end{description}
+
+This operation is usually called by service which wants to register it's presence in ISIS. Service must supply mandatory information. \texttt{Endpoint Reference} is used to contact service. Only required element is contact URL of service. \texttt{Type} specifies kind of service and is used to find out functionality nad interface of service. \texttt{ServiceID} is used to distinguish between registered services and to deal with case of service changing it's contact URL.
+
+As result of this operation new Registration Record is stored inside ISIS internal database and eventually propagated to other ISISes. If registration record of same ID already existed it will be renewed.
+
+This operation is also used by ISIS services to propagate Registration Records inside ISIS cloud.
+
+\subsubsection{Operation RemoveRegistrations}
+
+\begin{description}
+
+  \item[Input]~\begin{description}
+    \item[MessageGenerationtime]
+    \item[ServiceID] Multiple identifiers of services, whose recordds has to be removed.
+  \end{description}
+
+  \item[Output]~\begin{description}
+    \item[RemoveRegistrationResponseElement]~\begin{description}
+      \item[ServiceID] Identifier of service whose record was not removed
+      \item[Fault] Description of failure reason
+    \end{description}
+  \end{description}
+
+  \item[Faults]~\begin{description}
+    \item[none]No specific faults are defined
+  \end{description}
+
+\end{description}
+
+This operation is used to explicitely erase Registration Records associated with specified ServiceID values. If corresponding record does not exist it's identifier will be present in response message together with corresponding Fault element.
+
+\subsubsection{Operation GetISISList}
+
+\begin{description}
+
+  \item[Input]~\begin{description}
+    \item[none]
+  \end{description}
+
+  \item[Output]~\begin{description}
+    \item[EPR] Multiple Endpoint References of known ISIS services
+  \end{description}
+
+  \item[Faults]~\begin{description}
+    \item[none]No specific faults are defined
+  \end{description}
+
+\end{description}
+
+In response to this operation the EndpointReferences to all known ISIS services are returned.
+
+\subsubsection{Operation Query}
+
+\begin{description}
+
+  \item[Input]~\begin{description}
+    \item[QueryString] XPath query expression
+  \end{description}
+
+  \item[Output]~\begin{description}
+    \item[any] Result of query
+  \end{description}
+
+  \item[Faults]~\begin{description}
+    \item[none]No specific faults are defined
+  \end{description}
+
+\end{description}
+
+This operation allows any XPath queries to be performed on stored Registration Records. The records are treated as merged in one XML document with each record being equivalent to \texttt{RegEntry} element of \texttt{Register} operation. In response all elements produced by XPath query are returned.
+
+
+% subsection interface (end)
+
+% section registration_handling (end)
+
+\section{Peer-to-Peer} % (fold)
+\label{sec:peer_to_peer}
+
+\subsection{Functionality} % (fold)
+\label{sub:functionality}
+
+% subsection functionality (end)
+
+\subsection{Interface} % (fold)
+\label{sub:interface}
+
+% subsection interface (end)
+
+% section peer_to_peer (end)
+
+% chapter isis (end)
+
+\chapter{Service} % (fold)
+\label{cha:service}
+
+\section{Information} % (fold)
+\label{sec:information}
+
+% section information (end)
+
+\section{Registration} % (fold)
+\label{sec:registration}
+
+% section registration (end)
+
+% chapter service (end)
+
+% \bibliography{grid}
+\end{document}
+
+
+
+
+
+
+
