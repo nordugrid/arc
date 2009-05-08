@@ -259,6 +259,13 @@ static void soft_state_thread(void *data) {
 
         endpoint_=(std::string)((*cfg)["endpoint"]);
 
+         // Assigning service description - Glue2 document should go here.
+         infodoc_.Assign(Arc::XMLNode(
+         "<?xml version=\"1.0\"?>"
+         "<Domains><AdminDomain><Services><Service>ISIS</Service></Services></AdminDomain></Domains>"
+         ),true);
+
+
         if ((bool)(*cfg)["retry"]) {
             if (!((std::string)(*cfg)["retry"]).empty()) {
                 if(EOF == sscanf(((std::string)(*cfg)["retry"]).c_str(), "%d", &retry) || retry < 0)
