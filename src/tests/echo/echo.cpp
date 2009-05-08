@@ -32,8 +32,6 @@ Service_Echo::Service_Echo(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::
   ns_["echo"]="urn:echo";
   prefix_=(std::string)((*cfg)["prefix"]);
   suffix_=(std::string)((*cfg)["suffix"]);
-  endpoint_=(std::string)((*cfg)["endpoint"]);
-  expiration_=(std::string)((*cfg)["expiration"]);
 
 #if 0
   // Parse the policy location information, and put them into a map container for later using
@@ -161,23 +159,10 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
 }
 
 bool Service_Echo::RegistrationCollector(Arc::XMLNode &doc) {
-  logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
   // RegEntry element generation
   Arc::XMLNode empty(ns_, "RegEntry");
   empty.New(doc);
-
-  doc.NewChild("SrcAdv");
-  doc.NewChild("MetaSrcAdv");
-
-  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.tests.echo";
-  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  //doc["SrcAdv"].NewChild("SSPair");
-
-  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
-
-  std::string regcoll;
-  doc.GetDoc(regcoll, true);
-  logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
+  doc.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.tests.echo";
   return true;
 }
 

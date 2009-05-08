@@ -29,8 +29,6 @@ class Service_Echo: public Arc::RegisteredService
     protected:
         std::string prefix_;
         std::string suffix_;
-        std::string endpoint_;
-        std::string expiration_;
         std::string policylocation_;
         Arc::NS ns_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg,const std::string& txtmsg = "");
