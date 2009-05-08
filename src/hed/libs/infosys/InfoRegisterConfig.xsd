@@ -7,22 +7,22 @@
 
     <xsd:complexType name="InfoRegistrar_Type">
         <!-- This element defines configuration of Information Registration 
-            active element. This element is located at top level configuration
-            document. Each instance if such element instatiates one instance
-            of Information Registrant active element. -->
+             active element. This element is located at top level configuration
+             document. Each instance if such element instatiates one instance
+             of Information Registrant active element. -->
         <xsd:sequence>
             <!-- URL specifies contact endpoint of a bootstrap Information 
-                Registration service. Further ISIS adresses will be queried 
-                from this service. -->
+                 Registration service. Further ISIS adresses will be queried 
+                 from this service. -->
             <xsd:element name="URL" type="xsd:string"/> <!-- maxOccurs="unbounded" -->
             <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
-                paths to files storing X509 credentials used for establishing connections. -->
+                 paths to files storing X509 credentials used for establishing connections. -->
             <xsd:element name="KeyPath" type="xsd:string" minOccurs="0"/>
             <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0"/>
             <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0"/>
             <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0"/>
             <!-- Retry count. Specifie how many times have an ISIS to timeout to handle it as 
-                unavailable. If there is no value specified the default value: 5 will be used. -->
+                 unavailable. If there is no value specified the default value: 5 will be used. -->
             <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
         <!-- Attribute id may be used to refer to this element -->
@@ -31,68 +31,49 @@
     <xsd:element name="InfoRegistrar" type="iregc:InfoRegistrar_Type"/>
 
     <xsd:complexType name="Registrar_Type">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-                <!-- Period specifies how often registration to be done in minutes.
-                     The 0 value means single registration. Missing value means
-                     that the default value will be used. -->
-                <xsd:attribute name="period" type="xsd:nonNegativeInteger" use="optional"/>
-            </xsd:extension>
-        </xsd:simpleContent>
+        <xsd:sequence>
+            <!-- Missing elements means that the default values will be used. -->
+
+            <!-- Period specifies how often registration to be done in minutes.
+                 The 0 value means single registration. -->
+            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1"/>
+            <!-- Element defines the unique id of the service propagated outside. -->
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- This element defines URL of the service as seen from outside. -->
+            <xsd:element name="endpoint" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- This element defines the expiration time of the information provided by the service. -->
+            <xsd:element name="expiration" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <!-- Attribute id is to define the previously configured InfoRegistrar to be refered -->
+        <xsd:attribute name="id" type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="InfoRegister_Type">
     <!-- Element for Service element to link it to InfoRegistrar 
-        elements. It may also override some configuration parameters.
-        Presence of this element means that service will be registered
-        to ISISes. -->
+         elements. It may also override some configuration parameters.
+         Presence of this element means that service will be registered
+         to ISISes. -->
         <xsd:sequence>
             <!-- This elements specify which registrars must be used
-                for registering services. If there is no such element
-                then registration is done using all registrars. -->
+                 for registering services. If there is no such element
+                 then registration is done using all registrars. -->
             <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Default values for every InfoRegistrar -->
+
+            <!-- Period specifies how often registration to be done in minutes.
+                 The 0 value means single registration. -->
+            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1"/>
+            <!-- Element defines the unique id of the service propagated outside. -->
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- This element defines URL of the service as seen from outside. -->
+            <xsd:element name="endpoint" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <!-- This element defines the expiration time of the information provided by the service. -->
+            <xsd:element name="expiration" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
-        <!-- Default period specifies how often registration to be done in minutes.
-            The 0 value means single registration. -->
-        <xsd:attribute name="period" type="xsd:nonNegativeInteger" use="required"/>
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
 
-    <!-- Configuration elements to provide the proper information for the Self-Registration -->
-
-    <xsd:complexType name="endpoint_Type">
-        <!--
-             This element defines URL of the service as seen from outside.
-        -->
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
-    <xsd:element name="endpoint" type="endpoint_Type"/>
-
-    <xsd:complexType name="serviceid_Type">
-        <!--
-             This element defines the unique id of the service propagated outside.
-        -->
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
-    <xsd:element name="serviceid" type="serviceid_Type"/>
-
-    <xsd:complexType name="expiration_Type">
-        <!--
-             This element defines the expiration time of the information provided by the service.
-        -->
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
-    <xsd:element name="expiration" type="expiration_Type"/>
-
+    <!-- Configuration element force skipping the Self-Registration -->
     <xsd:element name="NoRegister">
         <xsd:complexType />
     </xsd:element>
