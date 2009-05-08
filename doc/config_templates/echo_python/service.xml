@@ -2,11 +2,18 @@
         <ClassName>echo_python.EchoService.EchoService</ClassName>
         <echo:prefix>[ </echo:prefix>
         <echo:suffix> ]</echo:suffix>
-        <!-- Two attributes to own the necessary information for the self-registration -->
-        <register:serviceid>http://knowarc3.grid.niif.hu:50000/echo_python</register:serviceid>
-        <register:expiration>PT6H</register:expiration>
-        <!-- Request registration. If there is no specific Registrar defined then every InfoRegistrar
+        <register:InfoRegister>
+            <!-- These attributes are necessery for the self-registration -->
+            <register:Period>PT75S</register:Period>
+            <register:Endpoint>NOPE<!-- Your service URL should be here  --></register:Endpoint>
+            <register:Expiration>PT5H</register:Expiration>
+            <!-- If there is no specific Registrar defined then every InfoRegistrar
              will be use used during the registration. The period of the repeating registration will
              be the value given here in every ISIS cloud. -->
-        <register:InfoRegister period="PT75S" />
+             <!-- Any previously defined attribute can be overwritten per Registrar -->
+            <register:Registrar id="NorduGridInfosys2">
+                <register:Expiration>PT6H</register:Expiration>
+            </register:Registrar>
+        </register:InfoRegister>
     </Service>
+

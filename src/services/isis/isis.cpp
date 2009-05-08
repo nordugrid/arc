@@ -256,9 +256,8 @@ static void soft_state_thread(void *data) {
 }
 
     ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D") {
-        serviceid_=(std::string)((*cfg)["serviceid"]);
+
         endpoint_=(std::string)((*cfg)["endpoint"]);
-        expiration_=(std::string)((*cfg)["expiration"]);
 
         if ((bool)(*cfg)["retry"]) {
             if (!((std::string)(*cfg)["retry"]).empty()) {
@@ -660,32 +659,11 @@ static void soft_state_thread(void *data) {
           doc.NewChild("MetaSrcAdv");
 
           doc["SrcAdv"].NewChild("Type") = "org.nordugrid.infosys.isis";
-          doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
           doc["SrcAdv"].NewChild("SSPair").NewChild("Name") = "peerID";
-	  std::stringstream peerID;
-	  peerID << my_hash;
+          std::stringstream peerID;
+          peerID << my_hash;
           doc["SrcAdv"]["SSPair"].NewChild("Value") = peerID.str();
 
-          doc["MetaSrcAdv"].NewChild("ServiceID") = serviceid_;
-
-          time_t rawtime;
-          time ( &rawtime );    //current time
-          tm * ptm;
-          ptm = gmtime ( &rawtime );
-
-          std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-          std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-          std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-          std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-          std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-          std::stringstream out;
-          out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
-          doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
-          doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
-
-          std::string regcoll;
-          doc.GetDoc(regcoll, true);
-          logger.msg(Arc::DEBUG, "RegistrationCollector create: %s",regcoll);
           return true;
     }
 
@@ -956,10 +934,6 @@ static void soft_state_thread(void *data) {
 
         outmsg.Payload(outpayload);
         return ret;
-    }
-
-    std::string ISIService::getID() {
-        return serviceid_;
     }
 
     Arc::MCC_Status ISIService::make_soap_fault(Arc::Message &outmsg,const std::string& reason) {

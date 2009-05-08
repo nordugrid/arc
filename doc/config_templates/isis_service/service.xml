@@ -30,13 +30,8 @@
     <Service name="isis" id="isis1">
         <!-- DBPath: File location where the database is physically stored -->
         <DBPath>/storage/arc1/isis1</DBPath>
-        <!-- serviceid: A globbaly unique ID that identify the service -->
-        <infosys:serviceid>http://knowarc2.grid.niif.hu:50000/isis1</infosys:serviceid>
         <!-- endpoint: The URL where the service can be accessed from outside -->
         <infosys:endpoint>http://knowarc2.grid.niif.hu:50000/isis1</infosys:endpoint>
-        <!-- expiration: The lifetime of the RegEntry provided by the service 
-            about itself -->
-        <infosys:expiration>PT3M</infosys:expiration>
         <!-- InfoProviderISIS: Contact details to one or more ISIS where the other
             ISIS's can be queried. -->
         <InfoProviderISIS>
@@ -50,20 +45,25 @@
     <Service name="some_service" id="some_service1">
         <!-- This service is represents how to configure a successful registration -->
         <!-- Service specific configuration -->
-        <!-- serviceid: A globbaly unique ID that identify the service -->
-        <register:serviceid>http://knowarc2.grid.niif.hu:50000/echo</register:serviceid>
-        <!-- endpoint: The URL where the service can be accessed from outside -->
-        <register:endpoint>http://knowarc2.grid.niif.hu:50000/echo</register:endpoint>
-        <!-- expiration: The lifetime of the RegEntry provided by the service 
-            about itself -->
-        <register:expiration>PT1M</register:expiration>
         <!-- InfoRegister: This element indicates the self-registration mechanism with the given
-            period as default. If there is no Registrar element in the InfoRegister then the
-            service will be registered to every InfoRegistrar. -->
-        <register:InfoRegister period="PT50S">
-            <register:Registrar>NorduGridInfosys</register:Registrar>
-            <!-- The period value can be overwritten to every differnt Registrar -->
-            <register:Registrar period="PT2H">NorduGridInfosys2</register:Registrar>
+             period as default. If there is no Registrar element in the InfoRegister then the
+             service will be registered to every InfoRegistrar. -->
+        <register:InfoRegister>
+            <!-- These attributes are necessery for the self-registration -->
+            <!-- Period: How often should the service be registered -->
+            <register:Period>PT75S</register:Period>
+            <!-- Endpoint: The URL where the service can be accessed from outside -->
+            <register:Endpoint>http://your.domain.com:10000/path<register:Endpoint>
+            <!-- expiration: The lifetime of the RegEntry provided by the service 
+                 about itself -->
+            <register:Expiration>PT5H</register:Expiration>
+            <!-- If there is no specific Registrar defined then every InfoRegistrar
+             will be use used during the registration. The period of the repeating registration will
+             be the value given here in every ISIS cloud. -->
+             <!-- Any previously defined attribute can be overwritten per Registrar -->
+            <register:Registrar id="NorduGridInfosys2">
+                <register:Expiration>PT6H</register:Expiration>
+            </register:Registrar>
         </register:InfoRegister>
     </Service>
 

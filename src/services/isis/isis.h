@@ -18,9 +18,7 @@ namespace ISIS {
             Arc::Logger logger_;
             std::ofstream log_destination;
             Arc::LogStream *log_stream;
-            std::string serviceid_;
             std::string endpoint_;
-            std::string expiration_;
             Arc::Period valid;
             Arc::Period remove;
             int retry;
@@ -63,7 +61,6 @@ namespace ISIS {
             virtual ~ISIService(void);
             virtual Arc::MCC_Status process(Arc::Message &in, Arc::Message &out);
             virtual bool RegistrationCollector(Arc::XMLNode &doc);
-            virtual std::string getID();
     };
 } // namespace
 #endif
