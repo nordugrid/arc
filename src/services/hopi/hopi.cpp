@@ -287,7 +287,7 @@ int HopiFile::Read(void* buf,off_t offset,int size) {
 }
 
 
-Hopi::Hopi(Arc::Config *cfg):Service(cfg),slave_mode(false)
+Hopi::Hopi(Arc::Config *cfg):RegisteredService(cfg),slave_mode(false)
 {
     logger.msg(Arc::INFO, "Hopi Initialized"); 
     doc_root = (std::string)((*cfg)["DocumentRoot"]);
@@ -301,7 +301,14 @@ Hopi::Hopi(Arc::Config *cfg):Service(cfg),slave_mode(false)
     if(Arc::stringto((std::string)((*cfg)["UploadTimeout"]),timeout)) {
         if(timeout > 0) HopiFileChunks::Timeout(timeout);
     }
-      
+}
+
+bool Hopi::RegistrationCollector(Arc::XMLNode &doc) {
+    Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
+    Arc::XMLNode regentry(isis_ns, "RegEntry");
+    regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.storage.hopi";
+    regentry.New(doc);
+    return true;
 }
 
 Hopi::~Hopi(void)

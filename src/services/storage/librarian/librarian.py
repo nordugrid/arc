@@ -32,7 +32,7 @@ class Librarian:
             log.msg(arc.DEBUG, 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
             raise
         threading.Thread(target = self.checkingThread, args = [period]).start()
-        
+
     def _update_ahash_urls(self):
         try:
             ahash_list = self.ahash.get(ahash_list_guid)[ahash_list_guid]
@@ -450,4 +450,11 @@ class LibrarianService(Service):
         response_node = out.NewChild('lbr:registerResponse')
         response_node.NewChild('lbr:nextReportTime').Set(str(nextReportTime))
         return out
+
+    def RegistrationCollector(self, doc):
+        regentry = arc.XMLNode('<RegEntry />')
+        regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.librarian')
+        #Place the document into the doc attribute
+        doc.Replace(regentry)
+        return True
 

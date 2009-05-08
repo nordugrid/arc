@@ -41,7 +41,7 @@ class Bartender:
             log.msg(arc.INFO, 'cannot connect to gateway. Access of third party store required gateway.')
         self.ssl_config = ssl_config
         self.cfg = cfg
-        
+
     def stat(self, auth, requests):
         """ Returns stat information about entries.
         
@@ -1426,3 +1426,11 @@ class BartenderService(Service):
         log.msg(arc.DEBUG, 'removeCredentials: %s', message)
         log.msg(arc.DEBUG, 'removeCredentials: %s', status)  
         return create_response('bar:removeCredentials', ['bar:message','bar:status'],response, self._new_soap_payload(), single = True) 
+
+    def RegistrationCollector(self, doc):
+        regentry = arc.XMLNode('<RegEntry />')
+        regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.bartender')
+        #Place the document into the doc attribute
+        doc.Replace(regentry)
+        return True
+

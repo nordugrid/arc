@@ -388,6 +388,12 @@ void InfoRegistrar::registration(void) {
                 if(!((r->p_register)->getService())) continue;
                 (r->p_register)->getService()->RegistrationCollector(services_doc);
 
+                {
+                //DEBUG//
+                std::string services_string;
+                services_doc.GetDoc(services_string, true);
+                logger_.msg(DEBUG, "InfoRegister created with config:\n%s", services_string);
+                }
                 // Fill attributes from InfoRegister configuration
                 if (!((bool)services_doc["SrcAdv"]["EPR"]["Address"]) && !((r->endpoint).empty()) ) {
                     if (!(bool)services_doc["SrcAdv"]) services_doc.NewChild("SrcAdv");

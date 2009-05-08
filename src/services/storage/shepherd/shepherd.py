@@ -64,7 +64,7 @@ class Shepherd:
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
         self.doReporting = True
         threading.Thread(target = self.reportingThread, args = []).start()
-        
+
     def reportingThread(self):
         # at the first start just wait for a few seconds
         time.sleep(5)
@@ -562,3 +562,11 @@ class ShepherdService(Service):
         response_node = out.NewChild('lbr:toggleReportResponse')
         response_node.Set(response)
         return out
+
+    def RegistrationCollector(self, doc):
+        regentry = arc.XMLNode('<RegEntry />')
+        regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.shepherd')
+        #Place the document into the doc attribute
+        doc.Replace(regentry)
+        return True
+
