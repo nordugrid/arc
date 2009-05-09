@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <list>
 
 #include "arc/Logger.h"
 
@@ -26,13 +27,48 @@ namespace Arc
 	if (e!=std::string::npos)
 	  {
 	    count++;
-	    std::string key=line.substr(0, e), 
+	    std::string key=line.substr(0, e),
 	      value=line.substr(e+1, std::string::npos);
 	    (*this)[key]=value;
 	  }
       }
     logfile.close();
-    //TODO parse jobreport_options string!
+
+    //Parse jobreport_options string!
+
+    std::string jobreport_opts=(*this)["accounting_options"];
+    std::string option;
+    size_type pcomma=jobreport_opts.find(',');
+    size_type pcolon;
+    while (pcomma!=std::string::npos)
+      {
+	option=jobreport_opts.substr(0,pcomma);
+	// separate opt_name:value pair
+	pcolon=option.find(':');
+	if (pcolon!=std::string::npos)
+	  {
+	    std::string key=option.substr(0, pcolon), 
+	      value=option.substr(pcolon+1, std::string::npos);
+
+	    (*this)[std::string("jobreport_option_")+key]=value;
+	  }
+	
+	//next:
+	jobreport_opts=jobreport_opts.substr(pcomma+1, std::string::npos);
+	pcomma=jobreport_opts.find(',');
+      }
+    option=jobreport_opts;
+    pcolon=option.find(':');
+    if (pcolon!=std::string::npos)
+      {
+	std::string key=option.substr(0, pcolon), 
+	  value=option.substr(pcolon+1, std::string::npos);
+	
+	(*this)[std::string("jobreport_option_")+key]=value;
+      }
+
+
+
     return count;
   }
 
@@ -47,6 +83,20 @@ namespace Arc
     ns_ur["xsd"]="http://www.w3.org/2001/XMLSchema";
     ns_ur["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
     ns_ur["ds"]="http://www.w3.org/2000/09/xmldsig#";
+
+    //Get node names
+    std::list<std::string> nodenames;
+    std::string mainnode;
+    std::string nodestr=(*this)["nodename"];
+    size_type pcolon=nodestr.find(':');
+    while (pcolon!=std::string::npos)
+      {
+	nodenames.push_back(nodestr.substr(0,pcolon));
+	nodestr=nodestr.substr(pcolon+1,std::string::npos);
+	pcolon=nodestr.find(':');
+      }
+    if (!nodestr.empty()) nodenames.push_back(nodestr);
+    if (!nodenames.empty()) mainnode=*(nodenames.begin());    
     
     //Fill this Usage Record
     Arc::XMLNode ur(ns_ur,"JobUsageRecord");
@@ -62,9 +112,9 @@ namespace Arc
 	//NOTE! Current LUTS also sets a "creationTime"[sic!] for each record
 	
 	// ID for record
-	if (find("nodename")!=end())
+	if (!mainnode.empty())
 	  rid.NewAttribute("recordId")=
-	    std::string(recordid_prefix) + (*this)["nodename"] + 
+	    std::string(recordid_prefix) + mainnode + 
 	    '-' + (*this)["ngjobid"];
 	else
 	  rid.NewAttribute("recordId")=
@@ -133,6 +183,19 @@ namespace Arc
       }
     
     //CpuDuration
+
+    if (find("usedusercputime")!=end() && find("usedkernelcputime")!=end())
+      {
+	Arc::Period udur((*this)["usedusercputime"],Arc::PeriodSeconds);
+	Arc::Period kdur((*this)["usedkernelcputime"],Arc::PeriodSeconds);
+
+	Arc::XMLNode udurn=ur.NewChild("CpuDuration")=(std::string)udur;
+	udurn.NewAttribute("usageType")="user";
+
+	Arc::XMLNode kdurn=ur.NewChild("CpuDuration")=(std::string)kdur;
+	kdurn.NewAttribute("usageType")="kernel";
+      }
+    else
     if (find("usedcputime")!=end())
       {
 	Arc::Period cpudur((*this)["usedcputime"],Arc::PeriodSeconds);
@@ -156,10 +219,23 @@ namespace Arc
     //MachineName
     if (find("nodename")!=end())
       {
-	ur.NewChild("MachineName")=(*this)["nodename"];
+	ur.NewChild("MachineName")=mainnode;
       }
     
-    //Host? TODO!
+    //Host
+    if (!mainnode.empty())
+      {
+	Arc::XMLNode primary_node=ur.NewChild("Host");
+	primary_node=mainnode;
+	primary_node.NewAttribute("primary")="true";
+	std::list<std::string>::iterator it=nodenames.begin();
+	++it;
+	while (it!=nodenames.end())
+	  {
+	    ur.NewChild("Host")=*it;
+	    ++it;
+	  }	
+      }
     
     //SubmitHost
     if (find("clienthost")!=end())
@@ -189,6 +265,50 @@ namespace Arc
 
     
     //TODO differentiated properties
+    //Network?
+
+    //Disk?
+
+    //Memory
+    if (find("usedmemory")!=end())
+      {
+	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmemory"];
+	memn.NewAttribute("storageUnit")="kB";
+	memn.NewAttribute("metric")="average";
+	memn.NewAttribute("type")="virtual";
+      }
+
+    if (find("usedmaxresident")!=end())
+      {
+	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmaxresident"];
+	memn.NewAttribute("storageUnit")="kB";
+	memn.NewAttribute("metric")="max";
+	memn.NewAttribute("type")="physical";
+      }
+
+    if (find("usedaverageresident")!=end())
+      {
+	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedaverageresident"];
+	memn.NewAttribute("storageUnit")="kB";
+	memn.NewAttribute("metric")="average";
+	memn.NewAttribute("type")="physical";
+      }
+    
+    //Swap?
+
+    //NodeCount
+    if (find("nodecount")!=end())
+      {
+	ur.NewChild("NodeCount")=(*this)["nodecount"];
+      }
+
+    //Processors?
+
+    //TimeDuration, TimeInstant, ServiceLevel?
+
+    //TODO extra:
+    //RuntimeEnvironment
+    //user id info
 
     usagerecord.Replace(ur);
   }
@@ -199,7 +319,15 @@ namespace Arc
     struct stat s;
     return (0==stat(filename.c_str(),&s));
   }
-  
+
+  bool JobLogFile::olderThan(time_t age)
+  {
+    struct stat s;
+    return ( ( 0==stat(filename.c_str(),&s) ) &&
+	     ( ((unsigned int)(time(NULL)-s.st_mtime)) > age ) 
+	     );
+  }
+
   void JobLogFile::remove()
   {
     errno=0;

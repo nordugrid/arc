@@ -1,6 +1,8 @@
 #ifndef _USAGEREPORTER_H
 #define _USAGEREPORTER_H
 
+#include <time.h>
+
 #include <string>
 
 #include <arc/Logger.h>
@@ -21,9 +23,9 @@ namespace Arc
     Arc::Destinations *dests;
     /** Directory where A-REX puts job logs */
     std::string job_log_dir;
-    int expiration_time;
+    time_t expiration_time;
   public:
-    UsageReporter(std::string job_log_dir_, int expiration_time_=0);
+    UsageReporter(std::string job_log_dir_, time_t expiration_time_=0);
     int report();
     ~UsageReporter();
   };

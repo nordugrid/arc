@@ -2,6 +2,7 @@
 #define JOBLOGFILE_H
 
 
+#include <time.h>
 #include <stdexcept>
 #include <fstream>
 #include <string>
@@ -13,7 +14,7 @@ namespace Arc
 {
   class JobLogFile: public std::map<std::string, std::string>
   /**
-   * Class to parse logs created by A-REX for jobs, 
+   * Class to represent a job log file created by A-REX, 
    * and to create OGF Job Usage Records from them.
    */
   {
@@ -29,16 +30,17 @@ namespace Arc
      *       may not always be possible
      *    -# Charge: Amount of money or abstract credits charged for the job.
      *    -# Host: List of identifiers of hosts the job ran on.
-     *    -# ProjectName: The identifier of the entity (project) to charge.\n
-     *       Job submission descriptor may contain this value, or should be\n
-     *       deduced from user identifier info (via some VO-project mapping?)
      *    -# Differentiated properties
      */
     void createUsageRecord(Arc::XMLNode &usagerecord,
 			      const char *recordid_prefix="ur-");
     /** Returns original full path to log file */
     std::string getFilename() { return filename; }
+    /** Checks if file exists on the disk */
     bool exists();
+    /** Checks if file was modified earlier than 'age' seconds ago */
+    bool olderThan(time_t age);
+    /** Deletes file from the disk */
     void remove();
   };
 }

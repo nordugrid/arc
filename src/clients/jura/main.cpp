@@ -22,15 +22,34 @@ int main(int argc, char **argv)
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
 
-  //TODO parse command line!
+  opterr=0;
+  time_t ex_period = 0;
+  int n;
+  while((n=getopt(argc,argv,":E:")) != -1) {
+    switch(n) {
+    case ':': { std::cerr<<"Missing argument\n"; return 1; };
+    case '?': { std::cerr<<"Unrecognized option\n"; return 1; };
+      case 'E': {
+        char* p;
+        int i = strtol(optarg,&p,10);
+        if(((*p) != 0) || (i<=0)) {
+	  std::cerr<<"Improper expiration period '"<<optarg<<"'"<<std::endl;
+          exit(1);
+        };
+        ex_period=i*(60*60*24);
+      }; break;
+    default: { std::cerr<<"Options processing error\n"; return 1; };
+    };
+  };
 
-
-  std::cerr<<"start\n";
   // The essence:
-  Arc::UsageReporter usagereporter("/tmp/jobstatus/logs",1);
-  usagereporter.report();
-  // End of the essence
-  std::cerr<<"stop\n";
-  
+  int argind;
+  Arc::UsageReporter *usagereporter;
+  for (argind=optind ; argind<argc ; ++argind)
+    {
+      usagereporter=new Arc::UsageReporter(std::string(argv[argind]),ex_period);
+      usagereporter->report();
+      delete usagereporter;
+    }
   return 0;
 }

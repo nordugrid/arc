@@ -121,8 +121,15 @@ namespace Arc
     //Get Batch Size:
     //TODO get from jobreport_options!!!
     //Default value:
-    max_ur_set_size=2; //JURA_DEFAULT_MAX_UR_SET_SIZE;
-    
+    max_ur_set_size=JURA_DEFAULT_MAX_UR_SET_SIZE;
+    //From jobreport_options:
+    std::string urbatch=joblog["jobreport_option_urbatch"];
+    if (!urbatch.empty())
+      {
+	std::istringstream is(urbatch);
+	is>>max_ur_set_size;
+      }
+
   }
 
   void LutsDestination::report(Arc::JobLogFile &joblog)
@@ -288,7 +295,6 @@ namespace Arc
 
   LutsDestination::~LutsDestination()
   {
-    logger.msg(Arc::DEBUG,"ENDENDENDENDENDENDENDENDENDEND");
     finish();
   }
 }

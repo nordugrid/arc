@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <signal.h>
 #include <errno.h>
+#include <time.h>
 #include <sstream>
 
 #include "arc/ArcRegex.h"
@@ -14,16 +15,16 @@ namespace Arc
 {
 
   /** Constructor. Pass name of directory containing job log files
-   *  and expiration time of files in days.
+   *  and expiration time of files in seconds.
    */
-  UsageReporter::UsageReporter(std::string job_log_dir_, int expiration_time_):
+  UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     job_log_dir(job_log_dir_),
     expiration_time(expiration_time_)
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
 	       job_log_dir.c_str());
-    logger.msg(Arc::DEBUG, "Expiration time: %d days",
+    logger.msg(Arc::DEBUG, "Expiration time: %d seconds",
 	       expiration_time);
     //Collection of logging destinations:
     dests=new Arc::Destinations();
@@ -61,10 +62,24 @@ namespace Arc
 	    //TODO handle DOS-style path separator!
 	    std::string fname=job_log_dir+"/"+entp->d_name;
 	    logfile=new Arc::JobLogFile(fname);
-	    //Pass job log file content to the appropriate 
-	    //logging destination
-	    dests->report(*logfile);
-	    //(deep copy performed)
+
+	    // Check creation time and remove it if really too old
+	    if( expiration_time>0 && logfile->olderThan(expiration_time) )
+	      {
+		logger.msg(Arc::INFO,
+			   "Removing outdated job log file %s",
+			   logfile->getFilename().c_str()
+			   );
+		logfile->remove();
+	      } 
+	    else
+	      {
+		//Pass job log file content to the appropriate 
+		//logging destination
+		dests->report(*logfile);
+		//(deep copy performed)
+	      }
+
 	    delete logfile;
 	  }
 	errno = 0;
