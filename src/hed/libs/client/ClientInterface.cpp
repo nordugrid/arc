@@ -366,14 +366,18 @@ namespace Arc {
       if(relative_uri) {
         // Workaround for servers which can't handle full URLs in request
         reqmsg.Attributes()->set("HTTP:HOST", url.Host() + ":" + tostring(url.Port()));
-        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.FullPath());
+        std::string rpath = url.FullPath();
+        if(rpath[0] != '/') rpath.insert(0,"/");
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       } else {
         reqmsg.Attributes()->set("HTTP:ENDPOINT", url.str());
       }
     } else {
       if(relative_uri) {
         reqmsg.Attributes()->set("HTTP:HOST", default_url.Host() + ":" + tostring(default_url.Port()));
-        reqmsg.Attributes()->set("HTTP:ENDPOINT", default_url.FullPath());
+        std::string rpath = default_url.FullPath();
+        if(rpath[0] != '/') rpath.insert(0,"/");
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       }
     }
     if (range_end != UINT64_MAX)
