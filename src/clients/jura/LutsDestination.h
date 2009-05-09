@@ -16,6 +16,7 @@
 namespace Arc
 {
 
+  /** Reporting destination adapter for SGAS LUTS. */
   class LutsDestination:public Destination
   {
   private:
@@ -37,7 +38,13 @@ namespace Arc
     void clear();
 
   public:
+    /** Constructor. Service URL and LUTS-related parameters (e.g. UR
+     *  batch size) are extracted from the given job log file.
+     */
     LutsDestination(JobLogFile& joblog);
+    /** Generates record from job log file content, collects it into the
+     *  UR batch, and if batch is full, submits it to the service. 
+     */
     void report(JobLogFile& joblog);
     void finish();
     ~LutsDestination();

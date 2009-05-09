@@ -29,8 +29,7 @@ namespace Arc
      *    -# ProcessID: Local PID(s) of job. Extraction is LRMS-specific and \n
      *       may not always be possible
      *    -# Charge: Amount of money or abstract credits charged for the job.
-     *    -# Host: List of identifiers of hosts the job ran on.
-     *    -# Differentiated properties
+     *    -# Some differentiated properties e.g. network, disk etc.
      */
     void createUsageRecord(Arc::XMLNode &usagerecord,
 			      const char *recordid_prefix="ur-");

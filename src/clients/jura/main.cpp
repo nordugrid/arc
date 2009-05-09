@@ -47,7 +47,9 @@ int main(int argc, char **argv)
   Arc::UsageReporter *usagereporter;
   for (argind=optind ; argind<argc ; ++argind)
     {
-      usagereporter=new Arc::UsageReporter(std::string(argv[argind]),ex_period);
+      usagereporter=new Arc::UsageReporter(
+	                  std::string(argv[argind])+"/logs",
+			  ex_period );
       usagereporter->report();
       delete usagereporter;
     }

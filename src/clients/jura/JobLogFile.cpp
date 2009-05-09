@@ -121,7 +121,7 @@ namespace Arc
 	    std::string(recordid_prefix) + (*this)["ngjobid"];
 	
 	ur.NewChild("JobIdentity").NewChild("GlobalJobId")=
-	  (*this)["ngjobid"];
+	  (*this)["globalid"];
 	
 	if (find("localjobid")!=end())
 	  ur["JobIdentity"].NewChild("LocalJobId")=

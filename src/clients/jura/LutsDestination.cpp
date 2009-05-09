@@ -1,4 +1,9 @@
 #include "LutsDestination.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "jura.h"
 #include "arc/Utils.h"
 #include <sstream>
@@ -60,13 +65,13 @@ namespace Arc
         endpoint=url.Path();
       }
 
+#ifdef HAVE_CONFIG_H
     //MCC module path(s):
-    //TODO THIS IS TEMPORARY!!
     clientchain.NewChild("ModuleManager").NewChild("Path")=
-      "/opt/arc1/lib/";
+      INSTPREFIX "/" LIBSUBDIR;
     clientchain["ModuleManager"].NewChild("Path")=
-      "/opt/arc1/lib/arc";
-
+      INSTPREFIX "/" PKGLIBSUBDIR;
+#endif
 
     //The protocol stack: SOAP over HTTP over SSL over TCP
     clientchain.NewChild("Plugins").NewChild("Name")="mcctcp";
