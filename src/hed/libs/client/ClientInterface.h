@@ -88,7 +88,7 @@ namespace Arc {
   public:
     ClientHTTP()
       : http_entry(NULL) {}
-    ClientHTTP(const BaseConfig& cfg, const URL& url);
+    ClientHTTP(const BaseConfig& cfg, const URL& url, const std::string& proxy_host = "", int proxy_port = 0);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);

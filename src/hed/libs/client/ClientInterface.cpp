@@ -12,6 +12,7 @@
 #include <arc/StringConv.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/message/MCCLoader.h>
+#include <arc/Utils.h>
 
 namespace Arc {
 
@@ -230,11 +231,48 @@ namespace Arc {
     AddPlugin(xmlcfg, libname, libpath);
   }
 
-  ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url)
-    : ClientTCP(cfg, url.Host(), url.Port(),
+
+  static std::string get_http_proxy(const URL& url) {
+    if(url.Protocol() == "http") return GetEnv("ARC_HTTP_PROXY");
+    if(url.Protocol() == "https") return GetEnv("ARC_HTTPS_PROXY");
+    if(url.Protocol() == "httpg") return GetEnv("ARC_HTTPG_PROXY");
+    return "";
+  }
+
+  static std::string get_http_proxy_host(const URL& url, const std::string& proxy_host, int proxy_port) {
+    if(!proxy_host.empty()) return proxy_host;
+    std::string proxy = get_http_proxy(url);
+    if(proxy.empty()) return url.Host();
+    std::string::size_type p = proxy.find(':');
+    if(p != std::string::npos) proxy.resize(p);
+    return proxy;
+  }
+
+  static int get_http_proxy_port(const URL& url, const std::string& proxy_host, int proxy_port) {
+    int port = 0;
+    if(!proxy_host.empty()) {
+      port = proxy_port;
+    } else {
+      std::string proxy = get_http_proxy(url);
+      if(proxy.empty()) return url.Port();
+      std::string::size_type p = proxy.find(':');
+      if(p != std::string::npos) stringto(proxy.substr(p+1),port);
+    }
+    if(port == 0) {
+      if(url.Protocol() == "http") port=HTTP_DEFAULT_PORT;
+      else if(url.Protocol() == "https") port=HTTPS_DEFAULT_PORT;
+      else if(url.Protocol() == "httpg") port=HTTPG_DEFAULT_PORT;
+    }
+    return port;
+  }
+
+  ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, const std::string& proxy_host, int proxy_port)
+    : ClientTCP(cfg,
+                get_http_proxy_host(url,proxy_host,proxy_port),
+                get_http_proxy_port(url,proxy_host,proxy_port),
                 url.Protocol() == "https" ? TLSSec
                   : url.Protocol() == "httpg" ? GSISec
-                      : NoSec),
+                    : NoSec),
       http_entry(NULL),
       default_url(url),
       relative_uri(false),
