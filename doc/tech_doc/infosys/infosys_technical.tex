@@ -51,7 +51,7 @@
 
 %-------- Change this to NORDUGRID-XXXXXXX-NN
 
-{\raggedleft NORDUGRID-TECH-XX\par}
+{\raggedleft NORDUGRID-TECH-21\par}
 
 {\raggedleft \today\par}
 
@@ -87,10 +87,12 @@
 \subsection{Functionality} % (fold)
 \label{sub:isis_functionality}
 
- Main functionality of ISIS service visible from outside of ISIS cloud is to accept registration and provide collected information to clients. For that ISIS implements operations described in following section.
-The seingle ISIS service accepts Registration Records pushed to it by other services (including ISIS services too) and stores them in local XML database. Stored records can be queried by clients using mandatory and service-specific attributes for selection criteria.
+ The functionality of ISIS is made of two parts. On the one hand they are working as ordinary Web Services, and on the other hand maintain a peer-to-peer network - \texttt{ISIS cloud}.
 
- In case of multiple ISIS services they form a peer-to-peer network called \texttt{Cloud of ISISes}. Inside that cloud Registration Records are propagated between services in such a way that all ISIS instances continiously try to synchronise their databases.
+ Main functionality of ISIS service visible from outside of ISIS cloud is to accept registration and provide collected information to clients. For that ISIS implements operations described in following section.
+The single ISIS service accepts Registration Records pushed to it by other services (including ISIS services too) and stores them in local XML database. Stored records can be queried by clients using mandatory and service-specific attributes for selection criteria.
+
+ In case of multiple ISIS services they form a peer-to-peer network. Inside that cloud Registration Records are propagated between services in such a way that all ISIS instances continiously try to synchronise their databases.
 
 % TODO: put figure here
 
@@ -116,8 +118,8 @@ The seingle ISIS service accepts Registration Records pushed to it by other serv
       \end{description}
       \item[MetaSrcAdv]~\begin{description}
         \item[ServiceID] Globally unique and persistent identifier of the service.
-        \item[GenTime] Time when this RegEntry was generated
-        \item[Expiration] Validity period of this registration record.
+        \item[GenTime] (Generation Time) The actual timestamp of information (called wake\_up\_time in the pseudo code below)
+        \item[Expiration] Validity period of Service Advertisement record.
       \end{description}
     \end{description}
   \end{description}
@@ -132,7 +134,13 @@ The seingle ISIS service accepts Registration Records pushed to it by other serv
 
 \end{description}
 
-This operation is usually called by service which wants to register it's presence in ISIS. Service must supply mandatory information. \texttt{Endpoint Reference} is used to contact service. Only required element is contact URL of service. \texttt{Type} specifies kind of service and is used to find out functionality nad interface of service. \texttt{ServiceID} is used to distinguish between registered services and to deal with case of service changing it's contact URL.
+This operation is usually called by service which wants to register it's presence in ISIS. This message consists of one or more \textbf{Registration Entry} and at most one \textbf{Registration Header}. The \textbf{Registration Entry}(RegEntry) contains a \textbf{Service Advertisement}(SrcAdv) and a corresponding \textbf{Service Advertisement Metadata}(MetaSrcAdv). This structure is shown on Figure \ref{fig:RegistrationMessage}.
+\begin{figure}[ht]
+\centering{{\scalebox{0.6}{\includegraphics{RegistrationMessage.png}}}
+\caption{\label{fig:RegistrationMessage}Embedded structure of Registration Message} }
+\end{figure}
+
+Service must supply mandatory information. Among those the \texttt{Endpoint Reference} is used to contact service - only required element is contact URL of service. \texttt{Type} specifies kind of service and is used to find out functionality nad interface of service. \texttt{ServiceID} is used to distinguish between registered services and to deal with case of service changing it's contact URL. For more information about mandatory and optional information see Section \ref{service_advertisement}
 
 As result of this operation new Registration Record is stored inside ISIS internal database and eventually propagated to other ISISes. If registration record of same ID already existed it will be renewed.
 
@@ -144,7 +152,7 @@ This operation is also used by ISIS services to propagate Registration Records i
 
   \item[Input]~\begin{description}
     \item[MessageGenerationtime]
-    \item[ServiceID] Multiple identifiers of services, whose recordds has to be removed.
+    \item[ServiceID] Multiple identifiers of services, whose records has to be removed.
   \end{description}
 
   \item[Output]~\begin{description}
@@ -160,7 +168,7 @@ This operation is also used by ISIS services to propagate Registration Records i
 
 \end{description}
 
-This operation is used to explicitely erase Registration Records associated with specified ServiceID values. If corresponding record does not exist it's identifier will be present in response message together with corresponding Fault element.
+This operation is used to explicitely requesting the removal of zero or more Registration Entries associated with specified ServiceID values stored in the Information System. If corresponding record does not exist it's identifier will be present in response message together with corresponding Fault element.
 
 \subsubsection{Operation GetISISList}
 
@@ -180,7 +188,7 @@ This operation is used to explicitely erase Registration Records associated with
 
 \end{description}
 
-In response to this operation the EndpointReferences to all known ISIS services are returned.
+In response to this operation the EndpointReferences to all known ISIS services are returned. The operation is used for obtaining a list of known ISIS instances from any particular ISIS. Clients can then use the obtained list to run direct queries against the ISIS instances. The operation is provided for fault tolerance and for providing optional performance boost. This operation returns the known peer-to-peer neighbors. If client is interested in all ISIS instances they can be obtained using the Query operation because they are ordinary services registered into the Information System.
 
 \subsubsection{Operation Query}
 
@@ -200,7 +208,10 @@ In response to this operation the EndpointReferences to all known ISIS services 
 
 \end{description}
 
-This operation allows any XPath queries to be performed on stored Registration Records. The records are treated as merged in one XML document with each record being equivalent to \texttt{RegEntry} element of \texttt{Register} operation. In response all elements produced by XPath query are returned.
+This operation allows any XPath queries to be performed on stored Registration Records. The records are treated as merged in one XML document with each record being equivalent to \texttt{RegEntry} element of \texttt{Register} operation. In response all elements produced by XPath query are returned. The purpose of this operation is to make it possible to obtain any kind of information related to the Indexing Database.
+
+
+
 
 
 % subsection interface (end)
@@ -211,12 +222,12 @@ This operation allows any XPath queries to be performed on stored Registration R
 \label{sec:peer_to_peer}
 
 \subsection{Functionality} % (fold)
-\label{sub:functionality}
+\label{sub:p2p_functionality}
 
 % subsection functionality (end)
 
 \subsection{Interface} % (fold)
-\label{sub:interface}
+\label{sub:p2p_interface}
 
 % subsection interface (end)
 
@@ -228,12 +239,54 @@ This operation allows any XPath queries to be performed on stored Registration R
 \label{cha:service}
 
 \section{Information} % (fold)
-\label{sec:information}
+\label{sec:service_information}
+
+The service developers have to ensure that the services are providing the necessary information about themselves. This is done by implementing the subclass of the Arc::Service class - the RegistrationCollector function has to provide up-to-date status information about the service and anything else it wants to be advertised. This information package is called \textbf{Service Advertisement}.
+\label{service_advertisement}
+The \textbf{Service Advertisement} can contain any information service wants to advertise but the mandatory elements have to be always present:
+\begin{itemize}
+  \item Service ID: A globally unique identifier of the service.
+  \item Service Type: The Glue2 type of service.
+  \item Endpoint URL: The URL where the service can be contacted provided as part of EPR element.
+\end{itemize}
+
 
 % section information (end)
 
 \section{Registration} % (fold)
-\label{sec:registration}
+\label{sec:service_registration}
+
+The registration of service is carried out by internal module called Registrant. The Registrant is active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the Registrant contains exactly one ISIS to bind, and the Registrant will collect the necessary information about the other ISISes belonging to the same network.
+
+To register services to more than one ISIS network multiple Registrant instances has to be configured. In this case, the default Registrant will be used for registering every services unless configured expilicitely.
+The registration of service can be done once or periodically based either on the configuration of the Registrant or overwritten for every service separately. The Registrant is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the Registrant is presented below.
+
+\begin{framed}
+  Registrant - pseudo algorithm\\
+  \\
+  \verb#// Initialize phase#\\
+  \verb#Read the configuration and store the information about the services in a list#\\
+  \verb#do { // Cyclic phase in a different Thread#\\
+  \verb# wake_up_time = now();#\\
+  \verb# messages = null;#\\
+  \verb#  if ( 0 < count(service where service.next_run <= wake_up_time)) {#\\
+  \verb#    foreach( service where service.next_run <= wake_up_time) {#\\
+  \verb#      messages.add(service.RegistrationCollector);#\\
+  \verb#      service.next_run = wake_up_time + service.period;#\\
+  \verb#    }#\\
+  \verb#    if (0 < count(messages)) {#\\
+  \verb#      sent_message = assemble message with headers(messages);#\\
+  \verb#      send(sent_message);#\\
+  \verb#    }#\\
+  \verb#  } else {#\\
+  \verb#    sleep(min(service.next_run) - now()); #\\
+  \verb#  }#\\
+  \verb#} while(true)#\\
+\end{framed}
+Current implementation does not allow value of the period to be less than 2 minutes.
+
+Service provides \textbf{Service Advertisement} part of information sent to ISIS (see Section \ref{isis_interface}).
+Before sending this information the Registrant extends it with additional data (\textbf{Service Advertisement Metadata}).
 
 % section registration (end)
 
