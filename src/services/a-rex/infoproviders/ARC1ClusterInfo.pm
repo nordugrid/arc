@@ -37,14 +37,14 @@ sub bes_state {
     if      ($gm_state eq "ACCEPTED") {
         return [ "Pending", "Accepted" ];
     } elsif ($gm_state eq "PREPARING") {
-        return [ "Pending", "Stage-in" ];
+        return [ "Running", "Stage-in" ];
     } elsif ($gm_state eq "SUBMIT") {
-        return [ "Pending", "Submitting" ];
+        return [ "Running", "Submitting" ];
     } elsif ($gm_state eq "INLRMS") {
         if (not defined $lrms_state) {
             return [ "Running" ];
         } elsif ($lrms_state eq 'Q') {
-            return [ "Pending", "Queuing" ];
+            return [ "Running", "Queuing" ];
         } elsif ($lrms_state eq 'R') {
             return [ "Running", "Executing" ];
         } elsif ($lrms_state eq 'EXECUTED'
@@ -740,7 +740,7 @@ sub _collect($$) {
         ($name,$version) = ($1, $2) if $rte =~ m{^(.*)-([^/-]*)$};
 
         $appenv->{AppName} = [ $name ];
-        $appenv->{Version} = [ $version ];
+        $appenv->{AppVersion} = [ $version ];
         $appenv->{LocalID} = [ $aenvLIDs{$rte} ];
         #TODO: mechanism for getting metadata about RTEs, even for manually installed ones
 	# Could use tags inside the RTE script inspired by as doxygen or init scripts
