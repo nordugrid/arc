@@ -167,7 +167,7 @@ namespace Arc {
       if (!OBJ_cmp(ne->object,OBJ_nid2obj(NID_commonName))) {
         entry = X509_NAME_ENTRY_get_data(ne);
         entry_str.assign((const char*)(entry->data), (std::size_t)(entry->length));
-        if(entry_str == "proxy" || entry_str == "limited proxy" || 
+        if(entry_str == "proxy" || entry_str == "limited proxy" ||
            entry_str.find_first_not_of("0123456789") == std::string::npos) {
           //Drop the name entry "proxy", "limited proxy", or the random digital(RFC)
           ne = X509_NAME_delete_entry(subject, X509_NAME_entry_count(subject)-1);
@@ -892,18 +892,12 @@ namespace Arc {
 									  LogError();
 									  res = false;
 									} else {
-										if (!(PEM_write_bio_PrivateKey(keybio, pkey, EVP_des_ede3_cbc(), NULL, 0, 0, NULL))) {
-											CredentialLogger.msg(ERROR, "Could not write the private key!");
-											LogError();
-											res=false;
-										} else {
-											rsa_key_ = rsa_key;
-											rsa_key = NULL;
-											pkey_ = pkey;
-											pkey = NULL;
-											req_ = req;
-											res = true;
-										}
+										rsa_key_ = rsa_key;
+										rsa_key = NULL;
+										pkey_ = pkey;
+										pkey = NULL;
+										req_ = req;
+										res = true;
 									}
 								  }
  							 }
@@ -911,7 +905,7 @@ namespace Arc {
  					}
  				}
  			}
- 		}
+		}
 
  		req_ = req;
  		return res;
