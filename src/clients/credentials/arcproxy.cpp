@@ -13,9 +13,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#ifndef WIN32
-#include <termios.h>
-#endif
 #include <glibmm/stringutils.h>
 #include <glibmm/fileutils.h>
 #include <unistd.h>

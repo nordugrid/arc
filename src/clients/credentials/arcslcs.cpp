@@ -13,9 +13,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#ifndef WIN32
-#include <termios.h>
-#endif
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
