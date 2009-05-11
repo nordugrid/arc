@@ -576,6 +576,40 @@ if test "x$disable_xmlsec1" = "xno"; then
   #AC_SUBST(XMLSEC_MIN_VERSION)
 fi
 
+#########################
+#
+# Check liboauth
+#
+#########################
+OAUTH_MIN_VERSION="0.5.0"
+OAUTH_CFLAGS=""
+OAUTH_LIBS=""
+OAUTH_INSTALLED=no
+dnl Check if liboauth is explicitly enabled, default is disable.
+AC_ARG_ENABLE(oauth, AC_HELP_STRING([--enable-oauth], [enable the OAuth client library]),[enable_oauth="yes"],[enable_oauth="no"])
+# Ask user for path to liboauth
+if test "x$enable_oauth" = "xyes"; then
+	AC_ARG_WITH(oauth, [  --with-oauth=(PATH) prefix of liboauth installation, e.g. /usr/local or /usr])
+	AC_MSG_CHECKING(for oauth client library)
+	if test "x$with_oauth" != "x"; then
+		PKG_CONFIG_PATH ="$with_oauth/pkgconfig/:$PKG_CONFIG_PATH"
+	fi
+	
+	PKG_CHECK_MODULES(OAUTH, [oauth >= $OAUTH_MIN_VERSION], 
+					[OAUTH_INSTALLED=yes],[OAUTH_INSTALLED=no])
+	
+    AC_SUBST(OAUTH_LIBS)
+    AC_SUBST(OAUTH_CFLAGS)
+fi
+
+AC_MSG_NOTICE([OAuth client library enabled: $OAUTH_INSTALLED])
+AM_CONDITIONAL([OAUTH_LIBRARY_ENABLED],[test "x$OAUTH_INSTALLED" = "xyes"])
+
+if test "x$OAUTH_INSTALLED" = "xyes"; then
+	AC_MSG_NOTICE([Setting OAUTH preprocessor flag])
+	AC_DEFINE(HAVE_OAUTH,,[Define if oauth library is present on the system])
+fi
+
 
 #########################
 #
@@ -1361,6 +1395,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
                  src/clients/credentials/arcslcs.1
+                 src/clients/credentials/confusa/Makefile
                  src/clients/voms/Makefile
                  src/clients/voms/voms_assertion_init.1
                  src/clients/arclib/Makefile
