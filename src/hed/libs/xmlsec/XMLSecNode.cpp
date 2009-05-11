@@ -4,6 +4,10 @@
 
 #include <cstring>
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 #include <xmlsec/base64.h>
 #include <xmlsec/errors.h>
 #include <xmlsec/xmltree.h>
@@ -163,6 +167,15 @@ bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_fi
       xmlSecKeyInfoCtxDestroy(keyInfo);
     }
   }
+
+
+#if 0
+if(//(xmlSecDSigCtxEnableReferenceTransform(dsigCtx, xmlSecTransformInclC14NId) < 0) ||
+                        (xmlSecDSigCtxEnableReferenceTransform(dsigCtx, xmlSecTransformExclC14NId) < 0) ||
+                        (xmlSecDSigCtxEnableReferenceTransform(dsigCtx, xmlSecTransformSha1Id) < 0) || 
+                        (xmlSecDSigCtxEnableReferenceTransform(dsigCtx, xmlSecTransformEnvelopedId) < 0)
+                        )
+#endif
     
   if (xmlSecDSigCtxVerify(dsigCtx, signatureptr) < 0) {
     xmlSecDSigCtxDestroy(dsigCtx);
