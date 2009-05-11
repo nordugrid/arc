@@ -44,7 +44,7 @@ namespace Arc {
     RSLParser parser(source);
     const RSL *r = parser.Parse();
     if (!r) {
-      logger.msg(ERROR, "RSL parsing error");
+      logger.msg(DEBUG, "RSL parsing error");
       return JobDescription();
     }
 

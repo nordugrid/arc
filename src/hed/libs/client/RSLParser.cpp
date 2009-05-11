@@ -705,7 +705,7 @@ namespace Arc {
       int status;
       std::string attr = ParseString(status);
       if (status != 1) {
-        logger.msg(ERROR, "Expected attribute name at position %ld", n);
+        logger.msg(DEBUG, "Expected attribute name at position %ld", n);
         return NULL;
       }
       if (attr.find_first_of("+&|()=<>!\"'^#$") != std::string::npos) {
