@@ -1,3 +1,6 @@
+SUBDIRS = confusa
+DIST_SUBDIRS = confusa
+
 if XMLSEC_ENABLED
 SLCS_CLIENT_PROGRAM = arcslcs
 else
@@ -22,7 +25,8 @@ arcslcs_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSE
 arcslcs_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                   $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-                  $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la
+                  $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+                  confusa/libconfusa.la
 endif
 
 test2vomsserver_SOURCES  = test2vomsserver.cpp
