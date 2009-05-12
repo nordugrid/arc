@@ -149,12 +149,18 @@ static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>
     std::string::size_type p = id.rfind('/');
     if(p != std::string::npos) id.erase(0,p+1);
     if(id.empty()) continue;
-    std::string state  = (std::string)((*node)["State"]);
-    if(state.empty()) continue;
-    // Remove bes prefix if present
-    if(strcmp("bes:",state.c_str()) == 0) state.erase(0,4);
-    // Store state under id
-    states[id] = state;
+    Arc::XMLNode state_node = (*node)["State"];
+    for(;(bool)state_node;++state_node) {
+      std::string state  = (std::string)state_node;
+      if(state.empty()) continue;
+      // Look for nordugrid prefix
+      if(strncmp("nordugrid:",state.c_str(),10) == 0) {
+        // Remove prefix
+        state.erase(0,10);
+        // Store state under id
+        states[id] = state;
+      };
+    };
   };
 }
 

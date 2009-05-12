@@ -38,7 +38,7 @@ namespace ARex {
     if(!glue_state.empty()) {
       std::string::size_type p = glue_state.find(':');
       if(p != std::string::npos) {
-        if(glue_state.substr(0,p) == "Running") {
+        if(glue_state.substr(0,p) == "INLRMS") {
           // Extrach state of batch system
           state.NewChild("a-rex:LRMSState")=glue_state.substr(p+1);
         };
