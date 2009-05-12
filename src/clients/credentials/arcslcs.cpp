@@ -33,13 +33,13 @@
 #include <arc/xmlsec/XmlSecUtils.h>
 
 // Confusa stuff
-#include "confusa/ConfusaCertHandler.h"
-#include "confusa/SAML2LoginClient.h"
-#include "confusa/idp/HakaClient.h"
-#include "confusa/idp/OpenIdpClient.h"
+#include "../../hed/libs/client/confusa/ConfusaCertHandler.h"
+#include "../../hed/libs/client/confusa/SAML2LoginClient.h"
+#include "../../hed/libs/client/confusa/idp/HakaClient.h"
+#include "../../hed/libs/client/confusa/idp/OpenIdpClient.h"
 
 #ifdef HAVE_OAUTH
-#include "confusa/OAuthConsumer.h"
+#include "../../hed/libs/client/confusa/OAuthConsumer.h"
 #endif
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
