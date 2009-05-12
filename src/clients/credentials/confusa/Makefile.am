@@ -18,7 +18,6 @@ libconfusa_la_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(LIBS_W
 libconfusa_la_LIBADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
-                  $(top_srcdir)/src/hed/mcc/http/libmcchttp.la \
                   $(top_srcdir)/src/hed/libs/credential/libarccredential.la
          		           
 
