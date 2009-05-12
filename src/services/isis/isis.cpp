@@ -255,7 +255,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false) {
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0) {
 
         endpoint_=(std::string)((*cfg)["endpoint"]);
 
@@ -792,15 +792,6 @@ static void soft_state_thread(void *data) {
         // neighbors lock start
         neighbors_lock = true;
 
-        // neighbors count update
-        // log(2)x = (log(10)x)/(log(10)2)
-        int new_neighbors_count = (int)ceil(log10(hash_table.size()+1)/log10(sparsity));
-        if ( remove && hash_table.size() > 1 )
-           new_neighbors_count = (int)ceil(log10(hash_table.size()-1)/log10(sparsity));
-        bool modify = true;
-
-        logger_.msg(Arc::DEBUG, "old_neighbors_count: %d, new_neighbors_count: %d", neighbors_count, new_neighbors_count);
-
         bool in_hash_table = false;
         if ( hash_table.find(hash) != hash_table.end() && (hash_table.find(hash)->second).url == isis.url ) {
            in_hash_table = true;
@@ -817,6 +808,11 @@ static void soft_state_thread(void *data) {
               hash_table.insert( std::pair<int,Arc::ISIS_description>( hash, isis) );
            }
         }
+
+        // neighbors count update
+        // log(2)x = (log(10)x)/(log(10)2)
+        int new_neighbors_count = (int)ceil(log10(hash_table.size())/log10(sparsity));
+        logger_.msg(Arc::DEBUG, "old_neighbors_count: %d, new_neighbors_count: %d", neighbors_count, new_neighbors_count);
 
         // neighbors vector filling
         std::multimap<int,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
