@@ -16,6 +16,7 @@ libconfusa_la_SOURCES = ConfusaCertHandler.cpp SAML2LoginClient.cpp ConfusaParse
 libconfusa_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(CXX_FLAGS_WITH_OAUTH) -I$(top_srcdir)/include
 libconfusa_la_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(LIBS_WITH_OAUTH)
 libconfusa_la_LIBADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                  $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                   $(top_srcdir)/src/hed/mcc/http/libmcchttp.la \
                   $(top_srcdir)/src/hed/libs/credential/libarccredential.la
