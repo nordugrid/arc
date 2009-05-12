@@ -23,6 +23,10 @@ namespace Arc {
 
   PosixJSDLParser::~PosixJSDLParser() {}
 
+  static void XmlErrorHandler(void* ctx, const char* msg) {
+    return;
+  }
+
   static long get_limit(XMLNode range) {
     if (!range)
       return -1;
@@ -37,8 +41,25 @@ namespace Arc {
 
   JobDescription PosixJSDLParser::Parse(const std::string& source) const {
     JobDescription job;
+    
+    xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
 
+	if (ctxt == NULL) {
+        logger.msg(DEBUG, "[PosixJSDLParser] Failed to create parser context");
+    }
+    xmlSetGenericErrorFunc(NULL, (xmlGenericErrorFunc)XmlErrorHandler);
     XMLNode node(source);
+    xmlSetGenericErrorFunc(NULL, NULL);
+
+    if (!node) {
+        logger.msg(DEBUG, "[PosixJSDLParser] Parsing error: %s\n", (xmlGetLastError())->message);
+    }
+    else if (ctxt->valid == 0) {
+        logger.msg(DEBUG, "[PosixJSDLParser] Validating error");
+    }
+
+    xmlFreeParserCtxt(ctxt);
+
     if (node.Size() == 0) {
       logger.msg(DEBUG, "[PosixJSDLParser] Wrong XML structure! ");
       return JobDescription();
@@ -339,7 +360,9 @@ namespace Arc {
       }
     }
     // end of Datastaging
+	
     return job;
+
   }
 
   std::string PosixJSDLParser::UnParse(const JobDescription& job) const {

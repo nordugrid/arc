@@ -556,6 +556,10 @@ namespace Arc {
       logger.msg(ERROR, "Unexpected RSL type");
       return false;
     }
+  
+    // This part will run only when the parsing is at the end of the xrsl file
+	
+    return true;
   }
 
   std::string XRSLParser::UnParse(const JobDescription& j) const {

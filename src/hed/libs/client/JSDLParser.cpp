@@ -22,6 +22,10 @@ namespace Arc {
 
   JSDLParser::~JSDLParser() {}
 
+  static void XmlErrorHandler(void* ctx, const char* msg) {
+      return;
+  }
+
   // Optional name attribute checker.
   // When the node has "isoptional" attribute and it is "true",
   // then add this node name to the list of OptionalElement.
@@ -39,7 +43,25 @@ namespace Arc {
 
   JobDescription JSDLParser::Parse(const std::string& source) const {
     //Source checking
+    
+    xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
+
+    if (ctxt == NULL) {
+        logger.msg(DEBUG, "[JSDLParser] Failed to create parser context");
+    }   
+    xmlSetGenericErrorFunc(NULL, (xmlGenericErrorFunc)XmlErrorHandler);
     XMLNode node(source);
+    xmlSetGenericErrorFunc(NULL, NULL);
+
+    if (!node) {
+        logger.msg(DEBUG, "[JSDLParser] Parsing error: %s\n", (xmlGetLastError())->message);
+    }   
+    else if (ctxt->valid == 0) {
+        logger.msg(DEBUG, "[JSDLParser] Validating error");
+    }   
+
+    xmlFreeParserCtxt(ctxt);
+
     if (node.Size() == 0) {
       logger.msg(DEBUG, "[JSDLParser] Wrong XML structure! ");
       return JobDescription();

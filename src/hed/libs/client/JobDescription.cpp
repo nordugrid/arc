@@ -48,8 +48,10 @@ namespace Arc {
 
   void JobDescription::Print(bool longlist) const {
 
-    std::cout << IString(" Executable: %s", Executable) << std::endl;
-    std::cout << IString(" Grid Manager Log Directory: %s", LogDir) << std::endl;
+    if (!Executable.empty())
+       std::cout << IString(" Executable: %s", Executable) << std::endl;
+    if (!LogDir.empty())
+       std::cout << IString(" Grid Manager Log Directory: %s", LogDir) << std::endl;
     if (!JobName.empty())
       std::cout << IString(" JobName: %s", JobName) << std::endl;
     if (!Description.empty())
@@ -334,6 +336,14 @@ namespace Arc {
       return true;
     }
 
+    logger.msg(DEBUG, "Try to parse as JDL");
+    JDLParser parser4;
+    *this = parser4.Parse(source);
+    if (*this) {
+      sourceFormat = "jdl";
+      return true;
+    }
+
     logger.msg(DEBUG, "Try to parse as POSIX JSDL");
     PosixJSDLParser parser2;
     *this = parser2.Parse(source);
@@ -350,14 +360,6 @@ namespace Arc {
       return true;
     }
 
-    logger.msg(DEBUG, "Try to parse as JDL");
-    JDLParser parser4;
-    *this = parser4.Parse(source);
-    if (*this) {
-      sourceFormat = "jdl";
-      return true;
-    }
-
     logger.msg(ERROR, "The parsing of the job description was unsuccessful");
     return false;
   }
@@ -369,7 +371,7 @@ namespace Arc {
     // Generate the output text with the right parser class
     if (!*this) {
       logger.msg(DEBUG, "There is no successfully parsed source");
-      return false;
+      return product;
     }
 
     if (lower(format) == "jdl") {

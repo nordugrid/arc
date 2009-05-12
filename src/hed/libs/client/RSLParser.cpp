@@ -716,7 +716,7 @@ namespace Arc {
       SkipWS();
       RSLRelOp op = ParseRelOp();
       if (op == RSLRelError) {
-        logger.msg(ERROR, "Expected relation operator at position %ld", n);
+        logger.msg(DEBUG, "Expected relation operator at position %ld", n);
         return NULL;
       }
       SkipWS();
