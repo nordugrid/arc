@@ -895,6 +895,11 @@ static void soft_state_thread(void *data) {
     }
 
     void ISIService::BootStrap( ){
+        // Create ServiceURL hash
+        FileCacheHash md5;
+        // calculate my hash from the endpoint URL
+        my_hash = hextoi(md5.getHash(endpoint_));
+        
         // 2. step: goto InfoProviderISIS (one of the list)
         if ( infoproviders_.size() != 0 ){
             std::srand(time(NULL));
@@ -985,10 +990,6 @@ static void soft_state_thread(void *data) {
             }
             if(response) delete response;
 
-            // Create ServiceURL hash
-            FileCacheHash md5;
-            // calculate my hash from the endpoint URL
-            my_hash = hextoi(md5.getHash(endpoint_));
             hash_table.clear();
             for (int i=0; i < find_servicedatas.size(); i++) {
                 logger_.msg(Arc::DEBUG, "find ServiceID: %s , hash: %d", find_servicedatas[i].serviceID, find_servicedatas[i].peerID );
