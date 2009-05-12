@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = libarcjob.la
 
-libarcjob_ladir = $(pkgincludedir)/data
+libarcjob_ladir = $(pkgincludedir)/job
 libarcjob_la_HEADERS=runtimeenvironment.h error.h
 libarcjob_la_SOURCES=runtimeenvironment.cpp
 libarcjob_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
