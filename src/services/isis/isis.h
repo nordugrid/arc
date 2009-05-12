@@ -41,8 +41,17 @@ namespace ISIS {
 
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             int neighbors_count;
+            bool neighbors_lock;
             std::vector<std::multimap<int,Arc::ISIS_description>::const_iterator> neighbors_;
+            void Neighbors_Calculate(std::multimap<int,Arc::ISIS_description>::const_iterator it, int count);
             void Neighbors_Update(int hash, Arc::ISIS_description isis, bool remove = false);
+
+            // Informations from the RegEntry
+            int PeerID(Arc::XMLNode& regentry);
+            std::string Cert(Arc::XMLNode& regentry);
+            std::string Key(Arc::XMLNode& regentry);
+            std::string Proxy(Arc::XMLNode& regentry);
+            std::string CaDir(Arc::XMLNode& regentry);
 
             bool CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::XMLNode &response);
             // InformationContainer providing information via the LIDI interface
