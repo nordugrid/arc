@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <fcntl.h>
+#include <openssl/ui.h>
 
 #include <glibmm/fileutils.h>
 
@@ -15,8 +16,9 @@ using namespace ArcCredential;
 namespace Arc {
   CredentialError::CredentialError(const std::string& what) : std::runtime_error(what) { }
 
-    Logger CredentialLogger(Logger::rootLogger, "Credential");
+  Logger CredentialLogger(Logger::rootLogger, "Credential");
 
+#if 0
 #define PASS_MIN_LENGTH 4
   static int passwordcb(char* pwd, int len, int verify, void* passphrase) {
     int j, r;
@@ -50,11 +52,88 @@ namespace Arc {
       else { return j; }
     }
   }
+#endif
 
   static int ssl_err_cb(const char *str, size_t, void *u) {
     Logger& logger = *((Logger*)u);
     logger.msg(ERROR, "OpenSSL Error: %s", str);
     return 1;
+  }
+
+#define PASS_MIN_LENGTH 4
+  typedef struct pw_cb_data {
+    const void *password;
+    const char *prompt_info;
+  } PW_CB_DATA;
+
+  static int passwordcb(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_tmp) {
+    UI *ui = NULL;
+    int res = 0;
+    const char *prompt_info = NULL;
+    const char *password = NULL;
+    PW_CB_DATA *cb_data = (PW_CB_DATA *)cb_tmp;
+
+    if (cb_data) {
+      if (cb_data->password)
+      password = (const char*)(cb_data->password);
+      if (cb_data->prompt_info)
+        prompt_info = cb_data->prompt_info;
+    }
+
+    if (password) {
+      res = strlen(password);
+      if (res > bufsiz)
+        res = bufsiz;
+      memcpy(buf, password, res);
+      return res;
+    }
+
+    //ui = UI_new_method(ui_method);
+    ui = UI_new();
+    if (ui) {
+      int ok = 0;
+      char *buff = NULL;
+      int ui_flags = 0;
+      char *prompt = NULL;
+
+      prompt = UI_construct_prompt(ui, "pass phrase", cb_data->prompt_info);
+
+      ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
+      UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
+
+      if (ok >= 0)
+        ok = UI_add_input_string(ui,prompt,ui_flags,buf,PASS_MIN_LENGTH,BUFSIZ-1);
+      if (ok >= 0 && verify) {
+        buff = (char *)OPENSSL_malloc(bufsiz);
+        ok = UI_add_verify_string(ui,prompt,ui_flags,buff,PASS_MIN_LENGTH,BUFSIZ-1, buf);
+      }
+      if (ok >= 0)
+        do{
+          ok = UI_process(ui);
+        }while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+
+      if (buff){
+        memset(buff,0,(unsigned int)bufsiz);
+        OPENSSL_free(buff);
+      }
+
+      if (ok >= 0)
+        res = strlen(buf);
+      if (ok == -1){
+        std::cerr<<"User interface error\n"<<std::endl;
+        ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
+        memset(buf,0,(unsigned int)bufsiz);
+        res = 0;
+      }
+      if (ok == -2) {
+        std::cerr<<"Aborted!\n"<<std::endl;
+        memset(buf,0,(unsigned int)bufsiz);
+        res = 0;
+      }
+      UI_free(ui);
+      OPENSSL_free(prompt);
+    }
+    return res;
   }
 
   void Credential::LogError(void) {
@@ -373,10 +452,18 @@ namespace Arc {
           BIO_free(keybio);
           keybio = BIO_new_mem_buf((void*)(key.c_str()), key.length());
         }
+#if 0
         prompt = "Enter passphrase to decrypt the private key: ";
         EVP_set_pw_prompt((char*)(prompt.c_str()));
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb,
           (passphrase.empty()) ? NULL : (void*)(passphrase.c_str())))) {
+          throw CredentialError("Can not read credential key from PEM key BIO");
+        }
+#endif
+        PW_CB_DATA cb_data;
+        cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
+        cb_data.prompt_info = Glib::file_test(key,Glib::FILE_TEST_EXISTS) ? key.c_str() : NULL;
+        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, (pem_password_cb *)passwordcb, &cb_data))) {
           throw CredentialError("Can not read credential key from PEM key BIO");
         }
         break;
@@ -1198,10 +1285,18 @@ namespace Arc {
       }
       else {
         enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
+#if 0
         std::string prompt;
         prompt = "Enter passphrase to encrypt the PEM key file: ";
         if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,
           (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) {
+          BIO_free_all(out); return false;
+        }
+#endif
+        PW_CB_DATA cb_data;
+        cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
+        cb_data.prompt_info = NULL;
+        if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0, (pem_password_cb *)passwordcb,&cb_data)) {
           BIO_free_all(out); return false;
         }
       }
@@ -1214,10 +1309,18 @@ namespace Arc {
       }
       else {
         enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
+#if 0
         std::string prompt;
         prompt = "Enter passphrase to encrypt the PEM key file: ";
         if(!PEM_write_bio_PrivateKey(out,pkey_,enc,NULL,0,passwordcb,
           (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) {
+          BIO_free_all(out); return false;
+        }
+#endif
+        PW_CB_DATA cb_data;
+        cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
+        cb_data.prompt_info = NULL;
+        if(!PEM_write_bio_PrivateKey(out,pkey_,enc,NULL,0, (pem_password_cb *)passwordcb,&cb_data)) {
           BIO_free_all(out); return false;
         }
       }
