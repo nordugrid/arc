@@ -335,7 +335,7 @@ and querying of any record.
 
 \section{Implementation}
 \label{implement}
-JURA is written merely in C++, built with standard GNU tools, and
+JURA is written merely in C++, built with widely used GNU tools, and
 tested in a GNU/Linux environment. It depends on HED libraries: the
 common utilities library, the message handling library and the Message
 Chain Components for the TCP, TLS, SOAP and HTTP protocols. It also
@@ -423,19 +423,32 @@ configuration line:
 
 \verb|jobreport_options="urbatch:size"|
 
-%TODO implement!
 where \textit{size} is a positive integer, the number of URs sent
 within one request. If not given, the default is 50. Zero value means
 unlimited batch size.
 
+The example below is a part of the ``\textit{grid-manager}'' block of
+the A-REX configuration. It enables logging of URs to two hosts, using
+the host credential files (placed in the standard locations), with a
+maximum of 50 URs per batch. Job log files expire after a week.
 %EXAMPLE!
+\begin{verbatim}
+...
+jobreport="https://luts1.nordugrid.org:8443/wsrf/services/sgas/LUTS"
+jobreport="https://luts2.nordugrid.org:8443/wsrf/services/sgas/LUTS 7"
+jobreport_credentials="/etc/grid-security/hostkey.pem /etc/grid-security/hostcert.pem 
+     /etc/grid-security/certificates"
+jobreport_options="urbatch:50"
+...
+\end{verbatim}
 
 %TODO archiving option!!!
 
 \section{Limitations and future plans}
 \label{future}
 Although complete, JURA still has minor imperfections, some of them
-stemming from flaws in A-REX or the \textit{arcsub} client:
+stemming from limitations or operational characteristics of A-REX or
+the \textit{arcsub} client:
 
 \begin{itemize}
 \item The time frequency of running JURA is not configurable. It is a
@@ -460,8 +473,9 @@ stemming from flaws in A-REX or the \textit{arcsub} client:
 \item Some necessary extensions to the generated UR are not yet filled
   though the information is already collected in the job log files.
 \item Handling of runtime environment string is missing.
-\item Detailed user identity information based on proxy or other
-  submitted credentials is missing from URs.
+\item Detailed user identity information based on the X.509 proxy
+  certificate content or other submitted credentials is missing from
+  URs.
 \end{itemize}
 
 There is also plan to extend JURA with ther following features:
