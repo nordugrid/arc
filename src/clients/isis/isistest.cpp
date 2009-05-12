@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
       istring("The method are the folows: Query, Register, RemoveRegistrations")
       );
 
-    std::string infosys_url = "http://knowarc2.grid.niif.hu:50000/isis1";
+    std::string infosys_url = "";
       options.AddOption('b', "bootstrap",
         istring("define the URL of the Bootstrap ISIS"),
         istring("isis"),
@@ -292,10 +292,14 @@ int main(int argc, char** argv) {
                 neighbors);
 
     std::list<std::string> parameters = options.Parse(argc, argv);
-      if (!method.empty() && parameters.empty()) {
-         std::cout << "Use --help option for detailed usage information" << std::endl;
-         return 1;
-      }
+    if (!method.empty() && parameters.empty()) {
+       std::cout << "Use --help option for detailed usage information" << std::endl;
+       return 1;
+    }
+    if (isis_url.empty() && infosys_url.empty()) {
+        std::cout << "ISIS or Bootstrap ISIS have to be defined. Please use -i or -b options. For further options see --help" << std::endl;
+        return 1;
+    }
 
     if (!debug.empty())
        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -306,6 +310,7 @@ int main(int argc, char** argv) {
     std::string contactISIS_address_ = "";
 
     if (isis_url.empty() || neighbors) {
+        if ( !isis_url.empty() && neighbors ) infosys_url = isis_url;
         Arc::URL BootstrapISIS(infosys_url);
 
         // Get the a list of known ISIS's and choose one from them randomly
@@ -317,9 +322,11 @@ int main(int argc, char** argv) {
                 std::cout << "Neighbor: " << (*it) << std::endl;
             }
         }
-        if (isis_url.empty()) contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
+        if (isis_url.empty()) {
+            contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
+            std::cout << "The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
+        }
         else contactISIS_address_ = isis_url;
-        std::cout << "The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
     } else {
         contactISIS_address_ = isis_url;
     }
