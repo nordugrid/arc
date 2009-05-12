@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
     std::cout << " [ ISIS tester ] " << std::endl;
-    logger.msg(Arc::INFO, "ISIS tester start!");
+    logger.msg(Arc::INFO, " ISIS tester start!");
 
     std::string contactISIS_address_ = "";
 
@@ -319,12 +319,12 @@ int main(int argc, char** argv) {
         std::srand(time(NULL));
         if (neighbors) {
             for (std::vector<std::string>::const_iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
-                std::cout << "Neighbor: " << (*it) << std::endl;
+                std::cout << " Neighbor: " << (*it) << std::endl;
             }
         }
         if (isis_url.empty()) {
             contactISIS_address_ = neighbors_[std::rand() % neighbors_.size()];
-            std::cout << "The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
+            std::cout << " The choosen ISIS list for contact detailed information: " << contactISIS_address_ << std::endl;
         }
         else contactISIS_address_ = isis_url;
     } else {
@@ -368,7 +368,7 @@ int main(int argc, char** argv) {
               else expiration.push_back("PT30M");
            }
            else {
-              logger.msg(Arc::ERROR, "Not enough or too much parameters! %s", *it);
+              logger.msg(Arc::ERROR, " Not enough or too much parameters! %s", *it);
               return 1;
            }
        }
@@ -425,5 +425,4 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
 
