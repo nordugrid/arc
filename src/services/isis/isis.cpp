@@ -352,7 +352,7 @@ static void soft_state_thread(void *data) {
             //isisdesc.proxy = (std::string)(*cfg)["InfoProviderISIS"][i++]["Proxy"];;
             //isisdesc.cadir = (std::string)(*cfg)["InfoProviderISIS"][i++]["CaDir"];;
             // DEBUG //logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
-	    infoproviders_.push_back(isisdesc);
+            infoproviders_.push_back(isisdesc);
         }
 
         // 2. step: goto InfoProviderISIS (one of the list)
@@ -387,7 +387,7 @@ static void soft_state_thread(void *data) {
             Arc::MCC_Status status;
 
             std::vector<Arc::ISIS_description> template_provider;
-	    template_provider = infoproviders_;
+            template_provider = infoproviders_;
             bool isavaliable = false;
             while ( !isavaliable && retry_.size() > 0 ) {
                 Arc::ClientSOAP client_entry(mcc_cfg, rndProvider.url);
@@ -397,29 +397,29 @@ static void soft_state_thread(void *data) {
                 if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
                    logger_.msg(Arc::ERROR, "%s Request failed, choose new infoProviderISIS.", rndProvider.url);
                    retry_[rndProvider.url]--;
-		   // DEBUG //logger_.msg(Arc::DEBUG, "Retry decrement: %d", retry_[rndProvider.url]);
+                   // DEBUG //logger_.msg(Arc::DEBUG, "Retry decrement: %d", retry_[rndProvider.url]);
                    if ( retry_[rndProvider.url] < 1 ) {
                       retry_.erase(rndProvider.url);
-		      for (int i=0; i<template_provider.size(); i++){
-		          if (template_provider[i].url == rndProvider.url){
-			     template_provider.erase(template_provider.begin()+i);
-			     break;
-			  }
-		      }
+                      for (int i=0; i<template_provider.size(); i++){
+                          if (template_provider[i].url == rndProvider.url){
+                             template_provider.erase(template_provider.begin()+i);
+                             break;
+                          }
+                      }
                       logger_.msg(Arc::ERROR, "%s erase from the infoProviderISIS list.", rndProvider.url);
                    }
                    // new provider search
-		   if ( template_provider.size() > 0 )
+                   if ( template_provider.size() > 0 )
                       rndProvider = template_provider[std::rand() % template_provider.size()];
                 } else {
                    logger_.msg(Arc::DEBUG, "Status (%s): OK", rndProvider.url );
                    isavaliable = true;
                    bootstrapISIS = rndProvider.url;
-		   /*{// for DEBUG
-		     std::string resp;
-		     response->GetXML(resp, true);
-		     logger_.msg(Arc::DEBUG, "The response from the %s: %s",bootstrapISIS, resp );
-		   }*/
+                   /*{// for DEBUG
+                     std::string resp;
+                     response->GetXML(resp, true);
+                     logger_.msg(Arc::DEBUG, "The response from the %s: %s",bootstrapISIS, resp );
+                   }*/
                 };
             }
 
@@ -432,21 +432,21 @@ static void soft_state_thread(void *data) {
                 std::string serviceurl = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["SrcAdv"]["EPR"]["Address"];
                 if ( serviceurl.empty() )
                     serviceurl = serviceid;
-		Service_data sdata;
-		sdata.serviceID = serviceid;
-		sdata.service.url = serviceurl;
-		Arc::XMLNode regentry = (*response)["QueryResponse"]["RegEntry"][i];
-		/*sdata.service.cert = Cert(regentry);
-		sdata.service.key = Key(regentry);
-		sdata.service.proxy = Proxy(regentry);
-		sdata.service.cadir = CaDir(regentry);*/
-		sdata.peerID = PeerID(regentry);
+                Service_data sdata;
+                sdata.serviceID = serviceid;
+                sdata.service.url = serviceurl;
+                Arc::XMLNode regentry = (*response)["QueryResponse"]["RegEntry"][i];
+                /*sdata.service.cert = Cert(regentry);
+                sdata.service.key = Key(regentry);
+                sdata.service.proxy = Proxy(regentry);
+                sdata.service.cadir = CaDir(regentry);*/
+                sdata.peerID = PeerID(regentry);
                 find_servicedatas.push_back( sdata );
             }
             if(response) delete response;
 
             // Create ServiceURL hash
-	    FileCacheHash md5;
+            FileCacheHash md5;
             // calculate my hash from the endpoint URL
             my_hash = hextoi(md5.getHash(endpoint_));
             for (int i=0; i < find_servicedatas.size(); i++) {
@@ -455,23 +455,23 @@ static void soft_state_thread(void *data) {
                 hash_table.insert( std::pair<int,Arc::ISIS_description>( find_servicedatas[i].peerID, find_servicedatas[i].service) );
             }
 
-	    neighbors_count = 0;
-	    if ( !isavaliable) {
-	       logger_.msg(Arc::DEBUG, "All infoProvider are not avaliable." );    
-	    }
+            neighbors_count = 0;
+            if ( !isavaliable) {
+               logger_.msg(Arc::DEBUG, "All infoProvider are not avaliable." );
+            }
             else if ( hash_table.size() == 0 ) {
-	       logger_.msg(Arc::DEBUG, "The hash table is empty. New cloud has been created." );
-	    } else {
+               logger_.msg(Arc::DEBUG, "The hash table is empty. New cloud has been created." );
+            } else {
                // log(2)x = (log(10)x)/(log(10)2)
                // and the largest integral value that is not greater than x.
                neighbors_count = (int)ceil(log10(hash_table.size())/log10(sparsity));
                if (neighbors_count == 0)
-	          neighbors_count = 1;
+                  neighbors_count = 1;
 
-	       // neighbors vector filling
-	       std::multimap<int,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
-	       Neighbors_Calculate(it, neighbors_count);
-	       logger_.msg(Arc::DEBUG, "Neighbors count: %d", neighbors_.size() );
+               // neighbors vector filling
+               std::multimap<int,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
+               Neighbors_Calculate(it, neighbors_count);
+               logger_.msg(Arc::DEBUG, "Neighbors count: %d", neighbors_.size() );
 
                // 5. step: Connect message send to one ISIS of the neighbors
                Arc::PayloadSOAP connect_req(message_ns);
@@ -480,15 +480,15 @@ static void soft_state_thread(void *data) {
                connect_req["Connect"].NewChild("Cert") = "mycert";
                connect_req["Connect"].NewChild("Proxy") = "myproxy";
                connect_req["Connect"].NewChild("CaDir") = "mycadir";
-	       
+
                bool isavaliable_connect = false;
-	       bool no_more_isis = false;
-	       int current = 0;
+               bool no_more_isis = false;
+               int current = 0;
                Arc::PayloadSOAP *response_c = NULL;
-	       while ( !isavaliable_connect && !no_more_isis) {
+               while ( !isavaliable_connect && !no_more_isis) {
                    int retry_connect = retry;
-		   // Try to connect one ISIS of the neighbors list
-	           while ( !isavaliable_connect && retry_connect>0) {
+                   // Try to connect one ISIS of the neighbors list
+                   while ( !isavaliable_connect && retry_connect>0) {
                        Arc::ClientSOAP connectclient_entry(mcc_cfg, (neighbors_[current]->second).url);
                        logger_.msg(Arc::DEBUG, " Sending Connect request to the ISIS(%s) and waiting for the response.", (neighbors_[current]->second).url );
 
@@ -501,24 +501,24 @@ static void soft_state_thread(void *data) {
                           isavaliable_connect = true;
                        };
                    }
-		   
-		   if ( current == neighbors_.size() ) {
-		      no_more_isis = true;
+
+                   if ( current == neighbors_.size() ) {
+                      no_more_isis = true;
                       logger_.msg(Arc::DEBUG, "No more avaliable ISIS in the neighbors list." );
-		   } else if (!isavaliable_connect) {
-		      current++;
-		      logger_.msg(Arc::DEBUG, " The choosed new ISIS:  %s", (neighbors_[current]->second).url );
-		   }
-	       }
+                   } else if (!isavaliable_connect) {
+                      current++;
+                      logger_.msg(Arc::DEBUG, " The choosed new ISIS:  %s", (neighbors_[current]->second).url );
+                   }
+               }
 
                if ( isavaliable_connect ){
                   // 6. step: response data processing (DB cleaning, add new DB, Config saving)
-		  /*{// for DEBUG
-		   std::string resp;
-		   response_c->GetXML(resp, true);
-		   logger_.msg(Arc::DEBUG, "The response from the %s: %s",bootstrapISIS, resp );
-		  }*/
-		  // -DB cleaning
+                  /*{// for DEBUG
+                   std::string resp;
+                   response_c->GetXML(resp, true);
+                   logger_.msg(Arc::DEBUG, "The response from the %s: %s",bootstrapISIS, resp );
+                  }*/
+                  // -DB cleaning
                   std::map<std::string, Arc::XMLNodeList> result;
                   db_->queryAll("/*", result);
                   std::map<std::string, Arc::XMLNodeList>::iterator it;
@@ -530,20 +530,20 @@ static void soft_state_thread(void *data) {
                       // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
                       db_->del(it->first);
                   }
-		  // -DB update
-		  for ( int i=0; bool((*response_c)["ConnectResponse"]["Database"]["RegEntry"][i]); i++ ){
+                  // -DB update
+                  for ( int i=0; bool((*response_c)["ConnectResponse"]["Database"]["RegEntry"][i]); i++ ){
                       Arc::XMLNode regentry_xml;
                       (*response_c)["ConnectResponse"]["Database"]["RegEntry"][i].New(regentry_xml);
-		      std::string id = regentry_xml["MetaSrcAdv"]["ServiceID"];
+                      std::string id = regentry_xml["MetaSrcAdv"]["ServiceID"];
                       db_->put( id, regentry_xml);
-	          }
-		  logger_.msg(Arc::DEBUG, "Database stored." );
-		  /*TODO: -Config update
+                  }
+                  logger_.msg(Arc::DEBUG, "Database stored." );
+                  /*TODO: -Config update
                   Arc::XMLNode config_xml;
                   (*response_c)["ConnectResponse"]["Config"].New(config_xml);
                   */
-	       }
-	       if (response_c) delete response_c;
+               }
+               if (response_c) delete response_c;
             }
         }
 
@@ -617,11 +617,11 @@ static void soft_state_thread(void *data) {
     ISIService::~ISIService(void){
         // TODO: stop message threads
         KillThread = true;
-	for (int i=0; i< garbage_collector.size(); i++) {
-	    if ( i == 0 )
-	       logger_.msg(Arc::DEBUG, "Garbage Collector working.");
-	    delete garbage_collector[i];
-	}
+        for (int i=0; i< garbage_collector.size(); i++) {
+            if ( i == 0 )
+               logger_.msg(Arc::DEBUG, "Garbage Collector working.");
+            delete garbage_collector[i];
+        }
         while (ThreadsCount > 0){
             logger_.msg(Arc::DEBUG, "ISIS (%s) has %d more thread%s", endpoint_, ThreadsCount, ThreadsCount>1?"s.":".");
             sleep(10);
@@ -715,19 +715,19 @@ static void soft_state_thread(void *data) {
         isis.url = endpoint_;
         if ( bool(request["RegEntry"]) ) {
            SendToNeighbors(request, neighbors_, logger_, isis);
-	   for (int i=0; bool(request["RegEntry"][i]); i++) {
-	      Arc::ISIS_description isis;
-	      Arc::XMLNode regentry = request["RegEntry"][i];
-	      isis.url = (std::string)request["RegEntry"][i]["SrcAdv"]["EPR"]["Address"];
-	      /*isis.key = Key(regentry);
-	      isis.cert = Cert(regentry);
-	      isis.proxy = Proxy(regentry);
-	      isis.cadir = CaDir(regentry);*/
-	      
-	      // Search the hash value in the request message
+           for (int i=0; bool(request["RegEntry"][i]); i++) {
+              Arc::ISIS_description updateable_isis;
+              Arc::XMLNode regentry = request["RegEntry"][i];
+              updateable_isis.url = (std::string)request["RegEntry"][i]["SrcAdv"]["EPR"]["Address"];
+              /*updateable_isis.key = Key(regentry);
+              updateable_isis.cert = Cert(regentry);
+              updateable_isis.proxy = Proxy(regentry);
+              updateable_isis.cadir = CaDir(regentry);*/
+
+              // Search the hash value in the request message
               int hash = PeerID(regentry);
-	      Neighbors_Update( hash, isis );
-	   }
+              Neighbors_Update( hash, updateable_isis );
+           }
         }
 
         return Arc::MCC_Status(Arc::STATUS_OK);
@@ -779,28 +779,28 @@ static void soft_state_thread(void *data) {
         isis.url = endpoint_;
         if ( bool(request["ServiceID"]) ){
            SendToNeighbors(request, neighbors_, logger_, isis);
-	   for (int i=0; bool(request["ServiceID"][i]); i++) {
-	      // Search the hash value in my database
+           for (int i=0; bool(request["ServiceID"][i]); i++) {
+              // Search the hash value in my database
               Arc::XMLNode data;
               //db_->get(ServiceID, RegistrationEntry);
               db_->get((std::string)request["ServiceID"][i], data);
-	      if ( (std::string)data["RegEntry"]["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
-	         Arc::XMLNode regentry = data["RegEntry"];
+              if ( (std::string)data["RegEntry"]["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
+                 Arc::XMLNode regentry = data["RegEntry"];
 
-	         Arc::ISIS_description isis;
-	         isis.url = (std::string)request["ServiceID"][i];
-	         if ( bool(data["RegEntry"]["SrcAdv"]["EPR"]["Address"]) ){
-	            isis.url = (std::string)data["RegEntry"]["SrcAdv"]["EPR"]["Address"];
-	         }
-	         /*isis.key = Key(regentry);
-	         isis.cert = Cert(regentry);
-	         isis.proxy = Proxy(regentry);
-	         isis.cadir = CaDir(regentry);*/
-	         int hash = PeerID(regentry);
-	         Neighbors_Update( hash, isis, true );
-	      }
-	   }
-	}
+                 Arc::ISIS_description isis;
+                 isis.url = (std::string)request["ServiceID"][i];
+                 if ( bool(data["RegEntry"]["SrcAdv"]["EPR"]["Address"]) ){
+                    isis.url = (std::string)data["RegEntry"]["SrcAdv"]["EPR"]["Address"];
+                 }
+                 /*isis.key = Key(regentry);
+                 isis.cert = Cert(regentry);
+                 isis.proxy = Proxy(regentry);
+                 isis.cadir = CaDir(regentry);*/
+                 int hash = PeerID(regentry);
+                 Neighbors_Update( hash, isis, true );
+              }
+           }
+        }
 
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
@@ -976,95 +976,95 @@ static void soft_state_thread(void *data) {
     void ISIService::Neighbors_Update(int hash, Arc::ISIS_description isis, bool remove ) {
         // wait until the neighbors list in used
         while ( neighbors_lock ) {
-	   //sleep(10);
-	}
+           //sleep(10);
+        }
 
         // neighbors lock start
-	neighbors_lock = true;
+        neighbors_lock = true;
 
         // neighbors count update
         // log(2)x = (log(10)x)/(log(10)2)
         int new_neighbors_count = (int)ceil(log10(hash_table.size()+1)/log10(sparsity));
-	if ( remove && hash_table.size() > 1 )
-	   new_neighbors_count = (int)ceil(log10(hash_table.size()-1)/log10(sparsity));
-	bool modify = true;
+        if ( remove && hash_table.size() > 1 )
+           new_neighbors_count = (int)ceil(log10(hash_table.size()-1)/log10(sparsity));
+        bool modify = true;
 
         logger_.msg(Arc::DEBUG, "old_neighbors_count: %d, new_neighbors_count: %d", neighbors_count, new_neighbors_count);
 
-	bool in_hash_table = false;
+        bool in_hash_table = false;
         if ( hash_table.find(hash) != hash_table.end() && (hash_table.find(hash)->second).url == isis.url ) {
-	   in_hash_table = true;
-	}
+           in_hash_table = true;
+        }
 
-	if (remove) {
-	   // check the hash in the hash_table
-	   if ( in_hash_table ){
-	      hash_table.erase(hash_table.find(hash));
-	   }
-	} else {
-	   //insert in the neighbors vector
-	   if ( !in_hash_table ){
+        if (remove) {
+           // check the hash in the hash_table
+           if ( in_hash_table ){
+              hash_table.erase(hash_table.find(hash));
+           }
+        } else {
+           //insert in the neighbors vector
+           if ( !in_hash_table ){
               hash_table.insert( std::pair<int,Arc::ISIS_description>( hash, isis) );
-	   }
-	}
+           }
+        }
 
-	// neighbors vector filling
-	std::multimap<int,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
-	Neighbors_Calculate(it, new_neighbors_count);
+        // neighbors vector filling
+        std::multimap<int,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
+        Neighbors_Calculate(it, new_neighbors_count);
         neighbors_count = new_neighbors_count;
 
         // neighbors lock end
-	neighbors_lock = false;
+        neighbors_lock = false;
         logger_.msg(Arc::DEBUG, "Neighbors update success.");
         return;
     }
-    
+
     void ISIService::Neighbors_Calculate(std::multimap<int, Arc::ISIS_description>::const_iterator it, int count) {
-	int sum_step = 1;
+        int sum_step = 1;
         neighbors_.clear();
         for (int i=0; i<count; i++) {
-	    if (it == hash_table.end())
-	       it = hash_table.begin();
-	    neighbors_.push_back(it);
-	    //calculate the next neighbors
-	    for (int step=0; step<sum_step; step++){
-	       it++;
-	       if (it == hash_table.end())
-	          it = hash_table.begin();
-	    }
-	    sum_step = sum_step*sparsity;
+            if (it == hash_table.end())
+               it = hash_table.begin();
+            neighbors_.push_back(it);
+            //calculate the next neighbors
+            for (int step=0; step<sum_step; step++){
+               it++;
+               if (it == hash_table.end())
+                  it = hash_table.begin();
+            }
+            sum_step = sum_step*sparsity;
         }
         return;
     }
 
     int ISIService::PeerID( Arc::XMLNode& regentry){
-	/*{ //DEBUGING
-	  std::string s;
-	  regentry.GetXML(s, true);
-	  logger_.msg(Arc::DEBUG, "[PeerID] request xml: %s", s);
-	}*/
-	std::string peerid;
-	for (int j=0; bool(regentry["SrcAdv"]["SSPair"][j]); j++ ){
-	    if ("peerID" == (std::string)regentry["SrcAdv"]["SSPair"][j]["Name"]){
-	       peerid = (std::string)regentry["SrcAdv"]["SSPair"][j]["Value"];
-	       break;
-	    } else {
-	       continue;
-	    }
-	}
+        /*{ //DEBUGING
+          std::string s;
+          regentry.GetXML(s, true);
+          logger_.msg(Arc::DEBUG, "[PeerID] request xml: %s", s);
+        }*/
+        std::string peerid;
+        for (int j=0; bool(regentry["SrcAdv"]["SSPair"][j]); j++ ){
+            if ("peerID" == (std::string)regentry["SrcAdv"]["SSPair"][j]["Name"]){
+               peerid = (std::string)regentry["SrcAdv"]["SSPair"][j]["Value"];
+               break;
+            } else {
+               continue;
+            }
+        }
         int hash;
-	if ( peerid.empty() ){
-	    FileCacheHash md5;
+        if ( peerid.empty() ){
+            FileCacheHash md5;
             // calculate hash from the endpoint URL or serviceID
-	    if ( bool(regentry["SrcAdv"]["EPR"]["Address"]) ){
+            if ( bool(regentry["SrcAdv"]["EPR"]["Address"]) ){
                hash = hextoi(md5.getHash((std::string)regentry["SrcAdv"]["EPR"]["Address"]));
-	    } else {
+            } else {
                hash = hextoi(md5.getHash((std::string)regentry["MetaSrcAdv"]["ServiceID"]));
-	    }
-	} else {
-	    hash = Arc::stringtoi(peerid);
-	}
-	logger_.msg(Arc::DEBUG, "[PeerID] calculated hash: %d", hash);
+            }
+        } else {
+            hash = Arc::stringtoi(peerid);
+        }
+        logger_.msg(Arc::DEBUG, "[PeerID] calculated hash: %d", hash);
         return hash;
     }
 
