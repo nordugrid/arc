@@ -346,12 +346,13 @@ static void soft_state_thread(void *data) {
         // Connection to the cloud in 6 steps.
         // 1. step: Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
         int i=0;
-        while ((bool)(*cfg)["InfoProviderISIS"][i]) {
+        while ((bool)(*cfg)["InfoProvider"][i]) {
             Arc::ISIS_description isisdesc;
-            isisdesc.url = (std::string)(*cfg)["InfoProviderISIS"][i++]["URL"];
-            //isisdesc.proxy = (std::string)(*cfg)["InfoProviderISIS"][i++]["Proxy"];;
-            //isisdesc.cadir = (std::string)(*cfg)["InfoProviderISIS"][i++]["CaDir"];;
-            // DEBUG //logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
+            isisdesc.url = (std::string)(*cfg)["InfoProvider"][i++]["URL"];
+            //isisdesc.proxy = (std::string)(*cfg)["InfoProvider"][i++]["Proxy"];;
+            //isisdesc.cadir = (std::string)(*cfg)["InfoProvider"][i++]["CaDir"];;
+            // DEBUG //
+	    logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
             infoproviders_.push_back(isisdesc);
         }
         // 2.-6. steps are in the BootStrap function.
