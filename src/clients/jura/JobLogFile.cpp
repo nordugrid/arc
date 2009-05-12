@@ -83,6 +83,7 @@ namespace Arc
     ns_ur["xsd"]="http://www.w3.org/2001/XMLSchema";
     ns_ur["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
     ns_ur["ds"]="http://www.w3.org/2000/09/xmldsig#";
+    ns_ur["arc"]="http://www.nordugrid.org/ws/schemas/ur-arc";
 
     //Get node names
     std::list<std::string> nodenames;
@@ -96,7 +97,20 @@ namespace Arc
 	pcolon=nodestr.find(':');
       }
     if (!nodestr.empty()) nodenames.push_back(nodestr);
-    if (!nodenames.empty()) mainnode=*(nodenames.begin());    
+    if (!nodenames.empty()) mainnode=*(nodenames.begin());
+
+    //Get runtime environments
+    std::list<std::string> rtes;
+    std::string rtestr=(*this)["runtimeenvironment"];
+    size_type pspace=rtestr.find(" ");
+    while (pspace!=std::string::npos)
+      {
+	std::string rte=rtestr.substr(0,pspace);
+	if (!rte.empty()) rtes.push_back(rte);
+	rtestr=rtestr.substr(pspace+1,std::string::npos);
+	pspace=rtestr.find(" ");
+      }
+    if (!rtestr.empty()) rtes.push_back(rtestr);
     
     //Fill this Usage Record
     Arc::XMLNode ur(ns_ur,"JobUsageRecord");
@@ -175,6 +189,41 @@ namespace Arc
 	return;
       }
     
+    //---
+    //Network?
+
+    //Disk?
+
+    //Memory
+    if (find("usedmemory")!=end())
+      {
+	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmemory"];
+	memn.NewAttribute("storageUnit")="kB";
+	memn.NewAttribute("metric")="average";
+	memn.NewAttribute("type")="virtual";
+      }
+
+    if (find("usedmaxresident")!=end())
+      {
+	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmaxresident"];
+	memn.NewAttribute("storageUnit")="kB";
+	memn.NewAttribute("metric")="max";
+	memn.NewAttribute("type")="physical";
+      }
+
+    if (find("usedaverageresident")!=end())
+      {
+	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedaverageresident"];
+	memn.NewAttribute("storageUnit")="kB";
+	memn.NewAttribute("metric")="average";
+	memn.NewAttribute("type")="physical";
+      }
+    
+    //Swap?
+
+    //TimeDuration, TimeInstant, ServiceLevel?
+
+    //---
     //WallDuration
     if (find("usedwalltime")!=end())
       {
@@ -264,38 +313,6 @@ namespace Arc
       }
 
     
-    //TODO differentiated properties
-    //Network?
-
-    //Disk?
-
-    //Memory
-    if (find("usedmemory")!=end())
-      {
-	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmemory"];
-	memn.NewAttribute("storageUnit")="kB";
-	memn.NewAttribute("metric")="average";
-	memn.NewAttribute("type")="virtual";
-      }
-
-    if (find("usedmaxresident")!=end())
-      {
-	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmaxresident"];
-	memn.NewAttribute("storageUnit")="kB";
-	memn.NewAttribute("metric")="max";
-	memn.NewAttribute("type")="physical";
-      }
-
-    if (find("usedaverageresident")!=end())
-      {
-	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedaverageresident"];
-	memn.NewAttribute("storageUnit")="kB";
-	memn.NewAttribute("metric")="average";
-	memn.NewAttribute("type")="physical";
-      }
-    
-    //Swap?
-
     //NodeCount
     if (find("nodecount")!=end())
       {
@@ -304,11 +321,17 @@ namespace Arc
 
     //Processors?
 
-    //TimeDuration, TimeInstant, ServiceLevel?
+    //Extra:
+    //RunTimeEnvironment
 
-    //TODO extra:
-    //RuntimeEnvironment
-    //user id info
+    for(std::list<std::string>::iterator jt=rtes.begin();
+	jt!=rtes.end();
+	++jt)
+      {
+	ur.NewChild("arc:RunTimeEnvironment")=*jt;
+      }
+    
+    //TODO user id info
 
     usagerecord.Replace(ur);
   }
@@ -324,7 +347,7 @@ namespace Arc
   {
     struct stat s;
     return ( ( 0==stat(filename.c_str(),&s) ) &&
-	     ( ((unsigned int)(time(NULL)-s.st_mtime)) > age ) 
+	     ( (time(NULL)-s.st_mtime) > age ) 
 	     );
   }
 

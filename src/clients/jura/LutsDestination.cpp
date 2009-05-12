@@ -124,7 +124,6 @@ namespace Arc
                dump.c_str() );
 
     //Get Batch Size:
-    //TODO get from jobreport_options!!!
     //Default value:
     max_ur_set_size=JURA_DEFAULT_MAX_UR_SET_SIZE;
     //From jobreport_options:
