@@ -43,6 +43,8 @@ namespace Arc {
     std::string ca_file_;
     std::string ca_dir_;
     static Logger logger;
+
+    std::string cookie;
   };
 
   class ClientSOAPwithSAML2SSO {
@@ -69,6 +71,8 @@ namespace Arc {
     std::string ca_file_;
     std::string ca_dir_;
     static Logger logger;
+
+    std::string cookie;
   };
 
 } // namespace Arc

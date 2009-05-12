@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <map>
 
+#include <glibmm/timer.h>
+
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/message/PayloadRaw.h>
@@ -19,6 +21,8 @@
 
 #include "ClientSAML2SSO.h"
 
+static long timeval1 = 0, timeval2 = 0, timeval3 = 0, timeval4 = 0;
+
 namespace Arc {
   Logger ClientHTTPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientHTTPwithSAML2SSO");
   Logger ClientSOAPwithSAML2SSO::logger(Logger::getRootLogger(), "ClientSOAPwithSAML2SSO");
@@ -27,7 +31,7 @@ namespace Arc {
                                                  const URL& url)
     : http_client_(NULL),
       authn_(false) {
-    //if (!(init_xmlsec()))
+    //if (!(Arc::init_xmlsec()))
     //  return;
     http_client_ = new ClientHTTP(cfg, url);
     //Use the credential and trusted certificates from client's main chain to
@@ -39,14 +43,17 @@ namespace Arc {
   }
 
   ClientHTTPwithSAML2SSO::~ClientHTTPwithSAML2SSO() {
-    //final_xmlsec();
+    //Arc::final_xmlsec();
     if (http_client_)
       delete http_client_;
   }
 
+//static std::string cookie;
+
   static MCC_Status process_saml2sso(const std::string& idp_name, const std::string& username,
                                      const std::string& password, ClientHTTP *http_client, std::string& cert_file,
-                                     std::string& privkey_file, std::string& ca_file, std::string& ca_dir, Logger& logger) {
+                                     std::string& privkey_file, std::string& ca_file, std::string& ca_dir, Logger& logger,
+                                     std::string& cookie) {
 
     // -------------------------------------------
     // User-Agent: Send an empty http request to SP, the saml2sso process
@@ -66,23 +73,28 @@ namespace Arc {
     // -------------------------------------------
     //
 
-    PayloadRaw requestSP;
-    PayloadRawInterface *responseSP = NULL;
-    HTTPClientInfo infoSP;
+    Glib::TimeVal t1, t2, t3, t4, t5, t6;
+    t1.assign_current_time();
+
+    Arc::PayloadRaw requestSP;
+    Arc::PayloadRawInterface *responseSP = NULL;
+    Arc::HTTPClientInfo infoSP;
     requestSP.Insert(idp_name.c_str(), 0, idp_name.size());
     //Call the peer http endpoint with path "saml2sp", which
     //is the endpoint of saml SP service
-    MCC_Status statusSP = http_client->process("POST", "saml2sp", &requestSP, &infoSP, &responseSP);
+    Arc::MCC_Status statusSP = http_client->process("POST", "saml2sp", &requestSP, &infoSP, &responseSP);
     if (!responseSP) {
-      logger.msg(ERROR, "Request failed: No response from SPService");
+      logger.msg(Arc::ERROR, "Request failed: No response from SPService");
       return MCC_Status();
     }
     if (!statusSP) {
-      logger.msg(ERROR, "Request failed: Error");
+      logger.msg(Arc::ERROR, "Request failed: Error1");
       if (responseSP)
         delete responseSP;
       return MCC_Status();
     }
+
+    t2.assign_current_time();
 
     //Parse the authenRequestUrl from response
     std::string authnRequestUrl(responseSP->Content());
@@ -98,9 +110,9 @@ namespace Arc {
     //send this saml response to SP
     //-------------------------------------------
 
-    URL url(authnRequestUrl);
+    Arc::URL url(authnRequestUrl);
 
-    MCCConfig cfg;
+    Arc::MCCConfig cfg;
     if (!cert_file.empty())
       cfg.AddCertificate(cert_file);
     if (!privkey_file.empty())
@@ -112,52 +124,92 @@ namespace Arc {
 
     ClientHTTP clientIdP(cfg, url);
 
-    PayloadRaw requestIdP;
-    PayloadRawInterface *responseIdP = NULL;
-    HTTPClientInfo infoIdP;
-    MCC_Status statusIdP = clientIdP.process("GET", &requestIdP, &infoIdP, &responseIdP);
+    Arc::PayloadRaw requestIdP;
+    Arc::PayloadRawInterface *responseIdP = NULL;
+    Arc::HTTPClientInfo infoIdP;
+
+    std::map<std::string, std::string> http_attributes;
+    if (!(cookie.empty()))
+      http_attributes["Cookie"] = cookie;
+
+    Arc::MCC_Status statusIdP = clientIdP.process("GET", http_attributes, &requestIdP, &infoIdP, &responseIdP);
+
+    if ((!(infoIdP.cookie.empty())) && infoIdP.code != 200)
+      cookie = infoIdP.cookie;
+
     if (!responseIdP) {
-      logger.msg(ERROR, "Request failed: No response from IdP");
+      logger.msg(Arc::ERROR, "Request failed: No response from IdP");
       return MCC_Status();
     }
     if (!statusIdP) {
-      logger.msg(ERROR, "Request failed: Error");
+      logger.msg(Arc::ERROR, "Request failed: Error2");
       if (responseIdP)
         delete responseIdP;
       return MCC_Status();
     }
-    if (responseIdP)
-      delete responseIdP;
+    //if (responseIdP)
+    //  delete responseIdP;
 
     //The following code is for authentication (username/password)
     std::string resp_html;
-    HTTPClientInfo redirect_info = infoIdP;
+    Arc::HTTPClientInfo redirect_info = infoIdP;
+
+
+      std::cout<<"Code111111: "<<infoIdP.code<<"  Reason: "<<infoIdP.reason<<"  Size: "<<
+        infoIdP.size<<"  Type: "<<infoIdP.type<<"  Set-Cookie: "<<infoIdP.cookie<<
+         "  Location: "<<infoIdP.location<<std::endl;
+
+
+    std::string html_body;
+    for (int i = 0;; i++) {
+      char *buf = responseIdP->Buffer(i);
+      if (buf == NULL)
+        break;
+      html_body.append(responseIdP->Buffer(i), responseIdP->BufferSize(i));
+      std::cout<<"Buffer: "<<buf<<std::endl;
+    }
+
+    if (responseIdP)
+      delete responseIdP;
+
+//if(redirect_info.code== 200)
+//  cookie = redirect_info.cookie;
+//else{
+if(redirect_info.code!= 200) {
+
     int count = 0;
     do {
-      /*std::cout<<"Code: "<<redirect_info.code<<"Reason: "<<redirect_info.reason<<"Size: "<<
-         redirect_info.size<<"Type: "<<redirect_info.type<<"Set-Cookie: "<<redirect_info.cookie<<
-         "Location: "<<redirect_info.location<<std::endl;*/
+      std::cout<<"Code: "<<redirect_info.code<<"  Reason: "<<redirect_info.reason<<"  Size: "<<
+         redirect_info.size<<"  Type: "<<redirect_info.type<<"  Set-Cookie: "<<redirect_info.cookie<<
+         "  Location: "<<redirect_info.location<<std::endl;
       if (redirect_info.code != 302)
         break;
 
-      URL redirect_url(redirect_info.location);
-      ClientHTTP redirect_client(cfg, redirect_url);
+      Arc::URL redirect_url(redirect_info.location);
+      Arc::ClientHTTP redirect_client(cfg, redirect_url);
 
-      PayloadRaw redirect_request;
-      PayloadRawInterface *redirect_response = NULL;
+      Arc::PayloadRaw redirect_request;
+      Arc::PayloadRawInterface *redirect_response = NULL;
 
       std::map<std::string, std::string> http_attributes;
-      if (!(redirect_info.cookie.empty()))
-        http_attributes["Cookie"] = redirect_info.cookie;
+      //if (!(redirect_info.cookie.empty()))
+      //  http_attributes["Cookie"] = redirect_info.cookie;
 
-      MCC_Status redirect_status = redirect_client.process("GET", http_attributes,
+      if (!(cookie.empty()))
+        http_attributes["Cookie"] = cookie;
+
+      Arc::MCC_Status redirect_status = redirect_client.process("GET", http_attributes,
                                                                 &redirect_request, &redirect_info, &redirect_response);
+
+      if (!(redirect_info.cookie.empty()))
+        cookie = redirect_info.cookie;
+      
       if (!redirect_response) {
-        logger.msg(ERROR, "Request failed: No response from IdP when doing redirecting");
+        logger.msg(Arc::ERROR, "Request failed: No response from IdP when doing redirecting");
         return MCC_Status();
       }
       if (!redirect_status) {
-        logger.msg(ERROR, "Request failed: Error");
+        logger.msg(Arc::ERROR, "Request failed: Error3");
         if (redirect_response)
           delete redirect_response;
         return MCC_Status();
@@ -177,38 +229,71 @@ namespace Arc {
       count++;
       if (count > 5)
         break;             //At most loop 5 times
+
+      std::cout<<"Cookie:   "<<cookie<<std::endl;
+
     } while (1);
 
+    t3.assign_current_time();
 
-    //URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
-    URL redirect_url_final(infoIdP.location);
-    ClientHTTP redirect_client_final(cfg, redirect_url_final);
-    PayloadRaw redirect_request_final;
+
+//for(int j=0; j<2; j++){
+
+    //Arc::URL redirect_url_final("https://idp.testshib.org:443/idp/Authn/UserPassword");
+    Arc::URL redirect_url_final(infoIdP.location);
+    Arc::ClientHTTP redirect_client_final(cfg, redirect_url_final);
+    Arc::PayloadRaw redirect_request_final;
 
     //std::string login_html("j_username=myself&j_password=myself");
+
+    std::map<std::string, std::string> http_attributes2;
+
     std::string login_html;
     login_html.append("j_username=").append(username).append("&j_password=").append(password);
+
     redirect_request_final.Insert(login_html.c_str(), 0, login_html.size());
-    std::map<std::string, std::string> http_attributes;
-    http_attributes["Content-Type"] = "application/x-www-form-urlencoded";
+
+    //std::map<std::string, std::string> http_attributes2;
+    http_attributes2["Content-Type"] = "application/x-www-form-urlencoded";
 
     //Use the first cookie
-    if (!(infoIdP.cookie.empty()))
-      http_attributes["Cookie"] = infoIdP.cookie;
-    PayloadRawInterface *redirect_response_final = NULL;
-    HTTPClientInfo redirect_info_final;
-    MCC_Status redirect_status_final = redirect_client_final.process("POST", http_attributes,
+    //if (!(infoIdP.cookie.empty()))
+    //  http_attributes["Cookie"] = infoIdP.cookie;
+
+
+    if(!(cookie.empty())) http_attributes2["Cookie"] = cookie;
+
+
+
+    Arc::PayloadRawInterface *redirect_response_final = NULL;
+    Arc::HTTPClientInfo redirect_info_final;
+    Arc::MCC_Status redirect_status_final = redirect_client_final.process("POST", http_attributes2,
                                                                           &redirect_request_final, &redirect_info_final, &redirect_response_final);
+
+    if (!(redirect_info_final.cookie.empty()))
+      cookie = redirect_info_final.cookie;
+
+      std::cout<<"Code22222: "<<redirect_info_final.code<<"  Reason: "<<redirect_info_final.reason<<"  Size: "<<
+         redirect_info_final.size<<"  Type: "<<redirect_info_final.type<<"  Set-Cookie: "<<redirect_info_final.cookie<<
+         "  Location: "<<redirect_info_final.location<<std::endl;
+
+
+
     if (!redirect_response_final) {
-      logger.msg(ERROR, "Request failed: No response from IdP when doing authentication");
+      logger.msg(Arc::ERROR, "Request failed: No response from IdP when doing authentication");
       return MCC_Status();
     }
     if (!redirect_status_final) {
-      logger.msg(ERROR, "Request failed: Error");
+      logger.msg(Arc::ERROR, "Request failed: Error4");
       if (redirect_response_final)
         delete redirect_response_final;
       return MCC_Status();
     }
+
+    t4.assign_current_time();
+
+      std::cout<<"Cookie1:   "<<cookie<<std::endl;
+
 
     std::string html_body;
     for (int i = 0;; i++) {
@@ -228,41 +313,74 @@ namespace Arc {
     if (type != "text/html")
       std::cerr << "The html response from IdP is with wrong format" << std::endl;
 
-    XMLNode html_node(html_body);
+
+
+
+    std::cout<<html_body<<std::endl;
+
+
+
+
+    Arc::XMLNode html_node(html_body);
     std::string saml_resp = html_node["body"]["form"]["div"]["input"].Attribute("value");
     //std::cout<<"SAML Response: "<<saml_resp<<std::endl;
-    XMLNode samlresp_nd;
+    Arc::XMLNode samlresp_nd;
     //Decode the saml response (b64 format)
-    BuildNodefromMsg(saml_resp, samlresp_nd);
+    Arc::BuildNodefromMsg(saml_resp, samlresp_nd);
     std::string decoded_saml_resp;
     samlresp_nd.GetXML(decoded_saml_resp);
     //std::cout<<"Decoded SAML Response: "<<decoded_saml_resp<<std::endl;
 
     //Verify the signature of saml response
     std::string idname = "ID";
-    XMLSecNode sec_samlresp_nd(samlresp_nd);
+    Arc::XMLSecNode sec_samlresp_nd(samlresp_nd);
     //Since the certificate from idp.testshib.org which signs the saml response is self-signed
     //certificate, only check the signature here.
     if (sec_samlresp_nd.VerifyNode(idname, "", "", false))
-      logger.msg(INFO, "Succeeded to verify the signature under <samlp:Response/>");
+      logger.msg(Arc::INFO, "Succeeded to verify the signature under <samlp:Response/>");
     else
-      logger.msg(ERROR, "Failed to verify the signature under <samlp:Response/>");
+      logger.msg(Arc::ERROR, "Failed to verify the signature under <samlp:Response/>");
+
+     t5.assign_current_time();
 
     //Send the encrypted saml assertion to service side through this main message chain
     //Get the encrypted saml assertion in this saml response
-    XMLNode assertion_nd = samlresp_nd["saml:EncryptedAssertion"];
+    Arc::XMLNode assertion_nd = samlresp_nd["saml:EncryptedAssertion"];
     std::string saml_assertion;
     assertion_nd.GetXML(saml_assertion);
     //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
     requestSP.Truncate(0);
     requestSP.Insert(saml_assertion.c_str(), 0, saml_assertion.size());
     statusSP = http_client->process("POST", "saml2sp", &requestSP, &infoSP, &responseSP);
+
+     t6.assign_current_time();
+
+
+     std::cout<<1000*(t2-t1).as_double()<<std::endl
+              <<1000*(t3-t2).as_double()<<std::endl
+              <<1000*(t4-t3).as_double()<<std::endl
+              <<1000*(t5-t4).as_double()<<std::endl
+              <<1000*(t6-t5).as_double()<<std::endl;
+
+    timeval1  += 1000*(t2-t1).as_double();
+    timeval2  += 1000*(t4-t2).as_double();
+    timeval3  += 1000*(t5-t4).as_double();
+    timeval4  += 1000*(t6-t5).as_double();
+
+    std::cout<<"++++"<<timeval1<<std::endl
+             <<timeval2<<std::endl
+             <<timeval3<<std::endl
+             <<timeval4<<std::endl;
+
+
     if (!responseSP) {
-      logger.msg(ERROR, "Request failed: No response from SP Service when sending saml assertion to SP");
+std::cout<<"here1"<<std::endl;
+      logger.msg(Arc::ERROR, "Request failed: No response from SP Service when sending saml assertion to SP");
       return MCC_Status();
     }
     if (!statusSP) {
-      logger.msg(ERROR, "Request failed: Error");
+std::cout<<"here2"<<std::endl;
+      logger.msg(Arc::ERROR, "Request failed: Error5");
       if (responseSP)
         delete responseSP;
       return MCC_Status();
@@ -270,11 +388,15 @@ namespace Arc {
     if (responseSP)
       delete responseSP;
 
-    //PayloadRawInterface *responseService = NULL;
-    //HTTPClientInfo infoService;
 
 
-    return MCC_Status(STATUS_OK);
+}
+
+    //Arc::PayloadRawInterface *responseService = NULL;
+    //Arc::HTTPClientInfo infoService;
+
+
+    return Arc::MCC_Status(Arc::STATUS_OK);
   }
 
   MCC_Status ClientHTTPwithSAML2SSO::process(const std::string& method,
@@ -293,16 +415,16 @@ namespace Arc {
                                              const std::string& username, const std::string& password) {
     if (!authn_) { //If has not yet passed the saml2sso process
       //Do the saml2sso
-      MCC_Status status = process_saml2sso(idp_name, username, password,
-                                                http_client_, cert_file_, privkey_file_, ca_file_, ca_dir_, logger);
+      Arc::MCC_Status status = process_saml2sso(idp_name, username, password,
+                                                http_client_, cert_file_, privkey_file_, ca_file_, ca_dir_, logger, cookie);
       if (!status) {
-        logger.msg(ERROR, "SAML2SSO process failed");
+        logger.msg(Arc::ERROR, "SAML2SSO process failed");
         return MCC_Status();
       }
-      authn_ = true;
+      //authn_ = true;
     }
     //Send the real message
-    MCC_Status status = http_client_->process(method, path, request, info, response);
+    Arc::MCC_Status status = http_client_->process(method, path, request, info, response);
     return status;
   }
 
@@ -310,7 +432,7 @@ namespace Arc {
                                                  const URL& url)
     : soap_client_(NULL),
       authn_(false) {
-    //if (!(init_xmlsec()))
+    //if (!(Arc::init_xmlsec()))
     //  return;
     soap_client_ = new ClientSOAP(cfg, url);
     //Use the credential and trusted certificates from client's main chain to
@@ -322,7 +444,7 @@ namespace Arc {
   }
 
   ClientSOAPwithSAML2SSO::~ClientSOAPwithSAML2SSO() {
-    //final_xmlsec();
+    //Arc::final_xmlsec();
     if (soap_client_)
       delete soap_client_;
   }
@@ -338,16 +460,16 @@ namespace Arc {
     //Do the saml2sso
     if (!authn_) { //If has not yet passed the saml2sso process
       ClientHTTP *http_client = dynamic_cast<ClientHTTP*>(soap_client_);
-      MCC_Status status = process_saml2sso(idp_name, username, password,
-                                                http_client, cert_file_, privkey_file_, ca_file_, ca_dir_, logger);
+      Arc::MCC_Status status = process_saml2sso(idp_name, username, password,
+                                                http_client, cert_file_, privkey_file_, ca_file_, ca_dir_, logger, cookie);
       if (!status) {
-        logger.msg(ERROR, "SAML2SSO process failed");
+        logger.msg(Arc::ERROR, "SAML2SSO process failed");
         return MCC_Status();
       }
-      authn_ = true;
+      //authn_ = true;
     }
     //Send the real message
-    MCC_Status status = soap_client_->process(action, request, response);
+    Arc::MCC_Status status = soap_client_->process(action, request, response);
     return status;
   }
 
