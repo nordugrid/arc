@@ -811,7 +811,7 @@ static void soft_state_thread(void *data) {
              Arc::XMLNode data_;
              //db_->get(ServiceID, RegistrationEntry);
              db_->get(query_it->first, data_);
-	     Arc::XMLNode regentry = data_["RegEntry"];
+	     Arc::XMLNode regentry = data_;
 	     Arc::ISIS_description service;
 	     service.url = (std::string)data_["RegEntry"]["SrcAdv"]["EPR"]["Address"];
 	     if ( service.url.empty() )
