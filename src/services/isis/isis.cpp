@@ -5,6 +5,7 @@
 #include <sstream>
 #include <map>
 #include <math.h>
+#include <algorithm>
 
 #include <arc/loader/Loader.h>
 #include <arc/data/FileCacheHash.h>
@@ -34,45 +35,11 @@ class Service_data {
         std::string peerID;
 };
 
-unsigned long hextoi(std::string hex_string) {
-
-    std::map<char, int> values;
-    values['0'] = 0;
-    values['1'] = 1;
-    values['2'] = 2;
-    values['3'] = 3;
-    values['4'] = 4;
-    values['5'] = 5;
-    values['6'] = 6;
-    values['7'] = 7;
-    values['8'] = 8;
-    values['9'] = 9;
-    values['a'] = 10; values['A'] = 10;
-    values['b'] = 11; values['B'] = 11;
-    values['c'] = 12; values['C'] = 12;
-    values['d'] = 13; values['D'] = 13;
-    values['e'] = 14; values['E'] = 14;
-    values['f'] = 15; values['F'] = 15;
-
-    const char *next = hex_string.c_str();
-    if (*next == '0' && *next == 'x') next += 2;
-
-    unsigned long return_value = 0;
-    while (*next != '\0') {
-        return_value *= 16;
-        return_value += values[*next];
-        next++;
-    }
-
-    return return_value;
-}
-
-
-
 class Thread_data {
     public:
         Arc::ISIS_description isis;
         Arc::XMLNode node;
+	std::vector<std::string>* not_av_neighbors;
 };
 
 static void message_send_thread(void *arg) {
@@ -86,6 +53,8 @@ static void message_send_thread(void *arg) {
     if ( !bool(((ISIS::Thread_data *)data)->node) ) {
        thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
     }
+    std::vector<std::string>* not_avaliables_neighbors  = data->not_av_neighbors;
+
     std::string node_str;
     (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
 
@@ -117,16 +86,23 @@ static void message_send_thread(void *arg) {
     status= client_entry.process(&req,&response);
 
     if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
+       if ( find(not_avaliables_neighbors->begin(),not_avaliables_neighbors->end(),url) 
+            == not_avaliables_neighbors->end() )
+          not_avaliables_neighbors->push_back(url);
        thread_logger.msg(Arc::ERROR, "%s Request failed", url);
     } else {
-      thread_logger.msg(Arc::DEBUG, "Status (%s): OK",url );
+       std::vector<std::string>::iterator it;
+       it = find(not_avaliables_neighbors->begin(),not_avaliables_neighbors->end(),url);
+       if ( it != not_avaliables_neighbors->end() )
+          not_avaliables_neighbors->erase(it);
+       thread_logger.msg(Arc::DEBUG, "Status (%s): OK",url );
     };
     if(response) delete response;
 
 }
 
 void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neighbors_,
-                     Arc::Logger& logger_, Arc::ISIS_description isis_desc) {
+                     Arc::Logger& logger_, Arc::ISIS_description isis_desc, std::vector<std::string>* not_avaliables_neighbors) {
     if ( !bool(node) ) {
        logger_.msg(Arc::WARNING, "Empty message can not be send to the neighbors.");
        return;
@@ -139,6 +115,7 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
            data = new ISIS::Thread_data;
            data->isis = *it;
            node.New(data->node);
+	   data->not_av_neighbors = not_avaliables_neighbors;
            Arc::CreateThreadFunction(&message_send_thread, data);
         }
     }
@@ -531,7 +508,7 @@ static void soft_state_thread(void *data) {
         Arc::ISIS_description isis;
         isis.url = endpoint_;
         if ( bool(request["RegEntry"]) ) {
-           SendToNeighbors(request, neighbors_, logger_, isis);
+           SendToNeighbors(request, neighbors_, logger_, isis,&not_avaliables_neighbors_);
            for (int i=0; bool(request["RegEntry"][i]); i++) {
               Arc::ISIS_description updateable_isis;
               Arc::XMLNode regentry = request["RegEntry"][i];
@@ -594,7 +571,7 @@ static void soft_state_thread(void *data) {
         Arc::ISIS_description isis;
         isis.url = endpoint_;
         if ( bool(request["ServiceID"]) ){
-           SendToNeighbors(request, neighbors_, logger_, isis);
+           SendToNeighbors(request, neighbors_, logger_, isis, &not_avaliables_neighbors_);
            for (int i=0; bool(request["ServiceID"][i]); i++) {
               // Search the hash value in my database
               Arc::XMLNode data;
@@ -1070,6 +1047,9 @@ static void soft_state_thread(void *data) {
                       no_more_isis = true;
                       logger_.msg(Arc::DEBUG, "No more avaliable ISIS in the neighbors list." );
                    } else if (!isavaliable_connect) {
+		      if ( find(not_avaliables_neighbors_.begin(),not_avaliables_neighbors_.end(),neighbors_[current].url) 
+		           == not_avaliables_neighbors_.end() )
+		         not_avaliables_neighbors_.push_back(neighbors_[current].url);
                       current++;
                       logger_.msg(Arc::DEBUG, " The choosed new ISIS:  %s", neighbors_[current].url );
                    }
@@ -1082,6 +1062,11 @@ static void soft_state_thread(void *data) {
                    response_c->GetXML(resp, true);
                    logger_.msg(Arc::DEBUG, "The response from the %s: %s",bootstrapISIS, resp );
                   }*/
+                  std::vector<std::string>::iterator it;
+                  it = find(not_avaliables_neighbors_.begin(),not_avaliables_neighbors_.end(),neighbors_[current].url);
+                  if ( it != not_avaliables_neighbors_.end() )
+                     not_avaliables_neighbors_.erase(it);
+
                   // -DB update
                   for ( int i=0; bool((*response_c)["ConnectResponse"]["Database"]["RegEntry"][i]); i++ ){
                       Arc::XMLNode regentry_xml;
