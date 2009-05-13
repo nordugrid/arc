@@ -36,19 +36,19 @@ namespace ISIS {
             // List of known InfoProviderISIS's endpoint URL, key, cert, proxy and cadir in string
             std::vector<Arc::ISIS_description> infoproviders_;
             std::string bootstrapISIS;
-            int my_hash;
-            std::multimap<int,Arc::ISIS_description> hash_table;
+            std::string my_hash;
+            std::multimap<std::string,Arc::ISIS_description> hash_table;
             void BootStrap();
 
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             int neighbors_count;
             bool neighbors_lock;
-            std::vector<std::multimap<int,Arc::ISIS_description>::const_iterator> neighbors_;
-            void Neighbors_Calculate(std::multimap<int,Arc::ISIS_description>::const_iterator it, int count);
-            void Neighbors_Update(int hash, Arc::ISIS_description isis, bool remove = false);
+            std::vector<std::multimap<std::string,Arc::ISIS_description>::const_iterator> neighbors_;
+            void Neighbors_Calculate(std::multimap<std::string,Arc::ISIS_description>::const_iterator it, int count);
+            void Neighbors_Update(std::string hash, Arc::ISIS_description isis, bool remove = false);
 
             // Informations from the RegEntry
-            int PeerID(Arc::XMLNode& regentry);
+            std::string PeerID(Arc::XMLNode& regentry);
             std::string Cert(Arc::XMLNode& regentry);
             std::string Key(Arc::XMLNode& regentry);
             std::string Proxy(Arc::XMLNode& regentry);
