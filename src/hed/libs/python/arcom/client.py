@@ -1,6 +1,11 @@
 import arc
+import thread
 from arcom.xmltree import XMLTree
 import random
+
+from arcom.logger import get_logger
+log = get_logger('arcom.client')
+
 
 class Client:
     """ Base Client class for sending SOAP messages to services """
@@ -25,10 +30,10 @@ class Client:
         self.https = 'https' in [url.Protocol() for url in self.urls]
         self.print_xml = print_xml
         self.xmlnode_class = xmlnode_class
-        self.connection = None
         self.ssl_config = {}
         self.cfg = arc.MCCConfig()
         self.get_trusted_dns_method = ssl_config.get('get_trusted_dns_method', None)
+        self.connection_cache = {}
         if self.https:
             self.ssl_config = ssl_config
             if ssl_config.has_key('proxy_file'):
@@ -79,6 +84,13 @@ class Client:
         else:
             return resp
 
+    def _fawlty(self, message, status):
+        if not status.isOk():
+            return 'ERROR: %s' % status
+        if message.IsFault():
+            return 'ERROR: %s' % message.GetXML()
+        return False
+
     def call_raw(self, outpayload):
         """ Send a POST request with the SOAP XML message.
         
@@ -86,6 +98,16 @@ class Client:
         
         outpayload is an XMLNode with the SOAP message
         """
+        tid = thread.get_ident()
+        s = self.connection_cache.get(tid, None)
+        if s:
+            try:
+                resp, status = s.process(outpayload)
+                if not self._fawlty(resp, status):
+                    return resp.GetXML()
+            except:
+                pass
+            self.connection_cache[tid] = None
         random.shuffle(self.urls)
         #print "available URLs", [url.fullstr() for url in self.urls]
         for url in self.urls:
@@ -99,12 +121,14 @@ class Client:
                         # _s points to the superclass, but not the object, so it needs the object as first argument
                         s._s._s.AddSecHandler(s, dnlistconf, arc.TLSSec)
                 resp, status = s.process(outpayload)
-                if not status.isOk():
-                    raise Exception, str(status)
+                fawlty = self._fawlty(resp, status)
+                if fawlty:
+                    raise Exception, fawlty
                 resp = resp.GetXML()
+                self.connection_cache[tid] = s
                 return resp
             except:
-                print "ERROR connecting to", url.fullstr()
+                log.msg(arc.WARNING, "ERROR connecting to", url.fullstr())
                 pass
-        print "ERROR connecting to any of these:", ', '.join([url.fullstr() for url in self.urls])
+        log.msg(arc.ERROR, "ERROR connecting to all of these:", ', '.join([url.fullstr() for url in self.urls]))
         raise
