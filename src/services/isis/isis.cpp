@@ -125,19 +125,19 @@ static void message_send_thread(void *arg) {
 
 }
 
-void SendToNeighbors(Arc::XMLNode& node, std::vector<std::multimap<std::string,Arc::ISIS_description>::const_iterator>& neighbors_,
+void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neighbors_,
                      Arc::Logger& logger_, Arc::ISIS_description isis_desc) {
     if ( !bool(node) ) {
        logger_.msg(Arc::WARNING, "Empty message can not be send to the neighbors.");
        return;
     }
 
-    for (std::vector<std::multimap<std::string,Arc::ISIS_description>::const_iterator>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
-        if ( isis_desc.url != (*it)->second.url ) {
+    for (std::vector<Arc::ISIS_description>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
+        if ( isis_desc.url != (*it).url ) {
            //thread creation
            ISIS::Thread_data* data;
            data = new ISIS::Thread_data;
-           data->isis = (*it)->second;
+           data->isis = *it;
            node.New(data->node);
            Arc::CreateThreadFunction(&message_send_thread, data);
         }
@@ -622,8 +622,8 @@ static void soft_state_thread(void *data) {
 
     Arc::MCC_Status ISIService::GetISISList(Arc::XMLNode &request, Arc::XMLNode &response) {
         logger_.msg(Arc::DEBUG, "GetISISList");
-        for (std::vector<std::multimap<std::string,Arc::ISIS_description>::const_iterator>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
-            response.NewChild("EPR") = ((*it)->second).url;
+        for (std::vector<Arc::ISIS_description>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
+            response.NewChild("EPR") = (*it).url;
         }
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
@@ -820,7 +820,7 @@ static void soft_state_thread(void *data) {
 	     //service.cert = Cert( regentry);
 	     //service.proxy = Proxy( regentry);
 	     //service.cadir = CaDir( regentry);
-             hash_table.insert( std::pair<std::string,Arc::ISIS_description>( PeerID( regentry), service) );
+             hash_table.insert( std::pair<std::string,Arc::ISIS_description>( PeerID(regentry), service) );
         }
 
         // neighbors count update
@@ -845,7 +845,7 @@ static void soft_state_thread(void *data) {
         for (int i=0; i<count; i++) {
             if (it == hash_table.end())
                it = hash_table.begin();
-            neighbors_.push_back(it);
+            neighbors_.push_back(it->second);
             //calculate the next neighbors
             for (int step=0; step<sum_step; step++){
                it++;
@@ -1053,15 +1053,15 @@ static void soft_state_thread(void *data) {
                    int retry_connect = retry;
                    // Try to connect one ISIS of the neighbors list
                    while ( !isavaliable_connect && retry_connect>0) {
-                       Arc::ClientSOAP connectclient_entry(mcc_cfg, (neighbors_[current]->second).url);
-                       logger_.msg(Arc::DEBUG, " Sending Connect request to the ISIS(%s) and waiting for the response.", (neighbors_[current]->second).url );
+                       Arc::ClientSOAP connectclient_entry(mcc_cfg, neighbors_[current].url);
+                       logger_.msg(Arc::DEBUG, " Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
 
                        status= connectclient_entry.process(&connect_req,&response_c);
                        if ( (!status.isOk()) || (!response_c) || (response_c->IsFault()) ) {
                           logger_.msg(Arc::ERROR, "Request failed, try again.");
                           retry_connect--;
                        } else {
-                          logger_.msg(Arc::DEBUG, "Status (%s): OK", (neighbors_[current]->second).url );
+                          logger_.msg(Arc::DEBUG, "Status (%s): OK", neighbors_[current].url );
                           isavaliable_connect = true;
                        };
                    }
@@ -1071,7 +1071,7 @@ static void soft_state_thread(void *data) {
                       logger_.msg(Arc::DEBUG, "No more avaliable ISIS in the neighbors list." );
                    } else if (!isavaliable_connect) {
                       current++;
-                      logger_.msg(Arc::DEBUG, " The choosed new ISIS:  %s", (neighbors_[current]->second).url );
+                      logger_.msg(Arc::DEBUG, " The choosed new ISIS:  %s", neighbors_[current].url );
                    }
                }
 
