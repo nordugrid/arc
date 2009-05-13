@@ -1045,7 +1045,6 @@ case "${host}" in
     EXTRA_LIBS="-lole32"
     # its required to libtool generate .dlls on win32 using mingw
     LDFLAGS="$LDFLAGS -no-undefined"
-    CXXFLAGS="$CXXFLAGS -I/usr/local/include"
     AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
     AC_CHECK_PROGS(WINDRES, windres.exe i686-pc-mingw32-windres)
     ;;
