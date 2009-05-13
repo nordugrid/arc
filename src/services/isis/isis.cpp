@@ -1066,7 +1066,7 @@ static void soft_state_thread(void *data) {
                        };
                    }
 
-                   if ( current == neighbors_.size() ) {
+                   if ( current+1 == neighbors_.size() ) {
                       no_more_isis = true;
                       logger_.msg(Arc::DEBUG, "No more avaliable ISIS in the neighbors list." );
                    } else if (!isavaliable_connect) {
