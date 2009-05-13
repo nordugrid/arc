@@ -19,6 +19,7 @@ namespace Arc
    */
   {
     std::string filename;
+    std::string getArchivingPath();
   public:
     /** Constructor. Loads and parses A-REX job log. */
     JobLogFile(const std::string& _filename) { parse(_filename); } 

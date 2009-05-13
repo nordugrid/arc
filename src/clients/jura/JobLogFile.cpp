@@ -75,6 +75,28 @@ namespace Arc
   void JobLogFile::createUsageRecord(Arc::XMLNode &usagerecord,
 				     const char *recordid_prefix)
   {
+    //***
+    //If archiving is enabled: first try to load archived UR
+    std::string archive_fn=getArchivingPath();
+    if (!archive_fn.empty())
+      {
+	errno=0;
+	if (usagerecord.ReadFromFile(archive_fn))
+	  {
+	    Arc::Logger::rootLogger.msg(Arc::DEBUG,
+		"Read archive file %s",
+		archive_fn.c_str());
+	    return;
+	  }
+	Arc::Logger::rootLogger.msg(Arc::DEBUG,
+	   "Could not read archive file %s for job log file %s (%s), generating new UR",
+	   archive_fn.c_str(),
+	   filename.c_str(),
+	   strerror(errno));
+      }
+    //Otherwise go on and create new UR
+    //***
+
     Arc::NS ns_ur;
     
     //Namespaces defined by OGF
@@ -333,6 +355,41 @@ namespace Arc
     
     //TODO user id info
 
+    //***
+    //Archiving if enabled:
+    if (!archive_fn.empty())
+      {
+	struct stat st;
+	std::string dir_name=(*this)["jobreport_option_archiving"];
+	if (stat(dir_name.c_str(),&st)!=0)
+	  {
+	    Arc::Logger::rootLogger.msg(Arc::DEBUG,
+				        "Creating directory %s",
+				        dir_name.c_str());
+	    errno=0;
+	    if (mkdir(dir_name.c_str(),S_IRWXU)!=0)
+	      {
+		Arc::Logger::rootLogger.msg(Arc::ERROR,
+		    "Failed to create archive directory %s: %s",
+		    dir_name.c_str(),
+		    strerror(errno));
+	      }
+	  }
+	
+	Arc::Logger::rootLogger.msg(Arc::DEBUG,
+				    "Archiving UR to file %s",
+				    archive_fn.c_str());
+	errno=0;
+	if (!ur.SaveToFile(archive_fn.c_str()))
+	  {
+	    Arc::Logger::rootLogger.msg(Arc::ERROR,
+					"Failed to write file %s: %s",
+					archive_fn.c_str(),
+					strerror(errno));
+	  }
+      }
+    //***
+
     usagerecord.Replace(ur);
   }
 
@@ -359,6 +416,22 @@ namespace Arc
       Arc::Logger::rootLogger.msg(Arc::ERROR,"Failed to delete file %s:%s",
 		      filename.c_str(),
 		      strerror(errno));
+  }
+
+  std::string JobLogFile::getArchivingPath()
+  {
+    //no archiving dir set
+    if ((*this)["jobreport_option_archiving"].empty()) return std::string();
+
+    //if set, archive file name corresponds to original job log file
+    std::string base_fn;
+    size_type seppos=filename.rfind('/');
+    if (seppos==std::string::npos)
+      base_fn=filename;
+    else
+      base_fn=filename.substr(seppos+1,std::string::npos);
+
+    return (*this)["jobreport_option_archiving"]+"/usagerecord."+base_fn;
   }
   
 } // namespace
