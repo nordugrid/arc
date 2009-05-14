@@ -37,6 +37,20 @@
 
 namespace Arc {
 
+bool x509_to_string(X509* cert,std::string& str) {
+  BIO *out = BIO_new(BIO_s_mem());
+  if(!out) return false;
+  if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
+  for(;;) {
+    char s[256];
+    int l = BIO_read(out,s,sizeof(s));
+    if(l <= 0) break;
+    str.append(s,l);;
+  };
+  BIO_free_all(out);
+  return true;
+}
+
 class TLSSecAttr: public SecAttr {
  friend class MCC_TLS_Service;
  friend class MCC_TLS_Client;
@@ -54,11 +68,15 @@ class TLSSecAttr: public SecAttr {
     if(subjects_.size() <= 0) return "";
     return *(subjects_.begin());
   };
+  std::string X509Str(void) {
+    return x509str_;
+  };
  protected:
   std::string identity_; // Subject of last non-proxy certificate
   std::list<std::string> subjects_; // Subjects of all certificates in chain
   std::vector<std::string> voms_attributes_; // VOMS attributes from the VOMS extension of proxy
   std::string target_; // Subject of host certificate
+  std::string x509str_; // The last certificate (in string format)
   virtual bool equal(const SecAttr &b) const;
 };
 }
@@ -159,6 +177,8 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       if(!res) {
         logger.msg(ERROR,"VOMS attribute parsing failed");
       };
+      // Convert the x509 cert into string format
+      x509_to_string(peercert, x509str_);
       X509_free(peercert);
    };
    if(identity_.empty()) identity_=subject;
@@ -397,6 +417,8 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       nextinmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
       logger.msg(DEBUG, "CA name: %s", sattr->CA());
       nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
+
+      nextinmsg.Attributes()->set("TLS:PEERCERT",sattr->X509Str());
    }
 
    // Checking authentication and authorization;
