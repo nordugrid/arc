@@ -1,0 +1,170 @@
+
+\begin{tikzpicture}[>=latex,line join=bevel,]
+  \pgfsetlinewidth{1bp}
+%%
+\pgfsetcolor{black}
+  % Edge: Installer -> Util
+  \draw [->] (711bp,144bp) .. controls (710bp,136bp) and (710bp,127bp)  .. (710bp,108bp);
+  % Edge: Janitor -> Filefetcher
+  \draw [->] (732bp,221bp) .. controls (750bp,211bp) and (776bp,194bp)  .. (805bp,175bp);
+  % Edge: Catalog -> Tag
+  \draw [->] (390bp,153bp) .. controls (417bp,143bp) and (463bp,125bp)  .. (501bp,108bp) .. controls (503bp,107bp) and (504bp,107bp)  .. (515bp,101bp);
+  % Edge: BaseSystem -> Note
+  \draw [->] (458bp,72bp) .. controls (458bp,64bp) and (458bp,55bp)  .. (458bp,36bp);
+  % Edge: Installer -> Execute
+  \draw [->] (727bp,147bp) .. controls (737bp,137bp) and (749bp,124bp)  .. (766bp,105bp);
+  % Edge: Janitor -> Catalog
+  \draw [->] (686bp,229bp) .. controls (625bp,216bp) and (472bp,184bp)  .. (392bp,167bp);
+  % Edge: Catalog -> MetaPackage
+  \draw [->] (341bp,155bp) .. controls (315bp,147bp) and (274bp,131bp)  .. (245bp,108bp) .. controls (224bp,90bp) and (207bp,65bp)  .. (192bp,36bp);
+  % Edge: Janitor -> TarPackage
+  \draw [->] (685bp,231bp) .. controls (622bp,225bp) and (462bp,207bp)  .. (330bp,180bp) .. controls (214bp,155bp) and (185bp,147bp)  .. (73bp,108bp) .. controls (71bp,107bp) and (69bp,106bp)  .. (57bp,101bp);
+  % Edge: Filefetcher -> Execute
+  \draw [->] (815bp,145bp) .. controls (810bp,137bp) and (803bp,126bp)  .. (792bp,107bp);
+  % Edge: Janitor -> Config
+  \draw [->] (739bp,232bp) .. controls (793bp,226bp) and (913bp,211bp)  .. (938bp,180bp) .. controls (953bp,160bp) and (938bp,132bp)  .. (917bp,105bp);
+  % Edge: Janitor -> Execute
+  \draw [->] (724bp,217bp) .. controls (731bp,207bp) and (741bp,193bp)  .. (748bp,180bp) .. controls (758bp,160bp) and (767bp,135bp)  .. (776bp,108bp);
+  % Edge: Catalog -> TarPackage
+  \draw [->] (339bp,159bp) .. controls (287bp,153bp) and (169bp,137bp)  .. (73bp,108bp) .. controls (71bp,107bp) and (68bp,106bp)  .. (56bp,102bp);
+  % Edge: Catalog -> DebianPackage
+  \draw [->] (392bp,156bp) .. controls (431bp,147bp) and (509bp,128bp)  .. (573bp,108bp) .. controls (576bp,107bp) and (579bp,106bp)  .. (592bp,102bp);
+  % Edge: Installer -> Config
+  \draw [->] (736bp,153bp) .. controls (770bp,140bp) and (831bp,117bp)  .. (878bp,99bp);
+  % Edge: Tag -> Note
+  \draw [->] (521bp,75bp) .. controls (509bp,65bp) and (494bp,51bp)  .. (474bp,33bp);
+  % Edge: MetaPackageCollection -> MetaPackage
+  \draw [->] (151bp,72bp) .. controls (155bp,64bp) and (162bp,54bp)  .. (172bp,36bp);
+  % Edge: Common -> Config
+  \draw [->] (902bp,144bp) .. controls (902bp,136bp) and (902bp,127bp)  .. (902bp,108bp);
+  % Edge: Janitor -> DebianPackage
+  \draw [->] (697bp,219bp) .. controls (688bp,208bp) and (676bp,194bp)  .. (667bp,180bp) .. controls (654bp,160bp) and (642bp,135bp)  .. (630bp,108bp);
+  % Edge: Catalog -> Package
+  \draw [->] (349bp,148bp) .. controls (336bp,137bp) and (319bp,123bp)  .. (298bp,104bp);
+  % Edge: Catalog -> NoteCollection
+  \draw [->] (366bp,144bp) .. controls (366bp,136bp) and (366bp,127bp)  .. (366bp,108bp);
+  % Edge: Janitor -> Installer
+  \draw [->] (712bp,216bp) .. controls (712bp,208bp) and (712bp,199bp)  .. (712bp,180bp);
+  % Edge: Janitor -> Util
+  \draw [->] (698bp,219bp) .. controls (690bp,208bp) and (680bp,194bp)  .. (676bp,180bp) .. controls (671bp,164bp) and (671bp,159bp)  .. (676bp,144bp) .. controls (679bp,134bp) and (684bp,123bp)  .. (695bp,106bp);
+  % Edge: Execute -> InstallLogger
+  \draw [->] (781bp,72bp) .. controls (781bp,64bp) and (781bp,55bp)  .. (781bp,36bp);
+  % Edge: Janitor -> Common
+  \draw [->] (737bp,226bp) .. controls (767bp,217bp) and (821bp,199bp)  .. (866bp,180bp) .. controls (868bp,179bp) and (870bp,178bp)  .. (881bp,173bp);
+  % Edge: NoteCollection -> Note
+  \draw [->] (386bp,74bp) .. controls (399bp,63bp) and (418bp,49bp)  .. (440bp,32bp);
+  % Edge: Catalog -> BaseSystem
+  \draw [->] (384bp,148bp) .. controls (397bp,138bp) and (415bp,123bp)  .. (439bp,105bp);
+  % Edge: Catalog -> MetaPackageCollection
+  \draw [->] (341bp,154bp) .. controls (306bp,142bp) and (238bp,121bp)  .. (181bp,103bp);
+  % Node: Note
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (458bp,18bp) ellipse (27bp and 18bp);
+  \draw (458bp,18bp) node {Note};
+\end{scope}
+  % Node: Execute
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (781bp,90bp) ellipse (27bp and 18bp);
+  \draw (781bp,90bp) node {Execute};
+\end{scope}
+  % Node: Package
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (281bp,90bp) ellipse (27bp and 18bp);
+  \draw (281bp,90bp) node {Package};
+\end{scope}
+  % Node: DebianPackage
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (623bp,90bp) ellipse (41bp and 18bp);
+  \draw (623bp,90bp) node {DebianPackage};
+\end{scope}
+  % Node: Config
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (902bp,90bp) ellipse (27bp and 18bp);
+  \draw (902bp,90bp) node {Config};
+\end{scope}
+  % Node: MetaPackage
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (183bp,18bp) ellipse (37bp and 18bp);
+  \draw (183bp,18bp) node {MetaPackage};
+\end{scope}
+  % Node: NoteCollection
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (366bp,90bp) ellipse (40bp and 18bp);
+  \draw (366bp,90bp) node {NoteCollection};
+\end{scope}
+  % Node: Util
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (709bp,90bp) ellipse (27bp and 18bp);
+  \draw (709bp,90bp) node {Util};
+\end{scope}
+  % Node: Catalog
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (366bp,162bp) ellipse (27bp and 18bp);
+  \draw (366bp,162bp) node {Catalog};
+\end{scope}
+  % Node: Tag
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (537bp,90bp) ellipse (27bp and 18bp);
+  \draw (537bp,90bp) node {Tag};
+\end{scope}
+  % Node: Filefetcher
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (826bp,162bp) ellipse (31bp and 18bp);
+  \draw (826bp,162bp) node {Filefetcher};
+\end{scope}
+  % Node: Common
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (902bp,162bp) ellipse (27bp and 18bp);
+  \draw (902bp,162bp) node {Common};
+\end{scope}
+  % Node: MetaPackageCollection
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (140bp,90bp) ellipse (58bp and 18bp);
+  \draw (140bp,90bp) node {MetaPackageCollection};
+\end{scope}
+  % Node: Installer
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (712bp,162bp) ellipse (27bp and 18bp);
+  \draw (712bp,162bp) node {Installer};
+\end{scope}
+  % Node: Janitor
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (712bp,234bp) ellipse (27bp and 18bp);
+  \draw (712bp,234bp) node {Janitor};
+\end{scope}
+  % Node: TarPackage
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (32bp,90bp) ellipse (32bp and 18bp);
+  \draw (32bp,90bp) node {TarPackage};
+\end{scope}
+  % Node: BaseSystem
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (458bp,90bp) ellipse (34bp and 18bp);
+  \draw (458bp,90bp) node {BaseSystem};
+\end{scope}
+  % Node: InstallLogger
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \draw (781bp,18bp) ellipse (35bp and 18bp);
+  \draw (781bp,18bp) node {InstallLogger};
+\end{scope}
+%
+\end{tikzpicture}
+

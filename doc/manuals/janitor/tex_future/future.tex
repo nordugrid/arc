@@ -1,0 +1,63 @@
+\chapter{Outlook}
+% 
+% * Future work
+% ** API and WebService-Interface for Janitor
+% ** Glue2 specification for RTE states
+% 
+
+\section{Representation of dynamic REs in the information model}
+Dynamic REs require an extended representation in the
+information model.  The Application Software description should be able
+to distinguish installed REs from installable REs, potentially offer
+description of extended RE state-like information. This work is planned
+to be carried out as part of the Glue-2.0 effort of OGF\footnote{OGF
+GLUE: https://forge.gridforum.org/sf/projects/glue-wg}.
+
+\section{Integration with Workflow Management}
+
+Future development of ARC aims at integrating grid computing with
+workflow tools for the web services that have a growing user base in
+bioinformatics. The challenge is to prepare REs for
+programs or databases and to offer such concisely to users of the
+workflow environments.  In the bioinformatics community, such are
+today offered as web services.  This anticipated development instead
+fosters the dynamic installation on the grid whenever appropriate to
+allow for special computational demands in high-throughput analyses.
+Conversely, because of the increased complexity of workflows with respect
+to the already today not manually manageable number of REs, without an
+automatism for the automated installation of software packages on the
+grid, the use of workflows in grid computing seems mute.
+
+\section{Implementation of a Catalog service}
+ 
+A Catalog service is planed to be implemented on top of the ARC
+HED component.  This service will render the currently used locally
+accessible RDF file externally accessible. Selected users are then allowed
+to remotely add/edit/remove REs to/from to it.  The Janitor will access
+the content of the Catalog through a well-defined Web Service interface.
+
+\section{Integration with the Virtualization work}
+
+The RDF schema nicely prepares for the upcoming virtualisation of worker
+nodes.  How exactly the dynamics are integrated will depend on how
+dynamic the virtualisation of the nodes is. In the simplest scenario,
+a worker node's CPU will only be occupied by a single virtual machine
+and that will not be changed. In this case, there is no difference to
+the setup of the Janitor with today's static setups.
+
+However, if the BaseSystems can be substituted dynamically, then a RE
+can possibly be offered via multiple BaseSystems. The RDF
+Schema describes BaseSystems as separate instances and as such differs
+from the current RE registry.  Heuristics that prefer one BaseSystem for
+another can make direct use of the data that is presented in the schema.
+The integration of packages from Linux distributions in the description
+of REs is essential to have a means to decide for the equivalence of
+manual additions and the functionality that comes with BaseSystem.
+
+
+TODO:\\
+\begin{itemize}
+ \item There is a arc.conf file in which all possiblie flags are listed... ADD THE JANITOR FLAGS!!!
+ \item Dynamic RTEs are now listed as manually installed in the ``janitor list'' command.. change that
+ \item Verfication
+\end{itemize}

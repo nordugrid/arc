@@ -1,0 +1,195 @@
+\chapter{Usage}
+
+Janitor can be used either with or without A-REX. In case A-REX is used, installations will be maintained automatically the runtime environments.
+
+\section{Janitor with A-REX}
+
+Runtime Environments can be specified using the supported job description languages.
+Representative two common languages shall be explained at this point: xRSL and JSDL.
+Listing~\ref{lst:xrsl_job} shows the xRSL example in which two runtime environments are requested.
+
+\lstsetXRSL
+\begin{lstlisting}[
+        label=lst:xrsl_job,
+        caption={ [Job submission using the xRSL job description language.]
+                  \textbf{Job submission using the xRSL job description language.}}
+        ]
+ &
+ (executable = "run.sh" )
+ (arguments = "weka.classifiers.trees.J48" "-t" "weather.arff")
+ ("inputfiles" = ("weather.arff" "" ))
+ ("stderr" = "stderr" )
+ ("stdout" = "stdout" )
+ ("gmlog" = "gmlog" )
+ ("runtimeenvironment" = "APPS/BIO/WEKA-3.4.10")
+ ("runtimeenvironment" = "APPS/BIO/WISE-2.4.1-5")
+\end{lstlisting}
+
+A comprehensive reference manual of the Extended Resource Specification Language (XRSL) can be
+found at \href{www.nordugrid.org/documents/xrsl.pdf}{www.nordugrid.org/documents/xrsl.pdf}~\cite{NORDUGRID_MANUAL_4}.
+Within Listing~\ref{lst:jsdl_job} an example using JSDL is provided. The specification of assigning runtime environments in JSDL is 
+currently only defined within the nordugrid jsdl-arc schema~
+\href{http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_arc.xsd}
+     {http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl\_arc.xsd}.
+\lstsetJUSTXML
+\begin{lstlisting}[
+        label=lst:jsdl_job,
+        caption={ [Job submission using JSDL.]
+                  \textbf{Job submission using JSDL.}}
+        ]
+<?xml version="1.0" encoding="UTF-8"?>
+<JobDefinition
+  xmlns="http://schemas.ggf.org/jsdl/2005/11/jsdl"
+  xmlns:posix="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"
+  xmlns:arc="http://www.nordugrid.org/ws/schemas/jsdl-arc">
+  <JobDescription>
+    <Application>
+      <posix:POSIXApplication>
+        <posix:Executable>/bin/sleep</posix:Executable>
+        <posix:Argument>120</posix:Argument>
+      </posix:POSIXApplication>
+    </Application>
+    <DataStaging>
+      <FileName>test.sh</FileName>
+      <Source/>
+      <Target/>
+    </DataStaging>
+    <DataStaging>
+      <FileName>transferGSI-small</FileName>
+      <Source>
+        <URI>gsiftp://pgs02.grid.upjs.sk:2811/unixacl/transferGSI-small</URI>
+      </Source>
+      <Target/>
+    </DataStaging>
+    <Resources>
+      <arc:RunTimeEnvironment>
+        <arc:Name>APPS/BIO/WISE-2.4.1-5</arc:Name>
+        <arc:Version><Exact>2.4.1</Exact></arc:Version>
+      </arc:RunTimeEnvironment>
+      <arc:RunTimeEnvironment>
+        <arc:Name>APPS/BIO/APPS/BIO/WEKA-3.4.10</arc:Name>
+        <arc:Version><Exact>3.4</Exact></arc:Version>
+      </arc:RunTimeEnvironment>
+    </Resources>
+  </JobDescription>
+</JobDefinition>
+\end{lstlisting}
+
+
+\section{Janitor without A-REX}
+
+In addition of using Janitor together with A-REX, Janitor can also be used as a standalone commandline tool.
+The available commands are listed in the Table~\ref{janitor_commandline_man}.
+\begin{table}[!h]
+   \begin{center}
+        \mycaption{Overview about the available commands in Janitor.}{}
+        \label{tab:janitor_commandline_man}
+	\begin{tabular}{p{0.5cm}p{2cm}p{11cm}}
+	\multicolumn{3}{l}{\textbf{janitor [COMMAND] [JOB-ID] [RTE] \dots}} \\
+	\multicolumn{3}{l}{\textbf{Command:}}\\
+	&	register			& Registers a job and a set of runtime environments in the Janitor database. Requires the parameters [JOB-ID] and a list of [RTE]s.\\
+	&	deploy				& Downloads and installs the desired runtime environments. Requires the name of an already registered [JOB-ID].\\
+	&	remove				& Removes the placeholder of the job on the runtime environments. If no more jobs are using the runtime environment and the lifespan of the runtime environment has be expired, the runtime environment can be removed using the \texttt{sweep} command. Requires the [JOB-ID] to be removed.\\
+	&					&\\
+	&	sweep				& Removes unused runtime environments. No further arguements are required. Using the option \texttt{--force} enforces the removal of all unused runtime environments. Runtime environments having the state FAILED will not be removed.\\
+	&	setstate			& Changes the state of a dynamically installed runtime environment. This might be useful in case a runtime environment with a state FAILED shall be removed (new state might be REMOVAL\_PENDING). Requires the argument [STATE] followd by a list of [RTE]s.\\
+	&					&\\
+	&	search				& Performs a simple search in the catalog and the manually installed runtime environments (\texttt{runtimedir}). Requires no [JOB-ID] nor [RTE]s, but only a list of string to be searched for.\\
+	&	list				& Lists all information about jobs, automatically installed runtime environments and manually installed runtime environments. No additional parameters have to be passed.\\
+	&	info				& Renders information about a job. Requires the parameter [JOB-ID].\\
+	\multicolumn{3}{l}{\textbf{Job id:}}\\
+	&					& A unique sequence of numbers. Once Janitor registered a job id it cannot register a second job having the same job id.\\
+	\multicolumn{3}{l}{\textbf{Runtime environments:}}\\
+	&					& Runtime environments are defined by a continuous string. The name of valid runtime environment names can be investigated using the \texttt{list} or the \texttt{search} commands. They are defined in the catalog or by the directories and scripts of the \texttt{runtimedir} of the \texttt{grid-manager}.\\
+	\end{tabular} 
+   \end{center}
+\end{table}
+The most important commands for Janitor are \texttt{register}, \texttt{deploy} and \texttt{remove}. In order to 
+register a job along with a set of runtime environments in Janitor, the first command \texttt{register} followed
+by a job identifier and a list of runtime environments has to be used.
+A job is identified by sequence of numbers. Runtime environments are specified by a string containing the name as it is defined 
+within the catalog (resp. the runtime directory of the grid-manager).
+The command \texttt{deploy} extracts the necessary dependcies of the desired runtime environments and then downloads and installs 
+the required packages. %How dependecies can are defined will be explained later in the section~\ref{sec:catalog}.
+
+% PROCEED HERE!!!!!!!! !! ! ! !
+In order to remove jobs registered in Janitor the command \texttt{remove} has to be used. 
+The command only removes the job entry and the lock on the runtime environment. If there are no more locks on the runtime environment
+it might be deleted for real.
+
+Easy commandline examples are provided in Listing~\ref{lst:janitor_example}.
+
+Each command has a certain behaviour for its exit status. The Table~\ref{tab:janitor_commandline_exit_status} lists the possible
+outcomes.
+
+\begin{table}[!h]
+   \begin{center}
+        \mycaption{Possible exit states of Janitor}{}
+        \label{tab:janitor_commandline_exit_status}
+	\begin{tabular}{p{0.5cm}p{2cm}p{0.5cm}p{11cm}}
+	\multicolumn{3}{l}{\textbf{Exit status:}} \\
+	&\multicolumn{3}{l}{The exit status of Janitor depends on the used command.} \\
+	&	register			& 0 & Registration was successful. No noteworthy occurrences.\\
+	&					& 1 & Registration was successful but some runtime environments aren't installed yet. Deploy is mandatory.\\ 
+	&					& 2 & An error occured.\\
+	&					&   &\\
+	&	deploy				& 0 & Sucessfully initialized job.\\
+	&					& 1 & Can't provide requested runtime environments.\\ 
+	&					&   &\\
+	&	remove				& 0 & Sucessfully removed job or no such job.\\
+	&					& 1 & Can't provide requested runtime environments.\\ 
+	&					&   &\\
+	&	sweep				& 0 & Always returns this exit code.\\
+	&					&   &\\
+	&	setstate			& 0 & Changing the state was successful.\\
+	&					& 1 & Can not change the state.\\ 
+	&					&   &\\
+	&	search				& 0 & Search sucessfully finished.\\
+	&					&   &\\
+	&	list				& 0 & Successfully retrieved information.\\
+	&					&   &\\
+	&	info				& 0 & Successfully retrieved job information.\\
+	&					& 1 & No such job.\\ 
+	&					& 2 & Error while retrieving job information.\\
+	\end{tabular} 
+   \end{center}
+\end{table}
+
+
+\lstsetKSH
+\begin{lstlisting}[
+        label=lst:janitor_example,
+        caption={ [Example \textit{log.conf} settings for janitor.]
+                  \textbf{Example \textit{log.conf} settings for janitor.}}
+        ]
+# janitor register 1999 APP/BIO/JASPAR-CORE-1.0 APPS/BIO/APPS/BIO/WEKA-3.4.10
+# janitor deploy 1999
+# janitor remove 1999
+
+# janitor sweep --force
+# janitor setstate REMOVAL_PENDING APP/BIO/JASPAR-CORE-1.0 APPS/BIO/APPS/BIO/WEKA-3.4.10
+
+# janitor search JASPAR WEKA
+# janitor list
+# janitor info 1999
+\end{lstlisting}
+
+% 
+% * Usage
+% ** Without A-REX
+% *** Commandline (Advantage/Disadvantages)
+% *** WebService (Advantage/Disadvantages)
+% 
+% * With A-REX
+% ** Example:
+% *** Simple:     runtimedir
+% *** Simple:     RDF
+% *** Simple job: JSDL
+% *** Simple job: XRSL
+
+
+
+\section{Example}
+% 
+% 
+
