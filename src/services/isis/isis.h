@@ -43,12 +43,13 @@ namespace ISIS {
             std::string my_hash;
             std::multimap<std::string,Arc::ISIS_description> hash_table;
             void BootStrap(int retry_count);
+            bool available_provider;
 
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             int neighbors_count;
             bool neighbors_lock;
             std::vector<Arc::ISIS_description> neighbors_;
-            std::vector<std::string> not_avaliables_neighbors_;
+            std::vector<std::string> not_availables_neighbors_;
             void Neighbors_Calculate(std::multimap<std::string,Arc::ISIS_description>::const_iterator it, int count);
             void Neighbors_Update(std::string hash, bool remove = false);
 
