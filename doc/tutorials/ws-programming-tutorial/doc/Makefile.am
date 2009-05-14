@@ -14,9 +14,7 @@ $(doc_DATA): $(docsource) $(STYLES)
 	pdflatex $(docsource)
 
 $(STYLES):
-	if [ ! -e $$@ ]; then \
-		$(LN_S) ../../templates/tex/$@ $@; \
-	fi
+	$(LN_S) ../../../templates/tex/$@ $@
 
 
 EXTRA_DIST = $(doc_DATA) # ADD EXAMPLES DIRECTORY HERE
