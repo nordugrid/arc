@@ -242,6 +242,17 @@ job log file to be able to generate a UR. For example, the job log
 file generated upon job submission contains no \textit{status} entry,
 so this file is ignored, and no UR is generated from it.
 
+An archiving functionality allows to store generated URs in a
+specified directory (see Section \ref{config}) on the disk. If
+enabled, valid UR XMLs are written to files named
+``\textit{usagerecord.$<$ngjobid$>$.$<$random$>$}'', where
+``\textit{ngjobid}'' and ``\textit{random}'' match those of the source
+job log file. If a job log file is processed repeatedly -- for example
+because of temporary connection failures to a LUTS service -- and a
+respective UR archive file already exists, then the UR is not
+generated again. Instead, the contents of the archive file are used
+without change (NB: the creation time stamp is also retained).
+
 After successful submission to a reporting destination, the job log
 file is deleted, preventing multiple insertion of usage records. If
 submission fails, the log files are kept, so another attempt is made
@@ -293,7 +304,7 @@ can be set as a configuration parameter of JURA
 %ird le hogy megy a btch kuldes.
 
 \section{Security}
-The JURA executable runs with the same user priviliges as the A-REX,
+The JURA executable runs with the same user privileges as the A-REX,
 typically as \textit{root}. The owner of a job log file is the local
 user mapped for the submitter entity of the corresponding job. These
 files contain confidential data, access to which must be restricted,
@@ -346,7 +357,7 @@ libxml-2.0, openssl, e2fsprogs and GNU gettext.
 
 The usage reporting part of the JURA code has a modular design in
 order to enable adding other types of accounting services besides the
-curently only supported LUTS. An abstract interface class called
+currently only supported LUTS. An abstract interface class called
 ``\textit{Destination}'' represents a usage reporting destination
 service. Different inherited classes of ``\textit{Destination}''
 handle different types of services. Currently the only inherited class
@@ -416,21 +427,27 @@ of the A-REX configuration file are relevant for JURA:
 \end{itemize}
 
 The \textit{jobreport\_options} variable allows passing a generic
-option string to JURA verbatim. This string can be used for example
-for service-related settings. Currently only SGAS LUTS service is
-supported, for which the UR batch size can be set with the following
-configuration line:
+option string to JURA verbatim. This string is interpreted by JURA as
+a comma-separated list of ``\textit{name:value}'' pairs (note the
+colon!), which represent service-related settings and extended
+reporting parameters. The job reporting options currently defined are:
 
-\verb|jobreport_options="urbatch:size"|
-
-where \textit{size} is a positive integer, the number of URs sent
-within one request. If not given, the default is 50. Zero value means
-unlimited batch size.
+\begin{itemize}
+\item \textbf{\textit{urbatch}}\textit{:size} -- sets the maximal
+  number of URs in the batch sent within one request. Zero value means
+  unlimited batch size. Default is 50.
+\item \textbf{\textit{archiving}}\textit{:dir} -- enables archiving of
+  generated URs in the given directory. If the directory does not
+  exist, an attempt is made to create it. If this option is absent, no
+  archiving is performed.
+\end{itemize}
 
 The example below is a part of the ``\textit{grid-manager}'' block of
 the A-REX configuration. It enables logging of URs to two hosts, using
 the host credential files (placed in the standard locations), with a
-maximum of 50 URs per batch. Job log files expire after a week.
+maximum of 50 URs per batch. Generated URs are archived in the
+directory ``\textit{/var/urs}''.
+Job log files expire after a week.
 %EXAMPLE!
 \begin{verbatim}
 ...
@@ -438,7 +455,7 @@ jobreport="https://luts1.nordugrid.org:8443/wsrf/services/sgas/LUTS"
 jobreport="https://luts2.nordugrid.org:8443/wsrf/services/sgas/LUTS 7"
 jobreport_credentials="/etc/grid-security/hostkey.pem /etc/grid-security/hostcert.pem 
      /etc/grid-security/certificates"
-jobreport_options="urbatch:50"
+jobreport_options="urbatch:50,archiving:/var/urs"
 ...
 \end{verbatim}
 
@@ -472,17 +489,17 @@ the \textit{arcsub} client:
   in all memory usage set incorrectly as zero.
 \item Some necessary extensions to the generated UR are not yet filled
   though the information is already collected in the job log files.
-\item Handling of runtime environment string is missing.
+%\item Handling of runtime environment string is missing.
 \item Detailed user identity information based on the X.509 proxy
   certificate content or other submitted credentials is missing from
   URs.
 \end{itemize}
 
-There is also plan to extend JURA with ther following features:
+There is also plan to extend JURA with the following features:
 
 \begin{itemize}
-\item An archiving functionality, storing generated URs in a local
-  directory specified in the configuration.
+%\item An archiving functionality, storing generated URs in a local
+%  directory specified in the configuration.
 \item Support for other accounting systems besides LUTS, especially
   the EGEE Accounting Service. However, appropriate documentation on
   the service interfaces is missing as of now.
@@ -521,7 +538,7 @@ missing.
 
 %, and what extensions have been added to UR.
 
-\begin{tabular}{|p{0.22\columnwidth}|p{0.22\columnwidth}|p{0.54\columnwidth}|}
+\begin{tabular}{|p{0.21\columnwidth}|p{0.21\columnwidth}|p{0.56\columnwidth}|}
 \hline
 \textbf{Generated\newline UR Property}&
 \textbf{Source\newline(job log entry)}&
@@ -612,7 +629,7 @@ Average resident memory used by job\\
 \hline
 NodeCount&
 nodecount&
-Number of nodes (physical machines) involved in the job.\\
+Number of nodes (physical machines) involved in the job\\
 \hline
 ProcessID&
 \textbf{MISSING}&
@@ -649,21 +666,20 @@ Additionally identified time instant(s)\\
 ServiceLevel&
 \textbf{MISSING}&
 Quality of service associated with usage\\
-
-
-%\hline
-%\hline
-%\textbf{Extra UR Property}&
-%\textbf{Source\newline(job log entry)}&
-%\textbf{Description}\\
-%\hline\hline
+\hline
+\hline
+\textbf{Extended\newline UR Property}&
+\textbf{Source\newline(job log entry)}&
+\textbf{Description}\\
+\hline\hline
 %UserProxy&
 %userproxy&
 %Proxy of user, including VOMS info\\
 %\hline
-%RuntimeEnvironment&
-%runtimeenvironment&
-%Runtime environment info\\
+RuntimeEnvironment&
+runtimeenvironment&
+Requested runtime environment, specified in job description\newline
+(RTEs from space-separated list put into separate elements)\\
 
 \hline
 \end{tabular}
