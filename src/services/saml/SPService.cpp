@@ -115,9 +115,6 @@ Service_SP::Service_SP(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logg
   logger.msg(Arc::INFO, "SAML Metadata is from %s", metadata_file);
   metadata_node_.ReadFromFile(metadata_file);
 
-  endpoint_=(std::string)((*cfg)["endpoint"]);
-  expiration_=(std::string)((*cfg)["expiration"]);
-
   if(!(Arc::init_xmlsec())) return;
 }
 
@@ -346,12 +343,9 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
 
 bool Service_SP::RegistrationCollector(Arc::XMLNode &doc) {
-  Arc::XMLNode regentry(ns_, "RegEntry");
-  regentry.NewChild("SrcAdv");
-  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.saml";
-  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  regentry.NewChild("MetaSrcAdv");
-  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
+  Arc::XMLNode regentry(isis_ns, "RegEntry");
+  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.security.saml";
   regentry.New(doc);
   return true;
 }

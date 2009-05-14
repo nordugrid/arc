@@ -178,9 +178,6 @@ Charon::Charon(Arc::Config *cfg):RegisteredService(cfg), logger_(Arc::Logger::ro
       logger.msg(Arc::INFO, "Policy location: %s", (std::string)policyfile);
     }
   }
-
-  endpoint_=(std::string)((*cfg)["endpoint"]);
-  expiration_=(std::string)((*cfg)["expiration"]);
 }
 
 Charon::~Charon(void) {
@@ -190,12 +187,9 @@ Charon::~Charon(void) {
 }
 
 bool Charon::RegistrationCollector(Arc::XMLNode &doc) {
-  Arc::XMLNode regentry(ns_, "RegEntry");
-  regentry.NewChild("SrcAdv");
-  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.charon";
-  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  regentry.NewChild("MetaSrcAdv");
-  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
+  Arc::XMLNode regentry(isis_ns, "RegEntry");
+  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.security.charon";
   regentry.New(doc);
   return true;
 }

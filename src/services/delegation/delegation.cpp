@@ -189,9 +189,6 @@ Service_Delegation::Service_Delegation(Arc::Config *cfg):RegisteredService(cfg),
 
   trusted_cadir = (std::string)((*cfg)["CACertificatesDir"]);
   trusted_capath = (std::string)((*cfg)["CACertificatePath"]);
-
-  endpoint_=(std::string)((*cfg)["endpoint"]);
-  expiration_=(std::string)((*cfg)["expiration"]);
 }
 
 Service_Delegation::~Service_Delegation(void) {
@@ -199,12 +196,9 @@ Service_Delegation::~Service_Delegation(void) {
 }
 
 bool Service_Delegation::RegistrationCollector(Arc::XMLNode &doc) {
-  Arc::XMLNode regentry(ns_, "RegEntry");
-  regentry.NewChild("SrcAdv");
-  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.delegation";
-  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  regentry.NewChild("MetaSrcAdv");
-  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
+  Arc::XMLNode regentry(isis_ns, "RegEntry");
+  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.security.delegation";
   regentry.New(doc);
   return true;
 }

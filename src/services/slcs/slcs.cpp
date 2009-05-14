@@ -179,9 +179,6 @@ Service_SLCS::Service_SLCS(Arc::Config *cfg):RegisteredService(cfg),
   CAkey = (std::string)((*cfg)["CAKey"]);
   CAserial = (std::string)((*cfg)["CASerial"]);
   ca_credential_ = new Arc::Credential(CAcert, CAkey, CAserial, 0, "", "");
-
-  endpoint_=(std::string)((*cfg)["endpoint"]);
-  expiration_=(std::string)((*cfg)["expiration"]);
 }
 
 Service_SLCS::~Service_SLCS(void) {
@@ -189,12 +186,9 @@ Service_SLCS::~Service_SLCS(void) {
 }
 
 bool Service_SLCS::RegistrationCollector(Arc::XMLNode &doc) {
-  Arc::XMLNode regentry(ns_, "RegEntry");
-  regentry.NewChild("SrcAdv");
-  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.security.slcs";
-  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  regentry.NewChild("MetaSrcAdv");
-  doc["MetaSrcAdv"].NewChild("Expiration") = expiration_;
+  Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
+  Arc::XMLNode regentry(isis_ns, "RegEntry");
+  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.security.slcs";
   regentry.New(doc);
   return true;
 }
