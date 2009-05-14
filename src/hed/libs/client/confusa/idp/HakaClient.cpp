@@ -1,5 +1,7 @@
 #include "HakaClient.h"
 
+#include <sstream>
+
 namespace Arc {
 
 	HakaClient::HakaClient(MCCConfig cfg, URL url, std::list<std::string> idp_stack) : SAML2SSOHTTPClient(cfg, url, idp_stack) {
