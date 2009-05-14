@@ -83,10 +83,12 @@ void handleConfusaSLCS(bool use_oauth) {
 	}
 
 	Arc::SAML2LoginClient *httpSAMLClient;
+	std::list<std::string> idp_stack;
+	idp_stack.push_back(idp_name);
 
 	if(use_oauth) {
 #ifdef HAVE_OAUTH
-		httpSAMLClient = new Arc::OAuthConsumer(mcc_cfg,Arc::URL(slcs_url), idp_name);
+		httpSAMLClient = new Arc::OAuthConsumer(mcc_cfg,Arc::URL(slcs_url), idp_stack);
 #else
 		std::string msg = "You need to compile ARC with enabled OAuth library to use the OAuth consumer!";
 		logger.msg(Arc::ERROR, msg);
@@ -94,9 +96,13 @@ void handleConfusaSLCS(bool use_oauth) {
 #endif
 	} else {
 		if (idp_name == "https://openidp.feide.no") {
-			httpSAMLClient = new Arc::OpenIdpClient(mcc_cfg,Arc::URL(slcs_url), idp_name);
+			httpSAMLClient = new Arc::OpenIdpClient(mcc_cfg,Arc::URL(slcs_url), idp_stack);
 		} else if (idp_name == "https://aitta2.funet.fi/idp/shibboleth") {
-			httpSAMLClient = new Arc::HakaClient(mcc_cfg,Arc::URL(slcs_url), idp_name);
+			httpSAMLClient = new Arc::HakaClient(mcc_cfg,Arc::URL(slcs_url), idp_stack);
+		} else if (idp_name == "https://orphanage.wayf.dk") {
+			// orphanage is handled by betawayf
+			idp_stack.push_front("https://betawayf.wayf.dk");
+			httpSAMLClient = new Arc::OpenIdpClient(mcc_cfg, Arc::URL(slcs_url), idp_stack);
 		} else {
 			httpSAMLClient = NULL;
 			std::string msg = "The specified identity provider is unknown!";
