@@ -186,7 +186,9 @@ std::string ConfusaParserUtils::evaluate_path(xmlDocPtr doc, const std::string x
 xmlDocPtr ConfusaParserUtils::get_doc(const std::string xml_file) {
 	  xmlDocPtr doc = NULL;
 
-	  doc = xmlReadMemory(xml_file.c_str(), xml_file.size(), "noname.xml", NULL, 0);
+	  // we do not really expect anyting we get in the web world to be well-formed
+	  int options = XML_PARSE_RECOVER;
+	  doc = xmlReadMemory(xml_file.c_str(), xml_file.size(), "noname.xml", NULL, options);
 
 	  if (doc == NULL) {
 		  Arc::Logger::getRootLogger().msg(Arc::ERROR, "Failed to parse XML file!");
@@ -200,7 +202,6 @@ void ConfusaParserUtils::destroy_doc(xmlDocPtr doc) {
 }
 
 // extract the body from an HTML string
-// also clean the XML from elements not parsable by libxml (&copy...)
 std::string ConfusaParserUtils::extract_body_information(const std::string html_string) {
 	std::string lower_string = "";
 
@@ -220,17 +221,27 @@ std::string ConfusaParserUtils::extract_body_information(const std::string html_
 
 	  std::string body_string = html_string.substr(first_body_occurence, (last_body_occurence - first_body_occurence));
 
+	  std::string::size_type comment_start = body_string.find("<!--");
+
+	  // remove all comments
+	  if (comment_start != std::string::npos && comment_start <= body_string.size()) {
+		  std::string::size_type comment_end = body_string.find("-->", comment_start);
+
+		  if (comment_end != std::string::npos && comment_end > comment_start) {
+			  body_string.erase(comment_start, (comment_end - comment_start));
+		  }
+	  }
 	  // TODO: this is a hack, replace later, check for namespace assignment
-	  std::string::size_type copy_pos = body_string.find("&copy;");
-	  if (copy_pos != std::string::npos && (copy_pos + 6) <= body_string.size()) {
-		  body_string.erase(copy_pos, 6);
-	  }
-
-	  copy_pos = body_string.find("&raquo;");
-
-	  if (copy_pos != std::string::npos && (copy_pos + 6) <= body_string.size()) {
-		  body_string.erase(copy_pos, 6);
-	  }
+//	  std::string::size_type copy_pos = body_string.find("&copy;");
+//	  if (copy_pos != std::string::npos && (copy_pos + 6) <= body_string.size()) {
+//		  body_string.erase(copy_pos, 6);
+//	  }
+//
+//	  copy_pos = body_string.find("&raquo;");
+//
+//	  if (copy_pos != std::string::npos && (copy_pos + 7) <= body_string.size()) {
+//		  body_string.erase(copy_pos, 7);
+//	  }
 
 	  return body_string;
 }
@@ -243,6 +254,7 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  Arc::PayloadRaw redirect_request;
 	  Arc::PayloadRawInterface *redirect_response = NULL;
 	  Arc::HTTPClientInfo redirect_info;
+	  redirect_client.RelativeURI(true);
 
 	  if (httpAttributes != NULL) {
 		  Arc::Logger::getRootLogger().msg(Arc::DEBUG, "ParserUtils::handle_redirect_step(): calling the site with the following cookie %s", (*httpAttributes)["Cookie"]);
@@ -261,6 +273,18 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  }
 
 	  return redirect_string;
+}
+
+void ConfusaParserUtils::add_cookie(std::string *cookies, const std::string set_cookie) {
+	std::string::size_type semic_pos = set_cookie.find(";");
+	// drop path, secure, etc.
+	std::string cookie = set_cookie.substr(0, semic_pos);
+
+	if (cookies->empty()) {
+		(*cookies) = cookie;
+	} else {
+		(*cookies) = (*cookies) + "; " + cookie;
+	}
 }
 
 

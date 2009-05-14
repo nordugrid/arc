@@ -1,12 +1,5 @@
-/*
- * OpenIdpClient.h
- *
- *  Created on: Apr 23, 2009
- *      Author: tzangerl
- */
-
-#ifndef OPENIDPCLIENT_H_
-#define OPENIDPCLIENT_H_
+#ifndef __ARC_OPENIDPCLIENT_H__
+#define __ARC_OPENIDPCLIENT_H__
 
 #include "../SAML2LoginClient.h"
 
@@ -14,7 +7,7 @@ namespace Arc {
 
 	class OpenIdpClient : public SAML2SSOHTTPClient {
 	public:
-		OpenIdpClient(const MCCConfig cfg, const URL url, const std::string idp_name);
+		OpenIdpClient(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack);
 		virtual ~OpenIdpClient();
 	protected:
 		MCC_Status processIdPLogin(const std::string username, const std::string password);
@@ -23,4 +16,4 @@ namespace Arc {
 	};
 };
 
-#endif /* OPENIDPCLIENT_H_ */
+#endif /* __ARC_OPENIDPCLIENT_H__ */

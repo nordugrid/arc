@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_SAML2SSOHTTPCLIENT_H__
-#define __ARC_SAML2SSOHTTPCLIENT_H__
+#ifndef __ARC_SAML2LOGINCLIENT_H__
+#define __ARC_SAML2LOGINCLIENT_H__
 
 #include <string>
 #include <list>
@@ -27,7 +27,14 @@ namespace Arc {
   */
  class SAML2LoginClient {
 	 public:
-		SAML2LoginClient(const MCCConfig cfg, const URL url, const std::string idp_name);
+		/**
+		 * list with the idp for nested wayf
+		 * For example, Confusa can use betawayf.wayf.dk as an identity provider, which is itself only a wayf
+		 * and shares the metadata with concrete service providers or even further nested wayfs.
+		 * Since due to mutual authentication with metadata, we are obliged to follow the SSO redirects from
+		 * WAYF to WAYF, the WAYFs are stored in a list.
+		 */
+		SAML2LoginClient(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack);
 		virtual ~SAML2LoginClient();
 		/**
 		 * Base interface for all login procedures
@@ -45,7 +52,7 @@ namespace Arc {
 		 MCCConfig cfg_;
 		 static Logger logger;
 		 URL server_loc_;
-		 std::string idp_name_;
+		 std::list<std::string> idp_stack_;
 
  };
 
@@ -55,7 +62,7 @@ namespace Arc {
   */
  class SAML2SSOHTTPClient : public SAML2LoginClient {
   public:
-    SAML2SSOHTTPClient(const MCCConfig cfg, const URL url, const std::string idp_name);
+    SAML2SSOHTTPClient(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack);
     virtual ~SAML2SSOHTTPClient();
     /**
      * Models complete SAML2 WebSSO authN flow with start -> WAYF -> Login -> (consent) -> start
@@ -86,7 +93,7 @@ namespace Arc {
 	 */
  	virtual MCC_Status processIdPLogin(const std::string username, const std::string password) = 0;
  	/**
- 	 * If the IdP has a consent module and the user has not saved here consent, this method will ask
+ 	 * If the IdP has a consent module and the user has not saved her consent, this method will ask
  	 * the user for consent to transmission of her data to Confusa
  	 */
  	virtual MCC_Status processConsent() = 0;
@@ -96,16 +103,17 @@ namespace Arc {
  	virtual MCC_Status processIdP2Confusa() = 0;
 
   private:
+	  /**
+	  * find the location of the simplesamlphp installation on the SP side
+	  * Will be stored in (*sso_pages)[SimpleSAML]
+	  */
+	 MCC_Status findSimpleSAMLInstallation();
+
 	/**
-	 * Redirect the user to the WAYF (where are you from) service.
+	 * Proceed from Confusa to the IdP login site
 	 */
-	MCC_Status processStart2WAYF();
-	/**
-	 * Use the configured identity provider to make a choice for the user on the WAYF page
-	 * Redirect the user to the actual IdP from the WAYF page.
-	 */
-	MCC_Status processWAYF2IdPLogin();
+	MCC_Status processStart2Login();
   };
 } // namespace Arc
 
-#endif // __ARC_SAML2SSOHTTPCLIENT_H__
+#endif // __ARC_SAML2LOGINCLIENT_H__

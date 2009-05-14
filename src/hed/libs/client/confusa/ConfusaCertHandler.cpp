@@ -1,10 +1,3 @@
-/*
- * LocalCertHandler.cpp
- *
- *  Created on: Apr 8, 2009
- *      Author: tzangerl
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

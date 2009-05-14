@@ -1,12 +1,5 @@
-/*
- * ParserUtils.h
- *
- *  Created on: Apr 8, 2009
- *      Author: tzangerl
- */
-
-#ifndef PARSERUTILS_H_
-#define PARSERUTILS_H_
+#ifndef __ARC_CONFUSAPARSERUTILS_H__
+#define __ARC_CONFUSAPARSERUTILS_H__
 
 #include <string>
 #include <inttypes.h>
@@ -69,10 +62,14 @@ public:
 	 * get the url parameters as a key-value map from an url
 	 */
 	static std::map<std::string, std::string> get_url_params(std::string url);
+	/*
+	 * use this to add cookies to an existing cookie entry
+	 */
+	static void add_cookie(std::string *cookies, const std::string cookie);
 private:
 	static Logger logger;
 };
 
 }; // namespace Arc
 
-#endif /* PARSERUTILS_H_ */
+#endif /* __ARC_CONFUSAPARSERUTILS_H__ */

@@ -1,15 +1,8 @@
-/*
- * OpenIdpClient.cpp
- *
- *  Created on: Apr 23, 2009
- *      Author: tzangerl
- */
-
 #include "OpenIdpClient.h"
 
 namespace Arc {
 
-	OpenIdpClient::OpenIdpClient(const MCCConfig cfg, const URL url, const std::string idp_name) : SAML2SSOHTTPClient(cfg, url, idp_name) {
+	OpenIdpClient::OpenIdpClient(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack) : SAML2SSOHTTPClient(cfg, url, idp_stack) {
 	}
 
 	OpenIdpClient::~OpenIdpClient() {

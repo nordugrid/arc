@@ -33,14 +33,16 @@ namespace Arc {
 
   SAML2LoginClient::SAML2LoginClient(const MCCConfig cfg,
                                      const URL url,
-                                     const std::string idp_name) {
+                                     std::list<std::string> idp_stack) {
     server_loc_ = url;
     cfg_ = cfg;
 
-    idp_name_ = idp_name;
+    idp_stack_ = idp_stack;
     session_cookies_ = new std::map<std::string, std::string>();
     sso_pages_ = new std::map<std::string, std::string>();
+
     (*sso_pages_)["ConfusaStart"] = server_loc_.fullstr() + start_page;
+
   }
 
 
@@ -68,123 +70,90 @@ namespace Arc {
 
 
   //SAML2SSOHTTPClient
-  SAML2SSOHTTPClient::SAML2SSOHTTPClient(const MCCConfig cfg, const URL url, const std::string idp_name) : SAML2LoginClient(cfg,url, idp_name) {
+  SAML2SSOHTTPClient::SAML2SSOHTTPClient(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack) : SAML2LoginClient(cfg,url, idp_stack) {
+	  logger.msg(DEBUG, "Called SAML2SSOHTTPClient constructor");
+
+	  std::list<std::string> idp_stack2;
+
 	  // need the idp_name Base64-encoded for the Web-SSO RelayState
-	  idp_name_ = ConfusaParserUtils::urlencode(idp_name);
+	  for (std::list<std::string>::iterator it = idp_stack.begin(); it != idp_stack.end();) {
+		  std::string idp_entry = (*it);
+		  it = idp_stack.erase(it);
+		  idp_entry = ConfusaParserUtils::urlencode(idp_entry);
+		  idp_stack2.push_back(idp_entry);;
+	  }
+
+	  idp_stack_ = idp_stack2;
+
   }
 
   SAML2SSOHTTPClient::~SAML2SSOHTTPClient() {
   }
 
+  MCC_Status SAML2SSOHTTPClient::processStart2Login() {
+	  MCC_Status status;
+	  const std::string origin = "SAML2SSOHTTPClient::processStart2Login()";
+	  std::string cookie = "";
 
-  MCC_Status SAML2SSOHTTPClient::processStart2WAYF() {
-	    MCC_Status status;
-	    const std::string origin = "SAML2SSOHTTPClient::processStart2WAYF()";
+	  // here the redirect back to Confusa will take place
+	  std::string relaystate = ConfusaParserUtils::urlencode((*sso_pages_)["ConfusaStart"]);
+	  std::string idpentityid = idp_stack_.front();
 
-	    if ((*sso_pages_)["ConfusaStart"] == "") {
-	    	return MCC_Status(GENERIC_ERROR, origin, "The start address is not defined");
-	    }
-
-	    logger.msg(VERBOSE, "ConfusaStart is %s", (*sso_pages_)["ConfusaStart"]);
-
-	    std::string cookie;
-	    std::map<std::string, std::string> http_attributes;
-	    std::string authn_request_url=ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["ConfusaStart"], &cookie);
-	    logger.msg(VERBOSE, "The received cookie was %s, url %s", cookie, authn_request_url);
-
-	    if (authn_request_url.empty()) {
-	    	return MCC_Status(PARSING_ERROR, origin, "Did not get authentication request URL in Confusa");
-	    }
-
-	    (*session_cookies_)["Confusa"] = cookie;
-	    http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
-	    std::string current_sso_page=ConfusaParserUtils::handle_redirect_step(cfg_, authn_request_url, &cookie, &http_attributes);
-
-	    if (current_sso_page.empty()) {
-	    	return MCC_Status(PARSING_ERROR, origin, "Did not get WAYF URL from redirect in Confusa");
-	    } else {
-	    	(*sso_pages_)["WAYF"] = current_sso_page;
-	    	return MCC_Status(STATUS_OK);
-	    }
-  }
-
-  MCC_Status SAML2SSOHTTPClient::processWAYF2IdPLogin() {
-	  const std::string origin = "SAML2SSOHTTPClient::processWAYF2IdPLogin()";
-	  std::string cookie;
-
-	  if ((*sso_pages_)["WAYF"] == "") {
-		  return MCC_Status(GENERIC_ERROR, origin, "The WAYF page is unknown!");
-	  }
-
-	  if ((*session_cookies_)["Confusa"] == "") {
-		  return MCC_Status(GENERIC_ERROR, origin, "Confusa's PHPSESSID Cookie is not present!");
-	  }
-
-	  URL wayf_url((*sso_pages_)["WAYF"]);
-	  ClientHTTP wayf_client(cfg_, wayf_url);
-	  PayloadRaw wayf_request;
-	  PayloadRawInterface *wayf_response = NULL;
-	  HTTPClientInfo wayf_info;
+	  // for the first redirect, we assume that there is only one idp in the stack
 	  std::map<std::string, std::string> http_attributes;
+	  // start with confusa cookie
 	  http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
 
-	  wayf_client.process("GET", http_attributes, &wayf_request, &wayf_info, &wayf_response);
+	  logger.msg(DEBUG, "Relaystate %s", relaystate);
 
-	  std::string wayf_html = "";
+	  std::string initSSO_url = (*sso_pages_)["SimpleSAML"] + "?RelayState=" + relaystate + "&idpentityid=" + idpentityid;
 
-	  if (wayf_response) {
-		  wayf_html = wayf_response->Content();
-		  delete wayf_response;
-	  } else {
-		  return MCC_Status(PARSING_ERROR, origin, "Could not get a valid response from the WAYF site");
-	  }
-
-	  std::string body_string = ConfusaParserUtils::extract_body_information(wayf_html);
-
-	  if (body_string.empty()) {
-		  return MCC_Status(PARSING_ERROR, origin, "Could not get the WAYF body from the WAYF service!");
-	  }
-
-	  xmlDocPtr doc = ConfusaParserUtils::get_doc(body_string);
-	  std::string action = ConfusaParserUtils::evaluate_path(doc, "//form/@action");
-	  std::string returnName = ConfusaParserUtils::evaluate_path(doc, "//input[@name='return']/@value");
-	  std::string entityID = ConfusaParserUtils::evaluate_path(doc, "//input[@name='entityID']/@value");
-	  ConfusaParserUtils::destroy_doc(doc);
-
-	  if (action.empty()) {
-		  return MCC_Status(PARSING_ERROR, origin, "Could not parse the action from the WAYF service!");
-	  } else if (returnName.empty()) {
-		  return MCC_Status(PARSING_ERROR, origin, "Could not parse the return name from the WAYF service!");
-	  } else if (entityID.empty()) {
-		  return MCC_Status(PARSING_ERROR, origin, "Could not parse the entity ID from the WAYF service!");
-	  }
-
-	  // TODO prio=high add more providers
-	  std::string identity_redirect = action + "?entityID=" + ConfusaParserUtils::urlencode(entityID) + "&return=" + ConfusaParserUtils::urlencode(returnName) + "&returnIDParam=idpentityid" + "&idp_" + idp_name_ + "=Select";
-
-	  // WAYF back to simplesamlphp_initSSO -- Confusa
-	  std::string post_wayf_redirect = ConfusaParserUtils::handle_redirect_step(cfg_, identity_redirect,&cookie,&http_attributes);
-
-	  if (post_wayf_redirect.empty()) {
-		  return MCC_Status(PARSING_ERROR, origin, "Could not get the redirect from WAYF back to initSSO!");
-	  }
-
-	  // simplesamlphp_initSSO to actual identity provdider with SAML2 token -- IdP
-	  std::string actual_ip_login = ConfusaParserUtils::handle_redirect_step(cfg_, post_wayf_redirect, &cookie);
-	  logger.msg(VERBOSE, "Actual ip login: %s", actual_ip_login);
+	  logger.msg(DEBUG, "Performing SSO with %s ", initSSO_url);
+	  std::string actual_ip_login = ConfusaParserUtils::handle_redirect_step(cfg_,initSSO_url, &cookie, &http_attributes);
 
 	  if (actual_ip_login.empty()) {
-		  return MCC_Status(PARSING_ERROR, origin, "Could not get the SAML2 redirect from Confusa initSSO to IdP!");
-	  } else {
-		  // need to set session cookie
-		  //(*session_cookies_)["IdP"] = cookie;
-		  //logger.msg(VERBOSE, "IdP cookie is the following: %s", cookie);
-		  (*sso_pages_)["IdP"] = actual_ip_login;
-		  return MCC_Status(STATUS_OK);
+		  return MCC_Status(PARSING_ERROR, origin, "Could not get the SAML2 redirect to initSSO at " + initSSO_url);
 	  }
 
-  }
+	  // we are now either on the login site or at a nested wayf
+	  // if we are at a wayf site, perform the respective SAML redirects until the final login form has been reached
+	  // NOTE: this should work if the WAYF is simplesamlphp based
+	  for (std::list<std::string>::iterator it = ++(idp_stack_.begin()); it != idp_stack_.end(); it++) {
+		  // set the new cookie
+		  if (!cookie.empty()) {
+			  http_attributes["Cookie"] = cookie;
+		  }
 
+		  std::string internal_request_site = ConfusaParserUtils::handle_redirect_step(cfg_,actual_ip_login, &cookie, &http_attributes);
+
+		  if (internal_request_site.empty()) {
+			  return MCC_Status(PARSING_ERROR, origin, "Could not redirect SAML2 request on WAYF site to internal request representation at " + actual_ip_login);
+		  }
+
+		  // the internal request site is already the WAYF's SAML2 SP
+		  URL internal_request_url(internal_request_site);
+		  std::string simplesamlbase = internal_request_url.Protocol() + "://" + internal_request_url.Host() + "/" + internal_request_url.FullPath();
+		  std::string::size_type param_pos = internal_request_site.find('?');
+
+		  if (param_pos == std::string::npos) {
+			  return MCC_Status(PARSING_ERROR, origin, "Parameters reflecting relaystate and AuthId could not be found in the initSSO URL!");
+		  }
+
+		  std::string relayparams = internal_request_site.substr(param_pos, internal_request_site.size()-param_pos);
+		  initSSO_url = simplesamlbase + relayparams + "&idpentityid=" + *it;
+
+		  logger.msg(DEBUG, "Performing SSO with %s ", initSSO_url);
+		  actual_ip_login = ConfusaParserUtils::handle_redirect_step(cfg_,initSSO_url, &cookie, &http_attributes);
+
+		  if (actual_ip_login.empty()) {
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get the nested SAML2 redirect from WAYF initSSO to the IdP");
+		  }
+	  }
+
+	  (*sso_pages_)["IdP"] = actual_ip_login;
+	  return MCC_Status(STATUS_OK);
+
+  }
 
   MCC_Status SAML2SSOHTTPClient::processLogin(const std::string username, const std::string password) {
 
@@ -205,25 +174,24 @@ namespace Arc {
     // implement the code which is with the same functionality as browser's user agent.
     // -------------------------------------------
     //
+
 	MCC_Status status;
 
-	status = processStart2WAYF();
+	status = findSimpleSAMLInstallation();
 
 	if (status.getKind() != STATUS_OK) {
-		logger.msg(ERROR, "Getting to the WAYF page failed!\nCheck the SLCS URL and if the SLCS CA-certificate is included (CACertificatePath option)");
+		logger.msg(ERROR, "Retrieving the remote SimpleSAMLphp installation failed!");
 		return status;
 	}
 
-	logger.msg(DEBUG, "Successfully redirected to the WAYF page!");
-
-	status = processWAYF2IdPLogin();
+	status = processStart2Login();
 
 	if (status.getKind() != STATUS_OK) {
-		logger.msg(ERROR, "Getting from WAYF to the IdP page failed!");
+		logger.msg(ERROR, "Getting from Confusa to the IdP page failed!");
 		return status;
 	}
 
-	logger.msg(DEBUG, "Successfully redirected from the WAYF page to the IdP login!");
+	logger.msg(DEBUG, "Successfully redirected from Confusa to the IdP login!");
 
 	status = processIdPLogin(username, password);
 
@@ -385,5 +353,27 @@ namespace Arc {
 
 	  return stat;
   };
+
+  MCC_Status SAML2SSOHTTPClient::findSimpleSAMLInstallation() {
+	  const std::string origin = "SAML2SSOHTTPClient::findSimpleSAMLLocation()";
+	  std::string cookie;
+
+	  if((*sso_pages_)["ConfusaStart"].empty()) {
+		  return MCC_Status(GENERIC_ERROR, origin, "Confusa start url is undefined!");
+	  }
+
+	  std::string simplesaml_location = ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["ConfusaStart"], &cookie);
+
+	  if (simplesaml_location.empty()) {
+		  return MCC_Status(PARSING_ERROR, origin, "Could not determine the location of the SimpleSAML installation!");
+	  }
+
+	  URL simplesaml_url(simplesaml_location);
+
+	  (*sso_pages_)["SimpleSAML"] = simplesaml_url.Protocol() + "://" + simplesaml_url.Host() + "/" + simplesaml_url.Path();
+	  (*session_cookies_)["Confusa"] = cookie;
+	  return MCC_Status(STATUS_OK);
+  }
+
 
 }; // namespace Arc

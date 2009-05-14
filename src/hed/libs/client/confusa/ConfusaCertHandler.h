@@ -1,12 +1,5 @@
-/*
- * LocalCertHandler.h
- *
- *  Created on: Apr 8, 2009
- *      Author: tzangerl
- */
-
-#ifndef LOCALCERTHANDLER_H_
-#define LOCALCERTHANDLER_H_
+#ifndef __ARC_CONFUSACERTHANDLER_H__
+#define __ARC_CONFUSACERTHANDLER_H__
 
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
@@ -74,4 +67,4 @@ private:
 	static Logger logger;
 };
 };
-#endif /* LOCALCERTHANDLER_H_ */
+#endif /* __ARC_CONFUSACERTHANDLER_H__ */

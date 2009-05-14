@@ -1,12 +1,5 @@
-/*
- * OAuth.h
- *
- *  Created on: May 5, 2009
- *      Author: tzangerl
- */
-
-#ifndef OAUTH_H_
-#define OAUTH_H_
+#ifndef __ARC_OAUTHCONSUMER_H__
+#define __ARC_OAUTHCONSUMER_H__
 
 #include "SAML2LoginClient.h"
 
@@ -34,7 +27,7 @@ namespace Arc {
 		 * a hardcoded value on the SAML2 SP side.
 		 * This is expected to change in the future.
 		 */
-		OAuthConsumer(MCCConfig cfg, URL url, std::string idp_name);
+		OAuthConsumer(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack);
 		virtual ~OAuthConsumer();
 		std::string getIdPName();
 		/**
@@ -83,4 +76,4 @@ namespace Arc {
 	};
 };
 
-#endif /* OAUTH_H_ */
+#endif /* __ARC_OAUTHCONSUMER_H__ */

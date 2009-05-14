@@ -14,7 +14,7 @@ namespace Arc {
 	 * in the simplesamlphp configuration.
 	 * In the future this is expected to change, therefore the class has a member representing the idp.
 	 */
-	OAuthConsumer::OAuthConsumer(const MCCConfig cfg, const URL url, std::string idp_name) : SAML2LoginClient(cfg, url, idp_name)  {
+	OAuthConsumer::OAuthConsumer(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack) : SAML2LoginClient(cfg, url, idp_stack)  {
 		tokens_ = new std::map<std::string, std::string>();
 		(*tokens_)["consumer_key"] = "key";
 		(*tokens_)["consumer_secret"] = "secret";
