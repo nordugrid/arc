@@ -23,6 +23,10 @@ namespace ISIS {
             Arc::Period remove;
             int retry;
             int sparsity;
+            std::string my_key;
+            std::string my_cert;
+            std::string my_proxy;
+            std::string my_cadir;
 
             bool KillThread;
             int ThreadsCount;
@@ -38,7 +42,7 @@ namespace ISIS {
             std::string bootstrapISIS;
             std::string my_hash;
             std::multimap<std::string,Arc::ISIS_description> hash_table;
-            void BootStrap();
+            void BootStrap(int retry_count);
 
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             int neighbors_count;

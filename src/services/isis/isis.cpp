@@ -39,7 +39,7 @@ class Thread_data {
     public:
         Arc::ISIS_description isis;
         Arc::XMLNode node;
-	std::vector<std::string>* not_av_neighbors;
+        std::vector<std::string>* not_av_neighbors;
 };
 
 static void message_send_thread(void *arg) {
@@ -86,7 +86,7 @@ static void message_send_thread(void *arg) {
     status= client_entry.process(&req,&response);
 
     if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
-       if ( find(not_avaliables_neighbors->begin(),not_avaliables_neighbors->end(),url) 
+       if ( find(not_avaliables_neighbors->begin(),not_avaliables_neighbors->end(),url)
             == not_avaliables_neighbors->end() )
           not_avaliables_neighbors->push_back(url);
        thread_logger.msg(Arc::ERROR, "%s Request failed", url);
@@ -115,7 +115,7 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
            data = new ISIS::Thread_data;
            data->isis = *it;
            node.New(data->node);
-	   data->not_av_neighbors = not_avaliables_neighbors;
+           data->not_av_neighbors = not_avaliables_neighbors;
            Arc::CreateThreadFunction(&message_send_thread, data);
         }
     }
@@ -233,14 +233,17 @@ static void soft_state_thread(void *data) {
 }
 
     ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0) {
-
+        // Endpoint url from the configuration
         endpoint_=(std::string)((*cfg)["endpoint"]);
-	logger_.msg(Arc::DEBUG, "endpoint: ", endpoint_);
-
+        logger_.msg(Arc::DEBUG, "endpoint: ", endpoint_);
         if ( endpoint_.empty()){
-	   logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
-	   return;
-	}
+           logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
+           return;
+        }
+        // Key from the configuration
+        // Cert from the configuration
+        // Proxy from the configuration
+        // CaDir url from the configuration
 
         // Assigning service description - Glue2 document should go here.
         infodoc_.Assign(Arc::XMLNode(
@@ -323,8 +326,27 @@ static void soft_state_thread(void *data) {
             return;
         }
 
+        // Create ServiceURL hash
+        FileCacheHash md5;
+        // calculate my hash from the endpoint URL
+        my_hash = md5.getHash(endpoint_);
+        logger_.msg(Arc::DEBUG, "My hash is: %s", my_hash);
+
         // Init database
         db_ = new Arc::XmlDatabase(db_path, "isis");
+
+        // -DB cleaning
+        std::map<std::string, Arc::XMLNodeList> result;
+        db_->queryAll("/*", result);
+        std::map<std::string, Arc::XMLNodeList>::iterator it;
+        // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
+        for (it = result.begin(); it != result.end(); it++) {
+             if (it->second.size() == 0) {
+                continue;
+             }
+             // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
+             db_->del(it->first);
+        }
 
         // Connection to the cloud in 6 steps.
         // 1. step: Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
@@ -335,11 +357,11 @@ static void soft_state_thread(void *data) {
             //isisdesc.proxy = (std::string)(*cfg)["InfoProvider"][i++]["Proxy"];;
             //isisdesc.cadir = (std::string)(*cfg)["InfoProvider"][i++]["CaDir"];;
             // DEBUG //
-	    logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
+            logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
             infoproviders_.push_back(isisdesc);
         }
         // 2.-6. steps are in the BootStrap function.
-        BootStrap();
+        BootStrap(retry);
 
         // Create Soft-State database threads
         // Valid thread creation
@@ -640,6 +662,11 @@ static void soft_state_thread(void *data) {
     }
 
     Arc::MCC_Status ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
+        if ( neighbors_count == 0 ) {
+           BootStrap(1);
+        } else if ( neighbors_count > 0 && neighbors_.size() == not_avaliables_neighbors_.size() ){
+           BootStrap(retry);
+        }
         // Both input and output are supposed to be SOAP
         // Extracting payload
         Arc::PayloadSOAP* inpayload = NULL;
@@ -778,22 +805,22 @@ static void soft_state_thread(void *data) {
              Arc::XMLNode data_;
              //db_->get(ServiceID, RegistrationEntry);
              db_->get(query_it->first, data_);
-	     Arc::XMLNode regentry = data_;
-	     Arc::ISIS_description service;
-	     service.url = (std::string)data_["RegEntry"]["SrcAdv"]["EPR"]["Address"];
-	     if ( service.url.empty() )
-	        service.url = query_it->first;	     
-	     //service.key = Key( regentry);
-	     //service.cert = Cert( regentry);
-	     //service.proxy = Proxy( regentry);
-	     //service.cadir = CaDir( regentry);
+             Arc::XMLNode regentry = data_;
+             Arc::ISIS_description service;
+             service.url = (std::string)data_["RegEntry"]["SrcAdv"]["EPR"]["Address"];
+             if ( service.url.empty() )
+                service.url = query_it->first;
+             //service.key = Key( regentry);
+             //service.cert = Cert( regentry);
+             //service.proxy = Proxy( regentry);
+             //service.cadir = CaDir( regentry);
              hash_table.insert( std::pair<std::string,Arc::ISIS_description>( PeerID(regentry), service) );
         }
 
         // neighbors count update
         // log(2)x = (log(10)x)/(log(10)2)
         int new_neighbors_count = (int)ceil(log10(hash_table.size())/log10(sparsity));
-        logger_.msg(Arc::DEBUG, "old_neighbors_count: %d, new_neighbors_count: %d", neighbors_count, new_neighbors_count);
+        logger_.msg(Arc::DEBUG, "old_neighbors_count: %d, new_neighbors_count: %d (%s)", neighbors_count, new_neighbors_count, endpoint_);
 
         // neighbors vector filling
         std::multimap<std::string,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
@@ -854,41 +881,62 @@ static void soft_state_thread(void *data) {
     }
 
     std::string ISIService::Cert( Arc::XMLNode& regentry){
-        return "cert";
+        std::string cert;
+        for (int j=0; bool(regentry["SrcAdv"]["SSPair"][j]); j++ ){
+            if ("Cert" == (std::string)regentry["SrcAdv"]["SSPair"][j]["Name"]){
+               cert = (std::string)regentry["SrcAdv"]["SSPair"][j]["Value"];
+               break;
+            } else {
+               continue;
+            }
+        }
+        logger_.msg(Arc::DEBUG, "[Cert] calculated value: %s", cert);
+        return cert;
     }
 
     std::string ISIService::Key( Arc::XMLNode& regentry){
-        return "key";
+        std::string key;
+        for (int j=0; bool(regentry["SrcAdv"]["SSPair"][j]); j++ ){
+            if ("Key" == (std::string)regentry["SrcAdv"]["SSPair"][j]["Name"]){
+               key = (std::string)regentry["SrcAdv"]["SSPair"][j]["Value"];
+               break;
+            } else {
+               continue;
+            }
+        }
+        logger_.msg(Arc::DEBUG, "[Key] calculated value: %s", key);
+        return key;
     }
 
     std::string ISIService::Proxy( Arc::XMLNode& regentry){
-        return "proxy";
+        std::string proxy;
+        for (int j=0; bool(regentry["SrcAdv"]["SSPair"][j]); j++ ){
+            if ("Proxy" == (std::string)regentry["SrcAdv"]["SSPair"][j]["Name"]){
+               proxy = (std::string)regentry["SrcAdv"]["SSPair"][j]["Value"];
+               break;
+            } else {
+               continue;
+            }
+        }
+        logger_.msg(Arc::DEBUG, "[Proxy] calculated value: %s", proxy);
+        return proxy;
     }
 
     std::string ISIService::CaDir( Arc::XMLNode& regentry){
-        return "cadir";
+        std::string cadir;
+        for (int j=0; bool(regentry["SrcAdv"]["SSPair"][j]); j++ ){
+            if ("CaDir" == (std::string)regentry["SrcAdv"]["SSPair"][j]["Name"]){
+               cadir = (std::string)regentry["SrcAdv"]["SSPair"][j]["Value"];
+               break;
+            } else {
+               continue;
+            }
+        }
+        logger_.msg(Arc::DEBUG, "[CaDir] calculated value: %s", cadir);
+        return cadir;
     }
 
-    void ISIService::BootStrap( ){
-        // Create ServiceURL hash
-        FileCacheHash md5;
-        // calculate my hash from the endpoint URL
-        my_hash = md5.getHash(endpoint_);
-	logger_.msg(Arc::DEBUG, "My hash is: %s", my_hash);
-
-        // -DB cleaning
-        std::map<std::string, Arc::XMLNodeList> result;
-        db_->queryAll("/*", result);
-        std::map<std::string, Arc::XMLNodeList>::iterator it;
-        // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
-        for (it = result.begin(); it != result.end(); it++) {
-             if (it->second.size() == 0) {
-                continue;
-             }
-             // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
-             db_->del(it->first);
-        }
-        
+    void ISIService::BootStrap( int retry_count){
         // 2. step: goto InfoProviderISIS (one of the list)
         if ( infoproviders_.size() != 0 ){
             std::srand(time(NULL));
@@ -896,7 +944,7 @@ static void soft_state_thread(void *data) {
 
             std::map<std::string,int> retry_;
             for( int i=0; i< infoproviders_.size(); i++ ) {
-               retry_[ infoproviders_[i].url ] = retry;
+               retry_[ infoproviders_[i].url ] = retry_count;
             }
 
             // 3. step: Send Query SOAP message to the providerISIS with Filter
@@ -1025,28 +1073,29 @@ static void soft_state_thread(void *data) {
 
                        status= connectclient_entry.process(&connect_req,&response_c);
                        if ( (!status.isOk()) || (!response_c) || (response_c->IsFault()) ) {
-                          logger_.msg(Arc::ERROR, "Request failed, try again.");
+                          logger_.msg(Arc::ERROR, "Connect request failed, try again.");
                           retry_connect--;
                        } else {
-                          logger_.msg(Arc::DEBUG, "Status (%s): OK", neighbors_[current].url );
+                          logger_.msg(Arc::DEBUG, "Connect status (%s): OK", neighbors_[current].url );
                           isavaliable_connect = true;
                        };
                    }
 
                    if ( current+1 == neighbors_.size() ) {
                       no_more_isis = true;
+                      not_avaliables_neighbors_.push_back(neighbors_[current].url);
                       logger_.msg(Arc::DEBUG, "No more avaliable ISIS in the neighbors list." );
                    } else if (!isavaliable_connect) {
-		      if ( find(not_avaliables_neighbors_.begin(),not_avaliables_neighbors_.end(),neighbors_[current].url) 
-		           == not_avaliables_neighbors_.end() )
-		         not_avaliables_neighbors_.push_back(neighbors_[current].url);
+                      if ( find(not_avaliables_neighbors_.begin(),not_avaliables_neighbors_.end(),neighbors_[current].url)
+                           == not_avaliables_neighbors_.end() )
+                         not_avaliables_neighbors_.push_back(neighbors_[current].url);
                       current++;
                       logger_.msg(Arc::DEBUG, " The choosed new ISIS:  %s", neighbors_[current].url );
                    }
                }
 
                if ( isavaliable_connect ){
-                  // 6. step: response data processing (add new DB, Config saving)
+                  // 6. step: response data processing (DB sync, Config saving)
                   /*{// for DEBUG
                    std::string resp;
                    response_c->GetXML(resp, true);
@@ -1057,12 +1106,74 @@ static void soft_state_thread(void *data) {
                   if ( it != not_avaliables_neighbors_.end() )
                      not_avaliables_neighbors_.erase(it);
 
-                  // -DB update
+                  // -DB syncronisation
+                  // serviceIDs in my DB
+                  std::vector<std::string> ids;
+                  std::map<std::string, Arc::XMLNodeList> result;
+                  db_->queryAll("/RegEntry", result);
+                  std::map<std::string, Arc::XMLNodeList>::iterator it_db;
+                  // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
+                  for (it_db = result.begin(); it_db != result.end(); it_db++) {
+                      if (it_db->second.size() == 0) {
+                          continue;
+                      }
+                      // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
+                      ids.push_back(it_db->first);
+                  }
+
+                  Arc::NS reg_ns;
+                  reg_ns["isis"] = ISIS_NAMESPACE;
+
+                  Arc::XMLNode sync_datas(reg_ns,"isis:Register");
+                  Arc::XMLNode register_node = sync_datas.NewChild("isis:Register");
+                  Arc::XMLNode header = sync_datas.NewChild("isis:Header");
+
+                  time_t current_time;
+                  time ( &current_time );  //current time
+                  tm * ptm;
+                  ptm = gmtime ( &current_time );
+
+                  std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+                  std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+                  std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+                  std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+                  std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+                  std::stringstream out;
+                  out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+                  header.NewChild("MessageGenerationTime") = out.str();
+
                   for ( int i=0; bool((*response_c)["ConnectResponse"]["Database"]["RegEntry"][i]); i++ ){
                       Arc::XMLNode regentry_xml;
                       (*response_c)["ConnectResponse"]["Database"]["RegEntry"][i].New(regentry_xml);
                       std::string id = regentry_xml["MetaSrcAdv"]["ServiceID"];
-                      db_->put( id, regentry_xml);
+                      if ( find(ids.begin(), ids.end(), id) == ids.end() ){
+                         db_->put( id, regentry_xml);
+                      } else {
+                         // ID is in the DataBase.
+                         Arc::XMLNode data_;
+                         //db_->get(ServiceID, RegistrationEntry);
+                         db_->get(id, data_);
+                         if ( Arc::Time((std::string)data_["MetaSrcAdv"]["GenTime"]) <=
+                              Arc::Time((std::string)regentry_xml["MetaSrcAdv"]["GenTime"])){
+                            db_->put( id, regentry_xml);
+                         } else {
+                            // add data to syncronisation data
+                            sync_datas.NewChild(data_);
+                         }
+                          ids.erase(find(ids.begin(),ids.end(),id));
+                      }
+                  }
+                  for (int i=0; i<ids.size(); i++){
+                      Arc::XMLNode data_;
+                      //db_->get(ServiceID, RegistrationEntry);
+                      db_->get(ids[i], data_);
+                      sync_datas.NewChild(data_);
+                  }
+                  if ( bool(register_node["RegEntry"]) ){
+                     logger_.msg(Arc::DEBUG, "Send to neighbors the DB diff.");
+                     Arc::ISIS_description isis;
+                     isis.url = endpoint_;
+                     SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_avaliables_neighbors_);
                   }
                   logger_.msg(Arc::DEBUG, "Database stored." );
                   /*TODO: -Config update
