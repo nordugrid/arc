@@ -46,7 +46,7 @@ namespace ISIS {
             std::vector<Arc::ISIS_description> neighbors_;
             std::vector<std::string> not_avaliables_neighbors_;
             void Neighbors_Calculate(std::multimap<std::string,Arc::ISIS_description>::const_iterator it, int count);
-            void Neighbors_Update(std::string hash, Arc::ISIS_description isis, bool remove = false);
+            void Neighbors_Update(std::string hash, bool remove = false);
 
             // Informations from the RegEntry
             std::string PeerID(Arc::XMLNode& regentry);

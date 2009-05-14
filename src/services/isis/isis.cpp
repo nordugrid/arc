@@ -508,18 +508,13 @@ static void soft_state_thread(void *data) {
         Arc::ISIS_description isis;
         isis.url = endpoint_;
         if ( bool(request["RegEntry"]) ) {
-           SendToNeighbors(request, neighbors_, logger_, isis,&not_avaliables_neighbors_);
-           for (int i=0; bool(request["RegEntry"][i]); i++) {
-              Arc::ISIS_description updateable_isis;
-              Arc::XMLNode regentry = request["RegEntry"][i];
-              updateable_isis.url = (std::string)request["RegEntry"][i]["SrcAdv"]["EPR"]["Address"];
-              /*updateable_isis.key = Key(regentry);
-              updateable_isis.cert = Cert(regentry);
-              updateable_isis.proxy = Proxy(regentry);
-              updateable_isis.cadir = CaDir(regentry);*/
-
-              // Search the hash value in the request message
-              Neighbors_Update( PeerID(regentry), updateable_isis );
+            SendToNeighbors(request, neighbors_, logger_, isis,&not_avaliables_neighbors_);
+            for (int i=0; bool(request["RegEntry"][i]); i++) {
+                Arc::XMLNode regentry = request["RegEntry"][i];
+                if ( (std::string)regentry["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
+                    // Search the hash value in the request message
+                    Neighbors_Update( PeerID(regentry) );
+                }
            }
         }
 
@@ -577,19 +572,8 @@ static void soft_state_thread(void *data) {
               Arc::XMLNode data;
               //db_->get(ServiceID, RegistrationEntry);
               db_->get((std::string)request["ServiceID"][i], data);
-              if ( (std::string)data["RegEntry"]["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
-                 Arc::XMLNode regentry = data["RegEntry"];
-
-                 Arc::ISIS_description isis;
-                 isis.url = (std::string)request["ServiceID"][i];
-                 if ( bool(data["RegEntry"]["SrcAdv"]["EPR"]["Address"]) ){
-                    isis.url = (std::string)data["RegEntry"]["SrcAdv"]["EPR"]["Address"];
-                 }
-                 /*isis.key = Key(regentry);
-                 isis.cert = Cert(regentry);
-                 isis.proxy = Proxy(regentry);
-                 isis.cadir = CaDir(regentry);*/
-                 Neighbors_Update( PeerID(regentry), isis, true );
+              if ( (std::string)data["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
+                 Neighbors_Update( PeerID(data), true );
               }
            }
         }
@@ -765,7 +749,7 @@ static void soft_state_thread(void *data) {
         return new ISIService((Arc::Config*)(*srvarg));
     }
 
-    void ISIService::Neighbors_Update(std::string hash, Arc::ISIS_description isis, bool remove ) {
+    void ISIService::Neighbors_Update(std::string hash, bool remove ) {
         // wait until the neighbors list in used
         while ( neighbors_lock ) {
            //sleep(10);
@@ -774,6 +758,12 @@ static void soft_state_thread(void *data) {
         // neighbors lock start
         neighbors_lock = true;
 
+        // Examine if the neighbor update is necessary or not
+        if ( (remove && hash_table.find(hash) == hash_table.end()) ||
+             (!remove && hash_table.find(hash) != hash_table.end())) {
+            neighbors_lock = false;
+            return;
+        }
         // -hash_table recalculate
         hash_table.clear();
         std::map<std::string, Arc::XMLNodeList> result;
