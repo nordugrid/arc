@@ -45,6 +45,7 @@ AC_CONFIG_FILES([Makefile
                  tutorials/ws-programming-tutorial/doc/Makefile
                  manuals/Makefile
                  manuals/user_interface/Makefile
-                 manuals/ws-quick-guide/Makefile])
+                 manuals/ws-quick-guide/Makefile
+                 manuals/janitor/Makefile])
 
 AC_OUTPUT

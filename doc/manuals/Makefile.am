@@ -1,1 +1,1 @@
-SUBDIRS = user_interface ws-quick-guide
+SUBDIRS = user_interface ws-quick-guide janitor
