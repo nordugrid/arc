@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" CombiningAlg="Deny-Overrides">
+
+	<Rule Effect="Permit"><!--(@*\label{lst_code:policy.xml_rule1}*@)-->
+		<Description>
+			This rule permits the subject OU=Mitarbeiter (identity was proven by CA O=) to use the SOAP service sececho.
+			This rule will end up with the state PERMIT.
+		</Description>
+		<Subjects>
+			<Subject>
+			  <!--which CA is accepted -->
+			  <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" 
+				Type="string">/C=US/ST=Maine/O=Ka-Tet Corp./OU=Real character/CN=Stephen King</Attribute>
+			  <!-- which Identity is accepted -->			
+			  <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" 
+				Type="string">/C=US/S=Maine/O=Ka-Tet Corp./OU=Literary character/CN=Roland Deschain</Attribute>
+			</Subject>
+		</Subjects>
+		<Resources>
+			<Resource Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path">/sececho</Resource>
+		</Resources>
+		<Actions>
+			<Action Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation">secechoRequest</Action>
+		</Actions>
+		<Conditions/>
+	</Rule>
+	
+
+	<Rule Effect="Permit"> <!--(@*\label{lst_code:policy.xml_rule2}*@)-->
+		<Description>
+			This rule permits the user who has authenticated himself using the Shibboleth precedure to use the HTTP path sececho.
+			For the example does not use that method to sign on, the state of the rule will be INDETERMINATE. Due to non request
+			having a ShibName attribute.
+		  </Description>
+		<Subjects>
+			<Subject>
+				<Attribute Type="ShibName">urn:mace:shibboleth:examples</Attribute>
+			</Subject>
+		</Subjects>
+		<Resources>
+			<Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" Type="string">/sececho</Resource>
+		</Resources>
+	</Rule>
+
+
+	<Rule Effect="Permit"><!--(@*\label{lst_code:policy.xml_rule3}*@)-->
+		<Description>
+			This rule permits the access via the HTTP method GET.
+			For the example uses POST not GET. Request containing the HTTP method GET are getting the state NOT APPLICABLE.
+			Request without the HTTP method end up with INDETERMINATE.
+		</Description>
+		<Actions>
+			<Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">GET</Action>
+		</Actions>
+	</Rule>
+
+</Policy>

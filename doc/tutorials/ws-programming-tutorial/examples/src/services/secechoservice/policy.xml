@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" CombiningAlg="Deny-Overrides">
+	<Rule Effect="Permit"> 
+		<Description>
+		  Example of a policy file.
+		</Description>
+		<Subjects>
+			<Subject>
+				<!--which CA is accepted -->
+				<Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=University of L\xFCbeck/OU=Instite of Neuro- and Bioinformatics</Attribute>
+				
+				<!-- which Identity is accepted -->			
+				<Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=Instite of Neuro- and Bioinformatics/OU=Mitarbeiter</Attribute>
+				
+         </Subject>
+      </Subjects>
+      <Resources>
+	  
+		<!-- which Ressource is affected by that rule -->
+		<Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" Type="string">/sececho</Resource>
+      </Resources>
+	  
+		<!-- which Actions are affected by that rule -->
+      <Actions>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">POST</Action>
+      </Actions>
+      <Conditions/>
+   </Rule>
+   
+   <Rule Effect="Permit">
+     <Description>
+       example policy for soap
+     </Description>
+      <Subjects>
+         <Subject>
+			<!--which CA is accepted -->
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" 
+			  Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=University of L\xFCbeck/OU=Instite of Neuro- and Bioinformatics</Attribute>
+			<!-- which Identity is accepted -->			
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" 
+			  Type="string">/C=DE/ST=Germany/L=L\xFCbeck City/O=Instite of Neuro- and Bioinformatics/OU=Mitarbeiter</Attribute>
+         </Subject>
+      </Subjects>
+      <Actions>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">sececho</Action>
+      </Actions>
+      <Conditions>
+         <Condition AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace" Type="string">http://schemas.xmlsoap.org/soap/envelope/</Condition>
+      </Conditions>
+   </Rule>
+</Policy>
