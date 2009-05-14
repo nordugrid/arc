@@ -21,6 +21,8 @@ elif test "x$DOXYGEN" = "x"; then
   AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
 fi
 
+
+
 AC_SUBST(PDFLATEX)
 AC_SUBST(DOXYGEN)
 
@@ -38,6 +40,9 @@ AC_CONFIG_FILES([Makefile
                  tech_doc/backend_interface/Makefile
                  tech_doc/jura/Makefile
                  tech_doc/storage_system/Makefile
+                 tutorials/Makefile
+                 tutorials/ws-programming-tutorial/Makefile
+                 tutorials/ws-programming-tutorial/doc/Makefile
                  manuals/Makefile
                  manuals/user_interface/Makefile
                  manuals/ws-quick-guide/Makefile])
