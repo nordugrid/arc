@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://localhost:60000/echo/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="echo" targetNamespace="http://localhost:60000/echo/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.example.org/echo/">
+      <xsd:element name="echo">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="in" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="echoResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="out" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="echoRequest">
+    <wsdl:part name="say" type="xsd:string">
+    	<wsdl:documentation>This parameter specifies what should be said</wsdl:documentation></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="echoResponse">
+    <wsdl:part name="hear" type="xsd:string">
+    	<wsdl:documentation>This parameter shows the echo</wsdl:documentation></wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="echo">
+    <wsdl:documentation>In this portType, the operations of the web service are brought together. There could be multiple. 
+For instance, the echo web service could buffer the input with one operation, and release it with another.
+It would then work like a stack</wsdl:documentation>
+    <wsdl:operation name="echo">
+      <wsdl:documentation></wsdl:documentation>
+      <wsdl:input message="tns:echoRequest">
+      	<wsdl:documentation>This is the input to this web service</wsdl:documentation></wsdl:input>
+      <wsdl:output message="tns:echoResponse">
+      	<wsdl:documentation>This is the output of the web service</wsdl:documentation></wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="echoSOAP" type="tns:echo">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="echo">
+      <soap:operation soapAction="http://www.example.org/echo/NewOperation"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="echo">
+    <wsdl:documentation>An example for a WSDL file that describes the echo Web Service of ARC</wsdl:documentation>
+    <wsdl:port binding="tns:echoSOAP" name="echoSOAP">
+      <wsdl:documentation>Echo may be on various URLs with various ports. Here we have chosen port 60000. An often seen alternative is 50000</wsdl:documentation>
+      <soap:address location="http://localhost:60000/echo"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

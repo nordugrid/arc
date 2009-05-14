@@ -1,0 +1,46 @@
+\documentclass[a4paper,10pt]{scrbook}
+
+\usepackage{geometry}
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+
+%
+%  TURN THIS TO FALSE FOR THE FINAL VERSION
+%
+%
+\newif\ifshowtasks\showtasksfalse
+
+
+\input{tex_layout/layout}
+
+\hypersetup{
+  pdfauthor = {},
+  pdftitle = {Webservices},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {HED,ARC},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+
+\begin{document}
+
+% Conventions:
+% * Web Service
+% * server configuration file (arched -c server_configuration_file.xml)
+% * client configuration file (loaded by the client in the same manner like arched does)
+% * Abbreviation of protocols are written with big letters (IP TCP TLS HTTP,...)
+
+\input{tex_titlepage/titlepage}
+\input{tex_introduction/introduction}
+\input{tex_timeservice/timeservice}
+\input{tex_wsdl/wsdl}
+\input{tex_echoservice/echoservice}
+\input{tex_tls_echoservice/tls_echoservice}
+\input{tex_sec_echoservice/sec_echoservice}
+%\input{tex_pesistentservice/peristentservice}
+\input{tex_appendix/appendix}
+
+\bibliography{literature}
+\bibliographystyle{IEEEtran}                       % A nice bibliography style
+
+
+\end{document}
