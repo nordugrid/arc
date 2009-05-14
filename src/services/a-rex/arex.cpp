@@ -384,10 +384,6 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   // Obtain information from configuration
 
-  // Information for the infosys
-  serviceid_=(std::string)((*cfg)["serviceid"]);
-  expiration_=(std::string)((*cfg)["expiration"]);
-
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);

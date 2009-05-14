@@ -21,8 +21,6 @@ class ARexService: public Arc::RegisteredService {
   Arc::DelegationContainerSOAP delegations_;
   Arc::InformationContainer infodoc_;
   Arc::InfoRegisters inforeg_;
-  std::string serviceid_;
-  std::string expiration_;
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;
