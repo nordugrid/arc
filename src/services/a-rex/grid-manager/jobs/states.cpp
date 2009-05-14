@@ -768,6 +768,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         logger.msg(Arc::INFO,"%s: State: PREPARING",i->job_id);
         if(i->job_pending || state_loading(i,state_changed,false)) {
           if(i->job_pending || state_changed) {
+            // Should we kill a migrated job here?
             if((JOB_NUM_RUNNING<max_jobs_running) || (max_jobs_running==-1)) {
               i->job_state = JOB_STATE_SUBMITTING;
               state_changed=true; once_more=true;
