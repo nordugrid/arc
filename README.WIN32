@@ -41,7 +41,7 @@ Building ARC on Windows system using MinGW
 	either try to rebase msys-1.0.dll or download the rebased dll found here: http://www.madwizard.org/electronics/articles/winavrvista
 
 - Install gtkmm devel package. It includes glibmm. 
-  (http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/)
+  (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/)
   TODO: We probably need to provide either mingwPORT or some other port which 
   includes only glibmm.
   - Add mktime.m4 and functions.m4 to C:\GTK\2.0\share\alocal
@@ -93,7 +93,7 @@ That's it! You are ready to go write OpenSSL-capable code!
 - Explain how to make it work.
   * After building ARC1, you might want to run it. Currently only some limited functionality of the clients are working
     - If you haven't build ARC1 yourself, but you have got the already builded files, you have to make sure to install the following in addition:
-      - The runtime environment of glibmm (http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/), make sure the "Add the gtkmm runtime directory to the PATH variable" option is checked.
+      - The runtime environment of glibmm (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/), make sure the "Add the gtkmm runtime directory to the PATH variable" option is checked.
         For additional information, please visit http://live.gnome.org/gtkmm/MSWindows
       - The Win32 OpenSSL vX.Y.Zn Light version (http://www.slproweb.com/products/Win32OpenSSL.html)
         - Copy ssleay32.dll and libeay32.dll to your ARC_INSTALL\bin directory
