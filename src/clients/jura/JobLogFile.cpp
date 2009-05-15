@@ -1,12 +1,19 @@
 #include "JobLogFile.h"
 
 #include <sys/stat.h>
+#include <sys/types.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <list>
 
 #include "arc/Logger.h"
+
+// Needed to redefine mkdir on mingw
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 namespace Arc
 {
