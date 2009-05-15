@@ -452,8 +452,53 @@ static void soft_state_thread(void *data) {
     }
 
     ISIService::~ISIService(void){
+        // RemoveRegistration message send to neighbors with in my serviceID.
+        std::map<std::string, Arc::XMLNodeList> result;
+        std::string query_string = "/RegEntry/SrcAdv/EPR[ Address = '";
+        query_string += endpoint_;
+        query_string += "']";
+        db_->queryAll(query_string, result);
+        std::map<std::string, Arc::XMLNodeList>::iterator it;
+        // DEBUGING // thread_logger.msg(Arc::DEBUG, "Result.size(): %d", result.size());
+        for (it = result.begin(); it != result.end(); it++) {
+            if (it->second.size() == 0 || it->first == "" ) {
+                continue;
+            }
+            Arc::XMLNode data;
+            //db_->get(ServiceID, RegistrationEntry);
+            db_->get(it->first, data);
+            Arc::Period serviceid((std::string)data["MetaSrcAdv"]["ServiceID"]);
+            Arc::NS reg_ns;
+            reg_ns["isis"] = ISIS_NAMESPACE;
+
+            time_t current_time;
+            time ( &current_time );  //current time
+            tm * ptm;
+            ptm = gmtime ( &current_time );
+
+            std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+            std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+            std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+            std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+            std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+            std::stringstream out;
+            out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
+            out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+
+            Arc::XMLNode remove_message(reg_ns,"isis:RemoveRegistrations");
+            remove_message.NewChild("ServiceID") = serviceid;
+            remove_message.NewChild("MessageGenerationTime") = out.str();
+            Arc::ISIS_description isis;
+            isis.url = endpoint_;
+            logger_.msg(Arc::DEBUG, "RemoveRegistration message send to neighbors.");
+            SendToNeighbors(remove_message, neighbors_, logger_, isis, &not_availables_neighbors_);
+            break;
+        }
+
         // TODO: stop message threads
         KillThread = true;
+        //Waiting until the all RemoveRegistration message send to neighbors.
+        sleep(10);
         for (int i=0; i< garbage_collector.size(); i++) {
             if ( i == 0 )
                logger_.msg(Arc::DEBUG, "Garbage Collector working.");
@@ -1159,7 +1204,6 @@ static void soft_state_thread(void *data) {
                   reg_ns["isis"] = ISIS_NAMESPACE;
 
                   Arc::XMLNode sync_datas(reg_ns,"isis:Register");
-                  Arc::XMLNode register_node = sync_datas.NewChild("isis:Register");
                   Arc::XMLNode header = sync_datas.NewChild("isis:Header");
 
                   time_t current_time;
@@ -1203,10 +1247,16 @@ static void soft_state_thread(void *data) {
                       db_->get(ids[i], data_);
                       sync_datas.NewChild(data_);
                   }
-                  if ( bool(register_node["RegEntry"]) ){
+                  if ( bool(sync_datas["RegEntry"]) ){
                      logger_.msg(Arc::DEBUG, "Send to neighbors the DB diff.");
                      Arc::ISIS_description isis;
                      isis.url = endpoint_;
+                     ISIS::Thread_data* data;
+                     data = new ISIS::Thread_data;
+                     data->isis = isis;
+                     sync_datas.New(data->node);
+                     data->not_av_neighbors = &not_availables_neighbors_;
+                     Arc::CreateThreadFunction(&message_send_thread, data);
                      SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_availables_neighbors_);
                   }
                   logger_.msg(Arc::DEBUG, "Database stored." );
