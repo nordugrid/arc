@@ -133,6 +133,8 @@ class Soft_State {
         ISIS::ISIService* isis;
         bool* kill_thread;
         int* threads_count;
+        bool* available_provider_;
+        std::vector<Arc::ISIS_description>* providers; 
 };
 
 
@@ -143,6 +145,8 @@ static void soft_state_thread(void *data) {
     unsigned int sleep_time = self->sleep; //seconds
     std::string query_string = self->query;
     Arc::XmlDatabase* db_ = self->database;
+    bool* available_providers = self->available_provider_;
+    std::vector<Arc::ISIS_description>* providers_ = self->providers; 
 
     (*(self->threads_count))++;
     thread_logger.msg(Arc::DEBUG, "%s Soft-State thread starts. It's the %d. thread in the ISIS", method, *(self->threads_count));
@@ -197,6 +201,18 @@ static void soft_state_thread(void *data) {
                }
                Arc::Time gentime( (std::string)data["MetaSrcAdv"]["GenTime"]);
                Arc::Period expiration((std::string)data["MetaSrcAdv"]["Expiration"]);
+
+               std::string type = (std::string)data["SrcAdv"]["Type"];
+               if ( type == "org.nordugrid.infosys.isis") {
+                  std::string url = (std::string)data["SrcAdv"]["EPR"]["Address"];
+                  // the remove service is my provider or not
+	          for ( int j=0; j < providers_->size(); j++ ) {
+                     if ( (*providers_)[j].url == url ) {
+                        *available_providers = false;
+                        break;
+                     }
+                  }
+               }
 
                time_t rawtime;
                time ( &rawtime );    //current time
@@ -401,6 +417,8 @@ static void soft_state_thread(void *data) {
         valid_data->database = db_;
         valid_data->kill_thread = &KillThread;
         valid_data->threads_count = &ThreadsCount;
+        valid_data->available_provider_ = &available_provider;
+        valid_data->providers = &infoproviders_;
         Arc::CreateThreadFunction(&soft_state_thread, valid_data);
 
 
@@ -558,6 +576,17 @@ static void soft_state_thread(void *data) {
             db_->get(service_id, regentry);
             if ( bool(regentry) ) {
                logger_.msg(Arc::DEBUG, "The ServiceID (%s) is found in the database.", service_id);
+               std::string type = (std::string)regentry["SrcAdv"]["Type"];
+               if ( type == "org.nordugrid.infosys.isis") {
+                  std::string url = (std::string)regentry["SrcAdv"]["EPR"]["Address"];
+                  // the remove service is my provider or not
+	          for ( int j=0; j < infoproviders_.size(); j++ ) {
+                     if ( infoproviders_[j].url == url ) {
+                        available_provider = false;
+                        break;
+                     }
+                  }
+               }
                Arc::Time old_gentime((std::string)regentry["MetaSrcAdv"]["GenTime"]);
                Arc::Time new_gentime((std::string)request["MessageGenerationTime"]);
                if ( old_gentime >= new_gentime &&  !bool(regentry["MetaSrcAdv"]["Expiration"])) {
@@ -1008,6 +1037,7 @@ static void soft_state_thread(void *data) {
                 };
             }
             available_provider = isavailable;
+	    logger_.msg(Arc::DEBUG, "available provider:  %d (0=false, 1=true)",available_provider);
 
             // 4. step: Hash table and neighbors filling
             std::vector<Service_data> find_servicedatas;
