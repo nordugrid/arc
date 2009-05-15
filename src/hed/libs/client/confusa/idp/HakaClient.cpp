@@ -1,7 +1,5 @@
 #include "HakaClient.h"
 
-#include <sstream>
-
 namespace Arc {
 
 	HakaClient::HakaClient(MCCConfig cfg, URL url, std::list<std::string> idp_stack) : SAML2SSOHTTPClient(cfg, url, idp_stack) {
@@ -106,10 +104,6 @@ namespace Arc {
 		}
 
 		ConfusaParserUtils::destroy_doc(doc);
-
-		std::fstream fop("/tmp/haka_login.html", std::ios::out);
-		fop << html_body;
-		fop.close();
 
 		if (!approve && saml_post_response_.empty()) {
 			return MCC_Status(PARSING_ERROR, origin, "Could not get the SAMLResponse from Haka's response page!");

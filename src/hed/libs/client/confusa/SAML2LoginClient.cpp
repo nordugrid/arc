@@ -106,7 +106,7 @@ namespace Arc {
 
 	  logger.msg(DEBUG, "Relaystate %s", relaystate);
 
-	  std::string initSSO_url = (*sso_pages_)["SimpleSAML"] + "?RelayState=" + relaystate + "&idpentityid=" + idpentityid;
+	  std::string initSSO_url = (*sso_pages_)["SimpleSAML"] + "/" + initSSO_loc + "?RelayState=" + relaystate + "&idpentityid=" + idpentityid;
 
 	  logger.msg(DEBUG, "Performing SSO with %s ", initSSO_url);
 	  std::string actual_ip_login = ConfusaParserUtils::handle_redirect_step(cfg_,initSSO_url, &cookie, &http_attributes);
@@ -354,8 +354,8 @@ namespace Arc {
 	  return stat;
   };
 
-  MCC_Status SAML2SSOHTTPClient::findSimpleSAMLInstallation() {
-	  const std::string origin = "SAML2SSOHTTPClient::findSimpleSAMLLocation()";
+  MCC_Status SAML2LoginClient::findSimpleSAMLInstallation() {
+	  const std::string origin = "SAML2LoginClient::findSimpleSAMLLocation()";
 	  std::string cookie;
 
 	  if((*sso_pages_)["ConfusaStart"].empty()) {
@@ -368,9 +368,11 @@ namespace Arc {
 		  return MCC_Status(PARSING_ERROR, origin, "Could not determine the location of the SimpleSAML installation!");
 	  }
 
-	  URL simplesaml_url(simplesaml_location);
+	  // let it really point to the simpleSAML location and not to the initSSO script
+	  std::string::size_type saml2_pos = simplesaml_location.find(initSSO_loc);
+	  simplesaml_location.erase(saml2_pos, (simplesaml_location.size()-saml2_pos));
 
-	  (*sso_pages_)["SimpleSAML"] = simplesaml_url.Protocol() + "://" + simplesaml_url.Host() + "/" + simplesaml_url.Path();
+	  (*sso_pages_)["SimpleSAML"] = simplesaml_location;
 	  (*session_cookies_)["Confusa"] = cookie;
 	  return MCC_Status(STATUS_OK);
   }

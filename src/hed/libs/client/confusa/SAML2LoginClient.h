@@ -21,6 +21,7 @@ namespace Arc {
   const std::string down_page = "/key_download.php";
   const std::string about_page = "/about_you.php";
   const std::string start_page = "/index.php?start_login=yes";
+  const std::string initSSO_loc = "saml2/sp/initSSO.php";
 
  /*
   * ABC to all different kinds of login clients
@@ -46,6 +47,12 @@ namespace Arc {
 		virtual MCC_Status pushCSR(const std::string b64_pub_key, const std::string pub_key_hash, std::string *approve_page) = 0;
 		virtual MCC_Status storeCert(const std::string cert_path, const std::string auth_token, const std::string b64_dn) = 0;
 		void printBrowsingHistory();
+
+		  /**
+		  * find the location of the simplesamlphp installation on the SP side
+		  * Will be stored in (*sso_pages)[SimpleSAML]
+		  */
+		 MCC_Status findSimpleSAMLInstallation();
 	 protected:
 		 std::map<std::string, std::string> *session_cookies_;
 		 std::map<std::string, std::string> *sso_pages_;
@@ -103,12 +110,6 @@ namespace Arc {
  	virtual MCC_Status processIdP2Confusa() = 0;
 
   private:
-	  /**
-	  * find the location of the simplesamlphp installation on the SP side
-	  * Will be stored in (*sso_pages)[SimpleSAML]
-	  */
-	 MCC_Status findSimpleSAMLInstallation();
-
 	/**
 	 * Proceed from Confusa to the IdP login site
 	 */

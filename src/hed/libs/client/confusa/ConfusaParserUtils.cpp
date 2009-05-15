@@ -223,25 +223,17 @@ std::string ConfusaParserUtils::extract_body_information(const std::string html_
 
 	  std::string::size_type comment_start = body_string.find("<!--");
 
-	  // remove all comments
-	  if (comment_start != std::string::npos && comment_start <= body_string.size()) {
-		  std::string::size_type comment_end = body_string.find("-->", comment_start);
-
-		  if (comment_end != std::string::npos && comment_end > comment_start) {
-			  body_string.erase(comment_start, (comment_end - comment_start));
-		  }
+	 //  TODO: this is a hack, replace later, check for namespace assignment
+	  std::string::size_type copy_pos = body_string.find("&copy;");
+	  if (copy_pos != std::string::npos && (copy_pos + 6) <= body_string.size()) {
+		  body_string.erase(copy_pos, 6);
 	  }
-	  // TODO: this is a hack, replace later, check for namespace assignment
-//	  std::string::size_type copy_pos = body_string.find("&copy;");
-//	  if (copy_pos != std::string::npos && (copy_pos + 6) <= body_string.size()) {
-//		  body_string.erase(copy_pos, 6);
-//	  }
-//
-//	  copy_pos = body_string.find("&raquo;");
-//
-//	  if (copy_pos != std::string::npos && (copy_pos + 7) <= body_string.size()) {
-//		  body_string.erase(copy_pos, 7);
-//	  }
+
+	  copy_pos = body_string.find("&raquo;");
+
+	  if (copy_pos != std::string::npos && (copy_pos + 7) <= body_string.size()) {
+		  body_string.erase(copy_pos, 7);
+	  }
 
 	  return body_string;
 }

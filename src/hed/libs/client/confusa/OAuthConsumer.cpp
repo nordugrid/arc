@@ -1,10 +1,3 @@
-/*
- * OAuth.cpp
- *
- *  Created on: May 5, 2009
- *      Author: tzangerl
- */
-
 #include "OAuthConsumer.h"
 
 namespace Arc {
@@ -38,8 +31,13 @@ namespace Arc {
 	MCC_Status OAuthConsumer::processLogin(const std::string username, const std::string password) {
 		const std::string origin = "OAuthConsumer::processIdPLogin()";
 
-		URL sp_url((*sso_pages_)["ConfusaStart"]);
 		MCC_Status status;
+
+		status = findSimpleSAMLInstallation();
+
+		if (status.getKind() != STATUS_OK) {
+			return status;
+		}
 
 		status = processOAuthRequest();
 
@@ -67,7 +65,7 @@ namespace Arc {
 
 		logger.msg(DEBUG, "Contacting the OAuth user info endpoint");
 
-		sp_url.ChangePath(USER_INFO);
+		URL sp_url((*sso_pages_)["SimpleSAML"] + USER_INFO);
 		std::string about_url = sp_url.fullstr();
 
 		char *req_url = oauth_sign_url(about_url.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
@@ -100,22 +98,22 @@ namespace Arc {
 	MCC_Status OAuthConsumer::processOAuthRequest() {
 		const std::string origin = "OAuthConsumer::processOAuthRequest()";
 
-		if ((*sso_pages_)["ConfusaStart"] == "") {
+		if ((*sso_pages_)["SimpleSAML"] == "") {
 			return MCC_Status(GENERIC_ERROR, origin, "Start address is not defined");
 		}
-
-		URL sp_url((*sso_pages_)["ConfusaStart"]);
 
 		// Currently OAuth on the simplesamlphp-side only supports key/secret
 		const std::string consumer_key = (*tokens_)["consumer_key"];
 		// TODO autogenerate that, e.g. using a random number generator or something similar
 		const std::string consumer_secret = (*tokens_)["consumer_secret"];
 
-		sp_url.ChangePath(REQUEST_TOKEN_URL);
+		// we need to pass that through an URL to have the port in it, so checking the SHA1 signature verify on the OAuth SP will not fail
+		URL request_url((*sso_pages_)["SimpleSAML"] + REQUEST_TOKEN_URL);
+		std::string request_url_str = request_url.fullstr();
+		logger.msg(DEBUG, "The request_url is %s", request_url_str);
 
-		std::string request_url = sp_url.fullstr();
 		// produce an OAuth request token
-		char *req_url = oauth_sign_url(request_url.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), NULL, NULL);
+		char *req_url = oauth_sign_url(request_url_str.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), NULL, NULL);
 		logger.msg(DEBUG, "Sending oauth request to signed url %s", req_url);
 
 		if (!req_url) {
@@ -164,14 +162,13 @@ namespace Arc {
 	MCC_Status OAuthConsumer::processOAuthAuthorization() {
 		const std::string origin = "OAuthConsumer::processOAuthAuthorization()";
 
-		URL sp_url((*sso_pages_)["ConfusaStart"]);
+		URL sp_url((*sso_pages_)["SimpleSAML"] + AUTHORIZE_URL);
 
 		std::string oauth_request_token = (*tokens_)["oauth_request_token"];
 		std::string oauth_request_secret = (*tokens_)["oauth_request_secret"];
 		std::string consumer_key = (*tokens_)["consumer_key"];
 		std::string consumer_secret = (*tokens_)["consumer_secret"];
 
-		sp_url.ChangePath(AUTHORIZE_URL);
 		std::string authorize_url = sp_url.fullstr();
 
 		// is the oauth_token the first parameter or not?
@@ -202,9 +199,7 @@ namespace Arc {
 		std::string consumer_key = (*tokens_)["consumer_key"];
 		std::string consumer_secret = (*tokens_)["consumer_secret"];
 
-		URL sp_url((*sso_pages_)["ConfusaStart"]);
-
-		sp_url.ChangePath(ACCESS_TOKEN_URL);
+		URL sp_url((*sso_pages_)["SimpleSAML"] + ACCESS_TOKEN_URL);
 		std::string access_token_url = sp_url.fullstr();
 
 		char *req_url = oauth_sign_url(access_token_url.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_request_token.c_str(), oauth_request_secret.c_str());

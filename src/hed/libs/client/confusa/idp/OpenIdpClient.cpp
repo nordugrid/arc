@@ -86,14 +86,17 @@ namespace Arc {
 		  } else {
 			std::string consent_page = ConfusaParserUtils::handle_redirect_step(cfg_, post_2_ssoservice_redirect, &cookie, &http_attributes);
 
-			// consent?
-			if (consent_page != "") {
-				 (*sso_pages_)["Consent"] = consent_page;
+			logger.msg(DEBUG, "The consent_page is %s", consent_page);
+
+			if (consent_page.empty()) {
+				(*sso_pages_)["Consent"] = "";
+				(*sso_pages_)["PostIdP"] = post_2_ssoservice_redirect;
 			} else {
-				 (*sso_pages_)["PostIdP"] = post_2_ssoservice_redirect;
+				(*sso_pages_)["Consent"] = consent_page;
 			}
 
-			  return MCC_Status(STATUS_OK);
+
+			return MCC_Status(STATUS_OK);
 		  }
 	}
 

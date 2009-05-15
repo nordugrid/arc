@@ -2,6 +2,7 @@
 #define __ARC_HAKACLIENT_H__
 
 #include "../SAML2LoginClient.h"
+#include <sstream>
 
 namespace Arc {
 
