@@ -7,23 +7,6 @@
 #include <fstream>
 #include <signal.h>
 
-#include <xmlsec/base64.h>
-#include <xmlsec/errors.h>
-#include <xmlsec/xmltree.h>
-#include <xmlsec/xmldsig.h>
-#include <xmlsec/xmlenc.h>
-#include <xmlsec/templates.h>
-#include <xmlsec/crypto.h>
-#include <xmlsec/openssl/app.h>
-
-#include <openssl/bio.h>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <openssl/rand.h>
-#ifdef CHARSET_EBCDIC
-#include <openssl/ebcdic.h>
-#endif
-
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -44,6 +27,29 @@
 
 #define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
 #define DSIG_NAMESPACE   "http://www.w3.org/2000/09/xmldsig#"
+
+
+static std::string convert_dn(const std::string& dn) {
+  std::string ret;
+  size_t pos1 = std::string::npos;
+  size_t pos2;
+  do {
+    std::string str;
+    pos2 = dn.find_last_of("/", pos1);
+    if(pos2 != std::string::npos && pos1 == std::string::npos) {
+      str = dn.substr(pos2+1);
+      ret.append(str);
+      pos1 = pos2-1;
+    }
+    else if (pos2 != std::string::npos && pos1 != std::string::npos) {
+      str = dn.substr(pos2+1, pos1-pos2);
+      ret.append(str);
+      pos1 = pos2-1;
+    }
+    if(pos2 != (std::string::npos+1)) ret.append(",");
+  }while(pos2 != std::string::npos && pos2 != (std::string::npos+1));
+  return ret;
+}
 
 ///A example about how to compose a SAML <AttributeQuery> and call the Service_AA service, by
 ///using xmlsec library to compose <AttributeQuery> and process the <Response>.
@@ -78,11 +84,12 @@ int main(void) {
   ns["saml"] = SAML_NAMESPACE;
   ns["samlp"] = SAMLP_NAMESPACE;
 
-  std::string cert("./cert.pem");
-  std::string key("./key.pem");
-  std::string cafile("./ca.pem");
-  Arc::Credential cred(cert, key, "", cafile);
-  std::string local_dn = cred.GetDN();
+  std::string cert("../../tests/echo/testcert.pem");
+  std::string key("../../tests/echo/testkey-nopass.pem");
+  std::string cafile("../../tests/echo/testcacert.pem");
+  std::string cadir("../../tests/echo/certificates");
+  Arc::Credential cred(cert, key, cadir, cafile);
+  std::string local_dn = convert_dn(cred.GetDN());
 
   //Compose <samlp:AttributeQuery/>
   Arc::XMLNode attr_query(ns, "samlp:AttributeQuery");
@@ -163,6 +170,9 @@ int main(void) {
     return -1;
   };
 
+  resp->GetXML(tmp);
+  std::cout<<"SOAP resp from aa service: ++++++++++++++++"<<tmp<<std::endl;
+
   // -------------------------------------------------------
   //   Comsume the response from aa service
   // -------------------------------------------------------
@@ -178,8 +188,8 @@ int main(void) {
  
   //Check validity of the signature on <samlp:Response/>
   std::string resp_idname = "ID";
-  std::string cafile1 = "./ca.pem";
-  std::string capath1 = "";
+  std::string cafile1 = "../../tests/echo/testcacert.pem";
+  std::string capath1 = "../../tests/echo/certificates";
   Arc::XMLSecNode attr_resp_secnode(attr_resp);
   if(attr_resp_secnode.VerifyNode(resp_idname, cafile1, capath1)) {
     logger.msg(Arc::INFO, "Succeeded to verify the signature under <samlp:Response/>");
@@ -212,8 +222,8 @@ int main(void) {
  
   //Check validity of the signature on <saml:Assertion/>
   std::string assertion_idname = "ID";
-  std::string cafile2 = "./ca.pem";
-  std::string capath2 = "";
+  std::string cafile2 = "../../tests/echo/testcacert.pem";
+  std::string capath2 = "../../tests/echo/certificates";
   Arc::XMLSecNode assertion_secnode(assertion);
   if(assertion_secnode.VerifyNode(assertion_idname, cafile2, capath2)) {
     logger.msg(Arc::INFO, "Succeeded to verify the signature under <saml:Assertion/>");

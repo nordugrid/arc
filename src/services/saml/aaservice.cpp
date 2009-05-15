@@ -19,25 +19,7 @@
 #include <arc/DateTime.h>
 #include <arc/GUID.h>
 
-
-#include <xmlsec/base64.h>
-#include <xmlsec/errors.h>
-#include <xmlsec/xmltree.h>
-#include <xmlsec/xmldsig.h>
-#include <xmlsec/xmlenc.h>
-#include <xmlsec/templates.h>
-#include <xmlsec/crypto.h>
-  
-#include <xmlsec/openssl/app.h>
-#include <openssl/bio.h>
-    
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <openssl/rand.h>
-#ifdef CHARSET_EBCDIC
-#include <openssl/ebcdic.h>
-#endif
-
+#include <arc/credential/Credential.h>
 #include <arc/xmlsec/XmlSecUtils.h>
 #include <arc/xmlsec/XMLSecNode.h>
 #include "../../hed/libs/common/MysqlWrapper.h"
@@ -70,38 +52,54 @@ Arc::MCC_Status Service_AA::make_soap_fault(Arc::Message& outmsg) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+static std::string convert_dn(const std::string& dn) {
+  std::string ret;
+  size_t pos1 = std::string::npos;
+  size_t pos2;
+  do {
+    std::string str;
+    pos2 = dn.find_last_of("/", pos1);
+    if(pos2 != std::string::npos && pos1 == std::string::npos) {
+      str = dn.substr(pos2+1);
+      ret.append(str);
+      pos1 = pos2-1;
+    }
+    else if (pos2 != std::string::npos && pos1 != std::string::npos) {
+      str = dn.substr(pos2+1, pos1-pos2);
+      ret.append(str);
+      pos1 = pos2-1;
+    }
+    if(pos2 != (std::string::npos+1)) ret.append(",");
+  }while(pos2 != std::string::npos && pos2 != (std::string::npos+1));
+  return ret;
+}
+
+static std::string get_cert_str(const std::string& cert) {
+  std::size_t pos = cert.find("BEGIN CERTIFICATE");
+  if(pos != std::string::npos) {
+    std::size_t pos1 = cert.find_first_of("---", pos);
+    std::size_t pos2 = cert.find_first_not_of("-", pos1);
+    std::size_t pos3 = cert.find_first_of("---", pos2);
+    std::string str = cert.substr(pos2+1, pos3-pos2-2);
+    return str;
+  }
+  return ("");
+}
+
 Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
-  //The following xml structure is according to the definition in lasso.
-  //The RemoteProviderID here is meaningless. The useful information is <RemoteNameIdentifier>, which
-  //is got from transport level authentication
-  std::string identity_aa("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
-    <Federation xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\
-       RemoteProviderID=\"https://sp.com/SAML\"\
-       FederationDumpVersion=\"2\">\
-      <RemoteNameIdentifier>\
-        <saml:NameID Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName\"></saml:NameID>\
-      </RemoteNameIdentifier>\
-    </Federation>\
-   </Identity>");
-  Arc::XMLNode id_node(identity_aa);
-
-  //Set the <saml:NameID> inside <RemoteNameIdentifier> by using the DN of peer certificate, 
-  //which is the authentication result during tls;
-  //<saml:NameID> could also be set by using the authentication result in message level
+  //The DN of peer certificate, which is the authentication result during tls;
+  //It could also be set by using the authentication result in message level
   //authentication, such as saml token profile in WS-Security.
-  //Note: since the <saml:NameID> is obtained from transport level authentication, the request 
+  //Note: since the peer DN is obtained from transport level authentication, the request 
   //(with the peer certificate) is exactly the principal inside the <saml:NameID>, which means
-  //the request can not be like ServiceProvider in WebSSO scenario which gets the <AuthnQuery>
-  //result from IdP, and uses the principal (not the principal of ServiceProvider) in <AuthnQuery> 
-  //result to initiate a <AttributeQuery> to AA.
-  //Here the scenario is "SAML Attribute Self-Query Deployment Profile for X.509 Subjects" inside 
+  //the request is unlike ServiceProvider in WebSSO scenario which gets the <AuthnQuery>
+  //result from IdP, and uses the principal (which is not the principal of ServiceProvider) 
+  //in <AuthnQuery> result to initiate a <AttributeQuery> to AA.
+  //Hence the scenario is "SAML Attribute Self-Query Deployment Profile for X.509 Subjects" inside 
   //document "SAML V2.0 Deployment Profiles for X.509 Subjects"
 
-  std::string peer_dn = inmsg.Attributes()->get("TLS:PEERDN");
-  id_node["Federation"]["RemoteNameIdentifier"]["saml:NameID"] = peer_dn;
-  id_node.GetXML(identity_aa);
-
+  std::string peer_dn = convert_dn(inmsg.Attributes()->get("TLS:PEERDN"));
 
   // Extracting payload
   Arc::PayloadSOAP* inpayload = NULL;
@@ -117,26 +115,30 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   attrqry = (*inpayload).Body().Child(0);
 
   std::string query_idname = "ID";
-  std::string cafile = "./ca.pem";
-  std::string capath = "";
+
+#if 0
   Arc::XMLSecNode attrqry_secnode(attrqry);
-  if(attrqry_secnode.VerifyNode(query_idname, cafile, capath)) {
+  if(attrqry_secnode.VerifyNode(query_idname, cafile_, cadir_)) {
     logger.msg(Arc::INFO, "Succeeded to verify the signature under <AttributeQuery/>");
   }
   else {     
     logger.msg(Arc::ERROR, "Failed to verify the signature under <AttributeQuery/>");
     return Arc::MCC_Status();
   }
+#endif
 
   Arc::NS ns;
   ns["saml"] = SAML_NAMESPACE;
   ns["samlp"] = SAMLP_NAMESPACE;
-  //reset the namespaces of <AttributeQuery/> in case the prefix is not the same as "saml" and "samlp"
+  ns["xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
+  ns["xsd"] = "http://www.w3.org/2001/XMLSchema";
+
+  //Reset the namespaces of <AttributeQuery/> in case the prefix is not the same as "saml" and "samlp"
   attrqry.Namespaces(ns);
 
   Arc::XMLNode issuer = attrqry["saml:Issuer"];
 
-  //Compare the <saml:NameID> inside the <AttributeQuery> message with the <saml:NameID>
+  //Compare the <saml:NameID> inside the <AttributeQuery> message with the peer DN
   //which has been got from the former authentication
   //More complicated processing should be considered, according to 3.3.4 in SAML core specification
   Arc::XMLNode subject = attrqry["saml:Subject"];
@@ -145,10 +147,20 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     logger.msg(Arc::INFO, "The NameID inside request is the same as the NameID from the tls authentication: %s", peer_dn.c_str());
   }
   else {
-    logger.msg(Arc::INFO, "The NameID inside request is: %s; not the same as the NameID from the tls authentication: %s",\
-      name_id.c_str(), peer_dn.c_str());
+    logger.msg(Arc::INFO, "The NameID inside request is: %s; not the same as the NameID from the tls authentication: %s", name_id.c_str(), peer_dn.c_str());
     return Arc::MCC_Status();
   }
+
+  Arc::XMLNode subject_confirmation = subject.NewChild("saml:SubjectConfirmation");
+  subject_confirmation.NewAttribute("Method")=std::string("urn:oasis:names:tc:SAML:2.0:cm:holder-of-key");
+  Arc::XMLNode subject_confirmation_data = subject_confirmation.NewChild("saml:SubjectConfirmationData");
+  Arc::NS ds_ns("ds",DSIG_NAMESPACE);
+  Arc::XMLNode key_info = subject_confirmation_data.NewChild("ds:KeyInfo",ds_ns);
+  Arc::XMLNode x509_data = key_info.NewChild("ds:X509Data");
+  Arc::XMLNode x509_cert = x509_data.NewChild("ds:X509Certificate");
+  std::string x509_str = get_cert_str(inmsg.Attributes()->get("TLS:PEERCERT"));
+  x509_cert = x509_str;
+
 
   //Get the <Attribute>s from <AttributeQuery> message, which is required by request; 
   //AA will only return those <Attribute> which is required by request
@@ -158,8 +170,6 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(!cn) break;
     attributes.push_back(cn);
   }
-
-  //TODO: Need to check whether the remote provider ID is in the identity federation set.
 
   //AA: Generate a response 
   //AA will try to query local attribute database, intersect the attribute result from
@@ -186,7 +196,12 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   
   //Compose <saml:Response/>
   Arc::XMLNode attr_response(ns, "samlp:Response");
-  std::string aa_name("https://idp.com/SAML"); //TODO
+
+  Arc::Credential cred(certfile_, keyfile_, cadir_, cafile_);
+  std::string local_dn = cred.GetDN();
+  std::string aa_name = convert_dn(local_dn);
+  attr_response.NewChild("saml:Issuer") = aa_name;
+
   std::string response_id = Arc::UUID();
   attr_response.NewAttribute("ID") = response_id;
   std::string responseto_id = (std::string)(attrqry.Attribute("ID"));
@@ -195,13 +210,11 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string current_time = t.str(Arc::UTCTime);
   attr_response.NewAttribute("IssueInstant") = current_time;
   attr_response.NewAttribute("Version") = std::string("2.0");
-
-  attr_response.NewChild("saml:Issuer") = aa_name;
  
   //<samlp:Status/> 
   Arc::XMLNode status = attr_response.NewChild("samlp:Status");
   Arc::XMLNode statuscode = status.NewChild("samlp:StatusCode");
-  std::string statuscode_value = "urn:oasis:names:tc:SAML:2.0:status:Success"; //TODO
+  std::string statuscode_value = "urn:oasis:names:tc:SAML:2.0:status:Success";
   statuscode.NewAttribute("Value") = statuscode_value;
 
   //<saml:Assertion/>
@@ -222,10 +235,16 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
  
   //<saml:Conditions>
   Arc::XMLNode conditions = assertion.NewChild("saml:Conditions"); 
-  Arc::XMLNode audience_restriction = conditions.NewChild("saml:AudienceRestriction");
-  std::string client_name("https://sp.com/SAML"); //TODO
-  audience_restriction.NewChild("saml:Audience") = client_name; 
- 
+  //Arc::XMLNode audience_restriction = conditions.NewChild("saml:AudienceRestriction");
+  //std::string client_name("https://sp.com/SAML"); //TODO
+  //audience_restriction.NewChild("saml:Audience") = client_name; 
+  Arc::Time t_start;
+  std::string time_start = t_start.str(Arc::UTCTime);
+  Arc::Time t_end = t_start + Arc::Period(43200);
+  std::string time_end = t_end.str(Arc::UTCTime);
+  conditions.NewAttribute("NotBefore") = time_start;  
+  conditions.NewAttribute("NotOnOrAfter") = time_end;              
+
   //<saml:AttributeStatement/> 
   Arc::XMLNode attr_statement = assertion.NewChild("saml:AttributeStatement");
 
@@ -234,6 +253,10 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //should be compose according to the database searching result
   Arc::XMLNode attribute = attr_statement.NewChild("saml:Attribute");
   Arc::XMLNode attr_value = attribute.NewChild("saml:AttributeValue");
+
+  attr_value.NewAttribute("xsi:type") = std::string("xs:string");
+
+  //TODO
   attribute.NewAttribute("Name") = std::string("urn:oid:1.3.6.1.4.1.5923.1.1.1.6");
   attribute.NewAttribute("NameFormat")= std::string("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
   attribute.NewAttribute("FriendlyName") = std::string("eduPersonPrincipalName");
@@ -243,37 +266,34 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   Arc::XMLSecNode assertion_secnd(assertion);
   std::string assertion_idname("ID");
-  std::string inclusive_namespaces = "saml ds";
+  std::string inclusive_namespaces = "saml ds xs";
   assertion_secnd.AddSignatureTemplate(assertion_idname, Arc::XMLSecNode::RSA_SHA1, inclusive_namespaces);
-  std::string privkey("key.pem");
-  std::string cert("cert.pem");
-  if(assertion_secnd.SignNode(privkey,cert)) {
+  if(assertion_secnd.SignNode(keyfile_, certfile_)) {
     std::cout<<"Succeed to sign the signature under <saml:Assertion/>"<<std::endl;
-    std::string str;
-    assertion_secnd.GetXML(str);
-    std::cout<<"Signed node: "<<std::endl<<str<<std::endl;
+    //std::string str;
+    //assertion_secnd.GetXML(str);
+    //std::cout<<"Signed node: "<<std::endl<<str<<std::endl;
   }
 
   Arc::XMLSecNode attr_response_secnd(attr_response);
   std::string attr_response_idname("ID");
   attr_response_secnd.AddSignatureTemplate(attr_response_idname, Arc::XMLSecNode::RSA_SHA1);
-  if(attr_response_secnd.SignNode(privkey,cert)) {
+  if(attr_response_secnd.SignNode(keyfile_, certfile_)) {
     std::cout<<"Succeed to sign the signature under <samlp:Response/>"<<std::endl;
-    std::string str;
-    attr_response_secnd.GetXML(str);
-    std::cout<<"Signed node: "<<std::endl<<str<<std::endl;
+    //std::string str;
+    //attr_response_secnd.GetXML(str);
+    //std::cout<<"Signed node: "<<std::endl<<str<<std::endl;
   }
 
   //Put the <samlp:Response/> into soap body.
   Arc::NS soap_ns;
   Arc::SOAPEnvelope envelope(soap_ns);
   envelope.NewChild(attr_response);
-
   Arc::PayloadSOAP *outpayload = new Arc::PayloadSOAP(envelope);
 
   std::string tmp;
   outpayload->GetXML(tmp);
-  std::cout<<"Output payload: ----"<<tmp<<std::endl;
+  std::cout<<"Output payload: "<<tmp<<std::endl;
 
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -281,6 +301,10 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
 Service_AA::Service_AA(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "AA_Service") {
   logger_.addDestination(logcerr);
+  keyfile_ = (std::string)((*cfg)["KeyPath"]);
+  certfile_ = (std::string)((*cfg)["CertificatePath"]);
+  cafile_ = (std::string)((*cfg)["CACertificatePath"]);
+  cadir_ = (std::string)((*cfg)["CACertificatesDir"]);
   Arc::init_xmlsec();
 }
 

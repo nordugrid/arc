@@ -16,6 +16,7 @@ libsaml2sp_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                          $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                          $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                          $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+                         $(top_srcdir)/src/hed/libs/infosys/libinfosys.la \
                          $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 libsaml2sp_la_LDFLAGS  = $(LIBXML2_LIBS) -no-undefined -avoid-version -module
 

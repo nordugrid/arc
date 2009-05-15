@@ -9,6 +9,11 @@ namespace ArcSec {
 ///which includes the <Subject> of the principal from the request and <Attribute> which the request would get; 
 ///it access some local attribute database and returns <samlp:Assertion> which includes the <Attribute>
 class Service_AA: public Arc::Service {
+ private:
+  std::string keyfile_;
+  std::string certfile_;
+  std::string cafile_;
+  std::string cadir_;
  protected:
   Arc::NS ns_;
   Arc::Logger logger_;
