@@ -235,7 +235,7 @@ static void soft_state_thread(void *data) {
     ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0), available_provider(false) {
         // Endpoint url from the configuration
         endpoint_=(std::string)((*cfg)["endpoint"]);
-        logger_.msg(Arc::DEBUG, "endpoint: ", endpoint_);
+        logger_.msg(Arc::DEBUG, "endpoint: %s", endpoint_);
         if ( endpoint_.empty()){
            logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
            return;
@@ -352,13 +352,16 @@ static void soft_state_thread(void *data) {
         // 1. step: Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
         int i=0;
         while ((bool)(*cfg)["InfoProvider"][i]) {
-            Arc::ISIS_description isisdesc;
-            isisdesc.url = (std::string)(*cfg)["InfoProvider"][i++]["URL"];
-            //isisdesc.proxy = (std::string)(*cfg)["InfoProvider"][i++]["Proxy"];;
-            //isisdesc.cadir = (std::string)(*cfg)["InfoProvider"][i++]["CaDir"];;
-            // DEBUG //
-            logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
-            infoproviders_.push_back(isisdesc);
+            if ( endpoint_ != (std::string)(*cfg)["InfoProvider"][i]["URL"] ) {
+               Arc::ISIS_description isisdesc;
+               isisdesc.url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
+               //isisdesc.proxy = (std::string)(*cfg)["InfoProvider"][i]["Proxy"];;
+               //isisdesc.cadir = (std::string)(*cfg)["InfoProvider"][i]["CaDir"];;
+               // DEBUG //
+               logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
+               infoproviders_.push_back(isisdesc);
+            }
+            i++;
         }
         // 2.-6. steps are in the BootStrap function.
         BootStrap(retry);
