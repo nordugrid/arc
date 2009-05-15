@@ -334,9 +334,18 @@ namespace Arc {
         return true;
       }
 
-      if (c->Attr() == "runtimeenvironment")
-        // Needs some though
+      if (c->Attr() == "runtimeenvironment") {
+        std::string runtime;
+        if (!SingleValue(c, runtime))
+          return false;
+		RuntimeEnvironment rt(runtime);
+        Arc::RunTimeEnvironmentType rt_tmp;
+        rt_tmp.Name = rt.Name();
+		if (!rt.Version().empty())
+		   rt_tmp.Version.push_back(rt.Version());
+        j.RunTimeEnvironment.push_back(rt_tmp);
         return true;
+       }
 
       if (c->Attr() == "middleware")
         return SingleValue(c, j.CEType);
