@@ -467,7 +467,8 @@ static void soft_state_thread(void *data) {
             Arc::XMLNode data;
             //db_->get(ServiceID, RegistrationEntry);
             db_->get(it->first, data);
-            Arc::Period serviceid((std::string)data["MetaSrcAdv"]["ServiceID"]);
+            std::string serviceid((std::string)data["MetaSrcAdv"]["ServiceID"]);
+            logger_.msg(Arc::DEBUG, "My ServiceID: %s", serviceid);
             Arc::NS reg_ns;
             reg_ns["isis"] = ISIS_NAMESPACE;
 
