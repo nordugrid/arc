@@ -33,36 +33,9 @@ Performing configuration and installation:
   ./configure --prefix=/Users/<user>/xmlsec1
   make
   make install
+  export PKG_CONFIG_PATH="/Users/<user>/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-3. Installing Globus Toolkit:
-
-a)
-
-Globus X86 Mac OS X Binary Installer (without NorduGrid patches) can be
-downloaded from:
-  http://www.globus.org/toolkit/downloads/4.2.0/#x86_mac_osx
-
-The following missing must be created:
-  http://wiki.nordugrid.org/images/5/58/Globus-missing-files.tgz
-
-The following Globus Toolkit related workarounds should be performed to
-guarantee the proper operation:
-
-  cd /opt/globus/lib
-  find ./ -name '*.la' | xargs /usr/bin/perl -p -i.bak -e \
-    's:/Users/condor/execute/dir_2043/userdir/install:/opt/globus:g;'
-  mkdir -p /Users/condor/execute/dir_2043/userdir/install
-  cd /Users/condor/execute/dir_2043/userdir/install
-  ln -s /opt/globus/lib
-
-It is recommended to compile Globus Toolkit from source. Using Globus
-Toolkit including NorduGrid patches prevents the user from malfunctioning
-of Globus-related functions. In this case the workarounds above are not
-needed either. 
-
-b)
-
-Building the Globus Toolkit from a source distribution:
+3. Building the Globus Toolkit from a source distribution: 
 
   http://wiki.nordugrid.org/index.php/Globus_Libraries
 

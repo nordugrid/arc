@@ -30,7 +30,6 @@ sources highlighted:
   m4-1.4.7: http://www.sunfreeware.com/; installed from package
   neon-0.25.5: http://www.sunfreeware.com/; installed from package
   openssl-0.9.8e: http://www.sunfreeware.com/; installed from package
-  python-2.5.1: http://www.sunfreeware.com/; installed from package
   swig-1.3.29: http://www.sunfreeware.com/; installed from package
   GNU time 1.7: http://prep.ai.mit.edu/pub/gnu/time/time-1.7.tar.gz; built from source
   XML-Simple: http://search.cpan.org/dist/XML-Simple/; built from source
@@ -61,50 +60,46 @@ Performing configuration and installation:
   export PKG_CONFIG_PATH="/home/<user>/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 
-4. Installing Globus Toolkit:
-
-a)
-
-Please check out the latest possible code! We have compiled SVN version!
-Install Globus Toolkit! Be sure that the post-install sctipt properly 
-configures the software.
-
-Globus Solaris 9 Binary Installer (without NorduGrid patches):
-  http://www.globus.org/toolkit/downloads/4.2.0/#sun4u
-
-Add these missing files:
-  http://wiki.nordugrid.org/images/5/58/Globus-missing-files.tgz
-
-b)
-
-Building the Globus Toolkit from a source distribution:
+4. Building the Globus Toolkit from a source distribution:
 
   http://wiki.nordugrid.org/index.php/Globus_Libraries
 
-5. Globus Toolkit related workarounds:
+These modifications of the BuildGlobus.sh script are needed:
 
-If Globus Toolkit is installed from vendor-provided packages, the following
-workaround is needed:
+  - patch -p1 < ../NorduGrid-globus.patch
+  + gpatch -p1 < ../NorduGrid-globus.patch
 
-  cd /opt/globus/lib
-  find ./ -name '*.la' | xargs /usr/bin/perl -p -i.bak -e \
-    's:/home/condor/execute/dir_14399/userdir/install:/opt/globus:g;'
-  mkdir -p /home/condor/execute/dir_14399/userdir/install
-  cd /home/condor/execute/dir_14399/userdir/install
-  ln -s /opt/globus/lib
+  - make gpt
+  + gmake gpt
 
-Comment out the following lines in: 
-  /opt/globus/include/gcc32dbgpthr/globus_common_include.h
+  - make globus_core
+  + gmake globus_core
+
+  - make
+  + gmake
+
+  - make install
+  + gmake install
+
+Comment out the following lines in this file if you got error about stdint.h: 
+
+     /opt/globus/include/gcc32dbgpthr/globus_common_include.h
 
   50 // #ifdef HAVE_STDINT_H
   51 // #   include <stdint.h>
   52 // #endif
 
-It is recommended to compile Globus Toolkit from source. Using Globus
-Toolkit including NorduGrid patches prevents the user from malfunctioning
-of Globus-related functions. In this case the workarounds above are not
-needed either.
+5. Installing Python:
 
+Source code:
+
+  http://www.python.org/ftp/python/2.4.6/Python-2.4.6.tgz
+
+Performing configuration and installation:
+
+  ./configure --enable-shared
+  gmake
+  gmake install
 
 6. Building the software:
 
@@ -128,6 +123,6 @@ options are also recommended to use:
 
 7. Building the software:
 
-To complete building and installation follow the instructions in the generic
+To complete building and installation follow the instructions in the generic
 README file.
 
