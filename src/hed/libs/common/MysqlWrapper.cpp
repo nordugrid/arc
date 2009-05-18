@@ -20,8 +20,10 @@ namespace Arc {
     if (other.isconnected()) {
       if (isconnected())
         close();
-      is_connected = mysql_real_connect(mysql, other.server_.c_str(), other.user_.c_str(),
-                                        other.password_.c_str(), other.dbname_.c_str(), other.port_, NULL, 0);
+      mysql_real_connect(mysql, other.server_.c_str(), other.user_.c_str(),
+                         other.password_.c_str(), other.dbname_.c_str(), other.port_, NULL, 0);
+      if(mysql == NULL) is_connected = false;
+      else is_connected = true;
     }
     else
       is_connected = false;
@@ -38,6 +40,7 @@ namespace Arc {
       std::cerr << "Database connection failed" << std::endl;
       return false;
     }
+    is_connected = true;
     return true;
   }
 
@@ -61,10 +64,10 @@ namespace Arc {
 
 
   MySQLQuery::MySQLQuery(Database *db)
-    : db_(NULL) {
+    : db_(NULL), res(NULL) {
     MySQLDatabase *database = NULL;
     database = dynamic_cast<MySQLDatabase*>(db);
-    //  if(database == NULL) std::cerr<<"The parameter of constructor should be MySQLDatabase type"<<std::endl;
+    if(database == NULL) std::cerr<<"The parameter of constructor should be MySQLDatabase type"<<std::endl;
     //  db_ = new MySQLDatabase(*database);
     db_ = database;
   }
