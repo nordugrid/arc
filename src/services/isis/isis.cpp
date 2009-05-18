@@ -52,14 +52,17 @@ static void message_send_thread(void *arg) {
     }
     if ( !bool(((ISIS::Thread_data *)data)->node) ) {
        thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
+       return;
     }
     std::vector<std::string>* not_availables_neighbors  = data->not_av_neighbors;
 
-    std::string node_str;
-    (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
+    /*{// for DEBUG
+       std::string node_str;
+       (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
 
-    thread_logger.msg(Arc::DEBUG, "Neighbor's url: %s", url);
-    thread_logger.msg(Arc::DEBUG, "Sent XML: %s", node_str);
+       thread_logger.msg(Arc::DEBUG, "Neighbor's url: %s", url);
+       thread_logger.msg(Arc::DEBUG, "Sent XML: %s", node_str);
+    }*/
 
     //Send SOAP message to the neighbor.
     Arc::PayloadSOAP *response = NULL;
@@ -134,7 +137,8 @@ class Soft_State {
         bool* kill_thread;
         int* threads_count;
         bool* available_provider_;
-        std::vector<Arc::ISIS_description>* providers; 
+        bool* neighbors_update_needed_;
+        std::vector<Arc::ISIS_description>* providers;
 };
 
 
@@ -146,7 +150,7 @@ static void soft_state_thread(void *data) {
     std::string query_string = self->query;
     Arc::XmlDatabase* db_ = self->database;
     bool* available_providers = self->available_provider_;
-    std::vector<Arc::ISIS_description>* providers_ = self->providers; 
+    std::vector<Arc::ISIS_description>* providers_ = self->providers;
 
     (*(self->threads_count))++;
     thread_logger.msg(Arc::DEBUG, "%s Soft-State thread starts. It's the %d. thread in the ISIS", method, *(self->threads_count));
@@ -202,18 +206,6 @@ static void soft_state_thread(void *data) {
                Arc::Time gentime( (std::string)data["MetaSrcAdv"]["GenTime"]);
                Arc::Period expiration((std::string)data["MetaSrcAdv"]["Expiration"]);
 
-               std::string type = (std::string)data["SrcAdv"]["Type"];
-               if ( type == "org.nordugrid.infosys.isis") {
-                  std::string url = (std::string)data["SrcAdv"]["EPR"]["Address"];
-                  // the remove service is my provider or not
-	          for ( int j=0; j < providers_->size(); j++ ) {
-                     if ( (*providers_)[j].url == url ) {
-                        *available_providers = false;
-                        break;
-                     }
-                  }
-               }
-
                time_t rawtime;
                time ( &rawtime );    //current time
                tm * ptm;
@@ -228,8 +220,23 @@ static void soft_state_thread(void *data) {
                out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
                Arc::Time current_time(out.str());
 
-               if ( (gentime.GetTime() + 2* expiration.GetPeriod()) > current_time.GetTime() )   // Now the information is not expired
-                   continue;
+                if ( (gentime.GetTime() + 2* expiration.GetPeriod()) > current_time.GetTime() ) {
+                    // Now the information is not expired
+                    continue;
+                }
+
+                std::string type = (std::string)data["SrcAdv"]["Type"];
+                if ( type == "org.nordugrid.infosys.isis") {
+                    *(self->neighbors_update_needed_) = true;
+                    std::string isis_url = (std::string)data["SrcAdv"]["EPR"]["Address"];
+                    // the remove service is my provider or not
+                    for ( int j=0; j < providers_->size(); j++ ) {
+                        if ( (*providers_)[j].url == isis_url ) {
+                            *available_providers = false;
+                            break;
+                        }
+                    }
+                }
 
             }
             // end of the block
@@ -244,11 +251,10 @@ static void soft_state_thread(void *data) {
         for (id_it = service_ids.begin(); id_it != service_ids.end(); id_it++) {
             db_->del(*id_it);
         }
-
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0), available_provider(false) {
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0), available_provider(false), neighbors_update_needed(false) {
         // Endpoint url from the configuration
         endpoint_=(std::string)((*cfg)["endpoint"]);
         logger_.msg(Arc::DEBUG, "endpoint: %s", endpoint_);
@@ -419,6 +425,7 @@ static void soft_state_thread(void *data) {
         valid_data->threads_count = &ThreadsCount;
         valid_data->available_provider_ = &available_provider;
         valid_data->providers = &infoproviders_;
+        valid_data->neighbors_update_needed_ = &neighbors_update_needed;
         Arc::CreateThreadFunction(&soft_state_thread, valid_data);
 
 
@@ -469,30 +476,32 @@ static void soft_state_thread(void *data) {
             db_->get(it->first, data);
             std::string serviceid((std::string)data["MetaSrcAdv"]["ServiceID"]);
             logger_.msg(Arc::DEBUG, "My ServiceID: %s", serviceid);
-            Arc::NS reg_ns;
-            reg_ns["isis"] = ISIS_NAMESPACE;
+            if ( !serviceid.empty() ) {
+               Arc::NS reg_ns;
+               reg_ns["isis"] = ISIS_NAMESPACE;
 
-            time_t current_time;
-            time ( &current_time );  //current time
-            tm * ptm;
-            ptm = gmtime ( &current_time );
+               time_t current_time;
+               time ( &current_time );  //current time
+               tm * ptm;
+               ptm = gmtime ( &current_time );
 
-            std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-            std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-            std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-            std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-            std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-            std::stringstream out;
-            out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
-            out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+               std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+               std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+               std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+               std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+               std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+               std::stringstream out;
+               out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
+               out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
 
-            Arc::XMLNode remove_message(reg_ns,"isis:RemoveRegistrations");
-            remove_message.NewChild("ServiceID") = serviceid;
-            remove_message.NewChild("MessageGenerationTime") = out.str();
-            Arc::ISIS_description isis;
-            isis.url = endpoint_;
-            logger_.msg(Arc::DEBUG, "RemoveRegistration message send to neighbors.");
-            SendToNeighbors(remove_message, neighbors_, logger_, isis, &not_availables_neighbors_);
+               Arc::XMLNode remove_message(reg_ns,"isis:RemoveRegistrations");
+               remove_message.NewChild("ServiceID") = serviceid;
+               remove_message.NewChild("MessageGenerationTime") = out.str();
+               Arc::ISIS_description isis;
+               isis.url = endpoint_;
+               logger_.msg(Arc::DEBUG, "RemoveRegistration message send to neighbors.");
+               SendToNeighbors(remove_message, neighbors_, logger_, isis, &not_availables_neighbors_);
+            }
             break;
         }
 
@@ -530,10 +539,9 @@ static void soft_state_thread(void *data) {
           doc.NewChild("MetaSrcAdv");
 
           doc["SrcAdv"].NewChild("Type") = "org.nordugrid.infosys.isis";
-          doc["SrcAdv"].NewChild("SSPair").NewChild("Name") = "peerID";
-          std::stringstream peerID;
-          peerID << my_hash;
-          doc["SrcAdv"]["SSPair"].NewChild("Value") = peerID.str();
+          Arc::XMLNode peerID = doc["SrcAdv"].NewChild("SSPair");
+          peerID.NewChild("Name") = "peerID";
+          peerID.NewChild("Value") = my_hash;
 
           return true;
     }
@@ -626,12 +634,13 @@ static void soft_state_thread(void *data) {
                if ( type == "org.nordugrid.infosys.isis") {
                   std::string url = (std::string)regentry["SrcAdv"]["EPR"]["Address"];
                   // the remove service is my provider or not
-	          for ( int j=0; j < infoproviders_.size(); j++ ) {
+                  for ( int j=0; j < infoproviders_.size(); j++ ) {
                      if ( infoproviders_[j].url == url ) {
                         available_provider = false;
                         break;
                      }
                   }
+                  neighbors_update_needed = true;
                }
                Arc::Time old_gentime((std::string)regentry["MetaSrcAdv"]["GenTime"]);
                Arc::Time new_gentime((std::string)request["MessageGenerationTime"]);
@@ -672,12 +681,8 @@ static void soft_state_thread(void *data) {
               Arc::XMLNode data;
               //db_->get(ServiceID, RegistrationEntry);
               db_->get((std::string)request["ServiceID"][i], data);
-              if ( (std::string)data["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
-                 Neighbors_Update( PeerID(data), true );
-              }
            }
         }
-
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
@@ -741,10 +746,16 @@ static void soft_state_thread(void *data) {
 
     Arc::MCC_Status ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
         if ( neighbors_count == 0 || !available_provider) {
-           BootStrap(1);
+            BootStrap(1);
+            neighbors_update_needed = false;
         } else if ( neighbors_count > 0 && neighbors_.size() == not_availables_neighbors_.size() ){
-           BootStrap(retry);
+            BootStrap(retry);
+            neighbors_update_needed = false;
+        } else if (neighbors_update_needed) {
+            Neighbors_Update(my_hash, false);
+            neighbors_update_needed = false;
         }
+
         // Both input and output are supposed to be SOAP
         // Extracting payload
         Arc::PayloadSOAP* inpayload = NULL;
@@ -1083,7 +1094,7 @@ static void soft_state_thread(void *data) {
                 };
             }
             available_provider = isavailable;
-	    logger_.msg(Arc::DEBUG, "available provider:  %d (0=false, 1=true)",available_provider);
+            logger_.msg(Arc::DEBUG, "available provider:  %d (0=false, 1=true)",available_provider);
 
             // 4. step: Hash table and neighbors filling
             std::vector<Service_data> find_servicedatas;
@@ -1252,12 +1263,11 @@ static void soft_state_thread(void *data) {
                      logger_.msg(Arc::DEBUG, "Send to neighbors the DB diff.");
                      Arc::ISIS_description isis;
                      isis.url = endpoint_;
-                     ISIS::Thread_data* data;
-                     data = new ISIS::Thread_data;
-                     data->isis = isis;
-                     sync_datas.New(data->node);
-                     data->not_av_neighbors = &not_availables_neighbors_;
-                     Arc::CreateThreadFunction(&message_send_thread, data);
+                     //isis.key = ;
+                     //isis.cert = ;
+                     //isis.proxy = ;
+                     //isis.cadir = ;
+
                      SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_availables_neighbors_);
                   }
                   logger_.msg(Arc::DEBUG, "Database stored." );

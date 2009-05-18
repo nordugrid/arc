@@ -43,6 +43,7 @@ namespace ISIS {
             std::string my_hash;
             std::multimap<std::string,Arc::ISIS_description> hash_table;
             void BootStrap(int retry_count);
+            bool neighbors_update_needed;
             bool available_provider;
 
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
