@@ -18,6 +18,7 @@
 #ifdef SWIGPYTHON
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 %template(JobControllerList) std::list<Arc::JobController *>;
+%template(JobList) std::list<Arc::Job>;
 
 namespace Arc {
 
@@ -56,6 +57,7 @@ the first member will be the '*response' and the second member is the original r
 %template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
 %template(JobControllerList) std::list<Arc::JobController *>;
 %template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
+%template(JobList) std::list<Arc::Job>;
 
 %inline %{
 void stream(std::ostream& os) {
