@@ -40,6 +40,13 @@ the first member will be the '*response' and the second member is the original r
     $result = tuple;
 }
 
+%extend ACCLoader {
+/*
+  The 'this' keyword in SWIG is replaced by the 'self' keyword.
+  In versions >= 1.3.30 it is recommented to use '$self' instead of 'self', but 'self' will work in any 1.3.x version.
+*/
+  Arc::Broker * getBroker(const std::string& brokername) { return dynamic_cast<Arc::Broker*>( self->getACC(brokername) ); }
+}
 }
 #endif
 
