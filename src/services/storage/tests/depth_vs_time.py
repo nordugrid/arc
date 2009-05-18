@@ -77,7 +77,7 @@ f = open("timings_depth_vs_time_"+str(depth)+"x"+str(statistics)+".dat", 'w')
 i_path=""
 j_path=""
 
-f.write("folder no.\t")
+f.write("#folder no.\t")
 for j in range(statistics):
     f.write("create %d\t"%j)
 f.write("AVG\t")

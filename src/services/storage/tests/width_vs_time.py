@@ -101,7 +101,7 @@ print timings_mkdir
 
 f = open("timings_width_vs_time_"+str(width)+"x"+str(statistics)+".dat", 'w')
 
-f.write("folder no.\t")
+f.write("#folder no.\t")
 for j in range(statistics):
     f.write("mkdir %d\t"%j)
 f.write("AVG\t")
