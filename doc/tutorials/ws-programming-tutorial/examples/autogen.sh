@@ -17,6 +17,7 @@ cleanup() {
 }
 
 
+touch NEWS AUTHORS README ChangeLog
 
 # Refresh GNU autotools toolchain.
 echo Cleaning autotools files...
@@ -24,6 +25,11 @@ cleanup
 
 type glibtoolize > /dev/null 2>&1 && export LIBTOOLIZE=glibtoolize
 
+# aclocal --force -I m4
+
 echo Running autoreconf...
 autoreconf --verbose --force --install
+
+
+
 
