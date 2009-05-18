@@ -49,7 +49,8 @@ namespace Arc {
 
     bool Migrate(TargetGenerator& targetGen,
                  Broker *broker,
-                 const bool forcemigration);
+                 const bool forcemigration,
+                 std::list<URL>& migratedJobIDs);
 
     bool Renew(const std::list<std::string>& status);
 

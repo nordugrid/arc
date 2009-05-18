@@ -470,10 +470,9 @@ namespace Arc {
 
   bool JobController::Migrate(TargetGenerator& targetGen,
                               Broker *broker,
-                              const bool forcemigration) {
+                              const bool forcemigration,
+                              std::list<URL>& migratedJobIDs) {
     bool retVal = true;
-
-    std::list<URL> migratedJobIDs;
 
     GetJobInformation();
     // Loop over job descriptions.
@@ -539,8 +538,6 @@ namespace Arc {
         jobstorage.NewChild("Job").Replace(info);
 
         migratedJobIDs.push_back(URL(itJob->JobID.str()));
-
-        std::cout << IString("Job migrated with jobid: %s", (std::string)info["JobID"]) << std::endl;
         break;
       } // Loop over all possible targets
     } // Loop over jobs
