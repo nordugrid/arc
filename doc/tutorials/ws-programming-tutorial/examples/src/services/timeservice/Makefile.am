@@ -5,7 +5,7 @@ EXTRA_DIST = arched_timeservice.xml
 
 LIBTOOL = libtool
 
-AM_CPPFLAGS = -I/usr/include/glibmm-2.4/ -I/usr/include/glib-2.0 -I/usr/include/libxml2/ -I/usr/lib/glib-2.0/include/ -I/usr/include/sigc++-2.0 -I/usr/lib/sigc++-2.0/include -I/usr/lib/glibmm-2.4/include/ $(all_includes)    # HAVE TO HAVE $(all_includes)
+AM_CPPFLAGS =  $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(ARC_CFLAGS) $(all_includes)
 
 
 
@@ -23,7 +23,7 @@ lib_LTLIBRARIES = libtimeservice.la
 libtimeservice_la_SOURCES = timeservice.h timeservice.cpp
 libtimeservice_la_LIBADD =					# libbla.la 
 libtimeservice_la_CXXFLAGS =					# Includes
-libtimeservice_la_LDFLAGS = -L/usr/lib/arc -lmcchttp -avoid-version -module # -no-undefined
+libtimeservice_la_LDFLAGS = $(ARC_LIBS) -lmccsoap  -avoid-version -module # -no-undefined
 
 
 
