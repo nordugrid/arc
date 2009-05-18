@@ -225,7 +225,7 @@ namespace Arc {
     logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, 500)) {
+    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, timeout)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -235,17 +235,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
+    if (!ctrl.SendCommand("CWD " + jobpath, timeout)) {
       logger.msg(ERROR, "Failed sending CWD command for job cleaning");
       return false;
     }
 
-    if (!ctrl.SendCommand("RMD " + jobidnum, 500)) {
+    if (!ctrl.SendCommand("RMD " + jobidnum, timeout)) {
       logger.msg(ERROR, "Failed sending RMD command for job cleaning");
       return false;
     }
 
-    if (!ctrl.Disconnect(500)) {
+    if (!ctrl.Disconnect(timeout)) {
       logger.msg(ERROR, "Failed to disconnect after job cleaning");
       return false;
     }
@@ -261,7 +261,7 @@ namespace Arc {
     logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, 500)) {
+    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, timeout)) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -271,17 +271,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
+    if (!ctrl.SendCommand("CWD " + jobpath, timeout)) {
       logger.msg(ERROR, "Failed sending CWD command for job cancelling");
       return false;
     }
 
-    if (!ctrl.SendCommand("DELE " + jobidnum, 500)) {
+    if (!ctrl.SendCommand("DELE " + jobidnum, timeout)) {
       logger.msg(ERROR, "Failed sending DELE command for job cancelling");
       return false;
     }
 
-    if (!ctrl.Disconnect(500)) {
+    if (!ctrl.Disconnect(timeout)) {
       logger.msg(ERROR, "Failed to disconnect after job cancelling");
       return false;
     }
@@ -296,7 +296,7 @@ namespace Arc {
     logger.msg(DEBUG, "Renewing credentials for job: %s", job.JobID.str());
 
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, 500)) {
+    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, timeout)) {
       logger.msg(ERROR, "Failed to connect for credential renewal");
       return false;
     }
@@ -306,17 +306,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, 500)) {
+    if (!ctrl.SendCommand("CWD " + jobpath, timeout)) {
       logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
-    if (!ctrl.SendCommand("CWD " + jobidnum, 500)) {
+    if (!ctrl.SendCommand("CWD " + jobidnum, timeout)) {
       logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
-    if (!ctrl.Disconnect(500)) {
+    if (!ctrl.Disconnect(timeout)) {
       logger.msg(ERROR, "Failed to disconnect after credentials renewal");
       return false;
     }
@@ -374,7 +374,7 @@ namespace Arc {
     destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
     if (!mover.Transfer(*source, *destination, cache, URLMap(),
-                        0, 0, 0, 500, failure)) {
+                        0, 0, 0, timeout, failure)) {
       if (!failure.empty())
         logger.msg(INFO, "Current transfer FAILED: %s", failure);
       else
@@ -448,7 +448,7 @@ namespace Arc {
     destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
     if (!mover.Transfer(*source, *destination, cache, URLMap(),
-                        0, 0, 0, 500, failure)) {
+                        0, 0, 0, timeout, failure)) {
       if (!failure.empty())
         logger.msg(INFO, "Current transfer FAILED: %s", failure);
       else
