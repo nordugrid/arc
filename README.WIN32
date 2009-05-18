@@ -90,6 +90,42 @@ That's it! You are ready to go write OpenSSL-capable code!
    * Build code with make
    * Install it with make install
 
+Language binding (swig):
+
+   http://www.swig.org/Doc1.3/Windows.html#Windows_mingw_msys
+
+Java (SUN JDK):
+ 
+   http://java.sun.com/javase/downloads/index.jsp
+
+Configure setup: 
+ 
+   --with-jdk=$JDK_HOME_DIRECTORY
+
+Python (recommend version: 2.4):
+
+   http://adonthell.berlios.de/doc/index.php/Development:MSYS/MinGW#Python
+
+Configure setup:  
+ 
+   LDFLAGS="-L/usr/local/bin" CXXFLAGS="-I/usr/local/include/python2.4"
+
+Berkeley DB install and building (recommend version: 4.7):
+
+Source code:
+
+   http://www.oracle.com/technology/software/products/berkeley-db/index.html
+ 
+Performing configuration and installation:
+   cd build_unix/
+   ../dist/configure --enable-cxx  --enable-mingw
+   make
+   make install
+
+Configure setup: 
+   
+    LDFLAGS="-L/usr/local/BerkeleyDB.4.7/bin"  --with-dbcxx-include="/usr/local/BerkeleyDB.4.7/include
+
 - Explain how to make it work.
   * After building ARC1, you might want to run it. Currently only some limited functionality of the clients are working
     - If you haven't build ARC1 yourself, but you have got the already builded files, you have to make sure to install the following in addition:
