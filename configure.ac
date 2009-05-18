@@ -106,6 +106,20 @@ if test "X$with_jdk" != "X"; then
 	fi
     done
 
+    # WIN32 SUN JDK testing
+
+    if test -e $with_jdk/jre/bin/server/jvm.dll ; then
+        SAVE_LDFLAGS=$LDFLAGS
+        LDFLAGS="-L$with_jdk/jre/bin/server $LDFLAGS"
+        # delete cached test result...
+        unset ac_cv_lib_jvm_JNI_CreateJavaVM
+        AC_MSG_NOTICE([Checking for JVM in $with_jdk/jre/bin/server/jvm.dll])
+        AC_CHECK_LIB([jvm], [JNI_CreateJavaVM],
+                     [JDK_LIBS="-L$with_jdk/jre/bin/server -ljvm"], [])
+        LDFLAGS=$SAVE_LDFLAGS
+        test -n "$JDK_LIBS" && break
+    fi  
+
 else
 
     # System JDK
@@ -138,7 +152,10 @@ else
 	if test -z "$JDK_LIBS" ; then
 	    AC_CHECK_LIB([gcj], [JNI_CreateJavaVM], [JDK_LIBS=-lgcj], [])
 	fi
-    fi
+        
+        # TODO: MinGW gcj
+
+   fi
 fi
 
 AC_CHECK_PROGS(JAVA, java gij)
@@ -188,6 +205,14 @@ AC_CHECK_PROGS(PYTHON, $with_python python)
 if test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
     changequote(<<, >>)dnl
     PYTHON_VERSION=`$PYTHON -c 'import sys; print sys.version[:3]'`
+
+    case $host in
+       *-*-mingw*)
+          SAVE_PYTHON_VERSION=$PYTHON_VERSION
+          PYTHON_VERSION=`echo $PYTHON_VERSION | sed 's/\.//g'`
+       ;;        
+    esac
+
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
     PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBS')" | sed s/None//`
     PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('SYSLIBS')" | sed s/None//`
@@ -224,6 +249,9 @@ if test -f python/arc_wrap.cpp || test "X$SWIG" != "X" ; then
 else
     AC_MSG_NOTICE([Missing python wrapper or swig - skipping python bindings])
 fi
+
+PYTHON_VERSION=$SAVE_PYTHON_VERSION
+
 
 if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
     AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
@@ -728,9 +756,19 @@ if test "$HAVE_DBCXX" = no
 then
 	DBCXX_LIBS=""
 else
-	# pthread needed for RH9
 	SAVE_LDFLAGS=$LDFLAGS
-	LDFLAGS="$LDFLAGS -lpthread"
+
+        case $host in
+           *-*-mingw*)
+	     SAVE_CXXFLAGS=$CXXFLAGS
+             CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
+            ;;        
+           *)
+	     # pthread needed for RH9
+	     LDFLAGS="$LDFLAGS -lpthread"
+	     SAVE_CXXFLAGS=$
+           ;;        
+        esac
 
 	AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
 
@@ -747,16 +785,33 @@ else
 
 	if test "$DBCXX_LIBS" = ""
 	then
+		AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
+		AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="-ldb_cxx-4.7",DBCXX_LIBS="") 
+	fi
+
+	if test "$DBCXX_LIBS" = ""
+	then
+		AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.7 was not found!])
+	fi
+
+	if test "$DBCXX_LIBS" = ""
+	then
 		AC_MSG_WARN([No BerkeleyDB library found!])
 	fi
 	LDFLAGS=$SAVE_LDFLAGS
+        CXXFLAGS=$SAVE_CXXFLAGS
 fi
 
 AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
 AC_SUBST(DBCXX_LIBS)
 if test ! "x$DBCXX_LIBS" = "x"
 then
+  # Mingw need -I$dbcxx_dir 
+
+  SAVE_CXXFLAGS=$CXXFLAGS
+  CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
   AC_DBCXX_HAVE_DBDEADLOCKEXCEPTION
+  CXXFLAGS=$SAVE_CXXFLAGS
 fi
 AC_LANG_RESTORE
 

@@ -5,6 +5,10 @@
 #include <db_cxx.h>
 #include <arc/Thread.h>
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 class TestDB
 {
     private:
