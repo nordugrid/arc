@@ -7,7 +7,7 @@ docsource = infosys_technical.tex
 doc_DATA = infosys_technical.pdf
 
 STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
-	ng-logo.png
+	ng-logo.png grid.bib
 
 $(doc_DATA): $(docsource) $(STYLES)
 	pdflatex $(docsource) ; bibtex $(docsource) ; makeindex -s gind.ist $(docsource) ; pdflatex $(docsource) ; \

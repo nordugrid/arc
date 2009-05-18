@@ -224,37 +224,6 @@ This operation allows any XPath queries to be performed on stored Registration R
 \subsection{Functionality}
 \label{sub:peer_to_peer_functionality}
 
-
-
-
-
-
-%\subsubsection{Peer-to-Peer functions}
-%\label{ISIS Peer-to-Peer functions}
-%\subsection{Client}
-%\label{Client}
-
-%The client part of the information service is for querying the data stored in the database of the ISIS 
-%services. This is implemented as a part of the ARCLib and using the ISIS service's interface for the 
-%various data queries. For further details see Section \ref{Query data}.  
-
-%\section{Operations}
-%\label{Operations}
-%The different operations are performed by different Information system components. These cases are described below in the dedicated subsections. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 % subsection functionality (end)
 
 \subsection{Interface}
@@ -271,6 +240,8 @@ This operation allows any XPath queries to be performed on stored Registration R
 \label{sub:isis_authorization_client_authorization}
 
 % TODO figure with mutiple service types
+
+\textit{This section extensively uses terms defined in "Security Framework of ARC1" document"~\cite{arcsec}.}
 
 To ensure information stored in ISIS cloud can't be tampered and only available to proper clients following authorization framework is implemented. All actions perfored by ISIS clients are divided into three following groups:
 
@@ -297,11 +268,60 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
  \end{itemize}
 \end{itemize}
 
+Those 3 action groups are handled using Security Framework of ARC~\cite{arcsec}. For each group corresponding 
+Action is defined for ARC policy language as descriped in table \ref{tab:policy_actions}.
+
+\begin{table}{h}
+\caption{ARC Policy Actions of ISIS}
+\label{tab:policy_actions}
+\begin{tabular}{|c|c|l|}
+\hline
+\textbf{Group}&\textbf{Action}&\textbf{AttributeId}\\
+\hline
+Request from ISIS&\textit{isis}&http://www.nordugrid.org/schemas/policy-arc/types/isis/operation\\
+\hline
+Request from Service&\textit{service}&http://www.nordugrid.org/schemas/policy-arc/types/isis/operation\\
+\hline
+Request from generic client&\textit{client}&http://www.nordugrid.org/schemas/policy-arc/types/isis/operation\\
+\hline
+\end{tabular}
+\end{table}
+
+Access restrictions for clients are defined using ARC Policies which are specified and 
+processed using generic Security Handlers approach. Corresponding Security Handlers have to be 
+configured inside configuration block of corresponding ISIS service and attached 
+\textit{incoming} queue.
+
 % subsection client_authorization (end)
 
 
 \subsection{Information Authorzation}
 \label{sub:isis_authorization_information_authorization}
+
+Because all ISIS services trust each other they freely exchanging collected information. But 
+not all information stored inside ISIS cloud is public or readable by clients authorized according 
+to procedure described in section \ref{sub:isis_authorization_client_authorization}. There
+may be some pieces of information available only for specific clients. An example could be 
+information about resources serving particular Virtual Organization (VO) could be visible only to
+members of that VO.
+
+To implement functionality described above each node in agregated XML documents of information
+collected by ISIS cloud may have Access Control Policy associated with it. Access control is 
+defined at level of XML node and propagates all children nodes - similar to file systems.
+Children nodes can only additionally restrict access control imposed by parent node. For example
+if parent node A allows access only to VO1 then children node B can narrow access to Adminsitrator 
+of VO1 and can't grant access for VO2 members.
+
+By default all XML nodes are public. Access Control Policies are embedded into XML document
+as XML nodes (see Appendix \ref{annex:info_policies_schema} for schema) even if that violates schema 
+of document. Then nodes are assigned policies aby adding XML attributes refering to defined Policies.
+Access permission to particular information node is evaluated by traversing all nodes prom 
+parent to childen. At first node which gives negative result evaluation is stopped and
+this node including all its children is removed from document.
+
+Before providing results of query operation ISIS runs procedure described above on results and 
+also removes Access Control Policies. Reduced document obtained in this way is returned to
+requesting client.
 
 %* Clasification of information
 %
@@ -314,8 +334,7 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
 %Distinction between 2 and 3 is not clear. One may accept that 2 is
 %imposed by architecture/deployment of system and 3 is controlled by
 %entities which are users of the system.
-%
- 2. From storage/access location point of view information is divided
+% 2. From storage/access location point of view information is divided
 %into:
 % a. local - stored at endpoint representing resource which is
 %described by information. This information is obtainable through
@@ -402,13 +421,6 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
 %"Information access control use cases" http://wiki.nordugrid.org/index.php/ARC1/Infosys/Access_Use_cases
 %
 
-
-
-
-
-
-
-
 % subsection information_authorization (end)
 
 
@@ -422,16 +434,29 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
 \section{Information generation}
 \label{sec:service_information_generation}
 
-The service developers have to ensure that the services are providing the necessary information about themselves. This is done by implementing the subclass of the Arc::Service class - the RegistrationCollector function has to provide up-to-date status information about the service and anything else it wants to be advertised. This information package is called \textbf{Service Advertisement}.
+The service developers have to ensure that the services are providing the necessary information about 
+themselves when registering to ISISes. This is done by implementing the subclass of the Arc::Service class - 
+the RegistrationCollector function has to provide up-to-date status information about the service and anything 
+else it wants to be advertised. This information package is called \textbf{Service Advertisement}.
 \label{service_advertisement}
-The \textbf{Service Advertisement} can contain any information service wants to advertise but the mandatory elements have to be always present:
+The \textbf{Service Advertisement} can contain any information service wants to advertise but the mandatory 
+elements have to be always present:
 \begin{itemize}
   \item Service ID: A globally unique identifier of the service.
   \item Service Type: The Glue2 type of service.
   \item Endpoint URL: The URL where the service can be contacted provided as part of EPR element.
 \end{itemize}
 
-Because there may be multiple registration processes running in parallel it is important to ensure that implementation RegistrationCollector is thread safe or there are internal locks implemented.
+Because there may be multiple registration processes running in parallel it is important to ensure that 
+implementation of RegistrationCollector is thread safe or there are internal locks implemented.
+
+Every service registering to ISIS should also provide an interface for direct querying of information 
+describing service. Normally this information should be more detailed than one sent to ISIS. For this 
+purpose LIDI interface is defined which is a susbset of WS Resource Properties (WSRP)~\cite{wsrf-rp}. Following WSRP
+operations must be supported - \textit{GetResourcePropertDocument}, \textit{GetResourceProperty},
+\textit{GetMultipleResourceProperties} and \textit{QueryResourceProperties}.
+
+%TODO: define names of mandatory properties - at least Glue2 property
 
 
 % section information (end)
@@ -489,21 +514,627 @@ In the first step each Registrant performs information collection from all assig
 \caption{\label{fig:registration_overview}Overview of the registration process} }
 \end{figure}
 
-This registration operation is done once during the start-up phase and periodically according to (per service) configured periods.
+This registration operation is done once during the start-up phase and periodically according to 
+(per service) configured periods.
 
 % section registration (end)
+
+
+\section{Authorization}
+\label{sec:service_authorization}
+
+For each information provided by service through the LIDI interface same procedure as described in 
+Section \ref{sub:isis_authorization_information_authorization} should be applied.
+
+% section authorization (end)
 
 
 \section{Configuration}
 \label{sec:service_configuration}
 
-% The registration operation is done by the Registrants and described in Section \ref{service_registrantion}. 
+The registration operation is done by the Registrants as described in Section \ref{sec:service_registration}.
+Each Registrant is instantiated by corresponding InfoRegistrar XML element in configuration file as defined in Section \ref{annex:service_configuration_schema}. First InfoRegistrar defines Registrant which is used to register every service by default.
 
+Registration parameters per service are defined by InfoRegister element located inside corresponding service configuration element. To assign service to specific Registrant(s) ona may use Registrar configuration elements situated inside InfoRegister. If none Registrar element is defined service will be registed using first (default) Registrant. To make not register itself special configration element NoRegister has to be used.
+
+Following elements are defined inside configuration element if the Registrant:
+\begin{description}
+\item{URL}            <!-- URL specifies contact endpoint of a bootstrap Information
+                 Registration service. Further ISIS adresses will be queried
+                 from this service. -->
+\item{KeyPath, CertificatePath, ProxyPath and CACertificatesDir}
+            <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are
+                 paths to files storing X509 credentials used for establishing connections. -->
+\item{Retry}            <!-- Retry count. Specifie how many times have an ISIS to timeout to handle it as
+                 unavailable. If there is no value specified the default value: 5 will be used. -->
+            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+
+\end{description}
+
+% section configuration (end)
 
 % section configuration (end)
 
 % chapter service (end)
 
-% \bibliography{grid}
+\chapter{Appendices}
+
+\section{WSDL of ISIS Specific Interface}
+\label{annex:isis_wsdl}
+\begin{verbatim}
+
+?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Data types of Information Indexing Service
+-->
+
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
+  xmlns:wsa="http://www.w3.org/2005/08/addressing"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+
+    <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="http://www.w3.org/2006/03/addressing/ws-addr.xsd"/>
+
+
+<!-- This is an initial and incomplete DRAFT which mainly concentrates on the structure but not on the actual names. Final version will use G
+LUE-2.0 ternminology. -->
+
+    <!-- ==== Input and output types for IIS operations ==== -->
+    <!-- Input type for Register operation -->
+    <xsd:complexType name="RegisterType">
+        <xsd:sequence>
+            <xsd:element name="Header" type="isis:HeaderType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="RegEntry" type="isis:RegistrationEntryType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Register" type="isis:RegisterType"/>
+
+    <!-- Output type for Register operation -->
+    <xsd:complexType name="RegisterResponseType">
+        <xsd:sequence>
+            <xsd:element name="Fault" type="isis:FaultType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="RegisterResponse" type="isis:RegisterResponseType"/>
+
+    <!-- Input type for RemoveRegistrations operation -->
+    <xsd:complexType name="RemoveRegistrationsType">
+        <xsd:sequence>
+            <xsd:element name="MessageGenerationTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="RemoveRegistrations" type="isis:RemoveRegistrationsType"/>
+
+    <!-- Output type for RemoveRegistrations operation -->
+    <xsd:complexType name="RemoveRegistrationResponseElementType">
+        <xsd:sequence>
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Fault" type="isis:FaultType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RemoveRegistrationsResponseType">
+        <xsd:sequence>
+            <xsd:element name="RemoveRegistrationResponseElement" type="isis:RemoveRegistrationResponseElementType" minOccurs="0" maxOccurs="
+unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="RemoveRegistrationsResponse" type="isis:RemoveRegistrationsResponseType"/>
+
+    <!-- Input type for GetISISList operation -->
+    <xsd:complexType name="GetISISListType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="GetISISList" type="isis:GetISISListType"/>
+
+    <!-- Output type for GetISISList operation -->
+    <xsd:complexType name="GetISISListResponseType">
+        <xsd:sequence>
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="GetISISListResponse" type="isis:GetISISListResponseType"/>
+
+    <!-- Input type for Query operation -->
+    <xsd:complexType name="QueryType">
+        <xsd:sequence>
+            <xsd:element name="QueryString" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Query" type="isis:QueryType"/>
+    <!-- Output type for Query operation -->
+    <xsd:complexType name="QueryResponseType">
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="QueryResponse" type="isis:QueryResponseType"/>
+
+    <!-- === Helper type definitions === -->
+    <xsd:simpleType name="StatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="HeaderType">
+        <xsd:sequence>
+            <!-- Identifier of the source HED -->
+            <xsd:element name="RequesterID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- Time of the aggregated message generation -->
+            <xsd:element name="MessageGenerationTime" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RegistrationEntryType">
+        <xsd:sequence>
+            <xsd:element name="SrcAdv" type="isis:ServiceAdvertisementType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="MetaSrcAdv" type="isis:ServiceAdvertisementMetadataType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ServiceAdvertisementType">
+        <xsd:sequence>
+            <!-- General part of the Service Advertisment -->
+            <xsd:element name="Type" type="isis:ServiceTypeType"/>
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType"/>
+            <!-- Service specific part of the Service Advertisment -->
+            <xsd:element name="SSPair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ServiceAdvertisementMetadataType">
+        <xsd:sequence>
+            <!-- Globally unique and persistent ID of the service -->
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <!-- Time of information generation or collection -->
+            <xsd:element name="GenTime" type="xsd:dateTime" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Expiration" type="xsd:duration"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="FaultTypeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- description of fault -->
+    <xsd:complexType name="FaultType">
+        <xsd:sequence>
+            <xsd:element name="Name"        type="xsd:string"/>
+            <xsd:element name="Type"        type="isis:FaultTypeType"/>
+            <xsd:element name="Description" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- List of the service types will be provided by the GLUE-2.0 -->
+    <xsd:simpleType name="ServiceTypeType">
+        <xsd:restriction base="xsd:string">
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="NameValuePairType">
+        <xsd:sequence>
+            <xsd:element name="Name" type="xsd:string"/>
+            <xsd:element name="Value" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="InformationIndexing"
+  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:wsa="http://www.w3.org/2005/08/addressing"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
+  xmlns:wsrf-bf="http://docs.oasis-open.org/wsrf/bf-2"
+  xmlns:wsrf-rp="http://docs.oasis-open.org/wsrf/rp-2"
+  xmlns:wsrf-rpw="http://docs.oasis-open.org/wsrf/rpw-2"
+  xmlns:wsrf-rw="http://docs.oasis-open.org/wsrf/rw-2"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
+>
+<!--
+Interface of Information Indexing Service
+-->
+
+    <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
+
+
+    <!-- ======= Type definitions ====== -->
+    <wsdl:types>
+        <xsd:schema
+            xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
+            targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
+            attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            >
+            <xsd:include schemaLocation="./isis.xsd"/>
+        </xsd:schema>
+    </wsdl:types>
+
+<!-- ====== Messages definitions ====== -->
+
+<!-- ====== Register ====== -->
+<wsdl:message name="RegisterRequest">
+    <wsdl:part name="Register"  element="isis:Register"/>
+</wsdl:message>
+
+<wsdl:message name="RegisterResponse">
+    <wsdl:part name="RegisterResponse" element="isis:RegisterResponse"/>
+</wsdl:message>
+
+<!-- ====== RemoveRegistrations ====== -->
+
+<wsdl:message name="RemoveRegistrationsRequest">
+    <wsdl:part name="RemoveRegistrations" element="isis:RemoveRegistrations"/>
+</wsdl:message>
+
+<wsdl:message name="RemoveRegistrationsResponse">
+    <wsdl:part name="RemoveRegistrationsResponse" element="isis:RemoveRegistrationsResponse"/>
+</wsdl:message>
+
+<!-- ====== GetISISList ====== -->
+<wsdl:message name="GetISISListRequest">
+    <wsdl:part name="GetISISList" element="isis:GetISISList"/>
+</wsdl:message>
+
+<wsdl:message name="GetISISListResponse">
+    <wsdl:part name="GetISISListResponse" element="isis:GetISISListResponse"/>
+</wsdl:message>
+
+<!-- ====== Query ====== -->
+<wsdl:message name="QueryRequest">
+    <wsdl:part name="Query" element="isis:Query"/>
+</wsdl:message>
+
+<wsdl:message name="QueryResponse">
+    <wsdl:part name="QueryResponse" element="isis:QueryResponse"/>
+</wsdl:message>
+
+<!-- ====== PortType definitions ====== -->
+<wsdl:portType name="ISISPortType">
+    <wsdl:operation name="Register">
+        <wsdl:input name="RegisterRequest" message="isis:RegisterRequest"/>
+        <wsdl:output name="RegisterResponse" message="isis:RegisterResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveRegistrations">
+        <wsdl:input name="RemoveRegistrationsRequest" message="isis:RemoveRegistrationsRequest"/>
+        <wsdl:output name="RemoveRegistrationsResponse" message="isis:RemoveRegistrationsResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="GetISISList">
+        <wsdl:input name="GetISISListRequest" message="isis:GetISISListRequest"/>
+        <wsdl:output name="GetISISListResponse" message="isis:GetISISListResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="Query">
+        <wsdl:input name="QueryRequest" message="isis:QueryRequest"/>
+        <wsdl:output name="QueryResponse" message="isis:QueryResponse"/>
+    </wsdl:operation>
+</wsdl:portType>
+
+<!-- ====== Bindings ====== -->
+
+<wsdl:binding name="isis" type="isis:ISISPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Register">
+        <soap:operation soapAction="Register"/>
+        <wsdl:input name="RegisterRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="RegisterResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveRegistrations">
+        <soap:operation soapAction="RemoveRegistrations"/>
+        <wsdl:input name="RemoveRegistrationsRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="RemoveRegistrationsResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetISISList">
+        <soap:operation soapAction="GetISISList"/>
+        <wsdl:input name="GetISISListRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="GetISISListResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Query">
+        <soap:operation soapAction="Query"/>
+        <wsdl:input name="QueryRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="QueryResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+</wsdl:binding>
+<wsdl:binding name="GetResourcePropertyDocument" type="wsrf-rpw:GetResourcePropertyDocument">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GetResourcePropertyDocument">
+       <soap:operation soapAction="GetResourcePropertyDocument"/>
+       <wsdl:input name="GetResourcePropertyDocumentRequest">
+         <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="GetResourcePropertyDocumentResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+        <wsdl:fault name="ResourceUnknownFault">
+            <soap:fault name="ResourceUnknownFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="ResourceUnavailableFault">
+            <soap:fault name="ResourceUnavailableFault" use="literal"/>
+        </wsdl:fault>
+    </wsdl:operation>
+</wsdl:binding>
+
+<wsdl:binding name="GetResourceProperty" type="wsrf-rpw:GetResourceProperty">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GetResourceProperty">
+        <soap:operation soapAction="GetResourceProperty"/>
+        <wsdl:input name="GetResourcePropertyRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="GetResourcePropertyResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+        <wsdl:fault name="ResourceUnknownFault">
+            <soap:fault name="ResourceUnknownFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="ResourceUnavailableFault">
+            <soap:fault name="ResourceUnavailableFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="InvalidResourcePropertyQNameFault">
+            <soap:fault name="InvalidResourcePropertyQNameFault" use="literal"/>
+        </wsdl:fault>
+    </wsdl:operation>
+</wsdl:binding>
+
+<wsdl:binding name="QueryResourceProperties" type="wsrf-rpw:QueryResourceProperties">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="QueryResourceProperties">
+        <soap:operation soapAction="QueryResourceProperties"/>
+        <wsdl:input name="QueryResourcePropertiesRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="QueryResourcePropertiesResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+        <wsdl:fault name="ResourceUnknownFault">
+            <soap:fault name="ResourceUnknownFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="ResourceUnavailableFault">
+            <soap:fault name="ResourceUnavailableFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="InvalidResourcePropertyQNameFault">
+            <soap:fault name="InvalidResourcePropertyQNameFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="UnknownQueryExpressionDialectFault">
+            <soap:fault name="UnknownQueryExpressionDialectFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="InvalidQueryExpressionFault">
+            <soap:fault name="InvalidQueryExpressionFault" use="literal"/>
+        </wsdl:fault>
+        <wsdl:fault name="QueryEvaluationErrorFault">
+            <soap:fault name="QueryEvaluationErrorFault" use="literal"/>
+        </wsdl:fault>
+    </wsdl:operation>
+</wsdl:binding>
+
+<!-- ====== Service definition ====== -->
+<wsdl:service name="isis">
+    <wsdl:port name="GetResourcePropertyDocument" binding="isis:GetResourcePropertyDocument">
+        <soap:address location="mailto:test@test.com"/>
+    </wsdl:port>
+    <wsdl:port name="GetResourceProperty" binding="isis:GetResourceProperty">
+        <soap:address location="mailto:test@test.com"/>
+    </wsdl:port>
+    <wsdl:port name="QueryResourceProperties" binding="isis:QueryResourceProperties">
+        <soap:address location="mailto:test@test.com"/>
+    </wsdl:port>
+    <wsdl:port name="isis" binding="isis:isis">
+        <soap:address location="mailto:test@test.com"/>
+    </wsdl:port>
+</wsdl:service>
+
+</wsdl:definitions>
+\end{verbatim}
+
+% section isis_wsdl (end)
+
+\section{Schema of ISIS Configuration}
+\label{annex:isis_configuration_schema}
+\begin{verbatim}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  xmlns:icfg="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+
+  <xsd:element name="endpoint" type="xsd:anyURI"/>
+
+  <xsd:element name="retry" type="xsd:nonNegativeInteger" minOccurs="0"/>
+
+  <xsd:element name="sparsity" type="xsd:nonNegativeInteger" minOccurs="0"/>
+
+  <xsd:simpleType name="Logger_Type">
+    <xsd:restriction base="xsd:string"/>
+    <xsd:attribute name="level" type="xsd:string" use="optional"/>
+  </xsd:simpleType>
+  <xsd:element name="Logger" type="icfg:Logger_Type" minOccurs="0"/>
+
+  <xsd:element name="ETValid" type="xsd:nonNegativeInteger" minOccurs="0"/>
+
+  <xsd:element name="ETRemove" type="xsd:nonNegativeInteger" minOccurs="0"/>
+
+  <xsd:element name="DBPath" type="xsd:string"/>
+
+  <xsd:complexType name="InfoProvider_Type">
+    <xsd:sequence>
+      <xsd:element name="URL" type="xsd:anyURI"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type" minOccurs="0" maxOccurs="unbounded"/>
+
+</xsd:schema>
+
+\end{verbatim}
+
+% section isis_configuration_schema (end)
+
+\section{Schema of Service Registartion Configuration}
+\label{annex:service_configuration_schema}
+\begin{verbatim}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:iregc="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  targetNamespace="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  elementFormDefault="qualified">
+
+    <xsd:complexType name="InfoRegistrar_Type">
+        <!-- This element defines configuration of Information Registration
+             active element. This element is located at top level configuration
+             document. Each instance if such element instatiates one instance
+             of Information Registrant active element. -->
+        <xsd:sequence>
+            <!-- URL specifies contact endpoint of a bootstrap Information
+                 Registration service. Further ISIS adresses will be queried
+                 from this service. -->
+            <xsd:element name="URL" type="xsd:string"/> <!-- maxOccurs="unbounded" -->
+            <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are
+                 paths to files storing X509 credentials used for establishing connections. -->
+            <xsd:element name="KeyPath" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0"/>
+            <!-- Retry count. Specifie how many times have an ISIS to timeout to handle it as
+                 unavailable. If there is no value specified the default value: 5 will be used. -->
+            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <!-- Attribute id may be used to refer to this element -->
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    <xsd:element name="InfoRegistrar" type="iregc:InfoRegistrar_Type"/>
+
+    <xsd:complexType name="Registrar_Type">
+        <xsd:sequence>
+            <!-- Missing elements means that the default values will be used. -->
+
+            <!-- Period specifies how often registration to be done in minutes.
+                 The 0 value means single registration. -->
+            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1"/>
+            <!-- Element defines the unique id of the service propagated outside. -->
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- This element defines URL of the service as seen from outside. -->
+            <xsd:element name="endpoint" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- This element defines the expiration time of the information provided by the service. -->
+            <xsd:element name="expiration" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <!-- Attribute id is to define the previously configured InfoRegistrar to be refered -->
+        <xsd:attribute name="id" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="InfoRegister_Type">
+    <!-- Element for Service element to link it to InfoRegistrar
+         elements. It may also override some configuration parameters.
+         Presence of this element means that service will be registered
+         to ISISes. -->
+        <xsd:sequence>
+            <!-- This elements specify which registrars must be used
+                 for registering services. If there is no such element
+                 then registration is done using all registrars. -->
+            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Default values for every InfoRegistrar -->
+
+            <!-- Period specifies how often registration to be done in minutes.
+                 The 0 value means single registration. -->
+            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1"/>
+            <!-- Element defines the unique id of the service propagated outside. -->
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- This element defines URL of the service as seen from outside. -->
+            <xsd:element name="endpoint" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <!-- This element defines the expiration time of the information provided by the service. -->
+            <xsd:element name="expiration" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
+
+    <!-- Configuration element force skipping the Self-Registration -->
+    <xsd:element name="NoRegister">
+        <xsd:complexType />
+    </xsd:element>
+
+</xsd:schema>
+
+\end{verbatim}
+
+% section service_configuration_schema (end)
+
+\section{Schema of Information Document Policies}
+\label{annex:info_policies_schema}
+\begin{verbatim}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:if="http://www.nordugrid.org/schemas/InfoFilter/2008"
+  xmlns="http://www.nordugrid.org/schemas/InfoFilter/2008"
+  xmlns:policy="http://www.nordugrid.org/schemas/policy-arc"
+  targetNamespace="http://www.nordugrid.org/schemas/InfoFilter/2008"
+  elementFormDefault="qualified">
+
+    <xsd:complexType name="InfoFilterDefinition_Type">
+        <!-- This element is a container for single policy element of any kind.
+             Attached mandatory attribute defines identifier which is then used
+             to link XML elements with defined policy.
+             Currently only supported policy is one defined in
+             http://www.nordugrid.org/schemas/policy-arc namespace. -->
+        <xsd:any namespace="##other" processContents="lax" minOccurs="1" maxOccurs="1"/>
+        <xsd:attribute name="id" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    <xsd:element name="InfoFilterDefinition" type="if:InfoFilterDefinition_Type" minOccurs="0" maxOccurs="unbounded"/>
+
+    <xsd:attribute name="InfoFilterTag">
+        <!-- This attribute is to be used in element for which authorization
+             policy to be applied. It specifies identifier of policy defined
+             in InfoFilterDefinition element. -->
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string"/>
+        </xsd:simpleType>
+    </xsd:attribute>
+
+</xsd:schema>
+
+\end{verbatim}
+
+% section info_policies_schema (end)
+
+% chapter appendices (end)
+
+
+\bibliography{grid}
 \end{document}
 
