@@ -65,6 +65,8 @@ namespace Arc {
 
     void CheckLocalDescription(std::list<Job>& jobs);
 
+    const std::list<Job>& GetJobs() const { return jobstore; }
+
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
     virtual bool GetJob(const Job& job, const std::string& downloaddir) = 0;
