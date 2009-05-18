@@ -19,10 +19,11 @@ namespace Arc
    */
   {
     std::string filename;
+    bool allow_remove;
     std::string getArchivingPath();
   public:
     /** Constructor. Loads and parses A-REX job log. */
-    JobLogFile(const std::string& _filename) { parse(_filename); } 
+    JobLogFile(const std::string& _filename):allow_remove(true) { parse(_filename); } 
     /** Reloads and parses A-REX job log. */
     int parse(const std::string& _filename);
     /** Creates an OGF Job Usage Record from parsed log files. 
@@ -36,6 +37,8 @@ namespace Arc
 			      const char *recordid_prefix="ur-");
     /** Returns original full path to log file */
     std::string getFilename() { return filename; }
+    /** Enables/disables file removal from disk */
+    void allowRemove(bool a) { allow_remove=a; }
     /** Checks if file exists on the disk */
     bool exists();
     /** Checks if file was modified earlier than 'age' seconds ago */

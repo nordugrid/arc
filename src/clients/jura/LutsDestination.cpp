@@ -138,7 +138,7 @@ namespace Arc
 
   void LutsDestination::report(Arc::JobLogFile &joblog)
   {
-    if (joblog.exists())
+    //if (joblog.exists())
       {
         //Store copy of job log
         joblogs.push_back(joblog);

@@ -14,18 +14,24 @@
 namespace Arc
 {
 
-  /** Constructor. Pass name of directory containing job log files
-   *  and expiration time of files in seconds.
+  /** Constructor. Pass name of directory containing job log files,
+   *  expiration time of files in seconds, list of URLs in case of 
+   *  interactive mode.
    */
-  UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_):
+  UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_,
+			       std::list<std::string> urls_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     job_log_dir(job_log_dir_),
-    expiration_time(expiration_time_)
+    expiration_time(expiration_time_),
+    urls(urls_)
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
 	       job_log_dir.c_str());
     logger.msg(Arc::DEBUG, "Expiration time: %d seconds",
 	       expiration_time);
+    if (!urls.empty())
+      logger.msg(Arc::DEBUG, "Interactive mode.",
+		 expiration_time);
     //Collection of logging destinations:
     dests=new Arc::Destinations();
   }
@@ -35,6 +41,9 @@ namespace Arc
    */
   int UsageReporter::report()
   {
+    //ngjobid->url mapping to keep track of which loggerurl is replaced
+    //by the '-u' options
+    std::map<std::string,std::string> dest_to_duplicate;
     //Collect job log file names from job log dir
     //(to know where to get usage data from)
     DIR *dirp;
@@ -63,21 +72,65 @@ namespace Arc
 	    std::string fname=job_log_dir+"/"+entp->d_name;
 	    logfile=new Arc::JobLogFile(fname);
 
-	    // Check creation time and remove it if really too old
-	    if( expiration_time>0 && logfile->olderThan(expiration_time) )
+	    //A. Non-interactive mode: each jlf is parsed, and if valid, 
+	    //   submitted to the destination given  by "loggerurl=..."
+	    if (urls.empty())
 	      {
-		logger.msg(Arc::INFO,
-			   "Removing outdated job log file %s",
-			   logfile->getFilename().c_str()
-			   );
-		logfile->remove();
-	      } 
+		// Check creation time and remove it if really too old
+		if( expiration_time>0 && logfile->olderThan(expiration_time) )
+		  {
+		    logger.msg(Arc::INFO,
+			       "Removing outdated job log file %s",
+			       logfile->getFilename().c_str()
+			       );
+		    logfile->remove();
+		  } 
+		else
+		  {
+		    //Pass job log file content to the appropriate 
+		    //logging destination
+		    dests->report(*logfile);
+		    //(deep copy performed)
+		  }
+	      }
+
+	    //B. Interactive mode: submit only to services specified by
+	    //   command line option '-u'. Avoid repetition if several jlfs
+	    //   are created with same content and different destination.
+	    //   Keep all jlfs on disk.
 	    else
 	      {
-		//Pass job log file content to the appropriate 
-		//logging destination
-		dests->report(*logfile);
-		//(deep copy performed)
+		if ( dest_to_duplicate.find( (*logfile)["ngjobid"] ) ==
+		     dest_to_duplicate.end() )
+		  {
+		    dest_to_duplicate[ (*logfile)["ngjobid"] ]=
+		      (*logfile)["loggerurl"];
+		  }
+
+		//submit only 1x to each!
+		if ( dest_to_duplicate[ (*logfile)["ngjobid"] ] ==
+		     (*logfile)["loggerurl"] )
+		  {
+		    //Duplicate content of log file, overwriting URL with
+		    //each '-u' command line option, disabling file deletion
+		    Arc::JobLogFile *dupl_logfile=
+		      new Arc::JobLogFile(*logfile);
+		    dupl_logfile->allowRemove(false);
+
+		    for (std::list<std::string>::iterator it=urls.begin();
+			 it!=urls.end();
+			 ++it)
+		      {
+			(*dupl_logfile)["loggerurl"] = *it;
+
+			//Pass duplicated job log content to the appropriate 
+			//logging destination
+			dests->report(*dupl_logfile);
+			//(deep copy performed)
+
+		      }
+		    delete dupl_logfile;
+		  }
 	      }
 
 	    delete logfile;

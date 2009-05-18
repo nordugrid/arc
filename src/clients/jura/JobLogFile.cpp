@@ -417,6 +417,7 @@ namespace Arc
 
   void JobLogFile::remove()
   {
+    if (!allow_remove) return;
     errno=0;
     int e = ::remove(filename.c_str());
     if (e)
