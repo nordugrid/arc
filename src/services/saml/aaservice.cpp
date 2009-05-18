@@ -7,22 +7,15 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include <arc/loader/Loader.h>
-#include <arc/security/ClassLoader.h>
-/* ##include <arc/loader/ServiceLoader.h> */
-#include <arc/message/Plexer.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/message/PayloadRaw.h>
-#include <arc/message/PayloadStream.h>
 #include <arc/message/SOAPEnvelope.h>
-#include <arc/Thread.h>
 #include <arc/DateTime.h>
 #include <arc/GUID.h>
 
 #include <arc/credential/Credential.h>
 #include <arc/xmlsec/XmlSecUtils.h>
 #include <arc/xmlsec/XMLSecNode.h>
-#include "../../hed/libs/common/MysqlWrapper.h"
+#include <arc/MysqlWrapper.h>
 
 #include "aaservice.h"
 
@@ -33,8 +26,6 @@ namespace ArcSec {
 
 #define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
 #define DSIG_NAMESPACE   "http://www.w3.org/2000/09/xmldsig#"
-
-static Arc::LogStream logcerr(std::cerr);
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* servarg = arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
@@ -99,7 +90,8 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //Hence the scenario is "SAML Attribute Self-Query Deployment Profile for X.509 Subjects" inside 
   //document "SAML V2.0 Deployment Profiles for X.509 Subjects"
 
-  std::string peer_dn = convert_dn(inmsg.Attributes()->get("TLS:PEERDN"));
+  std::string peer_rdn = inmsg.Attributes()->get("TLS:PEERDN");
+  std::string peer_dn = convert_dn(peer_rdn);
 
   // Extracting payload
   Arc::PayloadSOAP* inpayload = NULL;
@@ -107,7 +99,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
   } catch(std::exception& e) { };
   if(!inpayload) {
-    logger.msg(Arc::ERROR, "input is not SOAP");
+    logger_.msg(Arc::ERROR, "input is not SOAP");
     return make_soap_fault(outmsg);
   }
 
@@ -119,10 +111,10 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 #if 0
   Arc::XMLSecNode attrqry_secnode(attrqry);
   if(attrqry_secnode.VerifyNode(query_idname, cafile_, cadir_)) {
-    logger.msg(Arc::INFO, "Succeeded to verify the signature under <AttributeQuery/>");
+    logger_.msg(Arc::INFO, "Succeeded to verify the signature under <AttributeQuery/>");
   }
   else {     
-    logger.msg(Arc::ERROR, "Failed to verify the signature under <AttributeQuery/>");
+    logger_.msg(Arc::ERROR, "Failed to verify the signature under <AttributeQuery/>");
     return Arc::MCC_Status();
   }
 #endif
@@ -144,10 +136,10 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   Arc::XMLNode subject = attrqry["saml:Subject"];
   std::string name_id = (std::string)(subject["saml:NameID"]);
   if(name_id == peer_dn) {
-    logger.msg(Arc::INFO, "The NameID inside request is the same as the NameID from the tls authentication: %s", peer_dn.c_str());
+    logger_.msg(Arc::INFO, "The NameID inside request is the same as the NameID from the tls authentication: %s", peer_dn.c_str());
   }
   else {
-    logger.msg(Arc::INFO, "The NameID inside request is: %s; not the same as the NameID from the tls authentication: %s", name_id.c_str(), peer_dn.c_str());
+    logger_.msg(Arc::INFO, "The NameID inside request is: %s; not the same as the NameID from the tls authentication: %s", name_id.c_str(), peer_dn.c_str());
     return Arc::MCC_Status();
   }
 
@@ -186,10 +178,36 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       attribute_name_list.push_back(str); 
     }
     else {
-      logger.msg(Arc::ERROR, "There should be Name attribute in request's <Attribute> node");
+      logger_.msg(Arc::ERROR, "There should be Name attribute in request's <Attribute> node");
       return Arc::MCC_Status();
     }
   }
+ 
+  std::vector<std::string> fqans1;
+  //udn = peer_rdn;
+  std::string udn("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
+  std::vector<std::string> sqlargs1;
+  sqlargs1.push_back(udn);
+  std::string query_type1("UID");
+  get_results(fqans1, sqlargs1, query_type1, dbconf_);
+  
+  std::vector<std::string> fqans;
+  std::string role = "physicist";
+  std::string uid = "3"; // std::string uid = fqans1[0];
+  std::vector<std::string> sqlargs;
+  //sequence of arguments mattes; and it should be corresponding to
+  //the arguments squence in sql sentence
+  sqlargs.push_back(role);
+  sqlargs.push_back(uid);
+  std::string query_type("Role");
+  get_results(fqans, sqlargs, query_type, dbconf_);
+  if(fqans.size()!=0) {
+    std::cout<<"Got db query result"<<std::endl;
+    for(int i=0; i<fqans.size(); i++)
+      std::cout<<fqans[i]<<std::endl;
+  }
+  else
+    std::cout<<"Did not get db query result"<<std::endl;
 
   //TODO: Compare the attribute name from database result and the attribute_name_list,
   //Only use the intersect as the response
@@ -300,11 +318,11 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 }
 
 Service_AA::Service_AA(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "AA_Service") {
-  logger_.addDestination(logcerr);
   keyfile_ = (std::string)((*cfg)["KeyPath"]);
   certfile_ = (std::string)((*cfg)["CertificatePath"]);
   cafile_ = (std::string)((*cfg)["CACertificatePath"]);
   cadir_ = (std::string)((*cfg)["CACertificatesDir"]);
+  dbconf_ = (*cfg)["Database"];
   Arc::init_xmlsec();
 }
 
@@ -312,33 +330,40 @@ Service_AA::~Service_AA(void) {
   Arc::final_xmlsec();
 }
 
-bool Service_AA::get_roles(std::vector<std::string>& fqans, std::string& userid, std::string& role, Arc::XMLNode& config) {
+bool Service_AA::get_results(std::vector<std::string>& fqans, const std::vector<std::string>& sqlargs, 
+      const std::string& idofsqlset, Arc::XMLNode& config) {
   Arc::QueryArrayResult attributes;
-  std::vector<std::string> sqlargs;
-  sqlargs.push_back(role);
-  sqlargs.push_back(userid);
-  std::string idofsqlset("Role");
+  std::vector<std::string> args;
+  for(int j = 0; j< sqlargs.size(); j++) {
+    std::string item;
+    item.append("\"").append(sqlargs[j]).append("\"");
+    args.push_back(item);
+  }
   bool res;
-  res = get_attributes(attributes, idofsqlset, sqlargs, config);
+  res = query_db(attributes, idofsqlset, args, config);
   if(!res) return res;
   for(int i = 0; i< attributes.size(); i++) {
     std::vector<std::string> item = attributes[i];
     int num = item.size();
     std::string fqan;
-    if(num == 2) {
-      fqan = item[0] + "/Role=" + item[1];
+    if(num == 1) { // example:  UID
+      fqan = item[0];
     }
-    else if(num == 4) {
-      fqan = item[2] + "::" + item[0] + "=" + item[1];
+    else if(num == 2) { // example:  /Group=knowarc/Role=physicist
+      fqan = ("/Group=" + item[0].substr(1)) + (item[1].empty() ? "":("/Role=" + item[1]));
+    }
+    else if(num == 4) { // example:  /Group=knowarc/Role=physicist:Degree=PhD
+      fqan = ("/Group=" + item[2].substr(1)) + (item[3].empty() ? "":("/Role=" + item[3])) + ":" + item[0] + "=" + item[1];
     }
     fqans.push_back(fqan);
   }
   return true;
 }
 
-bool Service_AA::get_attributes(Arc::QueryArrayResult& attributes, std::string& idofsqlset, std::vector<std::string>& sqlargs, Arc::XMLNode& config) {
+bool Service_AA::query_db(Arc::QueryArrayResult& attributes, const std::string& idofsqlset, std::vector<std::string>& sqlargs, Arc::XMLNode& config) {
   Arc::XMLNode nd;
-  nd = config["aa:Database"];
+  //nd = config["aa:Database"];
+  nd = config;
   std::string server, dbname, user, password, portstr;
   int port;
   server = (std::string)(nd.Attribute("ip"));
@@ -347,14 +372,21 @@ bool Service_AA::get_attributes(Arc::QueryArrayResult& attributes, std::string& 
   password = (std::string)(nd.Attribute("password"));
   portstr = (std::string)(nd.Attribute("port"));
   port = atoi((portstr.c_str()));
-  
+
+  logger_.msg(Arc::DEBUG, "Access database %s from server %s port %s, with user %s and password %s",
+              dbname.c_str(), server.c_str(), portstr.c_str(), user.c_str(), password.c_str()); 
+
+  //TODO: make the database and sql object dynamic loaded 
+  //according to the "name" (mysql, oracle, etc.)
   Arc::MySQLDatabase mydb(server, port);
   bool res = false;
   res = mydb.connect(dbname,user,password);
-  if(res == false) {std::cerr<<"Can't establish connection to mysql database"<<std::endl; return false;}
+  if(res == false) {
+    logger_.msg(Arc::ERROR,"Can't establish connection to mysql database"); return false;
+  }
 
   Arc::MySQLQuery myquery(&mydb);
-  std::cout<<"Is connected? "<<mydb.isconnected()<<std::endl;
+    logger_.msg(Arc::DEBUG, "Is connected to database? %s", mydb.isconnected()? "yes":"no");
 
   std::string querystr;
   for(int i = 0;; i++) {
@@ -364,11 +396,13 @@ bool Service_AA::get_attributes(Arc::QueryArrayResult& attributes, std::string& 
       for(int k = 0;; k++) {
         Arc::XMLNode scn = cn["aa:SQL"][k];
         if(!scn) break;
+        querystr = (std::string)scn;
+        logger_.msg(Arc::DEBUG, "Query: %s", querystr.c_str());
         myquery.get_array(querystr, attributes, sqlargs);
       }
     }
   }
-  std::cout<<"Get an result array with "<<attributes.size()<<" rows"<<std::endl;
+  logger_.msg(Arc::DEBUG, "Get result array with %d rows",attributes.size());
   return true;
 }
 

@@ -23,7 +23,7 @@
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/>
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+            <tcp:Listen><tcp:Port>60001</tcp:Port></tcp:Listen>
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
@@ -44,7 +44,10 @@
             <aa:CACertificatesDir>../../tests/echo/certificates</aa:CACertificatesDir>
             <aa:CACertificatePath>../../tests/echo/testcacert.pem</aa:CACertificatePath>
 
-            <aa:Database type="mysql" ip="127.0.0.1" port="3305" dbname="voms_myvo" user="root" password="aa1122">
+            <aa:Database type="mysql" ip="localhost" port="3305" dbname="voms_knowarc" user="root" password="123456">
+              <aa:SQLSet name="UID">
+                <aa:SQL name="GetUID">SELECT userid FROM usr WHERE usr.dn = ?</aa:SQL>
+              </aa:SQLSet>
               <aa:SQLSet name="Role">
                 <aa:SQL name="GetRole">SELECT groups.dn, role FROM groups, m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = ? AND m.userid = ?</aa:SQL>
                 <aa:SQL name="GetRoleAttribute">SELECT attributes.a_name, role_attrs.a_value, groups.dn, roles.role FROM m INNER JOIN groups ON m.gid = groups.gid LEFT JOIN roles ON roles.rid = m.rid INNER JOIN role_attrs on groups.gid = role_attrs.g_id INNER JOIN attributes on attributes.a_id = role_attrs.a_id WHERE role_attrs.r_id = roles.rid AND roles.role = ? AND m.userid = ?</aa:SQL>

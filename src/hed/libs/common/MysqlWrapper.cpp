@@ -80,7 +80,7 @@ namespace Arc {
   }
 
   bool MySQLQuery::execute(const std::string& sqlstr) {
-    std::cout << "Query: " << sqlstr << std::endl;
+    //std::cout << "Query: " << sqlstr << std::endl;
     if (db_->mysql == NULL)
       std::cerr << "mysql object is NULL" << std::endl;
     if (mysql_query(db_->mysql, sqlstr.c_str())) {
@@ -166,7 +166,7 @@ namespace Arc {
       sqlstr.replace(found, 1, arg_str);
     }
 
-    std::cout << "The sql sentence after replacement: " << sqlstr << std::endl;
+    //std::cout << "The sql sentence after replacement: " << sqlstr << std::endl;
     QueryRowResult row_value;
     if (execute(sqlstr)) {
       int rows = get_num_rows();
