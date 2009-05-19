@@ -177,6 +177,26 @@ namespace Arc {
                flavour, jobstore.size());
   }
 
+  void JobController::FillJobStore(const Job& job)
+  {
+    if (job.Flavour != flavour) {
+      logger.msg(WARNING, "The middleware flavour of the job (%s) does not match that of the job controller (%s)", job.Flavour, flavour);
+      return;
+    }
+
+    if (!job.JobID) {
+      logger.msg(WARNING, "The job ID (%s) is not a valid URL", job.JobID);
+      return;
+    }
+
+    if (!job.Cluster) {
+      logger.msg(WARNING, "The cluster URL is not a valid URL", job.Cluster);
+      return;
+    }
+
+    jobstore.push_back(job);
+  }
+
   bool JobController::Get(const std::list<std::string>& status,
                           const std::string& downloaddir,
                           const bool keep) {

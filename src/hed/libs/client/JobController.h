@@ -31,6 +31,8 @@ namespace Arc {
                       const std::list<URL>& clusterselect,
                       const std::list<URL>& cluterreject);
 
+    void FillJobStore(const Job& job);
+
     bool Get(const std::list<std::string>& status,
              const std::string& downloaddir,
              const bool keep);
