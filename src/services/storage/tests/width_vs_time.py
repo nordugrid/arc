@@ -79,10 +79,10 @@ timings_stat =[0]*width
 for i in range(width):
     timings_stat[i]=[0]*statistics
 for i in range(statistics):
-    request={}
     i_path = "/"+str(i)
     bartender.makeCollection({i_path:(i_path,{})})
     for j in range(width):
+        request={}
         j_path = "/"+str(j)
         request[i_path+j_path] = (i_path+j_path,{})
         start_mkdir = time.time()
