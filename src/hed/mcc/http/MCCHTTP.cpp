@@ -185,6 +185,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Endpoints must be URL-like so make sure HTTP path is 
   // converted to HTTP URL 
   std::string endpoint = nextpayload.Endpoint();
+//std::cerr<<"HTTP: service: endpoint: "<<endpoint<<std::endl;
   {
     std::string::size_type p = endpoint.find("://");
     if(p == std::string::npos) {
@@ -203,6 +204,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
       endpoint="http://"+oendpoint+endpoint;
     };
   };
+//std::cerr<<"HTTP: service: endpoint: "<<endpoint<<std::endl;
   nextinmsg.Attributes()->set("ENDPOINT",endpoint);
   nextinmsg.Attributes()->set("HTTP:ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
@@ -211,9 +213,9 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   nextinmsg.Auth()->set("HTTP",sattr);
   parse_http_range(nextpayload,nextinmsg);
   // Reason ?
-  for(std::map<std::string,std::string>::const_iterator i = 
+  for(std::multimap<std::string,std::string>::const_iterator i = 
       nextpayload.Attributes().begin();i!=nextpayload.Attributes().end();++i) {
-    nextinmsg.Attributes()->set("HTTP:"+i->first,i->second);
+    nextinmsg.Attributes()->add("HTTP:"+i->first,i->second);
   };
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
     return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?

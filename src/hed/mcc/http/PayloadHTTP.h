@@ -41,7 +41,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   //int size_;                     /** Logical size of content obtained from Content-Range */
   bool chunked_;                   /** true if content is chunked */
   bool keep_alive_;                /** true if conection should not be closed after response */
-  std::map<std::string,std::string> attributes_; /* All HTTP attributes */
+  std::multimap<std::string,std::string> attributes_; /* All HTTP attributes */
   char tbuf_[1024];
   int tbuflen_;
   uint64_t stream_offset_;
@@ -84,8 +84,8 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
     Empty string if no such attribute. */
   virtual const std::string& Attribute(const std::string& name);
   /** Returns all HTTP header attributes. */
-  virtual const std::map<std::string,std::string>& Attributes(void);
-  /** Sets HTTP header attribute 'name' to 'value' */
+  virtual const std::multimap<std::string,std::string>& Attributes(void);
+  /** Adds HTTP header attribute 'name' = 'value' */
   virtual void Attribute(const std::string& name,const std::string& value);
   /** Send created object through associated stream.
     If there is no stream associated then HTTP specific data is 
