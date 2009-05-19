@@ -21,6 +21,7 @@
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
+#include <arc/DateTime.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
