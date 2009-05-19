@@ -63,10 +63,14 @@ class FileTransfer
             Arc::User cache_user;
             std::string job_id = j.getID();
             std::string cache_dir = cache_path;
+#ifndef WIN32
+			cache = new Arc::FileCache (cache_dir, job_id, 
+#else
             std::string cache_data_dir = cache_dir; 
             std::string cache_link_dir;
             cache = new Arc::FileCache (cache_dir, cache_data_dir,
                                         cache_link_dir, job_id,
+#endif
                                         cache_user.get_uid(),
                                         cache_user.get_gid());
         }
