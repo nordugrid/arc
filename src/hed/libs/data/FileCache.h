@@ -15,7 +15,6 @@ namespace Arc {
 
   class Logger;
 
-#ifndef WIN32
   /**
    * Contains data on the parameters of a cache.
    */
@@ -23,6 +22,8 @@ namespace Arc {
     std::string cache_path;
     std::string cache_link_path;
   };
+
+#ifndef WIN32
 
   /**
    * FileCache provides an interface to all cache operations
@@ -336,23 +337,48 @@ namespace Arc {
   };
 
 #else
+
   class FileCache {
   public:
     FileCache(std::string cache_path,
               std::string cache_job_dir_path,
               std::string cache_link_path,
               std::string id,
-              uid_t job_uid,
-              gid_t job_gid) {}
+              int job_uid,
+              int job_gid) {}
+    FileCache(std::string cache_path,
+              std::string id,
+              int job_uid,
+              int job_gid) {}
+    FileCache(std::vector<std::string> caches,
+              std::string id,
+              int job_uid,
+              int job_gid) {}
     FileCache(std::vector<struct CacheParameters> caches,
               std::string id,
-              uid_t job_uid,
-              gid_t job_gid) {}
+              int job_uid,
+              int job_gid) {}
     FileCache(const FileCache& cache) {}
     FileCache() {}
+    bool Start(std::string url, bool& available, bool& is_locked) {}
+    bool Stop(std::string url) {}
+    bool StopAndDelete(std::string url) {}
+    std::string File(std::string url) {}
+    bool Link(std::string link_path, std::string url)  {}
+    bool Copy(std::string dest_path, std::string url, bool executable = false) {}
+    bool Clean(unsigned long long int size = 1) {} 
+    bool Release() {}
+    bool AddDN(std::string url, std::string DN, Time expiry_time) {}
+    bool CheckDN(std::string url, std::string DN) {}
+    bool CheckCreated(std::string url){}
+    Time GetCreated(std::string url) {}
+    bool CheckValid(std::string url) {}
+    Time GetValid(std::string url)  {}
+    bool SetValid(std::string url, Time val) {}
     operator bool() {
       return false;
     };
+    bool operator==(const FileCache& a)  {}
   };
 #endif /*WIN32*/
 

@@ -8,6 +8,12 @@
 #include <arc/data/FileCache.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
+
+#ifdef WIN32
+#define uid_t int
+#define gid_t int
+#endif
+
 %}
 
 #ifdef SWIGPYTHON
@@ -56,6 +62,7 @@ and the second member is the original return value, the DataStatus. */
 }
 
 #endif
+
 
 %include "../src/hed/libs/data/DataStatus.h"
 %include "../src/hed/libs/data/FileInfo.h"
