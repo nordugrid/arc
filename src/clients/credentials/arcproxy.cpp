@@ -482,6 +482,10 @@ int main(int argc, char *argv[]) {
   //Create proxy or voms proxy
   try {
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
+    if(signer.GetPrivKey() == NULL) {
+      std::cerr << "ERROR: Can not load the private key form file: "<<key_path<< std::endl;
+      return EXIT_FAILURE;
+    }
 
     std::string private_key, signing_cert, signing_cert_chain;
 
