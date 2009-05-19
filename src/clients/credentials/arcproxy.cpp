@@ -226,11 +226,11 @@ int main(int argc, char *argv[]) {
     bool res = false;
 
     if(proxy_path.empty()) {
-      std::cerr<<"Can not find the path of the proxy file, please setup environment X509_USER_PROXY, or ProxyPath in configuration file"<<std::endl;
+      std::cerr<<"Cannot find the path of the proxy file, please setup environment X509_USER_PROXY, or ProxyPath in configuration file"<<std::endl;
       return EXIT_FAILURE;
     } else {
       if(!(Glib::file_test(proxy_path,Glib::FILE_TEST_EXISTS))) {
-        std::cerr<<"Can not find file on: "<<proxy_path<<" for getting the proxy. Please make sure this file exists."<<std::endl;
+        std::cerr<<"Cannot find file on: "<<proxy_path<<" for getting the proxy. Please make sure this file exists."<<std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -488,7 +488,7 @@ int main(int argc, char *argv[]) {
   try {
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
     if(signer.GetPrivKey() == NULL) {
-      std::cerr << "ERROR: Can not load the private key form file: "<<key_path<< std::endl;
+      std::cerr << "ERROR: Cannot load the private key form file: "<<key_path<< std::endl;
       return EXIT_FAILURE;
     }
 
@@ -551,7 +551,7 @@ int main(int argc, char *argv[]) {
               if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
                 std::string tmp1 = user.Home() + "/.vomses";
                 std::string tmp2 = user.Home() + "/.voms/vomses";
-                logger.msg(Arc::ERROR, "Can not find vomses at %s, %s, and /etc/grid-security/.vomses", 
+                logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, and /etc/grid-security/.vomses", 
                   tmp1.c_str(), tmp2.c_str());
                 return EXIT_FAILURE;
               }
@@ -587,14 +587,14 @@ int main(int argc, char *argv[]) {
       }
       //Judge if we can not find any of the voms server in the command line from 'vomses' file
       //if(matched_voms_line.empty()) {
-      //  logger.msg(Arc::ERROR, "Can not get voms server information from file: %s ", vomses_path.c_str());
-      // throw std::runtime_error("Can not get voms server information from file: " + vomses_path);
+      //  logger.msg(Arc::ERROR, "Cannot get voms server information from file: %s ", vomses_path.c_str());
+      // throw std::runtime_error("Cannot get voms server information from file: " + vomses_path);
       //}
       if (matched_voms_line.size() != server_command_map.size())
         for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
              it != server_command_map.end(); it++)
           if (matched_voms_line.find((*it).first) == matched_voms_line.end())
-            logger.msg(Arc::ERROR, "Can not get voms server %s information from file: %s ",
+            logger.msg(Arc::ERROR, "Cannot get voms server %s information from file: %s ",
                        (*it).first, vomses_path.c_str());
 
       //Contact the voms server to retrieve attribute certificate
@@ -616,8 +616,8 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < 3; i++) {
           p = voms_line.find("\"", p);
           if (p == std::string::npos) {
-            logger.msg(Arc::ERROR, "Can not get voms server address information from voms line: %s\"", voms_line.c_str());
-            throw std::runtime_error("Can not get voms server address information from voms line:" + voms_line + "\"");
+            logger.msg(Arc::ERROR, "Cannot get voms server address information from voms line: %s\"", voms_line.c_str());
+            throw std::runtime_error("Cannot get voms server address information from voms line:" + voms_line + "\"");
           }
           p = p + 1;
         }
@@ -675,7 +675,7 @@ int main(int argc, char *argv[]) {
         } while (len == 1024);
         logger.msg(Arc::DEBUG, "Returned msg from voms server: %s ", ret_str.c_str());
         if(ret_str.find("error") != std::string::npos) {
-          throw std::runtime_error("Can not get any AC or attributes info from voms server: " + voms_server);
+          throw std::runtime_error("Cannot get any AC or attributes info from voms server: " + voms_server);
         }
 
         //Put the return attribute certificate into proxy certificate as the extension part
