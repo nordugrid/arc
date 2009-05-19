@@ -32,28 +32,44 @@ void usage(void) {
 int send_mail(char* mail_server,char* mail_from,char* mail_to) {
   char buf[256];
   int s,i;
-  struct sockaddr_in readdr;
-  struct hostent *host;
   FILE* S;
   int err_code;
   char my_hostname[256];
+  struct addrinfo *res = NULL;
+  struct addrinfo *r = NULL;
 
   memset(my_hostname,0,256);  
   gethostname(my_hostname,255);
-  host=gethostbyname(mail_server);
-  if(host == NULL) return 2;
-  if( (host->h_length < sizeof(struct in_addr)) ||
-      (host->h_addr_list[0] == NULL) ) return 2;
-  s=socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
-  if(s==-1) return 2;
-  memset(&readdr,0,sizeof(readdr));
-  readdr.sin_family=AF_INET;
-  readdr.sin_port=htons(SMTP_PORT);
-  memcpy(&readdr.sin_addr,host->h_addr_list[0],sizeof(struct in_addr));
-  if(connect(s,(struct sockaddr *)&readdr,sizeof(readdr))==-1) {
+  if(getaddrinfo(my_hostname,NULL,NULL,&res) != 0) return 2;
+  if(res == NULL) return 2;
+  for(r=res;r;r=r->ai_next) {
+    if(r->ai_addr == NULL) continue;
+    if(r->ai_socktype != SOCK_STREAM) continue;
+    if(r->ai_protocol != IPPROTO_TCP) continue;
+    if(r->ai_family == AF_INET) {
+      ((struct sockaddr_in*)(r->ai_addr))->sin_port=htons(SMTP_PORT);
+      break;
+    };
+    if(r->ai_family == AF_INET6) {
+      ((struct sockaddr_in6*)(r->ai_addr))->sin6_port=htons(SMTP_PORT);
+      break;
+    };
+  };
+  if(!r) {
+    freeaddrinfo(res);
+    return 2;
+  };
+  s=socket(r->ai_family,r->ai_socktype,r->ai_protocol);
+  if(s==-1) {
+    freeaddrinfo(res);
+    return 2;
+  };
+  if(connect(s,r->ai_addr,r->ai_addrlen)==-1) {
+    freeaddrinfo(res);
     close(s);
     return 2;
   };
+  freeaddrinfo(res);
   if((S=fdopen(s,"r+")) == NULL) {
     close(s);
     return 2;
