@@ -228,6 +228,11 @@ int main(int argc, char *argv[]) {
     if(proxy_path.empty()) {
       std::cerr<<"Can not find the path of the proxy file, please setup environment X509_USER_PROXY, or ProxyPath in configuration file"<<std::endl;
       return EXIT_FAILURE;
+    } else {
+      if(!(Glib::file_test(proxy_path,Glib::FILE_TEST_EXISTS))) {
+        std::cerr<<"Can not find file on: "<<proxy_path<<" for getting the proxy. Please make sure this file exists."<<std::endl;
+        return EXIT_FAILURE;
+      }
     }
        
     Arc::Credential holder(proxy_path, "", ca_dir, "");
