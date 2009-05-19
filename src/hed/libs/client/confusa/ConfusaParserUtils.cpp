@@ -186,9 +186,7 @@ std::string ConfusaParserUtils::evaluate_path(xmlDocPtr doc, const std::string x
 xmlDocPtr ConfusaParserUtils::get_doc(const std::string xml_file) {
 	  xmlDocPtr doc = NULL;
 
-	  // we do not really expect anyting we get in the web world to be well-formed
-	  int options = XML_PARSE_RECOVER;
-	  doc = xmlReadMemory(xml_file.c_str(), xml_file.size(), "noname.xml", NULL, options);
+	  doc = xmlReadMemory(xml_file.c_str(), xml_file.size(), "noname.xml", NULL, NULL);
 
 	  if (doc == NULL) {
 		  Arc::Logger::getRootLogger().msg(Arc::ERROR, "Failed to parse XML file!");
@@ -221,8 +219,6 @@ std::string ConfusaParserUtils::extract_body_information(const std::string html_
 
 	  std::string body_string = html_string.substr(first_body_occurence, (last_body_occurence - first_body_occurence));
 
-	  std::string::size_type comment_start = body_string.find("<!--");
-
 	 //  TODO: this is a hack, replace later, check for namespace assignment
 	  std::string::size_type copy_pos = body_string.find("&copy;");
 	  if (copy_pos != std::string::npos && (copy_pos + 6) <= body_string.size()) {
@@ -254,6 +250,10 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  } else {
 		  redirect_client.process("GET", &redirect_request, &redirect_info, &redirect_response);
 	  }
+
+	  std::fstream fop("/tmp/redirect_site.html", std::ios::out);
+	  fop << redirect_response->Content();
+	  fop.close();
 
 	  std::string redirect_string = redirect_info.location;
 	  if(!redirect_info.cookie.empty() && (cookie != NULL))  {

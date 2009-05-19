@@ -84,11 +84,29 @@ namespace Arc {
 		  if(post_2_ssoservice_redirect.empty()) {
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get the id-login post location from the IdP");
 		  } else {
-			std::string consent_page = ConfusaParserUtils::handle_redirect_step(cfg_, post_2_ssoservice_redirect, &cookie, &http_attributes);
+			ClientHTTP consent_test_client(cfg_, URL(post_2_ssoservice_redirect));
+			PayloadRaw consent_test_request;
+			HTTPClientInfo consent_test_info;
+			PayloadRawInterface *consent_test_response = NULL;
+			consent_test_client.RelativeURI(true);
+			consent_test_client.process("GET", http_attributes, &consent_test_request, &consent_test_info, &consent_test_response);
+			std::string consent_test_response_str = "";
 
+			std::string consent_page = consent_test_info.location;
 			logger.msg(DEBUG, "The consent_page is %s", consent_page);
 
+			if (consent_test_response) {
+				consent_test_response_str = consent_test_response->Content();
+				delete consent_test_response;
+
+			} else {
+				if (consent_page.empty()) {
+					return MCC_Status(PARSING_ERROR, origin, "Received neither consent redirect nor assertion-consumer redirect from SimpleSAML!");
+				}
+			}
+
 			if (consent_page.empty()) {
+				post_idp_page_ = consent_test_response_str;
 				(*sso_pages_)["Consent"] = "";
 				(*sso_pages_)["PostIdP"] = post_2_ssoservice_redirect;
 			} else {
@@ -206,25 +224,25 @@ namespace Arc {
 			  return MCC_Status(GENERIC_ERROR, origin, "IdP's PHPSESSID Cookie is not present!");
 		  }
 
-		  http_attributes["Cookie"] = (*session_cookies_)["IdP"];
-		  // IdP SSOService to SP AssertionConsumerService URL retrieval, no automatic redirect :( -- IdP
-		  // normally here should also be the user consent question
-		  ClientHTTP id_login_ssoservice_client(cfg_, URL((*sso_pages_)["PostIdP"]));
-		  PayloadRaw id_login_ssoservice_request;
-		  PayloadRawInterface *id_login_ssoservice_response = NULL;
-		  HTTPClientInfo id_login_ssoservice_info;
-		  id_login_ssoservice_client.process("GET", http_attributes, &id_login_ssoservice_request, &id_login_ssoservice_info, &id_login_ssoservice_response);
+		  if (post_idp_page_.empty()) {
+			  http_attributes["Cookie"] = (*session_cookies_)["IdP"];
+			  // IdP SSOService to SP AssertionConsumerService URL retrieval, no automatic redirect :( -- IdP
+			  // normally here should also be the user consent question
+			  ClientHTTP id_login_ssoservice_client(cfg_, URL((*sso_pages_)["PostIdP"]));
+			  PayloadRaw id_login_ssoservice_request;
+			  PayloadRawInterface *id_login_ssoservice_response = NULL;
+			  HTTPClientInfo id_login_ssoservice_info;
+			  id_login_ssoservice_client.process("GET", http_attributes, &id_login_ssoservice_request, &id_login_ssoservice_info, &id_login_ssoservice_response);
 
-		  std::string idp_ssoservice_content = "";
-
-		  if (id_login_ssoservice_response) {
-			  idp_ssoservice_content = id_login_ssoservice_response->Content();
-			  delete id_login_ssoservice_response;
-		  } else {
-			  return MCC_Status(PARSING_ERROR, origin, "Did not get a response from the IdP to AssertionConsumer redirect page!");
+			  if (id_login_ssoservice_response) {
+				  post_idp_page_ = id_login_ssoservice_response->Content();
+				  delete id_login_ssoservice_response;
+			  } else {
+				  return MCC_Status(PARSING_ERROR, origin, "Did not get a response from the IdP to AssertionConsumer redirect page!");
+			  }
 		  }
 
-		  std::string idp_s_content = ConfusaParserUtils::extract_body_information(idp_ssoservice_content);
+		  std::string idp_s_content = ConfusaParserUtils::extract_body_information(post_idp_page_);
 
 		  if (idp_s_content.empty()) {
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get the post-IdP page's body information!");
@@ -232,16 +250,17 @@ namespace Arc {
 
 		  xmlDocPtr doc = ConfusaParserUtils::get_doc(idp_s_content);
 		  std::string idp_s_action = ConfusaParserUtils::evaluate_path(doc, "//form/@action");
+		  logger.msg(DEBUG, "The found action is %s", idp_s_action);
 		  std::string idp_s_samlresponse = ConfusaParserUtils::evaluate_path(doc, "//form/input[@name='SAMLResponse']/@value");
 		  std::string idp_s_relaystate = ConfusaParserUtils::evaluate_path(doc, "//form/input[@name='RelayState']/@value");
 	 	  ConfusaParserUtils::destroy_doc(doc);
 
 		  if (idp_s_action.empty()) {
-			  return MCC_Status(PARSING_ERROR, origin, "Could not get the action from the consent body!");
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get the action from the post-IdP page body!");
 		  } else if (idp_s_samlresponse.empty()) {
-			  return MCC_Status(PARSING_ERROR, origin, "Could not get the SAMLResponse from the consent body!");
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get the SAMLResponse from the post-IdP page body!");
 		  } else if (idp_s_relaystate.empty()) {
-			  return MCC_Status(PARSING_ERROR, origin, "Could not get the RelayState from the consent body!");
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get the RelayState from the post-IdP page body!");
 		  }
 
 		  // now redirect from IdP SSOService to SP AssertionConsumerService

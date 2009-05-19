@@ -13,7 +13,7 @@ namespace Arc {
 	static const std::string ACCESS_TOKEN_URL = "module.php/oauth/accessToken.php";
 	static const std::string AUTHORIZE_URL = "module.php/oauth/authorize.php";
 	static const std::string USER_INFO = "module.php/oauth/getUserInfo.php";
-	static const std::string ABOUT_YOU = "/slcs/about_you.php?text=yes";
+	static const std::string ABOUT_YOU = "/about_you.php?text=yes";
 
 	/**
 	 * The OAuth functionality depends on the availability of the liboauth C-bindings library

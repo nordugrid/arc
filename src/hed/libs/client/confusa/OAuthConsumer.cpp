@@ -58,40 +58,6 @@ namespace Arc {
 			return status;
 		}
 
-		std::string oauth_access_token = (*tokens_)["oauth_access_token"];
-		std::string oauth_access_secret = (*tokens_)["oauth_access_secret"];
-		std::string consumer_key = (*tokens_)["consumer_key"];
-		std::string consumer_secret = (*tokens_)["consumer_secret"];
-
-		logger.msg(DEBUG, "Contacting the OAuth user info endpoint");
-
-		URL sp_url((*sso_pages_)["SimpleSAML"] + USER_INFO);
-		std::string about_url = sp_url.fullstr();
-
-		char *req_url = oauth_sign_url(about_url.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
-		ClientHTTP about_client(cfg_,URL(req_url));
-		PayloadRaw about_request;
-		PayloadRawInterface *about_response = NULL;
-		HTTPClientInfo about_client_info;
-		about_client.RelativeURI(true);
-		about_client.process("GET", &about_request, &about_client_info, &about_response);
-
-		std::string about_response_str = "";
-
-		if (req_url) {
-			free(req_url);
-		}
-
-		if (about_response) {
-			about_response_str = about_response->Content();
-			delete about_response;
-		} else {
-			return MCC_Status(GENERIC_ERROR, origin, "Did not get user information from the OAuth User-Info service");
-		}
-
-		logger.msg(INFO, "The OAuth service provider knows the following about you: %s", about_response_str);
-
-
 		return MCC_Status(STATUS_OK);
 	}
 
@@ -243,21 +209,169 @@ namespace Arc {
 
 	MCC_Status OAuthConsumer::parseDN(std::string* dn) {
 		std::string origin = "OAuthConsumer::parseDN(string *dn)";
-		return MCC_Status(GENERIC_ERROR, origin, "OAuth authentication currently not supported in Confusa");
+
+		std::string oauth_access_token = (*tokens_)["oauth_access_token"];
+		std::string oauth_access_secret = (*tokens_)["oauth_access_secret"];
+		std::string consumer_key = (*tokens_)["consumer_key"];
+		std::string consumer_secret = (*tokens_)["consumer_secret"];
+
+		URL sp_url(server_loc_.fullstr() + ABOUT_YOU);
+		std::string about_url = sp_url.fullstr();
+
+		char *req_url = oauth_sign_url(about_url.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
+		logger.msg(DEBUG, "The about-you request url is %s", req_url);
+		ClientHTTP about_client(cfg_,URL(req_url));
+		PayloadRaw about_request;
+		PayloadRawInterface *about_response = NULL;
+		HTTPClientInfo about_client_info;
+		about_client.RelativeURI(true);
+		about_client.process("GET", &about_request, &about_client_info, &about_response);
+
+		std::string about_response_str = "";
+
+		if (req_url) {
+			free(req_url);
+		}
+
+		if (about_response) {
+			about_response_str = about_response->Content();
+			delete about_response;
+		} else {
+			return MCC_Status(GENERIC_ERROR, origin, "Did not get user information from the OAuth User-Info service");
+		}
+
+		std::string body_string = ConfusaParserUtils::extract_body_information(about_response_str);
+		xmlDocPtr doc = ConfusaParserUtils::get_doc(body_string);
+		*dn = ConfusaParserUtils::evaluate_path(doc, "//div[@id='dn-section']");
+		ConfusaParserUtils::destroy_doc(doc);
+		logger.msg(INFO, "The retrieved dn is %s", *dn);
+
+		return MCC_Status(STATUS_OK);
 	}
 
 	MCC_Status OAuthConsumer::approveCSR(const std::string approve_page) {
 		std::string origin = "OAuthConsumer::approveCSR(const string)";
-		return MCC_Status(GENERIC_ERROR, origin, "OAuth authentication currently not supported in Confusa");
+		std::string oauth_access_token = (*tokens_)["oauth_access_token"];
+		std::string oauth_access_secret = (*tokens_)["oauth_access_secret"];
+		std::string consumer_key = (*tokens_)["consumer_key"];
+		std::string consumer_secret = (*tokens_)["consumer_secret"];
+
+		logger.msg(INFO, "Approving the cert signing request at %s", approve_page);
+
+		char *req_url = oauth_sign_url(approve_page.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
+		logger.msg(DEBUG, "The OAuth request url is %s", req_url);
+
+		ClientHTTP confusa_approve_client(cfg_, URL(req_url));
+		PayloadRaw confusa_approve_request;
+		PayloadRawInterface *confusa_approve_response = NULL;
+		confusa_approve_client.RelativeURI(true);
+		HTTPClientInfo confusa_approve_info;
+
+		if (req_url) {
+			free(req_url);
+		}
+
+		std::map<std::string, std::string> http_attributes;
+		http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+		MCC_Status stat = confusa_approve_client.process("GET", http_attributes, &confusa_approve_request, &confusa_approve_info, &confusa_approve_response);
+
+		if (confusa_approve_response) {
+			std::fstream fop("/tmp/confusa_approve.html", std::ios::out);
+			fop << confusa_approve_response->Content();
+			fop.close();
+			delete confusa_approve_response;
+		}
+
+		return stat;
 	}
 
 	MCC_Status OAuthConsumer::pushCSR(const std::string b64_pub_key, const std::string pub_key_hash, std::string *approve_page) {
 		std::string origin = "OAuthConsumer::pushCSR(const string, const string, string *";
-		return MCC_Status(GENERIC_ERROR, origin, "OAuth authentication currently not supported in Confusa");
+		std::string oauth_access_token = (*tokens_)["oauth_access_token"];
+		std::string oauth_access_secret = (*tokens_)["oauth_access_secret"];
+		std::string consumer_key = (*tokens_)["consumer_key"];
+		std::string consumer_secret = (*tokens_)["consumer_secret"];
+
+		std::string upload_loc = this->server_loc_.fullstr() + up_page;
+		logger.msg(INFO, "The server location is %s ", this->server_loc_.fullstr());
+
+		// TODO prio=medium the parameters are configurable in confusa, so is the auth_token length
+		std::string params = "?auth_key=" + pub_key_hash + "&remote_csr=" + b64_pub_key;
+		std::string endpoint = upload_loc + params;
+		logger.msg(INFO, "The location to which the GET is performed is %s", endpoint);
+
+		char *req_url = oauth_sign_url(endpoint.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
+		logger.msg(DEBUG, "The request url is %s", req_url);
+
+		ClientHTTP confusa_push_client(cfg_, URL(req_url));
+		PayloadRaw confusa_push_request;
+		PayloadRawInterface *confusa_push_response = NULL;
+		confusa_push_client.RelativeURI(true);
+		HTTPClientInfo confusa_push_info;
+
+		if (req_url) {
+			free(req_url);
+		}
+
+		std::map<std::string, std::string> http_attributes;
+		http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+		MCC_Status stat = confusa_push_client.process("GET", http_attributes, &confusa_push_request, &confusa_push_info, &confusa_push_response);
+
+		*approve_page = this->server_loc_.fullstr() + "/index.php?auth_token=" + pub_key_hash;
+
+		if (confusa_push_response) {
+			delete confusa_push_response;
+		}
+
+		return stat;
 	}
 
 	MCC_Status OAuthConsumer::storeCert(const std::string cert_path, const std::string auth_token, const std::string b64_dn) {
 		std::string origin = "OAuthConsumer::storeCert(const string, const string, const string)";
-		return MCC_Status(GENERIC_ERROR, origin, "OAuth authentication currently not supported in Confusa");
+		std::string oauth_access_token = (*tokens_)["oauth_access_token"];
+		std::string oauth_access_secret = (*tokens_)["oauth_access_secret"];
+		std::string consumer_key = (*tokens_)["consumer_key"];
+		std::string consumer_secret = (*tokens_)["consumer_secret"];
+
+		// get the cert from Confusa
+		std::string download_loc = this->server_loc_.fullstr() + down_page;
+
+		// TODO prio=medium again, configurable params
+		std::string params = "?auth_key=" + auth_token + "&common_name=" + b64_dn;
+
+		std::string endpoint = download_loc + params;
+		logger.msg(INFO, "The location to which the GET is performed is %s", endpoint);
+
+		char *req_url = oauth_sign_url(endpoint.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
+
+		ClientHTTP confusa_get_client(cfg_, URL(req_url));
+		PayloadRaw confusa_get_request;
+		PayloadRawInterface *confusa_get_response = NULL;
+		confusa_get_client.RelativeURI(true);
+		HTTPClientInfo confusa_get_info;
+
+		if (req_url) {
+			free(req_url);
+		}
+
+		std::map<std::string, std::string> http_attributes;
+		http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+		MCC_Status stat = confusa_get_client.process("GET", http_attributes, &confusa_get_request, &confusa_get_info, &confusa_get_response);
+
+		std::string content = "";
+
+		if (confusa_get_response) {
+			content = confusa_get_response->Content();
+			delete confusa_get_response;
+		} else {
+			return MCC_Status(PARSING_ERROR, origin, "Could not get the certificate from Confusa!");
+		}
+
+
+		std::fstream fop(cert_path.c_str(), std::ios::out);
+		fop << content;
+		fop.close();
+
+		return stat;
 	}
 };
