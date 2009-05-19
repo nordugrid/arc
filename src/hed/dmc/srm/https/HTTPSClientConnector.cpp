@@ -343,15 +343,20 @@ namespace Arc {
       if(r->ai_addr == NULL) continue;
       if(r->ai_socktype != SOCK_STREAM) continue;
       if(r->ai_protocol != IPPROTO_TCP) continue;
-      if(r->ai_family == AF_INET) break;
-      if(r->ai_family == AF_INET6) break;
+      if(r->ai_family == AF_INET) {
+        ((struct sockaddr_in*)(r->ai_addr))->sin_port=htons(base_url.Port());
+        break;
+      }
+      if(r->ai_family == AF_INET6) {
+        ((struct sockaddr_in6*)(r->ai_addr))->sin6_port=htons(base_url.Port());
+        break;
+      }
     }
     if(!r) {
       freeaddrinfo(res);
       logger.msg(ERROR, "Address resolution failed: %s", "no suitable address found");
       return false;
     }
-    ((struct sockaddr_in*)(r->ai_addr))->sin_port=htons(base_url.Port());
     s=::socket(r->ai_family,r->ai_socktype,r->ai_protocol);
     if(s==-1) {
       freeaddrinfo(res);
