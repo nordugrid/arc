@@ -168,48 +168,75 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //database and the attribute requirement from the request
   //Then, insert those <Attribute> into response
 
-  //TODO: access the local attribute database, use the <NameID> as searching key
+  //Access the attribute database, use the <NameID> and <Attribute> as searching key
+  //The code itself here does not care the database schema, except that the code 
+  //supposes the following aspects about database schema:
+  //1. There is a map between user's DN and the user's ID in database schema;
+  //2. The user's ID is the "must" searching key in database schema;
+  //3. There are two "optional" searching keys in database schema: one for
+  //     "role", and the other for "group"
+  //4. There are 1, 2, or 4 colums in the serching result.
+
+  //Firstly, get the user's ID from database 
+  std::vector<std::string> userid;
+  std::string udn = peer_rdn;
+  std::vector<std::string> sqlargs;
+  sqlargs.push_back(udn);
+  std::string query_type("UID");
+  get_results(userid, sqlargs, query_type, dbconf_);
   
-  std::vector<std::string> attribute_name_list;
+  //Secondly, get the attributes/roles
+  std::map<std::string, std::vector<std::string> > attribute_res;
+
+  std::map<std::string, std::string> nameattrs;
   for(int i=0; i<attributes.size(); i++) {
     Arc::XMLNode nd = attributes[i];
-    std::string str = (std::string)(nd.Attribute("Name"));
-    if(!str.empty()) { 
-      attribute_name_list.push_back(str); 
+    std::string attr_name = (std::string)(nd.Attribute("Name"));
+    if(!attr_name.empty()) {
+      std::string nameform = (std::string)(nd.Attribute("NameFormat"));
+      std::string friendname = (std::string)(nd.Attribute("FriendlyName"));
+      std::string nameattr;
+      nameattr.append(nameform).append(friendname.empty()?"":"&&").append(friendname);
+      nameattrs[attr_name] = nameattr;
     }
     else {
       logger_.msg(Arc::ERROR, "There should be Name attribute in request's <Attribute> node");
       return Arc::MCC_Status();
     }
-  }
- 
-  std::vector<std::string> fqans1;
-  //udn = peer_rdn;
-  std::string udn("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
-  std::vector<std::string> sqlargs1;
-  sqlargs1.push_back(udn);
-  std::string query_type1("UID");
-  get_results(fqans1, sqlargs1, query_type1, dbconf_);
-  
-  std::vector<std::string> fqans;
-  std::string role = "physicist";
-  std::string uid = "3"; // std::string uid = fqans1[0];
-  std::vector<std::string> sqlargs;
-  //sequence of arguments mattes; and it should be corresponding to
-  //the arguments squence in sql sentence
-  sqlargs.push_back(role);
-  sqlargs.push_back(uid);
-  std::string query_type("Role");
-  get_results(fqans, sqlargs, query_type, dbconf_);
-  if(fqans.size()!=0) {
-    std::cout<<"Got db query result"<<std::endl;
-    for(int i=0; i<fqans.size(); i++)
-      std::cout<<fqans[i]<<std::endl;
-  }
-  else
-    std::cout<<"Did not get db query result"<<std::endl;
+    std::string query_type;
+    if((attr_name!="Role") && (attr_name!="Group") && (attr_name!="GroupAndRole") &&
+       (attr_name!="All") && (attr_name!="GroupAndRoleAttribute") && 
+       (attr_name!="GroupAttribute") && (attr_name!="RoleAttribute") && (attr_name!="AllAttribute"))
+      query_type = "All";
+    else query_type=attr_name;
 
-  //TODO: Compare the attribute name from database result and the attribute_name_list,
+    std::vector<std::string> fqans;
+    std::string uid = userid[0];
+    std::string role = (std::string)(nd["saml:AttributeValue"][0]);
+    std::string group = (std::string)(nd["saml:AttributeValue"][1]);
+    std::vector<std::string> sqlargs;
+    //sequence of arguments mattes; and it should be corresponding to
+    //the arguments squence in sql sentence
+    sqlargs.push_back(uid);
+    sqlargs.push_back(role);
+    sqlargs.push_back(group);
+
+    get_results(fqans, sqlargs, query_type, dbconf_);
+
+    if(fqans.size()!=0) {
+      std::cout<<"Got db query result"<<std::endl;
+      for(int i=0; i<fqans.size(); i++)
+        std::cout<<fqans[i]<<std::endl;
+    }
+    else {
+      std::cout<<"Did not get db query result"<<std::endl;
+      fqans.push_back("test_saml");
+    }
+    
+    attribute_res[attr_name] = fqans;
+  }
+
+  //TODO: Compare the attribute name from database result and the attribute name,
   //Only use the intersect as the response
   
   //Compose <saml:Response/>
@@ -267,20 +294,29 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   Arc::XMLNode attr_statement = assertion.NewChild("saml:AttributeStatement");
 
   //<saml:Attribute/>
-  //The following is just one <Attribute> result for test. The real <Attribute> 
-  //should be compose according to the database searching result
-  Arc::XMLNode attribute = attr_statement.NewChild("saml:Attribute");
-  Arc::XMLNode attr_value = attribute.NewChild("saml:AttributeValue");
+  //Compose <Attribute> according to the database searching result
 
-  attr_value.NewAttribute("xsi:type") = std::string("xs:string");
+  std::map<std::string, std::vector<std::string> >::iterator it;
+  for(it = attribute_res.begin(); it != attribute_res.end(); it++) {
+    Arc::XMLNode attribute = attr_statement.NewChild("saml:Attribute");
+    attribute.NewAttribute("Name") = (*it).first;
+    std::string name_attr = nameattrs[(*it).first];
+    if(!name_attr.empty()) {
+      std::size_t pos = name_attr.find("&&");
+      if(pos != std::string::npos) {
+        attribute.NewAttribute("NameFormat")= name_attr.substr(0, pos);
+        attribute.NewAttribute("FriendlyName")= name_attr.substr(pos+2);
+      }
+      else
+        attribute.NewAttribute("NameFormat")= name_attr;
+    }
+    for(int k = 0; k< (*it).second.size(); k++) {
+      Arc::XMLNode attr_value = attribute.NewChild("saml:AttributeValue");
+      attr_value.NewAttribute("xsi:type") = std::string("xs:string");
+      attr_value = (*it).second[k];
+    }
+  }
 
-  //TODO
-  attribute.NewAttribute("Name") = std::string("urn:oid:1.3.6.1.4.1.5923.1.1.1.6");
-  attribute.NewAttribute("NameFormat")= std::string("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
-  attribute.NewAttribute("FriendlyName") = std::string("eduPersonPrincipalName");
-  attr_value = std::string("RoleA");
-  //Add one or more <AttributeValue> into <Attribute>
-  //Add one or more <Attribute> into <Assertion>
 
   Arc::XMLSecNode assertion_secnd(assertion);
   std::string assertion_idname("ID");
@@ -346,14 +382,16 @@ bool Service_AA::get_results(std::vector<std::string>& fqans, const std::vector<
     std::vector<std::string> item = attributes[i];
     int num = item.size();
     std::string fqan;
+
     if(num == 1) { // example:  UID
       fqan = item[0];
     }
     else if(num == 2) { // example:  /Group=knowarc/Role=physicist
-      fqan = ("/Group=" + item[0].substr(1)) + (item[1].empty() ? "":("/Role=" + item[1]));
+      fqan = item[0].empty()? "":("/Group=" + item[0].substr(1)) + (item[1].empty() ? "":("/Role=" + item[1]));
     }
     else if(num == 4) { // example:  /Group=knowarc/Role=physicist:Degree=PhD
-      fqan = ("/Group=" + item[2].substr(1)) + (item[3].empty() ? "":("/Role=" + item[3])) + ":" + item[0] + "=" + item[1];
+      std::string str = (item[2].empty()? "":("/Group=" + item[2].substr(1))) + (item[3].empty() ? "":("/Role=" + item[3]));
+      fqan = str + (str.empty()?"":":") + item[0] + "=" + item[1];
     }
     fqans.push_back(fqan);
   }
@@ -362,7 +400,6 @@ bool Service_AA::get_results(std::vector<std::string>& fqans, const std::vector<
 
 bool Service_AA::query_db(Arc::QueryArrayResult& attributes, const std::string& idofsqlset, std::vector<std::string>& sqlargs, Arc::XMLNode& config) {
   Arc::XMLNode nd;
-  //nd = config["aa:Database"];
   nd = config;
   std::string server, dbname, user, password, portstr;
   int port;

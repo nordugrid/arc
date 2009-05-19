@@ -45,14 +45,69 @@
             <aa:CACertificatePath>../../tests/echo/testcacert.pem</aa:CACertificatePath>
 
             <aa:Database type="mysql" ip="localhost" port="3305" dbname="voms_knowarc" user="root" password="123456">
+              <!--The sql following sentences and their combination are introduced
+              according to the code of voms' mysql plugin. 
+              The intention is that if some other database schema is used, you can 
+              simply change the sql sentences here, without changing the code. But still,
+              the input argument to these queries should be with the same meaning,
+              and the same sequence as the following; also the output of these queries 
+              should also be with the same meaning and the same sequence as the following-->
               <aa:SQLSet name="UID">
                 <aa:SQL name="GetUID">SELECT userid FROM usr WHERE usr.dn = ?</aa:SQL>
               </aa:SQLSet>
+
               <aa:SQLSet name="Role">
-                <aa:SQL name="GetRole">SELECT groups.dn, role FROM groups, m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND roles.role = ? AND m.userid = ?</aa:SQL>
-                <aa:SQL name="GetRoleAttribute">SELECT attributes.a_name, role_attrs.a_value, groups.dn, roles.role FROM m INNER JOIN groups ON m.gid = groups.gid LEFT JOIN roles ON roles.rid = m.rid INNER JOIN role_attrs on groups.gid = role_attrs.g_id INNER JOIN attributes on attributes.a_id = role_attrs.a_id WHERE role_attrs.r_id = roles.rid AND roles.role = ? AND m.userid = ?</aa:SQL>
+                <aa:SQL name="GetRole">SELECT groups.dn, role FROM groups, m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND m.userid = ? AND roles.role = ?</aa:SQL>
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
               </aa:SQLSet>
+
+              <aa:SQLSet name="Group">
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="GroupAndRole">
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
+                <aa:SQL name="GetGroupAndRole">SELECT groups.dn, role FROM groups, m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND m.userid = ? AND roles.role = ? AND groups.dn = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="All">
+                <aa:SQL name="GetAll">SELECT groups.dn, role FROM groups, m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="GroupAndRoleAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
+                </aa:SQL>
+                <aa:SQL name="GetGroupAndRoleAttribute">SELECT attributes.a_name, role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs, groups, roles, m WHERE attributes.a_id = role_attrs.a_id AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid AND roles.role = ? AND groups.dn = ? AND role_attrs.g_id = m.gid AND role_attrs.r_id = m.rid
+                </aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="GroupAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
+                </aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="RoleAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetRoleAttribute">SELECT attributes.a_name, role_attrs.a_value, groups.dn, roles.role FROM m INNER JOIN groups ON m.gid = groups.gid LEFT JOIN roles ON roles.rid = m.rid INNER JOIN role_attrs on groups.gid = role_attrs.g_id INNER JOIN attributes on attributes.a_id = role_attrs.a_id WHERE role_attrs.r_id = roles.rid AND m.userid = ? AND roles.role = ?
+                </aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="AllAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
+                </aa:SQL>
+                <aa:SQL name="GetGroupAndRoleAttributeAll">SELECT attributes.a_name, role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs, groups, roles, m WHERE attributes.a_id = role_attrs.a_id AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid AND role_attrs.g_id = m.gid AND role_attrs.r_id = m.rid
+                </aa:SQL>
+              </aa:SQLSet>
+
               <!--Other SQLSet-->
+
             </aa:Database>
         </Service>
     </Chain>
