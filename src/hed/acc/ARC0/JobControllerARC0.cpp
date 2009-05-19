@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <map>
+#include <glibmm.h>
 
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
@@ -15,9 +16,14 @@
 #include <arc/XMLNode.h>
 #include <arc/Utils.h>
 
+#ifdef WIN32
+#include <arc/win32.h>
+#define _NO_OLDNAMES
+#endif
 
-#include "FTPControl.h"
+
 #include "JobControllerARC0.h"
+#include "FTPControl.h"
 
 namespace Arc {
 
@@ -211,10 +217,15 @@ namespace Arc {
          it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
+
+#ifndef WIN32
+
       if (!CopyFile(src, dst)) {
         logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
+
+#endif
     }
 
     return ok;
@@ -348,18 +359,23 @@ namespace Arc {
     
     std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
 
-    std::string filename("/tmp/arcresume.XXXXXX");
-    int tmp_h = mkstemp((char*)filename.c_str());
+    std::string filename(Glib::get_tmp_dir() + G_DIR_SEPARATOR_S + "arcresume.XXXXXX");
+    int tmp_h = Glib::mkstemp(filename);
     if (tmp_h == -1) {
       logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
       return false;
     }
+
+#ifndef WIN32
+
     if (write(tmp_h, (void*)rsl.c_str(), rsl.size()) != rsl.size()) {
       logger.msg(ERROR, "Could not write temporary file \"%s\"", filename);
       return false;
     }
 
     close(tmp_h);
+
+#endif
     
     // Send temporary file to cluster
     DataMover mover;

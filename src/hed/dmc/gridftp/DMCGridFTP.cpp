@@ -4,6 +4,11 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32 
+#include <arc/win32.h>
+#define _NO_OLDNAMES 
+#endif
+
 #include <globus_ftp_client.h>
 #include <openssl/ssl.h>
 

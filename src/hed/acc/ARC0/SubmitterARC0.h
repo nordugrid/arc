@@ -3,6 +3,11 @@
 #ifndef __ARC_SUBMITTERARC0_H__
 #define __ARC_SUBMITTERARC0_H__
 
+#ifdef WIN32
+#include <arc/win32.h>
+#define _NO_OLDNAMES
+#endif
+
 #include <arc/client/Submitter.h>
 
 namespace Arc {

@@ -7,8 +7,8 @@
 #include <arc/Logger.h>
 #include <arc/client/JobDescription.h>
 
-#include "FTPControl.h"
 #include "SubmitterARC0.h"
+#include "FTPControl.h"
 
 namespace Arc {
 

@@ -4,6 +4,11 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32 
+#include <arc/win32.h>
+#define _NO_OLDNAMES
+#endif
+
 #include <arc/DateTime.h>
 #include <arc/GUID.h>
 #include <arc/Logger.h>
