@@ -11,7 +11,7 @@ namespace Arc {
 
 	MCC_Status OpenIdpClient::processIdPLogin(const std::string username, const std::string password) {
 		  const std::string origin = "SAML2SSOHTTPClient::processIdPLogin(const std::string username, const std::string password)";
-		  std::map<std::string, std::string> http_attributes;
+		  std::multimap<std::string, std::string> http_attributes;
 		  std::string cookie;
 		  std::string body_string;
 
@@ -23,7 +23,7 @@ namespace Arc {
 		  std::string actual_ip_login2=ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["IdP"], &cookie);
 
 		  (*session_cookies_)["IdP"] = cookie;
-		  http_attributes["Cookie"] = cookie;
+		  http_attributes.insert(std::pair<std::string,std::string>("Cookie",cookie));
 
 		  if (actual_ip_login2.empty()) {
 			  return MCC_Status(PARSING_ERROR, origin, "Could not redirect from IdP with SAML2 token to IdP with internal Auth representation");
@@ -121,7 +121,7 @@ namespace Arc {
 
 	MCC_Status OpenIdpClient::processConsent() {
 		  const std::string origin = "SAML2SSOHTTPClient::processConsent()";
-		  std::map<std::string, std::string> http_attributes;
+		  std::multimap<std::string, std::string> http_attributes;
 		  std::list<std::string> *attrname = new std::list<std::string>();
 		  std::list<std::string> *attrvalue = new std::list<std::string>();
 
@@ -135,7 +135,7 @@ namespace Arc {
 			  return MCC_Status(GENERIC_ERROR, origin, "IdP's PHPSESSID Cookie not present");
 		  }
 
-		  http_attributes["Cookie"] = (*session_cookies_)["IdP"];
+		  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 		  ClientHTTP consent_client(cfg_, URL((*sso_pages_)["Consent"]));
 		  PayloadRaw consent_request;
 		  PayloadRawInterface *consent_response = NULL;
@@ -212,7 +212,7 @@ namespace Arc {
 
 	MCC_Status OpenIdpClient::processIdP2Confusa() {
 		  const std::string origin = "SAML2SSOHTTPClient::processIdP2Confusa()";
-		  std::map<std::string, std::string> http_attributes;
+		  std::multimap<std::string, std::string> http_attributes;
 
 		  if ((*sso_pages_)["PostIdP"] == "") {
 			  return MCC_Status(GENERIC_ERROR, origin, "The post-idp page is unknown!");
@@ -225,7 +225,7 @@ namespace Arc {
 		  }
 
 		  if (post_idp_page_.empty()) {
-			  http_attributes["Cookie"] = (*session_cookies_)["IdP"];
+			  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 			  // IdP SSOService to SP AssertionConsumerService URL retrieval, no automatic redirect :( -- IdP
 			  // normally here should also be the user consent question
 			  ClientHTTP id_login_ssoservice_client(cfg_, URL((*sso_pages_)["PostIdP"]));
@@ -269,12 +269,12 @@ namespace Arc {
 		  logger.msg(DEBUG, "The post IdP-authentication action is %s", idp_s_action);
 
 		  // IdP loginuserpass POST to SP AssertionConsumerervice -- Confusa
-		  http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+		  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 		  ClientHTTP sp_assertionconsumer_post_client(cfg_, URL(idp_s_action));
 		  PayloadRaw sp_ass_cons_body;
 		  PayloadRawInterface *sp_assertionconsumer_post_response = NULL;
 		  HTTPClientInfo sp_assertionconsumer_post_info;
-		  http_attributes["Content-Type"] = "application/x-www-form-urlencoded";
+		  http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
 		  sp_ass_cons_body.Insert(post_params.c_str(), 0, strlen(post_params.c_str()));
 		  sp_assertionconsumer_post_client.process("POST", http_attributes, &sp_ass_cons_body, &sp_assertionconsumer_post_info, &sp_assertionconsumer_post_response);
 

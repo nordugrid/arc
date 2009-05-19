@@ -51,7 +51,7 @@ public:
 	 * Handle a single redirect step from the SAML2 WebSSO profile.
 	 * Store the received cookie in *cookie and pass the given httpAttributes to the site during redirect.
 	 */
-	static std::string handle_redirect_step(Arc::MCCConfig cfg, const std::string remote_url, std::string *cookie = NULL, std::map<std::string, std::string> *httpAttributes = NULL);
+	static std::string handle_redirect_step(Arc::MCCConfig cfg, const std::string remote_url, std::string *cookie = NULL, std::multimap<std::string, std::string> *httpAttributes = NULL);
 	/**
 	 * Evaluate the given xPathExpr on the document ptr.
 	 * Return a string with the FIRST result if contentList is NULL.

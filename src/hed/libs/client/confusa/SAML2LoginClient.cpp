@@ -100,9 +100,9 @@ namespace Arc {
 	  std::string idpentityid = idp_stack_.front();
 
 	  // for the first redirect, we assume that there is only one idp in the stack
-	  std::map<std::string, std::string> http_attributes;
+	  std::multimap<std::string, std::string> http_attributes;
 	  // start with confusa cookie
-	  http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+	  http_attributes.insert(std::pair<std::string, std::string>("Cookie",(*session_cookies_)["Confusa"]));
 
 	  logger.msg(DEBUG, "Relaystate %s", relaystate);
 
@@ -121,7 +121,7 @@ namespace Arc {
 	  for (std::list<std::string>::iterator it = ++(idp_stack_.begin()); it != idp_stack_.end(); it++) {
 		  // set the new cookie
 		  if (!cookie.empty()) {
-			  http_attributes["Cookie"] = cookie;
+			  http_attributes.insert(std::pair<std::string,std::string>("Cookie",cookie));
 		  }
 
 		  std::string internal_request_site = ConfusaParserUtils::handle_redirect_step(cfg_,actual_ip_login, &cookie, &http_attributes);
@@ -233,8 +233,8 @@ namespace Arc {
 	  PayloadRawInterface *confusa_dn_response = NULL;
 	  HTTPClientInfo confusa_dn_info;
 
-	  std::map<std::string, std::string> http_attributes;
-	  http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+	  std::multimap<std::string, std::string> http_attributes;
+	  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 	  MCC_Status stat = confusa_dn_client.process("GET", http_attributes, &confusa_dn_request, &confusa_dn_info, &confusa_dn_response);
 
 	  std::string about_page = "";
@@ -277,8 +277,8 @@ namespace Arc {
 	  PayloadRawInterface *confusa_get_response = NULL;
 	  HTTPClientInfo confusa_get_info;
 
-	  std::map<std::string, std::string> http_attributes;
-	  http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+	  std::multimap<std::string, std::string> http_attributes;
+	  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 	  MCC_Status stat = confusa_get_client.process("GET", http_attributes, &confusa_get_request, &confusa_get_info, &confusa_get_response);
 
 	  std::string content = "";
@@ -307,10 +307,10 @@ namespace Arc {
 	  PayloadRawInterface *confusa_approve_response = NULL;
 	  HTTPClientInfo confusa_approve_info;
 
-	  std::map<std::string, std::string> http_attributes;
-	  http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+	  std::multimap<std::string, std::string> http_attributes;
+	  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 
-	  logger.msg(VERBOSE, "The cookie sent with approve is %s", http_attributes["Cookie"]);
+	  logger.msg(VERBOSE, "The cookie sent with approve is %s", http_attributes.find("Cookie")->second);
 
 	  MCC_Status stat = confusa_approve_client.process("GET", http_attributes, &confusa_approve_request, &confusa_approve_info, &confusa_approve_response);
 
@@ -341,8 +341,8 @@ namespace Arc {
 	  PayloadRawInterface *confusa_push_response = NULL;
 	  HTTPClientInfo confusa_push_info;
 
-	  std::map<std::string, std::string> http_attributes;
-	  http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+	  std::multimap<std::string, std::string> http_attributes;
+	  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 	  MCC_Status stat = confusa_push_client.process("GET", http_attributes, &confusa_push_request, &confusa_push_info, &confusa_push_response);
 
 	  *approve_page = this->server_loc_.fullstr() + "/index.php?auth_token=" + auth_token;

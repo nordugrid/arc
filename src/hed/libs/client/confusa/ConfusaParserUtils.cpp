@@ -186,7 +186,7 @@ std::string ConfusaParserUtils::evaluate_path(xmlDocPtr doc, const std::string x
 xmlDocPtr ConfusaParserUtils::get_doc(const std::string xml_file) {
 	  xmlDocPtr doc = NULL;
 
-	  doc = xmlReadMemory(xml_file.c_str(), xml_file.size(), "noname.xml", NULL, NULL);
+	  doc = xmlReadMemory(xml_file.c_str(), xml_file.size(), "noname.xml", NULL, 0);
 
 	  if (doc == NULL) {
 		  Arc::Logger::getRootLogger().msg(Arc::ERROR, "Failed to parse XML file!");
@@ -236,7 +236,7 @@ std::string ConfusaParserUtils::extract_body_information(const std::string html_
 
 // perform one redirect step, i.e. call the url, read the response and hand back the new url to which the redirect happens
 // there are amazingly lots of redirects in web-based SSO slcs
-std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const std::string remote_url, std::string *cookie, std::map<std::string, std::string> *httpAttributes) {
+std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const std::string remote_url, std::string *cookie, std::multimap<std::string, std::string> *httpAttributes) {
 	  Arc::URL url(urlencode_params(remote_url));
 	  Arc::ClientHTTP redirect_client(cfg, url);
 	  Arc::PayloadRaw redirect_request;
@@ -245,7 +245,7 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  redirect_client.RelativeURI(true);
 
 	  if (httpAttributes != NULL) {
-		  Arc::Logger::getRootLogger().msg(Arc::DEBUG, "ParserUtils::handle_redirect_step(): calling the site with the following cookie %s", (*httpAttributes)["Cookie"]);
+		  Arc::Logger::getRootLogger().msg(Arc::DEBUG, "ParserUtils::handle_redirect_step(): calling the site with the following cookie %s", (*httpAttributes).find("Cookie")->second);
 		  redirect_client.process("GET", *httpAttributes, &redirect_request, &redirect_info, &redirect_response);
 	  } else {
 		  redirect_client.process("GET", &redirect_request, &redirect_info, &redirect_response);
@@ -256,8 +256,8 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  fop.close();
 
 	  std::string redirect_string = redirect_info.location;
-	  if(!redirect_info.cookie.empty() && (cookie != NULL))  {
-		  *cookie = redirect_info.cookie;
+	  if(!redirect_info.cookies.empty() && (cookie != NULL))  {
+		  *cookie = *(redirect_info.cookies.begin());
 	  }
 
 	  if (redirect_response) {

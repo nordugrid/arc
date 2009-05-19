@@ -299,15 +299,15 @@ namespace Arc {
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info,
                                  PayloadRawInterface **response) {
-    std::map<std::string, std::string> attributes;
+    std::multimap<std::string, std::string> attributes;
     return process(method, "", attributes, 0, UINT64_MAX, request, info, response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                                 std::map<std::string, std::string>& attributes,
-                                 PayloadRawInterface *request,
-                                 HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
+                         std::multimap<std::string, std::string>& attributes,
+                         PayloadRawInterface *request,
+                         HTTPClientInfo *info,
+                         PayloadRawInterface **response) {
     return process(method, "", attributes, 0, UINT64_MAX, request, info, response);
   }
 
@@ -316,16 +316,16 @@ namespace Arc {
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info,
                                  PayloadRawInterface **response) {
-    std::map<std::string, std::string> attributes;
+    std::multimap<std::string, std::string> attributes;
     return process(method, path, attributes, 0, UINT64_MAX, request, info, response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                                 const std::string& path,
-                                 std::map<std::string, std::string>& attributes,
-                                 PayloadRawInterface *request,
-                                 HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
+                         const std::string& path,
+                         std::multimap<std::string, std::string>& attributes,
+                         PayloadRawInterface *request,
+                         HTTPClientInfo *info,
+                         PayloadRawInterface **response) {
     return process(method, path, attributes, 0, UINT64_MAX, request, info, response);
   }
 
@@ -335,17 +335,17 @@ namespace Arc {
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info,
                                  PayloadRawInterface **response) {
-    std::map<std::string, std::string> attributes;
+    std::multimap<std::string, std::string> attributes;
     return process(method, path, attributes, range_start, range_end, request, info, response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                                 const std::string& path,
-                                 std::map<std::string, std::string>& attributes,
-                                 uint64_t range_start, uint64_t range_end,
-                                 PayloadRawInterface *request,
-                                 HTTPClientInfo *info,
-                                 PayloadRawInterface **response) {
+                         const std::string& path,
+                         std::multimap<std::string, std::string>& attributes,
+                         uint64_t range_start, uint64_t range_end,
+                         PayloadRawInterface *request,
+                         HTTPClientInfo *info,
+                         PayloadRawInterface **response) {
     Load();
     *response = NULL;
     if (!http_entry)
@@ -390,7 +390,7 @@ namespace Arc {
     for (it = attributes.begin(); it != attributes.end(); it++) {
       std::string key("HTTP:");
       key.append((*it).first);
-      reqmsg.Attributes()->set(key, (*it).second);
+      reqmsg.Attributes()->add(key, (*it).second);
     }
     MCC_Status r = http_entry->process(reqmsg, repmsg);
     info->code = stringtoi(repmsg.Attributes()->get("HTTP:CODE"));
@@ -401,7 +401,8 @@ namespace Arc {
     if (lm.size() > 11)
       info->lastModified = lm;
     info->type = repmsg.Attributes()->get("HTTP:content-type");
-    info->cookie = repmsg.Attributes()->get("HTTP:set-cookie");
+    for(AttributeIterator i = repmsg.Attributes()->getAll("HTTP:set-cookie");
+        i.hasMore();++i) info->cookies.push_back(*i);
     info->location = repmsg.Attributes()->get("HTTP:location");
     if (repmsg.Payload() != NULL)
       try {

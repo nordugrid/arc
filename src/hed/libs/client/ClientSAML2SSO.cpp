@@ -117,14 +117,14 @@ namespace Arc {
     Arc::PayloadRawInterface *responseIdP = NULL;
     Arc::HTTPClientInfo infoIdP;
 
-    std::map<std::string, std::string> http_attributes;
+    std::multimap<std::string, std::string> http_attributes;
     if (!(cookie.empty()))
-      http_attributes["Cookie"] = cookie;
+      http_attributes.insert(std::pair<std::string,std::string>("Cookie",cookie));
 
     Arc::MCC_Status statusIdP = clientIdP.process("GET", http_attributes, &requestIdP, &infoIdP, &responseIdP);
 
-    if ((!(infoIdP.cookie.empty())) && infoIdP.code != 200)
-      cookie = infoIdP.cookie;
+    if ((!(infoIdP.cookies.empty())) && infoIdP.code != 200)
+      cookie = *(infoIdP.cookies.begin());
 
     if (!responseIdP) {
       logger.msg(Arc::ERROR, "Request failed: No response from IdP");
@@ -148,7 +148,7 @@ namespace Arc {
       int count = 0;
       do {
         std::cout<<"Code: "<<redirect_info.code<<"  Reason: "<<redirect_info.reason<<"  Size: "<<
-           redirect_info.size<<"  Type: "<<redirect_info.type<<"  Set-Cookie: "<<redirect_info.cookie<<
+           redirect_info.size<<"  Type: "<<redirect_info.type<<"  Set-Cookie: "<<(redirect_info.cookies.empty()?"":(*(redirect_info.cookies.begin())))<<
            "  Location: "<<redirect_info.location<<std::endl;
         if (redirect_info.code != 302)
           break;
@@ -159,16 +159,16 @@ namespace Arc {
         Arc::PayloadRaw redirect_request;
         Arc::PayloadRawInterface *redirect_response = NULL;
 
-        std::map<std::string, std::string> http_attributes;
+        std::multimap<std::string, std::string> http_attributes;
 
         if (!(cookie.empty()))
-          http_attributes["Cookie"] = cookie;
+          http_attributes.insert(std::pair<std::string,std::string>("Cookie",cookie));
 
         Arc::MCC_Status redirect_status = redirect_client.process("GET", http_attributes,
                                                                 &redirect_request, &redirect_info, &redirect_response);
 
-        if (!(redirect_info.cookie.empty()))
-          cookie = redirect_info.cookie;
+        if (!(redirect_info.cookies.empty()))
+          cookie = *(redirect_info.cookies.begin());
       
         if (!redirect_response) {
           logger.msg(Arc::ERROR, "Request failed: No response from IdP when doing redirecting");
@@ -206,7 +206,7 @@ namespace Arc {
 
       //std::string login_html("j_username=myself&j_password=myself");
 
-      std::map<std::string, std::string> http_attributes2;
+      std::multimap<std::string, std::string> http_attributes2;
 
       std::string login_html;
       login_html.append("j_username=").append(username).append("&j_password=").append(password);
@@ -214,17 +214,18 @@ namespace Arc {
       redirect_request_final.Insert(login_html.c_str(), 0, login_html.size());
 
       //std::map<std::string, std::string> http_attributes2;
-      http_attributes2["Content-Type"] = "application/x-www-form-urlencoded";
+      http_attributes2.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
 
-      if(!(cookie.empty())) http_attributes2["Cookie"] = cookie;
+      if(!(cookie.empty()))
+        http_attributes2.insert(std::pair<std::string,std::string>("Cookie",cookie));
 
       Arc::PayloadRawInterface *redirect_response_final = NULL;
       Arc::HTTPClientInfo redirect_info_final;
       Arc::MCC_Status redirect_status_final = redirect_client_final.process("POST", http_attributes2,
                                       &redirect_request_final, &redirect_info_final, &redirect_response_final);
 
-      if (!(redirect_info_final.cookie.empty()))
-        cookie = redirect_info_final.cookie;
+      if (!(redirect_info_final.cookies.empty()))
+        cookie = *(redirect_info_final.cookies.begin());
 
       if (!redirect_response_final) {
         logger.msg(Arc::ERROR, "Request failed: No response from IdP when doing authentication");

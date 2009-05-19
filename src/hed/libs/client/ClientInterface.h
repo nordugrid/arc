@@ -79,7 +79,7 @@ namespace Arc {
     uint64_t size;
     Time lastModified;
     std::string type;
-    std::string cookie;
+    std::list<std::string> cookies;
     std::string location;
   };
 
@@ -93,14 +93,14 @@ namespace Arc {
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method,
-                       std::map<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string>& attributes,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::map<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string>& attributes,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
@@ -108,7 +108,7 @@ namespace Arc {
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::map<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string>& attributes,
                        uint64_t range_start, uint64_t range_end,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
