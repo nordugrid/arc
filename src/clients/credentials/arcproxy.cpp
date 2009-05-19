@@ -225,6 +225,11 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> voms_attributes;
     bool res = false;
 
+    if(proxy_path.empty()) {
+      std::cerr<<"Can not find the path of the proxy file, please setup environment X509_USER_PROXY, or ProxyPath in configuration file"<<std::endl;
+      return EXIT_FAILURE;
+    }
+       
     Arc::Credential holder(proxy_path, "", ca_dir, "");
     std::cout << "Subject:  " << holder.GetDN() << std::endl;
     std::cout << "Identity: " << holder.GetIdentityName() << std::endl;
