@@ -79,43 +79,37 @@ void Arc::GUID(std::string& guid) {
   // Local addresses
   if (gethostname(hostname, sizeof(hostname) - 1) == 0) {
     hostname[sizeof(hostname) - 1] = 0;
-    struct hostent *host;
-    struct hostent hostbuf;
-    int errcode;
-#ifndef HAVE_GETHOSTBYNAME_R
-    host = gethostbyname(hostname);
-    if (host != NULL) {
-#else
- #if defined(_AIX)
-    struct hostent_data buf[BUFSIZ];
-    if ((errcode = gethostbyname_r(hostname, (host = &hostbuf), buf)) == 0) {
- #else
-    char buf[BUFSIZ];
-    if (gethostbyname_r(hostname, &hostbuf, buf, sizeof(buf), &host, &errcode) == 0) {
- #endif
-#endif
-      if (host->h_length >= sizeof(struct in_addr)) {
-        struct in_addr **addr = (struct in_addr**)host->h_addr_list;
-        for (; *addr; ++addr) {
-          if ((*addr)->s_addr == htonl(INADDR_LOOPBACK))
-            continue;
-          int i;
-          for (i = 0; i < 3; i++) {
-            if (hostid[i] == INADDR_ANY)
-              break;
-            if ((*addr)->s_addr == hostid[i])
-              break;
+    struct addrinfo* res = NULL; 
+    if(getaddrinfo(hostname,NULL,NULL,&res) == 0) {
+      for(struct addrinfo* r=res;r;r=r->ai_next) {
+        if(!(r->ai_addr)) continue;
+        u_int32_t s_addr = INADDR_ANY;
+        if(r->ai_addr->sa_family == AF_INET) {
+          struct sockaddr_in* addr = (struct sockaddr_in*)(r->ai_addr);
+          s_addr = addr->sin_addr.s_addr;
+          if(s_addr == htonl(INADDR_LOOPBACK)) continue;
+        } else if(r->ai_addr->sa_family == AF_INET6) {
+          struct sockaddr_in6* addr = (struct sockaddr_in6*)(r->ai_addr);
+          s_addr = 0;
+          for(int i=0;i<16;++i) {
+            s_addr ^= addr->sin6_addr.s6_addr[i];
+            s_addr <<= 2;
           }
-          if (i >= 3)
-            continue;
-          if (hostid[i] != INADDR_ANY)
-            continue;
-          hostid[i] = (*addr)->s_addr;
         }
+        if(s_addr == INADDR_ANY) continue;
+        int i;
+        for (i = 0; i < 3; i++) {
+          if (hostid[i] == INADDR_ANY) break;
+          if (s_addr == hostid[i]) break;
+        }
+        if (i >= 3) continue;
+        if (hostid[i] != INADDR_ANY) continue;
+        hostid[i] = s_addr;
       }
+      freeaddrinfo(res);  
     }
   }
-  // External addresse (TODO)
+  // External address (TODO)
 
   // Use collected information
   guid_add_string(guid, tv.tv_usec);
