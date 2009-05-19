@@ -332,45 +332,44 @@ namespace Arc {
     write_buf=NULL; write_size=0;
     read_eof_flag=false;
   
-    struct hostent* host;
-    struct hostent  hostbuf;
-    int    errcode;
-  #ifndef _AIX
-    char   buf[BUFSIZ];
-    if(gethostbyname_r(base_url.Host().c_str(),&hostbuf,buf,sizeof(buf),
-                                          &host,&errcode) != 0) return false;
-  #else
-    struct hostent_data buf[BUFSIZ];
-    if((errcode=gethostbyname_r(base_url.Host().c_str(),
-                                    (host=&hostbuf),buf)) != 0) return false;
-  #endif
-    if( (host == NULL) ||
-        (host->h_length < sizeof(struct in_addr)) ||
-        (host->h_addr_list[0] == NULL) ) {
-      logger.msg(ERROR, "Host not found: %s", base_url.Host());
+    struct addrinfo* res;
+    int err;
+    if((err=getaddrinfo(base_url.Host().c_str(),NULL,NULL,&res)) != 0) {
+      logger.msg(ERROR, "Address resolution failed: %s", gai_strerror(err));
       return false;
-    };
-    struct sockaddr_in addr;
-    memset(&addr,0,sizeof(addr));
-    addr.sin_family=AF_INET;
-    addr.sin_port=htons(base_url.Port());
-    memcpy(&addr.sin_addr,host->h_addr_list[0],sizeof(struct in_addr));
-  
-    s=::socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
+    }
+    struct addrinfo* r = res;
+    for(;r;r=r->ai_next) {
+      if(r->ai_addr == NULL) continue;
+      if(r->ai_socktype != SOCK_STREAM) continue;
+      if(r->ai_protocol != IPPROTO_TCP) continue;
+      if(r->ai_family == AF_INET) break;
+      if(r->ai_family == AF_INET6) break;
+    }
+    if(!r) {
+      freeaddrinfo(res);
+      logger.msg(ERROR, "Address resolution failed: %s", "no suitable address found");
+      return false;
+    }
+    ((struct sockaddr_in*)(r->ai_addr))->sin_port=htons(base_url.Port());
+    s=::socket(r->ai_family,r->ai_socktype,r->ai_protocol);
     if(s==-1) {
+      freeaddrinfo(res);
       char buf[1024];
       char* str = strerror_r(errno,buf,sizeof(buf));
       logger.msg(ERROR, "Socket creation failed: %s", (str?str:""));
       return false;
     };
   
-    if(::connect(s,(struct sockaddr *)&addr,sizeof(addr))==-1) {
+    if(::connect(s,r->ai_addr,r->ai_addrlen)==-1) {
+      freeaddrinfo(res);
       char buf[1024];
       char* str = strerror_r(errno,buf,sizeof(buf));
       logger.msg(ERROR, "Connection to server failed: %s", (str?str:""));
       ::close(s); s=-1;
       return false;
     };
+    freeaddrinfo(res);
   
     OM_uint32 major_status = 0;
     OM_uint32 minor_status = 0;
