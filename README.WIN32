@@ -126,6 +126,17 @@ Configure setup:
    
     LDFLAGS="-L/usr/local/BerkeleyDB.4.7/bin"  --with-dbcxx-include="/usr/local/BerkeleyDB.4.7/include
 
+Globus Toolkit:
+
+Installation package:
+
+   http://www.grid.tsl.uu.se/repos/globus-mingw/GlobusInstaller.exe
+
+Performing configuration:
+
+   GLOBUS_LOCATION=/c/Globus
+   export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/c/Globus/lib/pkgconfig 
+
 - Explain how to make it work.
   * After building ARC1, you might want to run it. Currently only some limited functionality of the clients are working
     - If you haven't build ARC1 yourself, but you have got the already builded files, you have to make sure to install the following in addition:
