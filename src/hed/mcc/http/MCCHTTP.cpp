@@ -185,7 +185,6 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Endpoints must be URL-like so make sure HTTP path is 
   // converted to HTTP URL 
   std::string endpoint = nextpayload.Endpoint();
-//std::cerr<<"HTTP: service: endpoint: "<<endpoint<<std::endl;
   {
     std::string::size_type p = endpoint.find("://");
     if(p == std::string::npos) {
@@ -204,7 +203,6 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
       endpoint="http://"+oendpoint+endpoint;
     };
   };
-//std::cerr<<"HTTP: service: endpoint: "<<endpoint<<std::endl;
   nextinmsg.Attributes()->set("ENDPOINT",endpoint);
   nextinmsg.Attributes()->set("HTTP:ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
