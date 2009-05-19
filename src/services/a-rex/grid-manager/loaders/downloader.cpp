@@ -15,6 +15,9 @@
 #include <errno.h>
 
 #include <arc/XMLNode.h>
+#include <arc/client/ACCLoader.h>
+#include <arc/client/Job.h>
+#include <arc/client/JobController.h>
 #include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/FileCache.h>
@@ -35,7 +38,6 @@
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
-#include "../../../../hed/acc/ARC1/AREXClient.h"
 
 #define olog std::cerr
 #define odlog(LEVEL) std::cerr
@@ -636,30 +638,37 @@ int main(int argc,char** argv) {
       const size_t found = desc.get_local()->migrateactivityid.rfind("/");
 
       if (found != std::string::npos) {
-        Arc::MCCConfig cfg;
-        cfg.AddProxy(Arc::GetEnv("X509_USER_PROXY"));
+        Arc::Job job;
+        job.Flavour = "ARC1";
+        job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
+        job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
 
-        Arc::AREXClient ac(desc.get_local()->migrateactivityid.substr(0, found), cfg);
+        Arc::ACCConfig acccfg;
+        Arc::NS ns;
+        Arc::Config cfg(ns);
+        acccfg.MakeConfig(cfg);
+        
+        cfg.NewChild("ArcClientComponent");
+        cfg["ArcClientComponent"].NewAttribute("name") = "JobControllerARC1";
+        cfg["ArcClientComponent"].NewAttribute("id") = "JobControllerARC1";
+        cfg["ArcClientComponent"].NewChild("ProxyPath") = Arc::GetEnv("X509_USER_PROXY");
 
-        std::string idstr, status;
-        Arc::AREXClient::createActivityIdentifier(Arc::URL(desc.get_local()->migrateactivityid), idstr);
+        Arc::ACCLoader* loader = new Arc::ACCLoader(cfg);
+        Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader->getACC("JobControllerARC1"));
+        if (jobctrl) {
+          jobctrl->FillJobStore(job);
 
-        // Get status of job at old cluster.
-        if (ac.stat(idstr, status) && status == "Running/Executing/Queuing") {
-          // Kill job on old cluster.
-          const bool migratekillsuccess =  ac.kill(idstr); // Try to kill job at old cluster, do not care if we do not succeed.
-          // Only fail if forcemigration is not set and kill failed.
-          if (!desc.get_local()->forcemigration && !migratekillsuccess) {
+          std::list<std::string> status;
+          status.push_back("Running/Executing/Queuing");
+          
+          if (!jobctrl->Kill(status, true) && !desc.get_local()->forcemigration) {
             res = 1;
             failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
           }
         }
         else {
           res = 1;
-          if (status.empty())
-            failure_reason = "FATAL ERROR: Could not migrate job \"" + desc.get_local()->migrateactivityid + "\", failed retrieving job status.";
-          else
-            failure_reason = "FATAL ERROR: Could not migrate job \"" + desc.get_local()->migrateactivityid + "\", it is no longer queuing.";
+          failure_reason = "FATAL ERROR: Could not locate ARC1 JobController plugin. Maybe it is not installed?";
         }
       }
     }
