@@ -688,6 +688,11 @@ static void soft_state_thread(void *data) {
 
     Arc::MCC_Status ISIService::GetISISList(Arc::XMLNode &request, Arc::XMLNode &response) {
         logger_.msg(Arc::DEBUG, "GetISISList");
+        // If the neighbors_ vector is empty, then return with the own
+        // address else with the list of neighbors.
+        if (neighbors_.size() == 0 ) {
+            response.NewChild("EPR") = endpoint_;
+        }
         for (std::vector<Arc::ISIS_description>::iterator it = neighbors_.begin(); it < neighbors_.end(); it++) {
             response.NewChild("EPR") = (*it).url;
         }
