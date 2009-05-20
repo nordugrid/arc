@@ -28,6 +28,7 @@ pkglibexecdir='${libexecdir}/${PACKAGE}'
 AC_SUBST(docdir)
 AC_SUBST(pkglibexecdir)
 
+ARC_API
 ARC_RELATIVE_PATHS
 
 # TODO: where to put init scripts on OS X?
