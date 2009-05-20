@@ -327,10 +327,10 @@ namespace Arc {
       return;
     }
 
-    for (std::vector<ExecutionTarget>::iterator it = PossibleTargets.begin();
+    for (std::list<ExecutionTarget*>::iterator it = PossibleTargets.begin();
          it != PossibleTargets.end(); it++) {
 
-      PyObjectP arg = Py_BuildValue("(l)", (long int)&*it);
+      PyObjectP arg = Py_BuildValue("(l)", (long int)&**it);
       if (!arg) {
         logger.msg(ERROR, "Cannot create ExecutionTarget argument");
         if (PyErr_Occurred())
@@ -370,7 +370,7 @@ namespace Arc {
       if (!thisattr)
         return;
       void *ptr = ((PySwigObject*)thisattr)->ptr;
-      PossibleTargets.push_back(*((ExecutionTarget*)ptr));
+      PossibleTargets.push_back(((ExecutionTarget*)ptr));
       Py_DECREF(thisattr);
     }
 
