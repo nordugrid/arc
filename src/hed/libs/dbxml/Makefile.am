@@ -1,5 +1,5 @@
-lib_LTLIBRARIES=libarcdbxml.la
-noinst_PROGRAMS=test
+lib_LTLIBRARIES = libarcdbxml.la
+noinst_PROGRAMS = test
 
 AM_CPPFLAGS=@DBCXX_CPPFLAGS@
 

@@ -1,4 +1,4 @@
-lib_LTLIBRARIES=libarcdata2.la
+lib_LTLIBRARIES = libarcdata2.la
 
 SUBDIRS = . $(TEST_DIR)
 DIST_SUBDIRS = test
