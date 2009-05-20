@@ -78,6 +78,13 @@
 \chapter{Design Overview}
 \label{cha:design_overview}
 
+\begin{figure}[ht]
+\centering{{\scalebox{0.6}{\includegraphics{InfosysArchitecture.png}}}
+\caption{\label{fig:infosys_architecture}Architecture of Information System} }
+\end{figure}
+
+Information System of ARC middleware is composed of 3 main parts. The Information System Indexing Services (ISIS) for a set of information containers. Every generic ARC Service pushes information about itself into nearby ISIS container/service hence registering itself to Information System. The information stored in every ISIS is propagated among all ISIS services. Clients can query any nearby ISIS service for registered information in order to perform discovery of services which posses specific properties.
+
 \chapter{ISIS}
 \label{cha:isis}
 
@@ -92,7 +99,7 @@
  Main functionality of ISIS service visible from outside of ISIS cloud is to accept registration and provide collected information to clients. For that ISIS implements operations described in following section.
 The single ISIS service accepts Registration Records pushed to it by other services (including ISIS services too) and stores them in local XML database. Stored records can be queried by clients using mandatory and service-specific attributes for selection criteria.
 
- In case of multiple ISIS services they form a peer-to-peer network. Inside that cloud Registration Records are propagated between services in such a way that all ISIS instances continiously try to synchronise their databases.
+ In case of multiple ISIS services they form a peer-to-peer network. Inside that cloud Registration Records are propagated between services in such a way that all ISIS instances continuously try to synchronize their databases.
 
 % TODO: put figure here
 
@@ -125,7 +132,7 @@ The single ISIS service accepts Registration Records pushed to it by other servi
   \end{description}
 
   \item[Output]~\begin{description}
-    \item[Fault] Optional element describing fault which occured while performing registration. If missing registration succeeded.
+    \item[Fault] Optional element describing fault which occurred while performing registration. If missing registration succeeded.
   \end{description}
 
   \item[Faults]~\begin{description}
@@ -140,7 +147,7 @@ This operation is usually called by service which wants to register it's presenc
 \caption{\label{fig:registration_message}Embedded structure of Registration Message} }
 \end{figure}
 
-Service must supply mandatory information. Among those the \texttt{Endpoint Reference} is used to contact service - only required element is contact URL of service. \texttt{Type} specifies kind of service and is used to find out functionality nad interface of service. \texttt{ServiceID} is used to distinguish between registered services and to deal with case of service changing it's contact URL. For more information about mandatory and optional information see Section \ref{service_advertisement}
+Service must supply mandatory information. Among those the \texttt{Endpoint Reference} is used to contact service - only required element is contact URL of service. \texttt{Type} specifies kind of service and is used to find out functionality and interface of service. \texttt{ServiceID} is used to distinguish between registered services and to deal with case of service changing it's contact URL. For more information about mandatory and optional information see Section \ref{service_advertisement}
 
 As result of this operation new Registration Record is stored inside ISIS internal database and eventually propagated to other ISISes. If registration record of same ID already existed it will be renewed.
 
@@ -168,7 +175,7 @@ This operation is also used by ISIS services to propagate Registration Records i
 
 \end{description}
 
-This operation is used to explicitely requesting the removal of zero or more Registration Entries associated with specified ServiceID values stored in the Information System. If corresponding record does not exist it's identifier will be present in response message together with corresponding Fault element.
+This operation is used to explicitly requesting the removal of zero or more Registration Entries associated with specified ServiceID values stored in the Information System. If corresponding record does not exist it's identifier will be present in response message together with corresponding Fault element.
 
 \subsubsection{Operation GetISISList}
 
@@ -236,14 +243,14 @@ This operation allows any XPath queries to be performed on stored Registration R
 \section{Authorization}
 \label{sec:isis_authorization}
 
-\subsection{Client Authorzation}
+\subsection{Client Authorization}
 \label{sub:isis_authorization_client_authorization}
 
 % TODO figure with mutiple service types
 
 \textit{This section extensively uses terms defined in "Security Framework of ARC1" document"~\cite{arcsec}.}
 
-To ensure information stored in ISIS cloud can't be tampered and only available to proper clients following authorization framework is implemented. All actions perfored by ISIS clients are divided into three following groups:
+To ensure information stored in ISIS cloud can't be tampered and only available to proper clients following authorization framework is implemented. All actions performed by ISIS clients are divided into three following groups:
 
 \begin{itemize}
  \item Operations initiated by other ISISes in the cloud. Those include:
@@ -253,7 +260,7 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
   \item Connect % TODO: describe this operation
  \end{itemize}
 
- Those operations may cause uncontrollable changes in colleccted information and must be granted only for higly trusted entities like ISISes themselves.
+ Those operations may cause uncontrollable changes in collected information and must be granted only for highly trusted entities like ISISes themselves.
 
  \item Operations initiated by the Services registering to Information System. Those are:
  \begin{itemize}
@@ -269,7 +276,7 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
 \end{itemize}
 
 Those 3 action groups are handled using Security Framework of ARC~\cite{arcsec}. For each group corresponding 
-Action is defined for ARC policy language as descriped in table \ref{tab:policy_actions}.
+Action is defined for ARC policy language as described in table \ref{tab:policy_actions}.
 
 \begin{table}{h}
 \caption{ARC Policy Actions of ISIS}
@@ -295,7 +302,7 @@ configured inside configuration block of corresponding ISIS service and attached
 % subsection client_authorization (end)
 
 
-\subsection{Information Authorzation}
+\subsection{Information Authorization}
 \label{sub:isis_authorization_information_authorization}
 
 Because all ISIS services trust each other they freely exchanging collected information. But 
@@ -305,18 +312,18 @@ may be some pieces of information available only for specific clients. An exampl
 information about resources serving particular Virtual Organization (VO) could be visible only to
 members of that VO.
 
-To implement functionality described above each node in agregated XML documents of information
+To implement functionality described above each node in aggregated XML documents of information
 collected by ISIS cloud may have Access Control Policy associated with it. Access control is 
 defined at level of XML node and propagates all children nodes - similar to file systems.
 Children nodes can only additionally restrict access control imposed by parent node. For example
-if parent node A allows access only to VO1 then children node B can narrow access to Adminsitrator 
+if parent node A allows access only to VO1 then children node B can narrow access to Administrator 
 of VO1 and can't grant access for VO2 members.
 
 By default all XML nodes are public. Access Control Policies are embedded into XML document
 as XML nodes (see Appendix \ref{annex:info_policies_schema} for schema) even if that violates schema 
-of document. Then nodes are assigned policies aby adding XML attributes refering to defined Policies.
+of document. Then nodes are assigned policies by adding XML attributes referring to defined Policies.
 Access permission to particular information node is evaluated by traversing all nodes prom 
-parent to childen. At first node which gives negative result evaluation is stopped and
+parent to children. At first node which gives negative result evaluation is stopped and
 this node including all its children is removed from document.
 
 Before providing results of query operation ISIS runs procedure described above on results and 
@@ -452,7 +459,7 @@ implementation of RegistrationCollector is thread safe or there are internal loc
 
 Every service registering to ISIS should also provide an interface for direct querying of information 
 describing service. Normally this information should be more detailed than one sent to ISIS. For this 
-purpose LIDI interface is defined which is a susbset of WS Resource Properties (WSRP)~\cite{wsrf-rp}. Following WSRP
+purpose LIDI interface is defined which is a subset of WS Resource Properties (WSRP)~\cite{wsrf-rp}. Following WSRP
 operations must be supported - \textit{GetResourcePropertDocument}, \textit{GetResourceProperty},
 \textit{GetMultipleResourceProperties} and \textit{QueryResourceProperties}.
 
@@ -466,7 +473,7 @@ operations must be supported - \textit{GetResourcePropertDocument}, \textit{GetR
 
 The registration of service is carried out by internal module called Registrant. The Registrant is active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the Registrant contains exactly one ISIS to bind, and the Registrant will collect the necessary information about the other ISISes belonging to the same network.
 
-To register services to more than one ISIS network multiple Registrant instances has to be configured. In this case, the default Registrant will be used for registering every services unless configured expilicitely.
+To register services to more than one ISIS network multiple Registrant instances has to be configured. In this case, the default Registrant will be used for registering every services unless configured explicitly.
 The registration of service can be done once or periodically based either on the configuration of the Registrant or overwritten for every service separately. The Registrant is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the Registrant is presented below.
 
 \begin{framed}
@@ -535,17 +542,17 @@ Section \ref{sub:isis_authorization_information_authorization} should be applied
 The registration operation is done by the Registrants as described in Section \ref{sec:service_registration}.
 Each Registrant is instantiated by corresponding InfoRegistrar XML element in configuration file as defined in Section \ref{annex:service_configuration_schema}. First InfoRegistrar defines Registrant which is used to register every service by default.
 
-Registration parameters per service are defined by InfoRegister element located inside corresponding service configuration element. To assign service to specific Registrant(s) ona may use Registrar configuration elements situated inside InfoRegister. If none Registrar element is defined service will be registed using first (default) Registrant. To make not register itself special configration element NoRegister has to be used.
+Registration parameters per service are defined by InfoRegister element located inside corresponding service configuration element. To assign service to specific Registrant(s) one may use Registrar configuration elements situated inside InfoRegister. If none Registrar element is defined service will be registered using first (default) Registrant. To make not register itself special configuration element NoRegister has to be used.
 
 Following elements are defined inside configuration element if the Registrant:
 \begin{description}
 \item{URL}            <!-- URL specifies contact endpoint of a bootstrap Information
-                 Registration service. Further ISIS adresses will be queried
+                 Registration service. Further ISIS addresses will be queried
                  from this service. -->
 \item{KeyPath, CertificatePath, ProxyPath and CACertificatesDir}
             <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are
                  paths to files storing X509 credentials used for establishing connections. -->
-\item{Retry}            <!-- Retry count. Specifie how many times have an ISIS to timeout to handle it as
+\item{Retry}            <!-- Retry count. Specifies how many times have an ISIS to timeout to handle it as
                  unavailable. If there is no value specified the default value: 5 will be used. -->
             <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 
