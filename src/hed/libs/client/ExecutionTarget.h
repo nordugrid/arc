@@ -21,9 +21,9 @@ namespace Arc {
     std::string Name;
     std::string Version;
     std::string State;
-    int FreeSlots;
-    int FreeJobs;
-    int FreeUserSeats;
+    unsigned int FreeSlots;
+    unsigned int FreeJobs;
+    unsigned int FreeUserSeats;
   };
 
   class ExecutionTarget {

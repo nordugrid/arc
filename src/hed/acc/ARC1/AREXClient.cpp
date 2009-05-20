@@ -46,6 +46,7 @@ namespace Arc {
     ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
     ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
     ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+    ns["rp"] = "http://docs.oasis-open.org/wsrf/rp-2";
   }
 
   static void set_bes_factory_action(SOAPEnvelope& soap, const char *op) {
@@ -61,12 +62,13 @@ namespace Arc {
     : client_config(NULL),
       client_loader(NULL),
       client(NULL),
-      client_entry(NULL) {
+      client_entry(NULL),
+      rurl(url) {
 
     logger.msg(INFO, "Creating an A-REX client");
     client = new ClientSOAP(cfg, url);
     set_arex_namespaces(arex_ns);
-    rurl = url;
+    //rurl = url;
   }
 
   AREXClient::~AREXClient() {
@@ -233,25 +235,35 @@ namespace Arc {
     }
   }
 
-  bool AREXClient::stat(const std::string& jobid, std::string& status) {
+  bool AREXClient::stat(const std::string& jobid, Job& job) {
 
     std::string state, substate, lrmsstate, gluestate, faultstring;
     logger.msg(INFO, "Creating and sending a status request");
 
     PayloadSOAP req(arex_ns);
     XMLNode jobref =
-      req.NewChild("bes-factory:GetActivityStatuses").
-      NewChild(XMLNode(jobid));
-    set_bes_factory_action(req, "GetActivityStatuses");
+      req.NewChild("rp:QueryResourceProperties").
+      NewChild("rp:QueryExpression");
+    jobref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
+    //jobref = "//*";
+
+    std::string jobidnumber = (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]);
+    jobref = "//glue:Services/glue:Service/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'"+jobidnumber+"')]/..";
+    //set_bes_factory_action(req, "GetActivityStatuses");
     WSAHeader(req).To(rurl.str());
+    WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
+                          "/QueryResourceProperties/QueryResourcePropertiesRequest");
 
     // Send status request
     PayloadSOAP *resp = NULL;
 
     if (client) {
       MCC_Status status =
+        client->process("http://docs.oasis-open.org/wsrf/rpw-2"
+                        "/QueryResourceProperties/QueryResourcePropertiesRequest", &req, &resp);
+/*      MCC_Status status =
         client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-                        "BESFactoryPortType/GetActivityStatuses", &req, &resp);
+                        "BESFactoryPortType/GetActivityStatuses", &req, &resp);*/
       if (resp == NULL) {
         logger.msg(ERROR, "There was no SOAP response");
         return false;
@@ -261,8 +273,8 @@ namespace Arc {
       Message reqmsg;
       Message repmsg;
       MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-                         "bes-factory/BESFactoryPortType/GetActivityStatuses");
+      attributes_req.set("SOAP:ACTION", "http://docs.oasis-open.org/wsrf/rpw-2"
+                         "/QueryResourceProperties/QueryResourcePropertiesRequest");
       MessageAttributes attributes_rep;
       MessageContext context;
       reqmsg.Payload(&req);
@@ -275,7 +287,7 @@ namespace Arc {
         logger.msg(ERROR, "A status request failed");
         return false;
       }
-      logger.msg(INFO, "A status request succeed");
+      logger.msg(INFO, "A status request succeeded");
       if (repmsg.Payload() == NULL) {
         logger.msg(ERROR, "There was no response to a status request");
         return false;
@@ -295,19 +307,26 @@ namespace Arc {
       return false;
     }
     (*resp).Namespaces(arex_ns);
-    XMLNode st = (*resp)["GetActivityStatusesResponse"]
-                 ["Response"]["ActivityStatus"];
+    XMLNode jobNode = (*resp)["QueryResourcePropertiesResponse"]
+                 ["ComputingActivity"];
+    std::string besstate = jobNode["State"];
+    int e = besstate.find(':');
+    state = besstate.substr(0,e);
+    substate = besstate.substr(e+1,std::string::npos);
+/*
+//  Old assignments from BES call
     state = (std::string)st.Attribute("state");
     substate = (std::string)(st["a-rex:State"]);
-    lrmsstate = (std::string)(st["a-rex:LRMSState"]);
-    gluestate = (std::string)(st["glue:State"]);
+    lrmsstate = (std::string)(st["a-rex:LRMSState"]); //This is problematic
+    gluestate = (std::string)(st["glue:State"]); //This was never used
+*/
     SOAPFault *fs = (*resp).Fault();
     if (fs) {
       faultstring = fs->Reason();
       if (faultstring.empty())
         faultstring = "Undefined error";
     }
-    // delete resp;
+    delete resp;
     if (faultstring != "") {
       logger.msg(ERROR, faultstring);
       return false;
@@ -317,9 +336,9 @@ namespace Arc {
       return false;
     }
     else {
-      status = state + "/" + substate;
+      job.State = state + "/" + substate;
       if (lrmsstate != "")
-        status += "/" + lrmsstate;
+        job.State += "/" + lrmsstate;
       return true;
     }
   }
@@ -391,7 +410,7 @@ namespace Arc {
       return false;
     }
     resp->XMLNode::New(status);
-    // delete resp;
+    delete resp;
     if (status)
       return true;
     else {
@@ -399,6 +418,98 @@ namespace Arc {
       return false;
     }
   }
+
+  bool AREXClient::listServicesFromISIS(std::list<Arc::Config>& services, std::string& statusString) {
+    logger.msg(INFO, "Creating and sending an index service query");
+
+    NS isis_ns;
+    isis_ns["isis"]="http://www.nordugrid.org/schemas/isis/2007/06";
+    PayloadSOAP req(isis_ns);
+    XMLNode query = req.NewChild("isis:Query").NewChild("isis:QueryString");
+    query = "/RegEntry/SrcAdv[Type=\"org.nordugrid.execution.arex\"]";
+
+    //Be polite and add some stuff to the WSA header (mainly for future compatibility)
+    WSAHeader(req).To(rurl.str());
+    WSAHeader(req).Action("http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest");
+
+    Arc::MCC_Status status;
+    Arc::PayloadSOAP *resp = NULL;
+
+    if (client) {
+      MCC_Status status =
+        client->process("http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest", &req, &resp);
+
+      if (resp == NULL) {
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
+      }
+    }
+    else if (client_entry) {
+      Message reqmsg;
+      Message repmsg;
+      MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION", "http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest");
+      MessageAttributes attributes_rep;
+      MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      MCC_Status status = client_entry->process(reqmsg, repmsg);
+      if (!status) {
+        logger.msg(ERROR, "An index service query failed");
+        return false;
+      }
+      logger.msg(INFO, "An index service query was successful");
+      if (repmsg.Payload() == NULL) {
+        logger.msg(ERROR, "There was an empty response to an index service query");
+        return false;
+      }
+      try {
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
+      if (resp == NULL) {
+        logger.msg(ERROR,
+                   "The response of a index service query was not a SOAP message");
+        delete repmsg.Payload();
+        return false;
+      }
+    }
+    else {
+      logger.msg(ERROR, "There is no connection chain configured");
+      return false;
+    }
+
+    //resp->Body().GetXML(statusString,true);
+    //std::cout << "\n#####\n" << statusString << "\n######\n";
+
+
+    if (XMLNode n = resp->Body()["QueryResponse"]["RegEntry"])
+        for (; n; ++n) {
+          //std::string nodeString;
+          //n.GetXML(nodeString,true);
+          //std::cout << "\n##begin service##\n" << nodeString << "\n##end service###\n";
+          if ((std::string)n["SrcAdv"]["Type"] == "org.nordugrid.execution.arex"){
+            //This check is right now superfluos but in the future a wider query might be used
+            NS ns;
+            Config cfg(ns);
+            XMLNode URLXML = cfg.NewChild("URL") = (std::string)n["SrcAdv"]["EPR"]["Address"];
+            URLXML.NewAttribute("ServiceType") = "computing";
+            services.push_back(cfg);
+          }
+          else {
+            logger.msg(INFO,
+                   "Service %s of type %s ignored", (std::string)n["MetaSrcAdv"]["ServiceID"], (std::string)n["SrcAdv"]["Type"]);
+          }
+        }
+    else {
+      logger.msg(INFO,
+                   "No execution services registered in the index service");
+    }
+    return true;
+  }
+
 
 
   bool AREXClient::kill(const std::string& jobid) {

@@ -104,9 +104,38 @@ namespace Arc {
   void TargetRetrieverARC1::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
-    // URL& url = thrarg->url;
+    URL& url = thrarg->url;
+    MCCConfig cfg;
+    if (!thrarg->proxyPath.empty())
+      cfg.AddProxy(thrarg->proxyPath);
+    if (!thrarg->certificatePath.empty())
+      cfg.AddCertificate(thrarg->certificatePath);
+    if (!thrarg->keyPath.empty())
+      cfg.AddPrivateKey(thrarg->keyPath);
+    if (!thrarg->caCertificatesDir.empty())
+      cfg.AddCADir(thrarg->caCertificatesDir);
+    AREXClient ac(url, cfg);
+    std::list<Arc::Config> services;
+    std::string status;
+    if(!ac.listServicesFromISIS(services,status)){
+      delete thrarg;
+      mom.RetrieverDone();
+      return;
+    }
+    logger.msg(INFO, "Found %u execution services from the index service at %s", services.size(), url.str());
 
-    // TODO: ISIS
+    for (std::list<Config>::iterator it = services.begin(); it != services.end(); it++) {
+      if (!thrarg->certificatePath.empty())
+        (*it).NewChild("CertificatePath") = thrarg->certificatePath;
+      if (!thrarg->keyPath.empty())
+        (*it).NewChild("KeyPath") = thrarg->keyPath;
+      if (!thrarg->caCertificatesDir.empty())
+        (*it).NewChild("CACertificatesDir") = thrarg->caCertificatesDir;
+      if (!thrarg->proxyPath.empty())
+        (*it).NewChild("ProxyPath") = thrarg->proxyPath;
+      TargetRetrieverARC1 r(&(*it));
+      r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
+    }
 
     delete thrarg;
     mom.RetrieverDone();
@@ -646,7 +675,24 @@ namespace Arc {
         }
       else
         logger.msg(INFO, "The Service doesn't advertise any Benchmarks.");
-
+ 
+      if (GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"])
+        for (XMLNode n = GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
+          ApplicationEnvironment ae;
+          ae.Name = (std::string)n["AppName"];
+          ae.Version = (std::string)n["AppVersion"];
+          ae.State = (std::string)n["State"];
+          if (n["FreeSlots"]) ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
+          else ae.FreeSlots = target.FreeSlots;
+          if (n["FreeJobs"]) ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
+          else ae.FreeJobs = -1;
+          if (n["FreeUserSeats"]) ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
+          else ae.FreeUserSeats = -1;
+          target.ApplicationEnvironments.push_back(ae);
+        }
+      else {
+        logger.msg(INFO, "The Service doesn't advertise any Application Environments.");
+      }
       if (GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"])
         for (XMLNode n = GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
           ApplicationEnvironment ae;

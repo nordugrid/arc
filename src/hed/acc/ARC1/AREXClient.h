@@ -8,6 +8,7 @@
 
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
+#include <arc/client/Job.h>
 
 namespace Arc {
 
@@ -61,7 +62,8 @@ namespace Arc {
        @param status The status of the job.
        @return true on success
      */
-    bool stat(const std::string& jobid, std::string& status);
+//    bool stat(const std::string& jobid, std::string& status);
+    bool stat(const std::string& jobid, Job& job);
 
     //! Terminates a job.
     /*! This method sends a request to the A-REX service to terminate
@@ -107,6 +109,10 @@ namespace Arc {
        @return true on success
      */
     bool migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate = false);
+
+
+    bool listServicesFromISIS(std::list<Arc::Config>& services, std::string& status);
+
 
     bool resume(const std::string& jobid);
 

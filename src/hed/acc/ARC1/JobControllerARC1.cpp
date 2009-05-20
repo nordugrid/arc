@@ -40,7 +40,7 @@ namespace Arc {
       AREXClient ac(iter->Cluster, cfg);
       std::string idstr;
       AREXClient::createActivityIdentifier(iter->JobID, idstr);
-      if (!ac.stat(idstr, iter->State))
+      if (!ac.stat(idstr, *iter))
         logger.msg(ERROR, "Failed retrieving job status information");
     }
   }
