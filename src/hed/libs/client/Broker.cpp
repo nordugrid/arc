@@ -254,7 +254,7 @@ namespace Arc {
             std::list<ApplicationEnvironment>::const_iterator iter3;
             if ((*iter1).Version.size() == 0)
               for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++) {
-                RuntimeEnvironment rt((*iter3).appName);
+                RuntimeEnvironment rt((*iter3).Name);
                 if ((*iter1).Name == rt.Name()) {
                   match = true;
                   break;
@@ -262,7 +262,7 @@ namespace Arc {
               }
             for (iter2 = (*iter1).Version.begin(); iter2 != (*iter1).Version.end(); iter2++)
               for (iter3 = (*target).ApplicationEnvironments.begin(); iter3 != (*target).ApplicationEnvironments.end(); iter3++) {
-                RuntimeEnvironment rt((*iter3).appName);
+                RuntimeEnvironment rt((*iter3).Name);
                 if ((*iter1).Name == rt.Name() && (*iter2) == rt.Version()) {
                   match = true;
                   break;
