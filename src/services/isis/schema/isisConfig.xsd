@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  xmlns:icfg="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+
+  <xsd:element name="endpoint" type="xsd:anyURI"/>  
+
+  <xsd:element name="retry" type="xsd:nonNegativeInteger" minOccurs="0"/>
+
+  <xsd:element name="sparsity" type="xsd:nonNegativeInteger" minOccurs="0"/>
+ 
+  <xsd:simpleType name="Logger_Type">
+    <xsd:restriction base="xsd:string"/>
+    <xsd:attribute name="level" type="xsd:string" use="optional"/>
+  </xsd:simpleType>
+  <xsd:element name="Logger" type="icfg:Logger_Type" minOccurs="0"/>
+
+  <xsd:element name="ETValid" type="xsd:nonNegativeInteger" minOccurs="0"/>
+
+  <xsd:element name="ETRemove" type="xsd:nonNegativeInteger" minOccurs="0"/>
+
+  <xsd:element name="DBPath" type="xsd:string"/>
+
+  <xsd:complexType name="InfoProvider_Type">
+    <xsd:sequence>
+      <xsd:element name="URL" type="xsd:anyURI"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type" minOccurs="0" maxOccurs="unbounded"/>
+
+</xsd:schema>
+
