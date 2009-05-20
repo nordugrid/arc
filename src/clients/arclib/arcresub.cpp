@@ -243,42 +243,27 @@ int main(int argc, char **argv) {
          oldjob != it->OldJobIDs.end(); oldjob++)
       jobdesc.addOldJobID(*oldjob);
     jobdesc.addOldJobID(it->JobID);
-    ChosenBroker->PreFilterTargets(targen, jobdesc);
-    bool JobSubmitted = false;
-    bool EndOfList = false;
-    while (!JobSubmitted) {
-
-      Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
-      if (EndOfList) {
+    ChosenBroker->PreFilterTargets(targen.ModifyFoundTargets(), jobdesc);
+    while (true) {
+      const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
+      if (!target) {
         std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
         break;
       }
 
-      Arc::Submitter *submitter = target.GetSubmitter(usercfg);
+      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
       //submit the job
       Arc::URL jobid = submitter->Submit(jobdesc, usercfg.JobListFile());
       if (!jobid) {
-        std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str()) << std::endl;
+        std::cout << Arc::IString("Submission to %s failed, trying next target", target->url.str()) << std::endl;
         continue;
       }
 
-      for (std::list<Arc::ExecutionTarget>::iterator target2 = targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); target2++)
-        if (target.url == (*target2).url) {
-          if ((*target2).FreeSlots >= abs(jobdesc.Slots)) {   //The job will start directly
-            (*target2).FreeSlots -= abs(jobdesc.Slots);
-            if ((*target2).UsedSlots != -1)
-              (*target2).UsedSlots += abs(jobdesc.Slots);
-          }
-          else                                           //The job will be queued
-            if ((*target2).WaitingJobs != -1)
-              (*target2).WaitingJobs += abs(jobdesc.Slots);
-        }
-
+      ChosenBroker->RegisterJobsubmission();
       std::cout << Arc::IString("Job resubmitted with new jobid: %s",
                                 jobid.str()) << std::endl;
 
-      JobSubmitted = true;
       jobs.push_back(it->JobID.str());
       break;
     } //end loop over all possible targets

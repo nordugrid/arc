@@ -264,18 +264,15 @@ int main(int argc, char **argv) {
          jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
 
-    ChosenBroker->PreFilterTargets(targen, *it);
-    bool JobSubmitted = false;
-    bool EndOfList = false;
+    ChosenBroker->PreFilterTargets(targen.ModifyFoundTargets(), *it);
 
-    while (!JobSubmitted) {
-
-      Arc::ExecutionTarget& target = ChosenBroker->GetBestTarget(EndOfList);
+    while (true) {
+      const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
       if (dumpdescription) {
         std::string flavour;
         std::string jobdesc;
-        if (!EndOfList)
-          flavour = target.GridFlavour;
+        if (!target)
+          flavour = target->GridFlavour;
         else if (!clusters.empty()) {
           Arc::URLListMap clusterselect;
           Arc::URLListMap clusterreject;
@@ -297,8 +294,8 @@ int main(int argc, char **argv) {
                     << flavour << std::endl;
           return 1;
         }
-        if (!EndOfList)
-          std::cout << "Job description to be send to " << target.Cluster.str() << ":" << std::endl;
+        if (!target)
+          std::cout << "Job description to be send to " << target->Cluster.str() << ":" << std::endl;
         else if (!clusters.empty())
           std::cout << "Job description to be send to " << clusters.front() << ":" << std::endl;
         else
@@ -307,38 +304,25 @@ int main(int argc, char **argv) {
         return 0;
       }
 
-      if (EndOfList) {
+      if (!target) {
         std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
         break;
       }
 
-      Arc::Submitter *submitter = target.GetSubmitter(usercfg);
+      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
       //submit the job
       Arc::URL jobid = submitter->Submit(*it, usercfg.JobListFile());
       if (!jobid) {
-        std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str()) << std::endl;
+        std::cout << Arc::IString("Submission to %s failed, trying next target", target->url.str()) << std::endl;
         continue;
       }
 
-      for (std::list<Arc::ExecutionTarget>::iterator target2 = targen.ModifyFoundTargets().begin(); target2 != targen.ModifyFoundTargets().end(); target2++)
-        if (target.url == (*target2).url) {
-          if ((*target2).FreeSlots >= abs(it->Slots)) {   //The job will start directly
-            (*target2).FreeSlots -= abs(it->Slots);
-            if ((*target2).UsedSlots != -1)
-              (*target2).UsedSlots += abs(it->Slots);
-          }
-          else                                           //The job will be queued
-            if ((*target2).WaitingJobs != -1)
-              (*target2).WaitingJobs += abs(it->Slots);
-        }
-
+      ChosenBroker->RegisterJobsubmission();
       std::cout << Arc::IString("Job submitted with jobid: %s", jobid.str())
                 << std::endl;
 
-      JobSubmitted = true;
       break;
-
     } //end loop over all possible targets
   } //end loop over all job descriptions
 

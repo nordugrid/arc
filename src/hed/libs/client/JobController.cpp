@@ -508,45 +508,29 @@ namespace Arc {
       if (!PatchInputFileLocation(*itJob, jobDesc))
         continue;
 
-      bool endOfList = false;
-      broker->PreFilterTargets(targetGen, jobDesc);
+      broker->PreFilterTargets(targetGen.ModifyFoundTargets(), jobDesc);
       // Try to submit modified JSDL. Only to ARC1 clusters.
       while (true) {
-        ExecutionTarget& currentTarget = broker->GetBestTarget(endOfList);
-        if (endOfList) {
+        const ExecutionTarget* currentTarget = broker->GetBestTarget();
+        if (!currentTarget) {
           logger.msg(ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.str());
           retVal = false;
           break;
         }
 
-        if (currentTarget.GridFlavour != "ARC1") {
-          logger.msg(WARNING, "Cannot migrate to a %s cluster.", currentTarget.GridFlavour);
+        if (currentTarget->GridFlavour != "ARC1") {
+          logger.msg(WARNING, "Cannot migrate to a %s cluster.", currentTarget->GridFlavour);
           logger.msg(INFO, "Note: Migration is currently only supported between ARC1 clusters.");
           continue;
         }
 
-        URL jobid = currentTarget.GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, usercfg.JobListFile());
+        URL jobid = currentTarget->GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, usercfg.JobListFile());
         if (!jobid) {
-          logger.msg(WARNING, "Migration to %s failed, trying next target", currentTarget.url.str());
+          logger.msg(WARNING, "Migration to %s failed, trying next target", currentTarget->url.str());
           continue;
         }
 
-        // Change number of slots or waiting jobs
-        for (std::list<ExecutionTarget>::iterator itTarget = targetGen.ModifyFoundTargets().begin();
-             itTarget != targetGen.ModifyFoundTargets().end();
-             itTarget++)
-          if (currentTarget.url == itTarget->url) {
-            if (itTarget->FreeSlots >= abs(jobDesc.Slots)) { // The job will start directly
-              itTarget->FreeSlots -= abs(jobDesc.Slots);
-              if (itTarget->UsedSlots != -1)
-                itTarget->UsedSlots += abs(jobDesc.Slots);
-            }
-            else   //The job will be queued
-              if (itTarget->WaitingJobs != -1)
-                itTarget->WaitingJobs += abs(jobDesc.Slots);
-
-          }
-
+        broker->RegisterJobsubmission();
         migratedJobIDs.push_back(URL(itJob->JobID.str()));
         break;
       } // Loop over all possible targets

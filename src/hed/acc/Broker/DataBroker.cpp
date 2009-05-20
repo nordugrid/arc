@@ -27,8 +27,8 @@ namespace Arc {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    for (std::list<FileType>::const_iterator it = job.File.begin();
-         it != job.File.end(); it++)
+    for (std::list<FileType>::const_iterator it = job->File.begin();
+         it != job->File.end(); it++)
       if ((*it).Source.size() != 0) {
         std::list<SourceType>::const_iterator it2;
         it2 = ((*it).Source).begin();
@@ -37,11 +37,9 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
 
-    for (std::vector<ExecutionTarget>::const_iterator target =   \
-           PossibleTargets.begin(); target != PossibleTargets.end(); \
-         target++) {
-
-      ClientSOAP client(cfg, (*target).url);
+    for (std::list<ExecutionTarget*>::const_iterator target = PossibleTargets.begin();
+         target != PossibleTargets.end(); target++) {
+      ClientSOAP client(cfg, (*target)->url);
 
       long DataSize = 0;
       int j = 0;
@@ -49,9 +47,9 @@ namespace Arc {
       MCC_Status status = client.process(&request, &response);
 
       if (!status)
-        CacheMappingTable[(*target).url.fullstr()] = 0;
+        CacheMappingTable[(*target)->url.fullstr()] = 0;
       if (response == NULL)
-        CacheMappingTable[(*target).url.fullstr()] = 0;
+        CacheMappingTable[(*target)->url.fullstr()] = 0;
 
       XMLNode ExistCount = (*response)["CacheCheckResponse"]["CacheCheckResult"]["Result"];
 
@@ -61,7 +59,7 @@ namespace Arc {
         DataSize += stringto<long>((std::string)ExistCount[i]["FileSize"]);
       }
 
-      CacheMappingTable[(*target).url.fullstr()] = DataSize;
+      CacheMappingTable[(*target)->url.fullstr()] = DataSize;
 
       if (response != NULL) {
         delete response;
@@ -72,8 +70,8 @@ namespace Arc {
     return true;
   }
 
-  bool DataCompare(const ExecutionTarget& T1, const ExecutionTarget& T2) {
-    return CacheMappingTable[T1.url.fullstr()] > CacheMappingTable[T2.url.fullstr()];
+  bool DataCompare(const ExecutionTarget* T1, const ExecutionTarget* T2) {
+    return CacheMappingTable[T1->url.fullstr()] > CacheMappingTable[T2->url.fullstr()];
   }
 
   DataBroker::DataBroker(Config *cfg)
@@ -93,10 +91,10 @@ namespace Arc {
 
     //Remove clusters which are not A-REX
 
-    std::vector<ExecutionTarget>::iterator iter = PossibleTargets.begin();
+    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     while (iter != PossibleTargets.end()) {
-      if ((iter->ImplementationName) != "A-REX") {
+      if (((*iter)->ImplementationName) != "A-REX") {
         iter = PossibleTargets.erase(iter);
         continue;
       }
@@ -108,17 +106,17 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
 
     CacheCheck();
-    std::sort(PossibleTargets.begin(), PossibleTargets.end(), DataCompare);
+    PossibleTargets.sort(DataCompare);
 
     logger.msg(DEBUG, "Best targets are: %d", PossibleTargets.size());
 
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
 
     TargetSortingDone = true;
   }

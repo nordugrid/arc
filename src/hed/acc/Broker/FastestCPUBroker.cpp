@@ -13,18 +13,18 @@
 
 namespace Arc {
 
-  bool CheckCPUSpeeds(const ExecutionTarget& T1, const ExecutionTarget& T2) {
+  bool CheckCPUSpeeds(const ExecutionTarget* T1, const ExecutionTarget* T2) {
     double T1performance = 0;
     double T2performance = 0;
     std::map<std::string, double>::const_iterator iter;
 
-    for (iter = T1.Benchmarks.begin(); iter != T1.Benchmarks.end(); iter++)
+    for (iter = T1->Benchmarks.begin(); iter != T1->Benchmarks.end(); iter++)
       if (lower(iter->first) == "specint2000") {
         T1performance = iter->second;
         break;
       }
 
-    for (iter = T2.Benchmarks.begin(); iter != T2.Benchmarks.end(); iter++)
+    for (iter = T2->Benchmarks.begin(); iter != T2->Benchmarks.end(); iter++)
       if (lower(iter->first) == "specint2000") {
         T1performance = iter->second;
         break;
@@ -50,17 +50,17 @@ namespace Arc {
   void FastestCPUBroker::SortTargets() {
 
     //Remove clusters with incomplete information for target sorting
-    std::vector<ExecutionTarget>::iterator iter = PossibleTargets.begin();
+    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
     while (iter != PossibleTargets.end()) {
-      if ((iter->Benchmarks).empty()) {
+      if (((*iter)->Benchmarks).empty()) {
         iter = PossibleTargets.erase(iter);
         continue;
       }
       else {
         std::map<std::string, double>::const_iterator iter2;
         bool ok = false;
-        for (iter2 = iter->Benchmarks.begin();
-             iter2 != iter->Benchmarks.end(); iter2++)
+        for (iter2 = (*iter)->Benchmarks.begin();
+             iter2 != (*iter)->Benchmarks.end(); iter2++)
           if (lower(iter2->first) == "specint2000") {
             ok = true;
             break;
@@ -78,16 +78,16 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
 
-    std::sort(PossibleTargets.begin(), PossibleTargets.end(), CheckCPUSpeeds);
+    PossibleTargets.sort(CheckCPUSpeeds);
 
     logger.msg(DEBUG, "Best targets are: %d", PossibleTargets.size());
 
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, iter->DomainName);
+      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
 
     TargetSortingDone = true;
 
