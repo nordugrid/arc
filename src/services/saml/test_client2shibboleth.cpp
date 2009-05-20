@@ -178,7 +178,7 @@ int main(void) {
   Arc::HTTPClientInfo redirect_info = info;
   do {
     std::cout<<"Code: "<<redirect_info.code<<"Reason: "<<redirect_info.reason<<"Size: "<<
-    redirect_info.size<<"Type: "<<redirect_info.type<<"Set-Cookie: "<<redirect_info.cookie<<
+    redirect_info.size<<"Type: "<<redirect_info.type<<"Set-Cookie: "<<*(redirect_info.cookies.begin())<<
     "Location: "<<redirect_info.location<<std::endl;
     if(redirect_info.code != 302) break;
     
@@ -188,8 +188,8 @@ int main(void) {
     Arc::PayloadRaw redirect_request;
     Arc::PayloadRawInterface *redirect_response = NULL;
 
-    std::map<std::string, std::string> http_attributes;
-    if(!(redirect_info.cookie.empty())) http_attributes["Cookie"]=redirect_info.cookie;
+    std::multimap<std::string, std::string> http_attributes;
+    if(!(redirect_info.cookies.empty())) http_attributes.insert(std::pair<std::string,std::string>("Cookie",*(redirect_info.cookies.begin())));
 
     Arc::MCC_Status redirect_status = redirect_client.process("GET", http_attributes, 
                               &redirect_request, &redirect_info, &redirect_response);
@@ -217,11 +217,11 @@ int main(void) {
   //std::string login_html("j_username=root&j_password=aa1122");
   std::string login_html("j_username=staff&j_password=123456");
   redirect_request_final.Insert(login_html.c_str(),0,login_html.size());
-  std::map<std::string, std::string> http_attributes;
-  http_attributes["Content-Type"] = "application/x-www-form-urlencoded";
+  std::multimap<std::string, std::string> http_attributes;
+  http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
   //Use the first cookie
-  if(!(info.cookie.empty()))            
-    http_attributes["Cookie"]=info.cookie; 
+  if(!(info.cookies.empty()))            
+    http_attributes.insert(std::pair<std::string,std::string>("Cookie",*(info.cookies.begin()))); 
   Arc::PayloadRawInterface *redirect_response_final = NULL;
   Arc::HTTPClientInfo redirect_info_final;
   Arc::MCC_Status redirect_status_final = redirect_client_final.process("POST", http_attributes, 
