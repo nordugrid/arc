@@ -811,19 +811,23 @@ static void soft_state_thread(void *data) {
         else if (MatchXMLName((*inpayload).Child(0), "Connect")) {
             Arc::XMLNode r = res.NewChild("isis:ConnectResponse");
             Arc::XMLNode connect_= (*inpayload).Child(0);
-            ret = Connect(connect_, r);
+            if(CheckAuth("isis", inmsg, r)) {
+                ret = Connect(connect_, r);
+            }
         }
 
         else if(MatchXMLNamespace((*inpayload).Child(0),"http://docs.oasis-open.org/wsrf/rp-2")) {
-            // TODO: do not copy out_ to outpayload.
-            Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
-            if(out_) {
-                *outpayload=*out_;
-                delete out_;
-            } else {
-                delete outpayload;
-                return make_soap_fault(outmsg);
-            };
+            if(CheckAuth("client", inmsg, r)) {
+                // TODO: do not copy out_ to outpayload.
+                Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
+                if(out_) {
+                    *outpayload=*out_;
+                    delete out_;
+                } else {
+                    delete outpayload;
+                    return make_soap_fault(outmsg);
+                }
+            }
         }
 
         outmsg.Payload(outpayload);
