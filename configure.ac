@@ -251,8 +251,11 @@ else
     AC_MSG_NOTICE([Missing python wrapper or swig - skipping python bindings])
 fi
 
-PYTHON_VERSION=$SAVE_PYTHON_VERSION
-
+case $host in
+   *-*-mingw*)
+     PYTHON_VERSION=$SAVE_PYTHON_VERSION
+   ;;        
+esac
 
 if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
     AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
