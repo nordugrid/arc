@@ -7,7 +7,9 @@
 #include <string>
 #include <sstream>
 
+#include <arc/FileLock.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/Sandbox.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterARC1.h"
@@ -30,8 +32,8 @@ namespace Arc {
     return new SubmitterARC1((Config*)(*accarg));
   }
 
-  bool SubmitterARC1::Submit(const JobDescription& jobdesc, XMLNode& info) const {
-
+  URL SubmitterARC1::Submit(const JobDescription& jobdesc,
+                            const std::string& joblistfile) const {
     MCCConfig cfg;
     ApplySecurity(cfg);
     AREXClient ac(submissionEndpoint, cfg);
@@ -42,11 +44,11 @@ namespace Arc {
     std::string jobid;
     if (!ac.submit(jsdlfile, jobid, submissionEndpoint.Protocol() == "https")) {
       logger.msg(ERROR, "Failed submitting job");
-      return false;
+      return URL();
     }
     if (jobid.empty()) {
       logger.msg(ERROR, "Service returned no job identifier");
-      return false;
+      return URL();
     }
 
     XMLNode jobidx(jobid);
@@ -54,17 +56,32 @@ namespace Arc {
 
     if (!PutFiles(jobdesc, session_url)) {
       logger.msg(ERROR, "Failed uploading local input files");
-      return false;
+      return URL();
     }
 
+    Arc::NS ns;
+    Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = session_url.str();
+    if (!jobdesc.JobName.empty())
+      info.NewChild("Name") = jobdesc.JobName;
+    info.NewChild("Flavour") = flavour;
+    info.NewChild("Cluster") = cluster.str();
     info.NewChild("InfoEndpoint") = session_url.str();
+    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
+    Sandbox::Add(jobdesc, info);
 
-    return true;
+    FileLock lock(joblistfile);
+    Config jobs;
+    jobs.ReadFromFile(joblistfile);
+    jobs.NewChild(info);
+    jobs.SaveToFile(joblistfile);
+
+    return session_url;
   }
 
-  bool SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const {
-
+  URL SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
+                             bool forcemigration,
+                             const std::string& joblistfile) const {
     MCCConfig cfg;
     ApplySecurity(cfg);
     AREXClient ac(submissionEndpoint, cfg);
@@ -75,13 +92,14 @@ namespace Arc {
     std::string jobdescstring = jobdesc.UnParse("POSIXJSDL");
 
     std::string newjobid;
-    if (!ac.migrate(idstr, jobdescstring, forcemigration, newjobid, submissionEndpoint.Protocol() == "https")) {
+    if (!ac.migrate(idstr, jobdescstring, forcemigration, newjobid,
+                    submissionEndpoint.Protocol() == "https")) {
       logger.msg(ERROR, "Failed migrating job");
-      return false;
+      return URL();
     }
     if (newjobid.empty()) {
       logger.msg(ERROR, "Service returned no job identifier");
-      return false;
+      return URL();
     }
 
     XMLNode newjobidx(newjobid);
@@ -89,13 +107,27 @@ namespace Arc {
 
     if (!PutFiles(jobdesc, session_url)) {
       logger.msg(ERROR, "Failed uploading local input files");
-      return false;
+      return URL();
     }
 
+    Arc::NS ns;
+    Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = session_url.str();
+    if (!jobdesc.JobName.empty())
+      info.NewChild("Name") = jobdesc.JobName;
+    info.NewChild("Flavour") = flavour;
+    info.NewChild("Cluster") = cluster.str();
     info.NewChild("InfoEndpoint") = session_url.str();
+    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
+    Sandbox::Add(jobdesc, info);
 
-    return true;
+    FileLock lock(joblistfile);
+    Config jobs;
+    jobs.ReadFromFile(joblistfile);
+    jobs.NewChild(info);
+    jobs.SaveToFile(joblistfile);
+
+    return session_url;
   }
 
 } // namespace Arc

@@ -6,7 +6,9 @@
 
 #include <string>
 
+#include <arc/FileLock.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/Sandbox.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
 
@@ -30,7 +32,8 @@ namespace Arc {
     return new SubmitterUNICORE((Config*)(*accarg));
   }
 
-  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, XMLNode& info) const {
+  URL SubmitterUNICORE::Submit(const JobDescription& jobdesc,
+                               const std::string& joblistfile) const {
     MCCConfig cfg;
     ApplySecurity(cfg);
 
@@ -38,7 +41,7 @@ namespace Arc {
     ClientSOAP client(cfg, submissionEndpoint);
     //if((!client) || (!(*client))) {
     //   logger.msg(ERROR,"Failed to create client for SOAP exchange");
-    //   return false;
+    //   return URL();
     //}
 
     // Prepare BES request
@@ -70,11 +73,11 @@ namespace Arc {
                      "BESFactoryPortType/CreateActivity", &req, &resp);
     if (!status) {
       logger.msg(ERROR, "Submission request failed");
-      return false;
+      return URL();
     }
     if (resp == NULL) {
       logger.msg(ERROR, "There was no SOAP response");
-      return false;
+      return URL();
     }
 
     SOAPFault fs(*resp);
@@ -85,7 +88,7 @@ namespace Arc {
       // delete resp;
       logger.msg(VERBOSE, "Submission returned failure: %s", s);
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
-      return false;
+      return URL();
     }
     XMLNode id;
     (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
@@ -94,17 +97,36 @@ namespace Arc {
     // delete resp;
     if (jobid.empty()) {
       logger.msg(ERROR, "Service returned no job identifier");
-      return false;
+      return URL();
     }
-    info.NewChild("AuxInfo") = jobid;
+
+    NS ns1;
+    XMLNode info(ns1, "Job");
     info.NewChild("JobID") = (std::string)id["Address"];
+    if (!jobdesc.JobName.empty())
+      info.NewChild("Name") = jobdesc.JobName;
+    info.NewChild("Flavour") = flavour;
+    info.NewChild("Cluster") = cluster.str();
+    info.NewChild("AuxInfo") = jobid;
     info.NewChild("InfoEndpoint") = submissionEndpoint.str();
+    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
+    Sandbox::Add(jobdesc, info);
 
-    return true;
+    FileLock lock(joblistfile);
+    Config jobs;
+    jobs.ReadFromFile(joblistfile);
+    jobs.NewChild(info);
+    jobs.SaveToFile(joblistfile);
+
+    return (std::string)id["Address"];
   }
 
-  bool SubmitterUNICORE::Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const {
+  URL SubmitterUNICORE::Migrate(const URL& jobid,
+                                const JobDescription& jobdesc,
+                                bool forcemigration,
+                                const std::string& joblistfile) const {
     logger.msg(ERROR, "Migration to a UNICORE cluster is not supported.");
-    return false;
+    return URL();
   }
+
 } // namespace Arc

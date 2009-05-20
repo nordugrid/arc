@@ -508,8 +508,6 @@ namespace Arc {
       if (!PatchInputFileLocation(*itJob, jobDesc))
         continue;
 
-      XMLNode info(NS(), "Job");
-
       bool endOfList = false;
       broker->PreFilterTargets(targetGen, jobDesc);
       // Try to submit modified JSDL. Only to ARC1 clusters.
@@ -527,7 +525,8 @@ namespace Arc {
           continue;
         }
 
-        if (!currentTarget.GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, info)) {
+        URL jobid = currentTarget.GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, usercfg.JobListFile());
+        if (!jobid) {
           logger.msg(WARNING, "Migration to %s failed, trying next target", currentTarget.url.str());
           continue;
         }
@@ -548,24 +547,11 @@ namespace Arc {
 
           }
 
-        if (!jobDesc.JobName.empty())
-          info.NewChild("Name") = jobDesc.JobName;
-
-        info.NewChild("Flavour") = currentTarget.GridFlavour;
-        info.NewChild("Cluster") = currentTarget.Cluster.str();
-        info.NewChild("LocalSubmissionTime") = (std::string)Time();
-
-        jobstorage.NewChild("Job").Replace(info);
-
         migratedJobIDs.push_back(URL(itJob->JobID.str()));
         break;
       } // Loop over all possible targets
     } // Loop over jobs
 
-    if (migratedJobIDs.size() > 0) {
-      FileLock lock(joblist);
-      jobstorage.SaveToFile(joblist);
-    }
     RemoveJobs(migratedJobIDs);   // Saves file aswell.
 
     return retVal;

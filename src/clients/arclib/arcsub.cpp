@@ -19,6 +19,7 @@
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
+#include <arc/URL.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
@@ -233,14 +234,12 @@ int main(int argc, char **argv) {
   int jobnr = 1;
   std::list<std::string> jobids;
 
-  Arc::NS ns;
-  Arc::Config jobstorage(ns);
-
   //prepare loader
   if (broker.empty())
     broker = "RandomBroker";
 
   Arc::ACCConfig acccfg;
+  Arc::NS ns;
   Arc::Config cfg(ns);
   acccfg.MakeConfig(cfg);
 
@@ -315,10 +314,9 @@ int main(int argc, char **argv) {
 
       Arc::Submitter *submitter = target.GetSubmitter(usercfg);
 
-      Arc::NS ns;
-      Arc::XMLNode info(ns, "Job");
       //submit the job
-      if (!submitter->Submit(*it, info)) {
+      Arc::URL jobid = submitter->Submit(*it, usercfg.JobListFile());
+      if (!jobid) {
         std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str()) << std::endl;
         continue;
       }
@@ -334,36 +332,15 @@ int main(int argc, char **argv) {
             if ((*target2).WaitingJobs != -1)
               (*target2).WaitingJobs += abs(it->Slots);
         }
-      if (!it->JobName.empty())
-        info.NewChild("Name") = it->JobName;
-      info.NewChild("Flavour") = target.GridFlavour;
-      info.NewChild("Cluster") = target.Cluster.str();
-      info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-      if (dolocalsandbox)
-        if (!Arc::Sandbox::Add(*it, info))
-          logger.msg(Arc::ERROR, "Job not stored in sandbox");
-        else
-          logger.msg(Arc::VERBOSE, "Job description succesfully stored in sandbox");
-      jobstorage.NewChild("Job").Replace(info);
 
-      std::cout << Arc::IString("Job submitted with jobid: %s",
-                                (std::string)info["JobID"]) << std::endl;
+      std::cout << Arc::IString("Job submitted with jobid: %s", jobid.str())
+                << std::endl;
+
       JobSubmitted = true;
       break;
 
     } //end loop over all possible targets
   } //end loop over all job descriptions
-
-
-  //now add info about all submitted jobs to the local xml file
-  { //start of file lock
-    Arc::FileLock lock(usercfg.JobListFile());
-    Arc::Config jobs;
-    jobs.ReadFromFile(usercfg.JobListFile());
-    for (Arc::XMLNode j = jobstorage["Job"]; j; ++j)
-      jobs.NewChild(j);
-    jobs.SaveToFile(usercfg.JobListFile());
-  } //end of file lock
 
   if (jobdescriptionlist.size() > 1) {
     std::cout << std::endl << Arc::IString("Job submission summary:")

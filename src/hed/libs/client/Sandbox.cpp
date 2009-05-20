@@ -30,10 +30,10 @@ namespace Arc {
 
   Logger Sandbox::logger(Logger::getRootLogger(), "Sandbox");
 
-  bool Sandbox::Add(JobDescription& jobdesc, XMLNode& info) {
+  bool Sandbox::Add(const JobDescription& jobdesc, XMLNode& info) {
     logger.msg(DEBUG, "Adding job info to sandbox");
     // Create sandbox XML node
-    for (std::list<URL>::iterator it = jobdesc.OldJobIDs.begin();
+    for (std::list<URL>::const_iterator it = jobdesc.OldJobIDs.begin();
          it != jobdesc.OldJobIDs.end(); it++)
       info.NewChild("OldJobID") = it->str();
     // Store original job description string

@@ -256,9 +256,9 @@ int main(int argc, char **argv) {
 
       Arc::Submitter *submitter = target.GetSubmitter(usercfg);
 
-      Arc::NS ns;
-      Arc::XMLNode info(ns, "Job");
-      if (!submitter->Submit(jobdesc, info)) {
+      //submit the job
+      Arc::URL jobid = submitter->Submit(jobdesc, usercfg.JobListFile());
+      if (!jobid) {
         std::cout << Arc::IString("Submission to %s failed, trying next target", target.url.str()) << std::endl;
         continue;
       }
@@ -274,20 +274,10 @@ int main(int argc, char **argv) {
             if ((*target2).WaitingJobs != -1)
               (*target2).WaitingJobs += abs(jobdesc.Slots);
         }
-      if (!jobdesc.JobName.empty())
-        info.NewChild("Name") = jobdesc.JobName;
-      info.NewChild("Flavour") = target.GridFlavour;
-      info.NewChild("Cluster") = target.Cluster.str();
-      info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-      if (!Arc::Sandbox::Add(jobdesc, info))
-        logger.msg(Arc::ERROR, "Job not stored in sandbox");
-      else
-        logger.msg(Arc::VERBOSE, "Job description succesfully stored in sandbox");
 
-      jobstorage.NewChild("Job").Replace(info);
+      std::cout << Arc::IString("Job resubmitted with new jobid: %s",
+                                jobid.str()) << std::endl;
 
-      logger.msg(Arc::INFO, "Job resubmitted with new jobid: %s\n",
-                 (std::string)info["JobID"]);
       JobSubmitted = true;
       jobs.push_back(it->JobID.str());
       break;
@@ -311,20 +301,6 @@ int main(int argc, char **argv) {
       if (!keep)
         if (!(*it)->Clean(status, true))
           logger.msg(Arc::WARNING, "Job could not be killed or cleaned");
-
-
-  //now add info about all resubmitted jobs to the local xml file
-  { //start of file lock
-    Arc::FileLock lock(usercfg.JobListFile());
-    Arc::Config jobs;
-    jobs.ReadFromFile(usercfg.JobListFile());
-    for (Arc::XMLNode j = jobstorage["Job"]; j; ++j) {
-      jobs.NewChild(j);
-      std::cout << Arc::IString("Job resubmitted with new jobid: %s\n",
-                                (std::string)j["JobID"]) << std::endl;
-    }
-    jobs.SaveToFile(usercfg.JobListFile());
-  } //end of file lock
 
   /*
      if (toberesubmitted.size() > 1) {

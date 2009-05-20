@@ -23,8 +23,10 @@ namespace Arc {
 
   public:
     static Plugin* Instance(PluginArgument *arg);
-    bool Submit(const JobDescription& jobdesc, XMLNode& info) const;
-    bool Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const;
+    URL Submit(const JobDescription& jobdesc,
+               const std::string& joblistfile) const;
+    URL Migrate(const URL& jobid, const JobDescription& jobdesc,
+                bool forcemigration, const std::string& joblistfile) const;
   };
 
 } // namespace Arc

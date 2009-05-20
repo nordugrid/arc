@@ -4,9 +4,11 @@
 #include <config.h>
 #endif
 
+#include <arc/FileLock.h>
 #include <arc/GUID.h>
 #include <arc/message/MCC.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/Sandbox.h>
 
 #include "CREAMClient.h"
 #include "SubmitterCREAM.h"
@@ -26,7 +28,8 @@ namespace Arc {
     return new SubmitterCREAM((Config*)(*accarg));
   }
 
-  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, XMLNode& info) const {
+  URL SubmitterCREAM::Submit(const JobDescription& jobdesc,
+                             const std::string& joblistfile) const {
     MCCConfig cfg;
     ApplySecurity(cfg);
     std::string delegationid = UUID();
@@ -35,7 +38,7 @@ namespace Arc {
     CREAMClient gLiteClientDelegation(delegationurl, cfg);
     if (!gLiteClientDelegation.createDelegation(delegationid, proxyPath)) {
       logger.msg(ERROR, "Creating delegation failed");
-      return false;
+      return URL();
     }
     URL submissionurl(submissionEndpoint);
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
@@ -45,27 +48,44 @@ namespace Arc {
     creamJobInfo jobInfo;
     if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
       logger.msg(ERROR, "Job registration failed");
-      return false;
+      return URL();
     }
     if (!PutFiles(jobdesc, jobInfo.ISB_URI)) {
       logger.msg(ERROR, "Failed uploading local input files");
-      return false;
+      return URL();
     }
     if (!gLiteClientSubmission.startJob(jobInfo.jobId)) {
       logger.msg(ERROR, "Failed starting job");
-      return false;
+      return URL();
     }
 
+    Arc::NS ns;
+    Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = submissionurl.str() + '/' + jobInfo.jobId;
+    if (!jobdesc.JobName.empty())
+      info.NewChild("Name") = jobdesc.JobName;
+    info.NewChild("Flavour") = flavour;
+    info.NewChild("Cluster") = cluster.str();
+    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
     info.NewChild("ISB") = jobInfo.ISB_URI;
     info.NewChild("OSB") = jobInfo.OSB_URI;
     info.NewChild("AuxURL") = delegationurl.str() + '/' + delegationid;
+    Sandbox::Add(jobdesc, info);
 
-    return true;
+    FileLock lock(joblistfile);
+    Config jobs;
+    jobs.ReadFromFile(joblistfile);
+    jobs.NewChild(info);
+    jobs.SaveToFile(joblistfile);
+
+    return submissionurl.str() + '/' + jobInfo.jobId;
   }
 
-  bool SubmitterCREAM::Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const {
+  URL SubmitterCREAM::Migrate(const URL& jobid, const JobDescription& jobdesc,
+                              bool forcemigration,
+                              const std::string& joblistfile) const {
     logger.msg(ERROR, "Migration to a CREAM cluster is not supported.");
-    return false;
+    return URL();
   }
+
 } // namespace Arc

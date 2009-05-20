@@ -4,8 +4,10 @@
 #include <config.h>
 #endif
 
+#include <arc/FileLock.h>
 #include <arc/Logger.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/Sandbox.h>
 
 #include "SubmitterARC0.h"
 #include "FTPControl.h"
@@ -26,20 +28,21 @@ namespace Arc {
     return new SubmitterARC0((Config*)(*accarg));
   }
 
-  bool SubmitterARC0::Submit(const JobDescription& jobdesc, XMLNode& info) const {
+  URL SubmitterARC0::Submit(const JobDescription& jobdesc,
+                            const std::string& joblistfile) const {
 
     FTPControl ctrl;
 
     if (!ctrl.Connect(submissionEndpoint,
                       proxyPath, certificatePath, keyPath, 500)) {
       logger.msg(ERROR, "Submit: Failed to connect");
-      return false;
+      return URL();
     }
 
     if (!ctrl.SendCommand("CWD " + submissionEndpoint.Path(), 500)) {
       logger.msg(ERROR, "Submit: Failed sending CWD command");
       ctrl.Disconnect(500);
-      return false;
+      return URL();
     }
 
     std::string response;
@@ -47,7 +50,7 @@ namespace Arc {
     if (!ctrl.SendCommand("CWD new", response, 500)) {
       logger.msg(ERROR, "Submit: Failed sending CWD new command");
       ctrl.Disconnect(500);
-      return false;
+      return URL();
     }
 
     std::string::size_type pos2 = response.rfind('"');
@@ -61,12 +64,12 @@ namespace Arc {
     if (!ctrl.SendData(jobdescstring, "job", 500)) {
       logger.msg(ERROR, "Submit: Failed sending job description");
       ctrl.Disconnect(500);
-      return false;
+      return URL();
     }
 
     if (!ctrl.Disconnect(500)) {
       logger.msg(ERROR, "Submit: Failed to disconnect after submission");
-      return false;
+      return URL();
     }
 
     URL jobid(submissionEndpoint);
@@ -74,7 +77,7 @@ namespace Arc {
 
     if (!PutFiles(jobdesc, jobid)) {
       logger.msg(ERROR, "Submit: Failed uploading local input files");
-      return false;
+      return URL();
     }
 
     // Prepare contact url for information about this job
@@ -83,15 +86,31 @@ namespace Arc {
                                   jobid.str() + ")");
     infoEndpoint.ChangeLDAPScope(URL::subtree);
 
+    Arc::NS ns;
+    Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = jobid.str();
+    if (!jobdesc.JobName.empty())
+      info.NewChild("Name") = jobdesc.JobName;
+    info.NewChild("Flavour") = flavour;
+    info.NewChild("Cluster") = cluster.str();
     info.NewChild("InfoEndpoint") = infoEndpoint.str();
+    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
+    Sandbox::Add(jobdesc, info);
 
-    return true;
+    FileLock lock(joblistfile);
+    Config jobs;
+    jobs.ReadFromFile(joblistfile);
+    jobs.NewChild(info);
+    jobs.SaveToFile(joblistfile);
+
+    return jobid;
   }
 
-  bool SubmitterARC0::Migrate(const URL& jobid, const JobDescription& jobdesc, bool forcemigration, XMLNode& info) const {
+  URL SubmitterARC0::Migrate(const URL& jobid, const JobDescription& jobdesc,
+                             bool forcemigration,
+                             const std::string& joblistfile) const {
     logger.msg(ERROR, "Migration to a ARC0 cluster is not supported.");
-    return false;
+    return URL();
   }
 
 } // namespace Arc

@@ -20,8 +20,11 @@ namespace Arc {
     Submitter(Config *cfg, const std::string& flavour);
   public:
     virtual ~Submitter();
-    virtual bool Submit(const JobDescription& jobdesc, XMLNode& info) const = 0;
-    virtual bool Migrate(const URL&, const JobDescription&, bool forcemigration, XMLNode& info) const = 0;
+    virtual URL Submit(const JobDescription& jobdesc,
+                       const std::string& joblistfile) const = 0;
+    virtual URL Migrate(const URL& jobid, const JobDescription& jobdesc,
+                        bool forcemigration,
+                        const std::string& joblistfile) const = 0;
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
 

@@ -18,7 +18,7 @@ namespace Arc {
     /* Add jobdescription of job to XMLNode which is
        stored in the sandbox
      */
-    static bool Add(JobDescription& jobdesc,
+    static bool Add(const JobDescription& jobdesc,
                     XMLNode& info);
 
     /* Calculate checksum of file */
