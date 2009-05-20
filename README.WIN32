@@ -44,7 +44,7 @@ Building ARC on Windows system using MinGW
   (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/)
   TODO: We probably need to provide either mingwPORT or some other port which 
   includes only glibmm.
-  - Add mktime.m4 and functions.m4 to C:\GTK\2.0\share\alocal
+  - Add mktime.m4 and functions.m4 to C:\GTK\share\aclocal
   	(https://svn.habolinux.de/filedetails.php?repname=tar&path=%2Fm4%2Fmktime.m4&rev=0&sc=0)
   	(http://cvs.savannah.gnu.org/viewvc/*checkout*/autoconf/autoconf/lib/autoconf/functions.m4?revision=1.119)
 
@@ -110,7 +110,7 @@ Configure setup:
  
    LDFLAGS="-L/usr/local/bin" CXXFLAGS="-I/usr/local/include/python2.4"
 
-Berkeley DB install and building (recommend version: 4.7):
+Berkeley DB install and building (recommend version: 4.7, Sched/ISIS using this):
 
 Source code:
 
@@ -126,7 +126,7 @@ Configure setup:
    
     LDFLAGS="-L/usr/local/BerkeleyDB.4.7/bin"  --with-dbcxx-include="/usr/local/BerkeleyDB.4.7/include
 
-Globus Toolkit:
+Globus Toolkit (GridFTP DMC, RSL, RLS DMC, GSI MCC using this):
 
 Installation package:
 
@@ -136,6 +136,23 @@ Performing configuration:
 
    GLOBUS_LOCATION=/c/Globus
    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/c/Globus/lib/pkgconfig 
+
+OpenLDAP (ARC0/CREAM are using LDAP DMC which need this):
+
+Source code:
+
+   http://www.openldap.org/software/download
+
+Performing configuration and installation:
+
+   ./configure --enable-bdb=no --enable-hdb=no CPPFLAGS="-I/usr/local/include" \
+   LDFLAGS="-L/usr/local/lib" LIBS="-lwsock32"
+   make
+   make install
+
+Configure setup: 
+   
+    LDFLAGS="-L/usr/local/bin"  CXXFLAGS="-I/usr/local/include"
 
 - Explain how to make it work.
   * After building ARC1, you might want to run it. Currently only some limited functionality of the clients are working
