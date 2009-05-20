@@ -210,7 +210,8 @@ bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capat
 }
 
 
-SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, SAMLVersion saml_version) : SOAPEnvelope (soap), samlversion(saml_version) {
+SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, 
+  SAMLVersion saml_version, XMLNode saml_assertion) : SOAPEnvelope (soap), samlversion(saml_version) {
   //if(!init_xmlsec()) return;
   if(samlversion == SAML2) {
     // Apply predefined namespace prefix
@@ -225,96 +226,104 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     assertion_ns["saml2"] = SAML2_NAMESPACE;
     // Insert the wsse:Security element
     XMLNode wsse = get_node(header,"wsse:Security");
+    XMLNode assertion;
 
-    /*****************************/
-    // Generate the saml assertion
-    // Currently only saml2 is created
-    XMLNode assertion = get_node(wsse, "saml2:Assertion");
-    assertion.Namespaces(assertion_ns);
-    assertion.Name("saml2:Assertion");
-    std::string assertion_id = UUID();
-    assertion.NewAttribute("ID") = assertion_id;
-    assertion.NewAttribute("IssueInstant") = "2008-07-12T16:53:33.173Z";
-    assertion.NewAttribute("Issuer") = "www.knowarc.org";
-    //assertion.NewAttribute("MajorVersion") = "1";
-    //assertion.NewAttribute("MinorVersion") = "1";
+    if(!saml_assertion) { //If the SAML Assertion has not been provided, the self-signed assertion
+                          //will be generated based on the keyfile
+      /*****************************/
+      // Generate the saml assertion
+      // Currently only saml2 is created
+      assertion = get_node(wsse, "saml2:Assertion");
+      assertion.Namespaces(assertion_ns);
+      assertion.Name("saml2:Assertion");
+      std::string assertion_id = UUID();
+      assertion.NewAttribute("ID") = assertion_id;
+      assertion.NewAttribute("IssueInstant") = "2008-07-12T16:53:33.173Z";
+      assertion.NewAttribute("Issuer") = "www.knowarc.org";
+      //assertion.NewAttribute("MajorVersion") = "1";
+      //assertion.NewAttribute("MinorVersion") = "1";
     
-    XMLNode condition = get_node(assertion, "saml2:Conditions");
-    condition.NewAttribute("NotBefore") = "2008-07-12T16:53:33.173Z";
-    condition.NewAttribute("NotOnOrAfter") = "2008-07-19T16:53:33.173Z";
+      XMLNode condition = get_node(assertion, "saml2:Conditions");
+      condition.NewAttribute("NotBefore") = "2008-07-12T16:53:33.173Z";
+      condition.NewAttribute("NotOnOrAfter") = "2008-07-19T16:53:33.173Z";
 
-    XMLNode statement = get_node(assertion, "saml2:Statement");
+      XMLNode statement = get_node(assertion, "saml2:Statement");
     
-    XMLNode subject = get_node(statement, "saml2:Subject");
-    XMLNode nameid = get_node(subject, "saml2:NameID");
-    nameid.NewAttribute("NameQualifier") = "test.uio.no";
-    nameid.NewAttribute("Format") = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName";
-    nameid = "CN=test, OU=uio, O=knowarc";
-
-    XMLNode subjectconfirmation = get_node(subject, "saml2:SubjectConfirmation");
-    get_node(subjectconfirmation, "saml2:ConfirmationMethod") = "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key";
-    XMLNode keyinfo = get_node(subjectconfirmation, "ds:KeyInfo");
-    XMLNode keyvalue = get_node(keyinfo, "ds:KeyValue");
-    //Put the pubkey as the keyvalue
-    keyvalue = get_key_from_certfile(certfile.c_str()); 
-
-    //Add some attribute here
-    XMLNode attribute = get_node(statement, "saml2:Attribute");
-    attribute.NewAttribute("AttributeName") = "email";
-    attribute.NewAttribute("AttributeNamespace") = "http://www.knowarc.org/attributes";
-    
-    //Generate the signature to the assertion, it should be the attribute authority to sign the assertion
-    //Add signature template 
-    xmlNodePtr assertion_signature = NULL;
-    xmlNodePtr assertion_reference = NULL;
-    assertion_signature = xmlSecTmplSignatureCreate(NULL,
-				xmlSecTransformExclC14NId,
-				xmlSecTransformRsaSha1Id, NULL);
-    //Add signature into assertion
-    xmlNodePtr assertion_nd = ((SAMLToken*)(&assertion))->node_;
-    xmlAddChild(assertion_nd, assertion_signature);
-
-    //Add reference for signature
-    xmlDocPtr docPtr = assertion_nd->doc;
-    xmlChar* id = NULL;
-    id =  xmlGetProp(assertion_nd, (xmlChar *)"ID");
-    if(!id) { std::cerr<<"There is not Assertion ID attribute in assertion"<<std::endl; return; }
-
-    std::string assertion_uri; assertion_uri.append("#"); assertion_uri.append((char*)id);
-
-    assertion_reference = xmlSecTmplSignatureAddReference(assertion_signature, xmlSecTransformSha1Id,
-						    NULL, (xmlChar *)(assertion_uri.c_str()), NULL);
-    xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformEnvelopedId);
-    xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformExclC14NId);
+      XMLNode subject = get_node(statement, "saml2:Subject");
+      XMLNode nameid = get_node(subject, "saml2:NameID");
+      nameid.NewAttribute("NameQualifier") = "test.uio.no";
+      nameid.NewAttribute("Format") = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName";
+      nameid = "CN=test, OU=uio, O=knowarc";
   
-    xmlAttrPtr id_attr = xmlHasProp(assertion_nd, (xmlChar *)"ID");
-    xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
-    xmlFree(id);
+      XMLNode subjectconfirmation = get_node(subject, "saml2:SubjectConfirmation");
+      get_node(subjectconfirmation, "saml2:ConfirmationMethod") = "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key";
+      XMLNode keyinfo = get_node(subjectconfirmation, "ds:KeyInfo");
+      XMLNode keyvalue = get_node(keyinfo, "ds:KeyValue");
+      //Put the pubkey as the keyvalue
+      keyvalue = get_key_from_certfile(certfile.c_str()); 
+  
+      //Add some attribute here
+      XMLNode attribute = get_node(statement, "saml2:Attribute");
+      attribute.NewAttribute("AttributeName") = "email";
+      attribute.NewAttribute("AttributeNamespace") = "http://www.knowarc.org/attributes";
+      
+      //Generate the signature to the assertion, it should be the attribute authority to sign the assertion
+      //Add signature template 
+      xmlNodePtr assertion_signature = NULL;
+      xmlNodePtr assertion_reference = NULL;
+      assertion_signature = xmlSecTmplSignatureCreate(NULL,
+  				xmlSecTransformExclC14NId,
+				xmlSecTransformRsaSha1Id, NULL);
+      //Add signature into assertion
+      xmlNodePtr assertion_nd = ((SAMLToken*)(&assertion))->node_;
+      xmlAddChild(assertion_nd, assertion_signature);
+  
+      //Add reference for signature
+      xmlDocPtr docPtr = assertion_nd->doc;
+      xmlChar* id = NULL;
+      id =  xmlGetProp(assertion_nd, (xmlChar *)"ID");
+      if(!id) { std::cerr<<"There is not Assertion ID attribute in assertion"<<std::endl; return; }
 
-    xmlNodePtr key_info = xmlSecTmplSignatureEnsureKeyInfo(assertion_signature, NULL);
-    xmlSecTmplKeyInfoAddX509Data(key_info);
+      std::string assertion_uri; assertion_uri.append("#"); assertion_uri.append((char*)id);
 
-    //Sign the assertion
-    xmlSecDSigCtx *dsigCtx = xmlSecDSigCtxCreate(NULL);
-    //load private key, assuming there is no need for passphrase
-    dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, NULL, NULL);
-    if(dsigCtx->signKey == NULL) {
-      xmlSecDSigCtxDestroy(dsigCtx);
-      std::cerr<<"Can not load key"<<std::endl; return;
-    }
-    if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
-      xmlSecDSigCtxDestroy(dsigCtx);
-      std::cerr<<"Can not load certificate"<<std::endl; return;	
-    }
-    if (xmlSecDSigCtxSign(dsigCtx, assertion_signature) < 0) {
-      xmlSecDSigCtxDestroy(dsigCtx);
-      std::cerr<<"Can not sign assertion"<<std::endl; return;
-    }
-    if(dsigCtx != NULL)xmlSecDSigCtxDestroy(dsigCtx);
+      assertion_reference = xmlSecTmplSignatureAddReference(assertion_signature, xmlSecTransformSha1Id,
+						    NULL, (xmlChar *)(assertion_uri.c_str()), NULL);
+      xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformEnvelopedId);
+      xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformExclC14NId);
+  
+      xmlAttrPtr id_attr = xmlHasProp(assertion_nd, (xmlChar *)"ID");
+      xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
+      xmlFree(id);
 
-    std::string str;
-    assertion.GetXML(str);
-    std::cout<<"Assertion: "<<str<<std::endl;
+      xmlNodePtr key_info = xmlSecTmplSignatureEnsureKeyInfo(assertion_signature, NULL);
+      xmlSecTmplKeyInfoAddX509Data(key_info);
+
+      //Sign the assertion
+      xmlSecDSigCtx *dsigCtx = xmlSecDSigCtxCreate(NULL);
+      //load private key, assuming there is no need for passphrase
+      dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, NULL, NULL);
+      if(dsigCtx->signKey == NULL) {
+        xmlSecDSigCtxDestroy(dsigCtx);
+        std::cerr<<"Can not load key"<<std::endl; return;
+      }
+      if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
+        xmlSecDSigCtxDestroy(dsigCtx);
+        std::cerr<<"Can not load certificate"<<std::endl; return;	
+      }
+      if (xmlSecDSigCtxSign(dsigCtx, assertion_signature) < 0) {
+        xmlSecDSigCtxDestroy(dsigCtx);
+        std::cerr<<"Can not sign assertion"<<std::endl; return;
+      }
+      if(dsigCtx != NULL)xmlSecDSigCtxDestroy(dsigCtx);
+
+      std::string str;
+      assertion.GetXML(str);
+      std::cout<<"Assertion: "<<str<<std::endl;
+    }
+    else {
+      assertion = wsse.NewChild(saml_assertion);
+    }
+
 
     /*****************************/
     //Generate the signature of message body based on the KeyInfo inside saml assertion
@@ -330,6 +339,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     //Add reference for signature
     xmlNodePtr bodyPtr = ((SAMLToken*)(&body))->node_;
     //docPtr = wsse_nd->doc;
+    xmlChar* id = NULL;
     id =  xmlGetProp(bodyPtr, (xmlChar *)"Id");
     if(!id) {
       std::cout<<"There is not wsu:Id attribute in soap body, add a new one"<<std::endl;
@@ -343,11 +353,12 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     xmlSecTmplReferenceAddTransform(wsse_reference, xmlSecTransformEnvelopedId);
     xmlSecTmplReferenceAddTransform(wsse_reference, xmlSecTransformExclC14NId);
 
-    id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
+    xmlAttrPtr id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
+    xmlDocPtr docPtr = bodyPtr->doc;
     xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
     xmlFree(id);
 
-    key_info = xmlSecTmplSignatureEnsureKeyInfo(wsse_signature, NULL);
+    xmlNodePtr key_info = xmlSecTmplSignatureEnsureKeyInfo(wsse_signature, NULL);
     XMLNode keyinfo_nd = wsse["Signature"]["KeyInfo"];
     XMLNode st_ref_nd = keyinfo_nd.NewChild("wsse:SecurityTokenReference");
     st_ref_nd.NewAttribute("wsu:Id") = "STR1";
@@ -357,6 +368,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     keyid_nd.NewAttribute("ValueType")="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLID"; 
     keyid_nd = (std::string)(assertion.Attribute("ID"));
 
+    xmlSecDSigCtx *dsigCtx = xmlSecDSigCtxCreate(NULL);
     //Sign the assertion
     dsigCtx = xmlSecDSigCtxCreate(NULL);
     //load private key, assuming there is no need for passphrase
@@ -380,6 +392,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     //wsse_ns = wsse.Namespaces();
     //wsse.Namespaces(wsse_ns);
 
+    std::string str;
     wsse.GetXML(str);
     std::cout<<"WSSE: "<<str<<std::endl;
   }

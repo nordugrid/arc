@@ -178,6 +178,9 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
   std::string v;
   std::size_t pos1, pos2;
   pos1 = value.find("BEGIN RSA PRIVATE KEY");
+  if(pos1 == std::string::npos) {
+    pos1 = value.find("BEGIN RSA PUBLIC KEY");
+  }
   if(pos1 != std::string::npos) {
     pos1 = pos1 + 21;
     pos2 = value.find_first_not_of("-", pos1);
@@ -185,10 +188,12 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
     pos2 = v.find_first_of("-");
     v.resize(pos2);
   }
+  else v = value;
 
   xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
   xmlSecByte* tmp_str = new xmlSecByte[v.size()];
   memset(tmp_str,0,v.size());
+
   rc = xmlSecBase64Decode((const xmlChar*)(v.c_str()), tmp_str, v.size());
   if (rc < 0) {
     //bad base-64

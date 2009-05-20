@@ -95,8 +95,11 @@ public:
  * @param certfile The certificate file.
  * @param keyfile  The key file which will be used to create signature.
  * @param samlversion The SAML version, only SAML2 is supported currently.
+ * @param samlassertion The SAML assertion got from 3rd party, and used for protecting
+ * the SOAP message; If not present, then self-signed assertion will be generated.
  */
-  SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, SAMLVersion saml_version = SAML2);
+  SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, 
+            SAMLVersion saml_version = SAML2, XMLNode saml_assertion = XMLNode());
 
 /** Deconstructor. Nothing to be done except finalizing the xmlsec library.
  */
