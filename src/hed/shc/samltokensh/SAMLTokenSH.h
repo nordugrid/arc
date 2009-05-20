@@ -1,0 +1,42 @@
+#ifndef __ARC_SEC_SAMLTOKENSH_H__
+#define __ARC_SEC_SAMLTOKENSH_H__
+
+#include <stdlib.h>
+
+#include <arc/ArcConfig.h>
+#include <arc/message/Message.h>
+#include <arc/security/SecHandler.h>
+
+namespace ArcSec {
+
+/// Adds WS-Security SAML Token into SOAP Header
+
+class SAMLTokenSH : public SecHandler {
+ private:
+  enum {
+    process_none,
+    process_extract,
+    process_generate
+  } process_type_;
+  enum {
+    signature,
+    encryption
+  } usage_type_;
+  std::string cert_file_;
+  std::string key_file_;
+  std::string ca_file_;
+  std::string ca_dir_;
+  std::string aa_service_;
+  Arc::XMLNode saml_assertion_;
+
+ public:
+  SAMLTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx);
+  virtual ~SAMLTokenSH(void);
+  static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
+  virtual bool Handle(Arc::Message* msg);  
+};
+
+} // namespace ArcSec
+
+#endif /* __ARC_SEC_SAMLTOKENSH_H__ */
+

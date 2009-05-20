@@ -1375,6 +1375,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/arcauthzsh/Makefile
                  src/hed/shc/usernametokensh/Makefile
                  src/hed/shc/x509tokensh/Makefile
+                 src/hed/shc/samltokensh/Makefile
                  src/hed/shc/saml2sso_assertionconsumersh/Makefile
                  src/hed/shc/delegationsh/Makefile
                  src/hed/identitymap/Makefile
