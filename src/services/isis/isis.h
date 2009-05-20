@@ -62,6 +62,7 @@ namespace ISIS {
             std::string CaDir(Arc::XMLNode& regentry);
 
             bool CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::XMLNode &response);
+            bool CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::Message &outmsg);
             // InformationContainer providing information via the LIDI interface
             Arc::InformationContainer infodoc_;
 

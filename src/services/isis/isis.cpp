@@ -722,6 +722,16 @@ static void soft_state_thread(void *data) {
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
+    bool ISIService::CheckAuth(const std::string& action, Arc::Message &inmsg, Arc::Message &outmsg) {
+        inmsg.Auth()->set("ISIS",new ISISSecAttr(action));
+        if(!ProcessSecHandlers(inmsg,"incoming")) {
+            logger_.msg(Arc::ERROR, "Security check failed in ISIS for incoming message");
+            make_soap_fault(outmsg, "Not allowed");
+            return false;
+        };
+        return true;
+    }
+
     bool ISIService::CheckAuth(const std::string& action, Arc::Message &inmsg,Arc::XMLNode &response) {
         inmsg.Auth()->set("ISIS",new ISISSecAttr(action));
         if(!ProcessSecHandlers(inmsg,"incoming")) {
@@ -817,7 +827,7 @@ static void soft_state_thread(void *data) {
         }
 
         else if(MatchXMLNamespace((*inpayload).Child(0),"http://docs.oasis-open.org/wsrf/rp-2")) {
-            if(CheckAuth("client", inmsg, r)) {
+            if(CheckAuth("client", inmsg, outmsg)) {
                 // TODO: do not copy out_ to outpayload.
                 Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
                 if(out_) {
