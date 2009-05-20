@@ -258,7 +258,7 @@ namespace Arc {
       }
     }
 
-    RemoveJobs(toberemoved);
+    if (toberemoved.size() > 0) RemoveJobs(toberemoved);
 
     return ok;
   }
@@ -323,7 +323,7 @@ namespace Arc {
       }
     }
 
-    RemoveJobs(toberemoved);
+    if (toberemoved.size() > 0) RemoveJobs(toberemoved);
 
     return ok;
   }
@@ -381,7 +381,7 @@ namespace Arc {
       toberemoved.push_back((*it)->JobID);
     }
 
-    RemoveJobs(toberemoved);
+    if (toberemoved.size() > 0) RemoveJobs(toberemoved);
 
     return ok;
   }
@@ -536,7 +536,7 @@ namespace Arc {
       } // Loop over all possible targets
     } // Loop over jobs
 
-    RemoveJobs(migratedJobIDs);   // Saves file aswell.
+    if (migratedJobIDs.size() > 0) RemoveJobs(migratedJobIDs);   // Saves file aswell.
 
     return retVal;
   }
