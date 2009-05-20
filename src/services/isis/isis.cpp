@@ -759,6 +759,11 @@ static void soft_state_thread(void *data) {
             BootStrap(1);
             neighbors_update_needed = false;
         } else if ( neighbors_count > 0 && neighbors_.size() == not_availables_neighbors_.size() ){
+            // Reposition itself in the peer-to-peer network
+            // if disconnected from every neighbors then reconnect to
+            // the network
+            FileCacheHash md5;
+            my_hash = md5.getHash(my_hash);
             BootStrap(retry);
             neighbors_update_needed = false;
         } else if (neighbors_update_needed) {
