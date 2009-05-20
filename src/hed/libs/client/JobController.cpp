@@ -447,7 +447,7 @@ namespace Arc {
 
       URL src = GetFileUrlForJob((**it), whichfile);
       URL dst(filename);
-      bool copied = CopyFile(src, dst);
+      bool copied = ARCCopyFile(src, dst);
 
       if (copied) {
         std::cout << IString("%s from job %s", whichfile,
@@ -677,7 +677,7 @@ namespace Arc {
     return files;
   }
 
-  bool JobController::CopyFile(const URL& src, const URL& dst) {
+  bool JobController::ARCCopyFile(const URL& src, const URL& dst) {
 
     DataMover mover;
     mover.retry(true);

@@ -994,9 +994,25 @@ enable_saml=no
 if test x$XMLSEC_INSTALLED = xyes ; then enable_saml=yes; fi
 
 # Check for LDAP
+
+SAVE_CFLAGS=$CFLAGS
+case "${host}" in
+  *-*-mingw32):
+     CFLAGS="$CFLAGS -I/usr/local/include"
+  ;;
+esac
 AC_CHECK_HEADER(ldap.h, [LDAP=yes], [LDAP=no])
+CFLAGS=$SAVE_CFLAGS
+
 SAVE_LDFLAGS=$LDFLAGS
-LDFLAGS=-lpthread
+
+case "${host}" in
+  *-*-mingw32):
+  ;;
+      *):
+        LDFLAGS=-lpthread
+  ;;
+esac
 AC_CHECK_LIB([ldap_r], [ldap_first_message], [ 
     AC_CHECK_LIB([ldap_r], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])  
     LDAP_LIBS=-lldap_r ], [
@@ -1011,6 +1027,7 @@ AC_SUBST(LDAP_LIBS)
 LDFLAGS=$SAVE_LDFLAGS
 
 AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
+enable_ldap="$LDAP"
 
 # Check for the uuid lib
 UUID_LIBS=""
@@ -1515,6 +1532,7 @@ RSL:                ${enable_rsl}
 SAML:               ${enable_saml}
 MYSQL CLIENT LIB:   ${enable_mysql}
 gSOAP:              ${enable_gsoap}
+LDAP:               ${enable_ldap}
 
 Included components:
 A-Rex service:      ${enable_a_rex_service}

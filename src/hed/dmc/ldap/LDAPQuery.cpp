@@ -282,6 +282,10 @@ namespace Arc {
     arg.anonymous = anonymous;
     arg.usersn = usersn;
 
+#ifndef WIN32 
+
+    // TODO: porting  
+
     pthread_t thr;
     if (pthread_create(&thr, NULL, &ldap_bind_with_timeout, &arg) != 0) {
       ldap_unbind_ext(connection, NULL, NULL);
@@ -300,6 +304,8 @@ namespace Arc {
     }
 
     pthread_join(thr, NULL);
+
+#endif 
 
     if (!arg.valid) {
       ldap_unbind_ext(connection, NULL, NULL);

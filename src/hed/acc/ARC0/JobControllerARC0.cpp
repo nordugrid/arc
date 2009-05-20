@@ -217,15 +217,10 @@ namespace Arc {
          it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
-
-#ifndef WIN32
-
-      if (!CopyFile(src, dst)) {
+      if (!ARCCopyFile(src, dst)) {
         logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
-
-#endif
     }
 
     return ok;

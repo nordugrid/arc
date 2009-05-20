@@ -61,7 +61,7 @@ namespace Arc {
     bool RemoveJobs(const std::list<URL>& jobids);
 
     std::list<std::string> GetDownloadFiles(const URL& dir);
-    bool CopyFile(const URL& src, const URL& dst);
+    bool ARCCopyFile(const URL& src, const URL& dst);
 
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
                                       const bool getlocal);

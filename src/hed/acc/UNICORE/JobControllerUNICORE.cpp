@@ -107,7 +107,7 @@ namespace Arc {
              it != files.end(); it++) {
           src.ChangePath(srcpath + *it);
           dst.ChangePath(dstpath + *it);
-          if (!CopyFile(src, dst)) {
+          if (!ARCCopyFile(src, dst)) {
             logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
             ok = false;
           }
