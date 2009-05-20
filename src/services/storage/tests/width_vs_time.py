@@ -91,7 +91,7 @@ for i in range(statistics):
         timings_mkdir[j][i] = time_mkdir
         print "mkdir:",i,j,time_mkdir
         start_stat = time.time()
-        res = bartender.stat({'0':(i_stat)})
+        res = bartender.stat({'0':(i_path)})
         time_stat = time.time()-start_stat
         timings_stat[j][i] = time_stat
         print "stat:",i,j,time_stat
