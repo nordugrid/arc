@@ -15,6 +15,7 @@
 #include "arcauthzsh/ArcAuthZ.h"
 #include "usernametokensh/UsernameTokenSH.h"
 #include "x509tokensh/X509TokenSH.h"
+#include "samltokensh/SAMLTokenSH.h"
 #include "saml2sso_assertionconsumersh/SAML2SSO_AssertionConsumerSH.h"
 #include "delegationsh/DelegationSH.h"
 
@@ -55,6 +56,8 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 #ifdef HAVE_XMLSEC
     { "x509token.handler", "HED:SHC", 0,
                   &ArcSec::X509TokenSH::get_sechandler},
+    { "samltoken.handler", "HED:SHC", 0,
+                  &ArcSec::SAMLTokenSH::get_sechandler},
     { "saml2ssoassertionconsumer.handler", "HED:SHC", 0,
                   &ArcSec::SAML2SSO_AssertionConsumerSH::get_sechandler},
 #endif
