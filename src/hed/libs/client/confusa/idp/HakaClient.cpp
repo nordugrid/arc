@@ -31,7 +31,6 @@ namespace Arc {
 
 		// set the idp's session cookies
 		ConfusaParserUtils::add_cookie(&(*session_cookies_)["IdP"], cookie);
-		ConfusaParserUtils::add_cookie(&(*session_cookies_)["IdP"], "_idp_session=MTMwLjIzNy4yMjEuMTE2%7COTQ2YmNhYjk0NzIxZWY1Y2M5NjI2NjIxMzBkZjdiYzYxZWY5NzQ0NmZmZDlhNjJhOWIxM2RlMWNjMmY4ZWU3YQ%3D%3D%7C7tqOZ2x83TUmF6cdMhUislQb%2Bp4%3D");
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 
 		ClientHTTP idp_login_page_client(cfg_, Arc::URL(actual_ip_login));
@@ -83,7 +82,10 @@ namespace Arc {
 		}
 
 		logger.msg(DEBUG, "The idp_login_post_info cookie is %s, while the sent cookie was %s", *(idp_login_post_info.cookies.begin()), (*session_cookies_)["IdP"]);
-		ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]),*(idp_login_post_info.cookies.begin()));
+		for (std::list<std::string>::iterator it = idp_login_post_info.cookies.begin(); it != idp_login_post_info.cookies.end(); it++) {
+			ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]), (*it));
+		}
+		//ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]),*(idp_login_post_info.cookies.begin()));
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 
 
@@ -135,16 +137,22 @@ namespace Arc {
 
 		if ((*session_cookies_)["Confusa"] == "") {
 			return MCC_Status(GENERIC_ERROR, origin, "Confusa's PHPSESSID Cookie is not present!");
+		} else if ((*sso_pages_)["PostIdP"] == "") {
+			return MCC_Status(GENERIC_ERROR, origin, "Can not find an usable post-idp page!");
 		}
 
 		std::string post_params = "SAMLResponse=" + ConfusaParserUtils::urlencode(saml_post_response_) + "&RelayState=" + ConfusaParserUtils::urlencode(saml_post_relaystate_);
 		std::string confusa_url = (*sso_pages_)["PostIdP"];
+		std::string cookies = (*session_cookies_)["Confusa"];
 
-		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
+		logger.msg(DEBUG, "Calling post-idp site %s with relay state %s", confusa_url, saml_post_relaystate_);
+		logger.msg(DEBUG, "Cookies %s", cookies);
+		http_attributes.insert(std::pair<std::string,std::string>("Cookie",cookies));
 		ClientHTTP sp_asscom_client(cfg_, URL(confusa_url));
 		PayloadRaw sp_asscom_request;
 		PayloadRawInterface *sp_asscom_response = NULL;
 		HTTPClientInfo sp_asscom_info;
+		sp_asscom_client.RelativeURI(true);
 		sp_asscom_request.Insert(post_params.c_str(), 0, strlen(post_params.c_str()));
 		http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
 		sp_asscom_client.process("POST", http_attributes, &sp_asscom_request, &sp_asscom_info, &sp_asscom_response);
@@ -278,7 +286,7 @@ namespace Arc {
 			HTTPClientInfo post_consent_info;
 			PayloadRawInterface *post_consent_response = NULL;
 
-			post_consent_client.process("GET", &post_consent_request, &post_consent_info, &post_consent_response);
+			post_consent_client.process("GET", http_attributes, &post_consent_request, &post_consent_info, &post_consent_response);
 			std::string post_consent_response_str = "";
 
 			if (post_consent_response) {
@@ -291,6 +299,7 @@ namespace Arc {
 			std::string body_string = ConfusaParserUtils::extract_body_information(post_consent_response_str);
 
 			xmlDocPtr doc = ConfusaParserUtils::get_doc(body_string);
+			std::string action = ConfusaParserUtils::evaluate_path(doc, "//form/@action");
 			saml_post_response_ = ConfusaParserUtils::evaluate_path(doc, "//input[@name='SAMLResponse']/@value");
 			saml_post_relaystate_ = ConfusaParserUtils::evaluate_path(doc, "//input[@name='RelayState']/@value");
 			ConfusaParserUtils::destroy_doc(doc);
@@ -299,8 +308,11 @@ namespace Arc {
 				return MCC_Status(PARSING_ERROR, origin, "Could not extract SAMLResponse!");
 			} else if (saml_post_relaystate_.empty()) {
 				return MCC_Status(PARSING_ERROR, origin, "Could not extract RelayState");
+			} else if (action.empty()) {
+				return MCC_Status(PARSING_ERROR, origin, "Could not extract the action from the post-consent page!");
 			}
 
+			(*sso_pages_)["PostIdP"] = action;
 		} else {
 			return MCC_Status(GENERIC_ERROR, origin, "No user consent to attribute release. Aborting");
 		}

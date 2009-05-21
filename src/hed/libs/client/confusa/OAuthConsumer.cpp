@@ -271,14 +271,10 @@ namespace Arc {
 			free(req_url);
 		}
 
-		std::map<std::string, std::string> http_attributes;
-		http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+		std::multimap<std::string, std::string> http_attributes;
 		MCC_Status stat = confusa_approve_client.process("GET", http_attributes, &confusa_approve_request, &confusa_approve_info, &confusa_approve_response);
 
 		if (confusa_approve_response) {
-			std::fstream fop("/tmp/confusa_approve.html", std::ios::out);
-			fop << confusa_approve_response->Content();
-			fop.close();
 			delete confusa_approve_response;
 		}
 
@@ -313,8 +309,8 @@ namespace Arc {
 			free(req_url);
 		}
 
-		std::map<std::string, std::string> http_attributes;
-		http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+		std::multimap<std::string, std::string> http_attributes;
+		http_attributes.insert(std::pair<std::string, std::string>("Cookie", (*session_cookies_)["Confusa"]));
 		MCC_Status stat = confusa_push_client.process("GET", http_attributes, &confusa_push_request, &confusa_push_info, &confusa_push_response);
 
 		*approve_page = this->server_loc_.fullstr() + "/index.php?auth_token=" + pub_key_hash;
@@ -354,8 +350,8 @@ namespace Arc {
 			free(req_url);
 		}
 
-		std::map<std::string, std::string> http_attributes;
-		http_attributes["Cookie"] = (*session_cookies_)["Confusa"];
+		std::multimap<std::string, std::string> http_attributes;
+		http_attributes.insert(std::pair<std::string,std::string>("Cookie", (*session_cookies_)["Confusa"]));
 		MCC_Status stat = confusa_get_client.process("GET", http_attributes, &confusa_get_request, &confusa_get_info, &confusa_get_response);
 
 		std::string content = "";

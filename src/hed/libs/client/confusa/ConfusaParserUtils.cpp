@@ -245,15 +245,10 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  redirect_client.RelativeURI(true);
 
 	  if (httpAttributes != NULL) {
-		  Arc::Logger::getRootLogger().msg(Arc::DEBUG, "ParserUtils::handle_redirect_step(): calling the site with the following cookie %s", (*httpAttributes).find("Cookie")->second);
 		  redirect_client.process("GET", *httpAttributes, &redirect_request, &redirect_info, &redirect_response);
 	  } else {
 		  redirect_client.process("GET", &redirect_request, &redirect_info, &redirect_response);
 	  }
-
-	  std::fstream fop("/tmp/redirect_site.html", std::ios::out);
-	  fop << redirect_response->Content();
-	  fop.close();
 
 	  std::string redirect_string = redirect_info.location;
 	  if(!redirect_info.cookies.empty() && (cookie != NULL))  {

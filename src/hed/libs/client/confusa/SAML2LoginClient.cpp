@@ -151,6 +151,7 @@ namespace Arc {
 	  }
 
 	  (*sso_pages_)["IdP"] = actual_ip_login;
+	  logger.msg(DEBUG, "The idp login is %s", actual_ip_login);
 	  return MCC_Status(STATUS_OK);
 
   }
