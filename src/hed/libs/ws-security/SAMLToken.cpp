@@ -70,7 +70,9 @@ bool SAMLToken::Check(SOAPEnvelope& soap) {
     std::cerr<<"No SAMLToken element in SOAP Header"<<std::endl;
     return false;
   };
-  if((bool)(wsse["saml:Assertion"])) samlversion = SAML1;
+  //if((bool)(wsse["saml:Assertion"])) samlversion = SAML1;
+  //else samlversion = SAML2;
+  if((bool)(wsse["Assertion"]["AssertionID"])) samlversion = SAML1;
   else samlversion = SAML2;
   return true;
 }
@@ -98,8 +100,9 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap) : SOAPEnvelope(soap){
   XMLNode st = header["wsse:Security"];   
   XMLNode wsse_signature = st["Signature"];
   XMLNode assertion;
-  if(samlversion == SAML1) assertion = st["saml:Assertion"];
-  else assertion = st["saml2:Assertion"];
+  //if(samlversion == SAML1) assertion = st["saml:Assertion"];
+  //else assertion = st["saml2:Assertion"];
+  assertion = st["Assertion"];
   XMLNode assertion_signature = assertion["Signature"];
   xmlNodePtr bodyPtr = ((SAMLToken*)(&body))->node_;
   xmlDocPtr docPtr = bodyPtr->doc;
@@ -118,7 +121,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap) : SOAPEnvelope(soap){
   else {
     id = xmlGetProp(assertionPtr, (xmlChar *)"ID");
     id_attr = NULL; id_attr = xmlHasProp(assertionPtr, (xmlChar *)"ID");
-    if(id_attr == NULL) std::cerr<<"Can not find ID attribute from saml2:Assertion"<<std::endl;
+    if(id_attr == NULL) std::cerr<<"Can not find ID attribute from saml:Assertion"<<std::endl;
     xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
     xmlFree(id);
   }
@@ -139,11 +142,15 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap) : SOAPEnvelope(soap){
   //Get the public key from the assertion, the key has been used to sign soap body msg by the attesting entity
   //saml:Assetion
   if(samlversion == SAML1) {
-    pubkey_str = (std::string)(assertion["saml:AttributeStatement"]["saml:Subject"]["saml:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
+    //pubkey_str = (std::string)(assertion["saml:AttributeStatement"]["saml:Subject"]["saml:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
+    pubkey_str = (std::string)(assertion["AttributeStatement"]["Subject"]["SubjectConfirmation"]["KeyInfo"]["KeyValue"]);
   }
   //saml2:Assertion
   else {
-    pubkey_str = (std::string)(assertion["saml2:Statement"]["saml2:Subject"]["saml2:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
+    //pubkey_str = (std::string)(assertion["saml2:Statement"]["saml2:Subject"]["saml2:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
+    pubkey_str = (std::string)(assertion["Subject"]["SubjectConfirmation"]["KeyInfo"]["KeyValue"]);
+    if(pubkey_str.empty())
+      x509cert_str = (std::string)(assertion["Subject"]["SubjectConfirmation"]["SubjectConfirmationData"]["KeyInfo"]["X509Data"]["X509Certificate"]);
   }
   x509data = assertion_signature["KeyInfo"]["X509Data"];
 
@@ -191,7 +198,11 @@ bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capat
   //Verify the signature under wsse:Security
   dsigCtx = xmlSecDSigCtxCreate(NULL);
   //Load public key from incoming soap's security token
-  xmlSecKey* pubkey = get_key_from_keystr(pubkey_str);
+  xmlSecKey* pubkey = NULL;
+  if(!pubkey_str.empty())
+    pubkey = get_key_from_keystr(pubkey_str);
+  else
+    pubkey = get_key_from_certstr(x509cert_str);
   if (pubkey == NULL){
     xmlSecDSigCtxDestroy(dsigCtx);
     std::cerr<<"Can not load public key"<<std::endl; return false;
@@ -246,10 +257,8 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
       XMLNode condition = get_node(assertion, "saml2:Conditions");
       condition.NewAttribute("NotBefore") = "2008-07-12T16:53:33.173Z";
       condition.NewAttribute("NotOnOrAfter") = "2008-07-19T16:53:33.173Z";
-
-      XMLNode statement = get_node(assertion, "saml2:Statement");
     
-      XMLNode subject = get_node(statement, "saml2:Subject");
+      XMLNode subject = get_node(assertion, "saml2:Subject");
       XMLNode nameid = get_node(subject, "saml2:NameID");
       nameid.NewAttribute("NameQualifier") = "test.uio.no";
       nameid.NewAttribute("Format") = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName";
@@ -257,12 +266,14 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
   
       XMLNode subjectconfirmation = get_node(subject, "saml2:SubjectConfirmation");
       get_node(subjectconfirmation, "saml2:ConfirmationMethod") = "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key";
-      XMLNode keyinfo = get_node(subjectconfirmation, "ds:KeyInfo");
+      XMLNode subjectconfirmationdata = get_node(subject, "saml2:SubjectConfirmationData");
+      XMLNode keyinfo = get_node(subjectconfirmationdata, "ds:KeyInfo");
       XMLNode keyvalue = get_node(keyinfo, "ds:KeyValue");
       //Put the pubkey as the keyvalue
       keyvalue = get_key_from_certfile(certfile.c_str()); 
   
       //Add some attribute here
+      XMLNode statement = get_node(assertion, "saml2:Statement");
       XMLNode attribute = get_node(statement, "saml2:Attribute");
       attribute.NewAttribute("AttributeName") = "email";
       attribute.NewAttribute("AttributeNamespace") = "http://www.knowarc.org/attributes";

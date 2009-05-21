@@ -131,8 +131,10 @@ private:
   xmlNodePtr assertion_signature_nd;
   xmlNodePtr wsse_signature_nd;
   /**public key string under <ds:KeyInfo/> (under <saml:Assertion/>'s <saml:Subject/>), 
-  which is used sign the soap body message*/
+  which is used sign the soap body message: ["Subject"]["SubjectConfirmation"]["KeyInfo"]["KeyValue"];
+  Alternative is: ["Subject"]["SubjectConfirmation"]["KeyInfo"]["X509Data"]["X509Certificate"] */
   std::string pubkey_str;
+  std::string x509cert_str;
   /**<dsig:X509Data> inside <saml:Assertion/>'s <ds:Signature/>, which is used to 
   sign the assertion itself*/
   XMLNode x509data;
