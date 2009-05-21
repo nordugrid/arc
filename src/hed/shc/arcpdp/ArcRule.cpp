@@ -19,6 +19,8 @@ Arc::Logger ArcSec::ArcRule::logger(Arc::Logger::rootLogger, "ArcRule");
 using namespace Arc;
 using namespace ArcSec;
 
+#define DEFAULT_ATTRIBUTE_TYPE "string"
+
 void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype,
     const std::string& type_attr, const std::string& function_attr){
   XMLNode tnd;
@@ -153,6 +155,7 @@ ArcRule::ArcRule(const XMLNode node, EvaluatorContext* ctx) : Policy(node) {
   nd = rulenode["Subjects"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
+  if(type.empty()) type=DEFAULT_ATTRIBUTE_TYPE;
   getItemlist(nd, subjects, "Subject", type, funcname);  
 
   //Parse the "Resources" part of a Rule. The "Resources" does not include "Sub" item, 
@@ -160,18 +163,21 @@ ArcRule::ArcRule(const XMLNode node, EvaluatorContext* ctx) : Policy(node) {
   nd = rulenode["Resources"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
+  if(type.empty()) type=DEFAULT_ATTRIBUTE_TYPE;
   getItemlist(nd, resources, "Resource", type, funcname);
 
   //Parse the "Actions" part of a Rule
   nd = rulenode["Actions"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
+  if(type.empty()) type=DEFAULT_ATTRIBUTE_TYPE;
   getItemlist(nd, actions, "Action", type, funcname);
 
   //Parse the "Condition" part of a Rule
   nd = rulenode["Conditions"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
+  if(type.empty()) type=DEFAULT_ATTRIBUTE_TYPE;
   getItemlist(nd, conditions, "Condition", type, funcname);
 
   //Set the initial value for id matching 
