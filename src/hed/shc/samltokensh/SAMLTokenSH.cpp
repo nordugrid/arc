@@ -190,6 +190,17 @@ bool SAMLTokenSH::Handle(Arc::Message* msg){
         //Consume the response from AA
         Arc::XMLNode attr_resp;
         attr_resp = (*response).Body().Child(0);
+        if(!attr_resp) {
+          logger.msg(Arc::ERROR, "Cannot find content under response soap message");
+          return false;
+        }
+        if((attr_resp.Name() != "Response") || (attr_resp.Prefix() != "samlp")) {
+          logger.msg(Arc::ERROR, "Cannot find <samlp:Response/> under response soap message:");
+          std::string tmp; attr_resp.GetXML(tmp);
+          logger.msg(Arc::ERROR, "%s", tmp.c_str());
+          return false;
+        }
+
         std::string resp_idname = "ID";
         Arc::XMLSecNode attr_resp_secnode(attr_resp);
         if(attr_resp_secnode.VerifyNode(resp_idname, ca_file_, ca_dir_)) {
