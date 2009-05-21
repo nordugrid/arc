@@ -148,7 +148,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap) : SOAPEnvelope(soap){
   //saml2:Assertion
   else {
     //pubkey_str = (std::string)(assertion["saml2:Statement"]["saml2:Subject"]["saml2:SubjectConfirmation"]["ds:KeyInfo"]["ds:KeyValue"]);
-    pubkey_str = (std::string)(assertion["Subject"]["SubjectConfirmation"]["KeyInfo"]["KeyValue"]);
+    pubkey_str = (std::string)(assertion["Subject"]["SubjectConfirmation"]["SubjectConfirmationData"]["KeyInfo"]["KeyValue"]);
     if(pubkey_str.empty())
       x509cert_str = (std::string)(assertion["Subject"]["SubjectConfirmation"]["SubjectConfirmationData"]["KeyInfo"]["X509Data"]["X509Certificate"]);
   }
