@@ -266,7 +266,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
   
       XMLNode subjectconfirmation = get_node(subject, "saml2:SubjectConfirmation");
       get_node(subjectconfirmation, "saml2:ConfirmationMethod") = "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key";
-      XMLNode subjectconfirmationdata = get_node(subject, "saml2:SubjectConfirmationData");
+      XMLNode subjectconfirmationdata = get_node(subjectconfirmation, "saml2:SubjectConfirmationData");
       XMLNode keyinfo = get_node(subjectconfirmationdata, "ds:KeyInfo");
       XMLNode keyvalue = get_node(keyinfo, "ds:KeyValue");
       //Put the pubkey as the keyvalue
