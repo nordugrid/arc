@@ -18,7 +18,7 @@ class Service_AA: public Arc::Service {
  protected:
   Arc::NS ns_;
   Arc::Logger logger_;
-  Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
+  Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason);
  public:
   Service_AA(Arc::Config *cfg);
   virtual ~Service_AA(void);

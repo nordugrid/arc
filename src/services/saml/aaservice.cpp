@@ -32,12 +32,14 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     return new Service_AA((Arc::Config*)(*servarg));
 }
 
-Arc::MCC_Status Service_AA::make_soap_fault(Arc::Message& outmsg) {
+Arc::MCC_Status Service_AA::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
     fault->Code(Arc::SOAPFault::Sender);
-    fault->Reason("Failed processing request");
+    std::string str = "Failed processing request";
+    str = str + reason;
+    fault->Reason(str);
   };
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -100,7 +102,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   } catch(std::exception& e) { };
   if(!inpayload) {
     logger_.msg(Arc::ERROR, "input is not SOAP");
-    return make_soap_fault(outmsg);
+    return make_soap_fault(outmsg, "input is not SOAP");
   }
 
   Arc::XMLNode attrqry;
@@ -139,8 +141,10 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     logger_.msg(Arc::INFO, "The NameID inside request is the same as the NameID from the tls authentication: %s", peer_dn.c_str());
   }
   else {
-    logger_.msg(Arc::INFO, "The NameID inside request is: %s; not the same as the NameID from the tls authentication: %s", name_id.c_str(), peer_dn.c_str());
-    return Arc::MCC_Status();
+    std::string retstr = "The NameID inside request is: " + name_id + 
+              "; not the same as the NameID from the tls authentication: " + peer_dn;
+    logger_.msg(Arc::INFO, retstr);
+    return make_soap_fault(outmsg, retstr);
   }
 
   Arc::XMLNode subject_confirmation = subject.NewChild("saml:SubjectConfirmation");
@@ -200,8 +204,9 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       nameattrs[attr_name] = nameattr;
     }
     else {
-      logger_.msg(Arc::ERROR, "There should be Name attribute in request's <Attribute> node");
-      return Arc::MCC_Status();
+      std::string retstr = "There should be Name attribute in request's <Attribute> node";
+      logger_.msg(Arc::INFO, retstr);
+      return make_soap_fault(outmsg, retstr);
     }
     std::string query_type;
     if((attr_name!="Role") && (attr_name!="Group") && (attr_name!="GroupAndRole") &&
@@ -211,6 +216,12 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     else query_type=attr_name;
 
     std::vector<std::string> fqans;
+    if(userid.size()==0) {
+      std::string retstr = "Can not find the user record for DN: " + peer_dn; 
+      logger_.msg(Arc::INFO, retstr);
+      return make_soap_fault(outmsg, retstr);
+    }
+
     std::string uid = userid[0];
     std::string role = (std::string)(nd["saml:AttributeValue"][0]);
     std::string group = (std::string)(nd["saml:AttributeValue"][1]);
