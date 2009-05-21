@@ -11,7 +11,7 @@
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2CM}
 \hypersetup{
   pdfauthor = {},
-  pdftitle = {Documentation of the ARC Information System},
+  pdftitle = {Documentation of the Web Service based ARC Information System},
   pdfsubject = {},
   pdfkeywords = {Paper,keyword,comma-separated},
   pdfcreator = {PDFLaTeX with hyperref package},
@@ -79,11 +79,13 @@
 \label{cha:design_overview}
 
 \begin{figure}[ht]
-\centering{{\scalebox{0.6}{\includegraphics{InfosysArchitecture.png}}}
-\caption{\label{fig:infosys_architecture}Architecture of Information System} }
+ \centering{
+  \scalebox{0.6}{\includegraphics{SystemOverview.png}}
+  \caption{\label{fig:infosys_architecture}Architecture of Information System}
+ }
 \end{figure}
 
-Information System of ARC middleware is composed of 3 main parts. The Information System Indexing Services (ISIS) for a set of information containers. Every generic ARC Service pushes information about itself into nearby ISIS container/service hence registering itself to Information System. The information stored in every ISIS is propagated among all ISIS services. Clients can query any nearby ISIS service for registered information in order to perform discovery of services which posses specific properties.
+Information System of ARC middleware is composed of 3 main parts. The Information System Indexing Services (ISIS) form a set of information containers. Every generic ARC Service pushes information about itself into nearby ISIS container/service hence registering itself to Information System. The information stored in every ISIS is propagated among all ISIS services. Clients can query any nearby ISIS service for registered information in order to perform discovery of services which posses specific properties. Clients can also query ARC Services to obtain more detailed information about Service properties.
 
 \chapter{ISIS}
 \label{cha:isis}
@@ -278,7 +280,7 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
 Those 3 action groups are handled using Security Framework of ARC~\cite{arcsec}. For each group corresponding 
 Action is defined for ARC policy language as described in table \ref{tab:policy_actions}.
 
-\begin{table}{h}
+\begin{table}[h]
 \caption{ARC Policy Actions of ISIS}
 \label{tab:policy_actions}
 \begin{tabular}{|c|c|l|}
@@ -430,6 +432,108 @@ requesting client.
 
 % subsection information_authorization (end)
 
+\subsection{Configuration}
+\label{sub:isis_authorization_configuration}
+
+\textit{For information about sophisticated authorization policies and how to deploy various Policy Decision Point entities please see "Security Framework of ARC1" document"~\cite{arcsec}.}
+
+To restrict set of clients allowed to perform operations in ISIS service proper authorization policy is needed. Let's assume ISIS is operating over TLS connection and all participants posses X.509 certificates with following subject names:
+\begin{itemize}
+\item /O=Grid/O=Test/CN=CLIENT - generic client entities
+\item /O=Grid/O=Test/CN=SERVICE - generic service entities
+\item /O=Grid/O=Test/CN=ISIS - all ISIS belonging to ISIS cloud
+\end{itemize}
+
+\textit{In NO way we suggest to use such setup. Real installation should use more sophisticated way to 
+identify clients contacting ISIS service. For an infrastructure with quite static roles distribution for 
+example we suggest to use Virtual Organization Management Service (VOMS) attributes embedded into X.509 
+certificates representing participating entities.}
+
+Below is an example policy made of 3 rules defined in lines 4-17, 18-29 and 30-39. Those define allowed 
+behavior for ISIS, generic service and generic client. Lines 6-7, 20-21 and 32-33 specify attributes 
+used to recognise type of connecting client. In this case those are subjects of X.509 certificates with 
+values defined above. Lines 10-15, 24-27 and 36-37 specify allowed actions. One can see that this policy 
+allows all operations to be performed by ISIS client. It limits operations allowed for generic service 
+to "service" and "client" types. And client entities are allowed to perform "client" type operations only.
+
+\begin{verbatim}
+ 1: <?xml version="1.0" encoding="UTF-8"?>
+ 2: <Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="policy1"
+ 3:           CombiningAlg="Deny-Overrides">
+ 4:  <Rule RuleId="isis_to_isis" Effect="Permit">
+ 5:    <Subjects>
+ 6:      <Subject AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity"
+ 7:              >/O=Grid/O=Test/CN=ISIS</Subject>
+ 8:    </Subjects>
+ 9:    <Actions>
+10:      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/isis/operation"
+11:             >isis</Action>
+12:      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/isis/operation"
+13:             >service</Action>
+14:      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/isis/operation"
+15:             >client</Action>
+16:    </Actions>
+17:  </Rule>
+18:  <Rule RuleId="service_to_isis" Effect="Permit">
+19:    <Subjects>
+20:      <Subject AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity"
+21:              >/O=Grid/O=Test/CN=SERVICE</Subject>
+22:    </Subjects>
+23:    <Actions>
+24:      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/isis/operation"
+25:             >service</Action>
+26:      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/isis/operation"
+27:             >client</Action>
+28:    </Actions>
+29:  </Rule>
+30:  <Rule RuleId="client_to_isis" Effect="Permit">
+31:    <Subjects>
+32:      <Subject AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity"
+33:              >/O=Grid/O=Test/CN=CLIENT</Subject>
+34:    </Subjects>
+35:    <Actions>
+36:      <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/isis/operation"
+37:             >client</Action>
+38:    </Actions>
+39:  </Rule>
+40: </Policy>
+
+\end{verbatim}
+
+This policy is not as restrictive as it could be in order to allow ISIS register themselves as ordinary 
+services and to allow services which perform discovery of other services to behave like ordinary clients.
+
+In order to activate policy it must be linked to ISIS service through Security Handle and Policy 
+Decision Point emedded into configuration of ISIS. Below is minimal example configuration element of 
+ISIS service. In lines 7-17 a set of Security Handler and Policy Decision Point is configured to handle
+policies written in ARC Policy Language (described in ~\cite{arcsec}). Line 14 specifies that policy is 
+read from file \textit{/opt/arc/etc/isis/policy.xml} every time new request is arrived. If policy is not 
+satisfied then ISIS returns SOAP Fault instead of usual informative response.
+
+\begin{verbatim}
+ 1: <Service 
+ 2:   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+ 3:   xmlns:isis="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+ 4:   name="isis" id="isis">
+ 5:  <isis:endpoint>https://localhost:60000/isis</isis:endpoint>
+ 6:  <isis:DBPath>/opt/arc/share/isisdb</isis:DBPath>
+ 7:  <SecHandler
+ 8:    xmlsns:auth="http://www.nordugrid.org/schemas/SimpleListAuthZ"
+ 9:    name="arc.authz" id="authz" event="incoming">
+10:   <auth:PDP
+11:     xmlns:pdp="http://www.nordugrid.org/schemas/ArcPDP"
+12:     name="arc.pdp">
+13:    <pdp:PolicyStore>
+14:     <pdp:Location type="file">/opt/arc/etc/isis/policy.xml</pdp:Location>
+15:    </pdp:PolicyStore>
+16:   </auth:PDP>
+17:  </SecHandler>
+18: </Service>
+
+\end{verbatim}
+
+% subsection information_authorization (end)
+
 
 % section authorization (end)
 
@@ -540,22 +644,25 @@ Section \ref{sub:isis_authorization_information_authorization} should be applied
 \label{sec:service_configuration}
 
 The registration operation is done by the Registrants as described in Section \ref{sec:service_registration}.
-Each Registrant is instantiated by corresponding InfoRegistrar XML element in configuration file as defined in Section \ref{annex:service_configuration_schema}. First InfoRegistrar defines Registrant which is used to register every service by default.
+Each Registrant is instantiated by corresponding InfoRegistrar XML element in configuration file as 
+defined in Section \ref{annex:service_configuration_schema}. First InfoRegistrar defines Registrant 
+which is used to register every service by default.
 
-Registration parameters per service are defined by InfoRegister element located inside corresponding service configuration element. To assign service to specific Registrant(s) one may use Registrar configuration elements situated inside InfoRegister. If none Registrar element is defined service will be registered using first (default) Registrant. To make not register itself special configuration element NoRegister has to be used.
+Registration parameters per service are defined by InfoRegister element located inside corresponding 
+service configuration element. To assign service to specific Registrant(s) one may use Registrar 
+configuration elements situated inside InfoRegister. If none Registrar element is defined service will 
+be registered using first (default) Registrant. To make not register itself special configuration element 
+NoRegister has to be used.
 
-Following elements are defined inside configuration element if the Registrant:
+Following elements are defined inside configuration element of the Registrant:
 \begin{description}
-\item{URL}            <!-- URL specifies contact endpoint of a bootstrap Information
-                 Registration service. Further ISIS addresses will be queried
-                 from this service. -->
-\item{KeyPath, CertificatePath, ProxyPath and CACertificatesDir}
-            <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are
-                 paths to files storing X509 credentials used for establishing connections. -->
-\item{Retry}            <!-- Retry count. Specifies how many times have an ISIS to timeout to handle it as
-                 unavailable. If there is no value specified the default value: 5 will be used. -->
-            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-
+\item{URL} specifies contact endpoint of a bootstrap ISIS. If neede further ISIS addresses will be 
+queried from this service. This element is mandatory.
+\item{KeyPath, CertificatePath, ProxyPath and CACertificatesDir} are paths to files storing X509 
+credentials used for establishing connections. Those elements are optional and needed only if 
+TLS communication is used.
+\item{Retry} specifies how many times communication to ISIS have to fail/timeout to start treating is
+as unavailable. The default value is 5.
 \end{description}
 
 % section configuration (end)
