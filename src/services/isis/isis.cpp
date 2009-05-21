@@ -276,7 +276,7 @@ static void soft_state_thread(void *data) {
 
         if ((bool)(*cfg)["retry"]) {
             if (!((std::string)(*cfg)["retry"]).empty()) {
-                if(EOF == sscanf(((std::string)(*cfg)["retry"]).c_str(), "%d", &retry) || retry < 0)
+                if(EOF == sscanf(((std::string)(*cfg)["retry"]).c_str(), "%d", &retry) || retry < 1)
                 {
                     logger_.msg(Arc::ERROR, "Configuration error. Retry: \"%s\" is not a valid value. Default value will be used.",(std::string)(*cfg)["retry"]);
                     retry = 5;
