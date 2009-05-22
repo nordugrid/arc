@@ -31,6 +31,31 @@ static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
 }
 #endif
 
+time_t asn1_to_utctime(const ASN1_UTCTIME *s) {
+  struct tm tm;
+  int offset;
+  memset(&tm,'\0',sizeof tm);
+
+#define g2(p) (((p)[0]-'0')*10+(p)[1]-'0')
+  tm.tm_year=g2(s->data);
+  if(tm.tm_year < 50)
+    tm.tm_year+=100;
+    tm.tm_mon=g2(s->data+2)-1;
+    tm.tm_mday=g2(s->data+4);
+    tm.tm_hour=g2(s->data+6);
+    tm.tm_min=g2(s->data+8);
+    tm.tm_sec=g2(s->data+10);
+    if(s->data[12] == 'Z')
+      offset=0;
+    else {
+      offset=g2(s->data+13)*60+g2(s->data+15);
+      if(s->data[12] == '-')
+        offset= -offset;
+    }
+#undef g2
+
+  return mktime(&tm)-offset*60;
+}
 
 // This callback implements additional verification
 // algorithms not present in OpenSSL
@@ -134,6 +159,23 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         };
       };
     };
+    //Check the left validity time of the peer certificate;
+    //Give warning if the certificate is going to be expired 
+    //in a while of time
+    char * subject_name = X509_NAME_oneline(X509_get_subject_name(sctx->current_cert), 0, 0);
+    time_t timeleft;
+    timeleft = asn1_to_utctime(X509_get_notAfter(sctx->current_cert)) - time(NULL);
+#ifdef HAVE_OPENSSL_PROXY
+    int pos = X509_get_ext_by_NID(sctx->current_cert, NID_proxyCertInfo,-1);
+    if(pos >= 0) {           //for proxy certificate, give warning 1 hour in advance
+      if(timeleft <= 3600)
+        Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %d hours", subject_name, (double)timeleft/3600);
+    }
+#else
+    if(timeleft <= 5*24*3600) //for EEC certificate, give warning 5 days in advance
+      Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %d hours", subject_name, (double)timeleft/(3600*24));
+#endif
+    OPENSSL_free(subject_name);
   };
   return ok;
 }
