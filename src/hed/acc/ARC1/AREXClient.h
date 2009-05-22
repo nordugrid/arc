@@ -18,6 +18,7 @@ namespace Arc {
   class Logger;
   class MCC;
   class MCCConfig;
+  class PayloadSOAP;
 
   //! A client class for the A-REX service.
   /*! This class is a client for the A-REX service (Arc
@@ -131,6 +132,7 @@ namespace Arc {
     }
 
   private:
+    bool process(PayloadSOAP& req, PayloadSOAP** resp, bool delegate);
 
     //! The configuration.
     /*! A configuration object containing information about how to set

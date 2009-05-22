@@ -80,6 +80,110 @@ namespace Arc {
       delete client;
   }
 
+  bool AREXClient::process(PayloadSOAP& req, PayloadSOAP** resp, bool delegate) {
+    logger.msg(DEBUG, "Processing a %s request", req.Child(0).FullName());
+    if (WSAHeader(req).Action() != "") 
+      logger.msg(DEBUG, "Action: %s", WSAHeader(req).Action());
+
+    // Try to figure out which credentials are used
+    // TODO: Method used is unstable beacuse it assumes some predefined
+    // structure of configuration file. Maybe there should be some
+    // special methods of ClientTCP class introduced.
+    std::string deleg_cert;
+    std::string deleg_key;
+    if (delegate) {
+      client->Load(); // Make sure chain is ready
+      XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
+                                      "Component", "name", "tls.client");
+      if (tls_cfg) {
+        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
+        if (deleg_cert.empty()) {
+          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
+          deleg_key = (std::string)(tls_cfg["KeyPath"]);
+        }
+        else
+          deleg_key = deleg_cert;
+      }
+      if (deleg_cert.empty() || deleg_key.empty()) {
+        logger.msg(ERROR, "Failed to find delegation credentials in "
+                   "client configuration");
+        return false;
+      }
+    }
+    
+    // Send job request + delegation
+    if (client) {
+      if (delegate) {
+        XMLNode op = req.Child(0);
+        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+        logger.msg(INFO, "Initiating delegation procedure");
+        if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
+                                           &(client->GetContext()))) {
+          logger.msg(ERROR, "Failed to initiate delegation");
+          return false;
+        }
+        deleg.DelegatedToken(op);
+      }
+      MCC_Status status =
+        client->process(WSAHeader(req).Action(), &req, resp);
+      if (!status) {
+        logger.msg(ERROR, "SOAP request failed");
+        return false;
+      }
+      if (*resp == NULL) {
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
+      }
+    }
+    else if (client_entry) {
+      Message reqmsg;
+      Message repmsg;
+      MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION", WSAHeader(req).Action());
+      MessageAttributes attributes_rep;
+      MessageContext context;
+
+      if (delegate) {
+        XMLNode op = req.Child(0);
+        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+        logger.msg(INFO, "Initiating delegation procedure");
+        if (!deleg.DelegateCredentialsInit(*client_entry, &context)) {
+          logger.msg(ERROR, "Failed to initiate delegation");
+          return false;
+        }
+        deleg.DelegatedToken(op);
+      }
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      MCC_Status status = client_entry->process(reqmsg, repmsg);
+      if (!status) {
+        logger.msg(ERROR, "SOAP request failed");
+        return false;
+      }
+      if (repmsg.Payload() == NULL) {
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
+      }
+      try {
+        *resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
+      if (resp == NULL) {
+        logger.msg(ERROR, "The response was not a SOAP message");
+        delete repmsg.Payload();
+        return false;
+      }
+    }
+    else {
+      logger.msg(ERROR, "There is no connection chain configured");
+      return false;
+    }
+
+    return true;
+  }
+
   bool AREXClient::submit(std::istream& jsdl_file, std::string& jobid,
                           bool delegate) {
 
@@ -120,124 +224,31 @@ namespace Arc {
     act_doc.GetXML(jsdl_str);
     logger.msg(VERBOSE, "Job description to be sent: %s", jsdl_str);
 
-    // Try to figure out which credentials are used
-    // TODO: Method used is unstable beacuse it assumes some predefined
-    // structure of configuration file. Maybe there should be some
-    // special methods of ClientTCP class introduced.
-    std::string deleg_cert;
-    std::string deleg_key;
-    if (delegate) {
-      client->Load(); // Make sure chain is ready
-      XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
-                                      "Component", "name", "tls.client");
-      if (tls_cfg) {
-        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
-        if (deleg_cert.empty()) {
-          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
-          deleg_key = (std::string)(tls_cfg["KeyPath"]);
-        }
-        else
-          deleg_key = deleg_cert;
-      }
-      if (deleg_cert.empty() || deleg_key.empty()) {
-        logger.msg(ERROR, "Failed to find delegation credentials in "
-                   "client configuration");
-        return false;
-      }
-    }
-    // Send job request + delegation
-    if (client) {
-      if (delegate) {
-        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-        logger.msg(INFO, "Initiating delegation procedure");
-        if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
-                                           &(client->GetContext()))) {
-          logger.msg(ERROR, "Failed to initiate delegation");
-          return false;
-        }
-        deleg.DelegatedToken(op);
-      }
-      MCC_Status status =
-        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-                        "BESFactoryPortType/CreateActivity", &req, &resp);
-      if (!status) {
-        logger.msg(ERROR, "Submission request failed");
-        return false;
-      }
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-                         "bes-factory/BESFactoryPortType/CreateActivity");
-      MessageAttributes attributes_rep;
-      MessageContext context;
-
-      if (delegate) {
-        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-        logger.msg(INFO, "Initiating delegation procedure");
-        if (!deleg.DelegateCredentialsInit(*client_entry, &context)) {
-          logger.msg(ERROR, "Failed to initiate delegation");
-          return false;
-        }
-        deleg.DelegatedToken(op);
-      }
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "Submission request failed");
-        return false;
-      }
-      logger.msg(INFO, "Submission request succeed");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR, "There was no response to a submission request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR, "A response to a submission request was not "
-                   "a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(req, &resp, delegate))
       return false;
-    }
+    
     XMLNode id;
     SOAPFault fs(*resp);
     if (!fs) {
       (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
       id.GetDoc(jobid);
-      // delete resp;
+      delete resp;
       return true;
     }
     else {
       faultstring = fs.Reason();
       std::string s;
       resp->GetXML(s);
-      // delete resp;
       logger.msg(VERBOSE, "Submission returned failure: %s", s);
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
+      delete resp;
       return false;
     }
   }
 
   bool AREXClient::stat(const std::string& jobid, Job& job) {
 
-    std::string state, substate, lrmsstate, gluestate, faultstring;
+    std::string faultstring;
     logger.msg(INFO, "Creating and sending a status request");
 
     PayloadSOAP req(arex_ns);
@@ -245,100 +256,51 @@ namespace Arc {
       req.NewChild("rp:QueryResourceProperties").
       NewChild("rp:QueryExpression");
     jobref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
-    //jobref = "//*";
 
     std::string jobidnumber = (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]);
     jobref = "//glue:Services/glue:Service/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'"+jobidnumber+"')]/..";
-    //set_bes_factory_action(req, "GetActivityStatuses");
     WSAHeader(req).To(rurl.str());
     WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
                           "/QueryResourceProperties/QueryResourcePropertiesRequest");
 
     // Send status request
     PayloadSOAP *resp = NULL;
-
-    if (client) {
-      MCC_Status status =
-        client->process("http://docs.oasis-open.org/wsrf/rpw-2"
-                        "/QueryResourceProperties/QueryResourcePropertiesRequest", &req, &resp);
-/*      MCC_Status status =
-        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-                        "BESFactoryPortType/GetActivityStatuses", &req, &resp);*/
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://docs.oasis-open.org/wsrf/rpw-2"
-                         "/QueryResourceProperties/QueryResourcePropertiesRequest");
-      MessageAttributes attributes_rep;
-      MessageContext context;
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "A status request failed");
-        return false;
-      }
-      logger.msg(INFO, "A status request succeeded");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR, "There was no response to a status request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR,
-                   "The response of a status request was not a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(req, &resp, false))
       return false;
-    }
-    (*resp).Namespaces(arex_ns);
-    XMLNode jobNode = (*resp)["QueryResourcePropertiesResponse"]
-                 ["ComputingActivity"];
-    std::string besstate = jobNode["State"];
-    int e = besstate.find(':');
-    state = besstate.substr(0,e);
-    substate = besstate.substr(e+1,std::string::npos);
-/*
-//  Old assignments from BES call
-    state = (std::string)st.Attribute("state");
-    substate = (std::string)(st["a-rex:State"]);
-    lrmsstate = (std::string)(st["a-rex:LRMSState"]); //This is problematic
-    gluestate = (std::string)(st["glue:State"]); //This was never used
-*/
+
     SOAPFault *fs = (*resp).Fault();
     if (fs) {
       faultstring = fs->Reason();
       if (faultstring.empty())
         faultstring = "Undefined error";
     }
-    delete resp;
     if (faultstring != "") {
       logger.msg(ERROR, faultstring);
-      return false;
-    }
-    else if (state == "") {
-      logger.msg(ERROR, "The job status could not be retrieved");
+      delete resp;
       return false;
     }
     else {
-      job.State = state + "/" + substate;
-      if (lrmsstate != "")
-        job.State += "/" + lrmsstate;
+      logger.msg(DEBUG, "Fetching job state");
+      (*resp).Namespaces(arex_ns);
+      XMLNode jobNode = (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"];
+      logger.msg(DEBUG, "%s", (std::string)jobNode["State"]);
+      // Fetch the nordugrid state.
+      const std::string stateModel = "nordugrid:";
+      for (int i = 0; jobNode["State"][i]; i++) {
+        const std::string state = (std::string)jobNode["State"][i];
+        if (state.size() > stateModel.size() && state.substr(0, stateModel.size()) == stateModel) {
+          job.State = state.substr(stateModel.size());
+          break;
+        }
+      }
+
+      if (job.State == "") {
+        logger.msg(ERROR, "The job status could not be retrieved");
+        delete resp;
+        return false;
+      }
+
+      delete resp;
       return true;
     }
   }
@@ -403,6 +365,7 @@ namespace Arc {
       logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
+    
     SOAPFault* fault = resp->Fault();
     if(fault) {
       logger.msg(ERROR, "The response to a service status request "
@@ -510,8 +473,6 @@ namespace Arc {
     return true;
   }
 
-
-
   bool AREXClient::kill(const std::string& jobid) {
 
     std::string result, faultstring;
@@ -523,56 +484,10 @@ namespace Arc {
       NewChild(XMLNode(jobid));
     set_bes_factory_action(req, "TerminateActivities");
     WSAHeader(req).To(rurl.str());
-
-    // Send kill request
+    
     PayloadSOAP *resp = NULL;
-    if (client) {
-      MCC_Status status =
-        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-                        "BESFactoryPortType/TerminateActivities", &req, &resp);
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-                         "bes-factory/BESFactoryPortType/TerminateActivities");
-      MessageAttributes attributes_rep;
-      MessageContext context;
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "A job termination request failed");
-        return false;
-      }
-      logger.msg(INFO, "A job termination request succeed");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a job termination request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR, "The response of a job termination request was "
-                   "not a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(req, &resp, false))
       return false;
-    }
 
     XMLNode terminated;
     (*resp)["TerminateActivitiesResponse"]
@@ -586,12 +501,16 @@ namespace Arc {
       resp->GetXML(s);
       logger.msg(VERBOSE, "Request returned failure: %s", s);
       logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
+      delete resp;
       return false;
     }
     if (result != "true") {
       logger.msg(ERROR, "Job termination failed");
+      delete resp;
       return false;
     }
+
+    delete resp;
     return true;
   }
 
@@ -606,51 +525,13 @@ namespace Arc {
     XMLNode jobstate = op.NewChild("a-rex:NewStatus");
     jobstate.NewAttribute("bes-factory:state") = "Finished";
     jobstate.NewChild("a-rex:state") = "Deleted";
+    WSAHeader(req).Action("");
+    WSAHeader(req).To(rurl.str());
+    
     // Send clean request
     PayloadSOAP *resp = NULL;
-    if (client) {
-      MCC_Status status = client->process("", &req, &resp);
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      MessageAttributes attributes_rep;
-      MessageContext context;
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "A job cleaning request failed");
-        return false;
-      }
-      logger.msg(INFO, "A job cleaning request succeed");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a job cleaning request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR, "The response of a job cleaning request was not "
-                   "a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(req, &resp, false))
       return false;
-    }
 
     if (!((*resp)["ChangeActivityStatusResponse"])) {
       // delete resp;
@@ -662,14 +543,16 @@ namespace Arc {
         resp->GetXML(s);
         logger.msg(VERBOSE, "Request returned failure: %s", s);
         logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
+        delete resp;
         return false;
       }
       if (result != "true") {
         logger.msg(ERROR, "Job termination failed");
+        delete resp;
         return false;
       }
     }
-    // delete resp;
+    delete resp;
     return true;
   }
 
@@ -687,54 +570,9 @@ namespace Arc {
 
     // Send status request
     PayloadSOAP *resp = NULL;
-
-    if (client) {
-      MCC_Status status =
-        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-                        "BESFactoryPortType/GetActivityDocuments", &req, &resp);
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-                         "bes-factory/BESFactoryPortType/GetActivityDocuments");
-      MessageAttributes attributes_rep;
-      MessageContext context;
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "A status request failed");
-        return false;
-      }
-      logger.msg(INFO, "A status request succeed");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR, "There was no response to a status request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR,
-                   "The response of a status request was not a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(req, &resp, false))
       return false;
-    }
-
+    
     XMLNode st;
     (*resp)["GetActivityDocumentsResponse"]["Response"]
     ["JobDefinition"].New(st);
@@ -749,10 +587,13 @@ namespace Arc {
       resp->GetXML(s);
       logger.msg(VERBOSE, "Request returned failure: %s", s);
       logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
+      delete resp;
       return false;
     }
-    else
+    else {
+      delete resp;
       return true;
+    }
   }
 
   bool AREXClient::migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate) {
@@ -773,11 +614,10 @@ namespace Arc {
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     op.NewChild(XMLNode(jobid));
     op.NewChild("a-rex:ForceMigration") = (forcemigration ? "true" : "false");
-    set_bes_factory_action(req, "MigrateActivity");
+    WSAHeader(req).Action("");
     WSAHeader(req).To(rurl.str());
     act_doc.NewChild(XMLNode(jobdesc));
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
-    PayloadSOAP *resp = NULL;
 
 
     // Remove DataStaging/Source/URI elements from job description satisfying:
@@ -800,117 +640,25 @@ namespace Arc {
       logger.msg(VERBOSE, "Job description to be sent: %s", logJobdesc);
     }
 
-    // Try to figure out which credentials are used
-    // TODO: Method used is unstable beacuse it assumes some predefined
-    // structure of configuration file. Maybe there should be some
-    // special methods of ClientTCP class introduced.
-    std::string deleg_cert;
-    std::string deleg_key;
-    if (delegate) {
-      client->Load(); // Make sure chain is ready
-      XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
-                                      "Component", "name", "tls.client");
-      if (tls_cfg) {
-        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
-        if (deleg_cert.empty()) {
-          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
-          deleg_key = (std::string)(tls_cfg["KeyPath"]);
-        }
-        else
-          deleg_key = deleg_cert;
-      }
-      if (deleg_cert.empty() || deleg_key.empty()) {
-        logger.msg(ERROR, "Failed to find delegation credentials in "
-                   "client configuration");
-        return false;
-      }
-    }
-    // Send migration request + delegation
-    if (client) {
-      if (delegate) {
-        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-        logger.msg(INFO, "Initiating delegation procedure");
-        if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
-                                           &(client->GetContext()))) {
-          logger.msg(ERROR, "Failed to initiate delegation");
-          return false;
-        }
-        deleg.DelegatedToken(op);
-      }
-      MCC_Status status =
-        client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
-                        "BESFactoryPortType/MigrateActivity", &req, &resp);
-      if (!status) {
-        logger.msg(ERROR, "Migration request failed");
-        return false;
-      }
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/"
-                         "bes-factory/BESFactoryPortType/MigrateActivity");
-      MessageAttributes attributes_rep;
-      MessageContext context;
-
-      if (delegate) {
-        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-        logger.msg(INFO, "Initiating delegation procedure");
-        if (!deleg.DelegateCredentialsInit(*client_entry, &context)) {
-          logger.msg(ERROR, "Failed to initiate delegation");
-          return false;
-        }
-        deleg.DelegatedToken(op);
-      }
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "Migration request failed");
-        return false;
-      }
-      logger.msg(INFO, "Migration request succeed");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR, "There was no response to a migration request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR, "A response to a submission request was not "
-                   "a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    PayloadSOAP *resp = NULL;
+    if (!process(req, &resp, false))
       return false;
-    }
+
     XMLNode id;
     SOAPFault fs(*resp);
     if (!fs) {
       (*resp)["MigrateActivityResponse"]["ActivityIdentifier"].New(id);
       id.GetDoc(newjobid);
-      // delete resp;
+      delete resp;
       return true;
     }
     else {
       faultstring = fs.Reason();
       std::string s;
       resp->GetXML(s);
-      // delete resp;
       logger.msg(VERBOSE, "Migration returned failure: %s", s);
       logger.msg(ERROR, "Migration failed, service returned: %s", faultstring);
+      delete resp;
       return false;
     }
   }
@@ -928,105 +676,32 @@ namespace Arc {
     jobstate.NewAttribute("bes-factory:state") = "Running";
     // Not supporting resume into user-defined state
     jobstate.NewChild("a-rex:state") = "";
-    // Try to figure out which credentials are used
-    // TODO: Method used is unstable beacuse it assumes some predefined
-    // structure of configuration file. Maybe there should be some
-    // special methods of ClientTCP class introduced.
-    std::string deleg_cert;
-    std::string deleg_key;
-    if (delegate) {
-      client->Load(); // Make sure chain is ready
-      XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
-                                      "Component", "name", "tls.client");
-      if (tls_cfg) {
-        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
-        if (deleg_cert.empty()) {
-          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
-          deleg_key = (std::string)(tls_cfg["KeyPath"]);
-        }
-        else
-          deleg_key = deleg_cert;
-      }
-      if (deleg_cert.empty() || deleg_key.empty()) {
-        logger.msg(ERROR, "Failed to find delegation credentials in "
-                   "client configuration");
-        return false;
-      }
-    }
-    // Send resume request
+    WSAHeader(req).Action("");
+    WSAHeader(req).To(rurl.str());
+    
     PayloadSOAP *resp = NULL;
-    if (client) {
-      if (delegate) {
-        DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-        logger.msg(INFO, "Initiating delegation procedure");
-        if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
-                                           &(client->GetContext()))) {
-          logger.msg(ERROR, "Failed to initiate delegation");
-          return false;
-        }
-        deleg.DelegatedToken(op);
-      }
-      MCC_Status status = client->process("", &req, &resp);
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      MessageAttributes attributes_rep;
-      MessageContext context;
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "A job resuming request failed");
-        return false;
-      }
-      logger.msg(INFO, "A job resuming request succeed");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a job resuming request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR, "The response of a job resuming request was not "
-                   "a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(req, &resp, true))
       return false;
-    }
 
     if (!((*resp)["ChangeActivityStatusResponse"])) {
-      // delete resp;
       XMLNode fs;
       (*resp)["Fault"]["faultstring"].New(fs);
       faultstring = (std::string)fs;
       if (faultstring != "") {
         logger.msg(ERROR, faultstring);
+        delete resp;
         return false;
       }
       if (result != "true") {
         logger.msg(ERROR, "Job resuming failed");
+        delete resp;
         return false;
       }
     } else {
       std::string new_state=(std::string)(*resp)["ChangeActivityStatusResponse"]["NewStatus"]["state"];
       logger.msg(WARNING,"Job resumed at state: %s", new_state);
     }
-    // delete resp;
+    delete resp;
     return true;
   }
 
