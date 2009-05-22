@@ -393,9 +393,13 @@ namespace Arc {
       reqmsg.Attributes()->add(key, (*it).second);
     }
     MCC_Status r = http_entry->process(reqmsg, repmsg);
-    info->code = stringtoi(repmsg.Attributes()->get("HTTP:CODE"));
+    if(!r) {
+      if (repmsg.Payload() != NULL) delete repmsg.Payload();
+      return r;
+    };
+    stringto(repmsg.Attributes()->get("HTTP:CODE"),info->code);
     info->reason = repmsg.Attributes()->get("HTTP:REASON");
-    info->size = stringtoull(repmsg.Attributes()->get("HTTP:content-length"));
+    stringto(repmsg.Attributes()->get("HTTP:content-length"),info->size);
     std::string lm;
     lm = repmsg.Attributes()->get("HTTP:last-modified");
     if (lm.size() > 11)
