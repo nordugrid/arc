@@ -219,10 +219,6 @@ In response to this operation the EndpointReferences to all known ISIS services 
 
 This operation allows any XPath queries to be performed on stored Registration Records. The records are treated as merged in one XML document with each record being equivalent to \texttt{RegEntry} element of \texttt{Register} operation. In response all elements produced by XPath query are returned. The purpose of this operation is to make it possible to obtain any kind of information related to the Indexing Database.
 
-
-
-
-
 % subsection interface (end)
 
 % section registration_handling (end)
@@ -232,11 +228,79 @@ This operation allows any XPath queries to be performed on stored Registration R
 
 \subsection{Functionality}
 \label{sub:peer_to_peer_functionality}
+The ISISs are able to organize themselves into a peer-to-peer network by synchronizing the stored replicated database and maintain this synchronicity and network topology. Every node of this peer-to-peer cloud (thatÕs an ISIS service) has an own PeerID (an identifier only used in this network) made as a hash of its endpoint URL. The members are ordered by this identifier where there is also a sequence defined between them where the follower of the entity is the ISIS with the smallest PeerID of the greater PeerIDs and the smallest in case of the greatest value. This metric is used for define the neighbor relation thatÕs the base of the inter-peer-to-peer network communication. A strong condition that only registered ISIS can have any role in the cloud.
 
+\subsubsection{Connecting to the peer-to-peer network}
+Every ISIS tries to connect to the network at its startup by accessing the InfoProvider ISISs  known from the configuration. The order of attempting is random to achieve as much load-balancing as possible. (By design we are counting of a huge amount of ISISs configured in a very similar way, where the InfoProvider ISIS are mainly the same.) If there is no InfoProvider available or nothing is known from the configuration, the node decides to be the fist member and to build a new network.
+
+If there is any InfoProvider available the list of member ISIS will be queried and the ÒfollowerÓ will be defined using the previously mentioned metric. This ÒfollowerÓ node will help the ISIS to connect to the cloud. The new member will use the ÒConnectÓ Web Service operation to get the newest version of database stored in the peer-to-peer network, and place the newer entries to the cloud by register them. An initial database synchronization can be achieved with this process.
+
+We can prevent to overload the InfoProvider ISISs by balancing the operation of database synchronizing thatÕs the most costly procedure in the connection phase.
+
+There is also an other extension used in connection with the InfoProvider ISISs. If a node wasn't able to connect any of its InfoProviders then it will redo that later. This achieves that the network is able to fuse two disjunct parts of network when the missing InfoProvider ISIS is appearing.
+
+\subsubsection{Routing in the peer-to-peer network}
+We are keeping the databases in synch by passing every Registration and RemoveRegistrations  to every node acting in the network. This set the redundancy and the fault tolerant message routing very important between any two ISISs.
+
+The most important parameter of the network is the {\it sparsity}. This an integer not less then 2 that determines the number of neighbors in the function of the actual number of member nodes of the network, where the number of neighbors can be growing when new members connecting to the network or members leave. A spares graph can be shaped by choosing a great value to sparsity or a dense by choosing the most less. This value is defined during the design and determines the main properties of the peer-to-peer network.
+\begin{figure}[ht]
+\centering{{\scalebox{0.6}{\includegraphics{Circle2-1.png}}}
+\caption{\label{fig:p2p_neighbors_2} The neighbor connections in the peer-to-peer network in case of sparsity=2} }
+\end{figure}
+
+Every node has always exactly n = $\lceil \log_s{N} \rceil$ neighbors where the $N$ is the number of the ISIS registered into the network. The node has as neighbor the ISISs with PeerID $s^0$-th, $s^1$-th ... $s^{n-1}$-th greater than the own. (For example: There is 19 nodes in a network with sparsity=9. Then the 1st node has as neighbors the 2nd, 3rd, 5th, 9th, and 17th node as seen on figure \ref{fig:p2p_neighbors_2}.)
+
+There can be exactly n redundancy achieved in the system so at most $n-1$ node can be disappear without any serious communication problem. Since we are also using a method that tries to deliver the message even every neighbor is unavailable, this fault tolerance is much greater. With this extension, we will pass the message to at least one other available ISIS so the message wont stick if the node is not the only working node in the network. This solution provides a secure and quite fast solution for the message deliver but has a high communication cost because there is $n*N$ message necessary in general for every Registration or RemoveRegistrations.
+
+If there is a much greater {\it sparsity} used that's even greater then the number of the expected number of members then every node will have only one neighbor. This situation can be seen on Figure \ref{fig:p2p_neighbors_40}. In this case it can be such a functioning achieved where is only N (the theoretically minimum) message in the network at the expense of a slower propagation.
+\begin{figure}[ht]
+\centering{{\scalebox{0.6}{\includegraphics{Circle40-40.png}}}
+\caption{\label{fig:p2p_neighbors_40} The neighbor connections in the peer-to-peer network in case of sparsity>N} }
+\end{figure}
+
+There is a data-driven routing used in the peer-to-peer cloud. It means that the given nodes examines the received Registration Entries and store and forward only the newer ones than the already known version belonging to the same service identifier. If the information is out-of-date then it will be simple dropped. (A Coordinated Universal Time (UTC) standard time and date format is used for the time stamps that is also able to handle the differences originated from the different time zones.) We managed to achieve using this method not to store the already deliver nodes list in the message but deciding about the forwarding locally based on locally available information. Since the routing is based on time stamps, it is very important to keep the nodes clock in synch with each other or with an outer reference for example by using NTP.
+
+An other advantage of this solution is the ability of handling the case of medley Register and RemoveRegistrations messages. It is possible for a RemoveRegistrations message to forerun a previously generated Register message. This cause just a temporary imprecise entry in the database but the mistake can be quickly fixed and won't be much further propagated.
+
+Since we are base our routing to the state of the messages belonging to the service identifier it is important to keep the fact of message deleting for a while. If we are receiving a RemoveRegistrations message then do not remove the named entry from the database just change its state to {\it deleted} by keeping only a piece of data about it (the service identifier and the deletion time). 
+
+\subsubsection{Maintenance of the peer-to-peer network}
+In the network there is two different maintenance needed. On the one hand the database have to be periodically kept up and on the other hand the list of neighbors have always to be up-to-date.
+
+The database applied in the system is a soft-state database so the entries are {\it valid} just for a limited time. Without any registration freshening it's validity will expire and the entry's state will change to {\it expired}. The time of expiration have to be defined to every singe message by the registrar entity. The RemoveRegistrations message turn the state of registration entry {\it deleted} as it was previously mentioned. The {\it expired} or {\it deleted} messages will purged for good and all in the course of the periodical database maintenance. The states of registration entries can be shown on Figure \ref{fig:RegEntry states}.
+\begin{figure}[ht]
+\centering{{\scalebox{0.6}{\includegraphics{RegEntryStates.png}}}
+\caption{\label{fig:RegEntry states} Registration entry states} }
+\end{figure}
+
+The second kind of maintenance is keeping the list of neighbors up-to-date. While receiving even Registration or RemoveRegistrations messages or found an outdated entry during the periodical database cleaning we are doing the necessary steps to update our list. Since every leaving or entering node has influence to the every node's neighbor registry with a high probability it will be rebuilt in these cases. The modification are passing locally because this connections are asymmetric so there is no compliance or network communication is needed.
+
+There is no special action done and no additional network traffic needed during the neighbor checking. The fact the node sends periodically messages to every neighbor can be exploited. If the node do not success to send its message to the neighbor after some tries, then the unavailable node will be marked. If every neighbor will be getting marked then the node change its PeerID and reconnect to the network if any InfoProvider ISIS is available.
+
+When a neighbor is unavailable we keep also trying to deliver the message to the followers of the neighbor until we manged to find one to pass the information or diagnose that every nodes are unavailable. Here the follower means the nodes that have greater PeerID than the neighbor has but less then our next neighbor. 
 % subsection functionality (end)
 
 \subsection{Interface}
 \label{sub:isis_peer_to_peer_interface}
+\subsubsection{Operation Connect}
+
+\begin{description}
+
+  \item[Input]~\begin{description}
+    \item[none]
+  \end{description}
+
+  \item[Output]~\begin{description}
+    \item[RegEntry] Multiple \texttt{RegEntries} locally stored in the ISIS database
+  \end{description}
+
+  \item[Faults]~\begin{description}
+    \item[none]No specific faults are defined
+  \end{description}
+
+\end{description}
+
+This operation allows the ISIS to get the already existing database from the ISIS that helps it to connect the peer-to-peer network. As a second step of the connection the newer  \texttt{RegEntries} that are stored at the connecting entity will be propagated through \texttt{Register} operation of the standard service specific interface.
 
 % subsection interface (end)
 
@@ -259,7 +323,7 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
  \begin{itemize}
   \item Register with Registration Message containing information not about contacting client
   \item RemoveRegistrations with request to remove Registration Message representing not contacting client
-  \item Connect % TODO: describe this operation
+  \item Connect indicating to provide every information about the stored database
  \end{itemize}
 
  Those operations may cause uncontrollable changes in collected information and must be granted only for highly trusted entities like ISISes themselves.
@@ -1251,4 +1315,3 @@ Interface of Information Indexing Service
 
 \bibliography{grid}
 \end{document}
-
