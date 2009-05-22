@@ -134,6 +134,13 @@ int main(int argc, char **argv) {
   }
 
   MCCConfig cfg;
+  NS ns;
+  XMLNode xcfg(ns,"dummy");
+  usercfg.ApplySecurity(xcfg);
+  cfg.AddCertificate(xcfg["CertificatePath"]);
+  cfg.AddPrivateKey(xcfg["KeyPath"]);
+  cfg.AddProxy(xcfg["ProxyPath"]);
+  cfg.AddCADir(xcfg["CACertificatesDir"]);
   ClientSOAP client(cfg,u);
   PayloadSOAP req(*(request->SOAP()));
   PayloadSOAP* resp = NULL;
