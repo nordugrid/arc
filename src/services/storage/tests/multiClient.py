@@ -22,6 +22,8 @@ Example:
  
 So this way each multiple client will have a separate directory and all the clients will create an individual file in that directory. 
 The last argument in the scrip pointing towards the directory's last number. I mean in the case of  multiClient/client-3/ the last argument points to 3.    
+
+Run this program and then copy all the files into one directory and run the parsr.py script. 
 """
 def myfunc(thread, start, stop, subcoll, clientnum):
 
@@ -122,7 +124,7 @@ while threading.activeCount()> 1 :
     print "Threads are alive"
     time.sleep(5)
 
-sum=[]
+#sum=[]
 
 #list = os.listdir('multiClient/client-'+clientnum)
 #for filename in list:
