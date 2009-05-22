@@ -31,7 +31,6 @@ AC_SUBST(DOXYGEN)
 AC_CONFIG_FILES([Makefile
                  tech_doc/Makefile
                  tech_doc/client/Makefile
-                 tech_doc/xrsl/Makefile
                  tech_doc/doxygen/Makefile
                  tech_doc/a-rex/Makefile
                  tech_doc/hed/Makefile
