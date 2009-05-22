@@ -3,6 +3,7 @@ import os,sys
 sum=[]
 
 client =sys.argv[1]
+numthread = int(sys.argv[2])
 numfile = 0 
 list = os.listdir('multiClient/client-'+client)
 for filename in list: 
@@ -51,18 +52,21 @@ for val in sum:
 #print sum
 
 print 'No. of clients :\t Mim-time :\t Max-Time :\t Avg-Time :\t PerCall-Time  \n' 
-print  '\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t',max(sum)/(numthread*(stop-start))
+print  '\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t', max(sum)/(numthread*(ind)), '\n'
 
 exist  = os.path.exists('multiClient/multiClient.txt')
-if exit == 'True':
+print exist
+if exist == True:
+    print '\n file exist:'
     f = open('multiClient/multiClient.txt', 'a')     
-    f.write('\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t',max(sum)/(numthread*(stop-start)))
+    f.write('\t'+str(numthread)+'\t\t'+str(min(sum))+'\t'+str(max(sum))+'\t'+str(ss/len(sum))+'\t'+str(max(sum)/(numthread*(ind)))+'\n')
     f.close()
     print 'results are appended to the file: multiClient/multiClient.txt'
 else:
+    print 'new file created:'
     f = open('multiClient/multiClient.txt', 'w')
     f.write('No. of clients :\t Mim-time :\t Max-Time :\t Avg-Time :\t PerCall-Time  \n')
-    f.write('\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t',max(sum)/(numthread*(stop-start)))  
+    f.write('\t'+str(numthread)+'\t\t'+str(min(sum))+'\t'+str(max(sum))+'\t'+str(ss/len(sum))+'\t'+str(max(sum)/(numthread*(ind)))+'\n') 
     f.close()
     print 'results are written to the file: multiClient/multiClient.txt'
 
