@@ -44,6 +44,14 @@ namespace Arc {
      Returns true on success. */
   bool CreateThreadFunction(void (*func)(void*), void *arg);
 
+  /// Helper function to create simple thread.
+  /** It takes care of all pecularities of Glib::Thread API.
+     As result it runs function 'func' with argument 'arg' in a separate
+     thread. The created thread will be joinable.
+     Returns true on success. */
+
+  bool CreateThreadFunction(void (*func)(void*), void *arg, Glib::Thread *&thr);
+
   /// Simple triggered condition.
   /** Provides condition and semaphor objects in one element. */
   class SimpleCondition {

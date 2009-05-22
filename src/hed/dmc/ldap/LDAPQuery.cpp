@@ -47,7 +47,7 @@ namespace Arc {
     std::string usersn;
   };
 
-  static void* ldap_bind_with_timeout(void *arg);
+  static void ldap_bind_with_timeout(void *arg);
 
 #if defined (HAVE_SASL_H) || defined (HAVE_SASL_SASL_H)
   class sasl_defaults {
@@ -282,12 +282,9 @@ namespace Arc {
     arg.anonymous = anonymous;
     arg.usersn = usersn;
 
-#ifndef WIN32 
+    Glib::Thread *thread;
 
-    // TODO: porting  
-
-    pthread_t thr;
-    if (pthread_create(&thr, NULL, &ldap_bind_with_timeout, &arg) != 0) {
+	if (!Arc::CreateThreadFunction(&ldap_bind_with_timeout, &arg, thread)) {
       ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
       logger.msg(ERROR, "Failed to create ldap bind thread (%s)", host);
@@ -295,17 +292,13 @@ namespace Arc {
     }
 
     if (!arg.cond.wait(1000 * (timeout + 1))) {
-      pthread_cancel(thr);
-      pthread_detach(thr);
       // if bind fails unbind will fail too - so don't call it
       connection = NULL;
       logger.msg(ERROR, "Ldap bind timeout (%s)", host);
       return false;
     }
 
-    pthread_join(thr, NULL);
-
-#endif 
+    thread->join();
 
     if (!arg.valid) {
       ldap_unbind_ext(connection, NULL, NULL);
@@ -351,7 +344,7 @@ namespace Arc {
     return true;
   }
 
-  static void* ldap_bind_with_timeout(void *arg_) {
+  static void ldap_bind_with_timeout(void *arg_) {
 
     ldap_bind_arg *arg = (ldap_bind_arg*)arg_;
 
@@ -400,7 +393,6 @@ namespace Arc {
       arg->valid = true;
 
     arg->cond.signal();
-    return NULL;
   }
 
 

@@ -64,6 +64,25 @@ namespace Arc {
     return true;
   }
 
+  bool CreateThreadFunction(void (*func)(void*), void *arg, Glib::Thread *&thr) {
+    ThreadArgument *argument = new ThreadArgument(func, arg);
+	Glib::Thread *thread;
+    try {
+      UserSwitch usw(0,0);
+      thread = Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),             
+	                  thread_stacksize,
+                                  true,  // thread joinable
+                                 false,
+          Glib::THREAD_PRIORITY_NORMAL);
+    } catch (std::exception& e) {
+      threadLogger.msg(ERROR, e.what());
+      delete argument;
+      return false;
+    };    
+    thr = thread;
+    return true;
+   }
+
   /*
      Example of how to use CreateThreadClass macro
 
