@@ -32,7 +32,7 @@ namespace Arc {
       return buf;
     }
 
-    virtual bool Put(const char *buf, int size) {}
+    virtual bool Put(const char *buf, Size_t size) {}
 
     virtual bool Put(const std::string& buf) {
       return Put(buf.c_str(), buf.length());
@@ -58,7 +58,7 @@ namespace Arc {
       timeout = to;
     }
 
-    virtual int Pos() const {
+    virtual Size_t Pos() const {
       return 0;
     }
 
