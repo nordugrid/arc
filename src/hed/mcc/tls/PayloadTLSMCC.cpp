@@ -173,7 +173,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     }
 #else
     if(timeleft <= 5*24*3600) //for EEC certificate, give warning 5 days in advance
-      Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %d hours", subject_name, (double)timeleft/(3600*24));
+      Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %d days", subject_name, (double)timeleft/(3600*24));
 #endif
     OPENSSL_free(subject_name);
   };
