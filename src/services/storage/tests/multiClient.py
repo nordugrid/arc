@@ -6,7 +6,7 @@ from threading import Thread
 import os, sys, arc, time
 from storage.client import BartenderClient
 import random
-
+import socket
 
 """ HOW TO RUN
 python multiclient.py <start Collection> <stop Collection> <number of Clients> <subCollection Name> <client Directory number>
@@ -27,7 +27,7 @@ Run this program and then copy all the files into one directory and run the pars
 """
 def myfunc(thread, start, stop, subcoll, clientnum):
 
-    f = open('./multiClient/client-'+clientnum+'/client-'+str(thread)+'_'+str(start)+'-'+str(stop)+'.dat.sal2', 'w')
+    f = open('./multiClient/client-'+clientnum+'/client-'+str(thread)+'_'+str(start)+'-'+str(stop)+'.dat'+socket.gethostname(), 'w')
     request={}
     i_path = '/'+subcoll+str(thread)
     request[i_path] = (i_path,{})
