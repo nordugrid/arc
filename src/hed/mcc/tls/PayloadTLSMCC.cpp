@@ -9,6 +9,7 @@
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
 #include <glibmm/miscutils.h>
+#include <arc/DateTime.h>
 
 namespace Arc {
 
@@ -165,15 +166,17 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     char * subject_name = X509_NAME_oneline(X509_get_subject_name(sctx->current_cert), 0, 0);
     time_t timeleft;
     timeleft = asn1_to_utctime(X509_get_notAfter(sctx->current_cert)) - time(NULL);
+    Arc::Period period(timeleft);
+    std::string time_str = period.tolongstring();
 #ifdef HAVE_OPENSSL_PROXY
     int pos = X509_get_ext_by_NID(sctx->current_cert, NID_proxyCertInfo,-1);
     if(pos >= 0) {           //for proxy certificate, give warning 1 hour in advance
       if(timeleft <= 3600)
-        Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %d hours", subject_name, (double)timeleft/3600);
+        Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %s", subject_name, time_str.c_str());
     }
 #else
     if(timeleft <= 5*24*3600) //for EEC certificate, give warning 5 days in advance
-      Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %d days", subject_name, (double)timeleft/(3600*24));
+      Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %s", subject_name, time_str.c_str());
 #endif
     OPENSSL_free(subject_name);
   };
