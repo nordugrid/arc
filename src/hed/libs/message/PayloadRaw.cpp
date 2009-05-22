@@ -15,10 +15,10 @@ PayloadRaw::~PayloadRaw(void) {
   };
 }
 
-static bool BufferAtPos(const std::vector<PayloadRawBuf>& buf_,int pos,unsigned int& bufnum,int& bufpos) {
+static bool BufferAtPos(const std::vector<PayloadRawBuf>& buf_,PayloadRawInterface::Size_t pos,unsigned int& bufnum,PayloadRawInterface::Size_t& bufpos) {
   if(pos == -1) pos=0;
   if(pos < 0) return false;
-  int cpos = 0;
+  PayloadRawInterface::Size_t cpos = 0;
   for(bufnum = 0;bufnum<buf_.size();++bufnum) {
     cpos+=buf_[bufnum].length;
     if(cpos>pos) {
@@ -29,10 +29,10 @@ static bool BufferAtPos(const std::vector<PayloadRawBuf>& buf_,int pos,unsigned 
   return false;
 }
 
-static bool BufferAtPos(std::vector<PayloadRawBuf>& buf_,int pos,std::vector<PayloadRawBuf>::iterator& bufref,int& bufpos) {
+static bool BufferAtPos(std::vector<PayloadRawBuf>& buf_,PayloadRawInterface::Size_t pos,std::vector<PayloadRawBuf>::iterator& bufref,PayloadRawInterface::Size_t& bufpos) {
   if(pos == -1) pos=0;
   if(pos < 0) return false;
-  int cpos = 0;
+  PayloadRawInterface::Size_t cpos = 0;
   for(bufref = buf_.begin();bufref!=buf_.end();++bufref) {
     cpos+=bufref->length;
     if(cpos>pos) {
@@ -43,32 +43,32 @@ static bool BufferAtPos(std::vector<PayloadRawBuf>& buf_,int pos,std::vector<Pay
   return false;
 }
 
-char* PayloadRaw::Content(int pos) {
+char* PayloadRaw::Content(Size_t pos) {
   unsigned int bufnum;
-  int bufpos;
+  Size_t bufpos;
   if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) return NULL;
   return buf_[bufnum].data+bufpos;
 }
 
-char PayloadRaw::operator[](int pos) const {
+char PayloadRaw::operator[](Size_t pos) const {
   unsigned int bufnum;
-  int bufpos;
+  Size_t bufpos;
   if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) return 0;
   return buf_[bufnum].data[bufpos];
 }
 
-int PayloadRaw::Size(void) const {
+PayloadRaw::Size_t PayloadRaw::Size(void) const {
   return size_;
-  //int cpos = 0;
+  //Size_t cpos = 0;
   //for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
   //  cpos+=buf_[bufnum].length;
   //};
   //return cpos;
 }
 
-char* PayloadRaw::Insert(int pos,int size) {
+char* PayloadRaw::Insert(Size_t pos,Size_t size) {
   std::vector<PayloadRawBuf>::iterator bufref;
-  int bufpos;
+  Size_t bufpos;
   if(!BufferAtPos(buf_,pos-offset_,bufref,bufpos)) {
     bufref=buf_.end(); bufpos=0;
     if(buf_.size() == 0) {
@@ -107,7 +107,7 @@ char* PayloadRaw::Insert(int pos,int size) {
   return buf.data;
 }
 
-char* PayloadRaw::Insert(const char* s,int pos,int size) {
+char* PayloadRaw::Insert(const char* s,Size_t pos,Size_t size) {
   if(size < 0) size=strlen(s);
   char* s_ = Insert(pos,size);
   if(s_) memcpy(s_,s,size);
@@ -119,13 +119,13 @@ char* PayloadRaw::Buffer(unsigned int num) {
   return buf_[num].data;
 }
 
-int PayloadRaw::BufferSize(unsigned int num) const {
+PayloadRaw::Size_t PayloadRaw::BufferSize(unsigned int num) const {
   if(num>=buf_.size()) return 0;
   return buf_[num].length;
 }
 
-int PayloadRaw::BufferPos(unsigned int num) const {
-  int pos = offset_;
+PayloadRaw::Size_t PayloadRaw::BufferPos(unsigned int num) const {
+  Size_t pos = offset_;
   std::vector<PayloadRawBuf>::const_iterator b = buf_.begin();
   for(;b!=buf_.end();++b) {
     if(!num) break;
@@ -134,7 +134,7 @@ int PayloadRaw::BufferPos(unsigned int num) const {
   return pos;
 }
 
-bool PayloadRaw::Truncate(unsigned int size) {
+bool PayloadRaw::Truncate(Size_t size) {
   if(size_ == size) return true; // Buffer is already of right size
   if(size_ < size) { // Buffer needs to be extended
     size_=size; return true;
@@ -149,7 +149,7 @@ bool PayloadRaw::Truncate(unsigned int size) {
     size_=size;
     return true;
   };
-  int l = offset_;
+  Size_t l = offset_;
   for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
     l+=buf_[bufnum].length;
   };
@@ -158,7 +158,7 @@ bool PayloadRaw::Truncate(unsigned int size) {
   };
   // Buffer must be truncated
   std::vector<PayloadRawBuf>::iterator b;
-  int p;
+  Size_t p;
   if(!BufferAtPos(buf_,size-offset_,b,p)) return false;
   if(p != 0) {
     b->length=p; ++b;

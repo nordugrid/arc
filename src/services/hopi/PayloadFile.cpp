@@ -35,28 +35,28 @@ PayloadFile::~PayloadFile(void) {
   return;
 }
 
-char* PayloadFile::Content(int pos) {
+char* PayloadFile::Content(Size_t pos) {
   if(handle_ == -1) return NULL;
   if(pos >= size_) return NULL;
   return (addr_+pos);
 }
 
-char PayloadFile::operator[](int pos) const {
+char PayloadFile::operator[](Size_t pos) const {
   if(handle_ == -1) return 0;
   if(pos >= size_) return 0;
   return addr_[pos];
 }
 
-int PayloadFile::Size(void) const {
+PayloadFile::Size_t PayloadFile::Size(void) const {
   return size_;
 }
 
-char* PayloadFile::Insert(int /*pos*/,int /*size*/) {
+char* PayloadFile::Insert(Size_t /*pos*/,Size_t /*size*/) {
   // Not supported
   return NULL;
 }
 
-char* PayloadFile::Insert(const char*,int /*pos*/,int /*size*/) {
+char* PayloadFile::Insert(const char*,Size_t /*pos*/,Size_t /*size*/) {
   // Not supported
   return NULL;
 }
@@ -67,17 +67,18 @@ char* PayloadFile::Buffer(unsigned int num) {
   return addr_;
 }
 
-int PayloadFile::BufferSize(unsigned int num) const {
+PayloadFile::Size_t PayloadFile::BufferSize(unsigned int num) const {
   if(handle_ == -1) return 0;
   if(num>0) return 0;
   return size_;
 }
 
-int PayloadFile::BufferPos(unsigned int /*num*/) const {
-  return 0;
+PayloadFile::Size_t PayloadFile::BufferPos(unsigned int num) const {
+  if(num == 0) return 0;
+  return size_;
 }
 
-bool PayloadFile::Truncate(unsigned int /*size*/) {
+bool PayloadFile::Truncate(Size_t /*size*/) {
   return false;
 }
 

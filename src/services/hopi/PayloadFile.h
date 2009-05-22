@@ -20,17 +20,17 @@ class PayloadFile: public Arc::PayloadRawInterface {
   PayloadFile(const char* filename);
   /** Creates object associated with file for writing into it.
     Use size=-1 for undefined size. */
-  PayloadFile(const char* filename,int size);
+  PayloadFile(const char* filename,Size_t size);
   virtual ~PayloadFile(void);
-  virtual char operator[](int pos) const;
-  virtual char* Content(int pos = -1);
-  virtual int Size(void) const;
-  virtual char* Insert(int pos = 0,int size = 0);
-  virtual char* Insert(const char* s,int pos = 0,int size = -1);
+  virtual char operator[](Size_t pos) const;
+  virtual char* Content(Size_t pos = -1);
+  virtual Size_t Size(void) const;
+  virtual char* Insert(Size_t pos = 0,Size_t size = 0);
+  virtual char* Insert(const char* s,Size_t pos = 0,Size_t size = -1);
   virtual char* Buffer(unsigned int num);
-  virtual int BufferSize(unsigned int num) const;
-  virtual int BufferPos(unsigned int num) const;
-  virtual bool Truncate(unsigned int size);
+  virtual Size_t BufferSize(unsigned int num) const;
+  virtual Size_t BufferPos(unsigned int num) const;
+  virtual bool Truncate(Size_t size);
 
   operator bool(void) { return (handle_ != -1); };
   bool operator!(void) { return (handle_ == -1); };

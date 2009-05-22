@@ -36,7 +36,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   std::string method_;             /** HTTP method being used or requested */
   int code_;                       /** HTTP code being sent or supplied */
   std::string reason_;             /** HTTP reason being sent or supplied */
-  int length_;                     /** Content-length of HTTP message */
+  int64_t length_;                     /** Content-length of HTTP message */
   //int offset_;                   /** Logical beginning of content computed from Content-Range */
   //int size_;                     /** Logical size of content obtained from Content-Range */
   bool chunked_;                   /** true if content is chunked */
@@ -45,12 +45,12 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   char tbuf_[1024];
   int tbuflen_;
   uint64_t stream_offset_;
-  int chunked_size_;
-  int chunked_offset_;
+  int64_t chunked_size_;
+  uint64_t chunked_offset_;
   /** Read from stream till \r\n */
   bool readline(std::string& line);
   /** Read up to 'size' bytes from stream_ */
-  bool read(char* buf,int& size);
+  bool read(char* buf,int64_t& size);
   /** Read HTTP header and fill internal variables */
   bool parse_header(void);
   /** Read Body of HTTP message and attach it to inherited PayloadRaw object */
@@ -106,26 +106,26 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   virtual void Body(PayloadRawInterface& body,bool ownership = true);
 
   // PayloadRawInterface reimplemented methods
-  virtual char operator[](int pos) const;
-  virtual char* Content(int pos = -1);
-  virtual int Size(void) const;
-  virtual char* Insert(int pos = 0,int size = 0);
-  virtual char* Insert(const char* s,int pos = 0,int size = -1);
+  virtual char operator[](PayloadRawInterface::Size_t pos) const;
+  virtual char* Content(PayloadRawInterface::Size_t pos = -1);
+  virtual PayloadRawInterface::Size_t Size(void) const;
+  virtual char* Insert(PayloadRawInterface::Size_t pos = 0,PayloadRawInterface::Size_t size = 0);
+  virtual char* Insert(const char* s,PayloadRawInterface::Size_t pos = 0,PayloadRawInterface::Size_t size = -1);
   virtual char* Buffer(unsigned int num = 0);
-  virtual int BufferSize(unsigned int num = 0) const;
-  virtual int BufferPos(unsigned int num = 0) const;
-  virtual bool Truncate(unsigned int size);
+  virtual PayloadRawInterface::Size_t BufferSize(unsigned int num = 0) const;
+  virtual PayloadRawInterface::Size_t BufferPos(unsigned int num = 0) const;
+  virtual bool Truncate(PayloadRawInterface::Size_t size);
 
   // PayloadStreamInterface implemented methods
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);
   virtual std::string Get(void);
-  virtual bool Put(const char* buf,int size);
+  virtual bool Put(const char* buf,PayloadStreamInterface::Size_t size);
   virtual bool Put(const std::string& buf);
   virtual bool Put(const char* buf);
   virtual int Timeout(void) const;
   virtual void Timeout(int to);
-  virtual int Pos(void) const;
+  virtual PayloadStreamInterface::Size_t Pos(void) const;
 
 };
 

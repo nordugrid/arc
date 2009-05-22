@@ -72,7 +72,7 @@ bool PayloadStream::Get(std::string& buf) {
   return result;
 }
 
-bool PayloadStream::Put(const char* buf,int size) {
+bool PayloadStream::Put(const char* buf,Size_t size) {
   ssize_t l;
   if(handle_ == -1) return false;
   time_t start = time(NULL);

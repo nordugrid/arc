@@ -14,6 +14,8 @@ namespace Arc {
  This class is purely virtual. */
 class PayloadStreamInterface: virtual public MessagePayload {
  public:
+  // Avoid defining size of int - just use biggest possible
+  typedef signed long long int Size_t;
   PayloadStreamInterface(void) { };
   virtual ~PayloadStreamInterface(void) { };
   /** Extracts information from stream up to 'size' bytes. 
@@ -26,7 +28,7 @@ class PayloadStreamInterface: virtual public MessagePayload {
   virtual std::string Get(void) = 0;
   /** Push 'size' bytes from 'buf' into stream. 
     Returns true on success. */
-  virtual bool Put(const char* buf,int size) = 0;
+  virtual bool Put(const char* buf,Size_t size) = 0;
   /** Push information from 'buf' into stream. 
     Returns true on success. */
   virtual bool Put(const std::string& buf) = 0;
@@ -42,7 +44,7 @@ class PayloadStreamInterface: virtual public MessagePayload {
   /** Set current timeout for Get() and Put() operations. */
   virtual void Timeout(int to) = 0;
   /** Returns current position in stream if supported. */
-  virtual int Pos(void) const = 0;
+  virtual Size_t Pos(void) const = 0;
 };
 
 /// POSIX handle as Payload
@@ -61,7 +63,7 @@ class PayloadStream: virtual public PayloadStreamInterface {
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);
   virtual std::string Get(void) { std::string buf; Get(buf); return buf; };
-  virtual bool Put(const char* buf,int size);
+  virtual bool Put(const char* buf,Size_t size);
   virtual bool Put(const std::string& buf) { return Put(buf.c_str(),buf.length()); };
   virtual bool Put(const char* buf) { return Put(buf,buf?strlen(buf):0); };
   virtual operator bool(void) { return (handle_ != -1); };
@@ -72,7 +74,7 @@ class PayloadStream: virtual public PayloadStreamInterface {
     This method is deprecated and will be removed soon. Currently it is
    only used by Transport Layer Security MCC. */
   virtual int GetHandle(void) { return handle_; };
-  virtual int Pos(void) const { return 0; };
+  virtual Size_t Pos(void) const { return 0; };
 };
 }
 #endif /* __ARC_PAYLOADSTREAM_H__ */

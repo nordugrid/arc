@@ -18,7 +18,6 @@ namespace Arc {
     : public DataPointDirect {
   private:
     static Logger logger;
-    unsigned int transfer_chunk_size;
     ChunkControl *chunks;
     int transfers_started;
     int transfers_finished;

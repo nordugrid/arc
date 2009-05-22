@@ -33,14 +33,14 @@ public:
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);
   virtual std::string Get(void) { std::string buf; Get(buf); return buf; };
-  virtual bool Put(const char* buf,int size);
+  virtual bool Put(const char* buf,Size_t size);
   virtual bool Put(const std::string& buf) { return Put(buf.c_str(),buf.length()); };
   virtual bool Put(const char* buf) { return Put(buf,buf?strlen(buf):0); };
   virtual operator bool(void) { return (ssl_ != NULL); };
   virtual bool operator!(void) { return (ssl_ == NULL); };
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
-  virtual int Pos(void) const { return 0; };
+  virtual Size_t Pos(void) const { return 0; };
 
   /**Get peer certificate from the established ssl.
     Obtained X509 object is owned by this instance and becomes invalid

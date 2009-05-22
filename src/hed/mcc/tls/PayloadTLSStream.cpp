@@ -87,7 +87,7 @@ bool PayloadTLSStream::Get(std::string& buf) {
   return result;
 }
 
-bool PayloadTLSStream::Put(const char* buf,int size) {
+bool PayloadTLSStream::Put(const char* buf,Size_t size) {
   //ssl write
   ssize_t l;
   if(ssl_ == NULL) return false;

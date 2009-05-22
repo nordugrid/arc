@@ -98,7 +98,7 @@ bool PayloadHTTP::parse_header(void) {
   std::map<std::string,std::string>::iterator it;
   it=attributes_.find("content-length");
   if(it != attributes_.end()) {
-    length_=strtol(it->second.c_str(),NULL,10);
+    length_=strtoll(it->second.c_str(),NULL,10);
   };
   it=attributes_.find("content-range");
   if(it != attributes_.end()) {
@@ -148,9 +148,9 @@ bool PayloadHTTP::parse_header(void) {
   return true;
 }
 
-bool PayloadHTTP::read(char* buf,int& size) {
-char* buff = buf;
-memset(buf,0,size);
+bool PayloadHTTP::read(char* buf,int64_t& size) {
+//char* buff = buf;
+//memset(buf,0,size);
   if(tbuflen_ >= size) {
     memcpy(buf,tbuf_,size);
     memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
@@ -158,7 +158,7 @@ memset(buf,0,size);
   } else {
     memcpy(buf,tbuf_,tbuflen_);
     buf+=tbuflen_; 
-    int l = size-tbuflen_;
+    int64_t l = size-tbuflen_;
     size=tbuflen_; tbuflen_=0; tbuf_[0]=0; 
     for(;l;) {
       int l_ = l;
@@ -181,7 +181,7 @@ bool PayloadHTTP::get_body(void) {
       std::string line;
       if(!readline(line)) return false;
       char* e;
-      int chunk_size = strtol(line.c_str(),&e,16);
+      int64_t chunk_size = strtoll(line.c_str(),&e,16);
       if((*e != ';') && (*e != 0)) { free(result); return false; };
       if(e == line.c_str()) { free(result); return false; };
       if(chunk_size == 0) break;
@@ -203,7 +203,7 @@ bool PayloadHTTP::get_body(void) {
   } else {
     // Read till connection closed
     for(;;) {
-      int chunk_size = 4096;
+      int64_t chunk_size = 4096;
       char* new_result = (char*)realloc(result,result_size+chunk_size+1);
       if(new_result == NULL) { free(result); return false; };
       result=new_result;
@@ -354,7 +354,7 @@ void PayloadHTTP::Body(PayloadRawInterface& body,bool ownership) {
   body_=&body; body_own_=ownership;
 }
 
-char PayloadHTTP::operator[](int pos) const {
+char PayloadHTTP::operator[](PayloadRawInterface::Size_t pos) const {
   if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(pos < PayloadRaw::Size()) {
     return PayloadRaw::operator[](pos);
@@ -365,7 +365,7 @@ char PayloadHTTP::operator[](int pos) const {
   return 0;
 }
 
-char* PayloadHTTP::Content(int pos) {
+char* PayloadHTTP::Content(PayloadRawInterface::Size_t pos) {
   if(!get_body()) return NULL;
   if(pos < PayloadRaw::Size()) {
     return PayloadRaw::Content(pos);
@@ -376,7 +376,7 @@ char* PayloadHTTP::Content(int pos) {
   return NULL;
 }
 
-int PayloadHTTP::Size(void) const {
+PayloadRawInterface::Size_t PayloadHTTP::Size(void) const {
   if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(body_) {
     return PayloadRaw::Size() + (body_->Size());
@@ -384,12 +384,12 @@ int PayloadHTTP::Size(void) const {
   return PayloadRaw::Size();
 }
 
-char* PayloadHTTP::Insert(int pos,int size) {
+char* PayloadHTTP::Insert(PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
   if(!get_body()) return NULL;
   return PayloadRaw::Insert(pos,size);
 }
 
-char* PayloadHTTP::Insert(const char* s,int pos,int size) {
+char* PayloadHTTP::Insert(const char* s,PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
   if(!get_body()) return NULL;
   return PayloadRaw::Insert(s,pos,size);
 }
@@ -405,7 +405,7 @@ char* PayloadHTTP::Buffer(unsigned int num) {
   return NULL;
 }
 
-int PayloadHTTP::BufferSize(unsigned int num) const {
+PayloadRawInterface::Size_t PayloadHTTP::BufferSize(unsigned int num) const {
   if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(num < buf_.size()) {
     return PayloadRaw::BufferSize(num);
@@ -416,7 +416,7 @@ int PayloadHTTP::BufferSize(unsigned int num) const {
   return 0;
 }
 
-int PayloadHTTP::BufferPos(unsigned int num) const {
+PayloadRawInterface::Size_t PayloadHTTP::BufferPos(unsigned int num) const {
   if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(num < buf_.size()) {
     return PayloadRaw::BufferPos(num);
@@ -427,7 +427,7 @@ int PayloadHTTP::BufferPos(unsigned int num) const {
   return PayloadRaw::BufferPos(num);
 }
 
-bool PayloadHTTP::Truncate(unsigned int size) {
+bool PayloadHTTP::Truncate(PayloadRawInterface::Size_t size) {
   if(!get_body()) return false;
   if(size < PayloadRaw::Size()) {
     body_=NULL;
@@ -444,7 +444,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
     // Read from buffers
     uint64_t bo = 0;
     for(int num = 0;num<buf_.size();++num) {
-      int bs = PayloadRaw::BufferSize(num);
+      uint64_t bs = PayloadRaw::BufferSize(num);
       if((bo+bs) > stream_offset_) {
         char* p = PayloadRaw::Buffer(num);
         p+=(stream_offset_-bo);
@@ -460,7 +460,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
       for(int num = 0;;++num) {
         char* p = PayloadRaw::Buffer(num);
         if(!p) break;
-        int bs = PayloadRaw::BufferSize(num);
+        uint64_t bs = PayloadRaw::BufferSize(num);
         if((bo+bs) > stream_offset_) {
           p+=(stream_offset_-bo);
           bs-=(stream_offset_-bo);
@@ -485,7 +485,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
       std::string line;
       if(!readline(line)) return false;
       char* e;
-      chunked_size_ = strtol(line.c_str(),&e,16);
+      chunked_size_ = strtoll(line.c_str(),&e,16);
       if(((*e != ';') && (*e != 0)) || (e == line.c_str())) {
         chunked_size_=-1; // No more stream
         valid_=false; // Object becomes invalid
@@ -500,7 +500,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
       };
     };
     // read chunk content
-    int bs = chunked_size_-chunked_offset_;
+    int64_t bs = chunked_size_-chunked_offset_;
     if(bs > size) bs=size;
     if(!read(buf,bs)) { size=bs; return false; };
     chunked_offset_+=bs;
@@ -514,7 +514,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
   };
   if(length_ > 0) {
     // Ordinary stream with known length
-    int bs = length_-stream_offset_;
+    int64_t bs = length_-stream_offset_;
     if(bs == 0) { size=0; return false; }; // End of content
     if(bs > size) bs=size;
     if(!read(buf,bs)) {
@@ -525,8 +525,10 @@ bool PayloadHTTP::Get(char* buf,int& size) {
     return true;
   };
   // Ordinary stream with no length known
-  bool r = read(buf,size);
-  if(r) stream_offset_+=size;
+  int64_t tsize = size;
+  bool r = read(buf,tsize);
+  if(r) stream_offset_+=tsize;
+  size=tsize;
   // TODO: adjust logical parameters of buffers
   return r;
 }
@@ -547,7 +549,7 @@ std::string PayloadHTTP::Get(void) {
 
 // Stream interface is meant to be used only
 // for reading HTTP body.
-bool PayloadHTTP::Put(const char* buf,int size) {
+bool PayloadHTTP::Put(const char* buf,PayloadStreamInterface::Size_t size) {
   return false;
 }
 
@@ -568,7 +570,7 @@ void PayloadHTTP::Timeout(int to) {
   if(stream_) stream_->Timeout(to);
 }
 
-int PayloadHTTP::Pos(void) const {
+PayloadStreamInterface::Size_t PayloadHTTP::Pos(void) const {
   if(!stream_) return 0;
   return offset_+stream_offset_;
 }

@@ -59,7 +59,7 @@ namespace Arc {
   private:
     char *buffer_;
     uint64_t begin_;
-    unsigned int end_;
+    uint64_t end_;
     uint64_t size_;
   public:
     PayloadMemConst(void *buffer,
@@ -71,7 +71,7 @@ namespace Arc {
         end_(offset + length),
         size_(size) {}
     virtual ~PayloadMemConst() {}
-    virtual char operator[](int pos) const {
+    virtual char operator[](Size_t pos) const {
       if (!buffer_)
         return 0;
       if (pos < begin_)
@@ -80,7 +80,7 @@ namespace Arc {
         return 0;
       return buffer_[pos - begin_];
     }
-    virtual char* Content(int pos = -1) {
+    virtual char* Content(Size_t pos = -1) {
       if (!buffer_)
         return NULL;
       if (pos < begin_)
@@ -90,13 +90,13 @@ namespace Arc {
       return
         buffer_ + (pos - begin_);
     }
-    virtual int Size() const {
+    virtual Size_t Size() const {
       return size_;
     }
-    virtual char* Insert(int /* pos */ = 0, int /* size */ = 0) {
+    virtual char* Insert(Size_t /* pos */ = 0, Size_t /* size */ = 0) {
       return NULL;
     }
-    virtual char* Insert(const char* /* s */, int /* pos */ = 0, int /* size */ = 0) {
+    virtual char* Insert(const char* /* s */, Size_t /* pos */ = 0, Size_t /* size */ = 0) {
       return NULL;
     }
     virtual char* Buffer(unsigned int num) {
@@ -104,7 +104,7 @@ namespace Arc {
         return NULL;
       return buffer_;
     }
-    virtual int BufferSize(unsigned int num) const {
+    virtual Size_t BufferSize(unsigned int num) const {
       if (!buffer_)
         return 0;
       if (num != 0)
@@ -112,14 +112,14 @@ namespace Arc {
       return
         end_ - begin_;
     }
-    virtual int BufferPos(unsigned int num) const {
+    virtual Size_t BufferPos(unsigned int num) const {
       if (!buffer_)
         return 0;
       if (num != 0)
         return 0;
       return begin_;
     }
-    virtual bool Truncate(unsigned int /* size */) {
+    virtual bool Truncate(Size_t /* size */) {
       return false;
     }
   };
