@@ -354,23 +354,17 @@ namespace Arc {
     
     std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
 
-    std::string filename(Glib::get_tmp_dir() + G_DIR_SEPARATOR_S + "arcresume.XXXXXX");
+    std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arcresume.XXXXXX");
     int tmp_h = Glib::mkstemp(filename);
     if (tmp_h == -1) {
-      logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
-      return false;
-    }
-
-#ifndef WIN32
-
-    if (write(tmp_h, (void*)rsl.c_str(), rsl.size()) != rsl.size()) {
-      logger.msg(ERROR, "Could not write temporary file \"%s\"", filename);
-      return false;
-    }
-
-    close(tmp_h);
-
-#endif
+      logger.msg(ERROR,"Could not create temporary file: %s", filename);
+    }   
+    std::ofstream outfile(filename.c_str(), std::ofstream::binary);
+    outfile.write(rsl.c_str(), rsl.size());
+    if (outfile.fail()) {
+      logger.msg(ERROR,"Could not write temporary file: %s", filename);
+    }   
+    outfile.close();
     
     // Send temporary file to cluster
     DataMover mover;
