@@ -26,20 +26,20 @@
     </xsd:restriction>
   </xsd:simpleType>
 
-  <!-- This element defines either X509 Token has to extracted from SOAP
+  <!-- This element defines either X509 Token is extracted from SOAP
        Header or generated using other configuration elements. -->
   <xsd:element name="Process" type="xt:ProcessType"/>
 
-  <!-- Location of private key -->
+  <!-- Location of private key: Only needed by client side -->
   <xsd:element name="KeyPath" type="xsd:string"/>
 
-  <!-- Location of public certificate. -->
+  <!-- Location of public certificate: Only needed by client side -->
   <xsd:element name="CertificatePath" type="xsd:string"/>
 
-  <!-- Location of trusted CA certificate  -->
+  <!-- Location of trusted CA certificate: Only needed by service side  -->
   <xsd:element name="CACertificatePath" type="xsd:string"/>
 
-  <!-- Directory of trusted CA certificates  -->
+  <!-- Directory of trusted CA certificates: Only needed by service side  -->
   <xsd:element name="CACertificatesDir" type="xsd:string"/>
 
   <!-- Token usage type to be used. -->

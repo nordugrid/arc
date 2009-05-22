@@ -96,6 +96,10 @@ SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
     logger.msg(ERROR,"Processing type not supported: %s",process_type);
     return;
   };
+  if(!cert_file_.empty()) {
+    Arc::Credential cred(cert_file_, key_file_, ca_dir_, ca_file_);
+    local_dn_ = convert_dn(cred.GetDN());
+  }
 }
 
 SAMLTokenSH::~SAMLTokenSH() {
@@ -111,10 +115,12 @@ bool SAMLTokenSH::Handle(Arc::Message* msg){
         logger.msg(ERROR,"Failed to parse SAML Token from incoming SOAP");
         return false;
       };
+/*
       if(!st.Authenticate()) {
         logger.msg(ERROR, "Failed to verify SAML Token inside the incoming SOAP");
         return false;
       };
+*/
       if((!ca_file_.empty() || !ca_dir_.empty()) && !st.Authenticate(ca_file_, ca_dir_)) {
         logger.msg(ERROR, "Failed to authenticate SAML Token inside the incoming SOAP");
         return false;
@@ -129,9 +135,6 @@ bool SAMLTokenSH::Handle(Arc::Message* msg){
       if(!saml_assertion_) {
         //Contact the AA service to get the saml assertion
 
-        Arc::Credential cred(cert_file_, key_file_, ca_dir_, ca_file_);
-        std::string local_dn = convert_dn(cred.GetDN());
-
         //Compose <samlp:AttributeQuery/>
         Arc::NS ns;
         ns["saml"] = "urn:oasis:names:tc:SAML:2.0:assertion";
@@ -143,12 +146,12 @@ bool SAMLTokenSH::Handle(Arc::Message* msg){
         std::string current_time = t.str(Arc::UTCTime);
         attr_query.NewAttribute("IssueInstant") = current_time;
         attr_query.NewAttribute("Version") = std::string("2.0");
-        attr_query.NewChild("saml:Issuer") = local_dn;
+        attr_query.NewChild("saml:Issuer") = local_dn_;
 
         Arc::XMLNode subject = attr_query.NewChild("saml:Subject");
         Arc::XMLNode name_id = subject.NewChild("saml:NameID");
         name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName");
-        name_id = local_dn;
+        name_id = local_dn_;
 
         Arc::XMLNode attribute = attr_query.NewChild("saml:Attribute");
         attribute.NewAttribute("Name")=std::string("urn:oid:1.3.6.1.4.1.5923.1.1.1.6");
