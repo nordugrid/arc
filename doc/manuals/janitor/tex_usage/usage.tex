@@ -5,7 +5,7 @@ The Janitor can be used either with or without A-REX. In case A-REX is used, ins
 \section{Janitor with A-REX}
 
 Runtime Environments can be specified using the supported job description languages.
-Representative two common languages shall be explained at this point: xRSL and JSDL.
+The most representative two common languages shall be explained at this point: xRSL and JSDL.
 Listing~\ref{lst:xrsl_job} shows the xRSL example in which two runtime environments are requested.
 
 \lstsetXRSL
@@ -78,7 +78,7 @@ currently only defined within the nordugrid jsdl-arc schema~
 
 \section{Janitor without A-REX}
 
-In addition of using Janitor together with A-REX, Janitor can also be used as a standalone commandline tool.
+In addition to using the Janitor together with A-REX, the Janitor can also be used as a standalone commandline tool.
 The available commands are listed in the Table~\ref{janitor_commandline_man}.
 \begin{table}[!h]
    \begin{center}
@@ -104,12 +104,12 @@ The available commands are listed in the Table~\ref{janitor_commandline_man}.
 	\end{tabular} 
    \end{center}
 \end{table}
-The most important commands for Janitor are \texttt{register}, \texttt{deploy} and \texttt{remove}. In order to 
+The most important commands for the Janitor are \texttt{register}, \texttt{deploy} and \texttt{remove}. To 
 register a job along with a set of runtime environments in Janitor, the first command \texttt{register} followed
 by a job identifier and a list of runtime environments has to be used.
-A job is identified by sequence of numbers. Runtime environments are specified by a string containing the name as it is defined 
-within the catalog (resp. the runtime directory of the grid-manager).
-The command \texttt{deploy} extracts the necessary dependcies of the desired runtime environments and then downloads and installs 
+A job is identified by a sequence of numbers. Runtime environments are specified by a string containing the name as it is defined 
+within the Catalog (resp. the runtime directory of the grid-manager).
+The command \texttt{deploy} extracts the necessary dependencies of the desired runtime environments to then download and install
 the required packages. %How dependecies can are defined will be explained later in the section~\ref{sec:catalog}.
 
 % PROCEED HERE!!!!!!!! !! ! ! !
@@ -119,7 +119,7 @@ it might be deleted for real.
 
 Easy commandline examples are provided in Listing~\ref{lst:janitor_example}.
 
-Each command has a certain behaviour for its exit status. The Table~\ref{tab:janitor_commandline_exit_status} lists the possible
+Every command has a certain behaviour for its exit status. The Table~\ref{tab:janitor_commandline_exit_status} lists the possible
 outcomes.
 
 \begin{table}[!h]
