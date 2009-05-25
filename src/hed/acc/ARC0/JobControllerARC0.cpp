@@ -358,11 +358,13 @@ namespace Arc {
     int tmp_h = Glib::mkstemp(filename);
     if (tmp_h == -1) {
       logger.msg(ERROR,"Could not create temporary file: %s", filename);
+      return false;
     }   
     std::ofstream outfile(filename.c_str(), std::ofstream::binary);
     outfile.write(rsl.c_str(), rsl.size());
     if (outfile.fail()) {
       logger.msg(ERROR,"Could not write temporary file: %s", filename);
+      return false;
     }   
     outfile.close();
     
