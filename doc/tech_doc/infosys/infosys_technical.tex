@@ -1310,6 +1310,66 @@ Interface of Information Indexing Service
 
 % section info_policies_schema (end)
 
+\section{Example ISIS service configuration}
+\label{annex:example_isis_configuration}
+\begin{verbatim}
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2008/08"
+  xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+>
+  <!-- Various server settings -->
+  <infosys:InfoRegistrar id="NorduGridInfosys">
+    <!-- Contact and behavior details of the InfoRegsitrar element-->
+    <infosys:URL><!-- Available endpoint URL of an ISIS representing the cloud --></infosys:URL>
+    <infosys:Retry>4</infosys:Retry>
+  </infosys:InfoRegistrar>
+
+  <Plugins><Name>isis</Name></Plugins>
+
+  <Chain>
+
+    <!-- Chain configuration goes here! -->
+    <Plexer name="plexer.service" id="plexer">
+      <next id="isis1">^/isis1$</next>
+    </Plexer>
+
+    <Service name="isis" id="isis1">
+        <isis:DBPath>
+            <!-- File location where the database is locally stored -->
+        </isis:DBPath>
+        <isis:endpoint>
+            <!-- The URL where the service can be accessed from outside -->
+        </isis:endpoint>
+        <isis:InfoProviderISIS>
+            <isis:URL>
+                <!-- The URL of one or more ISIS where the other ISIS's can be queried. -->
+            </isis:URL>
+        </isis:InfoProviderISIS>
+        <infosys:InfoRegister>
+            <infosys:Period>
+                <!-- How often should the service be registered. 
+                For example: PT75S for 75 seconds -->
+            </infosys:Period>
+            <infosys:Endpoint>
+                <!-- The URL where the service can be accessed from outside -->
+            <infosys:Endpoint>
+            <infosys:Expiration>
+                <!-- The lifetime of the RegEntry provided by the service about itself.
+                For example: PT5H for 5 hours -->
+            </infosys:Expiration>
+            <!-- If there is no specific Registrar defined then every InfoRegistrar
+             will be use used during the registration. The period of the repeating 
+             registration will be the value given here in every ISIS cloud. -->
+        </infosys:InfoRegister>
+    </Service>
+  </Chain>
+</ArcConfig>
+
+\end{verbatim}
+% section example_ISIS_configuration (end)
+
 % chapter appendices (end)
 
 
