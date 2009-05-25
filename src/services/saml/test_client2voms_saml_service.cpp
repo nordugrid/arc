@@ -48,20 +48,17 @@ int main(void) {
   ns["saml"] = SAML_NAMESPACE;
   ns["samlp"] = SAMLP_NAMESPACE;
 
-//  std::string cert("./usercert.pem");
-//  std::string key("./userkey-nopass.pem");
-//  std::string cafile("./1f0e8352.0");
+  std::string cert("../../tests/echo/usercert.pem");
+  std::string key("../../tests/echo/userkey-nopass.pem");
+  std::string cafile("../../tests/echo/testcacert.pem");
+  std::string cadir("../../tests/echo/certificates");
 
-  std::string cert("./cert.pem");
-  std::string key("./key.pem");
-  std::string cafile("./ca.pem");
-
-  Arc::Credential cred(cert, key, "", cafile);
+  Arc::Credential cred(cert, key, cadir, cafile);
   std::string local_dn_str = cred.GetDN();
   std::string local_dn;
   size_t pos1 = std::string::npos;
   size_t pos2;
-  do {
+  do { //The DN should be like "CN=test,O=UiO,ST=Oslo,C=NO", so we need to change the format here
     std::string str;
     pos2 = local_dn_str.find_last_of("/", pos1);
     if(pos2 != std::string::npos && pos1 == std::string::npos) { 
@@ -76,7 +73,6 @@ int main(void) {
     }
     if(pos2 != (std::string::npos+1)) local_dn.append(",");
   }while(pos2 != std::string::npos && pos2 != (std::string::npos+1));
-  //std::string local_dn("CN=test,O=UiO,ST=Oslo,C=NO");
 
   //Compose <samlp:AttributeQuery/>
   Arc::XMLNode attr_query(ns, "samlp:AttributeQuery");
@@ -91,12 +87,12 @@ int main(void) {
   std::string issuer_name = local_dn;
   Arc::XMLNode issuer = attr_query.NewChild("saml:Issuer");
   issuer = issuer_name;
-  issuer.NewAttribute("Format") = std::string("urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName");
+  issuer.NewAttribute("Format") = std::string("urn:oasis:names:tc:SAML:1.1:nameid-format:x509SubjectName");
 
   //<saml:Subject/>
   Arc::XMLNode subject = attr_query.NewChild("saml:Subject");
   Arc::XMLNode name_id = subject.NewChild("saml:NameID");
-  name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName");
+  name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:1.1:nameid-format:x509SubjectName");
   name_id = local_dn;
 
   //Add one or more <Attribute>s into AttributeQuery here, which means the Requestor would
@@ -110,17 +106,17 @@ int main(void) {
   */
 
   Arc::init_xmlsec();
-/*Arc::XMLSecNode attr_query_secnd(attr_query);
+  Arc::XMLSecNode attr_query_secnd(attr_query);
   std::string attr_query_idname("ID");
   attr_query_secnd.AddSignatureTemplate(attr_query_idname, Arc::XMLSecNode::RSA_SHA1);
   if(attr_query_secnd.SignNode(key,cert)) {
     std::cout<<"Succeeded to sign the signature under <samlp:AttributeQuery/>"<<std::endl;
   }
-*/
+
 
   std::string str;
   attr_query.GetXML(str);
-  std::cout<<"++++ "<<str<<std::endl;
+  std::cout<<"AttributeQuery: "<<str<<std::endl;
 
   Arc::NS soap_ns;
   Arc::SOAPEnvelope envelope(soap_ns);
@@ -129,7 +125,7 @@ int main(void) {
 
   std::string tmp;
   request.GetXML(tmp);
-  std::cout<<"SOAP request from Arc client: ++++++++++++++++"<<tmp<<std::endl;
+  std::cout<<"SOAP request: "<<tmp<<std::endl<<std::endl;
  
   // Send request
   Arc::MCCConfig cfg;
@@ -139,15 +135,21 @@ int main(void) {
     cfg.AddPrivateKey(key);
   if (!cafile.empty())
     cfg.AddCAFile(cafile);
+  if (!cadir.empty())
+    cfg.AddCADir(cadir);
 
-  std::string path("/voms/saml/knowarc/services/AttributeAuthorityPortType");
-  std::string service_url_str("https://squark.uio.no:8443");
+
+  std::string path("/voms/test_saml/services/VOMSSaml");
+  std::string service_url_str("https://omii002.cnaf.infn.it:8443");
+
+//  std::string path("/aaservice");
+//  std::string service_url_str("https://squark.uio.no:60001");
+
+//  std::string path("/voms/saml/knowarc/services/AttributeAuthorityPortType");
+//  std::string service_url_str("https://squark.uio.no:8444");
 
 //  std::string path("/voms/saml/testvo/services/AttributeAuthorityPortType");
 //  std::string service_url_str("https://127.0.0.1:8443");
-
-//  std::string path("/voms/saml/testvo/services/AttributeAuthorityPortType");
-//  std::string service_url_str("http://127.0.0.1:8080");
 
 //  std::string path("/voms/saml/omiieurope/services/AttributeAuthorityPortType");
 //  std::string service_url_str("https://omii002.cnaf.infn.it:8443");
@@ -164,51 +166,33 @@ int main(void) {
   if (!status) {
     std::string tmp;
     response->GetXML(tmp);
-    std::cout<<"Response: "<<tmp<<std::endl;
+    std::cout<<"SOAP Response: "<<tmp<<std::endl;
     logger.msg(Arc::ERROR, "Request failed: Error");
     return -1;
   }
 
   response->GetXML(str);
-  std::cout<<"Response: "<<str<<std::endl;
- 
-  std::string file_name = "saml_assertion.xml";
-/*
-  std::ofstream out(file_name.c_str(), std::ios::out);
-  out << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
-  out << str;
-  out.close();
-*/
-  std::ifstream in(file_name.c_str(), std::ios::in);
-  str.clear();
-  std::getline<char>(in,str,0);
-  in.close();
-
-  Arc::XMLNode node(str);
+  std::cout<<"SOAP Response: "<<str<<std::endl<<std::endl;
 
   // -------------------------------------------------------
-  //   Comsume the response from saml voms service
+  //   Consume the response from saml voms service
   // -------------------------------------------------------
   //Consume the response from AA
   Arc::XMLNode attr_resp;
   
   //<samlp:Response/>
-  //attr_resp = (*response).Body().Child(0);
-
-  attr_resp = node["soap-env:Body"].Child(0); 
+  attr_resp = (*response).Body().Child(0);
   attr_resp.GetXML(str);
-  std::cout<<"Response +++: "<<str<<std::endl;
+  std::cout<<"SAML Response: "<<str<<std::endl<<std::endl;
 
   //TODO: metadata processing.
   //std::string aa_name = attr_resp["saml:Issuer"]; 
  
   //Check validity of the signature on <samlp:Response/>
-/*
   std::string resp_idname = "ID";
-  std::string cafile1 = "./1f0e8352.0";
-  std::string capath1 = "";
+/*
   Arc::XMLSecNode attr_resp_secnode(attr_resp);
-  if(attr_resp_secnode.VerifyNode(resp_idname, cafile1, capath1)) {
+  if(attr_resp_secnode.VerifyNode(resp_idname, cafile, cadir)) {
     logger.msg(Arc::INFO, "Succeeded to verify the signature under <samlp:Response/>");
   }
   else {
@@ -216,22 +200,24 @@ int main(void) {
     Arc::final_xmlsec(); return -1;
   }
 */
- 
+
   //Check whether the "InResponseTo" is the same as the local ID
-/*
+
   std::string responseto_id = (std::string)(attr_resp.Attribute("InResponseTo"));
   if(query_id != responseto_id) {
     logger.msg(Arc::INFO, "The Response is not going to this end");
     Arc::final_xmlsec(); return -1;
   }
-*/
+
 
   std::string resp_time = attr_resp.Attribute("IssueInstant");
 
   //<samlp:Status/>
-  std::string statuscode_value = attr_resp["samlp:Status"]["samlp:StatusCode"];
+  std::string statuscode_value = attr_resp["Status"]["StatusCode"].Attribute("Value");
   if(statuscode_value == "urn:oasis:names:tc:SAML:2.0:status:Success")
     logger.msg(Arc::INFO, "The StatusCode is Success");
+  else logger.msg(Arc::ERROR, "Can not find StatusCode");
+
 
   //<saml:Assertion/>
   Arc::XMLNode assertion = attr_resp["saml:Assertion"];
@@ -242,13 +228,12 @@ int main(void) {
   //Check validity of the signature on <saml:Assertion/>
 
   assertion.GetXML(tmp);
-  std::cout<<"SAML Assertion: "<<tmp<<std::endl;
+  std::cout<<"SAML Assertion: "<<tmp<<std::endl<<std::endl;
+
 
   std::string assertion_idname = "ID";
-  std::string cafile2 = "./1f0e8352.0";
-  std::string capath2 = "";
   Arc::XMLSecNode assertion_secnode(assertion);
-  if(assertion_secnode.VerifyNode(assertion_idname, cafile2, capath2)) {
+  if(assertion_secnode.VerifyNode(assertion_idname, cafile, cadir,false)) {
     logger.msg(Arc::INFO, "Succeeded to verify the signature under <saml:Assertion/>");
   }
   else {
