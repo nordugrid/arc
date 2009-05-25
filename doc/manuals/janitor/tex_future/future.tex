@@ -39,7 +39,9 @@ the content of the Catalog through a well-defined Web Service interface.
 \section{Integration with the Virtualization work}
 
 The RDF schema nicely prepares for the upcoming virtualisation of worker
-nodes.  How exactly the dynamics are integrated will depend on how
+nodes. Hereto, the {\tt BaseSystem} indicates a virtual image to which
+further packages, the dynamic REs, would then be added.
+How exactly the dynamics are integrated will depend on how
 dynamic the virtualisation of the nodes is. In the simplest scenario,
 a worker node's CPU will only be occupied by a single virtual machine
 and that will not be changed. In this case, there is no difference to

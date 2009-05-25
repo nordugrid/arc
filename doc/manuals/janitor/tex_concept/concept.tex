@@ -7,7 +7,7 @@
  The Perl code is split into multiple modules as depicted in Figure~\ref{fig:janitorDependencies}. 
  The modules can be separated into two
  functional groups. One addresses the retrieval of information from
- the Catalog RDF file in the left major branch of the figure. The other
+ the Catalog's RDF file in the left major branch of the figure. The other
  addresses the process of fetching and installing the packages.
 
  \begin{landscape}
@@ -30,8 +30,8 @@ Design Document\footnote{\href{http://www.knowarc.eu/documents/Knowarc_D1.1-1_07
 
 
 
-\section{Runtime environments states}
-A main motivation for the managed, manual initiation of dynamic RE
+\section{States of runtime environments}
+A major motivation for the managed, manual initiation of dynamic RE
 installation is the subsequent manual verification of the installed
 packages -- prior to their use in production.
 With an automation of the installation, the verification of
@@ -43,7 +43,7 @@ installable REs aside the installed REs in the grid information system,
 in order to stimulate grid clients to submit packages. The here described
 states will be represented to the clients in upcoming developments.
 
-These states are specific for every CE and communicated
+These states are specific for every compute element (CE) and communicated
 between the Janitor and the Execution Service. Table~\ref{tab:states} shows all
 possible states, while Figure~\ref{fig:RE_states}
 displays the transitions between the states that a Runtime Environment may
@@ -114,7 +114,8 @@ advent of a job requesting a particular dynamic RE) or manually by the
 site's supervisor or an individual with respective rights to use the
 Janitor's web service.
 
-Upon presentation of a package to a Catalog, a CE may
+Upon presentation of a the package name to a Catalog, from which details about
+the package are retrieved, a CE may
 classify a package to be \texttt{INSTALLABLE} if all the dependencies
 are installable or already \texttt{INSTALLED}. The installation can be
 performed manually (\texttt{INSTALLING}/{\bf m}) or in an automated fashion
@@ -134,13 +135,21 @@ manual way of RE installation in ARC 0.6.
 
 \section{Job states}
 
-Janitor has two states for jobs: \texttt{PREPARED} and \texttt{INITIALIZED}. After a job has been succesfully registered 
-in Janitor, its state will be set to \texttt{PREPARED}. Invalid jobs are not cached in Janitor. 
-After Janitor is requested to deploy the runtime environment, the state of the job will change to \texttt{INITIALIZED}. If 
-an unforeseen exception occures during that process, Janitor will drop the job from its database and set the affected runtime
+The Janitor manages the states that the runtime environments at a particular
+compute element are in. However, it is also most important for the Janitor
+to be aware of the jobs that depend on the installtion of a RE. REs still in use
+should not be removed until the respective job has completed its computations.
+The installation or removal of REs by the Janitor is perceived as a mere
+consequene of jobs demanding a RE or not, thus, the communcation between
+the job-manager AREX and the Janitor will be performed on that 'job level'.
+
+The Janitor has two states for jobs: \texttt{PREPARED} and \texttt{INITIALIZED}. After a job has been succesfully registered 
+in the Janitor, its state will be set to \texttt{PREPARED}. Invalid jobs are not cached. 
+After the Janitor is requested to deploy the runtime environment, the state of the job will change to \texttt{INITIALIZED}. If 
+an unforeseen exception occures during that process, the Janitor will drop the job from its database and set the affected runtime
 environments to the state \texttt{FAILED}.
 
-\section{Integration into AREX}
+\section{Integration with AREX}
 
 
 \newenvironment{note}
@@ -277,11 +286,11 @@ Proposal for SOAP messages:\\
 
 \section{Janitor file system permissions}
 
-Currently the Janitor perl scripts must be executed as root. In order to execute Janitor with the required permissions,
-a setuid wrapper has been written. During the installation \task{not done yet} the mode of rjanitor will be set to \texttt{u+s}
-to make the binary suid root. \task{According to Daniel: ``A future version of the Janitor will get rid of the suid root helper.''}\\
+In the current implementation the Janitor perl scripts must be executed as root. In order to execute Janitor with the required permissions,
+a setuid wrapper has been prepared. During the installation \task{not done yet} the mode of rjanitor will be set to \texttt{u+s},
+i.e. the sticky bit is set to make the binary suid root. \task{According to Daniel: ``A future version of the Janitor will get rid of the suid root helper.''}\\
 
-Thus, Janitor is not executed directly. Instead a dynamic link will be created in \task{libexec or sbin} which is pointing to
+Thus, Janitor is not executed directly. Instead, a dynamic link will be created in \task{libexec or sbin} which is pointing to
 the wrapper.\\
 
 It is suggested to create a user and a group "janitor" for the Janitor.\\
@@ -316,19 +325,20 @@ It is suggested to create a user and a group "janitor" for the Janitor.\\
 
 
 
-Security is a major concern for the grid systems. An automatic software
+Security is a major concern for grid systems. Any additional feature
+and especially an automatic software
 installation inheritently introduces security threats. This section
 addresses those and describes the available solutions to limit
 security risks.
 
 In the current installation, every user authorised to execute a job is
 also authorised to install a REs. Restrictions are
-only imposed on the set of DRE that are available for installation.
+only imposed on the set of dynamic REs that are available for installation.
 Restrictions are imposed by the site admininistrators on the descriptions
 that are given by the Catalog that is offering the package. These
-descriptions may explicitly mention DRE names, a regular expression on
+descriptions may explicitly mention dynamic REs' names, e.g. a regular expression on
 these, or refer to tags of packages that categorise these. However,
-the core of these controls lie with the maintainers of the Catalog,
+the core of these controls lies with the maintainers of the Catalog,
 who needs to be trusted.
 
 All dynamic REs are installed in separate directories. The provisioning of
@@ -336,9 +346,9 @@ disk space is the duty of the site administrator.  In the current
 implementation, the installation is completely transparent to the user:
 
 \begin{itemize}
-\item DREs are not distinguished between {\em installed} and
+\item Dynamic REs are not distinguished between {\em installed} and
   {\em installable} in the information system.
-\item No status information is given at the time an DRE is installed.
+\item No status information is given at the time a dynamic RE is installed.
 \end{itemize}
 
 Malevolent regular users with respective training in using system exploits
@@ -346,7 +356,7 @@ to gain root access are likely to find security holes by regularly
 submitted scripts.  The authentication and authentification of users,
 together with respective logging, is the major defense against such
 attacks. What is consequently left to be protected against are unwanted
-sideeffects by the installation of software.
+side-effects by the installation of software.
 
 The worst case scenario would be the installation of a RE
 that overwrites system files. With the current implementation, which is
@@ -357,8 +367,8 @@ priviledges, for which there is no technical requirement.
 
 The installation of packages from the Debian distribution (or other
 packages of mainstream Linux distributions) is seeked to reduce the
-complexity and burden in the maintenance for DRE. In the
-current implementation Debian packages may be installed only by their
+complexity and burden in the maintenance for dynamic REs. In the
+current implementation, Debian packages may be installed only by their
 transformation into tar files. With the advent of the interface for
 the virtualisation of the grid infrastructure, it is anticipated to
 work with native packages of the Debian Linux distribution. The reuse
