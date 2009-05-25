@@ -6,7 +6,7 @@ docsource = Janitor.tex
 
 doc_DATA = Janitor.pdf
 
-images     = images/dependencies.dot images/dependencies.tex \
+images     = images/dependencies.dot images/dependencies.png \
            images/arex-stages.svg images/arex-stages.pdf \
            images/janitor_integration_2nd_edition.svg images/janitor_integration_2nd_edition.pdf \
            images/janitor_integration.svg images/janitor_integration.pdf \
@@ -21,6 +21,9 @@ docsrcdeps = $(images) \
 
 images/dependencies.tex: images/dependencies.dot
 	dot2tex --figonly $< -o $@
+
+images/dependencies.png: images/dependencies.dot
+	dot -Tpng $< -o $@
 
 JANITOR_SOURCECODE = $(top_srcdir)/src/services/janitor/module
 
