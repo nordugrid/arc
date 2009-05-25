@@ -1,13 +1,52 @@
-This directory contains the Information Indexing Service (ISIS) related to the ARC1 information system.
+ISIS installation and configuration instructions
 
-Since the service uses Berkley XML database for storing the information received from the clients or other ISISs this package is a necessery dependency.There is also a directory needed, where the directory containing the database will be stored.
-For example in the sample configuration contains the DBPath attribute as "/storage/arc1/isis1" where "/storage/arc1" have to exists before initializing the service.
+This directory contains the Information System Indexing Service (ISIS) 
+regarding the next generation ARC information system.
 
-The service have to know the own endpoint address that it is available from the clients through. Do not use local addresses at this attribute!
 
-The list of InfoProviderISIS elements contain ISISs that are already connected to the peer-to-peer network with a high probability. If there is no such an ISIS defined than the current one will initialize a new ISIS network. If there is any, but not working yet, than the connection will tries later during the regular functionality.
+I. Installation
 
-To be an active part of an ISIS peer-to-peer network it is important to register the service itself using the HED self-registration mechanism. For further Setting see the configuration placed to the configuration templates in the documentation.
+In order to install ISIS please download and compile the full ARC HED:
+	http://svn.nordugrid.org
+
+Please read installation notes available there.
+
+
+II. ISIS dependencies
+
+a) Berkeley XML
+Since the service uses Berkley XML database for storing the information 
+received from the services or other ISIS nodes this package is a necessary 
+dependency. 
+
+b) Database directory
+There is also a directory needed, where the directory containing the 
+database will be stored. For example in the sample configuration contains 
+the DBPath attribute as "/storage/arc1/isis1" where "/storage/arc1" have 
+to exists before initializing the service.
+
+
+III. ISIS endpoint reference
+
+The service has to know its own endpoint address. Clients can access
+ISIS via this address. Do not use local addresses in this attribute!
+
+
+IV. InfoProvider nodes reference
+
+The list of InfoProviderISIS elements contain ISIS nodes that are already 
+connected to the peer-to-peer network at a high probability. If there 
+is no such ISIS defined than the current one will initialize a new ISIS 
+network. If there is any, but not working yet, then the entering ISIS
+attempts to establish connection later during its regular operation.
+
+To be an active part of an ISIS peer-to-peer network it is important to 
+register the service itself using the HED self-registration mechanism. 
+For further Setting see the configuration placed to the configuration 
+templates in the documentation.
+
+
+V. Sample ISIS configuration
 
 Sample ISIS service configuration:
     <Service name="isis" id="isis1">
@@ -20,7 +59,7 @@ Sample ISIS service configuration:
         <InfoProviderISIS>
             <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
         </InfoProviderISIS>
-        <!-- This element explicitly sais that the service have not to be registered.
+        <!-- This element explicitly says that the service have not to be registered.
             It has the same effect then the missing InfoRegister element. -->
         <infosys:NoRegister />
     </Service>
