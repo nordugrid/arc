@@ -147,17 +147,6 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return make_soap_fault(outmsg, retstr);
   }
 
-  Arc::XMLNode subject_confirmation = subject.NewChild("saml:SubjectConfirmation");
-  subject_confirmation.NewAttribute("Method")=std::string("urn:oasis:names:tc:SAML:2.0:cm:holder-of-key");
-  Arc::XMLNode subject_confirmation_data = subject_confirmation.NewChild("saml:SubjectConfirmationData");
-  Arc::NS ds_ns("ds",DSIG_NAMESPACE);
-  Arc::XMLNode key_info = subject_confirmation_data.NewChild("ds:KeyInfo",ds_ns);
-  Arc::XMLNode x509_data = key_info.NewChild("ds:X509Data");
-  Arc::XMLNode x509_cert = x509_data.NewChild("ds:X509Certificate");
-  std::string x509_str = get_cert_str(inmsg.Attributes()->get("TLS:PEERCERT"));
-  x509_cert = x509_str;
-
-
   //Get the <Attribute>s from <AttributeQuery> message, which is required by request; 
   //AA will only return those <Attribute> which is required by request
   std::vector<Arc::XMLNode> attributes;
@@ -249,14 +238,20 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   //TODO: Compare the attribute name from database result and the attribute name,
   //Only use the intersect as the response
-  
+ 
+
+  Arc::NS samlp_ns, saml_ns;
+  samlp_ns["samlp"] = SAMLP_NAMESPACE;
+  saml_ns["saml"] = SAML_NAMESPACE;
+  saml_ns["xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
+ 
   //Compose <saml:Response/>
-  Arc::XMLNode attr_response(ns, "samlp:Response");
+  Arc::XMLNode attr_response(samlp_ns, "samlp:Response");
 
   Arc::Credential cred(certfile_, keyfile_, cadir_, cafile_);
   std::string local_dn = cred.GetDN();
   std::string aa_name = convert_dn(local_dn);
-  attr_response.NewChild("saml:Issuer") = aa_name;
+  attr_response.NewChild("samlp:Issuer") = aa_name;
 
   std::string response_id = Arc::UUID();
   attr_response.NewAttribute("ID") = response_id;
@@ -274,7 +269,9 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   statuscode.NewAttribute("Value") = statuscode_value;
 
   //<saml:Assertion/>
-  Arc::XMLNode assertion = attr_response.NewChild("saml:Assertion");
+  Arc::XMLNode assertion = attr_response.NewChild("saml:Assertion", saml_ns);
+
+
   assertion.NewAttribute("Version") = std::string("2.0");
   std::string assertion_id = Arc::UUID();
   assertion.NewAttribute("ID") = assertion_id;
@@ -287,7 +284,20 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   //<saml:Subject/>
   //<saml:Subject/> is the same as the one in request
-  assertion.NewChild(subject);
+  Arc::XMLNode subj = assertion.NewChild("saml:Subject");
+  Arc::XMLNode nmid = subj.NewChild("saml:NameID");
+  nmid.NewAttribute("Format") = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName";
+  nmid = peer_dn;
+  Arc::XMLNode subject_confirmation = subj.NewChild("saml:SubjectConfirmation");
+  subject_confirmation.NewAttribute("Method")=std::string("urn:oasis:names:tc:SAML:2.0:cm:holder-of-key");
+  Arc::XMLNode subject_confirmation_data = subject_confirmation.NewChild("saml:SubjectConfirmationData");
+  Arc::NS ds_ns("ds",DSIG_NAMESPACE);
+  Arc::XMLNode key_info = subject_confirmation_data.NewChild("ds:KeyInfo",ds_ns);
+  Arc::XMLNode x509_data = key_info.NewChild("ds:X509Data");
+  Arc::XMLNode x509_cert = x509_data.NewChild("ds:X509Certificate");
+  std::string x509_str = get_cert_str(inmsg.Attributes()->get("TLS:PEERCERT"));
+  x509_cert = x509_str;
+
  
   //<saml:Conditions>
   Arc::XMLNode conditions = assertion.NewChild("saml:Conditions"); 
@@ -331,7 +341,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   Arc::XMLSecNode assertion_secnd(assertion);
   std::string assertion_idname("ID");
-  std::string inclusive_namespaces = "saml ds xs";
+  std::string inclusive_namespaces = "saml ds xsi";
   assertion_secnd.AddSignatureTemplate(assertion_idname, Arc::XMLSecNode::RSA_SHA1, inclusive_namespaces);
   if(assertion_secnd.SignNode(keyfile_, certfile_)) {
     std::cout<<"Succeed to sign the signature under <saml:Assertion/>"<<std::endl;
