@@ -4,6 +4,8 @@
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
   xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
+  xmlns:xt="http://www.nordugrid.org/schemas/X509TokenSH"
+  xmlns:st="http://www.nordugrid.org/schemas/SAMLTokenSH"
   xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
   xmlns:echo="urn:echo_config"
 >
@@ -67,6 +69,11 @@
             <!--SecHandler name="x509token.handler" id="x509token" event="incoming">
                 <Process>extract</Process>
                 <CACertificatePath>./testcacert.pem</CACertificatePath>
+            </SecHandler-->
+            <!--SecHandler name="samltoken.handler" id="samltoken" event="incoming">
+                <Process>extract</Process>
+                <CACertificatePath>./testcacert.pem</CACertificatePath>
+                <CACertificatesDir>certificates</CACertificatesDir>
             </SecHandler-->
         </Component>
         <!--Service name='saml.sp' id='samlsp'/-->
