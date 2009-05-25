@@ -127,7 +127,8 @@ namespace Arc {
 
     std::string field;
     for (int i = 0; i < num_colums; i++) {
-      field = row[i];
+      if(row[i] == NULL) field="";
+      else field = row[i];
       row_value.push_back(field);
     }
     return row_value;
