@@ -1,5 +1,27 @@
-ISIS = Information Indexing Service.
+This directory contains the Information Indexing Service (ISIS) related to the ARC1 information system.
 
-Current implementation is the "centralisis", which is a centralized
-version of distributed ISIS. It can be used to demonstrate and test
-the proposed interface.
+Since the service uses Berkley XML database for storing the information received from the clients or other ISISs this package is a necessery dependency.There is also a directory needed, where the directory containing the database will be stored.
+For example in the sample configuration contains the DBPath attribute as "/storage/arc1/isis1" where "/storage/arc1" have to exists before initializing the service.
+
+The service have to know the own endpoint address that it is available from the clients through. Do not use local addresses at this attribute!
+
+The list of InfoProviderISIS elements contain ISISs that are already connected to the peer-to-peer network with a high probability. If there is no such an ISIS defined than the current one will initialize a new ISIS network. If there is any, but not working yet, than the connection will tries later during the regular functionality.
+
+To be an active part of an ISIS peer-to-peer network it is important to register the service itself using the HED self-registration mechanism. For further Setting see the configuration placed to the configuration templates in the documentation.
+
+Sample ISIS service configuration:
+    <Service name="isis" id="isis1">
+        <!-- DBPath: File location where the database is physically stored -->
+        <DBPath>/storage/arc1/isis1</DBPath>
+        <!-- endpoint: The URL where the service can be accessed from outside -->
+        <infosys:endpoint>http://knowarc2.grid.niif.hu:50000/isis1</infosys:endpoint>
+        <!-- InfoProviderISIS: Contact details to one or more ISIS where the other
+            ISIS's can be queried. -->
+        <InfoProviderISIS>
+            <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
+        </InfoProviderISIS>
+        <!-- This element explicitly sais that the service have not to be registered.
+            It has the same effect then the missing InfoRegister element. -->
+        <infosys:NoRegister />
+    </Service>
+
