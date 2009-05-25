@@ -24,12 +24,12 @@ int main(void) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
 
-  std::string url_str("https://127.0.0.1:60000/echo");
+  std::string url_str("https://charged.uio.no:60000/echo");
   Arc::URL url(url_str);
 
   Arc::MCCConfig mcc_cfg;
-  mcc_cfg.AddPrivateKey("../echo/testkey-nopass.pem");
-  mcc_cfg.AddCertificate("../echo/testcert.pem");
+  mcc_cfg.AddPrivateKey("../echo/userkey-nopass.pem");
+  mcc_cfg.AddCertificate("../echo/usercert.pem");
   mcc_cfg.AddCAFile("../echo/testcacert.pem");
   mcc_cfg.AddCADir("../echo/certificates");
 
@@ -51,15 +51,26 @@ int main(void) {
   Arc::XMLNode sechanlder_nd_xt("\
         <SecHandler name='x509token.handler' id='x509token' event='outgoing'>\
             <Process>generate</Process>\
-            <CertificatePath>./testcert.pem</CertificatePath>\
-            <KeyPath>./testkey-nopass.pem</KeyPath>\
+            <CertificatePath>../echo/testcert.pem</CertificatePath>\
+            <KeyPath>../echo/testkey-nopass.pem</KeyPath>\
+        </SecHandler>");
+
+  Arc::XMLNode sechanlder_nd_st("\
+        <SecHandler name='samltoken.handler' id='samltoken' event='outgoing'>\
+            <Process>generate</Process>\
+            <CertificatePath>../echo/usercert.pem</CertificatePath>\
+            <KeyPath>../echo/userkey-nopass.pem</KeyPath>\
+            <CACertificatePath>../echo/testcacert.pem</CACertificatePath>\
+            <CACertificatesDir>../echo/certificates</CACertificatesDir>\
+            <AAService>https://squark.uio.no:60001/aaservice</AAService>\
         </SecHandler>");
 
   Arc::ClientSOAP *client;
   client = new Arc::ClientSOAP(mcc_cfg,url);
 
-  client->AddSecHandler(sechanlder_nd_ut, "arcshc");
+  //client->AddSecHandler(sechanlder_nd_ut, "arcshc");
   //client->AddSecHandler(sechanlder_nd_xt, "arcshc");
+  client->AddSecHandler(sechanlder_nd_st, "arcshc");
 
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
