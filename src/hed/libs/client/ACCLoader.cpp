@@ -4,11 +4,14 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
+#include <arc/client/UserConfig.h>
+
 #include "ACCLoader.h"
 
 namespace Arc {
 
-  ACCLoader::ACCLoader(Config& cfg)
+  ACCLoader::ACCLoader(const Config& cfg)
     : Loader(cfg) {
     make_elements(cfg);
   }
@@ -23,7 +26,7 @@ namespace Arc {
     }
   }
 
-  void ACCLoader::make_elements(Config& cfg) {
+  void ACCLoader::make_elements(const Config& cfg) {
     for (int i = 0; cfg.Child(i); i++) {
       Config cfg_(cfg.Child(i), cfg.getFileName());
 
@@ -36,6 +39,10 @@ namespace Arc {
         std::string id = cfg.Child(i).Attribute("id");
         if (id.empty()) {
           logger.msg(ERROR, "ArcClientComponent has no id attribute defined");
+          continue;
+        }
+        if (accs_.find(id) != accs_.end()) {
+          logger.msg(ERROR, "The id (%s) of the ACC %s is identical another ACC", id, name);
           continue;
         }
         ACCPluginArgument arg(&cfg_);
@@ -54,6 +61,33 @@ namespace Arc {
     }
   }
 
+  ACC* ACCLoader::loadACC(const std::string& name, const UserConfig& ucfg) {
+    if (name.empty()) return NULL;
+    
+    std::string id = "loadACCid_1";
+    for (int i = 2; accs_.find(id) != accs_.end(); i++) {
+      id = "loadACCid_" + tostring(i);
+    }
+    
+    Config cfg(XMLNode(NS(), "ArcClientComponent"));
+    cfg.NewAttribute("name") = name;
+    cfg.NewAttribute("id") = id;
+    ucfg.ApplySecurity(cfg);
+    ucfg.ApplyTimeout(cfg);
+
+    ACCPluginArgument arg(&cfg);
+
+    ACC *acc = factory_->GetInstance<ACC>(ACCPluginKind, name, &arg);
+    if (!acc) {
+      logger.msg(ERROR, "ArcClientComponent %s(%s) could not be created",
+                 name, id);
+      return NULL;
+    }
+    accs_[id] = acc;
+    logger.msg(INFO, "Loaded ArcClientComponent %s(%s)", name, id);
+
+    return acc;
+  }
 
   ACC* ACCLoader::getACC(const std::string& id) {
     acc_container_t::iterator acc = accs_.find(id);

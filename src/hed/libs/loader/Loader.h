@@ -27,7 +27,7 @@ namespace Arc {
     Loader() {};
     /** Constructor that takes whole XML configuration and performs
        common configuration part */
-    Loader(Config& cfg);
+    Loader(const Config& cfg);
     /** Destructor destroys all components created by constructor */
     ~Loader();
  };

@@ -15,7 +15,7 @@ namespace Arc {
     if(factory_) delete factory_;
   }
 
-  Loader::Loader(Config& cfg) {
+  Loader::Loader(const Config& cfg) {
     factory_    = new PluginsFactory(cfg);
     for(int n = 0;; ++n) {
       XMLNode cn = cfg.Child(n);

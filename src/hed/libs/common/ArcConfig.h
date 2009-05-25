@@ -55,7 +55,7 @@ namespace Arc {
     void parse(const char *filename);
     /** Gives back file name of config file or empty string if it was
         generared from the XMLNode subtree */
-    const std::string& getFileName(void) {
+    const std::string& getFileName(void) const {
       return file_name_;
     }
     /** Set the file name of config file */
@@ -101,6 +101,11 @@ namespace Arc {
     /** Adds configuration part corresponding to stored information into
         common configuration tree supplied in 'cfg' argument. */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
+    virtual XMLNode MakeConfig() const {
+      XMLNode cfg(NS(), "ArcConfig");
+      MakeConfig(cfg);
+      return cfg;
+    }
   };
 
 } // namespace Arc

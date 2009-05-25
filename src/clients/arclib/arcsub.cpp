@@ -238,26 +238,8 @@ int main(int argc, char **argv) {
   if (broker.empty())
     broker = "RandomBroker";
 
-  Arc::ACCConfig acccfg;
-  Arc::NS ns;
-  Arc::Config cfg(ns);
-  acccfg.MakeConfig(cfg);
-
-  Arc::XMLNode Broker = cfg.NewChild("ArcClientComponent");
-  std::string::size_type pos = broker.find(':');
-  if (pos != std::string::npos) {
-    Broker.NewAttribute("name") = broker.substr(0, pos);
-    Broker.NewChild("Arguments") = broker.substr(pos + 1);
-  }
-  else
-    Broker.NewAttribute("name") = broker;
-  Broker.NewAttribute("id") = "broker";
-
-  usercfg.ApplySecurity(Broker);
-  usercfg.ApplyTimeout(Broker);
-
-  Arc::ACCLoader loader(cfg);
-  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
+  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig());
+  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(broker, usercfg));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);
 
   for (std::list<Arc::JobDescription>::iterator it =

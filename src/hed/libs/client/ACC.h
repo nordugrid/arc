@@ -49,6 +49,11 @@ namespace Arc {
       : BaseConfig() {}
     virtual ~ACCConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
+    XMLNode MakeConfig() const {
+      XMLNode cfg(NS(), "ArcConfig");
+      MakeConfig(cfg);
+      return cfg;
+    }
   };
 
   #define ACCPluginKind ("HED:ACC")

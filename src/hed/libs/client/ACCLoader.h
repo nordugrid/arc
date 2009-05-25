@@ -11,6 +11,8 @@
 
 namespace Arc {
 
+  class UserConfig;
+
   class ACCLoader
     : public Loader {
   public:
@@ -19,15 +21,17 @@ namespace Arc {
   private:
     acc_container_t accs_;
 
-    void make_elements(Config& cfg);
+    void make_elements(const Config& cfg);
 
   public:
     ACCLoader() {}
     /** Constructor that takes whole XML configuration and creates
         component chains */
-    ACCLoader(Config& cfg);
+    ACCLoader(const Config& cfg);
     /** Destructor destroys all components created by constructor */
     ~ACCLoader();
+    
+    ACC* loadACC(const std::string& name, const UserConfig& ucfg);
     /** Access entry ACCs.
         Those are components exposed for external access using 'entry'
         attribute */
