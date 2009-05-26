@@ -159,9 +159,9 @@ namespace Arc {
         if (ns->first == prefix) {
           // Same namespace with same prefix - doing nothing
         }
-        //else
+        else
           // TODO: optional change of prefix
-        ns_ = NULL;
+          ns_ = NULL;
       }
       if (!ns_) {
         // New namespace needed
