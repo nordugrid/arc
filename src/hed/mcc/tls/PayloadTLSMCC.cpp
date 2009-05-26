@@ -38,9 +38,10 @@ time_t asn1_to_utctime(const ASN1_UTCTIME *s) {
   memset(&tm,'\0',sizeof tm);
 
 #define g2(p) (((p)[0]-'0')*10+(p)[1]-'0')
-  tm.tm_year=g2(s->data);
-  if(tm.tm_year < 50)
-    tm.tm_year+=100;
+  if(s->type == V_ASN1_UTCTIME) {
+    tm.tm_year=g2(s->data);
+    if(tm.tm_year < 70)
+      tm.tm_year+=100;
     tm.tm_mon=g2(s->data+2)-1;
     tm.tm_mday=g2(s->data+4);
     tm.tm_hour=g2(s->data+6);
@@ -53,9 +54,27 @@ time_t asn1_to_utctime(const ASN1_UTCTIME *s) {
       if(s->data[12] == '-')
         offset= -offset;
     }
+  }
+  else { //V_ASN1_GENERALIZEDTIME
+    tm.tm_year=g2(s->data)*100 + g2(s->data+2);
+    if(tm.tm_year > 1900)
+      tm.tm_year-=1900;
+    tm.tm_mon=g2(s->data+4)-1;
+    tm.tm_mday=g2(s->data+6);
+    tm.tm_hour=g2(s->data+8);
+    tm.tm_min=g2(s->data+10);
+    tm.tm_sec=g2(s->data+12);
+    if(s->data[14] == 'Z')
+      offset=0;
+    else {
+      offset=g2(s->data+15)*60+g2(s->data+17);
+      if(s->data[14] == '-')
+        offset= -offset;
+    }
+  }
 #undef g2
 
-  return mktime(&tm)-offset*60;
+  return mktime(&tm) - offset*60;
 }
 
 // This callback implements additional verification
