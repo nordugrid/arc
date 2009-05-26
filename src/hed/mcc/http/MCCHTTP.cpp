@@ -57,7 +57,7 @@ class HTTPSecAttr: public SecAttr {
 HTTPSecAttr::HTTPSecAttr(PayloadHTTP& payload) {
   action_=payload.Method();
   std::string path = payload.Endpoint();
-  // Remove service, port and protocol - those will be provided by 
+  // Remove service, port and protocol - those will be provided by
   // another layer
   std::string::size_type p = path.find("://");
   if(p != std::string::npos) {
@@ -171,19 +171,19 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Converting stream payload to HTTP which also implements raw interface
   PayloadHTTP nextpayload(*inpayload);
   if(!nextpayload) {
-    logger.msg(WARNING, "Cannot create http payload"); 
+    logger.msg(WARNING, "Cannot create http payload");
     return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST);
   };
   if(nextpayload.Method() == "END") {
     return MCC_Status(SESSION_CLOSE);
   };
   bool keep_alive = nextpayload.KeepAlive();
-  // Creating message to pass to next MCC and setting new payload. 
+  // Creating message to pass to next MCC and setting new payload.
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
   // Creating attributes
-  // Endpoints must be URL-like so make sure HTTP path is 
-  // converted to HTTP URL 
+  // Endpoints must be URL-like so make sure HTTP path is
+  // converted to HTTP URL
   std::string endpoint = nextpayload.Endpoint();
   {
     std::string::size_type p = endpoint.find("://");
@@ -211,21 +211,21 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   nextinmsg.Auth()->set("HTTP",sattr);
   parse_http_range(nextpayload,nextinmsg);
   // Reason ?
-  for(std::multimap<std::string,std::string>::const_iterator i = 
+  for(std::multimap<std::string,std::string>::const_iterator i =
       nextpayload.Attributes().begin();i!=nextpayload.Attributes().end();++i) {
     nextinmsg.Attributes()->add("HTTP:"+i->first,i->second);
   };
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
     return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
   };
-  // Call next MCC 
+  // Call next MCC
   MCCInterface* next = Next(nextpayload.Method());
   if(!next) {
     logger.msg(WARNING, "No next element in the chain");
     return make_http_fault(logger,*inpayload,outmsg,HTTP_NOT_FOUND);
   }
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
-  MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
+  MCC_Status ret = next->process(nextinmsg,nextoutmsg);
   // Do checks and extract raw response
   if(!ret) {
     logger.msg(WARNING, "next element of the chain returned error status");
@@ -239,10 +239,10 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   try {
     retpayload = dynamic_cast<PayloadRawInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) { 
+  if(!retpayload) {
     logger.msg(WARNING, "next element of the chain returned invalid payload");
-    delete nextoutmsg.Payload(); 
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR); 
+    delete nextoutmsg.Payload();
+    return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   };
   if(!ProcessSecHandlers(nextinmsg,"outgoing")) {
     delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
@@ -331,15 +331,15 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   nextpayload.Attribute("User-Agent","ARC");
   nextpayload.Body(*inpayload,false);
   nextpayload.Flush();
-  // Creating message to pass to next MCC and setting new payload.. 
+  // Creating message to pass to next MCC and setting new payload..
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
 
-  // Call next MCC 
+  // Call next MCC
   MCCInterface* next = Next();
   if(!next) return make_raw_fault(outmsg);
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
-  MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
+  MCC_Status ret = next->process(nextinmsg,nextoutmsg);
   // Do checks and process response - supported response so far is stream
   // Generated result is HTTP payload with Raw and Stream interfaces
   if(!ret) return make_raw_fault(outmsg);
@@ -350,7 +350,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   } catch(std::exception& e) { };
   if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg); };
   // Stream retpayload becomes owned by outpayload. This is needed because
-  // HTTP payload may postpone extracting information from stream till demanded. 
+  // HTTP payload may postpone extracting information from stream till demanded.
   PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload,true);
   if(!outpayload) { delete retpayload; return make_raw_fault(outmsg); };
   if(!(*outpayload)) { delete outpayload; return make_raw_fault(outmsg); };
@@ -364,7 +364,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   outmsg.Attributes()->set("HTTP:REASON",outpayload->Reason());
   for(std::map<std::string,std::string>::const_iterator i =
       outpayload->Attributes().begin();i!=outpayload->Attributes().end();++i) {
-    outmsg.Attributes()->set("HTTP:"+i->first,i->second);
+    outmsg.Attributes()->add("HTTP:"+i->first,i->second);
   };
   return MCC_Status(STATUS_OK);
 }
