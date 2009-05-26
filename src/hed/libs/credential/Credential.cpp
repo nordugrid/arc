@@ -140,51 +140,17 @@ namespace Arc {
     ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
   }
 
-  time_t asn1_to_utctime(const ASN1_UTCTIME *s) {
-    struct tm tm;
-    int offset;
-    memset(&tm,'\0',sizeof tm);
-
-#define g2(p) (((p)[0]-'0')*10+(p)[1]-'0')
+  Time asn1_to_utctime(const ASN1_UTCTIME *s) {
+    std::string t_str;
     if(s->type == V_ASN1_UTCTIME) {
-      tm.tm_year=g2(s->data);
-      if(tm.tm_year < 70)
-        tm.tm_year+=100;
-      tm.tm_mon=g2(s->data+2)-1;
-      tm.tm_mday=g2(s->data+4);
-      tm.tm_hour=g2(s->data+6);
-      tm.tm_min=g2(s->data+8);
-      tm.tm_sec=g2(s->data+10);
-      if(s->data[12] == 'Z')
-        offset=0;
-      else {
-        offset=g2(s->data+13)*60+g2(s->data+15);
-        if(s->data[12] == '-')
-          offset= -offset;
-      }
+      t_str.append("20");
+      t_str.append((char*)(s->data));
     }
-    else { //V_ASN1_GENERALIZEDTIME
-      tm.tm_year=g2(s->data)*100 + g2(s->data+2);
-      if(tm.tm_year > 1900)
-        tm.tm_year-=1900;
-      tm.tm_mon=g2(s->data+4)-1;
-      tm.tm_mday=g2(s->data+6);
-      tm.tm_hour=g2(s->data+8);
-      tm.tm_min=g2(s->data+10);
-      tm.tm_sec=g2(s->data+12);
-      if(s->data[14] == 'Z')
-        offset=0;
-      else {
-        offset=g2(s->data+15)*60+g2(s->data+17);
-        if(s->data[14] == '-')
-          offset= -offset;
-      }
-    }
-#undef g2
-
-    return mktime(&tm) - offset*60;
+    else {//V_ASN1_GENERALIZEDTIME
+      t_str.append((char*)(s->data));
+    } 
+    return Time(t_str);
   }
-
 
   //Get the life time of the credential
   static void getLifetime(STACK_OF(X509)* &certchain, X509* &cert, Time& start, Period &lifetime) {
@@ -197,20 +163,20 @@ namespace Arc {
       tmp_cert = sk_X509_value(certchain, n);
 
       atime = X509_get_notAfter(tmp_cert);
-      Time end(asn1_to_utctime(atime));
+      Time end = asn1_to_utctime(atime);
       if (end_time == Time(-1) || end < end_time) { end_time = end; }
 
       atime = X509_get_notBefore(tmp_cert);
-      Time start(asn1_to_utctime(atime));
+      Time start = asn1_to_utctime(atime);
       if (start_time == Time(-1) || start > start_time) { start_time = start; }
     }
 
     atime = X509_get_notAfter(cert);
-    Time e(asn1_to_utctime(atime));
+    Time e = asn1_to_utctime(atime);
     if (end_time == Time(-1) || e < end_time) { end_time = e; }
 
     atime = X509_get_notBefore(cert);
-    Time s(asn1_to_utctime(atime));
+    Time s = asn1_to_utctime(atime);
     if (start_time == Time(-1) || s > start_time) { start_time = s; }
 
     start = start_time;
