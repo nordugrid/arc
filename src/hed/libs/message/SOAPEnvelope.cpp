@@ -91,7 +91,8 @@ void SOAPEnvelope::set(void) {
   };
   ns["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
   ns["xsd"]="http://www.w3.org/2001/XMLSchema";
-  it.Namespaces(ns);
+  // Do not apply deeper than Envelope + Header/Body + Fault
+  it.Namespaces(ns,true,2);
   envelope = it;
   if((!envelope) || (!MatchXMLName(envelope,"soap-env:Envelope"))) {
     // No SOAP Envelope found
@@ -119,7 +120,12 @@ void SOAPEnvelope::set(void) {
   this->node_=((SOAPEnvelope*)(&body))->node_;
   // Check if this message is fault
   fault = new SOAPFault(body);
-  if(!(*fault)) { delete fault; fault=NULL; };
+  if(!(*fault)) {
+    delete fault; fault=NULL;
+  } else {
+    // Apply namespaces to Fault element
+    body.Namespaces(ns);
+  }
 }
 
 SOAPEnvelope* SOAPEnvelope::New(void) {
