@@ -792,9 +792,53 @@ namespace Arc {
     ++(point.transfers_finished);
     if (transfer_failure)
       point.buffer->error_write(true);
-    if (point.transfers_finished == point.transfers_started)
+    if (point.transfers_finished == point.transfers_started) {
       // TODO: process/report failure?
       point.buffer->eof_write(true);
+      if((!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
+        // Zero size data was trasfered - must send at least one empty packet
+        for(;;) {
+          HTTPClientInfo transfer_info;
+          PayloadMemConst request(NULL,0,0,0);
+          PayloadRawInterface *response;
+          std::string path = point.CurrentLocation().FullPath();
+          path = "/" + path;
+          MCC_Status r = client->process("PUT", path, &request, &transfer_info, &response);
+          if (response) delete response;
+          if (!r) {
+            if ((++retries) > 10) {
+              point.buffer->error_write(true);
+              break;
+            }
+            // Recreate connection
+            delete client;
+            client = NULL;
+            MCCConfig cfg;
+            if (!point.proxyPath.empty())
+              cfg.AddProxy(point.proxyPath);
+            if (!point.certificatePath.empty())
+              cfg.AddCertificate(point.certificatePath);
+            if (!point.keyPath.empty())
+              cfg.AddPrivateKey(point.keyPath);
+            if (!point.caCertificatesDir.empty())
+              cfg.AddCADir(point.caCertificatesDir);
+            client = new ClientHTTP(cfg, point.url);
+            continue;
+          }
+          if ((transfer_info.code != 201) &&
+              (transfer_info.code != 200) &&
+              (transfer_info.code != 204)) {  // HTTP error - retry?
+            if ((transfer_info.code == 500) ||
+                (transfer_info.code == 503) ||
+                (transfer_info.code == 504))
+              if ((++retries) <= 10) continue;
+            point.buffer->error_write(true);
+            break;
+          }
+          break;
+        }
+      }
+    }
     if (client)
       delete client;
     delete &info;
