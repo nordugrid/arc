@@ -236,7 +236,7 @@ std::string ConfusaParserUtils::extract_body_information(const std::string html_
 
 // perform one redirect step, i.e. call the url, read the response and hand back the new url to which the redirect happens
 // there are amazingly lots of redirects in web-based SSO slcs
-std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const std::string remote_url, std::string *cookie, std::multimap<std::string, std::string> *httpAttributes) {
+std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const std::string remote_url, std::string *cookies, std::multimap<std::string, std::string> *httpAttributes) {
 	  Arc::URL url(urlencode_params(remote_url));
 	  Arc::ClientHTTP redirect_client(cfg, url);
 	  Arc::PayloadRaw redirect_request;
@@ -251,9 +251,10 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  }
 
 	  std::string redirect_string = redirect_info.location;
-	  if(!redirect_info.cookies.empty() && (cookie != NULL))  {
-		  *cookie = *(redirect_info.cookies.begin());
-	  }
+//	  if(!redirect_info.cookies.empty() && (cookie != NULL))  {
+//		  *cookie = *(redirect_info.cookies.begin());
+//	  }
+	  add_cookie(cookies, redirect_info.cookies);
 
 	  if (redirect_response) {
 		  delete redirect_response;
@@ -262,16 +263,28 @@ std::string ConfusaParserUtils::handle_redirect_step(Arc::MCCConfig cfg, const s
 	  return redirect_string;
 }
 
-void ConfusaParserUtils::add_cookie(std::string *cookies, const std::string set_cookie) {
-	std::string::size_type semic_pos = set_cookie.find(";");
+void ConfusaParserUtils::add_cookie(std::string *cookies, std::list<std::string> cookies_list) {
 	// drop path, secure, etc.
-	std::string cookie = set_cookie.substr(0, semic_pos);
 
-	if (cookies->empty()) {
-		(*cookies) = cookie;
-	} else {
-		(*cookies) = (*cookies) + "; " + cookie;
+	std::list<std::string>::iterator it;
+	std::string current = "";
+	std::string::size_type semic_pos;
+	std::string current_cookie = "";
+
+	for (it = cookies_list.begin(); it != cookies_list.end(); it++) {
+		current = (*it);
+		semic_pos = current.find(";");
+		current_cookie = current.substr(0, semic_pos);
+		// TODO improvable
+		if (cookies->empty()) {
+			(*cookies) = current_cookie;
+		} else {
+			(*cookies) = (*cookies) + "; " + current_cookie;
+		}
 	}
+
+
+
 }
 
 

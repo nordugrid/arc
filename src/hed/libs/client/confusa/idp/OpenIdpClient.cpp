@@ -153,8 +153,8 @@ namespace Arc {
 
 		  std::string consent_content = ConfusaParserUtils::extract_body_information(consent_response_str);
 		  xmlDocPtr doc = ConfusaParserUtils::get_doc(consent_content);
-		  ConfusaParserUtils::evaluate_path(doc, "//td[@class='attrname']", attrname);
-		  ConfusaParserUtils::evaluate_path(doc, "//td[@class='attrvalue']", attrvalue);
+		  ConfusaParserUtils::evaluate_path(doc, "//span[@class='attrname']", attrname);
+		  ConfusaParserUtils::evaluate_path(doc, "//div[@class='attrvalue']", attrvalue);
 		  std::string state_id = ConfusaParserUtils::evaluate_path(doc, "//input[@name='StateId']/@value");
 		  std::string confirm_param = ConfusaParserUtils::evaluate_path(doc, "//input[@type='submit' and @name='yes' or @name='confirm']/@value");
 		  std::string yes_action = ConfusaParserUtils::evaluate_path(doc, "//input[@name='yes']/../@action");
@@ -225,6 +225,7 @@ namespace Arc {
 		  }
 
 		  if (post_idp_page_.empty()) {
+			  http_attributes.clear();
 			  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 			  // IdP SSOService to SP AssertionConsumerService URL retrieval, no automatic redirect :( -- IdP
 			  // normally here should also be the user consent question
@@ -269,12 +270,14 @@ namespace Arc {
 		  logger.msg(DEBUG, "The post IdP-authentication action is %s", idp_s_action);
 
 		  // IdP loginuserpass POST to SP AssertionConsumerervice -- Confusa
+		  http_attributes.clear();
 		  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
+		  http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
+		  logger.msg(DEBUG, "The used session cookies for the assertion consumer is %s", (*session_cookies_)["Confusa"]);
 		  ClientHTTP sp_assertionconsumer_post_client(cfg_, URL(idp_s_action));
 		  PayloadRaw sp_ass_cons_body;
 		  PayloadRawInterface *sp_assertionconsumer_post_response = NULL;
 		  HTTPClientInfo sp_assertionconsumer_post_info;
-		  http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
 		  sp_ass_cons_body.Insert(post_params.c_str(), 0, strlen(post_params.c_str()));
 		  sp_assertionconsumer_post_client.process("POST", http_attributes, &sp_ass_cons_body, &sp_assertionconsumer_post_info, &sp_assertionconsumer_post_response);
 

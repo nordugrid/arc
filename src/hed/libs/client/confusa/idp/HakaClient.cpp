@@ -22,7 +22,7 @@ namespace Arc {
 			return MCC_Status(GENERIC_ERROR, origin, "The IdP page is unknown!");
 		}
 
-		std::string actual_ip_login=ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["IdP"], &cookie, &http_attributes);
+		std::string actual_ip_login=ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["IdP"], &(*session_cookies_)["IdP"], &http_attributes);
 		logger.msg(VERBOSE, "Got over the actual ip login 2 to %s, cookie %s ", actual_ip_login, cookie);
 
 		if (actual_ip_login.empty()) {
@@ -30,13 +30,13 @@ namespace Arc {
 		}
 
 		// set the idp's session cookies
-		ConfusaParserUtils::add_cookie(&(*session_cookies_)["IdP"], cookie);
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 
-		ClientHTTP idp_login_page_client(cfg_, Arc::URL(actual_ip_login));
+		ClientHTTP idp_login_page_client(cfg_, URL(actual_ip_login));
 		PayloadRaw idp_login_page_request;
 		PayloadRawInterface *idp_login_page_response = NULL;
 		HTTPClientInfo idp_login_page_info;
+		idp_login_page_client.RelativeURI(true);
 		idp_login_page_client.process("GET", http_attributes, &idp_login_page_request, &idp_login_page_info, &idp_login_page_response);
 		std::string idp_l_content = "";
 
@@ -47,9 +47,10 @@ namespace Arc {
 			return MCC_Status(PARSING_ERROR, origin, "Got no response from login page!");
 		}
 
-		logger.msg(VERBOSE, "Cookie received from login page %s",*(idp_login_page_info.cookies.begin()));
-		ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]), *(idp_login_page_info.cookies.begin()));
+		ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]), idp_login_page_info.cookies);
+		http_attributes.clear();
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
+		logger.msg(DEBUG, "Posting username/pw with the following session cookie %s to %s", (*session_cookies_)["IdP"], actual_ip_login);
 
 		body_string = ConfusaParserUtils::extract_body_information(idp_l_content);
 
@@ -64,6 +65,7 @@ namespace Arc {
 		PayloadRaw idp_login_post_body;
 		PayloadRawInterface *idp_login_post_response = NULL;
 		HTTPClientInfo idp_login_post_info;
+		idp_login_post_client.RelativeURI(true);
 		http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
 		idp_login_post_body.Insert(post_params.c_str(), 0, strlen(post_params.c_str()));
 		idp_login_post_client.process("POST", http_attributes, &idp_login_post_body, &idp_login_post_info, &idp_login_post_response);
@@ -82,10 +84,9 @@ namespace Arc {
 		}
 
 		logger.msg(DEBUG, "The idp_login_post_info cookie is %s, while the sent cookie was %s", *(idp_login_post_info.cookies.begin()), (*session_cookies_)["IdP"]);
-		for (std::list<std::string>::iterator it = idp_login_post_info.cookies.begin(); it != idp_login_post_info.cookies.end(); it++) {
-			ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]), (*it));
-		}
-		//ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]),*(idp_login_post_info.cookies.begin()));
+
+		ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]), idp_login_post_info.cookies);
+		http_attributes.clear();
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 
 
@@ -203,10 +204,12 @@ namespace Arc {
 		PayloadRawInterface *consent_response = NULL;
 		HTTPClientInfo consent_info;
 		consent_request.Insert(post_params.c_str(), 0, strlen(post_params.c_str()));
+		http_attributes.clear();
 		http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
 		consent_client.process("POST", http_attributes, &consent_request, &consent_info, &consent_response);
 		// the consent module will set a cookie valid for the consent session
 		(*session_cookies_)["Consent"] = consent_info.cookies.empty()?"":(*(consent_info.cookies.begin()));
+		http_attributes.clear();
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Consent"]));
 		std::string consent_response_str = "";
 
@@ -279,6 +282,7 @@ namespace Arc {
 			std::string consent_confirm_url = consent_url.Protocol() + "://" + consent_url.Host() + ":" + consent_confirm_port + "/" + consent_url.Path() + "?attributes-confirm=Confirm";
 			std::string consent_confirm_redir = ConfusaParserUtils::handle_redirect_step(cfg_, consent_confirm_url, &cookie, &http_attributes);
 			logger.msg(DEBUG, "Consent confirm redir URL is %s, cookies %s", consent_confirm_redir, (*session_cookies_)["IdP"]);
+			http_attributes.clear();
 			http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 
 			ClientHTTP post_consent_client(cfg_, URL(consent_confirm_redir));

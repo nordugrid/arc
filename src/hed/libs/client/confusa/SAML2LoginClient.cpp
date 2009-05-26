@@ -121,6 +121,7 @@ namespace Arc {
 	  for (std::list<std::string>::iterator it = ++(idp_stack_.begin()); it != idp_stack_.end(); it++) {
 		  // set the new cookie
 		  if (!cookie.empty()) {
+			  http_attributes.clear();
 			  http_attributes.insert(std::pair<std::string,std::string>("Cookie",cookie));
 		  }
 
@@ -236,6 +237,7 @@ namespace Arc {
 
 	  std::multimap<std::string, std::string> http_attributes;
 	  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
+	  logger.msg(DEBUG, "The used session cookies for the about page is %s", (*session_cookies_)["Confusa"]);
 	  MCC_Status stat = confusa_dn_client.process("GET", http_attributes, &confusa_dn_request, &confusa_dn_info, &confusa_dn_response);
 
 	  std::string about_page = "";
@@ -253,7 +255,12 @@ namespace Arc {
 	  *dn = ConfusaParserUtils::evaluate_path(doc, "//div[@id='dn-section']");
 	  ConfusaParserUtils::destroy_doc(doc);
 
+	  if (dn->empty()) {
+		  return MCC_Status(PARSING_ERROR, origin, "Could not retrieve the DN from Confusa!");
+	  }
+
 	  logger.msg(INFO, "The retrieved dn is %s", *dn);
+
 	  return stat;
 
   }
@@ -363,7 +370,7 @@ namespace Arc {
 		  return MCC_Status(GENERIC_ERROR, origin, "Confusa start url is undefined!");
 	  }
 
-	  std::string simplesaml_location = ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["ConfusaStart"], &cookie);
+	  std::string simplesaml_location = ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["ConfusaStart"], &(*session_cookies_)["Confusa"]);
 
 	  if (simplesaml_location.empty()) {
 		  return MCC_Status(PARSING_ERROR, origin, "Could not determine the location of the SimpleSAML installation!");
@@ -374,7 +381,6 @@ namespace Arc {
 	  simplesaml_location.erase(saml2_pos, (simplesaml_location.size()-saml2_pos));
 
 	  (*sso_pages_)["SimpleSAML"] = simplesaml_location;
-	  (*session_cookies_)["Confusa"] = cookie;
 	  return MCC_Status(STATUS_OK);
   }
 
