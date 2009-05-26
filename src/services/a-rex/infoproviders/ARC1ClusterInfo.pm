@@ -75,11 +75,10 @@ sub bes_state {
 
 sub glueState {
     my @ng_status = @_;
+    return [ "UNDEFINEDVALUE" ] unless $ng_status[0];
+    my $status = [ "nordugrid:".join(':',@ng_status) ];
     my $bes_state = bes_state(@ng_status);
-    my $status = [];
     push @$status, "bes:".$bes_state->[0] if @$bes_state;
-    push @$status, "nordugrid:".join(':',@ng_status) if @ng_status;
-    push @$status, "UNDEFINEDVALUE" unless @$status;
     return $status;
 }
 
