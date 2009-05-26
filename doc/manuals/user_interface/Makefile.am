@@ -21,6 +21,6 @@ $(xrsl_PARTS):
 
 EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource)
 
-CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc  $(STYLES) $(xrsl_PARTS)
+CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
-MAINTAINERCLEANFILES = $(doc_DATA)
+MAINTAINERCLEANFILES = $(doc_DATA) $(STYLES) $(xrsl_PARTS)

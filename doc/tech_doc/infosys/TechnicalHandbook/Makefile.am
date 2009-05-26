@@ -16,6 +16,6 @@ $(STYLES):
 
 EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource)
 
-CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc  $(STYLES)
+CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
-MAINTAINERCLEANFILES = $(doc_DATA)
+MAINTAINERCLEANFILES = $(doc_DATA) $(STYLES)

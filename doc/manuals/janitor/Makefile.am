@@ -35,7 +35,7 @@ $(doc_DATA): $(docsource) $(STYLES) $(docsrcdeps)
 	pdflatex $(docsource)
 
 $(STYLES):
-		$(LN_S) ../../templates/tex/$@ $@
+	$(LN_S) ../../templates/tex/$@ $@
 
 manperl:
 	@[ -d manperl ] || mkdir manperl
@@ -64,8 +64,6 @@ manperl:
 
 EXTRA_DIST = $(doc_DATA) $(docsource) $(docsrcdeps)
 
-CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc  $(STYLES)
+CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
-MAINTAINERCLEANFILES = $(doc_DATA) images/dependencies.tex
-
-
+MAINTAINERCLEANFILES = $(doc_DATA) $(STYLES) images/dependencies.tex
