@@ -27,89 +27,14 @@ namespace Arc {
 
   typedef std::vector<std::string> strv_t;
 
-  std::list<std::string> resolvedAlias;
+  std::list<std::string> UserConfig::resolvedAlias;
+  
+  const std::string UserConfig::DEFAULT_BROKER = "RandomBroker";
 
   UserConfig::UserConfig(const std::string& file, bool initializeCredentials)
     : conffile(file), userSpecifiedJobList(false), ok(false) {
-
-    struct stat st;
-
-    strv_t confdirPath(2);
-    confdirPath[0] = user.Home();
-    confdirPath[1] = ".arc";
-    const std::string confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
-
-    // Check if user configuration file exist. If file name was given as
-    // argument to the constructor and file does not exist report error and exit.
-    // If the constructor received an empty file name look for the default
-    // configuration file, if it does not exist continue without loading any
-    // user configuration file.
-    if (conffile.empty())
-      conffile = Glib::build_filename(confdir, "client.xml");
-
-    if (stat(conffile.c_str(), &st) != 0) {
-      if (conffile == file) {
-        logger.msg(ERROR, "Cannot access ARC user config file: %s (%s)",
-                   conffile, StrError());
-        std::cerr << IString("Cannot access ARC user config file: %s (%s)", conffile, StrError()) << std::endl;
-        return;
-      }
-      else conffile.clear();
-    }
-    else if (!S_ISREG(st.st_mode)) {
-      if (conffile == file) {
-        logger.msg(ERROR, "ARC user config file is not a regular file: %s",
-                   conffile);
-        std::cerr << IString("ARC user configuration file is not a regular file: %s", conffile) << std::endl;
-        return;
-      }
-      else conffile.clear();
-    }
-
-    // First try to load system client configuration.
-    const std::string arcclientconf = G_DIR_SEPARATOR_S + Glib::build_filename("etc", "arcclient.xml");
-
-    if (!cfg.ReadFromFile(ArcLocation::Get() + arcclientconf) &&
-        !cfg.ReadFromFile(arcclientconf))
-      logger.msg(WARNING, "Could not load system client configuration");
-
-
-    if (!conffile.empty()) {
-      Config ucfg;
-      if (!ucfg.ReadFromFile(conffile)) {
-        logger.msg(WARNING, "Could not load user client configuration");
-      }
-      else {
-        // Merge system and user configuration
-        XMLNode child;
-        for (int i = 0; (child = ucfg.Child(i)); i++) {
-          if (child.Name() != "AliasList") {
-            if (cfg[child.Name()])
-              cfg[child.Name()].Replace(child);
-            else 
-              cfg.NewChild(child);
-          }
-          else {
-            if (!cfg["AliasList"])
-              cfg.NewChild(child);
-            else 
-              // Look for duplicates. If duplicates exist, keep those defined in
-              // the user configuration file.
-              for (XMLNode alias = child["Alias"]; alias; ++alias) { // Loop over Alias nodes in user configuration file.
-                XMLNodeList aliasList = cfg.XPathLookup("//AliasList/Alias[@name='" + (std::string)alias.Attribute("name") + "']", NS());
-                if (!aliasList.empty()) {
-                  // Remove duplicates.
-                  for (XMLNodeList::iterator node = aliasList.begin(); node != aliasList.end(); node++) {
-                    node->Destroy();
-                  }
-                }
-                cfg["AliasList"].NewChild(alias);
-              }
-          }
-        }
-      }
-    }
-
+    if (!loadUserConfiguration(file))
+      return;
 
     if (initializeCredentials) {
       InitializeCredentials();
@@ -117,88 +42,22 @@ namespace Arc {
     }
 
     ok = true;
+
+    setDefaults();
   }
 
   UserConfig::UserConfig(const std::string& file, const std::string& jfile, bool initializeCredentials)
     : conffile(file), joblistfile(jfile), userSpecifiedJobList(!jfile.empty()), ok(false)
   {
+    if (!loadUserConfiguration(file))
+      return;
+
     struct stat st;
 
     strv_t confdirPath(2);
     confdirPath[0] = user.Home();
     confdirPath[1] = ".arc";
     const std::string confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
-
-    // Check if user configuration file exist. If file name was given as
-    // argument to the constructor and file does not exist report error and exit.
-    // If the constructor received an empty file name look for the default
-    // configuration file, if it does not exist continue without loading any
-    // user configuration file.
-    if (conffile.empty())
-      conffile = Glib::build_filename(confdir, "client.xml");
-
-    if (stat(conffile.c_str(), &st) != 0) {
-      if (conffile == file) {
-        logger.msg(ERROR, "Cannot access ARC user config file: %s (%s)",
-                   conffile, StrError());
-        std::cerr << IString("Cannot access ARC user config file: %s (%s)", conffile, StrError()) << std::endl;
-        return;
-      }
-      else conffile.clear();
-    }
-    else if (!S_ISREG(st.st_mode)) {
-      if (conffile == file) {
-        logger.msg(ERROR, "ARC user config file is not a regular file: %s",
-                   conffile);
-        std::cerr << IString("ARC user configuration file is not a regular file: %s", conffile) << std::endl;
-        return;
-      }
-      else conffile.clear();
-    }
-
-    // First try to load system client configuration.
-    const std::string arcclientconf = G_DIR_SEPARATOR_S + Glib::build_filename("etc", "arcclient.xml");
-
-    if (!cfg.ReadFromFile(ArcLocation::Get() + arcclientconf) &&
-        !cfg.ReadFromFile(arcclientconf))
-      logger.msg(WARNING, "Could not load system client configuration");
-
-
-    if (!conffile.empty()) {
-      Config ucfg;
-      if (!ucfg.ReadFromFile(conffile)) {
-        logger.msg(WARNING, "Could not load user client configuration");
-      }
-      else {
-        // Merge system and user configuration
-        XMLNode child;
-        for (int i = 0; (child = ucfg.Child(i)); i++) {
-          if (child.Name() != "AliasList") {
-            if (cfg[child.Name()])
-              cfg[child.Name()].Replace(child);
-            else 
-              cfg.NewChild(child);
-          }
-          else {
-            if (!cfg["AliasList"])
-              cfg.NewChild(child);
-            else 
-              // Look for duplicates. If duplicates exist, keep those defined in
-              // the user configuration file.
-              for (XMLNode alias = child["Alias"]; alias; ++alias) { // Loop over Alias nodes in user configuration file.
-                XMLNodeList aliasList = cfg.XPathLookup("//AliasList/Alias[@name='" + (std::string)alias.Attribute("name") + "']", NS());
-                if (!aliasList.empty()) {
-                  // Remove duplicates.
-                  for (XMLNodeList::iterator node = aliasList.begin(); node != aliasList.end(); node++) {
-                    node->Destroy();
-                  }
-                }
-                cfg["AliasList"].NewChild(alias);
-              }
-          }
-        }
-      }
-    }
 
     // First check if job list file was given as an argument, then look for it
     // in the user configuration, and last set job list file to default.
@@ -238,9 +97,11 @@ namespace Arc {
     }
 
     ok = true;
+
+    setDefaults();
   }
 
-  bool UserConfig::ApplySecurity(XMLNode& ccfg) const {
+  void UserConfig::ApplyToConfig(XMLNode& ccfg) const {
     if (!proxyPath.empty())
       ccfg.NewChild("ProxyPath") = proxyPath;
     else {
@@ -250,26 +111,52 @@ namespace Arc {
 
     ccfg.NewChild("CACertificatesDir") = caCertificatesDir;
 
-    return true;
+    ccfg.NewChild("TimeOut") = (std::string)cfg["TimeOut"];
+
+    if (cfg["Broker"]["Name"]) {
+      ccfg.NewChild("Broker").NewChild("Name") = (std::string)cfg["Broker"]["Name"];
+      if (cfg["Broker"]["Arguments"])
+        ccfg["Broker"].NewChild("Arguments") = (std::string)cfg["Broker"]["Arguments"];
+    }
   }
 
-  bool UserConfig::ApplyTimeout(XMLNode& ccfg) const {
-    if (cfg["TimeOut"] && !((std::string)cfg["TimeOut"]).empty() &&
-        stringtoi((std::string)cfg["TimeOut"]) > 0) {
-      logger.msg(INFO, "Setting timeout to %s s", (std::string)cfg["TimeOut"]);
-      ccfg.NewChild("TimeOut") = (std::string)cfg["TimeOut"];
-      return true;
+  void UserConfig::ApplyToConfig(BaseConfig& ccfg) const {
+    if (!proxyPath.empty())
+      ccfg.AddProxy(proxyPath);
+    else {
+      ccfg.AddCertificate(certificatePath);
+      ccfg.AddPrivateKey(keyPath);
     }
 
-    return false;
+    ccfg.AddCADir(caCertificatesDir);
   }
 
-  void UserConfig::SetTimeout(int timeout) {
-    if (!cfg["TimeOut"]) {
+  void UserConfig::SetTimeOut(unsigned int timeOut) {
+    if (!cfg["TimeOut"])
       cfg.NewChild("TimeOut");
-    }
 
-    cfg["TimeOut"] = tostring(timeout);
+    cfg["TimeOut"] = tostring(timeOut);
+  }
+
+  void UserConfig::SetBroker(const std::string& broker)
+  {
+    if (!cfg["Broker"])
+      cfg.NewChild("Broker");
+    if (!cfg["Broker"]["Name"])
+      cfg["Broker"].NewChild("Name");
+
+    const std::string::size_type pos = broker.find(":");
+
+    cfg["Broker"]["Name"] = broker.substr(0, pos);
+    
+    if (pos != std::string::npos && pos != broker.size()-1) {
+      if (!cfg["Broker"]["Arguments"])
+        cfg["Broker"].NewChild("Arguments");
+      cfg["Broker"]["Arguments"] = broker.substr(pos+1);
+    }
+    else if (cfg["Broker"]["Arguments"]) {
+      cfg["Broker"]["Arguments"] = "";
+    }
   }
 
   bool UserConfig::DefaultServices(URLListMap& cluster,
@@ -730,4 +617,99 @@ namespace Arc {
     }
   }
 
+  bool UserConfig::loadUserConfiguration(const std::string& file)
+  {
+    struct stat st;
+
+    strv_t confdirPath(2);
+    confdirPath[0] = user.Home();
+    confdirPath[1] = ".arc";
+    const std::string confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
+
+    // Check if user configuration file exist. If file name was given as
+    // argument to the constructor and file does not exist report error and exit.
+    // If the constructor received an empty file name look for the default
+    // configuration file, if it does not exist continue without loading any
+    // user configuration file.
+    if (conffile.empty())
+      conffile = Glib::build_filename(confdir, "client.xml");
+
+    if (stat(conffile.c_str(), &st) != 0) {
+      if (conffile == file) {
+        logger.msg(ERROR, "Cannot access ARC user config file: %s (%s)",
+                   conffile, StrError());
+        return false;
+      }
+      else conffile.clear();
+    }
+    else if (!S_ISREG(st.st_mode)) {
+      if (conffile == file) {
+        logger.msg(ERROR, "ARC user config file is not a regular file: %s",
+                   conffile);
+        return false;
+      }
+      else conffile.clear();
+    }
+
+    // First try to load system client configuration.
+    const std::string arcclientconf = G_DIR_SEPARATOR_S + Glib::build_filename("etc", "arcclient.xml");
+
+    if (!cfg.ReadFromFile(ArcLocation::Get() + arcclientconf) &&
+        !cfg.ReadFromFile(arcclientconf))
+      logger.msg(WARNING, "Could not load system client configuration");
+
+
+    if (!conffile.empty()) {
+      Config ucfg;
+      if (!ucfg.ReadFromFile(conffile)) {
+        logger.msg(WARNING, "Could not load user client configuration");
+      }
+      else {
+        // Merge system and user configuration
+        XMLNode child;
+        for (int i = 0; (child = ucfg.Child(i)); i++) {
+          if (child.Name() != "AliasList") {
+            if (cfg[child.Name()])
+              cfg[child.Name()].Replace(child);
+            else 
+              cfg.NewChild(child);
+          }
+          else {
+            if (!cfg["AliasList"])
+              cfg.NewChild(child);
+            else 
+              // Look for duplicates. If duplicates exist, keep those defined in
+              // the user configuration file.
+              for (XMLNode alias = child["Alias"]; alias; ++alias) { // Loop over Alias nodes in user configuration file.
+                XMLNodeList aliasList = cfg.XPathLookup("//AliasList/Alias[@name='" + (std::string)alias.Attribute("name") + "']", NS());
+                if (!aliasList.empty()) {
+                  // Remove duplicates.
+                  for (XMLNodeList::iterator node = aliasList.begin(); node != aliasList.end(); node++) {
+                    node->Destroy();
+                  }
+                }
+                cfg["AliasList"].NewChild(alias);
+              }
+          }
+        }
+      }
+    }
+    
+    return true;
+  }
+
+  void UserConfig::setDefaults()
+  {
+    if (!cfg["TimeOut"] && !((std::string)cfg["TimeOut"]).empty() &&
+        stringtoi((std::string)cfg["TimeOut"]) > 0)
+      cfg.NewChild("TimeOut") = DEFAULT_TIMEOUT;
+
+    if (!cfg["Broker"]["Name"]) {
+      if (!cfg["Broker"])
+        cfg.NewChild("Broker");
+      cfg["Broker"].NewChild("Name") = DEFAULT_BROKER;
+      if (cfg["Broker"]["Arguments"])
+        cfg["Broker"]["Arguments"] = "";
+    }
+  }
 } // namespace Arc

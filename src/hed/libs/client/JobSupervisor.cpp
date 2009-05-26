@@ -131,7 +131,7 @@ namespace Arc {
       XMLNode jobctrl = cfg.NewChild("ArcClientComponent");
       jobctrl.NewAttribute("name") = "JobController" + (*it);
       jobctrl.NewAttribute("id") = "controller" + tostring(ctrlnum);
-      usercfg.ApplySecurity(jobctrl);
+      usercfg.ApplyToConfig(jobctrl);
       jobctrl.NewChild("JobList") = joblist;
       ctrlnum++;
     }

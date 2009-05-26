@@ -31,12 +31,14 @@ namespace Arc {
     const XMLNode& ConfTree() const { return cfg; }
 
     bool CredentialsFound() const { return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()) || caCertificatesDir.empty()); }
-    bool ApplySecurity(XMLNode& ccfg) const;
     bool CheckProxy() const;
     void InitializeCredentials();
     
-    bool ApplyTimeout(XMLNode& ccfg) const;
-    void SetTimeout(int timeout);
+    void SetTimeOut(unsigned int timeout);
+    void SetBroker(const std::string& broker);
+
+    void ApplyToConfig(XMLNode& ccfg) const;
+    void ApplyToConfig(BaseConfig& ccfg) const;
 
     bool DefaultServices(URLListMap& cluster,
                          URLListMap& index) const;
@@ -60,14 +62,20 @@ namespace Arc {
     bool operator!() const { return !ok; }
 
     static const int DEFAULT_TIMEOUT = 20;
+    static const std::string DEFAULT_BROKER;
 
   private:
+    bool loadUserConfiguration(const std::string& file);
+    void setDefaults();
+  
     User user;
     std::string conffile;
     bool userSpecifiedJobList;
     std::string joblistfile;
     Config cfg;
     bool ok;
+
+    static std::list<std::string> resolvedAlias;
 
     std::string proxyPath;
     std::string certificatePath;

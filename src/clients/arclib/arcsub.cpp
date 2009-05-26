@@ -140,8 +140,11 @@ int main(int argc, char **argv) {
   }
 
   if (timeout > 0) {
-    usercfg.SetTimeout(timeout);
+    usercfg.SetTimeOut((unsigned int)timeout);
   }
+
+  if (!broker.empty())
+    usercfg.SetBroker(broker);
   
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -234,12 +237,8 @@ int main(int argc, char **argv) {
   int jobnr = 1;
   std::list<std::string> jobids;
 
-  //prepare loader
-  if (broker.empty())
-    broker = "RandomBroker";
-
   Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig());
-  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(broker, usercfg));
+  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], usercfg));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);
 
   for (std::list<Arc::JobDescription>::iterator it =

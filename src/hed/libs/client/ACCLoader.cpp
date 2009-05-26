@@ -72,8 +72,9 @@ namespace Arc {
     Config cfg(XMLNode(NS(), "ArcClientComponent"));
     cfg.NewAttribute("name") = name;
     cfg.NewAttribute("id") = id;
-    ucfg.ApplySecurity(cfg);
-    ucfg.ApplyTimeout(cfg);
+    if (ucfg.ConfTree()["Broker"]["Arguments"])
+      cfg.NewChild("Arguments") = (std::string)ucfg.ConfTree()["Broker"]["Arguments"];
+    ucfg.ApplyToConfig(cfg);
 
     ACCPluginArgument arg(&cfg);
 

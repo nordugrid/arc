@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
   }
 
   if (timeout > 0) {
-    usercfg.SetTimeout(timeout);
+    usercfg.SetTimeOut(timeout);
   }
 
   if (!debug.empty())

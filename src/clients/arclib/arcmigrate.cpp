@@ -113,8 +113,11 @@ int main(int argc, char **argv) {
   }
 
   if (timeout > 0) {
-    usercfg.SetTimeout(timeout);
+    usercfg.SetTimeOut(timeout);
   }
+
+  if (!broker.empty())
+    usercfg.SetBroker(broker);
 
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -159,30 +162,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  // Prepare loader
-  if (broker.empty())
-    broker = "RandomBroker";
-
-  Arc::NS ns;
-  Arc::Config cfg(ns);
-  Arc::ACCConfig acccfg;
-  acccfg.MakeConfig(cfg);
-
-  Arc::XMLNode Broker = cfg.NewChild("ArcClientComponent");
-  std::string::size_type pos = broker.find(':');
-  if (pos != std::string::npos) {
-    Broker.NewAttribute("name") = broker.substr(0, pos);
-    Broker.NewChild("Arguments") = broker.substr(pos + 1);
-  }
-  else
-    Broker.NewAttribute("name") = broker;
-  Broker.NewAttribute("id") = "broker";
-
-  usercfg.ApplySecurity(Broker);
-  usercfg.ApplyTimeout(Broker);
-
-  Arc::ACCLoader loader(cfg);
-  Arc::Broker *chosenBroker = dynamic_cast<Arc::Broker*>(loader.getACC("broker"));
+  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig());
+  Arc::Broker *chosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], usercfg));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);
 
   std::list<Arc::URL> migratedJobIDs;

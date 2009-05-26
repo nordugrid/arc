@@ -236,12 +236,10 @@ namespace Arc {
     XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
     SubmitterComp.NewAttribute("name") = "Submitter" + GridFlavour;
     SubmitterComp.NewAttribute("id") = "submitter";
-    if (!ucfg.ApplySecurity(SubmitterComp))
-      return NULL;
     SubmitterComp.NewChild("Cluster") = Cluster.str();
     SubmitterComp.NewChild("Queue") = MappingQueue;
     SubmitterComp.NewChild("SubmissionEndpoint") = url.str();
-    ucfg.ApplyTimeout(SubmitterComp);
+    ucfg.ApplyToConfig(SubmitterComp);
 
     if (loader)
       delete loader;

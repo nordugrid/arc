@@ -50,8 +50,7 @@ namespace Arc {
         XMLNode retriever = cfg.NewChild("ArcClientComponent");
         retriever.NewAttribute("name") = "TargetRetriever" + it->first;
         retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-        usercfg.ApplySecurity(retriever);
-        usercfg.ApplyTimeout(retriever);
+        usercfg.ApplyToConfig(retriever);
         XMLNode url = retriever.NewChild("URL") = it2->str();
         url.NewAttribute("ServiceType") = "computing";
         targetcnt++;
@@ -65,7 +64,7 @@ namespace Arc {
         XMLNode retriever = cfg.NewChild("ArcClientComponent");
         retriever.NewAttribute("name") = "TargetRetriever" + it->first;
         retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-        usercfg.ApplySecurity(retriever);
+        usercfg.ApplyToConfig(retriever);
         XMLNode url = retriever.NewChild("URL") = it2->str();
         url.NewAttribute("ServiceType") = "index";
         targetcnt++;

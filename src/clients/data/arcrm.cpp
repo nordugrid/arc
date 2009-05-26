@@ -175,7 +175,7 @@ int main(int argc, char **argv) {
 
   Arc::NS ns;
   Arc::XMLNode cred(ns, "cred");
-  usercfg.ApplySecurity(cred);
+  usercfg.ApplyToConfig(cred);
 
   std::list<std::string>::iterator it = params.begin();
   arcrm(*it, cred, force, timeout);

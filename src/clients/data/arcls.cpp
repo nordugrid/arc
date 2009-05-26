@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
 
   Arc::NS ns;
   Arc::XMLNode cred(ns, "cred");
-  usercfg.ApplySecurity(cred);
+  usercfg.ApplyToConfig(cred);
 
   arcls(*it, cred, longlist, locations, metadata, recursion, timeout);
 

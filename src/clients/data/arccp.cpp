@@ -565,7 +565,7 @@ int main(int argc, char **argv) {
 
   Arc::NS ns;
   Arc::XMLNode cred(ns, "cred");
-  usercfg.ApplySecurity(cred);
+  usercfg.ApplyToConfig(cred);
 
   if (nocopy)
     arcregister(source, destination, cred, secure, passive, force, timeout);

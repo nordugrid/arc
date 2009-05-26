@@ -80,19 +80,8 @@ int main(int argc, char **argv) {
   Arc::URL service = *it++;
   std::string message = *it++;
 
-  Arc::NS uns;
-  Arc::Config ucfg(uns);
-  usercfg.ApplySecurity(ucfg);
-
   Arc::MCCConfig cfg;
-  if (ucfg["ProxyPath"])
-    cfg.AddProxy((std::string)ucfg["ProxyPath"]);
-  if (ucfg["CertificatePath"])
-    cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
-  if (ucfg["KeyPath"])
-    cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
-  if (ucfg["CACertificatesDir"])
-    cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
+  usercfg.ApplyToConfig(cfg);
 
   Arc::ClientSOAP client(cfg, service);
 
